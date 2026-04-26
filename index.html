@@ -1,53 +1,699 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>ASOBooN スタンプラリー</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
   <style>
+    :root {
+      --ink: #2f2518;
+      --muted: #7b6a55;
+      --orange: #ff9d1c;
+      --orange-dark: #e57900;
+      --green: #2fbf71;
+      --line: rgba(47, 37, 24, 0.13);
+      --shadow: 0 16px 44px rgba(91, 54, 0, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(255, 204, 92, .45), transparent 30%),
+        radial-gradient(circle at 92% 12%, rgba(255, 157, 28, .32), transparent 28%),
+        linear-gradient(180deg, #fff9ea 0%, #ffe7b8 100%);
+    }
+
+    .app {
+      width: min(100%, 520px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 18px 28px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 20px 8px 14px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .75);
+      color: var(--orange-dark);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: 34px;
+      line-height: 1.08;
+      letter-spacing: .02em;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      font-weight: 700;
+    }
+
+    .card {
+      margin-top: 16px;
+      background: rgba(255, 255, 255, .9);
+      border: 1px solid rgba(255, 255, 255, .86);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .loading {
+      min-height: 220px;
       display: grid;
       place-items: center;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-      background: linear-gradient(180deg, #fff8e8, #ffe1a8);
-      color: #2f2518;
-    }
-    .card {
-      width: min(88vw, 420px);
-      padding: 28px 22px;
-      border-radius: 28px;
-      background: rgba(255,255,255,.9);
-      box-shadow: 0 16px 44px rgba(91, 54, 0, .14);
       text-align: center;
+      color: var(--muted);
+      font-weight: 850;
+      line-height: 1.8;
     }
-    h1 {
-      margin: 0 0 12px;
-      font-size: 30px;
-      line-height: 1.15;
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 16px;
+      border-radius: 999px;
+      border: 5px solid rgba(47, 37, 24, .12);
+      border-top-color: var(--orange);
+      animation: spin 1s linear infinite;
     }
-    p {
-      margin: 0;
-      color: #7b6a55;
-      font-weight: 700;
-      line-height: 1.7;
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .ok {
-      margin-top: 18px;
-      padding: 12px;
-      border-radius: 18px;
-      background: #fff1cc;
-      color: #c46c00;
+
+    .message {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 950;
+      line-height: 1.4;
+    }
+
+    .message.new { color: var(--orange-dark); }
+    .message.duplicate { color: #6d5b44; }
+    .message.complete { color: var(--green); }
+
+    .progress {
+      text-align: center;
+      margin: 10px 0 18px;
+    }
+
+    .progress .big {
+      color: var(--orange-dark);
+      font-size: 54px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .progress .total {
+      color: var(--orange-dark);
+      font-size: 28px;
+      font-weight: 950;
+    }
+
+    .progressText {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .bar {
+      width: 100%;
+      height: 13px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(47, 37, 24, .1);
+      margin: 16px 0 4px;
+    }
+
+    .barFill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ffb331, #ff7a00);
+      transition: width .45s ease;
+    }
+
+    .spotList {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .spot {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 13px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .72);
+    }
+
+    .spot.stamped {
+      border-color: rgba(47, 191, 113, .35);
+      background: rgba(47, 191, 113, .1);
+    }
+
+    .stampIcon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(47, 37, 24, .08);
+      color: rgba(47, 37, 24, .45);
+      font-size: 23px;
+      font-weight: 950;
+    }
+
+    .spot.stamped .stampIcon {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .spotName {
+      margin: 0 0 3px;
+      font-size: 16px;
       font-weight: 900;
+    }
+
+    .spotDesc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .errorBox {
+      color: #8e251f;
+      background: rgba(255, 91, 78, .1);
+      border: 1px solid rgba(255, 91, 78, .24);
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 850;
+    }
+
+    .debugBox {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(47, 37, 24, .07);
+      color: rgba(47, 37, 24, .78);
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: var(--ink);
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    button.secondary {
+      background: rgba(47, 37, 24, .1);
+      color: var(--ink);
+    }
+
+    .small {
+      margin: 12px 0 0;
+      color: rgba(47, 37, 24, .54);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .completeScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: #080706;
+      color: #fff;
+    }
+
+    .completeScreen.show { display: grid; }
+
+    .completeInner {
+      width: min(100%, 440px);
+      text-align: center;
+      padding: 30px 20px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, .09);
+      border: 1px solid rgba(255, 255, 255, .16);
+    }
+
+    .completeTitle {
+      margin: 0 0 12px;
+      font-size: 52px;
+      line-height: .95;
+      font-weight: 950;
+      background: linear-gradient(90deg, #fff26b, #ff9f1a, #ff4fd8, #63e6ff, #94ff70);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .completeText {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.7;
+      font-weight: 850;
+    }
+
+    .staffText {
+      margin: 18px 0 0;
+      padding: 14px;
+      border-radius: 18px;
+      color: #20170d;
+      background: #fff;
+      font-size: 16px;
+      font-weight: 950;
     }
   </style>
 </head>
+
 <body>
-  <main class="card">
-    <h1>ASOBooN<br>スタンプラリー</h1>
-    <p>GitHub Pages 表示テスト中です。</p>
-    <div class="ok">ここが見えたら成功です</div>
-  </main>
+  <div class="app">
+    <header class="hero">
+      <div class="eyebrow">LINEであつめる</div>
+      <h1>ASOBooN<br>スタンプラリー</h1>
+      <p class="lead">スマホをかざすと、今日のスタンプがたまります。</p>
+    </header>
+
+    <main id="main" class="card loading">
+      <div>
+        <div class="spinner"></div>
+        <div id="loadingText">起動しています</div>
+      </div>
+    </main>
+
+    <p class="small">スタンプは読み取ったLINEアカウントに保存されます。</p>
+  </div>
+
+  <div id="completeScreen" class="completeScreen">
+    <div class="completeInner">
+      <p class="completeTitle">COMPLETE!</p>
+      <p class="completeText">すべてのスタンプを<br>集めました！</p>
+      <p class="staffText">スタッフにこの画面を見せてください。</p>
+      <div class="buttonRow">
+        <button type="button" class="secondary" onclick="closeComplete()">スタンプを見る</button>
+        <button type="button" onclick="closeLiffWindow()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LIFF_ID = "2009888671-57TOefc3";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxILMUKf0jUEXi_t3quHWUuY0QwP8damcvnKUFY8OwFXoqcN7rfdEhi3vh2Yf8bzLiQLQ/exec";
+
+    const state = {
+      spotId: "",
+      lineUserId: "",
+      liffReady: false,
+      step: "boot",
+      debug: {}
+    };
+
+    const main = document.getElementById("main");
+    const loadingText = document.getElementById("loadingText");
+    const completeScreen = document.getElementById("completeScreen");
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    async function init() {
+      try {
+        step("URL確認");
+        state.spotId = readSpotId();
+
+        step("LIFF SDK確認");
+        if (!window.liff) {
+          throw makeError("LIFF_SDK_NOT_LOADED", "LIFF SDKが読み込めません。");
+        }
+
+        step("LIFF初期化");
+        await timeout(liff.init({ liffId: LIFF_ID }), 15000, "LIFF_INIT_TIMEOUT");
+        state.liffReady = true;
+
+        step("LINE内確認");
+        if (!liff.isInClient()) {
+          throw makeError("LINE_REQUIRED", "LINEアプリから開いてください。");
+        }
+
+        step("ログイン確認");
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: location.href });
+          return;
+        }
+
+        step("LINE識別取得");
+        await resolveLineUserId();
+
+        if (!state.lineUserId) {
+          throw makeError("LINE_USER_ID_EMPTY", "LINEユーザー情報を取得できませんでした。");
+        }
+
+        step("スタンプ保存");
+        const result = await callGasJsonp({
+          action: state.spotId ? "stamp" : "getStamps",
+          spotId: state.spotId || "",
+          lineUserId: state.lineUserId,
+          timestamp: new Date().toISOString(),
+          clientUrl: location.href
+        });
+
+        if (!result || !result.ok) {
+          throw result || makeError("EMPTY_RESPONSE", "GASから空の返答です。");
+        }
+
+        step("表示");
+        renderStatus(result);
+
+        if (result.completed || result.isComplete) {
+          showComplete();
+        }
+      } catch (error) {
+        renderError(error);
+      }
+    }
+
+    function step(label) {
+      state.step = label;
+      if (loadingText) {
+        loadingText.textContent = label + "しています";
+      }
+    }
+
+    function readSpotId() {
+      const params = new URLSearchParams(location.search);
+
+      const direct = params.get("spot");
+      if (direct) return direct.trim();
+
+      const liffState = params.get("liff.state");
+      if (liffState) {
+        try {
+          const decoded = decodeURIComponent(liffState);
+          const queryText = decoded.includes("?")
+            ? decoded.split("?").pop()
+            : decoded.replace(/^\/+/, "").replace(/^\?/, "");
+
+          const fromState = new URLSearchParams(queryText).get("spot");
+          if (fromState) return fromState.trim();
+        } catch (error) {}
+      }
+
+      const hash = new URLSearchParams(String(location.hash || "").replace(/^#/, ""));
+      const fromHash = hash.get("spot");
+      if (fromHash) return fromHash.trim();
+
+      return "";
+    }
+
+    async function resolveLineUserId() {
+      try {
+        const context = liff.getContext ? liff.getContext() : null;
+        state.debug.context = {
+          hasContext: Boolean(context),
+          hasUserId: Boolean(context && context.userId),
+          type: context && context.type ? context.type : ""
+        };
+
+        if (context && context.userId) {
+          state.lineUserId = context.userId;
+          return;
+        }
+      } catch (error) {
+        state.debug.contextError = String(error && error.message ? error.message : error);
+      }
+
+      try {
+        const decoded = liff.getDecodedIDToken ? liff.getDecodedIDToken() : null;
+        state.debug.hasDecodedIdToken = Boolean(decoded);
+
+        if (decoded && decoded.sub) {
+          state.lineUserId = decoded.sub;
+          return;
+        }
+      } catch (error) {
+        state.debug.decodedError = String(error && error.message ? error.message : error);
+      }
+
+      try {
+        const profile = await timeout(liff.getProfile(), 12000, "GET_PROFILE_TIMEOUT");
+        state.debug.hasProfile = Boolean(profile);
+
+        if (profile && profile.userId) {
+          state.lineUserId = profile.userId;
+          return;
+        }
+      } catch (error) {
+        state.debug.profileError = String(error && error.message ? error.message : error);
+      }
+    }
+
+    function callGasJsonp(params) {
+      return new Promise((resolve, reject) => {
+        const callbackName = "__asoboonCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        const script = document.createElement("script");
+
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(makeError("GAS_JSONP_TIMEOUT", "GASから返答がありません。"));
+        }, 30000);
+
+        window[callbackName] = function(result) {
+          cleanup();
+          resolve(result);
+        };
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        script.onerror = function() {
+          cleanup();
+          reject(makeError("GAS_JSONP_LOAD_FAILED", "GAS APIの読み込みに失敗しました。"));
+        };
+
+        const query = new URLSearchParams();
+        query.set("action", params.action || "getStamps");
+        query.set("lineUserId", params.lineUserId || "");
+        query.set("timestamp", params.timestamp || new Date().toISOString());
+        query.set("clientUrl", params.clientUrl || location.href);
+        query.set("callback", callbackName);
+
+        if (params.spotId) {
+          query.set("spotId", params.spotId);
+        }
+
+        script.src = GAS_API_URL + "?" + query.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    function renderStatus(data) {
+      const count = Number(data.stampedCount || 0);
+      const total = Number(data.totalSpots || 4);
+      const percent = total ? Math.round((count / total) * 100) : 0;
+
+      let message = "今日のスタンプカード";
+      let cls = "";
+
+      if (data.completed || data.isComplete) {
+        message = "コンプリート！";
+        cls = "complete";
+      } else if (data.stampStatus === "new") {
+        message = "スタンプをゲットしました！";
+        cls = "new";
+      } else if (data.stampStatus === "duplicate") {
+        message = "この場所はもうスタンプ済みです";
+        cls = "duplicate";
+      }
+
+      main.className = "card";
+      main.innerHTML = `
+        <p class="message ${cls}">${escapeHtml(message)}</p>
+
+        <div class="progress">
+          <div>
+            <span class="big">${count}</span>
+            <span class="total"> / ${total}</span>
+          </div>
+          <p class="progressText">今日は ${count} / ${total} 個 あつめたよ</p>
+          <div class="bar"><div class="barFill" style="width:${percent}%"></div></div>
+        </div>
+
+        <div class="spotList">
+          ${(data.stampList || []).map(renderSpot).join("")}
+        </div>
+
+        <div class="buttonRow">
+          <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
+          <button type="button" onclick="closeLiffWindow()">閉じる</button>
+        </div>
+      `;
+    }
+
+    function renderSpot(spot) {
+      const stamped = Boolean(spot.stamped);
+
+      return `
+        <article class="spot ${stamped ? "stamped" : ""}">
+          <div class="stampIcon">${stamped ? "●" : "○"}</div>
+          <div>
+            <p class="spotName">${escapeHtml(spot.spotName || "")}</p>
+            <p class="spotDesc">${escapeHtml(spot.description || "")}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderError(error) {
+      const code = error && (error.error || error.code) ? (error.error || error.code) : "UNKNOWN";
+      const msg = customerMessage(code);
+
+      const debug = {
+        code: code,
+        message: error && error.message ? error.message : String(error),
+        step: state.step,
+        spotId: state.spotId,
+        hasLineUserId: Boolean(state.lineUserId),
+        lineUserIdPrefix: state.lineUserId ? state.lineUserId.slice(0, 6) + "..." : "",
+        liffReady: state.liffReady,
+        url: location.href,
+        debug: state.debug
+      };
+
+      main.className = "card";
+      main.innerHTML = `
+        <div class="errorBox">${escapeHtml(msg)}</div>
+        <pre class="debugBox">${escapeHtml(JSON.stringify(debug, null, 2))}</pre>
+        <div class="buttonRow">
+          <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
+          <button type="button" onclick="closeLiffWindow()">閉じる</button>
+        </div>
+      `;
+    }
+
+    function customerMessage(code) {
+      if (code === "INVALID_SPOT") {
+        return "このスタンプは見つかりませんでした。近くのスタッフにお声がけください。";
+      }
+
+      if (
+        code === "LINE_REQUIRED" ||
+        code === "LINE_USER_ID_EMPTY" ||
+        code === "LIFF_SDK_NOT_LOADED"
+      ) {
+        return "LINEアプリから開いてください。";
+      }
+
+      if (
+        code === "LIFF_INIT_TIMEOUT" ||
+        code === "GET_PROFILE_TIMEOUT" ||
+        code === "GAS_JSONP_TIMEOUT" ||
+        code === "GAS_JSONP_LOAD_FAILED"
+      ) {
+        return "スタンプの確認に時間がかかっています。もう一度お試しください。";
+      }
+
+      return "スタンプの確認に失敗しました。少し時間をおいて、もう一度お試しください。";
+    }
+
+    function timeout(promise, ms, code) {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(makeError(code, code));
+        }, ms);
+
+        Promise.resolve(promise)
+          .then((value) => {
+            clearTimeout(timer);
+            resolve(value);
+          })
+          .catch((error) => {
+            clearTimeout(timer);
+            reject(error);
+          });
+      });
+    }
+
+    function makeError(code, message) {
+      return {
+        ok: false,
+        success: false,
+        error: code,
+        code: code,
+        message: message || code
+      };
+    }
+
+    function showComplete() {
+      completeScreen.classList.add("show");
+    }
+
+    function closeComplete() {
+      completeScreen.classList.remove("show");
+    }
+
+    function closeLiffWindow() {
+      if (window.liff && state.liffReady && liff.isInClient()) {
+        liff.closeWindow();
+      } else {
+        closeComplete();
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>
