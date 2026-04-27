@@ -8,229 +8,660 @@
 
   <style>
     :root {
-      --ink: #2f2518;
-      --muted: #7b6a55;
-      --orange: #ff9d1c;
-      --orange-dark: #e57900;
-      --green: #2fbf71;
-      --line: rgba(47, 37, 24, 0.13);
-      --shadow: 0 16px 44px rgba(91, 54, 0, 0.14);
+      --bg-dark: #2b2b2b;
+      --bg-steel: #4a4f55;
+      --bg-concrete: #77736d;
+      --panel: #d9c9aa;
+      --panel-soft: #efe4cf;
+      --panel-line: #8e7f68;
+      --ink: #2a241d;
+      --muted: #6b6257;
+      --yellow: #f2c230;
+      --yellow-deep: #d89b00;
+      --orange: #e98d28;
+      --green: #45b36b;
+      --green-deep: #2c8c50;
+      --red: #cc5747;
+      --steel-1: #b8bcc2;
+      --steel-2: #8f959d;
+      --steel-3: #686f77;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
     }
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at 15% 0%, rgba(255, 204, 92, .45), transparent 30%),
-        radial-gradient(circle at 92% 12%, rgba(255, 157, 28, .32), transparent 28%),
-        linear-gradient(180deg, #fff9ea 0%, #ffe7b8 100%);
+        radial-gradient(circle at 12% 10%, rgba(255,255,255,.08), transparent 20%),
+        radial-gradient(circle at 88% 16%, rgba(255,255,255,.06), transparent 16%),
+        linear-gradient(180deg, #43484f 0%, #2f3338 38%, #262a2f 100%);
+      overflow-x: hidden;
+      position: relative;
     }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          rgba(242, 194, 48, 0.12) 0 14px,
+          rgba(34, 34, 34, 0.0) 14px 28px
+        );
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,.12));
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,.12));
+      opacity: .55;
+    }
+
+    .cautionTop,
+    .cautionBottom {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      z-index: 2;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #1c1c1c 0 16px,
+          #1c1c1c 16px 18px,
+          #f0c228 18px 34px,
+          #f0c228 34px 36px
+        );
+      box-shadow: 0 2px 10px rgba(0,0,0,.24);
+      pointer-events: none;
+    }
+
+    .cautionTop { top: 0; }
+    .cautionBottom { bottom: 0; }
 
     .app {
-      width: min(100%, 520px);
+      width: min(100%, 560px);
       min-height: 100vh;
       margin: 0 auto;
-      padding: 24px 18px 28px;
+      padding: max(34px, env(safe-area-inset-top) + 20px) 18px max(34px, env(safe-area-inset-bottom) + 20px);
+      position: relative;
+      z-index: 3;
     }
 
-    .hero {
-      text-align: center;
-      padding: 20px 8px 14px;
+    .machineFrame {
+      position: relative;
+      padding: 14px;
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, #7a8088 0%, #565c64 32%, #42474f 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -4px 0 rgba(0,0,0,.2),
+        0 24px 60px rgba(0,0,0,.32);
+      border: 1px solid rgba(255,255,255,.08);
     }
 
-    .eyebrow {
-      display: inline-block;
+    .machineFrame::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 28px;
+      border: 2px solid rgba(255,255,255,.1);
+      pointer-events: none;
+    }
+
+    .bolt {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 30%, #eff2f5, #8e959d 58%, #565c64 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 4px rgba(0,0,0,.35);
+      z-index: 1;
+    }
+
+    .b1 { top: 14px; left: 14px; }
+    .b2 { top: 14px; right: 14px; }
+    .b3 { bottom: 14px; left: 14px; }
+    .b4 { bottom: 14px; right: 14px; }
+
+    .machineSurface {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.06)),
+        linear-gradient(180deg, #666c74 0%, #555a62 100%);
+      padding: 14px;
+    }
+
+    .machineSurface::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.05), transparent 18%, transparent 82%, rgba(255,255,255,.04)),
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,.02) 0 2px,
+          rgba(0,0,0,0) 2px 28px
+        );
+      pointer-events: none;
+    }
+
+    .consoleHeader {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      padding: 16px 16px 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),
+        linear-gradient(180deg, #cdc4b6 0%, #d8ccb8 100%);
+      border: 2px solid rgba(100, 88, 71, .35);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.35),
+        inset 0 -3px 0 rgba(105, 90, 73, .15);
+    }
+
+    .consoleHeader::after {
+      content: "";
+      position: absolute;
+      right: -16px;
+      top: -16px;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.16), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .machineLabelRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .machineTag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, .75);
-      color: var(--orange-dark);
+      background:
+        linear-gradient(180deg, #f4cb3a, #dea914);
+      color: #33280d;
       font-weight: 900;
       font-size: 12px;
+      letter-spacing: .03em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
     }
 
+    .signalGroup {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .signalLamp {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 8px rgba(0,0,0,.22);
+    }
+
+    .lampRed { background: radial-gradient(circle at 35% 35%, #ffb0a5, #d54f3a 60%, #9a3023 100%); }
+    .lampYellow { background: radial-gradient(circle at 35% 35%, #ffe7a2, #efc538 60%, #b98700 100%); }
+    .lampGreen { background: radial-gradient(circle at 35% 35%, #caffd1, #49b96f 60%, #267946 100%); }
+
     h1 {
-      margin: 14px 0 8px;
+      margin: 0;
       font-size: 34px;
       line-height: 1.08;
       letter-spacing: .02em;
+      color: #2e2519;
+      text-shadow: 0 1px 0 rgba(255,255,255,.26);
     }
 
-    .lead {
-      margin: 0;
-      color: var(--muted);
+    .subTitle {
+      margin: 8px 0 0;
+      color: #62584b;
       font-size: 14px;
       line-height: 1.7;
-      font-weight: 700;
+      font-weight: 800;
+    }
+
+    .heroMini {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .heroBadge {
+      padding: 10px 8px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.25));
+      border: 1px solid rgba(105, 90, 73, .24);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #5e5447;
     }
 
     .card {
-      margin-top: 16px;
-      background: rgba(255, 255, 255, .9);
-      border: 1px solid rgba(255, 255, 255, .86);
-      border-radius: 28px;
-      box-shadow: var(--shadow);
+      position: relative;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, #e9dec9 0%, #d9c9aa 100%);
+      border: 2px solid rgba(110, 95, 77, .34);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.34),
+        inset 0 -3px 0 rgba(117, 100, 79, .16),
+        var(--shadow);
       padding: 18px;
+      animation: hatchOpen .45s ease;
+    }
+
+    @keyframes hatchOpen {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.06), transparent 16%, transparent 84%, rgba(255,255,255,.08)),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.025) 0 2px,
+          rgba(0,0,0,0) 2px 24px
+        );
+      pointer-events: none;
+    }
+
+    .cardHeaderBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 2px dashed rgba(103, 89, 72, .22);
+      position: relative;
+      z-index: 1;
+    }
+
+    .cardHeaderTitle {
+      font-size: 14px;
+      font-weight: 950;
+      color: #51473b;
+      letter-spacing: .04em;
+    }
+
+    .cardHeaderFloor {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(82, 70, 56, .08);
+      color: #605548;
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .loading {
-      min-height: 220px;
+      min-height: 260px;
       display: grid;
       place-items: center;
       text-align: center;
-      color: var(--muted);
-      font-weight: 850;
+      position: relative;
+      z-index: 1;
+    }
+
+    .loadingInner {
+      max-width: 260px;
+    }
+
+    .gearWrap {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 18px;
+    }
+
+    .gearMain,
+    .gearSub {
+      position: absolute;
+      border-radius: 50%;
+      border: 8px solid #7b848d;
+      background:
+        radial-gradient(circle at center, #eceff2 0 20%, #b3bac2 20% 30%, #818991 30% 100%);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.25), 0 8px 20px rgba(0,0,0,.18);
+    }
+
+    .gearMain {
+      inset: 0;
+      animation: spin 2.2s linear infinite;
+    }
+
+    .gearSub {
+      width: 38px;
+      height: 38px;
+      right: -2px;
+      bottom: -4px;
+      border-width: 6px;
+      animation: spinReverse 1.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spinReverse { to { transform: rotate(-360deg); } }
+
+    .loadingTitle {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 950;
+      color: #40362b;
+    }
+
+    .loadingText {
+      margin: 0;
+      color: #6f6558;
+      font-size: 14px;
       line-height: 1.8;
-    }
-
-    .spinner {
-      width: 42px;
-      height: 42px;
-      margin: 0 auto 16px;
-      border-radius: 999px;
-      border: 5px solid rgba(47, 37, 24, .12);
-      border-top-color: var(--orange);
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      font-weight: 800;
     }
 
     .message {
-      margin: 0 0 10px;
+      position: relative;
+      z-index: 1;
+      margin: 0 0 14px;
       text-align: center;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 950;
-      line-height: 1.4;
+      line-height: 1.35;
+      color: #43382c;
     }
 
-    .message.new { color: var(--orange-dark); }
-    .message.duplicate { color: #6d5b44; }
-    .message.complete { color: var(--green); }
+    .message.new { color: #9b6700; }
+    .message.duplicate { color: #6c6052; }
+    .message.complete { color: var(--green-deep); }
+
+    .progressShell {
+      position: relative;
+      z-index: 1;
+      border-radius: 20px;
+      padding: 16px 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.18));
+      border: 1px solid rgba(108, 94, 75, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+    }
 
     .progress {
       text-align: center;
-      margin: 10px 0 18px;
+      margin: 0 0 12px;
     }
 
     .progress .big {
-      color: var(--orange-dark);
-      font-size: 54px;
+      color: #8e6400;
+      font-size: 56px;
       font-weight: 950;
       line-height: 1;
     }
 
     .progress .total {
-      color: var(--orange-dark);
+      color: #8e6400;
       font-size: 28px;
       font-weight: 950;
     }
 
     .progressText {
-      margin: 5px 0 0;
-      color: var(--muted);
+      margin: 6px 0 0;
+      color: #62584b;
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 850;
+      line-height: 1.6;
+    }
+
+    .barWrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .barLabel {
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 950;
+      color: #5c5145;
+      letter-spacing: .04em;
     }
 
     .bar {
-      width: 100%;
-      height: 13px;
+      flex: 1;
+      height: 16px;
       overflow: hidden;
       border-radius: 999px;
-      background: rgba(47, 37, 24, .1);
-      margin: 16px 0 4px;
+      background:
+        linear-gradient(180deg, #7a8088, #636a72);
+      border: 2px solid rgba(59, 64, 70, .35);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.12);
+      position: relative;
+    }
+
+    .bar::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: inherit;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.08) 0 8px,
+          rgba(0,0,0,0) 8px 16px
+        );
+      pointer-events: none;
     }
 
     .barFill {
       height: 100%;
       width: 0%;
       border-radius: inherit;
-      background: linear-gradient(90deg, #ffb331, #ff7a00);
+      background:
+        linear-gradient(90deg, #f4cf47, #e79b1d);
       transition: width .45s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+      position: relative;
+    }
+
+    .barFill::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: -12px;
+      width: 18px;
+      height: 100%;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.0), rgba(255,255,255,.35));
+      transform: skewX(-20deg);
     }
 
     .spotList {
+      position: relative;
+      z-index: 1;
       display: grid;
-      gap: 10px;
-      margin-top: 14px;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     .spot {
+      position: relative;
+      overflow: hidden;
       display: grid;
-      grid-template-columns: 44px 1fr;
+      grid-template-columns: 52px 1fr;
       gap: 12px;
       align-items: center;
-      padding: 13px;
+      padding: 14px;
       border-radius: 20px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, .72);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.32));
+      border: 1px solid rgba(104, 89, 71, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+    }
+
+    .spot::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 10px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #202020 0 8px,
+          #202020 8px 10px,
+          #f0c228 10px 18px,
+          #f0c228 18px 20px
+        );
+      opacity: .7;
     }
 
     .spot.stamped {
-      border-color: rgba(47, 191, 113, .35);
-      background: rgba(47, 191, 113, .1);
+      background:
+        linear-gradient(180deg, rgba(112, 211, 149, .20), rgba(255,255,255,.4));
+      border-color: rgba(71, 179, 107, .35);
     }
 
     .stampIcon {
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       display: grid;
       place-items: center;
-      border-radius: 999px;
-      background: rgba(47, 37, 24, .08);
-      color: rgba(47, 37, 24, .45);
-      font-size: 23px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, #8f969e, #717982);
+      border: 2px solid rgba(68, 74, 81, .3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+      color: rgba(255,255,255,.88);
+      font-size: 24px;
       font-weight: 950;
+      position: relative;
+    }
+
+    .stampIcon::after {
+      content: "P";
+      position: absolute;
+      bottom: 4px;
+      right: 6px;
+      font-size: 10px;
+      font-weight: 900;
+      opacity: .55;
     }
 
     .spot.stamped .stampIcon {
-      background: var(--green);
-      color: #fff;
+      background:
+        linear-gradient(180deg, #68c889, #3c9f61);
+      border-color: rgba(30, 111, 57, .24);
+    }
+
+    .spotTopRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .spotName {
-      margin: 0 0 3px;
+      margin: 0;
       font-size: 16px;
-      font-weight: 900;
+      font-weight: 950;
+      color: #403529;
+    }
+
+    .spotLamp {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff2ae, #efc538 58%, #b98700 100%);
+      box-shadow: 0 0 8px rgba(239,197,56,.5);
+      flex: 0 0 auto;
+    }
+
+    .spot.stamped .spotLamp {
+      background: radial-gradient(circle at 35% 35%, #d0ffd5, #45b36b 58%, #267946 100%);
+      box-shadow: 0 0 8px rgba(69,179,107,.45);
     }
 
     .spotDesc {
       margin: 0;
-      color: var(--muted);
+      color: #675d50;
       font-size: 12px;
-      line-height: 1.45;
-      font-weight: 650;
+      line-height: 1.55;
+      font-weight: 700;
     }
 
     .errorBox {
-      color: #8e251f;
-      background: rgba(255, 91, 78, .1);
-      border: 1px solid rgba(255, 91, 78, .24);
-      padding: 14px 16px;
+      position: relative;
+      z-index: 1;
+      color: #7a2a21;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.22)),
+        #f2d2cb;
+      border: 1px solid rgba(167, 78, 63, .22);
+      padding: 16px;
       border-radius: 18px;
       font-size: 14px;
-      line-height: 1.55;
-      font-weight: 850;
+      line-height: 1.7;
+      font-weight: 900;
     }
 
     .debugBox {
+      position: relative;
+      z-index: 1;
       margin-top: 12px;
       padding: 12px;
-      border-radius: 14px;
-      background: rgba(47, 37, 24, .07);
-      color: rgba(47, 37, 24, .78);
+      border-radius: 16px;
+      background: rgba(73, 63, 51, .08);
+      color: #5e5448;
       font-size: 11px;
-      line-height: 1.5;
+      line-height: 1.55;
       white-space: pre-wrap;
       word-break: break-all;
+      border: 1px dashed rgba(95, 82, 66, .2);
     }
 
     .buttonRow {
+      position: relative;
+      z-index: 1;
       display: flex;
       gap: 10px;
       margin-top: 14px;
@@ -242,29 +673,53 @@
       border: 0;
       border-radius: 18px;
       padding: 14px 16px;
-      background: var(--ink);
+      background:
+        linear-gradient(180deg, #9198a0 0%, #727a83 100%);
       color: #fff;
-      font-weight: 900;
+      font-weight: 950;
       font-size: 15px;
       text-decoration: none;
       display: block;
       text-align: center;
       cursor: pointer;
       line-height: 1.2;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.25),
+        inset 0 -2px 0 rgba(0,0,0,.18),
+        0 6px 16px rgba(0,0,0,.12);
+      border: 2px solid rgba(73, 79, 86, .35);
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    button:active,
+    .linkButton:active {
+      transform: translateY(1px) scale(.995);
+      filter: brightness(.98);
     }
 
     button.secondary,
     .linkButton.secondary {
-      background: rgba(47, 37, 24, .1);
-      color: var(--ink);
+      background:
+        linear-gradient(180deg, #e9dec9 0%, #d8c8a8 100%);
+      color: #4f4538;
+      border-color: rgba(110, 95, 77, .28);
+    }
+
+    .linkButton.primaryAction {
+      background:
+        linear-gradient(180deg, #f2ca39 0%, #df9f17 100%);
+      color: #3b2e11;
+      border-color: rgba(137, 99, 9, .32);
     }
 
     .small {
-      margin: 12px 0 0;
-      color: rgba(47, 37, 24, .54);
+      margin: 14px 0 0;
       text-align: center;
+      color: rgba(255,255,255,.86);
       font-size: 11px;
+      line-height: 1.7;
       font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,.18);
     }
 
     .completeScreen {
@@ -275,81 +730,183 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(circle at 20% 20%, rgba(255, 184, 44, .28), transparent 28%),
-        radial-gradient(circle at 82% 10%, rgba(255, 86, 86, .22), transparent 24%),
-        #080706;
-      color: #fff;
+        radial-gradient(circle at 20% 20%, rgba(242,194,48,.22), transparent 26%),
+        radial-gradient(circle at 80% 14%, rgba(255,255,255,.08), transparent 18%),
+        linear-gradient(180deg, rgba(20,20,20,.88), rgba(20,20,20,.96));
+      backdrop-filter: blur(2px);
     }
 
     .completeScreen.show { display: grid; }
 
     .completeInner {
-      width: min(100%, 440px);
+      width: min(100%, 460px);
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 20px;
+      background:
+        linear-gradient(180deg, #616871 0%, #4f555e 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        0 24px 60px rgba(0,0,0,.48);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .completeInner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 18px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #1c1c1c 0 16px,
+          #1c1c1c 16px 18px,
+          #f0c228 18px 34px,
+          #f0c228 34px 36px
+        );
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+
+    .completePanel {
+      margin-top: 16px;
+      border-radius: 22px;
+      padding: 22px 18px 18px;
+      background:
+        linear-gradient(180deg, #eee4d1 0%, #d8c8a8 100%);
+      border: 2px solid rgba(110, 95, 77, .28);
       text-align: center;
-      padding: 30px 20px;
-      border-radius: 30px;
-      background: rgba(255, 255, 255, .09);
-      border: 1px solid rgba(255, 255, 255, .16);
-      box-shadow: 0 20px 80px rgba(0, 0, 0, .45);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.3);
+    }
+
+    .completeSignal {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .completeTitle {
-      margin: 0 0 12px;
-      font-size: 52px;
-      line-height: .95;
+      margin: 0 0 10px;
+      font-size: 50px;
+      line-height: .96;
       font-weight: 950;
-      background: linear-gradient(90deg, #fff26b, #ff9f1a, #ff4fd8, #63e6ff, #94ff70);
+      background: linear-gradient(90deg, #fff26b, #ffb22d, #ff6f5d, #52cfff, #8eff7d);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      text-shadow: 0 2px 0 rgba(255,255,255,.12);
     }
 
     .completeText {
       margin: 0;
       font-size: 18px;
-      line-height: 1.7;
+      line-height: 1.75;
       font-weight: 850;
+      color: #4a4035;
     }
 
     .staffText {
-      margin: 18px 0 0;
+      margin: 16px 0 0;
       padding: 14px;
       border-radius: 18px;
-      color: #20170d;
-      background: #fff;
+      color: #2f261c;
+      background:
+        linear-gradient(180deg, #f7efdf 0%, #e7d9bd 100%);
       font-size: 16px;
       font-weight: 950;
+      border: 1px solid rgba(110, 95, 77, .18);
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 
 <body>
+  <div class="cautionTop"></div>
+  <div class="cautionBottom"></div>
+
   <div class="app">
-    <header class="hero">
-      <div class="eyebrow">LINEであつめる</div>
-      <h1>ASOBooN<br>スタンプラリー</h1>
-      <p class="lead">スマホをかざすと、今日のスタンプがたまります。</p>
-    </header>
+    <div class="machineFrame">
+      <span class="bolt b1"></span>
+      <span class="bolt b2"></span>
+      <span class="bolt b3"></span>
+      <span class="bolt b4"></span>
 
-    <main id="main" class="card loading">
-      <div>
-        <div class="spinner"></div>
-        <div id="loadingText">起動しています</div>
+      <div class="machineSurface">
+        <header class="consoleHeader">
+          <div class="machineLabelRow">
+            <div class="machineTag">⚙️ ひみつの案内マシン</div>
+            <div class="signalGroup">
+              <span class="signalLamp lampRed"></span>
+              <span class="signalLamp lampYellow"></span>
+              <span class="signalLamp lampGreen"></span>
+            </div>
+          </div>
+
+          <h1>ASOBooN<br>スタンプラリー</h1>
+          <p class="subTitle">
+            機械式立体駐車場みたいな案内マシンをそうさして、<br>
+            今日のスタンプをあつめよう！
+          </p>
+
+          <div class="heroMini">
+            <div class="heroBadge">🚦 ご利用案内</div>
+            <div class="heroBadge">🅿️ フロアチェック</div>
+            <div class="heroBadge">⚡ スタンプ記録</div>
+          </div>
+        </header>
+
+        <main id="main" class="card loading">
+          <div class="loadingInner">
+            <div class="cardHeaderBar">
+              <div class="cardHeaderTitle">GUIDE MACHINE</div>
+              <div class="cardHeaderFloor">🛗 リフト準備中</div>
+            </div>
+
+            <div class="gearWrap">
+              <div class="gearMain"></div>
+              <div class="gearSub"></div>
+            </div>
+
+            <p class="loadingTitle">案内マシンを起動中</p>
+            <p id="loadingText" class="loadingText">確認しています</p>
+          </div>
+        </main>
+
+        <p class="small">
+          スタンプは読み取ったLINEアカウントに保存されます。<br>
+          まるで秘密の立体駐車場を動かすみたいに、楽しく案内を見ていきましょう。
+        </p>
       </div>
-    </main>
-
-    <p class="small">スタンプは読み取ったLINEアカウントに保存されます。</p>
+    </div>
   </div>
 
   <div id="completeScreen" class="completeScreen">
     <div class="completeInner">
-      <p class="completeTitle">COMPLETE!</p>
-      <p class="completeText">すべてのスタンプを<br>集めました！</p>
-      <p class="staffText">スタッフにこの画面を見せてください。</p>
+      <div class="completePanel">
+        <div class="completeSignal">
+          <span class="signalLamp lampRed"></span>
+          <span class="signalLamp lampYellow"></span>
+          <span class="signalLamp lampGreen"></span>
+        </div>
 
-      <div class="buttonRow">
-        <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
-        <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">次へ進む</a>
+        <p class="completeTitle">COMPLETE!</p>
+        <p class="completeText">
+          すべてのスタンプを<br>
+          集めました！
+        </p>
+
+        <p class="staffText">ゲートクリア！ この画面をスタッフに見せてください。</p>
+
+        <div class="buttonRow">
+          <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
+          <a class="linkButton primaryAction" href="https://miniapp.line.me/2009884613-ELc6kolf">次へ進む</a>
+        </div>
       </div>
     </div>
   </div>
@@ -553,29 +1110,46 @@
 
       let message = "今日のスタンプカード";
       let cls = "";
+      let floorLabel = "🅿️ ガイド確認中";
 
       if (data.completed || data.isComplete) {
         message = "コンプリート！";
         cls = "complete";
+        floorLabel = "🚦 ゲートオープン";
       } else if (data.stampStatus === "new") {
         message = "スタンプをゲットしました！";
         cls = "new";
+        floorLabel = "🛗 リフト到着";
       } else if (data.stampStatus === "duplicate") {
         message = "この場所はもうスタンプ済みです";
         cls = "duplicate";
+        floorLabel = "🔁 確認ずみ";
       }
 
       main.className = "card";
       main.innerHTML = `
+        <div class="cardHeaderBar">
+          <div class="cardHeaderTitle">SECRET GUIDE MACHINE</div>
+          <div class="cardHeaderFloor">${escapeHtml(floorLabel)}</div>
+        </div>
+
         <p class="message ${cls}">${escapeHtml(message)}</p>
 
-        <div class="progress">
-          <div>
-            <span class="big">${count}</span>
-            <span class="total"> / ${total}</span>
+        <div class="progressShell">
+          <div class="progress">
+            <div>
+              <span class="big">${count}</span>
+              <span class="total"> / ${total}</span>
+            </div>
+            <p class="progressText">今日は ${count} / ${total} 個 あつめたよ</p>
           </div>
-          <p class="progressText">今日は ${count} / ${total} 個 あつめたよ</p>
-          <div class="bar"><div class="barFill" style="width:${percent}%"></div></div>
+
+          <div class="barWrap">
+            <div class="barLabel">GATE</div>
+            <div class="bar">
+              <div class="barFill" style="width:${percent}%"></div>
+            </div>
+          </div>
         </div>
 
         <div class="spotList">
@@ -584,7 +1158,7 @@
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
-          <a class="linkButton" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
         </div>
       `;
     }
@@ -596,7 +1170,10 @@
         <article class="spot ${stamped ? "stamped" : ""}">
           <div class="stampIcon">${stamped ? "●" : "○"}</div>
           <div>
-            <p class="spotName">${escapeHtml(spot.spotName || "")}</p>
+            <div class="spotTopRow">
+              <p class="spotName">${escapeHtml(spot.spotName || "")}</p>
+              <span class="spotLamp"></span>
+            </div>
             <p class="spotDesc">${escapeHtml(spot.description || "")}</p>
           </div>
         </article>
@@ -621,11 +1198,17 @@
 
       main.className = "card";
       main.innerHTML = `
+        <div class="cardHeaderBar">
+          <div class="cardHeaderTitle">GUIDE MACHINE ERROR</div>
+          <div class="cardHeaderFloor">⚠️ 点検中</div>
+        </div>
+
         <div class="errorBox">${escapeHtml(msg)}</div>
         <pre class="debugBox">${escapeHtml(JSON.stringify(debug, null, 2))}</pre>
+
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
-          <a class="linkButton" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
         </div>
       `;
     }
@@ -649,7 +1232,7 @@
         code === "GAS_JSONP_TIMEOUT" ||
         code === "GAS_JSONP_LOAD_FAILED"
       ) {
-        return "スタンプの確認に時間がかかっています。もう一度お試しください。";
+        return "案内マシンの確認に時間がかかっています。もう一度お試しください。";
       }
 
       return "スタンプの確認に失敗しました。少し時間をおいて、もう一度お試しください。";
