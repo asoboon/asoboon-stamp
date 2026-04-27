@@ -236,7 +236,8 @@
       margin-top: 14px;
     }
 
-    button {
+    button,
+    .linkButton {
       width: 100%;
       border: 0;
       border-radius: 18px;
@@ -245,9 +246,15 @@
       color: #fff;
       font-weight: 900;
       font-size: 15px;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      cursor: pointer;
+      line-height: 1.2;
     }
 
-    button.secondary {
+    button.secondary,
+    .linkButton.secondary {
       background: rgba(47, 37, 24, .1);
       color: var(--ink);
     }
@@ -337,7 +344,7 @@
       <p class="staffText">スタッフにこの画面を見せてください。</p>
       <div class="buttonRow">
         <button type="button" class="secondary" onclick="closeComplete()">スタンプを見る</button>
-        <button type="button" onclick="closeLiffWindow()">閉じる</button>
+        <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
       </div>
     </div>
   </div>
@@ -345,6 +352,7 @@
   <script>
     const LIFF_ID = "2009888671-57TOefc3";
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxILMUKf0jUEXi_t3quHWUuY0QwP8damcvnKUFY8OwFXoqcN7rfdEhi3vh2Yf8bzLiQLQ/exec";
+    const FACILITY_MINIAPP_URL = "https://miniapp.line.me/2009884613-ELc6kolf";
 
     const state = {
       spotId: "",
@@ -571,7 +579,7 @@
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
-          <button type="button" onclick="closeLiffWindow()">閉じる</button>
+          <a class="linkButton" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
         </div>
       `;
     }
@@ -612,7 +620,7 @@
         <pre class="debugBox">${escapeHtml(JSON.stringify(debug, null, 2))}</pre>
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
-          <button type="button" onclick="closeLiffWindow()">閉じる</button>
+          <a class="linkButton" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
         </div>
       `;
     }
@@ -676,14 +684,6 @@
 
     function closeComplete() {
       completeScreen.classList.remove("show");
-    }
-
-    function closeLiffWindow() {
-      if (window.liff && state.liffReady && liff.isInClient()) {
-        liff.closeWindow();
-      } else {
-        closeComplete();
-      }
     }
 
     function escapeHtml(value) {
