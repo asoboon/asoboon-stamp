@@ -3670,11 +3670,500 @@
         animation-iteration-count: 1 !important;
       }
     }
+
+    /* ===== FINAL RESULT DOCK / after-animation screen ===== */
+
+    .resultOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 96;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 36%, rgba(97,191,255,.20), transparent 32%),
+        radial-gradient(circle at 50% 64%, rgba(255,211,74,.16), transparent 31%),
+        rgba(3, 6, 10, .80);
+      backdrop-filter: blur(7px) saturate(1.18);
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    .resultOverlay.show {
+      display: grid;
+      animation: resultFadeIn .62s ease both;
+    }
+
+    @keyframes resultFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .resultOverlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 34px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 38px);
+      opacity: .78;
+    }
+
+    .resultCard {
+      position: relative;
+      width: min(92vw, 430px);
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04)),
+        linear-gradient(180deg, #343d48 0%, #141b24 100%);
+      border: 2px solid rgba(220,235,245,.18);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -5px 0 rgba(0,0,0,.32),
+        0 34px 100px rgba(0,0,0,.72),
+        0 0 76px rgba(97,191,255,.24);
+      transform-origin: center center;
+      animation: resultCardIn .7s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes resultCardIn {
+      0% { transform: scale(.88); opacity: 0; filter: blur(5px); }
+      62% { transform: scale(1.025); opacity: 1; filter: blur(0); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .resultHead {
+      position: relative;
+      padding: 18px 14px 16px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, #5d6670 0%, #2b333d 52%, #151b23 100%);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.16),
+        inset 0 -3px 0 rgba(0,0,0,.28);
+    }
+
+    .resultHead::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 12px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #10151b 0 13px,
+          #10151b 13px 16px,
+          #f3c537 16px 29px,
+          #f3c537 29px 32px
+        );
+    }
+
+    .resultSystem {
+      margin: 8px 0 6px;
+      color: rgba(194,230,255,.82);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .24em;
+    }
+
+    .resultTitle {
+      margin: 0;
+      color: transparent;
+      font-size: clamp(28px, 8vw, 42px);
+      line-height: 1.02;
+      font-weight: 950;
+      letter-spacing: .05em;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter:
+        drop-shadow(0 2px 0 rgba(0,0,0,.72))
+        drop-shadow(0 0 20px rgba(97,191,255,.34));
+    }
+
+    .resultTitle.complete {
+      background:
+        linear-gradient(180deg, #fff8df 0%, #f8d46d 20%, #e65b27 48%, #ffe28d 76%, #8c5f15 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter:
+        drop-shadow(0 2px 0 rgba(0,0,0,.72))
+        drop-shadow(0 0 30px rgba(255,211,74,.48));
+    }
+
+    .resultBody {
+      padding: 14px;
+    }
+
+    .resultGauge {
+      position: relative;
+      border-radius: 22px;
+      padding: 15px 14px 16px;
+      background: linear-gradient(180deg, #fff0cf, #dec18e);
+      border: 2px solid rgba(74,59,35,.26);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.46),
+        0 12px 26px rgba(0,0,0,.24);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .resultGauge::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(120deg, transparent 0 35%, rgba(255,255,255,.42) 45%, transparent 56% 100%);
+      transform: translateX(-120%);
+      animation: resultPanelShine 2.6s ease-in-out infinite;
+    }
+
+    @keyframes resultPanelShine {
+      0%, 28% { transform: translateX(-120%); }
+      58%, 100% { transform: translateX(120%); }
+    }
+
+    .resultGauge.complete {
+      background:
+        linear-gradient(180deg, #fff5d0 0%, #ffd34a 48%, #ff9e2c 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.6),
+        0 0 40px rgba(255,190,74,.56),
+        0 12px 26px rgba(0,0,0,.28);
+    }
+
+    .resultRemainingLabel {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 7px;
+      color: #4a3824;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 950;
+      letter-spacing: .08em;
+    }
+
+    .resultRemaining {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 8px;
+      margin: 0;
+      color: #2d2418;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .resultRemaining .small {
+      font-size: clamp(22px, 6vw, 30px);
+    }
+
+    .resultRemaining .big {
+      color: #e65b27;
+      font-size: clamp(74px, 20vw, 100px);
+      text-shadow:
+        0 2px 0 rgba(255,255,255,.32),
+        0 0 22px rgba(230,91,39,.32);
+    }
+
+    .resultRemaining.complete .big {
+      color: #713b08;
+      font-size: clamp(52px, 14vw, 72px);
+      text-shadow:
+        0 2px 0 rgba(255,255,255,.42),
+        0 0 26px rgba(255,211,74,.58);
+    }
+
+    .resultBar {
+      position: relative;
+      z-index: 1;
+      height: 24px;
+      margin-top: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #4d4437;
+      border: 2px solid rgba(42,32,22,.28);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.24);
+    }
+
+    .resultFill {
+      height: 100%;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, #ffd64a 0%, #ff8e2c 50%, #ffd64a 100%);
+      background-size: 200% 100%;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.32),
+        0 0 18px rgba(244,196,51,.35);
+      animation: resultFillShimmer 1.25s linear infinite;
+      transition: width .7s cubic-bezier(.16,1,.22,1);
+    }
+
+    @keyframes resultFillShimmer {
+      from { background-position: 0 0; }
+      to { background-position: 200% 0; }
+    }
+
+    .resultStampGrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .resultMiniStamp {
+      position: relative;
+      min-height: 78px;
+      border-radius: 15px;
+      padding: 8px 5px 7px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.06)),
+        linear-gradient(180deg, #2f3742, #171f28);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 8px 16px rgba(0,0,0,.22);
+      color: rgba(255,255,255,.58);
+    }
+
+    .resultMiniStamp.done {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06)),
+        linear-gradient(180deg, #fff0cf, #dec18e);
+      color: #352a1b;
+      border-color: rgba(255,211,74,.65);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.46),
+        0 0 18px rgba(255,211,74,.24),
+        0 8px 16px rgba(0,0,0,.22);
+    }
+
+    .resultMiniStamp.next {
+      border-color: rgba(97,191,255,.74);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 0 22px rgba(97,191,255,.28),
+        0 8px 16px rgba(0,0,0,.22);
+      animation: nextStampBlink 1.05s ease-in-out infinite alternate;
+    }
+
+    @keyframes nextStampBlink {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.28); }
+    }
+
+    .resultMiniIcon {
+      display: grid;
+      place-items: center;
+      width: 33px;
+      height: 33px;
+      margin: 0 auto 5px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .resultMiniName {
+      display: block;
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 950;
+      word-break: keep-all;
+    }
+
+    .resultNextText {
+      margin: 12px 4px 0;
+      color: #fff3cf;
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 850;
+      text-align: center;
+      text-shadow: 0 2px 0 rgba(0,0,0,.45);
+    }
+
+    .resultButtonRow {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .resultAction {
+      width: 100%;
+      min-height: 58px;
+      border: 0;
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: grid;
+      place-items: center;
+      color: #241704;
+      font-size: 20px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-decoration: none;
+      cursor: pointer;
+      background:
+        linear-gradient(180deg, #fff0a7 0%, #ffd34a 42%, #d89512 100%);
+      border: 2px solid rgba(118,79,5,.36);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.45),
+        inset 0 -3px 0 rgba(0,0,0,.18),
+        0 12px 24px rgba(0,0,0,.30),
+        0 0 30px rgba(255,211,74,.24);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .resultAction.staff {
+      color: #fff9e7;
+      background:
+        linear-gradient(180deg, #ff6b32 0%, #d93612 45%, #7a1707 100%);
+      border-color: rgba(255,225,140,.52);
+      text-shadow: 0 2px 0 rgba(0,0,0,.42);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.24),
+        inset 0 -3px 0 rgba(0,0,0,.24),
+        0 12px 28px rgba(0,0,0,.34),
+        0 0 44px rgba(255,91,39,.40);
+      animation: staffButtonPulse 1.15s ease-in-out infinite alternate;
+    }
+
+    @keyframes staffButtonPulse {
+      from { transform: scale(1); filter: brightness(1); }
+      to { transform: scale(1.025); filter: brightness(1.16); }
+    }
+
+    .resultSubAction {
+      width: 100%;
+      border-radius: 15px;
+      padding: 12px 14px;
+      display: block;
+      text-align: center;
+      color: #fff2d6;
+      font-size: 13px;
+      line-height: 1.3;
+      font-weight: 900;
+      text-decoration: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+    }
+
+    .resultOverlay.staffMode .resultCard {
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -5px 0 rgba(0,0,0,.32),
+        0 34px 100px rgba(0,0,0,.72),
+        0 0 92px rgba(255,211,74,.36);
+    }
+
+    .resultOverlay.staffMode .resultHead {
+      background:
+        linear-gradient(180deg, #714018 0%, #3e2111 52%, #16100b 100%);
+    }
+
+    .resultOverlay.staffMode .resultSystem::after {
+      content: " / STAFF CHECK";
+    }
+
+    /* COMPLETE should stay centered: no downward drift */
+    .completeScreen {
+      place-items: center;
+      align-items: center;
+      justify-items: center;
+      overflow: hidden;
+    }
+
+    .completeStage {
+      transform-origin: center center;
+      max-height: calc(100vh - 36px);
+      min-height: min(630px, calc(100vh - 36px));
+      animation: completeStageIn .95s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes completeStageIn {
+      0% {
+        transform: scale(.86);
+        opacity: 0;
+        filter: blur(4px);
+      }
+      48% {
+        transform: scale(1.025);
+        opacity: 1;
+        filter: blur(0);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+        filter: blur(0);
+      }
+    }
+
+    @keyframes completePanelOpen {
+      0%, 70% {
+        transform: scale(.96);
+        opacity: 0;
+      }
+      80% {
+        transform: scale(1.025);
+        opacity: 1;
+      }
+      88%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .resultCard {
+        width: min(94vw, 400px);
+      }
+
+      .resultMiniStamp {
+        min-height: 70px;
+      }
+
+      .resultMiniIcon {
+        width: 30px;
+        height: 30px;
+        font-size: 15px;
+      }
+
+      .resultAction {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-height: 700px) {
+      .resultBody {
+        padding: 12px;
+      }
+
+      .resultMiniStamp {
+        min-height: 67px;
+      }
+
+      .resultRemaining .big {
+        font-size: clamp(60px, 18vw, 82px);
+      }
+    }
+
   </style>
 </head>
 
 <body>
   <div id="sparkLayer" class="sparkLayer"></div>
+  <div id="resultOverlay" class="resultOverlay" aria-hidden="true"></div>
 
   <!-- ============= PREFLIGHT ============= -->
   <div id="preflight" class="preflight" aria-hidden="true">
@@ -3990,6 +4479,7 @@
     const LIFF_ID = "2009888671-57TOefc3";
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxILMUKf0jUEXi_t3quHWUuY0QwP8damcvnKUFY8OwFXoqcN7rfdEhi3vh2Yf8bzLiQLQ/exec";
     const FACILITY_MINIAPP_URL = "https://miniapp.line.me/2009884613-ELc6kolf";
+    const STAMP_TOP_URL = "https://asoboon.github.io/asoboon-stamp/";
 
     const state = {
       spotId: "",
@@ -4003,6 +4493,7 @@
     const loadingText = document.getElementById("loadingText");
     const completeScreen = document.getElementById("completeScreen");
     const sparkLayer = document.getElementById("sparkLayer");
+    const resultOverlay = document.getElementById("resultOverlay");
     const preflight = document.getElementById("preflight");
 
     document.addEventListener("DOMContentLoaded", init);
@@ -4075,18 +4566,23 @@
           }, 2600);
 
           if (result.completed || result.isComplete) {
-            setTimeout(showComplete, 4250);
+            setTimeout(() => showComplete(result), 4250);
+            setTimeout(() => showResultScreen(result), 12650);
+          } else {
+            setTimeout(() => showResultScreen(result), 4420);
           }
           return;
         }
 
         if (result.completed || result.isComplete) {
-          showComplete();
+          showComplete(result);
           setTimeout(hidePreflight, 140);
+          setTimeout(() => showResultScreen(result), 8400);
           return;
         }
 
         hidePreflight();
+        showResultScreen(result);
       } catch (error) {
         await preflightPromise.catch(() => {});
         hidePreflight();
@@ -4389,6 +4885,136 @@
       return "○";
     }
 
+
+    function showResultScreen(data) {
+      if (!resultOverlay) return;
+
+      const total = Number(data.totalSpots || 4);
+      const count = Math.max(0, Math.min(total, Number(data.stampedCount || 0)));
+      const remaining = Math.max(0, total - count);
+      const completed = Boolean(data.completed || data.isComplete || remaining === 0);
+      const percent = total ? Math.round((count / total) * 100) : 0;
+      const currentName =
+        data &&
+        data.currentSpot &&
+        data.currentSpot.spotName
+          ? data.currentSpot.spotName
+          : "";
+
+      const title = completed
+        ? "COMPLETE!"
+        : data.stampStatus === "already"
+          ? "記録済みです"
+          : data.stampStatus === "new"
+            ? "スタンプ記録完了！"
+            : "現在のスタンプ状況";
+
+      const remainingHtml = completed
+        ? `<p class="resultRemaining complete"><span class="big">${count}/${total}</span></p>`
+        : `<p class="resultRemaining"><span class="small">あと</span><span class="big">${remaining}</span><span class="small">枚</span></p>`;
+
+      const label = completed
+        ? "すべてのスタンプが集まりました"
+        : currentName
+          ? `${escapeHtml(currentName)}のスタンプを記録しました`
+          : "現在のスタンプ状況";
+
+      const message = completed
+        ? "この画面をスタッフに見せてください。"
+        : remaining === 1
+          ? "次でコンプリートです。最後のスポットへ進みましょう！"
+          : "次のスポットへ進みましょう！";
+
+      const actionHtml = completed
+        ? `<button type="button" class="resultAction staff" onclick="activateStaffMode()">スタッフに見せる</button>`
+        : `<a class="resultAction" href="${STAMP_TOP_URL}">次のスポットへ！</a>`;
+
+      resultOverlay.innerHTML = `
+        <section class="resultCard" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}">
+          <div class="resultHead">
+            <p class="resultSystem">${completed ? "ASOBooN CLEAR SYSTEM" : "ASOBooN STAMP SYSTEM"}</p>
+            <p class="resultTitle ${completed ? "complete" : ""}">${escapeHtml(title)}</p>
+          </div>
+
+          <div class="resultBody">
+            <section class="resultGauge ${completed ? "complete" : ""}">
+              <p class="resultRemainingLabel">${label}</p>
+              ${remainingHtml}
+
+              <div class="resultBar" aria-label="スタンプ進捗">
+                <div class="resultFill" style="width:${percent}%"></div>
+              </div>
+            </section>
+
+            <div class="resultStampGrid">
+              ${(data.stampList || []).map(renderResultMiniStamp).join("")}
+            </div>
+
+            <p class="resultNextText">${escapeHtml(message)}</p>
+
+            <div class="resultButtonRow">
+              ${actionHtml}
+              ${completed
+                ? `<a class="resultSubAction" href="${STAMP_TOP_URL}">スタンプラリートップへ</a>`
+                : `<a class="resultSubAction" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>`
+              }
+            </div>
+          </div>
+        </section>
+      `;
+
+      resultOverlay.classList.remove("show");
+      resultOverlay.classList.remove("staffMode");
+      resultOverlay.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        resultOverlay.classList.add("show");
+      });
+
+      if (completed) {
+        vibrate([70, 35, 180]);
+      } else {
+        vibrate([35, 30, 90]);
+      }
+    }
+
+    function renderResultMiniStamp(spot) {
+      const stamped = Boolean(spot.stamped);
+      const next = !stamped;
+      return `
+        <div class="resultMiniStamp ${stamped ? "done" : ""} ${next ? "next" : ""}">
+          <div class="resultMiniIcon">${stamped ? "✓" : escapeHtml(spot.order || "")}</div>
+          <span class="resultMiniName">${escapeHtml(spot.spotName || "")}</span>
+        </div>
+      `;
+    }
+
+    function activateStaffMode() {
+      if (!resultOverlay) return;
+
+      resultOverlay.classList.add("staffMode");
+
+      const title = resultOverlay.querySelector(".resultTitle");
+      if (title) {
+        title.textContent = "STAFF CHECK";
+        title.classList.add("complete");
+      }
+
+      const text = resultOverlay.querySelector(".resultNextText");
+      if (text) {
+        text.innerHTML = "スタンプラリーをコンプリートしました。<br>この画面をスタッフにお見せください。";
+      }
+
+      const button = resultOverlay.querySelector(".resultAction.staff");
+      if (button) {
+        button.textContent = "確認画面表示中";
+      }
+
+      vibrate([80, 40, 220]);
+      burstGoldenRain(60);
+    }
+
+
     function renderError(error) {
       const code = error && (error.error || error.code) ? (error.error || error.code) : "UNKNOWN";
       const msg = customerMessage(code);
@@ -4525,7 +5151,7 @@
       }, 4200);
     }
 
-    function showComplete() {
+    function showComplete(result) {
       completeScreen.classList.add("show");
       completeScreen.setAttribute("aria-hidden", "false");
 
