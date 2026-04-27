@@ -22,8 +22,11 @@
       --silver: #d7e2ea;
       --yellow: #f4c433;
       --orange: #e65b27;
+      --red: #ff2d2d;
       --green: #44b36b;
       --blue: #63b9ff;
+      --cyan: #61f0ff;
+      --gold: #ffd34a;
       --shadow: 0 24px 70px rgba(0, 0, 0, .42);
     }
 
@@ -182,9 +185,11 @@
       justify-content: space-between;
       align-items: center;
       padding: 4px 2px 8px;
+      gap: 8px;
     }
 
     .roundBtn {
+      flex: 0 0 auto;
       width: 43px;
       height: 43px;
       border-radius: 50%;
@@ -201,6 +206,13 @@
     }
 
     .brand {
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      flex: 1 1 auto;
+      white-space: nowrap;
       color: #f1bd32;
       font-size: 27px;
       font-weight: 950;
@@ -208,12 +220,23 @@
       text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 10px rgba(244,196,51,.28);
     }
 
-    .brand .gear {
+    .brandWord {
+      line-height: 1;
       display: inline-block;
-      font-size: .68em;
-      vertical-align: .1em;
-      margin: 0 -1px;
-      color: #aeb5bd;
+    }
+
+    .brandGear {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 14px;
+      color: #cad4de;
+      background: linear-gradient(180deg, #56606b, #232a31);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 3px 8px rgba(0,0,0,.28);
+      flex: 0 0 auto;
     }
 
     .titlePlate {
@@ -721,7 +744,87 @@
       }
     }
 
-    /* ===== stamp get ===== */
+    /* ===========================================
+       SHARED OVERLAY UTILITIES
+       =========================================== */
+
+    .crtScanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 35;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+      mix-blend-mode: overlay;
+      opacity: .65;
+    }
+
+    .crackLines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 38;
+      opacity: 0;
+    }
+
+    .crackLines svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .crackLines.show {
+      animation: crackReveal 1.2s ease forwards;
+    }
+
+    @keyframes crackReveal {
+      0% { opacity: 0; transform: scale(.96); }
+      30% { opacity: 1; transform: scale(1.02); }
+      100% { opacity: .85; transform: scale(1); }
+    }
+
+    .warningBars {
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+      z-index: 32;
+      height: 14px;
+      background: repeating-linear-gradient(
+        -45deg,
+        #1a0b0b 0 13px,
+        #1a0b0b 13px 16px,
+        #ff2d2d 16px 29px,
+        #ff2d2d 29px 32px
+      );
+      box-shadow: 0 0 16px rgba(255,45,45,.6);
+    }
+
+    .warningBars.top { top: 0; }
+    .warningBars.bottom { bottom: 0; }
+
+    .redAlert {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 31;
+      background: radial-gradient(circle at 50% 50%, rgba(255,40,40,.0) 0 38%, rgba(255,40,40,.32) 100%);
+      mix-blend-mode: screen;
+      opacity: 0;
+    }
+
+    .redAlert.flash {
+      animation: redAlertPulse .42s ease-in-out 3;
+    }
+
+    @keyframes redAlertPulse {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    /* ===========================================
+       STAMP GET — full reactor / hydraulic press
+       =========================================== */
 
     .stampImpact {
       position: fixed;
@@ -734,63 +837,70 @@
       background:
         radial-gradient(circle at 50% 45%, rgba(95, 190, 255, .30), transparent 30%),
         radial-gradient(circle at 50% 45%, rgba(255,255,255,.06), transparent 52%),
-        rgba(2, 5, 9, .76);
-      backdrop-filter: blur(5px) saturate(1.15);
+        rgba(2, 5, 9, .82);
+      backdrop-filter: blur(6px) saturate(1.2);
     }
 
     .stampImpact.show {
       display: grid;
-      animation: impactBackdrop 2.05s ease both;
+      animation: impactBackdrop 4.2s ease both;
     }
 
     @keyframes impactBackdrop {
       0% { opacity: 0; }
-      8% { opacity: 1; }
-      88% { opacity: 1; }
+      6% { opacity: 1; }
+      94% { opacity: 1; }
       100% { opacity: 0; }
     }
 
     body.impactShudder .phoneFrame {
-      animation: frameShudder .46s ease both;
+      animation: frameShudder .7s ease both;
     }
 
     @keyframes frameShudder {
-      0% { transform: translateX(0); }
-      16% { transform: translateX(-4px) rotate(-.28deg); }
-      32% { transform: translateX(4px) rotate(.28deg); }
-      48% { transform: translateX(-2px); }
-      66% { transform: translateX(2px); }
-      100% { transform: translateX(0); }
+      0% { transform: translate(0,0) rotate(0); }
+      10% { transform: translate(-6px,-3px) rotate(-.4deg); }
+      22% { transform: translate(7px,4px) rotate(.5deg); }
+      34% { transform: translate(-4px,2px) rotate(-.3deg); }
+      48% { transform: translate(5px,-3px) rotate(.3deg); }
+      62% { transform: translate(-3px,2px); }
+      78% { transform: translate(2px,-1px); }
+      100% { transform: translate(0,0); }
     }
 
     .impactScene {
       position: relative;
-      width: min(92vw, 420px);
-      min-height: 560px;
+      width: min(94vw, 440px);
+      min-height: 600px;
       overflow: hidden;
       border-radius: 32px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03)),
         radial-gradient(circle at 50% 48%, rgba(81, 177, 255, .18), transparent 38%),
         linear-gradient(180deg, #2d343d 0%, #111820 52%, #05080d 100%);
-      border: 2px solid rgba(190, 204, 218, .20);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.22), inset 0 -5px 0 rgba(0,0,0,.35), 0 34px 100px rgba(0,0,0,.68), 0 0 80px rgba(90, 180, 255, .22);
-      animation: impactScenePop 1.95s cubic-bezier(.16, 1.08, .22, 1) both;
+      border: 2px solid rgba(190, 204, 218, .22);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -5px 0 rgba(0,0,0,.35),
+        0 34px 100px rgba(0,0,0,.72),
+        0 0 90px rgba(90, 180, 255, .25);
+      animation: impactScenePop 4.2s cubic-bezier(.16, 1.08, .22, 1) both;
     }
 
     @keyframes impactScenePop {
-      0% { transform: scale(.72) translateY(22px); opacity: 0; filter: blur(4px); }
-      15% { transform: scale(1.045) translateY(0); opacity: 1; filter: blur(0); }
-      32% { transform: scale(.99); }
-      82% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(.95) translateY(12px); opacity: 0; }
+      0% { transform: scale(.7) translateY(28px); opacity: 0; filter: blur(6px); }
+      8% { transform: scale(1.05) translateY(-3px); opacity: 1; filter: blur(0); }
+      14% { transform: scale(.99); }
+      28% { transform: scale(1); }
+      88% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(.94) translateY(14px); opacity: 0; }
     }
 
     .impactVignette {
       position: absolute;
       inset: 0;
       z-index: 1;
-      background: radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.56) 100%);
+      background: radial-gradient(circle at center, transparent 0 40%, rgba(0,0,0,.62) 100%);
       pointer-events: none;
     }
 
@@ -798,30 +908,85 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: -45%;
-      height: 45%;
-      z-index: 20;
-      background: linear-gradient(180deg, transparent, rgba(98, 194, 255, .30), transparent);
-      animation: scanPass 1.45s ease-out both;
+      top: -50%;
+      height: 50%;
+      z-index: 22;
+      background: linear-gradient(180deg, transparent, rgba(98, 194, 255, .42), transparent);
+      animation: scanPass 2.4s ease-out .1s both;
     }
 
     @keyframes scanPass {
       0% { transform: translateY(-80%); opacity: 0; }
-      15% { opacity: 1; }
-      70% { opacity: .9; }
+      8% { opacity: 1; }
+      75% { opacity: .9; }
       100% { transform: translateY(360%); opacity: 0; }
+    }
+
+    .impactWarnTop,
+    .impactWarnBottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 12px;
+      z-index: 33;
+      background: repeating-linear-gradient(
+        -45deg,
+        #1a0b0b 0 11px,
+        #1a0b0b 11px 14px,
+        #ff2d2d 14px 25px,
+        #ff2d2d 25px 28px
+      );
+      box-shadow: 0 0 14px rgba(255,45,45,.7);
+      animation: warnSlide 4.2s ease both;
+    }
+
+    .impactWarnTop { top: 0; }
+    .impactWarnBottom { bottom: 0; }
+
+    @keyframes warnSlide {
+      0% { opacity: 0; transform: translateX(-30px); }
+      6% { opacity: 1; transform: translateX(0); }
+      14% { transform: translateX(-6px); }
+      22% { transform: translateX(0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .impactRedAlert {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background: radial-gradient(circle at 50% 50%, rgba(255,40,40,.0) 0 38%, rgba(255,40,40,.36) 100%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0;
+      animation: alertFlashes 4.2s ease both;
+    }
+
+    @keyframes alertFlashes {
+      0%, 4% { opacity: 0; }
+      6% { opacity: 1; }
+      8% { opacity: .2; }
+      10% { opacity: 1; }
+      12% { opacity: .2; }
+      14% { opacity: .85; }
+      18%, 100% { opacity: 0; }
     }
 
     .impactTopSign {
       position: relative;
       z-index: 24;
-      margin: 14px 16px 10px;
-      padding: 12px 10px 13px;
+      margin: 24px 16px 10px;
+      padding: 14px 10px 15px;
       border-radius: 14px;
       text-align: center;
       background: linear-gradient(180deg, #59626c 0%, #2b333d 48%, #151b23 100%);
       border: 2px solid rgba(255,255,255,.16);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -3px 0 rgba(0,0,0,.34), 0 12px 26px rgba(0,0,0,.36);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.36),
+        0 0 24px rgba(255,80,80,.18);
     }
 
     .impactTopSign::after {
@@ -837,23 +1002,40 @@
 
     .impactSystem {
       margin: 0 0 4px;
-      color: rgba(194, 230, 255, .84);
+      color: rgba(255, 90, 90, .92);
       font-size: 10px;
       font-weight: 950;
-      letter-spacing: .22em;
+      letter-spacing: .26em;
+      text-shadow: 0 0 8px rgba(255,80,80,.8);
+      animation: systemBlink 0.7s ease-in-out infinite alternate;
+    }
+
+    @keyframes systemBlink {
+      from { opacity: .8; }
+      to { opacity: 1; }
     }
 
     .impactTitle {
       margin: 0;
       color: transparent;
-      font-size: 45px;
+      font-size: clamp(38px, 11.5vw, 54px);
       line-height: .95;
       font-weight: 950;
       letter-spacing: .035em;
       background: linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
       -webkit-background-clip: text;
       background-clip: text;
-      filter: drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(95,190,255,.38));
+      filter: drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 18px rgba(95,190,255,.46));
+      opacity: 0;
+      animation: stampGetTitleReveal 4.2s ease both;
+    }
+
+    @keyframes stampGetTitleReveal {
+      0%, 8% { opacity: 0; transform: scale(.82); letter-spacing: .14em; filter: blur(6px) drop-shadow(0 2px 0 rgba(0,0,0,.7)); }
+      14% { opacity: 1; transform: scale(1.12); filter: blur(0) drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 24px rgba(95,190,255,.7)); }
+      20% { transform: scale(.97); }
+      28% { transform: scale(1); letter-spacing: .035em; }
+      100% { opacity: 1; transform: scale(1); letter-spacing: .035em; }
     }
 
     .impactSubTitle {
@@ -867,18 +1049,30 @@
       font-size: 16px;
       font-weight: 950;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 0 18px rgba(101,182,255,.16);
+      opacity: 0;
+      animation: fadeStageB 4.2s ease both;
+    }
+
+    @keyframes fadeStageB {
+      0%, 18% { opacity: 0; transform: translateY(8px); }
+      28%, 100% { opacity: 1; transform: translateY(0); }
     }
 
     .realEngine {
       position: relative;
       z-index: 5;
-      height: 304px;
+      height: 320px;
       margin: 12px 14px 10px;
-      border-radius: 18px;
+      border-radius: 20px;
       overflow: hidden;
-      background: radial-gradient(circle at center, rgba(110, 199, 255, .22), transparent 33%), linear-gradient(180deg, #151c24 0%, #070b10 100%);
+      background:
+        radial-gradient(circle at center, rgba(110, 199, 255, .22), transparent 33%),
+        linear-gradient(180deg, #151c24 0%, #070b10 100%);
       border: 2px solid rgba(255,255,255,.13);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.7), inset 0 0 60px rgba(0,0,0,.85), 0 14px 30px rgba(0,0,0,.32);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.7),
+        inset 0 0 60px rgba(0,0,0,.85),
+        0 14px 30px rgba(0,0,0,.32);
     }
 
     .realEngine::before {
@@ -886,7 +1080,7 @@
       position: absolute;
       inset: 0;
       background:
-        repeating-radial-gradient(circle at center, rgba(255,255,255,.035) 0 1px, transparent 1px 14px),
+        repeating-radial-gradient(circle at center, rgba(255,255,255,.04) 0 1px, transparent 1px 14px),
         repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 28px);
       opacity: .9;
     }
@@ -900,10 +1094,17 @@
       background: linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), 0 0 16px rgba(0,0,0,.36);
       z-index: 2;
+      opacity: 0;
+      animation: railRise 4.2s ease both;
     }
 
     .railA { left: 24px; }
     .railB { right: 24px; }
+
+    @keyframes railRise {
+      0%, 8% { opacity: 0; }
+      14%, 100% { opacity: 1; }
+    }
 
     .armorPlate {
       position: absolute;
@@ -913,59 +1114,65 @@
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.25), 0 14px 26px rgba(0,0,0,.34);
     }
 
-    .plateA { left: 62px; right: 62px; top: 32px; height: 54px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: plateTopLock 1.4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateB { left: 62px; right: 62px; bottom: 32px; height: 54px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: plateBottomLock 1.4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateC { left: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: plateLeftLock 1.45s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateD { right: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: plateRightLock 1.45s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateE { left: 104px; top: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateA 1.35s ease both; }
-    .plateF { right: 104px; bottom: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateB 1.35s ease both; }
+    .plateA { left: 62px; right: 62px; top: 32px; height: 54px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: plateTopLock 4.2s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateB { left: 62px; right: 62px; bottom: 32px; height: 54px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: plateBottomLock 4.2s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateC { left: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: plateLeftLock 4.2s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateD { right: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: plateRightLock 4.2s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateE { left: 104px; top: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateA 4.2s ease both; }
+    .plateF { right: 104px; bottom: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateB 4.2s ease both; }
 
     @keyframes plateTopLock {
-      0% { transform: translateY(-78px); opacity: 0; }
-      18% { transform: translateY(0); opacity: 1; }
-      26% { transform: translateY(5px); }
-      38% { transform: translateY(0); }
-      78% { opacity: 1; }
-      100% { transform: translateY(-16px); opacity: 0; }
+      0% { transform: translateY(-90px); opacity: 0; }
+      8% { opacity: 0; }
+      22% { transform: translateY(0); opacity: 1; }
+      28% { transform: translateY(7px); }
+      36% { transform: translateY(0); }
+      90% { opacity: 1; }
+      100% { transform: translateY(-18px); opacity: 0; }
     }
 
     @keyframes plateBottomLock {
-      0% { transform: translateY(78px); opacity: 0; }
-      18% { transform: translateY(0); opacity: 1; }
-      26% { transform: translateY(-5px); }
-      38% { transform: translateY(0); }
-      78% { opacity: 1; }
-      100% { transform: translateY(16px); opacity: 0; }
+      0% { transform: translateY(90px); opacity: 0; }
+      8% { opacity: 0; }
+      22% { transform: translateY(0); opacity: 1; }
+      28% { transform: translateY(-7px); }
+      36% { transform: translateY(0); }
+      90% { opacity: 1; }
+      100% { transform: translateY(18px); opacity: 0; }
     }
 
     @keyframes plateLeftLock {
-      0% { transform: translateX(-84px); opacity: 0; }
-      20% { transform: translateX(0); opacity: 1; }
-      29% { transform: translateX(5px); }
-      42% { transform: translateX(0); }
-      78% { opacity: 1; }
-      100% { transform: translateX(-16px); opacity: 0; }
+      0% { transform: translateX(-90px); opacity: 0; }
+      10% { opacity: 0; }
+      24% { transform: translateX(0); opacity: 1; }
+      30% { transform: translateX(6px); }
+      38% { transform: translateX(0); }
+      90% { opacity: 1; }
+      100% { transform: translateX(-18px); opacity: 0; }
     }
 
     @keyframes plateRightLock {
-      0% { transform: translateX(84px); opacity: 0; }
-      20% { transform: translateX(0); opacity: 1; }
-      29% { transform: translateX(-5px); }
-      42% { transform: translateX(0); }
-      78% { opacity: 1; }
-      100% { transform: translateX(16px); opacity: 0; }
+      0% { transform: translateX(90px); opacity: 0; }
+      10% { opacity: 0; }
+      24% { transform: translateX(0); opacity: 1; }
+      30% { transform: translateX(-6px); }
+      38% { transform: translateX(0); }
+      90% { opacity: 1; }
+      100% { transform: translateX(18px); opacity: 0; }
     }
 
     @keyframes smallPlateA {
-      0% { transform: translate(-40px, -20px) rotate(-40deg); opacity: 0; }
-      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      100% { opacity: .9; }
+      0% { transform: translate(-46px, -22px) rotate(-46deg); opacity: 0; }
+      20% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      88% { opacity: .9; }
+      100% { opacity: 0; }
     }
 
     @keyframes smallPlateB {
-      0% { transform: translate(40px, 20px) rotate(-40deg); opacity: 0; }
-      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      100% { opacity: .9; }
+      0% { transform: translate(46px, 22px) rotate(-46deg); opacity: 0; }
+      20% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      88% { opacity: .9; }
+      100% { opacity: 0; }
     }
 
     .hydraulic {
@@ -978,20 +1185,22 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 0 20px rgba(101,182,255,.18);
     }
 
-    .hA { left: 18px; top: 82px; transform: rotate(26deg); animation: pistonInLeft 1.3s ease both; }
-    .hB { right: 18px; top: 82px; transform: rotate(-26deg); animation: pistonInRight 1.3s ease both; }
-    .hC { left: 18px; bottom: 76px; transform: rotate(-26deg); animation: pistonInLeft 1.3s ease both; }
-    .hD { right: 18px; bottom: 76px; transform: rotate(26deg); animation: pistonInRight 1.3s ease both; }
+    .hA { left: 18px; top: 82px; transform: rotate(26deg); animation: pistonInLeft 4.2s ease both; }
+    .hB { right: 18px; top: 82px; transform: rotate(-26deg); animation: pistonInRight 4.2s ease both; }
+    .hC { left: 18px; bottom: 76px; transform: rotate(-26deg); animation: pistonInLeft 4.2s ease both; }
+    .hD { right: 18px; bottom: 76px; transform: rotate(26deg); animation: pistonInRight 4.2s ease both; }
 
     @keyframes pistonInLeft {
-      0% { opacity: 0; translate: -48px 0; }
-      22% { opacity: 1; translate: 0 0; }
+      0% { opacity: 0; translate: -54px 0; }
+      14% { opacity: 0; }
+      26% { opacity: 1; translate: 0 0; }
       100% { opacity: .92; }
     }
 
     @keyframes pistonInRight {
-      0% { opacity: 0; translate: 48px 0; }
-      22% { opacity: 1; translate: 0 0; }
+      0% { opacity: 0; translate: 54px 0; }
+      14% { opacity: 0; }
+      26% { opacity: 1; translate: 0 0; }
       100% { opacity: .92; }
     }
 
@@ -1005,18 +1214,18 @@
     }
 
     .ringOuter {
-      width: 226px;
-      height: 226px;
-      border: 4px solid rgba(105, 194, 255, .45);
-      box-shadow: 0 0 0 12px rgba(105,194,255,.06), 0 0 44px rgba(105,194,255,.28);
-      animation: ringPulse 1.2s ease-out both;
+      width: 240px;
+      height: 240px;
+      border: 4px solid rgba(105, 194, 255, .50);
+      box-shadow: 0 0 0 14px rgba(105,194,255,.06), 0 0 50px rgba(105,194,255,.34);
+      animation: ringPulse 4.2s ease-out both;
     }
 
     .ringMiddle {
-      width: 158px;
-      height: 158px;
-      border: 3px dashed rgba(220, 245, 255, .58);
-      animation: ringRotate 1.08s linear both;
+      width: 168px;
+      height: 168px;
+      border: 3px dashed rgba(220, 245, 255, .62);
+      animation: ringRotate 4.2s linear both;
     }
 
     .energyCore {
@@ -1024,33 +1233,37 @@
       left: 50%;
       top: 50%;
       z-index: 15;
-      width: 88px;
-      height: 88px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(circle at center, #fff 0 11%, #a3e9ff 12% 26%, #2e9aff 27% 48%, #062f63 49% 72%, #02070d 73%);
-      box-shadow: 0 0 28px rgba(105,194,255,.82), 0 0 88px rgba(105,194,255,.38);
-      animation: coreIgniteReal 1.16s ease both;
+      box-shadow: 0 0 32px rgba(105,194,255,.85), 0 0 96px rgba(105,194,255,.42);
+      animation: coreIgniteReal 4.2s ease both;
     }
 
     @keyframes ringPulse {
-      0% { transform: translate(-50%, -50%) scale(.36); opacity: 0; }
-      18% { opacity: 1; }
-      74% { transform: translate(-50%, -50%) scale(1.26); opacity: .62; }
-      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(.32); opacity: 0; }
+      14% { opacity: 0; }
+      30% { opacity: 1; transform: translate(-50%, -50%) scale(.92); }
+      58% { transform: translate(-50%, -50%) scale(1.32); opacity: .62; }
+      88% { transform: translate(-50%, -50%) scale(1.4); opacity: .35; }
+      100% { transform: translate(-50%, -50%) scale(1.55); opacity: 0; }
     }
 
     @keyframes ringRotate {
-      0% { transform: translate(-50%, -50%) scale(.72) rotate(0); opacity: 0; }
-      20% { opacity: 1; }
-      84% { opacity: .88; }
-      100% { transform: translate(-50%, -50%) scale(1.22) rotate(300deg); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(.7) rotate(0); opacity: 0; }
+      18% { opacity: 0; }
+      32% { opacity: 1; }
+      88% { opacity: .88; }
+      100% { transform: translate(-50%, -50%) scale(1.26) rotate(720deg); opacity: 0; }
     }
 
     @keyframes coreIgniteReal {
-      0% { transform: translate(-50%, -50%) scale(.12); opacity: 0; filter: blur(9px); }
-      20% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; filter: blur(0); }
-      76% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      0% { transform: translate(-50%, -50%) scale(.1); opacity: 0; filter: blur(10px); }
+      22% { opacity: 0; }
+      36% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; filter: blur(0); }
+      74% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(.92); opacity: .95; }
     }
 
@@ -1059,18 +1272,20 @@
       left: 50%;
       top: 50%;
       z-index: 18;
-      width: 128px;
-      height: 128px;
+      width: 132px;
+      height: 132px;
       transform: translate(-50%, -50%);
-      animation: stampHeadLock 1.2s cubic-bezier(.15,.9,.3,1) both;
+      animation: stampHeadLock 4.2s cubic-bezier(.15,.9,.3,1) both;
     }
 
     @keyframes stampHeadLock {
-      0% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
-      18% { transform: translate(-50%, -50%) scale(.86) rotate(4deg); opacity: 1; }
-      34% { transform: translate(-50%, -50%) scale(1.06) rotate(-2deg); }
-      48% { transform: translate(-50%, -50%) scale(1) rotate(0); }
-      82% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      0% { transform: translate(-50%, -50%) scale(2.2) rotate(-22deg); opacity: 0; }
+      32% { transform: translate(-50%, -50%) scale(2.2) rotate(-22deg); opacity: 0; }
+      46% { transform: translate(-50%, -50%) scale(.84) rotate(5deg); opacity: 1; }
+      54% { transform: translate(-50%, -50%) scale(1.12) rotate(-3deg); }
+      62% { transform: translate(-50%, -50%) scale(.96) rotate(0); }
+      70% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+      90% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
     }
 
@@ -1121,33 +1336,33 @@
       opacity: 0;
     }
 
-    .steamA { left: 28px; top: 156px; animation: steamRiseA 1.25s ease-out .14s both; }
-    .steamB { right: 28px; top: 156px; animation: steamRiseB 1.25s ease-out .2s both; }
-    .steamC { left: 50%; top: 42px; animation: steamRiseC 1.18s ease-out .24s both; }
-    .steamD { left: 50%; bottom: 26px; animation: steamRiseD 1.18s ease-out .28s both; }
+    .steamA { left: 28px; top: 156px; animation: stampSteamRiseA 4.2s ease-out both; }
+    .steamB { right: 28px; top: 156px; animation: stampSteamRiseB 4.2s ease-out both; }
+    .steamC { left: 50%; top: 42px; animation: stampSteamRiseC 4.2s ease-out both; }
+    .steamD { left: 50%; bottom: 26px; animation: stampSteamRiseD 4.2s ease-out both; }
 
-    @keyframes steamRiseA {
-      0% { transform: translateY(18px) scale(.45); opacity: 0; }
-      26% { opacity: .52; }
-      100% { transform: translateY(-36px) scale(1.4); opacity: 0; }
+    @keyframes stampSteamRiseA {
+      0%, 44% { transform: translateY(18px) scale(.45); opacity: 0; }
+      58% { opacity: .56; }
+      100% { transform: translateY(-40px) scale(1.5); opacity: 0; }
     }
 
-    @keyframes steamRiseB {
-      0% { transform: translateY(18px) scale(.45); opacity: 0; }
-      26% { opacity: .48; }
-      100% { transform: translateY(-34px) scale(1.32); opacity: 0; }
+    @keyframes stampSteamRiseB {
+      0%, 46% { transform: translateY(18px) scale(.45); opacity: 0; }
+      60% { opacity: .52; }
+      100% { transform: translateY(-38px) scale(1.42); opacity: 0; }
     }
 
-    @keyframes steamRiseC {
-      0% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
-      24% { opacity: .38; }
-      100% { transform: translateX(-50%) translateY(-34px) scale(1.18); opacity: 0; }
+    @keyframes stampSteamRiseC {
+      0%, 48% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
+      62% { opacity: .42; }
+      100% { transform: translateX(-50%) translateY(-38px) scale(1.28); opacity: 0; }
     }
 
-    @keyframes steamRiseD {
-      0% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
-      24% { opacity: .34; }
-      100% { transform: translateX(-50%) translateY(30px) scale(1.24); opacity: 0; }
+    @keyframes stampSteamRiseD {
+      0%, 50% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
+      64% { opacity: .38; }
+      100% { transform: translateX(-50%) translateY(34px) scale(1.34); opacity: 0; }
     }
 
     .electric {
@@ -1155,31 +1370,148 @@
       z-index: 34;
       height: 3px;
       border-radius: 999px;
-      background: rgba(150, 225, 255, .9);
-      box-shadow: 0 0 14px rgba(105,194,255,.9);
+      background: rgba(150, 225, 255, .95);
+      box-shadow: 0 0 14px rgba(105,194,255,.95);
       opacity: 0;
     }
 
-    .eA { left: 78px; top: 122px; width: 96px; transform: rotate(-18deg); animation: electricFlashA .7s ease .22s both; }
-    .eB { right: 72px; top: 190px; width: 102px; transform: rotate(18deg); animation: electricFlashB .72s ease .28s both; }
-    .eC { left: 112px; bottom: 86px; width: 160px; transform: rotate(-3deg); animation: electricFlashC .7s ease .34s both; }
+    .eA { left: 78px; top: 122px; width: 96px; transform: rotate(-18deg); animation: stampElectricFlashA 4.2s ease both; }
+    .eB { right: 72px; top: 190px; width: 102px; transform: rotate(18deg); animation: stampElectricFlashB 4.2s ease both; }
+    .eC { left: 112px; bottom: 86px; width: 160px; transform: rotate(-3deg); animation: stampElectricFlashC 4.2s ease both; }
 
-    @keyframes electricFlashA {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
-      28%, 44% { opacity: 1; }
+    @keyframes stampElectricFlashA {
+      0%, 50% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
+      58%, 66% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(-18deg); }
     }
 
-    @keyframes electricFlashB {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
-      28%, 44% { opacity: 1; }
+    @keyframes stampElectricFlashB {
+      0%, 54% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
+      62%, 70% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(18deg); }
     }
 
-    @keyframes electricFlashC {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
-      28%, 44% { opacity: 1; }
+    @keyframes stampElectricFlashC {
+      0%, 58% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
+      66%, 74% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(-3deg); }
+    }
+
+    /* shockwave - 3 rings */
+    .shockwave {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 16;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px solid rgba(180, 230, 255, .85);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .shockA {
+      width: 60px;
+      height: 60px;
+      animation: shockBlast 4.2s ease both;
+    }
+
+    .shockB {
+      width: 60px;
+      height: 60px;
+      animation: shockBlast 4.2s ease both;
+      animation-delay: .15s;
+      border-color: rgba(255,255,255,.7);
+    }
+
+    .shockC {
+      width: 60px;
+      height: 60px;
+      animation: shockBlast 4.2s ease both;
+      animation-delay: .3s;
+      border-color: rgba(255,210,90,.6);
+    }
+
+    @keyframes shockBlast {
+      0%, 56% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+      62% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      90% { opacity: 0; transform: translate(-50%, -50%) scale(7); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(8); }
+    }
+
+    /* shrapnel debris */
+    .debris {
+      position: absolute;
+      z-index: 19;
+      pointer-events: none;
+      width: 12px;
+      height: 6px;
+      background: linear-gradient(180deg, #d6deea, #5e6772);
+      box-shadow: 0 0 6px rgba(0,0,0,.4);
+      opacity: 0;
+    }
+
+    .debris.d1 { left: 45%; top: 50%; animation: debrisFly1 4.2s ease both; }
+    .debris.d2 { left: 50%; top: 50%; animation: debrisFly2 4.2s ease both; }
+    .debris.d3 { left: 55%; top: 50%; animation: debrisFly3 4.2s ease both; }
+    .debris.d4 { left: 50%; top: 45%; animation: debrisFly4 4.2s ease both; }
+    .debris.d5 { left: 50%; top: 55%; animation: debrisFly5 4.2s ease both; }
+    .debris.d6 { left: 48%; top: 48%; animation: debrisFly6 4.2s ease both; }
+
+    @keyframes debrisFly1 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-160px, -200px) rotate(720deg); }
+    }
+
+    @keyframes debrisFly2 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(180px, -180px) rotate(-680deg); }
+    }
+
+    @keyframes debrisFly3 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(150px, 220px) rotate(540deg); }
+    }
+
+    @keyframes debrisFly4 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-200px, 180px) rotate(-720deg); }
+    }
+
+    @keyframes debrisFly5 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(220px, 60px) rotate(900deg); }
+    }
+
+    @keyframes debrisFly6 {
+      0%, 60% { opacity: 0; transform: translate(0,0) rotate(0); }
+      66% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-220px, -80px) rotate(-540deg); }
+    }
+
+    /* white flash burst on impact */
+    .impactFlash {
+      position: absolute;
+      inset: 0;
+      z-index: 36;
+      background: radial-gradient(circle at center, #fff 0 12%, rgba(255,255,255,.6) 28%, rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0;
+      animation: impactWhiteFlash 4.2s ease both;
+    }
+
+    @keyframes impactWhiteFlash {
+      0%, 58% { opacity: 0; }
+      62% { opacity: 1; }
+      72% { opacity: .25; }
+      80% { opacity: 0; }
+      100% { opacity: 0; }
     }
 
     .impactRecord {
@@ -1195,6 +1527,14 @@
       background: linear-gradient(180deg, #fff0cf, #dec18e);
       border: 2px solid rgba(74,59,35,.25);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.46), 0 10px 22px rgba(0,0,0,.24);
+      opacity: 0;
+      animation: impactRecordReveal 4.2s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes impactRecordReveal {
+      0%, 64% { opacity: 0; transform: translateY(20px) scale(.94); }
+      74% { opacity: 1; transform: translateY(-3px) scale(1.04); }
+      82%, 100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .impactStampMark {
@@ -1211,6 +1551,14 @@
       text-align: center;
       line-height: 1.05;
       background: rgba(255,255,255,.18);
+      box-shadow: 0 0 0 0 rgba(221,87,44,.25);
+      animation: markPulse 4.2s ease both;
+    }
+
+    @keyframes markPulse {
+      0%, 70% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
+      78% { box-shadow: 0 0 0 18px rgba(221,87,44,.15); }
+      100% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
     }
 
     .impactSpotName {
@@ -1227,10 +1575,43 @@
       font-weight: 900;
     }
 
+    .impactRarity {
+      position: relative;
+      z-index: 30;
+      margin: 0 36px 10px;
+      text-align: center;
+      opacity: 0;
+      animation: rarityReveal 4.2s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes rarityReveal {
+      0%, 68% { opacity: 0; transform: scale(.6); }
+      76% { opacity: 1; transform: scale(1.18); }
+      82% { transform: scale(.96); }
+      90%, 100% { opacity: 1; transform: scale(1); }
+    }
+
+    .rarityBadge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      color: #fff;
+      background: linear-gradient(180deg, #ff7a3a, #c43608);
+      border: 2px solid rgba(255,200,140,.6);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.36),
+        0 0 22px rgba(255,120,60,.6),
+        0 6px 14px rgba(0,0,0,.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    }
+
     .impactOk {
       position: relative;
       z-index: 30;
-      margin: 0 36px 14px;
+      margin: 0 36px 18px;
       border-radius: 14px;
       padding: 13px;
       text-align: center;
@@ -1240,10 +1621,20 @@
       letter-spacing: .06em;
       background: linear-gradient(180deg, #ffd443, #d89512);
       border: 2px solid rgba(107,76,8,.32);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.38), 0 0 20px rgba(244,196,51,.22);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.38), 0 0 24px rgba(244,196,51,.28);
+      opacity: 0;
+      animation: impactOkReveal 4.2s cubic-bezier(.16,1,.22,1) both;
     }
 
-    /* ===== complete hybrid ===== */
+    @keyframes impactOkReveal {
+      0%, 76% { opacity: 0; transform: translateY(18px) scale(.92); }
+      86% { opacity: 1; transform: translateY(-2px) scale(1.06); }
+      94%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===========================================
+       ALL COMPLETE — boss kill / jackpot reactor
+       =========================================== */
 
     .completeScreen {
       position: fixed;
@@ -1254,40 +1645,44 @@
       padding: 18px;
       background:
         radial-gradient(circle at 50% 44%, rgba(95,190,255,.32), transparent 30%),
-        radial-gradient(circle at 50% 24%, rgba(244,196,51,.20), transparent 28%),
-        rgba(3, 6, 10, .86);
-      backdrop-filter: blur(5px) saturate(1.15);
+        radial-gradient(circle at 50% 24%, rgba(244,196,51,.22), transparent 28%),
+        rgba(3, 6, 10, .88);
+      backdrop-filter: blur(6px) saturate(1.2);
     }
 
     .completeScreen.show {
       display: grid;
-      animation: completeBackdrop 2.7s ease both;
+      animation: completeBackdrop 5s ease both;
     }
 
     @keyframes completeBackdrop {
       0% { opacity: 0; }
-      7% { opacity: 1; }
+      6% { opacity: 1; }
       100% { opacity: 1; }
     }
 
     .completeStage {
       position: relative;
-      width: min(92vw, 430px);
-      min-height: 610px;
+      width: min(94vw, 450px);
+      min-height: 660px;
       overflow: hidden;
-      border-radius: 34px;
+      border-radius: 36px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.03)),
-        radial-gradient(circle at 50% 38%, rgba(91,190,255,.16), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03)),
+        radial-gradient(circle at 50% 38%, rgba(91,190,255,.18), transparent 38%),
         linear-gradient(180deg, #303842 0%, #111820 58%, #05080d 100%);
-      border: 2px solid rgba(210,222,235,.20);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.20), inset 0 -5px 0 rgba(0,0,0,.34), 0 36px 100px rgba(0,0,0,.72), 0 0 90px rgba(95,190,255,.24);
-      animation: completeStageIn .9s cubic-bezier(.16,1,.22,1) both;
+      border: 2px solid rgba(210,222,235,.22);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -5px 0 rgba(0,0,0,.34),
+        0 36px 100px rgba(0,0,0,.74),
+        0 0 100px rgba(95,190,255,.28);
+      animation: completeStageIn 1s cubic-bezier(.16,1,.22,1) both;
     }
 
     @keyframes completeStageIn {
-      0% { transform: scale(.78) translateY(24px); opacity: 0; filter: blur(4px); }
-      48% { transform: scale(1.035); opacity: 1; filter: blur(0); }
+      0% { transform: scale(.74) translateY(28px); opacity: 0; filter: blur(6px); }
+      48% { transform: scale(1.04); opacity: 1; filter: blur(0); }
       100% { transform: scale(1); }
     }
 
@@ -1296,10 +1691,63 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.6) 100%),
         repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 30px);
       pointer-events: none;
       z-index: 1;
+    }
+
+    .completeWarnTop,
+    .completeWarnBottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 12px;
+      z-index: 33;
+      background: repeating-linear-gradient(
+        -45deg,
+        #1a0b0b 0 11px,
+        #1a0b0b 11px 14px,
+        #ff2d2d 14px 25px,
+        #ff2d2d 25px 28px
+      );
+      box-shadow: 0 0 14px rgba(255,45,45,.7);
+      animation: completeWarnSlide 5s ease both;
+    }
+
+    .completeWarnTop { top: 0; }
+    .completeWarnBottom { bottom: 0; }
+
+    @keyframes completeWarnSlide {
+      0% { opacity: 0; transform: translateX(-30px); }
+      4% { opacity: 1; transform: translateX(0); }
+      8% { transform: translateX(-6px); }
+      12% { transform: translateX(0); }
+      28% { opacity: 1; }
+      36% { opacity: .3; }
+      100% { opacity: .8; }
+    }
+
+    .completeRedAlert {
+      position: absolute;
+      inset: 0;
+      z-index: 32;
+      background: radial-gradient(circle at 50% 50%, rgba(255,40,40,0) 0 38%, rgba(255,40,40,.42) 100%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0;
+      animation: completeAlertFlashes 5s ease both;
+    }
+
+    @keyframes completeAlertFlashes {
+      0%, 4% { opacity: 0; }
+      6% { opacity: 1; }
+      8% { opacity: .2; }
+      10% { opacity: 1; }
+      12% { opacity: .2; }
+      14% { opacity: 1; }
+      18% { opacity: 0; }
+      36%, 100% { opacity: 0; }
     }
 
     .completeScan {
@@ -1309,8 +1757,8 @@
       top: -45%;
       height: 45%;
       z-index: 20;
-      background: linear-gradient(180deg, transparent, rgba(98, 194, 255, .34), transparent);
-      animation: completeScan 1.45s ease-out .2s both;
+      background: linear-gradient(180deg, transparent, rgba(98, 194, 255, .42), transparent);
+      animation: completeScan 1.6s ease-out .25s both;
     }
 
     @keyframes completeScan {
@@ -1322,59 +1770,230 @@
     .completeHeader {
       position: relative;
       z-index: 30;
-      margin: 14px 16px 10px;
-      padding: 12px 10px 13px;
+      margin: 24px 16px 10px;
+      padding: 14px 10px 15px;
       text-align: center;
       border-radius: 14px;
       background: linear-gradient(180deg, #5d6670 0%, #2b333d 48%, #151b23 100%);
       border: 2px solid rgba(255,255,255,.16);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -3px 0 rgba(0,0,0,.34), 0 12px 26px rgba(0,0,0,.36);
-      animation: completeHeaderLock .9s cubic-bezier(.16,1,.22,1) both;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.36),
+        0 0 32px rgba(255,210,80,.18);
+      animation: completeHeaderLock 1s cubic-bezier(.16,1,.22,1) both;
     }
 
     @keyframes completeHeaderLock {
-      0% { transform: translateY(-38px); opacity: 0; }
-      60% { transform: translateY(4px); opacity: 1; }
+      0% { transform: translateY(-44px); opacity: 0; }
+      60% { transform: translateY(5px); opacity: 1; }
       100% { transform: translateY(0); }
+    }
+
+    .completeJackpotLights {
+      position: absolute;
+      inset: 14px 14px auto;
+      z-index: 6;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .completeJackpotLights i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: block;
+      background: #ffd95c;
+      box-shadow:
+        0 0 10px rgba(255,217,92,.9),
+        0 0 22px rgba(255,217,92,.5);
+      animation: bulbBlink .9s steps(2, end) infinite;
+    }
+
+    .completeJackpotLights i:nth-child(2n) {
+      background: #79c9ff;
+      box-shadow:
+        0 0 10px rgba(121,201,255,.9),
+        0 0 22px rgba(121,201,255,.5);
+      animation-delay: .25s;
+    }
+
+    .completeJackpotLights i:nth-child(3n) {
+      background: #ff8b3c;
+      box-shadow:
+        0 0 10px rgba(255,139,60,.9),
+        0 0 22px rgba(255,139,60,.5);
+      animation-delay: .5s;
+    }
+
+    .completeJackpotLights i:nth-child(4n) {
+      background: #c89bff;
+      box-shadow:
+        0 0 10px rgba(200,155,255,.9),
+        0 0 22px rgba(200,155,255,.5);
+      animation-delay: .75s;
+    }
+
+    @keyframes bulbBlink {
+      0%, 49% { transform: scale(.85); opacity: .42; }
+      50%, 100% { transform: scale(1.22); opacity: 1; }
+    }
+
+    /* bottom jackpot lights too */
+    .completeJackpotLightsBottom {
+      position: absolute;
+      inset: auto 14px 14px;
+      z-index: 6;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .completeJackpotLightsBottom i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: block;
+      background: #ff8b3c;
+      box-shadow:
+        0 0 10px rgba(255,139,60,.9),
+        0 0 22px rgba(255,139,60,.5);
+      animation: bulbBlink .9s steps(2, end) infinite;
+      animation-delay: .12s;
+    }
+
+    .completeJackpotLightsBottom i:nth-child(2n) {
+      background: #ffd95c;
+      animation-delay: .35s;
+    }
+
+    .completeJackpotLightsBottom i:nth-child(3n) {
+      background: #c89bff;
+      animation-delay: .58s;
+    }
+
+    .completeJackpotLightsBottom i:nth-child(4n) {
+      background: #79c9ff;
+      animation-delay: .82s;
     }
 
     .completeSystem {
       margin: 0 0 4px;
-      color: rgba(194, 230, 255, .84);
-      font-size: 10px;
+      color: rgba(255, 90, 90, .92);
+      font-size: 11px;
       font-weight: 950;
-      letter-spacing: .22em;
+      letter-spacing: .26em;
+      text-shadow: 0 0 10px rgba(255,80,80,.8);
     }
 
-    .completeLogo {
+    .completeLogoStack {
+      position: relative;
+      display: grid;
+      gap: 2px;
+      place-items: center;
       margin: 0;
+      z-index: 31;
+    }
+
+    .completeLogoStack span {
+      display: block;
       color: transparent;
-      font-size: clamp(35px, 10vw, 52px);
+      font-size: clamp(34px, 9.5vw, 50px);
       line-height: .95;
       font-weight: 950;
-      letter-spacing: .035em;
-      background: linear-gradient(180deg, #fff8df 0%, #dfad45 22%, #5b3d13 47%, #ffe28d 67%, #8c5f15 100%);
+      letter-spacing: .08em;
+      background:
+        linear-gradient(180deg, #fff8df 0%, #f7d070 18%, #e65b27 44%, #8a2a0a 70%, #ffe28d 100%);
       -webkit-background-clip: text;
       background-clip: text;
-      filter: drop-shadow(0 2px 0 rgba(0,0,0,.75)) drop-shadow(0 0 18px rgba(255,190,72,.34));
-      animation: completeLogoGlow 1.5s ease-in-out infinite alternate;
+      filter:
+        drop-shadow(0 4px 6px rgba(0,0,0,.82))
+        drop-shadow(0 0 14px rgba(255,190,72,.32));
+      opacity: 0;
+      transform: scale(1.5) translateY(-40px);
+      animation: armorAssemble 5s cubic-bezier(.2,.8,.2,1) forwards;
     }
 
-    @keyframes completeLogoGlow {
-      from { filter: drop-shadow(0 2px 0 rgba(0,0,0,.75)) drop-shadow(0 0 10px rgba(255,190,72,.26)); }
-      to { filter: drop-shadow(0 2px 0 rgba(0,0,0,.75)) drop-shadow(0 0 28px rgba(95,190,255,.42)); }
+    .completeLogoStack span:nth-child(2) {
+      font-size: clamp(42px, 11.5vw, 60px);
+      animation-delay: .14s;
+    }
+
+    @keyframes armorAssemble {
+      0% {
+        opacity: 0;
+        transform: scale(1.95) translateY(-48px);
+        filter: blur(12px) drop-shadow(0 0 0 rgba(0,0,0,0));
+        letter-spacing: .2em;
+      }
+      14% {
+        opacity: 1;
+        transform: scale(.88) translateY(10px);
+        filter: blur(0) drop-shadow(0 4px 6px rgba(0,0,0,.82));
+      }
+      24% { transform: scale(1) translateY(0); }
+      52% {
+        filter:
+          drop-shadow(0 4px 6px rgba(0,0,0,.82))
+          drop-shadow(0 0 18px rgba(255,190,72,.4))
+          brightness(1.3);
+      }
+      72%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        letter-spacing: .08em;
+        filter:
+          drop-shadow(0 4px 7px rgba(0,0,0,.85))
+          drop-shadow(0 0 38px rgba(255,255,255,.55))
+          drop-shadow(0 0 60px rgba(97,191,255,.48))
+          brightness(1.85);
+      }
+    }
+
+    .completeHype {
+      margin: 8px 0 0;
+      text-align: center;
+      color: #e8f6ff;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .2em;
+      text-shadow: 0 0 18px rgba(95,190,255,.4);
+      animation: hypeReveal 5s ease both;
+      opacity: 0;
+    }
+
+    @keyframes hypeReveal {
+      0%, 60% { opacity: 0; transform: translateY(10px); }
+      78% { opacity: 1; transform: translateY(0); }
+      100% { opacity: .94; }
     }
 
     .reactorBox {
       position: relative;
       z-index: 10;
-      height: 315px;
+      height: 330px;
       margin: 12px 14px 10px;
-      border-radius: 20px;
+      border-radius: 22px;
       overflow: hidden;
-      background: radial-gradient(circle at center, rgba(110,199,255,.22), transparent 34%), linear-gradient(180deg, #121922 0%, #06090e 100%);
+      background:
+        radial-gradient(circle at center, rgba(110,199,255,.24), transparent 34%),
+        linear-gradient(180deg, #121922 0%, #06090e 100%);
       border: 2px solid rgba(255,255,255,.13);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.72), inset 0 0 64px rgba(0,0,0,.86), 0 14px 30px rgba(0,0,0,.32);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.74),
+        inset 0 0 70px rgba(0,0,0,.88),
+        0 14px 30px rgba(0,0,0,.32);
+    }
+
+    .reactorBox::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-radial-gradient(circle at center, rgba(255,255,255,.04) 0 1px, transparent 1px 14px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 30px);
+      opacity: .9;
     }
 
     .reactorRing {
@@ -1387,45 +2006,45 @@
     }
 
     .reactorOuter {
-      width: 250px;
-      height: 250px;
-      border: 5px solid rgba(105,194,255,.45);
-      box-shadow: 0 0 0 12px rgba(105,194,255,.07), 0 0 52px rgba(105,194,255,.34);
-      animation: completeOuterPulse 1.4s ease-out both;
+      width: 270px;
+      height: 270px;
+      border: 5px solid rgba(105,194,255,.50);
+      box-shadow: 0 0 0 14px rgba(105,194,255,.08), 0 0 60px rgba(105,194,255,.4);
+      animation: completeOuterPulse 1.6s ease-out both;
     }
 
     .reactorMiddle {
-      width: 180px;
-      height: 180px;
-      border: 4px dashed rgba(220,245,255,.62);
-      animation: completeRingRotate 1.8s linear both;
+      width: 200px;
+      height: 200px;
+      border: 4px dashed rgba(220,245,255,.66);
+      animation: completeRingRotate 2.2s linear both;
     }
 
     .reactorInner {
-      width: 108px;
-      height: 108px;
+      width: 116px;
+      height: 116px;
       background: radial-gradient(circle at center, #fff 0 12%, #a9ebff 13% 28%, #2e9aff 29% 50%, #062f63 51% 74%, #02070d 75%);
-      box-shadow: 0 0 34px rgba(105,194,255,.85), 0 0 100px rgba(105,194,255,.42);
-      animation: completeCoreIgnite 1.55s ease both;
+      box-shadow: 0 0 38px rgba(105,194,255,.9), 0 0 110px rgba(105,194,255,.46);
+      animation: completeCoreIgnite 1.8s ease both;
     }
 
     @keyframes completeOuterPulse {
-      0% { transform: translate(-50%, -50%) scale(.25); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(.22); opacity: 0; }
       24% { opacity: 1; }
-      78% { transform: translate(-50%, -50%) scale(1.12); opacity: .85; }
-      100% { transform: translate(-50%, -50%) scale(1.2); opacity: .65; }
+      78% { transform: translate(-50%, -50%) scale(1.16); opacity: .85; }
+      100% { transform: translate(-50%, -50%) scale(1.24); opacity: .65; }
     }
 
     @keyframes completeRingRotate {
-      0% { transform: translate(-50%, -50%) scale(.6) rotate(0); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(.55) rotate(0); opacity: 0; }
       28% { opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1.08) rotate(520deg); opacity: .92; }
+      100% { transform: translate(-50%, -50%) scale(1.1) rotate(620deg); opacity: .92; }
     }
 
     @keyframes completeCoreIgnite {
-      0% { transform: translate(-50%, -50%) scale(.1); opacity: 0; filter: blur(10px); }
-      30% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; filter: blur(0); }
-      58% { transform: translate(-50%, -50%) scale(.94); }
+      0% { transform: translate(-50%, -50%) scale(.08); opacity: 0; filter: blur(12px); }
+      30% { transform: translate(-50%, -50%) scale(1.22); opacity: 1; filter: blur(0); }
+      58% { transform: translate(-50%, -50%) scale(.92); }
       100% { transform: translate(-50%, -50%) scale(1); }
     }
 
@@ -1437,49 +2056,249 @@
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.25), 0 14px 26px rgba(0,0,0,.34);
     }
 
-    .cp1 { left: 62px; right: 62px; top: 32px; height: 50px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: cpTop 1.05s cubic-bezier(.18,1,.26,1) .15s both; }
-    .cp2 { left: 62px; right: 62px; bottom: 32px; height: 50px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: cpBottom 1.05s cubic-bezier(.18,1,.26,1) .25s both; }
-    .cp3 { left: 44px; top: 92px; bottom: 92px; width: 58px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: cpLeft 1.05s cubic-bezier(.18,1,.26,1) .35s both; }
-    .cp4 { right: 44px; top: 92px; bottom: 92px; width: 58px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: cpRight 1.05s cubic-bezier(.18,1,.26,1) .45s both; }
+    .cp1 { left: 64px; right: 64px; top: 32px; height: 52px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: cpTop 1.1s cubic-bezier(.18,1,.26,1) .18s both; }
+    .cp2 { left: 64px; right: 64px; bottom: 32px; height: 52px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: cpBottom 1.1s cubic-bezier(.18,1,.26,1) .28s both; }
+    .cp3 { left: 44px; top: 92px; bottom: 92px; width: 60px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: cpLeft 1.1s cubic-bezier(.18,1,.26,1) .38s both; }
+    .cp4 { right: 44px; top: 92px; bottom: 92px; width: 60px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: cpRight 1.1s cubic-bezier(.18,1,.26,1) .48s both; }
 
     @keyframes cpTop {
-      0% { transform: translateY(-74px); opacity: 0; }
-      60% { transform: translateY(5px); opacity: 1; }
+      0% { transform: translateY(-80px); opacity: 0; }
+      60% { transform: translateY(6px); opacity: 1; }
       100% { transform: translateY(0); }
     }
 
     @keyframes cpBottom {
-      0% { transform: translateY(74px); opacity: 0; }
-      60% { transform: translateY(-5px); opacity: 1; }
+      0% { transform: translateY(80px); opacity: 0; }
+      60% { transform: translateY(-6px); opacity: 1; }
       100% { transform: translateY(0); }
     }
 
     @keyframes cpLeft {
-      0% { transform: translateX(-74px); opacity: 0; }
-      60% { transform: translateX(5px); opacity: 1; }
+      0% { transform: translateX(-80px); opacity: 0; }
+      60% { transform: translateX(6px); opacity: 1; }
       100% { transform: translateX(0); }
     }
 
     @keyframes cpRight {
-      0% { transform: translateX(74px); opacity: 0; }
-      60% { transform: translateX(-5px); opacity: 1; }
+      0% { transform: translateX(80px); opacity: 0; }
+      60% { transform: translateX(-6px); opacity: 1; }
       100% { transform: translateX(0); }
     }
 
     .reactorSteam {
       position: absolute;
       z-index: 18;
-      width: 90px;
-      height: 90px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      background: radial-gradient(circle at center, rgba(255,255,255,.42), rgba(255,255,255,0) 70%);
-      filter: blur(11px);
+      background: radial-gradient(circle at center, rgba(255,255,255,.45), rgba(255,255,255,0) 70%);
+      filter: blur(12px);
       opacity: 0;
     }
 
-    .rs1 { left: 30px; top: 150px; animation: steamRiseA 1.3s ease-out .8s both; }
-    .rs2 { right: 30px; top: 150px; animation: steamRiseB 1.3s ease-out .9s both; }
-    .rs3 { left: 50%; top: 44px; animation: steamRiseC 1.25s ease-out 1s both; }
+    .rs1 { left: 30px; top: 150px; animation: stampSteamRiseA 1.5s ease-out .8s both; }
+    .rs2 { right: 30px; top: 150px; animation: stampSteamRiseB 1.5s ease-out .9s both; }
+    .rs3 { left: 50%; top: 44px; animation: stampSteamRiseC 1.4s ease-out 1s both; }
+
+    .compCoreBlast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 4;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background:
+        radial-gradient(circle, #fff 0 10%, #61bfff 11% 40%, rgba(97,191,255,.18) 41% 70%, transparent 71%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      pointer-events: none;
+      animation: compCoreCharge 5s ease-in forwards;
+    }
+
+    @keyframes compCoreCharge {
+      0%, 16% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.1);
+      }
+      40% {
+        opacity: .5;
+        transform: translate(-50%, -50%) scale(.85);
+      }
+      62% {
+        opacity: .9;
+        transform: translate(-50%, -50%) scale(1.22);
+        box-shadow: 0 0 100px rgba(97,191,255,.7);
+      }
+      72% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(2.7);
+        background:
+          radial-gradient(circle, #fff 0 26%, rgba(97,191,255,.85) 27% 50%, transparent 70%);
+      }
+      82% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(3.4);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(3.8);
+      }
+    }
+
+    /* Massive white screen flash */
+    .compMegaFlash {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: radial-gradient(circle at center, #fff 0 30%, rgba(255,255,255,.7) 50%, rgba(255,255,255,0) 80%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0;
+      animation: compMegaFlash 5s ease both;
+    }
+
+    @keyframes compMegaFlash {
+      0%, 60% { opacity: 0; }
+      66% { opacity: 1; }
+      72% { opacity: .4; }
+      78% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    /* rainbow shockwave on impact */
+    .rainbowShock {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 14;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      border: 6px solid transparent;
+      background:
+        conic-gradient(from 0deg,
+          #ff3a3a, #ffa83a, #ffe93a, #5fff7a, #5fc3ff, #b85fff, #ff5fb8, #ff3a3a);
+      mask:
+        radial-gradient(transparent 0 36%, #000 38% 50%, transparent 52%);
+      -webkit-mask:
+        radial-gradient(transparent 0 36%, #000 38% 50%, transparent 52%);
+      animation: rainbowShockBlast 5s ease both;
+    }
+
+    @keyframes rainbowShockBlast {
+      0%, 64% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(180deg); }
+      88% { opacity: 0; transform: translate(-50%, -50%) scale(7) rotate(720deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(8) rotate(900deg); }
+    }
+
+    .compSteam {
+      position: absolute;
+      z-index: 18;
+      bottom: 34%;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(255,255,255,.42) 0%, rgba(255,255,255,0) 62%);
+      opacity: 0;
+      filter: blur(10px);
+      pointer-events: none;
+      animation: compSteamBlow 5s ease-out forwards;
+    }
+
+    .compSteamLeft {
+      left: 7%;
+      animation-delay: 1.45s;
+    }
+
+    .compSteamRight {
+      right: 7%;
+      animation-delay: 1.65s;
+    }
+
+    @keyframes compSteamBlow {
+      0% {
+        transform: scale(.45) translateY(0);
+        opacity: 0;
+      }
+      10% { opacity: .82; }
+      44% {
+        transform: scale(3) translateY(-150px) translateX(48px);
+        opacity: 0;
+      }
+      100% { opacity: 0; }
+    }
+
+    .winCounter {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 19;
+      transform: translate(-50%, -50%);
+      color: #fff7dc;
+      font-weight: 950;
+      font-size: 17px;
+      letter-spacing: .2em;
+      text-shadow: 0 0 22px rgba(255,215,95,.5);
+      opacity: 0;
+      animation: counterReveal 5s ease both;
+      white-space: nowrap;
+    }
+
+    @keyframes counterReveal {
+      0%, 18% { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
+      26% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      48% { opacity: .96; }
+      56% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+      100% { opacity: 0; }
+    }
+
+    /* Rank badge SSS */
+    .completeRankBadge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 22;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      opacity: 0;
+      animation: rankBadgePop 5s cubic-bezier(.18,1.3,.22,1) both;
+    }
+
+    @keyframes rankBadgePop {
+      0%, 78% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-30deg); }
+      84% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(8deg); }
+      90% { transform: translate(-50%, -50%) scale(.92) rotate(-3deg); }
+      96%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0); }
+    }
+
+    .completeRankBadge .rankInner {
+      padding: 10px 30px;
+      border-radius: 18px;
+      font-size: 56px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      color: transparent;
+      background:
+        linear-gradient(180deg, #fff8df 0%, #ffe28d 22%, #ffb52a 50%, #ffe28d 78%, #fff8df 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      border: 4px solid #ffd34a;
+      box-shadow:
+        0 0 36px rgba(255,210,80,.7),
+        0 0 80px rgba(255,150,40,.5),
+        inset 0 0 14px rgba(255,255,255,.2);
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.6));
+      text-shadow:
+        0 2px 0 rgba(0,0,0,.4);
+      background-color: rgba(20,12,4,.72);
+    }
 
     .completePanel {
       position: relative;
@@ -1490,14 +2309,24 @@
       background: linear-gradient(180deg, #fff0cf, #dec18e);
       border: 2px solid rgba(74,59,35,.25);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.46), 0 14px 28px rgba(0,0,0,.28);
-      animation: completePanelOpen .9s cubic-bezier(.16,1,.22,1) 1.05s both;
+      animation: completePanelOpen 5s cubic-bezier(.16,1,.22,1) both;
+      opacity: 0;
       transform-origin: top center;
     }
 
     @keyframes completePanelOpen {
-      0% { transform: translateY(34px) scaleY(.35); opacity: 0; }
-      70% { transform: translateY(-3px) scaleY(1.04); opacity: 1; }
-      100% { transform: translateY(0) scaleY(1); }
+      0%, 70% {
+        transform: translateY(34px) scaleY(.35);
+        opacity: 0;
+      }
+      82% {
+        transform: translateY(-3px) scaleY(1.04);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0) scaleY(1);
+        opacity: 1;
+      }
     }
 
     .completePanel::before {
@@ -1528,626 +2357,20 @@
       font-weight: 900;
     }
 
-
-    /* ===== integrated upgrade patch: logo fix / 4sec stamp get / uploaded complete effect ===== */
-
-    .topBar {
-      gap: 8px;
-    }
-
-    .roundBtn {
-      flex: 0 0 auto;
-    }
-
-    .brand {
-      min-width: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      flex: 1 1 auto;
-      white-space: nowrap;
-    }
-
-    .brandWord {
-      line-height: 1;
-      display: inline-block;
-    }
-
-    .brandGear {
-      display: inline-grid;
-      place-items: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      font-size: 14px;
-      color: #cad4de;
-      background: linear-gradient(180deg, #56606b, #232a31);
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.16),
-        0 3px 8px rgba(0,0,0,.28);
-      flex: 0 0 auto;
-    }
-
-    .stampImpact.show {
-      animation: impactBackdrop 4s ease both;
-    }
-
-    @keyframes impactBackdrop {
-      0% { opacity: 0; }
-      8% { opacity: 1; }
-      92% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    body.impactShudder .phoneFrame {
-      animation: frameShudder .56s ease both;
-    }
-
-    .impactScene {
-      animation: impactScenePop 4s cubic-bezier(.16, 1.08, .22, 1) both;
-    }
-
-    @keyframes impactScenePop {
-      0% { transform: scale(.72) translateY(24px); opacity: 0; filter: blur(4px); }
-      10% { transform: scale(1.05) translateY(0); opacity: 1; filter: blur(0); }
-      18% { transform: scale(.99); }
-      88% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(.95) translateY(12px); opacity: 0; }
-    }
-
-    .impactScan {
-      animation: scanPass 2.2s ease-out .12s both;
-    }
-
-    @keyframes scanPass {
-      0% { transform: translateY(-80%); opacity: 0; }
-      10% { opacity: 1; }
-      72% { opacity: .9; }
-      100% { transform: translateY(360%); opacity: 0; }
-    }
-
-    .impactSystem {
-      opacity: 0;
-      animation: fadeStageA 4s ease both;
-    }
-
-    .impactTitle {
-      opacity: 0;
-      animation: stampGetTitleReveal 4s ease both;
-    }
-
-    .impactSubTitle {
-      opacity: 0;
-      animation: fadeStageB 4s ease both;
-    }
-
-    @keyframes fadeStageA {
-      0%, 8% { opacity: 0; transform: translateY(8px); }
-      16%, 100% { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes stampGetTitleReveal {
-      0%, 10% { opacity: 0; transform: scale(.84); letter-spacing: .12em; }
-      18% { opacity: 1; transform: scale(1.08); letter-spacing: .06em; }
-      24% { transform: scale(.98); }
-      100% { opacity: 1; transform: scale(1); letter-spacing: .035em; }
-    }
-
-    @keyframes fadeStageB {
-      0%, 18% { opacity: 0; transform: translateY(8px); }
-      28%, 100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .engineRail {
-      opacity: 0;
-      animation: railRise 4s ease both;
-    }
-
-    @keyframes railRise {
-      0%, 10% { opacity: 0; }
-      16%, 100% { opacity: 1; }
-    }
-
-    .plateA { animation: plateTopLock 4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateB { animation: plateBottomLock 4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateC { animation: plateLeftLock 4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateD { animation: plateRightLock 4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateE { animation: smallPlateA 4s ease both; }
-    .plateF { animation: smallPlateB 4s ease both; }
-
-    @keyframes plateTopLock {
-      0% { transform: translateY(-78px); opacity: 0; }
-      10% { opacity: 0; }
-      24% { transform: translateY(0); opacity: 1; }
-      31% { transform: translateY(5px); }
-      38% { transform: translateY(0); }
-      90% { opacity: 1; }
-      100% { transform: translateY(-16px); opacity: 0; }
-    }
-
-    @keyframes plateBottomLock {
-      0% { transform: translateY(78px); opacity: 0; }
-      10% { opacity: 0; }
-      24% { transform: translateY(0); opacity: 1; }
-      31% { transform: translateY(-5px); }
-      38% { transform: translateY(0); }
-      90% { opacity: 1; }
-      100% { transform: translateY(16px); opacity: 0; }
-    }
-
-    @keyframes plateLeftLock {
-      0% { transform: translateX(-84px); opacity: 0; }
-      12% { opacity: 0; }
-      26% { transform: translateX(0); opacity: 1; }
-      33% { transform: translateX(5px); }
-      40% { transform: translateX(0); }
-      90% { opacity: 1; }
-      100% { transform: translateX(-16px); opacity: 0; }
-    }
-
-    @keyframes plateRightLock {
-      0% { transform: translateX(84px); opacity: 0; }
-      12% { opacity: 0; }
-      26% { transform: translateX(0); opacity: 1; }
-      33% { transform: translateX(-5px); }
-      40% { transform: translateX(0); }
-      90% { opacity: 1; }
-      100% { transform: translateX(16px); opacity: 0; }
-    }
-
-    @keyframes smallPlateA {
-      0% { transform: translate(-40px, -20px) rotate(-40deg); opacity: 0; }
-      22% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      88% { opacity: .9; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes smallPlateB {
-      0% { transform: translate(40px, 20px) rotate(-40deg); opacity: 0; }
-      22% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      88% { opacity: .9; }
-      100% { opacity: 0; }
-    }
-
-    .hA, .hC { animation: pistonInLeft 4s ease both; }
-    .hB, .hD { animation: pistonInRight 4s ease both; }
-
-    @keyframes pistonInLeft {
-      0% { opacity: 0; translate: -48px 0; }
-      18% { opacity: 0; }
-      30% { opacity: 1; translate: 0 0; }
-      100% { opacity: .92; }
-    }
-
-    @keyframes pistonInRight {
-      0% { opacity: 0; translate: 48px 0; }
-      18% { opacity: 0; }
-      30% { opacity: 1; translate: 0 0; }
-      100% { opacity: .92; }
-    }
-
-    .ringOuter { animation: ringPulse 4s ease-out both; }
-    .ringMiddle { animation: ringRotate 4s linear both; }
-    .energyCore { animation: coreIgniteReal 4s ease both; }
-
-    @keyframes ringPulse {
-      0% { transform: translate(-50%, -50%) scale(.36); opacity: 0; }
-      18% { opacity: 0; }
-      34% { opacity: 1; transform: translate(-50%, -50%) scale(.9); }
-      60% { transform: translate(-50%, -50%) scale(1.26); opacity: .62; }
-      88% { transform: translate(-50%, -50%) scale(1.35); opacity: .35; }
-      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-    }
-
-    @keyframes ringRotate {
-      0% { transform: translate(-50%, -50%) scale(.72) rotate(0); opacity: 0; }
-      22% { opacity: 0; }
-      36% { opacity: 1; }
-      88% { opacity: .88; }
-      100% { transform: translate(-50%, -50%) scale(1.22) rotate(660deg); opacity: 0; }
-    }
-
-    @keyframes coreIgniteReal {
-      0% { transform: translate(-50%, -50%) scale(.12); opacity: 0; filter: blur(9px); }
-      26% { opacity: 0; }
-      38% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; filter: blur(0); }
-      74% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(.92); opacity: .95; }
-    }
-
-    .mechanicalStamp {
-      animation: stampHeadLock 4s cubic-bezier(.15,.9,.3,1) both;
-    }
-
-    @keyframes stampHeadLock {
-      0% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
-      36% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(.86) rotate(4deg); opacity: 1; }
-      58% { transform: translate(-50%, -50%) scale(1.06) rotate(-2deg); }
-      66% { transform: translate(-50%, -50%) scale(1) rotate(0); }
-      90% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
-    }
-
-    #stampImpact .steamA { animation: stampSteamRiseA 4s ease-out both; }
-    #stampImpact .steamB { animation: stampSteamRiseB 4s ease-out both; }
-    #stampImpact .steamC { animation: stampSteamRiseC 4s ease-out both; }
-    #stampImpact .steamD { animation: stampSteamRiseD 4s ease-out both; }
-
-    @keyframes stampSteamRiseA {
-      0%, 44% { transform: translateY(18px) scale(.45); opacity: 0; }
-      58% { opacity: .52; }
-      100% { transform: translateY(-36px) scale(1.4); opacity: 0; }
-    }
-
-    @keyframes stampSteamRiseB {
-      0%, 46% { transform: translateY(18px) scale(.45); opacity: 0; }
-      60% { opacity: .48; }
-      100% { transform: translateY(-34px) scale(1.32); opacity: 0; }
-    }
-
-    @keyframes stampSteamRiseC {
-      0%, 48% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
-      62% { opacity: .38; }
-      100% { transform: translateX(-50%) translateY(-34px) scale(1.18); opacity: 0; }
-    }
-
-    @keyframes stampSteamRiseD {
-      0%, 50% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
-      64% { opacity: .34; }
-      100% { transform: translateX(-50%) translateY(30px) scale(1.24); opacity: 0; }
-    }
-
-    #stampImpact .eA { animation: stampElectricFlashA 4s ease both; }
-    #stampImpact .eB { animation: stampElectricFlashB 4s ease both; }
-    #stampImpact .eC { animation: stampElectricFlashC 4s ease both; }
-
-    @keyframes stampElectricFlashA {
-      0%, 50% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
-      58%, 66% { opacity: 1; }
-      100% { opacity: 0; transform: scaleX(1) rotate(-18deg); }
-    }
-
-    @keyframes stampElectricFlashB {
-      0%, 54% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
-      62%, 70% { opacity: 1; }
-      100% { opacity: 0; transform: scaleX(1) rotate(18deg); }
-    }
-
-    @keyframes stampElectricFlashC {
-      0%, 58% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
-      66%, 74% { opacity: 1; }
-      100% { opacity: 0; transform: scaleX(1) rotate(-3deg); }
-    }
-
-    .impactRecord {
-      opacity: 0;
-      transform: translateY(18px) scale(.96);
-      animation: impactRecordReveal 4s cubic-bezier(.16,1,.22,1) both;
-    }
-
-    @keyframes impactRecordReveal {
-      0%, 58% { opacity: 0; transform: translateY(18px) scale(.96); }
-      72% { opacity: 1; transform: translateY(-2px) scale(1.03); }
-      82%, 100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .impactStampMark {
-      box-shadow: 0 0 0 0 rgba(221,87,44,.25);
-      animation: markPulse 4s ease both;
-    }
-
-    @keyframes markPulse {
-      0%, 70% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
-      78% { box-shadow: 0 0 0 16px rgba(221,87,44,.10); }
-      100% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
-    }
-
-    .impactOk {
-      opacity: 0;
-      transform: translateY(18px) scale(.92);
-      animation: impactOkReveal 4s cubic-bezier(.16,1,.22,1) both;
-    }
-
-    @keyframes impactOkReveal {
-      0%, 72% { opacity: 0; transform: translateY(18px) scale(.92); }
-      84% { opacity: 1; transform: translateY(-2px) scale(1.06); }
-      92%, 100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .completeStage {
-      min-height: 630px;
-    }
-
-    .completeHeader {
-      margin: 22px 16px 10px;
-    }
-
-    .completeJackpotLights {
-      position: absolute;
-      inset: 16px 16px auto;
-      z-index: 6;
-      display: flex;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-
-    .completeJackpotLights i {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: block;
-      background: #ffd95c;
-      box-shadow:
-        0 0 8px rgba(255,217,92,.8),
-        0 0 18px rgba(255,217,92,.46);
-      animation: bulbBlink 1.1s steps(2, end) infinite;
-    }
-
-    .completeJackpotLights i:nth-child(2n) {
-      background: #79c9ff;
-      box-shadow:
-        0 0 8px rgba(121,201,255,.8),
-        0 0 18px rgba(121,201,255,.46);
-      animation-delay: .25s;
-    }
-
-    .completeJackpotLights i:nth-child(3n) { animation-delay: .5s; }
-    .completeJackpotLights i:nth-child(4n) { animation-delay: .75s; }
-
-    @keyframes bulbBlink {
-      0%, 49% { transform: scale(.9); opacity: .45; }
-      50%, 100% { transform: scale(1.15); opacity: 1; }
-    }
-
-    .completeLogoStack {
-      position: relative;
-      display: grid;
-      gap: 2px;
-      place-items: center;
-      margin: 0;
-      z-index: 31;
-    }
-
-    .completeLogoStack span {
-      display: block;
-      color: transparent;
-      font-size: clamp(30px, 8.7vw, 48px);
-      line-height: .95;
-      font-weight: 950;
-      letter-spacing: .08em;
-      background:
-        linear-gradient(180deg, #fff8df 0%, #f7d070 18%, #e65b27 44%, #8a2a0a 70%, #ffe28d 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      filter:
-        drop-shadow(0 4px 6px rgba(0,0,0,.82))
-        drop-shadow(0 0 12px rgba(255,190,72,.25));
-      opacity: 0;
-      transform: scale(1.5) translateY(-40px);
-      animation: armorAssemble 4s cubic-bezier(.2,.8,.2,1) forwards;
-    }
-
-    .completeLogoStack span:nth-child(2) {
-      font-size: clamp(39px, 10.5vw, 56px);
-      animation-delay: .14s;
-    }
-
-    @keyframes armorAssemble {
-      0% {
-        opacity: 0;
-        transform: scale(1.85) translateY(-44px);
-        filter: blur(10px) drop-shadow(0 0 0 rgba(0,0,0,0));
-        letter-spacing: .18em;
-      }
-      16% {
-        opacity: 1;
-        transform: scale(.9) translateY(9px);
-        filter: blur(0) drop-shadow(0 4px 6px rgba(0,0,0,.82));
-      }
-      26% { transform: scale(1) translateY(0); }
-      58% {
-        filter:
-          drop-shadow(0 4px 6px rgba(0,0,0,.82))
-          drop-shadow(0 0 16px rgba(255,190,72,.38))
-          brightness(1.25);
-      }
-      76%, 100% {
-        opacity: 1;
-        transform: scale(1);
-        letter-spacing: .06em;
-        filter:
-          drop-shadow(0 4px 7px rgba(0,0,0,.85))
-          drop-shadow(0 0 34px rgba(255,255,255,.50))
-          drop-shadow(0 0 56px rgba(97,191,255,.44))
-          brightness(1.75);
-      }
-    }
-
-    .completeHype {
-      margin: 8px 0 0;
-      text-align: center;
-      color: #e8f6ff;
-      font-size: 13px;
-      font-weight: 950;
-      letter-spacing: .18em;
-      text-shadow: 0 0 18px rgba(95,190,255,.34);
-      animation: hypeReveal 4s ease both;
-      opacity: 0;
-    }
-
-    @keyframes hypeReveal {
-      0%, 60% { opacity: 0; transform: translateY(10px); }
-      78% { opacity: 1; transform: translateY(0); }
-      100% { opacity: .94; }
-    }
-
-    .compCoreBlast {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      z-index: 4;
-      width: 210px;
-      height: 210px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      background:
-        radial-gradient(circle, #fff 0 10%, #61bfff 11% 40%, rgba(97,191,255,.18) 41% 70%, transparent 71%);
-      mix-blend-mode: screen;
-      opacity: 0;
-      pointer-events: none;
-      animation: compCoreCharge 4s ease-in forwards;
-    }
-
-    @keyframes compCoreCharge {
-      0%, 18% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(.1);
-      }
-      42% {
-        opacity: .45;
-        transform: translate(-50%, -50%) scale(.82);
-      }
-      66% {
-        opacity: .85;
-        transform: translate(-50%, -50%) scale(1.18);
-        box-shadow: 0 0 92px rgba(97,191,255,.65);
-      }
-      78% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(2.55);
-        background:
-          radial-gradient(circle, #fff 0 24%, rgba(97,191,255,.8) 25% 48%, transparent 68%);
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(3.15);
-      }
-    }
-
-    .compSteam {
-      position: absolute;
-      z-index: 18;
-      bottom: 34%;
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, rgba(255,255,255,.42) 0%, rgba(255,255,255,0) 62%);
-      opacity: 0;
-      filter: blur(9px);
-      pointer-events: none;
-      animation: compSteamBlow 4s ease-out forwards;
-    }
-
-    .compSteamLeft {
-      left: 7%;
-      animation-delay: 1.45s;
-    }
-
-    .compSteamRight {
-      right: 7%;
-      animation-delay: 1.65s;
-    }
-
-    @keyframes compSteamBlow {
-      0% {
-        transform: scale(.45) translateY(0);
-        opacity: 0;
-      }
-      10% { opacity: .78; }
-      44% {
-        transform: scale(2.8) translateY(-142px) translateX(42px);
-        opacity: 0;
-      }
-      100% { opacity: 0; }
-    }
-
-    .reactorBox {
-      height: 320px;
-    }
-
-    .flashBurst {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 15;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      background:
-        radial-gradient(circle at center, rgba(255,255,255,1), rgba(173,231,255,.95) 36%, rgba(115,189,255,.2) 70%, rgba(115,189,255,0) 100%);
-      opacity: 0;
-      animation: flashBurst 4s ease both;
-    }
-
-    @keyframes flashBurst {
-      0%, 56% { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
-      68% { opacity: 1; transform: translate(-50%, -50%) scale(8); }
-      78% { opacity: .55; transform: translate(-50%, -50%) scale(11); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(13); }
-    }
-
-    .winCounter {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 19;
-      transform: translate(-50%, -50%);
-      color: #fff7dc;
-      font-weight: 950;
-      font-size: 16px;
-      letter-spacing: .18em;
-      text-shadow: 0 0 18px rgba(255,215,95,.4);
-      opacity: 0;
-      animation: counterReveal 4s ease both;
-      white-space: nowrap;
-    }
-
-    @keyframes counterReveal {
-      0%, 18% { opacity: 0; transform: translate(-50%, -50%) scale(.9); }
-      26% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      48% { opacity: .95; }
-      56% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); }
-      100% { opacity: 0; }
-    }
-
-    .completePanel {
-      animation: completePanelOpen 4s cubic-bezier(.16,1,.22,1) both;
-      opacity: 0;
-    }
-
-    @keyframes completePanelOpen {
-      0%, 68% {
-        transform: translateY(34px) scaleY(.35);
-        opacity: 0;
-      }
-      82% {
-        transform: translateY(-3px) scaleY(1.04);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(0) scaleY(1);
-        opacity: 1;
-      }
-    }
-
     body.completeShudder {
-      animation: screenShake .42s ease-in-out 6;
+      animation: screenShake .42s ease-in-out 8;
     }
 
     @keyframes screenShake {
       0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      25% { transform: translate(2px, 2px) rotate(.45deg); }
-      50% { transform: translate(-2px, -2px) rotate(-.45deg); }
-      75% { transform: translate(-2px, 2px) rotate(.45deg); }
+      25% { transform: translate(3px, 3px) rotate(.5deg); }
+      50% { transform: translate(-3px, -3px) rotate(-.5deg); }
+      75% { transform: translate(-3px, 3px) rotate(.5deg); }
     }
 
-
-    /* ===== preflight 4 sec / wait-time excitement ===== */
+    /* ===========================================
+       PREFLIGHT — boss warning intro
+       =========================================== */
 
     .preflight {
       position: fixed;
@@ -2158,10 +2381,10 @@
       padding: 18px;
       pointer-events: none;
       background:
-        radial-gradient(circle at 50% 40%, rgba(95,190,255,.26), transparent 32%),
-        radial-gradient(circle at 50% 18%, rgba(244,196,51,.12), transparent 22%),
-        rgba(3, 6, 10, .76);
-      backdrop-filter: blur(4px) saturate(1.12);
+        radial-gradient(circle at 50% 40%, rgba(95,190,255,.28), transparent 32%),
+        radial-gradient(circle at 50% 18%, rgba(255,80,80,.18), transparent 22%),
+        rgba(3, 6, 10, .82);
+      backdrop-filter: blur(5px) saturate(1.18);
     }
 
     .preflight.show {
@@ -2172,35 +2395,42 @@
     @keyframes preflightBackdrop {
       0% { opacity: 0; }
       8% { opacity: 1; }
-      92% { opacity: 1; }
-      100% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .preflight.closing {
+      animation: preflightClose .22s ease both;
+    }
+
+    @keyframes preflightClose {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
 
     .preflightConsole {
       position: relative;
-      width: min(92vw, 420px);
-      min-height: 545px;
+      width: min(94vw, 430px);
+      min-height: 580px;
       overflow: hidden;
       border-radius: 32px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.035)),
         radial-gradient(circle at 50% 46%, rgba(91,190,255,.18), transparent 36%),
         linear-gradient(180deg, #303842 0%, #121923 58%, #05080d 100%);
-      border: 2px solid rgba(210,222,235,.18);
+      border: 2px solid rgba(210,222,235,.20);
       box-shadow:
         inset 0 2px 0 rgba(255,255,255,.18),
         inset 0 -5px 0 rgba(0,0,0,.34),
-        0 34px 95px rgba(0,0,0,.68),
-        0 0 76px rgba(95,190,255,.22);
+        0 34px 95px rgba(0,0,0,.7),
+        0 0 80px rgba(95,190,255,.24);
       animation: preConsoleIn 4s cubic-bezier(.16,1,.22,1) both;
     }
 
     @keyframes preConsoleIn {
-      0% { transform: scale(.82) translateY(24px); opacity: 0; filter: blur(4px); }
-      12% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0); }
+      0% { transform: scale(.8) translateY(28px); opacity: 0; filter: blur(6px); }
+      12% { transform: scale(1.04) translateY(-2px); opacity: 1; filter: blur(0); }
       22% { transform: scale(1); }
-      92% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(.96) translateY(10px); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .preflightConsole::before {
@@ -2210,9 +2440,57 @@
       z-index: 1;
       pointer-events: none;
       background:
-        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.6) 100%),
         repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 28px),
         repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 34px);
+    }
+
+    .preWarnTop,
+    .preWarnBottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 11px;
+      z-index: 33;
+      background: repeating-linear-gradient(
+        -45deg,
+        #1a0b0b 0 11px,
+        #1a0b0b 11px 14px,
+        #ff2d2d 14px 25px,
+        #ff2d2d 25px 28px
+      );
+      box-shadow: 0 0 12px rgba(255,45,45,.65);
+      animation: preWarnSlide 4s ease both;
+    }
+
+    .preWarnTop { top: 0; }
+    .preWarnBottom { bottom: 0; }
+
+    @keyframes preWarnSlide {
+      0% { opacity: 0; transform: translateX(-30px); }
+      8% { opacity: 1; transform: translateX(0); }
+      14% { transform: translateX(-5px); }
+      20% { transform: translateX(0); }
+      100% { opacity: 1; }
+    }
+
+    .preRedAlert {
+      position: absolute;
+      inset: 0;
+      z-index: 31;
+      background: radial-gradient(circle at 50% 50%, rgba(255,40,40,0) 0 38%, rgba(255,40,40,.30) 100%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0;
+      animation: preAlertFlashes 4s ease both;
+    }
+
+    @keyframes preAlertFlashes {
+      0%, 6% { opacity: 0; }
+      8% { opacity: .8; }
+      10% { opacity: .2; }
+      12% { opacity: .8; }
+      14%, 100% { opacity: 0; }
     }
 
     .preScan {
@@ -2222,7 +2500,7 @@
       top: -42%;
       height: 42%;
       z-index: 30;
-      background: linear-gradient(180deg, transparent, rgba(98,194,255,.34), transparent);
+      background: linear-gradient(180deg, transparent, rgba(98,194,255,.36), transparent);
       animation: preScanPass 2.05s ease-out .2s both;
     }
 
@@ -2236,8 +2514,8 @@
     .preHeader {
       position: relative;
       z-index: 20;
-      margin: 14px 16px 10px;
-      padding: 12px 12px 13px;
+      margin: 22px 16px 10px;
+      padding: 14px 12px 14px;
       border-radius: 14px;
       text-align: center;
       background:
@@ -2246,22 +2524,25 @@
       box-shadow:
         inset 0 2px 0 rgba(255,255,255,.18),
         inset 0 -3px 0 rgba(0,0,0,.34),
-        0 12px 26px rgba(0,0,0,.34);
+        0 12px 26px rgba(0,0,0,.34),
+        0 0 22px rgba(255,80,80,.2);
       animation: preHeaderDrop 4s ease both;
     }
 
     @keyframes preHeaderDrop {
-      0% { opacity: 0; transform: translateY(-20px); }
+      0% { opacity: 0; transform: translateY(-22px); }
       12% { opacity: 1; transform: translateY(0); }
       100% { opacity: 1; }
     }
 
     .preSystem {
       margin: 0 0 5px;
-      color: rgba(194,230,255,.86);
+      color: rgba(255,90,90,.92);
       font-size: 10px;
       font-weight: 950;
-      letter-spacing: .22em;
+      letter-spacing: .26em;
+      text-shadow: 0 0 8px rgba(255,80,80,.7);
+      animation: systemBlink .7s ease-in-out infinite alternate;
     }
 
     .preTitle {
@@ -2277,7 +2558,7 @@
       background-clip: text;
       filter:
         drop-shadow(0 2px 0 rgba(0,0,0,.72))
-        drop-shadow(0 0 18px rgba(95,190,255,.34));
+        drop-shadow(0 0 18px rgba(95,190,255,.4));
       animation: preTitleCharge 4s ease both;
     }
 
@@ -2299,7 +2580,7 @@
     .preCoreBox {
       position: relative;
       z-index: 10;
-      height: 292px;
+      height: 305px;
       margin: 12px 14px 10px;
       border-radius: 20px;
       overflow: hidden;
@@ -2311,6 +2592,15 @@
         inset 0 0 0 1px rgba(0,0,0,.72),
         inset 0 0 64px rgba(0,0,0,.86),
         0 14px 30px rgba(0,0,0,.32);
+    }
+
+    .preCoreBox::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-radial-gradient(circle at center, rgba(255,255,255,.04) 0 1px, transparent 1px 14px);
+      opacity: .8;
     }
 
     .preRail {
@@ -2346,30 +2636,30 @@
     }
 
     .preRingOuter {
-      width: 224px;
-      height: 224px;
-      border: 4px solid rgba(105,194,255,.34);
+      width: 234px;
+      height: 234px;
+      border: 4px solid rgba(105,194,255,.4);
       box-shadow:
-        0 0 0 12px rgba(105,194,255,.05),
-        0 0 44px rgba(105,194,255,.22);
+        0 0 0 12px rgba(105,194,255,.06),
+        0 0 50px rgba(105,194,255,.28);
       animation: preOuterBreath 4s ease both;
     }
 
     .preRingMiddle {
-      width: 158px;
-      height: 158px;
-      border: 3px dashed rgba(220,245,255,.58);
+      width: 168px;
+      height: 168px;
+      border: 3px dashed rgba(220,245,255,.6);
       animation: preRingRotate 4s linear both;
     }
 
     .preCore {
-      width: 82px;
-      height: 82px;
+      width: 88px;
+      height: 88px;
       background:
         radial-gradient(circle at center, #fff 0 9%, #a3e9ff 10% 24%, #2e9aff 25% 48%, #062f63 49% 72%, #02070d 73%);
       box-shadow:
-        0 0 22px rgba(105,194,255,.74),
-        0 0 72px rgba(105,194,255,.32);
+        0 0 26px rgba(105,194,255,.78),
+        0 0 78px rgba(105,194,255,.36);
       animation: preCoreCharge 4s ease both;
     }
 
@@ -2390,7 +2680,7 @@
       0% { opacity: 0; transform: translate(-50%, -50%) scale(.08); filter: blur(10px); }
       26% { opacity: .62; transform: translate(-50%, -50%) scale(.68); filter: blur(0); }
       56% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 34px rgba(105,194,255,.82), 0 0 110px rgba(105,194,255,.42); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 38px rgba(105,194,255,.86), 0 0 116px rgba(105,194,255,.46); }
     }
 
     .prePlate {
@@ -2409,7 +2699,7 @@
       left: 68px;
       right: 68px;
       top: 35px;
-      height: 42px;
+      height: 44px;
       clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
       animation: prePlateTop 4s cubic-bezier(.18,1,.26,1) both;
     }
@@ -2418,460 +2708,50 @@
       left: 68px;
       right: 68px;
       bottom: 35px;
-      height: 42px;
+      height: 44px;
       clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
       animation: prePlateBottom 4s cubic-bezier(.18,1,.26,1) both;
     }
 
     .prePlateLeft {
       left: 50px;
-      top: 94px;
-      bottom: 94px;
-      width: 48px;
+      top: 96px;
+      bottom: 96px;
+      width: 50px;
       clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
       animation: prePlateLeft 4s cubic-bezier(.18,1,.26,1) both;
     }
 
     .prePlateRight {
       right: 50px;
-      top: 94px;
-      bottom: 94px;
-      width: 48px;
+      top: 96px;
+      bottom: 96px;
+      width: 50px;
       clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
       animation: prePlateRight 4s cubic-bezier(.18,1,.26,1) both;
     }
 
     @keyframes prePlateTop {
-      0%, 16% { transform: translateY(-76px); opacity: 0; }
-      36% { transform: translateY(4px); opacity: .88; }
+      0%, 16% { transform: translateY(-78px); opacity: 0; }
+      36% { transform: translateY(5px); opacity: .9; }
       44%, 100% { transform: translateY(0); opacity: .92; }
     }
 
     @keyframes prePlateBottom {
-      0%, 22% { transform: translateY(76px); opacity: 0; }
-      42% { transform: translateY(-4px); opacity: .88; }
+      0%, 22% { transform: translateY(78px); opacity: 0; }
+      42% { transform: translateY(-5px); opacity: .9; }
       50%, 100% { transform: translateY(0); opacity: .92; }
     }
 
     @keyframes prePlateLeft {
-      0%, 28% { transform: translateX(-76px); opacity: 0; }
-      48% { transform: translateX(4px); opacity: .88; }
+      0%, 28% { transform: translateX(-78px); opacity: 0; }
+      48% { transform: translateX(5px); opacity: .9; }
       56%, 100% { transform: translateX(0); opacity: .92; }
     }
 
     @keyframes prePlateRight {
-      0%, 34% { transform: translateX(76px); opacity: 0; }
-      54% { transform: translateX(-4px); opacity: .88; }
-      62%, 100% { transform: translateX(0); opacity: .92; }
-    }
-
-    .preStatusPanel {
-      position: relative;
-      z-index: 25;
-      margin: 0 14px 14px;
-      border-radius: 17px;
-      overflow: hidden;
-      background:
-        linear-gradient(180deg, #fff0cf, #dec18e);
-      border: 2px solid rgba(74,59,35,.25);
-      box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.46),
-        0 12px 24px rgba(0,0,0,.24);
-      animation: preStatusRise 4s ease both;
-    }
-
-    @keyframes preStatusRise {
-      0%, 52% { opacity: 0; transform: translateY(16px) scale(.96); }
-      68%, 100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .preStatusPanel::before {
-      content: "";
-      display: block;
-      height: 10px;
-      background:
-        repeating-linear-gradient(
-          -45deg,
-          #0d1116 0 13px,
-          #0d1116 13px 16px,
-          #f3c537 16px 29px,
-          #f3c537 29px 32px
-        );
-    }
-
-    .preStatusInner {
-      padding: 13px 14px 14px;
-      text-align: center;
-    }
-
-    .preStatusText {
-      margin: 0;
-      color: #2f2517;
-      font-size: 19px;
-      line-height: 1.32;
-      font-weight: 950;
-    }
-
-    .preStatusText small {
-      display: block;
-      margin-top: 6px;
-      color: #5b4930;
-      font-size: 12px;
-      line-height: 1.5;
-      font-weight: 850;
-    }
-
-    .preDots {
-      display: flex;
-      justify-content: center;
-      gap: 7px;
-      margin-top: 11px;
-    }
-
-    .preDots i {
-      display: block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #61bfff;
-      box-shadow: 0 0 12px rgba(97,191,255,.64);
-      animation: preDot 1s ease-in-out infinite;
-    }
-
-    .preDots i:nth-child(2) { animation-delay: .16s; }
-    .preDots i:nth-child(3) { animation-delay: .32s; }
-    .preDots i:nth-child(4) { animation-delay: .48s; }
-
-    @keyframes preDot {
-      0%, 100% { transform: scale(.7); opacity: .36; }
-      50% { transform: scale(1.24); opacity: 1; }
-    }
-
-    @media (max-width: 390px) {
-      .brand { font-size: 22px; gap: 5px; }
-      .brandGear { width: 19px; height: 19px; font-size: 12px; }
-      .completeStage { min-height: 610px; }
-      .completeLogoStack span { font-size: 28px; }
-      .completeLogoStack span:nth-child(2) { font-size: 37px; }
-    }
-
-
-
-    /* ===== preflight 4 sec / wait-time excitement ===== */
-
-    .preflight {
-      position: fixed;
-      inset: 0;
-      z-index: 48;
-      display: none;
-      place-items: center;
-      padding: 18px;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 40%, rgba(95,190,255,.26), transparent 32%),
-        radial-gradient(circle at 50% 18%, rgba(244,196,51,.12), transparent 22%),
-        rgba(3, 6, 10, .76);
-      backdrop-filter: blur(4px) saturate(1.12);
-    }
-
-    .preflight.show {
-      display: grid;
-      animation: preflightBackdrop 4s ease both;
-    }
-
-    @keyframes preflightBackdrop {
-      0% { opacity: 0; }
-      8% { opacity: 1; }
-      92% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    .preflightConsole {
-      position: relative;
-      width: min(92vw, 420px);
-      min-height: 545px;
-      overflow: hidden;
-      border-radius: 32px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.035)),
-        radial-gradient(circle at 50% 46%, rgba(91,190,255,.18), transparent 36%),
-        linear-gradient(180deg, #303842 0%, #121923 58%, #05080d 100%);
-      border: 2px solid rgba(210,222,235,.18);
-      box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.18),
-        inset 0 -5px 0 rgba(0,0,0,.34),
-        0 34px 95px rgba(0,0,0,.68),
-        0 0 76px rgba(95,190,255,.22);
-      animation: preConsoleIn 4s cubic-bezier(.16,1,.22,1) both;
-    }
-
-    @keyframes preConsoleIn {
-      0% { transform: scale(.82) translateY(24px); opacity: 0; filter: blur(4px); }
-      12% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0); }
-      22% { transform: scale(1); }
-      92% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(.96) translateY(10px); }
-    }
-
-    .preflightConsole::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 28px),
-        repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 34px);
-    }
-
-    .preScan {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: -42%;
-      height: 42%;
-      z-index: 30;
-      background: linear-gradient(180deg, transparent, rgba(98,194,255,.34), transparent);
-      animation: preScanPass 2.05s ease-out .2s both;
-    }
-
-    @keyframes preScanPass {
-      0% { transform: translateY(-70%); opacity: 0; }
-      12% { opacity: 1; }
-      75% { opacity: .9; }
-      100% { transform: translateY(360%); opacity: 0; }
-    }
-
-    .preHeader {
-      position: relative;
-      z-index: 20;
-      margin: 14px 16px 10px;
-      padding: 12px 12px 13px;
-      border-radius: 14px;
-      text-align: center;
-      background:
-        linear-gradient(180deg, #5b646e 0%, #2a333d 50%, #141b23 100%);
-      border: 2px solid rgba(255,255,255,.15);
-      box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.18),
-        inset 0 -3px 0 rgba(0,0,0,.34),
-        0 12px 26px rgba(0,0,0,.34);
-      animation: preHeaderDrop 4s ease both;
-    }
-
-    @keyframes preHeaderDrop {
-      0% { opacity: 0; transform: translateY(-20px); }
-      12% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 1; }
-    }
-
-    .preSystem {
-      margin: 0 0 5px;
-      color: rgba(194,230,255,.86);
-      font-size: 10px;
-      font-weight: 950;
-      letter-spacing: .22em;
-    }
-
-    .preTitle {
-      margin: 0;
-      color: transparent;
-      font-size: clamp(31px, 8.8vw, 47px);
-      line-height: .95;
-      font-weight: 950;
-      letter-spacing: .055em;
-      background:
-        linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      filter:
-        drop-shadow(0 2px 0 rgba(0,0,0,.72))
-        drop-shadow(0 0 18px rgba(95,190,255,.34));
-      animation: preTitleCharge 4s ease both;
-    }
-
-    @keyframes preTitleCharge {
-      0% { opacity: 0; transform: scale(.86); letter-spacing: .15em; }
-      16% { opacity: 1; transform: scale(1.07); }
-      24%, 100% { opacity: 1; transform: scale(1); letter-spacing: .055em; }
-    }
-
-    .preSub {
-      margin: 8px 0 0;
-      color: #fff1cd;
-      font-size: 13px;
-      font-weight: 900;
-      line-height: 1.5;
-      text-shadow: 0 0 14px rgba(255,215,95,.22);
-    }
-
-    .preCoreBox {
-      position: relative;
-      z-index: 10;
-      height: 292px;
-      margin: 12px 14px 10px;
-      border-radius: 20px;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at center, rgba(110,199,255,.22), transparent 35%),
-        linear-gradient(180deg, #121922 0%, #06090e 100%);
-      border: 2px solid rgba(255,255,255,.13);
-      box-shadow:
-        inset 0 0 0 1px rgba(0,0,0,.72),
-        inset 0 0 64px rgba(0,0,0,.86),
-        0 14px 30px rgba(0,0,0,.32);
-    }
-
-    .preRail {
-      position: absolute;
-      top: 24px;
-      bottom: 24px;
-      width: 18px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
-      box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.18),
-        0 0 16px rgba(0,0,0,.36);
-      z-index: 2;
-      opacity: 0;
-      animation: preRailOn 4s ease both;
-    }
-
-    .preRailLeft { left: 24px; }
-    .preRailRight { right: 24px; }
-
-    @keyframes preRailOn {
-      0%, 10% { opacity: 0; transform: scaleY(.7); }
-      22%, 100% { opacity: 1; transform: scaleY(1); }
-    }
-
-    .preRing {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 8;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .preRingOuter {
-      width: 224px;
-      height: 224px;
-      border: 4px solid rgba(105,194,255,.34);
-      box-shadow:
-        0 0 0 12px rgba(105,194,255,.05),
-        0 0 44px rgba(105,194,255,.22);
-      animation: preOuterBreath 4s ease both;
-    }
-
-    .preRingMiddle {
-      width: 158px;
-      height: 158px;
-      border: 3px dashed rgba(220,245,255,.58);
-      animation: preRingRotate 4s linear both;
-    }
-
-    .preCore {
-      width: 82px;
-      height: 82px;
-      background:
-        radial-gradient(circle at center, #fff 0 9%, #a3e9ff 10% 24%, #2e9aff 25% 48%, #062f63 49% 72%, #02070d 73%);
-      box-shadow:
-        0 0 22px rgba(105,194,255,.74),
-        0 0 72px rgba(105,194,255,.32);
-      animation: preCoreCharge 4s ease both;
-    }
-
-    @keyframes preOuterBreath {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(.32); }
-      20% { opacity: .7; }
-      48% { transform: translate(-50%, -50%) scale(.92); opacity: 1; }
-      84%, 100% { transform: translate(-50%, -50%) scale(1.12); opacity: .82; }
-    }
-
-    @keyframes preRingRotate {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(.55) rotate(0); }
-      22% { opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1.04) rotate(720deg); opacity: .92; }
-    }
-
-    @keyframes preCoreCharge {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(.08); filter: blur(10px); }
-      26% { opacity: .62; transform: translate(-50%, -50%) scale(.68); filter: blur(0); }
-      56% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 34px rgba(105,194,255,.82), 0 0 110px rgba(105,194,255,.42); }
-    }
-
-    .prePlate {
-      position: absolute;
-      z-index: 9;
-      background:
-        linear-gradient(135deg, #a9b3be 0%, #68737e 22%, #323b45 52%, #8c96a0 72%, #222a33 100%);
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.18),
-        inset 0 -2px 0 rgba(0,0,0,.25),
-        0 12px 24px rgba(0,0,0,.32);
-    }
-
-    .prePlateTop {
-      left: 68px;
-      right: 68px;
-      top: 35px;
-      height: 42px;
-      clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
-      animation: prePlateTop 4s cubic-bezier(.18,1,.26,1) both;
-    }
-
-    .prePlateBottom {
-      left: 68px;
-      right: 68px;
-      bottom: 35px;
-      height: 42px;
-      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
-      animation: prePlateBottom 4s cubic-bezier(.18,1,.26,1) both;
-    }
-
-    .prePlateLeft {
-      left: 50px;
-      top: 94px;
-      bottom: 94px;
-      width: 48px;
-      clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
-      animation: prePlateLeft 4s cubic-bezier(.18,1,.26,1) both;
-    }
-
-    .prePlateRight {
-      right: 50px;
-      top: 94px;
-      bottom: 94px;
-      width: 48px;
-      clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
-      animation: prePlateRight 4s cubic-bezier(.18,1,.26,1) both;
-    }
-
-    @keyframes prePlateTop {
-      0%, 16% { transform: translateY(-76px); opacity: 0; }
-      36% { transform: translateY(4px); opacity: .88; }
-      44%, 100% { transform: translateY(0); opacity: .92; }
-    }
-
-    @keyframes prePlateBottom {
-      0%, 22% { transform: translateY(76px); opacity: 0; }
-      42% { transform: translateY(-4px); opacity: .88; }
-      50%, 100% { transform: translateY(0); opacity: .92; }
-    }
-
-    @keyframes prePlateLeft {
-      0%, 28% { transform: translateX(-76px); opacity: 0; }
-      48% { transform: translateX(4px); opacity: .88; }
-      56%, 100% { transform: translateX(0); opacity: .92; }
-    }
-
-    @keyframes prePlateRight {
-      0%, 34% { transform: translateX(76px); opacity: 0; }
-      54% { transform: translateX(-4px); opacity: .88; }
+      0%, 34% { transform: translateX(78px); opacity: 0; }
+      54% { transform: translateX(-5px); opacity: .9; }
       62%, 100% { transform: translateX(0); opacity: .92; }
     }
 
@@ -2959,6 +2839,8 @@
 
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
+      .brand { font-size: 22px; gap: 5px; }
+      .brandGear { width: 19px; height: 19px; font-size: 12px; }
 
       .spotCard {
         grid-template-columns: 35px 58px 1fr 48px;
@@ -2987,10 +2869,9 @@
       }
 
       .bottomCatch { font-size: 21px; }
-      .impactTitle { font-size: 38px; }
-      .impactScene { min-height: 540px; }
-      .completeStage { min-height: 590px; }
-      .completeLogo { font-size: 38px; }
+      .impactScene { min-height: 580px; }
+      .completeStage { min-height: 620px; }
+      .completeRankBadge .rankInner { font-size: 46px; padding: 8px 22px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -3005,12 +2886,16 @@
 <body>
   <div id="sparkLayer" class="sparkLayer"></div>
 
+  <!-- ============= PREFLIGHT ============= -->
   <div id="preflight" class="preflight" aria-hidden="true">
     <div class="preflightConsole">
+      <div class="preWarnTop"></div>
+      <div class="preWarnBottom"></div>
+      <div class="preRedAlert"></div>
       <div class="preScan"></div>
 
       <div class="preHeader">
-        <p class="preSystem">ASOBooN PRE-CHECK SYSTEM</p>
+        <p class="preSystem">⚠ ASOBooN PRE-CHECK SYSTEM ⚠</p>
         <p class="preTitle">SCANNING</p>
         <p class="preSub">スタンプデータを読み取っています</p>
       </div>
@@ -3041,14 +2926,18 @@
     </div>
   </div>
 
-
+  <!-- ============= STAMP GET ============= -->
   <div id="stampImpact" class="stampImpact" aria-hidden="true">
     <div class="impactScene">
       <div class="impactVignette"></div>
+      <div class="impactWarnTop"></div>
+      <div class="impactWarnBottom"></div>
+      <div class="impactRedAlert"></div>
       <div class="impactScan"></div>
+      <div class="impactFlash"></div>
 
       <div class="impactTopSign">
-        <p class="impactSystem">ASOBooN STAMP SYSTEM</p>
+        <p class="impactSystem">⚠ ASOBooN STAMP SYSTEM ⚠</p>
         <p class="impactTitle">STAMP GET</p>
         <p class="impactSubTitle">スタンプをゲットしました！</p>
       </div>
@@ -3073,12 +2962,23 @@
         <div class="coreRing ringMiddle"></div>
         <div class="energyCore"></div>
 
+        <div class="shockwave shockA"></div>
+        <div class="shockwave shockB"></div>
+        <div class="shockwave shockC"></div>
+
         <div class="mechanicalStamp">
           <div class="stampHead">
             <span></span><span></span><span></span><span></span>
           </div>
           <div class="stampFace">GET</div>
         </div>
+
+        <div class="debris d1"></div>
+        <div class="debris d2"></div>
+        <div class="debris d3"></div>
+        <div class="debris d4"></div>
+        <div class="debris d5"></div>
+        <div class="debris d6"></div>
 
         <div class="steam steamA"></div>
         <div class="steam steamB"></div>
@@ -3088,6 +2988,10 @@
         <div class="electric eA"></div>
         <div class="electric eB"></div>
         <div class="electric eC"></div>
+      </div>
+
+      <div class="impactRarity">
+        <span class="rarityBadge">★ RARE STAMP ★</span>
       </div>
 
       <div class="impactRecord">
@@ -3102,21 +3006,29 @@
     </div>
   </div>
 
+  <!-- ============= ALL COMPLETE ============= -->
   <div class="completeScreen" id="completeScreen" aria-hidden="true">
     <div class="completeStage">
+      <div class="completeWarnTop"></div>
+      <div class="completeWarnBottom"></div>
+      <div class="completeRedAlert"></div>
       <div class="completeScan"></div>
+      <div class="compMegaFlash"></div>
 
       <div class="completeJackpotLights">
         <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
       </div>
+      <div class="completeJackpotLightsBottom">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
 
       <div class="completeHeader">
-        <p class="completeSystem">ASOBooN REACTOR SYSTEM</p>
+        <p class="completeSystem">⚠ ASOBooN REACTOR OVERLOAD ⚠</p>
         <div class="completeLogoStack" aria-label="ALL SYSTEM COMPLETE">
           <span>ALL SYSTEM</span>
           <span>COMPLETE</span>
         </div>
-        <p class="completeHype">MISSION CLEAR / BONUS READY</p>
+        <p class="completeHype">★ MISSION CLEAR / JACKPOT BONUS ★</p>
       </div>
 
       <div class="compCoreBlast"></div>
@@ -3124,7 +3036,6 @@
       <div class="compSteam compSteamRight"></div>
 
       <div class="reactorBox">
-        <div class="flashBurst"></div>
         <div class="winCounter">ALL 4 STAMPS LOCKED</div>
         <div class="completePlate cp1"></div>
         <div class="completePlate cp2"></div>
@@ -3134,6 +3045,12 @@
         <div class="reactorRing reactorOuter"></div>
         <div class="reactorRing reactorMiddle"></div>
         <div class="reactorRing reactorInner"></div>
+
+        <div class="rainbowShock"></div>
+
+        <div class="completeRankBadge">
+          <div class="rankInner">SSS</div>
+        </div>
 
         <div class="reactorSteam rs1"></div>
         <div class="reactorSteam rs2"></div>
@@ -3164,6 +3081,7 @@
     </div>
   </div>
 
+  <!-- ============= MAIN ============= -->
   <div class="app">
     <div class="phoneFrame">
       <div class="garageBg">
@@ -3287,24 +3205,35 @@
           throw result || makeError("EMPTY_RESPONSE", "GASから空の返答です。");
         }
 
-        hidePreflight();
         step("表示");
         renderStatus(result);
 
         if (result.stampStatus === "new") {
           triggerStampImpact(result);
-          vibrate([35, 30, 50, 36, 90, 40, 160]);
-          burstSparks(120);
+          setTimeout(hidePreflight, 140);
+
+          // burst sequence for STAMP GET
+          vibrate([35, 30, 50, 36, 90, 40, 200]);
+          burstSparks(140);
+          // second burst at impact moment
+          setTimeout(() => {
+            vibrate([60, 30, 180]);
+            burstSparks(160);
+          }, 2600);
 
           if (result.completed || result.isComplete) {
-            setTimeout(showComplete, 4050);
+            setTimeout(showComplete, 4250);
           }
           return;
         }
 
         if (result.completed || result.isComplete) {
           showComplete();
+          setTimeout(hidePreflight, 140);
+          return;
         }
+
+        hidePreflight();
       } catch (error) {
         await preflightPromise.catch(() => {});
         hidePreflight();
@@ -3319,6 +3248,7 @@
     function showPreflight() {
       if (!preflight) return;
       preflight.classList.remove("show");
+      preflight.classList.remove("closing");
       preflight.setAttribute("aria-hidden", "false");
 
       requestAnimationFrame(() => {
@@ -3328,8 +3258,18 @@
 
     function hidePreflight() {
       if (!preflight) return;
-      preflight.classList.remove("show");
-      preflight.setAttribute("aria-hidden", "true");
+      if (!preflight.classList.contains("show")) {
+        preflight.setAttribute("aria-hidden", "true");
+        return;
+      }
+
+      preflight.classList.add("closing");
+
+      setTimeout(() => {
+        preflight.classList.remove("show");
+        preflight.classList.remove("closing");
+        preflight.setAttribute("aria-hidden", "true");
+      }, 240);
     }
 
     function step(label) {
@@ -3621,11 +3561,19 @@
 
       setTimeout(() => {
         document.body.classList.remove("impactShudder");
-      }, 620);
+      }, 720);
+
+      // shake again on impact moment
+      setTimeout(() => {
+        document.body.classList.add("impactShudder");
+      }, 2600);
+      setTimeout(() => {
+        document.body.classList.remove("impactShudder");
+      }, 3300);
 
       setTimeout(() => {
         impact.classList.remove("show");
-      }, 4000);
+      }, 4200);
     }
 
     function showComplete() {
@@ -3634,21 +3582,34 @@
 
       document.body.classList.remove("completeShudder");
 
+      // initial shake at warning
       setTimeout(() => {
         document.body.classList.add("completeShudder");
-      }, 2300);
-
+      }, 100);
       setTimeout(() => {
         document.body.classList.remove("completeShudder");
-      }, 5000);
+      }, 600);
 
-      vibrate([60, 40, 60, 40, 160, 50, 180]);
-      burstSparks(120);
+      // big shake at flash impact
+      setTimeout(() => {
+        document.body.classList.add("completeShudder");
+      }, 3200);
+      setTimeout(() => {
+        document.body.classList.remove("completeShudder");
+      }, 4500);
+
+      vibrate([60, 40, 60, 40, 200, 50, 240]);
+      burstSparks(140);
 
       setTimeout(() => {
-        vibrate([80, 40, 240, 60, 360]);
-        burstSparks(190);
-      }, 2850);
+        vibrate([80, 40, 280, 60, 400]);
+        burstSparks(220);
+      }, 3300);
+
+      // golden rain after rank reveal
+      setTimeout(() => {
+        burstGoldenRain(80);
+      }, 4200);
     }
 
     function vibrate(pattern) {
@@ -3660,14 +3621,14 @@
     function burstSparks(count) {
       if (!sparkLayer) return;
 
-      const colors = ["#f4c433", "#ffffff", "#45b36b", "#ef9b28", "#65b6ff"];
+      const colors = ["#f4c433", "#ffffff", "#45b36b", "#ef9b28", "#65b6ff", "#ff5fb8", "#c89bff"];
 
       for (let i = 0; i < count; i++) {
         const spark = document.createElement("span");
         spark.className = "spark";
         spark.style.left = Math.random() * 100 + "vw";
         spark.style.background = colors[i % colors.length];
-        spark.style.setProperty("--x", (Math.random() * 160 - 80) + "px");
+        spark.style.setProperty("--x", (Math.random() * 200 - 100) + "px");
         spark.style.animationDuration = (Math.random() * 1.8 + 1.8) + "s";
         spark.style.animationDelay = (Math.random() * .35) + "s";
         sparkLayer.appendChild(spark);
@@ -3676,7 +3637,33 @@
           if (spark && spark.parentNode) {
             spark.parentNode.removeChild(spark);
           }
-        }, 4200);
+        }, 4500);
+      }
+    }
+
+    function burstGoldenRain(count) {
+      if (!sparkLayer) return;
+
+      const colors = ["#ffd34a", "#fff5cc", "#ffae2b", "#ffd34a", "#ffe28d"];
+
+      for (let i = 0; i < count; i++) {
+        const spark = document.createElement("span");
+        spark.className = "spark";
+        spark.style.left = Math.random() * 100 + "vw";
+        spark.style.background = colors[i % colors.length];
+        spark.style.width = (Math.random() * 6 + 6) + "px";
+        spark.style.height = (Math.random() * 12 + 14) + "px";
+        spark.style.boxShadow = "0 0 8px rgba(255,210,80,.7)";
+        spark.style.setProperty("--x", (Math.random() * 80 - 40) + "px");
+        spark.style.animationDuration = (Math.random() * 2 + 2.4) + "s";
+        spark.style.animationDelay = (Math.random() * .6) + "s";
+        sparkLayer.appendChild(spark);
+
+        setTimeout(() => {
+          if (spark && spark.parentNode) {
+            spark.parentNode.removeChild(spark);
+          }
+        }, 5500);
       }
     }
 
