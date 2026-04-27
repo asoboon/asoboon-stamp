@@ -2146,6 +2146,407 @@
       75% { transform: translate(-2px, 2px) rotate(.45deg); }
     }
 
+
+    /* ===== preflight 4 sec / wait-time excitement ===== */
+
+    .preflight {
+      position: fixed;
+      inset: 0;
+      z-index: 48;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(95,190,255,.26), transparent 32%),
+        radial-gradient(circle at 50% 18%, rgba(244,196,51,.12), transparent 22%),
+        rgba(3, 6, 10, .76);
+      backdrop-filter: blur(4px) saturate(1.12);
+    }
+
+    .preflight.show {
+      display: grid;
+      animation: preflightBackdrop 4s ease both;
+    }
+
+    @keyframes preflightBackdrop {
+      0% { opacity: 0; }
+      8% { opacity: 1; }
+      92% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .preflightConsole {
+      position: relative;
+      width: min(92vw, 420px);
+      min-height: 545px;
+      overflow: hidden;
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.035)),
+        radial-gradient(circle at 50% 46%, rgba(91,190,255,.18), transparent 36%),
+        linear-gradient(180deg, #303842 0%, #121923 58%, #05080d 100%);
+      border: 2px solid rgba(210,222,235,.18);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -5px 0 rgba(0,0,0,.34),
+        0 34px 95px rgba(0,0,0,.68),
+        0 0 76px rgba(95,190,255,.22);
+      animation: preConsoleIn 4s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes preConsoleIn {
+      0% { transform: scale(.82) translateY(24px); opacity: 0; filter: blur(4px); }
+      12% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0); }
+      22% { transform: scale(1); }
+      92% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(.96) translateY(10px); }
+    }
+
+    .preflightConsole::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 34px);
+    }
+
+    .preScan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -42%;
+      height: 42%;
+      z-index: 30;
+      background: linear-gradient(180deg, transparent, rgba(98,194,255,.34), transparent);
+      animation: preScanPass 2.05s ease-out .2s both;
+    }
+
+    @keyframes preScanPass {
+      0% { transform: translateY(-70%); opacity: 0; }
+      12% { opacity: 1; }
+      75% { opacity: .9; }
+      100% { transform: translateY(360%); opacity: 0; }
+    }
+
+    .preHeader {
+      position: relative;
+      z-index: 20;
+      margin: 14px 16px 10px;
+      padding: 12px 12px 13px;
+      border-radius: 14px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, #5b646e 0%, #2a333d 50%, #141b23 100%);
+      border: 2px solid rgba(255,255,255,.15);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.34);
+      animation: preHeaderDrop 4s ease both;
+    }
+
+    @keyframes preHeaderDrop {
+      0% { opacity: 0; transform: translateY(-20px); }
+      12% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; }
+    }
+
+    .preSystem {
+      margin: 0 0 5px;
+      color: rgba(194,230,255,.86);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .22em;
+    }
+
+    .preTitle {
+      margin: 0;
+      color: transparent;
+      font-size: clamp(31px, 8.8vw, 47px);
+      line-height: .95;
+      font-weight: 950;
+      letter-spacing: .055em;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter:
+        drop-shadow(0 2px 0 rgba(0,0,0,.72))
+        drop-shadow(0 0 18px rgba(95,190,255,.34));
+      animation: preTitleCharge 4s ease both;
+    }
+
+    @keyframes preTitleCharge {
+      0% { opacity: 0; transform: scale(.86); letter-spacing: .15em; }
+      16% { opacity: 1; transform: scale(1.07); }
+      24%, 100% { opacity: 1; transform: scale(1); letter-spacing: .055em; }
+    }
+
+    .preSub {
+      margin: 8px 0 0;
+      color: #fff1cd;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.5;
+      text-shadow: 0 0 14px rgba(255,215,95,.22);
+    }
+
+    .preCoreBox {
+      position: relative;
+      z-index: 10;
+      height: 292px;
+      margin: 12px 14px 10px;
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(110,199,255,.22), transparent 35%),
+        linear-gradient(180deg, #121922 0%, #06090e 100%);
+      border: 2px solid rgba(255,255,255,.13);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.72),
+        inset 0 0 64px rgba(0,0,0,.86),
+        0 14px 30px rgba(0,0,0,.32);
+    }
+
+    .preRail {
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      width: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        0 0 16px rgba(0,0,0,.36);
+      z-index: 2;
+      opacity: 0;
+      animation: preRailOn 4s ease both;
+    }
+
+    .preRailLeft { left: 24px; }
+    .preRailRight { right: 24px; }
+
+    @keyframes preRailOn {
+      0%, 10% { opacity: 0; transform: scaleY(.7); }
+      22%, 100% { opacity: 1; transform: scaleY(1); }
+    }
+
+    .preRing {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 8;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .preRingOuter {
+      width: 224px;
+      height: 224px;
+      border: 4px solid rgba(105,194,255,.34);
+      box-shadow:
+        0 0 0 12px rgba(105,194,255,.05),
+        0 0 44px rgba(105,194,255,.22);
+      animation: preOuterBreath 4s ease both;
+    }
+
+    .preRingMiddle {
+      width: 158px;
+      height: 158px;
+      border: 3px dashed rgba(220,245,255,.58);
+      animation: preRingRotate 4s linear both;
+    }
+
+    .preCore {
+      width: 82px;
+      height: 82px;
+      background:
+        radial-gradient(circle at center, #fff 0 9%, #a3e9ff 10% 24%, #2e9aff 25% 48%, #062f63 49% 72%, #02070d 73%);
+      box-shadow:
+        0 0 22px rgba(105,194,255,.74),
+        0 0 72px rgba(105,194,255,.32);
+      animation: preCoreCharge 4s ease both;
+    }
+
+    @keyframes preOuterBreath {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.32); }
+      20% { opacity: .7; }
+      48% { transform: translate(-50%, -50%) scale(.92); opacity: 1; }
+      84%, 100% { transform: translate(-50%, -50%) scale(1.12); opacity: .82; }
+    }
+
+    @keyframes preRingRotate {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.55) rotate(0); }
+      22% { opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.04) rotate(720deg); opacity: .92; }
+    }
+
+    @keyframes preCoreCharge {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.08); filter: blur(10px); }
+      26% { opacity: .62; transform: translate(-50%, -50%) scale(.68); filter: blur(0); }
+      56% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 34px rgba(105,194,255,.82), 0 0 110px rgba(105,194,255,.42); }
+    }
+
+    .prePlate {
+      position: absolute;
+      z-index: 9;
+      background:
+        linear-gradient(135deg, #a9b3be 0%, #68737e 22%, #323b45 52%, #8c96a0 72%, #222a33 100%);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -2px 0 rgba(0,0,0,.25),
+        0 12px 24px rgba(0,0,0,.32);
+    }
+
+    .prePlateTop {
+      left: 68px;
+      right: 68px;
+      top: 35px;
+      height: 42px;
+      clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+      animation: prePlateTop 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateBottom {
+      left: 68px;
+      right: 68px;
+      bottom: 35px;
+      height: 42px;
+      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+      animation: prePlateBottom 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateLeft {
+      left: 50px;
+      top: 94px;
+      bottom: 94px;
+      width: 48px;
+      clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
+      animation: prePlateLeft 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateRight {
+      right: 50px;
+      top: 94px;
+      bottom: 94px;
+      width: 48px;
+      clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
+      animation: prePlateRight 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    @keyframes prePlateTop {
+      0%, 16% { transform: translateY(-76px); opacity: 0; }
+      36% { transform: translateY(4px); opacity: .88; }
+      44%, 100% { transform: translateY(0); opacity: .92; }
+    }
+
+    @keyframes prePlateBottom {
+      0%, 22% { transform: translateY(76px); opacity: 0; }
+      42% { transform: translateY(-4px); opacity: .88; }
+      50%, 100% { transform: translateY(0); opacity: .92; }
+    }
+
+    @keyframes prePlateLeft {
+      0%, 28% { transform: translateX(-76px); opacity: 0; }
+      48% { transform: translateX(4px); opacity: .88; }
+      56%, 100% { transform: translateX(0); opacity: .92; }
+    }
+
+    @keyframes prePlateRight {
+      0%, 34% { transform: translateX(76px); opacity: 0; }
+      54% { transform: translateX(-4px); opacity: .88; }
+      62%, 100% { transform: translateX(0); opacity: .92; }
+    }
+
+    .preStatusPanel {
+      position: relative;
+      z-index: 25;
+      margin: 0 14px 14px;
+      border-radius: 17px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #fff0cf, #dec18e);
+      border: 2px solid rgba(74,59,35,.25);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.46),
+        0 12px 24px rgba(0,0,0,.24);
+      animation: preStatusRise 4s ease both;
+    }
+
+    @keyframes preStatusRise {
+      0%, 52% { opacity: 0; transform: translateY(16px) scale(.96); }
+      68%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .preStatusPanel::before {
+      content: "";
+      display: block;
+      height: 10px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #0d1116 0 13px,
+          #0d1116 13px 16px,
+          #f3c537 16px 29px,
+          #f3c537 29px 32px
+        );
+    }
+
+    .preStatusInner {
+      padding: 13px 14px 14px;
+      text-align: center;
+    }
+
+    .preStatusText {
+      margin: 0;
+      color: #2f2517;
+      font-size: 19px;
+      line-height: 1.32;
+      font-weight: 950;
+    }
+
+    .preStatusText small {
+      display: block;
+      margin-top: 6px;
+      color: #5b4930;
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 850;
+    }
+
+    .preDots {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 11px;
+    }
+
+    .preDots i {
+      display: block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #61bfff;
+      box-shadow: 0 0 12px rgba(97,191,255,.64);
+      animation: preDot 1s ease-in-out infinite;
+    }
+
+    .preDots i:nth-child(2) { animation-delay: .16s; }
+    .preDots i:nth-child(3) { animation-delay: .32s; }
+    .preDots i:nth-child(4) { animation-delay: .48s; }
+
+    @keyframes preDot {
+      0%, 100% { transform: scale(.7); opacity: .36; }
+      50% { transform: scale(1.24); opacity: 1; }
+    }
+
     @media (max-width: 390px) {
       .brand { font-size: 22px; gap: 5px; }
       .brandGear { width: 19px; height: 19px; font-size: 12px; }
@@ -2154,6 +2555,407 @@
       .completeLogoStack span:nth-child(2) { font-size: 37px; }
     }
 
+
+
+    /* ===== preflight 4 sec / wait-time excitement ===== */
+
+    .preflight {
+      position: fixed;
+      inset: 0;
+      z-index: 48;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(95,190,255,.26), transparent 32%),
+        radial-gradient(circle at 50% 18%, rgba(244,196,51,.12), transparent 22%),
+        rgba(3, 6, 10, .76);
+      backdrop-filter: blur(4px) saturate(1.12);
+    }
+
+    .preflight.show {
+      display: grid;
+      animation: preflightBackdrop 4s ease both;
+    }
+
+    @keyframes preflightBackdrop {
+      0% { opacity: 0; }
+      8% { opacity: 1; }
+      92% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .preflightConsole {
+      position: relative;
+      width: min(92vw, 420px);
+      min-height: 545px;
+      overflow: hidden;
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.035)),
+        radial-gradient(circle at 50% 46%, rgba(91,190,255,.18), transparent 36%),
+        linear-gradient(180deg, #303842 0%, #121923 58%, #05080d 100%);
+      border: 2px solid rgba(210,222,235,.18);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -5px 0 rgba(0,0,0,.34),
+        0 34px 95px rgba(0,0,0,.68),
+        0 0 76px rgba(95,190,255,.22);
+      animation: preConsoleIn 4s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes preConsoleIn {
+      0% { transform: scale(.82) translateY(24px); opacity: 0; filter: blur(4px); }
+      12% { transform: scale(1.03) translateY(0); opacity: 1; filter: blur(0); }
+      22% { transform: scale(1); }
+      92% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(.96) translateY(10px); }
+    }
+
+    .preflightConsole::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 34px);
+    }
+
+    .preScan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -42%;
+      height: 42%;
+      z-index: 30;
+      background: linear-gradient(180deg, transparent, rgba(98,194,255,.34), transparent);
+      animation: preScanPass 2.05s ease-out .2s both;
+    }
+
+    @keyframes preScanPass {
+      0% { transform: translateY(-70%); opacity: 0; }
+      12% { opacity: 1; }
+      75% { opacity: .9; }
+      100% { transform: translateY(360%); opacity: 0; }
+    }
+
+    .preHeader {
+      position: relative;
+      z-index: 20;
+      margin: 14px 16px 10px;
+      padding: 12px 12px 13px;
+      border-radius: 14px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, #5b646e 0%, #2a333d 50%, #141b23 100%);
+      border: 2px solid rgba(255,255,255,.15);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.34);
+      animation: preHeaderDrop 4s ease both;
+    }
+
+    @keyframes preHeaderDrop {
+      0% { opacity: 0; transform: translateY(-20px); }
+      12% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; }
+    }
+
+    .preSystem {
+      margin: 0 0 5px;
+      color: rgba(194,230,255,.86);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .22em;
+    }
+
+    .preTitle {
+      margin: 0;
+      color: transparent;
+      font-size: clamp(31px, 8.8vw, 47px);
+      line-height: .95;
+      font-weight: 950;
+      letter-spacing: .055em;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter:
+        drop-shadow(0 2px 0 rgba(0,0,0,.72))
+        drop-shadow(0 0 18px rgba(95,190,255,.34));
+      animation: preTitleCharge 4s ease both;
+    }
+
+    @keyframes preTitleCharge {
+      0% { opacity: 0; transform: scale(.86); letter-spacing: .15em; }
+      16% { opacity: 1; transform: scale(1.07); }
+      24%, 100% { opacity: 1; transform: scale(1); letter-spacing: .055em; }
+    }
+
+    .preSub {
+      margin: 8px 0 0;
+      color: #fff1cd;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.5;
+      text-shadow: 0 0 14px rgba(255,215,95,.22);
+    }
+
+    .preCoreBox {
+      position: relative;
+      z-index: 10;
+      height: 292px;
+      margin: 12px 14px 10px;
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(110,199,255,.22), transparent 35%),
+        linear-gradient(180deg, #121922 0%, #06090e 100%);
+      border: 2px solid rgba(255,255,255,.13);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.72),
+        inset 0 0 64px rgba(0,0,0,.86),
+        0 14px 30px rgba(0,0,0,.32);
+    }
+
+    .preRail {
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      width: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        0 0 16px rgba(0,0,0,.36);
+      z-index: 2;
+      opacity: 0;
+      animation: preRailOn 4s ease both;
+    }
+
+    .preRailLeft { left: 24px; }
+    .preRailRight { right: 24px; }
+
+    @keyframes preRailOn {
+      0%, 10% { opacity: 0; transform: scaleY(.7); }
+      22%, 100% { opacity: 1; transform: scaleY(1); }
+    }
+
+    .preRing {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 8;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .preRingOuter {
+      width: 224px;
+      height: 224px;
+      border: 4px solid rgba(105,194,255,.34);
+      box-shadow:
+        0 0 0 12px rgba(105,194,255,.05),
+        0 0 44px rgba(105,194,255,.22);
+      animation: preOuterBreath 4s ease both;
+    }
+
+    .preRingMiddle {
+      width: 158px;
+      height: 158px;
+      border: 3px dashed rgba(220,245,255,.58);
+      animation: preRingRotate 4s linear both;
+    }
+
+    .preCore {
+      width: 82px;
+      height: 82px;
+      background:
+        radial-gradient(circle at center, #fff 0 9%, #a3e9ff 10% 24%, #2e9aff 25% 48%, #062f63 49% 72%, #02070d 73%);
+      box-shadow:
+        0 0 22px rgba(105,194,255,.74),
+        0 0 72px rgba(105,194,255,.32);
+      animation: preCoreCharge 4s ease both;
+    }
+
+    @keyframes preOuterBreath {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.32); }
+      20% { opacity: .7; }
+      48% { transform: translate(-50%, -50%) scale(.92); opacity: 1; }
+      84%, 100% { transform: translate(-50%, -50%) scale(1.12); opacity: .82; }
+    }
+
+    @keyframes preRingRotate {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.55) rotate(0); }
+      22% { opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.04) rotate(720deg); opacity: .92; }
+    }
+
+    @keyframes preCoreCharge {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.08); filter: blur(10px); }
+      26% { opacity: .62; transform: translate(-50%, -50%) scale(.68); filter: blur(0); }
+      56% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 34px rgba(105,194,255,.82), 0 0 110px rgba(105,194,255,.42); }
+    }
+
+    .prePlate {
+      position: absolute;
+      z-index: 9;
+      background:
+        linear-gradient(135deg, #a9b3be 0%, #68737e 22%, #323b45 52%, #8c96a0 72%, #222a33 100%);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -2px 0 rgba(0,0,0,.25),
+        0 12px 24px rgba(0,0,0,.32);
+    }
+
+    .prePlateTop {
+      left: 68px;
+      right: 68px;
+      top: 35px;
+      height: 42px;
+      clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+      animation: prePlateTop 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateBottom {
+      left: 68px;
+      right: 68px;
+      bottom: 35px;
+      height: 42px;
+      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+      animation: prePlateBottom 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateLeft {
+      left: 50px;
+      top: 94px;
+      bottom: 94px;
+      width: 48px;
+      clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
+      animation: prePlateLeft 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    .prePlateRight {
+      right: 50px;
+      top: 94px;
+      bottom: 94px;
+      width: 48px;
+      clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
+      animation: prePlateRight 4s cubic-bezier(.18,1,.26,1) both;
+    }
+
+    @keyframes prePlateTop {
+      0%, 16% { transform: translateY(-76px); opacity: 0; }
+      36% { transform: translateY(4px); opacity: .88; }
+      44%, 100% { transform: translateY(0); opacity: .92; }
+    }
+
+    @keyframes prePlateBottom {
+      0%, 22% { transform: translateY(76px); opacity: 0; }
+      42% { transform: translateY(-4px); opacity: .88; }
+      50%, 100% { transform: translateY(0); opacity: .92; }
+    }
+
+    @keyframes prePlateLeft {
+      0%, 28% { transform: translateX(-76px); opacity: 0; }
+      48% { transform: translateX(4px); opacity: .88; }
+      56%, 100% { transform: translateX(0); opacity: .92; }
+    }
+
+    @keyframes prePlateRight {
+      0%, 34% { transform: translateX(76px); opacity: 0; }
+      54% { transform: translateX(-4px); opacity: .88; }
+      62%, 100% { transform: translateX(0); opacity: .92; }
+    }
+
+    .preStatusPanel {
+      position: relative;
+      z-index: 25;
+      margin: 0 14px 14px;
+      border-radius: 17px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #fff0cf, #dec18e);
+      border: 2px solid rgba(74,59,35,.25);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.46),
+        0 12px 24px rgba(0,0,0,.24);
+      animation: preStatusRise 4s ease both;
+    }
+
+    @keyframes preStatusRise {
+      0%, 52% { opacity: 0; transform: translateY(16px) scale(.96); }
+      68%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .preStatusPanel::before {
+      content: "";
+      display: block;
+      height: 10px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #0d1116 0 13px,
+          #0d1116 13px 16px,
+          #f3c537 16px 29px,
+          #f3c537 29px 32px
+        );
+    }
+
+    .preStatusInner {
+      padding: 13px 14px 14px;
+      text-align: center;
+    }
+
+    .preStatusText {
+      margin: 0;
+      color: #2f2517;
+      font-size: 19px;
+      line-height: 1.32;
+      font-weight: 950;
+    }
+
+    .preStatusText small {
+      display: block;
+      margin-top: 6px;
+      color: #5b4930;
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 850;
+    }
+
+    .preDots {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 11px;
+    }
+
+    .preDots i {
+      display: block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #61bfff;
+      box-shadow: 0 0 12px rgba(97,191,255,.64);
+      animation: preDot 1s ease-in-out infinite;
+    }
+
+    .preDots i:nth-child(2) { animation-delay: .16s; }
+    .preDots i:nth-child(3) { animation-delay: .32s; }
+    .preDots i:nth-child(4) { animation-delay: .48s; }
+
+    @keyframes preDot {
+      0%, 100% { transform: scale(.7); opacity: .36; }
+      50% { transform: scale(1.24); opacity: 1; }
+    }
 
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
@@ -2202,6 +3004,43 @@
 
 <body>
   <div id="sparkLayer" class="sparkLayer"></div>
+
+  <div id="preflight" class="preflight" aria-hidden="true">
+    <div class="preflightConsole">
+      <div class="preScan"></div>
+
+      <div class="preHeader">
+        <p class="preSystem">ASOBooN PRE-CHECK SYSTEM</p>
+        <p class="preTitle">SCANNING</p>
+        <p class="preSub">スタンプデータを読み取っています</p>
+      </div>
+
+      <div class="preCoreBox">
+        <div class="preRail preRailLeft"></div>
+        <div class="preRail preRailRight"></div>
+
+        <div class="prePlate prePlateTop"></div>
+        <div class="prePlate prePlateBottom"></div>
+        <div class="prePlate prePlateLeft"></div>
+        <div class="prePlate prePlateRight"></div>
+
+        <div class="preRing preRingOuter"></div>
+        <div class="preRing preRingMiddle"></div>
+        <div class="preRing preCore"></div>
+      </div>
+
+      <section class="preStatusPanel">
+        <div class="preStatusInner">
+          <p class="preStatusText">
+            記録システム起動中
+            <small>スポット確認・LINE識別・スタンプ記録を同時に進めています</small>
+          </p>
+          <div class="preDots"><i></i><i></i><i></i><i></i></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
 
   <div id="stampImpact" class="stampImpact" aria-hidden="true">
     <div class="impactScene">
@@ -2394,10 +3233,14 @@
     const loadingText = document.getElementById("loadingText");
     const completeScreen = document.getElementById("completeScreen");
     const sparkLayer = document.getElementById("sparkLayer");
+    const preflight = document.getElementById("preflight");
 
     document.addEventListener("DOMContentLoaded", init);
 
     async function init() {
+      const preflightPromise = delay(4000);
+      showPreflight();
+
       try {
         step("URL確認");
         state.spotId = readSpotId();
@@ -2430,7 +3273,7 @@
         }
 
         step("スタンプ保存");
-        const result = await callGasJsonp({
+        const apiPromise = callGasJsonp({
           action: state.spotId ? "stamp" : "getStamps",
           spotId: state.spotId || "",
           lineUserId: state.lineUserId,
@@ -2438,22 +3281,24 @@
           clientUrl: location.href
         });
 
+        const [result] = await Promise.all([apiPromise, preflightPromise]);
+
         if (!result || !result.ok) {
           throw result || makeError("EMPTY_RESPONSE", "GASから空の返答です。");
         }
 
+        hidePreflight();
         step("表示");
         renderStatus(result);
 
         if (result.stampStatus === "new") {
           triggerStampImpact(result);
-          vibrate([30, 25, 45, 35, 120]);
-          burstSparks(95);
+          vibrate([35, 30, 50, 36, 90, 40, 160]);
+          burstSparks(120);
 
           if (result.completed || result.isComplete) {
             setTimeout(showComplete, 4050);
           }
-
           return;
         }
 
@@ -2461,14 +3306,49 @@
           showComplete();
         }
       } catch (error) {
+        await preflightPromise.catch(() => {});
+        hidePreflight();
         renderError(error);
       }
+    }
+
+    function delay(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function showPreflight() {
+      if (!preflight) return;
+      preflight.classList.remove("show");
+      preflight.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        preflight.classList.add("show");
+      });
+    }
+
+    function hidePreflight() {
+      if (!preflight) return;
+      preflight.classList.remove("show");
+      preflight.setAttribute("aria-hidden", "true");
     }
 
     function step(label) {
       state.step = label;
       if (loadingText) {
         loadingText.textContent = label + "しています";
+      }
+
+      const preStatus = document.querySelector(".preStatusText");
+      if (preStatus) {
+        const guide = label === "スタンプ保存"
+          ? "スタンプ記録を送信しています"
+          : label === "LINE識別取得"
+            ? "LINEアカウントを確認しています"
+            : label === "LIFF初期化"
+              ? "LINEミニアプリを起動しています"
+              : "スタンプデータを読み取っています";
+
+        preStatus.innerHTML = escapeHtml(guide) + "<small>スポット確認・LINE識別・スタンプ記録を同時に進めています</small>";
       }
     }
 
