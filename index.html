@@ -17,13 +17,13 @@
   <style>
     :root {
       --ink: #2d2418;
-      --cream: #f2e2c2;
-      --cream2: #fff3d7;
-      --metal0: #11151a;
-      --metal1: #262c33;
-      --metal2: #4d5661;
-      --metal3: #89929b;
-      --gold: #e4ad21;
+      --cream: #fff0cf;
+      --cream2: #e7cea0;
+      --metal0: #070b10;
+      --metal1: #171d24;
+      --metal2: #303842;
+      --metal3: #6d7782;
+      --silver: #c7d0d9;
       --yellow: #f4c433;
       --orange: #e65b27;
       --green: #44b36b;
@@ -770,75 +770,11 @@
       border: 1px dashed rgba(95,82,66,.2);
     }
 
-    .completeScreen {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      display: none;
-      place-items: center;
-      padding: 22px;
-      background:
-        radial-gradient(circle at 50% 25%, rgba(244,196,51,.3), transparent 32%),
-        rgba(6,8,10,.86);
-      backdrop-filter: blur(3px);
-    }
-
-    .completeScreen.show {
-      display: grid;
-    }
-
-    .completeBox {
-      width: min(100%, 410px);
-      border-radius: 28px;
-      overflow: hidden;
-      background:
-        linear-gradient(180deg, #4e5660, #1e242b);
-      border: 2px solid rgba(255,255,255,.16);
-      box-shadow: 0 30px 90px rgba(0,0,0,.55);
-      animation: completeIn .38s cubic-bezier(.2,.9,.2,1);
-    }
-
-    @keyframes completeIn {
-      from { transform: scale(.92) translateY(18px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-
-    .completeInner {
-      margin: 12px;
-      border-radius: 22px;
-      padding: 24px 18px 18px;
-      text-align: center;
-      background:
-        linear-gradient(180deg, #fff0cf, #dfc292);
-      border: 2px solid rgba(91,72,43,.28);
-    }
-
-    .completeTitle {
-      margin: 0 0 8px;
-      font-size: 40px;
-      line-height: 1;
-      font-weight: 950;
-      color: transparent;
-      background: linear-gradient(90deg, #ffe96a, #ffb22d, #65c9ff, #6dff91);
-      -webkit-background-clip: text;
-      background-clip: text;
-      filter: drop-shadow(0 0 12px rgba(244,196,51,.36));
-    }
-
-    .completeText,
-    .staffText {
-      margin: 10px 0 0;
-      font-size: 16px;
-      line-height: 1.6;
-      font-weight: 900;
-      color: #34291d;
-    }
-
     .sparkLayer {
       pointer-events: none;
       position: fixed;
       inset: 0;
-      z-index: 60;
+      z-index: 90;
       overflow: hidden;
     }
 
@@ -859,7 +795,7 @@
       }
     }
 
-    /* ===== stamp get / realistic mechanical suit transformation ===== */
+    /* stamp get */
 
     .stampImpact {
       position: fixed;
@@ -1525,6 +1461,389 @@
         0 0 20px rgba(244,196,51,.22);
     }
 
+    /* complete hybrid */
+
+    .completeScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 44%, rgba(95,190,255,.32), transparent 30%),
+        radial-gradient(circle at 50% 24%, rgba(244,196,51,.20), transparent 28%),
+        rgba(3, 6, 10, .86);
+      backdrop-filter: blur(5px) saturate(1.15);
+    }
+
+    .completeScreen.show {
+      display: grid;
+      animation: completeBackdrop 2.7s ease both;
+    }
+
+    @keyframes completeBackdrop {
+      0% { opacity: 0; }
+      7% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    .completeStage {
+      position: relative;
+      width: min(92vw, 430px);
+      min-height: 610px;
+      overflow: hidden;
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.03)),
+        radial-gradient(circle at 50% 38%, rgba(91,190,255,.16), transparent 38%),
+        linear-gradient(180deg, #303842 0%, #111820 58%, #05080d 100%);
+      border: 2px solid rgba(210,222,235,.20);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.20),
+        inset 0 -5px 0 rgba(0,0,0,.34),
+        0 36px 100px rgba(0,0,0,.72),
+        0 0 90px rgba(95,190,255,.24);
+      animation: completeStageIn .9s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes completeStageIn {
+      0% {
+        transform: scale(.78) translateY(24px);
+        opacity: 0;
+        filter: blur(4px);
+      }
+      48% {
+        transform: scale(1.035);
+        opacity: 1;
+        filter: blur(0);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .completeStage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.58) 100%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 0 1px,
+          transparent 1px 30px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .completeScan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -45%;
+      height: 45%;
+      z-index: 20;
+      background:
+        linear-gradient(180deg, transparent, rgba(98, 194, 255, .34), transparent);
+      animation: completeScan 1.45s ease-out .2s both;
+    }
+
+    @keyframes completeScan {
+      0% { transform: translateY(-80%); opacity: 0; }
+      18% { opacity: 1; }
+      100% { transform: translateY(360%); opacity: 0; }
+    }
+
+    .completeHeader {
+      position: relative;
+      z-index: 30;
+      margin: 14px 16px 10px;
+      padding: 12px 10px 13px;
+      text-align: center;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, #5d6670 0%, #2b333d 48%, #151b23 100%);
+      border: 2px solid rgba(255,255,255,.16);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.36);
+      animation: completeHeaderLock .9s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes completeHeaderLock {
+      0% { transform: translateY(-38px); opacity: 0; }
+      60% { transform: translateY(4px); opacity: 1; }
+      100% { transform: translateY(0); }
+    }
+
+    .completeSystem {
+      margin: 0 0 4px;
+      color: rgba(194, 230, 255, .84);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .22em;
+    }
+
+    .completeLogo {
+      margin: 0;
+      color: transparent;
+      font-size: clamp(35px, 10vw, 52px);
+      line-height: .95;
+      font-weight: 950;
+      letter-spacing: .035em;
+      background:
+        linear-gradient(180deg, #fff8df 0%, #dfad45 22%, #5b3d13 47%, #ffe28d 67%, #8c5f15 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter:
+        drop-shadow(0 2px 0 rgba(0,0,0,.75))
+        drop-shadow(0 0 18px rgba(255,190,72,.34));
+      animation: completeLogoGlow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes completeLogoGlow {
+      from {
+        filter:
+          drop-shadow(0 2px 0 rgba(0,0,0,.75))
+          drop-shadow(0 0 10px rgba(255,190,72,.26));
+      }
+      to {
+        filter:
+          drop-shadow(0 2px 0 rgba(0,0,0,.75))
+          drop-shadow(0 0 28px rgba(95,190,255,.42));
+      }
+    }
+
+    .reactorBox {
+      position: relative;
+      z-index: 10;
+      height: 315px;
+      margin: 12px 14px 10px;
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(110,199,255,.22), transparent 34%),
+        linear-gradient(180deg, #121922 0%, #06090e 100%);
+      border: 2px solid rgba(255,255,255,.13);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.72),
+        inset 0 0 64px rgba(0,0,0,.86),
+        0 14px 30px rgba(0,0,0,.32);
+    }
+
+    .reactorRing {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    .reactorOuter {
+      width: 250px;
+      height: 250px;
+      border: 5px solid rgba(105,194,255,.45);
+      box-shadow:
+        0 0 0 12px rgba(105,194,255,.07),
+        0 0 52px rgba(105,194,255,.34);
+      animation: completeOuterPulse 1.4s ease-out both;
+    }
+
+    .reactorMiddle {
+      width: 180px;
+      height: 180px;
+      border: 4px dashed rgba(220,245,255,.62);
+      animation: completeRingRotate 1.8s linear both;
+    }
+
+    .reactorInner {
+      width: 108px;
+      height: 108px;
+      background:
+        radial-gradient(circle at center, #fff 0 12%, #a9ebff 13% 28%, #2e9aff 29% 50%, #062f63 51% 74%, #02070d 75%);
+      box-shadow:
+        0 0 34px rgba(105,194,255,.85),
+        0 0 100px rgba(105,194,255,.42);
+      animation: completeCoreIgnite 1.55s ease both;
+    }
+
+    @keyframes completeOuterPulse {
+      0% { transform: translate(-50%, -50%) scale(.25); opacity: 0; }
+      24% { opacity: 1; }
+      78% { transform: translate(-50%, -50%) scale(1.12); opacity: .85; }
+      100% { transform: translate(-50%, -50%) scale(1.2); opacity: .65; }
+    }
+
+    @keyframes completeRingRotate {
+      0% { transform: translate(-50%, -50%) scale(.6) rotate(0); opacity: 0; }
+      28% { opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.08) rotate(520deg); opacity: .92; }
+    }
+
+    @keyframes completeCoreIgnite {
+      0% { transform: translate(-50%, -50%) scale(.1); opacity: 0; filter: blur(10px); }
+      30% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; filter: blur(0); }
+      58% { transform: translate(-50%, -50%) scale(.94); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .completePlate {
+      position: absolute;
+      z-index: 8;
+      background:
+        linear-gradient(135deg, #a9b3be 0%, #68737e 22%, #323b45 52%, #8c96a0 72%, #222a33 100%);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -2px 0 rgba(0,0,0,.25),
+        0 14px 26px rgba(0,0,0,.34);
+    }
+
+    .cp1 {
+      left: 62px;
+      right: 62px;
+      top: 32px;
+      height: 50px;
+      clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+      animation: cpTop 1.05s cubic-bezier(.18,1,.26,1) .15s both;
+    }
+
+    .cp2 {
+      left: 62px;
+      right: 62px;
+      bottom: 32px;
+      height: 50px;
+      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+      animation: cpBottom 1.05s cubic-bezier(.18,1,.26,1) .25s both;
+    }
+
+    .cp3 {
+      left: 44px;
+      top: 92px;
+      bottom: 92px;
+      width: 58px;
+      clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
+      animation: cpLeft 1.05s cubic-bezier(.18,1,.26,1) .35s both;
+    }
+
+    .cp4 {
+      right: 44px;
+      top: 92px;
+      bottom: 92px;
+      width: 58px;
+      clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
+      animation: cpRight 1.05s cubic-bezier(.18,1,.26,1) .45s both;
+    }
+
+    @keyframes cpTop {
+      0% { transform: translateY(-74px); opacity: 0; }
+      60% { transform: translateY(5px); opacity: 1; }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes cpBottom {
+      0% { transform: translateY(74px); opacity: 0; }
+      60% { transform: translateY(-5px); opacity: 1; }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes cpLeft {
+      0% { transform: translateX(-74px); opacity: 0; }
+      60% { transform: translateX(5px); opacity: 1; }
+      100% { transform: translateX(0); }
+    }
+
+    @keyframes cpRight {
+      0% { transform: translateX(74px); opacity: 0; }
+      60% { transform: translateX(-5px); opacity: 1; }
+      100% { transform: translateX(0); }
+    }
+
+    .reactorSteam {
+      position: absolute;
+      z-index: 18;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.42), rgba(255,255,255,0) 70%);
+      filter: blur(11px);
+      opacity: 0;
+    }
+
+    .rs1 { left: 30px; top: 150px; animation: steamRiseA 1.3s ease-out .8s both; }
+    .rs2 { right: 30px; top: 150px; animation: steamRiseB 1.3s ease-out .9s both; }
+    .rs3 { left: 50%; top: 44px; animation: steamRiseC 1.25s ease-out 1s both; }
+
+    .completePanel {
+      position: relative;
+      z-index: 30;
+      margin: 0 14px 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #fff0cf, #dec18e);
+      border: 2px solid rgba(74,59,35,.25);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.46),
+        0 14px 28px rgba(0,0,0,.28);
+      animation: completePanelOpen .9s cubic-bezier(.16,1,.22,1) 1.05s both;
+      transform-origin: top center;
+    }
+
+    @keyframes completePanelOpen {
+      0% {
+        transform: translateY(34px) scaleY(.35);
+        opacity: 0;
+      }
+      70% {
+        transform: translateY(-3px) scaleY(1.04);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0) scaleY(1);
+      }
+    }
+
+    .completePanel::before {
+      content: "";
+      display: block;
+      height: 11px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #0d1116 0 13px,
+          #0d1116 13px 16px,
+          #f3c537 16px 29px,
+          #f3c537 29px 32px
+        );
+    }
+
+    .completePanelInner {
+      padding: 15px 14px 14px;
+      text-align: center;
+    }
+
+    .completeMessage {
+      margin: 0;
+      color: #2f2517;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 950;
+    }
+
+    .completeStaff {
+      margin: 10px 0 0;
+      color: #4a3823;
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 900;
+    }
+
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
 
@@ -1569,6 +1888,14 @@
 
       .impactScene {
         min-height: 540px;
+      }
+
+      .completeStage {
+        min-height: 590px;
+      }
+
+      .completeLogo {
+        font-size: 38px;
       }
     }
 
@@ -1646,27 +1973,51 @@
     </div>
   </div>
 
-  <div class="completeScreen" id="completeScreen">
-    <div class="completeBox">
-      <div class="completeInner">
-        <p class="completeTitle">CHECK<br>COMPLETE!</p>
-        <p class="completeText">
-          すべてのスタンプを<br>
-          集めました！
-        </p>
-        <p class="staffText">
-          チェック完了！<br>
-          この画面をスタッフに見せてください。
-        </p>
-        <div class="buttonRow">
-          <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">
-            施設説明を見る
-          </a>
-          <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">
-            案内ページへ進む
-          </a>
-        </div>
+  <div class="completeScreen" id="completeScreen" aria-hidden="true">
+    <div class="completeStage">
+      <div class="completeScan"></div>
+
+      <div class="completeHeader">
+        <p class="completeSystem">ASOBooN REACTOR SYSTEM</p>
+        <p class="completeLogo">COMPLETE</p>
       </div>
+
+      <div class="reactorBox">
+        <div class="completePlate cp1"></div>
+        <div class="completePlate cp2"></div>
+        <div class="completePlate cp3"></div>
+        <div class="completePlate cp4"></div>
+
+        <div class="reactorRing reactorOuter"></div>
+        <div class="reactorRing reactorMiddle"></div>
+        <div class="reactorRing reactorInner"></div>
+
+        <div class="reactorSteam rs1"></div>
+        <div class="reactorSteam rs2"></div>
+        <div class="reactorSteam rs3"></div>
+      </div>
+
+      <section class="completePanel">
+        <div class="completePanelInner">
+          <p class="completeMessage">
+            すべてのスタンプを<br>
+            集めました！
+          </p>
+          <p class="completeStaff">
+            チェック完了！<br>
+            この画面をスタッフに見せてください。
+          </p>
+
+          <div class="buttonRow">
+            <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">
+              施設説明を見る
+            </a>
+            <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">
+              案内ページへ進む
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -2091,8 +2442,9 @@
 
     function showComplete() {
       completeScreen.classList.add("show");
-      vibrate([60, 40, 60, 40, 140]);
-      burstSparks(110);
+      completeScreen.setAttribute("aria-hidden", "false");
+      vibrate([60, 40, 60, 40, 160]);
+      burstSparks(130);
     }
 
     function vibrate(pattern) {
