@@ -84,7 +84,10 @@
       width: min(100%, 520px);
       min-height: 100vh;
       margin: 0 auto;
-      padding: max(18px, env(safe-area-inset-top) + 10px) 10px max(18px, env(safe-area-inset-bottom) + 10px);
+      padding:
+        max(18px, env(safe-area-inset-top) + 10px)
+        10px
+        max(18px, env(safe-area-inset-bottom) + 10px);
     }
 
     .phoneFrame {
@@ -108,7 +111,12 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(0,0,0,.55) 0 42px, transparent 42px calc(100% - 42px), rgba(0,0,0,.45) calc(100% - 42px)),
+        linear-gradient(
+          90deg,
+          rgba(0,0,0,.55) 0 42px,
+          transparent 42px calc(100% - 42px),
+          rgba(0,0,0,.45) calc(100% - 42px)
+        ),
         radial-gradient(circle at 0 20%, rgba(255,255,255,.1), transparent 25%),
         radial-gradient(circle at 100% 30%, rgba(255,255,255,.08), transparent 24%);
       pointer-events: none;
@@ -213,6 +221,7 @@
         inset 0 2px 0 rgba(255,255,255,.17),
         0 8px 18px rgba(0,0,0,.26);
       text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .brand {
@@ -510,7 +519,6 @@
       font-size: 13px;
       line-height: 1.05;
       text-align: center;
-      transform: rotate(0deg);
       background: rgba(255,255,255,.23);
     }
 
@@ -608,6 +616,7 @@
         inset 0 -2px 0 rgba(0,0,0,.18),
         0 6px 14px rgba(0,0,0,.18);
       border: 2px solid rgba(92,68,11,.28);
+      -webkit-tap-highlight-color: transparent;
     }
 
     button.secondary,
@@ -850,7 +859,7 @@
       }
     }
 
-    /* stamp get realistic overlay */
+    /* ===== stamp get / realistic mechanical suit transformation ===== */
 
     .stampImpact {
       position: fixed;
@@ -861,145 +870,195 @@
       padding: 18px;
       pointer-events: none;
       background:
-        radial-gradient(circle at center, rgba(78,176,255,.28), transparent 30%),
-        rgba(4,7,12,.68);
-      backdrop-filter: blur(4px);
+        radial-gradient(circle at 50% 45%, rgba(95, 190, 255, .30), transparent 30%),
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,.06), transparent 52%),
+        rgba(2, 5, 9, .76);
+      backdrop-filter: blur(5px) saturate(1.15);
     }
 
     .stampImpact.show {
       display: grid;
-      animation: impactBackdrop 1.9s ease both;
+      animation: impactBackdrop 2.05s ease both;
     }
 
     @keyframes impactBackdrop {
       0% { opacity: 0; }
       8% { opacity: 1; }
-      86% { opacity: 1; }
+      88% { opacity: 1; }
       100% { opacity: 0; }
     }
 
     body.impactShudder .phoneFrame {
-      animation: frameShudder .42s ease both;
+      animation: frameShudder .46s ease both;
     }
 
     @keyframes frameShudder {
       0% { transform: translateX(0); }
-      18% { transform: translateX(-3px) rotate(-.25deg); }
-      34% { transform: translateX(3px) rotate(.25deg); }
-      52% { transform: translateX(-2px); }
-      74% { transform: translateX(2px); }
+      16% { transform: translateX(-4px) rotate(-.28deg); }
+      32% { transform: translateX(4px) rotate(.28deg); }
+      48% { transform: translateX(-2px); }
+      66% { transform: translateX(2px); }
       100% { transform: translateX(0); }
     }
 
     .impactScene {
       position: relative;
-      width: min(92vw, 410px);
+      width: min(92vw, 420px);
       min-height: 560px;
-      border-radius: 30px;
       overflow: hidden;
+      border-radius: 32px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.025)),
-        radial-gradient(circle at center 47%, rgba(60,160,255,.15), transparent 42%),
-        linear-gradient(180deg, #20262e 0%, #0f141a 100%);
-      border: 2px solid rgba(180,190,202,.18);
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03)),
+        radial-gradient(circle at 50% 48%, rgba(81, 177, 255, .18), transparent 38%),
+        linear-gradient(180deg, #2d343d 0%, #111820 52%, #05080d 100%);
+      border: 2px solid rgba(190, 204, 218, .20);
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.2),
-        inset 0 -5px 0 rgba(0,0,0,.32),
-        0 34px 100px rgba(0,0,0,.64),
-        0 0 66px rgba(74,166,255,.2);
-      animation: impactScenePop 1.75s cubic-bezier(.16, 1.08, .22, 1) both;
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -5px 0 rgba(0,0,0,.35),
+        0 34px 100px rgba(0,0,0,.68),
+        0 0 80px rgba(90, 180, 255, .22);
+      animation: impactScenePop 1.95s cubic-bezier(.16, 1.08, .22, 1) both;
     }
 
     @keyframes impactScenePop {
-      0% { transform: scale(.75) translateY(18px); opacity: 0; filter: blur(3px); }
-      16% { transform: scale(1.035) translateY(0); opacity: 1; filter: blur(0); }
+      0% {
+        transform: scale(.72) translateY(22px);
+        opacity: 0;
+        filter: blur(4px);
+      }
+      15% {
+        transform: scale(1.045) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+      }
       32% { transform: scale(.99); }
-      78% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(.95) translateY(12px); opacity: 0; }
+      82% { transform: scale(1); opacity: 1; }
+      100% {
+        transform: scale(.95) translateY(12px);
+        opacity: 0;
+      }
+    }
+
+    .impactVignette {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(circle at center, transparent 0 42%, rgba(0,0,0,.56) 100%);
+      pointer-events: none;
+    }
+
+    .impactScan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -45%;
+      height: 45%;
+      z-index: 20;
+      background:
+        linear-gradient(180deg, transparent, rgba(98, 194, 255, .30), transparent);
+      animation: scanPass 1.45s ease-out both;
+    }
+
+    @keyframes scanPass {
+      0% { transform: translateY(-80%); opacity: 0; }
+      15% { opacity: 1; }
+      70% { opacity: .9; }
+      100% { transform: translateY(360%); opacity: 0; }
     }
 
     .impactTopSign {
       position: relative;
-      z-index: 20;
+      z-index: 24;
       margin: 14px 16px 10px;
-      padding: 13px 10px 12px;
-      border-radius: 13px;
+      padding: 12px 10px 13px;
+      border-radius: 14px;
       text-align: center;
       background:
-        linear-gradient(180deg, #4c535c, #171c22);
-      border: 2px solid rgba(255,255,255,.14);
+        linear-gradient(180deg, #59626c 0%, #2b333d 48%, #151b23 100%);
+      border: 2px solid rgba(255,255,255,.16);
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.16),
-        0 10px 24px rgba(0,0,0,.32);
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -3px 0 rgba(0,0,0,.34),
+        0 12px 26px rgba(0,0,0,.36);
     }
 
-    .impactTopSign::before {
+    .impactTopSign::after {
       content: "";
       position: absolute;
-      left: 8px;
-      right: 8px;
-      bottom: -8px;
-      height: 8px;
-      border-radius: 0 0 8px 8px;
+      left: 10px;
+      right: 10px;
+      bottom: -9px;
+      height: 9px;
+      border-radius: 0 0 9px 9px;
       background:
         repeating-linear-gradient(
           -45deg,
-          #12161b 0 12px,
-          #12161b 12px 15px,
-          #69b7ff 15px 27px,
-          #69b7ff 27px 30px
+          #0a0f15 0 12px,
+          #0a0f15 12px 15px,
+          #5fb9ff 15px 27px,
+          #5fb9ff 27px 30px
         );
+    }
+
+    .impactSystem {
+      margin: 0 0 4px;
+      color: rgba(194, 230, 255, .84);
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .22em;
     }
 
     .impactTitle {
       margin: 0;
       color: transparent;
-      font-size: 44px;
+      font-size: 45px;
       line-height: .95;
       font-weight: 950;
-      letter-spacing: .03em;
+      letter-spacing: .035em;
       background:
-        linear-gradient(180deg, #fff7dc 0%, #d7a84e 25%, #5d4319 53%, #ffdf83 72%, #6d4c16 100%);
+        linear-gradient(180deg, #ffffff 0%, #d3ebff 18%, #61bfff 38%, #f5fbff 55%, #1d7fe7 76%, #06325f 100%);
       -webkit-background-clip: text;
       background-clip: text;
       filter:
-        drop-shadow(0 2px 0 rgba(0,0,0,.65))
-        drop-shadow(0 0 14px rgba(255,190,70,.22));
+        drop-shadow(0 2px 0 rgba(0,0,0,.7))
+        drop-shadow(0 0 16px rgba(95,190,255,.38));
     }
 
     .impactSubTitle {
-      margin: 9px 0 0;
+      margin: 8px 0 0;
       display: inline-block;
-      padding: 8px 16px;
-      border-radius: 10px;
-      color: #fff1d4;
+      padding: 7px 14px;
+      border-radius: 999px;
+      color: #fff5de;
       background:
-        linear-gradient(180deg, #3c424a, #1b2027);
-      border: 1px solid rgba(255,255,255,.12);
-      font-size: 18px;
+        linear-gradient(180deg, #4f5862, #1d252e);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 16px;
       font-weight: 950;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.13),
-        0 0 18px rgba(101,182,255,.12);
+        inset 0 1px 0 rgba(255,255,255,.16),
+        0 0 18px rgba(101,182,255,.16);
     }
 
-    .impactEngine {
+    .realEngine {
       position: relative;
       z-index: 5;
       height: 304px;
       margin: 12px 14px 10px;
-      border-radius: 16px;
+      border-radius: 18px;
       overflow: hidden;
       background:
-        radial-gradient(circle at center, rgba(100,188,255,.23), transparent 32%),
-        linear-gradient(180deg, #12171d, #05080c);
-      border: 2px solid rgba(255,255,255,.12);
+        radial-gradient(circle at center, rgba(110, 199, 255, .22), transparent 33%),
+        linear-gradient(180deg, #151c24 0%, #070b10 100%);
+      border: 2px solid rgba(255,255,255,.13);
       box-shadow:
-        inset 0 0 0 1px rgba(0,0,0,.6),
-        inset 0 0 52px rgba(0,0,0,.8);
+        inset 0 0 0 1px rgba(0,0,0,.7),
+        inset 0 0 60px rgba(0,0,0,.85),
+        0 14px 30px rgba(0,0,0,.32);
     }
 
-    .impactEngine::before {
+    .realEngine::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -1008,154 +1067,407 @@
           circle at center,
           rgba(255,255,255,.035) 0 1px,
           transparent 1px 14px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 0 1px,
+          transparent 1px 28px
         );
       opacity: .9;
     }
 
-    .armorRing {
+    .engineRail {
       position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 250px;
-      height: 250px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
+      top: 24px;
+      bottom: 24px;
+      width: 18px;
+      border-radius: 999px;
       background:
-        conic-gradient(
-          from 8deg,
-          #2a3139 0 18deg,
-          #7c8791 18deg 34deg,
-          #363e47 34deg 52deg,
-          #a7afb7 52deg 62deg,
-          #1b2128 62deg 86deg,
-          #6d7782 86deg 108deg,
-          #2c333c 108deg 136deg,
-          #8d969f 136deg 154deg,
-          #1c2229 154deg 180deg,
-          #737d86 180deg 210deg,
-          #2d353e 210deg 236deg,
-          #adb5bd 236deg 252deg,
-          #262d35 252deg 288deg,
-          #6e7883 288deg 320deg,
-          #1c2228 320deg 360deg
-        );
+        linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
       box-shadow:
-        inset 0 0 0 20px rgba(0,0,0,.25),
-        inset 0 0 0 46px rgba(12,16,22,.9),
-        0 0 32px rgba(101,182,255,.18);
-      animation: armorLock 1.25s ease-out both;
+        inset 0 2px 0 rgba(255,255,255,.18),
+        0 0 16px rgba(0,0,0,.36);
+      z-index: 2;
     }
 
-    @keyframes armorLock {
-      0% { transform: translate(-50%, -50%) scale(.65) rotate(-45deg); opacity: 0; }
-      22% { transform: translate(-50%, -50%) scale(1.08) rotate(8deg); opacity: 1; }
-      38% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+    .railA { left: 24px; }
+    .railB { right: 24px; }
+
+    .armorPlate {
+      position: absolute;
+      z-index: 7;
+      background:
+        linear-gradient(135deg, #a9b3be 0%, #68737e 22%, #323b45 52%, #8c96a0 72%, #222a33 100%);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.18),
+        inset 0 -2px 0 rgba(0,0,0,.25),
+        0 14px 26px rgba(0,0,0,.34);
+    }
+
+    .plateA {
+      left: 62px;
+      right: 62px;
+      top: 32px;
+      height: 54px;
+      clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+      animation: plateTopLock 1.4s cubic-bezier(.18, 1, .26, 1) both;
+    }
+
+    .plateB {
+      left: 62px;
+      right: 62px;
+      bottom: 32px;
+      height: 54px;
+      clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+      animation: plateBottomLock 1.4s cubic-bezier(.18, 1, .26, 1) both;
+    }
+
+    .plateC {
+      left: 48px;
+      top: 92px;
+      bottom: 92px;
+      width: 62px;
+      clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%);
+      animation: plateLeftLock 1.45s cubic-bezier(.18, 1, .26, 1) both;
+    }
+
+    .plateD {
+      right: 48px;
+      top: 92px;
+      bottom: 92px;
+      width: 62px;
+      clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%);
+      animation: plateRightLock 1.45s cubic-bezier(.18, 1, .26, 1) both;
+    }
+
+    .plateE {
+      left: 104px;
+      top: 84px;
+      width: 82px;
+      height: 44px;
+      transform: rotate(-18deg);
+      animation: smallPlateA 1.35s ease both;
+    }
+
+    .plateF {
+      right: 104px;
+      bottom: 84px;
+      width: 82px;
+      height: 44px;
+      transform: rotate(-18deg);
+      animation: smallPlateB 1.35s ease both;
+    }
+
+    @keyframes plateTopLock {
+      0% { transform: translateY(-78px); opacity: 0; }
+      18% { transform: translateY(0); opacity: 1; }
+      26% { transform: translateY(5px); }
+      38% { transform: translateY(0); }
       78% { opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(.95) rotate(5deg); opacity: .95; }
+      100% { transform: translateY(-16px); opacity: 0; }
     }
 
-    .armorRing::before {
-      content: "";
+    @keyframes plateBottomLock {
+      0% { transform: translateY(78px); opacity: 0; }
+      18% { transform: translateY(0); opacity: 1; }
+      26% { transform: translateY(-5px); }
+      38% { transform: translateY(0); }
+      78% { opacity: 1; }
+      100% { transform: translateY(16px); opacity: 0; }
+    }
+
+    @keyframes plateLeftLock {
+      0% { transform: translateX(-84px); opacity: 0; }
+      20% { transform: translateX(0); opacity: 1; }
+      29% { transform: translateX(5px); }
+      42% { transform: translateX(0); }
+      78% { opacity: 1; }
+      100% { transform: translateX(-16px); opacity: 0; }
+    }
+
+    @keyframes plateRightLock {
+      0% { transform: translateX(84px); opacity: 0; }
+      20% { transform: translateX(0); opacity: 1; }
+      29% { transform: translateX(-5px); }
+      42% { transform: translateX(0); }
+      78% { opacity: 1; }
+      100% { transform: translateX(16px); opacity: 0; }
+    }
+
+    @keyframes smallPlateA {
+      0% { transform: translate(-40px, -20px) rotate(-40deg); opacity: 0; }
+      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      100% { opacity: .9; }
+    }
+
+    @keyframes smallPlateB {
+      0% { transform: translate(40px, 20px) rotate(-40deg); opacity: 0; }
+      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      100% { opacity: .9; }
+    }
+
+    .hydraulic {
       position: absolute;
-      inset: 52px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at center, #fff 0 10%, #9de5ff 11% 24%, #2d98ff 25% 42%, #052b59 43% 72%, #071019 73%);
-      box-shadow:
-        0 0 28px rgba(101,182,255,.78),
-        0 0 78px rgba(101,182,255,.32);
-      animation: corePulseImpact 1.1s ease-out both;
-    }
-
-    @keyframes corePulseImpact {
-      0% { transform: scale(.15); opacity: 0; filter: blur(8px); }
-      20% { transform: scale(1.05); opacity: 1; filter: blur(0); }
-      68% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(.95); opacity: .95; }
-    }
-
-    .armorRing::after {
-      content: "♟";
-      position: absolute;
-      inset: 86px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      color: rgba(13,42,71,.78);
-      background: rgba(255,255,255,.74);
-      font-size: 42px;
-      font-weight: 950;
-      box-shadow: inset 0 0 18px rgba(0,0,0,.12);
-    }
-
-    .piston {
-      position: absolute;
-      width: 120px;
+      z-index: 10;
+      width: 124px;
       height: 20px;
       border-radius: 999px;
       background:
-        linear-gradient(180deg, #dfe8f1, #69737d 55%, #2c333b);
+        linear-gradient(180deg, #eef6ff, #7a8490 52%, #2c343d);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.38),
-        0 0 18px rgba(101,182,255,.16);
-      z-index: 6;
+        inset 0 1px 0 rgba(255,255,255,.45),
+        0 0 20px rgba(101,182,255,.18);
     }
 
-    .p1 { left: 18px; top: 86px; transform: rotate(28deg); animation: pistonSlide1 1.25s ease both; }
-    .p2 { right: 18px; top: 86px; transform: rotate(-28deg); animation: pistonSlide2 1.25s ease both; }
-    .p3 { left: 18px; bottom: 72px; transform: rotate(-28deg); animation: pistonSlide1 1.25s ease both; }
-    .p4 { right: 18px; bottom: 72px; transform: rotate(28deg); animation: pistonSlide2 1.25s ease both; }
+    .hA { left: 18px; top: 82px; transform: rotate(26deg); animation: pistonInLeft 1.3s ease both; }
+    .hB { right: 18px; top: 82px; transform: rotate(-26deg); animation: pistonInRight 1.3s ease both; }
+    .hC { left: 18px; bottom: 76px; transform: rotate(-26deg); animation: pistonInLeft 1.3s ease both; }
+    .hD { right: 18px; bottom: 76px; transform: rotate(26deg); animation: pistonInRight 1.3s ease both; }
 
-    @keyframes pistonSlide1 {
-      0% { opacity: 0; translate: -44px 0; }
+    @keyframes pistonInLeft {
+      0% { opacity: 0; translate: -48px 0; }
       22% { opacity: 1; translate: 0 0; }
-      100% { opacity: .9; }
+      100% { opacity: .92; }
     }
 
-    @keyframes pistonSlide2 {
-      0% { opacity: 0; translate: 44px 0; }
+    @keyframes pistonInRight {
+      0% { opacity: 0; translate: 48px 0; }
       22% { opacity: 1; translate: 0 0; }
-      100% { opacity: .9; }
+      100% { opacity: .92; }
+    }
+
+    .coreRing {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 14;
+    }
+
+    .ringOuter {
+      width: 226px;
+      height: 226px;
+      border: 4px solid rgba(105, 194, 255, .45);
+      box-shadow:
+        0 0 0 12px rgba(105,194,255,.06),
+        0 0 44px rgba(105,194,255,.28);
+      animation: ringPulse 1.2s ease-out both;
+    }
+
+    .ringMiddle {
+      width: 158px;
+      height: 158px;
+      border: 3px dashed rgba(220, 245, 255, .58);
+      animation: ringRotate 1.08s linear both;
+    }
+
+    .energyCore {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 15;
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background:
+        radial-gradient(circle at center, #fff 0 11%, #a3e9ff 12% 26%, #2e9aff 27% 48%, #062f63 49% 72%, #02070d 73%);
+      box-shadow:
+        0 0 28px rgba(105,194,255,.82),
+        0 0 88px rgba(105,194,255,.38);
+      animation: coreIgniteReal 1.16s ease both;
+    }
+
+    @keyframes ringPulse {
+      0% { transform: translate(-50%, -50%) scale(.36); opacity: 0; }
+      18% { opacity: 1; }
+      74% { transform: translate(-50%, -50%) scale(1.26); opacity: .62; }
+      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+
+    @keyframes ringRotate {
+      0% { transform: translate(-50%, -50%) scale(.72) rotate(0); opacity: 0; }
+      20% { opacity: 1; }
+      84% { opacity: .88; }
+      100% { transform: translate(-50%, -50%) scale(1.22) rotate(300deg); opacity: 0; }
+    }
+
+    @keyframes coreIgniteReal {
+      0% { transform: translate(-50%, -50%) scale(.12); opacity: 0; filter: blur(9px); }
+      20% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; filter: blur(0); }
+      76% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(.92); opacity: .95; }
+    }
+
+    .mechanicalStamp {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 18;
+      width: 128px;
+      height: 128px;
+      transform: translate(-50%, -50%);
+      animation: stampHeadLock 1.2s cubic-bezier(.15,.9,.3,1) both;
+    }
+
+    @keyframes stampHeadLock {
+      0% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
+      18% { transform: translate(-50%, -50%) scale(.86) rotate(4deg); opacity: 1; }
+      34% { transform: translate(-50%, -50%) scale(1.06) rotate(-2deg); }
+      48% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+      82% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
+    }
+
+    .stampHead {
+      position: absolute;
+      inset: 0;
+      border-radius: 26px;
+      background:
+        linear-gradient(135deg, #aeb8c2 0%, #68737d 34%, #2c343d 62%, #88929c 100%);
+      border: 2px solid rgba(255,255,255,.16);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -4px 0 rgba(0,0,0,.28),
+        0 14px 28px rgba(0,0,0,.36);
+    }
+
+    .stampHead span {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 30%, #fff, #8d98a4 60%, #343d47);
+      box-shadow: 0 0 10px rgba(105,194,255,.14);
+    }
+
+    .stampHead span:nth-child(1) { left: 12px; top: 12px; }
+    .stampHead span:nth-child(2) { right: 12px; top: 12px; }
+    .stampHead span:nth-child(3) { left: 12px; bottom: 12px; }
+    .stampHead span:nth-child(4) { right: 12px; bottom: 12px; }
+
+    .stampFace {
+      position: absolute;
+      inset: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #dff4ff;
+      font-size: 25px;
+      font-weight: 950;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.9), rgba(105,194,255,.65) 28%, rgba(16,61,111,.95) 72%);
+      box-shadow:
+        inset 0 0 18px rgba(255,255,255,.24),
+        0 0 24px rgba(105,194,255,.55);
     }
 
     .steam {
       position: absolute;
-      z-index: 9;
-      width: 86px;
-      height: 86px;
+      z-index: 30;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,.45), rgba(255,255,255,0) 70%);
-      filter: blur(10px);
+        radial-gradient(circle at center, rgba(255,255,255,.42), rgba(255,255,255,0) 70%);
+      filter: blur(11px);
       opacity: 0;
     }
 
-    .s1 { left: 30px; top: 154px; animation: steamRise 1.25s ease-out .16s both; }
-    .s2 { right: 30px; top: 154px; animation: steamRise 1.25s ease-out .24s both; }
-    .s3 { left: 50%; top: 40px; transform: translateX(-50%); animation: steamTop 1.18s ease-out .2s both; }
+    .steamA { left: 28px; top: 156px; animation: steamRiseA 1.25s ease-out .14s both; }
+    .steamB { right: 28px; top: 156px; animation: steamRiseB 1.25s ease-out .2s both; }
+    .steamC { left: 50%; top: 42px; animation: steamRiseC 1.18s ease-out .24s both; }
+    .steamD { left: 50%; bottom: 26px; animation: steamRiseD 1.18s ease-out .28s both; }
 
-    @keyframes steamRise {
+    @keyframes steamRiseA {
       0% { transform: translateY(18px) scale(.45); opacity: 0; }
       26% { opacity: .52; }
-      100% { transform: translateY(-32px) scale(1.36); opacity: 0; }
+      100% { transform: translateY(-36px) scale(1.4); opacity: 0; }
     }
 
-    @keyframes steamTop {
-      0% { transform: translateX(-50%) translateY(18px) scale(.45); opacity: 0; }
-      26% { opacity: .42; }
-      100% { transform: translateX(-50%) translateY(-30px) scale(1.22); opacity: 0; }
+    @keyframes steamRiseB {
+      0% { transform: translateY(18px) scale(.45); opacity: 0; }
+      26% { opacity: .48; }
+      100% { transform: translateY(-34px) scale(1.32); opacity: 0; }
+    }
+
+    @keyframes steamRiseC {
+      0% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
+      24% { opacity: .38; }
+      100% { transform: translateX(-50%) translateY(-34px) scale(1.18); opacity: 0; }
+    }
+
+    @keyframes steamRiseD {
+      0% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
+      24% { opacity: .34; }
+      100% { transform: translateX(-50%) translateY(30px) scale(1.24); opacity: 0; }
+    }
+
+    .electric {
+      position: absolute;
+      z-index: 34;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(150, 225, 255, .9);
+      box-shadow: 0 0 14px rgba(105,194,255,.9);
+      opacity: 0;
+    }
+
+    .eA {
+      left: 78px;
+      top: 122px;
+      width: 96px;
+      transform: rotate(-18deg);
+      animation: electricFlashA .7s ease .22s both;
+    }
+
+    .eB {
+      right: 72px;
+      top: 190px;
+      width: 102px;
+      transform: rotate(18deg);
+      animation: electricFlashB .72s ease .28s both;
+    }
+
+    .eC {
+      left: 112px;
+      bottom: 86px;
+      width: 160px;
+      transform: rotate(-3deg);
+      animation: electricFlashC .7s ease .34s both;
+    }
+
+    @keyframes electricFlashA {
+      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
+      28%, 44% { opacity: 1; }
+      100% { opacity: 0; transform: scaleX(1) rotate(-18deg); }
+    }
+
+    @keyframes electricFlashB {
+      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
+      28%, 44% { opacity: 1; }
+      100% { opacity: 0; transform: scaleX(1) rotate(18deg); }
+    }
+
+    @keyframes electricFlashC {
+      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
+      28%, 44% { opacity: 1; }
+      100% { opacity: 0; transform: scaleX(1) rotate(-3deg); }
     }
 
     .impactRecord {
       position: relative;
-      z-index: 20;
+      z-index: 30;
       margin: 0 14px 10px;
       display: grid;
       grid-template-columns: 84px 1fr;
       gap: 12px;
       align-items: center;
       padding: 13px;
-      border-radius: 14px;
+      border-radius: 15px;
       background:
         linear-gradient(180deg, #fff0cf, #dec18e);
       border: 2px solid rgba(74,59,35,.25);
@@ -1177,6 +1489,7 @@
       font-weight: 950;
       text-align: center;
       line-height: 1.05;
+      background: rgba(255,255,255,.18);
     }
 
     .impactSpotName {
@@ -1195,20 +1508,21 @@
 
     .impactOk {
       position: relative;
-      z-index: 20;
-      margin: 0 40px 14px;
-      border-radius: 13px;
+      z-index: 30;
+      margin: 0 36px 14px;
+      border-radius: 14px;
       padding: 13px;
       text-align: center;
       color: #1f1708;
-      font-size: 24px;
+      font-size: 21px;
       font-weight: 950;
+      letter-spacing: .06em;
       background:
         linear-gradient(180deg, #ffd443, #d89512);
       border: 2px solid rgba(107,76,8,.32);
       box-shadow:
         inset 0 2px 0 rgba(255,255,255,.38),
-        0 0 18px rgba(244,196,51,.2);
+        0 0 20px rgba(244,196,51,.22);
     }
 
     @media (max-width: 390px) {
@@ -1274,31 +1588,61 @@
 
   <div id="stampImpact" class="stampImpact" aria-hidden="true">
     <div class="impactScene">
+      <div class="impactVignette"></div>
+      <div class="impactScan"></div>
+
       <div class="impactTopSign">
+        <p class="impactSystem">ASOBooN STAMP SYSTEM</p>
         <p class="impactTitle">STAMP GET</p>
         <p class="impactSubTitle">スタンプをゲットしました！</p>
       </div>
 
-      <div class="impactEngine">
-        <div class="armorRing"></div>
-        <div class="piston p1"></div>
-        <div class="piston p2"></div>
-        <div class="piston p3"></div>
-        <div class="piston p4"></div>
-        <div class="steam s1"></div>
-        <div class="steam s2"></div>
-        <div class="steam s3"></div>
+      <div class="realEngine">
+        <div class="engineRail railA"></div>
+        <div class="engineRail railB"></div>
+
+        <div class="armorPlate plateA"></div>
+        <div class="armorPlate plateB"></div>
+        <div class="armorPlate plateC"></div>
+        <div class="armorPlate plateD"></div>
+        <div class="armorPlate plateE"></div>
+        <div class="armorPlate plateF"></div>
+
+        <div class="hydraulic hA"></div>
+        <div class="hydraulic hB"></div>
+        <div class="hydraulic hC"></div>
+        <div class="hydraulic hD"></div>
+
+        <div class="coreRing ringOuter"></div>
+        <div class="coreRing ringMiddle"></div>
+        <div class="energyCore"></div>
+
+        <div class="mechanicalStamp">
+          <div class="stampHead">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="stampFace">GET</div>
+        </div>
+
+        <div class="steam steamA"></div>
+        <div class="steam steamB"></div>
+        <div class="steam steamC"></div>
+        <div class="steam steamD"></div>
+
+        <div class="electric eA"></div>
+        <div class="electric eB"></div>
+        <div class="electric eC"></div>
       </div>
 
       <div class="impactRecord">
-        <div class="impactStampMark">スタンプ<br>GET!</div>
+        <div class="impactStampMark">STAMP<br>GET!</div>
         <div id="impactSpotName" class="impactSpotName">
           みまもり
           <small>を記録しました</small>
         </div>
       </div>
 
-      <div class="impactOk">OK</div>
+      <div class="impactOk">RECORD COMPLETE</div>
     </div>
   </div>
 
@@ -1444,8 +1788,14 @@
 
         if (result.stampStatus === "new") {
           triggerStampImpact(result);
-          vibrate([40, 40, 90]);
-          burstSparks(90);
+          vibrate([30, 25, 45, 35, 120]);
+          burstSparks(95);
+
+          if (result.completed || result.isComplete) {
+            setTimeout(showComplete, 2200);
+          }
+
+          return;
         }
 
         if (result.completed || result.isComplete) {
@@ -1732,17 +2082,17 @@
 
       setTimeout(() => {
         document.body.classList.remove("impactShudder");
-      }, 460);
+      }, 520);
 
       setTimeout(() => {
         impact.classList.remove("show");
-      }, 1900);
+      }, 2050);
     }
 
     function showComplete() {
       completeScreen.classList.add("show");
       vibrate([60, 40, 60, 40, 140]);
-      burstSparks(100);
+      burstSparks(110);
     }
 
     function vibrate(pattern) {
