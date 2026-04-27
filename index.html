@@ -388,6 +388,75 @@
       box-shadow: 0 1px 3px rgba(0,0,0,.25);
     }
 
+    /* === Reach state on progress card === */
+    .progressCard.reach {
+      background: linear-gradient(180deg, #fff5d6 0%, #ffd97a 100%);
+      animation: reachCardPulse 1.6s ease-in-out infinite;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.6),
+        inset 0 -3px 0 rgba(120,80,10,.25),
+        0 0 24px rgba(255,180,40,.5);
+    }
+
+    @keyframes reachCardPulse {
+      0%, 100% { box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -3px 0 rgba(120,80,10,.25), 0 0 24px rgba(255,180,40,.5); }
+      50% { box-shadow: inset 0 2px 0 rgba(255,255,255,.7), inset 0 -3px 0 rgba(120,80,10,.3), 0 0 40px rgba(255,180,40,.8); }
+    }
+
+    .progressCard.reach .progressLabel {
+      color: #c33010;
+      animation: reachLabelBlink .7s ease-in-out infinite alternate;
+      text-shadow: 0 0 8px rgba(255,80,40,.5);
+    }
+
+    @keyframes reachLabelBlink {
+      from { transform: scale(1); }
+      to { transform: scale(1.06); color: #ff3a14; }
+    }
+
+    .progressCard.completed {
+      background: linear-gradient(180deg, #fff5d0 0%, #ffce3e 50%, #ff9e2c 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.6),
+        inset 0 -3px 0 rgba(140,80,10,.3),
+        0 0 36px rgba(255,180,40,.8);
+    }
+
+    .progressCard.completed .progressLabel {
+      color: #6e1a08;
+      letter-spacing: .12em;
+      font-size: 17px;
+    }
+
+    /* shimmer effect for reach/complete fill */
+    .progressFill.reaching {
+      background: linear-gradient(90deg, #ffd64a 0%, #ff8e2c 50%, #ffd64a 100%);
+      background-size: 200% 100%;
+      animation: shimmerFill 1.4s linear infinite;
+    }
+
+    .progressFill.complete {
+      background: linear-gradient(90deg, #fff5b8 0%, #ffd34a 30%, #ff7e2c 60%, #ffd34a 80%, #fff5b8 100%);
+      background-size: 200% 100%;
+      animation: shimmerFill .9s linear infinite;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.5),
+        0 0 28px rgba(255,180,40,.85);
+    }
+
+    @keyframes shimmerFill {
+      0% { background-position: 0% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* count digit pulsing on settle */
+    .progressNumber .count.settled {
+      color: #d83a08;
+      text-shadow:
+        0 2px 0 rgba(255,255,255,.4),
+        0 0 18px rgba(255,80,30,.6);
+    }
+
     .stampList {
       display: grid;
       gap: 9px;
@@ -854,17 +923,14 @@
     }
 
     body.impactShudder .phoneFrame {
-      animation: frameShudder .7s ease both;
+      animation: frameShudder .4s ease both;
     }
 
     @keyframes frameShudder {
-      0% { transform: translate(0,0) rotate(0); }
-      10% { transform: translate(-6px,-3px) rotate(-.4deg); }
-      22% { transform: translate(7px,4px) rotate(.5deg); }
-      34% { transform: translate(-4px,2px) rotate(-.3deg); }
-      48% { transform: translate(5px,-3px) rotate(.3deg); }
-      62% { transform: translate(-3px,2px); }
-      78% { transform: translate(2px,-1px); }
+      0% { transform: translate(0,0); }
+      25% { transform: translate(-2px,-1px); }
+      50% { transform: translate(2px,1px); }
+      75% { transform: translate(-1px,1px); }
       100% { transform: translate(0,0); }
     }
 
@@ -1652,12 +1718,12 @@
 
     .completeScreen.show {
       display: grid;
-      animation: completeBackdrop 5s ease both;
+      animation: completeBackdrop 8s ease both;
     }
 
     @keyframes completeBackdrop {
       0% { opacity: 0; }
-      6% { opacity: 1; }
+      4% { opacity: 1; }
       100% { opacity: 1; }
     }
 
@@ -1712,7 +1778,7 @@
         #ff2d2d 25px 28px
       );
       box-shadow: 0 0 14px rgba(255,45,45,.7);
-      animation: completeWarnSlide 5s ease both;
+      animation: completeWarnSlide 8s ease both;
     }
 
     .completeWarnTop { top: 0; }
@@ -1720,11 +1786,11 @@
 
     @keyframes completeWarnSlide {
       0% { opacity: 0; transform: translateX(-30px); }
-      4% { opacity: 1; transform: translateX(0); }
-      8% { transform: translateX(-6px); }
-      12% { transform: translateX(0); }
-      28% { opacity: 1; }
-      36% { opacity: .3; }
+      3% { opacity: 1; transform: translateX(0); }
+      6% { transform: translateX(-6px); }
+      9% { transform: translateX(0); }
+      18% { opacity: 1; }
+      24% { opacity: .3; }
       100% { opacity: .8; }
     }
 
@@ -1736,18 +1802,18 @@
       mix-blend-mode: screen;
       pointer-events: none;
       opacity: 0;
-      animation: completeAlertFlashes 5s ease both;
+      animation: completeAlertFlashes 8s ease both;
     }
 
     @keyframes completeAlertFlashes {
-      0%, 4% { opacity: 0; }
+      0%, 2% { opacity: 0; }
+      4% { opacity: 1; }
+      5% { opacity: .2; }
       6% { opacity: 1; }
-      8% { opacity: .2; }
-      10% { opacity: 1; }
-      12% { opacity: .2; }
-      14% { opacity: 1; }
-      18% { opacity: 0; }
-      36%, 100% { opacity: 0; }
+      7% { opacity: .2; }
+      8% { opacity: 1; }
+      11% { opacity: 0; }
+      24%, 100% { opacity: 0; }
     }
 
     .completeScan {
@@ -1912,12 +1978,12 @@
         drop-shadow(0 0 14px rgba(255,190,72,.32));
       opacity: 0;
       transform: scale(1.5) translateY(-40px);
-      animation: armorAssemble 5s cubic-bezier(.2,.8,.2,1) forwards;
+      animation: armorAssemble 8s cubic-bezier(.2,.8,.2,1) forwards;
     }
 
     .completeLogoStack span:nth-child(2) {
       font-size: clamp(42px, 11.5vw, 60px);
-      animation-delay: .14s;
+      animation-delay: .2s;
     }
 
     @keyframes armorAssemble {
@@ -1927,19 +1993,19 @@
         filter: blur(12px) drop-shadow(0 0 0 rgba(0,0,0,0));
         letter-spacing: .2em;
       }
-      14% {
+      9% {
         opacity: 1;
         transform: scale(.88) translateY(10px);
         filter: blur(0) drop-shadow(0 4px 6px rgba(0,0,0,.82));
       }
-      24% { transform: scale(1) translateY(0); }
-      52% {
+      15% { transform: scale(1) translateY(0); }
+      35% {
         filter:
           drop-shadow(0 4px 6px rgba(0,0,0,.82))
           drop-shadow(0 0 18px rgba(255,190,72,.4))
           brightness(1.3);
       }
-      72%, 100% {
+      50%, 100% {
         opacity: 1;
         transform: scale(1);
         letter-spacing: .08em;
@@ -1959,13 +2025,13 @@
       font-weight: 950;
       letter-spacing: .2em;
       text-shadow: 0 0 18px rgba(95,190,255,.4);
-      animation: hypeReveal 5s ease both;
+      animation: hypeReveal 8s ease both;
       opacity: 0;
     }
 
     @keyframes hypeReveal {
-      0%, 60% { opacity: 0; transform: translateY(10px); }
-      78% { opacity: 1; transform: translateY(0); }
+      0%, 38% { opacity: 0; transform: translateY(10px); }
+      48% { opacity: 1; transform: translateY(0); }
       100% { opacity: .94; }
     }
 
@@ -2114,34 +2180,34 @@
       mix-blend-mode: screen;
       opacity: 0;
       pointer-events: none;
-      animation: compCoreCharge 5s ease-in forwards;
+      animation: compCoreCharge 8s ease-in forwards;
     }
 
     @keyframes compCoreCharge {
-      0%, 16% {
+      0%, 28% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(.1);
       }
-      40% {
+      45% {
         opacity: .5;
         transform: translate(-50%, -50%) scale(.85);
       }
-      62% {
+      58% {
         opacity: .9;
         transform: translate(-50%, -50%) scale(1.22);
         box-shadow: 0 0 100px rgba(97,191,255,.7);
       }
-      72% {
+      66% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(2.7);
         background:
           radial-gradient(circle, #fff 0 26%, rgba(97,191,255,.85) 27% 50%, transparent 70%);
       }
-      82% {
+      75% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(3.4);
       }
-      100% {
+      90%, 100% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(3.8);
       }
@@ -2156,14 +2222,14 @@
       mix-blend-mode: screen;
       pointer-events: none;
       opacity: 0;
-      animation: compMegaFlash 5s ease both;
+      animation: compMegaFlash 8s ease both;
     }
 
     @keyframes compMegaFlash {
-      0%, 60% { opacity: 0; }
-      66% { opacity: 1; }
-      72% { opacity: .4; }
-      78% { opacity: 0; }
+      0%, 56% { opacity: 0; }
+      60% { opacity: 1; }
+      66% { opacity: .4; }
+      72% { opacity: 0; }
       100% { opacity: 0; }
     }
 
@@ -2187,13 +2253,13 @@
         radial-gradient(transparent 0 36%, #000 38% 50%, transparent 52%);
       -webkit-mask:
         radial-gradient(transparent 0 36%, #000 38% 50%, transparent 52%);
-      animation: rainbowShockBlast 5s ease both;
+      animation: rainbowShockBlast 8s ease both;
     }
 
     @keyframes rainbowShockBlast {
-      0%, 64% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0); }
-      70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(180deg); }
-      88% { opacity: 0; transform: translate(-50%, -50%) scale(7) rotate(720deg); }
+      0%, 60% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0); }
+      65% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(180deg); }
+      82% { opacity: 0; transform: translate(-50%, -50%) scale(7) rotate(720deg); }
       100% { opacity: 0; transform: translate(-50%, -50%) scale(8) rotate(900deg); }
     }
 
@@ -2209,17 +2275,17 @@
       opacity: 0;
       filter: blur(10px);
       pointer-events: none;
-      animation: compSteamBlow 5s ease-out forwards;
+      animation: compSteamBlow 8s ease-out forwards;
     }
 
     .compSteamLeft {
       left: 7%;
-      animation-delay: 1.45s;
+      animation-delay: 2.4s;
     }
 
     .compSteamRight {
       right: 7%;
-      animation-delay: 1.65s;
+      animation-delay: 2.7s;
     }
 
     @keyframes compSteamBlow {
@@ -2227,8 +2293,8 @@
         transform: scale(.45) translateY(0);
         opacity: 0;
       }
-      10% { opacity: .82; }
-      44% {
+      6% { opacity: .82; }
+      28% {
         transform: scale(3) translateY(-150px) translateX(48px);
         opacity: 0;
       }
@@ -2247,57 +2313,16 @@
       letter-spacing: .2em;
       text-shadow: 0 0 22px rgba(255,215,95,.5);
       opacity: 0;
-      animation: counterReveal 5s ease both;
+      animation: counterReveal 8s ease both;
       white-space: nowrap;
     }
 
     @keyframes counterReveal {
-      0%, 18% { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
-      26% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      48% { opacity: .96; }
-      56% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+      0%, 12% { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
+      18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      40% { opacity: .96; }
+      52% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
       100% { opacity: 0; }
-    }
-
-    /* Rank badge SSS */
-    .completeRankBadge {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 22;
-      transform: translate(-50%, -50%) scale(0);
-      pointer-events: none;
-      opacity: 0;
-      animation: rankBadgePop 5s cubic-bezier(.18,1.3,.22,1) both;
-    }
-
-    @keyframes rankBadgePop {
-      0%, 78% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-30deg); }
-      84% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(8deg); }
-      90% { transform: translate(-50%, -50%) scale(.92) rotate(-3deg); }
-      96%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0); }
-    }
-
-    .completeRankBadge .rankInner {
-      padding: 10px 30px;
-      border-radius: 18px;
-      font-size: 56px;
-      font-weight: 950;
-      letter-spacing: .04em;
-      color: transparent;
-      background:
-        linear-gradient(180deg, #fff8df 0%, #ffe28d 22%, #ffb52a 50%, #ffe28d 78%, #fff8df 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      border: 4px solid #ffd34a;
-      box-shadow:
-        0 0 36px rgba(255,210,80,.7),
-        0 0 80px rgba(255,150,40,.5),
-        inset 0 0 14px rgba(255,255,255,.2);
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,.6));
-      text-shadow:
-        0 2px 0 rgba(0,0,0,.4);
-      background-color: rgba(20,12,4,.72);
     }
 
     .completePanel {
@@ -2309,7 +2334,7 @@
       background: linear-gradient(180deg, #fff0cf, #dec18e);
       border: 2px solid rgba(74,59,35,.25);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.46), 0 14px 28px rgba(0,0,0,.28);
-      animation: completePanelOpen 5s cubic-bezier(.16,1,.22,1) both;
+      animation: completePanelOpen 8s cubic-bezier(.16,1,.22,1) both;
       opacity: 0;
       transform-origin: top center;
     }
@@ -2319,11 +2344,11 @@
         transform: translateY(34px) scaleY(.35);
         opacity: 0;
       }
-      82% {
+      80% {
         transform: translateY(-3px) scaleY(1.04);
         opacity: 1;
       }
-      100% {
+      88%, 100% {
         transform: translateY(0) scaleY(1);
         opacity: 1;
       }
@@ -2358,14 +2383,7 @@
     }
 
     body.completeShudder {
-      animation: screenShake .42s ease-in-out 8;
-    }
-
-    @keyframes screenShake {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      25% { transform: translate(3px, 3px) rotate(.5deg); }
-      50% { transform: translate(-3px, -3px) rotate(-.5deg); }
-      75% { transform: translate(-3px, 3px) rotate(.5deg); }
+      animation: none;
     }
 
     /* ===========================================
@@ -2837,7 +2855,780 @@
       50% { transform: scale(1.24); opacity: 1; }
     }
 
-    @media (max-width: 390px) {
+    /* ===========================================
+       CINEMATIC + PHYSICAL EFFECTS LAYER
+       =========================================== */
+
+    /* === Screen crack overlay (SVG) === */
+    .screenCrack {
+      position: absolute;
+      inset: 0;
+      z-index: 41;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .screenCrack svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,.7));
+    }
+
+    .screenCrack.show {
+      animation: crackAppear 1.4s ease forwards;
+    }
+
+    @keyframes crackAppear {
+      0% { opacity: 0; transform: scale(.96); }
+      18% { opacity: 1; transform: scale(1.03); }
+      40% { opacity: 1; transform: scale(1); }
+      100% { opacity: .55; transform: scale(1); }
+    }
+
+    /* === RGB chromatic aberration === */
+    .rgbSplit {
+      position: absolute;
+      inset: 0;
+      z-index: 42;
+      pointer-events: none;
+      opacity: 0;
+      mix-blend-mode: screen;
+    }
+
+    .rgbSplit::before,
+    .rgbSplit::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+
+    .rgbSplit::before {
+      background: rgba(255, 30, 30, .55);
+      mix-blend-mode: screen;
+    }
+
+    .rgbSplit::after {
+      background: rgba(30, 220, 255, .55);
+      mix-blend-mode: screen;
+    }
+
+    .rgbSplit.show {
+      animation: rgbSplitFire .55s steps(4, end) forwards;
+    }
+
+    @keyframes rgbSplitFire {
+      0% { opacity: 0; }
+      10% { opacity: .9; }
+      30% { opacity: 1; }
+      55% { opacity: .8; }
+      100% { opacity: 0; }
+    }
+
+    .rgbSplit.show::before {
+      animation: rgbRedShift .55s steps(4, end) forwards;
+    }
+
+    .rgbSplit.show::after {
+      animation: rgbCyanShift .55s steps(4, end) forwards;
+    }
+
+    @keyframes rgbRedShift {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-8px, 4px); }
+      40% { transform: translate(6px, -3px); }
+      60% { transform: translate(-4px, 2px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes rgbCyanShift {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(8px, -4px); }
+      40% { transform: translate(-6px, 3px); }
+      60% { transform: translate(4px, -2px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    /* === CRT scanlines + noise === */
+    .crtOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 37;
+      pointer-events: none;
+      opacity: 0;
+      mix-blend-mode: overlay;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 4px);
+    }
+
+    .crtOverlay.show {
+      animation: crtFlicker 4s steps(20, end) both;
+    }
+
+    @keyframes crtFlicker {
+      0% { opacity: 0; }
+      6% { opacity: .5; }
+      8% { opacity: .15; }
+      10% { opacity: .65; }
+      30% { opacity: .55; }
+      80% { opacity: .55; }
+      100% { opacity: 0; }
+    }
+
+    /* === Random noise grain === */
+    .noiseGrain {
+      position: absolute;
+      inset: 0;
+      z-index: 36;
+      pointer-events: none;
+      opacity: 0;
+      background-image:
+        radial-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
+        radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+      background-size: 3px 3px, 4px 4px;
+      background-position: 0 0, 1px 2px;
+      mix-blend-mode: overlay;
+    }
+
+    .noiseGrain.show {
+      animation: noiseShift 4s steps(24, end) both;
+    }
+
+    @keyframes noiseShift {
+      0%, 100% { opacity: 0; background-position: 0 0, 1px 2px; }
+      6% { opacity: .5; background-position: 7px 11px, 3px 5px; }
+      14% { opacity: .35; background-position: 2px 4px, 9px 7px; }
+      28% { opacity: .4; background-position: 11px 3px, 5px 13px; }
+      55% { opacity: .35; background-position: 4px 9px, 12px 6px; }
+      80% { opacity: .25; background-position: 8px 2px, 3px 11px; }
+    }
+
+    /* === 3D perspective container for stamp head === */
+    .stamp3DStage {
+      position: absolute;
+      inset: 0;
+      perspective: 800px;
+      perspective-origin: 50% 50%;
+      z-index: 17;
+      pointer-events: none;
+    }
+
+    .stamp3DContent {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%);
+      width: 132px;
+      height: 132px;
+    }
+
+    /* === Corner cut-in armor pieces === */
+    .cornerCutIn {
+      position: absolute;
+      z-index: 13;
+      width: 90px;
+      height: 90px;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(135deg, #b6c0cb 0%, #6a7480 25%, #2c343d 60%, #899299 100%);
+      border: 2px solid rgba(255,255,255,.25);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.3),
+        inset 0 -3px 0 rgba(0,0,0,.4),
+        0 12px 24px rgba(0,0,0,.5),
+        0 0 28px rgba(255,80,80,.35);
+    }
+
+    .cornerCutIn::after {
+      content: "⚠";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #ffea4a;
+      font-size: 38px;
+      font-weight: 950;
+      text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 14px rgba(255,180,30,.6);
+    }
+
+    .cornerCutIn.tl {
+      top: 8px;
+      left: 8px;
+      clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
+      animation: cornerCutInTL 4.2s ease both;
+    }
+
+    .cornerCutIn.tr {
+      top: 8px;
+      right: 8px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 100%, 40% 100%, 0 60%);
+      animation: cornerCutInTR 4.2s ease both;
+    }
+
+    .cornerCutIn.bl {
+      bottom: 8px;
+      left: 8px;
+      clip-path: polygon(0 0, 60% 0, 100% 40%, 100% 100%, 0 100%);
+      animation: cornerCutInBL 4.2s ease both;
+    }
+
+    .cornerCutIn.br {
+      bottom: 8px;
+      right: 8px;
+      clip-path: polygon(40% 0, 100% 0, 100% 100%, 0 100%, 0 40%);
+      animation: cornerCutInBR 4.2s ease both;
+    }
+
+    @keyframes cornerCutInTL {
+      0%, 4% { opacity: 0; transform: translate(-120px, -120px) rotate(-30deg); }
+      12% { opacity: 1; transform: translate(0, 0) rotate(0); }
+      18% { transform: translate(6px, 6px); }
+      24% { transform: translate(0, 0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-30px, -30px); }
+    }
+
+    @keyframes cornerCutInTR {
+      0%, 4% { opacity: 0; transform: translate(120px, -120px) rotate(30deg); }
+      12% { opacity: 1; transform: translate(0, 0) rotate(0); }
+      18% { transform: translate(-6px, 6px); }
+      24% { transform: translate(0, 0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; transform: translate(30px, -30px); }
+    }
+
+    @keyframes cornerCutInBL {
+      0%, 6% { opacity: 0; transform: translate(-120px, 120px) rotate(30deg); }
+      14% { opacity: 1; transform: translate(0, 0) rotate(0); }
+      20% { transform: translate(6px, -6px); }
+      26% { transform: translate(0, 0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-30px, 30px); }
+    }
+
+    @keyframes cornerCutInBR {
+      0%, 6% { opacity: 0; transform: translate(120px, 120px) rotate(-30deg); }
+      14% { opacity: 1; transform: translate(0, 0) rotate(0); }
+      20% { transform: translate(-6px, -6px); }
+      26% { transform: translate(0, 0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; transform: translate(30px, 30px); }
+    }
+
+    /* === Manga-style impact text === */
+    .mangaText {
+      position: absolute;
+      z-index: 38;
+      pointer-events: none;
+      font-weight: 950;
+      color: transparent;
+      letter-spacing: -.02em;
+      line-height: .9;
+      filter:
+        drop-shadow(0 0 0 #fff)
+        drop-shadow(2px 2px 0 #000)
+        drop-shadow(-2px 2px 0 #000)
+        drop-shadow(2px -2px 0 #000)
+        drop-shadow(-2px -2px 0 #000)
+        drop-shadow(0 4px 12px rgba(0,0,0,.6));
+      -webkit-text-stroke: 3px #000;
+      background: linear-gradient(180deg, #fff8df 0%, #ffd34a 50%, #ff7e30 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      opacity: 0;
+    }
+
+    .mangaText.boom {
+      top: 18%;
+      right: 8%;
+      font-size: clamp(38px, 11vw, 60px);
+      transform: rotate(-8deg);
+      animation: mangaTextBurst 4.2s cubic-bezier(.18,1.4,.22,1) both;
+    }
+
+    .mangaText.dosss {
+      bottom: 28%;
+      left: 6%;
+      font-size: clamp(32px, 9vw, 50px);
+      transform: rotate(6deg);
+      animation: mangaTextBurst 4.2s cubic-bezier(.18,1.4,.22,1) .3s both;
+    }
+
+    @keyframes mangaTextBurst {
+      0%, 56% { opacity: 0; transform: scale(.2) rotate(-30deg); }
+      62% { opacity: 1; transform: scale(1.4) rotate(-8deg); }
+      68% { transform: scale(.92) rotate(-8deg); }
+      74% { transform: scale(1.05) rotate(-8deg); }
+      80% { transform: scale(1) rotate(-8deg); }
+      92% { opacity: 1; transform: scale(1) rotate(-8deg); }
+      100% { opacity: 0; transform: scale(1.2) rotate(-8deg); }
+    }
+
+    .mangaText.dosss {
+      animation-name: mangaTextBurstB;
+    }
+
+    @keyframes mangaTextBurstB {
+      0%, 60% { opacity: 0; transform: scale(.2) rotate(30deg); }
+      66% { opacity: 1; transform: scale(1.4) rotate(6deg); }
+      72% { transform: scale(.92) rotate(6deg); }
+      78% { transform: scale(1.05) rotate(6deg); }
+      84% { transform: scale(1) rotate(6deg); }
+      92% { opacity: 1; transform: scale(1) rotate(6deg); }
+      100% { opacity: 0; transform: scale(1.2) rotate(6deg); }
+    }
+
+    /* === Cinematic black bars (top/bottom film bars) === */
+    .filmBars {
+      position: absolute;
+      inset: 0;
+      z-index: 39;
+      pointer-events: none;
+    }
+
+    .filmBars::before,
+    .filmBars::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0;
+      background: #000;
+      transition: height .4s cubic-bezier(.7,0,.3,1);
+    }
+
+    .filmBars::before { top: 0; }
+    .filmBars::after { bottom: 0; }
+
+    .filmBars.show::before,
+    .filmBars.show::after {
+      height: 8%;
+    }
+
+    /* === Loading gear gold variant (rare) === */
+    .gearArea.golden .gear {
+      border-color: #c9a83a;
+      background: radial-gradient(circle at center, #fff8e5 0 18%, #ffd864 18% 30%, #c08a14 30% 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.4),
+        0 0 20px rgba(255,200,60,.5),
+        0 8px 22px rgba(180,130,20,.4);
+    }
+
+    .gearArea.golden .gear::before,
+    .gearArea.golden .gear::after {
+      border-color: rgba(220, 170, 50, .9);
+    }
+
+    .gearArea.golden::after {
+      content: "★";
+      position: absolute;
+      top: -8px;
+      right: -16px;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      color: #ffd34a;
+      font-size: 22px;
+      animation: goldenStar .9s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(255,200,60,.7));
+    }
+
+    @keyframes goldenStar {
+      0%, 100% { transform: scale(1) rotate(0); }
+      50% { transform: scale(1.3) rotate(180deg); }
+    }
+
+    /* === 3D rotation on stamp head === */
+    .stamp3DRotate {
+      animation: stamp3DDescend 4.2s cubic-bezier(.15,.9,.3,1) both;
+    }
+
+    @keyframes stamp3DDescend {
+      0% {
+        opacity: 0;
+        transform: translateZ(600px) rotateX(45deg) rotateY(-20deg) scale(2);
+      }
+      32% {
+        opacity: 0;
+        transform: translateZ(600px) rotateX(45deg) rotateY(-20deg) scale(2);
+      }
+      48% {
+        opacity: 1;
+        transform: translateZ(120px) rotateX(15deg) rotateY(-5deg) scale(1.1);
+      }
+      56% {
+        transform: translateZ(0px) rotateX(0) rotateY(0) scale(.95);
+      }
+      62% {
+        transform: translateZ(0px) rotateX(0) rotateY(0) scale(1.08);
+      }
+      70% {
+        transform: translateZ(0px) rotateX(0) rotateY(0) scale(1);
+      }
+      90% { opacity: 1; }
+      100% {
+        opacity: 0;
+        transform: translateZ(0px) rotateX(0) rotateY(0) scale(.92);
+      }
+    }
+
+    /* === Tame (pause) blackout transition === */
+    .tameBlackout {
+      position: absolute;
+      inset: 0;
+      z-index: 44;
+      pointer-events: none;
+      background: #000;
+      opacity: 0;
+    }
+
+    .tameBlackout.show {
+      animation: tameBlackoutFade 4.2s ease both;
+    }
+
+    @keyframes tameBlackoutFade {
+      0%, 38% { opacity: 0; }
+      42% { opacity: .92; }
+      52% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    /* === Speed lines (concentration lines) === */
+    .speedLines {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          rgba(255,255,255,.0) 0deg 8deg,
+          rgba(255,255,255,.5) 8deg 9deg,
+          rgba(255,255,255,.0) 9deg 18deg
+        );
+      mask: radial-gradient(circle at center, transparent 0 30%, #000 70% 100%);
+      -webkit-mask: radial-gradient(circle at center, transparent 0 30%, #000 70% 100%);
+      mix-blend-mode: screen;
+    }
+
+    .speedLines.show {
+      animation: speedLinesSpin 4.2s linear both;
+    }
+
+    @keyframes speedLinesSpin {
+      0%, 30% { opacity: 0; transform: rotate(0); }
+      40% { opacity: .8; }
+      62% { opacity: .9; }
+      80% { opacity: .5; transform: rotate(120deg); }
+      100% { opacity: 0; transform: rotate(180deg); }
+    }
+
+    /* === Counter digit roll === */
+    .digitRoll {
+      display: inline-block;
+      position: relative;
+      overflow: hidden;
+      vertical-align: bottom;
+    }
+
+    .digitRoll .digitTrack {
+      display: flex;
+      flex-direction: column;
+      transition: transform .9s cubic-bezier(.5, 0, .15, 1.05);
+    }
+
+    .digitRoll .digitTrack span {
+      display: block;
+      line-height: 1;
+    }
+
+    /* === Reach (almost complete) hint === */
+    .reachHint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 45;
+      padding: 14px 26px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 950;
+      letter-spacing: .12em;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255,80,80,.92), rgba(160,20,20,.95));
+      border: 3px solid #ffea4a;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.3),
+        0 0 30px rgba(255,80,80,.6),
+        0 0 80px rgba(255,200,60,.3);
+      text-shadow: 0 2px 0 rgba(0,0,0,.5);
+      opacity: 0;
+      pointer-events: none;
+      animation: reachHintShow 4.2s ease both;
+    }
+
+    @keyframes reachHintShow {
+      0%, 76% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+      82% { opacity: 1; transform: translate(-50%, -50%) scale(1.18); }
+      88% { transform: translate(-50%, -50%) scale(.96); }
+      94% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* === Rarity rays (radial light burst behind stamp) === */
+    .rarityRays {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 11;
+      width: 600px;
+      height: 600px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      background:
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          rgba(255,210,80,.0) 0deg 12deg,
+          rgba(255,210,80,.4) 12deg 14deg,
+          rgba(255,210,80,.0) 14deg 28deg
+        );
+      mix-blend-mode: screen;
+    }
+
+    .rarityRays.show {
+      animation: rarityRaysSpin 4.2s linear both;
+    }
+
+    @keyframes rarityRaysSpin {
+      0%, 38% { opacity: 0; transform: translate(-50%, -50%) rotate(0); }
+      48% { opacity: 1; transform: translate(-50%, -50%) rotate(80deg); }
+      80% { opacity: .8; transform: translate(-50%, -50%) rotate(220deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) rotate(280deg); }
+    }
+
+    /* === Vault open bonus card (complete screen) === */
+    .vaultDoor {
+      position: absolute;
+      inset: 0;
+      z-index: 28;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .vaultDoor::before,
+    .vaultDoor::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(0,0,0,.22)),
+        linear-gradient(90deg, #3a4350 0%, #1a2028 50%, #3a4350 100%);
+      border: 3px solid rgba(180,194,210,.4);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.2),
+        inset 0 -3px 0 rgba(0,0,0,.4);
+    }
+
+    .vaultDoor::before {
+      left: 0;
+      border-right: 4px solid #1a2028;
+      transform-origin: left center;
+    }
+
+    .vaultDoor::after {
+      right: 0;
+      border-left: 4px solid #1a2028;
+      transform-origin: right center;
+    }
+
+    .vaultDoor.show {
+      animation: vaultShow .01s linear forwards;
+      opacity: 1;
+    }
+
+    .vaultDoor.show::before {
+      animation: vaultLeftOpen 1.4s cubic-bezier(.5, 0, .2, 1) 5.5s forwards;
+    }
+
+    .vaultDoor.show::after {
+      animation: vaultRightOpen 1.4s cubic-bezier(.5, 0, .2, 1) 5.5s forwards;
+    }
+
+    @keyframes vaultShow { from { opacity: 1; } to { opacity: 1; } }
+
+    @keyframes vaultLeftOpen {
+      0% { transform: rotateY(0deg) translateX(0); }
+      100% { transform: rotateY(-105deg) translateX(-10px); }
+    }
+
+    @keyframes vaultRightOpen {
+      0% { transform: rotateY(0deg) translateX(0); }
+      100% { transform: rotateY(105deg) translateX(10px); }
+    }
+
+    /* === Bonus certificate === */
+    .bonusCert {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 35;
+      transform: translate(-50%, -50%) scale(.4);
+      width: min(80%, 320px);
+      padding: 18px 16px 14px;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, #fffaea 0%, #ffe6a8 100%);
+      border: 4px double #b8861a;
+      box-shadow:
+        0 0 28px rgba(255,210,80,.7),
+        0 0 64px rgba(255,150,40,.5),
+        0 18px 36px rgba(0,0,0,.6),
+        inset 0 1px 0 rgba(255,255,255,.6);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .bonusCert.show {
+      animation: bonusCertReveal 8s cubic-bezier(.18,1.2,.22,1) both;
+    }
+
+    @keyframes bonusCertReveal {
+      0%, 78% { opacity: 0; transform: translate(-50%, -50%) scale(.35) rotate(-12deg); }
+      84% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(2deg); }
+      88% { transform: translate(-50%, -50%) scale(.96) rotate(-1deg); }
+      94%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+    }
+
+    .bonusCert .certCorner {
+      position: absolute;
+      top: 6px;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #b8861a;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .bonusCert .certCorner.left { left: 6px; }
+    .bonusCert .certCorner.right { right: 6px; }
+
+    .bonusCert .certTitle {
+      margin: 4px 0 6px;
+      color: #5e3f0a;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .3em;
+    }
+
+    .bonusCert .certName {
+      margin: 0 0 8px;
+      color: transparent;
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 950;
+      letter-spacing: .04em;
+      line-height: 1.05;
+      background: linear-gradient(180deg, #4a2a05 0%, #c5851a 50%, #4a2a05 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: drop-shadow(0 1px 0 rgba(255,240,200,.7));
+    }
+
+    .bonusCert .certBody {
+      margin: 6px 0;
+      color: #5a3f15;
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    .bonusCert .certSeal {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 14px;
+      border-radius: 50%;
+      width: 64px;
+      height: 64px;
+      transform: rotate(-12deg);
+      background: radial-gradient(circle, #d62a1f 0%, #8b1208 100%);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 950;
+      line-height: 1.05;
+      letter-spacing: .04em;
+      display: grid;
+      place-items: center;
+      box-shadow:
+        inset 0 0 6px rgba(0,0,0,.5),
+        0 4px 8px rgba(0,0,0,.4);
+      border: 3px double #fff;
+      text-shadow: 0 1px 1px rgba(0,0,0,.4);
+    }
+
+    .bonusCert .certDate {
+      margin: 8px 0 0;
+      color: #6a4a18;
+      font-size: 10px;
+      letter-spacing: .12em;
+      font-weight: 850;
+    }
+
+    /* === Director's name plate (cinema style) === */
+    .titleCard {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 38%;
+      z-index: 40;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .titleCard.show {
+      animation: titleCardSweep 4.2s ease both;
+    }
+
+    @keyframes titleCardSweep {
+      0%, 30% { opacity: 0; transform: translateY(20px); letter-spacing: .5em; }
+      40% { opacity: 1; transform: translateY(0); letter-spacing: .2em; }
+      62% { opacity: 1; transform: translateY(0); letter-spacing: .2em; }
+      72% { opacity: 0; transform: translateY(-20px); letter-spacing: .05em; }
+      100% { opacity: 0; }
+    }
+
+    .titleCard .tcLine {
+      display: block;
+      color: #fff;
+      font-weight: 950;
+      letter-spacing: .2em;
+      text-shadow:
+        0 0 18px rgba(95,190,255,.7),
+        0 2px 0 rgba(0,0,0,.8),
+        0 4px 12px rgba(0,0,0,.6);
+    }
+
+    .titleCard .tcSmall {
+      font-size: 10px;
+      color: #ffea4a;
+      margin-bottom: 6px;
+      letter-spacing: .35em;
+    }
+
+    .titleCard .tcBig {
+      font-size: clamp(28px, 7vw, 38px);
+    }
+
+
       .app { padding-left: 8px; padding-right: 8px; }
       .brand { font-size: 22px; gap: 5px; }
       .brandGear { width: 19px; height: 19px; font-size: 12px; }
@@ -2871,7 +3662,6 @@
       .bottomCatch { font-size: 21px; }
       .impactScene { min-height: 580px; }
       .completeStage { min-height: 620px; }
-      .completeRankBadge .rankInner { font-size: 46px; padding: 8px 22px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2934,7 +3724,56 @@
       <div class="impactWarnBottom"></div>
       <div class="impactRedAlert"></div>
       <div class="impactScan"></div>
+
+      <!-- physical / cinematic overlays -->
+      <div class="crtOverlay show"></div>
+      <div class="noiseGrain show"></div>
+      <div class="speedLines show"></div>
+      <div class="rarityRays show"></div>
+      <div class="filmBars show"></div>
+      <div class="tameBlackout show"></div>
+      <div class="screenCrack" id="screenCrack">
+        <svg viewBox="0 0 440 600" preserveAspectRatio="none">
+          <g stroke="#ffffff" stroke-width="2" fill="none" opacity=".95">
+            <path d="M220 280 L100 60" stroke-width="2.5"/>
+            <path d="M220 280 L370 90" stroke-width="2"/>
+            <path d="M220 280 L60 380" stroke-width="2.4"/>
+            <path d="M220 280 L390 470" stroke-width="2.2"/>
+            <path d="M220 280 L210 580" stroke-width="2.3"/>
+            <path d="M220 280 L20 220" stroke-width="1.6"/>
+            <path d="M220 280 L420 240" stroke-width="1.8"/>
+            <!-- secondary cracks -->
+            <path d="M150 170 L80 110" stroke-width="1.2"/>
+            <path d="M295 185 L350 125" stroke-width="1.2"/>
+            <path d="M140 350 L70 410" stroke-width="1.2"/>
+            <path d="M310 380 L370 440" stroke-width="1.2"/>
+            <path d="M180 80 L130 30" stroke-width=".8"/>
+            <path d="M280 90 L330 40" stroke-width=".8"/>
+          </g>
+          <g fill="rgba(255,255,255,.18)">
+            <polygon points="220,280 100,60 110,55 230,275"/>
+            <polygon points="220,280 370,90 380,100 230,290"/>
+          </g>
+        </svg>
+      </div>
+      <div class="rgbSplit" id="rgbSplit"></div>
       <div class="impactFlash"></div>
+
+      <!-- corner cut-in armor pieces -->
+      <div class="cornerCutIn tl"></div>
+      <div class="cornerCutIn tr"></div>
+      <div class="cornerCutIn bl"></div>
+      <div class="cornerCutIn br"></div>
+
+      <!-- manga style impact text -->
+      <div class="mangaText boom">BOOM!!</div>
+      <div class="mangaText dosss">DOOON!</div>
+
+      <!-- title card -->
+      <div class="titleCard show">
+        <span class="tcLine tcSmall">— SCENE 01 —</span>
+        <span class="tcLine tcBig">STAMP ACQUIRED</span>
+      </div>
 
       <div class="impactTopSign">
         <p class="impactSystem">⚠ ASOBooN STAMP SYSTEM ⚠</p>
@@ -2966,11 +3805,14 @@
         <div class="shockwave shockB"></div>
         <div class="shockwave shockC"></div>
 
-        <div class="mechanicalStamp">
-          <div class="stampHead">
-            <span></span><span></span><span></span><span></span>
+        <!-- 3D rotating stamp head -->
+        <div class="stamp3DStage">
+          <div class="stamp3DContent stamp3DRotate">
+            <div class="stampHead">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="stampFace">GET</div>
           </div>
-          <div class="stampFace">GET</div>
         </div>
 
         <div class="debris d1"></div>
@@ -3048,10 +3890,6 @@
 
         <div class="rainbowShock"></div>
 
-        <div class="completeRankBadge">
-          <div class="rankInner">SSS</div>
-        </div>
-
         <div class="reactorSteam rs1"></div>
         <div class="reactorSteam rs2"></div>
         <div class="reactorSteam rs3"></div>
@@ -3078,6 +3916,20 @@
           </div>
         </div>
       </section>
+
+      <!-- bonus certificate -->
+      <div class="bonusCert" id="bonusCert">
+        <div class="certCorner left"></div>
+        <div class="certCorner right"></div>
+        <p class="certTitle">— CERTIFICATE OF CLEAR —</p>
+        <p class="certName">ASOBooN<br>MASTER</p>
+        <p class="certBody">
+          本日 すべてのスタンプを<br>
+          見事に集められました
+        </p>
+        <div class="certSeal">完走<br>認定</div>
+        <p class="certDate" id="certDate"></p>
+      </div>
     </div>
   </div>
 
@@ -3158,6 +4010,7 @@
     async function init() {
       const preflightPromise = delay(4000);
       showPreflight();
+      maybeGoldenGears();
 
       try {
         step("URL確認");
@@ -3215,7 +4068,7 @@
           // burst sequence for STAMP GET
           vibrate([35, 30, 50, 36, 90, 40, 200]);
           burstSparks(140);
-          // second burst at impact moment
+          // second burst at impact moment (around 2.6s)
           setTimeout(() => {
             vibrate([60, 30, 180]);
             burstSparks(160);
@@ -3238,6 +4091,14 @@
         await preflightPromise.catch(() => {});
         hidePreflight();
         renderError(error);
+      }
+    }
+
+    // 20% chance for golden gears during loading (rare hint)
+    function maybeGoldenGears() {
+      if (Math.random() < 0.2) {
+        const gearArea = document.querySelector(".gearArea");
+        if (gearArea) gearArea.classList.add("golden");
       }
     }
 
@@ -3406,21 +4267,28 @@
       const count = Number(data.stampedCount || 0);
       const total = Number(data.totalSpots || 4);
       const percent = total ? Math.round((count / total) * 100) : 0;
+      const isReach = count === total - 1;
+      const isComplete = count === total;
 
       main.className = "mainPanel";
 
+      const reachClass = isComplete ? "completed" : (isReach ? "reach" : "");
+      const reachLabel = isComplete
+        ? "★ コンプリート達成 ★"
+        : (isReach ? "★ あと1枚！ あつめたスタンプ ★" : "★ あつめたスタンプ ★");
+
       main.innerHTML = `
-        <section class="progressCard">
-          <p class="progressLabel">★ あつめたスタンプ ★</p>
+        <section class="progressCard ${reachClass}">
+          <p class="progressLabel">${reachLabel}</p>
 
           <div class="progressNumber">
-            <span class="count">${count}</span>
+            <span class="count" id="progressCount">0</span>
             <span class="slash">/</span>
             <span class="total">${total}</span>
           </div>
 
           <div class="progressBar">
-            <div class="progressFill" style="width:${percent}%"></div>
+            <div class="progressFill ${isComplete ? 'complete' : ''} ${isReach ? 'reaching' : ''}" id="progressFill" style="width:0%"></div>
             <div class="progressDots">
               <span></span><span></span><span></span><span></span>
             </div>
@@ -3446,6 +4314,47 @@
           <a class="linkButton" href="${FACILITY_MINIAPP_URL}">案内ページへ進む</a>
         </div>
       `;
+
+      // animate counter roll & bar fill
+      animateCounter(count, percent);
+    }
+
+    function animateCounter(targetCount, targetPercent) {
+      const countEl = document.getElementById("progressCount");
+      const fillEl = document.getElementById("progressFill");
+      if (!countEl || !fillEl) return;
+
+      // Start fill animation slightly delayed
+      setTimeout(() => {
+        fillEl.style.width = targetPercent + "%";
+      }, 200);
+
+      // Slot-style count up
+      let current = 0;
+      const stepDuration = 350;
+      const totalSteps = Math.max(targetCount, 1);
+
+      const tick = () => {
+        if (current >= targetCount) {
+          countEl.classList.add("settled");
+          // pulse effect at final value
+          countEl.animate([
+            { transform: "scale(1)" },
+            { transform: "scale(1.4)" },
+            { transform: "scale(1)" }
+          ], { duration: 380, easing: "cubic-bezier(.18,1.4,.22,1)" });
+          return;
+        }
+        current++;
+        countEl.textContent = current;
+        countEl.animate([
+          { transform: "translateY(-30%)", opacity: 0 },
+          { transform: "translateY(0)", opacity: 1 }
+        ], { duration: stepDuration * .7, easing: "cubic-bezier(.5,0,.2,1)" });
+        setTimeout(tick, stepDuration);
+      };
+
+      setTimeout(tick, 400);
     }
 
     function renderSpot(spot) {
@@ -3536,6 +4445,8 @@
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
       const impactSpotName = document.getElementById("impactSpotName");
+      const screenCrack = document.getElementById("screenCrack");
+      const rgbSplit = document.getElementById("rgbSplit");
 
       if (!impact) return;
 
@@ -3551,28 +4462,66 @@
           escapeHtml(spotName) + "<small>を記録しました</small>";
       }
 
+      // detect "reach" state - 3/4 stamps now
+      const stampedCount = Number(result.stampedCount || 0);
+      const totalSpots = Number(result.totalSpots || 4);
+      const isReach = stampedCount === totalSpots - 1 && !(result.completed || result.isComplete);
+
+      // inject reach hint if applicable
+      if (isReach) {
+        let reachHint = impact.querySelector(".reachHint");
+        if (!reachHint) {
+          reachHint = document.createElement("div");
+          reachHint.className = "reachHint";
+          reachHint.innerHTML = "あと<br>1枚！！";
+          impact.querySelector(".impactScene").appendChild(reachHint);
+        }
+      } else {
+        const existing = impact.querySelector(".reachHint");
+        if (existing) existing.remove();
+      }
+
       impact.classList.remove("show");
       document.body.classList.remove("impactShudder");
+
+      // reset crack & rgb
+      if (screenCrack) screenCrack.classList.remove("show");
+      if (rgbSplit) rgbSplit.classList.remove("show");
 
       requestAnimationFrame(() => {
         impact.classList.add("show");
         document.body.classList.add("impactShudder");
       });
 
+      // shudder release
       setTimeout(() => {
         document.body.classList.remove("impactShudder");
-      }, 720);
+      }, 420);
 
-      // shake again on impact moment
+      // === RGB split fires on impact moment (~2.55s) ===
       setTimeout(() => {
-        document.body.classList.add("impactShudder");
-      }, 2600);
-      setTimeout(() => {
-        document.body.classList.remove("impactShudder");
-      }, 3300);
+        if (rgbSplit) {
+          rgbSplit.classList.remove("show");
+          // force reflow
+          void rgbSplit.offsetWidth;
+          rgbSplit.classList.add("show");
+        }
+      }, 2550);
 
+      // === Screen crack appears just after RGB split ===
+      setTimeout(() => {
+        if (screenCrack) {
+          screenCrack.classList.remove("show");
+          void screenCrack.offsetWidth;
+          screenCrack.classList.add("show");
+        }
+      }, 2700);
+
+      // hide overlay
       setTimeout(() => {
         impact.classList.remove("show");
+        if (screenCrack) screenCrack.classList.remove("show");
+        if (rgbSplit) rgbSplit.classList.remove("show");
       }, 4200);
     }
 
@@ -3580,36 +4529,43 @@
       completeScreen.classList.add("show");
       completeScreen.setAttribute("aria-hidden", "false");
 
-      document.body.classList.remove("completeShudder");
+      // set today's date on certificate
+      const certDate = document.getElementById("certDate");
+      if (certDate) {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, "0");
+        const d = String(now.getDate()).padStart(2, "0");
+        certDate.textContent = `${y}.${m}.${d}  ASOBooN`;
+      }
 
-      // initial shake at warning
-      setTimeout(() => {
-        document.body.classList.add("completeShudder");
-      }, 100);
-      setTimeout(() => {
-        document.body.classList.remove("completeShudder");
-      }, 600);
-
-      // big shake at flash impact
-      setTimeout(() => {
-        document.body.classList.add("completeShudder");
-      }, 3200);
-      setTimeout(() => {
-        document.body.classList.remove("completeShudder");
-      }, 4500);
+      // trigger bonus certificate reveal
+      const bonusCert = document.getElementById("bonusCert");
+      if (bonusCert) {
+        bonusCert.classList.remove("show");
+        void bonusCert.offsetWidth;
+        bonusCert.classList.add("show");
+      }
 
       vibrate([60, 40, 60, 40, 200, 50, 240]);
       burstSparks(140);
 
+      // big burst at flash impact (around 4.8s)
       setTimeout(() => {
         vibrate([80, 40, 280, 60, 400]);
         burstSparks(220);
-      }, 3300);
+      }, 4800);
 
       // golden rain after rank reveal
       setTimeout(() => {
+        burstGoldenRain(120);
+      }, 5400);
+
+      // second wave of golden rain (when cert appears)
+      setTimeout(() => {
         burstGoldenRain(80);
-      }, 4200);
+        vibrate([100, 40, 200]);
+      }, 6800);
     }
 
     function vibrate(pattern) {
