@@ -8,32 +8,34 @@
 
   <style>
     :root {
-      --bg-dark: #2b2b2b;
-      --bg-steel: #4a4f55;
-      --bg-concrete: #77736d;
-      --panel: #d9c9aa;
-      --panel-soft: #efe4cf;
-      --panel-line: #8e7f68;
-      --ink: #2a241d;
-      --muted: #6b6257;
-      --yellow: #f2c230;
-      --yellow-deep: #d89b00;
-      --orange: #e98d28;
+      --ink: #2b241b;
+      --muted: #695f52;
+      --steel-dark: #2d3238;
+      --steel: #5f666f;
+      --steel-light: #9aa1a8;
+      --panel: #e3d4b8;
+      --panel-soft: #f4ead7;
+      --panel-deep: #cbb792;
+      --yellow: #f4c433;
+      --yellow-deep: #d89d14;
+      --black: #1d1d1d;
       --green: #45b36b;
-      --green-deep: #2c8c50;
+      --green-deep: #2f8f53;
       --red: #cc5747;
-      --steel-1: #b8bcc2;
-      --steel-2: #8f959d;
-      --steel-3: #686f77;
-      --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
-      --radius-xl: 28px;
+      --orange: #ef9b28;
+      --line: rgba(53, 45, 35, 0.18);
+      --shadow: 0 24px 58px rgba(0, 0, 0, 0.32);
+      --radius-xl: 30px;
       --radius-lg: 22px;
-      --radius-md: 18px;
+      --radius-md: 16px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       min-height: 100%;
@@ -44,9 +46,10 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at 12% 10%, rgba(255,255,255,.08), transparent 20%),
-        radial-gradient(circle at 88% 16%, rgba(255,255,255,.06), transparent 16%),
-        linear-gradient(180deg, #43484f 0%, #2f3338 38%, #262a2f 100%);
+        radial-gradient(circle at 10% 8%, rgba(255, 255, 255, .10), transparent 18%),
+        radial-gradient(circle at 92% 12%, rgba(244, 196, 51, .18), transparent 20%),
+        radial-gradient(circle at 50% 105%, rgba(0, 0, 0, .28), transparent 40%),
+        linear-gradient(180deg, #535961 0%, #373d44 44%, #272c32 100%);
       overflow-x: hidden;
       position: relative;
     }
@@ -58,13 +61,29 @@
       pointer-events: none;
       background:
         repeating-linear-gradient(
-          -45deg,
-          rgba(242, 194, 48, 0.12) 0 14px,
-          rgba(34, 34, 34, 0.0) 14px 28px
+          90deg,
+          rgba(255, 255, 255, .025) 0 1px,
+          transparent 1px 42px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, .10) 0 1px,
+          transparent 1px 48px
         );
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,.12));
-      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,.12));
-      opacity: .55;
+      opacity: .8;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,.08), transparent 8%),
+        radial-gradient(circle at 78% 28%, rgba(255,255,255,.06), transparent 10%),
+        radial-gradient(circle at 50% 68%, rgba(244,196,51,.07), transparent 24%);
+      z-index: 0;
     }
 
     .cautionTop,
@@ -72,52 +91,82 @@
       position: fixed;
       left: 0;
       width: 100%;
-      height: 16px;
-      z-index: 2;
+      height: 18px;
+      z-index: 5;
+      pointer-events: none;
       background:
         repeating-linear-gradient(
           -45deg,
-          #1c1c1c 0 16px,
-          #1c1c1c 16px 18px,
-          #f0c228 18px 34px,
-          #f0c228 34px 36px
+          #191919 0 16px,
+          #191919 16px 19px,
+          #f3c537 19px 35px,
+          #f3c537 35px 38px
         );
-      box-shadow: 0 2px 10px rgba(0,0,0,.24);
-      pointer-events: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
 
-    .cautionTop { top: 0; }
-    .cautionBottom { bottom: 0; }
+    .cautionTop {
+      top: 0;
+    }
+
+    .cautionBottom {
+      bottom: 0;
+    }
 
     .app {
-      width: min(100%, 560px);
+      width: min(100%, 570px);
       min-height: 100vh;
       margin: 0 auto;
-      padding: max(34px, env(safe-area-inset-top) + 20px) 18px max(34px, env(safe-area-inset-bottom) + 20px);
+      padding: max(36px, env(safe-area-inset-top) + 20px) 16px max(38px, env(safe-area-inset-bottom) + 20px);
       position: relative;
-      z-index: 3;
+      z-index: 2;
     }
 
     .machineFrame {
       position: relative;
       padding: 14px;
-      border-radius: 34px;
+      border-radius: 36px;
       background:
-        linear-gradient(180deg, #7a8088 0%, #565c64 32%, #42474f 100%);
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03)),
+        linear-gradient(180deg, #858c94 0%, #5d646d 36%, #424951 100%);
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.22),
-        inset 0 -4px 0 rgba(0,0,0,.2),
-        0 24px 60px rgba(0,0,0,.32);
-      border: 1px solid rgba(255,255,255,.08);
+        inset 0 2px 0 rgba(255,255,255,.26),
+        inset 0 -5px 0 rgba(0,0,0,.24),
+        0 26px 70px rgba(0,0,0,.40);
+      border: 1px solid rgba(255,255,255,.12);
+      overflow: hidden;
     }
 
     .machineFrame::before {
       content: "";
       position: absolute;
-      inset: 8px;
-      border-radius: 28px;
-      border: 2px solid rgba(255,255,255,.1);
+      inset: 9px;
+      border-radius: 30px;
+      border: 2px solid rgba(255,255,255,.10);
       pointer-events: none;
+      z-index: 1;
+    }
+
+    .machineFrame::after {
+      content: "";
+      position: absolute;
+      left: -22%;
+      top: -30%;
+      width: 55%;
+      height: 150%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent);
+      transform: rotate(18deg);
+      pointer-events: none;
+      animation: metalSweep 5.2s ease-in-out infinite;
+    }
+
+    @keyframes metalSweep {
+      0%, 45% {
+        transform: translateX(-120%) rotate(18deg);
+      }
+      75%, 100% {
+        transform: translateX(320%) rotate(18deg);
+      }
     }
 
     .bolt {
@@ -126,9 +175,12 @@
       height: 18px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 30% 30%, #eff2f5, #8e959d 58%, #565c64 100%);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 4px rgba(0,0,0,.35);
-      z-index: 1;
+        radial-gradient(circle at 30% 30%, #f2f4f6, #9fa6ad 55%, #59616a 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.5),
+        inset 0 -1px 0 rgba(0,0,0,.25),
+        0 1px 4px rgba(0,0,0,.35);
+      z-index: 2;
     }
 
     .b1 { top: 14px; left: 14px; }
@@ -138,12 +190,13 @@
 
     .machineSurface {
       position: relative;
+      border-radius: 26px;
       overflow: hidden;
-      border-radius: 24px;
+      padding: 14px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.06)),
-        linear-gradient(180deg, #666c74 0%, #555a62 100%);
-      padding: 14px;
+        linear-gradient(180deg, #686f78 0%, #515861 100%);
+      z-index: 1;
     }
 
     .machineSurface::before {
@@ -151,11 +204,10 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(255,255,255,.05), transparent 18%, transparent 82%, rgba(255,255,255,.04)),
         repeating-linear-gradient(
           0deg,
-          rgba(255,255,255,.02) 0 2px,
-          rgba(0,0,0,0) 2px 28px
+          rgba(255,255,255,.025) 0 2px,
+          transparent 2px 30px
         );
       pointer-events: none;
     }
@@ -163,27 +215,46 @@
     .consoleHeader {
       position: relative;
       overflow: hidden;
-      border-radius: 22px;
+      border-radius: 24px;
       padding: 16px 16px 18px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),
-        linear-gradient(180deg, #cdc4b6 0%, #d8ccb8 100%);
-      border: 2px solid rgba(100, 88, 71, .35);
+        linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.08)),
+        linear-gradient(180deg, #eee3cd 0%, #d6c3a2 100%);
+      border: 2px solid rgba(74, 63, 49, .28);
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.35),
-        inset 0 -3px 0 rgba(105, 90, 73, .15);
+        inset 0 2px 0 rgba(255,255,255,.42),
+        inset 0 -3px 0 rgba(82, 68, 50, .18),
+        0 12px 28px rgba(0,0,0,.18);
+    }
+
+    .consoleHeader::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 12px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #202020 0 12px,
+          #202020 12px 14px,
+          #f3c537 14px 26px,
+          #f3c537 26px 28px
+        );
+      opacity: .9;
     }
 
     .consoleHeader::after {
       content: "";
       position: absolute;
-      right: -16px;
-      top: -16px;
-      width: 96px;
-      height: 96px;
+      right: -28px;
+      top: -24px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,.16), rgba(255,255,255,0));
+        radial-gradient(circle at center, rgba(255,255,255,.22), rgba(255,255,255,0) 66%);
       pointer-events: none;
     }
 
@@ -192,75 +263,156 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 10px;
+      margin: 12px 0 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .machineTag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
+      padding: 7px 12px;
       border-radius: 999px;
       background:
-        linear-gradient(180deg, #f4cb3a, #dea914);
+        linear-gradient(180deg, #f5d44d, #dfaa1b);
       color: #33280d;
-      font-weight: 900;
+      font-weight: 950;
       font-size: 12px;
       letter-spacing: .03em;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.42),
+        0 3px 8px rgba(0,0,0,.12);
+      border: 1px solid rgba(99, 76, 14, .18);
     }
 
     .signalGroup {
       display: flex;
       gap: 8px;
       align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(55, 47, 38, .10);
+      border: 1px solid rgba(55, 47, 38, .10);
     }
 
     .signalLamp {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
       border-radius: 50%;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 8px rgba(0,0,0,.22);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.35),
+        0 0 8px rgba(0,0,0,.26);
     }
 
-    .lampRed { background: radial-gradient(circle at 35% 35%, #ffb0a5, #d54f3a 60%, #9a3023 100%); }
-    .lampYellow { background: radial-gradient(circle at 35% 35%, #ffe7a2, #efc538 60%, #b98700 100%); }
-    .lampGreen { background: radial-gradient(circle at 35% 35%, #caffd1, #49b96f 60%, #267946 100%); }
+    .lampRed {
+      background: radial-gradient(circle at 35% 35%, #ffb8ad, #d95743 60%, #963124 100%);
+    }
+
+    .lampYellow {
+      background: radial-gradient(circle at 35% 35%, #ffeaa1, #efc538 60%, #b98700 100%);
+    }
+
+    .lampGreen {
+      background: radial-gradient(circle at 35% 35%, #caffd1, #49b96f 60%, #267946 100%);
+    }
 
     h1 {
+      position: relative;
+      z-index: 1;
       margin: 0;
       font-size: 34px;
       line-height: 1.08;
       letter-spacing: .02em;
-      color: #2e2519;
-      text-shadow: 0 1px 0 rgba(255,255,255,.26);
+      color: #2f261c;
+      text-shadow: 0 1px 0 rgba(255,255,255,.32);
     }
 
     .subTitle {
+      position: relative;
+      z-index: 1;
       margin: 8px 0 0;
-      color: #62584b;
+      color: #5f5548;
       font-size: 14px;
       line-height: 1.7;
-      font-weight: 800;
+      font-weight: 850;
     }
 
-    .heroMini {
-      margin-top: 10px;
+    .headerPanelRow {
+      position: relative;
+      z-index: 1;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      margin-top: 12px;
     }
 
-    .heroBadge {
-      padding: 10px 8px;
+    .headerPanel {
+      min-height: 48px;
+      padding: 10px 6px;
       border-radius: 16px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.25));
-      border: 1px solid rgba(105, 90, 73, .24);
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.20));
+      border: 1px solid rgba(103, 88, 69, .20);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
       text-align: center;
+      display: grid;
+      place-items: center;
       font-size: 11px;
-      font-weight: 900;
-      color: #5e5447;
+      line-height: 1.35;
+      font-weight: 950;
+      color: #5b5043;
+    }
+
+    .gateDisplay {
+      position: relative;
+      z-index: 1;
+      margin-top: 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #3f454d, #2f353c);
+      border: 2px solid rgba(42, 46, 51, .5);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.10),
+        inset 0 -2px 0 rgba(0,0,0,.25);
+    }
+
+    .gateDisplayTop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.82);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .08em;
+    }
+
+    .gateBar {
+      position: relative;
+      height: 22px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #191919 0 13px,
+          #191919 13px 15px,
+          #f3c537 15px 28px,
+          #f3c537 28px 30px
+        );
+      transform-origin: left center;
+      animation: gateIdle 2.4s ease-in-out infinite;
+      box-shadow: 0 2px 8px rgba(0,0,0,.28);
+    }
+
+    @keyframes gateIdle {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(8px);
+      }
     }
 
     .card {
@@ -269,20 +421,20 @@
       overflow: hidden;
       border-radius: 24px;
       background:
-        linear-gradient(180deg, #e9dec9 0%, #d9c9aa 100%);
-      border: 2px solid rgba(110, 95, 77, .34);
+        linear-gradient(180deg, #efe4ce 0%, #d6c3a1 100%);
+      border: 2px solid rgba(89, 76, 59, .30);
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.34),
-        inset 0 -3px 0 rgba(117, 100, 79, .16),
+        inset 0 2px 0 rgba(255,255,255,.38),
+        inset 0 -3px 0 rgba(83, 69, 51, .16),
         var(--shadow);
       padding: 18px;
-      animation: hatchOpen .45s ease;
+      animation: cardIn .44s cubic-bezier(.2,.8,.2,1);
     }
 
-    @keyframes hatchOpen {
+    @keyframes cardIn {
       from {
         opacity: 0;
-        transform: translateY(16px) scale(.98);
+        transform: translateY(14px) scale(.985);
       }
       to {
         opacity: 1;
@@ -295,32 +447,32 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(255,255,255,.06), transparent 16%, transparent 84%, rgba(255,255,255,.08)),
+        linear-gradient(90deg, rgba(255,255,255,.08), transparent 18%, transparent 82%, rgba(255,255,255,.08)),
         repeating-linear-gradient(
           0deg,
-          rgba(0,0,0,.025) 0 2px,
-          rgba(0,0,0,0) 2px 24px
+          rgba(63, 53, 40, .025) 0 2px,
+          transparent 2px 24px
         );
       pointer-events: none;
     }
 
     .cardHeaderBar {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 14px;
       padding-bottom: 12px;
-      border-bottom: 2px dashed rgba(103, 89, 72, .22);
-      position: relative;
-      z-index: 1;
+      border-bottom: 2px dashed rgba(89, 76, 59, .20);
     }
 
     .cardHeaderTitle {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 950;
-      color: #51473b;
-      letter-spacing: .04em;
+      color: #504639;
+      letter-spacing: .06em;
     }
 
     .cardHeaderFloor {
@@ -330,70 +482,118 @@
       padding: 6px 10px;
       border-radius: 999px;
       background: rgba(82, 70, 56, .08);
-      color: #605548;
+      color: #5d5246;
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 950;
+      white-space: nowrap;
     }
 
     .loading {
-      min-height: 260px;
+      min-height: 300px;
       display: grid;
       place-items: center;
       text-align: center;
-      position: relative;
-      z-index: 1;
     }
 
     .loadingInner {
-      max-width: 260px;
-    }
-
-    .gearWrap {
       position: relative;
-      width: 92px;
-      height: 92px;
-      margin: 0 auto 18px;
+      z-index: 1;
+      width: 100%;
     }
 
-    .gearMain,
-    .gearSub {
+    .gearArea {
+      position: relative;
+      width: 106px;
+      height: 86px;
+      margin: 0 auto 16px;
+    }
+
+    .gear {
       position: absolute;
       border-radius: 50%;
-      border: 8px solid #7b848d;
+      border: 7px solid #7b848d;
       background:
-        radial-gradient(circle at center, #eceff2 0 20%, #b3bac2 20% 30%, #818991 30% 100%);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.25), 0 8px 20px rgba(0,0,0,.18);
+        radial-gradient(circle at center, #f1f3f5 0 18%, #b6bdc4 18% 30%, #828b94 30% 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.25),
+        0 8px 20px rgba(0,0,0,.18);
     }
 
-    .gearMain {
-      inset: 0;
-      animation: spin 2.2s linear infinite;
+    .gear::before,
+    .gear::after {
+      content: "";
+      position: absolute;
+      inset: -12px;
+      border-radius: 50%;
+      border: 8px dashed rgba(123,132,141,.85);
     }
 
-    .gearSub {
-      width: 38px;
-      height: 38px;
-      right: -2px;
-      bottom: -4px;
+    .gearOne {
+      width: 62px;
+      height: 62px;
+      left: 10px;
+      top: 8px;
+      animation: gearSpin 2.4s linear infinite;
+    }
+
+    .gearTwo {
+      width: 44px;
+      height: 44px;
+      right: 8px;
+      bottom: 4px;
       border-width: 6px;
-      animation: spinReverse 1.6s linear infinite;
+      animation: gearSpinReverse 1.7s linear infinite;
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes spinReverse { to { transform: rotate(-360deg); } }
+    @keyframes gearSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes gearSpinReverse {
+      to { transform: rotate(-360deg); }
+    }
 
     .loadingTitle {
-      margin: 0 0 8px;
-      font-size: 22px;
+      margin: 0 0 10px;
+      font-size: 23px;
       font-weight: 950;
-      color: #40362b;
+      color: #3d3328;
+      line-height: 1.35;
     }
 
     .loadingText {
+      margin: 10px 0 0;
+      color: #695f52;
+      font-size: 13px;
+      line-height: 1.7;
+      font-weight: 850;
+    }
+
+    .loadingGuide {
+      margin: 12px auto 0;
+      text-align: left;
+      border-radius: 18px;
+      padding: 13px 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.50), rgba(255,255,255,.20));
+      border: 1px solid rgba(91, 77, 59, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.36);
+    }
+
+    .loadingGuideTitle {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 950;
+      color: #4d4337;
+    }
+
+    .loadingGuide ul {
       margin: 0;
-      color: #6f6558;
-      font-size: 14px;
-      line-height: 1.8;
+      padding-left: 1.2em;
+      color: #5e5448;
+      font-size: 12px;
+      line-height: 1.7;
       font-weight: 800;
     }
 
@@ -408,18 +608,18 @@
       color: #43382c;
     }
 
-    .message.new { color: #9b6700; }
+    .message.new { color: #956300; }
     .message.duplicate { color: #6c6052; }
     .message.complete { color: var(--green-deep); }
 
     .progressShell {
       position: relative;
       z-index: 1;
-      border-radius: 20px;
+      border-radius: 21px;
       padding: 16px 14px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.48), rgba(255,255,255,.18));
-      border: 1px solid rgba(108, 94, 75, .18);
+        linear-gradient(180deg, rgba(255,255,255,.54), rgba(255,255,255,.18));
+      border: 1px solid rgba(91, 77, 59, .18);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
     }
 
@@ -429,21 +629,22 @@
     }
 
     .progress .big {
-      color: #8e6400;
-      font-size: 56px;
+      color: #8b6200;
+      font-size: 58px;
       font-weight: 950;
       line-height: 1;
+      text-shadow: 0 1px 0 rgba(255,255,255,.28);
     }
 
     .progress .total {
-      color: #8e6400;
+      color: #8b6200;
       font-size: 28px;
       font-weight: 950;
     }
 
     .progressText {
       margin: 6px 0 0;
-      color: #62584b;
+      color: #5f5548;
       font-size: 15px;
       font-weight: 850;
       line-height: 1.6;
@@ -460,20 +661,20 @@
       flex: 0 0 auto;
       font-size: 12px;
       font-weight: 950;
-      color: #5c5145;
-      letter-spacing: .04em;
+      color: #504639;
+      letter-spacing: .06em;
     }
 
     .bar {
+      position: relative;
       flex: 1;
-      height: 16px;
+      height: 17px;
       overflow: hidden;
       border-radius: 999px;
       background:
-        linear-gradient(180deg, #7a8088, #636a72);
-      border: 2px solid rgba(59, 64, 70, .35);
+        linear-gradient(180deg, #77808a, #5e6770);
+      border: 2px solid rgba(52, 57, 63, .38);
       box-shadow: inset 0 1px 2px rgba(255,255,255,.12);
-      position: relative;
     }
 
     .bar::before {
@@ -485,9 +686,10 @@
         repeating-linear-gradient(
           90deg,
           rgba(255,255,255,.08) 0 8px,
-          rgba(0,0,0,0) 8px 16px
+          transparent 8px 16px
         );
       pointer-events: none;
+      z-index: 1;
     }
 
     .barFill {
@@ -495,8 +697,8 @@
       width: 0%;
       border-radius: inherit;
       background:
-        linear-gradient(90deg, #f4cf47, #e79b1d);
-      transition: width .45s ease;
+        linear-gradient(90deg, #f5d850, #e69c1c);
+      transition: width .48s cubic-bezier(.2,.8,.2,1);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
       position: relative;
     }
@@ -505,20 +707,46 @@
       content: "";
       position: absolute;
       top: 0;
-      right: -12px;
-      width: 18px;
+      right: -14px;
+      width: 20px;
       height: 100%;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.0), rgba(255,255,255,.35));
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.40));
       transform: skewX(-20deg);
     }
 
-    .spotList {
+    .stampBay {
       position: relative;
       z-index: 1;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(62,68,75,.10), rgba(62,68,75,.04));
+      border: 1px solid rgba(85, 72, 55, .14);
+    }
+
+    .stampBayTitle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: #554b3f;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .04em;
+    }
+
+    .stampBayTitle span:last-child {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(244,196,51,.25);
+      color: #755300;
+    }
+
+    .spotList {
       display: grid;
       gap: 12px;
-      margin-top: 16px;
     }
 
     .spot {
@@ -531,9 +759,10 @@
       padding: 14px;
       border-radius: 20px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.32));
-      border: 1px solid rgba(104, 89, 71, .18);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+        linear-gradient(180deg, rgba(255,255,255,.60), rgba(255,255,255,.30));
+      border: 1px solid rgba(91, 77, 59, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.44);
+      transform: translateZ(0);
     }
 
     .spot::before {
@@ -551,16 +780,32 @@
           #f0c228 10px 18px,
           #f0c228 18px 20px
         );
-      opacity: .7;
+      opacity: .75;
     }
 
     .spot.stamped {
       background:
-        linear-gradient(180deg, rgba(112, 211, 149, .20), rgba(255,255,255,.4));
-      border-color: rgba(71, 179, 107, .35);
+        linear-gradient(180deg, rgba(112, 211, 149, .22), rgba(255,255,255,.38));
+      border-color: rgba(69, 179, 107, .36);
+    }
+
+    .spot.stamped::after {
+      content: "OK";
+      position: absolute;
+      right: -18px;
+      top: 12px;
+      transform: rotate(18deg);
+      padding: 4px 28px;
+      background: rgba(69,179,107,.9);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .06em;
+      box-shadow: 0 4px 10px rgba(0,0,0,.10);
     }
 
     .stampIcon {
+      position: relative;
       width: 52px;
       height: 52px;
       display: grid;
@@ -568,12 +813,13 @@
       border-radius: 18px;
       background:
         linear-gradient(180deg, #8f969e, #717982);
-      border: 2px solid rgba(68, 74, 81, .3);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+      border: 2px solid rgba(68, 74, 81, .30);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 5px 12px rgba(0,0,0,.10);
       color: rgba(255,255,255,.88);
       font-size: 24px;
       font-weight: 950;
-      position: relative;
     }
 
     .stampIcon::after {
@@ -582,14 +828,27 @@
       bottom: 4px;
       right: 6px;
       font-size: 10px;
-      font-weight: 900;
+      font-weight: 950;
       opacity: .55;
     }
 
     .spot.stamped .stampIcon {
       background:
-        linear-gradient(180deg, #68c889, #3c9f61);
+        linear-gradient(180deg, #70d695, #3da763);
       border-color: rgba(30, 111, 57, .24);
+      animation: stampPop .38s ease;
+    }
+
+    @keyframes stampPop {
+      0% {
+        transform: scale(.92) rotate(-5deg);
+      }
+      70% {
+        transform: scale(1.06) rotate(2deg);
+      }
+      100% {
+        transform: scale(1) rotate(0);
+      }
     }
 
     .spotTopRow {
@@ -618,7 +877,7 @@
 
     .spot.stamped .spotLamp {
       background: radial-gradient(circle at 35% 35%, #d0ffd5, #45b36b 58%, #267946 100%);
-      box-shadow: 0 0 8px rgba(69,179,107,.45);
+      box-shadow: 0 0 10px rgba(69,179,107,.55);
     }
 
     .spotDesc {
@@ -626,7 +885,7 @@
       color: #675d50;
       font-size: 12px;
       line-height: 1.55;
-      font-weight: 700;
+      font-weight: 760;
     }
 
     .errorBox {
@@ -672,7 +931,7 @@
       width: 100%;
       border: 0;
       border-radius: 18px;
-      padding: 14px 16px;
+      padding: 14px 14px;
       background:
         linear-gradient(180deg, #9198a0 0%, #727a83 100%);
       color: #fff;
@@ -689,6 +948,7 @@
         0 6px 16px rgba(0,0,0,.12);
       border: 2px solid rgba(73, 79, 86, .35);
       transition: transform .15s ease, filter .15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
 
     button:active,
@@ -700,15 +960,15 @@
     button.secondary,
     .linkButton.secondary {
       background:
-        linear-gradient(180deg, #e9dec9 0%, #d8c8a8 100%);
+        linear-gradient(180deg, #eee3cd 0%, #d6c3a2 100%);
       color: #4f4538;
-      border-color: rgba(110, 95, 77, .28);
+      border-color: rgba(91, 77, 59, .26);
     }
 
     .linkButton.primaryAction {
       background:
-        linear-gradient(180deg, #f2ca39 0%, #df9f17 100%);
-      color: #3b2e11;
+        linear-gradient(180deg, #f4cf43 0%, #df9f17 100%);
+      color: #35280b;
       border-color: rgba(137, 99, 9, .32);
     }
 
@@ -718,7 +978,7 @@
       color: rgba(255,255,255,.86);
       font-size: 11px;
       line-height: 1.7;
-      font-weight: 700;
+      font-weight: 760;
       text-shadow: 0 1px 2px rgba(0,0,0,.18);
     }
 
@@ -730,26 +990,40 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(circle at 20% 20%, rgba(242,194,48,.22), transparent 26%),
-        radial-gradient(circle at 80% 14%, rgba(255,255,255,.08), transparent 18%),
-        linear-gradient(180deg, rgba(20,20,20,.88), rgba(20,20,20,.96));
+        radial-gradient(circle at 20% 20%, rgba(244,196,51,.26), transparent 26%),
+        radial-gradient(circle at 80% 12%, rgba(255,255,255,.09), transparent 18%),
+        linear-gradient(180deg, rgba(20,20,20,.90), rgba(20,20,20,.97));
       backdrop-filter: blur(2px);
     }
 
-    .completeScreen.show { display: grid; }
+    .completeScreen.show {
+      display: grid;
+    }
 
     .completeInner {
-      width: min(100%, 460px);
+      width: min(100%, 470px);
       position: relative;
       overflow: hidden;
-      border-radius: 28px;
+      border-radius: 30px;
       padding: 20px;
       background:
-        linear-gradient(180deg, #616871 0%, #4f555e 100%);
+        linear-gradient(180deg, #69717a 0%, #505861 100%);
       box-shadow:
         inset 0 2px 0 rgba(255,255,255,.18),
-        0 24px 60px rgba(0,0,0,.48);
-      border: 1px solid rgba(255,255,255,.1);
+        0 26px 70px rgba(0,0,0,.52);
+      border: 1px solid rgba(255,255,255,.12);
+      animation: completeIn .42s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes completeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     .completeInner::before {
@@ -762,33 +1036,62 @@
       background:
         repeating-linear-gradient(
           -45deg,
-          #1c1c1c 0 16px,
-          #1c1c1c 16px 18px,
-          #f0c228 18px 34px,
-          #f0c228 34px 36px
+          #191919 0 16px,
+          #191919 16px 18px,
+          #f3c537 18px 34px,
+          #f3c537 34px 36px
         );
-      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      box-shadow: 0 2px 12px rgba(0,0,0,.22);
+      z-index: 1;
     }
 
-    .completePanel {
+    .completeGate {
+      position: relative;
       margin-top: 16px;
-      border-radius: 22px;
+      border-radius: 23px;
       padding: 22px 18px 18px;
       background:
-        linear-gradient(180deg, #eee4d1 0%, #d8c8a8 100%);
-      border: 2px solid rgba(110, 95, 77, .28);
+        linear-gradient(180deg, #f3ead9 0%, #d9c6a4 100%);
+      border: 2px solid rgba(91, 77, 59, .30);
       text-align: center;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.3);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.36);
+      overflow: hidden;
+    }
+
+    .completeGate::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 58px;
+      height: 14px;
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #191919 0 12px,
+          #191919 12px 14px,
+          #f3c537 14px 26px,
+          #f3c537 26px 28px
+        );
+      transform-origin: left center;
+      transform: rotate(-8deg);
+      opacity: .88;
+      box-shadow: 0 4px 10px rgba(0,0,0,.18);
     }
 
     .completeSignal {
+      position: relative;
+      z-index: 1;
       display: flex;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 34px;
     }
 
     .completeTitle {
+      position: relative;
+      z-index: 1;
       margin: 0 0 10px;
       font-size: 50px;
       line-height: .96;
@@ -797,10 +1100,11 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 2px 0 rgba(255,255,255,.12);
     }
 
     .completeText {
+      position: relative;
+      z-index: 1;
       margin: 0;
       font-size: 18px;
       line-height: 1.75;
@@ -809,19 +1113,37 @@
     }
 
     .staffText {
+      position: relative;
+      z-index: 1;
       margin: 16px 0 0;
       padding: 14px;
       border-radius: 18px;
       color: #2f261c;
       background:
-        linear-gradient(180deg, #f7efdf 0%, #e7d9bd 100%);
+        linear-gradient(180deg, #fff7e8 0%, #e6d6b8 100%);
       font-size: 16px;
       font-weight: 950;
-      border: 1px solid rgba(110, 95, 77, .18);
+      border: 1px solid rgba(91, 77, 59, .18);
     }
 
-    .hidden {
-      display: none !important;
+    @media (max-width: 390px) {
+      h1 {
+        font-size: 31px;
+      }
+
+      .buttonRow {
+        gap: 8px;
+      }
+
+      button,
+      .linkButton {
+        font-size: 14px;
+        padding: 13px 10px;
+      }
+
+      .completeTitle {
+        font-size: 44px;
+      }
     }
   </style>
 </head>
@@ -840,7 +1162,7 @@
       <div class="machineSurface">
         <header class="consoleHeader">
           <div class="machineLabelRow">
-            <div class="machineTag">⚙️ ひみつの案内マシン</div>
+            <div class="machineTag">🎯 今日のスタンプをあつめよう！</div>
             <div class="signalGroup">
               <span class="signalLamp lampRed"></span>
               <span class="signalLamp lampYellow"></span>
@@ -849,38 +1171,56 @@
           </div>
 
           <h1>ASOBooN<br>スタンプラリー</h1>
+
           <p class="subTitle">
-            機械式立体駐車場みたいな案内マシンをそうさして、<br>
-            今日のスタンプをあつめよう！
+            NFCタグにスマホをかざすと、<br>
+            今日のスタンプがたまります。
           </p>
 
-          <div class="heroMini">
-            <div class="heroBadge">🚦 ご利用案内</div>
-            <div class="heroBadge">🅿️ フロアチェック</div>
-            <div class="heroBadge">⚡ スタンプ記録</div>
+          <div class="headerPanelRow">
+            <div class="headerPanel">🚦 ルール確認</div>
+            <div class="headerPanel">🅿️ スタンプ記録</div>
+            <div class="headerPanel">✅ 4つで完了</div>
+          </div>
+
+          <div class="gateDisplay">
+            <div class="gateDisplayTop">
+              <span>STAMP GATE</span>
+              <span>ASOBooN</span>
+            </div>
+            <div class="gateBar"></div>
           </div>
         </header>
 
         <main id="main" class="card loading">
           <div class="loadingInner">
             <div class="cardHeaderBar">
-              <div class="cardHeaderTitle">GUIDE MACHINE</div>
-              <div class="cardHeaderFloor">🛗 リフト準備中</div>
+              <div class="cardHeaderTitle">STAMP CHECK</div>
+              <div class="cardHeaderFloor">🅿️ スタンプ確認中</div>
             </div>
 
-            <div class="gearWrap">
-              <div class="gearMain"></div>
-              <div class="gearSub"></div>
+            <div class="gearArea">
+              <div class="gear gearOne"></div>
+              <div class="gear gearTwo"></div>
             </div>
 
-            <p class="loadingTitle">案内マシンを起動中</p>
+            <p class="loadingTitle">スタンプを確認しています</p>
+
+            <div class="loadingGuide">
+              <p class="loadingGuideTitle">待っている間にご確認ください</p>
+              <ul>
+                <li>保護者の方はお子さまの近くでお過ごしください</li>
+                <li>食べ物は館内では食べられません</li>
+                <li>外に出る時はロッカーを空っぽにしてください</li>
+              </ul>
+            </div>
+
             <p id="loadingText" class="loadingText">確認しています</p>
           </div>
         </main>
 
         <p class="small">
-          スタンプは読み取ったLINEアカウントに保存されます。<br>
-          まるで秘密の立体駐車場を動かすみたいに、楽しく案内を見ていきましょう。
+          今日あつめたスタンプは、同じLINEアカウントに保存されます。
         </p>
       </div>
     </div>
@@ -888,7 +1228,7 @@
 
   <div id="completeScreen" class="completeScreen">
     <div class="completeInner">
-      <div class="completePanel">
+      <div class="completeGate">
         <div class="completeSignal">
           <span class="signalLamp lampRed"></span>
           <span class="signalLamp lampYellow"></span>
@@ -896,12 +1236,15 @@
         </div>
 
         <p class="completeTitle">COMPLETE!</p>
+
         <p class="completeText">
           すべてのスタンプを<br>
           集めました！
         </p>
 
-        <p class="staffText">ゲートクリア！ この画面をスタッフに見せてください。</p>
+        <p class="staffText">
+          ゲートクリア！ この画面をスタッフに見せてください。
+        </p>
 
         <div class="buttonRow">
           <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
@@ -1110,27 +1453,31 @@
 
       let message = "今日のスタンプカード";
       let cls = "";
-      let floorLabel = "🅿️ ガイド確認中";
+      let statusLabel = "🅿️ スタンプ確認中";
+      let stampMode = "CHECK";
 
       if (data.completed || data.isComplete) {
         message = "コンプリート！";
         cls = "complete";
-        floorLabel = "🚦 ゲートオープン";
+        statusLabel = "🚦 ゲートオープン";
+        stampMode = "OPEN";
       } else if (data.stampStatus === "new") {
         message = "スタンプをゲットしました！";
         cls = "new";
-        floorLabel = "🛗 リフト到着";
+        statusLabel = "✅ スタンプ記録完了";
+        stampMode = "REC";
       } else if (data.stampStatus === "duplicate") {
         message = "この場所はもうスタンプ済みです";
         cls = "duplicate";
-        floorLabel = "🔁 確認ずみ";
+        statusLabel = "🔁 記録ずみ";
+        stampMode = "DONE";
       }
 
       main.className = "card";
       main.innerHTML = `
         <div class="cardHeaderBar">
-          <div class="cardHeaderTitle">SECRET GUIDE MACHINE</div>
-          <div class="cardHeaderFloor">${escapeHtml(floorLabel)}</div>
+          <div class="cardHeaderTitle">STAMP ${escapeHtml(stampMode)}</div>
+          <div class="cardHeaderFloor">${escapeHtml(statusLabel)}</div>
         </div>
 
         <p class="message ${cls}">${escapeHtml(message)}</p>
@@ -1152,13 +1499,20 @@
           </div>
         </div>
 
-        <div class="spotList">
-          ${(data.stampList || []).map(renderSpot).join("")}
-        </div>
+        <section class="stampBay">
+          <div class="stampBayTitle">
+            <span>STAMP FLOOR</span>
+            <span>${count}/${total}</span>
+          </div>
+
+          <div class="spotList">
+            ${(data.stampList || []).map(renderSpot).join("")}
+          </div>
+        </section>
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
-          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">案内ページへ進む</a>
         </div>
       `;
     }
@@ -1199,8 +1553,8 @@
       main.className = "card";
       main.innerHTML = `
         <div class="cardHeaderBar">
-          <div class="cardHeaderTitle">GUIDE MACHINE ERROR</div>
-          <div class="cardHeaderFloor">⚠️ 点検中</div>
+          <div class="cardHeaderTitle">STAMP ERROR</div>
+          <div class="cardHeaderFloor">⚠️ 確認中</div>
         </div>
 
         <div class="errorBox">${escapeHtml(msg)}</div>
@@ -1208,7 +1562,7 @@
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
-          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton primaryAction" href="${FACILITY_MINIAPP_URL}">案内ページへ進む</a>
         </div>
       `;
     }
@@ -1232,7 +1586,7 @@
         code === "GAS_JSONP_TIMEOUT" ||
         code === "GAS_JSONP_LOAD_FAILED"
       ) {
-        return "案内マシンの確認に時間がかかっています。もう一度お試しください。";
+        return "スタンプの確認に時間がかかっています。もう一度お試しください。";
       }
 
       return "スタンプの確認に失敗しました。少し時間をおいて、もう一度お試しください。";
