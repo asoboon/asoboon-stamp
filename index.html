@@ -6,7 +6,6 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-
   <title>ASOBooN スタンプラリー</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
@@ -28,12 +27,7 @@
     }
 
     * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      -webkit-text-size-adjust: 100%;
-    }
+    html, body { margin: 0; min-height: 100%; -webkit-text-size-adjust: 100%; }
 
     body {
       min-height: 100vh;
@@ -172,10 +166,7 @@
       box-shadow: 0 0 12px rgba(227,75,54,.75);
     }
 
-    .content {
-      position: relative;
-      z-index: 2;
-    }
+    .content { position: relative; z-index: 2; }
 
     .topBar {
       display: flex;
@@ -217,10 +208,7 @@
       flex: 1 1 auto;
     }
 
-    .brandWord {
-      line-height: 1;
-      display: inline-block;
-    }
+    .brandWord { line-height: 1; display: inline-block; }
 
     .brandGear {
       display: inline-grid;
@@ -249,8 +237,7 @@
       box-shadow: inset 0 2px 0 rgba(255,255,255,.2), inset 0 -3px 0 rgba(0,0,0,.28), 0 10px 20px rgba(0,0,0,.26);
     }
 
-    .titlePlate::before,
-    .titlePlate::after {
+    .titlePlate::before, .titlePlate::after {
       content: "⚙";
       position: absolute;
       top: 50%;
@@ -317,13 +304,7 @@
       text-align: center;
     }
 
-    .progressLabel {
-      margin: 0 0 8px;
-      color: #483b2b;
-      font-size: 15px;
-      font-weight: 950;
-      letter-spacing: .05em;
-    }
+    .progressLabel { margin: 0 0 8px; color: #483b2b; font-size: 15px; font-weight: 950; letter-spacing: .05em; }
 
     .progressNumber {
       display: flex;
@@ -341,8 +322,7 @@
       text-shadow: 0 2px 0 rgba(255,255,255,.3);
     }
 
-    .progressNumber .slash,
-    .progressNumber .total {
+    .progressNumber .slash, .progressNumber .total {
       font-size: 48px;
       color: #2b241d;
       line-height: .9;
@@ -385,11 +365,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,.25);
     }
 
-    .stampList {
-      display: grid;
-      gap: 9px;
-      margin-top: 10px;
-    }
+    .stampList { display: grid; gap: 9px; margin-top: 10px; }
 
     .spotCard {
       position: relative;
@@ -406,9 +382,7 @@
       overflow: hidden;
     }
 
-    .spotCard.stamped {
-      background: linear-gradient(180deg, #fff0cf 0%, #efd5a6 100%);
-    }
+    .spotCard.stamped { background: linear-gradient(180deg, #fff0cf 0%, #efd5a6 100%); }
 
     .spotIndex {
       align-self: stretch;
@@ -450,22 +424,8 @@
     }
 
     .spotText { min-width: 0; }
-
-    .spotName {
-      margin: 0 0 6px;
-      font-size: 23px;
-      font-weight: 950;
-      line-height: 1.1;
-      color: #34291d;
-    }
-
-    .spotDesc {
-      margin: 0;
-      color: #4d4031;
-      font-size: 13px;
-      line-height: 1.55;
-      font-weight: 760;
-    }
+    .spotName { margin: 0 0 6px; font-size: 23px; font-weight: 950; line-height: 1.1; color: #34291d; }
+    .spotDesc { margin: 0; color: #4d4031; font-size: 13px; line-height: 1.55; font-weight: 760; }
 
     .stampState {
       justify-self: center;
@@ -510,12 +470,7 @@
       background: repeating-linear-gradient(-45deg, #171717 0 13px, #171717 13px 16px, #f3c537 16px 29px, #f3c537 29px 32px);
     }
 
-    .bottomInner {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-    }
+    .bottomInner { display: flex; align-items: center; gap: 12px; padding: 12px; }
 
     .mascotCircle {
       flex: 0 0 auto;
@@ -529,32 +484,12 @@
       font-size: 38px;
     }
 
-    .bottomCatch {
-      margin: 0;
-      font-size: 24px;
-      line-height: 1.18;
-      font-weight: 950;
-      color: #352a1b;
-    }
+    .bottomCatch { margin: 0; font-size: 24px; line-height: 1.18; font-weight: 950; color: #352a1b; }
+    .bottomSmall { margin: 6px 0 0; color: rgba(53,42,27,.72); font-size: 11px; line-height: 1.45; font-weight: 800; }
 
-    .bottomSmall {
-      margin: 6px 0 0;
-      color: rgba(53,42,27,.72);
-      font-size: 11px;
-      line-height: 1.45;
-      font-weight: 800;
-    }
+    .buttonRow { position: relative; z-index: 1; display: flex; gap: 10px; margin-top: 12px; }
 
-    .buttonRow {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    button,
-    .linkButton {
+    button, .linkButton {
       width: 100%;
       border: 0;
       border-radius: 16px;
@@ -572,8 +507,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    button.secondary,
-    .linkButton.secondary {
+    button.secondary, .linkButton.secondary {
       background: linear-gradient(180deg, #e9dfcb 0%, #c9b48e 100%);
       color: #423626;
     }
@@ -585,18 +519,9 @@
       text-align: center;
     }
 
-    .loadingInner {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-    }
+    .loadingInner { position: relative; z-index: 1; width: 100%; }
 
-    .gearArea {
-      position: relative;
-      width: 116px;
-      height: 94px;
-      margin: 0 auto 14px;
-    }
+    .gearArea { position: relative; width: 116px; height: 94px; margin: 0 auto 14px; }
 
     .gear {
       position: absolute;
@@ -606,8 +531,7 @@
       box-shadow: inset 0 2px 0 rgba(255,255,255,.25), 0 8px 20px rgba(0,0,0,.18);
     }
 
-    .gear::before,
-    .gear::after {
+    .gear::before, .gear::after {
       content: "";
       position: absolute;
       inset: -12px;
@@ -615,43 +539,14 @@
       border: 8px dashed rgba(123,132,141,.85);
     }
 
-    .gearOne {
-      width: 64px;
-      height: 64px;
-      left: 8px;
-      top: 8px;
-      animation: gearSpin 2.4s linear infinite;
-    }
-
-    .gearTwo {
-      width: 46px;
-      height: 46px;
-      right: 8px;
-      bottom: 4px;
-      border-width: 6px;
-      animation: gearSpinReverse 1.7s linear infinite;
-    }
-
-    .gearTiny {
-      width: 26px;
-      height: 26px;
-      left: 76px;
-      top: 2px;
-      border-width: 5px;
-      animation: gearSpin 1.15s linear infinite;
-      opacity: .85;
-    }
+    .gearOne { width: 64px; height: 64px; left: 8px; top: 8px; animation: gearSpin 2.4s linear infinite; }
+    .gearTwo { width: 46px; height: 46px; right: 8px; bottom: 4px; border-width: 6px; animation: gearSpinReverse 1.7s linear infinite; }
+    .gearTiny { width: 26px; height: 26px; left: 76px; top: 2px; border-width: 5px; animation: gearSpin 1.15s linear infinite; opacity: .85; }
 
     @keyframes gearSpin { to { transform: rotate(360deg); } }
     @keyframes gearSpinReverse { to { transform: rotate(-360deg); } }
 
-    .loadingTitle {
-      margin: 0 0 10px;
-      font-size: 23px;
-      font-weight: 950;
-      color: #3d3328;
-      line-height: 1.35;
-    }
+    .loadingTitle { margin: 0 0 10px; font-size: 23px; font-weight: 950; color: #3d3328; line-height: 1.35; }
 
     .loadingGuide {
       margin: 12px auto 0;
@@ -663,30 +558,10 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.36);
     }
 
-    .loadingGuideTitle {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 950;
-      color: #4d4337;
-    }
+    .loadingGuideTitle { margin: 0 0 8px; text-align: center; font-size: 13px; font-weight: 950; color: #4d4337; }
+    .loadingGuide ul { margin: 0; padding-left: 1.2em; color: #5e5448; font-size: 12px; line-height: 1.7; font-weight: 800; }
 
-    .loadingGuide ul {
-      margin: 0;
-      padding-left: 1.2em;
-      color: #5e5448;
-      font-size: 12px;
-      line-height: 1.7;
-      font-weight: 800;
-    }
-
-    .loadingText {
-      margin: 10px 0 0;
-      color: #695f52;
-      font-size: 13px;
-      line-height: 1.7;
-      font-weight: 850;
-    }
+    .loadingText { margin: 10px 0 0; color: #695f52; font-size: 13px; line-height: 1.7; font-weight: 850; }
 
     .errorBox {
       position: relative;
@@ -741,7 +616,7 @@
       }
     }
 
-    /* ===== stamp get ===== */
+    /* ===== stamp get 4 sec ===== */
 
     .stampImpact {
       position: fixed;
@@ -760,18 +635,18 @@
 
     .stampImpact.show {
       display: grid;
-      animation: impactBackdrop 2.05s ease both;
+      animation: impactBackdrop 4s ease both;
     }
 
     @keyframes impactBackdrop {
       0% { opacity: 0; }
       8% { opacity: 1; }
-      88% { opacity: 1; }
+      92% { opacity: 1; }
       100% { opacity: 0; }
     }
 
     body.impactShudder .phoneFrame {
-      animation: frameShudder .46s ease both;
+      animation: frameShudder .56s ease both;
     }
 
     @keyframes frameShudder {
@@ -795,14 +670,14 @@
         linear-gradient(180deg, #2d343d 0%, #111820 52%, #05080d 100%);
       border: 2px solid rgba(190, 204, 218, .20);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.22), inset 0 -5px 0 rgba(0,0,0,.35), 0 34px 100px rgba(0,0,0,.68), 0 0 80px rgba(90, 180, 255, .22);
-      animation: impactScenePop 1.95s cubic-bezier(.16, 1.08, .22, 1) both;
+      animation: impactScenePop 4s cubic-bezier(.16, 1.08, .22, 1) both;
     }
 
     @keyframes impactScenePop {
-      0% { transform: scale(.72) translateY(22px); opacity: 0; filter: blur(4px); }
-      15% { transform: scale(1.045) translateY(0); opacity: 1; filter: blur(0); }
-      32% { transform: scale(.99); }
-      82% { transform: scale(1); opacity: 1; }
+      0% { transform: scale(.72) translateY(24px); opacity: 0; filter: blur(4px); }
+      10% { transform: scale(1.05) translateY(0); opacity: 1; filter: blur(0); }
+      18% { transform: scale(.99); }
+      88% { transform: scale(1); opacity: 1; }
       100% { transform: scale(.95) translateY(12px); opacity: 0; }
     }
 
@@ -822,13 +697,13 @@
       height: 45%;
       z-index: 20;
       background: linear-gradient(180deg, transparent, rgba(98, 194, 255, .30), transparent);
-      animation: scanPass 1.45s ease-out both;
+      animation: scanPass 2.2s ease-out .12s both;
     }
 
     @keyframes scanPass {
       0% { transform: translateY(-80%); opacity: 0; }
-      15% { opacity: 1; }
-      70% { opacity: .9; }
+      10% { opacity: 1; }
+      72% { opacity: .9; }
       100% { transform: translateY(360%); opacity: 0; }
     }
 
@@ -842,17 +717,13 @@
       background: linear-gradient(180deg, #59626c 0%, #2b333d 48%, #151b23 100%);
       border: 2px solid rgba(255,255,255,.16);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -3px 0 rgba(0,0,0,.34), 0 12px 26px rgba(0,0,0,.36);
+      animation: topPanelReveal 4s ease both;
     }
 
-    .impactTopSign::after {
-      content: "";
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: -9px;
-      height: 9px;
-      border-radius: 0 0 9px 9px;
-      background: repeating-linear-gradient(-45deg, #0a0f15 0 12px, #0a0f15 12px 15px, #5fb9ff 15px 27px, #5fb9ff 27px 30px);
+    @keyframes topPanelReveal {
+      0% { opacity: 0; transform: translateY(-16px); }
+      10% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; }
     }
 
     .impactSystem {
@@ -861,6 +732,8 @@
       font-size: 10px;
       font-weight: 950;
       letter-spacing: .22em;
+      opacity: 0;
+      animation: fadeStageA 4s ease both;
     }
 
     .impactTitle {
@@ -874,6 +747,8 @@
       -webkit-background-clip: text;
       background-clip: text;
       filter: drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 16px rgba(95,190,255,.38));
+      opacity: 0;
+      animation: stampGetTitleReveal 4s ease both;
     }
 
     .impactSubTitle {
@@ -887,6 +762,25 @@
       font-size: 16px;
       font-weight: 950;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 0 18px rgba(101,182,255,.16);
+      opacity: 0;
+      animation: fadeStageB 4s ease both;
+    }
+
+    @keyframes fadeStageA {
+      0%, 8% { opacity: 0; transform: translateY(8px); }
+      16%, 100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes stampGetTitleReveal {
+      0%, 10% { opacity: 0; transform: scale(.84); letter-spacing: .12em; }
+      18% { opacity: 1; transform: scale(1.08); letter-spacing: .06em; }
+      24% { transform: scale(.98); }
+      100% { opacity: 1; transform: scale(1); letter-spacing: .035em; }
+    }
+
+    @keyframes fadeStageB {
+      0%, 18% { opacity: 0; transform: translateY(8px); }
+      28%, 100% { opacity: 1; transform: translateY(0); }
     }
 
     .realEngine {
@@ -920,6 +814,13 @@
       background: linear-gradient(90deg, #0c1015, #7d8791, #1c242c);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), 0 0 16px rgba(0,0,0,.36);
       z-index: 2;
+      opacity: 0;
+      animation: railRise 4s ease both;
+    }
+
+    @keyframes railRise {
+      0%, 10% { opacity: 0; }
+      16%, 100% { opacity: 1; }
     }
 
     .railA { left: 24px; }
@@ -933,59 +834,65 @@
       box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.25), 0 14px 26px rgba(0,0,0,.34);
     }
 
-    .plateA { left: 62px; right: 62px; top: 32px; height: 54px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: plateTopLock 1.4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateB { left: 62px; right: 62px; bottom: 32px; height: 54px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: plateBottomLock 1.4s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateC { left: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: plateLeftLock 1.45s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateD { right: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: plateRightLock 1.45s cubic-bezier(.18, 1, .26, 1) both; }
-    .plateE { left: 104px; top: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateA 1.35s ease both; }
-    .plateF { right: 104px; bottom: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateB 1.35s ease both; }
+    .plateA { left: 62px; right: 62px; top: 32px; height: 54px; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%); animation: plateTopLock 4s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateB { left: 62px; right: 62px; bottom: 32px; height: 54px; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); animation: plateBottomLock 4s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateC { left: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 0, 100% 12%, 100% 88%, 0 100%); animation: plateLeftLock 4s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateD { right: 48px; top: 92px; bottom: 92px; width: 62px; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 88%); animation: plateRightLock 4s cubic-bezier(.18, 1, .26, 1) both; }
+    .plateE { left: 104px; top: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateA 4s ease both; }
+    .plateF { right: 104px; bottom: 84px; width: 82px; height: 44px; transform: rotate(-18deg); animation: smallPlateB 4s ease both; }
 
     @keyframes plateTopLock {
       0% { transform: translateY(-78px); opacity: 0; }
-      18% { transform: translateY(0); opacity: 1; }
-      26% { transform: translateY(5px); }
+      10% { opacity: 0; }
+      24% { transform: translateY(0); opacity: 1; }
+      31% { transform: translateY(5px); }
       38% { transform: translateY(0); }
-      78% { opacity: 1; }
+      90% { opacity: 1; }
       100% { transform: translateY(-16px); opacity: 0; }
     }
 
     @keyframes plateBottomLock {
       0% { transform: translateY(78px); opacity: 0; }
-      18% { transform: translateY(0); opacity: 1; }
-      26% { transform: translateY(-5px); }
+      10% { opacity: 0; }
+      24% { transform: translateY(0); opacity: 1; }
+      31% { transform: translateY(-5px); }
       38% { transform: translateY(0); }
-      78% { opacity: 1; }
+      90% { opacity: 1; }
       100% { transform: translateY(16px); opacity: 0; }
     }
 
     @keyframes plateLeftLock {
       0% { transform: translateX(-84px); opacity: 0; }
-      20% { transform: translateX(0); opacity: 1; }
-      29% { transform: translateX(5px); }
-      42% { transform: translateX(0); }
-      78% { opacity: 1; }
+      12% { opacity: 0; }
+      26% { transform: translateX(0); opacity: 1; }
+      33% { transform: translateX(5px); }
+      40% { transform: translateX(0); }
+      90% { opacity: 1; }
       100% { transform: translateX(-16px); opacity: 0; }
     }
 
     @keyframes plateRightLock {
       0% { transform: translateX(84px); opacity: 0; }
-      20% { transform: translateX(0); opacity: 1; }
-      29% { transform: translateX(-5px); }
-      42% { transform: translateX(0); }
-      78% { opacity: 1; }
+      12% { opacity: 0; }
+      26% { transform: translateX(0); opacity: 1; }
+      33% { transform: translateX(-5px); }
+      40% { transform: translateX(0); }
+      90% { opacity: 1; }
       100% { transform: translateX(16px); opacity: 0; }
     }
 
     @keyframes smallPlateA {
       0% { transform: translate(-40px, -20px) rotate(-40deg); opacity: 0; }
-      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      100% { opacity: .9; }
+      22% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      88% { opacity: .9; }
+      100% { opacity: 0; }
     }
 
     @keyframes smallPlateB {
       0% { transform: translate(40px, 20px) rotate(-40deg); opacity: 0; }
-      26% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
-      100% { opacity: .9; }
+      22% { transform: translate(0,0) rotate(-18deg); opacity: 1; }
+      88% { opacity: .9; }
+      100% { opacity: 0; }
     }
 
     .hydraulic {
@@ -998,20 +905,22 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 0 20px rgba(101,182,255,.18);
     }
 
-    .hA { left: 18px; top: 82px; transform: rotate(26deg); animation: pistonInLeft 1.3s ease both; }
-    .hB { right: 18px; top: 82px; transform: rotate(-26deg); animation: pistonInRight 1.3s ease both; }
-    .hC { left: 18px; bottom: 76px; transform: rotate(-26deg); animation: pistonInLeft 1.3s ease both; }
-    .hD { right: 18px; bottom: 76px; transform: rotate(26deg); animation: pistonInRight 1.3s ease both; }
+    .hA { left: 18px; top: 82px; transform: rotate(26deg); animation: pistonInLeft 4s ease both; }
+    .hB { right: 18px; top: 82px; transform: rotate(-26deg); animation: pistonInRight 4s ease both; }
+    .hC { left: 18px; bottom: 76px; transform: rotate(-26deg); animation: pistonInLeft 4s ease both; }
+    .hD { right: 18px; bottom: 76px; transform: rotate(26deg); animation: pistonInRight 4s ease both; }
 
     @keyframes pistonInLeft {
       0% { opacity: 0; translate: -48px 0; }
-      22% { opacity: 1; translate: 0 0; }
+      18% { opacity: 0; }
+      30% { opacity: 1; translate: 0 0; }
       100% { opacity: .92; }
     }
 
     @keyframes pistonInRight {
       0% { opacity: 0; translate: 48px 0; }
-      22% { opacity: 1; translate: 0 0; }
+      18% { opacity: 0; }
+      30% { opacity: 1; translate: 0 0; }
       100% { opacity: .92; }
     }
 
@@ -1029,14 +938,14 @@
       height: 226px;
       border: 4px solid rgba(105, 194, 255, .45);
       box-shadow: 0 0 0 12px rgba(105,194,255,.06), 0 0 44px rgba(105,194,255,.28);
-      animation: ringPulse 1.2s ease-out both;
+      animation: ringPulse 4s ease-out both;
     }
 
     .ringMiddle {
       width: 158px;
       height: 158px;
       border: 3px dashed rgba(220, 245, 255, .58);
-      animation: ringRotate 1.08s linear both;
+      animation: ringRotate 4s linear both;
     }
 
     .energyCore {
@@ -1050,27 +959,31 @@
       transform: translate(-50%, -50%);
       background: radial-gradient(circle at center, #fff 0 11%, #a3e9ff 12% 26%, #2e9aff 27% 48%, #062f63 49% 72%, #02070d 73%);
       box-shadow: 0 0 28px rgba(105,194,255,.82), 0 0 88px rgba(105,194,255,.38);
-      animation: coreIgniteReal 1.16s ease both;
+      animation: coreIgniteReal 4s ease both;
     }
 
     @keyframes ringPulse {
       0% { transform: translate(-50%, -50%) scale(.36); opacity: 0; }
-      18% { opacity: 1; }
-      74% { transform: translate(-50%, -50%) scale(1.26); opacity: .62; }
+      18% { opacity: 0; }
+      34% { opacity: 1; transform: translate(-50%, -50%) scale(.9); }
+      60% { transform: translate(-50%, -50%) scale(1.26); opacity: .62; }
+      88% { transform: translate(-50%, -50%) scale(1.35); opacity: .35; }
       100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
     }
 
     @keyframes ringRotate {
       0% { transform: translate(-50%, -50%) scale(.72) rotate(0); opacity: 0; }
-      20% { opacity: 1; }
-      84% { opacity: .88; }
-      100% { transform: translate(-50%, -50%) scale(1.22) rotate(300deg); opacity: 0; }
+      22% { opacity: 0; }
+      36% { opacity: 1; }
+      88% { opacity: .88; }
+      100% { transform: translate(-50%, -50%) scale(1.22) rotate(660deg); opacity: 0; }
     }
 
     @keyframes coreIgniteReal {
       0% { transform: translate(-50%, -50%) scale(.12); opacity: 0; filter: blur(9px); }
-      20% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; filter: blur(0); }
-      76% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      26% { opacity: 0; }
+      38% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; filter: blur(0); }
+      74% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(.92); opacity: .95; }
     }
 
@@ -1082,15 +995,16 @@
       width: 128px;
       height: 128px;
       transform: translate(-50%, -50%);
-      animation: stampHeadLock 1.2s cubic-bezier(.15,.9,.3,1) both;
+      animation: stampHeadLock 4s cubic-bezier(.15,.9,.3,1) both;
     }
 
     @keyframes stampHeadLock {
       0% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
-      18% { transform: translate(-50%, -50%) scale(.86) rotate(4deg); opacity: 1; }
-      34% { transform: translate(-50%, -50%) scale(1.06) rotate(-2deg); }
-      48% { transform: translate(-50%, -50%) scale(1) rotate(0); }
-      82% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      36% { transform: translate(-50%, -50%) scale(1.7) rotate(-18deg); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(.86) rotate(4deg); opacity: 1; }
+      58% { transform: translate(-50%, -50%) scale(1.06) rotate(-2deg); }
+      66% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+      90% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -50%) scale(.92); opacity: 0; }
     }
 
@@ -1141,32 +1055,32 @@
       opacity: 0;
     }
 
-    .steamA { left: 28px; top: 156px; animation: steamRiseA 1.25s ease-out .14s both; }
-    .steamB { right: 28px; top: 156px; animation: steamRiseB 1.25s ease-out .2s both; }
-    .steamC { left: 50%; top: 42px; animation: steamRiseC 1.18s ease-out .24s both; }
-    .steamD { left: 50%; bottom: 26px; animation: steamRiseD 1.18s ease-out .28s both; }
+    .steamA { left: 28px; top: 156px; animation: steamRiseA 4s ease-out both; }
+    .steamB { right: 28px; top: 156px; animation: steamRiseB 4s ease-out both; }
+    .steamC { left: 50%; top: 42px; animation: steamRiseC 4s ease-out both; }
+    .steamD { left: 50%; bottom: 26px; animation: steamRiseD 4s ease-out both; }
 
     @keyframes steamRiseA {
-      0% { transform: translateY(18px) scale(.45); opacity: 0; }
-      26% { opacity: .52; }
+      0%, 44% { transform: translateY(18px) scale(.45); opacity: 0; }
+      58% { opacity: .52; }
       100% { transform: translateY(-36px) scale(1.4); opacity: 0; }
     }
 
     @keyframes steamRiseB {
-      0% { transform: translateY(18px) scale(.45); opacity: 0; }
-      26% { opacity: .48; }
+      0%, 46% { transform: translateY(18px) scale(.45); opacity: 0; }
+      60% { opacity: .48; }
       100% { transform: translateY(-34px) scale(1.32); opacity: 0; }
     }
 
     @keyframes steamRiseC {
-      0% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
-      24% { opacity: .38; }
+      0%, 48% { transform: translateX(-50%) translateY(18px) scale(.5); opacity: 0; }
+      62% { opacity: .38; }
       100% { transform: translateX(-50%) translateY(-34px) scale(1.18); opacity: 0; }
     }
 
     @keyframes steamRiseD {
-      0% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
-      24% { opacity: .34; }
+      0%, 50% { transform: translateX(-50%) translateY(-6px) scale(.5); opacity: 0; }
+      64% { opacity: .34; }
       100% { transform: translateX(-50%) translateY(30px) scale(1.24); opacity: 0; }
     }
 
@@ -1180,25 +1094,25 @@
       opacity: 0;
     }
 
-    .eA { left: 78px; top: 122px; width: 96px; transform: rotate(-18deg); animation: electricFlashA .7s ease .22s both; }
-    .eB { right: 72px; top: 190px; width: 102px; transform: rotate(18deg); animation: electricFlashB .72s ease .28s both; }
-    .eC { left: 112px; bottom: 86px; width: 160px; transform: rotate(-3deg); animation: electricFlashC .7s ease .34s both; }
+    .eA { left: 78px; top: 122px; width: 96px; transform: rotate(-18deg); animation: electricFlashA 4s ease both; }
+    .eB { right: 72px; top: 190px; width: 102px; transform: rotate(18deg); animation: electricFlashB 4s ease both; }
+    .eC { left: 112px; bottom: 86px; width: 160px; transform: rotate(-3deg); animation: electricFlashC 4s ease both; }
 
     @keyframes electricFlashA {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
-      28%, 44% { opacity: 1; }
+      0%, 50% { opacity: 0; transform: scaleX(.2) rotate(-18deg); }
+      58%, 66% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(-18deg); }
     }
 
     @keyframes electricFlashB {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
-      28%, 44% { opacity: 1; }
+      0%, 54% { opacity: 0; transform: scaleX(.2) rotate(18deg); }
+      62%, 70% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(18deg); }
     }
 
     @keyframes electricFlashC {
-      0%, 18% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
-      28%, 44% { opacity: 1; }
+      0%, 58% { opacity: 0; transform: scaleX(.2) rotate(-3deg); }
+      66%, 74% { opacity: 1; }
       100% { opacity: 0; transform: scaleX(1) rotate(-3deg); }
     }
 
@@ -1215,6 +1129,15 @@
       background: linear-gradient(180deg, #fff0cf, #dec18e);
       border: 2px solid rgba(74,59,35,.25);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.46), 0 10px 22px rgba(0,0,0,.24);
+      opacity: 0;
+      transform: translateY(18px) scale(.96);
+      animation: impactRecordReveal 4s cubic-bezier(.16,1,.22,1) both;
+    }
+
+    @keyframes impactRecordReveal {
+      0%, 58% { opacity: 0; transform: translateY(18px) scale(.96); }
+      72% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+      82%, 100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .impactStampMark {
@@ -1231,6 +1154,14 @@
       text-align: center;
       line-height: 1.05;
       background: rgba(255,255,255,.18);
+      box-shadow: 0 0 0 0 rgba(221,87,44,.25);
+      animation: markPulse 4s ease both;
+    }
+
+    @keyframes markPulse {
+      0%, 70% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
+      78% { box-shadow: 0 0 0 16px rgba(221,87,44,.10); }
+      100% { box-shadow: 0 0 0 0 rgba(221,87,44,0); }
     }
 
     .impactSpotName {
@@ -1261,9 +1192,18 @@
       background: linear-gradient(180deg, #ffd443, #d89512);
       border: 2px solid rgba(107,76,8,.32);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.38), 0 0 20px rgba(244,196,51,.22);
+      opacity: 0;
+      transform: translateY(18px) scale(.92);
+      animation: impactOkReveal 4s cubic-bezier(.16,1,.22,1) both;
     }
 
-    /* ===== complete jackpot-like ===== */
+    @keyframes impactOkReveal {
+      0%, 72% { opacity: 0; transform: translateY(18px) scale(.92); }
+      84% { opacity: 1; transform: translateY(-2px) scale(1.06); }
+      92%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== complete 4 sec ===== */
 
     .completeScreen {
       position: fixed;
@@ -1336,10 +1276,7 @@
       animation: winLightPulse 1.2s ease-in-out infinite alternate;
     }
 
-    @keyframes winLightPulse {
-      from { opacity: .55; }
-      to { opacity: 1; }
-    }
+    @keyframes winLightPulse { from { opacity: .55; } to { opacity: 1; } }
 
     .completeJackpotLights {
       position: absolute;
@@ -1664,10 +1601,7 @@
       background: repeating-linear-gradient(-45deg, #0d1116 0 13px, #0d1116 13px 16px, #f3c537 16px 29px, #f3c537 29px 32px);
     }
 
-    .completePanelInner {
-      padding: 15px 14px 14px;
-      text-align: center;
-    }
+    .completePanelInner { padding: 15px 14px 14px; text-align: center; }
 
     .completeMessage {
       margin: 0;
@@ -1687,33 +1621,12 @@
 
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
-
-      .spotCard {
-        grid-template-columns: 35px 58px 1fr 48px;
-        gap: 7px;
-        min-height: 94px;
-      }
-
-      .indexBadge {
-        width: 32px;
-        height: 32px;
-        font-size: 22px;
-      }
-
-      .stampIconWrap {
-        width: 58px;
-        height: 58px;
-        font-size: 26px;
-      }
-
+      .spotCard { grid-template-columns: 35px 58px 1fr 48px; gap: 7px; min-height: 94px; }
+      .indexBadge { width: 32px; height: 32px; font-size: 22px; }
+      .stampIconWrap { width: 58px; height: 58px; font-size: 26px; }
       .spotName { font-size: 20px; }
       .spotDesc { font-size: 12px; }
-
-      .stampState {
-        width: 44px;
-        height: 44px;
-      }
-
+      .stampState { width: 44px; height: 44px; }
       .bottomCatch { font-size: 21px; }
       .impactTitle { font-size: 38px; }
       .impactScene { min-height: 540px; }
@@ -1929,18 +1842,14 @@
         state.spotId = readSpotId();
 
         step("LIFF SDK確認");
-        if (!window.liff) {
-          throw makeError("LIFF_SDK_NOT_LOADED", "LIFF SDKが読み込めません。");
-        }
+        if (!window.liff) throw makeError("LIFF_SDK_NOT_LOADED", "LIFF SDKが読み込めません。");
 
         step("LIFF初期化");
         await timeout(liff.init({ liffId: LIFF_ID }), 15000, "LIFF_INIT_TIMEOUT");
         state.liffReady = true;
 
         step("LINE内確認");
-        if (!liff.isInClient()) {
-          throw makeError("LINE_REQUIRED", "LINEアプリから開いてください。");
-        }
+        if (!liff.isInClient()) throw makeError("LINE_REQUIRED", "LINEアプリから開いてください。");
 
         step("ログイン確認");
         if (!liff.isLoggedIn()) {
@@ -1951,9 +1860,7 @@
         step("LINE識別取得");
         await resolveLineUserId();
 
-        if (!state.lineUserId) {
-          throw makeError("LINE_USER_ID_EMPTY", "LINEユーザー情報を取得できませんでした。");
-        }
+        if (!state.lineUserId) throw makeError("LINE_USER_ID_EMPTY", "LINEユーザー情報を取得できませんでした。");
 
         step("スタンプ保存");
         const result = await callGasJsonp({
@@ -1964,22 +1871,19 @@
           clientUrl: location.href
         });
 
-        if (!result || !result.ok) {
-          throw result || makeError("EMPTY_RESPONSE", "GASから空の返答です。");
-        }
+        if (!result || !result.ok) throw result || makeError("EMPTY_RESPONSE", "GASから空の返答です。");
 
         step("表示");
         renderStatus(result);
 
         if (result.stampStatus === "new") {
           triggerStampImpact(result);
-          vibrate([30, 25, 45, 35, 120]);
-          burstSparks(95);
+          vibrate([35, 30, 50, 36, 90, 40, 160]);
+          burstSparks(120);
 
           if (result.completed || result.isComplete) {
-            setTimeout(showComplete, 2200);
+            setTimeout(showComplete, 4050);
           }
-
           return;
         }
 
@@ -1993,14 +1897,11 @@
 
     function step(label) {
       state.step = label;
-      if (loadingText) {
-        loadingText.textContent = label + "しています";
-      }
+      if (loadingText) loadingText.textContent = label + "しています";
     }
 
     function readSpotId() {
       const params = new URLSearchParams(location.search);
-
       const direct = params.get("spot");
       if (direct) return direct.trim();
 
@@ -2008,10 +1909,7 @@
       if (liffState) {
         try {
           const decoded = decodeURIComponent(liffState);
-          const queryText = decoded.includes("?")
-            ? decoded.split("?").pop()
-            : decoded.replace(/^\/+/, "").replace(/^\?/, "");
-
+          const queryText = decoded.includes("?") ? decoded.split("?").pop() : decoded.replace(/^\/+/, "").replace(/^\?/, "");
           const fromState = new URLSearchParams(queryText).get("spot");
           if (fromState) return fromState.trim();
         } catch (error) {}
@@ -2032,7 +1930,6 @@
           hasUserId: Boolean(context && context.userId),
           type: context && context.type ? context.type : ""
         };
-
         if (context && context.userId) {
           state.lineUserId = context.userId;
           return;
@@ -2044,7 +1941,6 @@
       try {
         const decoded = liff.getDecodedIDToken ? liff.getDecodedIDToken() : null;
         state.debug.hasDecodedIdToken = Boolean(decoded);
-
         if (decoded && decoded.sub) {
           state.lineUserId = decoded.sub;
           return;
@@ -2056,7 +1952,6 @@
       try {
         const profile = await timeout(liff.getProfile(), 12000, "GET_PROFILE_TIMEOUT");
         state.debug.hasProfile = Boolean(profile);
-
         if (profile && profile.userId) {
           state.lineUserId = profile.userId;
           return;
@@ -2098,10 +1993,7 @@
         query.set("timestamp", params.timestamp || new Date().toISOString());
         query.set("clientUrl", params.clientUrl || location.href);
         query.set("callback", callbackName);
-
-        if (params.spotId) {
-          query.set("spotId", params.spotId);
-        }
+        if (params.spotId) query.set("spotId", params.spotId);
 
         script.src = GAS_API_URL + "?" + query.toString();
         document.body.appendChild(script);
@@ -2114,17 +2006,14 @@
       const percent = total ? Math.round((count / total) * 100) : 0;
 
       main.className = "mainPanel";
-
       main.innerHTML = `
         <section class="progressCard">
           <p class="progressLabel">★ あつめたスタンプ ★</p>
-
           <div class="progressNumber">
             <span class="count">${count}</span>
             <span class="slash">/</span>
             <span class="total">${total}</span>
           </div>
-
           <div class="progressBar">
             <div class="progressFill" style="width:${percent}%"></div>
             <div class="progressDots">
@@ -2157,22 +2046,16 @@
     function renderSpot(spot) {
       const stamped = Boolean(spot.stamped);
       const icon = iconForSpot(spot.spotId);
-
       return `
         <article class="spotCard ${stamped ? "stamped" : ""}">
           <div class="spotIndex">
             <div class="indexBadge">${escapeHtml(spot.order || "")}</div>
           </div>
-
-          <div class="stampIconWrap">
-            ${icon}
-          </div>
-
+          <div class="stampIconWrap">${icon}</div>
           <div class="spotText">
             <p class="spotName">${escapeHtml(spot.spotName || "")}</p>
             <p class="spotDesc">${escapeHtml(spot.description || "")}</p>
           </div>
-
           <div class="stampState"></div>
         </article>
       `;
@@ -2206,7 +2089,6 @@
       main.innerHTML = `
         <div class="errorBox">${escapeHtml(msg)}</div>
         <pre class="debugBox">${escapeHtml(JSON.stringify(debug, null, 2))}</pre>
-
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
           <a class="linkButton" href="${FACILITY_MINIAPP_URL}">案内ページへ進む</a>
@@ -2215,47 +2097,19 @@
     }
 
     function customerMessage(code) {
-      if (code === "INVALID_SPOT") {
-        return "このスタンプは見つかりませんでした。近くのスタッフにお声がけください。";
-      }
-
-      if (
-        code === "LINE_REQUIRED" ||
-        code === "LINE_USER_ID_EMPTY" ||
-        code === "LIFF_SDK_NOT_LOADED"
-      ) {
-        return "LINEアプリから開いてください。";
-      }
-
-      if (
-        code === "LIFF_INIT_TIMEOUT" ||
-        code === "GET_PROFILE_TIMEOUT" ||
-        code === "GAS_JSONP_TIMEOUT" ||
-        code === "GAS_JSONP_LOAD_FAILED"
-      ) {
-        return "スタンプの確認に時間がかかっています。もう一度お試しください。";
-      }
-
+      if (code === "INVALID_SPOT") return "このスタンプは見つかりませんでした。近くのスタッフにお声がけください。";
+      if (code === "LINE_REQUIRED" || code === "LINE_USER_ID_EMPTY" || code === "LIFF_SDK_NOT_LOADED") return "LINEアプリから開いてください。";
+      if (code === "LIFF_INIT_TIMEOUT" || code === "GET_PROFILE_TIMEOUT" || code === "GAS_JSONP_TIMEOUT" || code === "GAS_JSONP_LOAD_FAILED") return "スタンプの確認に時間がかかっています。もう一度お試しください。";
       return "スタンプの確認に失敗しました。少し時間をおいて、もう一度お試しください。";
     }
 
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
       const impactSpotName = document.getElementById("impactSpotName");
-
       if (!impact) return;
 
-      const spotName =
-        result &&
-        result.currentSpot &&
-        result.currentSpot.spotName
-          ? result.currentSpot.spotName
-          : "スタンプ";
-
-      if (impactSpotName) {
-        impactSpotName.innerHTML =
-          escapeHtml(spotName) + "<small>を記録しました</small>";
-      }
+      const spotName = result && result.currentSpot && result.currentSpot.spotName ? result.currentSpot.spotName : "スタンプ";
+      if (impactSpotName) impactSpotName.innerHTML = escapeHtml(spotName) + "<small>を記録しました</small>";
 
       impact.classList.remove("show");
       document.body.classList.remove("impactShudder");
@@ -2265,13 +2119,8 @@
         document.body.classList.add("impactShudder");
       });
 
-      setTimeout(() => {
-        document.body.classList.remove("impactShudder");
-      }, 520);
-
-      setTimeout(() => {
-        impact.classList.remove("show");
-      }, 2050);
+      setTimeout(() => { document.body.classList.remove("impactShudder"); }, 620);
+      setTimeout(() => { impact.classList.remove("show"); }, 4000);
     }
 
     function showComplete() {
@@ -2282,16 +2131,12 @@
     }
 
     function vibrate(pattern) {
-      try {
-        navigator.vibrate?.(pattern);
-      } catch (error) {}
+      try { navigator.vibrate?.(pattern); } catch (error) {}
     }
 
     function burstSparks(count) {
       if (!sparkLayer) return;
-
       const colors = ["#f4c433", "#ffffff", "#45b36b", "#ef9b28", "#65b6ff"];
-
       for (let i = 0; i < count; i++) {
         const spark = document.createElement("span");
         spark.className = "spark";
@@ -2301,41 +2146,21 @@
         spark.style.animationDuration = (Math.random() * 1.8 + 1.8) + "s";
         spark.style.animationDelay = (Math.random() * .35) + "s";
         sparkLayer.appendChild(spark);
-
-        setTimeout(() => {
-          if (spark && spark.parentNode) {
-            spark.parentNode.removeChild(spark);
-          }
-        }, 4200);
+        setTimeout(() => { if (spark && spark.parentNode) spark.parentNode.removeChild(spark); }, 4200);
       }
     }
 
     function timeout(promise, ms, code) {
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-          reject(makeError(code, code));
-        }, ms);
-
+        const timer = setTimeout(() => reject(makeError(code, code)), ms);
         Promise.resolve(promise)
-          .then((value) => {
-            clearTimeout(timer);
-            resolve(value);
-          })
-          .catch((error) => {
-            clearTimeout(timer);
-            reject(error);
-          });
+          .then((value) => { clearTimeout(timer); resolve(value); })
+          .catch((error) => { clearTimeout(timer); reject(error); });
       });
     }
 
     function makeError(code, message) {
-      return {
-        ok: false,
-        success: false,
-        error: code,
-        code: code,
-        message: message || code
-      };
+      return { ok: false, success: false, error: code, code: code, message: message || code };
     }
 
     function escapeHtml(value) {
