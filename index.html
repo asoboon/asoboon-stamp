@@ -274,7 +274,10 @@
       display: none;
       place-items: center;
       padding: 24px;
-      background: #080706;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 184, 44, .28), transparent 28%),
+        radial-gradient(circle at 82% 10%, rgba(255, 86, 86, .22), transparent 24%),
+        #080706;
       color: #fff;
     }
 
@@ -287,6 +290,7 @@
       border-radius: 30px;
       background: rgba(255, 255, 255, .09);
       border: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: 0 20px 80px rgba(0, 0, 0, .45);
     }
 
     .completeTitle {
@@ -342,9 +346,10 @@
       <p class="completeTitle">COMPLETE!</p>
       <p class="completeText">すべてのスタンプを<br>集めました！</p>
       <p class="staffText">スタッフにこの画面を見せてください。</p>
+
       <div class="buttonRow">
-        <button type="button" class="secondary" onclick="closeComplete()">スタンプを見る</button>
-        <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
+        <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">施設説明を見る</a>
+        <a class="linkButton" href="https://miniapp.line.me/2009884613-ELc6kolf">次へ進む</a>
       </div>
     </div>
   </div>
@@ -680,10 +685,6 @@
 
     function showComplete() {
       completeScreen.classList.add("show");
-    }
-
-    function closeComplete() {
-      completeScreen.classList.remove("show");
     }
 
     function escapeHtml(value) {
