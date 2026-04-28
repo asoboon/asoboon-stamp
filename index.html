@@ -4138,6 +4138,12 @@
       }
     }
 
+  
+    /* BOOM / DOOON text removed */
+    .mangaText {
+      display: none !important;
+    }
+
   </style>
 </head>
 
@@ -4233,12 +4239,7 @@
       <div class="cornerCutIn tr"></div>
       <div class="cornerCutIn bl"></div>
       <div class="cornerCutIn br"></div>
-
-      <!-- manga style impact text -->
-      <div class="mangaText boom">BOOM!!</div>
-      <div class="mangaText dosss">DOOON!</div>
-
-      <!-- title card -->
+<!-- title card -->
       <div class="titleCard show">
         <span class="tcLine tcSmall">— SCENE 01 —</span>
         <span class="tcLine tcBig">STAMP ACQUIRED</span>
@@ -4886,7 +4887,7 @@
         : data.stampStatus === "already"
           ? "記録済みです"
           : data.stampStatus === "new"
-            ? "スタンプ記録完了！"
+            ? "記録しました！"
             : "現在のスタンプ状況";
 
       const remainingHtml = completed
@@ -4901,13 +4902,19 @@
 
       const message = completed
         ? "この画面をスタッフに見せてください。"
-        : remaining === 1
-          ? "次でコンプリートです。最後のスポットへ進みましょう！"
-          : "次のスポットへ進みましょう！";
+        : title === "現在のスタンプ状況"
+          ? "スタンプの集まり具合を確認できます。"
+          : remaining === 1
+            ? "次でコンプリートです。最後のスポットへ進みましょう！"
+            : "次のスポットへ進みましょう！";
+
+      const isCurrentStatus = title === "現在のスタンプ状況";
 
       const actionHtml = completed
         ? `<button type="button" class="resultAction staff" onclick="activateStaffMode()">スタッフに見せる</button>`
-        : `<a class="resultAction" href="${STAMP_TOP_URL}">次のスポットへ！</a>`;
+        : data.stampStatus === "new"
+          ? `<a class="resultAction" href="${STAMP_TOP_URL}">次へ</a>`
+          : "";
 
       resultOverlay.innerHTML = `
         <section class="resultCard" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}">
