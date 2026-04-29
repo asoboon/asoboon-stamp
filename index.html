@@ -5196,18 +5196,18 @@
       if (isComplete) {
         buttonRowHtml = `
           <button type="button" class="linkButton" onclick="enterStaffMode()">スタッフに見せる</button>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
         `;
       } else if (status === "new") {
         buttonRowHtml = `
           <a class="linkButton" href="${STAMP_TOP_URL}">次へ</a>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
         `;
       } else {
         // normal open / already-taken: no 「次へ」button
         buttonRowHtml = `
           <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
         `;
       }
 
