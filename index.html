@@ -4582,6 +4582,290 @@
     }
 
 
+
+
+    /* ===========================================
+       NON-HOME SCREENS: fit within one viewport
+       =========================================== */
+
+    .preflight,
+    .stampImpact,
+    .completeScreen {
+      padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+
+    .preflightConsole,
+    .impactScene,
+    .completeStage {
+      max-height: calc(100dvh - 24px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .preflightConsole {
+      height: min(calc(100dvh - 24px), 580px);
+    }
+
+    .impactScene {
+      height: min(calc(100dvh - 24px), 600px);
+    }
+
+    .completeStage {
+      height: min(calc(100dvh - 24px), 660px);
+    }
+
+    .preCoreBox {
+      height: clamp(220px, 36dvh, 305px);
+    }
+
+    .realEngine {
+      height: clamp(220px, 36dvh, 320px);
+    }
+
+    .reactorBox {
+      height: clamp(230px, 38dvh, 330px);
+    }
+
+    @supports not (height: 100dvh) {
+      .preflightConsole,
+      .impactScene,
+      .completeStage {
+        max-height: calc(100vh - 24px);
+      }
+
+      .preflightConsole {
+        height: min(calc(100vh - 24px), 580px);
+      }
+
+      .impactScene {
+        height: min(calc(100vh - 24px), 600px);
+      }
+
+      .completeStage {
+        height: min(calc(100vh - 24px), 660px);
+      }
+
+      .preCoreBox {
+        height: clamp(220px, 36vh, 305px);
+      }
+
+      .realEngine {
+        height: clamp(220px, 36vh, 320px);
+      }
+
+      .reactorBox {
+        height: clamp(230px, 38vh, 330px);
+      }
+    }
+
+    @media (max-height: 820px) {
+      .preflight,
+      .stampImpact,
+      .completeScreen {
+        padding: 10px;
+      }
+
+      .preflightConsole,
+      .impactScene,
+      .completeStage {
+        border-radius: 28px;
+      }
+
+      .preHeader,
+      .impactTopSign,
+      .completeHeader {
+        margin: 18px 12px 8px;
+        padding-top: 11px;
+        padding-bottom: 12px;
+      }
+
+      .preCoreBox,
+      .realEngine,
+      .reactorBox {
+        margin: 10px 12px 8px;
+      }
+
+      .preStatusPanel,
+      .impactRecord,
+      .completePanel {
+        margin-left: 12px;
+        margin-right: 12px;
+      }
+
+      .impactRarity {
+        margin: 0 24px 8px;
+      }
+
+      .impactOk,
+      .impactCloseRow {
+        margin-left: 24px;
+        margin-right: 24px;
+      }
+
+      .completePanelInner {
+        padding: 13px 12px 12px;
+      }
+
+      .completeMessage {
+        font-size: 22px;
+      }
+
+      .completeStaff {
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .buttonRow {
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .buttonRow .linkButton,
+      .buttonRow button {
+        padding-top: 11px;
+        padding-bottom: 11px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-height: 720px) {
+      .preflightConsole,
+      .impactScene,
+      .completeStage {
+        border-radius: 24px;
+      }
+
+      .preHeader,
+      .impactTopSign,
+      .completeHeader {
+        margin: 14px 10px 6px;
+        padding: 10px 10px 11px;
+      }
+
+      .preTitle {
+        font-size: clamp(26px, 7.5vw, 38px);
+      }
+
+      .impactTitle {
+        font-size: clamp(30px, 8.8vw, 42px);
+      }
+
+      .completeLogoStack span {
+        font-size: clamp(28px, 8vw, 40px);
+      }
+
+      .completeLogoStack span:nth-child(2) {
+        font-size: clamp(34px, 9vw, 46px);
+      }
+
+      .preSub,
+      .completeHype {
+        font-size: 11px;
+      }
+
+      .preCoreBox {
+        height: clamp(190px, 31dvh, 250px);
+        margin: 8px 10px 6px;
+      }
+
+      .realEngine {
+        height: clamp(190px, 31dvh, 250px);
+        margin: 8px 10px 6px;
+      }
+
+      .reactorBox {
+        height: clamp(200px, 32dvh, 260px);
+        margin: 8px 10px 6px;
+      }
+
+      .preStatusPanel,
+      .impactRecord,
+      .completePanel {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      .preStatusInner,
+      .completePanelInner {
+        padding: 11px 10px;
+      }
+
+      .preStatusText {
+        font-size: 16px;
+      }
+
+      .impactRecord {
+        grid-template-columns: 72px 1fr;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .impactStampMark {
+        width: 64px;
+        height: 64px;
+        font-size: 11px;
+      }
+
+      .impactSpotName {
+        font-size: 20px;
+      }
+
+      .impactSpotName small {
+        font-size: 13px;
+      }
+
+      .impactRarity {
+        margin: 0 18px 6px;
+      }
+
+      .rarityBadge {
+        font-size: 15px;
+        padding: 5px 14px;
+      }
+
+      .impactOk,
+      .impactCloseRow {
+        margin-left: 18px;
+        margin-right: 18px;
+      }
+
+      .impactOk {
+        margin-bottom: 12px;
+        font-size: 18px;
+        padding: 11px;
+      }
+
+      .impactCloseBtn {
+        padding-top: 11px;
+        padding-bottom: 11px;
+        font-size: 15px;
+      }
+
+      .completeMessage {
+        font-size: 20px;
+        line-height: 1.18;
+      }
+
+      .completeStaff {
+        font-size: 13px;
+        line-height: 1.38;
+      }
+
+      .buttonRow {
+        gap: 7px;
+        margin-top: 8px;
+      }
+
+      .buttonRow .linkButton,
+      .buttonRow button {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 13px;
+      }
+    }
+
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
       .brand { font-size: 22px; gap: 5px; }
