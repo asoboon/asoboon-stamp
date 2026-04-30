@@ -4582,290 +4582,6 @@
     }
 
 
-
-
-    /* ===========================================
-       NON-HOME SCREENS: fit within one viewport
-       =========================================== */
-
-    .preflight,
-    .stampImpact,
-    .completeScreen {
-      padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
-      overflow: hidden;
-    }
-
-    .preflightConsole,
-    .impactScene,
-    .completeStage {
-      max-height: calc(100dvh - 24px);
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    .preflightConsole {
-      height: min(calc(100dvh - 24px), 580px);
-    }
-
-    .impactScene {
-      height: min(calc(100dvh - 24px), 600px);
-    }
-
-    .completeStage {
-      height: min(calc(100dvh - 24px), 660px);
-    }
-
-    .preCoreBox {
-      height: clamp(220px, 36dvh, 305px);
-    }
-
-    .realEngine {
-      height: clamp(220px, 36dvh, 320px);
-    }
-
-    .reactorBox {
-      height: clamp(230px, 38dvh, 330px);
-    }
-
-    @supports not (height: 100dvh) {
-      .preflightConsole,
-      .impactScene,
-      .completeStage {
-        max-height: calc(100vh - 24px);
-      }
-
-      .preflightConsole {
-        height: min(calc(100vh - 24px), 580px);
-      }
-
-      .impactScene {
-        height: min(calc(100vh - 24px), 600px);
-      }
-
-      .completeStage {
-        height: min(calc(100vh - 24px), 660px);
-      }
-
-      .preCoreBox {
-        height: clamp(220px, 36vh, 305px);
-      }
-
-      .realEngine {
-        height: clamp(220px, 36vh, 320px);
-      }
-
-      .reactorBox {
-        height: clamp(230px, 38vh, 330px);
-      }
-    }
-
-    @media (max-height: 820px) {
-      .preflight,
-      .stampImpact,
-      .completeScreen {
-        padding: 10px;
-      }
-
-      .preflightConsole,
-      .impactScene,
-      .completeStage {
-        border-radius: 28px;
-      }
-
-      .preHeader,
-      .impactTopSign,
-      .completeHeader {
-        margin: 18px 12px 8px;
-        padding-top: 11px;
-        padding-bottom: 12px;
-      }
-
-      .preCoreBox,
-      .realEngine,
-      .reactorBox {
-        margin: 10px 12px 8px;
-      }
-
-      .preStatusPanel,
-      .impactRecord,
-      .completePanel {
-        margin-left: 12px;
-        margin-right: 12px;
-      }
-
-      .impactRarity {
-        margin: 0 24px 8px;
-      }
-
-      .impactOk,
-      .impactCloseRow {
-        margin-left: 24px;
-        margin-right: 24px;
-      }
-
-      .completePanelInner {
-        padding: 13px 12px 12px;
-      }
-
-      .completeMessage {
-        font-size: 22px;
-      }
-
-      .completeStaff {
-        margin-top: 8px;
-        font-size: 14px;
-        line-height: 1.45;
-      }
-
-      .buttonRow {
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .buttonRow .linkButton,
-      .buttonRow button {
-        padding-top: 11px;
-        padding-bottom: 11px;
-        font-size: 14px;
-      }
-    }
-
-    @media (max-height: 720px) {
-      .preflightConsole,
-      .impactScene,
-      .completeStage {
-        border-radius: 24px;
-      }
-
-      .preHeader,
-      .impactTopSign,
-      .completeHeader {
-        margin: 14px 10px 6px;
-        padding: 10px 10px 11px;
-      }
-
-      .preTitle {
-        font-size: clamp(26px, 7.5vw, 38px);
-      }
-
-      .impactTitle {
-        font-size: clamp(30px, 8.8vw, 42px);
-      }
-
-      .completeLogoStack span {
-        font-size: clamp(28px, 8vw, 40px);
-      }
-
-      .completeLogoStack span:nth-child(2) {
-        font-size: clamp(34px, 9vw, 46px);
-      }
-
-      .preSub,
-      .completeHype {
-        font-size: 11px;
-      }
-
-      .preCoreBox {
-        height: clamp(190px, 31dvh, 250px);
-        margin: 8px 10px 6px;
-      }
-
-      .realEngine {
-        height: clamp(190px, 31dvh, 250px);
-        margin: 8px 10px 6px;
-      }
-
-      .reactorBox {
-        height: clamp(200px, 32dvh, 260px);
-        margin: 8px 10px 6px;
-      }
-
-      .preStatusPanel,
-      .impactRecord,
-      .completePanel {
-        margin-left: 10px;
-        margin-right: 10px;
-      }
-
-      .preStatusInner,
-      .completePanelInner {
-        padding: 11px 10px;
-      }
-
-      .preStatusText {
-        font-size: 16px;
-      }
-
-      .impactRecord {
-        grid-template-columns: 72px 1fr;
-        gap: 10px;
-        padding: 10px;
-      }
-
-      .impactStampMark {
-        width: 64px;
-        height: 64px;
-        font-size: 11px;
-      }
-
-      .impactSpotName {
-        font-size: 20px;
-      }
-
-      .impactSpotName small {
-        font-size: 13px;
-      }
-
-      .impactRarity {
-        margin: 0 18px 6px;
-      }
-
-      .rarityBadge {
-        font-size: 15px;
-        padding: 5px 14px;
-      }
-
-      .impactOk,
-      .impactCloseRow {
-        margin-left: 18px;
-        margin-right: 18px;
-      }
-
-      .impactOk {
-        margin-bottom: 12px;
-        font-size: 18px;
-        padding: 11px;
-      }
-
-      .impactCloseBtn {
-        padding-top: 11px;
-        padding-bottom: 11px;
-        font-size: 15px;
-      }
-
-      .completeMessage {
-        font-size: 20px;
-        line-height: 1.18;
-      }
-
-      .completeStaff {
-        font-size: 13px;
-        line-height: 1.38;
-      }
-
-      .buttonRow {
-        gap: 7px;
-        margin-top: 8px;
-      }
-
-      .buttonRow .linkButton,
-      .buttonRow button {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        font-size: 13px;
-      }
-    }
-
     @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
       .brand { font-size: 22px; gap: 5px; }
@@ -4900,6 +4616,227 @@
       .bottomCatch { font-size: 21px; }
       .impactScene { min-height: 580px; }
       .completeStage { min-height: 620px; }
+    }
+
+    /* ===== COMPLETE VIEWPORT FIT / DIRECT HOME RETURN ===== */
+    .completeScreen {
+      align-items: start;
+      justify-items: center;
+      overflow: hidden;
+      padding:
+        max(8px, env(safe-area-inset-top) + 6px)
+        10px
+        max(8px, env(safe-area-inset-bottom) + 6px);
+    }
+
+    .completeStage {
+      width: min(94vw, 450px);
+      min-height: 0;
+      height: min(
+        calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px),
+        660px
+      );
+      max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+      height: min(
+        calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px),
+        660px
+      );
+      max-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+    }
+
+    .completeHeader {
+      margin: 16px 14px 8px;
+      padding: 12px 10px 12px;
+    }
+
+    .reactorBox {
+      height: clamp(205px, 32vh, 330px);
+      margin: 8px 12px 8px;
+    }
+
+    .completePanel {
+      margin: 0 12px 12px;
+    }
+
+    .completePanelInner {
+      padding: 12px 12px 12px;
+    }
+
+    .completeMessage {
+      font-size: clamp(21px, 5.8vw, 25px);
+    }
+
+    .completeStaff {
+      font-size: clamp(13px, 3.8vw, 15px);
+      margin-top: 8px;
+    }
+
+    .bonusCert {
+      width: min(78%, 300px);
+      padding: 16px 14px 12px;
+    }
+
+    @media (max-height: 820px) {
+      .completeHeader {
+        margin: 14px 12px 8px;
+        padding: 10px 8px 10px;
+      }
+
+      .completeSystem {
+        font-size: 10px;
+      }
+
+      .completeLogoStack span {
+        font-size: clamp(30px, 8.2vw, 42px);
+      }
+
+      .completeLogoStack span:nth-child(2) {
+        font-size: clamp(36px, 9.6vw, 50px);
+      }
+
+      .completeHype {
+        margin-top: 6px;
+        font-size: 11px;
+      }
+
+      .reactorBox {
+        height: clamp(188px, 29vh, 260px);
+        margin: 8px 10px 8px;
+      }
+
+      .completePanel {
+        margin: 0 10px 10px;
+      }
+
+      .completePanelInner {
+        padding: 10px 10px 11px;
+      }
+    }
+
+    @media (max-height: 740px) {
+      .completeScreen {
+        padding:
+          max(6px, env(safe-area-inset-top) + 4px)
+          8px
+          max(6px, env(safe-area-inset-bottom) + 4px);
+      }
+
+      .completeStage {
+        border-radius: 28px;
+      }
+
+      .completeHeader {
+        margin: 10px 10px 6px;
+        padding: 9px 8px 9px;
+      }
+
+      .completeSystem {
+        margin-bottom: 3px;
+        font-size: 9px;
+      }
+
+      .completeLogoStack span {
+        font-size: clamp(26px, 7.5vw, 36px);
+      }
+
+      .completeLogoStack span:nth-child(2) {
+        font-size: clamp(32px, 8.8vw, 42px);
+      }
+
+      .completeHype {
+        margin-top: 5px;
+        font-size: 10px;
+        letter-spacing: .14em;
+      }
+
+      .completeJackpotLights,
+      .completeJackpotLightsBottom {
+        inset-inline: 10px;
+      }
+
+      .completeJackpotLights i,
+      .completeJackpotLightsBottom i {
+        width: 9px;
+        height: 9px;
+      }
+
+      .reactorBox {
+        height: clamp(168px, 25vh, 220px);
+        margin: 6px 10px 6px;
+      }
+
+      .completePanel {
+        margin: 0 10px 10px;
+      }
+
+      .completeMessage {
+        font-size: clamp(18px, 5vw, 22px);
+      }
+
+      .completeStaff {
+        font-size: clamp(12px, 3.4vw, 14px);
+        line-height: 1.45;
+      }
+
+      .buttonRow {
+        gap: 8px;
+      }
+
+      .buttonRow .linkButton,
+      .buttonRow button {
+        padding: 11px 10px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-height: 680px) {
+      .completeHeader {
+        margin: 8px 8px 5px;
+        padding: 8px 7px;
+      }
+
+      .completeSystem {
+        font-size: 8px;
+      }
+
+      .completeLogoStack span {
+        font-size: clamp(24px, 6.6vw, 30px);
+      }
+
+      .completeLogoStack span:nth-child(2) {
+        font-size: clamp(28px, 7.4vw, 34px);
+      }
+
+      .completeHype {
+        display: none;
+      }
+
+      .reactorBox {
+        height: clamp(148px, 22vh, 185px);
+        margin: 4px 8px 5px;
+      }
+
+      .completePanel {
+        margin: 0 8px 8px;
+      }
+
+      .completePanelInner {
+        padding: 8px 8px 9px;
+      }
+
+      .completeMessage {
+        font-size: 17px;
+      }
+
+      .completeStaff {
+        margin-top: 6px;
+        font-size: 11px;
+      }
+
+      .bonusCert {
+        width: min(74%, 260px);
+        padding: 12px 10px 10px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -5081,7 +5018,7 @@
       <div class="impactOk">RECORD COMPLETE</div>
 
       <div class="impactCloseRow">
-        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">戻る</button>
+        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">閉じる</button>
       </div>
     </div>
   </div>
@@ -5239,7 +5176,8 @@
       debug: {},
       pendingCompleteAfterImpact: false,
       impactTimers: [],
-      impactClosing: false
+      impactClosing: false,
+      latestStatusData: null
     };
 
     const main = document.getElementById("main");
@@ -5514,6 +5452,7 @@
      *   undefined / "list" / etc — normal home open without spot scan
      */
     function renderStatus(data) {
+      state.latestStatusData = data ? JSON.parse(JSON.stringify(data)) : null;
       const count = Number(data.stampedCount || 0);
       const total = Number(data.totalSpots || 4);
       const percent = total ? Math.round((count / total) * 100) : 0;
@@ -5896,13 +5835,22 @@
         </section>
 
         <div class="buttonRow">
-          <button type="button" class="secondary" onclick="location.reload()">戻る</button>
+          <button type="button" class="secondary" onclick="exitStaffMode()">戻る</button>
           <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
         </div>
       `;
 
       vibrate([50, 30, 120, 30, 60]);
       burstGoldenRain(40);
+    }
+
+    function exitStaffMode() {
+      if (state.latestStatusData) {
+        renderStatus(state.latestStatusData);
+        window.scrollTo({ top: 0, behavior: "instant" });
+        return;
+      }
+      location.reload();
     }
 
     /**
@@ -6179,7 +6127,6 @@
     }
 
     function closeStampImpact() {
-      state.pendingCompleteAfterImpact = false;
       const impact = document.getElementById("stampImpact");
       const screenCrack = document.getElementById("screenCrack");
       const rgbSplit = document.getElementById("rgbSplit");
@@ -6199,9 +6146,13 @@
         impact.classList.remove("show", "closing", "settled");
         impact.setAttribute("aria-hidden", "true");
         state.impactClosing = false;
-        state.pendingCompleteAfterImpact = false;
 
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (state.pendingCompleteAfterImpact) {
+          state.pendingCompleteAfterImpact = false;
+          requestAnimationFrame(() => {
+            showComplete();
+          });
+        }
       }, 300);
     }
 
