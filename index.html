@@ -1563,6 +1563,28 @@
       margin-top: 12px;
     }
 
+    .buttonRow.homeStack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .buttonRow.homeStack .linkButton,
+    .buttonRow.homeStack button {
+      font-size: 15px;
+    }
+
+    .buttonRow.homeStack .omikujiBtn {
+      background: linear-gradient(180deg, #fff2b8 0%, #ffd34a 42%, #d98a10 100%);
+      color: #2b1708;
+      border: 2px solid rgba(120,76,8,.34);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.42),
+        inset 0 -2px 0 rgba(0,0,0,.16),
+        0 6px 14px rgba(0,0,0,.18),
+        0 0 18px rgba(244,196,51,.18);
+    }
+
     button,
     .linkButton {
       width: 100%;
@@ -1850,14 +1872,26 @@
 
     .stampImpact.show {
       display: grid;
-      animation: impactBackdrop 4.2s ease both;
+      animation: impactBackdropManual .28s ease both;
+      pointer-events: auto;
     }
 
-    @keyframes impactBackdrop {
+    .stampImpact.settled .impactScene,
+    .stampImpact.settled .impactTopSign,
+    .stampImpact.settled .impactTitle,
+    .stampImpact.settled .impactSubTitle,
+    .stampImpact.settled .impactRecord,
+    .stampImpact.settled .impactRarity,
+    .stampImpact.settled .impactOk,
+    .stampImpact.settled .impactCloseRow {
+      opacity: 1 !important;
+      filter: none !important;
+      transform: none !important;
+    }
+
+    @keyframes impactBackdropManual {
       0% { opacity: 0; }
-      6% { opacity: 1; }
-      94% { opacity: 1; }
-      100% { opacity: 0; }
+      100% { opacity: 1; }
     }
 
     body.impactShudder .phoneFrame {
@@ -2612,6 +2646,7 @@
       text-shadow: 0 1px 2px rgba(0,0,0,.4);
     }
 
+    
     .impactOk {
       position: relative;
       z-index: 30;
@@ -2637,6 +2672,7 @@
       opacity: 0;
       animation: impactOkReveal 4.2s cubic-bezier(.16,1,.22,1) both;
       animation-delay: .08s;
+      pointer-events: auto;
     }
 
     .impactCloseBtn {
@@ -2658,6 +2694,7 @@
         0 6px 14px rgba(0,0,0,.18);
       border: 2px solid rgba(92,68,11,.28);
       -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
     }
 
     .impactCloseBtn:active {
@@ -2669,6 +2706,7 @@
       86% { opacity: 1; transform: translateY(-2px) scale(1.06); }
       94%, 100% { opacity: 1; transform: translateY(0) scale(1); }
     }
+
 
     /* ===========================================
        ALL COMPLETE — boss kill / jackpot reactor
@@ -4900,6 +4938,7 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxILMUKf0jUEXi_t3quHWUuY0QwP8damcvnKUFY8OwFXoqcN7rfdEhi3vh2Yf8bzLiQLQ/exec";
     const FACILITY_MINIAPP_URL = "https://miniapp.line.me/2009884613-ELc6kolf";
     const STAMP_TOP_URL = "https://asoboon.github.io/asoboon-stamp/";
+    const OMIKUJI_URL = STAMP_TOP_URL + "omikuji.html";
 
     const state = {
       spotId: "",
@@ -5196,7 +5235,6 @@
 
       main.className = "mainPanel";
 
-      // ---- Progress card label ----
       const progressClass = isComplete ? "completed" : (isReach ? "reach" : "");
       const progressLabel = isComplete
         ? "★ コンプリート達成 ★"
@@ -5206,7 +5244,6 @@
             ? "★ 取得済みスタンプ ★"
             : (isReach ? "★ あと1枚！ あつめたスタンプ ★" : "★ あつめたスタンプ ★");
 
-      // ---- Bottom catch copy adapts to state ----
       const catchPrimary = isComplete
         ? "ぜんぶ集まりました！"
         : status === "new"
@@ -5223,28 +5260,21 @@
             ? "他のスポットでもスタンプを集めよう。"
             : "今日あつめたスタンプは、同じLINEアカウントに保存されます。";
 
-      // ---- Buttons by state ----
-      // Per spec:
-      //   normal open   : NO 「次へ」button
-      //   new acquired  : 「次へ」(stamp top)
-      //   already taken : NO action button (just info)
-      //   complete      : 「スタッフに見せる」
       let buttonRowHtml = "";
       if (isComplete) {
         buttonRowHtml = `
-          <button type="button" class="linkButton" onclick="enterStaffMode()">スタッフに見せる</button>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
-        `;
-      } else if (status === "new") {
-        buttonRowHtml = `
-          <a class="linkButton" href="${STAMP_TOP_URL}">次へ</a>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
+          <div class="buttonRow">
+            <button type="button" class="linkButton" onclick="enterStaffMode()">スタッフに見せる</button>
+            <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
+          </div>
         `;
       } else {
-        // normal open / already-taken: no 「次へ」button
         buttonRowHtml = `
-          <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
+          <div class="buttonRow homeStack">
+            <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
+            <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">入退場について</a>
+            <a class="linkButton omikujiBtn" href="${OMIKUJI_URL}">アソブーンみくじ</a>
+          </div>
         `;
       }
 
@@ -5274,6 +5304,8 @@
           ${stampListHtml}
         </section>
 
+        ${buttonRowHtml}
+
         <section class="bottomInfo">
           <div class="bottomInner">
             <div class="mascotCircle">${isComplete ? "🏁" : "🚗"}</div>
@@ -5283,16 +5315,10 @@
             </div>
           </div>
         </section>
-
-        <div class="buttonRow">
-          ${buttonRowHtml}
-        </div>
       `;
 
-      // animate counter roll & bar fill
       animateCounter(count, percent);
 
-      // scroll the just-acquired / just-rescanned card into nice view
       if (currentSpotId && (status === "new" || status === "already")) {
         setTimeout(() => {
           const target = main.querySelector(`[data-spot-id="${currentSpotId}"]`);
@@ -5302,18 +5328,13 @@
         }, 1200);
       }
 
-      // === Cinematic post-render sequence ===
       if (status === "new") {
-        // monochrome → color reveal, ripple from current card
         runDevelopReveal(currentSpotId);
-        // hammer drop onto the card
         setTimeout(() => dropStampOntoSpot(currentSpotId, "new"), 1500);
       } else if (status === "already") {
-        // bounce off — already taken
         setTimeout(() => dropStampOntoSpot(currentSpotId, "bounce"), 1500);
       }
 
-      // Vault unlock when complete
       if (isComplete) {
         setTimeout(() => unlockVaultBar(), 700);
       }
@@ -5811,6 +5832,7 @@
       }
 
       impact.classList.remove("show");
+      impact.classList.remove("settled");
       document.body.classList.remove("impactShudder");
 
       // reset crack & rgb
@@ -5846,6 +5868,11 @@
         }
       }, 2700);
 
+      // 演出が終わったら静止状態にして、閉じるを押せるように保つ
+      setTimeout(() => {
+        impact.classList.add("settled");
+      }, 4200);
+
     }
 
     function closeStampImpact() {
@@ -5855,6 +5882,7 @@
 
       if (impact) {
         impact.classList.remove("show");
+        impact.classList.remove("settled");
       }
 
       document.body.classList.remove("impactShudder");
