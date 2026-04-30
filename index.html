@@ -1860,14 +1860,14 @@
       inset: 0;
       z-index: 50;
       display: none;
-      place-items: center;
-      padding: 18px;
+      place-items: stretch;
+      padding: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 50% 45%, rgba(95, 190, 255, .30), transparent 30%),
-        radial-gradient(circle at 50% 45%, rgba(255,255,255,.06), transparent 52%),
-        rgba(2, 5, 9, .82);
-      backdrop-filter: blur(6px) saturate(1.2);
+        radial-gradient(circle at 50% 45%, rgba(95, 190, 255, .24), transparent 30%),
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,.05), transparent 52%),
+        rgba(2, 5, 9, .92);
+      backdrop-filter: blur(6px) saturate(1.12);
     }
 
     .stampImpact.show {
@@ -1900,20 +1900,22 @@
 
     .impactScene {
       position: relative;
-      width: min(94vw, 440px);
-      min-height: 600px;
+      width: 100vw;
+      min-height: 100vh;
+      min-height: 100svh;
+      height: 100vh;
+      height: 100svh;
       overflow: hidden;
-      border-radius: 32px;
+      border-radius: 0;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.03)),
-        radial-gradient(circle at 50% 48%, rgba(81, 177, 255, .18), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02)),
+        radial-gradient(circle at 50% 48%, rgba(81, 177, 255, .16), transparent 38%),
         linear-gradient(180deg, #2d343d 0%, #111820 52%, #05080d 100%);
-      border: 2px solid rgba(190, 204, 218, .22);
+      border: 0;
       box-shadow:
-        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 2px 0 rgba(255,255,255,.12),
         inset 0 -5px 0 rgba(0,0,0,.35),
-        0 34px 100px rgba(0,0,0,.72),
-        0 0 90px rgba(90, 180, 255, .25);
+        0 0 90px rgba(90, 180, 255, .22);
     }
 
     .stampImpact.show .impactScene {
@@ -1925,14 +1927,13 @@
     }
 
     @keyframes impactSceneEnter {
-      0% { transform: scale(.7) translateY(28px); opacity: 0; filter: blur(6px); }
-      45% { transform: scale(1.04) translateY(-2px); opacity: 1; filter: blur(0); }
+      0% { transform: scale(1.01); opacity: 0; filter: blur(2px); }
       100% { transform: scale(1); opacity: 1; filter: blur(0); }
     }
 
     @keyframes impactSceneExit {
       0% { transform: scale(1); opacity: 1; }
-      100% { transform: scale(.94) translateY(14px); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
     }
 
     .impactVignette {
@@ -2015,7 +2016,7 @@
     .impactTopSign {
       position: relative;
       z-index: 24;
-      margin: 24px 16px 10px;
+      margin: max(18px, env(safe-area-inset-top) + 8px) 16px 10px;
       padding: 14px 10px 15px;
       border-radius: 14px;
       text-align: center;
@@ -2100,7 +2101,8 @@
     .realEngine {
       position: relative;
       z-index: 5;
-      height: 320px;
+      height: min(42svh, 320px);
+      min-height: 240px;
       margin: 12px 14px 10px;
       border-radius: 20px;
       overflow: hidden;
@@ -2651,7 +2653,7 @@
     .impactOk {
       position: relative;
       z-index: 30;
-      margin: 0 36px 18px;
+      margin: 0 20px 14px;
       border-radius: 14px;
       padding: 13px;
       text-align: center;
@@ -2663,27 +2665,31 @@
       border: 2px solid rgba(107,76,8,.32);
       box-shadow: inset 0 2px 0 rgba(255,255,255,.38), 0 0 24px rgba(244,196,51,.28);
       opacity: 0;
-      animation: impactOkReveal 4.2s cubic-bezier(.16,1,.22,1) both;
+      animation: impactOkReveal .9s cubic-bezier(.16,1,.22,1) both;
+      animation-delay: .2s;
     }
 
     .impactCloseRow {
-      position: relative;
-      z-index: 31;
-      margin: 0 36px 22px;
-      opacity: 0;
-      animation: impactCloseReveal 4.2s cubic-bezier(.16,1,.22,1) both;
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom) + 8px);
+      z-index: 60;
+      opacity: 1;
+      animation: none;
       pointer-events: auto;
     }
 
     .impactCloseBtn {
       width: 100%;
+      min-height: 52px;
       border: 0;
       border-radius: 16px;
       padding: 13px 12px;
       background: linear-gradient(180deg, #f5cc3c 0%, #d99613 100%);
       color: #2c210d;
       font-weight: 950;
-      font-size: 16px;
+      font-size: 17px;
       text-decoration: none;
       display: block;
       text-align: center;
@@ -2691,7 +2697,7 @@
       box-shadow:
         inset 0 2px 0 rgba(255,255,255,.34),
         inset 0 -2px 0 rgba(0,0,0,.18),
-        0 6px 14px rgba(0,0,0,.18);
+        0 8px 18px rgba(0,0,0,.22);
       border: 2px solid rgba(92,68,11,.28);
       -webkit-tap-highlight-color: transparent;
       pointer-events: auto;
@@ -2702,14 +2708,7 @@
     }
 
     @keyframes impactOkReveal {
-      0%, 76% { opacity: 0; transform: translateY(18px) scale(.92); }
-      86% { opacity: 1; transform: translateY(-2px) scale(1.06); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    @keyframes impactCloseReveal {
-      0%, 84% { opacity: 0; transform: translateY(18px) scale(.92); }
-      92% { opacity: 1; transform: translateY(-1px) scale(1.03); }
+      0% { opacity: 0; transform: translateY(10px) scale(.97); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
@@ -4839,6 +4838,32 @@
       }
     }
 
+
+    @media (max-height: 820px) {
+      .impactTopSign { margin-bottom: 8px; }
+      .impactTitle { font-size: clamp(34px, 10vw, 48px); }
+      .impactSubTitle { font-size: 14px; padding: 6px 12px; }
+      .realEngine { height: min(38svh, 280px); min-height: 220px; }
+      .impactRecord { margin: 0 14px 8px; }
+      .impactRarity { margin: 0 24px 8px; }
+    }
+
+    @media (max-height: 700px) {
+      .impactTopSign { margin-top: max(10px, env(safe-area-inset-top) + 4px); padding: 10px 8px 11px; }
+      .impactSystem { font-size: 9px; }
+      .impactTitle { font-size: clamp(30px, 8.8vw, 42px); }
+      .impactSubTitle { margin-top: 6px; font-size: 13px; }
+      .realEngine { height: min(33svh, 220px); min-height: 180px; margin-top: 8px; }
+      .impactRecord { grid-template-columns: 68px 1fr; gap: 10px; padding: 10px; }
+      .impactStampMark { width: 62px; height: 62px; font-size: 10px; }
+      .impactSpotName { font-size: 20px; }
+      .impactSpotName small { font-size: 13px; }
+      .rarityBadge { font-size: 15px; padding: 5px 14px; }
+      .impactOk { font-size: 18px; margin-bottom: 10px; }
+      .impactCloseRow { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom) + 6px); }
+      .impactCloseBtn { min-height: 48px; font-size: 16px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .001ms !important;
@@ -5018,7 +5043,7 @@
       <div class="impactOk">RECORD COMPLETE</div>
 
       <div class="impactCloseRow">
-        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">閉じる</button>
+        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">戻る</button>
       </div>
     </div>
   </div>
@@ -5243,7 +5268,7 @@
         renderStatus(result);
 
         if (result.stampStatus === "new") {
-          state.pendingCompleteAfterImpact = Boolean(result.completed || result.isComplete);
+          state.pendingCompleteAfterImpact = false;
           triggerStampImpact(result);
           setTimeout(hidePreflight, 140);
 
@@ -5495,9 +5520,10 @@
       let buttonRowHtml = "";
       if (isComplete) {
         buttonRowHtml = `
-          <div class="buttonRow">
+          <div class="buttonRow homeStack">
             <button type="button" class="linkButton" onclick="enterStaffMode()">スタッフに見せる</button>
             <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">アソブーンについて</a>
+            <a class="linkButton omikujiBtn" href="${OMIKUJI_URL}">アソブーンみくじ</a>
           </div>
         `;
       } else {
@@ -6115,7 +6141,7 @@
           void rgbSplit.offsetWidth;
           rgbSplit.classList.add("show");
         }
-      }, 2550);
+      }, 900);
 
       queueImpactTimer(() => {
         if (screenCrack && impact.classList.contains("show") && !state.impactClosing) {
@@ -6123,7 +6149,7 @@
           void screenCrack.offsetWidth;
           screenCrack.classList.add("show");
         }
-      }, 2700);
+      }, 1050);
     }
 
     function closeStampImpact() {
@@ -6133,6 +6159,7 @@
 
       if (!impact || state.impactClosing) return;
       state.impactClosing = true;
+      state.pendingCompleteAfterImpact = false;
 
       clearImpactTimers();
       document.body.classList.remove("impactShudder");
@@ -6146,14 +6173,8 @@
         impact.classList.remove("show", "closing", "settled");
         impact.setAttribute("aria-hidden", "true");
         state.impactClosing = false;
-
-        if (state.pendingCompleteAfterImpact) {
-          state.pendingCompleteAfterImpact = false;
-          requestAnimationFrame(() => {
-            showComplete();
-          });
-        }
-      }, 300);
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }, 220);
     }
 
     function showComplete() {
