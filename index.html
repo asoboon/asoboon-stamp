@@ -4797,7 +4797,7 @@
       <div class="impactOk">RECORD COMPLETE</div>
 
       <div class="impactCloseRow">
-        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">閉じる</button>
+        <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">戻る</button>
       </div>
     </div>
   </div>
@@ -5895,6 +5895,7 @@
     }
 
     function closeStampImpact() {
+      state.pendingCompleteAfterImpact = false;
       const impact = document.getElementById("stampImpact");
       const screenCrack = document.getElementById("screenCrack");
       const rgbSplit = document.getElementById("rgbSplit");
@@ -5914,13 +5915,9 @@
         impact.classList.remove("show", "closing", "settled");
         impact.setAttribute("aria-hidden", "true");
         state.impactClosing = false;
+        state.pendingCompleteAfterImpact = false;
 
-        if (state.pendingCompleteAfterImpact) {
-          state.pendingCompleteAfterImpact = false;
-          requestAnimationFrame(() => {
-            showComplete();
-          });
-        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }, 300);
     }
 
