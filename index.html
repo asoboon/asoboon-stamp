@@ -4619,6 +4619,13 @@
       .bottomCatch { font-size: 21px; }
       .impactScene { min-height: 580px; }
       .completeStage { min-height: 620px; }
+      .impactBurst.b1 { transform: translate(-122px, 10px) rotate(-14deg); }
+      .impactBurst.b2 { transform: translate(-82px, 52px) rotate(-6deg); }
+      .impactBurst.b5 { transform: translate(92px, 0) rotate(-8deg); }
+      .impactBurst.b6 { transform: translate(124px, 56px) rotate(6deg); }
+      .impactTipMain { grid-template-columns: 50px 1fr; gap: 10px; }
+      .impactTipIcon { width: 50px; height: 50px; font-size: 24px; border-radius: 16px; }
+      .impactTipText { font-size: 14px; }
     }
 
     /* ===== COMPLETE VIEWPORT FIT / DIRECT HOME RETURN ===== */
@@ -5102,6 +5109,171 @@
       font-weight: 950;
     }
 
+
+    .realEngine::after {
+      content: "";
+      position: absolute;
+      inset: 18% 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.14) 0%, rgba(97,191,255,.24) 32%, rgba(97,191,255,0) 70%);
+      filter: blur(8px);
+      animation: heroAuraPulse 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .stamp3DStage::before,
+    .stamp3DStage::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,214,74,.42);
+      pointer-events: none;
+    }
+
+    .stamp3DStage::before {
+      animation: stampRingExpand 1.35s ease-out infinite;
+    }
+
+    .stamp3DStage::after {
+      inset: 8px;
+      border-color: rgba(97,191,255,.36);
+      animation: stampRingExpand 1.35s ease-out .32s infinite;
+    }
+
+    .stamp3DContent {
+      animation: stampHeroBounce 1.1s cubic-bezier(.2,1.1,.2,1) both;
+      transform-origin: center center;
+    }
+
+    .impactCelebration {
+      position: absolute;
+      inset: max(74px, env(safe-area-inset-top) + 64px) 0 auto;
+      height: 0;
+      pointer-events: none;
+      z-index: 32;
+    }
+
+    .impactBurst {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      font-size: clamp(24px, 6vw, 34px);
+      filter: drop-shadow(0 0 12px rgba(255,211,74,.34));
+      opacity: 0;
+      animation: impactBurstFloat 1.6s cubic-bezier(.18,.88,.22,1) infinite;
+    }
+
+    .impactBurst.b1 { transform: translate(-148px, 6px) rotate(-14deg); animation-delay: .02s; }
+    .impactBurst.b2 { transform: translate(-102px, 48px) rotate(-6deg); animation-delay: .18s; }
+    .impactBurst.b3 { transform: translate(-22px, -8px) rotate(8deg); animation-delay: .32s; }
+    .impactBurst.b4 { transform: translate(52px, 42px) rotate(12deg); animation-delay: .48s; }
+    .impactBurst.b5 { transform: translate(118px, -2px) rotate(-8deg); animation-delay: .64s; }
+    .impactBurst.b6 { transform: translate(154px, 54px) rotate(6deg); animation-delay: .82s; }
+
+    .impactTipCard {
+      width: min(100%, 520px);
+      margin: 14px auto 0;
+      padding: 14px 14px 16px;
+      border-radius: 22px;
+      position: relative;
+      z-index: 35;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,246,221,.96));
+      border: 2px solid rgba(255,255,255,.24);
+      box-shadow: 0 14px 34px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.64);
+      animation: impactTipCardIn .7s cubic-bezier(.18,1,.22,1) both .08s;
+    }
+
+    .impactTipCard::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 9px;
+      background: linear-gradient(180deg, #ffd34a, #ff9c2b);
+    }
+
+    .impactTipCard[data-theme="drink"]::before { background: linear-gradient(180deg, #61f0ff, #63b9ff); }
+    .impactTipCard[data-theme="turn"]::before { background: linear-gradient(180deg, #ff93c6, #ff6f7f); }
+    .impactTipCard[data-theme="locker"]::before { background: linear-gradient(180deg, #98df88, #44b36b); }
+
+    .impactTipBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+      padding: 5px 12px 6px;
+      border-radius: 999px;
+      background: rgba(45,36,24,.08);
+      color: #5b4322;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .14em;
+    }
+
+    .impactTipMain {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .impactTipIcon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #fffdf4, #ffeab4);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 8px 18px rgba(0,0,0,.08);
+      font-size: 28px;
+      animation: impactTipIconPop 1.2s ease-in-out infinite;
+    }
+
+    .impactTipText {
+      margin: 0;
+      color: #3b2a16;
+      font-size: clamp(14px, 3.8vw, 16px);
+      line-height: 1.55;
+      font-weight: 900;
+    }
+
+    @keyframes stampHeroBounce {
+      0% { opacity: 0; transform: translateY(18px) scale(.78) rotate(-16deg); }
+      35% { opacity: 1; transform: translateY(-10px) scale(1.08) rotate(7deg); }
+      62% { transform: translateY(0) scale(.97) rotate(-4deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+    }
+
+    @keyframes stampRingExpand {
+      0% { opacity: 0; transform: scale(.55); }
+      28% { opacity: .8; }
+      100% { opacity: 0; transform: scale(1.2); }
+    }
+
+    @keyframes heroAuraPulse {
+      0%, 100% { opacity: .55; transform: scale(.92); }
+      50% { opacity: .95; transform: scale(1.08); }
+    }
+
+    @keyframes impactBurstFloat {
+      0% { opacity: 0; margin-top: 18px; }
+      20% { opacity: 1; }
+      60% { opacity: .9; }
+      100% { opacity: 0; margin-top: -18px; }
+    }
+
+    @keyframes impactTipCardIn {
+      0% { opacity: 0; transform: translateY(16px) scale(.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes impactTipIconPop {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-2px) scale(1.06); }
+    }
+
     @media (max-height: 780px) {
       .impactScene {
         padding-top: max(12px, env(safe-area-inset-top) + 8px) !important;
@@ -5146,6 +5318,36 @@
 
       .impactSubTitle {
         font-size: 14px !important;
+      }
+
+      .impactCelebration {
+        inset: max(62px, env(safe-area-inset-top) + 52px) 0 auto;
+      }
+
+      .impactBurst {
+        font-size: 24px;
+      }
+
+      .impactTipCard {
+        padding: 12px 12px 14px;
+        margin-top: 12px;
+      }
+
+      .impactTipMain {
+        grid-template-columns: 48px 1fr;
+        gap: 10px;
+      }
+
+      .impactTipIcon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+        border-radius: 16px;
+      }
+
+      .impactTipText {
+        font-size: 13px;
+        line-height: 1.45;
       }
     }
 
@@ -5325,6 +5527,23 @@
         </div>
       </div>
 
+      <div class="impactCelebration" aria-hidden="true">
+        <span class="impactBurst b1">✨</span>
+        <span class="impactBurst b2">🎉</span>
+        <span class="impactBurst b3">⭐</span>
+        <span class="impactBurst b4">💫</span>
+        <span class="impactBurst b5">✨</span>
+        <span class="impactBurst b6">🎊</span>
+      </div>
+
+      <section id="impactTipCard" class="impactTipCard" data-theme="guardian">
+        <div class="impactTipBadge" id="impactTipBadge">みまもりの おねがい</div>
+        <div class="impactTipMain">
+          <div class="impactTipIcon" id="impactTipIcon">🫶</div>
+          <p class="impactTipText" id="impactTipText">保護者の方は必ずお子様の近くにいてください。</p>
+        </div>
+      </section>
+
       <div class="impactOk">スタンプを保存しました</div>
 
       <div class="impactCloseRow">
@@ -5477,6 +5696,33 @@
     const FACILITY_MINIAPP_URL = "https://miniapp.line.me/2009884613-ELc6kolf";
     const STAMP_TOP_URL = "https://asoboon.github.io/asoboon-stamp/";
     const OMIKUJI_URL = STAMP_TOP_URL + "omikuji.html";
+
+    const STAMP_TIPS = [
+      {
+        key: "guardian",
+        icon: "🫶",
+        badge: "みまもりの おねがい",
+        text: "保護者の方は必ずお子様の近くにいてください。"
+      },
+      {
+        key: "drink",
+        icon: "🥤",
+        badge: "たべもの・のみもの",
+        text: "食べ物は食べられません。飲み物は土足の場所でお願いします。"
+      },
+      {
+        key: "turn",
+        icon: "🎠",
+        badge: "なかよく あそぼう",
+        text: "順番や回数を守って遊びましょう。"
+      },
+      {
+        key: "locker",
+        icon: "🧺",
+        badge: "おかえり まえに",
+        text: "退場の際はロッカーを空っぽにしてください。"
+      }
+    ];
 
     const state = {
       spotId: "",
@@ -6382,6 +6628,35 @@
       return id;
     }
 
+    function resolveTipIndex(result) {
+      const order = Number(result && result.currentSpot && result.currentSpot.order || 0);
+      if (order >= 1 && order <= STAMP_TIPS.length) return order - 1;
+
+      const spotId = String(result && result.currentSpot && result.currentSpot.spotId || "");
+      const match = spotId.match(/(\d+)$/);
+      if (match) {
+        const num = Number(match[1]);
+        if (num >= 1) return (num - 1) % STAMP_TIPS.length;
+      }
+
+      const count = Number(result && result.stampedCount || 1);
+      return Math.max(0, (count - 1) % STAMP_TIPS.length);
+    }
+
+    function applyImpactTip(result) {
+      const tipCard = document.getElementById("impactTipCard");
+      const tipIcon = document.getElementById("impactTipIcon");
+      const tipBadge = document.getElementById("impactTipBadge");
+      const tipText = document.getElementById("impactTipText");
+      if (!tipCard || !tipIcon || !tipBadge || !tipText) return;
+
+      const tip = STAMP_TIPS[resolveTipIndex(result)] || STAMP_TIPS[0];
+      tipCard.dataset.theme = tip.key;
+      tipIcon.textContent = tip.icon;
+      tipBadge.textContent = tip.badge;
+      tipText.textContent = tip.text;
+    }
+
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
       const impactSpotName = document.getElementById("impactSpotName");
@@ -6400,6 +6675,8 @@
         impactSpotName.innerHTML =
           escapeHtml(spotName) + "<small>を記録しました</small>";
       }
+
+      applyImpactTip(result);
 
       if (impactOk) {
         impactOk.textContent = completedAfterThisStamp ? "コンプリート！" : "スタンプを保存しました";
@@ -6423,8 +6700,10 @@
         impact.classList.add("show");
       });
 
-      vibrate(completedAfterThisStamp ? [40, 24, 70, 30, 120] : [30, 20, 60]);
-      burstSparks(completedAfterThisStamp ? 40 : 24);
+      vibrate(completedAfterThisStamp ? [36, 18, 54, 18, 82] : [24, 12, 42]);
+      burstSparks(completedAfterThisStamp ? 34 : 22);
+      queueImpactTimer(() => burstSparks(completedAfterThisStamp ? 18 : 12), 180);
+      queueImpactTimer(() => burstSparks(completedAfterThisStamp ? 12 : 8), 420);
     }
 
     function closeStampImpact() {
