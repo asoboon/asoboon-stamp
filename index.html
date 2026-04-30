@@ -2723,7 +2723,10 @@
       z-index: 70;
       display: none;
       place-items: center;
-      padding: 18px;
+      padding:
+        max(10px, env(safe-area-inset-top) + 8px)
+        18px
+        max(10px, env(safe-area-inset-bottom) + 8px);
       background:
         radial-gradient(circle at 50% 44%, rgba(95,190,255,.32), transparent 30%),
         radial-gradient(circle at 50% 24%, rgba(244,196,51,.22), transparent 28%),
@@ -2745,7 +2748,8 @@
     .completeStage {
       position: relative;
       width: min(94vw, 450px);
-      min-height: 660px;
+      min-height: min(660px, calc(100svh - 36px));
+      max-height: calc(100svh - 36px);
       overflow: hidden;
       border-radius: 36px;
       background:
@@ -5482,6 +5486,7 @@
       debug: {},
       pendingCompleteAfterImpact: false,
       impactTimers: [],
+      completeTimers: [],
       impactClosing: false,
       latestStatusData: null
     };
@@ -5549,18 +5554,22 @@
         renderStatus(result);
 
         if (result.stampStatus === "new") {
-          state.pendingCompleteAfterImpact = false;
           triggerStampImpact(result);
           setTimeout(hidePreflight, 140);
 
           // burst sequence for STAMP GET
-          vibrate([35, 30, 50, 36, 90, 40, 200]);
-          burstSparks(140);
-          // second burst at impact moment (around 2.6s)
-          setTimeout(() => {
-            vibrate([60, 30, 180]);
-            burstSparks(160);
-          }, 2600);
+          if (result.completed || result.isComplete) {
+            vibrate([40, 24, 70, 30, 120, 36, 180]);
+            burstSparks(80);
+          } else {
+            vibrate([35, 30, 50, 36, 90, 40, 200]);
+            burstSparks(140);
+            // second burst at impact moment (around 2.6s)
+            setTimeout(() => {
+              vibrate([60, 30, 180]);
+              burstSparks(160);
+            }, 2600);
+          }
 
           return;
         }
@@ -5765,7 +5774,8 @@
       const isReach = count === total - 1;
       const isComplete = count === total;
 
-      const status = data.stampStatus || "list";
+      const rawStatus = data.stampStatus || "list";
+      const status = rawStatus === "duplicate" ? "already" : rawStatus;
       const currentSpotId =
         data && data.currentSpot && data.currentSpot.spotId
           ? data.currentSpot.spotId
@@ -6152,6 +6162,7 @@
     }
 
     function exitStaffMode() {
+      clearCompleteTimers();
       if (state.latestStatusData) {
         renderStatus(state.latestStatusData);
         window.scrollTo(0, 0);
@@ -6203,6 +6214,7 @@
      * home screen into staff confirmation mode.
      */
     function closeCompleteForStaff() {
+      clearCompleteTimers();
       if (completeScreen) {
         completeScreen.classList.remove("show");
         completeScreen.setAttribute("aria-hidden", "true");
@@ -6355,9 +6367,27 @@
       return id;
     }
 
+    function clearCompleteTimers() {
+      if (!state.completeTimers || !state.completeTimers.length) return;
+      state.completeTimers.forEach((id) => clearTimeout(id));
+      state.completeTimers = [];
+    }
+
+    function queueCompleteTimer(fn, ms) {
+      const id = setTimeout(() => {
+        state.completeTimers = state.completeTimers.filter((x) => x !== id);
+        fn();
+      }, ms);
+      state.completeTimers.push(id);
+      return id;
+    }
+
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
       const impactSpotName = document.getElementById("impactSpotName");
+      const impactOk = impact ? impact.querySelector(".impactOk") : null;
+      const impactCloseBtn = impact ? impact.querySelector(".impactCloseBtn") : null;
+      const completedAfterThisStamp = Boolean(result && (result.completed || result.isComplete));
 
       if (!impact) return;
 
@@ -6371,9 +6401,17 @@
           escapeHtml(spotName) + "<small>を記録しました</small>";
       }
 
+      if (impactOk) {
+        impactOk.textContent = completedAfterThisStamp ? "コンプリート！" : "スタンプを保存しました";
+      }
+
+      if (impactCloseBtn) {
+        impactCloseBtn.textContent = completedAfterThisStamp ? "コンプリートへ" : "戻る";
+      }
+
       clearImpactTimers();
       state.impactClosing = false;
-      state.pendingCompleteAfterImpact = false;
+      state.pendingCompleteAfterImpact = completedAfterThisStamp;
 
       impact.classList.remove("show", "closing", "settled");
       impact.setAttribute("aria-hidden", "false");
@@ -6385,16 +6423,16 @@
         impact.classList.add("show");
       });
 
-      vibrate([30, 20, 60]);
-      burstSparks(24);
+      vibrate(completedAfterThisStamp ? [40, 24, 70, 30, 120] : [30, 20, 60]);
+      burstSparks(completedAfterThisStamp ? 40 : 24);
     }
 
     function closeStampImpact() {
       const impact = document.getElementById("stampImpact");
+      const shouldShowComplete = Boolean(state.pendingCompleteAfterImpact);
 
       if (!impact || state.impactClosing) return;
       state.impactClosing = true;
-      state.pendingCompleteAfterImpact = false;
 
       clearImpactTimers();
       document.body.classList.remove("impactShudder");
@@ -6405,11 +6443,19 @@
         impact.classList.remove("show", "closing", "settled");
         impact.setAttribute("aria-hidden", "true");
         state.impactClosing = false;
+        state.pendingCompleteAfterImpact = false;
         window.scrollTo(0, 0);
+
+        if (shouldShowComplete) {
+          requestAnimationFrame(() => {
+            showComplete();
+          });
+        }
       }, 140);
     }
 
     function showComplete() {
+      clearCompleteTimers();
       completeScreen.classList.add("show");
       completeScreen.setAttribute("aria-hidden", "false");
 
@@ -6435,18 +6481,18 @@
       burstSparks(140);
 
       // big burst at flash impact (around 4.8s)
-      setTimeout(() => {
+      queueCompleteTimer(() => {
         vibrate([80, 40, 280, 60, 400]);
         burstSparks(220);
       }, 4800);
 
       // golden rain after rank reveal
-      setTimeout(() => {
+      queueCompleteTimer(() => {
         burstGoldenRain(120);
       }, 5400);
 
       // second wave of golden rain (when cert appears)
-      setTimeout(() => {
+      queueCompleteTimer(() => {
         burstGoldenRain(80);
         vibrate([100, 40, 200]);
       }, 6800);
