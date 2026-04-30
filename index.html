@@ -4864,6 +4864,287 @@
       .impactCloseBtn { min-height: 48px; font-size: 16px; }
     }
 
+    
+
+    /* ===========================================
+       STAMP GET — stable fullscreen override
+       =========================================== */
+    body.impactShudder .phoneFrame {
+      animation: none !important;
+    }
+
+    .stampImpact {
+      padding: 0 !important;
+      background: rgba(4, 9, 15, .92) !important;
+      backdrop-filter: blur(6px) saturate(1.05);
+      -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    }
+
+    .stampImpact.show {
+      display: block !important;
+      pointer-events: auto;
+    }
+
+    .stampImpact.closing {
+      pointer-events: none;
+    }
+
+    .impactScene {
+      width: 100vw !important;
+      min-height: 100vh !important;
+      min-height: 100svh !important;
+      min-height: 100dvh !important;
+      height: 100vh !important;
+      height: 100svh !important;
+      height: 100dvh !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      overflow: hidden !important;
+      padding: max(16px, env(safe-area-inset-top) + 12px) 16px calc(92px + env(safe-area-inset-bottom)) !important;
+      box-sizing: border-box;
+    }
+
+    .stampImpact.show .impactScene {
+      animation: impactSceneEnter .16s ease-out both !important;
+    }
+
+    .stampImpact.closing .impactScene {
+      animation: impactSceneExit .14s ease-in both !important;
+    }
+
+    @keyframes impactSceneEnter {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes impactSceneExit {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    .impactVignette,
+    .impactWarnTop,
+    .impactWarnBottom,
+    .impactRedAlert,
+    .impactScan,
+    .crtOverlay,
+    .noiseGrain,
+    .speedLines,
+    .rarityRays,
+    .filmBars,
+    .tameBlackout,
+    .screenCrack,
+    .rgbSplit,
+    .impactFlash,
+    .cornerCutIn,
+    .titleCard,
+    .impactRarity,
+    .steam,
+    .electric,
+    .debris,
+    .shockwave,
+    .reachHint {
+      display: none !important;
+    }
+
+    .impactTopSign {
+      width: min(100%, 520px);
+      margin: 0 auto 14px !important;
+      padding: 16px 14px !important;
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        inset 0 -2px 0 rgba(0,0,0,.28),
+        0 10px 24px rgba(0,0,0,.26);
+    }
+
+    .impactSystem {
+      display: none !important;
+    }
+
+    .impactTitle {
+      opacity: 1 !important;
+      animation: none !important;
+      filter: none !important;
+      transform: none !important;
+      font-size: clamp(34px, 10vw, 48px) !important;
+      letter-spacing: .03em !important;
+    }
+
+    .impactSubTitle {
+      opacity: 1 !important;
+      animation: none !important;
+      transform: none !important;
+      margin-top: 10px !important;
+      font-size: 15px !important;
+      line-height: 1.45;
+    }
+
+    .realEngine {
+      width: min(100%, 520px);
+      flex: 1 1 auto;
+      min-height: 0 !important;
+      height: auto !important;
+      margin: 0 auto 16px !important;
+      padding: 24px 16px !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at center, rgba(97,191,255,.18), transparent 48%),
+        linear-gradient(180deg, #161e27 0%, #091018 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.08),
+        0 12px 30px rgba(0,0,0,.28);
+    }
+
+    .realEngine::before,
+    .engineRail,
+    .armorPlate,
+    .hydraulic,
+    .coreRing {
+      display: none !important;
+    }
+
+    .stamp3DStage {
+      position: relative !important;
+      inset: auto !important;
+      width: 180px;
+      height: 180px;
+      perspective: none !important;
+    }
+
+    .stamp3DContent {
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      width: 132px;
+      height: 132px;
+      margin: 0 auto;
+      transform: none !important;
+    }
+
+    .stamp3DRotate {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+
+    .stampHead {
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.22),
+        inset 0 -4px 0 rgba(0,0,0,.26),
+        0 10px 24px rgba(0,0,0,.30) !important;
+    }
+
+    .stampFace {
+      box-shadow:
+        inset 0 0 12px rgba(255,255,255,.20),
+        0 0 18px rgba(97,191,255,.36) !important;
+    }
+
+    .impactRecord {
+      width: min(100%, 520px);
+      margin: 0 auto !important;
+      opacity: 1 !important;
+      animation: none !important;
+      transform: none !important;
+      grid-template-columns: 88px 1fr;
+      gap: 14px;
+      padding: 16px 14px;
+      border-radius: 18px;
+    }
+
+    .impactStampMark {
+      width: 82px;
+      height: 82px;
+      margin: 0 auto;
+    }
+
+    .impactSpotName {
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .impactSpotName small {
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .impactOk {
+      display: none !important;
+    }
+
+    .impactCloseRow {
+      position: absolute !important;
+      left: 16px;
+      right: 16px;
+      bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px)) !important;
+      margin: 0 !important;
+      width: auto !important;
+      opacity: 1 !important;
+      animation: none !important;
+      z-index: 90 !important;
+      pointer-events: auto;
+    }
+
+    .impactCloseBtn {
+      min-height: 54px;
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    @media (max-height: 780px) {
+      .impactScene {
+        padding-top: max(12px, env(safe-area-inset-top) + 8px) !important;
+        padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+      }
+
+      .impactTopSign {
+        margin-bottom: 10px !important;
+        padding: 14px 12px !important;
+      }
+
+      .realEngine {
+        padding: 18px 12px !important;
+        margin-bottom: 12px !important;
+      }
+
+      .stamp3DStage {
+        width: 152px;
+        height: 152px;
+      }
+
+      .stamp3DContent {
+        width: 116px;
+        height: 116px;
+      }
+
+      .impactRecord {
+        grid-template-columns: 72px 1fr;
+        gap: 10px;
+        padding: 14px 12px;
+      }
+
+      .impactStampMark {
+        width: 68px;
+        height: 68px;
+        font-size: 11px;
+      }
+
+      .impactSpotName {
+        font-size: 21px;
+      }
+
+      .impactSubTitle {
+        font-size: 14px !important;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .001ms !important;
@@ -5040,7 +5321,7 @@
         </div>
       </div>
 
-      <div class="impactOk">RECORD COMPLETE</div>
+      <div class="impactOk">スタンプを保存しました</div>
 
       <div class="impactCloseRow">
         <button type="button" class="impactCloseBtn" onclick="closeStampImpact()">戻る</button>
@@ -5873,7 +6154,7 @@
     function exitStaffMode() {
       if (state.latestStatusData) {
         renderStatus(state.latestStatusData);
-        window.scrollTo({ top: 0, behavior: "instant" });
+        window.scrollTo(0, 0);
         return;
       }
       location.reload();
@@ -6076,17 +6357,12 @@
 
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
-      const impactScene = impact ? impact.querySelector(".impactScene") : null;
       const impactSpotName = document.getElementById("impactSpotName");
-      const screenCrack = document.getElementById("screenCrack");
-      const rgbSplit = document.getElementById("rgbSplit");
 
-      if (!impact || !impactScene) return;
+      if (!impact) return;
 
       const spotName =
-        result &&
-        result.currentSpot &&
-        result.currentSpot.spotName
+        result && result.currentSpot && result.currentSpot.spotName
           ? result.currentSpot.spotName
           : "スタンプ";
 
@@ -6095,67 +6371,26 @@
           escapeHtml(spotName) + "<small>を記録しました</small>";
       }
 
-      const stampedCount = Number(result.stampedCount || 0);
-      const totalSpots = Number(result.totalSpots || 4);
-      const isReach =
-        stampedCount === totalSpots - 1 &&
-        !(result.completed || result.isComplete);
-
-      if (isReach) {
-        let reachHint = impact.querySelector(".reachHint");
-        if (!reachHint) {
-          reachHint = document.createElement("div");
-          reachHint.className = "reachHint";
-          reachHint.innerHTML = "あと<br>1枚！！";
-          impactScene.appendChild(reachHint);
-        }
-      } else {
-        const existing = impact.querySelector(".reachHint");
-        if (existing) existing.remove();
-      }
-
       clearImpactTimers();
       state.impactClosing = false;
+      state.pendingCompleteAfterImpact = false;
 
       impact.classList.remove("show", "closing", "settled");
       impact.setAttribute("aria-hidden", "false");
       document.body.classList.remove("impactShudder");
 
-      if (screenCrack) screenCrack.classList.remove("show");
-      if (rgbSplit) rgbSplit.classList.remove("show");
-
       void impact.offsetWidth;
 
       requestAnimationFrame(() => {
         impact.classList.add("show");
-        document.body.classList.add("impactShudder");
       });
 
-      queueImpactTimer(() => {
-        document.body.classList.remove("impactShudder");
-      }, 420);
-
-      queueImpactTimer(() => {
-        if (rgbSplit && impact.classList.contains("show") && !state.impactClosing) {
-          rgbSplit.classList.remove("show");
-          void rgbSplit.offsetWidth;
-          rgbSplit.classList.add("show");
-        }
-      }, 900);
-
-      queueImpactTimer(() => {
-        if (screenCrack && impact.classList.contains("show") && !state.impactClosing) {
-          screenCrack.classList.remove("show");
-          void screenCrack.offsetWidth;
-          screenCrack.classList.add("show");
-        }
-      }, 1050);
+      vibrate([30, 20, 60]);
+      burstSparks(24);
     }
 
     function closeStampImpact() {
       const impact = document.getElementById("stampImpact");
-      const screenCrack = document.getElementById("screenCrack");
-      const rgbSplit = document.getElementById("rgbSplit");
 
       if (!impact || state.impactClosing) return;
       state.impactClosing = true;
@@ -6164,17 +6399,14 @@
       clearImpactTimers();
       document.body.classList.remove("impactShudder");
 
-      if (screenCrack) screenCrack.classList.remove("show");
-      if (rgbSplit) rgbSplit.classList.remove("show");
-
       impact.classList.add("closing");
 
       setTimeout(() => {
         impact.classList.remove("show", "closing", "settled");
         impact.setAttribute("aria-hidden", "true");
         state.impactClosing = false;
-        window.scrollTo({ top: 0, behavior: "instant" });
-      }, 220);
+        window.scrollTo(0, 0);
+      }, 140);
     }
 
     function showComplete() {
