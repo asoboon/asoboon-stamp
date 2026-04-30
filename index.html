@@ -1876,18 +1876,10 @@
       pointer-events: auto;
     }
 
-    .stampImpact.settled .impactScene,
-    .stampImpact.settled .impactTopSign,
-    .stampImpact.settled .impactTitle,
-    .stampImpact.settled .impactSubTitle,
-    .stampImpact.settled .impactRecord,
-    .stampImpact.settled .impactRarity,
-    .stampImpact.settled .impactOk,
-    .stampImpact.settled .impactCloseRow {
-      opacity: 1 !important;
-      filter: none !important;
-      transform: none !important;
+    .stampImpact.closing {
+      pointer-events: none;
     }
+
 
     @keyframes impactBackdropManual {
       0% { opacity: 0; }
@@ -1922,15 +1914,24 @@
         inset 0 -5px 0 rgba(0,0,0,.35),
         0 34px 100px rgba(0,0,0,.72),
         0 0 90px rgba(90, 180, 255, .25);
-      animation: impactScenePop 4.2s cubic-bezier(.16, 1.08, .22, 1) both;
     }
 
-    @keyframes impactScenePop {
+    .stampImpact.show .impactScene {
+      animation: impactSceneEnter .9s cubic-bezier(.16, 1.08, .22, 1) both;
+    }
+
+    .stampImpact.closing .impactScene {
+      animation: impactSceneExit .3s ease forwards;
+    }
+
+    @keyframes impactSceneEnter {
       0% { transform: scale(.7) translateY(28px); opacity: 0; filter: blur(6px); }
-      8% { transform: scale(1.05) translateY(-3px); opacity: 1; filter: blur(0); }
-      14% { transform: scale(.99); }
-      28% { transform: scale(1); }
-      88% { transform: scale(1); opacity: 1; }
+      45% { transform: scale(1.04) translateY(-2px); opacity: 1; filter: blur(0); }
+      100% { transform: scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    @keyframes impactSceneExit {
+      0% { transform: scale(1); opacity: 1; }
       100% { transform: scale(.94) translateY(14px); opacity: 0; }
     }
 
@@ -2670,8 +2671,7 @@
       z-index: 31;
       margin: 0 36px 22px;
       opacity: 0;
-      animation: impactOkReveal 4.2s cubic-bezier(.16,1,.22,1) both;
-      animation-delay: .08s;
+      animation: impactCloseReveal 4.2s cubic-bezier(.16,1,.22,1) both;
       pointer-events: auto;
     }
 
@@ -2704,7 +2704,13 @@
     @keyframes impactOkReveal {
       0%, 76% { opacity: 0; transform: translateY(18px) scale(.92); }
       86% { opacity: 1; transform: translateY(-2px) scale(1.06); }
-      94%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes impactCloseReveal {
+      0%, 84% { opacity: 0; transform: translateY(18px) scale(.92); }
+      92% { opacity: 1; transform: translateY(-1px) scale(1.03); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
 
@@ -4576,6 +4582,7 @@
     }
 
 
+    @media (max-width: 390px) {
       .app { padding-left: 8px; padding-right: 8px; }
       .brand { font-size: 22px; gap: 5px; }
       .brandGear { width: 19px; height: 19px; font-size: 12px; }
@@ -4946,7 +4953,9 @@
       liffReady: false,
       step: "boot",
       debug: {},
-      pendingCompleteAfterImpact: false
+      pendingCompleteAfterImpact: false,
+      impactTimers: [],
+      impactClosing: false
     };
 
     const main = document.getElementById("main");
@@ -5792,13 +5801,29 @@
       return "スタンプの確認に失敗しました。少し時間をおいて、もう一度お試しください。";
     }
 
+    function clearImpactTimers() {
+      if (!state.impactTimers || !state.impactTimers.length) return;
+      state.impactTimers.forEach((id) => clearTimeout(id));
+      state.impactTimers = [];
+    }
+
+    function queueImpactTimer(fn, ms) {
+      const id = setTimeout(() => {
+        state.impactTimers = state.impactTimers.filter((x) => x !== id);
+        fn();
+      }, ms);
+      state.impactTimers.push(id);
+      return id;
+    }
+
     function triggerStampImpact(result) {
       const impact = document.getElementById("stampImpact");
+      const impactScene = impact ? impact.querySelector(".impactScene") : null;
       const impactSpotName = document.getElementById("impactSpotName");
       const screenCrack = document.getElementById("screenCrack");
       const rgbSplit = document.getElementById("rgbSplit");
 
-      if (!impact) return;
+      if (!impact || !impactScene) return;
 
       const spotName =
         result &&
@@ -5812,67 +5837,61 @@
           escapeHtml(spotName) + "<small>を記録しました</small>";
       }
 
-      // detect "reach" state - 3/4 stamps now
       const stampedCount = Number(result.stampedCount || 0);
       const totalSpots = Number(result.totalSpots || 4);
-      const isReach = stampedCount === totalSpots - 1 && !(result.completed || result.isComplete);
+      const isReach =
+        stampedCount === totalSpots - 1 &&
+        !(result.completed || result.isComplete);
 
-      // inject reach hint if applicable
       if (isReach) {
         let reachHint = impact.querySelector(".reachHint");
         if (!reachHint) {
           reachHint = document.createElement("div");
           reachHint.className = "reachHint";
           reachHint.innerHTML = "あと<br>1枚！！";
-          impact.querySelector(".impactScene").appendChild(reachHint);
+          impactScene.appendChild(reachHint);
         }
       } else {
         const existing = impact.querySelector(".reachHint");
         if (existing) existing.remove();
       }
 
-      impact.classList.remove("show");
-      impact.classList.remove("settled");
+      clearImpactTimers();
+      state.impactClosing = false;
+
+      impact.classList.remove("show", "closing", "settled");
+      impact.setAttribute("aria-hidden", "false");
       document.body.classList.remove("impactShudder");
 
-      // reset crack & rgb
       if (screenCrack) screenCrack.classList.remove("show");
       if (rgbSplit) rgbSplit.classList.remove("show");
+
+      void impact.offsetWidth;
 
       requestAnimationFrame(() => {
         impact.classList.add("show");
         document.body.classList.add("impactShudder");
       });
 
-      // shudder release
-      setTimeout(() => {
+      queueImpactTimer(() => {
         document.body.classList.remove("impactShudder");
       }, 420);
 
-      // === RGB split fires on impact moment (~2.55s) ===
-      setTimeout(() => {
-        if (rgbSplit) {
+      queueImpactTimer(() => {
+        if (rgbSplit && impact.classList.contains("show") && !state.impactClosing) {
           rgbSplit.classList.remove("show");
-          // force reflow
           void rgbSplit.offsetWidth;
           rgbSplit.classList.add("show");
         }
       }, 2550);
 
-      // === Screen crack appears just after RGB split ===
-      setTimeout(() => {
-        if (screenCrack) {
+      queueImpactTimer(() => {
+        if (screenCrack && impact.classList.contains("show") && !state.impactClosing) {
           screenCrack.classList.remove("show");
           void screenCrack.offsetWidth;
           screenCrack.classList.add("show");
         }
       }, 2700);
-
-      // 演出が終わったら静止状態にして、閉じるを押せるように保つ
-      setTimeout(() => {
-        impact.classList.add("settled");
-      }, 4200);
-
     }
 
     function closeStampImpact() {
@@ -5880,20 +5899,29 @@
       const screenCrack = document.getElementById("screenCrack");
       const rgbSplit = document.getElementById("rgbSplit");
 
-      if (impact) {
-        impact.classList.remove("show");
-        impact.classList.remove("settled");
-      }
+      if (!impact || state.impactClosing) return;
+      state.impactClosing = true;
 
+      clearImpactTimers();
       document.body.classList.remove("impactShudder");
 
       if (screenCrack) screenCrack.classList.remove("show");
       if (rgbSplit) rgbSplit.classList.remove("show");
 
-      if (state.pendingCompleteAfterImpact) {
-        state.pendingCompleteAfterImpact = false;
-        showComplete();
-      }
+      impact.classList.add("closing");
+
+      setTimeout(() => {
+        impact.classList.remove("show", "closing", "settled");
+        impact.setAttribute("aria-hidden", "true");
+        state.impactClosing = false;
+
+        if (state.pendingCompleteAfterImpact) {
+          state.pendingCompleteAfterImpact = false;
+          requestAnimationFrame(() => {
+            showComplete();
+          });
+        }
+      }, 300);
     }
 
     function showComplete() {
