@@ -520,6 +520,7 @@
       position:relative;
       margin:0 8px 0;
       padding:14px 14px 16px;
+      border-radius:0 0 18px 18px;
       background:
         linear-gradient(180deg, #c1272d 0%, #7a0e16 100%);
       border:3px solid var(--shrine-ink);
@@ -601,11 +602,16 @@
 
     .display-type{
       margin-top:6px;
-      font-size:11px;
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
       font-weight:900;
-      letter-spacing:.22em;
-      color:var(--shrine-gold-light);
-      opacity:.85;
+      letter-spacing:.12em;
+      color:#fff9e8;
+      background:rgba(0,0,0,.52);
+      border:1px solid rgba(243,197,55,.38);
+      text-shadow:0 1px 2px rgba(0,0,0,.75);
     }
 
     .display-rank.idle{
@@ -755,43 +761,6 @@
 
     @keyframes knobSpin {
       to { transform: rotate(360deg); }
-    }
-
-    /* Capsule output tray */
-    .gasha-tray{
-      position:relative;
-      margin:14px 8px 0;
-      padding:14px 14px 18px;
-      border-radius: 0 0 18px 18px;
-      background:
-        linear-gradient(180deg, #2a1612 0%, #150709 100%);
-      border:3px solid var(--shrine-ink);
-      border-top:0;
-      box-shadow:
-        inset 0 2px 0 rgba(243,197,55,.18),
-        inset 0 -3px 0 rgba(0,0,0,.5);
-      min-height:80px;
-      display:grid;
-      place-items:center;
-    }
-
-    .gasha-tray::before{
-      content:"取り出し口";
-      position:absolute;
-      left:14px;
-      top:6px;
-      font-size:9px;
-      font-weight:900;
-      letter-spacing:.18em;
-      color: var(--shrine-gold);
-      opacity:.6;
-    }
-
-    .gasha-tray-empty{
-      color: rgba(255,255,255,.32);
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.12em;
     }
 
     /* === ACTION ROW === */
@@ -1031,16 +1000,14 @@
     .shimenawa-shide.s3{ left:74%; top:50%; }
 
     .draw-overlay.show .shimenawa{
-      animation: shimenawaSwing 2.8s ease-in-out infinite;
+      animation:
+        shimenawaSwing 1.5s ease-in-out 0s 1,
+        shimenawaFade 1s ease 1.5s forwards;
     }
 
     @keyframes shimenawaSwing {
       0%, 100% { transform: rotate(-1deg); }
       50% { transform: rotate(1deg); }
-    }
-
-    .draw-overlay.show .shimenawa{
-      animation: shimenawaFade 1s ease 1.5s forwards;
     }
 
     @keyframes shimenawaFade {
@@ -1265,14 +1232,14 @@
 
     .paper-card{
       position:relative;
-      padding:18px 16px 18px;
+      padding:20px 18px 20px;
       border-radius:8px;
       background:
-        linear-gradient(180deg, var(--paper-cream) 0%, var(--paper-aged) 100%);
+        linear-gradient(180deg, #fffaf0 0%, #f4dfaa 100%);
       border:3px solid var(--shrine-ink);
       box-shadow:
         inset 0 0 0 1px var(--shrine-ink),
-        inset 0 0 0 4px var(--paper-cream),
+        inset 0 0 0 4px #fffaf0,
         inset 0 0 0 5px var(--shrine-ink),
         0 18px 36px rgba(0,0,0,.6),
         0 0 50px rgba(243,197,55,.4);
@@ -1317,18 +1284,23 @@
 
     .paper-card-tag{
       margin:0 0 10px;
-      font-size:11px;
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
       font-weight:900;
-      letter-spacing:.32em;
+      letter-spacing:.18em;
       color: var(--shrine-red-dark);
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(122,14,22,.22);
     }
 
     .paper-card-msg{
       margin:0;
-      font-size:14px;
-      line-height:1.85;
-      font-weight:850;
-      color:#3d2810;
+      font-size:16px;
+      line-height:1.75;
+      font-weight:900;
+      color:#231305;
     }
 
     /* Floating ofuda (golden shrine charms) for 大吉 */
@@ -1388,7 +1360,7 @@
       100% { opacity: .2; transform: translate(var(--xshift, 0), 110vh) rotate(var(--rotEnd, 720deg)); }
     }
 
-    /* Stuck/jammed effect for 末吉 */
+    /* Stuck/jammed effect for lower-tier results */
     .draw-overlay.tier-sue .gasha-shudder{
       animation: jamShudder .5s ease-in-out infinite;
     }
@@ -1438,7 +1410,7 @@
       100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2) rotate(0); }
     }
 
-    /* Wooden tag (low-tier result) — for 末吉 */
+    /* Wooden tag (low-tier result) */
     .wooden-tag{
       position:absolute;
       left:50%;
@@ -1464,13 +1436,13 @@
 
     .wooden-tag-card{
       position:relative;
-      padding:18px 16px;
+      padding:20px 16px;
       border-radius:6px;
       background:
         linear-gradient(180deg,
-          #c89a5e 0%,
-          #8a6035 50%,
-          #5b3e1e 100%);
+          #dfb978 0%,
+          #a9783f 54%,
+          #6b461f 100%);
       border:3px solid #3a2812;
       box-shadow:
         inset 0 2px 0 rgba(255,235,180,.3),
@@ -1518,20 +1490,29 @@
 
     .wooden-tag-tag{
       position:relative;
+      display:inline-block;
       margin:0 0 10px;
-      font-size:11px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
       font-weight:900;
-      letter-spacing:.28em;
-      color:rgba(28,14,2,.7);
+      letter-spacing:.16em;
+      color:#1c0e02;
+      background:rgba(255,245,220,.58);
+      border:1px solid rgba(28,14,2,.22);
     }
 
     .wooden-tag-msg{
       position:relative;
       margin:0;
-      font-size:13px;
-      line-height:1.85;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:15px;
+      line-height:1.75;
       font-weight:900;
       color:#1c0e02;
+      background:rgba(255,245,220,.7);
+      border:1px solid rgba(28,14,2,.22);
     }
 
     /* === RESULT CARD on home === */
@@ -1540,9 +1521,9 @@
       border-radius:22px;
       overflow:hidden;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18)),
-        linear-gradient(180deg, #2a0a0d 0%, #14040a 100%);
-      border:2px solid rgba(243,197,55,.3);
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.12)),
+        linear-gradient(180deg, #220609 0%, #0d0204 100%);
+      border:2px solid rgba(243,197,55,.46);
       box-shadow:var(--shadow);
       display:none;
     }
@@ -1590,6 +1571,7 @@
       font-weight:950;
       letter-spacing:.16em;
       color:#fff;
+      text-shadow:0 2px 2px rgba(0,0,0,.65);
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.18),
         0 0 24px var(--badgeGlow, rgba(243,197,55,.3));
@@ -1600,14 +1582,16 @@
     .rank-badge.rank-chu{ background: linear-gradient(180deg, #5fa8ff 0%, #266cd6 50%, #163a87 100%); --badgeGlow: rgba(85,168,255,.45); }
     .rank-badge.rank-sho{ background: linear-gradient(180deg, #67c384 0%, #2f8d50 50%, #18522d 100%); --badgeGlow: rgba(103,195,132,.40); }
     .rank-badge.rank-sue{ background: linear-gradient(180deg, #9aa5b0 0%, #65707b 50%, #353d47 100%); --badgeGlow: rgba(154,165,176,.30); }
+    .rank-badge.rank-kyo{ background: linear-gradient(180deg, #7e8894 0%, #3e4650 50%, #1d2229 100%); --badgeGlow: rgba(126,136,148,.28); }
+    .rank-badge.rank-daikyo{ background: linear-gradient(180deg, #5b1f2a 0%, #2a0b12 55%, #080203 100%); --badgeGlow: rgba(193,39,45,.32); }
 
     .result-no{
       margin:10px 0 0;
-      color: var(--shrine-gold-light);
-      font-size:11px;
+      color:#fff1bd;
+      font-size:12px;
       font-weight:900;
-      letter-spacing:.18em;
-      opacity:.85;
+      letter-spacing:.14em;
+      text-shadow:0 1px 2px rgba(0,0,0,.75);
     }
 
     .result-body{
@@ -1619,9 +1603,9 @@
     .message-card{
       position:relative;
       border-radius:14px;
-      padding:18px 16px;
+      padding:20px 18px;
       background:
-        linear-gradient(180deg, var(--paper-cream), var(--paper-aged));
+        linear-gradient(180deg, #fffaf0 0%, #f2dda5 100%);
       border: 3px solid var(--shrine-ink);
       box-shadow:
         inset 0 0 0 1px var(--shrine-gold),
@@ -1648,11 +1632,12 @@
       margin-bottom:10px;
       padding:6px 12px;
       border-radius:999px;
-      font-size:11px;
+      font-size:12px;
       font-weight:950;
-      letter-spacing:.18em;
+      letter-spacing:.12em;
       color:#fff;
       background: linear-gradient(180deg, #4d555f, #1f262d);
+      text-shadow:0 1px 2px rgba(0,0,0,.65);
     }
 
     .message-card.directive .message-type{
@@ -1661,37 +1646,38 @@
 
     .message-text{
       margin:0;
-      font-size:17px;
-      line-height:1.9;
+      font-size:18px;
+      line-height:1.75;
       font-weight:900;
       color: var(--shrine-ink);
     }
 
     .helper-card{
       border-radius:14px;
-      padding:13px 14px;
+      padding:14px 16px;
       background:
-        linear-gradient(180deg, rgba(243,197,55,.15), rgba(243,197,55,.04)),
-        linear-gradient(180deg, #2c0608, #150305);
-      border:1px solid rgba(243,197,55,.32);
-      color: var(--shrine-gold-light);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        linear-gradient(180deg, #fff4c9 0%, #f3c537 100%);
+      border:2px solid var(--shrine-ink);
+      color: var(--shrine-ink);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.55),
+        0 10px 18px rgba(0,0,0,.24);
     }
 
     .helper-title{
       margin:0 0 6px;
       font-size:12px;
       font-weight:950;
-      letter-spacing:.18em;
-      color: var(--shrine-gold);
+      letter-spacing:.12em;
+      color: var(--shrine-red-dark);
     }
 
     .helper-text{
       margin:0;
-      font-size:14px;
-      line-height:1.7;
-      font-weight:800;
-      color: #fff5dc;
+      font-size:18px;
+      line-height:1.45;
+      font-weight:950;
+      color: var(--shrine-ink);
     }
 
     .result-actions{ display:grid; gap:10px; }
@@ -1719,6 +1705,9 @@
         0 0 24px rgba(243,197,55,.35);
       -webkit-tap-highlight-color: transparent;
       opacity: 0;
+    }
+
+    .draw-overlay.show .overlay-close-btn {
       animation: closeBtnReveal 1s cubic-bezier(.16,1,.22,1) 5.8s forwards;
     }
 
@@ -1862,7 +1851,7 @@
                 <div class="gasha-window-display">
                   <div>
                     <div id="reelRank" class="display-rank idle">READY</div>
-                    <div id="reelType" class="display-type">右下のボタンを押して ご神託を</div>
+                    <div id="reelType" class="display-type">レバーをひねって ご神託を</div>
                   </div>
                 </div>
               </div>
@@ -1875,9 +1864,6 @@
               </div>
             </div>
 
-            <div class="gasha-tray">
-              <span id="trayLabel" class="gasha-tray-empty">— 取り出し口 —</span>
-            </div>
           </section>
 
           <section id="resultCard" class="result-card" aria-live="polite"></section>
@@ -1890,56 +1876,106 @@
     const STAMP_TOP_URL = "https://miniapp.line.me/2009888671-57TOefc3";
 
     const FORTUNES = [
-      { id: 1, rank: "大吉", type: "まじめ系", text: "きょうのきみは、むてきだ。こわいものなし！まずはいちばんすきなあそびに、思いっきりとびこんでみよう。" },
-      { id: 2, rank: "大吉", type: "まじめ系", text: "おともだちができる予感。「いっしょにあそぼ」のひとことが、きょうのまほうのことばだよ。" },
-      { id: 3, rank: "吉", type: "まじめ系", text: "すきなあそびに全力でむかうと、きっといいことがある。今日はいつもよりちょっと長くあそぼう。" },
-      { id: 4, rank: "中吉", type: "まじめ系", text: "きょうのひるごはんは、いつもよりおいしく感じる。ゆっくりよくかんでたべよう。" },
-      { id: 5, rank: "小吉", type: "まじめ系", text: "ゆっくりあそぶと、たのしさが２倍になる。あせらずじっくりたのしもう。" },
-      { id: 6, rank: "吉", type: "まじめ系", text: "きみのえがおが、まわりをしあわせにする。たくさんわらってすごそう。" },
-      { id: 7, rank: "中吉", type: "まじめ系", text: "ちょっとむずかしいことに、ちょうせんしてみよう。できたとき、すごくうれしいきもちになるよ。" },
-      { id: 8, rank: "大吉", type: "まじめ系", text: "きょうはなんでもうまくいく！自信をもって、どんどんためしてみよう。" },
-      { id: 9, rank: "末吉", type: "まじめ系", text: "あせらなくていい。きみのペースでいこう。それがいちばんカッコイイ。" },
-      { id: 10, rank: "吉", type: "まじめ系", text: "新しいあそびにちょうせんすると、あたらしいともだちができるかも。" },
-      { id: 11, rank: "中吉", type: "まじめ系", text: "きょうはかけっこが得意な日。思いっきり走り回ってみよう！" },
-      { id: 12, rank: "吉", type: "まじめ系", text: "誰かとなにかを一緒につくると、とってもたのしい一日になるよ。" },
-      { id: 13, rank: "吉", type: "まじめ系", text: "なんとなく、きょうはいい日な気がする。それはたぶんほんとうだよ。" },
-      { id: 14, rank: "末吉", type: "まじめ系", text: "今日はちいさなことに気づけるひ。足元のありとか、空のかたちとか、見つけてみよう。" },
-      { id: 15, rank: "小吉", type: "まじめ系", text: "きょうはいつもよりちょっとだけ遠くまでとびはねられる。たのしい一日になりそう。" },
-      { id: 16, rank: "大吉", type: "まじめ系", text: "きみはとってもゆうかんだ。きょうも思いっきりちょうせんしよう。" },
-      { id: 17, rank: "吉", type: "まじめ系", text: "きみがいるだけで、まわりがぱあっと明るくなるよ。それがきみのちから。" },
-      { id: 18, rank: "大吉", type: "まじめ系", text: "きょうのきみは、だれよりもキラキラしてる。自信をもってあそぼう。" },
-      { id: 19, rank: "中吉", type: "まじめ系", text: "きょうあそんだことは、ずっとたいせつなきおくになるよ。いっしょうけんめいたのしもう。" },
-      { id: 20, rank: "吉", type: "まじめ系", text: "たくさんうごいて、たくさんわらって、たくさんたべよう。それがきょうのおまじない。" },
-      { id: 21, rank: "吉", type: "まじめ系", text: "きみのわらいごえが、まわりをやさしくする。今日もたくさんわらおう。" },
-      { id: 22, rank: "末吉", type: "まじめ系", text: "すこしずつできることがふえていく。きみはちゃんとすごくなっているよ。" },
-      { id: 23, rank: "中吉", type: "まじめ系", text: "おともだちに「すきだよ」と言えたら、きみはもうヒーローだ。" },
-      { id: 24, rank: "大吉", type: "指示系", text: "いまスグ！パパかママに「だいすき」と言おう。きっといいことがあるよ。" },
-      { id: 25, rank: "大吉", type: "指示系", text: "パパかママに変顔をしてみよう。笑ったほうが今日の運気アップ。" },
-      { id: 26, rank: "大吉", type: "指示系", text: "パパかママに「ぎゅー」としてみよう。これがきょうのおまじない。" },
-      { id: 27, rank: "大吉", type: "指示系", text: "パパかママのほっぺに、こっそりチューをしよう。ぜったいよろこぶよ。" },
-      { id: 28, rank: "吉", type: "指示系", text: "パパかママの手をつないで「つれてきてくれてありがとう」と言ってみよう。" },
-      { id: 29, rank: "吉", type: "指示系", text: "パパかママに「かわいいね」と言ってあげよう。どんな顔をするかな？" },
-      { id: 30, rank: "大吉", type: "指示系", text: "パパかママに「せかいでいちばんすき」と言おう。今日のさいきょうのことば。" },
-      { id: 31, rank: "吉", type: "指示系", text: "パパのあたまをやさしくなでてあげよう。パパはよろこぶ（はず）。" },
-      { id: 32, rank: "中吉", type: "指示系", text: "ママに「いつもありがとう」とひとこと言おう。それだけで今日は勝ち。" },
-      { id: 33, rank: "吉", type: "指示系", text: "パパかママのまねをして10歩あるいてみよう。" },
-      { id: 34, rank: "大吉", type: "指示系", text: "パパかママのかおを10秒じーっと見てみよう。なにか言ってくれるはず。" },
-      { id: 35, rank: "吉", type: "指示系", text: "パパかママに「はなうたを歌って」とお願いしてみよう。" },
-      { id: 36, rank: "中吉", type: "指示系", text: "パパかママに肩たたきを10回してあげよう。とっても喜ばれるよ。" },
-      { id: 37, rank: "大吉", type: "指示系", text: "パパかママに「だいすき」を3回言おう。3回目をいちばん大きく。" },
-      { id: 38, rank: "吉", type: "指示系", text: "パパかママのくつをそっとならべてあげよう。びっくりするよ。" },
-      { id: 39, rank: "大吉", type: "指示系", text: "パパかママと一緒にジャンプしよう。「せーの」で言うのがポイント。" },
-      { id: 40, rank: "吉", type: "指示系", text: "パパかママに「きょうのごはん何？」と聞いてみよう。それがきょうの運命のごはん。" },
-      { id: 41, rank: "中吉", type: "指示系", text: "パパかママに「いっしょにあそぼ」と言おう。断られたらもう一回。" },
-      { id: 42, rank: "大吉", type: "指示系", text: "パパかママにこっそり耳もとで「だいすき」と言おう。ひみつのおまじない。" },
-      { id: 43, rank: "吉", type: "指示系", text: "パパかママに「だいじょうぶ？」と聞いてあげよう。やさしいきみが好き。" },
-      { id: 44, rank: "大吉", type: "指示系", text: "パパかママにとびついてみよう。きっとちゃんと受け止めてくれるよ。" },
-      { id: 45, rank: "吉", type: "指示系", text: "パパかママと「ないしょばなし」をしよう。ないようはなんでもいい。" },
-      { id: 46, rank: "中吉", type: "指示系", text: "パパかママに「きょうもかっこいいね」と言おう。照れた顔を見ておこう。" },
-      { id: 47, rank: "大吉", type: "指示系", text: "パパかママとじゃんけんをしよう。かった人がきょうのえらい人。" },
-      { id: 48, rank: "吉", type: "指示系", text: "パパかママのてのひらに、ゆびで「だいすき」と書いてあげよう。" },
-      { id: 49, rank: "大吉", type: "指示系", text: "パパかママに「いっしょにおどろう」と言ってみよう。はずかしがらずに。" },
-      { id: 50, rank: "吉", type: "指示系", text: "パパかママに「ぼくのえがおみて」と言って、満面の笑みを見せよう。" }
+      { id: 1, rank: "大吉", type: "まじめ系", text: "きょうのきみは、むてきだ。こわいものなし！思いっきりあそぼう。" },
+      { id: 2, rank: "大吉", type: "まじめ系", text: "きょうのきみは、だれよりもキラキラしてる。自信をもってあそぼう。" },
+      { id: 3, rank: "吉", type: "まじめ系", text: "きみのえがおが、まわりをしあわせにするよ。たくさんわらってすごそう。" },
+      { id: 4, rank: "吉", type: "まじめ系", text: "すきなあそびに夢中になると、きっといいことがあるよ。" },
+      { id: 5, rank: "吉", type: "まじめ系", text: "きみがいるだけで、まわりがぱあっと明るくなるよ。" },
+      { id: 6, rank: "吉", type: "まじめ系", text: "おともだちとなにかを一緒につくると、たのしい一日になるよ。" },
+      { id: 7, rank: "吉", type: "まじめ系", text: "たくさんうごいて、たくさんわらって、たくさんたべよう。それがきょうのおまじない。" },
+      { id: 8, rank: "吉", type: "まじめ系", text: "なんとなく、きょうはいい日な気がする。それはたぶんほんとうだよ。" },
+      { id: 9, rank: "中吉", type: "まじめ系", text: "ちょっとむずかしいことに、ちょうせんしてみよう。できたらすごくうれしいよ。" },
+      { id: 10, rank: "中吉", type: "まじめ系", text: "きょうあそんだことは、ずっとたいせつなきおくになるよ。" },
+      { id: 11, rank: "中吉", type: "まじめ系", text: "きょうのひるごはんは、いつもよりおいしく感じるよ。ゆっくりたべよう。" },
+      { id: 12, rank: "中吉", type: "まじめ系", text: "きょうはかけっこが得意な日。思いっきりはしりまわろう！" },
+      { id: 13, rank: "中吉", type: "まじめ系", text: "おともだちに「すきだよ」と言えたら、きみはもうヒーローだ。" },
+      { id: 14, rank: "小吉", type: "まじめ系", text: "ゆっくりあそぶと、たのしさが2ばいになる。あせらずたのしもう。" },
+      { id: 15, rank: "小吉", type: "まじめ系", text: "きょうはいつもよりちょっとだけ遠くまでとべるかも。やってみよう。" },
+      { id: 16, rank: "小吉", type: "まじめ系", text: "あたらしいあそびをひとつ見つけてみよう。きっとたのしいよ。" },
+      { id: 17, rank: "末吉", type: "まじめ系", text: "あせらなくていい。きみのペースでいこう。それがいちばんカッコイイ。" },
+      { id: 18, rank: "末吉", type: "まじめ系", text: "すこしずつできることがふえていく。きみはちゃんとすごくなってるよ。" },
+      { id: 19, rank: "末吉", type: "まじめ系", text: "きょうはちいさなことに気づけるひ。ありさんとか、そらのかたちとか、見つけてみよう。" },
+      { id: 20, rank: "凶", type: "まじめ系", text: "きょうはのんびりいこう。ゆっくりするのも、だいじなこと。" },
+      { id: 21, rank: "大吉", type: "指示系", text: "いまスグ！パパかママに「だいすき」と言おう。きっといいことがあるよ。" },
+      { id: 22, rank: "大吉", type: "指示系", text: "パパかママに「ぎゅー」としてみよう。これがきょうのおまじない。" },
+      { id: 23, rank: "吉", type: "指示系", text: "パパかママに「かわいいね」と言ってあげよう。どんなかおをするかな？" },
+      { id: 24, rank: "吉", type: "指示系", text: "パパかママのてをつないで「つれてきてくれてありがとう」と言ってみよう。" },
+      { id: 25, rank: "吉", type: "指示系", text: "パパのあたまをやさしくなでてあげよう。パパはよろこぶ（はず）。" },
+      { id: 26, rank: "吉", type: "指示系", text: "パパかママに「はなうたをうたって」とおねがいしてみよう。" },
+      { id: 27, rank: "吉", type: "指示系", text: "パパかママと「ないしょばなし」をしよう。ないようはなんでもいい。" },
+      { id: 28, rank: "吉", type: "指示系", text: "パパかママに「きょうのごはんなに？」ときいてみよう。それがきょうのラッキーごはん。" },
+      { id: 29, rank: "中吉", type: "指示系", text: "ママに「いつもありがとう」とひとこと言おう。それだけできょうは大せいこう。" },
+      { id: 30, rank: "中吉", type: "指示系", text: "パパかママにかたたたきを10かいしてあげよう。よろこばれるよ。" },
+      { id: 31, rank: "中吉", type: "指示系", text: "パパかママに「いっしょにあそぼ」と言おう。ことわられたらもう一回。" },
+      { id: 32, rank: "中吉", type: "指示系", text: "パパかママに「きょうもかっこいいね」と言おう。てれたかおをみのがさないで。" },
+      { id: 33, rank: "中吉", type: "指示系", text: "パパかママのてのひらに、ゆびで「だいすき」とかいてあげよう。" },
+      { id: 34, rank: "小吉", type: "指示系", text: "パパかママのくつをそっとならべてあげよう。びっくりするよ。" },
+      { id: 35, rank: "小吉", type: "指示系", text: "パパかママのかおを10びょう、じーっとみつめてみよう。なにか言ってくるよ。" },
+      { id: 36, rank: "小吉", type: "指示系", text: "パパかママに「ぼくのえがおみて」と言って、にっこりしてみよう。" },
+      { id: 37, rank: "末吉", type: "指示系", text: "パパかママのまねをして10ぽあるいてみよう。にてるかな？" },
+      { id: 38, rank: "末吉", type: "指示系", text: "パパかママに「だいじょうぶ？」ときいてあげよう。やさしいきみがすき。" },
+      { id: 39, rank: "凶", type: "指示系", text: "パパかママに変顔をしてみよう。わらわなかったら、もう一回。" },
+      { id: 40, rank: "凶", type: "指示系", text: "パパかママに「せかいでいちばんすき」と言おう。はずかしくてもがんばれ。" },
+      { id: 41, rank: "大吉", type: "マイム系", text: "みえないふうせんをふくらませて、そらにとばしてみよう。" },
+      { id: 42, rank: "吉", type: "マイム系", text: "みえないボールを、そーっとわたしてみよう。" },
+      { id: 43, rank: "吉", type: "マイム系", text: "みえないなわとびを、ぴょんぴょんとんでみよう。" },
+      { id: 44, rank: "吉", type: "マイム系", text: "みえないピアノを、おゆびでひいてみよう。" },
+      { id: 45, rank: "吉", type: "マイム系", text: "みえないはしごを、よいしょよいしょとのぼってみよう。" },
+      { id: 46, rank: "吉", type: "マイム系", text: "みえないドアを、トントンたたいて、そーっとあけてみよう。" },
+      { id: 47, rank: "中吉", type: "マイム系", text: "みえないおおきないわを、うんしょうんしょとおしてみよう。" },
+      { id: 48, rank: "中吉", type: "マイム系", text: "みえないおもいにもつを、よろよろはこんでみよう。" },
+      { id: 49, rank: "中吉", type: "マイム系", text: "みえないアイスクリームを、おいしそうにたべてみよう。" },
+      { id: 50, rank: "中吉", type: "マイム系", text: "みえないちょうちょを、そーっとつかまえてみよう。" },
+      { id: 51, rank: "小吉", type: "マイム系", text: "みえないしゃぼんだまを、ふーっとふいてみよう。" },
+      { id: 52, rank: "小吉", type: "マイム系", text: "みえないにもつを、あたまにのせてそーっとあるいてみよう。" },
+      { id: 53, rank: "小吉", type: "マイム系", text: "みえないロープを、ぐいぐいひっぱってみよう。" },
+      { id: 54, rank: "末吉", type: "マイム系", text: "みえないくものすにひっかかって、もがいてみよう。" },
+      { id: 55, rank: "凶", type: "マイム系", text: "みえないちいさなむしが、せなかにいるよ！とってみよう。" },
+      { id: 56, rank: "大吉", type: "モノマネ系", text: "ライオンになって、パパかママに「がおー！」ってやってみよう。" },
+      { id: 57, rank: "吉", type: "モノマネ系", text: "ゾウになって、おはなをのばしてあるいてみよう。" },
+      { id: 58, rank: "吉", type: "モノマネ系", text: "ペンギンになって、よちよちあるいてみよう。" },
+      { id: 59, rank: "吉", type: "モノマネ系", text: "ひこうきになって、てをひろげてはしってみよう。" },
+      { id: 60, rank: "吉", type: "モノマネ系", text: "ロボットになって、かくかくうごいてみよう。" },
+      { id: 61, rank: "吉", type: "モノマネ系", text: "カエルになって、ぴょんぴょんとんでみよう。" },
+      { id: 62, rank: "吉", type: "モノマネ系", text: "にんじゃになって、おとをたてずにあるいてみよう。" },
+      { id: 63, rank: "中吉", type: "モノマネ系", text: "ねこになって、にゃーんとないてみよう。" },
+      { id: 64, rank: "中吉", type: "モノマネ系", text: "うさぎになって、ぴょんぴょんはねてみよう。" },
+      { id: 65, rank: "中吉", type: "モノマネ系", text: "おすもうさんになって、どすこい！とやってみよう。" },
+      { id: 66, rank: "中吉", type: "モノマネ系", text: "ゴリラになって、むねをドンドンたたいてみよう。" },
+      { id: 67, rank: "中吉", type: "モノマネ系", text: "おばけになって、うらめしやーとおどかしてみよう。" },
+      { id: 68, rank: "小吉", type: "モノマネ系", text: "おじいさんになって、こしをまげてゆっくりあるいてみよう。" },
+      { id: 69, rank: "小吉", type: "モノマネ系", text: "へびになって、にょろにょろうごいてみよう。" },
+      { id: 70, rank: "小吉", type: "モノマネ系", text: "とりになって、ぱたぱたとんでみよう。" },
+      { id: 71, rank: "小吉", type: "モノマネ系", text: "おはなになって、ゆっくりさいてみよう。" },
+      { id: 72, rank: "末吉", type: "モノマネ系", text: "なまけものになって、ゆーっくりうごいてみよう。" },
+      { id: 73, rank: "末吉", type: "モノマネ系", text: "かめになって、ゆーっくりあるいてみよう。" },
+      { id: 74, rank: "凶", type: "モノマネ系", text: "あかちゃんになって、ばぶばぶと言ってみよう。" },
+      { id: 75, rank: "大凶", type: "モノマネ系", text: "なみになって、ざぶーんとたおれてみよう。いたくないようにね。" },
+      { id: 76, rank: "大吉", type: "行動系", text: "パパかママになげキッスをしてみよう。" },
+      { id: 77, rank: "大吉", type: "行動系", text: "りょうてでハートをつくって、パパかママにみせてあげよう。" },
+      { id: 78, rank: "吉", type: "行動系", text: "いちばんいいえがおを、パパかママにみせてあげよう。" },
+      { id: 79, rank: "吉", type: "行動系", text: "その場で3かい、おもいっきりジャンプしてみよう。" },
+      { id: 80, rank: "吉", type: "行動系", text: "パパかママのてをにぎって、くるっとまわってみよう。" },
+      { id: 81, rank: "吉", type: "行動系", text: "こぶしをそらにむけて「ファイトー！」と言ってみよう。" },
+      { id: 82, rank: "吉", type: "行動系", text: "パパかママにぺこっとおじぎをしてみよう。" },
+      { id: 83, rank: "吉", type: "行動系", text: "パパかママのかたをトントンたたいてあげよう。" },
+      { id: 84, rank: "吉", type: "行動系", text: "パパかママとおなじポーズをしてみよう。せーので！" },
+      { id: 85, rank: "中吉", type: "行動系", text: "パパかママにむかって、びしっとけいれいしてみよう。" },
+      { id: 86, rank: "中吉", type: "行動系", text: "パパかママのてのこうに「よくできました」のはんこをおしてあげよう。" },
+      { id: 87, rank: "中吉", type: "行動系", text: "りょうてをひろげて、ぐるぐるまわってみよう。" },
+      { id: 88, rank: "中吉", type: "行動系", text: "パパかママとじゃんけんをしよう。かったひとがきょうのえらいひと。" },
+      { id: 89, rank: "中吉", type: "行動系", text: "パパかママと一緒にジャンプしよう。「せーの」がポイント。" },
+      { id: 90, rank: "中吉", type: "行動系", text: "うでをぐるぐるまわして、たいそうしてみよう。" },
+      { id: 91, rank: "小吉", type: "行動系", text: "パパかママにウインクしてみよう。できるかな？" },
+      { id: 92, rank: "小吉", type: "行動系", text: "パパかママとにらめっこしよう。わらったらまけ。" },
+      { id: 93, rank: "小吉", type: "行動系", text: "つまさきだちで5ほあるいてみよう。たおれないでね。" },
+      { id: 94, rank: "小吉", type: "行動系", text: "ちからもちポーズをしてみよう。うでにちからこぶをつくって！" },
+      { id: 95, rank: "末吉", type: "行動系", text: "おおきくしんこきゅうをしてみよう。すーはーすーはー。" },
+      { id: 96, rank: "末吉", type: "行動系", text: "めをとじて10びょう。なにがきこえるかな？" },
+      { id: 97, rank: "末吉", type: "行動系", text: "りょうてをグーにして、ガッツポーズをしてみよう。" },
+      { id: 98, rank: "末吉", type: "行動系", text: "その場でくるっとまわって、ぴたっととまってみよう。できるかな？" },
+      { id: 99, rank: "凶", type: "行動系", text: "かたあしだちで10びょう、たってみよう。ゆれてもだいじょうぶ。" },
+      { id: 100, rank: "大凶", type: "行動系", text: "パパかママにとびついてみよう。うけとめてくれる…かな？" }
     ];
 
     const RANK_META = {
@@ -1977,8 +2013,75 @@
         capColor: "linear-gradient(180deg, #c0c8d0, #9aa5b0)",
         capColor2: "linear-gradient(180deg, #65707b, #353d47)",
         helper: "これからよくなる日です。あせらず自分のペースでいきましょう。"
+      },
+      "凶": {
+        cls: "rank-kyo",
+        tier: "sue",
+        capColor: "linear-gradient(180deg, #9aa5b0, #65707b)",
+        capColor2: "linear-gradient(180deg, #3e4650, #1d2229)",
+        helper: "今日はむりせず、ゆっくり楽しみましょう。"
+      },
+      "大凶": {
+        cls: "rank-daikyo",
+        tier: "sue",
+        capColor: "linear-gradient(180deg, #7e2a37, #3e1119)",
+        capColor2: "linear-gradient(180deg, #2a0b12, #080203)",
+        helper: "あわてず、けがをしないようにゆっくりいきましょう。"
       }
     };
+
+    const LUCKY_ITEMS = [
+      "赤いもの",
+      "青いもの",
+      "黄色いもの",
+      "みどりのもの",
+      "ピンクのもの",
+      "むらさきのもの",
+      "オレンジのもの",
+      "しろいもの",
+      "くろいもの",
+      "にじいろのもの",
+      "キラキラしたもの",
+      "ふわふわしたもの",
+      "つるつるしたもの",
+      "まるいもの",
+      "しかくいもの",
+      "ながいもの",
+      "ちいさいもの",
+      "おおきいもの",
+      "やわらかいもの",
+      "ぴかぴかしたもの",
+      "にこにこえがお",
+      "げんきなあいさつ",
+      "やさしいきもち",
+      "るんるん気分",
+      "わくわくするもの",
+      "ジャンプ",
+      "すべりだい",
+      "ボール",
+      "トンネル",
+      "ブロック",
+      "まわるもの",
+      "のぼるあそび",
+      "くぐるあそび",
+      "おえかき",
+      "えほん",
+      "どうぶつ",
+      "おほしさま",
+      "おはな",
+      "きらきらおめめ",
+      "パパかママの手",
+      "おともだちのえがお",
+      "たのしいおしゃべり",
+      "ちいさなはっけん",
+      "ひみつのばしょ",
+      "きもちいいいろ",
+      "すてきなかたち",
+      "たのしいおと",
+      "がんばるきもち",
+      "やさしいこえ",
+      "うれしいきぶん"
+    ];
 
     const reelRank = document.getElementById("reelRank");
     const reelType = document.getElementById("reelType");
@@ -1990,7 +2093,6 @@
     const drawPaper = document.getElementById("drawPaper");
     const woodenTag = document.getElementById("woodenTag");
     const ofudaRain = document.getElementById("ofudaRain");
-    const trayLabel = document.getElementById("trayLabel");
 
     document.getElementById("topBackLink").href = STAMP_TOP_URL;
     document.getElementById("topHomeLink").href = STAMP_TOP_URL;
@@ -2025,7 +2127,7 @@
       const flicker = setInterval(() => {
         const preview = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
         reelRank.textContent = preview.rank;
-        reelType.textContent = preview.type;
+        reelType.textContent = "ご神託をえらんでいます";
         count++;
 
         if (count >= flickerSteps) {
@@ -2043,7 +2145,7 @@
       const meta = RANK_META[picked.rank] || RANK_META["中吉"];
 
       reelRank.textContent = picked.rank;
-      reelType.textContent = picked.type;
+      reelType.textContent = "ご神託がとどきました";
 
       // brief settle pause
       setTimeout(() => {
@@ -2060,6 +2162,7 @@
       // Reset overlay state
       drawOverlay.className = "draw-overlay tier-" + meta.tier;
       drawOverlay.setAttribute("aria-hidden", "false");
+      drawCapsule.classList.remove("crack");
       ofudaRain.innerHTML = "";
 
       // Configure the capsule colors and rank text
@@ -2067,18 +2170,18 @@
       drawCapsule.style.setProperty("--cap-color2", meta.capColor2);
       document.getElementById("capRank").textContent = picked.rank;
 
-      // Configure the paper card (used for 小吉 and above)
+      // Configure the paper card (used for higher-tier results)
       const paperRank = document.getElementById("paperRank");
       const paperTag = document.getElementById("paperTag");
       const paperMsg = document.getElementById("paperMsg");
       paperRank.className = "paper-card-rank " + (meta.tier === "dai" ? "r-dai" : "");
       paperRank.textContent = picked.rank;
-      paperTag.textContent = picked.type === "指示系" ? "— ご神託（行動）—" : "— ご神託（言の葉）—";
+      paperTag.textContent = "— ご神託 —";
       paperMsg.textContent = picked.text;
 
-      // Configure wooden tag (used for 末吉)
+      // Configure wooden tag (used for lower-tier results)
       document.getElementById("woodenRank").textContent = picked.rank;
-      document.getElementById("woodenTag2").textContent = picked.type === "指示系" ? "— 行動 —" : "— 言の葉 —";
+      document.getElementById("woodenTag2").textContent = "— ご神託 —";
       document.getElementById("woodenMsg").textContent = picked.text;
 
       requestAnimationFrame(() => {
@@ -2107,11 +2210,11 @@
         // 小吉: very mild
         setTimeout(() => vibrate([35, 20, 55]), 4600);
       } else if (meta.tier === "sue") {
-        // 末吉: jam shudder, sad wooden drop, no ofuda
+        // Lower tier: jam shudder, wooden drop, no ofuda
         setTimeout(() => vibrate([20, 200, 20]), 4600);
       }
 
-      // For 末吉, hide the paper and show the wooden tag instead
+      // For lower tiers, hide the paper and show the wooden tag instead
       if (meta.tier === "sue") {
         drawPaper.style.display = "none";
         woodenTag.style.display = "block";
@@ -2135,10 +2238,8 @@
       drawOverlay.classList.remove("show");
       drawOverlay.setAttribute("aria-hidden", "true");
 
-      trayLabel.textContent = `ご神託：${picked.rank}（No.${picked.id}）`;
-      trayLabel.style.color = "var(--shrine-gold)";
-
-      renderResult(picked, meta);
+      const luckyItem = pickLuckyItem();
+      renderResult(picked, meta, luckyItem);
 
       isDrawing = false;
     }
@@ -2155,6 +2256,10 @@
       }
       lastResultId = picked.id;
       return picked;
+    }
+
+    function pickLuckyItem() {
+      return LUCKY_ITEMS[Math.floor(Math.random() * LUCKY_ITEMS.length)];
     }
 
     function spawnOfudaRain(count) {
@@ -2175,13 +2280,13 @@
       }
     }
 
-    function renderResult(picked, meta) {
-      const isDirective = picked.type === "指示系";
+    function renderResult(picked, meta, luckyItem) {
+      const isDirective = isDirectiveType(picked.type);
 
       resultCard.innerHTML = `
         <div class="result-head">
           <div class="rank-badge ${meta.cls}">${escapeHtml(picked.rank)}</div>
-          <p class="result-no">No.${picked.id} / ${escapeHtml(picked.type)}</p>
+          <p class="result-no">きょうのご神託</p>
         </div>
 
         <div class="result-body">
@@ -2189,6 +2294,11 @@
             <span class="message-type">${isDirective ? "やってみよう！" : "きょうのメッセージ"}</span>
             <p class="message-text">${escapeHtml(picked.text)}</p>
           </section>
+
+          <div class="helper-card">
+            <p class="helper-title">ラッキーアイテム</p>
+            <p class="helper-text">${escapeHtml(luckyItem)}</p>
+          </div>
 
           <div class="result-actions">
             <a class="btn btn-sub" href="${STAMP_TOP_URL}">スタンプラリーへ戻る</a>
@@ -2204,6 +2314,10 @@
 
     function vibrate(pattern) {
       try { navigator.vibrate?.(pattern); } catch (e) {}
+    }
+
+    function isDirectiveType(type) {
+      return type !== "まじめ系";
     }
 
     function escapeHtml(value) {
