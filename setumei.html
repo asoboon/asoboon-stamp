@@ -2571,7 +2571,7 @@
         }
       }
 
-      /* 旧演出レイヤー: 最終の立体駐車場テーマで上書き */
+      /* 旧演出レイヤー: 最終のガレージテーマで上書き */
       :root {
         --neon-cyan: #42f8ff;
         --neon-blue: #4a7dff;
@@ -3219,7 +3219,7 @@
         }
       }
 
-      /* 1000点チューニング: 機械式立体駐車場・モータープール */
+      /* 1000点チューニング: ガレージ・モータープール */
       :root {
         --garage-bg: #1f2328;
         --garage-bg-deep: #111418;
@@ -3622,69 +3622,6 @@
         animation: afterfire-sparks 1.55s ease-out infinite;
       }
 
-      .traffic-tower {
-        position: fixed;
-        right: 20px;
-        bottom: 138px;
-        width: 32px;
-        padding: 6px;
-        border-radius: 16px;
-        background: linear-gradient(180deg, #424950, #16191d);
-        border: 2px solid rgba(0, 0, 0, 0.62);
-        box-shadow: 0 10px 16px rgba(0, 0, 0, 0.32);
-        z-index: 4;
-      }
-
-      .traffic-light {
-        display: block;
-        width: 16px;
-        height: 16px;
-        margin: 5px auto;
-        border-radius: 50%;
-        background: #272b30;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
-      }
-
-      .traffic-light--red {
-        background: var(--garage-red);
-        animation: signal-cycle-red 4.8s step-end infinite;
-      }
-
-      .traffic-light--amber {
-        background: var(--garage-yellow);
-        animation: signal-cycle-amber 4.8s step-end infinite;
-      }
-
-      .traffic-light--blue {
-        background: #7f8890;
-        animation: signal-cycle-go 4.8s step-end infinite;
-      }
-
-      .gate-arm {
-        position: fixed;
-        bottom: 128px;
-        width: 138px;
-        height: 12px;
-        border: 2px solid #151719;
-        border-radius: 999px;
-        background:
-          repeating-linear-gradient(90deg, #f5bd22 0 18px, #151719 18px 34px);
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.24);
-        z-index: 3;
-        transform-origin: 12px 50%;
-        animation: gate-open 4.8s cubic-bezier(0.36, 0, 0.24, 1) infinite;
-      }
-
-      .gate-arm--left {
-        left: 26px;
-      }
-
-      .gate-arm--right {
-        right: 26px;
-        transform-origin: calc(100% - 12px) 50%;
-        animation-name: gate-open-reverse;
-      }
-
       .garage-readout {
         position: fixed;
         left: 50%;
@@ -3796,6 +3733,128 @@
         letter-spacing: 0.14em;
       }
 
+      .start-light-rig {
+        position: fixed;
+        top: clamp(48px, 6vh, 66px);
+        right: max(10px, calc((100vw - 460px) / 2 - 124px));
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        width: 118px;
+        padding: 8px 10px;
+        border-radius: 18px;
+        border: 3px solid rgba(244, 238, 223, 0.78);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
+          linear-gradient(180deg, #343b43, #111418);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.16),
+          0 10px 20px rgba(0, 0, 0, 0.34);
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.78;
+      }
+
+      .start-light-rig::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: -18px;
+        height: 18px;
+        border-left: 3px solid rgba(244, 238, 223, 0.5);
+        border-right: 3px solid rgba(244, 238, 223, 0.5);
+      }
+
+      .start-light {
+        display: block;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid #15191d;
+        background: #252b31;
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.58),
+          0 0 0 rgba(255, 255, 255, 0);
+      }
+
+      .start-light--red {
+        background: var(--garage-red);
+        animation: start-red 3.4s step-end infinite;
+      }
+
+      .start-light--amber {
+        background: var(--garage-yellow);
+        animation: start-amber 3.4s step-end infinite;
+      }
+
+      .start-light--green {
+        background: #42f8ff;
+        animation: start-green 3.4s step-end infinite;
+      }
+
+      .start-flag {
+        position: fixed;
+        top: clamp(54px, 7vh, 74px);
+        left: max(10px, calc((100vw - 460px) / 2 - 98px));
+        width: 84px;
+        height: 72px;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.72;
+        transform: rotate(-7deg);
+        transform-origin: 12px 72px;
+        animation: start-flag-sway 1.65s ease-in-out infinite;
+      }
+
+      .start-flag::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        width: 5px;
+        height: 72px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #f4eedf, #596169 58%, #15191d);
+        box-shadow: 3px 0 0 rgba(0, 0, 0, 0.24);
+      }
+
+      .start-flag__cloth {
+        position: absolute;
+        left: 15px;
+        top: 10px;
+        width: 64px;
+        height: 42px;
+        border-radius: 4px 14px 12px 4px;
+        border: 2px solid rgba(21, 25, 29, 0.74);
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.2), transparent 32%),
+          repeating-conic-gradient(#f4eedf 0 25%, #15191d 0 50%) 0 0 / 18px 18px;
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.18),
+          0 8px 15px rgba(0, 0, 0, 0.28);
+        transform-origin: 0 50%;
+        animation: start-cloth-wave 0.78s ease-in-out infinite alternate;
+      }
+
+      @media (max-width: 520px) {
+        .start-light-rig {
+          top: 52px;
+          right: 8px;
+          transform: scale(0.78);
+          transform-origin: top right;
+          opacity: 0.5;
+        }
+
+        .start-flag {
+          top: 58px;
+          left: 8px;
+          transform: scale(0.78) rotate(-7deg);
+          transform-origin: top left;
+          opacity: 0.46;
+        }
+      }
+
       .brand,
       .back-btn,
       .hero,
@@ -3854,15 +3913,6 @@
       .exit-sub,
       .exit-card p {
         color: #3c4248;
-      }
-
-      .hero h1::before {
-        content: "";
-        display: block;
-        margin-bottom: 7px;
-        color: #6b4700;
-        font-size: 0.64rem;
-        letter-spacing: 0.14em;
       }
 
       .hero p::before {
@@ -4213,14 +4263,14 @@
 
       .nitro-booster {
         position: fixed;
-        left: clamp(118px, 26vw, 184px);
-        bottom: 112px;
+        left: clamp(20px, 4vw, 40px);
+        bottom: 34px;
         display: block;
-        width: 54px;
-        height: 184px;
+        width: clamp(48px, 11vw, 62px);
+        height: clamp(136px, 18vh, 176px);
         pointer-events: none;
         z-index: 2;
-        opacity: 0.82;
+        opacity: 0.9;
         filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.34));
       }
 
@@ -4303,16 +4353,116 @@
       }
 
       .nitro-booster__hose {
+        display: none;
+      }
+
+      .muffler-stack {
         position: fixed;
-        left: clamp(88px, 20vw, 144px);
-        bottom: 130px;
-        width: 88px;
-        height: 48px;
-        border: solid rgba(66, 248, 255, 0.62);
-        border-width: 0 5px 5px 0;
-        border-radius: 0 0 32px 0;
-        box-shadow: 0 0 14px rgba(66, 248, 255, 0.32);
-        animation: nitro-hose-glow 1.1s ease-in-out infinite;
+        right: clamp(20px, 4vw, 40px);
+        bottom: 34px;
+        display: block;
+        width: clamp(48px, 11vw, 62px);
+        height: clamp(136px, 18vh, 176px);
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.9;
+        filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.34));
+      }
+
+      .muffler-stack__body {
+        position: absolute;
+        left: 50%;
+        top: 8px;
+        bottom: 42px;
+        width: 70%;
+        border-radius: 22px;
+        border: 4px solid #15191d;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.48), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.3)),
+          repeating-linear-gradient(180deg, #dfe4e7 0 12px, #9099a2 12px 17px, #4a5259 17px 29px);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.5),
+          inset 0 0 22px rgba(66, 248, 255, 0.18);
+        transform: translateX(-50%);
+        animation: muffler-body-pulse 1.55s ease-in-out infinite;
+      }
+
+      .muffler-stack__body::before {
+        content: "MUFF";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        color: #fff4bd;
+        font-size: 0.54rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
+
+      .muffler-stack__tip {
+        position: absolute;
+        left: 50%;
+        bottom: 26px;
+        width: 34px;
+        height: 22px;
+        border-radius: 0 0 999px 999px;
+        border: 3px solid #15191d;
+        background: linear-gradient(180deg, #f4eedf, #7a828a 62%, #15191d);
+        transform: translateX(-50%);
+        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.42);
+      }
+
+      .muffler-stack__flame {
+        position: absolute;
+        left: 50%;
+        bottom: -24px;
+        width: 30px;
+        height: 64px;
+        border-radius: 50% 50% 44% 44%;
+        background:
+          radial-gradient(circle at 50% 20%, #ffffff 0 14%, transparent 15%),
+          radial-gradient(circle at 50% 38%, #42f8ff 0 24%, transparent 25%),
+          linear-gradient(180deg, #42f8ff 0%, #f5bd22 48%, #ff3434 100%);
+        filter: blur(0.2px);
+        transform: translateX(-50%) scaleY(0.12);
+        transform-origin: 50% 0;
+        opacity: 0;
+        animation: muffler-afterfire-down 1.55s cubic-bezier(0.18, 0, 0.22, 1) infinite;
+      }
+
+      .muffler-stack__burst {
+        position: absolute;
+        left: 50%;
+        bottom: -34px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 52, 52, 0.82);
+        background:
+          radial-gradient(circle, rgba(255, 244, 189, 0.92) 0 12%, rgba(245, 189, 34, 0.72) 13% 28%, rgba(255, 52, 52, 0.28) 29% 44%, transparent 45%);
+        box-shadow:
+          0 0 18px rgba(255, 52, 52, 0.7),
+          0 0 28px rgba(245, 189, 34, 0.38);
+        transform: translateX(-50%) scale(0.08);
+        opacity: 0;
+        animation: muffler-afterfire-burst-down 1.55s cubic-bezier(0.18, 0, 0.22, 1) infinite;
+      }
+
+      .muffler-stack__spark {
+        position: absolute;
+        left: 50%;
+        bottom: 4px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #fff4bd;
+        box-shadow:
+          -13px 12px 0 #ff3434,
+          8px 24px 0 #f5bd22,
+          -4px 37px 0 #42f8ff;
+        opacity: 0;
+        animation: muffler-afterfire-sparks-down 1.55s ease-out infinite;
       }
 
       .cockpit-gauge-pack {
@@ -4328,13 +4478,13 @@
 
       .cockpit-gauge-pack--a {
         left: clamp(6px, 3vw, 28px);
-        bottom: 82px;
+        bottom: clamp(206px, 28vh, 282px);
         width: clamp(72px, 18vw, 112px);
       }
 
       .cockpit-gauge-pack--b {
         right: clamp(6px, 3vw, 28px);
-        bottom: 82px;
+        bottom: clamp(206px, 28vh, 282px);
         width: clamp(72px, 18vw, 112px);
       }
 
@@ -4596,6 +4746,72 @@
         }
       }
 
+      @keyframes muffler-body-pulse {
+        0%,
+        100% {
+          box-shadow:
+            inset 0 2px 0 rgba(255, 255, 255, 0.5),
+            inset 0 0 22px rgba(66, 248, 255, 0.18);
+        }
+        50% {
+          box-shadow:
+            inset 0 2px 0 rgba(255, 255, 255, 0.62),
+            inset 0 0 30px rgba(255, 52, 52, 0.24),
+            0 0 18px rgba(245, 189, 34, 0.3);
+        }
+      }
+
+      @keyframes muffler-afterfire-down {
+        0%,
+        36%,
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) scaleY(0.12);
+        }
+        44% {
+          opacity: 1;
+          transform: translateX(-50%) scaleY(1.16);
+        }
+        56% {
+          opacity: 0.66;
+          transform: translateX(-50%) scaleY(0.72);
+        }
+      }
+
+      @keyframes muffler-afterfire-burst-down {
+        0%,
+        38%,
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) scale(0.08);
+        }
+        48% {
+          opacity: 0.96;
+          transform: translateX(-50%) scale(0.86);
+        }
+        64% {
+          opacity: 0;
+          transform: translateX(-50%) scale(1.42);
+        }
+      }
+
+      @keyframes muffler-afterfire-sparks-down {
+        0%,
+        40%,
+        100% {
+          opacity: 0;
+          transform: translate3d(0, 0, 0) scale(0.5);
+        }
+        49% {
+          opacity: 1;
+          transform: translate3d(-7px, 12px, 0) scale(1);
+        }
+        68% {
+          opacity: 0;
+          transform: translate3d(-18px, 46px, 0) scale(0.64);
+        }
+      }
+
       @keyframes afterfire-blast {
         0%,
         36%,
@@ -4788,69 +5004,6 @@
         }
       }
 
-      @keyframes signal-cycle-red {
-        0%,
-        34% {
-          filter: brightness(1.3);
-        }
-        35%,
-        100% {
-          filter: brightness(0.36);
-        }
-      }
-
-      @keyframes signal-cycle-amber {
-        0%,
-        34%,
-        66%,
-        100% {
-          filter: brightness(0.36);
-        }
-        35%,
-        65% {
-          filter: brightness(1.35);
-        }
-      }
-
-      @keyframes signal-cycle-go {
-        0%,
-        65% {
-          filter: brightness(0.36);
-        }
-        66%,
-        100% {
-          filter: brightness(1.25);
-        }
-      }
-
-      @keyframes gate-open {
-        0%,
-        28% {
-          transform: rotate(0deg);
-        }
-        48%,
-        82% {
-          transform: rotate(-58deg);
-        }
-        100% {
-          transform: rotate(0deg);
-        }
-      }
-
-      @keyframes gate-open-reverse {
-        0%,
-        28% {
-          transform: rotate(0deg);
-        }
-        48%,
-        82% {
-          transform: rotate(58deg);
-        }
-        100% {
-          transform: rotate(0deg);
-        }
-      }
-
       @keyframes readout-blink {
         0%,
         72%,
@@ -4860,6 +5013,66 @@
         73%,
         82% {
           opacity: 0.55;
+        }
+      }
+
+      @keyframes start-red {
+        0%,
+        30% {
+          filter: brightness(1.35);
+          box-shadow: 0 0 16px rgba(255, 52, 52, 0.72);
+        }
+        31%,
+        100% {
+          filter: brightness(0.34);
+          box-shadow: none;
+        }
+      }
+
+      @keyframes start-amber {
+        0%,
+        31%,
+        64%,
+        100% {
+          filter: brightness(0.34);
+          box-shadow: none;
+        }
+        32%,
+        63% {
+          filter: brightness(1.38);
+          box-shadow: 0 0 16px rgba(245, 189, 34, 0.72);
+        }
+      }
+
+      @keyframes start-green {
+        0%,
+        64% {
+          filter: brightness(0.34);
+          box-shadow: none;
+        }
+        65%,
+        100% {
+          filter: brightness(1.28);
+          box-shadow: 0 0 18px rgba(66, 248, 255, 0.76);
+        }
+      }
+
+      @keyframes start-flag-sway {
+        0%,
+        100% {
+          rotate: 0deg;
+        }
+        50% {
+          rotate: 3deg;
+        }
+      }
+
+      @keyframes start-cloth-wave {
+        from {
+          transform: skewY(-2deg) scaleX(0.96);
+        }
+        to {
+          transform: skewY(4deg) scaleX(1.03);
         }
       }
 
@@ -4967,6 +5180,14 @@
       <span class="base-bolt base-bolt--c"></span>
       <span class="base-gauge base-gauge--left"></span>
       <span class="base-gauge base-gauge--right"></span>
+      <span class="start-light-rig">
+        <span class="start-light start-light--red"></span>
+        <span class="start-light start-light--amber"></span>
+        <span class="start-light start-light--green"></span>
+      </span>
+      <span class="start-flag">
+        <span class="start-flag__cloth"></span>
+      </span>
       <span class="cockpit-dashboard"></span>
       <span class="cockpit-wheel"></span>
       <span class="nitro-booster">
@@ -5054,39 +5275,13 @@
           </span>
         </span>
       </span>
-      <span class="base-pipe base-pipe--left"></span>
-      <span class="base-pipe base-pipe--right"></span>
-      <span class="garage-levels">
-        <span class="garage-level garage-level--1"><span class="garage-level__label">4F</span></span>
-        <span class="garage-level garage-level--2"><span class="garage-level__label">3F</span></span>
-        <span class="garage-level garage-level--3"><span class="garage-level__label">2F</span></span>
-        <span class="garage-level garage-level--4"><span class="garage-level__label">1F</span></span>
+      <span class="muffler-stack">
+        <span class="muffler-stack__body"></span>
+        <span class="muffler-stack__tip"></span>
+        <span class="muffler-stack__flame"></span>
+        <span class="muffler-stack__burst"></span>
+        <span class="muffler-stack__spark"></span>
       </span>
-      <span class="garage-shaft garage-shaft--left"></span>
-      <span class="garage-shaft garage-shaft--right"></span>
-      <span class="lift-cable lift-cable--a"></span>
-      <span class="lift-cable lift-cable--b"></span>
-      <span class="parking-platform">
-        <span class="platform-rail platform-rail--front"></span>
-        <span class="platform-rail platform-rail--back"></span>
-          <span class="platform-car">
-            <span class="platform-car__window"></span>
-            <span class="platform-car__light platform-car__light--left"></span>
-            <span class="platform-car__light platform-car__light--right"></span>
-            <span class="platform-car__muffler"></span>
-            <span class="afterfire-flame"></span>
-            <span class="afterfire-burst"></span>
-            <span class="afterfire-spark"></span>
-          </span>
-        </span>
-      <span class="traffic-tower">
-        <span class="traffic-light traffic-light--red"></span>
-        <span class="traffic-light traffic-light--amber"></span>
-        <span class="traffic-light traffic-light--blue"></span>
-      </span>
-      <span class="gate-arm gate-arm--left"></span>
-      <span class="gate-arm gate-arm--right"></span>
-      <span class="garage-readout">P-999</span>
     </div>
 
     <div class="app">
