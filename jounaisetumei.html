@@ -5036,6 +5036,10 @@
         animation-delay: 0.54s;
       }
 
+      body[data-view="home"] .menu-card:nth-child(5) {
+        animation-delay: 0.72s;
+      }
+
       body[data-view="home"] .menu-card:active {
         transform: translateY(3px) scale(0.985);
         filter: brightness(1.08);
@@ -5764,19 +5768,35 @@
           </div>
 
           <div class="menu-list">
-            <button class="menu-card" type="button" onclick="launchView(this, 'reentry')">
+            <button class="menu-card" type="button" onclick="launchView(this, 'family-reentry')">
               <div class="menu-card__head menu-card__head--red">
                 <div class="menu-card__icon">🎫</div>
                 <div>
-                  <div class="menu-card__title">一時退場再入場</div>
-                  <span class="menu-card__sub">TEMPORARY EXIT</span>
+                  <div class="menu-card__title">全員で一時退場再入場</div>
+                  <span class="menu-card__sub">FAMILY REENTRY</span>
                 </div>
               </div>
               <div class="topic-list">
-                <div class="topic-item">赤・黄ホルダーについて</div>
-                <div class="topic-item">少し外に出たい</div>
-                <div class="topic-item">黄色ホルダーで保護者のみ入退場</div>
-                <div class="topic-item">家族全員で一時退場</div>
+                <div class="topic-item">家族みんなで一度外に出る</div>
+                <div class="topic-item">ロッカーを空にする</div>
+                <div class="topic-item">赤ホルダーからレシートを抜く</div>
+                <div class="topic-item">再入場時はレシート提示</div>
+              </div>
+            </button>
+
+            <button class="menu-card" type="button" onclick="launchView(this, 'guardian-outing')">
+              <div class="menu-card__head menu-card__head--orange">
+                <div class="menu-card__icon">🟡</div>
+                <div>
+                  <div class="menu-card__title">大人だけ外出</div>
+                  <span class="menu-card__sub">GUARDIAN OUTING</span>
+                </div>
+              </div>
+              <div class="topic-list">
+                <div class="topic-item">黄色ホルダーを持つ保護者</div>
+                <div class="topic-item">館内に別の保護者が残る</div>
+                <div class="topic-item">保護者のみ入退場できる</div>
+                <div class="topic-item">子どもだけを残して外出は不可</div>
               </div>
             </button>
 
@@ -5831,10 +5851,10 @@
           </div>
         </section>
 
-        <section class="view" id="view-reentry" aria-hidden="true">
+        <section class="view" id="view-family-reentry" aria-hidden="true">
           <div class="page-title">
-            <h1>一時退場・再入場について</h1>
-            <p>黄色ホルダーでの保護者のみ入退場と、家族全員での一時退場は別のルールです。</p>
+            <h1>全員で一時退場・再入場</h1>
+            <p>ご家族みなさまで一度外に出る場合の流れです。</p>
           </div>
 
           <div class="section-list">
@@ -5842,49 +5862,14 @@
               <div class="shared-safety-card__icon">!</div>
               <div>
                 <div class="shared-safety-card__label">共通ルール</div>
-                <strong>どちらの場合も、子どもだけを残して外に出ることはできません。</strong>
+                <strong>子どもだけを館内に残して外に出ることはできません。</strong>
               </div>
             </div>
 
             <article class="block">
-              <h2 class="block-title block-title--yellow">
-                <span class="block-title__num">1</span>
-                <span>🟡 黄色ホルダーで保護者のみ入退場</span>
-              </h2>
-
-              <div class="guardian-exit-card">
-                <div class="guardian-exit-card__holder">
-                  <span class="holder-chip holder-chip--yellow"></span>
-                  <span>黄色ホルダー</span>
-                </div>
-                <div class="guardian-exit-card__body">
-                  <div class="guardian-exit-card__label">保護者のみ入退場OK</div>
-                  <h3>黄色ホルダーをお持ちの保護者は、入退場できます</h3>
-                  <p>
-                    これは<strong>家族全員での一時退場とは別の扱い</strong>です。館内に保護者が残る場合のみ、黄色ホルダーを持つ保護者が入退場できます。
-                  </p>
-                  <div class="reentry-rule-list">
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag">OK</span>
-                      <span>黄色ホルダーを持つ保護者のみ入退場</span>
-                    </div>
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag reentry-rule-item__tag--condition">条件</span>
-                      <span>館内に別の保護者が残っていること</span>
-                    </div>
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag reentry-rule-item__tag--ng">NG</span>
-                      <span>保護者1名の会計で、子どもを残して外に出ること</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            <article class="block">
               <h2 class="block-title">
-                <span class="block-title__num">2</span>
-                <span>🔄 家族全員で一時退場する流れ</span>
+                <span class="block-title__num">1</span>
+                <span>🔄 一時退場の流れ</span>
               </h2>
 
               <div class="step-list">
@@ -5928,8 +5913,73 @@
 
             <article class="block">
               <h2 class="block-title">
-                <span class="block-title__num">3</span>
-                <span>🎫 ホルダーシステム</span>
+                <span class="block-title__num">2</span>
+                <span>🎫 レシートとホルダー</span>
+              </h2>
+              <p class="lead">
+                一時退場のときは、<strong>赤ホルダーのレシート</strong>を抜いてお持ちください。再入場時の確認に使用します。
+              </p>
+              <div class="inline-note">
+                <div class="note-card">黄色ホルダーをお持ちの場合も、家族全員で出るときはホルダーを返却ボックスへお戻しください。</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-guardian-outing" aria-hidden="true">
+          <div class="page-title">
+            <h1>大人だけ外出</h1>
+            <p>黄色ホルダーをお持ちの保護者の方向けのご案内です。</p>
+          </div>
+
+          <div class="section-list">
+            <div class="shared-safety-card">
+              <div class="shared-safety-card__icon">!</div>
+              <div>
+                <div class="shared-safety-card__label">共通ルール</div>
+                <strong>子どもだけを館内に残して外に出ることはできません。</strong>
+              </div>
+            </div>
+
+            <article class="block">
+              <h2 class="block-title block-title--yellow">
+                <span class="block-title__num">1</span>
+                <span>🟡 黄色ホルダーの保護者のみ対象</span>
+              </h2>
+
+              <div class="guardian-exit-card">
+                <div class="guardian-exit-card__holder">
+                  <span class="holder-chip holder-chip--yellow"></span>
+                  <span>黄色ホルダー</span>
+                </div>
+                <div class="guardian-exit-card__body">
+                  <div class="guardian-exit-card__label">保護者のみ入退場OK</div>
+                  <h3>黄色ホルダーをお持ちの保護者は、入退場できます</h3>
+                  <p>
+                    これは<strong>家族全員での一時退場とは別の扱い</strong>です。館内に保護者が残る場合のみ、黄色ホルダーを持つ保護者が入退場できます。
+                  </p>
+                  <div class="reentry-rule-list">
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag">OK</span>
+                      <span>黄色ホルダーを持つ保護者のみ入退場</span>
+                    </div>
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag reentry-rule-item__tag--condition">条件</span>
+                      <span>館内に別の保護者が残っていること</span>
+                    </div>
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag reentry-rule-item__tag--ng">NG</span>
+                      <span>保護者1名の会計で、子どもを残して外に出ること</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="block">
+              <h2 class="block-title">
+                <span class="block-title__num">2</span>
+                <span>🎫 ホルダーの見方</span>
               </h2>
               <p class="lead">
                 ひとつの会計につき <strong>赤ホルダー</strong> をひとつお渡し。大人が複数いる場合は追加で
