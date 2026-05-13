@@ -1197,6 +1197,10 @@
         animation-delay: 0.28s;
       }
 
+      .menu-card:nth-child(5) {
+        animation-delay: 0.36s;
+      }
+
       .menu-card::after {
         content: "";
         position: absolute;
@@ -4179,6 +4183,75 @@
         color: rgba(255, 255, 255, 0.9);
       }
 
+
+      .menu-list--home {
+        gap: 16px;
+      }
+
+      .home-card-shell {
+        display: grid;
+        gap: 8px;
+      }
+
+      .menu-card__label {
+        min-width: 0;
+      }
+
+      .menu-card__hint {
+        margin-top: 6px;
+        color: rgba(247, 241, 223, 0.92);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        font-weight: 700;
+      }
+
+      .home-detail-toggle {
+        justify-self: start;
+        border: 2px solid rgba(23, 26, 29, 0.22);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.96);
+        color: #252a30;
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      .home-detail-toggle::after {
+        content: " ＋";
+      }
+
+      .home-detail-toggle[aria-expanded="true"]::after {
+        content: " －";
+      }
+
+      .home-help-panel[hidden] {
+        display: none;
+      }
+
+      .topic-list--home {
+        padding: 12px;
+        border-radius: var(--radius-lg);
+        border: 2px solid rgba(23, 26, 29, 0.16);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+      }
+
+      .topic-list--home::before {
+        content: "補足";
+      }
+
+      @media (max-width: 520px) {
+        .menu-card__hint {
+          font-size: 0.74rem;
+        }
+
+        .home-detail-toggle {
+          font-size: 0.74rem;
+          padding: 7px 12px;
+        }
+      }
+
       .cockpit-dashboard {
         position: fixed;
         left: 50%;
@@ -5302,77 +5375,70 @@
             <p>知りたいことをタップしてください。</p>
           </div>
 
-          <div class="menu-list">
-            <button class="menu-card" type="button" onclick="launchView(this, 'reentry')">
-              <div class="menu-card__head menu-card__head--red">
-                <div class="menu-card__icon">🎫</div>
-                <div>
-                  <div class="menu-card__title">一時退場・再入場</div>
-                  <span class="menu-card__sub">TEMPORARY EXIT</span>
-                </div>
-              </div>
-              <div class="topic-list">
-                <div class="topic-item">赤・黄ホルダーについて</div>
-                <div class="topic-item">少し外に出たい</div>
-                <div class="topic-item">黄色ホルダーで保護者のみ入退場</div>
-                <div class="topic-item">家族全員で一時退場</div>
-              </div>
-            </button>
+          <div class="menu-list menu-list--home">
 
-            <button class="menu-card" type="button" onclick="launchView(this, 'exit')">
-              <div class="menu-card__head menu-card__head--orange">
-                <div class="menu-card__icon">🚪</div>
-                <div>
-                  <div class="menu-card__title">退場について</div>
-                  <span class="menu-card__sub">EXIT</span>
+            <div class="home-card-shell">
+              <button class="menu-card" type="button" onclick="launchView(this, 'family-reentry')">
+                <div class="menu-card__head menu-card__head--red">
+                  <div class="menu-card__icon">🎫</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">全員で一時退場・再入場</div>
+                  </div>
                 </div>
-              </div>
-              <div class="topic-list">
-                <div class="topic-item">帰るときの手続き</div>
-                <div class="topic-item">ホルダーの返却方法</div>
-                <div class="topic-item">スタッフへのお声かけは必要？</div>
-                <div class="topic-item">完全退場後に再入場できる？</div>
-              </div>
-            </button>
+              </button>
+            </div>
 
-            <button class="menu-card" type="button" onclick="launchView(this, 'guide')">
-              <div class="menu-card__head menu-card__head--green">
-                <div class="menu-card__icon">⚙️</div>
-                <div>
-                  <div class="menu-card__title">アソブーンでの過ごし方</div>
-                  <span class="menu-card__sub">HOW TO ENJOY</span>
+            <div class="home-card-shell">
+              <button class="menu-card" type="button" onclick="launchView(this, 'adult-outing')">
+                <div class="menu-card__head menu-card__head--orange">
+                  <div class="menu-card__icon">🟡</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">大人だけ外出</div>
+                  </div>
                 </div>
-              </div>
-              <div class="topic-list">
-                <div class="topic-item">食べ物について</div>
-                <div class="topic-item">飲み物について</div>
-                <div class="topic-item">写真・動画撮影のルール</div>
-                <div class="topic-item">イベント情報（公式Instagram）</div>
-              </div>
-            </button>
+              </button>
+            </div>
 
-            <button class="menu-card" type="button" onclick="launchView(this, 'parking')">
-              <div class="menu-card__head menu-card__head--blue">
-                <div class="menu-card__icon">🅿️</div>
-                <div>
-                  <div class="menu-card__title">駐車場について</div>
-                  <span class="menu-card__sub">PARKING</span>
+            <div class="home-card-shell">
+              <button class="menu-card" type="button" onclick="launchView(this, 'exit')">
+                <div class="menu-card__head menu-card__head--orange">
+                  <div class="menu-card__icon">🚪</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">退場について</div>
+                  </div>
                 </div>
-              </div>
-              <div class="topic-list">
-                <div class="topic-item">駐車できる場所</div>
-                <div class="topic-item">料金・営業時間は？</div>
-                <div class="topic-item">施設までの徒歩時間</div>
-                <div class="topic-item">首都高からのアクセス</div>
-              </div>
-            </button>
+              </button>
+            </div>
+
+            <div class="home-card-shell">
+              <button class="menu-card" type="button" onclick="launchView(this, 'guide')">
+                <div class="menu-card__head menu-card__head--green">
+                  <div class="menu-card__icon">⚙️</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">アソブーンでの過ごし方</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="home-card-shell">
+              <button class="menu-card" type="button" onclick="launchView(this, 'parking')">
+                <div class="menu-card__head menu-card__head--blue">
+                  <div class="menu-card__icon">🅿️</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">駐車場について</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
           </div>
         </section>
 
-        <section class="view" id="view-reentry" aria-hidden="true">
+        <section class="view" id="view-family-reentry" aria-hidden="true">
           <div class="page-title">
-            <h1>一時退場・再入場について</h1>
-            <p>黄色ホルダーでの保護者のみ入退場と、家族全員での一時退場は別のルールです。</p>
+            <h1>全員で一時退場・再入場</h1>
+            <p>ご家族みなさまで一度外に出る場合の流れです。再入場にはレシートが必要です。</p>
           </div>
 
           <div class="section-list">
@@ -5380,49 +5446,14 @@
               <div class="shared-safety-card__icon">!</div>
               <div>
                 <div class="shared-safety-card__label">共通ルール</div>
-                <strong>どちらの場合も、子どもだけを残して外に出ることはできません。</strong>
+                <strong>子どもだけを館内に残して外に出ることはできません。</strong>
               </div>
             </div>
 
             <article class="block">
-              <h2 class="block-title block-title--yellow">
-                <span class="block-title__num">1</span>
-                <span>🟡 黄色ホルダーで保護者のみ入退場</span>
-              </h2>
-
-              <div class="guardian-exit-card">
-                <div class="guardian-exit-card__holder">
-                  <span class="holder-chip holder-chip--yellow"></span>
-                  <span>黄色ホルダー</span>
-                </div>
-                <div class="guardian-exit-card__body">
-                  <div class="guardian-exit-card__label">保護者のみ入退場OK</div>
-                  <h3>黄色ホルダーをお持ちの保護者は、入退場できます</h3>
-                  <p>
-                    これは<strong>家族全員での一時退場とは別の扱い</strong>です。館内に保護者が残る場合のみ、黄色ホルダーを持つ保護者が入退場できます。
-                  </p>
-                  <div class="reentry-rule-list">
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag">OK</span>
-                      <span>黄色ホルダーを持つ保護者のみ入退場</span>
-                    </div>
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag reentry-rule-item__tag--condition">条件</span>
-                      <span>館内に別の保護者が残っていること</span>
-                    </div>
-                    <div class="reentry-rule-item">
-                      <span class="reentry-rule-item__tag reentry-rule-item__tag--ng">NG</span>
-                      <span>保護者1名の会計で、子どもを残して外に出ること</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            <article class="block">
               <h2 class="block-title">
-                <span class="block-title__num">2</span>
-                <span>🔄 家族全員で一時退場する流れ</span>
+                <span class="block-title__num">1</span>
+                <span>🔄 一時退場の流れ</span>
               </h2>
 
               <div class="step-list">
@@ -5460,18 +5491,109 @@
               </div>
 
               <div class="inline-note">
-                <div class="warning-card">家族全員で一時退場する場合も、子どもだけを残して外に出ることはできません。</div>
+                <div class="warning-card">レシートをなくすと確認に時間がかかることがあります。外に出る前に必ずお持ちください。</div>
               </div>
             </article>
 
             <article class="block">
               <h2 class="block-title">
-                <span class="block-title__num">3</span>
-                <span>🎫 ホルダーシステム</span>
+                <span class="block-title__num">2</span>
+                <span>🎫 この場合に使うもの</span>
               </h2>
               <p class="lead">
-                ひとつの会計につき <strong>赤ホルダー</strong> をひとつお渡し。大人が複数いる場合は追加で
-                <strong style="color: #c9a300">黄ホルダー</strong> をお渡しします。黄色ホルダーは、館内に保護者が残る場合の保護者のみ入退場用です。
+                ご家族みなさまで一時退場する場合は、<strong>赤ホルダーのレシート</strong>をお持ちください。黄色ホルダーでの保護者のみ外出とは別の扱いです。
+              </p>
+
+              <div class="holder-list">
+                <article class="holder-card">
+                  <div class="holder-people">👨 👧</div>
+                  <div class="holder-bar">
+                    <span>=</span>
+                    <span class="holder-chip holder-chip--red"></span>
+                  </div>
+                  <div class="holder-note">会計ごとの赤ホルダー</div>
+                </article>
+
+                <article class="holder-card">
+                  <div class="holder-people">🎫</div>
+                  <div class="holder-bar">
+                    <span>=</span>
+                    <span>レシート</span>
+                  </div>
+                  <div class="holder-note">再入場時に必要</div>
+                </article>
+
+                <article class="holder-card">
+                  <div class="holder-people">📦</div>
+                  <div class="holder-bar">
+                    <span>=</span>
+                    <span>返却</span>
+                  </div>
+                  <div class="holder-note">ホルダーは返却ボックスへ</div>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-adult-outing" aria-hidden="true">
+          <div class="page-title">
+            <h1>大人だけ外出</h1>
+            <p>黄色ホルダーをお持ちの保護者のみ外出できます。館内に別の保護者が残ることが条件です。</p>
+          </div>
+
+          <div class="section-list">
+            <div class="shared-safety-card">
+              <div class="shared-safety-card__icon">!</div>
+              <div>
+                <div class="shared-safety-card__label">共通ルール</div>
+                <strong>保護者1名の会計で、子どもを残して外に出ることはできません。</strong>
+              </div>
+            </div>
+
+            <article class="block">
+              <h2 class="block-title block-title--yellow">
+                <span class="block-title__num">1</span>
+                <span>🟡 黄色ホルダーで保護者のみ外出</span>
+              </h2>
+
+              <div class="guardian-exit-card">
+                <div class="guardian-exit-card__holder">
+                  <span class="holder-chip holder-chip--yellow"></span>
+                  <span>黄色ホルダー</span>
+                </div>
+                <div class="guardian-exit-card__body">
+                  <div class="guardian-exit-card__label">保護者のみ外出OK</div>
+                  <h3>黄色ホルダーをお持ちの保護者は、外出して戻れます</h3>
+                  <p>
+                    これは<strong>家族全員での一時退場とは別の扱い</strong>です。館内に保護者が残る場合のみ、黄色ホルダーを持つ保護者が外出できます。
+                  </p>
+                  <div class="reentry-rule-list">
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag">OK</span>
+                      <span>黄色ホルダーを持つ保護者のみ外出</span>
+                    </div>
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag reentry-rule-item__tag--condition">条件</span>
+                      <span>館内に別の保護者が残っていること</span>
+                    </div>
+                    <div class="reentry-rule-item">
+                      <span class="reentry-rule-item__tag reentry-rule-item__tag--ng">NG</span>
+                      <span>保護者1名の会計で、子どもを残して外に出ること</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="block">
+              <h2 class="block-title">
+                <span class="block-title__num">2</span>
+                <span>🎫 ホルダーの見方</span>
+              </h2>
+              <p class="lead">
+                ひとつの会計につき <strong>赤ホルダー</strong> をひとつお渡しします。大人が複数いる場合は追加で
+                <strong style="color: #c9a300">黄ホルダー</strong> をお渡しします。黄色ホルダーは、館内に保護者が残る場合の保護者のみ外出用です。
               </p>
 
               <div class="holder-list">
@@ -5764,6 +5886,28 @@
         }, 860);
       }
 
+      function setHomeHelpState(button, panel, expanded) {
+        if (!button || !panel) return;
+        button.setAttribute("aria-expanded", String(expanded));
+        button.textContent = expanded ? "補足を閉じる" : "詳しく見る";
+        panel.hidden = !expanded;
+      }
+
+      function closeAllHomeHelp() {
+        document.querySelectorAll(".home-detail-toggle").forEach((button) => {
+          const panel = document.getElementById(button.getAttribute("aria-controls"));
+          setHomeHelpState(button, panel, false);
+        });
+      }
+
+      function toggleHomeHelp(button, panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        const willOpen = button.getAttribute("aria-expanded") !== "true";
+        closeAllHomeHelp();
+        setHomeHelpState(button, panel, willOpen);
+      }
+
       function showView(name) {
         document.body.dataset.view = name;
 
@@ -5775,6 +5919,9 @@
 
         const backButton = document.getElementById("back-btn");
         backButton.hidden = name === "home";
+        if (name === "home") {
+          closeAllHomeHelp();
+        }
         window.scrollTo(0, 0);
       }
 
