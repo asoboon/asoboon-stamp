@@ -19,14 +19,12 @@
       --red-dark: #8d211b;
       --ink: #171a1d;
       --steel: #454d55;
-      --steel-dark: #20252a;
       --white: #ffffff;
     }
 
     * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
@@ -50,10 +48,6 @@
 
     [hidden] { display: none !important; }
 
-    /* ─────────────────────────────
-       iPad縦画面用・待機画面
-       基準：768×1024〜834×1194
-    ───────────────────────────── */
     .clock-screen {
       position: fixed;
       inset: 0;
@@ -67,7 +61,7 @@
         18px
         max(25px, env(safe-area-inset-bottom));
       background:
-        radial-gradient(circle at 50% -10%, rgba(245, 189, 34, .30), transparent 31%),
+        radial-gradient(circle at 50% -10%, rgba(245, 189, 34, .32), transparent 31%),
         linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0 / 72px 72px,
         linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 72px 72px,
         linear-gradient(180deg, #343b42 0%, #22272d 45%, #101317 100%);
@@ -95,7 +89,7 @@
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto auto;
       gap: clamp(10px, 1.35dvh, 17px);
-      padding: clamp(19px, 2.5dvh, 30px) clamp(22px, 4.2vw, 35px);
+      padding: clamp(18px, 2.5dvh, 28px) clamp(18px, 4vw, 32px);
       border: 5px solid #0d1013;
       border-radius: 34px;
       background:
@@ -139,8 +133,23 @@
       grid-template-rows: auto auto auto auto auto;
       align-content: center;
       justify-items: center;
-      gap: clamp(8px, 1.15dvh, 14px);
+      gap: clamp(8px, 1.2dvh, 14px);
       text-align: center;
+    }
+
+    .entry-hero {
+      width: min(100%, 680px);
+      padding: clamp(12px, 1.8dvh, 18px) clamp(14px, 2.4vw, 20px) clamp(16px, 2.1dvh, 24px);
+      border: 5px solid var(--yellow-light);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,225,109,.18), transparent 45%),
+        linear-gradient(180deg, rgba(27,31,36,.98), rgba(12,15,19,.98));
+      box-shadow:
+        inset 0 0 0 4px rgba(255,255,255,.08),
+        0 0 0 6px rgba(245,189,34,.15),
+        0 16px 32px rgba(0,0,0,.34),
+        0 0 34px rgba(245,189,34,.18);
     }
 
     .entry-label {
@@ -148,13 +157,14 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 8px 24px;
-      border: 3px solid #111418;
+      padding: 9px 18px;
+      margin-bottom: 10px;
+      border: 3px solid #ffffff;
       border-radius: 999px;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      color: var(--ink);
+      background: linear-gradient(180deg, #ff7567, var(--red));
+      color: #fff;
       box-shadow: 0 5px 0 rgba(0,0,0,.23);
-      font-size: clamp(1.05rem, 3.7vw, 1.55rem);
+      font-size: clamp(1.05rem, 3.8vw, 1.55rem);
       font-weight: 1000;
       line-height: 1.15;
     }
@@ -162,16 +172,27 @@
     .entry-time {
       display: block;
       max-width: 100%;
-      color: #fff;
-      font-size: clamp(7.5rem, 27vw, 13.2rem);
+      color: var(--yellow-light);
+      font-size: clamp(8.7rem, 31vw, 15.2rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
-      letter-spacing: -.075em;
-      line-height: .82;
+      letter-spacing: -.085em;
+      line-height: .78;
       white-space: nowrap;
       text-shadow:
-        0 7px 0 rgba(0,0,0,.28),
-        0 0 32px rgba(245,189,34,.17);
+        0 8px 0 rgba(0,0,0,.34),
+        0 0 24px rgba(245,189,34,.22),
+        0 0 46px rgba(245,189,34,.2);
+      animation: heroGlow 2.8s ease-in-out infinite;
+    }
+
+    .entry-sub {
+      margin-top: 10px;
+      color: #ffffff;
+      font-size: clamp(.92rem, 2.8vw, 1.18rem);
+      font-weight: 900;
+      line-height: 1.2;
+      opacity: .96;
     }
 
     .elapsed {
@@ -179,7 +200,7 @@
       justify-items: center;
       gap: 5px;
       color: var(--yellow-light);
-      font-size: clamp(1.08rem, 3.9vw, 1.6rem);
+      font-size: clamp(1.12rem, 4vw, 1.7rem);
       font-weight: 1000;
       line-height: 1.15;
     }
@@ -206,31 +227,31 @@
     }
 
     .now-card {
-      width: min(100%, 500px);
-      padding: clamp(9px, 1.25dvh, 14px) 20px;
-      border: 3px solid rgba(255,255,255,.38);
+      width: min(100%, 430px);
+      padding: 10px 18px 12px;
+      border: 2px solid rgba(255,255,255,.24);
       border-radius: 18px;
-      background: rgba(7,10,13,.68);
-      box-shadow: inset 0 0 18px rgba(0,0,0,.25);
+      background: rgba(7,10,13,.55);
+      box-shadow: inset 0 0 18px rgba(0,0,0,.20);
     }
 
     .now-card span {
       display: block;
       color: #dbe0e4;
-      font-size: clamp(.9rem, 2.8vw, 1.2rem);
+      font-size: clamp(.86rem, 2.7vw, 1.08rem);
       font-weight: 900;
       line-height: 1.1;
     }
 
     .now-card time {
       display: block;
-      margin-top: 3px;
-      color: var(--yellow-light);
-      font-size: clamp(3rem, 10vw, 5rem);
+      margin-top: 4px;
+      color: #ffffff;
+      font-size: clamp(2.7rem, 9.5vw, 4.2rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       line-height: .95;
-      letter-spacing: -.035em;
+      letter-spacing: -.04em;
     }
 
     .alert {
@@ -307,24 +328,21 @@
       animation: pulse 1.8s ease-in-out infinite;
     }
 
-    /* iPad miniなど高さが短めの縦画面 */
     @media (orientation: portrait) and (max-height: 1050px) {
       .panel {
         gap: 8px;
-        padding-top: 18px;
-        padding-bottom: 19px;
+        padding-top: 16px;
+        padding-bottom: 18px;
       }
-
-      .header { min-height: 38px; }
-      .entry-time { font-size: clamp(6.8rem, 25vw, 11.7rem); }
+      .header { min-height: 36px; }
+      .entry-hero { padding-top: 10px; padding-bottom: 14px; }
+      .entry-time { font-size: clamp(8rem, 29vw, 13.4rem); }
       .time-flow { gap: 7px; }
-      .elapsed__arrow { height: 30px; }
-      .now-card { padding-top: 8px; padding-bottom: 8px; }
-      .alert { padding-top: 10px; padding-bottom: 12px; }
+      .elapsed__arrow { height: 28px; }
+      .now-card time { font-size: clamp(2.5rem, 8.7vw, 3.9rem); }
       .switch button { min-height: 54px; }
     }
 
-    /* 横向きで開かれた場合は縦向きを促す */
     .rotate-message { display: none; }
 
     @media (orientation: landscape) {
@@ -352,9 +370,23 @@
       50% { opacity: 1; transform: translateY(-2px); }
     }
 
-    /* ─────────────────────────────
-       案内ページ表示
-    ───────────────────────────── */
+    @keyframes heroGlow {
+      0%, 100% {
+        transform: scale(1);
+        text-shadow:
+          0 8px 0 rgba(0,0,0,.34),
+          0 0 24px rgba(245,189,34,.22),
+          0 0 46px rgba(245,189,34,.20);
+      }
+      50% {
+        transform: scale(1.02);
+        text-shadow:
+          0 8px 0 rgba(0,0,0,.34),
+          0 0 32px rgba(255,225,109,.34),
+          0 0 58px rgba(255,225,109,.30);
+      }
+    }
+
     .guide-shell {
       position: fixed;
       inset: 0;
@@ -399,8 +431,11 @@
       </header>
 
       <main class="time-flow">
-        <div class="entry-label">🚗 この時間に入場した方</div>
-        <time class="entry-time" id="entry-time">--:--</time>
+        <div class="entry-hero">
+          <div class="entry-label">🚗 この時間に入場した方</div>
+          <time class="entry-time" id="entry-time">--:--</time>
+          <div class="entry-sub">こちらの時刻に入場された方が対象です</div>
+        </div>
 
         <div class="elapsed">
           <span id="elapsed-label">2時間30分が経過</span>
