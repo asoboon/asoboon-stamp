@@ -212,12 +212,10 @@
     .entry-time {
       position: relative;
       z-index: 1;
-      display: grid;
-      grid-template-columns: 2ch .52ch 2ch;
-      justify-content: center;
-      align-items: center;
+      display: block;
       width: 100%;
       max-width: 100%;
+      height: .92em;
       color: var(--yellow-light);
       font-size: clamp(9.4rem, 32.5vw, 15.6rem);
       font-weight: 1000;
@@ -238,17 +236,35 @@
     }
 
     .entry-time__hour,
-    .entry-time__minute {
+    .entry-time__minute,
+    .entry-time__colon {
+      position: absolute;
+      top: 50%;
       display: block;
+      line-height: 1;
+    }
+
+    .entry-time__hour,
+    .entry-time__minute {
       width: 2ch;
-      text-align: center;
+      transform: translateY(-50%);
+    }
+
+    .entry-time__hour {
+      right: calc(50% + .30ch);
+      text-align: right;
+    }
+
+    .entry-time__minute {
+      left: calc(50% + .30ch);
+      text-align: left;
     }
 
     .entry-time__colon {
-      display: block;
+      left: 50%;
       width: .52ch;
       text-align: center;
-      transform: translateY(-.04em);
+      transform: translate(-50%, -54%);
     }
 
     .entry-sub {
