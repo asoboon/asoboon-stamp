@@ -139,9 +139,9 @@
 
     .entry-hero {
       position: relative;
-      overflow: hidden;
+      overflow: visible;
       width: min(100%, 720px);
-      padding: clamp(16px, 2.1dvh, 24px) clamp(12px, 2.2vw, 20px) clamp(18px, 2.5dvh, 28px);
+      padding: clamp(16px, 2.1dvh, 24px) clamp(14px, 2.4vw, 22px) clamp(18px, 2.5dvh, 28px);
       border: 0;
       border-radius: 30px;
       background:
@@ -211,11 +211,12 @@
       position: relative;
       z-index: 1;
       display: block;
-      width: 100%;
+      width: min(100%, 6.2ch);
+      margin: 0 auto;
       max-width: 100%;
-      height: .92em;
+      height: .94em;
       color: var(--yellow-light);
-      font-size: clamp(9.4rem, 32.5vw, 15.6rem);
+      font-size: clamp(8.2rem, 28.5vw, 13.6rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
@@ -231,6 +232,7 @@
       transform: translateZ(0);
       transform-origin: 50% 50%;
       animation: clockUrgency 1.2s steps(1, end) infinite;
+      overflow: visible;
     }
 
     .entry-time__hour,
@@ -289,46 +291,202 @@
       font-weight: 1000;
     }
 
-    .time-connector {
+    .journey-card {
+      width: min(100%, 600px);
+      padding: 12px 16px 14px;
+      border-radius: 20px;
+      background: rgba(12,15,19,.62);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.08), 0 10px 22px rgba(0,0,0,.18);
+    }
+
+    .journey-header {
+      margin-bottom: 8px;
+      color: #fff;
+      font-size: clamp(.92rem, 2.8vw, 1.14rem);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .journey-header strong {
+      color: var(--yellow-light);
+      font-size: 1.15em;
+    }
+
+    .journey-track {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .journey-point {
+      width: clamp(58px, 15vw, 74px);
+      height: clamp(58px, 15vw, 74px);
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #fff, #d8dde2);
+      color: var(--ink);
+      font-size: clamp(.76rem, 2.2vw, .92rem);
+      font-weight: 1000;
+      box-shadow: 0 6px 14px rgba(0,0,0,.18);
+    }
+
+    .journey-road {
       position: relative;
-      width: min(74%, 430px);
-      height: 24px;
-    }
-
-    .time-connector::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 50%;
-      height: 5px;
+      height: 44px;
       border-radius: 999px;
-      background: repeating-linear-gradient(90deg, var(--yellow) 0 18px, rgba(255,255,255,.18) 18px 31px);
-      box-shadow: 0 0 14px rgba(245,189,34,.34);
-      transform: translateY(-50%);
-      animation: connectorMove 1s linear infinite;
+      background: linear-gradient(180deg, #3c434b, #272d33);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.06);
+      overflow: hidden;
     }
 
-    .time-connector::after {
+    .journey-road::before {
       content: "";
       position: absolute;
-      right: -1px;
+      left: 8%;
+      right: 8%;
       top: 50%;
-      width: 17px;
-      height: 17px;
-      border-top: 6px solid var(--yellow);
-      border-right: 6px solid var(--yellow);
-      transform: translateY(-50%) rotate(45deg);
+      height: 4px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 26px);
+      transform: translateY(-50%);
+      opacity: .8;
     }
+
+    .journey-badge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      color: var(--ink);
+      font-size: clamp(.82rem, 2.4vw, .96rem);
+      font-weight: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,.18);
+      z-index: 2;
+    }
+
+    .journey-car {
+      position: absolute;
+      left: 12%;
+      top: 50%;
+      transform: translateY(-72%);
+      font-size: clamp(1.25rem, 3vw, 1.5rem);
+      animation: driveCar 2.6s ease-in-out infinite;
+      z-index: 1;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.35));
+    }
+
+    .journey-dots {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .journey-dots span {
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      margin-top: 9px;
+      border-radius: 50%;
+      background: rgba(255,225,109,.88);
+      box-shadow: 0 0 10px rgba(245,189,34,.4);
+      animation: popDot 1.8s ease-in-out infinite;
+    }
+
+    .journey-dots span:nth-child(1) { left: 18%; animation-delay: 0s; }
+    .journey-dots span:nth-child(2) { left: 38%; animation-delay: .3s; }
+    .journey-dots span:nth-child(3) { left: 58%; animation-delay: .6s; }
+    .journey-dots span:nth-child(4) { left: 78%; animation-delay: .9s; }
 
     .now-card {
-      width: min(100%, 430px);
-      padding: 10px 18px 12px;
+      width: min(100%, 560px);
+      padding: 12px 18px;
       border: 2px solid rgba(255,255,255,.24);
       border-radius: 18px;
       background: rgba(7,10,13,.55);
       box-shadow: inset 0 0 18px rgba(0,0,0,.20);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
     }
+
+    .now-card__digital {
+      min-width: 0;
+      text-align: left;
+    }
+
+    .analog-clock {
+      position: relative;
+      width: clamp(78px, 16vw, 106px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, #fbfbfb 0 58%, #eef1f3 58% 100%);
+      box-shadow:
+        inset 0 0 0 3px #1d2228,
+        inset 0 0 0 8px rgba(255,255,255,.48),
+        0 6px 14px rgba(0,0,0,.26);
+      overflow: hidden;
+    }
+
+    .analog-clock::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      background: repeating-conic-gradient(from -90deg, #21262c 0deg 2deg, transparent 2deg 30deg);
+      opacity: .75;
+    }
+
+    .analog-clock__hand {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      width: 4px;
+      transform-origin: 50% 100%;
+      transform: translateX(-50%) rotate(0deg);
+      border-radius: 999px;
+      z-index: 2;
+    }
+
+    .analog-clock__hand--hour {
+      height: 23px;
+      width: 6px;
+      background: #1c2127;
+    }
+
+    .analog-clock__hand--minute {
+      height: 31px;
+      width: 4px;
+      background: #2b3138;
+    }
+
+    .analog-clock__hand--second {
+      height: 35px;
+      width: 2px;
+      background: #d94236;
+      box-shadow: 0 0 10px rgba(217,66,54,.34);
+    }
+
+    .analog-clock__center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #d94236;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      box-shadow: 0 0 0 3px #fff;
+    }
+
 
     .now-card span {
       display: block;
@@ -347,6 +505,7 @@
       font-variant-numeric: tabular-nums;
       line-height: .95;
       letter-spacing: -.04em;
+      white-space: nowrap;
     }
 
     .switch-wrap {
@@ -432,10 +591,12 @@
       }
       .header { min-height: 36px; }
       .entry-hero { padding-top: 10px; padding-bottom: 14px; }
-      .entry-time { font-size: clamp(8.5rem, 30vw, 13.8rem); }
+      .entry-time { font-size: clamp(7.8rem, 28vw, 12.8rem); }
       .time-flow { gap: 7px; }
-      .time-connector { height: 18px; }
-      .now-card time { font-size: clamp(2.5rem, 8.7vw, 3.9rem); }
+      .journey-card { padding: 10px 12px 12px; }
+      .journey-road { height: 38px; }
+      .now-card { width: min(100%, 520px); }
+      .now-card time { font-size: clamp(2.35rem, 8.2vw, 3.55rem); }
       .switch button { min-height: 38px; }
       .tap-note { min-height: 64px; }
     }
@@ -540,8 +701,14 @@
       }
     }
 
-    @keyframes connectorMove {
-      to { background-position-x: 31px; }
+    @keyframes driveCar {
+      0%, 100% { left: 12%; transform: translateY(-72%) rotate(0deg); }
+      50% { left: 82%; transform: translateY(-72%) rotate(0deg); }
+    }
+
+    @keyframes popDot {
+      0%, 100% { transform: translateY(0) scale(.8); opacity: .45; }
+      50% { transform: translateY(-3px) scale(1.15); opacity: 1; }
     }
 
     .guide-shell {
@@ -604,11 +771,30 @@
           </div>
         </div>
 
-        <div class="time-connector" aria-hidden="true"></div>
+        <div class="journey-card" aria-hidden="true">
+          <div class="journey-header"><strong id="journey-duration">2時間30分</strong> かけてここまできました</div>
+          <div class="journey-track">
+            <div class="journey-point">入場</div>
+            <div class="journey-road">
+              <div class="journey-dots"><span></span><span></span><span></span><span></span></div>
+              <div class="journey-car">🚗</div>
+              <div class="journey-badge" id="journey-badge">2時間30分</div>
+            </div>
+            <div class="journey-point">現在</div>
+          </div>
+        </div>
 
         <div class="now-card" aria-live="polite">
-          <span>現在時刻</span>
-          <time id="current-time">--:--</time>
+          <div class="now-card__digital">
+            <span>現在時刻</span>
+            <time id="current-time">--:--</time>
+          </div>
+          <div class="analog-clock" aria-hidden="true">
+            <div class="analog-clock__hand analog-clock__hand--hour" id="analog-hour"></div>
+            <div class="analog-clock__hand analog-clock__hand--minute" id="analog-minute"></div>
+            <div class="analog-clock__hand analog-clock__hand--second" id="analog-second"></div>
+            <div class="analog-clock__center"></div>
+          </div>
         </div>
       </main>
 
@@ -650,23 +836,44 @@
       const entryTime = document.getElementById("entry-time");
       const entryHour = document.getElementById("entry-hour");
       const entryMinute = document.getElementById("entry-minute");
+      const journeyDuration = document.getElementById("journey-duration");
+      const journeyBadge = document.getElementById("journey-badge");
+      const analogHour = document.getElementById("analog-hour");
+      const analogMinute = document.getElementById("analog-minute");
+      const analogSecond = document.getElementById("analog-second");
       const durationButtons = [...document.querySelectorAll(".switch button")];
 
       let durationMinutes = Number(localStorage.getItem("asoboon-guide-duration")) || 150;
       let idleTimer = null;
 
       const pad = (number) => String(number).padStart(2, "0");
+      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
       const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+      function updateAnalogClock(now) {
+        const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+        const minutes = now.getMinutes() + seconds / 60;
+        const hours = (now.getHours() % 12) + minutes / 60;
+
+        analogHour.style.transform = `translateX(-50%) rotate(${hours * 30}deg)`;
+        analogMinute.style.transform = `translateX(-50%) rotate(${minutes * 6}deg)`;
+        analogSecond.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
+      }
 
       function updateClock() {
         const now = new Date();
         const entered = new Date(now.getTime() - durationMinutes * 60 * 1000);
         const enteredText = formatTime(entered);
+        const label = durationText(durationMinutes);
+
         currentTime.textContent = formatTime(now);
         entryHour.textContent = pad(entered.getHours());
         entryMinute.textContent = pad(entered.getMinutes());
         entryTime.setAttribute("datetime", enteredText);
         entryTime.setAttribute("aria-label", `入場時刻 ${enteredText}`);
+        journeyDuration.textContent = label;
+        journeyBadge.textContent = label;
+        updateAnalogClock(now);
       }
 
       function setDuration(minutes) {
@@ -736,7 +943,7 @@
 
       setDuration(durationMinutes);
       updateClock();
-      setInterval(updateClock, 1000);
+      setInterval(updateClock, 200);
     })();
   </script>
 </body>
