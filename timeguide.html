@@ -130,109 +130,151 @@
     .time-flow {
       min-height: 0;
       display: grid;
-      grid-template-rows: auto auto auto auto auto;
+      grid-template-rows: minmax(0, 1fr) auto auto;
       align-content: center;
       justify-items: center;
-      gap: clamp(8px, 1.2dvh, 14px);
+      gap: clamp(10px, 1.45dvh, 17px);
       text-align: center;
     }
 
     .entry-hero {
+      position: relative;
+      overflow: hidden;
       width: min(100%, 720px);
-      padding: clamp(12px, 1.7dvh, 18px) clamp(12px, 2.2vw, 20px) clamp(16px, 2.2dvh, 24px);
+      padding: clamp(16px, 2.1dvh, 24px) clamp(12px, 2.2vw, 20px) clamp(18px, 2.5dvh, 28px);
       border: 6px solid var(--yellow-light);
       border-radius: 30px;
       background:
-        linear-gradient(180deg, rgba(110,26,20,.18), rgba(0,0,0,0) 18%),
-        radial-gradient(circle at 50% 0%, rgba(255,225,109,.22), transparent 45%),
-        linear-gradient(180deg, rgba(27,31,36,.99), rgba(11,13,17,.99));
+        radial-gradient(circle at 50% -8%, rgba(255,225,109,.24), transparent 42%),
+        linear-gradient(180deg, rgba(34,38,43,.99), rgba(10,12,16,.99));
       box-shadow:
         inset 0 0 0 4px rgba(255,255,255,.08),
-        0 0 0 8px rgba(217,66,54,.18),
-        0 18px 36px rgba(0,0,0,.38),
+        0 0 0 8px rgba(217,66,54,.16),
+        0 18px 36px rgba(0,0,0,.40),
         0 0 42px rgba(245,189,34,.20);
+      animation: warningFrame 1.35s ease-in-out infinite;
+    }
+
+    .entry-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0 42%, rgba(255,255,255,.20) 48%, transparent 54%) -130% 0 / 70% 100% no-repeat,
+        linear-gradient(180deg, rgba(217,66,54,.18), transparent 20%);
+      animation: warningSweep 2.3s linear infinite;
+    }
+
+    .warning-lights {
       position: relative;
-      overflow: hidden;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: clamp(10px, 2.4vw, 18px);
+      margin-bottom: clamp(9px, 1.2dvh, 14px);
+    }
+
+    .warning-lights span {
+      width: clamp(14px, 2.5vw, 20px);
+      height: clamp(14px, 2.5vw, 20px);
+      border: 3px solid rgba(255,255,255,.8);
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow:
+        0 0 0 4px rgba(217,66,54,.16),
+        0 0 18px rgba(255,72,62,.62);
+      animation: warningLamp 1s steps(1, end) infinite;
+    }
+
+    .warning-lights span:nth-child(even) {
+      animation-delay: .5s;
     }
 
     .entry-label {
+      position: relative;
+      z-index: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 10px 20px;
+      padding: 8px 22px;
       margin-bottom: 10px;
-      border: 3px solid #ffffff;
+      border: 3px solid #111418;
       border-radius: 999px;
-      background: linear-gradient(180deg, #ff7567, var(--red));
-      color: #fff;
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      color: var(--ink);
       box-shadow: 0 5px 0 rgba(0,0,0,.23);
-      animation: labelPulse 1s ease-in-out infinite;
       font-size: clamp(1.08rem, 3.9vw, 1.58rem);
       font-weight: 1000;
       line-height: 1.15;
     }
 
-
     .entry-time {
+      position: relative;
+      z-index: 1;
       display: block;
       width: 100%;
-      text-align: center;
       max-width: 100%;
+      text-align: center;
       color: var(--yellow-light);
-      font-size: clamp(9.4rem, 32vw, 15.6rem);
+      font-size: clamp(9.8rem, 34vw, 16.2rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
       letter-spacing: -.045em;
-      line-height: .9;
+      line-height: .88;
       white-space: nowrap;
       text-shadow:
-        0 9px 0 rgba(0,0,0,.36),
-        0 0 26px rgba(245,189,34,.26),
-        0 0 56px rgba(245,189,34,.24),
-        0 0 72px rgba(217,66,54,.14);
-      animation: heroGlow 1.6s ease-in-out infinite, warningBlink .9s ease-in-out infinite;
+        0 9px 0 rgba(0,0,0,.38),
+        0 0 28px rgba(245,189,34,.30),
+        0 0 58px rgba(245,189,34,.25),
+        0 0 74px rgba(217,66,54,.18);
+      animation: clockUrgency 1.2s ease-in-out infinite;
     }
 
     .entry-sub {
-      margin-top: 10px;
-      color: #ffffff;
-      font-size: clamp(.98rem, 3vw, 1.2rem);
-      font-weight: 900;
-      line-height: 1.25;
-      opacity: .96;
-    }
-
-    .elapsed {
-      display: grid;
-      justify-items: center;
-      gap: 5px;
-      color: var(--yellow-light);
-      font-size: clamp(1.12rem, 4vw, 1.7rem);
-      font-weight: 1000;
-      line-height: 1.15;
-    }
-
-    .elapsed__arrow {
       position: relative;
-      width: 6px;
-      height: clamp(30px, 4.8dvh, 54px);
-      border-radius: 999px;
-      background: var(--yellow);
-      box-shadow: 0 0 14px rgba(245,189,34,.42);
+      z-index: 1;
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-top: 3px solid rgba(255,255,255,.20);
+      color: #ffffff;
+      font-size: clamp(1.35rem, 4.7vw, 2.15rem);
+      font-weight: 1000;
+      line-height: 1.18;
+      text-shadow: 0 3px 0 rgba(0,0,0,.28);
     }
 
-    .elapsed__arrow::after {
+    .time-connector {
+      position: relative;
+      width: min(74%, 430px);
+      height: 24px;
+    }
+
+    .time-connector::before {
       content: "";
       position: absolute;
-      left: 50%;
-      bottom: -1px;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 5px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(90deg, var(--yellow) 0 18px, rgba(255,255,255,.18) 18px 31px);
+      box-shadow: 0 0 14px rgba(245,189,34,.34);
+      transform: translateY(-50%);
+      animation: connectorMove 1s linear infinite;
+    }
+
+    .time-connector::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: 50%;
       width: 17px;
       height: 17px;
+      border-top: 6px solid var(--yellow);
       border-right: 6px solid var(--yellow);
-      border-bottom: 6px solid var(--yellow);
-      transform: translateX(-50%) rotate(45deg);
+      transform: translateY(-50%) rotate(45deg);
     }
 
     .now-card {
@@ -261,40 +303,6 @@
       font-variant-numeric: tabular-nums;
       line-height: .95;
       letter-spacing: -.04em;
-    }
-
-    .alert {
-      width: min(100%, 660px);
-      padding: clamp(12px, 1.65dvh, 20px) 18px;
-      border: 4px solid #fff;
-      border-radius: 22px;
-      background: linear-gradient(180deg, var(--red), var(--red-dark));
-      box-shadow:
-        inset 0 -7px 0 rgba(0,0,0,.15),
-        0 8px 0 rgba(0,0,0,.2),
-        0 16px 28px rgba(0,0,0,.3);
-    }
-
-    .alert__main {
-      display: block;
-      color: #fff;
-      font-size: clamp(1.25rem, 4.35vw, 2.05rem);
-      font-weight: 1000;
-      line-height: 1.23;
-    }
-
-    .alert__duration {
-      color: #fff4bd;
-      white-space: nowrap;
-    }
-
-    .alert__exit {
-      display: block;
-      margin-top: 5px;
-      color: #fff;
-      font-size: clamp(1.05rem, 3.35vw, 1.48rem);
-      font-weight: 1000;
-      line-height: 1.15;
     }
 
     .switch-wrap {
@@ -378,9 +386,9 @@
       }
       .header { min-height: 36px; }
       .entry-hero { padding-top: 10px; padding-bottom: 14px; }
-      .entry-time { font-size: clamp(8.7rem, 31vw, 14.2rem); }
+      .entry-time { font-size: clamp(8.9rem, 31.5vw, 14.5rem); }
       .time-flow { gap: 7px; }
-      .elapsed__arrow { height: 28px; }
+      .time-connector { height: 18px; }
       .now-card time { font-size: clamp(2.5rem, 8.7vw, 3.9rem); }
       .switch button { min-height: 38px; }
       .tap-note { min-height: 64px; }
@@ -425,40 +433,55 @@
     }
 
 
-    @keyframes warningBlink {
+
+
+    @keyframes warningFrame {
       0%, 100% {
-        opacity: 1;
-        filter: brightness(1);
+        border-color: var(--yellow-light);
+        box-shadow:
+          inset 0 0 0 4px rgba(255,255,255,.08),
+          0 0 0 8px rgba(217,66,54,.14),
+          0 18px 36px rgba(0,0,0,.40),
+          0 0 34px rgba(245,189,34,.18);
       }
       50% {
-        opacity: .42;
-        filter: brightness(1.45);
+        border-color: #ffffff;
+        box-shadow:
+          inset 0 0 0 4px rgba(255,255,255,.12),
+          0 0 0 10px rgba(217,66,54,.30),
+          0 18px 36px rgba(0,0,0,.40),
+          0 0 56px rgba(255,70,60,.34);
       }
     }
 
-    @keyframes labelPulse {
-      0%, 100% {
-        box-shadow: 0 5px 0 rgba(0,0,0,.23);
+    @keyframes warningSweep {
+      to { background-position: 240% 0, 0 0; }
+    }
+
+    @keyframes warningLamp {
+      0%, 49% {
+        opacity: 1;
+        filter: brightness(1.55);
       }
-      50% {
-        box-shadow: 0 5px 0 rgba(0,0,0,.23), 0 0 18px rgba(255,117,103,.45);
+      50%, 100% {
+        opacity: .25;
+        filter: brightness(.65);
       }
     }
-    @keyframes heroGlow {
+
+    @keyframes clockUrgency {
       0%, 100% {
         transform: scale(1);
-        text-shadow:
-          0 8px 0 rgba(0,0,0,.34),
-          0 0 24px rgba(245,189,34,.22),
-          0 0 46px rgba(245,189,34,.20);
+        filter: brightness(1);
       }
       50% {
-        transform: scale(1.02);
-        text-shadow:
-          0 8px 0 rgba(0,0,0,.34),
-          0 0 32px rgba(255,225,109,.34),
-          0 0 58px rgba(255,225,109,.30);
+        transform: scale(1.025);
+        filter: brightness(1.22);
       }
+    }
+
+    @keyframes connectorMove {
+      to { background-position-x: 31px; }
     }
 
     .guide-shell {
@@ -506,26 +529,19 @@
 
       <main class="time-flow">
         <div class="entry-hero">
-          <div class="entry-label">🚨 この時間に入場した方は</div>
+          <div class="warning-lights" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="entry-label">入場時刻</div>
           <time class="entry-time" id="entry-time">--:--</time>
           <div class="entry-sub">おかえりの時間です</div>
         </div>
 
-        <div class="elapsed">
-          <span id="elapsed-label">2時間30分が経過</span>
-          <span class="elapsed__arrow" aria-hidden="true"></span>
-        </div>
+        <div class="time-connector" aria-hidden="true"></div>
 
         <div class="now-card" aria-live="polite">
           <span>現在時刻</span>
           <time id="current-time">--:--</time>
-        </div>
-
-        <div class="alert">
-          <strong class="alert__main">
-            <span class="alert__duration" id="alert-duration">2時間30分</span>が経過しています
-          </strong>
-          <span class="alert__exit">おかえりの時間です</span>
         </div>
       </main>
 
@@ -565,8 +581,6 @@
       const manualBack = document.getElementById("manual-back");
       const currentTime = document.getElementById("current-time");
       const entryTime = document.getElementById("entry-time");
-      const elapsedLabel = document.getElementById("elapsed-label");
-      const alertDuration = document.getElementById("alert-duration");
       const durationButtons = [...document.querySelectorAll(".switch button")];
 
       let durationMinutes = Number(localStorage.getItem("asoboon-guide-duration")) || 150;
@@ -574,17 +588,12 @@
 
       const pad = (number) => String(number).padStart(2, "0");
       const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
 
       function updateClock() {
         const now = new Date();
         const entered = new Date(now.getTime() - durationMinutes * 60 * 1000);
-        const label = durationText(durationMinutes);
-
         currentTime.textContent = formatTime(now);
         entryTime.textContent = formatTime(entered);
-        elapsedLabel.textContent = `${label}が経過`;
-        alertDuration.textContent = label;
       }
 
       function setDuration(minutes) {
