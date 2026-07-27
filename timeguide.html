@@ -161,7 +161,7 @@
       justify-content: center;
       gap: 8px;
       padding: 10px 20px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       border: 3px solid #ffffff;
       border-radius: 999px;
       background: linear-gradient(180deg, #ff7567, var(--red));
@@ -173,33 +173,19 @@
       line-height: 1.15;
     }
 
-    .limit-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.24);
-      background: linear-gradient(90deg, #111418 0 12px, #f5bd22 12px 24px, #111418 24px 36px, #f5bd22 36px 48px, #111418 48px 60px);
-      color: #fff;
-      font-size: clamp(.82rem, 2.4vw, 1rem);
-      font-weight: 1000;
-      letter-spacing: .12em;
-      text-shadow: 0 1px 0 rgba(0,0,0,.3);
-      box-shadow: 0 6px 14px rgba(0,0,0,.22);
-      animation: warningBlink 1s ease-in-out infinite;
-    }
 
     .entry-time {
       display: block;
+      width: 100%;
+      text-align: center;
       max-width: 100%;
       color: var(--yellow-light);
-      font-size: clamp(10rem, 35vw, 17rem);
+      font-size: clamp(9.4rem, 32vw, 15.6rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
-      letter-spacing: -.085em;
-      line-height: .78;
+      font-feature-settings: "tnum" 1;
+      letter-spacing: -.045em;
+      line-height: .9;
       white-space: nowrap;
       text-shadow:
         0 9px 0 rgba(0,0,0,.36),
@@ -210,11 +196,11 @@
     }
 
     .entry-sub {
-      margin-top: 8px;
+      margin-top: 10px;
       color: #ffffff;
-      font-size: clamp(.95rem, 2.95vw, 1.2rem);
+      font-size: clamp(.98rem, 3vw, 1.2rem);
       font-weight: 900;
-      line-height: 1.2;
+      line-height: 1.25;
       opacity: .96;
     }
 
@@ -392,7 +378,7 @@
       }
       .header { min-height: 36px; }
       .entry-hero { padding-top: 10px; padding-bottom: 14px; }
-      .entry-time { font-size: clamp(9.1rem, 33vw, 15rem); }
+      .entry-time { font-size: clamp(8.7rem, 31vw, 14.2rem); }
       .time-flow { gap: 7px; }
       .elapsed__arrow { height: 28px; }
       .now-card time { font-size: clamp(2.5rem, 8.7vw, 3.9rem); }
@@ -520,10 +506,9 @@
 
       <main class="time-flow">
         <div class="entry-hero">
-          <div class="entry-label">🚨 タイムリミット対象の入場時刻</div>
-          <div class="limit-badge">TIME LIMIT</div>
+          <div class="entry-label">🚨 この時間に入場した方は</div>
           <time class="entry-time" id="entry-time">--:--</time>
-          <div class="entry-sub">こちらの時刻に入場された方がお帰りの対象です</div>
+          <div class="entry-sub">おかえりの時間です</div>
         </div>
 
         <div class="elapsed">
@@ -540,7 +525,7 @@
           <strong class="alert__main">
             <span class="alert__duration" id="alert-duration">2時間30分</span>が経過しています
           </strong>
-          <span class="alert__exit">お帰りのお時間です</span>
+          <span class="alert__exit">おかえりの時間です</span>
         </div>
       </main>
 
