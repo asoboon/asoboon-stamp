@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+  />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#15191d" />
+  <title>ASOBooN お帰り時間案内</title>
+
+  <style>
+    :root {
+      --yellow: #f5bd22;
+      --yellow-light: #ffe16d;
+      --red: #d94236;
+      --red-dark: #8d211b;
+      --ink: #171a1d;
+      --steel: #454d55;
+      --steel-dark: #20252a;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #111418;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: none;
+    }
+
+    button {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    [hidden] { display: none !important; }
+
+    /* ─────────────────────────────
+       iPad縦画面用・待機画面
+       基準：768×1024〜834×1194
+    ───────────────────────────── */
+    .clock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding:
+        max(25px, env(safe-area-inset-top))
+        18px
+        max(25px, env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 50% -10%, rgba(245, 189, 34, .30), transparent 31%),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0 / 72px 72px,
+        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 72px 72px,
+        linear-gradient(180deg, #343b42 0%, #22272d 45%, #101317 100%);
+    }
+
+    .clock-screen::before,
+    .clock-screen::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: repeating-linear-gradient(135deg, var(--yellow) 0 22px, #171a1d 22px 44px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.34);
+      pointer-events: none;
+    }
+
+    .clock-screen::before { top: 0; }
+    .clock-screen::after { bottom: 0; transform: rotate(180deg); }
+
+    .panel {
+      width: min(calc(100vw - 36px), 798px);
+      height: calc(100dvh - 50px);
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      gap: clamp(10px, 1.35dvh, 17px);
+      padding: clamp(19px, 2.5dvh, 30px) clamp(22px, 4.2vw, 35px);
+      border: 5px solid #0d1013;
+      border-radius: 34px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.14), transparent 28%),
+        linear-gradient(180deg, rgba(77,86,95,.98), rgba(27,32,38,.98));
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,.08),
+        0 16px 0 rgba(0,0,0,.23),
+        0 30px 60px rgba(0,0,0,.42);
+    }
+
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 44px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 3px;
+      font-weight: 900;
+    }
+
+    .brand small {
+      color: var(--yellow);
+      font-size: clamp(.68rem, 1.8vw, .88rem);
+      letter-spacing: .17em;
+    }
+
+    .brand strong {
+      color: #fff;
+      font-size: clamp(1.05rem, 3.2vw, 1.45rem);
+      line-height: 1.2;
+    }
+
+    .time-flow {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto auto auto auto;
+      align-content: center;
+      justify-items: center;
+      gap: clamp(8px, 1.15dvh, 14px);
+      text-align: center;
+    }
+
+    .entry-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 24px;
+      border: 3px solid #111418;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      color: var(--ink);
+      box-shadow: 0 5px 0 rgba(0,0,0,.23);
+      font-size: clamp(1.05rem, 3.7vw, 1.55rem);
+      font-weight: 1000;
+      line-height: 1.15;
+    }
+
+    .entry-time {
+      display: block;
+      max-width: 100%;
+      color: #fff;
+      font-size: clamp(7.5rem, 27vw, 13.2rem);
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.075em;
+      line-height: .82;
+      white-space: nowrap;
+      text-shadow:
+        0 7px 0 rgba(0,0,0,.28),
+        0 0 32px rgba(245,189,34,.17);
+    }
+
+    .elapsed {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      color: var(--yellow-light);
+      font-size: clamp(1.08rem, 3.9vw, 1.6rem);
+      font-weight: 1000;
+      line-height: 1.15;
+    }
+
+    .elapsed__arrow {
+      position: relative;
+      width: 6px;
+      height: clamp(30px, 4.8dvh, 54px);
+      border-radius: 999px;
+      background: var(--yellow);
+      box-shadow: 0 0 14px rgba(245,189,34,.42);
+    }
+
+    .elapsed__arrow::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -1px;
+      width: 17px;
+      height: 17px;
+      border-right: 6px solid var(--yellow);
+      border-bottom: 6px solid var(--yellow);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .now-card {
+      width: min(100%, 500px);
+      padding: clamp(9px, 1.25dvh, 14px) 20px;
+      border: 3px solid rgba(255,255,255,.38);
+      border-radius: 18px;
+      background: rgba(7,10,13,.68);
+      box-shadow: inset 0 0 18px rgba(0,0,0,.25);
+    }
+
+    .now-card span {
+      display: block;
+      color: #dbe0e4;
+      font-size: clamp(.9rem, 2.8vw, 1.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .now-card time {
+      display: block;
+      margin-top: 3px;
+      color: var(--yellow-light);
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      line-height: .95;
+      letter-spacing: -.035em;
+    }
+
+    .alert {
+      width: min(100%, 660px);
+      padding: clamp(12px, 1.65dvh, 20px) 18px;
+      border: 4px solid #fff;
+      border-radius: 22px;
+      background: linear-gradient(180deg, var(--red), var(--red-dark));
+      box-shadow:
+        inset 0 -7px 0 rgba(0,0,0,.15),
+        0 8px 0 rgba(0,0,0,.2),
+        0 16px 28px rgba(0,0,0,.3);
+    }
+
+    .alert__main {
+      display: block;
+      color: #fff;
+      font-size: clamp(1.25rem, 4.35vw, 2.05rem);
+      font-weight: 1000;
+      line-height: 1.23;
+    }
+
+    .alert__duration {
+      color: #fff4bd;
+      white-space: nowrap;
+    }
+
+    .alert__exit {
+      display: block;
+      margin-top: 5px;
+      color: #fff;
+      font-size: clamp(1.05rem, 3.35vw, 1.48rem);
+      font-weight: 1000;
+      line-height: 1.15;
+    }
+
+    .switch {
+      width: min(100%, 620px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 8px;
+      border: 2px solid rgba(255,255,255,.22);
+      border-radius: 18px;
+      background: rgba(7,10,13,.72);
+    }
+
+    .switch button {
+      min-height: clamp(56px, 6.4dvh, 72px);
+      border: 2px solid transparent;
+      border-radius: 13px;
+      color: #dce1e5;
+      background: #343b42;
+      font-size: clamp(.96rem, 3vw, 1.3rem);
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    .switch button[aria-pressed="true"] {
+      color: var(--ink);
+      border-color: #fff;
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      box-shadow: 0 5px 0 rgba(0,0,0,.24);
+    }
+
+    .tap-note {
+      margin: 0;
+      text-align: center;
+      color: #eef1f3;
+      font-size: clamp(.78rem, 2.4vw, 1rem);
+      font-weight: 900;
+      line-height: 1.25;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    /* iPad miniなど高さが短めの縦画面 */
+    @media (orientation: portrait) and (max-height: 1050px) {
+      .panel {
+        gap: 8px;
+        padding-top: 18px;
+        padding-bottom: 19px;
+      }
+
+      .header { min-height: 38px; }
+      .entry-time { font-size: clamp(6.8rem, 25vw, 11.7rem); }
+      .time-flow { gap: 7px; }
+      .elapsed__arrow { height: 30px; }
+      .now-card { padding-top: 8px; padding-bottom: 8px; }
+      .alert { padding-top: 10px; padding-bottom: 12px; }
+      .switch button { min-height: 54px; }
+    }
+
+    /* 横向きで開かれた場合は縦向きを促す */
+    .rotate-message { display: none; }
+
+    @media (orientation: landscape) {
+      .panel { display: none; }
+      .rotate-message {
+        display: grid;
+        place-items: center;
+        width: min(86vw, 680px);
+        min-height: 54vh;
+        padding: 40px;
+        border: 5px solid var(--yellow);
+        border-radius: 28px;
+        background: #22282e;
+        color: #fff;
+        text-align: center;
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        font-weight: 1000;
+        line-height: 1.5;
+        box-shadow: 0 22px 48px rgba(0,0,0,.42);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .62; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-2px); }
+    }
+
+    /* ─────────────────────────────
+       案内ページ表示
+    ───────────────────────────── */
+    .guide-shell {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      background: #111418;
+    }
+
+    .guide-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #111418;
+    }
+
+    .manual-back {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
+      right: 10px;
+      z-index: 15;
+      min-height: 46px;
+      padding: 8px 15px;
+      border: 2px solid #111418;
+      border-radius: 999px;
+      color: #171a1d;
+      background: var(--yellow);
+      box-shadow: 0 5px 0 rgba(0,0,0,.25);
+      font-size: .82rem;
+      font-weight: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="clock-screen" id="clock-screen" aria-label="お帰り時間のご案内">
+    <div class="panel">
+      <header class="header">
+        <div class="brand">
+          <small>ASOBooN TIME GUIDE</small>
+          <strong>お帰り時間のご案内</strong>
+        </div>
+      </header>
+
+      <main class="time-flow">
+        <div class="entry-label">🚗 この時間に入場した方</div>
+        <time class="entry-time" id="entry-time">--:--</time>
+
+        <div class="elapsed">
+          <span id="elapsed-label">2時間30分が経過</span>
+          <span class="elapsed__arrow" aria-hidden="true"></span>
+        </div>
+
+        <div class="now-card" aria-live="polite">
+          <span>現在時刻</span>
+          <time id="current-time">--:--</time>
+        </div>
+
+        <div class="alert">
+          <strong class="alert__main">
+            <span class="alert__duration" id="alert-duration">2時間30分</span>が経過しています
+          </strong>
+          <span class="alert__exit">お帰りのお時間です</span>
+        </div>
+      </main>
+
+      <div class="switch" role="group" aria-label="利用時間を選択">
+        <button type="button" data-minutes="150" aria-pressed="true">2時間30分</button>
+        <button type="button" data-minutes="180" aria-pressed="false">3時間</button>
+      </div>
+
+      <p class="tap-note">画面をタッチすると、ご利用案内を表示します</p>
+    </div>
+
+    <div class="rotate-message">
+      iPadを縦向きにして<br />ご利用ください
+    </div>
+  </section>
+
+  <section class="guide-shell" id="guide-shell" hidden>
+    <button class="manual-back" id="manual-back" type="button">時間画面へ戻る</button>
+    <iframe
+      class="guide-frame"
+      id="guide-frame"
+      src="./jounaisetumei.html"
+      title="ASOBooN ご利用案内"
+    ></iframe>
+  </section>
+
+  <script>
+    (() => {
+      const IDLE_MS = 30 * 1000;
+
+      const clockScreen = document.getElementById("clock-screen");
+      const guideShell = document.getElementById("guide-shell");
+      const guideFrame = document.getElementById("guide-frame");
+      const manualBack = document.getElementById("manual-back");
+      const currentTime = document.getElementById("current-time");
+      const entryTime = document.getElementById("entry-time");
+      const elapsedLabel = document.getElementById("elapsed-label");
+      const alertDuration = document.getElementById("alert-duration");
+      const durationButtons = [...document.querySelectorAll(".switch button")];
+
+      let durationMinutes = Number(localStorage.getItem("asoboon-guide-duration")) || 150;
+      let idleTimer = null;
+
+      const pad = (number) => String(number).padStart(2, "0");
+      const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
+
+      function updateClock() {
+        const now = new Date();
+        const entered = new Date(now.getTime() - durationMinutes * 60 * 1000);
+        const label = durationText(durationMinutes);
+
+        currentTime.textContent = formatTime(now);
+        entryTime.textContent = formatTime(entered);
+        elapsedLabel.textContent = `${label}が経過`;
+        alertDuration.textContent = label;
+      }
+
+      function setDuration(minutes) {
+        durationMinutes = minutes === 180 ? 180 : 150;
+        localStorage.setItem("asoboon-guide-duration", String(durationMinutes));
+
+        durationButtons.forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(Number(button.dataset.minutes) === durationMinutes)
+          );
+        });
+
+        updateClock();
+      }
+
+      function showClock() {
+        clearTimeout(idleTimer);
+        guideShell.hidden = true;
+        clockScreen.hidden = false;
+        updateClock();
+      }
+
+      function resetIdleTimer() {
+        if (guideShell.hidden) return;
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showClock, IDLE_MS);
+      }
+
+      function showGuide() {
+        clockScreen.hidden = true;
+        guideShell.hidden = false;
+        resetIdleTimer();
+      }
+
+      function bindIframeActivity() {
+        try {
+          const doc = guideFrame.contentDocument;
+          const win = guideFrame.contentWindow;
+          if (!doc || !win) return;
+
+          ["pointerdown", "touchstart", "click", "keydown"].forEach((eventName) => {
+            doc.addEventListener(eventName, resetIdleTimer, { passive: true });
+          });
+
+          win.addEventListener("scroll", resetIdleTimer, { passive: true });
+        } catch (error) {
+          console.warn("案内画面の操作監視を設定できませんでした。", error);
+        }
+      }
+
+      durationButtons.forEach((button) => {
+        button.addEventListener("pointerdown", (event) => event.stopPropagation());
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          setDuration(Number(button.dataset.minutes));
+        });
+      });
+
+      clockScreen.addEventListener("click", showGuide);
+      manualBack.addEventListener("click", showClock);
+      guideFrame.addEventListener("load", bindIframeActivity);
+
+      document.addEventListener("pointerdown", resetIdleTimer, { passive: true });
+      document.addEventListener("touchstart", resetIdleTimer, { passive: true });
+      document.addEventListener("keydown", resetIdleTimer);
+
+      setDuration(durationMinutes);
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+  </script>
+</body>
+</html>
