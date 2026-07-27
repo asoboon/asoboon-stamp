@@ -398,14 +398,15 @@
       background: rgba(7,10,13,.55);
       box-shadow: inset 0 0 18px rgba(0,0,0,.20);
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: auto auto;
       align-items: center;
-      gap: 14px;
+      justify-content: center;
+      gap: clamp(16px, 3.5vw, 28px);
     }
 
     .now-card__digital {
       min-width: 0;
-      text-align: left;
+      text-align: center;
     }
 
     .analog-clock {
