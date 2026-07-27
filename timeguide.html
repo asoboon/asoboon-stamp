@@ -142,16 +142,14 @@
       overflow: hidden;
       width: min(100%, 720px);
       padding: clamp(16px, 2.1dvh, 24px) clamp(12px, 2.2vw, 20px) clamp(18px, 2.5dvh, 28px);
-      border: 6px solid var(--yellow-light);
+      border: 0;
       border-radius: 30px;
       background:
         radial-gradient(circle at 50% -8%, rgba(255,225,109,.24), transparent 42%),
         linear-gradient(180deg, rgba(34,38,43,.99), rgba(10,12,16,.99));
       box-shadow:
-        inset 0 0 0 4px rgba(255,255,255,.08),
-        0 0 0 8px rgba(217,66,54,.16),
-        0 18px 36px rgba(0,0,0,.40),
-        0 0 42px rgba(245,189,34,.20);
+        0 18px 36px rgba(0,0,0,.34),
+        0 0 36px rgba(245,189,34,.14);
       animation: warningFrame 1.35s ease-in-out infinite;
     }
 
@@ -270,14 +268,25 @@
     .entry-sub {
       position: relative;
       z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 5px;
       margin-top: 12px;
-      padding: 10px 16px;
-      border-top: 3px solid rgba(255,255,255,.20);
+      padding: 8px 12px 2px;
       color: #ffffff;
-      font-size: clamp(1.35rem, 4.7vw, 2.15rem);
-      font-weight: 1000;
-      line-height: 1.18;
+      line-height: 1.2;
       text-shadow: 0 3px 0 rgba(0,0,0,.28);
+    }
+
+    .entry-sub__target {
+      font-size: clamp(1rem, 3.25vw, 1.4rem);
+      font-weight: 900;
+    }
+
+    .entry-sub__main {
+      color: var(--yellow-light);
+      font-size: clamp(1.55rem, 5.2vw, 2.45rem);
+      font-weight: 1000;
     }
 
     .time-connector {
@@ -589,7 +598,10 @@
             <span class="entry-time__colon" aria-hidden="true">:</span>
             <span class="entry-time__minute" id="entry-minute">--</span>
           </time>
-          <div class="entry-sub">おかえりの時間です</div>
+          <div class="entry-sub">
+            <span class="entry-sub__target">この時間より前に入場されたお客様は</span>
+            <strong class="entry-sub__main">おかえりの時間です</strong>
+          </div>
         </div>
 
         <div class="time-connector" aria-hidden="true"></div>
