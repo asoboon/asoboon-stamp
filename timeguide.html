@@ -308,7 +308,9 @@
     .switch-wrap {
       display: grid;
       justify-items: center;
-      gap: 5px;
+      gap: 4px;
+      align-self: end;
+      padding-top: 2px;
     }
 
     .switch-label {
@@ -470,13 +472,25 @@
     }
 
     @keyframes clockUrgency {
-      0%, 100% {
+      0%, 46%, 100% {
+        color: var(--yellow-light);
         transform: scale(1);
-        filter: brightness(1);
+        filter: brightness(1.06);
+        text-shadow:
+          0 9px 0 rgba(0,0,0,.38),
+          0 0 30px rgba(245,189,34,.48),
+          0 0 62px rgba(245,189,34,.34),
+          0 0 82px rgba(245,189,34,.20);
       }
-      50% {
-        transform: scale(1.025);
+      50%, 96% {
+        color: #ff5147;
+        transform: scale(1.028);
         filter: brightness(1.22);
+        text-shadow:
+          0 9px 0 rgba(0,0,0,.38),
+          0 0 30px rgba(255,81,71,.58),
+          0 0 64px rgba(217,66,54,.46),
+          0 0 88px rgba(217,66,54,.28);
       }
     }
 
@@ -545,6 +559,8 @@
         </div>
       </main>
 
+      <p class="tap-note">画面をタッチして<br />利用案内を表示</p>
+
       <div class="switch-wrap">
         <div class="switch-label">利用時間の設定</div>
         <div class="switch" role="group" aria-label="利用時間を選択">
@@ -552,8 +568,6 @@
           <button type="button" data-minutes="180" aria-pressed="false">3時間</button>
         </div>
       </div>
-
-      <p class="tap-note">画面をタッチして<br />利用案内を表示</p>
     </div>
 
     <div class="rotate-message">
