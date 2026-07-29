@@ -5346,6 +5346,89 @@
         padding: 18px 16px;
       }
 
+
+      .playtime-steps {
+        margin: 0 0 16px;
+        padding: 14px;
+        border: 2px solid rgba(245, 189, 34, 0.78);
+        border-radius: 18px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 58%),
+          linear-gradient(180deg, #fff7d8, #f4e3aa);
+        box-shadow: 0 8px 0 rgba(23, 26, 29, 0.08);
+      }
+
+      .playtime-steps__title {
+        margin: 0 0 10px;
+        color: #202429;
+        font-size: 1rem;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .playtime-steps__list {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .playtime-step {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 10px;
+        align-items: center;
+        min-height: 46px;
+        padding: 9px 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.86);
+        color: #252a30;
+        font-size: 0.88rem;
+        font-weight: 800;
+        line-height: 1.5;
+        box-shadow: inset 0 0 0 1px rgba(23, 26, 29, 0.08);
+      }
+
+      .playtime-step__num {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #171a1d;
+        background: linear-gradient(135deg, var(--garage-yellow), var(--garage-orange));
+        color: #171a1d;
+        font-size: 0.92rem;
+        font-weight: 900;
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+      }
+
+      .playtime-step strong {
+        color: #8f3d18;
+      }
+
+      .playtime-steps--compact {
+        padding: 12px 14px;
+      }
+
+      .playtime-steps--compact .playtime-steps__title {
+        margin-bottom: 4px;
+      }
+
+      .playtime-steps__guide {
+        margin: 0;
+        color: #454c53;
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .playtime-steps__guide strong {
+        color: #8f3d18;
+      }
+
       .playtime-lead {
         margin: 0 0 16px;
         color: #343a40;
@@ -5367,10 +5450,18 @@
       .playtime-label {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         color: #202429;
-        font-size: 0.95rem;
+        font-size: 0.98rem;
         font-weight: 900;
+        line-height: 1.4;
+      }
+
+      .playtime-label .playtime-step__num {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
       }
 
       .playtime-time-input {
@@ -5585,15 +5676,36 @@
 
       .playtime-calc-button {
         width: 100%;
-        min-height: 64px;
+        min-height: 68px;
         margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
         border: 3px solid #171a1d;
         border-radius: 18px;
         background: linear-gradient(180deg, #ffd950, #f5bd22);
         color: #171a1d;
+        padding: 10px 14px;
         font-size: 1.08rem;
         font-weight: 900;
+        line-height: 1.35;
         box-shadow: 0 7px 0 rgba(0, 0, 0, 0.22);
+      }
+
+      .playtime-calc-button__num {
+        display: grid;
+        place-items: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border: 2px solid #171a1d;
+        border-radius: 50%;
+        background: #fff8dd;
+        color: #171a1d;
+        font-size: 1rem;
+        font-weight: 900;
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
       }
 
       .playtime-error {
@@ -6027,12 +6139,20 @@
           <div class="playtime-shell">
             <div class="playtime-panel">
               <div class="playtime-form" id="playtime-form">
+                <div class="playtime-steps playtime-steps--compact" aria-label="退場時間を確認する手順">
+                  <h2 class="playtime-steps__title">かんたん3ステップ</h2>
+                  <p class="playtime-steps__guide">下の <strong>1 → 2 → 3</strong> の順番に進んでください</p>
+                </div>
+
                 <p class="playtime-lead">
                   初回だけ入力してください。同じ日の間は入力内容をこの端末に記憶します。
                 </p>
 
                 <div class="playtime-field">
-                  <div class="playtime-label">🧾 レシートの入場時刻</div>
+                  <div class="playtime-label">
+                    <span class="playtime-step__num" aria-hidden="true">1</span>
+                    <span>🧾 レシートの入場時刻を選ぶ</span>
+                  </div>
 
                   <div class="playtime-receipt-help" aria-label="入力例">
                     <span class="playtime-receipt-help__tag">レシート例</span>
@@ -6068,7 +6188,10 @@
                 </div>
 
                 <div class="playtime-field">
-                  <div class="playtime-label">⏱️ 本日は何時間制ですか？</div>
+                  <div class="playtime-label">
+                    <span class="playtime-step__num" aria-hidden="true">2</span>
+                    <span>⏱️ 本日の利用時間を選ぶ</span>
+                  </div>
                   <div class="playtime-duration-grid" role="group" aria-label="利用時間を選択">
                     <button class="playtime-duration" type="button" data-playtime-duration="150" aria-pressed="true">2時間30分</button>
                     <button class="playtime-duration" type="button" data-playtime-duration="180" aria-pressed="false">3時間</button>
@@ -6081,7 +6204,10 @@
                   <div><strong>2時間30分制は18:00／3時間制・時間制なしは17:00</strong></div>
                 </div>
 
-                <button class="playtime-calc-button" id="playtime-calc" type="button">何時まで遊べるか確認する</button>
+                <button class="playtime-calc-button" id="playtime-calc" type="button">
+                  <span class="playtime-calc-button__num" aria-hidden="true">3</span>
+                  <span>何時まで遊べるか確認する</span>
+                </button>
                 <p class="playtime-error" id="playtime-error" role="alert" hidden></p>
               </div>
 
