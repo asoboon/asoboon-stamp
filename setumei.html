@@ -5199,6 +5199,35 @@
         opacity: 0.85;
       }
 
+
+      .parking-map-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 12px;
+        min-height: 52px;
+        padding: 12px 14px;
+        border: 2px solid #171a1d;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff4bd, var(--garage-yellow));
+        color: #171a1d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 900;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .parking-map-link:active {
+        transform: translateY(3px);
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .parking-map-link__arrow {
+        flex: 0 0 auto;
+        font-size: 1rem;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -5228,7 +5257,549 @@
           grid-template-columns: repeat(3, 1fr);
         }
       }
-    </style>
+
+
+      /* 駐車場ごとのGoogleマップリンク */
+      .distance-item--link {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+      }
+
+      .distance-item--link:hover,
+      .distance-item--link:focus-visible {
+        transform: translateY(-2px);
+        filter: brightness(1.04);
+      }
+
+      .distance-item--link:active {
+        transform: scale(0.985);
+      }
+
+      .distance-item__right {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 7px;
+        flex: 0 0 auto;
+      }
+
+      .distance-map {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 4px 9px;
+        border: 2px solid #171a1d;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #25303a;
+        font-size: 0.7rem;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 380px) {
+        .distance-item--link {
+          align-items: flex-start;
+        }
+
+        .distance-item__right {
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 5px;
+        }
+      }
+
+    
+      /* 退場時間早見表 */
+      .playtime-menu-card .menu-card__head {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 36%),
+          linear-gradient(135deg, #f5bd22 0%, #e86f23 58%, #c9382e 100%);
+        color: #171a1d;
+      }
+
+      .playtime-menu-card .menu-card__icon {
+        background: #fff8dd;
+      }
+
+      .playtime-menu-card .menu-card__hint {
+        color: rgba(23, 26, 29, 0.82);
+      }
+
+      .playtime-shell {
+        display: grid;
+        gap: 14px;
+      }
+
+      .playtime-panel {
+        border: 2px solid rgba(20, 23, 26, 0.78);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(135deg, rgba(245, 189, 34, 0.12), transparent 42%),
+          linear-gradient(180deg, #f4eedf, #d8d0bf);
+        box-shadow: var(--garage-shadow);
+        padding: 18px 16px;
+      }
+
+      .playtime-lead {
+        margin: 0 0 16px;
+        color: #343a40;
+        font-size: 0.92rem;
+        font-weight: 800;
+        line-height: 1.7;
+      }
+
+      .playtime-field {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .playtime-field:first-of-type {
+        margin-top: 0;
+      }
+
+      .playtime-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #202429;
+        font-size: 0.95rem;
+        font-weight: 900;
+      }
+
+      .playtime-time-input {
+        display: none;
+      }
+
+      .playtime-receipt-help {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 10px;
+        align-items: center;
+        padding: 12px 14px;
+        border: 2px dashed rgba(37, 43, 49, 0.34);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #343a40;
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .playtime-receipt-help__tag {
+        grid-row: 1 / 3;
+        display: grid;
+        place-items: center;
+        min-width: 62px;
+        min-height: 48px;
+        padding: 6px 8px;
+        border-radius: 10px;
+        background: #252b31;
+        color: #fff4bd;
+        font-size: 0.74rem;
+        font-weight: 900;
+      }
+
+      .playtime-receipt-help strong {
+        color: #8f3d18;
+        font-size: 1rem;
+      }
+
+      .playtime-time-picker {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: end;
+        gap: 8px;
+      }
+
+      .playtime-time-part {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      .playtime-time-part__caption {
+        grid-column: 1 / -1;
+        color: #59616a;
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .playtime-time-select {
+        width: 100%;
+        min-width: 0;
+        min-height: 72px;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 3px solid #252b31;
+        border-radius: 16px;
+        background:
+          linear-gradient(45deg, transparent 50%, #252b31 50%) calc(100% - 20px) 30px / 8px 8px no-repeat,
+          linear-gradient(135deg, #252b31 50%, transparent 50%) calc(100% - 12px) 30px / 8px 8px no-repeat,
+          #fffdf5;
+        color: #171a1d;
+        padding: 8px 36px 8px 12px;
+        font: inherit;
+        font-size: clamp(1.8rem, 8.5vw, 2.45rem);
+        font-weight: 900;
+        text-align: center;
+        text-align-last: center;
+        box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.06);
+      }
+
+      .playtime-time-unit {
+        color: #252b31;
+        font-size: 1rem;
+        font-weight: 900;
+      }
+
+      .playtime-time-colon {
+        align-self: center;
+        padding-top: 18px;
+        color: #252b31;
+        font-size: 2.25rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .playtime-now-button {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 10px;
+        border: 2px solid #252b31;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #252b31;
+        padding: 9px 12px;
+        font-size: 0.82rem;
+        font-weight: 900;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      .playtime-now-note {
+        margin: 7px 0 0;
+        color: #59616a;
+        font-size: 0.72rem;
+        font-weight: 700;
+        line-height: 1.45;
+        text-align: center;
+      }
+
+      @media (max-width: 370px) {
+        .playtime-time-picker {
+          gap: 5px;
+        }
+
+        .playtime-time-select {
+          min-height: 66px;
+          padding-left: 8px;
+          padding-right: 30px;
+          font-size: 1.65rem;
+        }
+      }
+
+      .playtime-duration-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .playtime-duration {
+        min-height: 58px;
+        border: 3px solid #252b31;
+        border-radius: 15px;
+        background: #ffffff;
+        color: #252b31;
+        padding: 10px 8px;
+        font-size: 0.94rem;
+        font-weight: 900;
+        box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14);
+      }
+
+      .playtime-duration[aria-pressed="true"] {
+        background: linear-gradient(180deg, #ffe36d, var(--garage-yellow));
+        transform: translateY(2px);
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .playtime-duration--free {
+        grid-column: 1 / -1;
+        min-height: 48px;
+        border-width: 2px;
+        background: #e9ecef;
+        font-size: 0.84rem;
+      }
+
+      .playtime-closing-guide {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border: 2px solid rgba(37, 43, 49, 0.22);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #343a40;
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 1.5;
+      }
+
+      .playtime-closing-guide strong {
+        color: #8f3d18;
+      }
+
+      .playtime-holiday-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 10px 12px;
+        border: 2px solid #252b31;
+        border-radius: 12px;
+        background: #fffdf5;
+        color: #252b31;
+        font-size: 0.82rem;
+        font-weight: 900;
+      }
+
+      .playtime-holiday-toggle[hidden] {
+        display: none;
+      }
+
+      .playtime-holiday-toggle input {
+        width: 24px;
+        height: 24px;
+        margin: 0;
+        accent-color: var(--garage-yellow);
+        flex: 0 0 auto;
+      }
+
+      .playtime-calc-button {
+        width: 100%;
+        min-height: 64px;
+        margin-top: 18px;
+        border: 3px solid #171a1d;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffd950, #f5bd22);
+        color: #171a1d;
+        font-size: 1.08rem;
+        font-weight: 900;
+        box-shadow: 0 7px 0 rgba(0, 0, 0, 0.22);
+      }
+
+      .playtime-error {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #fff0ef;
+        border: 2px solid var(--garage-red);
+        color: #8d2f28;
+        font-size: 0.86rem;
+        font-weight: 900;
+        line-height: 1.5;
+      }
+
+      .playtime-error[hidden] {
+        display: none;
+      }
+
+      .playtime-result[hidden],
+      .playtime-form[hidden] {
+        display: none;
+      }
+
+      .playtime-result-card {
+        position: relative;
+        overflow: hidden;
+        border: 3px solid #171a1d;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.52), transparent 36%),
+          linear-gradient(180deg, #ffe16c, #f5bd22 58%, #e59b1b);
+        color: #171a1d;
+        padding: 20px 16px 18px;
+        text-align: center;
+        box-shadow: 0 10px 0 rgba(0, 0, 0, 0.18), 0 18px 32px rgba(0, 0, 0, 0.22);
+      }
+
+      .playtime-result-card.is-warning {
+        background: linear-gradient(180deg, #ffbd59, #e86f23);
+      }
+
+      .playtime-result-card.is-urgent,
+      .playtime-result-card.is-finished {
+        background: linear-gradient(180deg, #ff7368, #c9382e);
+        color: #ffffff;
+      }
+
+      .playtime-result-card.is-urgent {
+        animation: playtime-urgent 1s ease-in-out infinite;
+      }
+
+      .playtime-result-kicker {
+        display: inline-flex;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #252b31;
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      .playtime-result-card.is-urgent .playtime-result-kicker,
+      .playtime-result-card.is-finished .playtime-result-kicker {
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .playtime-finish-time {
+        display: block;
+        margin-top: 10px;
+        font-size: clamp(3.2rem, 18vw, 5.4rem);
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.05em;
+        line-height: 0.98;
+      }
+
+      .playtime-finish-label {
+        display: block;
+        margin-top: 5px;
+        font-size: 1.05rem;
+        font-weight: 900;
+      }
+
+      .playtime-remaining {
+        margin-top: 16px;
+        padding: 13px 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.86);
+        color: #171a1d;
+        font-size: clamp(1.35rem, 7vw, 2rem);
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .playtime-remaining strong {
+        color: #c9382e;
+        font-size: 1.35em;
+      }
+
+      .playtime-progress {
+        height: 18px;
+        margin-top: 16px;
+        overflow: hidden;
+        border: 3px solid rgba(23, 26, 29, 0.82);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .playtime-progress-bar {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: repeating-linear-gradient(90deg, #252b31 0 14px, #f5bd22 14px 28px);
+        transition: width 0.4s ease;
+      }
+
+      .playtime-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .playtime-meta-item {
+        padding: 10px 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #343a40;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .playtime-meta-item strong {
+        display: block;
+        margin-top: 3px;
+        color: #171a1d;
+        font-size: 1rem;
+      }
+
+      .playtime-meta-item--closing {
+        grid-column: 1 / -1;
+      }
+
+      .playtime-result-card.is-urgent .playtime-meta-item,
+      .playtime-result-card.is-finished .playtime-meta-item {
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .playtime-change-button {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 14px;
+        border: 2px solid rgba(23, 26, 29, 0.28);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #252b31;
+        font-size: 0.82rem;
+        font-weight: 900;
+      }
+
+      .playtime-note {
+        margin: 14px 0 0;
+        color: #4e555c;
+        font-size: 0.76rem;
+        font-weight: 700;
+        line-height: 1.6;
+        text-align: left;
+      }
+
+      .playtime-free-result {
+        padding: 18px 14px;
+        border: 3px solid #1f6b31;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #e9f8eb, #c6ebcf);
+        color: #1f5b31;
+        text-align: center;
+      }
+
+      .playtime-free-result strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #1f5b31;
+        font-size: 1.35rem;
+      }
+
+      .playtime-free-result span {
+        display: block;
+        margin-top: 6px;
+        font-weight: 900;
+      }
+
+      @keyframes playtime-urgent {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.18); }
+      }
+
+      @media (max-width: 380px) {
+        .playtime-duration-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .playtime-duration--free {
+          grid-column: auto;
+        }
+      }
+</style>
   </head>
   <body>
     <div class="play-scene" aria-hidden="true">
@@ -5378,6 +5949,18 @@
           <div class="menu-list menu-list--home">
 
             <div class="home-card-shell">
+              <button class="menu-card playtime-menu-card" type="button" onclick="launchView(this, 'playtime')">
+                <div class="menu-card__head">
+                  <div class="menu-card__icon">⏰</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">何時まであそべる？</div>
+                    <div class="menu-card__hint">レシートの入場時刻から、終了時刻と残り時間を確認</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="home-card-shell">
               <button class="menu-card" type="button" onclick="launchView(this, 'family-reentry')">
                 <div class="menu-card__head menu-card__head--red">
                   <div class="menu-card__icon">🎫</div>
@@ -5435,6 +6018,109 @@
           </div>
         </section>
 
+        <section class="view" id="view-playtime" aria-hidden="true">
+          <div class="page-title">
+            <h1>退場時間早見表</h1>
+            <p>レシートの入場時刻から、何時まで遊べるかを確認できます。</p>
+          </div>
+
+          <div class="playtime-shell">
+            <div class="playtime-panel">
+              <div class="playtime-form" id="playtime-form">
+                <p class="playtime-lead">
+                  初回だけ入力してください。同じ日の間は入力内容をこの端末に記憶します。
+                </p>
+
+                <div class="playtime-field">
+                  <div class="playtime-label">🧾 レシートの入場時刻</div>
+
+                  <div class="playtime-receipt-help" aria-label="入力例">
+                    <span class="playtime-receipt-help__tag">レシート例</span>
+                    <strong>入場時刻　10:07</strong>
+                    <span>「10時」と「07分」を選んでください</span>
+                  </div>
+
+                  <div class="playtime-time-picker" role="group" aria-label="レシートの入場時刻を選択">
+                    <label class="playtime-time-part">
+                      <span class="playtime-time-part__caption">時間</span>
+                      <select class="playtime-time-select" id="playtime-entry-hour" aria-label="入場時刻の時間">
+                        <option value="">--</option>
+                      </select>
+                      <span class="playtime-time-unit">時</span>
+                    </label>
+
+                    <span class="playtime-time-colon" aria-hidden="true">:</span>
+
+                    <label class="playtime-time-part">
+                      <span class="playtime-time-part__caption">分</span>
+                      <select class="playtime-time-select" id="playtime-entry-minute" aria-label="入場時刻の分">
+                        <option value="">--</option>
+                      </select>
+                      <span class="playtime-time-unit">分</span>
+                    </label>
+                  </div>
+
+                  <button class="playtime-now-button" id="playtime-use-now" type="button">
+                    入場したばかりの方｜現在時刻を入れる
+                  </button>
+                  <p class="playtime-now-note">レシートの時刻と違う場合は、選び直してください。</p>
+                  <input class="playtime-time-input" id="playtime-entry" type="hidden" />
+                </div>
+
+                <div class="playtime-field">
+                  <div class="playtime-label">⏱️ 本日は何時間制ですか？</div>
+                  <div class="playtime-duration-grid" role="group" aria-label="利用時間を選択">
+                    <button class="playtime-duration" type="button" data-playtime-duration="150" aria-pressed="true">2時間30分</button>
+                    <button class="playtime-duration" type="button" data-playtime-duration="180" aria-pressed="false">3時間</button>
+                    <button class="playtime-duration playtime-duration--free" type="button" data-playtime-duration="0" aria-pressed="false">時間制ではありません</button>
+                  </div>
+                </div>
+
+                <div class="playtime-closing-guide">
+                  <div>選んだ利用時間に合わせて、閉館時刻も自動で反映します。</div>
+                  <div><strong>2時間30分制は18:00／3時間制・時間制なしは17:00</strong></div>
+                </div>
+
+                <button class="playtime-calc-button" id="playtime-calc" type="button">何時まで遊べるか確認する</button>
+                <p class="playtime-error" id="playtime-error" role="alert" hidden></p>
+              </div>
+
+              <div class="playtime-result" id="playtime-result" hidden>
+                <div class="playtime-result-card" id="playtime-result-card">
+                  <span class="playtime-result-kicker" id="playtime-result-kicker">本日のご利用終了時刻</span>
+                  <time class="playtime-finish-time" id="playtime-finish-time">--:--</time>
+                  <span class="playtime-finish-label" id="playtime-finish-label">まで遊べます</span>
+
+                  <div class="playtime-remaining" id="playtime-remaining">あと <strong>--分</strong> 遊べます</div>
+
+                  <div class="playtime-progress" id="playtime-progress" aria-hidden="true">
+                    <div class="playtime-progress-bar" id="playtime-progress-bar"></div>
+                  </div>
+
+                  <div class="playtime-meta">
+                    <div class="playtime-meta-item">入力した入場時刻<strong id="playtime-meta-entry">--:--</strong></div>
+                    <div class="playtime-meta-item">利用時間<strong id="playtime-meta-duration">--</strong></div>
+                    <div class="playtime-meta-item playtime-meta-item--closing">本日の閉館時刻<strong id="playtime-meta-closing">--:--</strong></div>
+                  </div>
+                </div>
+
+                <div class="playtime-free-result" id="playtime-free-result" hidden>
+                  <strong>本日は時間制ではありません</strong>
+                  営業時間内でゆっくりお楽しみください。
+                  <span id="playtime-free-closing">閉館時刻まで遊べます</span>
+                </div>
+
+                <button class="playtime-change-button" id="playtime-change" type="button">入場時刻・利用時間を変更する</button>
+              </div>
+
+              <p class="playtime-note">
+                ※本画面は目安です。実際のご利用時間はレシートと館内案内をご確認ください。
+                端末の時刻設定がずれている場合、表示時刻にもずれが生じます。
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section class="view" id="view-family-reentry" aria-hidden="true">
           <div class="page-title">
             <h1>全員で一時退場・再入場</h1>
@@ -5452,7 +6138,6 @@
 
             <article class="block">
               <h2 class="block-title">
-                <span class="block-title__num">1</span>
                 <span>🔄 一時退場の流れ</span>
               </h2>
 
@@ -5495,44 +6180,6 @@
               </div>
             </article>
 
-            <article class="block">
-              <h2 class="block-title">
-                <span class="block-title__num">2</span>
-                <span>🎫 この場合に使うもの</span>
-              </h2>
-              <p class="lead">
-                ご家族みなさまで一時退場する場合は、<strong>赤ホルダーのレシート</strong>をお持ちください。黄色ホルダーでの保護者のみ外出とは別の扱いです。
-              </p>
-
-              <div class="holder-list">
-                <article class="holder-card">
-                  <div class="holder-people">👨 👧</div>
-                  <div class="holder-bar">
-                    <span>=</span>
-                    <span class="holder-chip holder-chip--red"></span>
-                  </div>
-                  <div class="holder-note">会計ごとの赤ホルダー</div>
-                </article>
-
-                <article class="holder-card">
-                  <div class="holder-people">🎫</div>
-                  <div class="holder-bar">
-                    <span>=</span>
-                    <span>レシート</span>
-                  </div>
-                  <div class="holder-note">再入場時に必要</div>
-                </article>
-
-                <article class="holder-card">
-                  <div class="holder-people">📦</div>
-                  <div class="holder-bar">
-                    <span>=</span>
-                    <span>返却</span>
-                  </div>
-                  <div class="holder-note">ホルダーは返却ボックスへ</div>
-                </article>
-              </div>
-            </article>
           </div>
         </section>
 
@@ -5692,11 +6339,71 @@
                 <span>🚶 一般道側から施設までの徒歩目安</span>
               </h2>
               <div class="distance-list">
-                <div class="distance-item"><span>東門駐車場①</span><span class="distance-time">約3分</span></div>
-                <div class="distance-item"><span>東門駐車場②</span><span class="distance-time">約5分</span></div>
-                <div class="distance-item"><span>東門駐車場③</span><span class="distance-time">約10分</span></div>
-                <div class="distance-item"><span>正門駐車場①</span><span class="distance-time">約15分</span></div>
-                <div class="distance-item"><span>正門駐車場②</span><span class="distance-time">約20分</span></div>
+                <a
+                  class="distance-item distance-item--link"
+                  href="https://maps.app.goo.gl/m8PJq2n9rAyFn5gS9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="東門駐車場①をGoogleマップで開く"
+                >
+                  <span>東門駐車場①</span>
+                  <span class="distance-item__right">
+                    <span class="distance-time">約3分</span>
+                    <span class="distance-map">地図 ↗</span>
+                  </span>
+                </a>
+                <a
+                  class="distance-item distance-item--link"
+                  href="https://maps.app.goo.gl/wAeN1g8kSMKe57JB8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="東門駐車場②をGoogleマップで開く"
+                >
+                  <span>東門駐車場②</span>
+                  <span class="distance-item__right">
+                    <span class="distance-time">約5分</span>
+                    <span class="distance-map">地図 ↗</span>
+                  </span>
+                </a>
+                <a
+                  class="distance-item distance-item--link"
+                  href="https://maps.app.goo.gl/76G5VwZ7GeEco2zg8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="東門駐車場③をGoogleマップで開く"
+                >
+                  <span>東門駐車場③</span>
+                  <span class="distance-item__right">
+                    <span class="distance-time">約10分</span>
+                    <span class="distance-map">地図 ↗</span>
+                  </span>
+                </a>
+                <a
+                  class="distance-item distance-item--link"
+                  href="https://maps.app.goo.gl/qCUjY2ee72SwjCb78"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="正門駐車場①をGoogleマップで開く"
+                >
+                  <span>正門駐車場①</span>
+                  <span class="distance-item__right">
+                    <span class="distance-time">約15分</span>
+                    <span class="distance-map">地図 ↗</span>
+                  </span>
+                </a>
+                <a
+                  class="distance-item distance-item--link"
+                  href="https://maps.app.goo.gl/BYNNPHdoM4WufQaKA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="正門駐車場②をGoogleマップで開く"
+                >
+                  <span>正門駐車場②</span>
+                  <span class="distance-item__right">
+                    <span class="distance-time">約20分</span>
+                    <span class="distance-map">地図 ↗</span>
+                  </span>
+                </a>
               </div>
               <p class="info-note">東門側は台数少なめ、正門側は距離があり台数多め。満車時は正門側もご検討ください。</p>
             </article>
@@ -5713,6 +6420,16 @@
                 <li>小型車 <strong>179台</strong> / 障がい者専用 <strong>5台</strong></li>
                 <li>大型車 <strong>43台</strong>（うちバス優先12台）</li>
               </ul>
+              <a
+                class="parking-map-link"
+                href="https://maps.app.goo.gl/JAnMRjBtWVEkkJ9J6"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="川口パーキングエリアをGoogleマップで開く"
+              >
+                <span>📍 川口PA（首都高側）を地図で開く</span>
+                <span class="parking-map-link__arrow">↗</span>
+              </a>
             </article>
 
             <article class="block">
@@ -5941,6 +6658,292 @@
       document.querySelectorAll("button, .banner-link").forEach((element) => {
         element.addEventListener("click", createTapBurst);
       });
+
+      const PLAYTIME_STORAGE_KEY = "asoboon_playtime_v1";
+      let selectedPlaytimeDuration = 150;
+      let playtimeTimer = null;
+
+      function getLocalDateKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatPlaytimeClock(date) {
+        return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      }
+
+      function getPlaytimeClosingTime(date = new Date(), duration = 150) {
+        const closing = new Date(date);
+        const closingHour = Number(duration) === 150 ? 18 : 17;
+        closing.setHours(closingHour, 0, 0, 0);
+        return closing;
+      }
+
+      function populatePlaytimePicker() {
+        const hourSelect = document.getElementById("playtime-entry-hour");
+        const minuteSelect = document.getElementById("playtime-entry-minute");
+        if (!hourSelect || !minuteSelect || hourSelect.options.length > 1) return;
+
+        for (let hour = 0; hour < 24; hour += 1) {
+          const option = document.createElement("option");
+          option.value = String(hour).padStart(2, "0");
+          option.textContent = String(hour).padStart(2, "0");
+          hourSelect.appendChild(option);
+        }
+
+        for (let minute = 0; minute < 60; minute += 1) {
+          const option = document.createElement("option");
+          option.value = String(minute).padStart(2, "0");
+          option.textContent = String(minute).padStart(2, "0");
+          minuteSelect.appendChild(option);
+        }
+      }
+
+      function setPlaytimePicker(entryText = "") {
+        const hourSelect = document.getElementById("playtime-entry-hour");
+        const minuteSelect = document.getElementById("playtime-entry-minute");
+        const hiddenInput = document.getElementById("playtime-entry");
+        if (!hourSelect || !minuteSelect || !hiddenInput) return;
+
+        const [hour = "", minute = ""] = entryText.split(":");
+        hourSelect.value = hour;
+        minuteSelect.value = minute;
+        hiddenInput.value = hour && minute ? `${hour}:${minute}` : "";
+      }
+
+      function syncPlaytimeEntryFromPicker() {
+        const hour = document.getElementById("playtime-entry-hour")?.value || "";
+        const minute = document.getElementById("playtime-entry-minute")?.value || "";
+        const hiddenInput = document.getElementById("playtime-entry");
+        if (!hiddenInput) return "";
+
+        hiddenInput.value = hour && minute ? `${hour}:${minute}` : "";
+        return hiddenInput.value;
+      }
+
+      function playtimeDurationLabel(minutes) {
+        if (minutes === 180) return "3時間";
+        if (minutes === 0) return "時間制なし";
+        return "2時間30分";
+      }
+
+      function setPlaytimeDuration(minutes) {
+        selectedPlaytimeDuration = [0, 150, 180].includes(minutes) ? minutes : 150;
+        document.querySelectorAll("[data-playtime-duration]").forEach((button) => {
+          button.setAttribute("aria-pressed", String(Number(button.dataset.playtimeDuration) === selectedPlaytimeDuration));
+        });
+      }
+
+      function showPlaytimeError(message) {
+        const error = document.getElementById("playtime-error");
+        if (!error) return;
+        error.textContent = message;
+        error.hidden = !message;
+      }
+
+      function getSavedPlaytime() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(PLAYTIME_STORAGE_KEY) || "null");
+          if (!saved || saved.date !== getLocalDateKey()) {
+            localStorage.removeItem(PLAYTIME_STORAGE_KEY);
+            return null;
+          }
+          return saved;
+        } catch (error) {
+          localStorage.removeItem(PLAYTIME_STORAGE_KEY);
+          return null;
+        }
+      }
+
+      function savePlaytime(entry, duration) {
+        localStorage.setItem(PLAYTIME_STORAGE_KEY, JSON.stringify({
+          date: getLocalDateKey(),
+          entry,
+          duration
+        }));
+      }
+
+      function buildEntryDate(entryText, now = new Date()) {
+        const [hours, minutes] = entryText.split(":").map(Number);
+        if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+        const entry = new Date(now);
+        entry.setHours(hours, minutes, 0, 0);
+        return entry;
+      }
+
+      function updatePlaytimeResult() {
+        const saved = getSavedPlaytime();
+        if (!saved) {
+          clearInterval(playtimeTimer);
+          playtimeTimer = null;
+          return;
+        }
+
+        const resultCard = document.getElementById("playtime-result-card");
+        const freeResult = document.getElementById("playtime-free-result");
+        const finishTime = document.getElementById("playtime-finish-time");
+        const finishLabel = document.getElementById("playtime-finish-label");
+        const remaining = document.getElementById("playtime-remaining");
+        const progress = document.getElementById("playtime-progress");
+        const progressBar = document.getElementById("playtime-progress-bar");
+        const metaEntry = document.getElementById("playtime-meta-entry");
+        const metaDuration = document.getElementById("playtime-meta-duration");
+        const metaClosing = document.getElementById("playtime-meta-closing");
+        const freeClosing = document.getElementById("playtime-free-closing");
+        const kicker = document.getElementById("playtime-result-kicker");
+        const now = new Date();
+        const closing = getPlaytimeClosingTime(now, Number(saved.duration));
+
+        metaEntry.textContent = saved.entry;
+        metaDuration.textContent = playtimeDurationLabel(Number(saved.duration));
+        if (metaClosing) metaClosing.textContent = formatPlaytimeClock(closing);
+        if (freeClosing) freeClosing.textContent = `本日は${formatPlaytimeClock(closing)}まで遊べます`;
+
+        if (Number(saved.duration) === 0) {
+          resultCard.hidden = true;
+          freeResult.hidden = false;
+          return;
+        }
+
+        resultCard.hidden = false;
+        freeResult.hidden = true;
+
+        const entry = buildEntryDate(saved.entry, now);
+        const durationMs = Number(saved.duration) * 60 * 1000;
+        const calculatedFinish = new Date(entry.getTime() + durationMs);
+        const cappedByClosing = closing.getTime() < calculatedFinish.getTime();
+        const finish = new Date(Math.min(calculatedFinish.getTime(), closing.getTime()));
+        const remainingMs = finish.getTime() - now.getTime();
+        const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
+        const elapsedMs = Math.max(0, now.getTime() - entry.getTime());
+        const effectiveDurationMs = Math.max(1, finish.getTime() - entry.getTime());
+        const progressPercent = Math.min(100, Math.max(0, (elapsedMs / effectiveDurationMs) * 100));
+
+        finishTime.textContent = formatPlaytimeClock(finish);
+        finishTime.setAttribute("datetime", formatPlaytimeClock(finish));
+        progressBar.style.width = `${progressPercent}%`;
+
+        resultCard.classList.remove("is-warning", "is-urgent", "is-finished");
+
+        if (remainingMs <= 0) {
+          resultCard.classList.add("is-finished");
+          kicker.textContent = "ご利用終了時刻";
+          finishLabel.textContent = "おかえりの時間です";
+          remaining.innerHTML = "<strong>おかえりの時間です</strong>";
+          progress.hidden = true;
+        } else {
+          kicker.textContent = cappedByClosing ? "本日の閉館時刻" : "本日のご利用終了時刻";
+          finishLabel.textContent = "まで遊べます";
+          remaining.innerHTML = `あと <strong>${remainingMinutes}分</strong> 遊べます`;
+          progress.hidden = false;
+
+          if (remainingMinutes <= 10) {
+            resultCard.classList.add("is-urgent");
+          } else if (remainingMinutes <= 30) {
+            resultCard.classList.add("is-warning");
+          }
+        }
+      }
+
+      function showPlaytimeResult(saved) {
+        const form = document.getElementById("playtime-form");
+        const result = document.getElementById("playtime-result");
+        if (!form || !result || !saved) return;
+
+        form.hidden = true;
+        result.hidden = false;
+        setPlaytimePicker(saved.entry || "");
+        setPlaytimeDuration(Number(saved.duration));
+        updatePlaytimeResult();
+
+        if (!playtimeTimer) {
+          playtimeTimer = window.setInterval(updatePlaytimeResult, 1000);
+        }
+      }
+
+      function showPlaytimeForm() {
+        const form = document.getElementById("playtime-form");
+        const result = document.getElementById("playtime-result");
+        if (!form || !result) return;
+
+        clearInterval(playtimeTimer);
+        playtimeTimer = null;
+        form.hidden = false;
+        result.hidden = true;
+        showPlaytimeError("");
+      }
+
+      function initializePlaytimeView() {
+        populatePlaytimePicker();
+        const saved = getSavedPlaytime();
+        if (saved) {
+          showPlaytimeResult(saved);
+        } else {
+          showPlaytimeForm();
+          setPlaytimeDuration(150);
+        }
+      }
+
+      populatePlaytimePicker();
+
+      ["playtime-entry-hour", "playtime-entry-minute"].forEach((id) => {
+        document.getElementById(id)?.addEventListener("change", syncPlaytimeEntryFromPicker);
+      });
+
+      document.getElementById("playtime-use-now")?.addEventListener("click", () => {
+        const now = new Date();
+        setPlaytimePicker(formatPlaytimeClock(now));
+        showPlaytimeError("");
+      });
+
+      document.querySelectorAll("[data-playtime-duration]").forEach((button) => {
+        button.addEventListener("click", () => setPlaytimeDuration(Number(button.dataset.playtimeDuration)));
+      });
+
+      document.getElementById("playtime-calc")?.addEventListener("click", () => {
+        const entryInput = document.getElementById("playtime-entry");
+        const entryText = syncPlaytimeEntryFromPicker();
+        showPlaytimeError("");
+
+        if (!entryText) {
+          showPlaytimeError("レシートの「時間」と「分」を選んでください。");
+          document.getElementById("playtime-entry-hour")?.focus();
+          return;
+        }
+
+        const now = new Date();
+        const entry = buildEntryDate(entryText, now);
+        if (!entry) {
+          showPlaytimeError("入場時刻を正しく入力してください。");
+          return;
+        }
+
+        if (entry.getTime() > now.getTime() + 5 * 60 * 1000) {
+          showPlaytimeError("未来の時刻が入力されています。レシートの入場時刻をご確認ください。");
+          return;
+        }
+
+        savePlaytime(entryText, selectedPlaytimeDuration);
+        showPlaytimeResult(getSavedPlaytime());
+      });
+
+      document.getElementById("playtime-change")?.addEventListener("click", () => {
+        localStorage.removeItem(PLAYTIME_STORAGE_KEY);
+        showPlaytimeForm();
+      });
+
+      const originalShowView = showView;
+      showView = function(name) {
+        originalShowView(name);
+        if (name === "playtime") {
+          initializePlaytimeView();
+        } else if (playtimeTimer) {
+          clearInterval(playtimeTimer);
+          playtimeTimer = null;
+        }
+      };
 
       document.body.dataset.view = "home";
     </script>
