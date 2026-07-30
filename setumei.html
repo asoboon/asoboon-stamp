@@ -5805,6 +5805,178 @@
         font-size: 1.35em;
       }
 
+      .playtime-child-message {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.78);
+        color: #171a1d;
+        font-size: 1.08rem;
+        font-weight: 900;
+        line-height: 1.45;
+      }
+
+      .playtime-child-message strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 1.25em;
+        color: #c9382e;
+      }
+
+      .playtime-clock-compare {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: start;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .playtime-clock-card {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+
+      .playtime-clock-caption {
+        display: inline-flex;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.72);
+        color: #252b31;
+        font-size: .72rem;
+        font-weight: 900;
+      }
+
+      .playtime-result-card.is-urgent .playtime-clock-caption,
+      .playtime-result-card.is-finished .playtime-clock-caption {
+        background: rgba(255,255,255,.92);
+      }
+
+      .playtime-clock-arrow {
+        align-self: center;
+        padding-top: 22px;
+        color: rgba(23,26,29,.62);
+        font-size: 1.5rem;
+        font-weight: 900;
+      }
+
+      .playtime-result-card.is-urgent .playtime-clock-arrow,
+      .playtime-result-card.is-finished .playtime-clock-arrow {
+        color: rgba(255,255,255,.92);
+      }
+
+      .playtime-analog {
+        position: relative;
+        width: 112px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffffff 0 57%, #eef1f3 57% 100%);
+        box-shadow: inset 0 0 0 4px #252b31, inset 0 0 0 10px rgba(255,255,255,.45), 0 8px 16px rgba(0,0,0,.18);
+      }
+
+      .playtime-analog::before {
+        content: "";
+        position: absolute;
+        inset: 9px;
+        border-radius: 50%;
+        background: repeating-conic-gradient(from -90deg, rgba(37,43,49,.88) 0deg 2deg, transparent 2deg 30deg);
+        opacity: .28;
+      }
+
+      .playtime-analog__number {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 22px;
+        height: 22px;
+        margin-left: -11px;
+        margin-top: -11px;
+        display: grid;
+        place-items: center;
+        color: #252b31;
+        font-size: .92rem;
+        font-weight: 1000;
+        line-height: 1;
+        transform: rotate(var(--angle)) translateY(-42px) rotate(calc(var(--angle) * -1));
+        transform-origin: 50% 50%;
+        z-index: 1;
+        text-shadow: 0 1px 0 rgba(255,255,255,.85);
+      }
+
+      .playtime-analog__goal {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
+        margin-top: -7px;
+        border-radius: 50%;
+        background: #9b59ff;
+        box-shadow: 0 0 0 3px rgba(155,89,255,.22);
+        transform: rotate(var(--goal-angle, 0deg)) translateY(-32px);
+        transform-origin: 50% 50%;
+        z-index: 1;
+      }
+
+      .playtime-analog__hand {
+        position: absolute;
+        left: 50%;
+        bottom: 50%;
+        transform-origin: 50% 100%;
+        transform: translateX(-50%) rotate(0deg);
+        border-radius: 999px;
+        z-index: 2;
+      }
+
+      .playtime-analog__hand--hour {
+        width: 6px;
+        height: 26px;
+        background: #252b31;
+      }
+
+      .playtime-analog__hand--minute {
+        width: 4px;
+        height: 38px;
+        background: #343a40;
+      }
+
+      .playtime-analog__hand--second {
+        width: 2px;
+        height: 42px;
+        background: #d94236;
+        box-shadow: 0 0 10px rgba(217,66,54,.32);
+      }
+
+      .playtime-analog__center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        margin-left: -6px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: #d94236;
+        box-shadow: 0 0 0 3px #ffffff;
+        z-index: 3;
+      }
+
+      .playtime-clock-help {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.72);
+        color: #252b31;
+        font-size: .92rem;
+        font-weight: 900;
+        line-height: 1.45;
+      }
+
+      .playtime-clock-help strong {
+        color: #7f3ff0;
+      }
+
       .playtime-progress {
         height: 18px;
         margin-top: 16px;
@@ -5909,6 +6081,24 @@
 
         .playtime-duration--free {
           grid-column: auto;
+        }
+
+        .playtime-clock-compare {
+          grid-template-columns: 1fr;
+        }
+
+        .playtime-clock-arrow {
+          padding-top: 0;
+          transform: rotate(90deg);
+        }
+
+        .playtime-analog {
+          width: 98px;
+        }
+
+        .playtime-analog__number {
+          font-size: .82rem;
+          transform: rotate(var(--angle)) translateY(-36px) rotate(calc(var(--angle) * -1));
         }
       }
 </style>
@@ -6218,6 +6408,33 @@
                   <span class="playtime-finish-label" id="playtime-finish-label">まで遊べます</span>
 
                   <div class="playtime-remaining" id="playtime-remaining">あと <strong>--分</strong> 遊べます</div>
+                  <div class="playtime-child-message" id="playtime-child-message">
+                    <strong>まだあそべるよ！</strong>
+                    たのしいじかんを すごしてね。
+                  </div>
+
+                  <div class="playtime-clock-compare" aria-label="現在時刻と終了時刻の比較">
+                    <div class="playtime-clock-card">
+                      <span class="playtime-clock-caption">いまの とけい</span>
+                      <div class="playtime-analog" id="playtime-clock-now">
+                        <span class="playtime-analog__hand playtime-analog__hand--hour" id="playtime-now-hour"></span>
+                        <span class="playtime-analog__hand playtime-analog__hand--minute" id="playtime-now-minute"></span>
+                        <span class="playtime-analog__hand playtime-analog__hand--second" id="playtime-now-second"></span>
+                        <span class="playtime-analog__center"></span>
+                      </div>
+                    </div>
+                    <div class="playtime-clock-arrow" aria-hidden="true">→</div>
+                    <div class="playtime-clock-card">
+                      <span class="playtime-clock-caption">おわりの とけい</span>
+                      <div class="playtime-analog" id="playtime-clock-finish">
+                        <span class="playtime-analog__goal" id="playtime-finish-goal"></span>
+                        <span class="playtime-analog__hand playtime-analog__hand--hour" id="playtime-finish-hour"></span>
+                        <span class="playtime-analog__hand playtime-analog__hand--minute" id="playtime-finish-minute"></span>
+                        <span class="playtime-analog__center"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="playtime-clock-help" id="playtime-clock-help">ながい はりが <strong>みぎの とけい</strong> と おなじ ところに きたら、 おしまい だよ。</p>
 
                   <div class="playtime-progress" id="playtime-progress" aria-hidden="true">
                     <div class="playtime-progress-bar" id="playtime-progress-bar"></div>
@@ -6899,6 +7116,78 @@
         return entry;
       }
 
+
+      function toFullWidthNumber(value) {
+        return String(value).replace(/[0-9]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) + 0xFEE0));
+      }
+
+      function ensurePlaytimeClockNumbers() {
+        document.querySelectorAll('.playtime-analog').forEach((clock) => {
+          if (clock.querySelector('.playtime-analog__number')) return;
+          for (let number = 1; number <= 12; number += 1) {
+            const label = document.createElement('span');
+            label.className = 'playtime-analog__number';
+            label.style.setProperty('--angle', `${number * 30}deg`);
+            label.textContent = number;
+            clock.appendChild(label);
+          }
+        });
+      }
+
+      function setPlaytimeAnalogClock(prefix, date, withSeconds = false) {
+        const hourHand = document.getElementById(`${prefix}-hour`);
+        const minuteHand = document.getElementById(`${prefix}-minute`);
+        const secondHand = document.getElementById(`${prefix}-second`);
+        const goalMarker = document.getElementById(`${prefix}-goal`);
+        if (!hourHand || !minuteHand) return;
+
+        const seconds = withSeconds ? date.getSeconds() : 0;
+        const minutes = date.getMinutes() + seconds / 60;
+        const hours = (date.getHours() % 12) + minutes / 60;
+
+        hourHand.style.transform = `translateX(-50%) rotate(${hours * 30}deg)`;
+        minuteHand.style.transform = `translateX(-50%) rotate(${minutes * 6}deg)`;
+
+        if (secondHand) {
+          secondHand.style.display = withSeconds ? "block" : "none";
+          if (withSeconds) {
+            secondHand.style.transform = `translateX(-50%) rotate(${date.getSeconds() * 6}deg)`;
+          }
+        }
+
+        if (goalMarker) {
+          goalMarker.style.setProperty("--goal-angle", `${date.getMinutes() * 6}deg`);
+        }
+      }
+
+      function getPlaytimeChildMessage(remainingMinutes, finished) {
+        if (finished) {
+          return {
+            title: "たくさん あそんだね！",
+            body: "おかえりの じかんです。"
+          };
+        }
+
+        if (remainingMinutes <= 10) {
+          return {
+            title: `あと${toFullWidthNumber(remainingMinutes)}ぷん！`,
+            body: "さいごの あそびを たのしもう！"
+          };
+        }
+
+        if (remainingMinutes <= 20) {
+          return {
+            title: `あと${toFullWidthNumber(remainingMinutes)}ぷん！`,
+            body: "さいごに なにして あそぶ？"
+          };
+        }
+
+        return {
+          title: "まだ あそべるよ！",
+          body: "おわりの とけいも みてみよう。"
+        };
+      }
+
       function updatePlaytimeResult() {
         const saved = getSavedPlaytime();
         if (!saved) {
@@ -6914,6 +7203,8 @@
         const remaining = document.getElementById("playtime-remaining");
         const progress = document.getElementById("playtime-progress");
         const progressBar = document.getElementById("playtime-progress-bar");
+        const childMessage = document.getElementById("playtime-child-message");
+        const clockHelp = document.getElementById("playtime-clock-help");
         const metaEntry = document.getElementById("playtime-meta-entry");
         const metaDuration = document.getElementById("playtime-meta-duration");
         const metaClosing = document.getElementById("playtime-meta-closing");
@@ -6922,10 +7213,12 @@
         const now = new Date();
         const closing = getPlaytimeClosingTime(now, Number(saved.duration));
 
+        ensurePlaytimeClockNumbers();
         metaEntry.textContent = saved.entry;
         metaDuration.textContent = playtimeDurationLabel(Number(saved.duration));
         if (metaClosing) metaClosing.textContent = formatPlaytimeClock(closing);
         if (freeClosing) freeClosing.textContent = `本日は${formatPlaytimeClock(closing)}まで遊べます`;
+        setPlaytimeAnalogClock("playtime-now", now, true);
 
         if (Number(saved.duration) === 0) {
           resultCard.hidden = true;
@@ -6950,6 +7243,7 @@
         finishTime.textContent = formatPlaytimeClock(finish);
         finishTime.setAttribute("datetime", formatPlaytimeClock(finish));
         progressBar.style.width = `${progressPercent}%`;
+        setPlaytimeAnalogClock("playtime-finish", finish, false);
 
         resultCard.classList.remove("is-warning", "is-urgent", "is-finished");
 
@@ -6967,9 +7261,20 @@
 
           if (remainingMinutes <= 10) {
             resultCard.classList.add("is-urgent");
-          } else if (remainingMinutes <= 30) {
+          } else if (remainingMinutes <= 20) {
             resultCard.classList.add("is-warning");
           }
+        }
+
+        if (childMessage) {
+          const msg = getPlaytimeChildMessage(remainingMinutes, remainingMs <= 0);
+          childMessage.innerHTML = `<strong>${msg.title}</strong>${msg.body}`;
+        }
+
+        if (clockHelp) {
+          clockHelp.innerHTML = remainingMs <= 0
+            ? 'みぎの とけいの じかんに なったよ。<strong>おかえりの じかん</strong> です。'
+            : 'ながい はりが <strong>みぎの とけい</strong> と おなじ ところに きたら、 おしまい だよ。';
         }
       }
 
