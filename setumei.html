@@ -6101,7 +6101,203 @@
           transform: rotate(var(--angle)) translateY(-36px) rotate(calc(var(--angle) * -1));
         }
       }
-</style>
+
+
+      /* イベントページ：Instagramプロフィール埋め込み（投稿はInstagram側で更新） */
+      .event-menu-card .menu-card__head {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.18), transparent 36%),
+          linear-gradient(135deg, #f9ce34 0%, #ee2a7b 44%, #6228d7 100%);
+      }
+
+      .event-shell {
+        display: grid;
+        gap: 16px;
+      }
+
+      .event-card,
+      .sns-card {
+        overflow: hidden;
+        border: 2px solid rgba(20, 23, 26, .78);
+        border-radius: var(--radius-xl);
+        background: linear-gradient(180deg, #f4eedf, #d8d0bf);
+        box-shadow: var(--garage-shadow);
+      }
+
+      .event-card__hero {
+        padding: 18px 16px;
+        color: #fff;
+        background:
+          radial-gradient(circle at 88% 12%, rgba(255,255,255,.28), transparent 28%),
+          linear-gradient(135deg, #f9ce34 0%, #ee2a7b 44%, #6228d7 100%);
+      }
+
+      .event-card__tag {
+        display: inline-flex;
+        margin-bottom: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.92);
+        color: #a11665;
+        font-size: .72rem;
+        font-weight: 900;
+      }
+
+      .event-card__hero h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.35rem;
+      }
+
+      .event-card__hero p {
+        margin: 7px 0 0;
+        color: rgba(255,255,255,.94);
+        font-size: .9rem;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .event-card__body {
+        padding: 14px;
+      }
+
+      .event-facts {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+      }
+
+      .event-fact {
+        display: grid;
+        grid-template-columns: 82px 1fr;
+        gap: 10px;
+        align-items: start;
+        padding: 10px 11px;
+        border: 1px solid rgba(23,26,29,.12);
+        border-radius: 12px;
+        background: rgba(255,255,255,.78);
+      }
+
+      .event-fact dt {
+        font-size: .78rem;
+        font-weight: 900;
+        color: #8f3d18;
+      }
+
+      .event-fact dd {
+        margin: 0;
+        color: #252a30;
+        font-size: .86rem;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .event-note {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border-left: 4px solid var(--garage-yellow);
+        border-radius: 10px;
+        background: rgba(255,255,255,.72);
+        color: #4a5057;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
+      .sns-section {
+        margin-top: 0;
+      }
+
+      .sns-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid rgba(18,32,42,.10);
+        background: linear-gradient(90deg, rgba(249,206,52,.20), rgba(238,42,123,.14), rgba(98,40,215,.12));
+      }
+
+      .sns-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        color: #252a30;
+        font-size: .88rem;
+        font-weight: 900;
+      }
+
+      .sns-ico { font-size: 1.1rem; }
+
+      .sns-link {
+        color: #b71568;
+        font-size: .76rem;
+        font-weight: 900;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .sns-embed {
+        overflow: hidden;
+        padding: 10px 10px 12px;
+        background: #fff;
+      }
+
+      /* Instagramプロフィール埋め込み。表示内容・並びはInstagram側の仕様に従う */
+      .sns-embed iframe {
+        display: block;
+        width: 100%;
+        height: 560px;
+        border: 0;
+        border-radius: 14px;
+        background: #fff;
+      }
+
+      .sns-fallback {
+        margin-top: 8px;
+        color: rgba(18,32,42,.62);
+        font-size: .7rem;
+        font-weight: 700;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .sns-fallback a {
+        color: #b71568;
+        font-weight: 900;
+        text-decoration: none;
+      }
+
+      .event-navigation {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .event-navigation__button {
+        min-height: 52px;
+        border: 2px solid #171a1d;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff4bd, var(--garage-yellow));
+        color: #171a1d;
+        font-size: .82rem;
+        font-weight: 900;
+        box-shadow: 0 6px 0 rgba(0,0,0,.18);
+      }
+
+      .event-navigation__button:active {
+        transform: translateY(3px);
+        box-shadow: 0 3px 0 rgba(0,0,0,.18);
+      }
+
+      @media (max-width: 360px) {
+        .sns-embed iframe { height: 520px; }
+        .event-fact { grid-template-columns: 72px 1fr; }
+        .event-navigation { grid-template-columns: 1fr; }
+      }
+
+    </style>
   </head>
   <body>
     <div class="play-scene" aria-hidden="true">
@@ -6312,6 +6508,18 @@
                   <div class="menu-card__icon">🅿️</div>
                   <div class="menu-card__label">
                     <div class="menu-card__title">駐車場について</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="home-card-shell">
+              <button class="menu-card event-menu-card" type="button" onclick="launchView(this, 'events')">
+                <div class="menu-card__head">
+                  <div class="menu-card__icon">🎪</div>
+                  <div class="menu-card__label">
+                    <div class="menu-card__title">イベント情報</div>
+                    <div class="menu-card__hint">今月のイベント・開催時間・様子を見る</div>
                   </div>
                 </div>
               </button>
@@ -6788,6 +6996,61 @@
             </article>
           </div>
         </section>
+
+        <section class="view" id="view-events" aria-hidden="true">
+          <div class="page-title">
+            <h1>イベント情報</h1>
+            <p>最新のイベント情報は公式Instagramからご確認ください。</p>
+          </div>
+
+          <div class="event-shell">
+            <section class="sns-section" aria-label="公式Instagram">
+              <div class="sns-card">
+                <div class="sns-header">
+                  <div class="sns-title">
+                    <span class="sns-ico" aria-hidden="true">📷</span>
+                    <span>公式Instagram</span>
+                  </div>
+                  <a
+                    class="sns-link"
+                    href="https://www.instagram.com/asoboon425/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Instagramで見る →
+                  </a>
+                </div>
+
+                <div class="sns-embed" role="group" aria-label="ASOBooN公式Instagramの最新投稿">
+                  <iframe
+                    title="ASOBooN Instagram"
+                    src="https://www.instagram.com/asoboon425/embed"
+                    loading="lazy"
+                    scrolling="no"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen
+                  ></iframe>
+
+                  <div class="sns-fallback">
+                    埋め込みが表示されない場合は
+                    <a href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener noreferrer">こちら</a>
+                    から開いてください。
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="event-navigation" aria-label="関連案内">
+              <button class="event-navigation__button" type="button" onclick="launchView(this, 'playtime')">
+                ⏰ 何時まであそべる？
+              </button>
+              <button class="event-navigation__button" type="button" onclick="launchView(this, 'parking')">
+                🅿️ 駐車場を見る
+              </button>
+            </div>
+          </div>
+        </section>
+
 
         <section class="view" id="view-exit" aria-hidden="true">
           <div class="page-title">
@@ -7376,7 +7639,12 @@
         }
       };
 
-      document.body.dataset.view = "home";
+      const initialView = new URLSearchParams(window.location.search).get("view");
+      if (initialView && document.getElementById(`view-${initialView}`)) {
+        showView(initialView);
+      } else {
+        showView("home");
+      }
     </script>
   </body>
 </html>
