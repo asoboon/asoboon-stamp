@@ -1378,7 +1378,7 @@ body.sound-muted .vehicle-boost{filter:saturate(.78)}
 <strong>ブーンジャンプ</strong>
 </div>
 <div class="topbar-actions">
-<a class="home-button" href="../index.html" aria-label="ASOBooNミニアプリのホームへ戻る"><span aria-hidden="true">🏠</span><small>HOME</small></a>
+<a class="home-button" href="../home.html" aria-label="ASOBooNミニアプリのホームへ戻る"><span aria-hidden="true">🏠</span><small>HOME</small></a>
 <div class="best"><span>この端末のベスト</span><strong id="bestScore">0m</strong></div>
 <button aria-label="効果音をオフにする" aria-pressed="false" class="sound-toggle" id="soundToggle" type="button"><span id="soundIcon" aria-hidden="true">🔊</span><small>SE</small></button>
 </div>
@@ -1651,7 +1651,7 @@ body.sound-muted .vehicle-boost{filter:saturate(.78)}
 const CONFIG = {
   // 結果画面に出す回遊リンク。url が空のものは自動的に非表示になります。
   links: [
-    { icon:"🏠", name:"ミニアプリホーム", desc:"ほかの遊びや館内案内へ",             url:"../index.html", external:false },
+    { icon:"🏠", name:"ミニアプリホーム", desc:"ほかの遊びや館内案内へ",             url:"../home.html", external:false },
     { icon:"⛩️", name:"おみくじ",         desc:"きょうの運勢をひいてみよう",         url:"../omikuji.html", external:false },
     { icon:"📖", name:"入場までのながれ", desc:"予約と受付の流れを確認",             url:"../setumei.html", external:false },
     { icon:"📷", name:"Instagram",        desc:"イベント情報を配信中",               url:"https://www.instagram.com/asoboon425/", external:true }
@@ -1859,7 +1859,7 @@ const replay=(node,cls)=>{node.classList.remove(cls);void node.offsetWidth;node.
    ========================================================================== */
 const SOUND_STORE_KEY="asoboonBooncar.sound.v1";
 const safeStorage={
-  get(key){try{return window.localStorage.getItem(key);}catch(_){return null;}},
+  get(key){try{return window.safeStorage.get(key);}catch(_){return null;}},
   set(key,value){try{window.localStorage.setItem(key,value);return true;}catch(_){return false;}}
 };
 const Sound=(()=>{
