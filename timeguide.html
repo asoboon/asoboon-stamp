@@ -377,20 +377,6 @@
       box-shadow: 0 0 0 3px #fff;
     }
 
-    .guide-button {
-      width: min(100%, 600px);
-      min-height: 58px;
-      margin: 0 auto;
-      border: 4px solid #ffffff;
-      border-radius: 18px;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      color: var(--ink);
-      font-size: clamp(1rem, 3.5vw, 1.35rem);
-      font-weight: 1000;
-      box-shadow: 0 7px 0 rgba(0,0,0,.25);
-      cursor: pointer;
-    }
-
     .switch-wrap {
       display: grid;
       justify-items: center;
@@ -431,37 +417,6 @@
       border-color: #fff;
       background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
       box-shadow: 0 4px 0 rgba(0,0,0,.24);
-    }
-
-    .guide-shell {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      background: #111418;
-    }
-
-    .guide-frame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #111418;
-    }
-
-    .manual-back {
-      position: fixed;
-      top: max(10px, env(safe-area-inset-top));
-      right: 10px;
-      z-index: 30;
-      min-height: 46px;
-      padding: 8px 15px;
-      border: 2px solid #111418;
-      border-radius: 999px;
-      color: var(--ink);
-      background: var(--yellow);
-      box-shadow: 0 5px 0 rgba(0,0,0,.25);
-      font-size: .82rem;
-      font-weight: 1000;
     }
 
     .rotate-message { display: none; }
@@ -507,7 +462,6 @@
       .adjust-row button { min-height: 40px; }
       .result-card { padding-top: 10px; padding-bottom: 12px; }
       .now-card { padding-top: 7px; padding-bottom: 7px; }
-      .guide-button { min-height: 48px; }
       .switch button { min-height: 38px; }
     }
 
@@ -581,8 +535,6 @@
         </div>
       </section>
 
-      <button class="guide-button" id="guide-button" type="button">館内の利用案内を見る</button>
-
       <div class="switch-wrap">
         <div class="switch-label">利用時間の設定</div>
         <div class="switch" role="group" aria-label="利用時間を選択">
@@ -597,27 +549,11 @@
     </div>
   </section>
 
-  <section class="guide-shell" id="guide-shell" hidden>
-    <button class="manual-back" id="manual-back" type="button">時間画面へ戻る</button>
-    <iframe
-      class="guide-frame"
-      id="guide-frame"
-      src="./jounaisetumei.html"
-      title="ASOBooN ご利用案内"
-    ></iframe>
-  </section>
-
   <script>
     (() => {
-      const IDLE_MS = 30 * 1000;
       const DURATION_STORAGE_KEY = "asoboon-guide-duration";
       const ENTRY_STORAGE_KEY = "asoboon-guide-entry-time";
 
-      const clockScreen = document.getElementById("clock-screen");
-      const guideShell = document.getElementById("guide-shell");
-      const guideFrame = document.getElementById("guide-frame");
-      const guideButton = document.getElementById("guide-button");
-      const manualBack = document.getElementById("manual-back");
       const currentTime = document.getElementById("current-time");
       const leaveTime = document.getElementById("leave-time");
       const resultNote = document.getElementById("result-note");
@@ -632,7 +568,6 @@
       const durationButtons = [...document.querySelectorAll(".switch button")];
 
       let durationMinutes = 150;
-      let idleTimer = null;
 
       const pad = (number) => String(number).padStart(2, "0");
       const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -770,41 +705,6 @@
         updateAnalogClock(now);
       }
 
-      function showClock() {
-        clearTimeout(idleTimer);
-        guideShell.hidden = true;
-        clockScreen.hidden = false;
-        updateCurrentClock();
-      }
-
-      function resetIdleTimer() {
-        if (guideShell.hidden) return;
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(showClock, IDLE_MS);
-      }
-
-      function showGuide() {
-        clockScreen.hidden = true;
-        guideShell.hidden = false;
-        resetIdleTimer();
-      }
-
-      function bindIframeActivity() {
-        try {
-          const doc = guideFrame.contentDocument;
-          const win = guideFrame.contentWindow;
-          if (!doc || !win) return;
-
-          ["pointerdown", "touchstart", "click", "keydown"].forEach((eventName) => {
-            doc.addEventListener(eventName, resetIdleTimer, { passive: true });
-          });
-
-          win.addEventListener("scroll", resetIdleTimer, { passive: true });
-        } catch (error) {
-          console.warn("案内画面の操作監視を設定できませんでした。", error);
-        }
-      }
-
       entryHour.addEventListener("change", updateResult);
       entryMinute.addEventListener("change", updateResult);
       minusMinute.addEventListener("click", () => shiftEntryTime(-1));
@@ -820,13 +720,6 @@
         });
       });
 
-      guideButton.addEventListener("click", showGuide);
-      manualBack.addEventListener("click", showClock);
-      guideFrame.addEventListener("load", bindIframeActivity);
-
-      document.addEventListener("pointerdown", resetIdleTimer, { passive: true });
-      document.addEventListener("touchstart", resetIdleTimer, { passive: true });
-      document.addEventListener("keydown", resetIdleTimer);
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) updateCurrentClock();
       });
