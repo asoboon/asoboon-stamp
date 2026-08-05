@@ -2804,6 +2804,213 @@
         transition-duration:.01ms!important;
       }
     }
+
+
+    /* =========================================================
+       MODE DIFFERENTIATION / RESERVATION CTA / 1-MINUTE INPUT
+       ========================================================= */
+    body:not(.inside){
+      background:
+        radial-gradient(circle at 12% 5%,rgba(255,255,255,.82),transparent 20%),
+        radial-gradient(circle at 88% 16%,rgba(93,190,255,.24),transparent 25%),
+        repeating-linear-gradient(135deg,rgba(31,111,166,.035) 0 1px,transparent 1px 22px),
+        linear-gradient(180deg,#d9efff 0%,#edf7ff 48%,#c8e5f3 100%);
+    }
+    body.inside{
+      background:
+        radial-gradient(circle at 16% 4%,rgba(250,255,221,.26),transparent 22%),
+        radial-gradient(circle at 86% 18%,rgba(91,207,145,.20),transparent 24%),
+        repeating-linear-gradient(45deg,rgba(244,235,168,.035) 0 1px,transparent 1px 20px),
+        linear-gradient(180deg,#173e33 0%,#0e2c25 48%,#071d19 100%);
+    }
+    body.inside:before{
+      opacity:.42;
+      background:
+        radial-gradient(circle at 20% 23%,transparent 0 35px,rgba(230,210,118,.12) 36px 37px,transparent 38px),
+        radial-gradient(circle at 77% 64%,transparent 0 52px,rgba(110,205,145,.12) 53px 54px,transparent 55px),
+        linear-gradient(28deg,transparent 0 49%,rgba(232,208,113,.08) 49.5% 50.5%,transparent 51% 100%);
+      background-size:270px 270px,330px 330px,210px 210px;
+    }
+    body:not(.inside) .topbar{
+      background:linear-gradient(180deg,rgba(218,240,255,.98),rgba(218,240,255,.82),transparent);
+    }
+    body.inside .topbar{
+      background:linear-gradient(180deg,rgba(12,44,36,.98),rgba(12,44,36,.80),transparent);
+    }
+    body.inside .brand{
+      color:#174b3d;
+      background:rgba(245,251,225,.96);
+      border-color:rgba(232,202,100,.38);
+    }
+    body:not(.inside) .home-shell{
+      background:
+        repeating-linear-gradient(0deg,rgba(23,90,135,.026) 0 1px,transparent 1px 5px),
+        linear-gradient(180deg,#f9fdff,#e8f5fb 72%,#cce5ef);
+      border-color:rgba(39,115,164,.42);
+    }
+    body.inside .home-shell{
+      background:
+        repeating-linear-gradient(0deg,rgba(42,79,44,.035) 0 1px,transparent 1px 5px),
+        linear-gradient(180deg,#f6f5d9,#e6e8b9 72%,#c9d08b);
+      border-color:rgba(228,193,82,.58);
+    }
+    body:not(.inside) .mode-cap{
+      background:
+        radial-gradient(circle at 82% 14%,rgba(123,215,255,.32),transparent 30%),
+        linear-gradient(155deg,#125789,#062b4a);
+    }
+    body.inside .mode-cap{
+      background:
+        radial-gradient(circle at 82% 14%,rgba(221,227,101,.25),transparent 30%),
+        linear-gradient(155deg,#236d4e,#0a3528);
+    }
+    body:not(.inside) .subtitle-ribbon{
+      background:linear-gradient(180deg,#1688c4,#075487);
+      border:1px solid rgba(183,232,255,.48);
+    }
+    body.inside .subtitle-ribbon{
+      background:linear-gradient(180deg,#6c8a27,#385d1f);
+      border:1px solid rgba(241,224,119,.52);
+    }
+    body:not(.inside) .ticket{
+      border-color:#69c8f2;
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.12),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#166897,#073b62);
+    }
+    body:not(.inside) .ticket:nth-child(3n+2){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.12),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#2578a8,#0d4a71);
+    }
+    body:not(.inside) .ticket:nth-child(3n){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.12),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#315f8a,#153550);
+    }
+    body.inside .ticket{
+      border-color:#e0c75b;
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.10),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#36744f,#133d2d);
+    }
+    body.inside .ticket:nth-child(3n+2){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.10),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#54782d,#274719);
+    }
+    body.inside .ticket:nth-child(3n){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.10),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,#70652b,#3f3516);
+    }
+    body:not(.inside) .quick-mode-btn.active{
+      color:#071c2c;
+      background:linear-gradient(180deg,#83d9ff,#25a5df);
+    }
+    body.inside .quick-mode-btn.active{
+      color:#17220b;
+      background:linear-gradient(180deg,#dce875,#8eb43e);
+    }
+    body.inside .back{
+      border-color:#cdb64d;
+      background:linear-gradient(180deg,#486b2c,#253b1d);
+    }
+
+    .reservation-quick-card{
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr) auto;
+      gap:11px;
+      align-items:center;
+      min-height:76px;
+      margin-top:13px;
+      padding:13px;
+      border:3px solid #173a54;
+      border-radius:19px;
+      color:#142313;
+      text-decoration:none;
+      background:linear-gradient(180deg,#fff197,#e4b946);
+      box-shadow:0 7px 0 rgba(60,43,14,.24),0 14px 28px rgba(43,32,13,.18);
+    }
+    .reservation-quick-card:active{
+      transform:translateY(4px);
+      box-shadow:0 3px 0 rgba(60,43,14,.24),0 8px 18px rgba(43,32,13,.16);
+    }
+    .reservation-quick-time{
+      display:grid;
+      place-items:center;
+      min-height:44px;
+      padding:7px 10px;
+      border-radius:12px;
+      color:#fff;
+      background:linear-gradient(180deg,#1778aa,#094b74);
+      font-size:.72rem;
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .reservation-quick-copy strong{
+      display:block;
+      font-size:.95rem;
+      line-height:1.3;
+    }
+    .reservation-quick-copy small{
+      display:block;
+      margin-top:3px;
+      color:#655022;
+      font-size:.66rem;
+      font-weight:850;
+      line-height:1.4;
+    }
+    .reservation-quick-arrow{
+      font-size:1.35rem;
+      font-weight:950;
+    }
+
+    .time-input-help{
+      margin:-2px 0 0;
+      color:#6d6251;
+      font-size:.69rem;
+      line-height:1.55;
+      font-weight:800;
+    }
+    .entry-time-row{
+      grid-template-columns:64px minmax(0,1fr) 64px;
+    }
+    .time-adjust{
+      height:54px;
+      padding:4px;
+      font-size:.72rem;
+      line-height:1.15;
+    }
+    .entry-select{
+      height:54px;
+      padding:7px 8px;
+      font-size:1.42rem;
+      letter-spacing:.04em;
+      color-scheme:light;
+    }
+    .time-now-btn{
+      width:100%;
+      min-height:42px;
+      border:2px solid #5f4826;
+      border-radius:12px;
+      background:linear-gradient(180deg,#fffdf4,#e3d3ad);
+      color:#3d3222;
+      font-size:.78rem;
+      font-weight:950;
+      box-shadow:0 4px 0 rgba(77,54,20,.13);
+    }
+    .time-now-btn:active{
+      transform:translateY(2px);
+      box-shadow:0 2px 0 rgba(77,54,20,.13);
+    }
+
   </style>
 </head>
 
@@ -2882,12 +3089,12 @@
             </svg>
             <h1>
               ASOBooN
-              <span id="titleMode">冒険基地ナビ</span>
+              <span id="titleMode">来場前ナビ</span>
             </h1>
           </div>
 
           <div class="subtitle-ribbon" id="subtitle">
-            今日はどの冒険から始めますか？
+            🧳 来場前モード｜予約・アクセスを確認
           </div>
         </div>
 
@@ -2917,7 +3124,7 @@
             </svg>
             <span
               class="ticket-title"
-              data-before-label="入場までの流れ"
+              data-before-label="当日予約・入場"
               data-inside-label="何時まであそべる？"
             >
               入場までの流れ
@@ -3040,12 +3247,12 @@
           type="button"
           data-open-view="reservation"
         >
-          <h3>入場までの流れ</h3>
+          <h3>当日予約から入場まで</h3>
 
           <div class="route-row">
             <div class="route-item">
-              <span class="route-icon">🎟️</span>
-              整理券
+              <span class="route-icon">📱</span>
+              WEB予約
             </div>
             <div class="route-item">
               <span class="route-icon">🔔</span>
@@ -3075,11 +3282,26 @@
     <section class="view" id="reservationView">
       <div class="page-head">
         <small>BEFORE VISIT 01</small>
-        <h2>入場受付・整理券</h2>
+        <h2>当日予約・入場方法</h2>
         <p>
-          当日の受付状況を確認して、オンライン整理券を取得できます。
+          当日のWEB予約（整理券）と、入場までの手順をまとめています。
         </p>
       </div>
+
+      <a
+        class="reservation-quick-card"
+        id="reservationQuickLink"
+        href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span class="reservation-quick-time">当日 7:00〜</span>
+        <span class="reservation-quick-copy">
+          <strong>WEB予約（整理券）はこちら</strong>
+          <small>対象日の当日分を予約できます</small>
+        </span>
+        <span class="reservation-quick-arrow">↗</span>
+      </a>
 
       <section class="availability-card">
         <div class="availability-head">
@@ -3125,8 +3347,8 @@
 
       <div class="reservation-hero">
         <p>
-          オンライン受付は<strong>当日朝7:00</strong>から対象日に開始します。
-          受付後は、整理券番号と呼出状況を確認しながらご来場ください。
+          WEB予約（整理券）は対象日の<strong>当日朝7:00</strong>から開始します。
+          予約後は、整理券番号と呼出状況を確認しながらご来場ください。
         </p>
 
         <div class="reservation-route">
@@ -3150,7 +3372,7 @@
       <section class="entry-flow-card">
         <div class="entry-flow-head">
           <div>
-            <h3>入場までの5ステップ</h3>
+            <h3>WEB予約から入場までの5ステップ</h3>
             <p>この順番で進めば、当日の動きに迷いません。</p>
           </div>
 
@@ -3163,13 +3385,13 @@
 
             <div>
               <div class="entry-step-title">
-                整理券を取得する
+                WEB予約（整理券）を取得する
                 <span class="entry-step-tag">WEB</span>
                 <span class="entry-step-tag local">現地</span>
               </div>
 
               <span class="entry-step-text">
-                WEB整理券は対象日の当日7:00から。現地整理券は当日9:30から、入口すぐ左のタブレットで取得します。
+                対象日は当日7:00からWEB予約（整理券）を取得できます。現地整理券は当日9:30から、入口すぐ左のタブレットで取得します。
               </span>
 
               <div class="entry-step-actions">
@@ -3283,7 +3505,7 @@
         rel="noopener noreferrer"
       >
         <span>
-          <strong>オンライン受付へ進む</strong>
+          <strong>当日WEB予約（整理券）へ進む</strong>
           <small>当日分のみ・Airウェイトが開きます</small>
         </span>
         <span>↗</span>
@@ -3901,35 +4123,51 @@
 
         <div class="time-settings">
           <div class="setting-head">
-            <strong>入場した時刻</strong>
-            <span>10分単位で調整</span>
+            <strong>レシートの入場時刻</strong>
+            <span>1分単位で入力</span>
           </div>
+
+          <p class="time-input-help">
+            レシートに印字された入場時刻を、そのまま入力してください。
+          </p>
 
           <div class="entry-time-row">
             <button
               class="time-adjust"
               id="timeMinus"
               type="button"
-              aria-label="入場時刻を10分戻す"
+              aria-label="入場時刻を1分戻す"
             >
-              −
+              −1分
             </button>
 
-            <select
+            <input
               class="entry-select"
               id="startTime"
-              aria-label="入場した時刻"
-            ></select>
+              type="time"
+              min="09:00"
+              max="18:00"
+              step="60"
+              aria-label="レシートの入場時刻"
+            >
 
             <button
               class="time-adjust"
               id="timePlus"
               type="button"
-              aria-label="入場時刻を10分進める"
+              aria-label="入場時刻を1分進める"
             >
-              ＋
+              ＋1分
             </button>
           </div>
+
+          <button
+            class="time-now-btn"
+            id="timeNowBtn"
+            type="button"
+          >
+            🕒 現在時刻を入力
+          </button>
 
           <div class="setting-head">
             <strong>本日の利用時間</strong>
@@ -3971,7 +4209,7 @@
             id="calcBtn"
             type="button"
           >
-            この内容で時間を確認する
+            この入場時刻を保存する
           </button>
         </div>
 
@@ -4534,13 +4772,13 @@
 
         document.getElementById("titleMode").textContent =
           mode === "inside"
-            ? "冒険中ナビ"
-            : "冒険基地ナビ";
+            ? "館内ナビ"
+            : "来場前ナビ";
 
         document.getElementById("subtitle").textContent =
           mode === "inside"
-            ? "館内で必要な案内はこちら"
-            : "今日はどの冒険から始めますか？";
+            ? "🧭 館内モード｜時間・ルール・遊び"
+            : "🧳 来場前モード｜予約・アクセスを確認";
 
         document
           .querySelectorAll(".ticket")
@@ -4820,6 +5058,11 @@
           "reservationPrimaryLink"
         );
 
+      const reservationQuickLink =
+        document.getElementById(
+          "reservationQuickLink"
+        );
+
       const entryReservationLink =
         document.getElementById(
           "entryReservationLink"
@@ -4857,6 +5100,9 @@
 
       if (appConfig.reservationUrl) {
         reservationPrimaryLink.href =
+          appConfig.reservationUrl;
+
+        reservationQuickLink.href =
           appConfig.reservationUrl;
 
         entryReservationLink.href =
@@ -4983,56 +5229,46 @@
         return "2時間30分";
       };
 
-      for (
-        let hour = 9;
-        hour <= 18;
-        hour++
-      ) {
-        for (
-          let minute = 0;
-          minute < 60;
-          minute += 10
-        ) {
-          if (
-            hour === 18 &&
-            minute > 0
-          ) {
-            break;
-          }
+      const MIN_ENTRY_MINUTES = 9 * 60;
+      const MAX_ENTRY_MINUTES = 18 * 60;
 
-          const value =
-            `${pad(hour)}:${pad(minute)}`;
+      function isValidTimeValue(value) {
+        const match = /^(\d{2}):(\d{2})$/.exec(String(value || ""));
 
-          const option =
-            document.createElement("option");
-
-          option.value = value;
-          option.textContent = value;
-
-          start.appendChild(option);
+        if (!match) {
+          return false;
         }
+
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        const total = hour * 60 + minute;
+
+        return (
+          hour >= 0 &&
+          hour <= 23 &&
+          minute >= 0 &&
+          minute <= 59 &&
+          total >= MIN_ENTRY_MINUTES &&
+          total <= MAX_ENTRY_MINUTES
+        );
+      }
+
+      function formatEntryMinutes(totalMinutes) {
+        const clamped = Math.max(
+          MIN_ENTRY_MINUTES,
+          Math.min(MAX_ENTRY_MINUTES, totalMinutes)
+        );
+
+        const hour = Math.floor(clamped / 60);
+        const minute = clamped % 60;
+
+        return `${pad(hour)}:${pad(minute)}`;
       }
 
       function closestTimeOption(date) {
-        let hour =
-          date.getHours();
-
-        let minute =
-          Math.floor(
-            date.getMinutes() / 10
-          ) * 10;
-
-        if (hour < 9) {
-          hour = 9;
-          minute = 0;
-        }
-
-        if (hour > 18) {
-          hour = 18;
-          minute = 0;
-        }
-
-        return `${pad(hour)}:${pad(minute)}`;
+        return formatEntryMinutes(
+          date.getHours() * 60 + date.getMinutes()
+        );
       }
 
       function resetPlaytimeUi(
@@ -5144,30 +5380,24 @@
       function adjustStart(
         deltaMinutes
       ) {
-        const options = [
-          ...start.options
-        ];
+        const baseValue = isValidTimeValue(start.value)
+          ? start.value
+          : closestTimeOption(new Date());
 
-        let index =
-          options.findIndex(
-            option =>
-              option.value === start.value
-          );
+        const [hour, minute] =
+          baseValue.split(":").map(Number);
 
-        index =
-          Math.max(
-            0,
-            Math.min(
-              options.length - 1,
-              index +
-              deltaMinutes / 10
-            )
-          );
-
-        start.value =
-          options[index].value;
+        start.value = formatEntryMinutes(
+          hour * 60 + minute + deltaMinutes
+        );
 
         renderPlaytime(false);
+      }
+
+      function setStartToCurrentTime() {
+        start.value = closestTimeOption(new Date());
+        renderPlaytime(false);
+        notify("現在時刻を入力しました");
       }
 
       function updateAnalog(now) {
@@ -5246,6 +5476,10 @@
       }
 
       function getSchedule() {
+        if (!isValidTimeValue(start.value)) {
+          start.value = closestTimeOption(new Date());
+        }
+
         const [hour, minute] =
           start.value
             .split(":")
@@ -5324,6 +5558,22 @@
         main.classList.remove(
           "expired"
         );
+
+        if (entry.getTime() - now.getTime() > 60000) {
+          main.textContent = "入場時刻を確認してください";
+          main.classList.add("expired");
+          sub.textContent = `入力時刻 ${timeText(entry)}`;
+          note.textContent = "現在より後の時刻が入力されています";
+          document.getElementById("journeyEnd").textContent = "終了 --:--";
+          progress.style.width = "8%";
+          car.style.left = "8%";
+
+          if (save) {
+            notify("入場時刻を確認してください");
+          }
+
+          return;
+        }
 
         if (selectedDuration === 0) {
           main.textContent =
@@ -5465,15 +5715,8 @@
             data.date ===
             getLocalDateKey()
           ) {
-            if (
-              [...start.options].some(
-                option =>
-                  option.value ===
-                  data.start
-              )
-            ) {
-              start.value =
-                data.start;
+            if (isValidTimeValue(data.start)) {
+              start.value = String(data.start);
             }
 
             selectedDuration =
@@ -5534,13 +5777,7 @@
             return null;
           }
 
-          if (
-            !/^\d{2}:\d{2}$/.test(
-              String(
-                data.start || ""
-              )
-            )
-          ) {
+          if (!isValidTimeValue(data.start)) {
             return null;
           }
 
@@ -5689,6 +5926,13 @@
       );
 
       start.addEventListener(
+        "input",
+        () => {
+          renderPlaytime(false);
+        }
+      );
+
+      start.addEventListener(
         "change",
         () => {
           renderPlaytime(false);
@@ -5700,7 +5944,7 @@
         .addEventListener(
           "click",
           () => {
-            adjustStart(-10);
+            adjustStart(-1);
           }
         );
 
@@ -5709,8 +5953,15 @@
         .addEventListener(
           "click",
           () => {
-            adjustStart(10);
+            adjustStart(1);
           }
+        );
+
+      document
+        .getElementById("timeNowBtn")
+        .addEventListener(
+          "click",
+          setStartToCurrentTime
         );
 
       document
