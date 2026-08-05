@@ -12,7 +12,7 @@
 <meta content="dark" name="color-scheme"/>
 <meta content="noindex" name="robots"/>
 <title>ブーンジャンプ｜ASOBooN</title>
-<meta name="boonjump-build" content="2026-08-05-100point-v1">
+<meta name="boonjump-build" content="2026-08-05-persistent-home-v3">
 <link rel="manifest" href="./manifest.webmanifest"/>
 <link rel="apple-touch-icon" href="./icons/icon-192.png"/>
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"/>
@@ -724,9 +724,22 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
 }
 
 .footer{
-  position:relative;z-index:3;padding:10px 14px max(12px,env(safe-area-inset-bottom));text-align:center;
-  color:var(--txt-dim);background:rgba(2,6,23,.72);font-size:.7rem;line-height:1.45;
+  position:relative;z-index:3;padding:9px 14px max(12px,env(safe-area-inset-bottom));text-align:center;
+  color:var(--txt-dim);background:rgba(2,6,23,.82);font-size:.7rem;line-height:1.45;
+  display:grid;gap:7px;
 }
+.miniapp-home-link{
+  width:min(100%,430px);min-height:48px;margin:0 auto;padding:7px 11px;border:2px solid rgba(255,255,255,.78);border-radius:15px;
+  display:grid;grid-template-columns:34px minmax(0,1fr) 20px;align-items:center;gap:8px;text-align:left;text-decoration:none;
+  color:#0f172a;background:linear-gradient(180deg,#ffffff,#e7f8ff);box-shadow:0 6px 0 #8bc6da,0 10px 22px rgba(0,0,0,.24);
+  -webkit-tap-highlight-color:transparent;
+}
+.miniapp-home-link:active{transform:translateY(3px);box-shadow:0 3px 0 #8bc6da,0 6px 15px rgba(0,0,0,.22)}
+.miniapp-home-link .miniapp-icon{font-size:1.45rem;text-align:center}
+.miniapp-home-link strong{display:block;font-size:.84rem;line-height:1.1;font-weight:1000}
+.miniapp-home-link small{display:block;margin-top:2px;color:#475569;font-size:.64rem;font-weight:900}
+.miniapp-home-link .miniapp-go{font-size:1.25rem;font-weight:1000;text-align:right}
+.footer-note{font-size:.62rem;color:var(--txt-mute)}
 
 /* ===== scroll on result ===== */
 .launch-card.result-ready{
@@ -1127,12 +1140,12 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offse
 /* ===== navigation polish ===== */
 .topbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
 .home-button{
-  width:46px;height:46px;min-width:46px;border:1px solid rgba(255,255,255,.24);border-radius:15px;
-  display:grid;place-items:center;gap:0;padding:3px;color:#fff;text-decoration:none;background:rgba(7,16,35,.66);
-  box-shadow:0 8px 22px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.16);backdrop-filter:blur(10px);
-  -webkit-tap-highlight-color:transparent;
+  width:46px;height:46px;min-width:46px;border:1px solid rgba(135,246,255,.55);border-radius:15px;
+  display:grid;place-items:center;gap:0;padding:3px;color:#fff;background:linear-gradient(180deg,rgba(73,183,255,.92),rgba(37,99,235,.92));
+  box-shadow:0 8px 22px rgba(0,0,0,.24),0 0 20px rgba(73,183,255,.22),inset 0 1px rgba(255,255,255,.25);
+  backdrop-filter:blur(10px);cursor:pointer;flex:0 0 auto;-webkit-tap-highlight-color:transparent;
 }
-.home-button span{font-size:19px;line-height:1}.home-button small{font-size:7px;line-height:1;font-weight:1000;letter-spacing:.06em;color:var(--txt-dim)}
+.home-button span{font-size:19px;line-height:1}.home-button small{font-size:7px;line-height:1;font-weight:1000;letter-spacing:.02em;color:#effaff}
 .home-button:active{transform:scale(.94)}
 @media(max-width:430px){.topbar{gap:7px;padding-inline:10px}.topbar-actions{gap:5px}.best{min-width:94px;padding-inline:8px}.best span{font-size:.56rem}.home-button,.sound-toggle{width:44px;height:44px;min-width:44px}}
 @media(max-width:365px){.brand small{letter-spacing:.07em}.brand strong{font-size:.96rem}.best{min-width:86px}.best span{font-size:.52rem}.best strong{font-size:1rem}.home-button,.sound-toggle{width:42px;height:42px;min-width:42px}}
@@ -1378,7 +1391,7 @@ body.sound-muted .vehicle-boost{filter:saturate(.78)}
 <strong>ブーンジャンプ</strong>
 </div>
 <div class="topbar-actions">
-<a class="home-button" href="../home.html" aria-label="ASOBooNミニアプリのホームへ戻る"><span aria-hidden="true">🏠</span><small>HOME</small></a>
+<button class="home-button" id="gameHomeButton" type="button" hidden aria-label="ブーンジャンプのゲームホームへ戻る"><span aria-hidden="true">🎮</span><small>ゲーム</small></button>
 <div class="best"><span>この端末のベスト</span><strong id="bestScore">0m</strong></div>
 <button aria-label="効果音をオフにする" aria-pressed="false" class="sound-toggle" id="soundToggle" type="button"><span id="soundIcon" aria-hidden="true">🔊</span><small>SE</small></button>
 </div>
@@ -1598,7 +1611,12 @@ body.sound-muted .vehicle-boost{filter:saturate(.78)}
 </div>
 </section>
 </main>
-<footer class="footer" data-vehicle-coordinates="approved-master-v1">個人情報は取得しません。記録はこの端末に保存されます。｜v1.0.0</footer>
+<footer class="footer" data-vehicle-coordinates="approved-master-v1">
+<a class="miniapp-home-link" href="../home.html" aria-label="ASOBooNミニアプリのホームへ戻る">
+<span class="miniapp-icon" aria-hidden="true">🏠</span><span><strong>ミニアプリHOMEへ戻る</strong><small>ASOBooNのメニュー・館内案内へ</small></span><span class="miniapp-go" aria-hidden="true">›</span>
+</a>
+<div class="footer-note">ゲームを閉じても記録はこの端末に保存されます。｜v1.1.0</div>
+</footer>
 </div>
 <div aria-hidden="true" class="flash" id="criticalFlash"><strong>CRITICAL!</strong></div>
 <div aria-hidden="true" class="burst-text" id="burstText"><small>PERFECT SHOT</small><strong>CRITICAL!</strong></div>
@@ -1651,7 +1669,7 @@ body.sound-muted .vehicle-boost{filter:saturate(.78)}
 const CONFIG = {
   // 結果画面に出す回遊リンク。url が空のものは自動的に非表示になります。
   links: [
-    { icon:"🏠", name:"ミニアプリホーム", desc:"ほかの遊びや館内案内へ",             url:"../home.html", external:false },
+    { icon:"🏠", name:"ASOBooNミニアプリHOME", desc:"ゲームを終了してメニュー・館内案内へ", url:"../home.html", external:false },
     { icon:"⛩️", name:"おみくじ",         desc:"きょうの運勢をひいてみよう",         url:"../omikuji.html", external:false },
     { icon:"📖", name:"入場までのながれ", desc:"予約と受付の流れを確認",             url:"../setumei.html", external:false },
     { icon:"📷", name:"Instagram",        desc:"イベント情報を配信中",               url:"https://www.instagram.com/asoboon425/", external:true }
@@ -1813,7 +1831,7 @@ const el = {
   launchTitle:$("launchTitle"), launchSub:$("launchSub"), scene:$("launchScene"), world:$("cameraWorld"),
   combo:$("comboBadge"), milestone:$("milestone"),
   crosslink:$("crosslink"), crosslinkList:$("crosslinkList"),
-  soundToggle:$("soundToggle"), soundIcon:$("soundIcon"), homeCar:$("homeCar"), homeCarUse:$("homeCarUse"),
+  soundToggle:$("soundToggle"), soundIcon:$("soundIcon"), gameHome:$("gameHomeButton"), homeCar:$("homeCar"), homeCarUse:$("homeCarUse"),
   recordChase:$("recordChase"), recordOldBest:$("recordOldBest"), recordNewBest:$("recordNewBest"), recordChaseFill:$("recordChaseFill"), secretUnlock:$("secretUnlock")
 };
 const progressItems = stages.map((_, i) => $(`progress${i}`));
@@ -1823,6 +1841,7 @@ const progressItems = stages.map((_, i) => $(`progress${i}`));
    ========================================================================== */
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const STORE_KEY = "asoboonBooncar.v6";
+const STORE_BACKUP_KEY = `${STORE_KEY}.backup`;
 const LEGACY_STORE_KEYS = ["asoboonBooncar.v5","asoboonBooncar.v4","asoboonBooncar.v3","asoboonBooncar.v2"];
 const NORMAL_IDS = ["boon","wagon","buggy","suv","sport","ssr","princess"];
 const SECRET_ID = "secret";
@@ -1858,9 +1877,26 @@ const replay=(node,cls)=>{node.classList.remove(cls);void node.offsetWidth;node.
    4A. 効果音・祝祭演出（外部音源なし／Web Audio）
    ========================================================================== */
 const SOUND_STORE_KEY="asoboonBooncar.sound.v1";
+const memoryStorage=new Map();
 const safeStorage={
-  get(key){try{return window.safeStorage.get(key);}catch(_){return null;}},
-  set(key,value){try{window.localStorage.setItem(key,value);return true;}catch(_){return false;}}
+  get(key){
+    try{
+      const value=window.localStorage.getItem(key);
+      if(value!==null){memoryStorage.set(key,value);return value;}
+    }catch(_){}
+    return memoryStorage.has(key)?memoryStorage.get(key):null;
+  },
+  set(key,value){
+    const text=String(value);memoryStorage.set(key,text);
+    try{
+      window.localStorage.setItem(key,text);
+      return window.localStorage.getItem(key)===text;
+    }catch(_){return false;}
+  },
+  remove(key){
+    memoryStorage.delete(key);
+    try{window.localStorage.removeItem(key);return true;}catch(_){return false;}
+  }
 };
 const Sound=(()=>{
   let ctx=null,enabled=safeStorage.get(SOUND_STORE_KEY)!=="off";
@@ -1935,16 +1971,33 @@ const migrateStats=(parsed={})=>{
   const trophies=parsed.trophies&&typeof parsed.trophies==="object"?parsed.trophies:{};
   return {...defaultStats,...parsed,version:6,best:Math.max(oldBest,normalBest,secretBest),overallBest:Math.max(oldBest,normalBest,secretBest),normalBest,secretBest,gradeCounts,runFlags:inferredFlags,trophies,garage:normalizeGarage(parsed.garage)};
 };
-const loadStats=()=>{
+const parseStoredStats=(raw)=>{
+  if(!raw)return null;
   try{
-    const raw=safeStorage.get(STORE_KEY);
-    if(raw)return migrateStats(JSON.parse(raw));
-    for(const key of LEGACY_STORE_KEYS){const legacy=safeStorage.get(key);if(legacy){const migrated=migrateStats(JSON.parse(legacy));safeStorage.set(STORE_KEY,JSON.stringify(migrated));return migrated;}}
-    const oldBest=Number(safeStorage.get("asoboonBooncarBest")||0);
-    return migrateStats({best:oldBest});
-  }catch(_){return {...defaultStats,garage:blankGarage()};}
+    const parsed=JSON.parse(raw);
+    return parsed&&typeof parsed==="object"?migrateStats(parsed):null;
+  }catch(_){return null;}
 };
-const saveStats=(state)=>{try{safeStorage.set(STORE_KEY,JSON.stringify(state));}catch(_){}};
+const saveStats=(state)=>{
+  try{
+    const payload=JSON.stringify(state);
+    const primarySaved=safeStorage.set(STORE_KEY,payload);
+    safeStorage.set(STORE_BACKUP_KEY,payload);
+    return primarySaved;
+  }catch(_){return false;}
+};
+const loadStats=()=>{
+  const primary=parseStoredStats(safeStorage.get(STORE_KEY));
+  if(primary){saveStats(primary);return primary;}
+  const backup=parseStoredStats(safeStorage.get(STORE_BACKUP_KEY));
+  if(backup){saveStats(backup);return backup;}
+  for(const key of LEGACY_STORE_KEYS){
+    const legacy=parseStoredStats(safeStorage.get(key));
+    if(legacy){saveStats(legacy);return legacy;}
+  }
+  const oldBest=Number(safeStorage.get("asoboonBooncarBest")||0);
+  const fresh=migrateStats({best:oldBest});saveStats(fresh);return fresh;
+};
 let stats=loadStats();
 
 const getCarRecord = (carId) => stats.garage[carId] || (stats.garage[carId]={owned:false,obtained:0,plays:0,best:0,bestRank:0,critical:0,true:0,bestAt:null});
@@ -1986,6 +2039,7 @@ const showScreen = (target) => {
   el.records.hidden = target !== "records";
   el.game.hidden   = target !== "game";
   el.launch.hidden = target !== "launch";
+  if(el.gameHome)el.gameHome.hidden=target === "intro";
 };
 
 /* ==========================================================================
@@ -2706,6 +2760,17 @@ const startGame = () => {
   prepareStage();
 };
 
+const goGameHome=()=>{
+  saveStats(stats);
+  clearTimers();cancelAnimationFrame(rafId);
+  mode="idle";locked=false;gachaSettled=true;gachaRecorded=false;
+  results=[];stageIndex=0;lastScore=null;
+  el.achievementDetail.hidden=true;el.resultPanel.hidden=true;
+  resetScene();renderStats();renderGarage();applyCar();showScreen("intro");
+  try{window.scrollTo({top:0,left:0,behavior:reduceMotion?"auto":"smooth"});}catch(_){window.scrollTo(0,0);}
+  el.start.focus({preventScroll:true});
+};
+
 /* ==========================================================================
    14. 入力
    ========================================================================== */
@@ -2723,6 +2788,7 @@ const bindPress = (node, fn) => {
 const syncSoundButton=()=>{if(!el.soundToggle)return;const muted=!Sound.enabled;el.soundToggle.setAttribute("aria-pressed",String(muted));el.soundToggle.setAttribute("aria-label",muted?"効果音をオンにする":"効果音をオフにする");el.soundIcon.textContent=muted?"🔇":"🔊";document.body.classList.toggle("sound-muted",muted);};
 window.addEventListener("pointerdown",()=>Sound.prime(),{once:true,capture:true});
 el.soundToggle?.addEventListener("click",e=>{e.stopPropagation();Sound.toggle();syncSoundButton();Sound.prime();if(Sound.enabled)Sound.grade("GOOD",0);});
+el.gameHome?.addEventListener("click",goGameHome);
 
 el.start.addEventListener("click", runGacha);
 el.garageOpen.addEventListener("click",()=>openGarage("intro"));
@@ -2784,9 +2850,10 @@ el.perfectFx.addEventListener("animationend", (e) => {
 /* ==========================================================================
    15. バックグラウンド復帰
    ========================================================================== */
+const persistNow=()=>saveStats(stats);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
-    cancelAnimationFrame(rafId);
+    persistNow();cancelAnimationFrame(rafId);
     return;
   }
   if (mode === "tap") {
@@ -2801,7 +2868,9 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-window.addEventListener("pagehide", () => cancelAnimationFrame(rafId));
+window.addEventListener("pagehide",()=>{persistNow();cancelAnimationFrame(rafId);});
+window.addEventListener("beforeunload",persistNow);
+document.addEventListener("freeze",persistNow);
 
 
 const showSecretUnlock=()=>{

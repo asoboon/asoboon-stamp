@@ -1,4 +1,4 @@
-const CACHE_VERSION = "boonjump-100point-v1";
+const CACHE_VERSION = "persistent-home-v3";
 const CACHE_NAME = `boonjump-${CACHE_VERSION}`;
 const PRECACHE = [
   "./",
