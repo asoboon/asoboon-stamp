@@ -5509,8 +5509,8 @@
             <button type="button" class="linkButton" onclick="closeCompleteForStaff()">
               スタッフに見せる
             </button>
-            <a class="linkButton secondary" href="https://miniapp.line.me/2009884613-ELc6kolf">
-              施設説明を見る
+            <a class="linkButton secondary" href="./home.html?mode=inside">
+              ミニアプリホームへ戻る
             </a>
           </div>
         </div>
@@ -5546,13 +5546,13 @@
 
       <div class="content">
         <div class="topBar">
-          <a class="roundBtn" href="https://miniapp.line.me/2009884613-ELc6kolf" aria-label="戻る">←</a>
+          <a class="roundBtn" href="./home.html?mode=inside" aria-label="館内ホームへ戻る">←</a>
           <div class="brand" aria-label="ASOBooN">
             <span class="brandGear">⚙</span>
             <span class="brandWord">ASOBooN</span>
             <span class="brandGear">⚙</span>
           </div>
-          <a class="roundBtn" href="https://miniapp.line.me/2009884613-ELc6kolf" aria-label="案内">≡</a>
+          <a class="roundBtn" href="./home.html?mode=inside" aria-label="ミニアプリホーム">⌂</a>
         </div>
 
         <div class="titlePlate">
@@ -5588,6 +5588,7 @@
   <script>
     const LIFF_ID = "2009888671-57TOefc3";
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxILMUKf0jUEXi_t3quHWUuY0QwP8damcvnKUFY8OwFXoqcN7rfdEhi3vh2Yf8bzLiQLQ/exec";
+    const APP_HOME_URL = "./home.html?mode=inside";
     const FACILITY_MINIAPP_URL = "https://miniapp.line.me/2009884613-ELc6kolf";
     const STAMP_TOP_URL = "https://asoboon.github.io/asoboon-stamp/";
     const OMIKUJI_URL = STAMP_TOP_URL + "omikuji.html?fix=207e949";
@@ -5921,12 +5922,14 @@
         buttonRowHtml = `
           <div class="buttonRow homeStack">
             <button type="button" class="linkButton" onclick="enterStaffMode()">スタッフに見せる</button>
+            <a class="linkButton secondary" href="${APP_HOME_URL}">ミニアプリホームへ戻る</a>
             <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">アソブーンについて</a>
           </div>
         `;
       } else {
         buttonRowHtml = `
           <div class="buttonRow homeStack">
+            <a class="linkButton" href="${APP_HOME_URL}">ミニアプリホームへ戻る</a>
             <button type="button" class="secondary" onclick="location.reload()">もう一度確認</button>
             <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">アソブーンについて</a>
           </div>
@@ -6268,7 +6271,7 @@
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="exitStaffMode()">戻る</button>
-          <a class="linkButton secondary" href="${FACILITY_MINIAPP_URL}">施設説明を見る</a>
+          <a class="linkButton secondary" href="${APP_HOME_URL}">ミニアプリホームへ戻る</a>
         </div>
       `;
 
@@ -6435,7 +6438,7 @@
 
         <div class="buttonRow">
           <button type="button" class="secondary" onclick="location.reload()">再読み込み</button>
-          <a class="linkButton" href="${FACILITY_MINIAPP_URL}">案内ページへ進む</a>
+          <a class="linkButton" href="${APP_HOME_URL}">ミニアプリホームへ戻る</a>
         </div>
       `;
     }
