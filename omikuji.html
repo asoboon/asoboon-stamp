@@ -1873,7 +1873,8 @@
   </div>
 
   <script>
-    const STAMP_TOP_URL = "https://miniapp.line.me/2009888671-57TOefc3";
+    const APP_HOME_URL = "./home.html";
+    const STAMP_TOP_URL = "./index.html?stamp=home";
 
     const FORTUNES = [
       { id: 1, rank: "大吉", type: "まじめ系", text: "きょうのきみは、むてきだ。こわいものなし！思いっきりあそぼう。" },
@@ -2094,7 +2095,7 @@
     const woodenTag = document.getElementById("woodenTag");
     const ofudaRain = document.getElementById("ofudaRain");
 
-    document.getElementById("topBackLink").href = STAMP_TOP_URL;
+    document.getElementById("topBackLink").href = APP_HOME_URL;
     document.getElementById("topHomeLink").href = STAMP_TOP_URL;
 
     let isDrawing = false;

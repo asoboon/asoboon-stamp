@@ -8,6 +8,74 @@
   <meta http-equiv="Expires" content="0" />
 
   <title>ASOBooN スタンプラリー</title>
+
+  <script>
+    /*
+      ASOBooN LIFF route guard
+
+      - Rich menu:
+        https://miniapp.line.me/2009888671-57TOefc3
+        -> no spot -> home.html
+
+      - In-venue QR:
+        ?spot=spot_01 ... ?spot=spot_04
+        -> keep this index.html and run the existing stamp acquisition logic
+
+      - Stamp progress from home:
+        ?stamp=home
+        -> keep this index.html and load the stamp list without adding a stamp
+    */
+    (() => {
+      const VALID_SPOTS = new Set(["spot_01", "spot_02", "spot_03", "spot_04"]);
+      const params = new URLSearchParams(location.search);
+
+      const normalizeSpot = (value) => {
+        const spot = String(value || "").trim();
+        return VALID_SPOTS.has(spot) ? spot : "";
+      };
+
+      const readRouteSpot = () => {
+        const direct = normalizeSpot(params.get("spot"));
+        if (direct) return direct;
+
+        const liffState = params.get("liff.state");
+        if (liffState) {
+          try {
+            let decoded = String(liffState);
+
+            // LIFF state can arrive encoded more than once.
+            for (let i = 0; i < 3; i++) {
+              const next = decodeURIComponent(decoded);
+              if (next === decoded) break;
+              decoded = next;
+            }
+
+            const queryText = decoded.includes("?")
+              ? decoded.slice(decoded.lastIndexOf("?") + 1)
+              : decoded.replace(/^\/+/, "").replace(/^\?/, "");
+
+            const fromState = normalizeSpot(
+              new URLSearchParams(queryText).get("spot")
+            );
+            if (fromState) return fromState;
+          } catch (error) {}
+        }
+
+        const fromHash = normalizeSpot(
+          new URLSearchParams(String(location.hash || "").replace(/^#/, "")).get("spot")
+        );
+        return fromHash;
+      };
+
+      const spot = readRouteSpot();
+      const showStampHome = params.get("stamp") === "home";
+
+      if (!spot && !showStampHome) {
+        location.replace(new URL("./home.html", location.href).href);
+      }
+    })();
+  </script>
+
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
