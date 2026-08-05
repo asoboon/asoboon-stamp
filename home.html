@@ -2619,6 +2619,14 @@
       font-weight:950;
     }
 
+    .duration-btn small{
+      display:block;
+      margin-top:3px;
+      font-size:.58rem;
+      line-height:1.15;
+      opacity:.82;
+    }
+
     .duration-btn.active{
       border-color:#fff9df;
       color:#2e210f;
@@ -3011,6 +3019,136 @@
       box-shadow:0 2px 0 rgba(77,54,20,.13);
     }
 
+
+    /* =========================================================
+       COMPACT MODE SWITCH / CLEAN VIEWPORT
+       ========================================================= */
+    .app{
+      padding-bottom:calc(var(--safe-bottom) + 22px);
+    }
+
+    .topbar{
+      position:relative;
+      top:auto;
+      z-index:40;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:48px;
+      padding:4px 2px 9px;
+      background:transparent!important;
+      backdrop-filter:none;
+    }
+
+    .brand{
+      display:none!important;
+    }
+
+    .compact-back{
+      flex:0 0 42px;
+      width:42px;
+      min-height:42px;
+      padding:0;
+      border-radius:50%;
+      font-size:1.15rem;
+      line-height:1;
+      box-shadow:0 5px 13px rgba(16,28,28,.18);
+    }
+
+    .compact-mode-switch{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:4px;
+      width:min(100%,224px);
+      min-height:42px;
+      padding:4px;
+      border:1px solid rgba(75,75,65,.18);
+      border-radius:999px;
+      background:rgba(255,255,255,.68);
+      box-shadow:0 5px 16px rgba(31,41,42,.12);
+      backdrop-filter:blur(10px);
+    }
+
+    .back:not([hidden]) + .compact-mode-switch{
+      flex:1 1 auto;
+      width:auto;
+      max-width:224px;
+    }
+
+    .compact-mode-btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      min-width:0;
+      min-height:34px;
+      padding:6px 10px;
+      border:0;
+      border-radius:999px;
+      color:#687078;
+      background:transparent;
+      font-size:.76rem;
+      font-weight:950;
+      white-space:nowrap;
+      transition:transform .14s ease,background .18s ease,color .18s ease,box-shadow .18s ease;
+    }
+
+    .compact-mode-btn span{
+      font-size:.86rem;
+      line-height:1;
+    }
+
+    .compact-mode-btn strong{
+      font:inherit;
+    }
+
+    .compact-mode-btn:active{
+      transform:scale(.97);
+    }
+
+    body:not(.inside) .compact-mode-switch{
+      border-color:rgba(41,132,183,.22);
+      background:rgba(245,252,255,.82);
+    }
+
+    body:not(.inside) .compact-mode-btn.active{
+      color:#fff;
+      background:linear-gradient(180deg,#2eb4ed,#1172ad);
+      box-shadow:0 3px 9px rgba(13,101,153,.24);
+    }
+
+    body.inside .compact-mode-switch{
+      border-color:rgba(205,190,87,.28);
+      background:rgba(247,248,222,.88);
+    }
+
+    body.inside .compact-mode-btn{
+      color:#687153;
+    }
+
+    body.inside .compact-mode-btn.active{
+      color:#fffbe6;
+      background:linear-gradient(180deg,#6d9b3b,#315d2d);
+      box-shadow:0 3px 9px rgba(38,81,42,.25);
+    }
+
+    .quick-mode-dock{
+      display:none!important;
+    }
+
+    @media(max-width:360px){
+      .compact-mode-switch{
+        max-width:206px;
+      }
+
+      .compact-mode-btn{
+        gap:3px;
+        padding-inline:7px;
+        font-size:.72rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -3069,12 +3207,20 @@
   </svg>
 
   <main class="app">
-    <header class="topbar">
-      <button class="brand" id="brandBtn">
-        ASOBooN 冒険ナビ
-        <small>公式LINEミニアプリ</small>
-      </button>
-      <button class="back" id="backBtn" hidden>← 戻る</button>
+    <header class="topbar" aria-label="画面操作">
+      <button class="back compact-back" id="backBtn" hidden aria-label="ホームへ戻る">←</button>
+
+      <div class="compact-mode-switch" role="group" aria-label="来場前と館内の切り替え">
+        <button class="compact-mode-btn" type="button" data-mode="before" aria-label="来場前メニューを表示">
+          <span aria-hidden="true">🧳</span>
+          <strong>来場前</strong>
+        </button>
+
+        <button class="compact-mode-btn" type="button" data-mode="inside" aria-label="館内メニューを表示">
+          <span aria-hidden="true">🧭</span>
+          <strong>館内</strong>
+        </button>
+      </div>
     </header>
 
     <section class="view active" id="homeView">
@@ -4036,7 +4182,7 @@
         <small>NOW EXPLORING 01</small>
         <h2>何時まであそべる？</h2>
         <p>
-          入場時刻と利用時間から、現在の残り時間と終了予定を確認します。
+          営業時間は10:00から。入場時刻と本日の利用時間から、閉館時刻を超えない退場予定を確認します。
         </p>
       </div>
 
@@ -4145,7 +4291,7 @@
               class="entry-select"
               id="startTime"
               type="time"
-              min="09:00"
+              min="10:00"
               max="18:00"
               step="60"
               aria-label="レシートの入場時刻"
@@ -4171,7 +4317,7 @@
 
           <div class="setting-head">
             <strong>本日の利用時間</strong>
-            <span>受付時の案内に合わせて選択</span>
+            <span>閉館時刻も自動で反映</span>
           </div>
 
           <div
@@ -4185,6 +4331,7 @@
               data-duration="150"
             >
               2時間30分
+              <small>閉館18:00</small>
             </button>
 
             <button
@@ -4193,6 +4340,7 @@
               data-duration="180"
             >
               3時間
+              <small>閉館17:00</small>
             </button>
 
             <button
@@ -4201,6 +4349,7 @@
               data-duration="0"
             >
               時間制限なし
+              <small>閉館17:00</small>
             </button>
           </div>
 
@@ -4214,7 +4363,7 @@
         </div>
 
         <p class="time-footnote">
-          設定内容は毎日0:00に自動リセットされます。一時退場中も利用時間は進みます。表示は確認補助のため、最終的な退場時刻は受付時の案内をご確認ください。
+          営業開始は10:00です。2時間30分の日は18:00閉館、3時間の日と時間制限なしの日は17:00閉館です。一時退場中も利用時間は進みます。最終的な退場時刻は受付時の案内をご確認ください。
         </p>
       </div>
     </section>
@@ -4432,21 +4581,23 @@
         <small>PLAY CONTENTS</small>
         <h2>あそびコンテンツ</h2>
         <p>
-          スタンプラリー・おみくじ・ミニゲームから、遊びたいものを選んでください。
+          ミニゲーム・おみくじ・スタンプラリーから、遊びたいものを選んでください。
         </p>
       </div>
 
       <div class="stack">
         <div class="paper">
-          <h3>🏁 館内スタンプラリー</h3>
-          <p>館内を巡ってスタンプを集めよう！</p>
+          <h3>🚀 ミニゲーム「ブーンジャンプ」</h3>
+          <p>
+            3回のタップで車を飛ばし、自己ベストやトロフィーを目指すミニゲームです。
+          </p>
 
           <a
             class="action"
-            id="stampRallyLink"
-            href="./index.html?stamp=home"
+            id="miniGameLink"
+            href="./boonjump/"
           >
-            スタンプラリーを開く <span>→</span>
+            ミニゲームを始める <span>→</span>
           </a>
         </div>
 
@@ -4466,17 +4617,15 @@
         </div>
 
         <div class="paper">
-          <h3>🚀 ミニゲーム「ブーンジャンプ」</h3>
-          <p>
-            3回のタップで車を飛ばし、自己ベストやトロフィーを目指すミニゲームです。
-          </p>
+          <h3>🏁 館内スタンプラリー</h3>
+          <p>館内を巡ってスタンプを集めよう！</p>
 
           <a
             class="action"
-            id="miniGameLink"
-            href="./boonjump/"
+            id="stampRallyLink"
+            href="./index.html?stamp=home"
           >
-            ミニゲームを始める <span>→</span>
+            スタンプラリーを開く <span>→</span>
           </a>
         </div>
 
@@ -4633,33 +4782,8 @@
     </aside>
   </div>
 
-  <nav
-    class="quick-mode-dock"
-    aria-label="来場前と館内の切り替え"
-  >
-    <span
-      class="quick-mode-divider"
-      aria-hidden="true"
-    ></span>
-
-    <button
-      class="quick-mode-btn"
-      data-mode="before"
-    >
-      <strong>来場前</strong>
-      <small>予約・駐車場・イベント</small>
-    </button>
-
-    <button
-      class="quick-mode-btn"
-      data-mode="inside"
-    >
-      <strong>館内</strong>
-      <small>時間・ルール・マップ</small>
-    </button>
-  </nav>
-
   <div class="toast" id="toast"></div>
+
 
   <script>
     window.ASOBOON_CONFIG = {
@@ -4847,12 +4971,6 @@
           button.addEventListener("click", () => {
             showView(button.dataset.openView);
           });
-        });
-
-      document
-        .getElementById("brandBtn")
-        .addEventListener("click", () => {
-          showView("home");
         });
 
       back.addEventListener("click", () => {
@@ -5229,8 +5347,20 @@
         return "2時間30分";
       };
 
-      const MIN_ENTRY_MINUTES = 9 * 60;
+      const OPEN_MINUTES = 10 * 60;
       const MAX_ENTRY_MINUTES = 18 * 60;
+
+      function getClosingMinutes(duration = selectedDuration) {
+        return duration === 150
+          ? 18 * 60
+          : 17 * 60;
+      }
+
+      function closingTimeLabel(duration = selectedDuration) {
+        return duration === 150
+          ? "18:00"
+          : "17:00";
+      }
 
       function isValidTimeValue(value) {
         const match = /^(\d{2}):(\d{2})$/.exec(String(value || ""));
@@ -5248,15 +5378,18 @@
           hour <= 23 &&
           minute >= 0 &&
           minute <= 59 &&
-          total >= MIN_ENTRY_MINUTES &&
+          total >= OPEN_MINUTES &&
           total <= MAX_ENTRY_MINUTES
         );
       }
 
-      function formatEntryMinutes(totalMinutes) {
+      function formatEntryMinutes(
+        totalMinutes,
+        maximum = MAX_ENTRY_MINUTES
+      ) {
         const clamped = Math.max(
-          MIN_ENTRY_MINUTES,
-          Math.min(MAX_ENTRY_MINUTES, totalMinutes)
+          OPEN_MINUTES,
+          Math.min(maximum, totalMinutes)
         );
 
         const hour = Math.floor(clamped / 60);
@@ -5265,9 +5398,13 @@
         return `${pad(hour)}:${pad(minute)}`;
       }
 
-      function closestTimeOption(date) {
+      function closestTimeOption(
+        date,
+        duration = selectedDuration
+      ) {
         return formatEntryMinutes(
-          date.getHours() * 60 + date.getMinutes()
+          date.getHours() * 60 + date.getMinutes(),
+          getClosingMinutes(duration)
         );
       }
 
@@ -5353,6 +5490,9 @@
           [0,150,180].includes(minutes)
             ? minutes
             : 150;
+
+        start.max =
+          closingTimeLabel(selectedDuration);
 
         durationButtons.forEach(
           button => {
@@ -5477,7 +5617,10 @@
 
       function getSchedule() {
         if (!isValidTimeValue(start.value)) {
-          start.value = closestTimeOption(new Date());
+          start.value = closestTimeOption(
+            new Date(),
+            selectedDuration
+          );
         }
 
         const [hour, minute] =
@@ -5495,22 +5638,44 @@
           0
         );
 
+        const closing =
+          new Date(entry);
+
+        const closingMinutes =
+          getClosingMinutes(selectedDuration);
+
+        closing.setHours(
+          Math.floor(closingMinutes / 60),
+          closingMinutes % 60,
+          0,
+          0
+        );
+
         if (selectedDuration === 0) {
           return {
             entry,
-            end:null
+            end:closing,
+            closing,
+            closingCapped:true
           };
         }
 
-        const end =
+        const naturalEnd =
           new Date(
             entry.getTime() +
             selectedDuration * 60000
           );
 
+        const closingCapped =
+          naturalEnd > closing;
+
         return {
           entry,
-          end
+          end:closingCapped
+            ? closing
+            : naturalEnd,
+          closing,
+          closingCapped
         };
       }
 
@@ -5520,7 +5685,9 @@
 
         const {
           entry,
-          end
+          end,
+          closing,
+          closingCapped
         } = getSchedule();
 
         const main =
@@ -5555,16 +5722,38 @@
           .textContent =
             `入場 ${timeText(entry)}`;
 
+        document
+          .getElementById(
+            "journeyEnd"
+          )
+          .textContent =
+            `終了 ${timeText(end)}`;
+
         main.classList.remove(
           "expired"
         );
 
-        if (entry.getTime() - now.getTime() > 60000) {
-          main.textContent = "入場時刻を確認してください";
+        if (entry < new Date(entry).setHours(10,0,0,0)) {
+          main.textContent =
+            "入場時刻を確認してください";
           main.classList.add("expired");
-          sub.textContent = `入力時刻 ${timeText(entry)}`;
-          note.textContent = "現在より後の時刻が入力されています";
-          document.getElementById("journeyEnd").textContent = "終了 --:--";
+          sub.textContent =
+            "営業開始は10:00です";
+          note.textContent =
+            "レシートの入場時刻を入力してください";
+          progress.style.width = "8%";
+          car.style.left = "8%";
+          return;
+        }
+
+        if (entry >= closing) {
+          main.textContent =
+            "入場時刻を確認してください";
+          main.classList.add("expired");
+          sub.textContent =
+            `${timeText(closing)}が閉館時刻です`;
+          note.textContent =
+            "閉館時刻より前の入場時刻を入力してください";
           progress.style.width = "8%";
           car.style.left = "8%";
 
@@ -5575,106 +5764,105 @@
           return;
         }
 
-        if (selectedDuration === 0) {
+        if (entry.getTime() - now.getTime() > 60000) {
           main.textContent =
-            "時間制限なし";
+            "入場時刻を確認してください";
+          main.classList.add("expired");
+          sub.textContent =
+            `入力時刻 ${timeText(entry)}`;
+          note.textContent =
+            "現在より後の時刻が入力されています";
+          progress.style.width = "8%";
+          car.style.left = "8%";
+
+          if (save) {
+            notify("入場時刻を確認してください");
+          }
+
+          return;
+        }
+
+        const totalPlayableMinutes =
+          Math.max(
+            1,
+            (end - entry) / 60000
+          );
+
+        const remaining =
+          Math.ceil(
+            (end - now) / 60000
+          );
+
+        const elapsed =
+          Math.max(
+            0,
+            Math.min(
+              totalPlayableMinutes,
+              (now - entry) / 60000
+            )
+          );
+
+        const ratio =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              elapsed /
+              totalPlayableMinutes
+            )
+          );
+
+        const position =
+          8 + ratio * 84;
+
+        progress.style.width =
+          `${position}%`;
+
+        car.style.left =
+          `${position}%`;
+
+        if (remaining > 0) {
+          const hours =
+            Math.floor(
+              remaining / 60
+            );
+
+          const minutes =
+            remaining % 60;
+
+          main.textContent =
+            hours > 0
+              ? `あと ${hours}時間${minutes}分`
+              : `あと ${minutes}分`;
 
           sub.textContent =
-            "閉館時間まで遊べます";
+            `${timeText(end)}まで遊べます`;
 
-          note.textContent =
-            "閉館時刻は曜日・営業状況により異なります";
-
-          document
-            .getElementById(
-              "journeyEnd"
-            )
-            .textContent =
-              "終了 閉館時";
-
-          progress.style.width =
-            "50%";
-
-          car.style.left =
-            "50%";
-        } else {
-          const remaining =
-            Math.ceil(
-              (end - now) /
-              60000
-            );
-
-          const elapsed =
-            Math.max(
-              0,
-              Math.min(
-                selectedDuration,
-                (now - entry) /
-                60000
-              )
-            );
-
-          const ratio =
-            Math.max(
-              0,
-              Math.min(
-                1,
-                elapsed /
-                selectedDuration
-              )
-            );
-
-          const position =
-            8 + ratio * 84;
-
-          document
-            .getElementById(
-              "journeyEnd"
-            )
-            .textContent =
-              `終了 ${timeText(end)}`;
-
-          progress.style.width =
-            `${position}%`;
-
-          car.style.left =
-            `${position}%`;
-
-          if (remaining > 0) {
-            const hours =
-              Math.floor(
-                remaining / 60
-              );
-
-            const minutes =
-              remaining % 60;
-
-            main.textContent =
-              hours > 0
-                ? `あと ${hours}時間${minutes}分`
-                : `あと ${minutes}分`;
-
-            sub.textContent =
-              `${timeText(end)}まで遊べます`;
-
+          if (selectedDuration === 0) {
+            note.textContent =
+              `時間制限なし・本日は${timeText(closing)}閉館です`;
+          } else if (closingCapped) {
+            note.textContent =
+              `利用時間より閉館時刻が先のため、${timeText(closing)}までです`;
+          } else {
             note.textContent =
               remaining <= 10
                 ? "そろそろお片付けの時間です"
-                : "現在時刻に合わせて自動更新しています";
-          } else {
-            main.textContent =
-              "終了予定時刻を過ぎています";
-
-            main.classList.add(
-              "expired"
-            );
-
-            sub.textContent =
-              `終了予定 ${timeText(end)}`;
-
-            note.textContent =
-              "受付時の案内をご確認ください";
+                : `本日の閉館時刻は${timeText(closing)}です`;
           }
+        } else {
+          main.textContent =
+            "終了予定時刻を過ぎています";
+
+          main.classList.add(
+            "expired"
+          );
+
+          sub.textContent =
+            `終了予定 ${timeText(end)}`;
+
+          note.textContent =
+            "受付時の案内をご確認ください";
         }
 
         if (save) {
@@ -5824,24 +6012,37 @@
           0
         );
 
-        if (saved.duration === 0) {
-          return {
-            main:"時間制限なし",
-            sub:"閉館時間まで遊べます"
-          };
-        }
+        const closingMinutes =
+          getClosingMinutes(
+            saved.duration
+          );
+
+        const closing =
+          new Date(now);
+
+        closing.setHours(
+          Math.floor(closingMinutes / 60),
+          closingMinutes % 60,
+          0,
+          0
+        );
+
+        const naturalEnd =
+          saved.duration === 0
+            ? closing
+            : new Date(
+                entry.getTime() +
+                saved.duration * 60000
+              );
 
         const end =
-          new Date(
-            entry.getTime() +
-            saved.duration *
-            60000
-          );
+          naturalEnd > closing
+            ? closing
+            : naturalEnd;
 
         const remaining =
           Math.ceil(
-            (end - now) /
-            60000
+            (end - now) / 60000
           );
 
         if (remaining > 0) {
