@@ -1815,7 +1815,7 @@
             <span>ASOBooN</span>
             <span class="gear-decor">⚙</span>
           </div>
-          <a id="topHomeLink" class="round-btn" href="#" aria-label="スタンプラリー">⌂</a>
+          <a id="topHomeLink" class="round-btn" href="#" aria-label="ミニアプリホーム">⌂</a>
         </div>
 
         <div class="title-plaque">
@@ -1873,7 +1873,7 @@
   </div>
 
   <script>
-    const APP_HOME_URL = "./home.html";
+    const APP_HOME_URL = "./home.html?mode=inside";
     const STAMP_TOP_URL = "./index.html?stamp=home";
 
     const FORTUNES = [
@@ -2096,7 +2096,7 @@
     const ofudaRain = document.getElementById("ofudaRain");
 
     document.getElementById("topBackLink").href = APP_HOME_URL;
-    document.getElementById("topHomeLink").href = STAMP_TOP_URL;
+    document.getElementById("topHomeLink").href = APP_HOME_URL;
 
     let isDrawing = false;
     let lastResultId = null;
@@ -2302,6 +2302,7 @@
           </div>
 
           <div class="result-actions">
+            <a class="btn btn-primary" href="${APP_HOME_URL}">ミニアプリホームへ戻る</a>
             <a class="btn btn-sub" href="${STAMP_TOP_URL}">スタンプラリーへ戻る</a>
           </div>
         </div>
