@@ -1,10 +1,99 @@
-# 検証結果｜永続保存・HOME分離版
+# ブーンジャンプ 正式公開版 検証結果
 
-- JavaScript構文チェック：合格
-- `safeStorage.get()`：`window.localStorage.getItem()` を使用
-- メイン保存キー：`asoboonBooncar.v6`
-- バックアップ保存キー：`asoboonBooncar.v6.backup`
-- 旧v2〜v5データ移行：維持
-- ゲームHOME：ページ内タイトル画面へ復帰
-- ミニアプリHOME：`../home.html`
-- Service Worker：キャッシュ版を更新
+- ビルド：`2026-08-06-navigation-v5`
+- 基準版：`2026-08-05-persistent-home-v3`
+- 検証日：2026年8月6日
+
+## 1. 構成・軽量化
+
+- `assets/cars/`：35ファイル存在
+- HTML内のPNG base64：0件
+- HTML内に残るdata URI：5件（プリンセス用の軽量SVGのみ）
+- `index.html`：2,558,042 bytes → 221,173 bytes（91.4%削減）
+- 車体PNG：1,603,331 bytes → 282,267 bytes（82.4%削減）
+- 全画像の読込失敗：0件
+
+## 2. ゲームロジック保全
+
+- 排出率合計：100
+- 保存キー：`asoboonBooncar.v6`
+- トロフィー総数：26
+- 車両設定・判定幅・波形・排出率のコード：基準版とSHA-256一致
+- スコア計算コード：基準版とSHA-256一致
+- 乱数を固定した8機体TRUE×3の結果：基準版と完全一致
+
+| 機体 | TRUE×3 |
+|---|---:|
+| boon | 1,898m |
+| wagon | 1,792m |
+| buggy | 2,212m |
+| suv | 2,303m |
+| sport | 2,518m |
+| ssr | 3,000m |
+| princess | 2,952m |
+| secret | 5,000m |
+
+
+プリンセスは 2,952m、SECRETは 5,000mを確認しました。
+
+## 3. SUV通し検証
+
+`forceResult`を使わず、実際の`pointerdown`入力経路で3回タップしました。
+
+- 判定：`TRUE / TRUE / TRUE`
+- タップ位置：48.53%, 48.52%, 49.71%
+- 結果画面：到達
+- 飛距離：2,271m
+
+SUVの進行停止は再現しませんでした。
+
+## 4. 入力・デバッグ
+
+- 通常URLの `__boonDebug`：`undefined`
+- 通常URLの `__boonSound`：`undefined`
+- `?debug=1` 時のみデバッグAPIを公開
+- ボタンへフォーカス中でも、ゲーム判定中のSpace入力が通ることを確認
+- 効果音ボタンへフォーカス中は誤タップしないことを確認
+- `bindPress` は700msの重複抑制時間窓方式へ変更
+
+## 5. localStorage
+
+- 主保存：`asoboonBooncar.v6`
+- ミラー：`asoboonBooncar.v6.backup`
+- 直前の正常データ：`asoboonBooncar.v6.recovery`
+- ガチャ確定、結果確定、非表示、pagehide、beforeunload、freezeで保存
+- 3キーへの書込みと復旧順序を検証
+
+同一端末・同一LINEアプリ・同一公開ドメインを前提とした保存です。LINEアプリの削除、アプリデータ消去、端末変更、ドメイン変更ではlocalStorage自体が失われます。
+
+## 6. Service Worker
+
+- HTML：ネットワーク優先、失敗時にキャッシュへフォールバック
+- 車体・アイコン：ビルド別キャッシュのキャッシュ優先
+- `Promise.allSettled`＋個別取得
+- 意図的に1画像を404にした試験でも、残りのプリキャッシュは完了
+- `SKIP_WAITING`、旧キャッシュ削除、`clients.claim()`を確認
+- `cache.addAll`：未使用
+- `cache: "reload"`：未使用
+
+## 7. PWA・画面
+
+- `any`アイコン：192 / 512
+- `maskable`アイコン：192 / 512（絵柄を中央78%へ再配置）
+- 390×844：横はみ出しなし
+- 320×568：横はみ出しなし
+- 最上部の白緑「ASOBooNミニアプリへ戻る」：`../home.html`へ戻る
+- ゲーム中のみ表示される黄色「ゲーム最初へ」：ブーンジャンプのタイトル画面へ戻る
+- 2つのボタンは位置・色・文言・動作を分離
+- 下部の重複したミニアプリHOMEボタンは削除
+
+## 公開後の最終確認
+
+GitHub Pages反映後、実際のLINEミニアプリで次の1回だけ確認してください。
+
+1. 1回プレイして記録を作る
+2. LINEミニアプリを閉じる
+3. 再度開き、記録が残っていることを確認する
+4. 最上部のミニアプリ戻るボタンと、黄色のゲーム最初へボタンの遷移先を確認する
+
+これはLINE WebView側の保存状態を含むため、ローカル検証では代替できない最終確認です。

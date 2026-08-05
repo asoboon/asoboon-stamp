@@ -1,0 +1,8 @@
+{
+  "staticCount": 3,
+  "imageCount": 38,
+  "deliberate404Survived": true,
+  "skipWaiting": true,
+  "activateCleanup": true,
+  "offlineDocumentFallback": true
+}

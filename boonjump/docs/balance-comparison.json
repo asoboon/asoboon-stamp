@@ -1,0 +1,204 @@
+{
+  "source": {
+    "config": {
+      "cars": [
+        {
+          "id": "boon",
+          "name": "ブーンピックアップ",
+          "rarity": "R",
+          "rate": 29,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "sine"
+        },
+        {
+          "id": "wagon",
+          "name": "スマートワゴン",
+          "rarity": "R",
+          "rate": 29,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "ease"
+        },
+        {
+          "id": "buggy",
+          "name": "ラッキーバギー",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "wobble"
+        },
+        {
+          "id": "suv",
+          "name": "パワーバイク",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "oneway"
+        },
+        {
+          "id": "sport",
+          "name": "ニトロスポーツ",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "sine"
+        },
+        {
+          "id": "ssr",
+          "name": "コズミックファントム",
+          "rarity": "EXR",
+          "rate": 3,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "cosmicWarp"
+        },
+        {
+          "id": "princess",
+          "name": "プリンセス・スターライナー",
+          "rarity": "EXR",
+          "rate": 3,
+          "distanceCap": 2952,
+          "finalCap": 3100,
+          "wave": "starLiner"
+        },
+        {
+          "id": "secret",
+          "name": "無敵のロケットアソブーン人間",
+          "rarity": "SECRET",
+          "rate": 0,
+          "distanceCap": 5000,
+          "finalCap": 5000,
+          "wave": "rocketHuman"
+        }
+      ],
+      "rateTotal": 100,
+      "normalIds": [
+        "boon",
+        "wagon",
+        "buggy",
+        "suv",
+        "sport",
+        "ssr",
+        "princess"
+      ],
+      "trophyCount": 26,
+      "storeKey": "asoboonBooncar.v6"
+    },
+    "scores": {
+      "boon": 1898,
+      "wagon": 1792,
+      "buggy": 2212,
+      "suv": 2303,
+      "sport": 2518,
+      "ssr": 3000,
+      "princess": 2952,
+      "secret": 5000
+    }
+  },
+  "production": {
+    "config": {
+      "cars": [
+        {
+          "id": "boon",
+          "name": "ブーンピックアップ",
+          "rarity": "R",
+          "rate": 29,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "sine"
+        },
+        {
+          "id": "wagon",
+          "name": "スマートワゴン",
+          "rarity": "R",
+          "rate": 29,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "ease"
+        },
+        {
+          "id": "buggy",
+          "name": "ラッキーバギー",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "wobble"
+        },
+        {
+          "id": "suv",
+          "name": "パワーバイク",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "oneway"
+        },
+        {
+          "id": "sport",
+          "name": "ニトロスポーツ",
+          "rarity": "SR",
+          "rate": 12,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "sine"
+        },
+        {
+          "id": "ssr",
+          "name": "コズミックファントム",
+          "rarity": "EXR",
+          "rate": 3,
+          "distanceCap": 3000,
+          "finalCap": 3150,
+          "wave": "cosmicWarp"
+        },
+        {
+          "id": "princess",
+          "name": "プリンセス・スターライナー",
+          "rarity": "EXR",
+          "rate": 3,
+          "distanceCap": 2952,
+          "finalCap": 3100,
+          "wave": "starLiner"
+        },
+        {
+          "id": "secret",
+          "name": "無敵のロケットアソブーン人間",
+          "rarity": "SECRET",
+          "rate": 0,
+          "distanceCap": 5000,
+          "finalCap": 5000,
+          "wave": "rocketHuman"
+        }
+      ],
+      "rateTotal": 100,
+      "normalIds": [
+        "boon",
+        "wagon",
+        "buggy",
+        "suv",
+        "sport",
+        "ssr",
+        "princess"
+      ],
+      "trophyCount": 26,
+      "storeKey": "asoboonBooncar.v6"
+    },
+    "scores": {
+      "boon": 1898,
+      "wagon": 1792,
+      "buggy": 2212,
+      "suv": 2303,
+      "sport": 2518,
+      "ssr": 3000,
+      "princess": 2952,
+      "secret": 5000
+    }
+  },
+  "config_equal": true,
+  "scores_equal": true
+}

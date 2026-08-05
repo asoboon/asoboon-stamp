@@ -1,0 +1,147 @@
+{
+  "console_errors": [],
+  "page_errors": [],
+  "request_failed": [],
+  "normal_debug": "undefined",
+  "normal_sound_debug": "undefined",
+  "build": "2026-08-05-production-v4",
+  "layout_390": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "scrollHeight": 844,
+    "innerHeight": 844
+  },
+  "image_status": [],
+  "home_labels": {
+    "game": "ブーンジャンプのゲームHOMEへ戻る",
+    "mini": "ASOBooNミニアプリのホームへ戻る",
+    "mini_href": "../home.html"
+  },
+  "config": {
+    "cars": [
+      {
+        "id": "boon",
+        "name": "ブーンピックアップ",
+        "rarity": "R",
+        "rate": 29,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "sine"
+      },
+      {
+        "id": "wagon",
+        "name": "スマートワゴン",
+        "rarity": "R",
+        "rate": 29,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "ease"
+      },
+      {
+        "id": "buggy",
+        "name": "ラッキーバギー",
+        "rarity": "SR",
+        "rate": 12,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "wobble"
+      },
+      {
+        "id": "suv",
+        "name": "パワーバイク",
+        "rarity": "SR",
+        "rate": 12,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "oneway"
+      },
+      {
+        "id": "sport",
+        "name": "ニトロスポーツ",
+        "rarity": "SR",
+        "rate": 12,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "sine"
+      },
+      {
+        "id": "ssr",
+        "name": "コズミックファントム",
+        "rarity": "EXR",
+        "rate": 3,
+        "distanceCap": 3000,
+        "finalCap": 3150,
+        "wave": "cosmicWarp"
+      },
+      {
+        "id": "princess",
+        "name": "プリンセス・スターライナー",
+        "rarity": "EXR",
+        "rate": 3,
+        "distanceCap": 2952,
+        "finalCap": 3100,
+        "wave": "starLiner"
+      },
+      {
+        "id": "secret",
+        "name": "無敵のロケットアソブーン人間",
+        "rarity": "SECRET",
+        "rate": 0,
+        "distanceCap": 5000,
+        "finalCap": 5000,
+        "wave": "rocketHuman"
+      }
+    ],
+    "rateTotal": 100,
+    "normalIds": [
+      "boon",
+      "wagon",
+      "buggy",
+      "suv",
+      "sport",
+      "ssr",
+      "princess"
+    ],
+    "trophyCount": 26,
+    "storeKey": "asoboonBooncar.v6"
+  },
+  "debug_sound": "object",
+  "true3_scores": {
+    "boon": 1905,
+    "wagon": 1788,
+    "buggy": 2215,
+    "suv": 2311,
+    "sport": 2528,
+    "ssr": 3000,
+    "princess": 2952,
+    "secret": 5000
+  },
+  "suv_actual_tap": {
+    "positions": [
+      48.53,
+      48.525,
+      49.7128
+    ],
+    "distance": 2271,
+    "grades": [
+      "TRUE",
+      "TRUE",
+      "TRUE"
+    ]
+  },
+  "keyboard_tap_position": 50.0564,
+  "sound_button_keyboard_exception": true,
+  "storage_write_ok": true,
+  "storage_keys": [
+    "asoboonBooncar.sound.v1",
+    "asoboonBooncar.v6",
+    "asoboonBooncar.v6.backup",
+    "asoboonBooncar.v6.recovery"
+  ],
+  "layout_320": {
+    "scrollWidth": 320,
+    "innerWidth": 320,
+    "scrollHeight": 568,
+    "innerHeight": 568
+  }
+}

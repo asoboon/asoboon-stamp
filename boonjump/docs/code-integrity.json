@@ -1,0 +1,14 @@
+{
+  "balance_constants": {
+    "equal": true,
+    "source_sha256": "ae5178786075bbfbcbf35b65e1a4e7a354e0e409bf15fa6dfb92e76b3cb9f365",
+    "production_sha256": "ae5178786075bbfbcbf35b65e1a4e7a354e0e409bf15fa6dfb92e76b3cb9f365",
+    "bytes": 7187
+  },
+  "score_logic": {
+    "equal": true,
+    "source_sha256": "3688f9b5c96332560938d486a6d046f6caf00d56162802b011f30e64ad6595dc",
+    "production_sha256": "3688f9b5c96332560938d486a6d046f6caf00d56162802b011f30e64ad6595dc",
+    "bytes": 5204
+  }
+}

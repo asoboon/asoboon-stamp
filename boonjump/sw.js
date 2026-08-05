@@ -1,28 +1,107 @@
-const CACHE_VERSION = "persistent-home-v3";
-const CACHE_NAME = `boonjump-${CACHE_VERSION}`;
+const BUILD = "2026-08-06-navigation-v5";
+const STATIC_CACHE = `boonjump-static-${BUILD}`;
+const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./icons/icon-maskable-192.png",
+  "./icons/icon-maskable-512.png",
+  "./assets/cars/wagon-body.png",
+  "./assets/cars/wagon-rear.png",
+  "./assets/cars/wagon-front.png",
+  "./assets/cars/wagon-boost.png",
+  "./assets/cars/wagon-shadow.png",
+  "./assets/cars/boon-body.png",
+  "./assets/cars/boon-rear.png",
+  "./assets/cars/boon-front.png",
+  "./assets/cars/boon-boost.png",
+  "./assets/cars/boon-shadow.png",
+  "./assets/cars/suv-body.png",
+  "./assets/cars/suv-rear.png",
+  "./assets/cars/suv-front.png",
+  "./assets/cars/suv-boost.png",
+  "./assets/cars/suv-shadow.png",
+  "./assets/cars/buggy-body.png",
+  "./assets/cars/buggy-rear.png",
+  "./assets/cars/buggy-front.png",
+  "./assets/cars/buggy-boost.png",
+  "./assets/cars/buggy-shadow.png",
+  "./assets/cars/ssr-body.png",
+  "./assets/cars/ssr-rear.png",
+  "./assets/cars/ssr-front.png",
+  "./assets/cars/ssr-boost.png",
+  "./assets/cars/ssr-shadow.png",
+  "./assets/cars/sport-body.png",
+  "./assets/cars/sport-rear.png",
+  "./assets/cars/sport-front.png",
+  "./assets/cars/sport-boost.png",
+  "./assets/cars/sport-shadow.png",
+  "./assets/cars/secret-body.png",
+  "./assets/cars/secret-rear.png",
+  "./assets/cars/secret-front.png",
+  "./assets/cars/secret-boost.png",
+  "./assets/cars/secret-shadow.png"
 ];
 
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const staticCache = await caches.open(STATIC_CACHE);
+    const imageCache = await caches.open(IMAGE_CACHE);
+    await Promise.allSettled(PRECACHE.map(async path => {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Precache failed: ${path} (${response.status})`);
+      const target = path.includes("/assets/cars/") || path.includes("/icons/") ? imageCache : staticCache;
+      await target.put(path, response);
+    }));
+  })());
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key.startsWith("boonjump-") && key !== CACHE_NAME).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keep = new Set([STATIC_CACHE, IMAGE_CACHE]);
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith("boonjump-") && !keep.has(key)).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
+
+const networkFirstDocument = async request => {
+  const cache = await caches.open(STATIC_CACHE);
+  try {
+    const response = await fetch(request);
+    if (response.ok) await cache.put("./index.html", response.clone());
+    return response;
+  } catch (_) {
+    return (await cache.match("./index.html")) || Response.error();
+  }
+};
+
+const cacheFirstImage = async request => {
+  const cache = await caches.open(IMAGE_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok) await cache.put(request, response.clone());
+  return response;
+};
+
+const networkFirstStatic = async request => {
+  const cache = await caches.open(STATIC_CACHE);
+  try {
+    const response = await fetch(request);
+    if (response.ok) await cache.put(request, response.clone());
+    return response;
+  } catch (_) {
+    return (await cache.match(request)) || Response.error();
+  }
+};
 
 self.addEventListener("fetch", event => {
   const request = event.request;
@@ -30,29 +109,17 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
-          return response;
-        })
-        .catch(() => caches.match("./index.html"))
-    );
+  if (request.mode === "navigate" || request.destination === "document") {
+    event.respondWith(networkFirstDocument(request));
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then(cached => {
-      const network = fetch(request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      });
-      return cached || network;
-    })
-  );
+  const isGameImage = request.destination === "image" &&
+    (url.pathname.includes("/assets/cars/") || url.pathname.includes("/icons/"));
+  if (isGameImage) {
+    event.respondWith(cacheFirstImage(request));
+    return;
+  }
+
+  event.respondWith(networkFirstStatic(request));
 });
