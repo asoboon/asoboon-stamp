@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ASOBooN 冒険基地ナビ｜公式LINEミニアプリ</title>
   <meta name="description" content="ASOBooNの来場前・館内案内を、家族の冒険を支えるナビとしてまとめた公式LINEミニアプリです。">
+
   <style>
     :root{
       --paper:#efe1bd;
@@ -31,9 +32,18 @@
       --safe-top:max(10px,env(safe-area-inset-top));
       --safe-bottom:max(16px,env(safe-area-inset-bottom));
     }
+
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink)}
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+      color:var(--ink);
+    }
+
     html{scroll-behavior:smooth}
+
     body{
       background:
         radial-gradient(circle at 12% 3%,rgba(255,255,255,.72),transparent 20%),
@@ -43,142 +53,515 @@
       -webkit-font-smoothing:antialiased;
       overflow-x:hidden;
     }
+
     body:before{
-      content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.32;
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.32;
       background:
         radial-gradient(circle at 20% 23%,transparent 0 35px,rgba(87,63,32,.16) 36px 37px,transparent 38px),
         radial-gradient(circle at 77% 64%,transparent 0 52px,rgba(87,63,32,.13) 53px 54px,transparent 55px),
         linear-gradient(28deg,transparent 0 49%,rgba(105,78,38,.12) 49.5% 50.5%,transparent 51% 100%);
       background-size:270px 270px,330px 330px,210px 210px;
     }
+
     button,a,input,select{font:inherit}
     button,a{-webkit-tap-highlight-color:transparent}
-    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:4px solid #f7c95a;outline-offset:3px}
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible{
+      outline:4px solid #f7c95a;
+      outline-offset:3px;
+    }
+
     [hidden]{display:none!important}
 
-    .app{position:relative;z-index:2;width:min(100%,500px);margin:auto;padding:var(--safe-top) 12px calc(var(--safe-bottom) + 96px)}
-    .topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;padding:8px 0 13px;background:linear-gradient(180deg,rgba(239,225,189,.98),rgba(239,225,189,.78),transparent);backdrop-filter:blur(13px)}
-    .brand{
-      flex:1;min-width:0;border:2px solid rgba(91,63,27,.18);border-radius:16px;background:rgba(255,248,232,.94);
-      padding:10px 13px;text-align:left;color:var(--navy);font-weight:950;box-shadow:var(--soft-shadow)
+    .app{
+      position:relative;
+      z-index:2;
+      width:min(100%,500px);
+      margin:auto;
+      padding:var(--safe-top) 12px calc(var(--safe-bottom) + 96px);
     }
-    .brand small{display:block;color:var(--muted);font-size:.62rem;letter-spacing:.08em;margin-top:2px}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:40;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 0 13px;
+      background:linear-gradient(
+        180deg,
+        rgba(239,225,189,.98),
+        rgba(239,225,189,.78),
+        transparent
+      );
+      backdrop-filter:blur(13px);
+    }
+
+    .brand{
+      flex:1;
+      min-width:0;
+      border:2px solid rgba(91,63,27,.18);
+      border-radius:16px;
+      background:rgba(255,248,232,.94);
+      padding:10px 13px;
+      text-align:left;
+      color:var(--navy);
+      font-weight:950;
+      box-shadow:var(--soft-shadow);
+    }
+
+    .brand small{
+      display:block;
+      color:var(--muted);
+      font-size:.62rem;
+      letter-spacing:.08em;
+      margin-top:2px;
+    }
+
     .back{
-      border:2px solid #061723;border-radius:14px;background:linear-gradient(180deg,#31454d,#14262d);
-      color:#fff8e6;padding:11px 13px;font-weight:950;box-shadow:var(--soft-shadow)
+      border:2px solid #061723;
+      border-radius:14px;
+      background:linear-gradient(180deg,#31454d,#14262d);
+      color:#fff8e6;
+      padding:11px 13px;
+      font-weight:950;
+      box-shadow:var(--soft-shadow);
     }
 
     .view{display:none}
-    .view.active{display:block;animation:viewIn .35s cubic-bezier(.2,1.05,.3,1)}
-    @keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+    .view.active{
+      display:block;
+      animation:viewIn .35s cubic-bezier(.2,1.05,.3,1);
+    }
+
+    @keyframes viewIn{
+      from{
+        opacity:0;
+        transform:translateY(10px);
+      }
+      to{
+        opacity:1;
+        transform:none;
+      }
+    }
 
     /* HOME */
+
     .home-shell{
-      position:relative;overflow:hidden;border-radius:31px;
+      position:relative;
+      overflow:hidden;
+      border-radius:31px;
       background:
         repeating-linear-gradient(0deg,rgba(90,62,27,.027) 0 1px,transparent 1px 5px),
         linear-gradient(180deg,var(--paper-light),var(--paper) 75%,var(--paper-deep));
-      border:3px solid rgba(105,73,29,.42);box-shadow:var(--shadow)
+      border:3px solid rgba(105,73,29,.42);
+      box-shadow:var(--shadow);
     }
+
     .home-shell:before{
-      content:"";position:absolute;inset:0;pointer-events:none;opacity:.36;
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:.36;
       background:
         radial-gradient(circle at 18% 42%,transparent 0 29px,rgba(114,77,32,.16) 30px 31px,transparent 32px),
         linear-gradient(23deg,transparent 0 49%,rgba(111,77,31,.12) 49.5% 50.5%,transparent 51% 100%);
-      background-size:170px 170px,160px 160px
+      background-size:170px 170px,160px 160px;
     }
+
     .mode-cap{
-      position:relative;min-height:118px;padding:14px 15px 0;color:#f8edcf;
+      position:relative;
+      min-height:118px;
+      padding:14px 15px 0;
+      color:#f8edcf;
       background:
         radial-gradient(circle at 82% 14%,rgba(224,188,99,.15),transparent 28%),
         linear-gradient(155deg,var(--navy),var(--navy-deep));
-      overflow:hidden
+      overflow:hidden;
     }
-    body.inside .mode-cap{background:radial-gradient(circle at 82% 14%,rgba(224,188,99,.15),transparent 28%),linear-gradient(155deg,var(--forest),var(--forest-deep))}
+
+    body.inside .mode-cap{
+      background:
+        radial-gradient(circle at 82% 14%,rgba(224,188,99,.15),transparent 28%),
+        linear-gradient(155deg,var(--forest),var(--forest-deep));
+    }
+
     .mode-cap:after{
-      content:"";position:absolute;left:-5%;right:-5%;bottom:-30px;height:52px;border-radius:50% 50% 0 0/60% 60% 0 0;
-      background:var(--paper-light);border-top:2px solid rgba(94,67,31,.25)
+      content:"";
+      position:absolute;
+      left:-5%;
+      right:-5%;
+      bottom:-30px;
+      height:52px;
+      border-radius:50% 50% 0 0/60% 60% 0 0;
+      background:var(--paper-light);
+      border-top:2px solid rgba(94,67,31,.25);
     }
+
     .sns-tag{
-      position:absolute;left:12px;top:10px;z-index:3;border:2px solid #75511e;border-radius:4px;background:linear-gradient(180deg,#d0a04b,#8d6228);
-      color:#fff5dc;padding:7px 9px;font-size:.72rem;font-weight:950;box-shadow:0 5px 10px rgba(33,23,10,.28)
+      position:absolute;
+      left:12px;
+      top:10px;
+      z-index:3;
+      border:2px solid #75511e;
+      border-radius:4px;
+      background:linear-gradient(180deg,#d0a04b,#8d6228);
+      color:#fff5dc;
+      padding:7px 9px;
+      font-size:.72rem;
+      font-weight:950;
+      box-shadow:0 5px 10px rgba(33,23,10,.28);
     }
-    .sns-tag:before,.sns-tag:after{content:"";position:absolute;top:-12px;width:2px;height:12px;background:#a77d36}
-    .sns-tag:before{left:9px}.sns-tag:after{right:9px}
+
+    .sns-tag:before,
+    .sns-tag:after{
+      content:"";
+      position:absolute;
+      top:-12px;
+      width:2px;
+      height:12px;
+      background:#a77d36;
+    }
+
+    .sns-tag:before{left:9px}
+    .sns-tag:after{right:9px}
+
     .menu-btn{
-      position:absolute;right:12px;top:10px;z-index:3;width:42px;height:38px;border:0;border-radius:10px;
-      background:rgba(8,20,28,.2);color:#ead194;font-size:1.4rem;font-weight:900
+      position:absolute;
+      right:12px;
+      top:10px;
+      z-index:3;
+      width:42px;
+      height:38px;
+      border:0;
+      border-radius:10px;
+      background:rgba(8,20,28,.2);
+      color:#ead194;
+      font-size:1.4rem;
+      font-weight:900;
     }
+
     .title-badge{
-      position:relative;z-index:2;width:calc(100% - 48px);margin:22px auto 0;padding:15px 12px 18px;text-align:center;
+      position:relative;
+      z-index:2;
+      width:calc(100% - 48px);
+      margin:22px auto 0;
+      padding:15px 12px 18px;
+      text-align:center;
       background:
         repeating-linear-gradient(0deg,rgba(88,63,30,.03) 0 1px,transparent 1px 4px),
         linear-gradient(180deg,#fff7e3,#eadbb8);
-      color:var(--navy);clip-path:polygon(10% 0,90% 0,100% 24%,100% 100%,0 100%,0 24%);
-      border:0;filter:drop-shadow(0 8px 5px rgba(43,31,16,.22))
+      color:var(--navy);
+      clip-path:polygon(10% 0,90% 0,100% 24%,100% 100%,0 100%,0 24%);
+      border:0;
+      filter:drop-shadow(0 8px 5px rgba(43,31,16,.22));
     }
+
     body.inside .title-badge{color:var(--forest)}
-    .mountain-mark{display:block;margin:auto;width:42px;height:25px;color:currentColor}
-    .title-badge h1{margin:4px 0 0;font-size:clamp(1.42rem,6.4vw,1.95rem);line-height:1.08;letter-spacing:.02em}
-    .title-badge h1 span{display:block;font-size:.77em}
-    .subtitle-ribbon{
-      position:relative;z-index:4;width:max-content;max-width:88%;margin:-3px auto 10px;padding:7px 17px;color:#fff3d8;
-      background:linear-gradient(180deg,#173857,#0a2238);font-size:.72rem;font-weight:900;box-shadow:0 5px 10px rgba(29,21,10,.18)
+
+    .mountain-mark{
+      display:block;
+      margin:auto;
+      width:42px;
+      height:25px;
+      color:currentColor;
     }
-    body.inside .subtitle-ribbon{background:linear-gradient(180deg,#285a49,#143a30)}
-    .subtitle-ribbon:before,.subtitle-ribbon:after{content:"";position:absolute;top:5px;width:16px;height:100%;background:inherit;z-index:-1}
-    .subtitle-ribbon:before{left:-11px;transform:skewY(24deg)}.subtitle-ribbon:after{right:-11px;transform:skewY(-24deg)}
+
+    .title-badge h1{
+      margin:4px 0 0;
+      font-size:clamp(1.42rem,6.4vw,1.95rem);
+      line-height:1.08;
+      letter-spacing:.02em;
+    }
+
+    .title-badge h1 span{
+      display:block;
+      font-size:.77em;
+    }
+
+    .subtitle-ribbon{
+      position:relative;
+      z-index:4;
+      width:max-content;
+      max-width:88%;
+      margin:-3px auto 10px;
+      padding:7px 17px;
+      color:#fff3d8;
+      background:linear-gradient(180deg,#173857,#0a2238);
+      font-size:.72rem;
+      font-weight:900;
+      box-shadow:0 5px 10px rgba(29,21,10,.18);
+    }
+
+    body.inside .subtitle-ribbon{
+      background:linear-gradient(180deg,#285a49,#143a30);
+    }
+
+    .subtitle-ribbon:before,
+    .subtitle-ribbon:after{
+      content:"";
+      position:absolute;
+      top:5px;
+      width:16px;
+      height:100%;
+      background:inherit;
+      z-index:-1;
+    }
+
+    .subtitle-ribbon:before{
+      left:-11px;
+      transform:skewY(24deg);
+    }
+
+    .subtitle-ribbon:after{
+      right:-11px;
+      transform:skewY(-24deg);
+    }
 
     .status-card{
-      display:none;position:relative;z-index:4;margin:12px 14px 6px;padding:14px 12px 13px 82px;min-height:93px;
-      border-radius:18px;background:
+      display:none;
+      position:relative;
+      z-index:4;
+      margin:12px 14px 6px;
+      padding:14px 12px 13px 82px;
+      min-height:93px;
+      border-radius:18px;
+      background:
         repeating-linear-gradient(0deg,rgba(85,58,22,.03) 0 1px,transparent 1px 5px),
         linear-gradient(180deg,#ead29a,#c9a762);
-      border:3px solid #6d4d1e;box-shadow:inset 0 0 0 2px rgba(255,247,218,.34),0 8px 15px rgba(52,36,15,.18)
+      border:3px solid #6d4d1e;
+      box-shadow:
+        inset 0 0 0 2px rgba(255,247,218,.34),
+        0 8px 15px rgba(52,36,15,.18);
     }
-    body.inside .status-card{display:block}
-    .status-card:before{
-      content:"";position:absolute;left:12px;top:50%;width:58px;height:58px;transform:translateY(-50%);border-radius:50%;
-      background:
-        conic-gradient(from 20deg,#5c421b 0 5deg,transparent 5deg 40deg,#5c421b 40deg 45deg,transparent 45deg 85deg,#5c421b 85deg 90deg,transparent 90deg 130deg,#5c421b 130deg 135deg,transparent 135deg 175deg,#5c421b 175deg 180deg,transparent 180deg 220deg,#5c421b 220deg 225deg,transparent 225deg 265deg,#5c421b 265deg 270deg,transparent 270deg 310deg,#5c421b 310deg 315deg,transparent 315deg),
-        radial-gradient(circle,#fff8df 0 48%,#b78b3a 50% 59%,#583e17 60%);
-      box-shadow:0 5px 0 rgba(60,41,15,.18)
-    }
-    .status-card:after{
-      content:"";position:absolute;left:39px;top:46%;width:2px;height:22px;background:#803d22;transform-origin:bottom;transform:rotate(38deg)
-    }
-    .status-label{display:inline-block;padding:3px 9px;border-radius:999px;background:#8b682c;color:#fff5d9;font-size:.65rem;font-weight:950}
-    .status-main{display:block;margin-top:3px;color:#412b16;font-size:1.25rem;font-weight:950;line-height:1.15}
-    .status-sub{display:block;margin-top:3px;color:#654e2d;font-size:.78rem;font-weight:850}
 
-    .tickets{position:relative;z-index:3;display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:13px 14px 7px}
+    body.inside .status-card{display:block}
+
+    .status-card:before{
+      content:"";
+      position:absolute;
+      left:12px;
+      top:50%;
+      width:58px;
+      height:58px;
+      transform:translateY(-50%);
+      border-radius:50%;
+      background:
+        conic-gradient(
+          from 20deg,
+          #5c421b 0 5deg,
+          transparent 5deg 40deg,
+          #5c421b 40deg 45deg,
+          transparent 45deg 85deg,
+          #5c421b 85deg 90deg,
+          transparent 90deg 130deg,
+          #5c421b 130deg 135deg,
+          transparent 135deg 175deg,
+          #5c421b 175deg 180deg,
+          transparent 180deg 220deg,
+          #5c421b 220deg 225deg,
+          transparent 225deg 265deg,
+          #5c421b 265deg 270deg,
+          transparent 270deg 310deg,
+          #5c421b 310deg 315deg,
+          transparent 315deg
+        ),
+        radial-gradient(circle,#fff8df 0 48%,#b78b3a 50% 59%,#583e17 60%);
+      box-shadow:0 5px 0 rgba(60,41,15,.18);
+    }
+
+    .status-card:after{
+      content:"";
+      position:absolute;
+      left:39px;
+      top:46%;
+      width:2px;
+      height:22px;
+      background:#803d22;
+      transform-origin:bottom;
+      transform:rotate(38deg);
+    }
+
+    .status-label{
+      display:inline-block;
+      padding:3px 9px;
+      border-radius:999px;
+      background:#8b682c;
+      color:#fff5d9;
+      font-size:.65rem;
+      font-weight:950;
+    }
+
+    .status-main{
+      display:block;
+      margin-top:3px;
+      color:#412b16;
+      font-size:1.25rem;
+      font-weight:950;
+      line-height:1.15;
+    }
+
+    .status-sub{
+      display:block;
+      margin-top:3px;
+      color:#654e2d;
+      font-size:.78rem;
+      font-weight:850;
+    }
+
+    .tickets{
+      position:relative;
+      z-index:3;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:11px;
+      padding:13px 14px 7px;
+    }
+
     .ticket{
-      position:relative;min-height:106px;padding:13px 10px 10px;border:2px solid var(--brass);border-radius:12px;
+      position:relative;
+      min-height:106px;
+      padding:13px 10px 10px;
+      border:2px solid var(--brass);
+      border-radius:12px;
       background:
         radial-gradient(circle at 12px 12px,rgba(255,255,255,.07),transparent 20px),
         repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),
         linear-gradient(155deg,var(--navy),var(--navy-deep));
-      color:#fff3d6;text-align:center;box-shadow:0 7px 0 rgba(59,41,16,.2),0 11px 18px rgba(48,34,15,.13);overflow:visible
+      color:#fff3d6;
+      text-align:center;
+      box-shadow:
+        0 7px 0 rgba(59,41,16,.2),
+        0 11px 18px rgba(48,34,15,.13);
+      overflow:visible;
     }
-    .ticket:nth-child(3n+2){background:radial-gradient(circle at 12px 12px,rgba(255,255,255,.07),transparent 20px),repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),linear-gradient(155deg,var(--forest),var(--forest-deep))}
-    .ticket:nth-child(3n){background:radial-gradient(circle at 12px 12px,rgba(255,255,255,.07),transparent 20px),repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),linear-gradient(155deg,var(--leather),var(--leather-deep))}
-    .ticket:before,.ticket:after{content:"";position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--paper);border:1px solid rgba(74,52,24,.18);transform:translateY(-50%)}
-    .ticket:before{left:-10px}.ticket:after{right:-10px}
-    .ticket:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(59,41,16,.2),0 6px 12px rgba(48,34,15,.13)}
+
+    .ticket:nth-child(3n+2){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.07),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,var(--forest),var(--forest-deep));
+    }
+
+    .ticket:nth-child(3n){
+      background:
+        radial-gradient(circle at 12px 12px,rgba(255,255,255,.07),transparent 20px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),
+        linear-gradient(155deg,var(--leather),var(--leather-deep));
+    }
+
+    .ticket:before,
+    .ticket:after{
+      content:"";
+      position:absolute;
+      top:50%;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:var(--paper);
+      border:1px solid rgba(74,52,24,.18);
+      transform:translateY(-50%);
+    }
+
+    .ticket:before{left:-10px}
+    .ticket:after{right:-10px}
+
+    .ticket:active{
+      transform:translateY(4px);
+      box-shadow:
+        0 3px 0 rgba(59,41,16,.2),
+        0 6px 12px rgba(48,34,15,.13);
+    }
+
     .ticket-number{
-      position:absolute;left:8px;top:8px;display:grid;place-items:center;width:28px;height:28px;border-radius:8px 8px 13px 13px;
-      background:rgba(2,11,16,.28);border:1px solid #d2aa55;color:#f2d186;font-size:.76rem;font-weight:950
+      position:absolute;
+      left:8px;
+      top:8px;
+      display:grid;
+      place-items:center;
+      width:28px;
+      height:28px;
+      border-radius:8px 8px 13px 13px;
+      background:rgba(2,11,16,.28);
+      border:1px solid #d2aa55;
+      color:#f2d186;
+      font-size:.76rem;
+      font-weight:950;
     }
-    .ticket-icon{display:block;width:36px;height:36px;margin:9px auto 5px;color:#f4e5bd}
-    .ticket-title{display:block;font-size:.92rem;font-weight:950;line-height:1.25}
+
+    .ticket-icon{
+      display:block;
+      width:36px;
+      height:36px;
+      margin:9px auto 5px;
+      color:#f4e5bd;
+    }
+
+    .ticket-title{
+      display:block;
+      font-size:.92rem;
+      font-weight:950;
+      line-height:1.25;
+    }
+
     .ticket-sub{display:none}
 
-    .route-guide{position:relative;z-index:3;margin:10px 14px 15px;padding:11px;border:2px solid rgba(115,80,32,.25);border-radius:13px;background:rgba(255,249,235,.56)}
+    .route-guide{
+      position:relative;
+      z-index:3;
+      margin:10px 14px 15px;
+      padding:11px;
+      border:2px solid rgba(115,80,32,.25);
+      border-radius:13px;
+      background:rgba(255,249,235,.56);
+    }
+
     body.inside .route-guide{display:none}
-    .route-guide h3{width:max-content;margin:-23px auto 10px;padding:4px 14px;background:var(--paper-light);border:1px solid rgba(110,77,31,.2);font-size:.75rem}
-    .route-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-    .route-item{text-align:center;color:#4e4437;font-size:.64rem;font-weight:850}
-    .route-icon{display:grid;place-items:center;width:39px;height:39px;margin:0 auto 5px;border-radius:50%;background:#f9eed1;border:2px solid #876328;font-size:1rem}
+
+    .route-guide h3{
+      width:max-content;
+      margin:-23px auto 10px;
+      padding:4px 14px;
+      background:var(--paper-light);
+      border:1px solid rgba(110,77,31,.2);
+      font-size:.75rem;
+    }
+
+    .route-row{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:4px;
+    }
+
+    .route-item{
+      text-align:center;
+      color:#4e4437;
+      font-size:.64rem;
+      font-weight:850;
+    }
+
+    .route-icon{
+      display:grid;
+      place-items:center;
+      width:39px;
+      height:39px;
+      margin:0 auto 5px;
+      border-radius:50%;
+      background:#f9eed1;
+      border:2px solid #876328;
+      font-size:1rem;
+    }
 
     .route-guide-button{
       display:block;
@@ -187,10 +570,12 @@
       text-align:initial;
       cursor:pointer;
     }
+
     .route-guide-button:active{
       transform:translateY(3px);
       filter:brightness(.98);
     }
+
     .route-guide-cta{
       display:flex;
       align-items:center;
@@ -204,9 +589,8 @@
       font-weight:950;
     }
 
-    /* =========================================================
-       CLEAR ENTRY FLOW
-       ========================================================= */
+    /* ENTRY FLOW */
+
     .entry-flow-card{
       margin-top:12px;
       padding:14px;
@@ -217,17 +601,20 @@
       border:2px solid rgba(117,82,34,.25);
       box-shadow:var(--soft-shadow);
     }
+
     .entry-flow-head{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
       gap:10px;
     }
+
     .entry-flow-head h3{
       margin:0;
       color:#17483c;
       font-size:1.03rem;
     }
+
     .entry-flow-head p{
       margin:4px 0 0;
       color:#746957;
@@ -235,6 +622,7 @@
       line-height:1.45;
       font-weight:750;
     }
+
     .entry-flow-chip{
       flex:0 0 auto;
       padding:5px 8px;
@@ -244,12 +632,14 @@
       font-size:.61rem;
       font-weight:950;
     }
+
     .entry-flow-list{
       position:relative;
       display:grid;
       gap:9px;
       margin-top:12px;
     }
+
     .entry-flow-list:before{
       content:"";
       position:absolute;
@@ -261,6 +651,7 @@
       background:linear-gradient(180deg,#d2a648,#28584a);
       opacity:.52;
     }
+
     .entry-step{
       position:relative;
       display:grid;
@@ -273,6 +664,7 @@
       border:2px solid rgba(111,79,34,.15);
       box-shadow:0 5px 0 rgba(86,61,28,.06);
     }
+
     .entry-step-num{
       position:relative;
       z-index:2;
@@ -288,10 +680,12 @@
       font-weight:1000;
       box-shadow:0 4px 0 rgba(48,33,13,.16);
     }
+
     .entry-step:first-child .entry-step-num{
       color:#2d210f;
       background:linear-gradient(145deg,#f1d581,#b87b2e);
     }
+
     .entry-step-title{
       display:flex;
       align-items:center;
@@ -302,6 +696,7 @@
       font-weight:950;
       line-height:1.35;
     }
+
     .entry-step-tag{
       display:inline-block;
       padding:3px 7px;
@@ -311,7 +706,9 @@
       font-size:.56rem;
       font-weight:950;
     }
+
     .entry-step-tag.local{background:#805025}
+
     .entry-step-text{
       display:block;
       margin-top:4px;
@@ -320,6 +717,7 @@
       line-height:1.55;
       font-weight:760;
     }
+
     .entry-step-note{
       display:block;
       margin-top:5px;
@@ -331,12 +729,14 @@
       line-height:1.45;
       font-weight:850;
     }
+
     .entry-step-actions{
       display:flex;
       flex-wrap:wrap;
       gap:6px;
       margin-top:8px;
     }
+
     .entry-mini-action{
       display:inline-flex;
       align-items:center;
@@ -352,16 +752,23 @@
       font-weight:950;
       box-shadow:0 3px 0 rgba(65,44,16,.17);
     }
+
     .entry-mini-action.secondary{
       background:linear-gradient(180deg,#fff9e9,#dfcba4);
     }
-    .entry-mini-action:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(65,44,16,.17)}
+
+    .entry-mini-action:active{
+      transform:translateY(2px);
+      box-shadow:0 1px 0 rgba(65,44,16,.17);
+    }
+
     .entry-arrival-summary{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:8px;
       margin-top:11px;
     }
+
     .entry-arrival-item{
       padding:10px;
       border-radius:13px;
@@ -372,12 +779,14 @@
       line-height:1.5;
       font-weight:780;
     }
+
     .entry-arrival-item strong{
       display:block;
       margin-bottom:3px;
       color:#254c41;
       font-size:.75rem;
     }
+
     .entry-flow-safety{
       margin-top:10px;
       padding:10px 11px;
@@ -390,73 +799,296 @@
       font-weight:850;
     }
 
-    .scenery{position:relative;z-index:1;height:77px;margin-top:-14px;overflow:hidden}
-    .scenery:before{
-      content:"";position:absolute;left:-12%;right:-12%;bottom:-29px;height:95px;
-      background:linear-gradient(145deg,transparent 0 25%,#9eaa82 26% 38%,transparent 39% 45%,#7e9272 46% 58%,transparent 59% 66%,#5d795f 67% 100%);
-      opacity:.48;clip-path:polygon(0 100%,0 68%,10% 42%,18% 65%,31% 18%,42% 62%,53% 33%,64% 67%,75% 20%,87% 59%,100% 33%,100% 100%)
+    .scenery{
+      position:relative;
+      z-index:1;
+      height:77px;
+      margin-top:-14px;
+      overflow:hidden;
     }
-    .scenery:after{content:"▲ ▲  ▲   ▲ ▲▲    ▲";position:absolute;left:0;right:0;bottom:-4px;color:#214a37;font-size:23px;letter-spacing:8px;opacity:.9;white-space:nowrap}
-    .location-pin{position:absolute;right:18px;bottom:15px;z-index:3;color:#a84d31;font-size:1.7rem}
+
+    .scenery:before{
+      content:"";
+      position:absolute;
+      left:-12%;
+      right:-12%;
+      bottom:-29px;
+      height:95px;
+      background:linear-gradient(
+        145deg,
+        transparent 0 25%,
+        #9eaa82 26% 38%,
+        transparent 39% 45%,
+        #7e9272 46% 58%,
+        transparent 59% 66%,
+        #5d795f 67% 100%
+      );
+      opacity:.48;
+      clip-path:polygon(
+        0 100%,
+        0 68%,
+        10% 42%,
+        18% 65%,
+        31% 18%,
+        42% 62%,
+        53% 33%,
+        64% 67%,
+        75% 20%,
+        87% 59%,
+        100% 33%,
+        100% 100%
+      );
+    }
+
+    .scenery:after{
+      content:"▲ ▲  ▲   ▲ ▲▲    ▲";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:-4px;
+      color:#214a37;
+      font-size:23px;
+      letter-spacing:8px;
+      opacity:.9;
+      white-space:nowrap;
+    }
+
+    .location-pin{
+      position:absolute;
+      right:18px;
+      bottom:15px;
+      z-index:3;
+      color:#a84d31;
+      font-size:1.7rem;
+    }
 
     /* DRAWER */
-    .drawer{position:fixed;z-index:70;inset:0;display:none}
+
+    .drawer{
+      position:fixed;
+      z-index:70;
+      inset:0;
+      display:none;
+    }
+
     .drawer.open{display:block}
-    .drawer-backdrop{position:absolute;inset:0;background:rgba(14,13,10,.48);backdrop-filter:blur(4px)}
+
+    .drawer-backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(14,13,10,.48);
+      backdrop-filter:blur(4px);
+    }
+
     .drawer-panel{
-      position:absolute;right:0;top:0;bottom:0;width:min(86vw,350px);padding:calc(var(--safe-top) + 10px) 16px var(--safe-bottom);
+      position:absolute;
+      right:0;
+      top:0;
+      bottom:0;
+      width:min(86vw,350px);
+      padding:calc(var(--safe-top) + 10px) 16px var(--safe-bottom);
       background:
         repeating-linear-gradient(0deg,rgba(76,53,25,.03) 0 1px,transparent 1px 5px),
         linear-gradient(180deg,#f8efd8,#e7d6ae);
-      box-shadow:-12px 0 34px rgba(32,25,16,.28);overflow:auto
+      box-shadow:-12px 0 34px rgba(32,25,16,.28);
+      overflow:auto;
     }
-    .drawer-panel h2{margin:0;color:var(--navy);font-size:1.24rem}
-    .drawer-close{position:absolute;right:13px;top:var(--safe-top);border:0;background:transparent;font-size:1.5rem;color:#4b3d29}
+
+    .drawer-panel h2{
+      margin:0;
+      color:var(--navy);
+      font-size:1.24rem;
+    }
+
+    .drawer-close{
+      position:absolute;
+      right:13px;
+      top:var(--safe-top);
+      border:0;
+      background:transparent;
+      font-size:1.5rem;
+      color:#4b3d29;
+    }
+
     .drawer-section{margin-top:18px}
-    .drawer-section h3{margin:0 0 8px;font-size:.75rem;color:#75572d;letter-spacing:.08em}
-    .drawer-link{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:8px;padding:12px;border:1px solid rgba(93,65,28,.19);border-radius:12px;background:#fff9e9;color:#2e291f;text-decoration:none;font-weight:900}
-    .mode-choice{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-    .mode-choice button{padding:11px 7px;border:2px solid #8b682e;border-radius:12px;background:#fff8e7;color:#4d3e28;font-weight:950}
-    .mode-choice button.active{background:linear-gradient(180deg,#d7ac55,#9c6d2b);color:#fff8e4}
+
+    .drawer-section h3{
+      margin:0 0 8px;
+      font-size:.75rem;
+      color:#75572d;
+      letter-spacing:.08em;
+    }
+
+    .drawer-link{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:100%;
+      margin-top:8px;
+      padding:12px;
+      border:1px solid rgba(93,65,28,.19);
+      border-radius:12px;
+      background:#fff9e9;
+      color:#2e291f;
+      text-decoration:none;
+      font-weight:900;
+    }
+
+    .mode-choice{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+    }
+
+    .mode-choice button{
+      padding:11px 7px;
+      border:2px solid #8b682e;
+      border-radius:12px;
+      background:#fff8e7;
+      color:#4d3e28;
+      font-weight:950;
+    }
+
+    .mode-choice button.active{
+      background:linear-gradient(180deg,#d7ac55,#9c6d2b);
+      color:#fff8e4;
+    }
 
     /* DETAILS */
-    .page-head{
-      position:relative;overflow:hidden;border-radius:24px;padding:18px 16px;color:#fff6dd;
-      background:linear-gradient(155deg,var(--navy),var(--navy-deep));border:3px solid var(--brass);box-shadow:var(--shadow)
-    }
-    body.inside .page-head{background:linear-gradient(155deg,var(--forest),var(--forest-deep))}
-    .page-head small{display:block;color:#e6c36e;font-size:.66rem;font-weight:950;letter-spacing:.11em}
-    .page-head h2{margin:5px 0 0;font-size:1.5rem;line-height:1.22}
-    .page-head p{margin:8px 0 0;color:#ddd4be;font-size:.85rem;line-height:1.65;font-weight:700}
-    .page-head:after{content:"";position:absolute;right:-15px;bottom:-24px;width:110px;height:110px;border:2px solid rgba(229,195,111,.26);border-radius:50%}
 
-    .stack{display:grid;gap:12px;margin-top:13px}
+    .page-head{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      padding:18px 16px;
+      color:#fff6dd;
+      background:linear-gradient(155deg,var(--navy),var(--navy-deep));
+      border:3px solid var(--brass);
+      box-shadow:var(--shadow);
+    }
+
+    body.inside .page-head{
+      background:linear-gradient(155deg,var(--forest),var(--forest-deep));
+    }
+
+    .page-head small{
+      display:block;
+      color:#e6c36e;
+      font-size:.66rem;
+      font-weight:950;
+      letter-spacing:.11em;
+    }
+
+    .page-head h2{
+      margin:5px 0 0;
+      font-size:1.5rem;
+      line-height:1.22;
+    }
+
+    .page-head p{
+      margin:8px 0 0;
+      color:#ddd4be;
+      font-size:.85rem;
+      line-height:1.65;
+      font-weight:700;
+    }
+
+    .page-head:after{
+      content:"";
+      position:absolute;
+      right:-15px;
+      bottom:-24px;
+      width:110px;
+      height:110px;
+      border:2px solid rgba(229,195,111,.26);
+      border-radius:50%;
+    }
+
+    .stack{
+      display:grid;
+      gap:12px;
+      margin-top:13px;
+    }
+
     .paper{
-      border-radius:20px;padding:15px;background:
+      border-radius:20px;
+      padding:15px;
+      background:
         repeating-linear-gradient(0deg,rgba(89,61,27,.028) 0 1px,transparent 1px 5px),
         rgba(255,249,235,.95);
-      border:2px solid rgba(112,77,31,.24);box-shadow:var(--soft-shadow)
+      border:2px solid rgba(112,77,31,.24);
+      box-shadow:var(--soft-shadow);
     }
-    .paper h3{margin:0 0 7px;color:#16463a;font-size:1rem}
-    .paper p,.paper li{font-size:.87rem;line-height:1.72;color:#4f473b}
-    .paper ul{margin:7px 0 0;padding-left:1.2em}
-    .alert{border-left:8px solid var(--danger);background:#fff0e7}
-    .safe{border-left:8px solid #327858;background:#eef8ed}
+
+    .paper h3{
+      margin:0 0 7px;
+      color:#16463a;
+      font-size:1rem;
+    }
+
+    .paper p,
+    .paper li{
+      font-size:.87rem;
+      line-height:1.72;
+      color:#4f473b;
+    }
+
+    .paper ul{
+      margin:7px 0 0;
+      padding-left:1.2em;
+    }
+
+    .alert{
+      border-left:8px solid var(--danger);
+      background:#fff0e7;
+    }
+
+    .safe{
+      border-left:8px solid #327858;
+      background:#eef8ed;
+    }
+
     .action{
-      display:flex;justify-content:space-between;align-items:center;width:100%;min-height:51px;margin-top:11px;padding:11px 13px;
-      border:2px solid #382714;border-radius:13px;background:linear-gradient(180deg,var(--brass-light),#a56f27);
-      color:#24190d;text-decoration:none;font-weight:950;box-shadow:0 5px 0 rgba(59,40,15,.25)
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:100%;
+      min-height:51px;
+      margin-top:11px;
+      padding:11px 13px;
+      border:2px solid #382714;
+      border-radius:13px;
+      background:linear-gradient(180deg,var(--brass-light),#a56f27);
+      color:#24190d;
+      text-decoration:none;
+      font-weight:950;
+      box-shadow:0 5px 0 rgba(59,40,15,.25);
     }
-    .action.secondary{background:linear-gradient(180deg,#fff7e6,#ddc89e)}
-    .action:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(59,40,15,.25)}
-    .line{height:5px;margin:11px 0;border-radius:99px;background:repeating-linear-gradient(90deg,#a44f34 0 12px,transparent 12px 23px);opacity:.45;animation:dash 1.8s linear infinite}
-    @keyframes dash{to{background-position:35px 0}}
 
+    .action.secondary{
+      background:linear-gradient(180deg,#fff7e6,#ddc89e);
+    }
 
-    /* =========================================================
-       PARKING ROUTE GUIDE
-       Adventure-map styling based on the existing parking guide
-       ========================================================= */
+    .action:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 rgba(59,40,15,.25);
+    }
+
+    .line{
+      height:5px;
+      margin:11px 0;
+      border-radius:99px;
+      background:repeating-linear-gradient(90deg,#a44f34 0 12px,transparent 12px 23px);
+      opacity:.45;
+      animation:dash 1.8s linear infinite;
+    }
+
+    @keyframes dash{
+      to{background-position:35px 0}
+    }
+
+    /* PARKING */
+
     .parking-intro-card{
       position:relative;
       overflow:hidden;
@@ -470,6 +1102,7 @@
       border:3px solid #c89a43;
       box-shadow:var(--shadow);
     }
+
     .parking-intro-card:after{
       content:"";
       position:absolute;
@@ -481,6 +1114,7 @@
       border:2px solid rgba(232,197,112,.25);
       box-shadow:inset 0 0 0 14px rgba(232,197,112,.05);
     }
+
     .parking-intro-card p{
       position:relative;
       z-index:2;
@@ -490,6 +1124,7 @@
       line-height:1.7;
       font-weight:750;
     }
+
     .parking-intro-badges{
       position:relative;
       z-index:2;
@@ -498,6 +1133,7 @@
       gap:7px;
       margin-top:11px;
     }
+
     .parking-badge{
       display:inline-flex;
       align-items:center;
@@ -520,6 +1156,7 @@
       border:2px solid rgba(255,250,228,.9);
       box-shadow:var(--soft-shadow);
     }
+
     .arrival-choice-title{
       display:block;
       padding:2px 5px 8px;
@@ -529,11 +1166,13 @@
       letter-spacing:.05em;
       text-align:center;
     }
+
     .arrival-choice-grid{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:7px;
     }
+
     .arrival-choice-btn{
       min-height:58px;
       border:0;
@@ -544,22 +1183,43 @@
       text-align:left;
       font-weight:950;
     }
-    .arrival-choice-btn strong{display:block;font-size:.9rem}
-    .arrival-choice-btn small{display:block;margin-top:3px;font-size:.62rem;line-height:1.3;opacity:.75}
+
+    .arrival-choice-btn strong{
+      display:block;
+      font-size:.9rem;
+    }
+
+    .arrival-choice-btn small{
+      display:block;
+      margin-top:3px;
+      font-size:.62rem;
+      line-height:1.3;
+      opacity:.75;
+    }
+
     .arrival-choice-btn.active{
       color:#291d0d;
       background:linear-gradient(180deg,#efd27f,#b77b2c);
       box-shadow:0 5px 0 rgba(0,0,0,.22);
     }
 
-    .parking-route-panel{display:none;margin-top:12px}
-    .parking-route-panel.active{display:block;animation:viewIn .32s ease}
+    .parking-route-panel{
+      display:none;
+      margin-top:12px;
+    }
+
+    .parking-route-panel.active{
+      display:block;
+      animation:viewIn .32s ease;
+    }
+
     .parking-overview{
       display:grid;
       grid-template-columns:repeat(3,1fr);
       gap:8px;
       margin-bottom:12px;
     }
+
     .parking-stat{
       min-width:0;
       padding:11px 6px;
@@ -571,8 +1231,22 @@
       box-shadow:0 5px 0 rgba(67,49,25,.08);
       text-align:center;
     }
-    .parking-stat span{display:block;color:#796746;font-size:.59rem;font-weight:900}
-    .parking-stat strong{display:block;margin-top:3px;color:#184a3d;font-size:.88rem;line-height:1.25}
+
+    .parking-stat span{
+      display:block;
+      color:#796746;
+      font-size:.59rem;
+      font-weight:900;
+    }
+
+    .parking-stat strong{
+      display:block;
+      margin-top:3px;
+      color:#184a3d;
+      font-size:.88rem;
+      line-height:1.25;
+    }
+
     .parking-stat--highway strong{color:#8f3d24}
 
     .parking-map-card{
@@ -585,7 +1259,9 @@
       border:2px solid rgba(119,82,31,.25);
       box-shadow:var(--soft-shadow);
     }
+
     .parking-map-card + .parking-map-card{margin-top:12px}
+
     .parking-card-head{
       display:flex;
       align-items:flex-start;
@@ -593,12 +1269,14 @@
       gap:9px;
       margin-bottom:10px;
     }
+
     .parking-card-head h3{
       margin:0;
       color:#16463b;
       font-size:1rem;
       line-height:1.35;
     }
+
     .parking-card-head p{
       margin:4px 0 0;
       color:#776c59;
@@ -606,6 +1284,7 @@
       line-height:1.45;
       font-weight:750;
     }
+
     .parking-hours{
       flex:0 0 auto;
       padding:5px 8px;
@@ -615,9 +1294,14 @@
       font-size:.65rem;
       font-weight:950;
     }
+
     .parking-hours.highway{background:#9b442e}
 
-    .parking-place-list{display:grid;gap:8px}
+    .parking-place-list{
+      display:grid;
+      gap:8px;
+    }
+
     .parking-place{
       position:relative;
       display:grid;
@@ -634,27 +1318,50 @@
       box-shadow:0 5px 0 rgba(88,61,26,.08);
       transition:transform .16s ease,filter .16s ease;
     }
-    .parking-place:active{transform:translateY(3px);filter:brightness(.98)}
+
+    .parking-place:active{
+      transform:translateY(3px);
+      filter:brightness(.98);
+    }
+
     .parking-place-icon{
       display:grid;
       place-items:center;
-      width:39px;height:39px;
+      width:39px;
+      height:39px;
       border-radius:12px;
       color:#fff8df;
       background:linear-gradient(145deg,#1e5446,#12362e);
       font-size:1.05rem;
       font-weight:950;
     }
+
     .parking-place.recommended .parking-place-icon{
       color:#2d210f;
       background:linear-gradient(145deg,#f0d27f,#bb7e2f);
     }
+
     .parking-place-main .parking-place-icon{
       background:linear-gradient(145deg,#7b5128,#543317);
     }
-    .parking-place-name{display:block;font-size:.84rem;font-weight:950;line-height:1.3}
-    .parking-place-note{display:block;margin-top:3px;color:#726857;font-size:.62rem;font-weight:750}
+
+    .parking-place-name{
+      display:block;
+      font-size:.84rem;
+      font-weight:950;
+      line-height:1.3;
+    }
+
+    .parking-place-note{
+      display:block;
+      margin-top:3px;
+      color:#726857;
+      font-size:.62rem;
+      font-weight:750;
+    }
+
     .parking-place-right{text-align:right}
+
     .parking-walk{
       display:block;
       color:#175344;
@@ -662,6 +1369,7 @@
       font-weight:950;
       white-space:nowrap;
     }
+
     .parking-map-label{
       display:block;
       margin-top:4px;
@@ -669,6 +1377,7 @@
       font-size:.62rem;
       font-weight:950;
     }
+
     .parking-recommend{
       position:absolute;
       right:7px;
@@ -688,6 +1397,7 @@
       gap:8px;
       margin-top:9px;
     }
+
     .capacity-item{
       padding:9px;
       border-radius:12px;
@@ -698,6 +1408,7 @@
       line-height:1.45;
       font-weight:800;
     }
+
     .capacity-item strong{
       display:block;
       color:#43321d;
@@ -719,9 +1430,18 @@
       font-weight:950;
       box-shadow:0 5px 0 rgba(67,45,14,.25);
     }
-    .parking-primary-link:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(67,45,14,.25)}
 
-    .access-steps{display:grid;gap:8px;margin-top:10px}
+    .parking-primary-link:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 rgba(67,45,14,.25);
+    }
+
+    .access-steps{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+
     .access-step{
       display:grid;
       grid-template-columns:31px 1fr;
@@ -732,18 +1452,33 @@
       background:#fffdf5;
       border:1px solid rgba(112,78,31,.16);
     }
+
     .access-step-num{
       display:grid;
       place-items:center;
-      width:31px;height:31px;
+      width:31px;
+      height:31px;
       border-radius:50%;
       color:#fff7df;
       background:#194a3e;
       font-size:.74rem;
       font-weight:950;
     }
-    .access-step strong{display:block;color:#24473e;font-size:.78rem}
-    .access-step span{display:block;margin-top:3px;color:#665d4f;font-size:.68rem;line-height:1.5;font-weight:750}
+
+    .access-step strong{
+      display:block;
+      color:#24473e;
+      font-size:.78rem;
+    }
+
+    .access-step span{
+      display:block;
+      margin-top:3px;
+      color:#665d4f;
+      font-size:.68rem;
+      line-height:1.5;
+      font-weight:750;
+    }
 
     .parking-note{
       margin-top:10px;
@@ -756,6 +1491,7 @@
       line-height:1.6;
       font-weight:800;
     }
+
     .parking-warning{
       margin-top:10px;
       padding:12px;
@@ -767,6 +1503,7 @@
       line-height:1.6;
       font-weight:850;
     }
+
     .child-safety-note{
       display:grid;
       grid-template-columns:38px 1fr;
@@ -782,20 +1519,20 @@
       line-height:1.6;
       font-weight:850;
     }
+
     .child-safety-note span:first-child{
       display:grid;
       place-items:center;
-      width:38px;height:38px;
+      width:38px;
+      height:38px;
       border-radius:50%;
       color:white;
       background:#417554;
       font-size:1.15rem;
     }
 
+    /* RESERVATION */
 
-    /* =========================================================
-       RESERVATION / LIVE AVAILABILITY
-       ========================================================= */
     .reservation-hero{
       position:relative;
       overflow:hidden;
@@ -809,6 +1546,7 @@
       border:3px solid #c89b45;
       box-shadow:var(--shadow);
     }
+
     .reservation-hero:after{
       content:"";
       position:absolute;
@@ -820,6 +1558,7 @@
       border:2px solid rgba(230,197,113,.25);
       box-shadow:inset 0 0 0 14px rgba(230,197,113,.05);
     }
+
     .reservation-hero p{
       position:relative;
       z-index:2;
@@ -829,6 +1568,7 @@
       line-height:1.7;
       font-weight:750;
     }
+
     .reservation-route{
       position:relative;
       z-index:2;
@@ -837,6 +1577,7 @@
       gap:7px;
       margin-top:12px;
     }
+
     .reservation-route-step{
       min-width:0;
       padding:9px 6px;
@@ -849,6 +1590,7 @@
       line-height:1.35;
       font-weight:900;
     }
+
     .reservation-route-step b{
       display:block;
       margin-bottom:4px;
@@ -869,12 +1611,29 @@
       color:#281d0e;
       text-decoration:none;
       background:linear-gradient(180deg,#f0d581,#b87c2d);
-      box-shadow:0 6px 0 rgba(61,41,15,.25),0 12px 22px rgba(55,38,16,.16);
+      box-shadow:
+        0 6px 0 rgba(61,41,15,.25),
+        0 12px 22px rgba(55,38,16,.16);
       font-weight:950;
     }
-    .reservation-primary strong{display:block;color:#281d0e;font-size:1rem}
-    .reservation-primary small{display:block;margin-top:3px;color:#664b26;font-size:.66rem}
-    .reservation-primary:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(61,41,15,.25)}
+
+    .reservation-primary strong{
+      display:block;
+      color:#281d0e;
+      font-size:1rem;
+    }
+
+    .reservation-primary small{
+      display:block;
+      margin-top:3px;
+      color:#664b26;
+      font-size:.66rem;
+    }
+
+    .reservation-primary:active{
+      transform:translateY(3px);
+      box-shadow:0 3px 0 rgba(61,41,15,.25);
+    }
 
     .availability-card{
       margin-top:12px;
@@ -886,14 +1645,28 @@
       border:2px solid rgba(117,82,34,.25);
       box-shadow:var(--soft-shadow);
     }
+
     .availability-head{
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
       gap:10px;
     }
-    .availability-head h3{margin:0;color:#17483c;font-size:1rem}
-    .availability-head p{margin:4px 0 0;color:#746957;font-size:.68rem;line-height:1.45;font-weight:750}
+
+    .availability-head h3{
+      margin:0;
+      color:#17483c;
+      font-size:1rem;
+    }
+
+    .availability-head p{
+      margin:4px 0 0;
+      color:#746957;
+      font-size:.68rem;
+      line-height:1.45;
+      font-weight:750;
+    }
+
     .live-chip{
       flex:0 0 auto;
       display:inline-flex;
@@ -906,14 +1679,20 @@
       font-size:.62rem;
       font-weight:950;
     }
+
     .live-chip:before{
       content:"";
-      width:7px;height:7px;border-radius:50%;
+      width:7px;
+      height:7px;
+      border-radius:50%;
       background:#ffdf74;
       box-shadow:0 0 0 4px rgba(255,223,116,.15);
       animation:livePulse 1.3s ease-in-out infinite;
     }
-    @keyframes livePulse{50%{opacity:.35}}
+
+    @keyframes livePulse{
+      50%{opacity:.35}
+    }
 
     .availability-widget{
       position:relative;
@@ -924,6 +1703,7 @@
       background:#fffef9;
       border:2px solid rgba(105,75,31,.17);
     }
+
     .availability-frame{
       display:block;
       width:100%;
@@ -931,6 +1711,7 @@
       border:0;
       background:#fff;
     }
+
     .availability-fallback{
       display:grid;
       align-content:center;
@@ -938,6 +1719,7 @@
       min-height:176px;
       padding:14px;
     }
+
     .availability-demo-row{
       display:grid;
       grid-template-columns:minmax(0,1fr) auto;
@@ -948,16 +1730,19 @@
       background:#f8f3e6;
       border:1px solid rgba(103,76,37,.12);
     }
+
     .availability-demo-row span:first-child{
       color:#514838;
       font-size:.75rem;
       font-weight:900;
     }
+
     .availability-demo-row strong{
       color:#8d7858;
       font-size:.8rem;
       white-space:nowrap;
     }
+
     .availability-setup{
       padding:10px 11px;
       border-radius:12px;
@@ -969,6 +1754,7 @@
       line-height:1.55;
       font-weight:800;
     }
+
     .availability-note{
       margin-top:9px;
       color:#9a3f31;
@@ -983,6 +1769,7 @@
       gap:9px;
       margin-top:12px;
     }
+
     .reservation-info{
       padding:12px;
       border-radius:16px;
@@ -990,12 +1777,14 @@
       border:2px solid rgba(113,80,34,.18);
       box-shadow:0 5px 0 rgba(80,57,27,.07);
     }
+
     .reservation-info span{
       display:block;
       color:#7b6849;
       font-size:.62rem;
       font-weight:900;
     }
+
     .reservation-info strong{
       display:block;
       margin-top:4px;
@@ -1003,6 +1792,7 @@
       font-size:.93rem;
       line-height:1.3;
     }
+
     .reservation-info p{
       margin:5px 0 0;
       color:#655b4b;
@@ -1019,7 +1809,13 @@
       border:2px solid rgba(116,81,33,.23);
       box-shadow:var(--soft-shadow);
     }
-    .slot-guide h3{margin:0 0 9px;color:#17483d;font-size:.98rem}
+
+    .slot-guide h3{
+      margin:0 0 9px;
+      color:#17483d;
+      font-size:.98rem;
+    }
+
     .slot-type{
       display:grid;
       grid-template-columns:86px 1fr;
@@ -1030,7 +1826,9 @@
       background:#fffef8;
       border:1px solid rgba(111,79,34,.14);
     }
+
     .slot-type + .slot-type{margin-top:8px}
+
     .slot-type-label{
       display:grid;
       place-items:center;
@@ -1043,9 +1841,23 @@
       font-weight:950;
       text-align:center;
     }
+
     .slot-type-label.special{background:#815126}
-    .slot-type strong{display:block;color:#4c3820;font-size:.78rem}
-    .slot-type span{display:block;margin-top:4px;color:#6b6152;font-size:.66rem;line-height:1.5;font-weight:750}
+
+    .slot-type strong{
+      display:block;
+      color:#4c3820;
+      font-size:.78rem;
+    }
+
+    .slot-type span{
+      display:block;
+      margin-top:4px;
+      color:#6b6152;
+      font-size:.66rem;
+      line-height:1.5;
+      font-weight:750;
+    }
 
     .reservation-warning{
       margin-top:12px;
@@ -1059,7 +1871,8 @@
       font-weight:850;
     }
 
-    /* Call status */
+    /* CALL STATUS */
+
     .call-status-launch{
       margin-top:13px;
       padding:15px;
@@ -1071,8 +1884,20 @@
       border:3px solid #c99b45;
       box-shadow:var(--shadow);
     }
-    .call-status-launch h3{margin:0;font-size:1.05rem}
-    .call-status-launch p{margin:7px 0 0;color:#ded8c8;font-size:.82rem;line-height:1.65;font-weight:750}
+
+    .call-status-launch h3{
+      margin:0;
+      font-size:1.05rem;
+    }
+
+    .call-status-launch p{
+      margin:7px 0 0;
+      color:#ded8c8;
+      font-size:.82rem;
+      line-height:1.65;
+      font-weight:750;
+    }
+
     .call-status-button{
       display:flex;
       justify-content:space-between;
@@ -1088,12 +1913,18 @@
       font-weight:950;
       box-shadow:0 6px 0 rgba(0,0,0,.22);
     }
-    .call-status-button:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+
+    .call-status-button:active{
+      transform:translateY(3px);
+      box-shadow:0 3px 0 rgba(0,0,0,.22);
+    }
+
     .call-howto{
       display:grid;
       gap:8px;
       margin-top:12px;
     }
+
     .call-howto-item{
       display:grid;
       grid-template-columns:34px 1fr;
@@ -1104,87 +1935,226 @@
       background:#fffdf5;
       border:1px solid rgba(112,78,31,.15);
     }
+
     .call-howto-num{
       display:grid;
       place-items:center;
-      width:34px;height:34px;
+      width:34px;
+      height:34px;
       border-radius:50%;
       color:#fff7df;
       background:#194b3f;
       font-size:.75rem;
       font-weight:950;
     }
-    .call-howto-item strong{display:block;color:#24483e;font-size:.78rem}
-    .call-howto-item span{display:block;margin-top:3px;color:#665d4f;font-size:.68rem;line-height:1.5;font-weight:750}
 
-    details{border-radius:16px;background:#fffaf0;border:2px solid rgba(116,83,34,.2);overflow:hidden;box-shadow:0 5px 0 rgba(88,62,25,.08)}
-    summary{list-style:none;cursor:pointer;padding:13px 14px;font-weight:950;color:#273f3a}
+    .call-howto-item strong{
+      display:block;
+      color:#24483e;
+      font-size:.78rem;
+    }
+
+    .call-howto-item span{
+      display:block;
+      margin-top:3px;
+      color:#665d4f;
+      font-size:.68rem;
+      line-height:1.5;
+      font-weight:750;
+    }
+
+    details{
+      border-radius:16px;
+      background:#fffaf0;
+      border:2px solid rgba(116,83,34,.2);
+      overflow:hidden;
+      box-shadow:0 5px 0 rgba(88,62,25,.08);
+    }
+
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding:13px 14px;
+      font-weight:950;
+      color:#273f3a;
+    }
+
     summary::-webkit-details-marker{display:none}
-    summary:after{content:"＋";float:right;color:#96702f}
+
+    summary:after{
+      content:"＋";
+      float:right;
+      color:#96702f;
+    }
+
     details[open] summary:after{content:"－"}
-    .answer{padding:0 14px 14px;color:#514a3f;font-size:.86rem;line-height:1.72}
-    .staff-label{display:inline-block;margin-bottom:5px;padding:3px 8px;border-radius:999px;background:#173f36;color:#fff3d9;font-size:.66rem;font-weight:900}
-    .faq-search{width:100%;padding:12px;border:2px solid #a98346;border-radius:13px;background:#fffef8;color:#2e2a22;font-weight:750}
 
+    .answer{
+      padding:0 14px 14px;
+      color:#514a3f;
+      font-size:.86rem;
+      line-height:1.72;
+    }
 
+    .staff-label{
+      display:inline-block;
+      margin-bottom:5px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#173f36;
+      color:#fff3d9;
+      font-size:.66rem;
+      font-weight:900;
+    }
 
+    .faq-search{
+      width:100%;
+      padding:12px;
+      border:2px solid #a98346;
+      border-radius:13px;
+      background:#fffef8;
+      color:#2e2a22;
+      font-weight:750;
+    }
 
-    /* =========================================================
-       REENTRY GUIDE
-       ========================================================= */
+    /* REENTRY */
+
     .reentry-stack{gap:14px}
-    .reentry-option{position:relative;overflow:hidden}
+
+    .reentry-option{
+      position:relative;
+      overflow:hidden;
+    }
+
     .reentry-label{
-      display:inline-flex;align-items:center;margin-bottom:9px;padding:5px 10px;
-      border-radius:999px;background:#327858;color:#fff;font-size:.67rem;
-      font-weight:950;letter-spacing:.03em
+      display:inline-flex;
+      align-items:center;
+      margin-bottom:9px;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#327858;
+      color:#fff;
+      font-size:.67rem;
+      font-weight:950;
+      letter-spacing:.03em;
     }
-    .reentry-label-yellow{color:#3c2b00;background:#ffd84f;border:1px solid #d7a800}
+
+    .reentry-label-yellow{
+      color:#3c2b00;
+      background:#ffd84f;
+      border:1px solid #d7a800;
+    }
+
     .reentry-label-danger{background:#c74331}
+
     .reentry-common h3{color:#7b241c}
+
     .reentry-steps{
-      display:grid;gap:9px;margin:12px 0 0;padding:0;list-style:none;
-      counter-reset:reentry-step
+      display:grid;
+      gap:9px;
+      margin:12px 0 0;
+      padding:0;
+      list-style:none;
+      counter-reset:reentry-step;
     }
+
     .reentry-steps li{
-      position:relative;display:grid;gap:3px;min-height:56px;
-      padding:10px 10px 10px 48px;border-radius:14px;
-      background:rgba(255,255,255,.72);border:1px solid rgba(50,120,88,.18);
-      counter-increment:reentry-step
+      position:relative;
+      display:grid;
+      gap:3px;
+      min-height:56px;
+      padding:10px 10px 10px 48px;
+      border-radius:14px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(50,120,88,.18);
+      counter-increment:reentry-step;
     }
+
     .reentry-steps li::before{
-      content:counter(reentry-step);position:absolute;left:10px;top:11px;
-      display:grid;place-items:center;width:29px;height:29px;border-radius:50%;
-      background:#327858;color:#fff;font-size:.78rem;font-weight:950
+      content:counter(reentry-step);
+      position:absolute;
+      left:10px;
+      top:11px;
+      display:grid;
+      place-items:center;
+      width:29px;
+      height:29px;
+      border-radius:50%;
+      background:#327858;
+      color:#fff;
+      font-size:.78rem;
+      font-weight:950;
     }
-    .reentry-steps strong{color:#193f34;font-size:.84rem}
-    .reentry-steps span{color:#5b554b;font-size:.76rem;line-height:1.55}
-    .reentry-note,.reentry-holder-guide{
-      margin-top:12px;padding:11px 12px;border-radius:13px;background:#fff7ce;
-      border:2px solid #e7bd37;color:#58420a;font-size:.76rem;line-height:1.6
+
+    .reentry-steps strong{
+      color:#193f34;
+      font-size:.84rem;
     }
-    .reentry-note strong,.reentry-holder-guide strong{
-      display:block;margin-bottom:3px;color:#684900
+
+    .reentry-steps span{
+      color:#5b554b;
+      font-size:.76rem;
+      line-height:1.55;
     }
+
+    .reentry-note,
+    .reentry-holder-guide{
+      margin-top:12px;
+      padding:11px 12px;
+      border-radius:13px;
+      background:#fff7ce;
+      border:2px solid #e7bd37;
+      color:#58420a;
+      font-size:.76rem;
+      line-height:1.6;
+    }
+
+    .reentry-note strong,
+    .reentry-holder-guide strong{
+      display:block;
+      margin-bottom:3px;
+      color:#684900;
+    }
+
     .reentry-holder-guide p{margin:4px 0 0}
-    .reentry-conditions{display:grid;gap:8px;margin-top:12px}
+
+    .reentry-conditions{
+      display:grid;
+      gap:8px;
+      margin-top:12px;
+    }
+
     .reentry-condition{
-      display:grid;grid-template-columns:54px 1fr;gap:9px;align-items:center;
-      padding:9px;border-radius:12px;background:rgba(255,255,255,.7);
-      border:1px solid rgba(112,77,31,.16);color:#4f473b;
-      font-size:.76rem;line-height:1.5;font-weight:850
+      display:grid;
+      grid-template-columns:54px 1fr;
+      gap:9px;
+      align-items:center;
+      padding:9px;
+      border-radius:12px;
+      background:rgba(255,255,255,.7);
+      border:1px solid rgba(112,77,31,.16);
+      color:#4f473b;
+      font-size:.76rem;
+      line-height:1.5;
+      font-weight:850;
     }
+
     .reentry-condition-tag{
-      display:inline-flex;justify-content:center;padding:4px 6px;border-radius:999px;
-      color:#fff;font-size:.64rem;font-weight:950
+      display:inline-flex;
+      justify-content:center;
+      padding:4px 6px;
+      border-radius:999px;
+      color:#fff;
+      font-size:.64rem;
+      font-weight:950;
     }
+
     .reentry-condition-ok{background:#327858}
     .reentry-condition-rule{background:#8b690d}
     .reentry-condition-ng{background:#c74331}
 
-    /* =========================================================
-       EVENT / INSTAGRAM THUMBNAILS
-       ========================================================= */
+    /* INSTAGRAM */
+
     .instagram-thumb-card{
       margin-top:13px;
       overflow:hidden;
@@ -1195,6 +2165,7 @@
       border:2px solid rgba(112,77,31,.24);
       box-shadow:var(--soft-shadow);
     }
+
     .instagram-thumb-head{
       display:flex;
       align-items:center;
@@ -1206,6 +2177,7 @@
         radial-gradient(circle at 88% 5%,rgba(255,255,255,.18),transparent 26%),
         linear-gradient(135deg,#f09433 0%,#e6683c 24%,#dc2743 52%,#bc1888 76%,#6228d7 100%);
     }
+
     .instagram-thumb-title{
       display:flex;
       align-items:center;
@@ -1214,6 +2186,7 @@
       font-size:.87rem;
       font-weight:950;
     }
+
     .instagram-thumb-title span:first-child{
       display:grid;
       place-items:center;
@@ -1224,6 +2197,7 @@
       background:rgba(255,255,255,.2);
       font-size:1rem;
     }
+
     .instagram-profile-link{
       flex:0 0 auto;
       padding:7px 10px;
@@ -1235,12 +2209,14 @@
       font-size:.62rem;
       font-weight:950;
     }
+
     .instagram-thumb-viewport{
       position:relative;
       height:520px;
       overflow:hidden;
       background:#fff;
     }
+
     .instagram-thumb-viewport iframe{
       position:absolute;
       left:0;
@@ -1250,6 +2226,7 @@
       border:0;
       background:#fff;
     }
+
     .instagram-thumb-fallback{
       padding:11px 13px;
       color:#675d4f;
@@ -1260,21 +2237,14 @@
       text-align:center;
       font-weight:800;
     }
+
     .instagram-thumb-fallback a{
       color:#9f236e;
       font-weight:950;
     }
-    @media(max-width:380px){
-      .instagram-thumb-viewport{height:470px}
-      .instagram-thumb-viewport iframe{top:-145px;height:780px}
-      .instagram-profile-link{padding:6px 8px;font-size:.58rem}
-    }
 
-    /* =========================================================
-       PLAY TIME GUIDE
-       Reference-derived structure:
-       current clock / large result / journey progress / duration switch
-       ========================================================= */
+    /* PLAY TIME */
+
     .playtime-console{
       position:relative;
       overflow:hidden;
@@ -1287,18 +2257,30 @@
         repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 45px),
         linear-gradient(165deg,#173f32 0%,#0c2b23 62%,#071d18 100%);
       border:3px solid #b88937;
-      box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.1);
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,.1);
     }
+
     .playtime-console:before{
       content:"";
       position:absolute;
       inset:0;
       pointer-events:none;
       background:
-        linear-gradient(110deg,transparent 0 40%,rgba(255,255,255,.07) 48%,transparent 56%) -160% 0/75% 100% no-repeat;
+        linear-gradient(
+          110deg,
+          transparent 0 40%,
+          rgba(255,255,255,.07) 48%,
+          transparent 56%
+        ) -160% 0/75% 100% no-repeat;
       animation:timeSweep 5.5s ease-in-out infinite;
     }
-    @keyframes timeSweep{50%,100%{background-position:260% 0}}
+
+    @keyframes timeSweep{
+      50%,100%{background-position:260% 0}
+    }
+
     .time-now-card{
       position:relative;
       z-index:2;
@@ -1312,6 +2294,7 @@
       border:1px solid rgba(244,218,151,.23);
       box-shadow:inset 0 0 18px rgba(0,0,0,.18);
     }
+
     .time-now-card small{
       display:block;
       color:#ddc887;
@@ -1319,6 +2302,7 @@
       font-weight:950;
       letter-spacing:.08em;
     }
+
     .current-digital{
       display:block;
       margin-top:3px;
@@ -1330,6 +2314,7 @@
       letter-spacing:-.035em;
       text-shadow:0 4px 0 rgba(0,0,0,.2);
     }
+
     .current-date{
       display:block;
       margin-top:5px;
@@ -1337,6 +2322,7 @@
       font-size:.68rem;
       font-weight:800;
     }
+
     .mini-analog{
       position:relative;
       width:78px;
@@ -1345,8 +2331,11 @@
       background:
         repeating-conic-gradient(from -90deg,#604617 0deg 2deg,transparent 2deg 30deg),
         radial-gradient(circle,#fff8e4 0 55%,#cfad60 56% 63%,#4d3815 64%);
-      box-shadow:0 7px 0 rgba(0,0,0,.18),inset 0 0 0 2px rgba(255,255,255,.25);
+      box-shadow:
+        0 7px 0 rgba(0,0,0,.18),
+        inset 0 0 0 2px rgba(255,255,255,.25);
     }
+
     .analog-hand{
       position:absolute;
       left:50%;
@@ -1356,13 +2345,33 @@
       border-radius:99px;
       z-index:2;
     }
-    .analog-hour{width:5px;height:22px;background:#2f2b22}
-    .analog-minute{width:3px;height:29px;background:#3c382e}
-    .analog-second{width:2px;height:31px;background:#ad4934}
+
+    .analog-hour{
+      width:5px;
+      height:22px;
+      background:#2f2b22;
+    }
+
+    .analog-minute{
+      width:3px;
+      height:29px;
+      background:#3c382e;
+    }
+
+    .analog-second{
+      width:2px;
+      height:31px;
+      background:#ad4934;
+    }
+
     .analog-center{
       position:absolute;
-      left:50%;top:50%;z-index:3;
-      width:9px;height:9px;border-radius:50%;
+      left:50%;
+      top:50%;
+      z-index:3;
+      width:9px;
+      height:9px;
+      border-radius:50%;
       transform:translate(-50%,-50%);
       background:#ad4934;
       box-shadow:0 0 0 3px #fff5db;
@@ -1380,16 +2389,25 @@
         repeating-linear-gradient(0deg,rgba(86,58,23,.035) 0 1px,transparent 1px 5px),
         linear-gradient(180deg,#f1dca6,#cba85d);
       border:3px solid #684817;
-      box-shadow:inset 0 0 0 2px rgba(255,249,223,.35),0 10px 20px rgba(0,0,0,.22);
+      box-shadow:
+        inset 0 0 0 2px rgba(255,249,223,.35),
+        0 10px 20px rgba(0,0,0,.22);
     }
-    .time-result-hero:before,.time-result-hero:after{
+
+    .time-result-hero:before,
+    .time-result-hero:after{
       content:"";
       position:absolute;
       top:10px;
-      width:10px;height:10px;border-radius:50%;
+      width:10px;
+      height:10px;
+      border-radius:50%;
       background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f);
     }
-    .time-result-hero:before{left:10px}.time-result-hero:after{right:10px}
+
+    .time-result-hero:before{left:10px}
+    .time-result-hero:after{right:10px}
+
     .time-result-kicker{
       display:inline-flex;
       align-items:center;
@@ -1402,6 +2420,7 @@
       font-weight:950;
       letter-spacing:.06em;
     }
+
     .time-result-main{
       display:block;
       min-height:1.2em;
@@ -1414,7 +2433,13 @@
       letter-spacing:-.045em;
       text-shadow:0 2px 0 rgba(255,255,255,.28);
     }
-    .time-result-main.expired{color:#9a3f2d;font-size:1.35rem;letter-spacing:0}
+
+    .time-result-main.expired{
+      color:#9a3f2d;
+      font-size:1.35rem;
+      letter-spacing:0;
+    }
+
     .time-result-sub{
       display:block;
       margin-top:6px;
@@ -1422,6 +2447,7 @@
       font-size:.88rem;
       font-weight:950;
     }
+
     .time-result-note{
       display:block;
       margin-top:3px;
@@ -1439,6 +2465,7 @@
       background:rgba(5,17,14,.48);
       border:1px solid rgba(238,211,142,.22);
     }
+
     .journey-labels{
       display:flex;
       justify-content:space-between;
@@ -1447,10 +2474,12 @@
       font-size:.68rem;
       font-weight:900;
     }
+
     .journey-labels strong{
       color:#f2cf78;
       font-size:.72rem;
     }
+
     .journey-road{
       position:relative;
       height:48px;
@@ -1460,22 +2489,29 @@
       background:linear-gradient(180deg,#39433e,#1c2925);
       box-shadow:inset 0 0 0 2px rgba(255,255,255,.05);
     }
+
     .journey-road:before{
       content:"";
       position:absolute;
-      left:8%;right:8%;top:50%;
+      left:8%;
+      right:8%;
+      top:50%;
       height:4px;
       transform:translateY(-50%);
       background:repeating-linear-gradient(90deg,#eee7d5 0 13px,transparent 13px 25px);
       opacity:.78;
     }
+
     .journey-progress{
       position:absolute;
-      left:0;top:0;bottom:0;
+      left:0;
+      top:0;
+      bottom:0;
       width:0%;
       background:linear-gradient(90deg,rgba(211,163,68,.10),rgba(239,203,116,.35));
       transition:width .5s ease;
     }
+
     .journey-car{
       position:absolute;
       left:8%;
@@ -1485,9 +2521,11 @@
       filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));
       transition:left .5s cubic-bezier(.2,.8,.2,1);
     }
+
     .journey-badge{
       position:absolute;
-      left:50%;top:50%;
+      left:50%;
+      top:50%;
       transform:translate(-50%,-50%);
       padding:4px 9px;
       border-radius:999px;
@@ -1511,20 +2549,32 @@
       color:#3c3225;
       border:2px solid rgba(183,137,55,.62);
     }
+
     .setting-head{
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
     }
-    .setting-head strong{font-size:.88rem;color:#244c40}
-    .setting-head span{font-size:.66rem;color:#726653;font-weight:800}
+
+    .setting-head strong{
+      font-size:.88rem;
+      color:#244c40;
+    }
+
+    .setting-head span{
+      font-size:.66rem;
+      color:#726653;
+      font-weight:800;
+    }
+
     .entry-time-row{
       display:grid;
       grid-template-columns:42px minmax(0,1fr) 42px;
       gap:7px;
       align-items:center;
     }
+
     .time-adjust{
       height:44px;
       border:2px solid #6f5123;
@@ -1535,6 +2585,7 @@
       font-weight:1000;
       box-shadow:0 4px 0 rgba(77,54,20,.18);
     }
+
     .entry-select{
       width:100%;
       height:44px;
@@ -1548,6 +2599,7 @@
       font-weight:950;
       font-variant-numeric:tabular-nums;
     }
+
     .duration-switch{
       display:grid;
       grid-template-columns:1fr 1fr 1fr;
@@ -1556,6 +2608,7 @@
       border-radius:13px;
       background:#26342f;
     }
+
     .duration-btn{
       min-height:42px;
       border:1px solid transparent;
@@ -1565,12 +2618,14 @@
       font-size:.72rem;
       font-weight:950;
     }
+
     .duration-btn.active{
       border-color:#fff9df;
       color:#2e210f;
       background:linear-gradient(180deg,#eed37e,#bc8232);
       box-shadow:0 4px 0 rgba(0,0,0,.2);
     }
+
     .time-save{
       width:100%;
       min-height:47px;
@@ -1581,7 +2636,13 @@
       font-weight:950;
       box-shadow:0 5px 0 rgba(0,0,0,.22);
     }
-    .time-save:active,.time-adjust:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+
+    .time-save:active,
+    .time-adjust:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 rgba(0,0,0,.18);
+    }
+
     .time-footnote{
       position:relative;
       z-index:2;
@@ -1593,9 +2654,8 @@
       font-weight:750;
     }
 
+    /* MODE DOCK */
 
-
-    /* Always-visible, one-tap front / back selector */
     .quick-mode-dock{
       position:fixed;
       z-index:80;
@@ -1610,9 +2670,12 @@
       border:2px solid rgba(255,244,215,.92);
       border-radius:20px;
       background:rgba(20,27,27,.94);
-      box-shadow:0 14px 34px rgba(19,15,10,.38),inset 0 1px 0 rgba(255,255,255,.12);
+      box-shadow:
+        0 14px 34px rgba(19,15,10,.38),
+        inset 0 1px 0 rgba(255,255,255,.12);
       backdrop-filter:blur(14px);
     }
+
     .quick-mode-btn{
       position:relative;
       min-height:56px;
@@ -1623,8 +2686,13 @@
       background:transparent;
       color:#cbd0c8;
       font-weight:950;
-      transition:transform .16s ease,background .2s ease,color .2s ease,box-shadow .2s ease;
+      transition:
+        transform .16s ease,
+        background .2s ease,
+        color .2s ease,
+        box-shadow .2s ease;
     }
+
     .quick-mode-btn:before{
       position:absolute;
       left:10px;
@@ -1638,17 +2706,36 @@
       background:rgba(255,255,255,.08);
       font-size:1rem;
     }
+
     .quick-mode-btn[data-mode="before"]:before{content:"🧳"}
     .quick-mode-btn[data-mode="inside"]:before{content:"🧭"}
-    .quick-mode-btn strong{display:block;font-size:.91rem;line-height:1.1}
-    .quick-mode-btn small{display:block;margin-top:3px;font-size:.62rem;line-height:1.15;opacity:.76}
+
+    .quick-mode-btn strong{
+      display:block;
+      font-size:.91rem;
+      line-height:1.1;
+    }
+
+    .quick-mode-btn small{
+      display:block;
+      margin-top:3px;
+      font-size:.62rem;
+      line-height:1.15;
+      opacity:.76;
+    }
+
     .quick-mode-btn.active{
       color:#24190d;
       background:linear-gradient(180deg,#efd17f,#b67a2c);
       box-shadow:0 5px 0 rgba(0,0,0,.23);
     }
-    .quick-mode-btn.active:before{background:rgba(255,250,226,.66)}
+
+    .quick-mode-btn.active:before{
+      background:rgba(255,250,226,.66);
+    }
+
     .quick-mode-btn:active{transform:translateY(3px)}
+
     .quick-mode-divider{
       position:absolute;
       left:50%;
@@ -1659,29 +2746,115 @@
       pointer-events:none;
     }
 
-    .toast{position:fixed;z-index:100;left:50%;bottom:24px;transform:translate(-50%,18px);opacity:0;pointer-events:none;border-radius:999px;padding:10px 14px;background:#15292c;color:#fff6df;font-weight:900;box-shadow:var(--shadow);transition:.2s}
-    .toast.show{opacity:1;transform:translate(-50%,0)}
+    .toast{
+      position:fixed;
+      z-index:100;
+      left:50%;
+      bottom:24px;
+      transform:translate(-50%,18px);
+      opacity:0;
+      pointer-events:none;
+      border-radius:999px;
+      padding:10px 14px;
+      background:#15292c;
+      color:#fff6df;
+      font-weight:900;
+      box-shadow:var(--shadow);
+      transition:.2s;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,0);
+    }
 
     @media(max-width:380px){
-      .tickets{gap:9px;padding-left:12px;padding-right:12px}.ticket{min-height:101px;padding-left:8px;padding-right:8px}.ticket-title{font-size:.85rem}
+      .tickets{
+        gap:9px;
+        padding-left:12px;
+        padding-right:12px;
+      }
+
+      .ticket{
+        min-height:101px;
+        padding-left:8px;
+        padding-right:8px;
+      }
+
+      .ticket-title{font-size:.85rem}
       .title-badge{width:calc(100% - 34px)}
+      .instagram-thumb-viewport{height:470px}
+      .instagram-thumb-viewport iframe{
+        top:-145px;
+        height:780px;
+      }
+
+      .instagram-profile-link{
+        padding:6px 8px;
+        font-size:.58rem;
+      }
     }
-    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+    @media(prefers-reduced-motion:reduce){
+      *,
+      *:before,
+      *:after{
+        animation-duration:.01ms!important;
+        animation-iteration-count:1!important;
+        transition-duration:.01ms!important;
+      }
+    }
   </style>
 </head>
+
 <body>
   <svg aria-hidden="true" width="0" height="0" style="position:absolute">
-    <symbol id="i-mountain" viewBox="0 0 64 40"><path fill="currentColor" d="M4 35 23 9l8 11 8-13 21 28H4Zm22-5h10l-5-7-5 7Z"/><path fill="currentColor" d="M32 0h3v12h-3zM35 1h12l-5 5 5 5H35z"/></symbol>
-    <symbol id="i-ticket" viewBox="0 0 64 64"><path fill="currentColor" d="M8 16h48v32H8V16Zm6 6v20h36V22H14Z"/><path fill="currentColor" d="M27 10h10v8H27z"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 64 64"><path fill="currentColor" d="M32 8c-10 0-17 8-17 19v9L9 44h46l-6-8v-9c0-11-7-19-17-19Zm-6 40h12c-1 5-4 8-6 8s-5-3-6-8Z"/></symbol>
-    <symbol id="i-car" viewBox="0 0 64 64"><path fill="currentColor" d="m14 22 5-10h26l5 10 6 5v18h-6v7h-8v-7H22v7h-8v-7H8V27l6-5Zm8-4-3 8h26l-3-8H22Zm-4 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm28 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></symbol>
-    <symbol id="i-flag" viewBox="0 0 64 64"><path fill="currentColor" d="M15 6h6v52h-6zM21 10h32L42 22l11 12H21z"/></symbol>
-    <symbol id="i-book" viewBox="0 0 64 64"><path fill="currentColor" d="M8 12c10 0 18 2 24 8 6-6 14-8 24-8v40c-10 0-18 2-24 8-6-6-14-8-24-8V12Zm5 7v28c6 0 12 1 16 4V25c-4-4-10-6-16-6Zm38 0c-6 0-12 2-16 6v26c4-3 10-4 16-4V19Z"/></symbol>
-    <symbol id="i-help" viewBox="0 0 64 64"><path fill="currentColor" d="M32 6a24 24 0 1 0 0 48 24 24 0 0 0 0-48Zm0 40a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm5-17c-3 2-3 3-3 6h-6c0-6 2-8 6-11 2-1 4-3 4-6 0-4-3-6-7-6-5 0-8 3-9 8l-6-2C18 10 23 6 31 6c8 0 14 5 14 12 0 6-4 9-8 11Z"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 64 64"><path fill="currentColor" d="M32 6a26 26 0 1 0 0 52 26 26 0 0 0 0-52Zm0 45a19 19 0 1 1 0-38 19 19 0 0 1 0 38Zm3-35h-6v18l15 9 3-5-12-7V16Z"/></symbol>
-    <symbol id="i-door" viewBox="0 0 64 64"><path fill="currentColor" d="M12 8h28v48H12V8Zm8 7v34h12V15H20Zm17 11h15l-5-5 4-4 13 12-13 12-4-4 5-5H37v-6Z"/></symbol>
-    <symbol id="i-map" viewBox="0 0 64 64"><path fill="currentColor" d="m8 12 16-6 16 6 16-6v46l-16 6-16-6-16 6V12Zm7 5v31l9-3V14l-9 3Zm16-2v31l9 3V18l-9-3Zm16 2v31l2-1V16l-2 1Z"/></symbol>
-    <symbol id="i-stamp" viewBox="0 0 64 64"><path fill="currentColor" d="M25 8h14c0 11 3 17 9 22v8H16v-8c6-5 9-11 9-22Zm-9 36h32l6 12H10l6-12Z"/></symbol>
+    <symbol id="i-mountain" viewBox="0 0 64 40">
+      <path fill="currentColor" d="M4 35 23 9l8 11 8-13 21 28H4Zm22-5h10l-5-7-5 7Z"/>
+      <path fill="currentColor" d="M32 0h3v12h-3zM35 1h12l-5 5 5 5H35z"/>
+    </symbol>
+
+    <symbol id="i-ticket" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M8 16h48v32H8V16Zm6 6v20h36V22H14Z"/>
+      <path fill="currentColor" d="M27 10h10v8H27z"/>
+    </symbol>
+
+    <symbol id="i-bell" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M32 8c-10 0-17 8-17 19v9L9 44h46l-6-8v-9c0-11-7-19-17-19Zm-6 40h12c-1 5-4 8-6 8s-5-3-6-8Z"/>
+    </symbol>
+
+    <symbol id="i-car" viewBox="0 0 64 64">
+      <path fill="currentColor" d="m14 22 5-10h26l5 10 6 5v18h-6v7h-8v-7H22v7h-8v-7H8V27l6-5Zm8-4-3 8h26l-3-8H22Zm-4 13a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm28 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/>
+    </symbol>
+
+    <symbol id="i-flag" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M15 6h6v52h-6zM21 10h32L42 22l11 12H21z"/>
+    </symbol>
+
+    <symbol id="i-book" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M8 12c10 0 18 2 24 8 6-6 14-8 24-8v40c-10 0-18 2-24 8-6-6-14-8-24-8V12Zm5 7v28c6 0 12 1 16 4V25c-4-4-10-6-16-6Zm38 0c-6 0-12 2-16 6v26c4-3 10-4 16-4V19Z"/>
+    </symbol>
+
+    <symbol id="i-help" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M32 6a24 24 0 1 0 0 48 24 24 0 0 0 0-48Zm0 40a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm5-17c-3 2-3 3-3 6h-6c0-6 2-8 6-11 2-1 4-3 4-6 0-4-3-6-7-6-5 0-8 3-9 8l-6-2C18 10 23 6 31 6c8 0 14 5 14 12 0 6-4 9-8 11Z"/>
+    </symbol>
+
+    <symbol id="i-clock" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M32 6a26 26 0 1 0 0 52 26 26 0 0 0 0-52Zm0 45a19 19 0 1 1 0-38 19 19 0 0 1 0 38Zm3-35h-6v18l15 9 3-5-12-7V16Z"/>
+    </symbol>
+
+    <symbol id="i-door" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M12 8h28v48H12V8Zm8 7v34h12V15H20Zm17 11h15l-5-5 4-4 13 12-13 12-4-4 5-5H37v-6Z"/>
+    </symbol>
+
+    <symbol id="i-map" viewBox="0 0 64 64">
+      <path fill="currentColor" d="m8 12 16-6 16 6 16-6v46l-16 6-16-6-16 6V12Zm7 5v31l9-3V14l-9 3Zm16-2v31l9 3V18l-9-3Zm16 2v31l2-1V16l-2 1Z"/>
+    </symbol>
+
+    <symbol id="i-stamp" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M25 8h14c0 11 3 17 9 22v8H16v-8c6-5 9-11 9-22Zm-9 36h32l6 12H10l6-12Z"/>
+    </symbol>
+
     <symbol id="i-play" viewBox="0 0 64 64">
       <path fill="currentColor" d="M20 20h24c8 0 14 7 14 16s-5 18-12 18c-5 0-8-4-11-8h-6c-3 4-6 8-11 8C11 54 6 45 6 36s6-16 14-16Zm2 9h-6v6h-6v6h6v6h6v-6h6v-6h-6v-6Zm24 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/>
       <path fill="currentColor" d="M24 10h16v7H24z"/>
@@ -1690,7 +2863,10 @@
 
   <main class="app">
     <header class="topbar">
-      <button class="brand" id="brandBtn">ASOBooN 冒険ナビ<small>公式LINEミニアプリ</small></button>
+      <button class="brand" id="brandBtn">
+        ASOBooN 冒険ナビ
+        <small>公式LINEミニアプリ</small>
+      </button>
       <button class="back" id="backBtn" hidden>← 戻る</button>
     </header>
 
@@ -1699,57 +2875,200 @@
         <div class="mode-cap">
           <button class="sns-tag" id="snsTag">SNS</button>
           <button class="menu-btn" id="menuBtn" aria-label="メニュー">☰</button>
+
           <div class="title-badge">
-            <svg class="mountain-mark"><use href="#i-mountain"></use></svg>
-            <h1>ASOBooN<span id="titleMode">冒険基地ナビ</span></h1>
+            <svg class="mountain-mark">
+              <use href="#i-mountain"></use>
+            </svg>
+            <h1>
+              ASOBooN
+              <span id="titleMode">冒険基地ナビ</span>
+            </h1>
           </div>
-          <div class="subtitle-ribbon" id="subtitle">今日はどの冒険から始めますか？</div>
+
+          <div class="subtitle-ribbon" id="subtitle">
+            今日はどの冒険から始めますか？
+          </div>
         </div>
 
         <div class="status-card" id="statusCard">
           <span class="status-label">のこり時間</span>
-          <strong class="status-main" id="statusMain">まだ設定されていません</strong>
-          <span class="status-sub" id="statusSub">「何時まであそべる？」から確認できます</span>
+          <strong class="status-main" id="statusMain">
+            まだ設定されていません
+          </strong>
+          <span class="status-sub" id="statusSub">
+            「何時まであそべる？」から確認できます
+          </span>
         </div>
 
         <div class="tickets">
-          <button class="ticket" data-before-view="reservation" data-inside-view="playtime">
-            <span class="ticket-number">1</span><svg class="ticket-icon"><use data-before-use="#i-ticket" data-inside-use="#i-clock" href="#i-ticket"></use></svg>
-            <span class="ticket-title" data-before-label="入場までの流れ" data-inside-label="何時まであそべる？">入場までの流れ</span>
+          <button
+            class="ticket"
+            data-before-view="reservation"
+            data-inside-view="playtime"
+          >
+            <span class="ticket-number">1</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-ticket"
+                data-inside-use="#i-clock"
+                href="#i-ticket"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="入場までの流れ"
+              data-inside-label="何時まであそべる？"
+            >
+              入場までの流れ
+            </span>
           </button>
-          <button class="ticket" data-before-view="call" data-inside-view="reentry">
-            <span class="ticket-number">2</span><svg class="ticket-icon"><use data-before-use="#i-bell" data-inside-use="#i-door" href="#i-bell"></use></svg>
-            <span class="ticket-title" data-before-label="呼出状況" data-inside-label="外出・再入場">呼出状況</span>
+
+          <button
+            class="ticket"
+            data-before-view="call"
+            data-inside-view="reentry"
+          >
+            <span class="ticket-number">2</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-bell"
+                data-inside-use="#i-door"
+                href="#i-bell"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="呼出状況"
+              data-inside-label="外出・再入場"
+            >
+              呼出状況
+            </span>
           </button>
-          <button class="ticket" data-before-view="parking" data-inside-view="rules">
-            <span class="ticket-number">3</span><svg class="ticket-icon"><use data-before-use="#i-car" data-inside-use="#i-book" href="#i-car"></use></svg>
-            <span class="ticket-title" data-before-label="駐車場・アクセス" data-inside-label="館内ルール">駐車場・アクセス</span>
+
+          <button
+            class="ticket"
+            data-before-view="parking"
+            data-inside-view="rules"
+          >
+            <span class="ticket-number">3</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-car"
+                data-inside-use="#i-book"
+                href="#i-car"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="駐車場・アクセス"
+              data-inside-label="館内ルール"
+            >
+              駐車場・アクセス
+            </span>
           </button>
-          <button class="ticket" data-before-view="events" data-inside-view="map">
-            <span class="ticket-number">4</span><svg class="ticket-icon"><use data-before-use="#i-flag" data-inside-use="#i-map" href="#i-flag"></use></svg>
-            <span class="ticket-title" data-before-label="イベント情報" data-inside-label="エリアマップ">イベント情報</span>
+
+          <button
+            class="ticket"
+            data-before-view="events"
+            data-inside-view="map"
+          >
+            <span class="ticket-number">4</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-flag"
+                data-inside-use="#i-map"
+                href="#i-flag"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="イベント情報"
+              data-inside-label="エリアマップ"
+            >
+              イベント情報
+            </span>
           </button>
-          <button class="ticket" data-before-view="guide" data-inside-view="stamp">
-            <span class="ticket-number">5</span><svg class="ticket-icon"><use data-before-use="#i-book" data-inside-use="#i-play" href="#i-book"></use></svg>
-            <span class="ticket-title" data-before-label="初めての方" data-inside-label="あそびコンテンツ">初めての方</span>
+
+          <button
+            class="ticket"
+            data-before-view="guide"
+            data-inside-view="stamp"
+          >
+            <span class="ticket-number">5</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-book"
+                data-inside-use="#i-play"
+                href="#i-book"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="初めての方"
+              data-inside-label="あそびコンテンツ"
+            >
+              初めての方
+            </span>
           </button>
-          <button class="ticket" data-before-view="faq" data-inside-view="faq">
-            <span class="ticket-number">6</span><svg class="ticket-icon"><use data-before-use="#i-help" data-inside-use="#i-help" href="#i-help"></use></svg>
-            <span class="ticket-title" data-before-label="よくある質問" data-inside-label="よくある質問">よくある質問</span>
+
+          <button
+            class="ticket"
+            data-before-view="faq"
+            data-inside-view="faq"
+          >
+            <span class="ticket-number">6</span>
+            <svg class="ticket-icon">
+              <use
+                data-before-use="#i-help"
+                data-inside-use="#i-help"
+                href="#i-help"
+              ></use>
+            </svg>
+            <span
+              class="ticket-title"
+              data-before-label="よくある質問"
+              data-inside-label="よくある質問"
+            >
+              よくある質問
+            </span>
           </button>
         </div>
 
-        <button class="route-guide route-guide-button" type="button" data-open-view="reservation">
+        <button
+          class="route-guide route-guide-button"
+          type="button"
+          data-open-view="reservation"
+        >
           <h3>入場までの流れ</h3>
+
           <div class="route-row">
-            <div class="route-item"><span class="route-icon">🎟️</span>整理券</div>
-            <div class="route-item"><span class="route-icon">🔔</span>呼出確認</div>
-            <div class="route-item"><span class="route-icon">💳</span>受付・会計</div>
-            <div class="route-item"><span class="route-icon">⚑</span>入場</div>
+            <div class="route-item">
+              <span class="route-icon">🎟️</span>
+              整理券
+            </div>
+            <div class="route-item">
+              <span class="route-icon">🔔</span>
+              呼出確認
+            </div>
+            <div class="route-item">
+              <span class="route-icon">💳</span>
+              受付・会計
+            </div>
+            <div class="route-item">
+              <span class="route-icon">⚑</span>
+              入場
+            </div>
           </div>
-          <span class="route-guide-cta">詳しい手順を見る <span>→</span></span>
+
+          <span class="route-guide-cta">
+            詳しい手順を見る <span>→</span>
+          </span>
         </button>
-        <div class="scenery"><span class="location-pin">●</span></div>
+
+        <div class="scenery">
+          <span class="location-pin">●</span>
+        </div>
       </div>
     </section>
 
@@ -1757,29 +3076,41 @@
       <div class="page-head">
         <small>BEFORE VISIT 01</small>
         <h2>入場受付・整理券</h2>
-        <p>当日の受付状況を確認して、オンライン整理券を取得できます。</p>
+        <p>
+          当日の受付状況を確認して、オンライン整理券を取得できます。
+        </p>
       </div>
 
       <section class="availability-card">
         <div class="availability-head">
           <div>
             <h3>まず混雑速報を確認</h3>
-            <p>現在受付中の入場枠と残り人数を、最初に確認できます。</p>
+            <p>
+              現在受付中の入場枠と残り人数を、最初に確認できます。
+            </p>
           </div>
           <span class="live-chip">LIVE</span>
         </div>
 
         <div class="availability-widget">
-          <iframe class="availability-frame" id="availabilityFrame"
-                  title="ASOBooN 混雑速報" hidden></iframe>
+          <iframe
+            class="availability-frame"
+            id="availabilityFrame"
+            title="ASOBooN 混雑速報"
+            hidden
+          ></iframe>
 
           <div class="availability-fallback" id="availabilityFallback">
             <div class="availability-demo-row">
-              <span>受付中の入場枠</span><strong>接続待ち</strong>
+              <span>受付中の入場枠</span>
+              <strong>接続待ち</strong>
             </div>
+
             <div class="availability-demo-row">
-              <span>残り人数</span><strong>—</strong>
+              <span>残り人数</span>
+              <strong>—</strong>
             </div>
+
             <div class="availability-setup">
               混雑速報を読み込んでいます。表示されない場合はページを再読み込みしてください。
             </div>
@@ -1797,10 +3128,22 @@
           オンライン受付は<strong>当日朝7:00</strong>から対象日に開始します。
           受付後は、整理券番号と呼出状況を確認しながらご来場ください。
         </p>
+
         <div class="reservation-route">
-          <div class="reservation-route-step"><b>①</b>整理券を取る</div>
-          <div class="reservation-route-step"><b>②</b>呼出を待つ</div>
-          <div class="reservation-route-step"><b>③</b>受付して入場</div>
+          <div class="reservation-route-step">
+            <b>①</b>
+            整理券を取る
+          </div>
+
+          <div class="reservation-route-step">
+            <b>②</b>
+            呼出を待つ
+          </div>
+
+          <div class="reservation-route-step">
+            <b>③</b>
+            受付して入場
+          </div>
         </div>
       </div>
 
@@ -1810,51 +3153,76 @@
             <h3>入場までの5ステップ</h3>
             <p>この順番で進めば、当日の動きに迷いません。</p>
           </div>
+
           <span class="entry-flow-chip">保存版</span>
         </div>
 
         <div class="entry-flow-list">
           <article class="entry-step">
             <span class="entry-step-num">1</span>
+
             <div>
               <div class="entry-step-title">
                 整理券を取得する
                 <span class="entry-step-tag">WEB</span>
                 <span class="entry-step-tag local">現地</span>
               </div>
+
               <span class="entry-step-text">
                 WEB整理券は対象日の当日7:00から。現地整理券は当日9:30から、入口すぐ左のタブレットで取得します。
               </span>
+
               <div class="entry-step-actions">
-                <a class="entry-mini-action" id="entryReservationLink"
-                   href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
-                   target="_blank" rel="noopener noreferrer">オンライン受付へ ↗</a>
+                <a
+                  class="entry-mini-action"
+                  id="entryReservationLink"
+                  href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  オンライン受付へ ↗
+                </a>
               </div>
             </div>
           </article>
 
           <article class="entry-step">
             <span class="entry-step-num">2</span>
+
             <div>
-              <div class="entry-step-title">呼出状況を確認する</div>
+              <div class="entry-step-title">
+                呼出状況を確認する
+              </div>
+
               <span class="entry-step-text">
                 整理券の受付番号を確認しながら、呼出状況ページで順番を見ます。呼出前は待合室またはお近くでお待ちください。
               </span>
+
               <div class="entry-step-actions">
-                <a class="entry-mini-action secondary"
-                   href="https://comaam.jp/airwaitapi/reserve.html"
-                   target="_blank" rel="noopener noreferrer">呼出状況を見る ↗</a>
+                <a
+                  class="entry-mini-action secondary"
+                  href="https://comaam.jp/airwaitapi/reserve.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  呼出状況を見る ↗
+                </a>
               </div>
             </div>
           </article>
 
           <article class="entry-step">
             <span class="entry-step-num">3</span>
+
             <div>
-              <div class="entry-step-title">「ご来店ください」になったら受付へ</div>
+              <div class="entry-step-title">
+                「ご来店ください」になったら受付へ
+              </div>
+
               <span class="entry-step-text">
                 表示が切り替わったら、ASOBooN受付のレジ列へお進みください。
               </span>
+
               <span class="entry-step-note">
                 呼出後30分を過ぎると自動キャンセルになります。遅れそうな場合は事前にお電話ください。
               </span>
@@ -1863,8 +3231,12 @@
 
           <article class="entry-step">
             <span class="entry-step-num">4</span>
+
             <div>
-              <div class="entry-step-title">受付・お会計</div>
+              <div class="entry-step-title">
+                受付・お会計
+              </div>
+
               <span class="entry-step-text">
                 受付で人数を確認してお会計します。利用時間は、最初のお会計時点から始まります。
               </span>
@@ -1873,16 +3245,22 @@
 
           <article class="entry-step">
             <span class="entry-step-num">5</span>
+
             <div>
-              <div class="entry-step-title">ホルダーを受け取って入場</div>
+              <div class="entry-step-title">
+                ホルダーを受け取って入場
+              </div>
+
               <span class="entry-step-text">
                 1会計につき赤ホルダーを1つお渡しします。大人が複数の場合は、2人目以降の保護者へ黄色ホルダーをお渡しします。
               </span>
+
               <div class="entry-arrival-summary">
                 <div class="entry-arrival-item">
                   <strong>ロッカー</strong>
                   1会計につき1つ利用できます。
                 </div>
+
                 <div class="entry-arrival-item">
                   <strong>入場後</strong>
                   レシートの入場時刻で、退場予定を確認できます。
@@ -1897,9 +3275,13 @@
         </div>
       </section>
 
-      <a class="reservation-primary" id="reservationPrimaryLink"
-         href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
-         target="_blank" rel="noopener noreferrer">
+      <a
+        class="reservation-primary"
+        id="reservationPrimaryLink"
+        href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <span>
           <strong>オンライン受付へ進む</strong>
           <small>当日分のみ・Airウェイトが開きます</small>
@@ -1907,13 +3289,13 @@
         <span>↗</span>
       </a>
 
-
       <div class="reservation-info-grid">
         <div class="reservation-info">
           <span>オンライン受付</span>
           <strong>当日 7:00〜</strong>
           <p>土日月・祝日・特定日など対象日のみ</p>
         </div>
+
         <div class="reservation-info">
           <span>現地受付</span>
           <strong>当日 9:30〜</strong>
@@ -1923,15 +3305,19 @@
 
       <section class="slot-guide">
         <h3>主な入場枠</h3>
+
         <div class="slot-type">
           <span class="slot-type-label">土日祝など</span>
+
           <span>
             <strong>10:00／12:30／15:00</strong>
             <span>対象日の運用により変更される場合があります。</span>
           </span>
         </div>
+
         <div class="slot-type">
           <span class="slot-type-label special">平日特定日</span>
+
           <span>
             <strong>10:00／13:30</strong>
             <span>15:00回はありません。</span>
@@ -1948,47 +3334,81 @@
       <div class="page-head">
         <small>BEFORE VISIT 02</small>
         <h2>呼出状況</h2>
-        <p>整理券を取得したあと、現在の呼出状況を確認するページです。</p>
+        <p>
+          整理券を取得したあと、現在の呼出状況を確認するページです。
+        </p>
       </div>
 
       <div class="call-status-launch">
         <h3>現在の呼出状況を確認</h3>
+
         <p>
           ご自身の受付番号が表示されたら、施設受付へお進みください。
           このボタンはオンライン受付ではなく、<strong>呼出状況専用</strong>です。
         </p>
-        <a class="call-status-button" id="callStatusLink"
-           href="https://comaam.jp/airwaitapi/reserve.html"
-           target="_blank" rel="noopener noreferrer">
-          <span>呼出状況ページを開く</span><span>↗</span>
+
+        <a
+          class="call-status-button"
+          id="callStatusLink"
+          href="https://comaam.jp/airwaitapi/reserve.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>呼出状況ページを開く</span>
+          <span>↗</span>
         </a>
       </div>
 
       <div class="paper" style="margin-top:12px">
         <h3>確認の流れ</h3>
+
         <div class="call-howto">
           <div class="call-howto-item">
             <span class="call-howto-num">1</span>
-            <span><strong>整理券を取得</strong><span>予約完了画面やメールにある受付番号を確認します。</span></span>
+
+            <span>
+              <strong>整理券を取得</strong>
+              <span>
+                予約完了画面やメールにある受付番号を確認します。
+              </span>
+            </span>
           </div>
+
           <div class="call-howto-item">
             <span class="call-howto-num">2</span>
-            <span><strong>呼出状況を見る</strong><span>呼出前は待合室またはお近くでお待ちください。</span></span>
+
+            <span>
+              <strong>呼出状況を見る</strong>
+              <span>
+                呼出前は待合室またはお近くでお待ちください。
+              </span>
+            </span>
           </div>
+
           <div class="call-howto-item">
             <span class="call-howto-num">3</span>
-            <span><strong>受付へ進む</strong><span>「ご来店ください」と表示されたら、レジの列へお進みください。</span></span>
+
+            <span>
+              <strong>受付へ進む</strong>
+              <span>
+                「ご来店ください」と表示されたら、レジの列へお進みください。
+              </span>
+            </span>
           </div>
         </div>
       </div>
 
       <div class="paper alert" style="margin-top:12px">
         <h3>時間に遅れそうな場合</h3>
+
         <p>
           呼出後30分を過ぎるとキャンセルになります。
           受付番号を保留できる場合がありますので、事前にお電話ください。
         </p>
-        <a class="action secondary" href="tel:0484209780">048-420-9780へ電話 <span>☎</span></a>
+
+        <a class="action secondary" href="tel:0484209780">
+          048-420-9780へ電話 <span>☎</span>
+        </a>
       </div>
     </section>
 
@@ -1996,7 +3416,9 @@
       <div class="page-head">
         <small>PARKING ROUTE GUIDE</small>
         <h2>駐車場・アクセス</h2>
-        <p>一般道側と首都高側で入口が異なります。出発前にルートと駐車場所をご確認ください。</p>
+        <p>
+          一般道側と首都高側で入口が異なります。出発前にルートと駐車場所をご確認ください。
+        </p>
       </div>
 
       <div class="parking-intro-card">
@@ -2004,6 +3426,7 @@
           ASOBooNは<strong>川口ハイウェイオアシス内</strong>にあります。
           首都高側、または一般道側のイイナパーク川口駐車場をご利用ください。
         </p>
+
         <div class="parking-intro-badges">
           <span class="parking-badge">🅿️ 駐車料金無料</span>
           <span class="parking-badge">📍 川口ハイウェイオアシス</span>
@@ -2011,24 +3434,50 @@
       </div>
 
       <div class="arrival-choice">
-        <span class="arrival-choice-title">どちらからお越しですか？</span>
+        <span class="arrival-choice-title">
+          どちらからお越しですか？
+        </span>
+
         <div class="arrival-choice-grid">
-          <button class="arrival-choice-btn active" type="button" data-parking-route="general">
+          <button
+            class="arrival-choice-btn active"
+            type="button"
+            data-parking-route="general"
+          >
             <strong>🛣️ 一般道から</strong>
             <small>東門・正門駐車場</small>
           </button>
-          <button class="arrival-choice-btn" type="button" data-parking-route="highway">
+
+          <button
+            class="arrival-choice-btn"
+            type="button"
+            data-parking-route="highway"
+          >
             <strong>🚗 首都高から</strong>
             <small>川口PA駐車場</small>
           </button>
         </div>
       </div>
 
-      <div class="parking-route-panel active" id="parkingGeneralPanel">
+      <div
+        class="parking-route-panel active"
+        id="parkingGeneralPanel"
+      >
         <div class="parking-overview">
-          <div class="parking-stat"><span>利用時間</span><strong>9:00–18:00</strong></div>
-          <div class="parking-stat"><span>小型車</span><strong>332台</strong></div>
-          <div class="parking-stat"><span>おすすめ</span><strong>東門側</strong></div>
+          <div class="parking-stat">
+            <span>利用時間</span>
+            <strong>9:00–18:00</strong>
+          </div>
+
+          <div class="parking-stat">
+            <span>小型車</span>
+            <strong>332台</strong>
+          </div>
+
+          <div class="parking-stat">
+            <span>おすすめ</span>
+            <strong>東門側</strong>
+          </div>
         </div>
 
         <article class="parking-map-card">
@@ -2037,75 +3486,111 @@
               <h3>一般道側の駐車場を選ぶ</h3>
               <p>各駐車場名をタップするとGoogleマップが開きます。</p>
             </div>
+
             <span class="parking-hours">9:00–18:00</span>
           </div>
 
           <div class="parking-place-list">
-            <a class="parking-place recommended"
-               href="https://maps.app.goo.gl/hKcx4SKWdEYZHcPE6?g_st=ic"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              class="parking-place recommended"
+              href="https://maps.app.goo.gl/hKcx4SKWdEYZHcPE6?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="parking-recommend">最短</span>
               <span class="parking-place-icon">1</span>
+
               <span>
                 <span class="parking-place-name">東門駐車場①</span>
-                <span class="parking-place-note">比較的近くておすすめ</span>
+                <span class="parking-place-note">
+                  比較的近くておすすめ
+                </span>
               </span>
+
               <span class="parking-place-right">
                 <span class="parking-walk">徒歩 約3分</span>
                 <span class="parking-map-label">地図 ↗</span>
               </span>
             </a>
 
-            <a class="parking-place"
-               href="https://maps.app.goo.gl/kgT7ZqYLWhsQQZZW8?g_st=ic"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              class="parking-place"
+              href="https://maps.app.goo.gl/kgT7ZqYLWhsQQZZW8?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="parking-place-icon">2</span>
+
               <span>
                 <span class="parking-place-name">東門駐車場②</span>
-                <span class="parking-place-note">東門側・台数少なめ</span>
+                <span class="parking-place-note">
+                  東門側・台数少なめ
+                </span>
               </span>
+
               <span class="parking-place-right">
                 <span class="parking-walk">徒歩 約5分</span>
                 <span class="parking-map-label">地図 ↗</span>
               </span>
             </a>
 
-            <a class="parking-place"
-               href="https://maps.app.goo.gl/NJnqAPZWHYBngrzYA?g_st=ic"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              class="parking-place"
+              href="https://maps.app.goo.gl/NJnqAPZWHYBngrzYA?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="parking-place-icon">3</span>
+
               <span>
                 <span class="parking-place-name">東門駐車場③</span>
-                <span class="parking-place-note">東門側の予備候補</span>
+                <span class="parking-place-note">
+                  東門側の予備候補
+                </span>
               </span>
+
               <span class="parking-place-right">
                 <span class="parking-walk">徒歩 約10分</span>
                 <span class="parking-map-label">地図 ↗</span>
               </span>
             </a>
 
-            <a class="parking-place parking-place-main"
-               href="https://maps.app.goo.gl/wnq7keJLpMDo6GrC8?g_st=ic"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              class="parking-place parking-place-main"
+              href="https://maps.app.goo.gl/wnq7keJLpMDo6GrC8?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="parking-place-icon">4</span>
+
               <span>
                 <span class="parking-place-name">正門駐車場①</span>
-                <span class="parking-place-note">距離はあるが台数多め</span>
+                <span class="parking-place-note">
+                  距離はあるが台数多め
+                </span>
               </span>
+
               <span class="parking-place-right">
                 <span class="parking-walk">徒歩 約15分</span>
                 <span class="parking-map-label">地図 ↗</span>
               </span>
             </a>
 
-            <a class="parking-place parking-place-main"
-               href="https://maps.app.goo.gl/mYVyxfQSc3ZvMUzG7?g_st=ic"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              class="parking-place parking-place-main"
+              href="https://maps.app.goo.gl/mYVyxfQSc3ZvMUzG7?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="parking-place-icon">5</span>
+
               <span>
                 <span class="parking-place-name">正門駐車場②</span>
-                <span class="parking-place-note">距離はあるが台数多め</span>
+                <span class="parking-place-note">
+                  距離はあるが台数多め
+                </span>
               </span>
+
               <span class="parking-place-right">
                 <span class="parking-walk">徒歩 約20分</span>
                 <span class="parking-map-label">地図 ↗</span>
@@ -2114,8 +3599,15 @@
           </div>
 
           <div class="parking-capacity">
-            <div class="capacity-item"><strong>障がい者専用 3台</strong>一般道側全体</div>
-            <div class="capacity-item"><strong>大型車 5台</strong>園内・園外合計</div>
+            <div class="capacity-item">
+              <strong>障がい者専用 3台</strong>
+              一般道側全体
+            </div>
+
+            <div class="capacity-item">
+              <strong>大型車 5台</strong>
+              園内・園外合計
+            </div>
           </div>
 
           <p class="parking-note">
@@ -2124,31 +3616,59 @@
         </article>
       </div>
 
-      <div class="parking-route-panel" id="parkingHighwayPanel">
+      <div
+        class="parking-route-panel"
+        id="parkingHighwayPanel"
+      >
         <div class="parking-overview">
-          <div class="parking-stat parking-stat--highway"><span>利用時間</span><strong>24時間</strong></div>
-          <div class="parking-stat parking-stat--highway"><span>小型車</span><strong>179台</strong></div>
-          <div class="parking-stat parking-stat--highway"><span>直接入場</span><strong>上り線のみ</strong></div>
+          <div class="parking-stat parking-stat--highway">
+            <span>利用時間</span>
+            <strong>24時間</strong>
+          </div>
+
+          <div class="parking-stat parking-stat--highway">
+            <span>小型車</span>
+            <strong>179台</strong>
+          </div>
+
+          <div class="parking-stat parking-stat--highway">
+            <span>直接入場</span>
+            <strong>上り線のみ</strong>
+          </div>
         </div>
 
         <article class="parking-map-card">
           <div class="parking-card-head">
             <div>
               <h3>川口PA・首都高側駐車場</h3>
-              <p>川口ハイウェイオアシスへ直接つながる駐車場です。</p>
+              <p>
+                川口ハイウェイオアシスへ直接つながる駐車場です。
+              </p>
             </div>
+
             <span class="parking-hours highway">24時間</span>
           </div>
 
           <div class="parking-capacity">
-            <div class="capacity-item"><strong>障がい者専用 5台</strong>小型車179台に含む</div>
-            <div class="capacity-item"><strong>大型車 43台</strong>うちバス優先12台</div>
+            <div class="capacity-item">
+              <strong>障がい者専用 5台</strong>
+              小型車179台に含む
+            </div>
+
+            <div class="capacity-item">
+              <strong>大型車 43台</strong>
+              うちバス優先12台
+            </div>
           </div>
 
-          <a class="parking-primary-link"
-             href="https://maps.app.goo.gl/PE7zNw8WGpkhvbBZ6?g_st=ic"
-             target="_blank" rel="noopener noreferrer">
-            <span>📍 川口PAをGoogleマップで開く</span><span>↗</span>
+          <a
+            class="parking-primary-link"
+            href="https://maps.app.goo.gl/PE7zNw8WGpkhvbBZ6?g_st=ic"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>📍 川口PAをGoogleマップで開く</span>
+            <span>↗</span>
           </a>
         </article>
 
@@ -2163,16 +3683,23 @@
           <div class="access-steps">
             <div class="access-step">
               <span class="access-step-num">1</span>
+
               <span>
                 <strong>上り線をご利用の場合</strong>
-                <span>川口ハイウェイオアシスへ直接アクセスできます。</span>
+                <span>
+                  川口ハイウェイオアシスへ直接アクセスできます。
+                </span>
               </span>
             </div>
+
             <div class="access-step">
               <span class="access-step-num">2</span>
+
               <span>
                 <strong>下り線をご利用の場合</strong>
-                <span>新井宿出口を出て、一般道側のイイナパーク川口駐車場をご利用ください。</span>
+                <span>
+                  新井宿出口を出て、一般道側のイイナパーク川口駐車場をご利用ください。
+                </span>
               </span>
             </div>
           </div>
@@ -2185,7 +3712,9 @@
 
       <div class="child-safety-note">
         <span>👨‍👩‍👧</span>
-        <span>駐車場から施設まで移動する際は、車の出入りに注意し、お子さまと手をつないでお進みください。</span>
+        <span>
+          駐車場から施設まで移動する際は、車の出入りに注意し、お子さまと手をつないでお進みください。
+        </span>
       </div>
     </section>
 
@@ -2193,7 +3722,9 @@
       <div class="page-head">
         <small>TODAY'S ADVENTURE</small>
         <h2>イベント情報</h2>
-        <p>最新のイベントは、公式Instagramの投稿サムネイルからご確認ください。</p>
+        <p>
+          最新のイベントは、公式Instagramの投稿サムネイルからご確認ください。
+        </p>
       </div>
 
       <div class="instagram-thumb-card">
@@ -2202,6 +3733,7 @@
             <span aria-hidden="true">📷</span>
             <span>ASOBooN 公式Instagram</span>
           </div>
+
           <a
             class="instagram-profile-link"
             href="https://www.instagram.com/asoboon425/"
@@ -2212,7 +3744,11 @@
           </a>
         </div>
 
-        <div class="instagram-thumb-viewport" role="group" aria-label="ASOBooN公式Instagramの投稿サムネイル">
+        <div
+          class="instagram-thumb-viewport"
+          role="group"
+          aria-label="ASOBooN公式Instagramの投稿サムネイル"
+        >
           <iframe
             title="ASOBooN公式Instagram 投稿サムネイル"
             src="https://www.instagram.com/asoboon425/embed"
@@ -2229,18 +3765,47 @@
             href="https://www.instagram.com/asoboon425/"
             target="_blank"
             rel="noopener noreferrer"
-          >公式Instagramを開いてください。</a>
+          >
+            公式Instagramを開いてください。
+          </a>
         </div>
       </div>
     </section>
 
     <section class="view" id="guideView">
-      <div class="page-head"><small>FIRST ADVENTURE</small><h2>初めての方へ</h2><p>来場前に知っておきたい基本情報をまとめました。</p></div>
+      <div class="page-head">
+        <small>FIRST ADVENTURE</small>
+        <h2>初めての方へ</h2>
+        <p>来場前に知っておきたい基本情報をまとめました。</p>
+      </div>
+
       <div class="stack">
-        <div class="paper"><h3>料金</h3><p>大人600円／子ども900円。0〜5か月のお子さまには料金条件があります。</p></div>
-        <div class="paper"><h3>対象</h3><p>0歳から小学6年生まで。保護者の同伴が必要です。保護者1名につき子ども3名までご利用いただけます。</p></div>
-        <div class="paper"><h3>支払い方法</h3><p>現金、クレジットカード、iD、QUICPay、Edy、WAON、nanaco、PayPay、Alipay、交通系ICなどが利用できます。クレジットカードのタッチ決済は非対応です。</p></div>
-        <div class="paper"><a class="action" href="./setumei.html">詳しい利用案内を開く <span>→</span></a></div>
+        <div class="paper">
+          <h3>料金</h3>
+          <p>
+            大人600円／子ども900円。0〜5か月のお子さまには料金条件があります。
+          </p>
+        </div>
+
+        <div class="paper">
+          <h3>対象</h3>
+          <p>
+            0歳から小学6年生まで。保護者の同伴が必要です。保護者1名につき子ども3名までご利用いただけます。
+          </p>
+        </div>
+
+        <div class="paper">
+          <h3>支払い方法</h3>
+          <p>
+            現金、クレジットカード、iD、QUICPay、Edy、WAON、nanaco、PayPay、Alipay、交通系ICなどが利用できます。クレジットカードのタッチ決済は非対応です。
+          </p>
+        </div>
+
+        <div class="paper">
+          <a class="action" href="./setumei.html">
+            詳しい利用案内を開く <span>→</span>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -2248,7 +3813,9 @@
       <div class="page-head">
         <small>NOW EXPLORING 01</small>
         <h2>何時まであそべる？</h2>
-        <p>入場時刻と利用時間から、現在の残り時間と終了予定を確認します。</p>
+        <p>
+          入場時刻と利用時間から、現在の残り時間と終了予定を確認します。
+        </p>
       </div>
 
       <div class="playtime-console">
@@ -2258,19 +3825,49 @@
             <time class="current-digital" id="currentDigital">--:--</time>
             <span class="current-date" id="currentDate">----</span>
           </div>
+
           <div class="mini-analog" aria-hidden="true">
-            <span class="analog-hand analog-hour" id="analogHour"></span>
-            <span class="analog-hand analog-minute" id="analogMinute"></span>
-            <span class="analog-hand analog-second" id="analogSecond"></span>
+            <span
+              class="analog-hand analog-hour"
+              id="analogHour"
+            ></span>
+            <span
+              class="analog-hand analog-minute"
+              id="analogMinute"
+            ></span>
+            <span
+              class="analog-hand analog-second"
+              id="analogSecond"
+            ></span>
             <span class="analog-center"></span>
           </div>
         </div>
 
         <div class="time-result-hero" aria-live="polite">
-          <span class="time-result-kicker">🧭 のこり時間</span>
-          <strong class="time-result-main" id="timeResultMain">入場時刻を設定</strong>
-          <span class="time-result-sub" id="timeResultSub">終了予定をここに表示します</span>
-          <span class="time-result-note" id="timeResultNote">設定内容は本日中のみ保存され、毎日0:00に自動リセットされます</span>
+          <span class="time-result-kicker">
+            🧭 のこり時間
+          </span>
+
+          <strong
+            class="time-result-main"
+            id="timeResultMain"
+          >
+            入場時刻を設定
+          </strong>
+
+          <span
+            class="time-result-sub"
+            id="timeResultSub"
+          >
+            終了予定をここに表示します
+          </span>
+
+          <span
+            class="time-result-note"
+            id="timeResultNote"
+          >
+            設定内容は本日中のみ保存され、毎日0:00に自動リセットされます
+          </span>
         </div>
 
         <div class="journey-card" id="journeyCard">
@@ -2279,10 +3876,26 @@
             <strong id="journeyDuration">2時間30分</strong>
             <span id="journeyEnd">終了 --:--</span>
           </div>
+
           <div class="journey-road">
-            <span class="journey-progress" id="journeyProgress"></span>
-            <span class="journey-car" id="journeyCar">🚗</span>
-            <span class="journey-badge" id="journeyBadge">現在地</span>
+            <span
+              class="journey-progress"
+              id="journeyProgress"
+            ></span>
+
+            <span
+              class="journey-car"
+              id="journeyCar"
+            >
+              🚗
+            </span>
+
+            <span
+              class="journey-badge"
+              id="journeyBadge"
+            >
+              現在地
+            </span>
           </div>
         </div>
 
@@ -2291,23 +3904,75 @@
             <strong>入場した時刻</strong>
             <span>10分単位で調整</span>
           </div>
+
           <div class="entry-time-row">
-            <button class="time-adjust" id="timeMinus" type="button" aria-label="入場時刻を10分戻す">−</button>
-            <select class="entry-select" id="startTime" aria-label="入場した時刻"></select>
-            <button class="time-adjust" id="timePlus" type="button" aria-label="入場時刻を10分進める">＋</button>
+            <button
+              class="time-adjust"
+              id="timeMinus"
+              type="button"
+              aria-label="入場時刻を10分戻す"
+            >
+              −
+            </button>
+
+            <select
+              class="entry-select"
+              id="startTime"
+              aria-label="入場した時刻"
+            ></select>
+
+            <button
+              class="time-adjust"
+              id="timePlus"
+              type="button"
+              aria-label="入場時刻を10分進める"
+            >
+              ＋
+            </button>
           </div>
 
           <div class="setting-head">
             <strong>本日の利用時間</strong>
             <span>受付時の案内に合わせて選択</span>
           </div>
-          <div class="duration-switch" role="group" aria-label="利用時間を選択">
-            <button class="duration-btn active" type="button" data-duration="150">2時間30分</button>
-            <button class="duration-btn" type="button" data-duration="180">3時間</button>
-            <button class="duration-btn" type="button" data-duration="0">時間制限なし</button>
+
+          <div
+            class="duration-switch"
+            role="group"
+            aria-label="利用時間を選択"
+          >
+            <button
+              class="duration-btn active"
+              type="button"
+              data-duration="150"
+            >
+              2時間30分
+            </button>
+
+            <button
+              class="duration-btn"
+              type="button"
+              data-duration="180"
+            >
+              3時間
+            </button>
+
+            <button
+              class="duration-btn"
+              type="button"
+              data-duration="0"
+            >
+              時間制限なし
+            </button>
           </div>
 
-          <button class="time-save" id="calcBtn" type="button">この内容で時間を確認する</button>
+          <button
+            class="time-save"
+            id="calcBtn"
+            type="button"
+          >
+            この内容で時間を確認する
+          </button>
         </div>
 
         <p class="time-footnote">
@@ -2320,36 +3985,58 @@
       <div class="page-head">
         <small>NOW EXPLORING 02</small>
         <h2>外出・再入場</h2>
-        <p>「ご家族全員で外に出る場合」と「大人だけ外出する場合」で、手順が異なります。</p>
+        <p>
+          「ご家族全員で外に出る場合」と「大人だけ外出する場合」で、手順が異なります。
+        </p>
       </div>
 
       <div class="stack reentry-stack">
         <div class="paper alert reentry-common">
-          <span class="reentry-label reentry-label-danger">共通ルール</span>
+          <span class="reentry-label reentry-label-danger">
+            共通ルール
+          </span>
+
           <h3>⚠️ 子どもだけを館内に残せません</h3>
-          <p>子どもだけを館内に残して、保護者全員が外出することはできません。</p>
+
+          <p>
+            子どもだけを館内に残して、保護者全員が外出することはできません。
+          </p>
         </div>
 
         <div class="paper safe reentry-option">
-          <span class="reentry-label">ご家族全員で外へ出る</span>
+          <span class="reentry-label">
+            ご家族全員で外へ出る
+          </span>
+
           <h3>🔄 全員で一時退場・再入場</h3>
 
           <ol class="reentry-steps">
             <li>
               <strong>ロッカーを空にする</strong>
-              <span>荷物を残したまま外に出ないでください。</span>
+              <span>
+                荷物を残したまま外に出ないでください。
+              </span>
             </li>
+
             <li>
               <strong>赤ホルダーからレシートを抜いて保管</strong>
-              <span>再入場時に必要です。なくさないようにお持ちください。</span>
+              <span>
+                再入場時に必要です。なくさないようにお持ちください。
+              </span>
             </li>
+
             <li>
               <strong>すべてのホルダーを返却ボックスへ</strong>
-              <span>返却漏れがないか確認してから、一時退場してください。</span>
+              <span>
+                返却漏れがないか確認してから、一時退場してください。
+              </span>
             </li>
+
             <li>
               <strong>再入場時にレシートをスタッフへ提示</strong>
-              <span>レシートを確認後、再入場できます。</span>
+              <span>
+                レシートを確認後、再入場できます。
+              </span>
             </li>
           </ol>
 
@@ -2360,8 +4047,12 @@
         </div>
 
         <div class="paper reentry-option">
-          <span class="reentry-label reentry-label-yellow">保護者だけ外へ出る</span>
+          <span class="reentry-label reentry-label-yellow">
+            保護者だけ外へ出る
+          </span>
+
           <h3>🟡 大人だけ外出</h3>
+
           <p>
             黄色ホルダーをお持ちの保護者のみ外出できます。
             <strong>館内に別の保護者が残っていること</strong>が条件です。
@@ -2369,21 +4060,32 @@
 
           <div class="reentry-conditions">
             <div class="reentry-condition">
-              <span class="reentry-condition-tag reentry-condition-ok">OK</span>
+              <span class="reentry-condition-tag reentry-condition-ok">
+                OK
+              </span>
               <span>黄色ホルダーを持つ保護者のみ外出</span>
             </div>
+
             <div class="reentry-condition">
-              <span class="reentry-condition-tag reentry-condition-rule">条件</span>
+              <span class="reentry-condition-tag reentry-condition-rule">
+                条件
+              </span>
               <span>館内に別の保護者が残っていること</span>
             </div>
+
             <div class="reentry-condition">
-              <span class="reentry-condition-tag reentry-condition-ng">NG</span>
-              <span>保護者1名の会計で、子どもを残して外出</span>
+              <span class="reentry-condition-tag reentry-condition-ng">
+                NG
+              </span>
+              <span>
+                保護者1名の会計で、子どもを残して外出
+              </span>
             </div>
           </div>
 
           <div class="reentry-holder-guide">
             <strong>ホルダーの見方</strong>
+
             <p>
               ひとつの会計につき、赤ホルダーを1つお渡しします。
               大人が複数いる場合は、追加の大人へ黄色ホルダーをお渡しします。
@@ -2393,7 +4095,10 @@
 
         <div class="paper alert">
           <h3>⏱️ 一時退場中も利用時間は進みます</h3>
-          <p>外出した時間分が延長されることはありません。退場予定時刻をご確認ください。</p>
+
+          <p>
+            外出した時間分が延長されることはありません。退場予定時刻をご確認ください。
+          </p>
         </div>
       </div>
     </section>
@@ -2402,8 +4107,11 @@
       <div class="page-head">
         <small>EXPLORE THE AREA</small>
         <h2>エリアマップ</h2>
-        <p>館内をもっと分かりやすく楽しめるマップを準備しています。</p>
+        <p>
+          館内をもっと分かりやすく楽しめるマップを準備しています。
+        </p>
       </div>
+
       <div class="stack">
         <div class="paper safe">
           <h3>🗺️ 現在準備中です</h3>
@@ -2416,599 +4124,1626 @@
       <div class="page-head">
         <small>PLAY CONTENTS</small>
         <h2>あそびコンテンツ</h2>
-        <p>スタンプラリー・おみくじ・ミニゲームから、遊びたいものを選んでください。</p>
+        <p>
+          スタンプラリー・おみくじ・ミニゲームから、遊びたいものを選んでください。
+        </p>
       </div>
+
       <div class="stack">
         <div class="paper">
           <h3>🏁 館内スタンプラリー</h3>
           <p>館内を巡ってスタンプを集めよう！</p>
-          <a class="action" id="stampRallyLink" href="./index.html?stamp=home">
+
+          <a
+            class="action"
+            id="stampRallyLink"
+            href="./index.html?stamp=home"
+          >
             スタンプラリーを開く <span>→</span>
           </a>
         </div>
 
         <div class="paper">
           <h3>⛩️ ASOBooN おみくじ</h3>
-          <p>ガシャポンを回して、今日のご神託とラッキーアイテムを受け取れます。</p>
-          <a class="action secondary" id="omikujiLink" href="./omikuji.html">
+          <p>
+            ガシャポンを回して、今日のご神託とラッキーアイテムを受け取れます。
+          </p>
+
+          <a
+            class="action secondary"
+            id="omikujiLink"
+            href="./omikuji.html"
+          >
             おみくじを引く <span>→</span>
           </a>
         </div>
 
         <div class="paper">
           <h3>🚀 ミニゲーム「ブーンジャンプ」</h3>
-          <p>3回のタップで車を飛ばし、自己ベストやトロフィーを目指すミニゲームです。</p>
-          <a class="action" id="miniGameLink" href="./boonjump/">
+          <p>
+            3回のタップで車を飛ばし、自己ベストやトロフィーを目指すミニゲームです。
+          </p>
+
+          <a
+            class="action"
+            id="miniGameLink"
+            href="./boonjump/"
+          >
             ミニゲームを始める <span>→</span>
           </a>
         </div>
 
         <div class="paper safe">
           <h3>安全に遊ぶために</h3>
-          <p>歩きながら操作せず、立ち止まって保護者の方と一緒にお楽しみください。</p>
+          <p>
+            歩きながら操作せず、立ち止まって保護者の方と一緒にお楽しみください。
+          </p>
         </div>
       </div>
     </section>
 
     <section class="view" id="faqView">
-      <div class="page-head"><small>STAFF ANSWERS</small><h2>よくある質問</h2><p>キーワードでスタッフの回答を探せます。</p></div>
+      <div class="page-head">
+        <small>STAFF ANSWERS</small>
+        <h2>よくある質問</h2>
+        <p>キーワードでスタッフの回答を探せます。</p>
+      </div>
+
       <div class="stack">
-        <div class="paper"><input class="faq-search" id="faqSearch" type="search" placeholder="例：予約、料金、遅れる、支払い"></div>
+        <div class="paper">
+          <input
+            class="faq-search"
+            id="faqSearch"
+            type="search"
+            placeholder="例：予約、料金、遅れる、支払い"
+          >
+        </div>
+
         <div class="stack" id="faqList">
-          <details data-keywords="予約 なくても 入れる 整理券"><summary>予約がなくても入れますか？</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>入場には整理券が必要です。整理券なしで来場した場合、そのまま入場できない可能性があります。</div></details>
-          <details data-keywords="予約 必ず 入場"><summary>予約したのに入れないことはありますか？</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>有効な整理券があれば入場枠は確保されています。呼出状況をご確認ください。</div></details>
-          <details data-keywords="遅れる 遅刻 30分 保留 電話"><summary>呼出時間に遅れそうです</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>呼出後30分を過ぎるとキャンセルになります。受付番号を保留できる場合がありますので、事前にお電話ください。</div></details>
-          <details data-keywords="キャンセル待ち 空き"><summary>キャンセル待ちはできますか？</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>キャンセル待ちの受付はありません。キャンセル発生時は、該当枠が再び予約できるようになります。</div></details>
-          <details data-keywords="料金 大人 子ども 乳児"><summary>料金はいくらですか？</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>大人600円、子ども900円です。0〜5か月のお子さまの料金には条件があります。</div></details>
-          <details data-keywords="支払い クレジット 電子マネー PayPay タッチ"><summary>どの支払い方法が使えますか？</summary><div class="answer"><span class="staff-label">スタッフの回答</span><br>現金、クレジットカード、iD、QUICPay、Edy、WAON、nanaco、PayPay、Alipay、交通系ICなどが利用できます。クレジットカードのタッチ決済は非対応です。</div></details>
+          <details data-keywords="予約 なくても 入れる 整理券">
+            <summary>予約がなくても入れますか？</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              入場には整理券が必要です。整理券なしで来場した場合、そのまま入場できない可能性があります。
+            </div>
+          </details>
+
+          <details data-keywords="予約 必ず 入場">
+            <summary>予約したのに入れないことはありますか？</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              有効な整理券があれば入場枠は確保されています。呼出状況をご確認ください。
+            </div>
+          </details>
+
+          <details data-keywords="遅れる 遅刻 30分 保留 電話">
+            <summary>呼出時間に遅れそうです</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              呼出後30分を過ぎるとキャンセルになります。受付番号を保留できる場合がありますので、事前にお電話ください。
+            </div>
+          </details>
+
+          <details data-keywords="キャンセル待ち 空き">
+            <summary>キャンセル待ちはできますか？</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              キャンセル待ちの受付はありません。キャンセル発生時は、該当枠が再び予約できるようになります。
+            </div>
+          </details>
+
+          <details data-keywords="料金 大人 子ども 乳児">
+            <summary>料金はいくらですか？</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              大人600円、子ども900円です。0〜5か月のお子さまの料金には条件があります。
+            </div>
+          </details>
+
+          <details data-keywords="支払い クレジット 電子マネー PayPay タッチ">
+            <summary>どの支払い方法が使えますか？</summary>
+
+            <div class="answer">
+              <span class="staff-label">スタッフの回答</span><br>
+              現金、クレジットカード、iD、QUICPay、Edy、WAON、nanaco、PayPay、Alipay、交通系ICなどが利用できます。クレジットカードのタッチ決済は非対応です。
+            </div>
+          </details>
         </div>
       </div>
     </section>
   </main>
 
-  <div class="drawer" id="drawer" aria-hidden="true">
-    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div
+    class="drawer"
+    id="drawer"
+    aria-hidden="true"
+  >
+    <div
+      class="drawer-backdrop"
+      id="drawerBackdrop"
+    ></div>
+
     <aside class="drawer-panel">
-      <button class="drawer-close" id="drawerClose">×</button>
+      <button
+        class="drawer-close"
+        id="drawerClose"
+      >
+        ×
+      </button>
+
       <h2>冒険ナビメニュー</h2>
+
       <div class="drawer-section">
         <h3>表示モード</h3>
+
         <div class="mode-choice">
           <button data-mode="before">来場前</button>
           <button data-mode="inside">館内</button>
         </div>
       </div>
+
       <div class="drawer-section">
         <h3>SNS</h3>
-        <a class="drawer-link" href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener">Instagram <span>↗</span></a>
-        <a class="drawer-link" href="#" data-placeholder>YouTube <span>準備中</span></a>
-        <a class="drawer-link" href="#" data-placeholder>TikTok <span>準備中</span></a>
-        <a class="drawer-link" href="#" data-placeholder>X <span>準備中</span></a>
-      </div>
-      <div class="drawer-section">
-        <h3>関連ページ</h3>
-        <a class="drawer-link" href="./timeguide.html">お帰り時間案内 <span>→</span></a>
-        <a class="drawer-link" href="./home.html?mode=inside&view=stamp">あそびコンテンツ <span>→</span></a>
-        <a class="drawer-link" href="./setumei.html">従来の利用案内 <span>→</span></a>
+
+        <a
+          class="drawer-link"
+          href="https://www.instagram.com/asoboon425/"
+          target="_blank"
+          rel="noopener"
+        >
+          Instagram <span>↗</span>
+        </a>
+
+        <a
+          class="drawer-link"
+          href="#"
+          data-placeholder
+        >
+          YouTube <span>準備中</span>
+        </a>
+
+        <a
+          class="drawer-link"
+          href="#"
+          data-placeholder
+        >
+          TikTok <span>準備中</span>
+        </a>
+
+        <a
+          class="drawer-link"
+          href="#"
+          data-placeholder
+        >
+          X <span>準備中</span>
+        </a>
       </div>
     </aside>
   </div>
 
+  <nav
+    class="quick-mode-dock"
+    aria-label="来場前と館内の切り替え"
+  >
+    <span
+      class="quick-mode-divider"
+      aria-hidden="true"
+    ></span>
 
-  <nav class="quick-mode-dock" aria-label="来場前と館内の切り替え">
-    <span class="quick-mode-divider" aria-hidden="true"></span>
-    <button class="quick-mode-btn" data-mode="before">
-      <strong>来場前</strong><small>予約・駐車場・イベント</small>
+    <button
+      class="quick-mode-btn"
+      data-mode="before"
+    >
+      <strong>来場前</strong>
+      <small>予約・駐車場・イベント</small>
     </button>
-    <button class="quick-mode-btn" data-mode="inside">
-      <strong>館内</strong><small>時間・ルール・マップ</small>
+
+    <button
+      class="quick-mode-btn"
+      data-mode="inside"
+    >
+      <strong>館内</strong>
+      <small>時間・ルール・マップ</small>
     </button>
   </nav>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    /*
-      接続設定
-      congestionWidgetUrl:
-        提供いただいたGASコードをウェブアプリとして公開したURLを設定します。
-        未設定時は、誤認防止のためライブ件数を表示しません。
-    */
     window.ASOBOON_CONFIG = {
-      reservationUrl: "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
-      callStatusUrl: "https://comaam.jp/airwaitapi/reserve.html",
+      reservationUrl:
+        "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
-      // スタンプ取得は館内QRの spot パラメータからのみ実行します。
-      // ホームのボタンは、取得処理を行わずスタンプ一覧・進捗を開きます。
-      stampRallyUrl: "./index.html?stamp=home",
-      omikujiUrl: "./omikuji.html",
-      miniGameUrl: "./boonjump/",
+      callStatusUrl:
+        "https://comaam.jp/airwaitapi/reserve.html",
 
-      congestionWidgetUrl: "https://script.google.com/macros/s/AKfycby0YZHPyZzraq8FdBxcumDa6ad6GZbSkjzVF5h7Y3_uUdFsc5ezcDJEiTHGS-cbse-3/exec"
+      stampRallyUrl:
+        "./index.html?stamp=home",
+
+      omikujiUrl:
+        "./omikuji.html",
+
+      miniGameUrl:
+        "./boonjump/",
+
+      congestionWidgetUrl:
+        "https://script.google.com/macros/s/AKfycby0YZHPyZzraq8FdBxcumDa6ad6GZbSkjzVF5h7Y3_uUdFsc5ezcDJEiTHGS-cbse-3/exec"
     };
   </script>
 
   <script>
-  (() => {
-    const views=[...document.querySelectorAll(".view")];
-    const home=document.getElementById("homeView");
-    const back=document.getElementById("backBtn");
-    const drawer=document.getElementById("drawer");
-    const toast=document.getElementById("toast");
-    const params=new URLSearchParams(location.search);
-    let mode=params.get("mode")==="inside"?"inside":"before";
-    const initialView=params.get("view")||"home";
+    (() => {
+      const views = [
+        ...document.querySelectorAll(".view")
+      ];
 
-    function notify(text){
-      toast.textContent=text;toast.classList.add("show");
-      clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),1800);
-    }
-    function setQuery(viewName){
-      const url=new URL(location.href);
-      url.searchParams.set("mode",mode);
-      if(viewName&&viewName!=="home")url.searchParams.set("view",viewName);else url.searchParams.delete("view");
-      history.replaceState({view:viewName},"",url);
-    }
-    function showView(name,update=true){
-      views.forEach(v=>v.classList.remove("active"));
-      const target=document.getElementById(name+"View")||home;
-      target.classList.add("active");
-      back.hidden=target===home;
-      if(target===home)updateStatus();
-      if(update)setQuery(target===home?"home":name);
-      scrollTo({top:0,behavior:"smooth"});
-    }
-    function applyMode(){
-      document.body.classList.toggle("inside",mode==="inside");
-      document.getElementById("titleMode").textContent=mode==="inside"?"冒険中ナビ":"冒険基地ナビ";
-      document.getElementById("subtitle").textContent=mode==="inside"?"館内で必要な案内はこちら":"今日はどの冒険から始めますか？";
-      document.querySelectorAll(".ticket").forEach(ticket=>{
-        const use=ticket.querySelector("use"),label=ticket.querySelector(".ticket-title");
-        use.setAttribute("href",use.dataset[mode+"Use"]);
-        label.textContent=label.dataset[mode+"Label"];
-      });
-      document.querySelectorAll("[data-mode]").forEach(btn=>btn.classList.toggle("active",btn.dataset.mode===mode));
-      if(mode==="inside")updateStatus();
-      setQuery(document.querySelector(".view.active")===home?"home":document.querySelector(".view.active").id.replace("View",""));
-    }
-    function openDrawer(){drawer.classList.add("open");drawer.setAttribute("aria-hidden","false")}
-    function closeDrawer(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true")}
+      const home = document.getElementById("homeView");
+      const back = document.getElementById("backBtn");
+      const drawer = document.getElementById("drawer");
+      const toast = document.getElementById("toast");
 
-    document.querySelectorAll(".ticket").forEach(ticket=>ticket.addEventListener("click",()=>showView(ticket.dataset[mode+"View"])));
-    document.querySelectorAll("[data-open-view]").forEach(button=>button.addEventListener("click",()=>showView(button.dataset.openView)));
-    document.getElementById("brandBtn").addEventListener("click",()=>showView("home"));
-    back.addEventListener("click",()=>showView("home"));
-    document.getElementById("menuBtn").addEventListener("click",openDrawer);
-    document.getElementById("snsTag").addEventListener("click",openDrawer);
-    document.getElementById("drawerClose").addEventListener("click",closeDrawer);
-    document.getElementById("drawerBackdrop").addEventListener("click",closeDrawer);
-    document.querySelectorAll("[data-mode]").forEach(btn=>btn.addEventListener("click",()=>{
-      const nextMode=btn.dataset.mode;
-      if(nextMode===mode){
-        closeDrawer();
-        if(document.querySelector(".view.active")!==home) showView("home");
-        return;
+      const params = new URLSearchParams(location.search);
+
+      let mode =
+        params.get("mode") === "inside"
+          ? "inside"
+          : "before";
+
+      const initialView =
+        params.get("view") || "home";
+
+      function notify(text) {
+        toast.textContent = text;
+        toast.classList.add("show");
+
+        clearTimeout(notify.timer);
+
+        notify.timer = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1800);
       }
-      mode=nextMode;
-      applyMode();
-      closeDrawer();
-      showView("home");
-      if(navigator.vibrate) navigator.vibrate(18);
-    }));
 
-    let swipeStartX=null;
-    home.addEventListener("touchstart",event=>{
-      if(event.touches.length===1) swipeStartX=event.touches[0].clientX;
-    },{passive:true});
-    home.addEventListener("touchend",event=>{
-      if(swipeStartX===null||!event.changedTouches.length) return;
-      const delta=event.changedTouches[0].clientX-swipeStartX;
-      swipeStartX=null;
-      if(Math.abs(delta)<72) return;
-      const nextMode=delta<0?"inside":"before";
-      if(nextMode!==mode){
-        mode=nextMode;
-        applyMode();
-        if(navigator.vibrate) navigator.vibrate(18);
-      }
-    },{passive:true});
+      function setQuery(viewName) {
+        const url = new URL(location.href);
 
-    document.querySelectorAll("[data-placeholder]").forEach(el=>el.addEventListener("click",event=>{
-      event.preventDefault();notify("正式URLを接続する予定です");
-    }));
+        url.searchParams.set("mode", mode);
 
-
-    const parkingRouteButtons=[...document.querySelectorAll("[data-parking-route]")];
-    const parkingPanels={
-      general:document.getElementById("parkingGeneralPanel"),
-      highway:document.getElementById("parkingHighwayPanel")
-    };
-
-    function setParkingRoute(route,updateUrl=true){
-      const selected=route==="highway"?"highway":"general";
-      parkingRouteButtons.forEach(button=>{
-        button.classList.toggle("active",button.dataset.parkingRoute===selected);
-      });
-      Object.entries(parkingPanels).forEach(([name,panel])=>{
-        panel.classList.toggle("active",name===selected);
-      });
-      if(updateUrl){
-        const url=new URL(location.href);
-        url.searchParams.set("parking",selected);
-        history.replaceState(history.state,"",url);
-      }
-    }
-
-    parkingRouteButtons.forEach(button=>button.addEventListener("click",()=>{
-      setParkingRoute(button.dataset.parkingRoute);
-      if(navigator.vibrate) navigator.vibrate(14);
-    }));
-
-
-    const appConfig=window.ASOBOON_CONFIG||{};
-    const reservationPrimaryLink=document.getElementById("reservationPrimaryLink");
-    const entryReservationLink=document.getElementById("entryReservationLink");
-    const callStatusLink=document.getElementById("callStatusLink");
-    const stampRallyLink=document.getElementById("stampRallyLink");
-    const omikujiLink=document.getElementById("omikujiLink");
-    const miniGameLink=document.getElementById("miniGameLink");
-    const availabilityFrame=document.getElementById("availabilityFrame");
-    const availabilityFallback=document.getElementById("availabilityFallback");
-
-    if(appConfig.reservationUrl){
-      reservationPrimaryLink.href=appConfig.reservationUrl;
-      entryReservationLink.href=appConfig.reservationUrl;
-    }
-    if(appConfig.callStatusUrl){
-      callStatusLink.href=appConfig.callStatusUrl;
-    }
-    if(appConfig.stampRallyUrl){
-      stampRallyLink.href=appConfig.stampRallyUrl;
-    }
-    if(appConfig.omikujiUrl){
-      omikujiLink.href=appConfig.omikujiUrl;
-    }
-    if(appConfig.miniGameUrl){
-      miniGameLink.href=appConfig.miniGameUrl;
-    }
-    if(appConfig.congestionWidgetUrl){
-      availabilityFrame.src=appConfig.congestionWidgetUrl;
-      availabilityFrame.hidden=false;
-      availabilityFallback.hidden=true;
-    }
-
-    const faq=document.getElementById("faqSearch");
-    faq.addEventListener("input",()=>{
-      const q=faq.value.trim().toLowerCase();
-      document.querySelectorAll("#faqList details").forEach(item=>{
-        item.style.display=!q||(item.textContent+" "+item.dataset.keywords).toLowerCase().includes(q)?"":"none";
-      });
-    });
-
-    const start=document.getElementById("startTime");
-    const durationButtons=[...document.querySelectorAll(".duration-btn")];
-    const PLAYTIME_STORAGE_KEY="asoboon-adventure-time";
-    let selectedDuration=150;
-    let activePlaytimeDateKey=getLocalDateKey();
-    let playtimeResetTimer=0;
-
-    const pad=value=>String(value).padStart(2,"0");
-
-    function getLocalDateKey(date=new Date()){
-      const year=date.getFullYear();
-      const month=String(date.getMonth()+1).padStart(2,"0");
-      const day=String(date.getDate()).padStart(2,"0");
-      return `${year}-${month}-${day}`;
-    }
-    const timeText=date=>`${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    const durationLabel=minutes=>{
-      if(minutes===0)return "時間制限なし";
-      if(minutes===180)return "3時間";
-      return "2時間30分";
-    };
-
-    for(let hour=9;hour<=18;hour++){
-      for(let minute=0;minute<60;minute+=10){
-        if(hour===18&&minute>0)break;
-        const value=`${pad(hour)}:${pad(minute)}`;
-        const option=document.createElement("option");
-        option.value=value;
-        option.textContent=value;
-        start.appendChild(option);
-      }
-    }
-
-    function closestTimeOption(date){
-      let hour=date.getHours();
-      let minute=Math.floor(date.getMinutes()/10)*10;
-      if(hour<9){hour=9;minute=0}
-      if(hour>18){hour=18;minute=0}
-      return `${pad(hour)}:${pad(minute)}`;
-    }
-
-    function resetPlaytimeUi(now=new Date()){
-      selectedDuration=150;
-      start.value=closestTimeOption(now);
-      setDuration(150);
-      updateStatus();
-    }
-
-    function ensureCurrentPlaytimeDay(now=new Date(),showNotice=true){
-      const today=getLocalDateKey(now);
-      if(activePlaytimeDateKey===today)return false;
-
-      activePlaytimeDateKey=today;
-      localStorage.removeItem(PLAYTIME_STORAGE_KEY);
-      resetPlaytimeUi(now);
-
-      if(showNotice){
-        notify("日付が変わったため、時間設定をリセットしました");
-      }
-      return true;
-    }
-
-    function scheduleNextPlaytimeReset(){
-      clearTimeout(playtimeResetTimer);
-
-      const now=new Date();
-      const nextMidnight=new Date(now);
-      nextMidnight.setHours(24,0,1,0);
-
-      const delay=Math.max(1000,nextMidnight.getTime()-now.getTime());
-      playtimeResetTimer=setTimeout(()=>{
-        ensureCurrentPlaytimeDay(new Date(),true);
-        scheduleNextPlaytimeReset();
-      },delay);
-    }
-
-    function setDuration(minutes){
-      selectedDuration=[0,150,180].includes(minutes)?minutes:150;
-      durationButtons.forEach(button=>{
-        button.classList.toggle("active",Number(button.dataset.duration)===selectedDuration);
-      });
-      document.getElementById("journeyDuration").textContent=durationLabel(selectedDuration);
-      renderPlaytime(false);
-    }
-
-    function adjustStart(deltaMinutes){
-      const options=[...start.options];
-      let index=options.findIndex(option=>option.value===start.value);
-      index=Math.max(0,Math.min(options.length-1,index+deltaMinutes/10));
-      start.value=options[index].value;
-      renderPlaytime(false);
-    }
-
-    function updateAnalog(now){
-      const seconds=now.getSeconds()+now.getMilliseconds()/1000;
-      const minutes=now.getMinutes()+seconds/60;
-      const hours=(now.getHours()%12)+minutes/60;
-      document.getElementById("analogHour").style.transform=`translateX(-50%) rotate(${hours*30}deg)`;
-      document.getElementById("analogMinute").style.transform=`translateX(-50%) rotate(${minutes*6}deg)`;
-      document.getElementById("analogSecond").style.transform=`translateX(-50%) rotate(${seconds*6}deg)`;
-    }
-
-    function updateCurrentClock(){
-      const now=new Date();
-      const dayChanged=ensureCurrentPlaytimeDay(now,true);
-
-      document.getElementById("currentDigital").textContent=timeText(now);
-      document.getElementById("currentDate").textContent=now.toLocaleDateString("ja-JP",{month:"long",day:"numeric",weekday:"short"});
-      updateAnalog(now);
-
-      if(!dayChanged)renderPlaytime(false);
-      updateStatus();
-    }
-
-    function getSchedule(){
-      const [hour,minute]=start.value.split(":").map(Number);
-      const entry=new Date();
-      entry.setHours(hour,minute,0,0);
-      if(selectedDuration===0)return {entry,end:null};
-      const end=new Date(entry.getTime()+selectedDuration*60000);
-      return {entry,end};
-    }
-
-    function renderPlaytime(save){
-      const now=new Date();
-      const {entry,end}=getSchedule();
-      const main=document.getElementById("timeResultMain");
-      const sub=document.getElementById("timeResultSub");
-      const note=document.getElementById("timeResultNote");
-      const progress=document.getElementById("journeyProgress");
-      const car=document.getElementById("journeyCar");
-
-      document.getElementById("journeyStart").textContent=`入場 ${timeText(entry)}`;
-
-      main.classList.remove("expired");
-
-      if(selectedDuration===0){
-        main.textContent="時間制限なし";
-        sub.textContent="閉館時間まで遊べます";
-        note.textContent="閉館時刻は曜日・営業状況により異なります";
-        document.getElementById("journeyEnd").textContent="終了 閉館時";
-        progress.style.width="50%";
-        car.style.left="50%";
-      }else{
-        const remaining=Math.ceil((end-now)/60000);
-        const elapsed=Math.max(0,Math.min(selectedDuration,(now-entry)/60000));
-        const ratio=Math.max(0,Math.min(1,elapsed/selectedDuration));
-        const position=8+ratio*84;
-
-        document.getElementById("journeyEnd").textContent=`終了 ${timeText(end)}`;
-        progress.style.width=`${position}%`;
-        car.style.left=`${position}%`;
-
-        if(remaining>0){
-          const hours=Math.floor(remaining/60);
-          const minutes=remaining%60;
-          main.textContent=hours>0?`あと ${hours}時間${minutes}分`:`あと ${minutes}分`;
-          sub.textContent=`${timeText(end)}まで遊べます`;
-          note.textContent=remaining<=10?"そろそろお片付けの時間です":"現在時刻に合わせて自動更新しています";
-        }else{
-          main.textContent="終了予定時刻を過ぎています";
-          main.classList.add("expired");
-          sub.textContent=`終了予定 ${timeText(end)}`;
-          note.textContent="受付時の案内をご確認ください";
+        if (viewName && viewName !== "home") {
+          url.searchParams.set("view", viewName);
+        } else {
+          url.searchParams.delete("view");
         }
+
+        history.replaceState(
+          { view: viewName },
+          "",
+          url
+        );
       }
 
-      if(save){
-        const payload={
-          start:start.value,
-          duration:selectedDuration,
-          main:main.textContent,
-          sub:sub.textContent,
-          date:getLocalDateKey()
-        };
-        localStorage.setItem(PLAYTIME_STORAGE_KEY,JSON.stringify(payload));
-        updateStatus();
-        notify("あそべる時間を保存しました");
+      function showView(name, update = true) {
+        views.forEach(view => {
+          view.classList.remove("active");
+        });
+
+        const target =
+          document.getElementById(name + "View") ||
+          home;
+
+        target.classList.add("active");
+
+        back.hidden = target === home;
+
+        if (target === home) {
+          updateStatus();
+        }
+
+        if (update) {
+          setQuery(
+            target === home
+              ? "home"
+              : name
+          );
+        }
+
+        scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
       }
-    }
 
-    function restorePlaytime(){
-      let restored=false;
+      function applyMode() {
+        document.body.classList.toggle(
+          "inside",
+          mode === "inside"
+        );
 
-      try{
-        const data=JSON.parse(localStorage.getItem(PLAYTIME_STORAGE_KEY)||"null");
+        document.getElementById("titleMode").textContent =
+          mode === "inside"
+            ? "冒険中ナビ"
+            : "冒険基地ナビ";
 
-        if(data&&data.date===getLocalDateKey()){
-          if([...start.options].some(option=>option.value===data.start)){
-            start.value=data.start;
+        document.getElementById("subtitle").textContent =
+          mode === "inside"
+            ? "館内で必要な案内はこちら"
+            : "今日はどの冒険から始めますか？";
+
+        document
+          .querySelectorAll(".ticket")
+          .forEach(ticket => {
+            const use =
+              ticket.querySelector("use");
+
+            const label =
+              ticket.querySelector(".ticket-title");
+
+            use.setAttribute(
+              "href",
+              use.dataset[mode + "Use"]
+            );
+
+            label.textContent =
+              label.dataset[mode + "Label"];
+          });
+
+        document
+          .querySelectorAll("[data-mode]")
+          .forEach(button => {
+            button.classList.toggle(
+              "active",
+              button.dataset.mode === mode
+            );
+          });
+
+        if (mode === "inside") {
+          updateStatus();
+        }
+
+        const currentView =
+          document.querySelector(".view.active");
+
+        setQuery(
+          currentView === home
+            ? "home"
+            : currentView.id.replace("View", "")
+        );
+      }
+
+      function openDrawer() {
+        drawer.classList.add("open");
+        drawer.setAttribute("aria-hidden", "false");
+      }
+
+      function closeDrawer() {
+        drawer.classList.remove("open");
+        drawer.setAttribute("aria-hidden", "true");
+      }
+
+      document
+        .querySelectorAll(".ticket")
+        .forEach(ticket => {
+          ticket.addEventListener("click", () => {
+            showView(
+              ticket.dataset[mode + "View"]
+            );
+          });
+        });
+
+      document
+        .querySelectorAll("[data-open-view]")
+        .forEach(button => {
+          button.addEventListener("click", () => {
+            showView(button.dataset.openView);
+          });
+        });
+
+      document
+        .getElementById("brandBtn")
+        .addEventListener("click", () => {
+          showView("home");
+        });
+
+      back.addEventListener("click", () => {
+        showView("home");
+      });
+
+      document
+        .getElementById("menuBtn")
+        .addEventListener("click", openDrawer);
+
+      document
+        .getElementById("snsTag")
+        .addEventListener("click", openDrawer);
+
+      document
+        .getElementById("drawerClose")
+        .addEventListener("click", closeDrawer);
+
+      document
+        .getElementById("drawerBackdrop")
+        .addEventListener("click", closeDrawer);
+
+      document
+        .querySelectorAll("[data-mode]")
+        .forEach(button => {
+          button.addEventListener("click", () => {
+            const nextMode =
+              button.dataset.mode;
+
+            if (nextMode === mode) {
+              closeDrawer();
+
+              if (
+                document.querySelector(".view.active") !== home
+              ) {
+                showView("home");
+              }
+
+              return;
+            }
+
+            mode = nextMode;
+
+            applyMode();
+            closeDrawer();
+            showView("home");
+
+            if (navigator.vibrate) {
+              navigator.vibrate(18);
+            }
+          });
+        });
+
+      let swipeStartX = null;
+
+      home.addEventListener(
+        "touchstart",
+        event => {
+          if (event.touches.length === 1) {
+            swipeStartX =
+              event.touches[0].clientX;
           }
-          selectedDuration=[0,150,180].includes(Number(data.duration))
-            ? Number(data.duration)
-            : 150;
-          restored=true;
-        }else if(data){
-          localStorage.removeItem(PLAYTIME_STORAGE_KEY);
+        },
+        { passive: true }
+      );
+
+      home.addEventListener(
+        "touchend",
+        event => {
+          if (
+            swipeStartX === null ||
+            !event.changedTouches.length
+          ) {
+            return;
+          }
+
+          const delta =
+            event.changedTouches[0].clientX -
+            swipeStartX;
+
+          swipeStartX = null;
+
+          if (Math.abs(delta) < 72) {
+            return;
+          }
+
+          const nextMode =
+            delta < 0
+              ? "inside"
+              : "before";
+
+          if (nextMode !== mode) {
+            mode = nextMode;
+            applyMode();
+
+            if (navigator.vibrate) {
+              navigator.vibrate(18);
+            }
+          }
+        },
+        { passive: true }
+      );
+
+      document
+        .querySelectorAll("[data-placeholder]")
+        .forEach(element => {
+          element.addEventListener(
+            "click",
+            event => {
+              event.preventDefault();
+
+              notify(
+                "正式URLを接続する予定です"
+              );
+            }
+          );
+        });
+
+      const parkingRouteButtons = [
+        ...document.querySelectorAll(
+          "[data-parking-route]"
+        )
+      ];
+
+      const parkingPanels = {
+        general:
+          document.getElementById(
+            "parkingGeneralPanel"
+          ),
+
+        highway:
+          document.getElementById(
+            "parkingHighwayPanel"
+          )
+      };
+
+      function setParkingRoute(
+        route,
+        updateUrl = true
+      ) {
+        const selected =
+          route === "highway"
+            ? "highway"
+            : "general";
+
+        parkingRouteButtons.forEach(
+          button => {
+            button.classList.toggle(
+              "active",
+              button.dataset.parkingRoute === selected
+            );
+          }
+        );
+
+        Object.entries(parkingPanels).forEach(
+          ([name, panel]) => {
+            panel.classList.toggle(
+              "active",
+              name === selected
+            );
+          }
+        );
+
+        if (updateUrl) {
+          const url =
+            new URL(location.href);
+
+          url.searchParams.set(
+            "parking",
+            selected
+          );
+
+          history.replaceState(
+            history.state,
+            "",
+            url
+          );
         }
-      }catch(error){
-        localStorage.removeItem(PLAYTIME_STORAGE_KEY);
       }
 
-      if(!restored){
-        selectedDuration=150;
-        start.value=closestTimeOption(new Date());
+      parkingRouteButtons.forEach(
+        button => {
+          button.addEventListener(
+            "click",
+            () => {
+              setParkingRoute(
+                button.dataset.parkingRoute
+              );
+
+              if (navigator.vibrate) {
+                navigator.vibrate(14);
+              }
+            }
+          );
+        }
+      );
+
+      const appConfig =
+        window.ASOBOON_CONFIG || {};
+
+      const reservationPrimaryLink =
+        document.getElementById(
+          "reservationPrimaryLink"
+        );
+
+      const entryReservationLink =
+        document.getElementById(
+          "entryReservationLink"
+        );
+
+      const callStatusLink =
+        document.getElementById(
+          "callStatusLink"
+        );
+
+      const stampRallyLink =
+        document.getElementById(
+          "stampRallyLink"
+        );
+
+      const omikujiLink =
+        document.getElementById(
+          "omikujiLink"
+        );
+
+      const miniGameLink =
+        document.getElementById(
+          "miniGameLink"
+        );
+
+      const availabilityFrame =
+        document.getElementById(
+          "availabilityFrame"
+        );
+
+      const availabilityFallback =
+        document.getElementById(
+          "availabilityFallback"
+        );
+
+      if (appConfig.reservationUrl) {
+        reservationPrimaryLink.href =
+          appConfig.reservationUrl;
+
+        entryReservationLink.href =
+          appConfig.reservationUrl;
       }
 
-      setDuration(selectedDuration);
-      renderPlaytime(false);
-    }
+      if (appConfig.callStatusUrl) {
+        callStatusLink.href =
+          appConfig.callStatusUrl;
+      }
 
-    function getSavedPlaytime(){
-      try{
-        const data=JSON.parse(localStorage.getItem(PLAYTIME_STORAGE_KEY)||"null");
+      if (appConfig.stampRallyUrl) {
+        stampRallyLink.href =
+          appConfig.stampRallyUrl;
+      }
 
-        if(!data||data.date!==getLocalDateKey()){
-          if(data)localStorage.removeItem(PLAYTIME_STORAGE_KEY);
+      if (appConfig.omikujiUrl) {
+        omikujiLink.href =
+          appConfig.omikujiUrl;
+      }
+
+      if (appConfig.miniGameUrl) {
+        miniGameLink.href =
+          appConfig.miniGameUrl;
+      }
+
+      if (appConfig.congestionWidgetUrl) {
+        availabilityFrame.src =
+          appConfig.congestionWidgetUrl;
+
+        availabilityFrame.hidden = false;
+        availabilityFallback.hidden = true;
+      }
+
+      const faq =
+        document.getElementById(
+          "faqSearch"
+        );
+
+      faq.addEventListener(
+        "input",
+        () => {
+          const query =
+            faq.value
+              .trim()
+              .toLowerCase();
+
+          document
+            .querySelectorAll(
+              "#faqList details"
+            )
+            .forEach(item => {
+              const searchableText =
+                (
+                  item.textContent +
+                  " " +
+                  item.dataset.keywords
+                ).toLowerCase();
+
+              item.style.display =
+                !query ||
+                searchableText.includes(query)
+                  ? ""
+                  : "none";
+            });
+        }
+      );
+
+      const start =
+        document.getElementById(
+          "startTime"
+        );
+
+      const durationButtons = [
+        ...document.querySelectorAll(
+          ".duration-btn"
+        )
+      ];
+
+      const PLAYTIME_STORAGE_KEY =
+        "asoboon-adventure-time";
+
+      let selectedDuration = 150;
+
+      let activePlaytimeDateKey =
+        getLocalDateKey();
+
+      let playtimeResetTimer = 0;
+
+      const pad = value =>
+        String(value).padStart(2, "0");
+
+      function getLocalDateKey(
+        date = new Date()
+      ) {
+        const year =
+          date.getFullYear();
+
+        const month =
+          String(
+            date.getMonth() + 1
+          ).padStart(2, "0");
+
+        const day =
+          String(
+            date.getDate()
+          ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      }
+
+      const timeText = date =>
+        `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+      const durationLabel = minutes => {
+        if (minutes === 0) {
+          return "時間制限なし";
+        }
+
+        if (minutes === 180) {
+          return "3時間";
+        }
+
+        return "2時間30分";
+      };
+
+      for (
+        let hour = 9;
+        hour <= 18;
+        hour++
+      ) {
+        for (
+          let minute = 0;
+          minute < 60;
+          minute += 10
+        ) {
+          if (
+            hour === 18 &&
+            minute > 0
+          ) {
+            break;
+          }
+
+          const value =
+            `${pad(hour)}:${pad(minute)}`;
+
+          const option =
+            document.createElement("option");
+
+          option.value = value;
+          option.textContent = value;
+
+          start.appendChild(option);
+        }
+      }
+
+      function closestTimeOption(date) {
+        let hour =
+          date.getHours();
+
+        let minute =
+          Math.floor(
+            date.getMinutes() / 10
+          ) * 10;
+
+        if (hour < 9) {
+          hour = 9;
+          minute = 0;
+        }
+
+        if (hour > 18) {
+          hour = 18;
+          minute = 0;
+        }
+
+        return `${pad(hour)}:${pad(minute)}`;
+      }
+
+      function resetPlaytimeUi(
+        now = new Date()
+      ) {
+        selectedDuration = 150;
+        start.value =
+          closestTimeOption(now);
+
+        setDuration(150);
+        updateStatus();
+      }
+
+      function ensureCurrentPlaytimeDay(
+        now = new Date(),
+        showNotice = true
+      ) {
+        const today =
+          getLocalDateKey(now);
+
+        if (
+          activePlaytimeDateKey === today
+        ) {
+          return false;
+        }
+
+        activePlaytimeDateKey = today;
+
+        localStorage.removeItem(
+          PLAYTIME_STORAGE_KEY
+        );
+
+        resetPlaytimeUi(now);
+
+        if (showNotice) {
+          notify(
+            "日付が変わったため、時間設定をリセットしました"
+          );
+        }
+
+        return true;
+      }
+
+      function scheduleNextPlaytimeReset() {
+        clearTimeout(
+          playtimeResetTimer
+        );
+
+        const now =
+          new Date();
+
+        const nextMidnight =
+          new Date(now);
+
+        nextMidnight.setHours(
+          24,
+          0,
+          1,
+          0
+        );
+
+        const delay =
+          Math.max(
+            1000,
+            nextMidnight.getTime() -
+            now.getTime()
+          );
+
+        playtimeResetTimer =
+          setTimeout(() => {
+            ensureCurrentPlaytimeDay(
+              new Date(),
+              true
+            );
+
+            scheduleNextPlaytimeReset();
+          }, delay);
+      }
+
+      function setDuration(minutes) {
+        selectedDuration =
+          [0,150,180].includes(minutes)
+            ? minutes
+            : 150;
+
+        durationButtons.forEach(
+          button => {
+            button.classList.toggle(
+              "active",
+              Number(
+                button.dataset.duration
+              ) === selectedDuration
+            );
+          }
+        );
+
+        document
+          .getElementById(
+            "journeyDuration"
+          )
+          .textContent =
+            durationLabel(
+              selectedDuration
+            );
+
+        renderPlaytime(false);
+      }
+
+      function adjustStart(
+        deltaMinutes
+      ) {
+        const options = [
+          ...start.options
+        ];
+
+        let index =
+          options.findIndex(
+            option =>
+              option.value === start.value
+          );
+
+        index =
+          Math.max(
+            0,
+            Math.min(
+              options.length - 1,
+              index +
+              deltaMinutes / 10
+            )
+          );
+
+        start.value =
+          options[index].value;
+
+        renderPlaytime(false);
+      }
+
+      function updateAnalog(now) {
+        const seconds =
+          now.getSeconds() +
+          now.getMilliseconds() / 1000;
+
+        const minutes =
+          now.getMinutes() +
+          seconds / 60;
+
+        const hours =
+          (now.getHours() % 12) +
+          minutes / 60;
+
+        document
+          .getElementById(
+            "analogHour"
+          )
+          .style.transform =
+            `translateX(-50%) rotate(${hours * 30}deg)`;
+
+        document
+          .getElementById(
+            "analogMinute"
+          )
+          .style.transform =
+            `translateX(-50%) rotate(${minutes * 6}deg)`;
+
+        document
+          .getElementById(
+            "analogSecond"
+          )
+          .style.transform =
+            `translateX(-50%) rotate(${seconds * 6}deg)`;
+      }
+
+      function updateCurrentClock() {
+        const now =
+          new Date();
+
+        const dayChanged =
+          ensureCurrentPlaytimeDay(
+            now,
+            true
+          );
+
+        document
+          .getElementById(
+            "currentDigital"
+          )
+          .textContent =
+            timeText(now);
+
+        document
+          .getElementById(
+            "currentDate"
+          )
+          .textContent =
+            now.toLocaleDateString(
+              "ja-JP",
+              {
+                month:"long",
+                day:"numeric",
+                weekday:"short"
+              }
+            );
+
+        updateAnalog(now);
+
+        if (!dayChanged) {
+          renderPlaytime(false);
+        }
+
+        updateStatus();
+      }
+
+      function getSchedule() {
+        const [hour, minute] =
+          start.value
+            .split(":")
+            .map(Number);
+
+        const entry =
+          new Date();
+
+        entry.setHours(
+          hour,
+          minute,
+          0,
+          0
+        );
+
+        if (selectedDuration === 0) {
+          return {
+            entry,
+            end:null
+          };
+        }
+
+        const end =
+          new Date(
+            entry.getTime() +
+            selectedDuration * 60000
+          );
+
+        return {
+          entry,
+          end
+        };
+      }
+
+      function renderPlaytime(save) {
+        const now =
+          new Date();
+
+        const {
+          entry,
+          end
+        } = getSchedule();
+
+        const main =
+          document.getElementById(
+            "timeResultMain"
+          );
+
+        const sub =
+          document.getElementById(
+            "timeResultSub"
+          );
+
+        const note =
+          document.getElementById(
+            "timeResultNote"
+          );
+
+        const progress =
+          document.getElementById(
+            "journeyProgress"
+          );
+
+        const car =
+          document.getElementById(
+            "journeyCar"
+          );
+
+        document
+          .getElementById(
+            "journeyStart"
+          )
+          .textContent =
+            `入場 ${timeText(entry)}`;
+
+        main.classList.remove(
+          "expired"
+        );
+
+        if (selectedDuration === 0) {
+          main.textContent =
+            "時間制限なし";
+
+          sub.textContent =
+            "閉館時間まで遊べます";
+
+          note.textContent =
+            "閉館時刻は曜日・営業状況により異なります";
+
+          document
+            .getElementById(
+              "journeyEnd"
+            )
+            .textContent =
+              "終了 閉館時";
+
+          progress.style.width =
+            "50%";
+
+          car.style.left =
+            "50%";
+        } else {
+          const remaining =
+            Math.ceil(
+              (end - now) /
+              60000
+            );
+
+          const elapsed =
+            Math.max(
+              0,
+              Math.min(
+                selectedDuration,
+                (now - entry) /
+                60000
+              )
+            );
+
+          const ratio =
+            Math.max(
+              0,
+              Math.min(
+                1,
+                elapsed /
+                selectedDuration
+              )
+            );
+
+          const position =
+            8 + ratio * 84;
+
+          document
+            .getElementById(
+              "journeyEnd"
+            )
+            .textContent =
+              `終了 ${timeText(end)}`;
+
+          progress.style.width =
+            `${position}%`;
+
+          car.style.left =
+            `${position}%`;
+
+          if (remaining > 0) {
+            const hours =
+              Math.floor(
+                remaining / 60
+              );
+
+            const minutes =
+              remaining % 60;
+
+            main.textContent =
+              hours > 0
+                ? `あと ${hours}時間${minutes}分`
+                : `あと ${minutes}分`;
+
+            sub.textContent =
+              `${timeText(end)}まで遊べます`;
+
+            note.textContent =
+              remaining <= 10
+                ? "そろそろお片付けの時間です"
+                : "現在時刻に合わせて自動更新しています";
+          } else {
+            main.textContent =
+              "終了予定時刻を過ぎています";
+
+            main.classList.add(
+              "expired"
+            );
+
+            sub.textContent =
+              `終了予定 ${timeText(end)}`;
+
+            note.textContent =
+              "受付時の案内をご確認ください";
+          }
+        }
+
+        if (save) {
+          const payload = {
+            start:start.value,
+            duration:selectedDuration,
+            main:main.textContent,
+            sub:sub.textContent,
+            date:getLocalDateKey()
+          };
+
+          localStorage.setItem(
+            PLAYTIME_STORAGE_KEY,
+            JSON.stringify(payload)
+          );
+
+          updateStatus();
+
+          notify(
+            "あそべる時間を保存しました"
+          );
+        }
+      }
+
+      function restorePlaytime() {
+        let restored = false;
+
+        try {
+          const data =
+            JSON.parse(
+              localStorage.getItem(
+                PLAYTIME_STORAGE_KEY
+              ) || "null"
+            );
+
+          if (
+            data &&
+            data.date ===
+            getLocalDateKey()
+          ) {
+            if (
+              [...start.options].some(
+                option =>
+                  option.value ===
+                  data.start
+              )
+            ) {
+              start.value =
+                data.start;
+            }
+
+            selectedDuration =
+              [0,150,180].includes(
+                Number(data.duration)
+              )
+                ? Number(data.duration)
+                : 150;
+
+            restored = true;
+          } else if (data) {
+            localStorage.removeItem(
+              PLAYTIME_STORAGE_KEY
+            );
+          }
+        } catch (error) {
+          localStorage.removeItem(
+            PLAYTIME_STORAGE_KEY
+          );
+        }
+
+        if (!restored) {
+          selectedDuration = 150;
+
+          start.value =
+            closestTimeOption(
+              new Date()
+            );
+        }
+
+        setDuration(
+          selectedDuration
+        );
+
+        renderPlaytime(false);
+      }
+
+      function getSavedPlaytime() {
+        try {
+          const data =
+            JSON.parse(
+              localStorage.getItem(
+                PLAYTIME_STORAGE_KEY
+              ) || "null"
+            );
+
+          if (
+            !data ||
+            data.date !==
+            getLocalDateKey()
+          ) {
+            if (data) {
+              localStorage.removeItem(
+                PLAYTIME_STORAGE_KEY
+              );
+            }
+
+            return null;
+          }
+
+          if (
+            !/^\d{2}:\d{2}$/.test(
+              String(
+                data.start || ""
+              )
+            )
+          ) {
+            return null;
+          }
+
+          const duration =
+            Number(data.duration);
+
+          if (
+            ![0,150,180].includes(
+              duration
+            )
+          ) {
+            return null;
+          }
+
+          return {
+            start:String(data.start),
+            duration
+          };
+        } catch (error) {
+          localStorage.removeItem(
+            PLAYTIME_STORAGE_KEY
+          );
+
           return null;
         }
+      }
 
-        if(!/^\d{2}:\d{2}$/.test(String(data.start||"")))return null;
+      function calculateSavedStatus(
+        saved,
+        now = new Date()
+      ) {
+        const [hour, minute] =
+          saved.start
+            .split(":")
+            .map(Number);
 
-        const duration=Number(data.duration);
-        if(![0,150,180].includes(duration))return null;
+        const entry =
+          new Date(now);
+
+        entry.setHours(
+          hour,
+          minute,
+          0,
+          0
+        );
+
+        if (saved.duration === 0) {
+          return {
+            main:"時間制限なし",
+            sub:"閉館時間まで遊べます"
+          };
+        }
+
+        const end =
+          new Date(
+            entry.getTime() +
+            saved.duration *
+            60000
+          );
+
+        const remaining =
+          Math.ceil(
+            (end - now) /
+            60000
+          );
+
+        if (remaining > 0) {
+          const hours =
+            Math.floor(
+              remaining / 60
+            );
+
+          const minutes =
+            remaining % 60;
+
+          return {
+            main:
+              hours > 0
+                ? `あと ${hours}時間${minutes}分`
+                : `あと ${minutes}分`,
+
+            sub:
+              `${timeText(end)}まで遊べます`
+          };
+        }
 
         return {
-          start:String(data.start),
-          duration
-        };
-      }catch(error){
-        localStorage.removeItem(PLAYTIME_STORAGE_KEY);
-        return null;
-      }
-    }
+          main:
+            "終了予定時刻を過ぎています",
 
-    function calculateSavedStatus(saved,now=new Date()){
-      const [hour,minute]=saved.start.split(":").map(Number);
-      const entry=new Date(now);
-      entry.setHours(hour,minute,0,0);
-
-      if(saved.duration===0){
-        return {
-          main:"時間制限なし",
-          sub:"閉館時間まで遊べます"
+          sub:
+            `終了予定 ${timeText(end)}`
         };
       }
 
-      const end=new Date(entry.getTime()+saved.duration*60000);
-      const remaining=Math.ceil((end-now)/60000);
+      function updateStatus() {
+        const mainElement =
+          document.getElementById(
+            "statusMain"
+          );
 
-      if(remaining>0){
-        const hours=Math.floor(remaining/60);
-        const minutes=remaining%60;
-        return {
-          main:hours>0?`あと ${hours}時間${minutes}分`:`あと ${minutes}分`,
-          sub:`${timeText(end)}まで遊べます`
-        };
+        const subElement =
+          document.getElementById(
+            "statusSub"
+          );
+
+        const saved =
+          getSavedPlaytime();
+
+        if (!saved) {
+          mainElement.textContent =
+            "まだ設定されていません";
+
+          subElement.textContent =
+            "「何時まであそべる？」から確認できます";
+
+          return;
+        }
+
+        const status =
+          calculateSavedStatus(
+            saved,
+            new Date()
+          );
+
+        mainElement.textContent =
+          status.main;
+
+        subElement.textContent =
+          status.sub;
       }
 
-      return {
-        main:"終了予定時刻を過ぎています",
-        sub:`終了予定 ${timeText(end)}`
-      };
-    }
+      durationButtons.forEach(
+        button => {
+          button.addEventListener(
+            "click",
+            () => {
+              setDuration(
+                Number(
+                  button.dataset.duration
+                )
+              );
+            }
+          );
+        }
+      );
 
-    function updateStatus(){
-      const mainElement=document.getElementById("statusMain");
-      const subElement=document.getElementById("statusSub");
-      const saved=getSavedPlaytime();
+      start.addEventListener(
+        "change",
+        () => {
+          renderPlaytime(false);
+        }
+      );
 
-      if(!saved){
-        mainElement.textContent="まだ設定されていません";
-        subElement.textContent="「何時まであそべる？」から確認できます";
-        return;
+      document
+        .getElementById("timeMinus")
+        .addEventListener(
+          "click",
+          () => {
+            adjustStart(-10);
+          }
+        );
+
+      document
+        .getElementById("timePlus")
+        .addEventListener(
+          "click",
+          () => {
+            adjustStart(10);
+          }
+        );
+
+      document
+        .getElementById("calcBtn")
+        .addEventListener(
+          "click",
+          () => {
+            renderPlaytime(true);
+          }
+        );
+
+      function refreshPlaytimeForCurrentDay() {
+        const dayChanged =
+          ensureCurrentPlaytimeDay(
+            new Date(),
+            true
+          );
+
+        if (!dayChanged) {
+          renderPlaytime(false);
+          updateStatus();
+        }
+
+        scheduleNextPlaytimeReset();
       }
 
-      const status=calculateSavedStatus(saved,new Date());
-      mainElement.textContent=status.main;
-      subElement.textContent=status.sub;
-    }
-
-    durationButtons.forEach(button=>button.addEventListener("click",()=>setDuration(Number(button.dataset.duration))));
-    start.addEventListener("change",()=>renderPlaytime(false));
-    document.getElementById("timeMinus").addEventListener("click",()=>adjustStart(-10));
-    document.getElementById("timePlus").addEventListener("click",()=>adjustStart(10));
-    document.getElementById("calcBtn").addEventListener("click",()=>renderPlaytime(true));
-
-    function refreshPlaytimeForCurrentDay(){
-      const dayChanged=ensureCurrentPlaytimeDay(new Date(),true);
-      if(!dayChanged){
-        renderPlaytime(false);
-        updateStatus();
-      }
+      restorePlaytime();
+      updateCurrentClock();
       scheduleNextPlaytimeReset();
-    }
 
-    restorePlaytime();
-    updateCurrentClock();
-    scheduleNextPlaytimeReset();
-    setInterval(updateCurrentClock,1000);
+      setInterval(
+        updateCurrentClock,
+        1000
+      );
 
-    window.addEventListener("storage",event=>{
-      if(event.key===PLAYTIME_STORAGE_KEY){
-        restorePlaytime();
-        updateStatus();
-      }
-    });
+      window.addEventListener(
+        "storage",
+        event => {
+          if (
+            event.key ===
+            PLAYTIME_STORAGE_KEY
+          ) {
+            restorePlaytime();
+            updateStatus();
+          }
+        }
+      );
 
-    document.addEventListener("visibilitychange",()=>{
-      if(!document.hidden)refreshPlaytimeForCurrentDay();
-    });
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+          if (!document.hidden) {
+            refreshPlaytimeForCurrentDay();
+          }
+        }
+      );
 
-    window.addEventListener("pageshow",refreshPlaytimeForCurrentDay);
+      window.addEventListener(
+        "pageshow",
+        refreshPlaytimeForCurrentDay
+      );
 
-    window.addEventListener("popstate",()=>{
-      const p=new URLSearchParams(location.search);
-      mode=p.get("mode")==="inside"?"inside":"before";applyMode();showView(p.get("view")||"home",false);
-    });
+      window.addEventListener(
+        "popstate",
+        () => {
+          const currentParams =
+            new URLSearchParams(
+              location.search
+            );
 
-    applyMode();
-    updateStatus();
-    setParkingRoute(params.get("parking")==="highway"?"highway":"general",false);
-    showView(initialView,false);
-  })();
+          mode =
+            currentParams.get("mode") ===
+            "inside"
+              ? "inside"
+              : "before";
+
+          applyMode();
+
+          showView(
+            currentParams.get("view") ||
+            "home",
+            false
+          );
+        }
+      );
+
+      applyMode();
+      updateStatus();
+
+      setParkingRoute(
+        params.get("parking") ===
+        "highway"
+          ? "highway"
+          : "general",
+        false
+      );
+
+      showView(
+        initialView,
+        false
+      );
+    })();
   </script>
 </body>
 </html>
