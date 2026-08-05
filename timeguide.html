@@ -8,33 +8,40 @@
   />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#15191d" />
-  <title>ASOBooN お帰り時間案内</title>
+  <meta name="theme-color" content="#11161b" />
+  <title>ASOBooN 何時まであそべる？</title>
 
   <style>
     :root {
       --yellow: #f5bd22;
-      --yellow-light: #ffe16d;
+      --yellow-light: #ffe98f;
+      --orange: #f27b26;
       --red: #d94236;
       --red-dark: #8d211b;
       --ink: #171a1d;
-      --steel: #454d55;
+      --steel-1: #5a646d;
+      --steel-2: #303840;
+      --steel-3: #151a1f;
       --white: #ffffff;
+      --muted: #c8d0d6;
+      --safe-top: max(18px, env(safe-area-inset-top));
+      --safe-bottom: max(18px, env(safe-area-inset-bottom));
     }
 
     * { box-sizing: border-box; }
 
-    html, body {
+    html,
+    body {
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       margin: 0;
-      overflow: hidden;
-      background: #111418;
+      background: #0e1216;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+      overflow: hidden;
       color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
       -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;
       overscroll-behavior: none;
@@ -56,15 +63,12 @@
       place-items: center;
       min-height: 100vh;
       min-height: 100dvh;
-      padding:
-        max(25px, env(safe-area-inset-top))
-        18px
-        max(25px, env(safe-area-inset-bottom));
+      padding: var(--safe-top) 14px var(--safe-bottom);
       background:
-        radial-gradient(circle at 50% -10%, rgba(245, 189, 34, .32), transparent 31%),
-        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0 / 72px 72px,
-        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 72px 72px,
-        linear-gradient(180deg, #343b42 0%, #22272d 45%, #101317 100%);
+        radial-gradient(circle at 50% -8%, rgba(245, 189, 34, .34), transparent 28%),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 64px 64px,
+        linear-gradient(0deg, rgba(255,255,255,.03) 1px, transparent 1px) 0 0 / 64px 64px,
+        linear-gradient(180deg, #3d454d 0%, #222930 44%, #101419 100%);
     }
 
     .clock-screen::before,
@@ -73,58 +77,64 @@
       position: absolute;
       left: 0;
       right: 0;
-      height: 24px;
-      background: repeating-linear-gradient(135deg, var(--yellow) 0 22px, #171a1d 22px 44px);
-      box-shadow: 0 4px 12px rgba(0,0,0,.34);
+      height: 18px;
       pointer-events: none;
+      background: repeating-linear-gradient(135deg, var(--yellow) 0 20px, #171a1d 20px 40px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.34);
     }
 
     .clock-screen::before { top: 0; }
     .clock-screen::after { bottom: 0; transform: rotate(180deg); }
 
     .panel {
-      width: min(calc(100vw - 36px), 798px);
-      height: calc(100dvh - 50px);
+      width: min(calc(100vw - 28px), 760px);
+      height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
       min-height: 0;
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto auto;
-      gap: clamp(10px, 1.35dvh, 17px);
-      padding: clamp(18px, 2.5dvh, 28px) clamp(18px, 4vw, 32px);
-      border: 5px solid #0d1013;
-      border-radius: 34px;
+      gap: clamp(8px, 1.15dvh, 14px);
+      padding: clamp(14px, 2.1dvh, 24px) clamp(14px, 3.4vw, 28px);
+      border: 4px solid #0b0e11;
+      border-radius: 30px;
+      overflow: hidden;
       background:
-        linear-gradient(135deg, rgba(255,255,255,.14), transparent 28%),
-        linear-gradient(180deg, rgba(77,86,95,.98), rgba(27,32,38,.98));
+        linear-gradient(135deg, rgba(255,255,255,.14), transparent 24%),
+        linear-gradient(180deg, rgba(75,84,93,.98), rgba(25,30,36,.99));
       box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,.08),
-        0 16px 0 rgba(0,0,0,.23),
-        0 30px 60px rgba(0,0,0,.42);
+        inset 0 0 0 2px rgba(255,255,255,.08),
+        0 13px 0 rgba(0,0,0,.23),
+        0 28px 56px rgba(0,0,0,.44);
     }
 
     .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      min-height: 44px;
-    }
-
-    .brand {
       display: grid;
+      justify-items: center;
       gap: 3px;
-      font-weight: 900;
+      text-align: center;
     }
 
-    .brand small {
+    .header small {
       color: var(--yellow);
-      font-size: clamp(.68rem, 1.8vw, .88rem);
-      letter-spacing: .17em;
+      font-size: clamp(.64rem, 1.75vw, .82rem);
+      font-weight: 950;
+      letter-spacing: .18em;
     }
 
-    .brand strong {
+    .header h1 {
+      margin: 0;
       color: #fff;
-      font-size: clamp(1.05rem, 3.2vw, 1.45rem);
-      line-height: 1.2;
+      font-size: clamp(1.28rem, 4.6vw, 2rem);
+      line-height: 1.08;
+      font-weight: 1000;
+      letter-spacing: .02em;
+    }
+
+    .header p {
+      margin: 1px 0 0;
+      color: var(--muted);
+      font-size: clamp(.72rem, 2.2vw, .94rem);
+      font-weight: 850;
+      line-height: 1.35;
     }
 
     .time-flow {
@@ -133,275 +143,170 @@
       grid-template-rows: minmax(0, 1fr) auto auto;
       align-content: center;
       justify-items: center;
-      gap: clamp(10px, 1.45dvh, 17px);
-      text-align: center;
+      gap: clamp(8px, 1.2dvh, 14px);
     }
 
-    .entry-hero {
+    .hero-card {
       position: relative;
-      overflow: visible;
-      width: min(100%, 720px);
-      padding: clamp(16px, 2.1dvh, 24px) clamp(14px, 2.4vw, 22px) clamp(18px, 2.5dvh, 28px);
-      border: 0;
-      border-radius: 30px;
+      width: min(100%, 680px);
+      min-height: 0;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      padding: clamp(13px, 2dvh, 22px) clamp(12px, 2.5vw, 22px);
+      border: 3px solid rgba(255,255,255,.18);
+      border-radius: 27px;
+      overflow: hidden;
+      text-align: center;
       background:
-        radial-gradient(circle at 50% -8%, rgba(255,225,109,.24), transparent 42%),
-        linear-gradient(180deg, rgba(34,38,43,.99), rgba(10,12,16,.99));
+        radial-gradient(circle at 50% -5%, rgba(255,233,143,.22), transparent 42%),
+        linear-gradient(180deg, rgba(37,43,49,.99), rgba(8,11,14,.99));
       box-shadow:
-        0 18px 36px rgba(0,0,0,.34),
-        0 0 36px rgba(245,189,34,.14);
-      animation: warningFrame 1.35s ease-in-out infinite;
+        0 16px 34px rgba(0,0,0,.34),
+        inset 0 0 0 4px rgba(245,189,34,.08),
+        0 0 38px rgba(245,189,34,.12);
     }
 
-    .entry-hero::before {
+    .hero-card::before {
       content: "";
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background:
-        linear-gradient(90deg, transparent 0 42%, rgba(255,255,255,.20) 48%, transparent 54%) -130% 0 / 70% 100% no-repeat,
-        linear-gradient(180deg, rgba(217,66,54,.18), transparent 20%);
-      animation: warningSweep 2.3s linear infinite;
+      background: linear-gradient(105deg, transparent 0 38%, rgba(255,255,255,.12) 48%, transparent 58%) -145% 0 / 75% 100% no-repeat;
+      animation: sheen 4.2s ease-in-out infinite;
     }
 
-    .warning-lights {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      justify-content: center;
-      gap: clamp(10px, 2.4vw, 18px);
-      margin-bottom: clamp(9px, 1.2dvh, 14px);
-    }
-
-    .warning-lights span {
-      width: clamp(14px, 2.5vw, 20px);
-      height: clamp(14px, 2.5vw, 20px);
-      border: 3px solid rgba(255,255,255,.8);
-      border-radius: 50%;
-      background: var(--red);
-      box-shadow:
-        0 0 0 4px rgba(217,66,54,.16),
-        0 0 18px rgba(255,72,62,.62);
-      animation: warningLamp 1s steps(1, end) infinite;
-    }
-
-    .warning-lights span:nth-child(even) {
-      animation-delay: .5s;
-    }
-
-    .entry-label {
+    .hero-eyebrow {
       position: relative;
       z-index: 1;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 8px 22px;
-      margin-bottom: 10px;
-      border: 3px solid #111418;
+      min-height: 34px;
+      padding: 6px 16px;
+      border: 2px solid #111418;
       border-radius: 999px;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
       color: var(--ink);
-      box-shadow: 0 5px 0 rgba(0,0,0,.23);
-      font-size: clamp(1.08rem, 3.9vw, 1.58rem);
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      box-shadow: 0 4px 0 rgba(0,0,0,.24);
+      font-size: clamp(.92rem, 2.8vw, 1.18rem);
       font-weight: 1000;
-      line-height: 1.15;
+    }
+
+    .hero-kicker {
+      position: relative;
+      z-index: 1;
+      margin-top: clamp(7px, 1dvh, 11px);
+      color: #f1f4f6;
+      font-size: clamp(.86rem, 2.7vw, 1.16rem);
+      font-weight: 900;
     }
 
     .entry-time {
       position: relative;
       z-index: 1;
       display: block;
-      width: min(100%, 6.2ch);
-      margin: 0 auto;
-      max-width: 100%;
-      height: .94em;
+      margin: clamp(1px, .4dvh, 5px) auto 0;
       color: var(--yellow-light);
-      font-size: clamp(8.2rem, 28.5vw, 13.6rem);
+      font-size: clamp(6.8rem, 25vw, 12.2rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
-      letter-spacing: 0;
-      line-height: .9;
+      letter-spacing: -.06em;
+      line-height: .88;
       white-space: nowrap;
       text-align: center;
       text-shadow:
-        0 9px 0 rgba(0,0,0,.38),
-        0 0 28px rgba(245,189,34,.30),
-        0 0 58px rgba(245,189,34,.25),
-        0 0 74px rgba(217,66,54,.18);
-      transform: translateZ(0);
-      transform-origin: 50% 50%;
-      animation: clockUrgency 1.2s steps(1, end) infinite;
-      overflow: visible;
+        0 7px 0 rgba(0,0,0,.38),
+        0 0 30px rgba(245,189,34,.34);
     }
 
-    .entry-time__hour,
-    .entry-time__minute,
-    .entry-time__colon {
-      position: absolute;
-      top: 50%;
-      display: block;
-      line-height: 1;
+    .hero-action {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 480px);
+      margin-top: clamp(8px, 1.1dvh, 13px);
+      padding: 10px 16px 11px;
+      border: 3px solid #fff;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(180deg, #ef5c50, var(--red));
+      box-shadow: 0 6px 0 var(--red-dark), 0 12px 22px rgba(0,0,0,.25);
+      font-size: clamp(1.22rem, 4vw, 1.82rem);
+      font-weight: 1000;
+      line-height: 1.15;
     }
 
-    .entry-time__hour,
-    .entry-time__minute {
-      width: 2ch;
-      transform: translateY(-50%);
+    .hero-note {
+      position: relative;
+      z-index: 1;
+      margin: 10px 0 0;
+      color: #d5dce1;
+      font-size: clamp(.68rem, 2vw, .86rem);
+      font-weight: 800;
+      line-height: 1.35;
     }
 
-    .entry-time__hour {
-      right: calc(50% + .30ch);
-      text-align: right;
+    .milestones {
+      width: min(100%, 680px);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(7px, 1.8vw, 12px);
     }
 
-    .entry-time__minute {
-      left: calc(50% + .30ch);
-      text-align: left;
-    }
-
-    .entry-time__colon {
-      left: 50%;
-      width: .52ch;
+    .milestone {
+      min-width: 0;
+      padding: 10px 6px 11px;
+      border-radius: 16px;
       text-align: center;
-      transform: translate(-50%, -54%);
+      background: rgba(10,14,18,.62);
+      border: 2px solid rgba(255,255,255,.13);
+      box-shadow: inset 0 0 14px rgba(0,0,0,.2), 0 8px 16px rgba(0,0,0,.18);
     }
 
-    .entry-sub {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      justify-items: center;
-      gap: 5px;
-      margin-top: 12px;
-      padding: 8px 12px 2px;
-      color: #ffffff;
-      line-height: 1.2;
-      text-shadow: 0 3px 0 rgba(0,0,0,.28);
-    }
+    .milestone:nth-child(1) { border-color: rgba(245,189,34,.55); }
+    .milestone:nth-child(2) { border-color: rgba(242,123,38,.62); }
+    .milestone:nth-child(3) { border-color: rgba(217,66,54,.72); }
 
-    .entry-sub__target {
-      font-size: clamp(1rem, 3.25vw, 1.4rem);
+    .milestone span {
+      display: block;
+      color: #cfd6dc;
+      font-size: clamp(.6rem, 1.85vw, .78rem);
       font-weight: 900;
+      white-space: nowrap;
     }
 
-    .entry-sub__main {
-      color: var(--yellow-light);
-      font-size: clamp(1.55rem, 5.2vw, 2.45rem);
+    .milestone strong {
+      display: block;
+      margin-top: 3px;
+      color: #fff;
+      font-size: clamp(1.2rem, 4.4vw, 1.9rem);
       font-weight: 1000;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      white-space: nowrap;
     }
 
-    .journey-card {
-      width: min(100%, 600px);
-      padding: 12px 16px 14px;
-      border-radius: 20px;
-      background: rgba(12,15,19,.62);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.08), 0 10px 22px rgba(0,0,0,.18);
+    .milestone small {
+      display: block;
+      margin-top: 4px;
+      color: #aeb8c0;
+      font-size: clamp(.56rem, 1.65vw, .72rem);
+      font-weight: 850;
     }
-
-    .journey-track {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .journey-point {
-      width: clamp(58px, 15vw, 74px);
-      height: clamp(58px, 15vw, 74px);
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: linear-gradient(180deg, #fff, #d8dde2);
-      color: var(--ink);
-      font-size: clamp(.76rem, 2.2vw, .92rem);
-      font-weight: 1000;
-      box-shadow: 0 6px 14px rgba(0,0,0,.18);
-    }
-
-    .journey-road {
-      position: relative;
-      height: 44px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #3c434b, #272d33);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.06);
-      overflow: hidden;
-    }
-
-    .journey-road::before {
-      content: "";
-      position: absolute;
-      left: 8%;
-      right: 8%;
-      top: 50%;
-      height: 4px;
-      border-radius: 999px;
-      background: repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 26px);
-      transform: translateY(-50%);
-      opacity: .8;
-    }
-
-    .journey-badge {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      color: var(--ink);
-      font-size: clamp(.82rem, 2.4vw, .96rem);
-      font-weight: 1000;
-      box-shadow: 0 4px 10px rgba(0,0,0,.18);
-      z-index: 2;
-    }
-
-    .journey-car {
-      position: absolute;
-      left: 12%;
-      top: 50%;
-      transform: translateY(-72%);
-      font-size: clamp(1.25rem, 3vw, 1.5rem);
-      animation: driveCar 2.6s ease-in-out infinite;
-      z-index: 1;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.35));
-    }
-
-    .journey-dots {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .journey-dots span {
-      position: absolute;
-      top: 50%;
-      width: 8px;
-      height: 8px;
-      margin-top: 9px;
-      border-radius: 50%;
-      background: rgba(255,225,109,.88);
-      box-shadow: 0 0 10px rgba(245,189,34,.4);
-      animation: popDot 1.8s ease-in-out infinite;
-    }
-
-    .journey-dots span:nth-child(1) { left: 18%; animation-delay: 0s; }
-    .journey-dots span:nth-child(2) { left: 38%; animation-delay: .3s; }
-    .journey-dots span:nth-child(3) { left: 58%; animation-delay: .6s; }
-    .journey-dots span:nth-child(4) { left: 78%; animation-delay: .9s; }
 
     .now-card {
       width: min(100%, 560px);
-      padding: 12px 18px;
-      border: 2px solid rgba(255,255,255,.24);
-      border-radius: 18px;
-      background: rgba(7,10,13,.55);
-      box-shadow: inset 0 0 18px rgba(0,0,0,.20);
+      min-height: 96px;
       display: grid;
       grid-template-columns: auto auto;
       align-items: center;
       justify-content: center;
-      gap: clamp(16px, 3.5vw, 28px);
+      gap: clamp(14px, 3.3vw, 26px);
+      padding: 10px 17px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-radius: 18px;
+      background: rgba(7,10,13,.55);
+      box-shadow: inset 0 0 18px rgba(0,0,0,.2);
     }
 
     .now-card__digital {
@@ -409,86 +314,19 @@
       text-align: center;
     }
 
-    .analog-clock {
-      position: relative;
-      width: clamp(78px, 16vw, 106px);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, #fbfbfb 0 58%, #eef1f3 58% 100%);
-      box-shadow:
-        inset 0 0 0 3px #1d2228,
-        inset 0 0 0 8px rgba(255,255,255,.48),
-        0 6px 14px rgba(0,0,0,.26);
-      overflow: hidden;
-    }
-
-    .analog-clock::before {
-      content: "";
-      position: absolute;
-      inset: 7px;
-      border-radius: 50%;
-      background: repeating-conic-gradient(from -90deg, #21262c 0deg 2deg, transparent 2deg 30deg);
-      opacity: .75;
-    }
-
-    .analog-clock__hand {
-      position: absolute;
-      left: 50%;
-      bottom: 50%;
-      width: 4px;
-      transform-origin: 50% 100%;
-      transform: translateX(-50%) rotate(0deg);
-      border-radius: 999px;
-      z-index: 2;
-    }
-
-    .analog-clock__hand--hour {
-      height: 23px;
-      width: 6px;
-      background: #1c2127;
-    }
-
-    .analog-clock__hand--minute {
-      height: 31px;
-      width: 4px;
-      background: #2b3138;
-    }
-
-    .analog-clock__hand--second {
-      height: 35px;
-      width: 2px;
-      background: #d94236;
-      box-shadow: 0 0 10px rgba(217,66,54,.34);
-    }
-
-    .analog-clock__center {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #d94236;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-      box-shadow: 0 0 0 3px #fff;
-    }
-
-
-    .now-card span {
+    .now-card__digital span {
       display: block;
       color: #dbe0e4;
-      font-size: clamp(.86rem, 2.7vw, 1.08rem);
+      font-size: clamp(.78rem, 2.25vw, .98rem);
       font-weight: 900;
       line-height: 1.1;
     }
 
-    .now-card time {
+    .now-card__digital time {
       display: block;
       margin-top: 4px;
-      color: #ffffff;
-      font-size: clamp(2.7rem, 9.5vw, 4.2rem);
+      color: #fff;
+      font-size: clamp(2.25rem, 8.4vw, 3.75rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       line-height: .95;
@@ -496,17 +334,98 @@
       white-space: nowrap;
     }
 
+    .analog-clock {
+      position: relative;
+      width: clamp(72px, 15vw, 98px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle, #fbfbfb 0 58%, #eef1f3 58% 100%);
+      box-shadow:
+        inset 0 0 0 3px #1d2228,
+        inset 0 0 0 8px rgba(255,255,255,.48),
+        0 6px 14px rgba(0,0,0,.26);
+    }
+
+    .analog-clock::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      opacity: .75;
+      background: repeating-conic-gradient(from -90deg, #21262c 0deg 2deg, transparent 2deg 30deg);
+    }
+
+    .analog-clock__hand {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      width: 4px;
+      z-index: 2;
+      border-radius: 999px;
+      transform-origin: 50% 100%;
+      transform: translateX(-50%) rotate(0deg);
+    }
+
+    .analog-clock__hand--hour { height: 22px; width: 6px; background: #1c2127; }
+    .analog-clock__hand--minute { height: 30px; width: 4px; background: #2b3138; }
+    .analog-clock__hand--second { height: 34px; width: 2px; background: var(--red); }
+
+    .analog-clock__center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 11px;
+      height: 11px;
+      z-index: 3;
+      border-radius: 50%;
+      background: var(--red);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 3px #fff;
+    }
+
+    .guide-button {
+      width: min(100%, 660px);
+      min-height: clamp(58px, 7dvh, 76px);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 11px 18px;
+      border: 4px solid #fff;
+      border-radius: 20px;
+      color: var(--ink);
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      text-align: center;
+      font-size: clamp(1.05rem, 3.6vw, 1.55rem);
+      font-weight: 1000;
+      line-height: 1.16;
+      box-shadow:
+        0 7px 0 rgba(0,0,0,.24),
+        0 14px 24px rgba(0,0,0,.24),
+        0 0 22px rgba(245,189,34,.18);
+      cursor: pointer;
+    }
+
+    .guide-button::before {
+      content: "☝";
+      font-size: 1.35em;
+      line-height: 1;
+    }
+
+    .guide-button:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.24); }
+
     .switch-wrap {
       display: grid;
       justify-items: center;
       gap: 4px;
       align-self: end;
-      padding-top: 2px;
     }
 
     .switch-label {
-      color: rgba(255,255,255,.66);
-      font-size: clamp(.68rem, 1.7vw, .82rem);
+      color: rgba(255,255,255,.67);
+      font-size: clamp(.64rem, 1.65vw, .78rem);
       font-weight: 900;
       letter-spacing: .08em;
     }
@@ -524,12 +443,12 @@
     }
 
     .switch button {
-      min-height: clamp(38px, 4.2dvh, 46px);
+      min-height: 40px;
       border: 1px solid transparent;
       border-radius: 9px;
       color: #dce1e5;
       background: #343b42;
-      font-size: clamp(.76rem, 2.1vw, .94rem);
+      font-size: clamp(.72rem, 2vw, .9rem);
       font-weight: 1000;
       cursor: pointer;
     }
@@ -538,166 +457,10 @@
       color: var(--ink);
       border-color: #fff;
       background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      box-shadow: 0 5px 0 rgba(0,0,0,.24);
-    }
-
-    .tap-note {
-      width: min(100%, 660px);
-      min-height: clamp(66px, 8dvh, 88px);
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 12px 18px;
-      border: 4px solid #ffffff;
-      border-radius: 22px;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      color: var(--ink);
-      text-align: center;
-      font-size: clamp(1.25rem, 4.2vw, 1.95rem);
-      font-weight: 1000;
-      line-height: 1.18;
-      box-shadow:
-        0 8px 0 rgba(0,0,0,.24),
-        0 15px 26px rgba(0,0,0,.26),
-        0 0 24px rgba(245,189,34,.22);
-      animation: tapPulse 1.5s ease-in-out infinite;
-    }
-
-    .tap-note::before {
-      content: "👆";
-      font-size: 1.35em;
-      line-height: 1;
-    }
-
-    @media (orientation: portrait) and (max-height: 1050px) {
-      .panel {
-        gap: 8px;
-        padding-top: 16px;
-        padding-bottom: 18px;
-      }
-      .header { min-height: 36px; }
-      .entry-hero { padding-top: 10px; padding-bottom: 14px; }
-      .entry-time { font-size: clamp(7.8rem, 28vw, 12.8rem); }
-      .time-flow { gap: 7px; }
-      .journey-card { padding: 10px 12px 12px; }
-      .journey-road { height: 38px; }
-      .now-card { width: min(100%, 520px); }
-      .now-card time { font-size: clamp(2.35rem, 8.2vw, 3.55rem); }
-      .switch button { min-height: 38px; }
-      .tap-note { min-height: 64px; }
+      box-shadow: 0 4px 0 rgba(0,0,0,.24);
     }
 
     .rotate-message { display: none; }
-
-    @media (orientation: landscape) {
-      .panel { display: none; }
-      .rotate-message {
-        display: grid;
-        place-items: center;
-        width: min(86vw, 680px);
-        min-height: 54vh;
-        padding: 40px;
-        border: 5px solid var(--yellow);
-        border-radius: 28px;
-        background: #22282e;
-        color: #fff;
-        text-align: center;
-        font-size: clamp(1.5rem, 4vw, 2.5rem);
-        font-weight: 1000;
-        line-height: 1.5;
-        box-shadow: 0 22px 48px rgba(0,0,0,.42);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: .62; transform: translateY(0); }
-      50% { opacity: 1; transform: translateY(-2px); }
-    }
-
-    @keyframes tapPulse {
-      0%, 100% {
-        transform: scale(1);
-        filter: brightness(1);
-      }
-      50% {
-        transform: scale(1.018);
-        filter: brightness(1.08);
-      }
-    }
-
-
-
-
-    @keyframes warningFrame {
-      0%, 100% {
-        border-color: var(--yellow-light);
-        box-shadow:
-          inset 0 0 0 4px rgba(255,255,255,.08),
-          0 0 0 8px rgba(217,66,54,.14),
-          0 18px 36px rgba(0,0,0,.40),
-          0 0 34px rgba(245,189,34,.18);
-      }
-      50% {
-        border-color: #ffffff;
-        box-shadow:
-          inset 0 0 0 4px rgba(255,255,255,.12),
-          0 0 0 10px rgba(217,66,54,.30),
-          0 18px 36px rgba(0,0,0,.40),
-          0 0 56px rgba(255,70,60,.34);
-      }
-    }
-
-    @keyframes warningSweep {
-      to { background-position: 240% 0, 0 0; }
-    }
-
-    @keyframes warningLamp {
-      0%, 49% {
-        opacity: 1;
-        filter: brightness(1.55);
-      }
-      50%, 100% {
-        opacity: .25;
-        filter: brightness(.65);
-      }
-    }
-
-    @keyframes clockUrgency {
-      0%, 49% {
-        color: var(--yellow-light);
-        filter: brightness(1.08);
-        text-shadow:
-          0 9px 0 rgba(0,0,0,.38),
-          0 0 30px rgba(245,189,34,.54),
-          0 0 62px rgba(245,189,34,.38),
-          0 0 82px rgba(245,189,34,.22);
-      }
-      50%, 99% {
-        color: #ff5147;
-        filter: brightness(1.18);
-        text-shadow:
-          0 9px 0 rgba(0,0,0,.38),
-          0 0 30px rgba(255,81,71,.64),
-          0 0 64px rgba(217,66,54,.50),
-          0 0 88px rgba(217,66,54,.30);
-      }
-      100% {
-        color: var(--yellow-light);
-        filter: brightness(1.08);
-      }
-    }
-
-    @keyframes driveCar {
-      0%, 100% { left: 12%; transform: translateY(-72%) rotate(0deg); }
-      50% { left: 82%; transform: translateY(-72%) rotate(0deg); }
-    }
-
-    @keyframes popDot {
-      0%, 100% { transform: translateY(0) scale(.8); opacity: .45; }
-      50% { transform: translateY(-3px) scale(1.15); opacity: 1; }
-    }
 
     .guide-shell {
       position: fixed;
@@ -723,55 +486,107 @@
       padding: 8px 15px;
       border: 2px solid #111418;
       border-radius: 999px;
-      color: #171a1d;
+      color: var(--ink);
       background: var(--yellow);
       box-shadow: 0 5px 0 rgba(0,0,0,.25);
       font-size: .82rem;
       font-weight: 1000;
     }
+
+    @media (orientation: portrait) and (max-height: 850px) {
+      .panel { gap: 6px; padding-top: 10px; padding-bottom: 11px; }
+      .header p { display: none; }
+      .hero-card { padding-top: 9px; padding-bottom: 10px; }
+      .hero-kicker { margin-top: 5px; }
+      .entry-time { font-size: clamp(6.2rem, 22.5vw, 9.8rem); }
+      .hero-action { margin-top: 5px; padding-top: 8px; padding-bottom: 9px; }
+      .hero-note { margin-top: 7px; }
+      .milestone { padding-top: 8px; padding-bottom: 8px; }
+      .now-card { min-height: 82px; padding-top: 7px; padding-bottom: 7px; }
+      .guide-button { min-height: 54px; }
+      .switch button { min-height: 36px; }
+    }
+
+    @media (orientation: portrait) and (max-width: 350px) {
+      .panel { padding-left: 10px; padding-right: 10px; }
+      .entry-time { font-size: clamp(5.9rem, 24vw, 8rem); }
+      .milestones { gap: 5px; }
+      .milestone { padding-left: 3px; padding-right: 3px; }
+      .now-card { gap: 10px; }
+    }
+
+    @media (orientation: landscape) {
+      .panel { display: none; }
+      .rotate-message {
+        display: grid;
+        place-items: center;
+        width: min(86vw, 680px);
+        min-height: 54vh;
+        padding: 40px;
+        border: 5px solid var(--yellow);
+        border-radius: 28px;
+        background: #22282e;
+        color: #fff;
+        text-align: center;
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        font-weight: 1000;
+        line-height: 1.5;
+        box-shadow: 0 22px 48px rgba(0,0,0,.42);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @keyframes sheen {
+      0%, 55% { background-position: -145% 0; }
+      85%, 100% { background-position: 245% 0; }
+    }
   </style>
 </head>
 
 <body>
-  <section class="clock-screen" id="clock-screen" aria-label="お帰り時間のご案内">
+  <section class="clock-screen" id="clock-screen" aria-label="何時まであそべるかのご案内">
     <div class="panel">
       <header class="header">
-        <div class="brand">
-          <small>ASOBooN TIME GUIDE</small>
-          <strong>お帰り時間のご案内</strong>
-        </div>
+        <small>ASOBooN TIME GUIDE</small>
+        <h1>何時まであそべる？</h1>
+        <p>入場時刻を見て、お帰り時間の目安を確認できます</p>
       </header>
 
       <main class="time-flow">
-        <div class="entry-hero">
-          <div class="warning-lights" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <div class="entry-label">入場時刻</div>
-          <time class="entry-time" id="entry-time" aria-label="入場時刻">
-            <span class="entry-time__hour" id="entry-hour">--</span>
-            <span class="entry-time__colon" aria-hidden="true">:</span>
-            <span class="entry-time__minute" id="entry-minute">--</span>
-          </time>
-          <div class="entry-sub">
-            <span class="entry-sub__target">この時間より前に入場されたお客様は</span>
-            <strong class="entry-sub__main">おかえりの時間です</strong>
-          </div>
-        </div>
+        <section class="hero-card" aria-live="polite">
+          <div class="hero-eyebrow">お帰り時間の目安</div>
+          <div class="hero-kicker">この時刻までに入場した方</div>
+          <time class="entry-time" id="entry-time" aria-label="お帰り対象の入場時刻">--:--</time>
+          <div class="hero-action">お帰りの時間です</div>
+          <p class="hero-note" id="hero-note">利用時間2時間30分で計算しています</p>
+        </section>
 
-        <div class="journey-card" aria-hidden="true">
-          <div class="journey-track">
-            <div class="journey-point">入場</div>
-            <div class="journey-road">
-              <div class="journey-dots"><span></span><span></span><span></span><span></span></div>
-              <div class="journey-car">🚗</div>
-              <div class="journey-badge" id="journey-badge">2時間30分</div>
-            </div>
-            <div class="journey-point">現在</div>
+        <section class="milestones" aria-label="お帰り時間までの目安">
+          <div class="milestone">
+            <span>あと20分の方</span>
+            <strong id="warning-20">--:--</strong>
+            <small>この時刻に入場</small>
           </div>
-        </div>
+          <div class="milestone">
+            <span>あと10分の方</span>
+            <strong id="warning-10">--:--</strong>
+            <small>この時刻に入場</small>
+          </div>
+          <div class="milestone">
+            <span>お帰りの方</span>
+            <strong id="warning-0">--:--</strong>
+            <small>この時刻以前に入場</small>
+          </div>
+        </section>
 
-        <div class="now-card" aria-live="polite">
+        <section class="now-card" aria-label="現在時刻">
           <div class="now-card__digital">
             <span>現在時刻</span>
             <time id="current-time">--:--</time>
@@ -782,10 +597,10 @@
             <div class="analog-clock__hand analog-clock__hand--second" id="analog-second"></div>
             <div class="analog-clock__center"></div>
           </div>
-        </div>
+        </section>
       </main>
 
-      <p class="tap-note">画面をタッチして<br />利用案内を表示</p>
+      <button class="guide-button" id="guide-button" type="button">館内の利用案内を見る</button>
 
       <div class="switch-wrap">
         <div class="switch-label">利用時間の設定</div>
@@ -814,27 +629,53 @@
   <script>
     (() => {
       const IDLE_MS = 30 * 1000;
+      const STORAGE_KEY = "asoboon-guide-duration";
 
       const clockScreen = document.getElementById("clock-screen");
       const guideShell = document.getElementById("guide-shell");
       const guideFrame = document.getElementById("guide-frame");
+      const guideButton = document.getElementById("guide-button");
       const manualBack = document.getElementById("manual-back");
       const currentTime = document.getElementById("current-time");
       const entryTime = document.getElementById("entry-time");
-      const entryHour = document.getElementById("entry-hour");
-      const entryMinute = document.getElementById("entry-minute");
-      const journeyBadge = document.getElementById("journey-badge");
+      const warning20 = document.getElementById("warning-20");
+      const warning10 = document.getElementById("warning-10");
+      const warning0 = document.getElementById("warning-0");
+      const heroNote = document.getElementById("hero-note");
       const analogHour = document.getElementById("analog-hour");
       const analogMinute = document.getElementById("analog-minute");
       const analogSecond = document.getElementById("analog-second");
       const durationButtons = [...document.querySelectorAll(".switch button")];
 
-      let durationMinutes = Number(localStorage.getItem("asoboon-guide-duration")) || 150;
+      let durationMinutes = 150;
       let idleTimer = null;
 
       const pad = (number) => String(number).padStart(2, "0");
-      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
       const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
+
+      function readInitialDuration() {
+        const params = new URLSearchParams(location.search);
+        const fromQuery = Number(params.get("minutes"));
+        if (fromQuery === 150 || fromQuery === 180) return fromQuery;
+
+        try {
+          const stored = Number(localStorage.getItem(STORAGE_KEY));
+          if (stored === 150 || stored === 180) return stored;
+        } catch (error) {
+          console.warn("利用時間設定を読み込めませんでした。", error);
+        }
+
+        return 150;
+      }
+
+      function safeSaveDuration(minutes) {
+        try {
+          localStorage.setItem(STORAGE_KEY, String(minutes));
+        } catch (error) {
+          console.warn("利用時間設定を保存できませんでした。", error);
+        }
+      }
 
       function updateAnalogClock(now) {
         const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
@@ -848,22 +689,27 @@
 
       function updateClock() {
         const now = new Date();
-        const entered = new Date(now.getTime() - durationMinutes * 60 * 1000);
-        const enteredText = formatTime(entered);
-        const label = durationText(durationMinutes);
+        const leaveNowEntry = new Date(now.getTime() - durationMinutes * 60 * 1000);
+        const tenMinutesEntry = new Date(now.getTime() - (durationMinutes - 10) * 60 * 1000);
+        const twentyMinutesEntry = new Date(now.getTime() - (durationMinutes - 20) * 60 * 1000);
+
+        const leaveNowText = formatTime(leaveNowEntry);
 
         currentTime.textContent = formatTime(now);
-        entryHour.textContent = pad(entered.getHours());
-        entryMinute.textContent = pad(entered.getMinutes());
-        entryTime.setAttribute("datetime", enteredText);
-        entryTime.setAttribute("aria-label", `入場時刻 ${enteredText}`);
-        journeyBadge.textContent = label;
+        entryTime.textContent = leaveNowText;
+        entryTime.setAttribute("datetime", leaveNowText);
+        entryTime.setAttribute("aria-label", `${leaveNowText}までに入場した方はお帰りの時間です`);
+        warning20.textContent = formatTime(twentyMinutesEntry);
+        warning10.textContent = formatTime(tenMinutesEntry);
+        warning0.textContent = leaveNowText;
+        heroNote.textContent = `利用時間${durationText(durationMinutes)}で計算しています`;
+
         updateAnalogClock(now);
       }
 
       function setDuration(minutes) {
         durationMinutes = minutes === 180 ? 180 : 150;
-        localStorage.setItem("asoboon-guide-duration", String(durationMinutes));
+        safeSaveDuration(durationMinutes);
 
         durationButtons.forEach((button) => {
           button.setAttribute(
@@ -911,24 +757,25 @@
       }
 
       durationButtons.forEach((button) => {
-        button.addEventListener("pointerdown", (event) => event.stopPropagation());
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
+        button.addEventListener("click", () => {
           setDuration(Number(button.dataset.minutes));
         });
       });
 
-      clockScreen.addEventListener("click", showGuide);
+      guideButton.addEventListener("click", showGuide);
       manualBack.addEventListener("click", showClock);
       guideFrame.addEventListener("load", bindIframeActivity);
 
       document.addEventListener("pointerdown", resetIdleTimer, { passive: true });
       document.addEventListener("touchstart", resetIdleTimer, { passive: true });
       document.addEventListener("keydown", resetIdleTimer);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) updateClock();
+      });
 
+      durationMinutes = readInitialDuration();
       setDuration(durationMinutes);
-      updateClock();
-      setInterval(updateClock, 200);
+      setInterval(updateClock, 250);
     })();
   </script>
 </body>
