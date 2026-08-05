@@ -1,629 +1,873 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
-  />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#15191d" />
-  <title>ASOBooN 何時まであそべる？</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+  <meta name="theme-color" content="#123c35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ASOBooN｜何時まであそべる？</title>
+  <meta name="description" content="ASOBooNの入場時刻と利用時間から、閉館時刻を超えない退場予定時刻を確認できます。">
 
   <style>
-    :root {
-      --yellow: #f5bd22;
-      --yellow-light: #ffe16d;
-      --orange: #f27a24;
-      --red: #d94236;
-      --ink: #171a1d;
-      --panel: #242b32;
-      --white: #ffffff;
-      --muted: #d9e0e5;
-      --safe-top: max(24px, env(safe-area-inset-top));
-      --safe-bottom: max(24px, env(safe-area-inset-bottom));
+    :root{
+      --ink:#2f291f;
+      --muted:#6d6353;
+      --paper:#fff8e8;
+      --paper-deep:#ead7aa;
+      --forest:#123c35;
+      --forest-deep:#071f1b;
+      --gold:#d6a746;
+      --gold-light:#f5d981;
+      --red:#b74334;
+      --blue:#1d6688;
+      --shadow:0 20px 54px rgba(28,22,14,.28);
+      --soft-shadow:0 9px 24px rgba(28,22,14,.18);
+      --safe-top:max(14px,env(safe-area-inset-top));
+      --safe-bottom:max(18px,env(safe-area-inset-bottom));
     }
 
-    * { box-sizing: border-box; }
+    *{box-sizing:border-box}
 
-    html, body {
-      width: 100%;
-      min-height: 100%;
-      margin: 0;
-      background: #111418;
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+      color:var(--ink);
+      background:#e8d7ae;
+      -webkit-text-size-adjust:100%;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
-      color: var(--white);
-      -webkit-font-smoothing: antialiased;
-      -webkit-text-size-adjust: 100%;
-      overscroll-behavior: none;
+    body{
+      min-height:100vh;
+      min-height:100dvh;
+      background:
+        radial-gradient(circle at 12% 4%,rgba(255,255,255,.72),transparent 24%),
+        radial-gradient(circle at 88% 18%,rgba(255,255,255,.42),transparent 22%),
+        repeating-linear-gradient(0deg,rgba(89,61,27,.025) 0 1px,transparent 1px 5px),
+        linear-gradient(180deg,#eadcb9,#f7efd9 58%,#dfc996);
+      overflow-x:hidden;
     }
 
-    button,
-    input {
-      font: inherit;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
+    button,input,a{font:inherit}
+    button,a{-webkit-tap-highlight-color:transparent}
+    button{cursor:pointer}
 
     button:focus-visible,
-    input:focus-visible {
-      outline: 4px solid #ffffff;
-      outline-offset: 3px;
+    input:focus-visible,
+    a:focus-visible{
+      outline:4px solid #ffcf4c;
+      outline-offset:3px;
     }
 
-    .screen {
-      min-height: 100vh;
-      min-height: 100dvh;
-      padding: var(--safe-top) 12px var(--safe-bottom);
+    [hidden]{display:none!important}
+
+    .app{
+      width:min(100%,520px);
+      min-height:100vh;
+      min-height:100dvh;
+      margin:auto;
+      padding:var(--safe-top) 12px var(--safe-bottom);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .brand{
+      min-width:0;
+      flex:1;
+      padding:11px 13px;
+      border:2px solid rgba(92,64,28,.2);
+      border-radius:15px;
+      color:var(--forest);
+      background:rgba(255,248,232,.95);
+      box-shadow:var(--soft-shadow);
+      font-weight:1000;
+    }
+
+    .brand small{
+      display:block;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:.61rem;
+      letter-spacing:.08em;
+    }
+
+    .home-link{
+      flex:0 0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      padding:10px 13px;
+      border:2px solid #061c18;
+      border-radius:14px;
+      color:#fff7df;
+      background:linear-gradient(180deg,#225a4f,#0d332c);
+      box-shadow:var(--soft-shadow);
+      text-decoration:none;
+      font-weight:950;
+    }
+
+    .shell{
+      position:relative;
+      overflow:hidden;
+      border:3px solid rgba(91,63,26,.42);
+      border-radius:29px;
       background:
-        radial-gradient(circle at 50% -8%, rgba(245, 189, 34, .34), transparent 31%),
-        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 64px 64px,
-        linear-gradient(0deg, rgba(255,255,255,.03) 1px, transparent 1px) 0 0 / 64px 64px,
-        linear-gradient(180deg, #3d454d 0%, #222930 44%, #101419 100%);
+        repeating-linear-gradient(0deg,rgba(89,61,27,.03) 0 1px,transparent 1px 5px),
+        linear-gradient(180deg,var(--paper),var(--paper-deep));
+      box-shadow:var(--shadow);
     }
 
-    .screen::before,
-    .screen::after {
-      content: "";
-      position: fixed;
-      left: 0;
-      right: 0;
-      height: 18px;
-      z-index: 10;
-      background: repeating-linear-gradient(135deg, var(--yellow) 0 22px, #171a1d 22px 44px);
-      box-shadow: 0 4px 12px rgba(0,0,0,.34);
-      pointer-events: none;
-    }
-
-    .screen::before { top: 0; }
-    .screen::after { bottom: 0; transform: rotate(180deg); }
-
-    .panel {
-      width: min(100%, 680px);
-      margin: 0 auto;
-      display: grid;
-      gap: 14px;
-      padding: clamp(15px, 3vw, 26px);
-      border: 5px solid #0d1013;
-      border-radius: 30px;
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:20px 16px 30px;
+      color:#fff6dd;
       background:
-        linear-gradient(135deg, rgba(255,255,255,.14), transparent 28%),
-        linear-gradient(180deg, rgba(77,86,95,.98), rgba(27,32,38,.98));
+        radial-gradient(circle at 82% 12%,rgba(241,209,126,.18),transparent 27%),
+        linear-gradient(155deg,var(--forest),var(--forest-deep));
+    }
+
+    .hero:after{
+      content:"";
+      position:absolute;
+      left:-8%;
+      right:-8%;
+      bottom:-32px;
+      height:55px;
+      border-radius:50% 50% 0 0/70% 70% 0 0;
+      background:var(--paper);
+    }
+
+    .hero small{
+      display:block;
+      color:#eacb7b;
+      font-size:.67rem;
+      font-weight:950;
+      letter-spacing:.12em;
+    }
+
+    .hero h1{
+      margin:5px 0 0;
+      font-size:clamp(1.7rem,8vw,2.35rem);
+      line-height:1.1;
+    }
+
+    .hero p{
+      margin:8px 0 0;
+      color:#ddd8ca;
+      font-size:.81rem;
+      line-height:1.65;
+      font-weight:750;
+    }
+
+    .content{
+      position:relative;
+      z-index:2;
+      display:grid;
+      gap:12px;
+      padding:5px 13px 16px;
+    }
+
+    .hours-strip{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:7px;
+      padding:8px;
+      border:2px solid rgba(111,78,32,.18);
+      border-radius:17px;
+      background:rgba(255,253,245,.8);
+    }
+
+    .hours-item{
+      min-width:0;
+      padding:9px 6px;
+      border-radius:12px;
+      text-align:center;
+      background:#f5ecd5;
+      border:1px solid rgba(104,74,32,.14);
+    }
+
+    .hours-item span{
+      display:block;
+      color:#786647;
+      font-size:.57rem;
+      font-weight:900;
+    }
+
+    .hours-item strong{
+      display:block;
+      margin-top:3px;
+      color:var(--forest);
+      font-size:.84rem;
+      line-height:1.2;
+    }
+
+    .result-card{
+      position:relative;
+      overflow:hidden;
+      padding:18px 12px 15px;
+      border:3px solid #5d421b;
+      border-radius:21px;
+      color:#3e2b15;
+      text-align:center;
+      background:
+        repeating-linear-gradient(0deg,rgba(84,57,21,.035) 0 1px,transparent 1px 5px),
+        linear-gradient(180deg,#f3dda7,#cda95c);
       box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,.08),
-        0 16px 0 rgba(0,0,0,.23),
-        0 30px 60px rgba(0,0,0,.42);
+        inset 0 0 0 2px rgba(255,250,225,.35),
+        0 11px 24px rgba(53,37,14,.2);
     }
 
-    .header { text-align: center; }
-
-    .header small {
-      display: block;
-      color: var(--yellow);
-      font-size: clamp(.68rem, 1.8vw, .86rem);
-      font-weight: 900;
-      letter-spacing: .16em;
+    .result-card:before,
+    .result-card:after{
+      content:"";
+      position:absolute;
+      top:11px;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f);
     }
 
-    .header h1 {
-      margin: 4px 0 4px;
-      font-size: clamp(1.85rem, 7vw, 3rem);
-      line-height: 1.05;
-      font-weight: 1000;
+    .result-card:before{left:11px}
+    .result-card:after{right:11px}
+
+    .result-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:4px 11px;
+      border-radius:999px;
+      color:#fff7dc;
+      background:#806025;
+      font-size:.65rem;
+      font-weight:950;
+      letter-spacing:.05em;
     }
 
-    .header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(.88rem, 2.8vw, 1.05rem);
-      font-weight: 800;
-      line-height: 1.45;
+    .leave-time{
+      display:block;
+      margin-top:7px;
+      color:#4b2b13;
+      font-size:clamp(3.2rem,17vw,5.6rem);
+      line-height:.98;
+      font-weight:1000;
+      font-variant-numeric:tabular-nums;
+      letter-spacing:-.05em;
+      text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
 
-    .step-card {
-      padding: 15px;
-      border: 3px solid rgba(255,255,255,.16);
-      border-radius: 24px;
-      background: rgba(8,11,15,.74);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.04), 0 12px 24px rgba(0,0,0,.22);
+    .leave-caption{
+      display:block;
+      margin-top:5px;
+      color:#55391f;
+      font-size:1.12rem;
+      font-weight:1000;
     }
 
-    .step-title {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      margin: 0 0 12px;
-      color: var(--yellow-light);
-      font-size: clamp(1.05rem, 3.6vw, 1.4rem);
-      font-weight: 1000;
+    .remaining{
+      display:block;
+      margin-top:6px;
+      color:#654927;
+      font-size:.91rem;
+      font-weight:950;
     }
 
-    .step-number {
-      display: inline-grid;
-      place-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--yellow);
-      color: var(--ink);
-      font-size: .95rem;
-      box-shadow: 0 4px 0 rgba(0,0,0,.25);
+    .result-note{
+      margin:7px 0 0;
+      color:#765f3f;
+      font-size:.7rem;
+      line-height:1.5;
+      font-weight:850;
     }
 
-    .time-input-wrap {
-      position: relative;
-      width: min(100%, 440px);
-      margin: 0 auto;
+    .result-card.error{
+      border-color:#8e2f23;
+      background:linear-gradient(180deg,#ffe0d4,#efaa92);
     }
 
-    .time-input-wrap::after {
-      content: "タップして時刻を選ぶ";
-      display: block;
-      margin-top: 8px;
-      color: #ffffff;
-      text-align: center;
-      font-size: clamp(.78rem, 2.5vw, .95rem);
-      font-weight: 900;
+    .result-card.error .leave-time{
+      color:#8f3024;
+      font-size:clamp(1.35rem,7vw,2.1rem);
+      letter-spacing:0;
     }
 
-    .time-input {
-      display: block;
-      width: 100%;
-      min-height: 88px;
-      padding: 8px 18px;
-      border: 5px solid #111418;
-      border-radius: 22px;
-      background: linear-gradient(180deg, #ffffff, #dfe4e8);
-      color: var(--ink);
-      text-align: center;
-      font-size: clamp(2.7rem, 14vw, 5rem);
-      font-weight: 1000;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: .02em;
-      box-shadow: 0 8px 0 rgba(0,0,0,.30), 0 14px 26px rgba(0,0,0,.20);
-      cursor: pointer;
+    .form-card{
+      padding:14px;
+      border:2px solid rgba(112,78,31,.24);
+      border-radius:20px;
+      background:rgba(255,250,238,.96);
+      box-shadow:var(--soft-shadow);
     }
 
-    .time-input::-webkit-calendar-picker-indicator {
-      width: 34px;
-      height: 34px;
-      padding: 8px;
-      border-radius: 50%;
-      background-color: var(--yellow);
-      cursor: pointer;
+    .field-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:8px;
     }
 
-    .minute-badge {
-      width: fit-content;
-      margin: 12px auto 0;
-      padding: 7px 13px;
-      border: 2px solid rgba(255,255,255,.24);
-      border-radius: 999px;
-      background: #2f3740;
-      color: #ffffff;
-      font-size: clamp(.82rem, 2.6vw, .98rem);
-      font-weight: 900;
+    .field-head strong{
+      color:#234b40;
+      font-size:.91rem;
     }
 
-    .minute-badge strong { color: var(--yellow-light); }
-
-    .adjust-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1.25fr;
-      gap: 8px;
-      width: min(100%, 480px);
-      margin: 12px auto 0;
+    .field-head span{
+      color:#786d5b;
+      font-size:.64rem;
+      font-weight:850;
     }
 
-    .adjust-row button {
-      min-height: 50px;
-      border: 2px solid rgba(255,255,255,.26);
-      border-radius: 14px;
-      background: linear-gradient(180deg, #4b545d, #2b3239);
-      color: #ffffff;
-      font-size: clamp(.86rem, 2.8vw, 1rem);
-      font-weight: 1000;
-      box-shadow: 0 5px 0 rgba(0,0,0,.26);
-      cursor: pointer;
+    .field-help{
+      margin:5px 0 10px;
+      color:#6a6050;
+      font-size:.69rem;
+      line-height:1.55;
+      font-weight:760;
     }
 
-    .adjust-row button:active {
-      transform: translateY(3px);
-      box-shadow: 0 2px 0 rgba(0,0,0,.26);
+    .time-row{
+      display:grid;
+      grid-template-columns:68px minmax(0,1fr) 68px;
+      gap:7px;
+      align-items:center;
     }
 
-    .adjust-row .now-button {
-      border-color: #ffffff;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      color: var(--ink);
+    .adjust-btn{
+      min-height:52px;
+      border:2px solid #6e5022;
+      border-radius:13px;
+      color:#382711;
+      background:linear-gradient(180deg,#f4dfa8,#c89c4b);
+      box-shadow:0 4px 0 rgba(76,53,19,.18);
+      font-size:.76rem;
+      font-weight:1000;
     }
 
-    .duration-wrap {
-      display: grid;
-      justify-items: center;
-      gap: 5px;
-      margin-top: 14px;
+    .adjust-btn:active{
+      transform:translateY(3px);
+      box-shadow:0 1px 0 rgba(76,53,19,.18);
     }
 
-    .duration-label {
-      color: rgba(255,255,255,.72);
-      font-size: .78rem;
-      font-weight: 900;
-      letter-spacing: .08em;
+    .time-input{
+      width:100%;
+      min-width:0;
+      height:58px;
+      padding:6px 8px;
+      border:3px solid #4c3a20;
+      border-radius:14px;
+      color:#292218;
+      background:#fffef8;
+      text-align:center;
+      font-size:1.5rem;
+      font-weight:1000;
+      font-variant-numeric:tabular-nums;
     }
 
-    .duration-switch {
-      width: min(100%, 360px);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 5px;
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 13px;
-      background: rgba(7,10,13,.58);
+    .now-btn{
+      width:100%;
+      min-height:44px;
+      margin-top:8px;
+      border:2px solid #153e35;
+      border-radius:12px;
+      color:#fff7df;
+      background:linear-gradient(180deg,#2b6658,#15463b);
+      box-shadow:0 4px 0 rgba(14,46,39,.2);
+      font-weight:950;
     }
 
-    .duration-switch button {
-      min-height: 44px;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      color: #dce1e5;
-      background: #343b42;
-      font-size: .9rem;
-      font-weight: 1000;
-      cursor: pointer;
+    .duration-title{
+      margin-top:15px;
     }
 
-    .duration-switch button[aria-pressed="true"] {
-      color: var(--ink);
-      border-color: #fff;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      box-shadow: 0 4px 0 rgba(0,0,0,.24);
+    .duration-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+      margin-top:9px;
+      padding:5px;
+      border-radius:14px;
+      background:#24332e;
     }
 
-    .result-card {
-      position: relative;
-      overflow: hidden;
-      padding: clamp(18px, 4vw, 28px) 12px;
-      border: 5px solid var(--yellow-light);
-      border-radius: 28px;
-      background:
-        radial-gradient(circle at 50% -10%, rgba(255,225,109,.22), transparent 45%),
-        linear-gradient(180deg, #292f35, #0e1115);
-      text-align: center;
-      box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,.08),
-        0 12px 0 rgba(0,0,0,.25),
-        0 18px 34px rgba(0,0,0,.34),
-        0 0 34px rgba(245,189,34,.18);
+    .duration-btn{
+      min-height:62px;
+      padding:7px 4px;
+      border:1px solid transparent;
+      border-radius:10px;
+      color:#d9ddd6;
+      background:#3a4944;
+      font-size:.69rem;
+      line-height:1.25;
+      font-weight:1000;
     }
 
-    .result-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(105deg, transparent 0 38%, rgba(255,255,255,.12) 48%, transparent 58%) -145% 0 / 75% 100% no-repeat;
-      animation: sheen 3.2s ease-in-out infinite;
+    .duration-btn small{
+      display:block;
+      margin-top:4px;
+      color:inherit;
+      font-size:.55rem;
+      opacity:.76;
     }
 
-    .result-label,
-    .result-time,
-    .result-sub,
-    .result-note {
-      position: relative;
-      z-index: 1;
+    .duration-btn.active{
+      border-color:#fff8dc;
+      color:#2d210f;
+      background:linear-gradient(180deg,#f1d581,#bc8030);
+      box-shadow:0 4px 0 rgba(0,0,0,.2);
     }
 
-    .result-label {
-      color: #ffffff;
-      font-size: clamp(1rem, 3.4vw, 1.35rem);
-      font-weight: 1000;
+    .save-btn{
+      width:100%;
+      min-height:52px;
+      margin-top:11px;
+      border:2px solid #1c1309;
+      border-radius:14px;
+      color:#fff7df;
+      background:linear-gradient(180deg,#1f5548,#0c3028);
+      box-shadow:0 5px 0 rgba(0,0,0,.23);
+      font-size:.91rem;
+      font-weight:1000;
     }
 
-    .result-time {
-      display: block;
-      margin: 4px auto 5px;
-      color: var(--yellow-light);
-      font-size: clamp(5.2rem, 24vw, 9rem);
-      font-weight: 1000;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -.05em;
-      line-height: .95;
-      text-shadow: 0 8px 0 rgba(0,0,0,.35), 0 0 34px rgba(245,189,34,.30);
-      white-space: nowrap;
+    .save-btn:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 rgba(0,0,0,.23);
     }
 
-    .result-sub {
-      color: #ffffff;
-      font-size: clamp(1.15rem, 4vw, 1.65rem);
-      font-weight: 1000;
+    .current-card{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      padding:10px 12px;
+      border:2px solid rgba(107,76,31,.17);
+      border-radius:14px;
+      color:#665b49;
+      background:rgba(255,252,243,.72);
+      font-size:.7rem;
+      font-weight:900;
     }
 
-    .result-note {
-      margin: 8px 0 0;
-      color: #dce2e7;
-      font-size: clamp(.78rem, 2.4vw, .98rem);
-      font-weight: 800;
+    .current-card time{
+      color:#264c42;
+      font-size:1.22rem;
+      font-weight:1000;
+      font-variant-numeric:tabular-nums;
     }
 
-    .current-strip {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 11px 14px;
-      border: 2px solid rgba(255,255,255,.18);
-      border-radius: 16px;
-      background: rgba(7,10,13,.48);
-      color: #dbe0e4;
-      font-size: clamp(.84rem, 2.6vw, 1rem);
-      font-weight: 900;
+    .rule-note{
+      padding:11px 12px;
+      border-radius:14px;
+      color:#614a2b;
+      background:#fff4d5;
+      border-left:6px solid var(--gold);
+      font-size:.69rem;
+      line-height:1.6;
+      font-weight:850;
     }
 
-    .current-strip time {
-      color: #ffffff;
-      font-size: clamp(1.4rem, 5vw, 2rem);
-      font-weight: 1000;
-      font-variant-numeric: tabular-nums;
+    .toast{
+      position:fixed;
+      z-index:50;
+      left:50%;
+      bottom:max(20px,env(safe-area-inset-bottom));
+      transform:translate(-50%,18px);
+      opacity:0;
+      pointer-events:none;
+      max-width:calc(100vw - 30px);
+      padding:10px 14px;
+      border-radius:999px;
+      color:#fff7df;
+      background:#152b27;
+      box-shadow:var(--shadow);
+      text-align:center;
+      font-size:.76rem;
+      font-weight:950;
+      transition:.2s ease;
     }
 
-    .error-message {
-      margin: 8px 0 0;
-      color: #ffd6d1;
-      text-align: center;
-      font-size: .88rem;
-      font-weight: 900;
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,0);
     }
 
-    @media (max-width: 360px) {
-      .screen { padding-left: 7px; padding-right: 7px; }
-      .panel { padding: 12px 9px; gap: 10px; border-radius: 24px; }
-      .step-card { padding: 12px 9px; }
-      .time-input { min-height: 76px; padding-left: 8px; padding-right: 8px; }
-      .adjust-row { gap: 5px; }
-      .adjust-row button { min-height: 46px; font-size: .78rem; }
-      .result-card { padding-left: 6px; padding-right: 6px; }
+    @media(max-width:370px){
+      .app{padding-left:7px;padding-right:7px}
+      .content{padding-left:9px;padding-right:9px}
+      .hours-item{padding-left:3px;padding-right:3px}
+      .hours-item strong{font-size:.75rem}
+      .time-row{grid-template-columns:60px minmax(0,1fr) 60px;gap:5px}
+      .adjust-btn{font-size:.68rem}
+      .duration-btn{font-size:.63rem}
     }
 
-    @media (max-height: 720px) and (orientation: portrait) {
-      .panel { gap: 8px; padding-top: 10px; padding-bottom: 10px; }
-      .header p { display: none; }
-      .step-card { padding-top: 10px; padding-bottom: 10px; }
-      .step-title { margin-bottom: 8px; }
-      .time-input { min-height: 68px; }
-      .minute-badge { margin-top: 8px; padding-top: 5px; padding-bottom: 5px; }
-      .adjust-row { margin-top: 8px; }
-      .adjust-row button { min-height: 42px; }
-      .duration-wrap { margin-top: 10px; }
-      .result-card { padding-top: 12px; padding-bottom: 14px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .001ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
+    @media(prefers-reduced-motion:reduce){
+      *,*:before,*:after{
+        animation-duration:.01ms!important;
+        animation-iteration-count:1!important;
+        transition-duration:.01ms!important;
       }
-    }
-
-    @keyframes sheen {
-      0%, 55% { background-position: -145% 0; }
-      85%, 100% { background-position: 245% 0; }
     }
   </style>
 </head>
-
 <body>
-  <main class="screen" aria-label="何時まで遊べるかを確認する画面">
-    <div class="panel">
-      <header class="header">
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        ASOBooN 時間ガイド
+        <small>レシートの入場時刻から退場予定を確認</small>
+      </div>
+      <a class="home-link" href="./home.html?mode=inside" aria-label="ミニアプリの館内ホームへ戻る">⌂ ホーム</a>
+    </header>
+
+    <section class="shell">
+      <div class="hero">
         <small>ASOBooN TIME GUIDE</small>
         <h1>何時まであそべる？</h1>
-        <p>入場した時刻を選ぶだけで、お帰り時間をすぐ確認できます</p>
-      </header>
-
-      <section class="step-card" aria-labelledby="entry-title">
-        <h2 class="step-title" id="entry-title">
-          <span class="step-number">1</span>
-          入場した時刻を選ぶ
-        </h2>
-
-        <div class="time-input-wrap">
-          <input
-            class="time-input"
-            id="entry-time"
-            type="time"
-            step="60"
-            inputmode="numeric"
-            aria-label="入場した時刻"
-          />
-        </div>
-
-        <div class="minute-badge">分は <strong>1分単位</strong> で選べます</div>
-        <p class="error-message" id="error-message" hidden>時刻を選んでください</p>
-
-        <div class="adjust-row" aria-label="入場時刻の微調整">
-          <button type="button" id="minus-minute">−1分</button>
-          <button type="button" id="plus-minute">＋1分</button>
-          <button type="button" class="now-button" id="set-now">現在時刻</button>
-        </div>
-
-        <div class="duration-wrap">
-          <div class="duration-label">利用時間</div>
-          <div class="duration-switch" role="group" aria-label="利用時間を選択">
-            <button type="button" data-minutes="150" aria-pressed="true">2時間30分</button>
-            <button type="button" data-minutes="180" aria-pressed="false">3時間</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="result-card" aria-live="polite" aria-labelledby="result-title">
-        <div class="result-label" id="result-title">お帰り時間</div>
-        <time class="result-time" id="leave-time">--:--</time>
-        <div class="result-sub">まで遊べます</div>
-        <p class="result-note" id="result-note">入場時刻を選ぶと自動で計算します</p>
-      </section>
-
-      <div class="current-strip" aria-live="off">
-        <span>いまの時刻</span>
-        <time id="current-time">--:--</time>
+        <p>営業時間は10:00から。利用時間と閉館時刻の、早い方を退場予定として表示します。</p>
       </div>
-    </div>
+
+      <div class="content">
+        <section class="hours-strip" aria-label="営業時間の確認">
+          <div class="hours-item">
+            <span>営業開始</span>
+            <strong>10:00</strong>
+          </div>
+          <div class="hours-item">
+            <span>2時間30分の日</span>
+            <strong>18:00閉館</strong>
+          </div>
+          <div class="hours-item">
+            <span>3時間・無制限</span>
+            <strong>17:00閉館</strong>
+          </div>
+        </section>
+
+        <section class="result-card" id="resultCard" aria-live="polite">
+          <span class="result-kicker">🧭 お帰り時間</span>
+          <time class="leave-time" id="leaveTime">--:--</time>
+          <span class="leave-caption" id="leaveCaption">まで遊べます</span>
+          <span class="remaining" id="remainingTime">入場時刻を入力してください</span>
+          <p class="result-note" id="resultNote">レシートの時刻を1分単位で入力できます</p>
+        </section>
+
+        <section class="form-card">
+          <div class="field-head">
+            <strong>レシートの入場時刻</strong>
+            <span>1分単位</span>
+          </div>
+          <p class="field-help">最初のお会計時点から利用時間が始まります。レシートの時刻をそのまま入力してください。</p>
+
+          <div class="time-row">
+            <button class="adjust-btn" id="minusMinute" type="button" aria-label="入場時刻を1分戻す">−1分</button>
+            <input class="time-input" id="entryTime" type="time" min="10:00" max="17:59" step="60" inputmode="numeric" aria-label="レシートの入場時刻">
+            <button class="adjust-btn" id="plusMinute" type="button" aria-label="入場時刻を1分進める">＋1分</button>
+          </div>
+
+          <button class="now-btn" id="setNow" type="button">🕒 現在時刻を入力</button>
+
+          <div class="field-head duration-title">
+            <strong>本日の利用時間</strong>
+            <span>閉館時刻も自動反映</span>
+          </div>
+
+          <div class="duration-grid" role="group" aria-label="本日の利用時間を選択">
+            <button class="duration-btn active" type="button" data-duration="150">
+              2時間30分
+              <small>閉館18:00</small>
+            </button>
+            <button class="duration-btn" type="button" data-duration="180">
+              3時間
+              <small>閉館17:00</small>
+            </button>
+            <button class="duration-btn" type="button" data-duration="0">
+              時間制限なし
+              <small>閉館17:00</small>
+            </button>
+          </div>
+
+          <button class="save-btn" id="saveButton" type="button">この時間をミニアプリに保存</button>
+        </section>
+
+        <div class="current-card">
+          <span>現在時刻</span>
+          <time id="currentTime">--:--</time>
+        </div>
+
+        <div class="rule-note">
+          ※終了時刻は「入場時刻＋利用時間」と「当日の閉館時刻」の早い方です。一時退場中も利用時間は進みます。最終的な退場時刻は受付時の案内をご確認ください。
+        </div>
+      </div>
+    </section>
   </main>
+
+  <div class="toast" id="toast"></div>
 
   <script>
     (() => {
       "use strict";
 
-      const DURATION_STORAGE_KEY = "asoboon-guide-duration";
-      const ENTRY_STORAGE_KEY = "asoboon-guide-entry-time";
+      const STORAGE_KEY = "asoboon-adventure-time";
+      const OPEN_MINUTES = 10 * 60;
+      const VALID_DURATIONS = [0, 150, 180];
 
-      const entryTime = document.getElementById("entry-time");
-      const leaveTime = document.getElementById("leave-time");
-      const currentTime = document.getElementById("current-time");
-      const resultNote = document.getElementById("result-note");
-      const errorMessage = document.getElementById("error-message");
-      const minusMinute = document.getElementById("minus-minute");
-      const plusMinute = document.getElementById("plus-minute");
-      const setNowButton = document.getElementById("set-now");
-      const durationButtons = [...document.querySelectorAll(".duration-switch button")];
+      const entryTime = document.getElementById("entryTime");
+      const leaveTime = document.getElementById("leaveTime");
+      const leaveCaption = document.getElementById("leaveCaption");
+      const remainingTime = document.getElementById("remainingTime");
+      const resultNote = document.getElementById("resultNote");
+      const resultCard = document.getElementById("resultCard");
+      const currentTime = document.getElementById("currentTime");
+      const toast = document.getElementById("toast");
+      const durationButtons = [...document.querySelectorAll(".duration-btn")];
 
-      let durationMinutes = 150;
+      let selectedDuration = 150;
+      let toastTimer = 0;
 
-      const pad = (number) => String(number).padStart(2, "0");
-      const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-      const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
+      const pad = value => String(value).padStart(2, "0");
+      const formatDateKey = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      const formatClock = date => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      const durationLabel = value => value === 0 ? "時間制限なし" : value === 180 ? "3時間" : "2時間30分";
+      const closingMinutes = value => value === 150 ? 18 * 60 : 17 * 60;
+      const closingLabel = value => value === 150 ? "18:00" : "17:00";
 
-      function safeSave(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch (error) {
-          console.warn("設定を保存できませんでした。", error);
-        }
+      function notify(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
       }
 
-      function safeRead(key) {
+      function safeRead() {
         try {
-          return localStorage.getItem(key);
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
         } catch (error) {
-          console.warn("設定を読み込めませんでした。", error);
           return null;
         }
       }
 
-      function isValidTime(value) {
-        const match = String(value || "").match(/^(\d{2}):(\d{2})$/);
-        if (!match) return false;
-        const hour = Number(match[1]);
-        const minute = Number(match[2]);
-        return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+      function safeWrite(payload) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+          return true;
+        } catch (error) {
+          return false;
+        }
       }
 
       function parseTime(value) {
-        if (!isValidTime(value)) return null;
-        const [hour, minute] = value.split(":").map(Number);
-        const date = new Date();
-        date.setHours(hour, minute, 0, 0);
-        return date;
+        const match = /^(\d{2}):(\d{2})$/.exec(String(value || ""));
+        if (!match) return null;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour > 23 || minute > 59) return null;
+        return { hour, minute, total: hour * 60 + minute };
       }
 
-      function readInitialDuration() {
-        const queryValue = Number(new URLSearchParams(location.search).get("minutes"));
-        if (queryValue === 150 || queryValue === 180) return queryValue;
-
-        const stored = Number(safeRead(DURATION_STORAGE_KEY));
-        return stored === 180 ? 180 : 150;
+      function maxEntryMinutes() {
+        return closingMinutes(selectedDuration) - 1;
       }
 
-      function readInitialEntryTime() {
-        const queryValue = new URLSearchParams(location.search).get("entry");
-        if (isValidTime(queryValue)) return queryValue;
-
-        const stored = safeRead(ENTRY_STORAGE_KEY);
-        if (isValidTime(stored)) return stored;
-
-        return formatTime(new Date());
+      function clampEntry(total) {
+        return Math.max(OPEN_MINUTES, Math.min(maxEntryMinutes(), total));
       }
 
-      function updateResult() {
-        const entry = parseTime(entryTime.value);
-        if (!entry) {
-          leaveTime.textContent = "--:--";
-          leaveTime.removeAttribute("datetime");
-          resultNote.textContent = "入場時刻を選ぶと自動で計算します";
-          errorMessage.hidden = false;
+      function minutesToText(total) {
+        const clamped = clampEntry(total);
+        return `${pad(Math.floor(clamped / 60))}:${pad(clamped % 60)}`;
+      }
+
+      function currentEntryValue() {
+        const parsed = parseTime(entryTime.value);
+        if (parsed && parsed.total >= OPEN_MINUTES && parsed.total <= maxEntryMinutes()) {
+          return parsed;
+        }
+        const now = new Date();
+        return parseTime(minutesToText(now.getHours() * 60 + now.getMinutes()));
+      }
+
+      function setDuration(value) {
+        selectedDuration = VALID_DURATIONS.includes(value) ? value : 150;
+        entryTime.max = minutesToText(maxEntryMinutes());
+
+        durationButtons.forEach(button => {
+          button.classList.toggle("active", Number(button.dataset.duration) === selectedDuration);
+        });
+
+        const parsed = parseTime(entryTime.value);
+        if (parsed && parsed.total > maxEntryMinutes()) {
+          entryTime.value = minutesToText(maxEntryMinutes());
+        }
+
+        render();
+      }
+
+      function setCurrentTime() {
+        const now = new Date();
+        entryTime.value = minutesToText(now.getHours() * 60 + now.getMinutes());
+        render();
+        notify("現在時刻を入力しました");
+      }
+
+      function adjustTime(delta) {
+        const parsed = currentEntryValue();
+        entryTime.value = minutesToText(parsed.total + delta);
+        render();
+      }
+
+      function getSchedule() {
+        const parsed = parseTime(entryTime.value);
+        if (!parsed) return { error: "入場時刻を入力してください" };
+
+        const closeTotal = closingMinutes(selectedDuration);
+        if (parsed.total < OPEN_MINUTES) return { error: "営業開始は10:00です" };
+        if (parsed.total >= closeTotal) return { error: `${closingLabel(selectedDuration)}が閉館時刻です` };
+
+        const now = new Date();
+        const entry = new Date(now);
+        entry.setHours(parsed.hour, parsed.minute, 0, 0);
+
+        const closing = new Date(now);
+        closing.setHours(Math.floor(closeTotal / 60), closeTotal % 60, 0, 0);
+
+        if (entry.getTime() - now.getTime() > 60000) {
+          return { error: "現在より後の入場時刻が入力されています", entry, closing };
+        }
+
+        if (selectedDuration === 0) {
+          return { entry, end: closing, closing, capped: true };
+        }
+
+        const naturalEnd = new Date(entry.getTime() + selectedDuration * 60000);
+        const capped = naturalEnd > closing;
+        return { entry, end: capped ? closing : naturalEnd, closing, capped };
+      }
+
+      function render() {
+        const schedule = getSchedule();
+        resultCard.classList.toggle("error", Boolean(schedule.error));
+
+        if (schedule.error) {
+          leaveTime.textContent = "時刻を確認";
+          leaveCaption.textContent = schedule.error;
+          remainingTime.textContent = "レシートの入場時刻を確認してください";
+          resultNote.textContent = `本日の閉館時刻は${closingLabel(selectedDuration)}です`;
           return;
         }
 
-        errorMessage.hidden = true;
-        const leave = new Date(entry.getTime() + durationMinutes * 60 * 1000);
-        const entryText = formatTime(entry);
-        const leaveText = formatTime(leave);
-        const crossesDay = leave.getDate() !== entry.getDate();
-
-        leaveTime.textContent = leaveText;
-        leaveTime.setAttribute("datetime", leaveText);
-        leaveTime.setAttribute("aria-label", `${leaveText}まで遊べます`);
-        resultNote.textContent = `${entryText}入場・${durationText(durationMinutes)}利用${crossesDay ? "（翌日）" : ""}`;
-        safeSave(ENTRY_STORAGE_KEY, entryText);
-      }
-
-      function setEntryFromDate(date) {
-        entryTime.value = formatTime(date);
-        updateResult();
-      }
-
-      function shiftEntryTime(deltaMinutes) {
-        const base = parseTime(entryTime.value) || new Date();
-        base.setMinutes(base.getMinutes() + deltaMinutes);
-        setEntryFromDate(base);
-      }
-
-      function setDuration(minutes) {
-        durationMinutes = minutes === 180 ? 180 : 150;
-        safeSave(DURATION_STORAGE_KEY, String(durationMinutes));
-
-        durationButtons.forEach((button) => {
-          button.setAttribute(
-            "aria-pressed",
-            String(Number(button.dataset.minutes) === durationMinutes)
-          );
-        });
-
-        updateResult();
-      }
-
-      function updateCurrentTime() {
         const now = new Date();
-        currentTime.textContent = formatTime(now);
-        currentTime.setAttribute("datetime", now.toISOString());
+        const remaining = Math.ceil((schedule.end - now) / 60000);
+        leaveTime.textContent = formatClock(schedule.end);
+        leaveCaption.textContent = "まで遊べます";
+
+        if (remaining > 0) {
+          const hours = Math.floor(remaining / 60);
+          const minutes = remaining % 60;
+          remainingTime.textContent = hours > 0 ? `あと ${hours}時間${minutes}分` : `あと ${minutes}分`;
+        } else {
+          remainingTime.textContent = "終了予定時刻を過ぎています";
+        }
+
+        if (selectedDuration === 0) {
+          resultNote.textContent = `時間制限なし・本日は${formatClock(schedule.closing)}閉館です`;
+        } else if (schedule.capped) {
+          resultNote.textContent = `利用時間より閉館時刻が先のため、${formatClock(schedule.closing)}までです`;
+        } else {
+          resultNote.textContent = `${durationLabel(selectedDuration)}利用・本日は${formatClock(schedule.closing)}閉館です`;
+        }
       }
 
-      entryTime.addEventListener("input", updateResult);
-      entryTime.addEventListener("change", updateResult);
-      minusMinute.addEventListener("click", () => shiftEntryTime(-1));
-      plusMinute.addEventListener("click", () => shiftEntryTime(1));
-      setNowButton.addEventListener("click", () => setEntryFromDate(new Date()));
+      function save() {
+        const schedule = getSchedule();
+        if (schedule.error) {
+          notify("入場時刻を確認してください");
+          return;
+        }
 
-      durationButtons.forEach((button) => {
-        button.addEventListener("click", () => setDuration(Number(button.dataset.minutes)));
+        const remaining = Math.ceil((schedule.end - new Date()) / 60000);
+        const main = remaining > 0
+          ? (Math.floor(remaining / 60) > 0
+              ? `あと ${Math.floor(remaining / 60)}時間${remaining % 60}分`
+              : `あと ${remaining}分`)
+          : "終了予定時刻を過ぎています";
+
+        const payload = {
+          start: entryTime.value,
+          duration: selectedDuration,
+          main,
+          sub: `${formatClock(schedule.end)}まで遊べます`,
+          date: formatDateKey()
+        };
+
+        if (safeWrite(payload)) {
+          notify("ミニアプリに保存しました");
+        } else {
+          notify("保存できませんでした");
+        }
+      }
+
+      function restore() {
+        const params = new URLSearchParams(location.search);
+        const queryDuration = Number(params.get("minutes"));
+        const queryEntry = params.get("entry");
+        const saved = safeRead();
+
+        if (VALID_DURATIONS.includes(queryDuration)) {
+          selectedDuration = queryDuration;
+        } else if (saved && saved.date === formatDateKey() && VALID_DURATIONS.includes(Number(saved.duration))) {
+          selectedDuration = Number(saved.duration);
+        }
+
+        setDuration(selectedDuration);
+
+        if (queryEntry && parseTime(queryEntry)) {
+          entryTime.value = queryEntry;
+        } else if (saved && saved.date === formatDateKey() && parseTime(saved.start)) {
+          entryTime.value = saved.start;
+        } else {
+          const now = new Date();
+          entryTime.value = minutesToText(now.getHours() * 60 + now.getMinutes());
+        }
+
+        const parsed = parseTime(entryTime.value);
+        if (!parsed || parsed.total < OPEN_MINUTES || parsed.total > maxEntryMinutes()) {
+          const now = new Date();
+          entryTime.value = minutesToText(now.getHours() * 60 + now.getMinutes());
+        }
+
+        render();
+      }
+
+      durationButtons.forEach(button => {
+        button.addEventListener("click", () => setDuration(Number(button.dataset.duration)));
       });
 
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) updateCurrentTime();
-      });
+      entryTime.addEventListener("input", render);
+      entryTime.addEventListener("change", render);
+      document.getElementById("minusMinute").addEventListener("click", () => adjustTime(-1));
+      document.getElementById("plusMinute").addEventListener("click", () => adjustTime(1));
+      document.getElementById("setNow").addEventListener("click", setCurrentTime);
+      document.getElementById("saveButton").addEventListener("click", save);
 
-      durationMinutes = readInitialDuration();
-      entryTime.value = readInitialEntryTime();
-      setDuration(durationMinutes);
-      updateCurrentTime();
-      setInterval(updateCurrentTime, 1000);
+      function tick() {
+        const now = new Date();
+        currentTime.textContent = formatClock(now);
+        currentTime.dateTime = now.toISOString();
+        render();
+      }
+
+      restore();
+      tick();
+      setInterval(tick, 1000);
     })();
   </script>
 </body>
