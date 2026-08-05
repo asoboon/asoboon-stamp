@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
   />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,10 +15,12 @@
     :root {
       --yellow: #f5bd22;
       --yellow-light: #ffe16d;
+      --orange: #f27a24;
       --red: #d94236;
       --ink: #171a1d;
-      --steel: #454d55;
+      --panel: #242b32;
       --white: #ffffff;
+      --muted: #d9e0e5;
       --safe-top: max(24px, env(safe-area-inset-top));
       --safe-bottom: max(24px, env(safe-area-inset-bottom));
     }
@@ -40,33 +42,32 @@
       overscroll-behavior: none;
     }
 
-    button, select {
+    button,
+    input {
       font: inherit;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
 
     button:focus-visible,
-    select:focus-visible {
+    input:focus-visible {
       outline: 4px solid #ffffff;
       outline-offset: 3px;
     }
 
-    [hidden] { display: none !important; }
-
-    .clock-screen {
+    .screen {
       min-height: 100vh;
       min-height: 100dvh;
-      padding: var(--safe-top) 14px var(--safe-bottom);
+      padding: var(--safe-top) 12px var(--safe-bottom);
       background:
-        radial-gradient(circle at 50% -10%, rgba(245, 189, 34, .30), transparent 31%),
-        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0 / 72px 72px,
-        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 72px 72px,
+        radial-gradient(circle at 50% -8%, rgba(245, 189, 34, .34), transparent 31%),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 64px 64px,
+        linear-gradient(0deg, rgba(255,255,255,.03) 1px, transparent 1px) 0 0 / 64px 64px,
         linear-gradient(180deg, #3d454d 0%, #222930 44%, #101419 100%);
     }
 
-    .clock-screen::before,
-    .clock-screen::after {
+    .screen::before,
+    .screen::after {
       content: "";
       position: fixed;
       left: 0;
@@ -78,17 +79,15 @@
       pointer-events: none;
     }
 
-    .clock-screen::before { top: 0; }
-    .clock-screen::after { bottom: 0; transform: rotate(180deg); }
+    .screen::before { top: 0; }
+    .screen::after { bottom: 0; transform: rotate(180deg); }
 
     .panel {
-      width: min(100%, 760px);
-      min-height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
+      width: min(100%, 680px);
       margin: 0 auto;
       display: grid;
-      align-content: start;
-      gap: 12px;
-      padding: clamp(16px, 2.4vw, 26px);
+      gap: 14px;
+      padding: clamp(15px, 3vw, 26px);
       border: 5px solid #0d1013;
       border-radius: 30px;
       background:
@@ -100,116 +99,129 @@
         0 30px 60px rgba(0,0,0,.42);
     }
 
-    .header {
-      text-align: center;
-    }
+    .header { text-align: center; }
 
     .header small {
       display: block;
       color: var(--yellow);
-      font-size: clamp(.68rem, 1.8vw, .88rem);
+      font-size: clamp(.68rem, 1.8vw, .86rem);
       font-weight: 900;
       letter-spacing: .16em;
     }
 
     .header h1 {
-      margin: 4px 0 3px;
-      font-size: clamp(1.8rem, 6vw, 3rem);
+      margin: 4px 0 4px;
+      font-size: clamp(1.85rem, 7vw, 3rem);
       line-height: 1.05;
       font-weight: 1000;
     }
 
     .header p {
       margin: 0;
-      color: #dce2e7;
-      font-size: clamp(.88rem, 2.6vw, 1.08rem);
+      color: var(--muted);
+      font-size: clamp(.88rem, 2.8vw, 1.05rem);
       font-weight: 800;
       line-height: 1.45;
     }
 
-    .time-input-card {
-      padding: 14px;
-      border: 3px solid rgba(255,255,255,.18);
+    .step-card {
+      padding: 15px;
+      border: 3px solid rgba(255,255,255,.16);
       border-radius: 24px;
-      background: rgba(8,11,15,.72);
+      background: rgba(8,11,15,.74);
       box-shadow: inset 0 0 0 2px rgba(255,255,255,.04), 0 12px 24px rgba(0,0,0,.22);
     }
 
-    .input-title {
-      margin: 0 0 10px;
-      text-align: center;
+    .step-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 0 0 12px;
       color: var(--yellow-light);
-      font-size: clamp(1.05rem, 3.4vw, 1.35rem);
+      font-size: clamp(1.05rem, 3.6vw, 1.4rem);
       font-weight: 1000;
     }
 
-    .time-picker {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      align-items: center;
-      gap: 8px;
-      width: min(100%, 520px);
+    .step-number {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--yellow);
+      color: var(--ink);
+      font-size: .95rem;
+      box-shadow: 0 4px 0 rgba(0,0,0,.25);
+    }
+
+    .time-input-wrap {
+      position: relative;
+      width: min(100%, 440px);
       margin: 0 auto;
     }
 
-    .picker-field {
-      display: grid;
-      gap: 5px;
-      min-width: 0;
-    }
-
-    .picker-field label {
-      color: #d9e0e5;
+    .time-input-wrap::after {
+      content: "タップして時刻を選ぶ";
+      display: block;
+      margin-top: 8px;
+      color: #ffffff;
       text-align: center;
-      font-size: .8rem;
+      font-size: clamp(.78rem, 2.5vw, .95rem);
       font-weight: 900;
     }
 
-    .picker-field select {
+    .time-input {
+      display: block;
       width: 100%;
-      min-height: 72px;
-      border: 4px solid #111418;
-      border-radius: 18px;
-      appearance: auto;
+      min-height: 88px;
+      padding: 8px 18px;
+      border: 5px solid #111418;
+      border-radius: 22px;
       background: linear-gradient(180deg, #ffffff, #dfe4e8);
       color: var(--ink);
       text-align: center;
-      text-align-last: center;
-      font-size: clamp(2rem, 9vw, 4rem);
+      font-size: clamp(2.7rem, 14vw, 5rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
-      box-shadow: 0 7px 0 rgba(0,0,0,.28);
+      letter-spacing: .02em;
+      box-shadow: 0 8px 0 rgba(0,0,0,.30), 0 14px 26px rgba(0,0,0,.20);
       cursor: pointer;
     }
 
-    .picker-colon {
-      margin-top: 22px;
-      color: var(--yellow-light);
-      font-size: clamp(2.3rem, 8vw, 4rem);
-      font-weight: 1000;
-      line-height: 1;
+    .time-input::-webkit-calendar-picker-indicator {
+      width: 34px;
+      height: 34px;
+      padding: 8px;
+      border-radius: 50%;
+      background-color: var(--yellow);
+      cursor: pointer;
     }
 
-    .minute-note {
-      margin: 10px 0 0;
-      text-align: center;
+    .minute-badge {
+      width: fit-content;
+      margin: 12px auto 0;
+      padding: 7px 13px;
+      border: 2px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      background: #2f3740;
       color: #ffffff;
-      font-size: clamp(.82rem, 2.5vw, 1rem);
+      font-size: clamp(.82rem, 2.6vw, .98rem);
       font-weight: 900;
     }
 
-    .minute-note strong { color: var(--yellow-light); }
+    .minute-badge strong { color: var(--yellow-light); }
 
     .adjust-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1.25fr;
       gap: 8px;
-      width: min(100%, 520px);
-      margin: 11px auto 0;
+      width: min(100%, 480px);
+      margin: 12px auto 0;
     }
 
     .adjust-row button {
-      min-height: 48px;
+      min-height: 50px;
       border: 2px solid rgba(255,255,255,.26);
       border-radius: 14px;
       background: linear-gradient(180deg, #4b545d, #2b3239);
@@ -226,15 +238,58 @@
     }
 
     .adjust-row .now-button {
+      border-color: #ffffff;
       background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
       color: var(--ink);
-      border-color: #ffffff;
+    }
+
+    .duration-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      margin-top: 14px;
+    }
+
+    .duration-label {
+      color: rgba(255,255,255,.72);
+      font-size: .78rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .duration-switch {
+      width: min(100%, 360px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 13px;
+      background: rgba(7,10,13,.58);
+    }
+
+    .duration-switch button {
+      min-height: 44px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: #dce1e5;
+      background: #343b42;
+      font-size: .9rem;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    .duration-switch button[aria-pressed="true"] {
+      color: var(--ink);
+      border-color: #fff;
+      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
+      box-shadow: 0 4px 0 rgba(0,0,0,.24);
     }
 
     .result-card {
       position: relative;
       overflow: hidden;
-      padding: clamp(16px, 3vw, 24px);
+      padding: clamp(18px, 4vw, 28px) 12px;
       border: 5px solid var(--yellow-light);
       border-radius: 28px;
       background:
@@ -259,22 +314,23 @@
 
     .result-label,
     .result-time,
-    .result-sub {
+    .result-sub,
+    .result-note {
       position: relative;
       z-index: 1;
     }
 
     .result-label {
       color: #ffffff;
-      font-size: clamp(1rem, 3.3vw, 1.35rem);
+      font-size: clamp(1rem, 3.4vw, 1.35rem);
       font-weight: 1000;
     }
 
     .result-time {
       display: block;
-      margin: 3px auto 4px;
+      margin: 4px auto 5px;
       color: var(--yellow-light);
-      font-size: clamp(5rem, 23vw, 10rem);
+      font-size: clamp(5.2rem, 24vw, 9rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
       letter-spacing: -.05em;
@@ -285,184 +341,67 @@
 
     .result-sub {
       color: #ffffff;
-      font-size: clamp(1.1rem, 4vw, 1.65rem);
+      font-size: clamp(1.15rem, 4vw, 1.65rem);
       font-weight: 1000;
     }
 
     .result-note {
-      position: relative;
-      z-index: 1;
-      margin: 7px 0 0;
+      margin: 8px 0 0;
       color: #dce2e7;
-      font-size: clamp(.78rem, 2.3vw, .98rem);
+      font-size: clamp(.78rem, 2.4vw, .98rem);
       font-weight: 800;
     }
 
-    .now-card {
-      display: grid;
-      grid-template-columns: auto auto;
+    .current-strip {
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
-      width: min(100%, 520px);
-      margin: 0 auto;
-      padding: 10px 17px;
-      border: 2px solid rgba(255,255,255,.22);
-      border-radius: 18px;
-      background: rgba(7,10,13,.55);
-    }
-
-    .now-card__digital { text-align: center; }
-    .now-card__digital span {
-      display: block;
+      gap: 10px;
+      padding: 11px 14px;
+      border: 2px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      background: rgba(7,10,13,.48);
       color: #dbe0e4;
-      font-size: .9rem;
+      font-size: clamp(.84rem, 2.6vw, 1rem);
       font-weight: 900;
     }
 
-    .now-card__digital time {
-      display: block;
-      margin-top: 2px;
+    .current-strip time {
       color: #ffffff;
-      font-size: clamp(2.4rem, 8vw, 3.8rem);
+      font-size: clamp(1.4rem, 5vw, 2rem);
       font-weight: 1000;
       font-variant-numeric: tabular-nums;
-      line-height: .95;
-      white-space: nowrap;
     }
 
-    .analog-clock {
-      position: relative;
-      width: clamp(76px, 15vw, 100px);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: radial-gradient(circle, #fbfbfb 0 58%, #eef1f3 58% 100%);
-      box-shadow: inset 0 0 0 3px #1d2228, inset 0 0 0 8px rgba(255,255,255,.48), 0 6px 14px rgba(0,0,0,.26);
-      overflow: hidden;
-    }
-
-    .analog-clock::before {
-      content: "";
-      position: absolute;
-      inset: 7px;
-      border-radius: 50%;
-      background: repeating-conic-gradient(from -90deg, #21262c 0deg 2deg, transparent 2deg 30deg);
-      opacity: .75;
-    }
-
-    .analog-clock__hand {
-      position: absolute;
-      left: 50%;
-      bottom: 50%;
-      transform-origin: 50% 100%;
-      transform: translateX(-50%) rotate(0deg);
-      border-radius: 999px;
-      z-index: 2;
-    }
-
-    .analog-clock__hand--hour { height: 23px; width: 6px; background: #1c2127; }
-    .analog-clock__hand--minute { height: 31px; width: 4px; background: #2b3138; }
-    .analog-clock__hand--second { height: 35px; width: 2px; background: var(--red); }
-
-    .analog-clock__center {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--red);
-      transform: translate(-50%, -50%);
-      z-index: 3;
-      box-shadow: 0 0 0 3px #fff;
-    }
-
-    .switch-wrap {
-      display: grid;
-      justify-items: center;
-      gap: 4px;
-    }
-
-    .switch-label {
-      color: rgba(255,255,255,.72);
-      font-size: .78rem;
-      font-weight: 900;
-      letter-spacing: .08em;
-    }
-
-    .switch {
-      width: min(100%, 360px);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 5px;
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 13px;
-      background: rgba(7,10,13,.58);
-    }
-
-    .switch button {
-      min-height: 42px;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      color: #dce1e5;
-      background: #343b42;
+    .error-message {
+      margin: 8px 0 0;
+      color: #ffd6d1;
+      text-align: center;
       font-size: .88rem;
-      font-weight: 1000;
-      cursor: pointer;
-    }
-
-    .switch button[aria-pressed="true"] {
-      color: var(--ink);
-      border-color: #fff;
-      background: linear-gradient(180deg, var(--yellow-light), var(--yellow));
-      box-shadow: 0 4px 0 rgba(0,0,0,.24);
-    }
-
-    .rotate-message { display: none; }
-
-    @media (orientation: landscape) {
-      .panel { display: none; }
-      .clock-screen { display: grid; place-items: center; }
-      .rotate-message {
-        display: grid;
-        place-items: center;
-        width: min(86vw, 680px);
-        min-height: 54vh;
-        padding: 40px;
-        border: 5px solid var(--yellow);
-        border-radius: 28px;
-        background: #22282e;
-        color: #fff;
-        text-align: center;
-        font-size: clamp(1.5rem, 4vw, 2.5rem);
-        font-weight: 1000;
-        line-height: 1.5;
-      }
+      font-weight: 900;
     }
 
     @media (max-width: 360px) {
-      .clock-screen { padding-left: 8px; padding-right: 8px; }
-      .panel { padding: 12px 10px; gap: 9px; border-radius: 24px; }
-      .time-input-card { padding: 11px 9px; }
-      .picker-field select { min-height: 62px; }
+      .screen { padding-left: 7px; padding-right: 7px; }
+      .panel { padding: 12px 9px; gap: 10px; border-radius: 24px; }
+      .step-card { padding: 12px 9px; }
+      .time-input { min-height: 76px; padding-left: 8px; padding-right: 8px; }
       .adjust-row { gap: 5px; }
-      .adjust-row button { min-height: 44px; font-size: .78rem; }
-      .result-card { padding: 14px 8px; }
-      .now-card { gap: 10px; }
+      .adjust-row button { min-height: 46px; font-size: .78rem; }
+      .result-card { padding-left: 6px; padding-right: 6px; }
     }
 
-    @media (max-height: 760px) and (orientation: portrait) {
+    @media (max-height: 720px) and (orientation: portrait) {
       .panel { gap: 8px; padding-top: 10px; padding-bottom: 10px; }
       .header p { display: none; }
-      .time-input-card { padding-top: 9px; padding-bottom: 9px; }
-      .picker-field select { min-height: 58px; }
-      .minute-note { margin-top: 6px; }
-      .adjust-row { margin-top: 7px; }
-      .adjust-row button { min-height: 40px; }
-      .result-card { padding-top: 10px; padding-bottom: 12px; }
-      .now-card { padding-top: 7px; padding-bottom: 7px; }
-      .switch button { min-height: 38px; }
+      .step-card { padding-top: 10px; padding-bottom: 10px; }
+      .step-title { margin-bottom: 8px; }
+      .time-input { min-height: 68px; }
+      .minute-badge { margin-top: 8px; padding-top: 5px; padding-bottom: 5px; }
+      .adjust-row { margin-top: 8px; }
+      .adjust-row button { min-height: 42px; }
+      .duration-wrap { margin-top: 10px; }
+      .result-card { padding-top: 12px; padding-bottom: 14px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -481,156 +420,85 @@
 </head>
 
 <body>
-  <section class="clock-screen" id="clock-screen" aria-label="何時まであそべるかのご案内">
+  <main class="screen" aria-label="何時まで遊べるかを確認する画面">
     <div class="panel">
       <header class="header">
         <small>ASOBooN TIME GUIDE</small>
         <h1>何時まであそべる？</h1>
-        <p>入場した時刻を、1分単位で選んでください</p>
+        <p>入場した時刻を選ぶだけで、お帰り時間をすぐ確認できます</p>
       </header>
 
-      <section class="time-input-card" aria-labelledby="input-title">
-        <h2 class="input-title" id="input-title">入場した時刻</h2>
+      <section class="step-card" aria-labelledby="entry-title">
+        <h2 class="step-title" id="entry-title">
+          <span class="step-number">1</span>
+          入場した時刻を選ぶ
+        </h2>
 
-        <div class="time-picker">
-          <div class="picker-field">
-            <label for="entry-hour">時</label>
-            <select id="entry-hour" aria-label="入場時刻の時"></select>
-          </div>
-
-          <div class="picker-colon" aria-hidden="true">:</div>
-
-          <div class="picker-field">
-            <label for="entry-minute">分</label>
-            <select id="entry-minute" aria-label="入場時刻の分"></select>
-          </div>
+        <div class="time-input-wrap">
+          <input
+            class="time-input"
+            id="entry-time"
+            type="time"
+            step="60"
+            inputmode="numeric"
+            aria-label="入場した時刻"
+          />
         </div>
 
-        <p class="minute-note">分は <strong>00〜59まで、1分ずつ</strong> 選べます</p>
+        <div class="minute-badge">分は <strong>1分単位</strong> で選べます</div>
+        <p class="error-message" id="error-message" hidden>時刻を選んでください</p>
 
         <div class="adjust-row" aria-label="入場時刻の微調整">
           <button type="button" id="minus-minute">−1分</button>
           <button type="button" id="plus-minute">＋1分</button>
           <button type="button" class="now-button" id="set-now">現在時刻</button>
         </div>
+
+        <div class="duration-wrap">
+          <div class="duration-label">利用時間</div>
+          <div class="duration-switch" role="group" aria-label="利用時間を選択">
+            <button type="button" data-minutes="150" aria-pressed="true">2時間30分</button>
+            <button type="button" data-minutes="180" aria-pressed="false">3時間</button>
+          </div>
+        </div>
       </section>
 
-      <section class="result-card" aria-live="polite">
-        <div class="result-label">あなたのお帰り時間</div>
+      <section class="result-card" aria-live="polite" aria-labelledby="result-title">
+        <div class="result-label" id="result-title">お帰り時間</div>
         <time class="result-time" id="leave-time">--:--</time>
         <div class="result-sub">まで遊べます</div>
-        <p class="result-note" id="result-note">利用時間2時間30分で計算しています</p>
+        <p class="result-note" id="result-note">入場時刻を選ぶと自動で計算します</p>
       </section>
 
-      <section class="now-card" aria-label="現在時刻">
-        <div class="now-card__digital">
-          <span>現在時刻</span>
-          <time id="current-time">--:--</time>
-        </div>
-        <div class="analog-clock" aria-hidden="true">
-          <div class="analog-clock__hand analog-clock__hand--hour" id="analog-hour"></div>
-          <div class="analog-clock__hand analog-clock__hand--minute" id="analog-minute"></div>
-          <div class="analog-clock__hand analog-clock__hand--second" id="analog-second"></div>
-          <div class="analog-clock__center"></div>
-        </div>
-      </section>
-
-      <div class="switch-wrap">
-        <div class="switch-label">利用時間の設定</div>
-        <div class="switch" role="group" aria-label="利用時間を選択">
-          <button type="button" data-minutes="150" aria-pressed="true">2時間30分</button>
-          <button type="button" data-minutes="180" aria-pressed="false">3時間</button>
-        </div>
+      <div class="current-strip" aria-live="off">
+        <span>いまの時刻</span>
+        <time id="current-time">--:--</time>
       </div>
     </div>
-
-    <div class="rotate-message">
-      iPadを縦向きにして<br />ご利用ください
-    </div>
-  </section>
+  </main>
 
   <script>
     (() => {
+      "use strict";
+
       const DURATION_STORAGE_KEY = "asoboon-guide-duration";
       const ENTRY_STORAGE_KEY = "asoboon-guide-entry-time";
 
-      const currentTime = document.getElementById("current-time");
+      const entryTime = document.getElementById("entry-time");
       const leaveTime = document.getElementById("leave-time");
+      const currentTime = document.getElementById("current-time");
       const resultNote = document.getElementById("result-note");
-      const entryHour = document.getElementById("entry-hour");
-      const entryMinute = document.getElementById("entry-minute");
+      const errorMessage = document.getElementById("error-message");
       const minusMinute = document.getElementById("minus-minute");
       const plusMinute = document.getElementById("plus-minute");
       const setNowButton = document.getElementById("set-now");
-      const analogHour = document.getElementById("analog-hour");
-      const analogMinute = document.getElementById("analog-minute");
-      const analogSecond = document.getElementById("analog-second");
-      const durationButtons = [...document.querySelectorAll(".switch button")];
+      const durationButtons = [...document.querySelectorAll(".duration-switch button")];
 
       let durationMinutes = 150;
 
       const pad = (number) => String(number).padStart(2, "0");
       const formatTime = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
       const durationText = (minutes) => minutes === 180 ? "3時間" : "2時間30分";
-
-      function fillTimeOptions() {
-        for (let hour = 0; hour < 24; hour += 1) {
-          const option = document.createElement("option");
-          option.value = String(hour);
-          option.textContent = pad(hour);
-          entryHour.appendChild(option);
-        }
-
-        for (let minute = 0; minute < 60; minute += 1) {
-          const option = document.createElement("option");
-          option.value = String(minute);
-          option.textContent = pad(minute);
-          entryMinute.appendChild(option);
-        }
-      }
-
-      function readInitialDuration() {
-        const params = new URLSearchParams(location.search);
-        const fromQuery = Number(params.get("minutes"));
-        if (fromQuery === 150 || fromQuery === 180) return fromQuery;
-
-        try {
-          const stored = Number(localStorage.getItem(DURATION_STORAGE_KEY));
-          if (stored === 150 || stored === 180) return stored;
-        } catch (error) {
-          console.warn("利用時間設定を読み込めませんでした。", error);
-        }
-
-        return 150;
-      }
-
-      function readInitialEntryTime() {
-        const params = new URLSearchParams(location.search);
-        const fromQuery = String(params.get("entry") || "").match(/^(\d{1,2}):(\d{2})$/);
-        if (fromQuery) {
-          const hour = Number(fromQuery[1]);
-          const minute = Number(fromQuery[2]);
-          if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-            return { hour, minute };
-          }
-        }
-
-        try {
-          const stored = String(localStorage.getItem(ENTRY_STORAGE_KEY) || "").match(/^(\d{1,2}):(\d{2})$/);
-          if (stored) {
-            const hour = Number(stored[1]);
-            const minute = Number(stored[2]);
-            if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-              return { hour, minute };
-            }
-          }
-        } catch (error) {
-          console.warn("入場時刻を読み込めませんでした。", error);
-        }
-
-        const now = new Date();
-        return { hour: now.getHours(), minute: now.getMinutes() };
-      }
 
       function safeSave(key, value) {
         try {
@@ -640,48 +508,81 @@
         }
       }
 
-      function updateAnalogClock(now) {
-        const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
-        const minutes = now.getMinutes() + seconds / 60;
-        const hours = (now.getHours() % 12) + minutes / 60;
-
-        analogHour.style.transform = `translateX(-50%) rotate(${hours * 30}deg)`;
-        analogMinute.style.transform = `translateX(-50%) rotate(${minutes * 6}deg)`;
-        analogSecond.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
+      function safeRead(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (error) {
+          console.warn("設定を読み込めませんでした。", error);
+          return null;
+        }
       }
 
-      function selectedEntryDate() {
-        const now = new Date();
-        const date = new Date(now);
-        date.setHours(Number(entryHour.value), Number(entryMinute.value), 0, 0);
+      function isValidTime(value) {
+        const match = String(value || "").match(/^(\d{2}):(\d{2})$/);
+        if (!match) return false;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+      }
+
+      function parseTime(value) {
+        if (!isValidTime(value)) return null;
+        const [hour, minute] = value.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hour, minute, 0, 0);
         return date;
       }
 
+      function readInitialDuration() {
+        const queryValue = Number(new URLSearchParams(location.search).get("minutes"));
+        if (queryValue === 150 || queryValue === 180) return queryValue;
+
+        const stored = Number(safeRead(DURATION_STORAGE_KEY));
+        return stored === 180 ? 180 : 150;
+      }
+
+      function readInitialEntryTime() {
+        const queryValue = new URLSearchParams(location.search).get("entry");
+        if (isValidTime(queryValue)) return queryValue;
+
+        const stored = safeRead(ENTRY_STORAGE_KEY);
+        if (isValidTime(stored)) return stored;
+
+        return formatTime(new Date());
+      }
+
       function updateResult() {
-        const entry = selectedEntryDate();
+        const entry = parseTime(entryTime.value);
+        if (!entry) {
+          leaveTime.textContent = "--:--";
+          leaveTime.removeAttribute("datetime");
+          resultNote.textContent = "入場時刻を選ぶと自動で計算します";
+          errorMessage.hidden = false;
+          return;
+        }
+
+        errorMessage.hidden = true;
         const leave = new Date(entry.getTime() + durationMinutes * 60 * 1000);
         const entryText = formatTime(entry);
         const leaveText = formatTime(leave);
         const crossesDay = leave.getDate() !== entry.getDate();
 
         leaveTime.textContent = leaveText;
-        leaveTime.setAttribute("datetime", leave.toISOString());
+        leaveTime.setAttribute("datetime", leaveText);
         leaveTime.setAttribute("aria-label", `${leaveText}まで遊べます`);
-        resultNote.textContent = `${entryText}入場・利用時間${durationText(durationMinutes)}で計算${crossesDay ? "（翌日）" : ""}`;
-
+        resultNote.textContent = `${entryText}入場・${durationText(durationMinutes)}利用${crossesDay ? "（翌日）" : ""}`;
         safeSave(ENTRY_STORAGE_KEY, entryText);
       }
 
-      function setEntryTime(hour, minute) {
-        const normalized = ((Number(hour) * 60 + Number(minute)) % 1440 + 1440) % 1440;
-        entryHour.value = String(Math.floor(normalized / 60));
-        entryMinute.value = String(normalized % 60);
+      function setEntryFromDate(date) {
+        entryTime.value = formatTime(date);
         updateResult();
       }
 
       function shiftEntryTime(deltaMinutes) {
-        const total = Number(entryHour.value) * 60 + Number(entryMinute.value) + deltaMinutes;
-        setEntryTime(0, total);
+        const base = parseTime(entryTime.value) || new Date();
+        base.setMinutes(base.getMinutes() + deltaMinutes);
+        setEntryFromDate(base);
       }
 
       function setDuration(minutes) {
@@ -698,39 +599,31 @@
         updateResult();
       }
 
-      function updateCurrentClock() {
+      function updateCurrentTime() {
         const now = new Date();
         currentTime.textContent = formatTime(now);
         currentTime.setAttribute("datetime", now.toISOString());
-        updateAnalogClock(now);
       }
 
-      entryHour.addEventListener("change", updateResult);
-      entryMinute.addEventListener("change", updateResult);
+      entryTime.addEventListener("input", updateResult);
+      entryTime.addEventListener("change", updateResult);
       minusMinute.addEventListener("click", () => shiftEntryTime(-1));
       plusMinute.addEventListener("click", () => shiftEntryTime(1));
-      setNowButton.addEventListener("click", () => {
-        const now = new Date();
-        setEntryTime(now.getHours(), now.getMinutes());
-      });
+      setNowButton.addEventListener("click", () => setEntryFromDate(new Date()));
 
       durationButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          setDuration(Number(button.dataset.minutes));
-        });
+        button.addEventListener("click", () => setDuration(Number(button.dataset.minutes)));
       });
 
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) updateCurrentClock();
+        if (!document.hidden) updateCurrentTime();
       });
 
-      fillTimeOptions();
       durationMinutes = readInitialDuration();
-      const initialEntry = readInitialEntryTime();
-      setEntryTime(initialEntry.hour, initialEntry.minute);
+      entryTime.value = readInitialEntryTime();
       setDuration(durationMinutes);
-      updateCurrentClock();
-      setInterval(updateCurrentClock, 250);
+      updateCurrentTime();
+      setInterval(updateCurrentTime, 1000);
     })();
   </script>
 </body>
