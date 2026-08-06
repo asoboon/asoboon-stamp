@@ -1,0 +1,26 @@
+ブーンジャンプ V2.2.1 画面導線監査
+Build: 2026-08-06-ranking-screen-stability-v2
+
+[PASS] recordsScreen は1件のみ存在
+[PASS] rankingScreen は1件のみ存在
+[PASS] ホームの「記録」ボタンから renderRecords() → recordsScreen へ遷移
+[PASS] 記録画面の「トロフィー」タブから trophyRecords を表示
+[PASS] トロフィー27件を renderRecords() で生成
+[PASS] ホームの「世界ランキング」ボタンから rankingScreen へ遷移
+[PASS] 歴代総合・今週・今日・マシン別のタブ切替あり
+[PASS] 自分の順位カードあり
+[PASS] ranking-client.js がZIP・Service Workerの双方に含まれる
+[PASS] index.html 内蔵JavaScript構文チェック
+[PASS] ranking-client.js 構文チェック
+[PASS] ID重複なし（主要画面・主要操作部品）
+
+V2.2.0再監査で見つけ、V2.2.1で修正した点:
+1. 名前登録後、rankingBusyのためランキング再読込が実行されない問題
+2. ランキング通信中に別タブへ切り替えると、古い結果が新しいタブへ表示される可能性
+3. サーバーが名前を拒否した場合でも、端末内に拒否名が残る問題
+4. 静的表示がV2.1.6・トロフィー0/26のまま一瞬表示される不整合
+
+制限:
+この実行環境のChromiumが最小HTMLでも終了せず、実ブラウザのスクリーンショット試験は完走できませんでした。
+そのため、構文・DOM構造・イベント導線・競合処理を静的監査しています。
+Apps Scriptへの実通信はGitHub公開後の端末で最終確認が必要です。

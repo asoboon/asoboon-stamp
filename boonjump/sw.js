@@ -1,9 +1,10 @@
-const BUILD = "2026-08-06-exhilaration-wheel-v5";
+const BUILD = "2026-08-07-ranking-readable-direct-sync-v6";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
+  "./ranking-client.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

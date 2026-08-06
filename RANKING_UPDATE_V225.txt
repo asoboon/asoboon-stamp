@@ -1,0 +1,10 @@
+ブーンジャンプ V2.2.5
+Build: 2026-08-07-ranking-readable-direct-sync-v6
+
+ランキング不具合の主因:
+- escapeHtml未定義により、ランキング描画時にJavaScriptエラーが発生していました。
+- スコア送信を no-cors POST＋確認待ち から JSONP直接応答方式へ変更しました。
+
+必須条件:
+- Apps ScriptはV2.2.4のCode.gsを保存後、新バージョンとして再デプロイしてください。
+- /exec URLは変更不要です。

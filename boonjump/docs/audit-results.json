@@ -1,0 +1,60 @@
+{
+  "balance_unchanged": true,
+  "car_count": 8,
+  "unique_control_profiles": 8,
+  "single_ticket_during_animation": 1,
+  "ten_ticket_during_animation": 10,
+  "initial_tickets": 1,
+  "after_single_tickets": 0,
+  "owned_after_first_draw": 2,
+  "after_flight_tickets": 1,
+  "plays_after_flight": 1,
+  "after_ten_tickets": 0,
+  "ten_result_cards": 10,
+  "runtime_errors": [],
+  "completion_rows": [
+    {
+      "car": "boon",
+      "best": 1900,
+      "trophies": 12
+    },
+    {
+      "car": "wagon",
+      "best": 1850,
+      "trophies": 14
+    },
+    {
+      "car": "buggy",
+      "best": 2200,
+      "trophies": 16
+    },
+    {
+      "car": "bike",
+      "best": 2350,
+      "trophies": 17
+    },
+    {
+      "car": "sport",
+      "best": 2525,
+      "trophies": 19
+    },
+    {
+      "car": "ssr",
+      "best": 3000,
+      "trophies": 22
+    },
+    {
+      "car": "princess",
+      "best": 2952,
+      "trophies": 23
+    },
+    {
+      "car": "secret",
+      "best": 5000,
+      "trophies": 27
+    }
+  ],
+  "final_trophy_count": 27,
+  "trophy_complete_unlocked": true,
+  "completion_errors": []
+}

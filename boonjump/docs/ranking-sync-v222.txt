@@ -1,0 +1,18 @@
+ブーンジャンプ V2.2.2 ランキング同期監査
+Build: 2026-08-06-ranking-guaranteed-sync-v3
+
+修正内容
+- 初回起動時のランキングネーム登録を必須化
+- 既存端末もサーバー登録の存在を起動時に再確認
+- 1ゲーム終了ごとに自動送信
+- 送信失敗時は端末キューへ保存し、起動時・オンライン復帰時・次回送信時に再送
+- Apps ScriptへのPOSTをfetch/CORS依存からhidden form送信へ変更
+- JSONPで名前登録とスコア反映を確認してから成功表示
+- 結果画面へ送信中／送信完了／再送待ちを表示
+- 禁止用語はApps Script側のblocked_namesシートで判定
+
+静的検証
+- index.html inline JavaScript: node --check OK
+- ranking-client.js: node --check OK
+- HTML ID重複: なし
+- Service Worker precache: ranking-client.js同梱

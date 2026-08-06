@@ -1,0 +1,13 @@
+ブーンジャンプ V2.2.2 世界ランキング修正版
+Build: 2026-08-06-ranking-guaranteed-sync-v3
+
+重要:
+- Apps Script URLは設定済みです。
+- 現在のApps Script Code.gsはそのままで動きます。
+- 初回起動時にランキングネーム登録が必須です。
+- 1ゲーム終了ごとに自動送信します。
+- 通信失敗時は端末へ保存し、次回自動再送します。
+
+前版でランキングが反映されなかった原因:
+- ブラウザからApps Scriptへfetch POSTした際、cross-origin応答を読み取れない環境がありました。
+- V2.2.2はhidden formで送信し、JSONPでシート反映を別途確認します。
