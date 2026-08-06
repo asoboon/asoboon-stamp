@@ -1,4 +1,4 @@
-const BUILD = "2026-08-06-ten-draw-tach-v3";
+const BUILD = "2026-08-06-wheel-tach-secret-v4";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
