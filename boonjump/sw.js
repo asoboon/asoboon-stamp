@@ -1,4 +1,4 @@
-const BUILD = "2026-08-06-wheel-tach-secret-v4";
+const BUILD = "2026-08-06-exhilaration-wheel-v5";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
@@ -54,6 +54,22 @@ const PRECACHE = [
   "./assets/cars/wagon-front.png",
   "./assets/cars/wagon-rear.png",
   "./assets/cars/wagon-shadow.png",
+  "./assets/cars/bike-front-wheel.png",
+  "./assets/cars/bike-rear-wheel.png",
+  "./assets/cars/boon-front-wheel.png",
+  "./assets/cars/boon-rear-wheel.png",
+  "./assets/cars/buggy-front-wheel.png",
+  "./assets/cars/buggy-rear-wheel.png",
+  "./assets/cars/princess-front-wheel.png",
+  "./assets/cars/princess-rear-wheel.png",
+  "./assets/cars/sport-front-wheel.png",
+  "./assets/cars/sport-rear-wheel.png",
+  "./assets/cars/ssr-front-wheel.png",
+  "./assets/cars/ssr-rear-wheel.png",
+  "./assets/cars/suv-front-wheel.png",
+  "./assets/cars/suv-rear-wheel.png",
+  "./assets/cars/wagon-front-wheel.png",
+  "./assets/cars/wagon-rear-wheel.png",
 ];
 self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting();});
 self.addEventListener("install",event=>{event.waitUntil((async()=>{const staticCache=await caches.open(STATIC_CACHE),imageCache=await caches.open(IMAGE_CACHE);await Promise.allSettled(PRECACHE.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Precache failed: ${path} (${response.status})`);const target=path.includes("/assets/cars/")||path.includes("/icons/")?imageCache:staticCache;await target.put(path,response);}));})());});
