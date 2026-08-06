@@ -1,0 +1,54 @@
+{
+  "pass": true,
+  "old_v231_state_migrates": true,
+  "new_metadata_preserved": true,
+  "invalid_judges_normalized": true,
+  "tune_level_clamped": true,
+  "examples": {
+    "old": {
+      "owned": true,
+      "obtained": 3,
+      "tuneLevel": 2,
+      "best": 1411,
+      "plays": 5,
+      "classicBest": 1300,
+      "bestMeta": null,
+      "worldBest": 0,
+      "worldUpdatedAt": null
+    },
+    "modern": {
+      "owned": true,
+      "obtained": 3,
+      "tuneLevel": 2,
+      "best": 1411,
+      "plays": 5,
+      "classicBest": 1300,
+      "bestMeta": {
+        "accelJudge": "GREAT",
+        "turboJudge": "GOOD",
+        "nitroJudge": "MISS",
+        "tuneLevel": 2,
+        "achievedAt": "2026-08-07T00:00:00Z"
+      },
+      "worldBest": 1400,
+      "worldUpdatedAt": "2026-08-07T01:00:00Z"
+    },
+    "malformed": {
+      "owned": true,
+      "obtained": 1,
+      "tuneLevel": 0,
+      "best": 500,
+      "plays": 0,
+      "classicBest": 500,
+      "bestMeta": {
+        "accelJudge": "MISS",
+        "turboJudge": "MISS",
+        "nitroJudge": "MISS",
+        "tuneLevel": 50,
+        "achievedAt": "bad"
+      },
+      "worldBest": 0,
+      "worldUpdatedAt": null
+    }
+  }
+}

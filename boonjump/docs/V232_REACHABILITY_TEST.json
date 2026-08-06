@@ -1,0 +1,175 @@
+{
+  "pass": true,
+  "version": "V2.3.2",
+  "control_profiles_unchanged_from_v2_3_1": true,
+  "machines": [
+    {
+      "id": "boon",
+      "accel": {
+        "min": 0.00032258064516099694,
+        "super": 0.035,
+        "ms": 1876,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.0007407407407407085,
+        "super": 0.038,
+        "ms": 674,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0,
+        "super": 0.035,
+        "ms": 1862,
+        "ok": true
+      }
+    },
+    {
+      "id": "wagon",
+      "accel": {
+        "min": 7.660265097930719e-05,
+        "super": 0.04,
+        "ms": 904,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.00011430865484407526,
+        "super": 0.045,
+        "ms": 524,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.0004959999999999409,
+        "super": 0.042,
+        "ms": 2222,
+        "ok": true
+      }
+    },
+    {
+      "id": "buggy",
+      "accel": {
+        "min": 2.7646930203073516e-05,
+        "super": 0.026,
+        "ms": 2318,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.00014834631265936427,
+        "super": 0.03,
+        "ms": 1230,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.0004896105281817498,
+        "super": 0.03,
+        "ms": 1310,
+        "ok": true
+      }
+    },
+    {
+      "id": "bike",
+      "accel": {
+        "min": 0.0008602150537634357,
+        "super": 0.022,
+        "ms": 782,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0,
+        "super": 0.027,
+        "ms": 510,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.0014011609748731946,
+        "super": 0.026,
+        "ms": 816,
+        "ok": true
+      }
+    },
+    {
+      "id": "sport",
+      "accel": {
+        "min": 0.0003284389409891064,
+        "super": 0.024,
+        "ms": 1140,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.0048842914859023034,
+        "super": 0.025,
+        "ms": 534,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.00012116050187926941,
+        "super": 0.021,
+        "ms": 1284,
+        "ok": true
+      }
+    },
+    {
+      "id": "ssr",
+      "accel": {
+        "min": 0.00020397587109310944,
+        "super": 0.018,
+        "ms": 2020,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.00040528151514229727,
+        "super": 0.02,
+        "ms": 1796,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0,
+        "super": 0.018,
+        "ms": 640,
+        "ok": true
+      }
+    },
+    {
+      "id": "princess",
+      "accel": {
+        "min": 0.020000000000000018,
+        "super": 0.03,
+        "ms": 958,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.0010177286809877062,
+        "super": 0.034,
+        "ms": 1980,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.0010399999999999299,
+        "super": 0.03,
+        "ms": 1410,
+        "ok": true
+      }
+    },
+    {
+      "id": "secret",
+      "accel": {
+        "min": 0.00027974822261289667,
+        "super": 0.014,
+        "ms": 438,
+        "ok": true
+      },
+      "turbo": {
+        "min": 0.0038488742417348565,
+        "super": 0.016,
+        "ms": 562,
+        "ok": true
+      },
+      "nitro": {
+        "min": 0.0004190476190476522,
+        "super": 0.014,
+        "ms": 556,
+        "ok": true
+      }
+    }
+  ]
+}

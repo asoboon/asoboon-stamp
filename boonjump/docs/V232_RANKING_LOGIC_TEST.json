@@ -1,0 +1,38 @@
+{
+  "pass": true,
+  "day_key": "2026-08-07",
+  "scenarios": {
+    "period_only": {
+      "updated": {
+        "machine": false,
+        "today": true,
+        "week": true
+      },
+      "score_log_rows_after": 1,
+      "machine_best": 1500,
+      "period_rows_created": 2
+    },
+    "lower_same_period": {
+      "skipped": true,
+      "score_log_rows_after": 1
+    },
+    "new_all_time": {
+      "updated": {
+        "machine": true,
+        "today": true,
+        "week": true
+      },
+      "score_log_rows_after": 2,
+      "machine_best": 1600
+    },
+    "identity_migration": {
+      "same_player_same_name_token_rotated": true
+    }
+  },
+  "final_rows": {
+    "players": 1,
+    "machine_bests": 1,
+    "period_bests": 2,
+    "score_log": 2
+  }
+}

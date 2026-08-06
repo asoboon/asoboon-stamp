@@ -1,7 +1,13 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.2.4
+ * ブーンジャンプ 世界ランキング API V2.3.2
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
+ *
+ * 方針:
+ * - ランキング登録は任意
+ * - 選択された記録だけを受信
+ * - 歴代／今日／今週のいずれにも更新がない記録はscore_logへ追加しない
+ * - 同一端末の本人判定用player_tokenに対応（旧版クライアントも閲覧・既存記録送信は互換）
  */
 
 const CONFIG = Object.freeze({
@@ -10,6 +16,7 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
+  API_VERSION: '2.3.2',
   SHEETS: Object.freeze({
     PLAYERS: 'players',
     MACHINE_BESTS: 'machine_bests',
@@ -31,10 +38,12 @@ const MACHINES = Object.freeze({
 });
 
 const VALID_JUDGES = new Set(['MISS', 'GOOD', 'GREAT', 'CRITICAL', 'SUPER']);
+let SPREADSHEET_CACHE_ = null;
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
   const callback = p.callback;
+
   try {
     const action = String(p.action || 'health').toLowerCase();
     let result;
@@ -43,20 +52,22 @@ function doGet(e) {
       result = {
         ok: true,
         service: 'boonjump-ranking',
-        api_version: '2.2.4',
+        api_version: CONFIG.API_VERSION,
+        ranking_mode: 'manual',
+        write_policy: 'meaningful-best-only',
         now: nowIso_(),
       };
     } else if (action === 'leaderboard') {
       result = getLeaderboard_(p);
     } else if (action === 'player') {
       result = getPlayer_(p);
+    } else if (action === 'resolve_identity') {
+      result = resolveIdentity_(p);
     } else if (action === 'name_available') {
       result = checkNameAvailable_(p);
     } else if (action === 'score_status') {
       result = getScoreStatus_(p);
     } else if (action === 'submit' || action === 'rename') {
-      // GitHub Pagesからの書き込みはJSONP GETで受ける。
-      // POST＋hidden iframe方式より、成功・失敗を確実にゲームへ返せる。
       result = withScriptLock_(function () {
         const value = action === 'submit' ? submitScore_(p) : renamePlayer_(p);
         SpreadsheetApp.flush();
@@ -68,10 +79,7 @@ function doGet(e) {
 
     return output_(result, callback);
   } catch (error) {
-    return output_({
-      ok: false,
-      error: String(error.message || error),
-    }, callback);
+    return output_({ ok: false, error: String(error.message || error) }, callback);
   }
 }
 
@@ -81,13 +89,9 @@ function doPost(e) {
     const action = String(body.action || 'submit').toLowerCase();
     const result = withScriptLock_(function () {
       let value;
-      if (action === 'submit') {
-        value = submitScore_(body);
-      } else if (action === 'rename') {
-        value = renamePlayer_(body);
-      } else {
-        throw new Error('不明なactionです。');
-      }
+      if (action === 'submit') value = submitScore_(body);
+      else if (action === 'rename') value = renamePlayer_(body);
+      else throw new Error('不明なactionです。');
       SpreadsheetApp.flush();
       return value;
     });
@@ -110,16 +114,19 @@ function withScriptLock_(callback) {
 function submitScore_(body) {
   const requestId = cleanId_(body.request_id, 12, 100, 'request_id');
   const playerId = cleanId_(body.player_id, 12, 100, 'player_id');
+  const playerToken = normalizePlayerToken_(body.player_token);
   const submittedName = validateName_(body.display_name);
   const player = findPlayerRecord_(playerId);
+
+  enforceRateLimit_('submit', playerId, 30);
 
   if (player && String(player.status || 'ACTIVE') !== 'ACTIVE') {
     throw new Error('ランキングネームの再登録が必要です。');
   }
+  assertPlayerIdentity_(player, playerToken, 'submit', submittedName);
 
   let displayName = submittedName;
   if (player) {
-    // 記録送信では名前を勝手に変更させない。登録済みの名前を正本にする。
     displayName = validateName_(player.display_name);
   } else {
     assertNameAvailable_(submittedName, playerId);
@@ -138,93 +145,156 @@ function submitScore_(body) {
   const clientVersion = truncate_(body.client_version, 40);
 
   if (!machine) throw new Error('存在しないマシンです。');
-  if (!Number.isInteger(distance) || distance < 0) throw new Error('距離が不正です。');
+  if (!Number.isInteger(distance) || distance <= 0) throw new Error('距離が不正です。');
   if (distance > machine.finalCap) throw new Error(`距離が上限${machine.finalCap}mを超えています。`);
 
+  const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
+  const weekKey = getWeekKey_(receivedAt);
+
   if (requestExists_(requestId)) {
-    const duplicateSnapshot = getLeaderboard_({
-      period: 'all',
-      player_id: playerId,
-      machine_id: machineId,
-      limit: '10',
-    });
-    return {
-      ok: true,
-      accepted: true,
+    return makeSubmitResponse_({
+      playerId,
+      machineId,
+      requestId,
       duplicate: true,
-      request_id: requestId,
-      player_rank: duplicateSnapshot.me || null,
-    };
+      skipped: false,
+      updated: { machine: false, today: false, week: false },
+    });
   }
 
-  let status = 'ACCEPTED';
-  let reason = '';
-  if (Math.abs(receivedAt.getTime() - playedAt.getTime()) > 24 * 60 * 60 * 1000) {
-    status = 'REVIEW';
-    reason = 'played_atが受信時刻から24時間以上離れています。';
+  const currentAll = findMachineBestDistance_(playerId, machineId);
+  const currentDay = findPeriodBestDistance_('DAY', dayKey, playerId, machineId);
+  const currentWeek = findPeriodBestDistance_('WEEK', weekKey, playerId, machineId);
+  const improvesAll = distance > currentAll;
+  const improvesDay = distance > currentDay;
+  const improvesWeek = distance > currentWeek;
+
+  upsertPlayer_(playerId, displayName, receivedAt, 'ACTIVE', !player, playerToken);
+
+  if (!improvesAll && !improvesDay && !improvesWeek) {
+    return makeSubmitResponse_({
+      playerId,
+      machineId,
+      requestId,
+      duplicate: false,
+      skipped: true,
+      reason: 'already_registered',
+      updated: { machine: false, today: false, week: false },
+    });
   }
 
-  upsertPlayer_(playerId, displayName, receivedAt, 'ACTIVE', !player);
   appendScoreLog_({
-    requestId, playerId, displayName, machineId, distance,
-    accel, turbo, nitro, tuneLevel, playedAt, receivedAt,
-    status, reason, sourceBuild, clientVersion,
+    requestId,
+    playerId,
+    displayName,
+    machineId,
+    distance,
+    accel,
+    turbo,
+    nitro,
+    tuneLevel,
+    playedAt,
+    receivedAt,
+    status: 'ACCEPTED',
+    reason: '',
+    sourceBuild,
+    clientVersion,
   });
 
   let machineUpdated = false;
   let dayUpdated = false;
   let weekUpdated = false;
 
-  if (status === 'ACCEPTED') {
+  if (improvesAll) {
     machineUpdated = upsertMachineBest_({
-      playerId, displayName, machineId, machineName: machine.name,
-      distance, accel, turbo, nitro, achievedAt: receivedAt, sourceBuild,
-    });
-
-    const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
-    const weekKey = getWeekKey_(receivedAt);
-
-    dayUpdated = upsertPeriodBest_({
-      periodType: 'DAY', periodKey: dayKey, playerId, displayName,
-      machineId, machineName: machine.name, distance,
-      achievedAt: receivedAt, verified: true, sourceBuild,
-    });
-    weekUpdated = upsertPeriodBest_({
-      periodType: 'WEEK', periodKey: weekKey, playerId, displayName,
-      machineId, machineName: machine.name, distance,
-      achievedAt: receivedAt, verified: true, sourceBuild,
+      playerId,
+      displayName,
+      machineId,
+      machineName: machine.name,
+      distance,
+      accel,
+      turbo,
+      nitro,
+      achievedAt: receivedAt,
+      sourceBuild,
     });
   }
 
-  const snapshot = getLeaderboard_({
-    period: 'all',
-    player_id: playerId,
-    machine_id: machineId,
-    limit: '10',
-  });
+  if (improvesDay) {
+    dayUpdated = upsertPeriodBest_({
+      periodType: 'DAY',
+      periodKey: dayKey,
+      playerId,
+      displayName,
+      machineId,
+      machineName: machine.name,
+      distance,
+      achievedAt: receivedAt,
+      verified: true,
+      sourceBuild,
+    });
+  }
 
+  if (improvesWeek) {
+    weekUpdated = upsertPeriodBest_({
+      periodType: 'WEEK',
+      periodKey: weekKey,
+      playerId,
+      displayName,
+      machineId,
+      machineName: machine.name,
+      distance,
+      achievedAt: receivedAt,
+      verified: true,
+      sourceBuild,
+    });
+  }
+
+  return makeSubmitResponse_({
+    playerId,
+    machineId,
+    requestId,
+    duplicate: false,
+    skipped: false,
+    updated: { machine: machineUpdated, today: dayUpdated, week: weekUpdated },
+  });
+}
+
+function makeSubmitResponse_(args) {
+  const ranks = getPlayerRanks_(args.playerId, args.machineId);
   return {
     ok: true,
-    accepted: status === 'ACCEPTED',
-    review: status === 'REVIEW',
-    reason,
-    request_id: requestId,
-    updated: {
-      machine: machineUpdated,
-      today: dayUpdated,
-      week: weekUpdated,
-    },
-    player_rank: snapshot.me || null,
+    accepted: true,
+    duplicate: Boolean(args.duplicate),
+    skipped: Boolean(args.skipped),
+    reason: args.reason || '',
+    request_id: args.requestId,
+    updated: args.updated || { machine: false, today: false, week: false },
+    player_rank: ranks.all || null,
+    player_ranks: ranks,
+  };
+}
+
+function getPlayerRanks_(playerId, machineId) {
+  return {
+    all: getLeaderboard_({ period: 'all', player_id: playerId, machine_id: machineId, limit: '100' }).me || null,
+    today: getLeaderboard_({ period: 'today', player_id: playerId, machine_id: machineId, limit: '100' }).me || null,
+    week: getLeaderboard_({ period: 'week', player_id: playerId, machine_id: machineId, limit: '100' }).me || null,
   };
 }
 
 function renamePlayer_(body) {
   const playerId = cleanId_(body.player_id, 12, 100, 'player_id');
+  const playerToken = normalizePlayerToken_(body.player_token);
   const displayName = validateName_(body.display_name);
+  const player = findPlayerRecord_(playerId);
+
+  enforceRateLimit_('rename', playerId, 10);
+  assertPlayerIdentity_(player, playerToken, 'rename', displayName);
   assertNameAvailable_(displayName, playerId);
 
   const now = new Date();
-  upsertPlayer_(playerId, displayName, now, 'ACTIVE', true);
+  upsertPlayer_(playerId, displayName, now, 'ACTIVE', true, playerToken);
   propagateName_(playerId, displayName);
 
   return {
@@ -247,21 +317,16 @@ function checkNameAvailable_(p) {
   };
 }
 
-
 function getScoreStatus_(p) {
   const requestId = cleanId_(p.request_id, 12, 100, 'request_id');
   const playerId = cleanId_(p.player_id, 12, 100, 'player_id');
   const values = sheet_(CONFIG.SHEETS.SCORE_LOG).getDataRange().getValues();
+
   for (let i = values.length - 1; i >= 1; i--) {
     if (String(values[i][0]) !== requestId) continue;
     if (String(values[i][1]) !== playerId) throw new Error('記録の所有者が一致しません。');
     const machineId = String(values[i][3] || '');
-    const snapshot = getLeaderboard_({
-      period: 'all',
-      player_id: playerId,
-      machine_id: machineId,
-      limit: '10',
-    });
+    const ranks = getPlayerRanks_(playerId, machineId);
     return {
       ok: true,
       found: true,
@@ -269,9 +334,11 @@ function getScoreStatus_(p) {
       status: String(values[i][11] || ''),
       reason: String(values[i][12] || ''),
       accepted: String(values[i][11] || '') === 'ACCEPTED',
-      player_rank: snapshot.me || null,
+      player_rank: ranks.all || null,
+      player_ranks: ranks,
     };
   }
+
   return { ok: true, found: false, request_id: requestId };
 }
 
@@ -287,39 +354,43 @@ function getLeaderboard_(p) {
 
   const rows = period === 'all'
     ? readMachineBestRecords_()
-    : readPeriodBestRecords_(period === 'today' ? 'DAY' : 'WEEK', period === 'today' ? todayKey_() : getWeekKey_(new Date()));
+    : readPeriodBestRecords_(
+        period === 'today' ? 'DAY' : 'WEEK',
+        period === 'today' ? todayKey_() : getWeekKey_(new Date())
+      );
 
-  const filtered = rows.filter(r => {
-    if (machineId && r.machine_id !== machineId) return false;
-    if (!machineId && !includeSecret && MACHINES[r.machine_id] && MACHINES[r.machine_id].secret) return false;
-    return Number.isFinite(r.best_distance) && r.best_distance >= 0;
+  const filtered = rows.filter(row => {
+    if (machineId && row.machine_id !== machineId) return false;
+    if (!machineId && !includeSecret && MACHINES[row.machine_id] && MACHINES[row.machine_id].secret) return false;
+    return Number.isFinite(row.best_distance) && row.best_distance > 0;
   });
 
-  // 同一人物は各ランキングに最高記録1件だけ。
   const byPlayer = new Map();
-  filtered.forEach(r => {
-    const current = byPlayer.get(r.player_id);
-    if (!current || r.best_distance > current.best_distance ||
-        (r.best_distance === current.best_distance && r.achieved_at < current.achieved_at)) {
-      byPlayer.set(r.player_id, r);
+  filtered.forEach(row => {
+    const current = byPlayer.get(row.player_id);
+    if (
+      !current ||
+      row.best_distance > current.best_distance ||
+      (row.best_distance === current.best_distance && row.achieved_at < current.achieved_at)
+    ) {
+      byPlayer.set(row.player_id, row);
     }
   });
 
   const ranked = [...byPlayer.values()]
     .sort((a, b) => b.best_distance - a.best_distance || String(a.achieved_at).localeCompare(String(b.achieved_at)))
-    .map((r, i) => ({
-      rank: i + 1,
-      player_id: r.player_id,
-      display_name: r.display_name,
-      machine_id: r.machine_id,
-      machine_name: r.machine_name,
-      distance: r.best_distance,
-      achieved_at: r.achieved_at,
+    .map((row, index) => ({
+      rank: index + 1,
+      player_id: row.player_id,
+      display_name: row.display_name,
+      machine_id: row.machine_id,
+      machine_name: row.machine_name,
+      distance: row.best_distance,
+      achieved_at: row.achieved_at,
     }));
 
-  const meIndex = playerId ? ranked.findIndex(r => r.player_id === playerId) : -1;
+  const meIndex = playerId ? ranked.findIndex(row => row.player_id === playerId) : -1;
   const me = meIndex >= 0 ? ranked[meIndex] : null;
-  const aroundMe = meIndex >= 0 ? ranked.slice(Math.max(0, meIndex - 2), meIndex + 3) : [];
 
   return {
     ok: true,
@@ -330,115 +401,205 @@ function getLeaderboard_(p) {
     total_players: ranked.length,
     rows: ranked.slice(0, limit),
     me,
-    around_me: aroundMe,
+    around_me: meIndex >= 0 ? ranked.slice(Math.max(0, meIndex - 2), meIndex + 3) : [],
     generated_at: nowIso_(),
   };
 }
 
-function getPlayer_(p) {
-  const playerId = cleanId_(p.player_id, 12, 100, 'player_id');
-  const players = sheet_(CONFIG.SHEETS.PLAYERS).getDataRange().getValues();
-  for (let i = 1; i < players.length; i++) {
-    if (String(players[i][0]) === playerId) {
-      return {
-        ok: true,
-        player: {
-          player_id: players[i][0],
-          display_name: players[i][1],
-          created_at: dateToIso_(players[i][2]),
-          updated_at: dateToIso_(players[i][3]),
-          status: players[i][4] || 'ACTIVE',
-        },
-      };
-    }
+function resolveIdentity_(p) {
+  const token = normalizePlayerToken_(p.player_token);
+  if (!token) return { ok: true, player: null };
+  const values = playersSheet_().getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][6] || '') !== token) continue;
+    return {
+      ok: true,
+      player: {
+        player_id: String(values[i][0]),
+        display_name: String(values[i][1] || ''),
+        status: String(values[i][4] || 'ACTIVE'),
+      },
+    };
   }
   return { ok: true, player: null };
 }
 
-function upsertPlayer_(playerId, displayName, now, status, updateNameTime) {
-  const sh = sheet_(CONFIG.SHEETS.PLAYERS);
+function getPlayer_(p) {
+  const playerId = cleanId_(p.player_id, 12, 100, 'player_id');
+  const player = findPlayerRecord_(playerId);
+  if (!player) return { ok: true, player: null };
+
+  return {
+    ok: true,
+    player: {
+      player_id: player.player_id,
+      display_name: player.display_name,
+      created_at: dateToIso_(player.created_at),
+      updated_at: dateToIso_(player.updated_at),
+      status: player.status || 'ACTIVE',
+    },
+  };
+}
+
+function assertPlayerIdentity_(player, suppliedToken, operation, submittedName) {
+  if (!player) return;
+  const storedToken = String(player.player_token || '');
+  if (!storedToken) return;
+  if (suppliedToken && suppliedToken === storedToken) return;
+
+  // player_idが一致し、登録済みの名前も同じなら本人の継続利用としてtoken更新を許可する。
+  // 旧版からの移行や、ブラウザ側でtokenだけ消えた場合に自分の名前で弾かれないため。
+  const sameName = canonicalNameKey_(player.display_name) === canonicalNameKey_(submittedName);
+  if (sameName && (operation === 'submit' || operation === 'rename')) return;
+
+  throw new Error('この端末のランキング登録情報が一致しません。登録した端末からお試しください。');
+}
+
+function normalizePlayerToken_(value) {
+  const token = String(value || '').trim();
+  if (!token) return '';
+  return cleanId_(token, 16, 160, 'player_token');
+}
+
+function enforceRateLimit_(action, playerId, limit) {
+  try {
+    const bucket = Math.floor(Date.now() / 60000);
+    const key = `boonjump-rate:${action}:${playerId}:${bucket}`;
+    const cache = CacheService.getScriptCache();
+    const count = Number(cache.get(key) || 0) + 1;
+    if (count > limit) throw new Error('操作回数が多すぎます。少し待ってからお試しください。');
+    cache.put(key, String(count), 70);
+  } catch (error) {
+    if (String(error && error.message || '').includes('操作回数')) throw error;
+  }
+}
+
+function upsertPlayer_(playerId, displayName, now, status, updateNameTime, playerToken) {
+  const sh = playersSheet_();
   const values = sh.getDataRange().getValues();
   const nextStatus = status || 'ACTIVE';
 
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === playerId) {
-      sh.getRange(i + 1, 2, 1, 5).setValues([[
-        displayName,
-        values[i][2] || now,
-        now,
-        nextStatus,
-        updateNameTime ? now : (values[i][5] || now),
-      ]]);
-      return i + 1;
-    }
+    if (String(values[i][0]) !== playerId) continue;
+    const nextToken = String(playerToken || values[i][6] || '');
+    sh.getRange(i + 1, 2, 1, 6).setValues([[
+      displayName,
+      values[i][2] || now,
+      now,
+      nextStatus,
+      updateNameTime ? now : (values[i][5] || now),
+      nextToken,
+    ]]);
+    return i + 1;
   }
 
-  sh.appendRow([playerId, displayName, now, now, nextStatus, now]);
+  sh.appendRow([playerId, displayName, now, now, nextStatus, now, String(playerToken || '')]);
   return sh.getLastRow();
 }
 
-function upsertMachineBest_(r) {
+function findMachineBestDistance_(playerId, machineId) {
+  const values = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][0]) === playerId && String(values[i][2]) === machineId) {
+      return Number(values[i][4]) || 0;
+    }
+  }
+  return 0;
+}
+
+function findPeriodBestDistance_(periodType, periodKey, playerId, machineId) {
+  const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
+  const normalizedKey = normalizePeriodKey_(periodKey);
+  for (let i = 1; i < values.length; i++) {
+    if (
+      String(values[i][0]) === periodType &&
+      normalizePeriodKey_(values[i][1]) === normalizedKey &&
+      String(values[i][2]) === playerId &&
+      String(values[i][4]) === machineId
+    ) {
+      return Number(values[i][6]) || 0;
+    }
+  }
+  return 0;
+}
+
+function normalizePeriodKey_(value) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return Utilities.formatDate(value, CONFIG.TIMEZONE, 'yyyy-MM-dd');
+  }
+  const text = String(value || '').trim();
+  const direct = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (direct) return `${direct[1]}-${direct[2]}-${direct[3]}`;
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return Utilities.formatDate(parsed, CONFIG.TIMEZONE, 'yyyy-MM-dd');
+  return text;
+}
+
+function upsertMachineBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.MACHINE_BESTS);
   const values = sh.getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === r.playerId && String(values[i][2]) === r.machineId) {
-      const oldDistance = Number(values[i][4]) || 0;
-      if (r.distance <= oldDistance) return false;
-      sh.getRange(i + 1, 1, 1, 10).setValues([[
-        r.playerId, r.displayName, r.machineId, r.machineName, r.distance,
-        r.accel, r.turbo, r.nitro, r.achievedAt, r.sourceBuild,
-      ]]);
-      return true;
-    }
+    if (String(values[i][0]) !== record.playerId || String(values[i][2]) !== record.machineId) continue;
+    const oldDistance = Number(values[i][4]) || 0;
+    if (record.distance <= oldDistance) return false;
+    sh.getRange(i + 1, 1, 1, 10).setValues([[
+      record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
+      record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
+    ]]);
+    return true;
   }
   sh.appendRow([
-    r.playerId, r.displayName, r.machineId, r.machineName, r.distance,
-    r.accel, r.turbo, r.nitro, r.achievedAt, r.sourceBuild,
+    record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
+    record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
   ]);
   return true;
 }
 
-function upsertPeriodBest_(r) {
+function upsertPeriodBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
   const values = sh.getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === r.periodType &&
-        String(values[i][1]) === r.periodKey &&
-        String(values[i][2]) === r.playerId &&
-        String(values[i][4]) === r.machineId) {
+    if (
+      String(values[i][0]) === record.periodType &&
+      normalizePeriodKey_(values[i][1]) === normalizePeriodKey_(record.periodKey) &&
+      String(values[i][2]) === record.playerId &&
+      String(values[i][4]) === record.machineId
+    ) {
       const oldDistance = Number(values[i][6]) || 0;
-      if (r.distance <= oldDistance) return false;
+      if (record.distance <= oldDistance) return false;
       sh.getRange(i + 1, 1, 1, 10).setValues([[
-        r.periodType, r.periodKey, r.playerId, r.displayName,
-        r.machineId, r.machineName, r.distance, r.achievedAt,
-        r.verified, r.sourceBuild,
+        record.periodType, record.periodKey, record.playerId, record.displayName,
+        record.machineId, record.machineName, record.distance, record.achievedAt,
+        record.verified, record.sourceBuild,
       ]]);
       return true;
     }
   }
   sh.appendRow([
-    r.periodType, r.periodKey, r.playerId, r.displayName,
-    r.machineId, r.machineName, r.distance, r.achievedAt,
-    r.verified, r.sourceBuild,
+    record.periodType, record.periodKey, record.playerId, record.displayName,
+    record.machineId, record.machineName, record.distance, record.achievedAt,
+    record.verified, record.sourceBuild,
   ]);
   return true;
 }
 
-function appendScoreLog_(r) {
+function appendScoreLog_(record) {
   sheet_(CONFIG.SHEETS.SCORE_LOG).appendRow([
-    r.requestId, r.playerId, r.displayName, r.machineId, r.distance,
-    r.accel, r.turbo, r.nitro, r.tuneLevel, r.playedAt, r.receivedAt,
-    r.status, r.reason, r.sourceBuild, r.clientVersion,
+    record.requestId, record.playerId, record.displayName, record.machineId, record.distance,
+    record.accel, record.turbo, record.nitro, record.tuneLevel, record.playedAt, record.receivedAt,
+    record.status, record.reason, record.sourceBuild, record.clientVersion,
   ]);
 }
 
 function requestExists_(requestId) {
   const sh = sheet_(CONFIG.SHEETS.SCORE_LOG);
   if (sh.getLastRow() < 2) return false;
-  return !!sh.getRange(2, 1, sh.getLastRow() - 1, 1)
-    .createTextFinder(requestId)
-    .matchEntireCell(true)
-    .findNext();
+  return Boolean(
+    sh.getRange(2, 1, sh.getLastRow() - 1, 1)
+      .createTextFinder(requestId)
+      .matchEntireCell(true)
+      .findNext()
+  );
 }
 
 function propagateName_(playerId, displayName) {
@@ -446,60 +607,63 @@ function propagateName_(playerId, displayName) {
     { name: CONFIG.SHEETS.MACHINE_BESTS, playerCol: 1, nameCol: 2 },
     { name: CONFIG.SHEETS.PERIOD_BESTS, playerCol: 3, nameCol: 4 },
   ];
-  targets.forEach(t => {
-    const sh = sheet_(t.name);
+
+  targets.forEach(target => {
+    const sh = sheet_(target.name);
     const last = sh.getLastRow();
     if (last < 2) return;
-    const ids = sh.getRange(2, t.playerCol, last - 1, 1).getValues();
-    const names = sh.getRange(2, t.nameCol, last - 1, 1).getValues();
+    const ids = sh.getRange(2, target.playerCol, last - 1, 1).getValues();
+    const names = sh.getRange(2, target.nameCol, last - 1, 1).getValues();
     let changed = false;
-    ids.forEach((row, i) => {
+    ids.forEach((row, index) => {
       if (String(row[0]) === playerId) {
-        names[i][0] = displayName;
+        names[index][0] = displayName;
         changed = true;
       }
     });
-    if (changed) sh.getRange(2, t.nameCol, names.length, 1).setValues(names);
+    if (changed) sh.getRange(2, target.nameCol, names.length, 1).setValues(names);
   });
 }
 
 function readMachineBestRecords_() {
-  const v = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
-  return v.slice(1).filter(r => r[0]).map(r => ({
-    player_id: String(r[0]),
-    display_name: String(r[1] || 'NO NAME'),
-    machine_id: String(r[2]),
-    machine_name: String(r[3] || (MACHINES[r[2]] && MACHINES[r[2]].name) || r[2]),
-    best_distance: Number(r[4]),
-    achieved_at: dateToIso_(r[8]),
+  const values = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
+  return values.slice(1).filter(row => row[0]).map(row => ({
+    player_id: String(row[0]),
+    display_name: String(row[1] || 'NO NAME'),
+    machine_id: String(row[2]),
+    machine_name: String(row[3] || (MACHINES[row[2]] && MACHINES[row[2]].name) || row[2]),
+    best_distance: Number(row[4]),
+    achieved_at: dateToIso_(row[8]),
   }));
 }
 
 function readPeriodBestRecords_(periodType, periodKey) {
-  const v = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
-  return v.slice(1)
-    .filter(r => String(r[0]) === periodType && String(r[1]) === periodKey && r[2])
-    .map(r => ({
-      player_id: String(r[2]),
-      display_name: String(r[3] || 'NO NAME'),
-      machine_id: String(r[4]),
-      machine_name: String(r[5] || (MACHINES[r[4]] && MACHINES[r[4]].name) || r[4]),
-      best_distance: Number(r[6]),
-      achieved_at: dateToIso_(r[7]),
+  const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
+  return values.slice(1)
+    .filter(row => String(row[0]) === periodType && normalizePeriodKey_(row[1]) === normalizePeriodKey_(periodKey) && row[2])
+    .map(row => ({
+      player_id: String(row[2]),
+      display_name: String(row[3] || 'NO NAME'),
+      machine_id: String(row[4]),
+      machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
+      best_distance: Number(row[6]),
+      achieved_at: dateToIso_(row[7]),
     }));
 }
 
 function findPlayerRecord_(playerId) {
-  const values = sheet_(CONFIG.SHEETS.PLAYERS).getDataRange().getValues();
+  const values = playersSheet_().getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === playerId) {
-      return {
-        row: i + 1,
-        player_id: String(values[i][0]),
-        display_name: String(values[i][1] || ''),
-        status: String(values[i][4] || 'ACTIVE'),
-      };
-    }
+    if (String(values[i][0]) !== playerId) continue;
+    return {
+      row: i + 1,
+      player_id: String(values[i][0]),
+      display_name: String(values[i][1] || ''),
+      created_at: values[i][2] || '',
+      updated_at: values[i][3] || '',
+      status: String(values[i][4] || 'ACTIVE'),
+      player_token: String(values[i][6] || ''),
+    };
   }
   return null;
 }
@@ -516,7 +680,7 @@ function isDisplayNameTaken_(displayName, exceptPlayerId) {
   const target = canonicalNameKey_(displayName);
   if (!target) return false;
 
-  const values = sheet_(CONFIG.SHEETS.PLAYERS).getDataRange().getValues();
+  const values = playersSheet_().getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
     const rowPlayerId = String(values[i][0] || '');
     const rowName = String(values[i][1] || '');
@@ -534,50 +698,71 @@ function assertNameAvailable_(displayName, exceptPlayerId) {
   }
 }
 
-/**
- * 既存の重複名を整理する管理用関数。
- * 同じ名前は一番古い1件だけACTIVEで残し、後発を再登録待ちにする。
- */
-function repairDuplicateNames() {
-  const sh = sheet_(CONFIG.SHEETS.PLAYERS);
-  const values = sh.getDataRange().getValues();
-  const claimed = new Set();
-  let repaired = 0;
-
-  for (let i = 1; i < values.length; i++) {
-    const name = String(values[i][1] || '');
-    const key = canonicalNameKey_(name);
-    if (!key) continue;
-
-    if (claimed.has(key)) {
-      sh.getRange(i + 1, 2).clearContent();
-      sh.getRange(i + 1, 4).setValue(new Date());
-      sh.getRange(i + 1, 5).setValue('RENAME_REQUIRED');
-      repaired += 1;
-    } else {
-      claimed.add(key);
-    }
-  }
-
-  SpreadsheetApp.flush();
-  console.log('重複名の整理件数: ' + repaired);
-  return repaired;
-}
-
 function validateName_(value) {
-  const name = String(value || '').normalize('NFKC').replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, '').trim();
+  const name = String(value || '')
+    .normalize('NFKC')
+    .replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, '')
+    .trim();
   const length = [...name].length;
+
   if (length < CONFIG.NAME_MIN || length > CONFIG.NAME_MAX) {
     throw new Error(`名前は${CONFIG.NAME_MIN}〜${CONFIG.NAME_MAX}文字で入力してください。`);
   }
-  if (/https?:\/\/|www\.|@/i.test(name)) throw new Error('URLや連絡先は名前に使用できません。');
-
-  const blocked = sheet_(CONFIG.SHEETS.BLOCKED_NAMES).getDataRange().getValues().slice(1)
-    .filter(r => r[0] && r[2] === true)
-    .map(r => String(r[0]).normalize('NFKC').toLowerCase());
-  const lower = name.toLowerCase();
-  if (blocked.some(word => lower.includes(word))) throw new Error('この名前は使用できません。');
+  if (/https?:\/\/|www\.|@/i.test(name)) {
+    throw new Error('URLや連絡先は名前に使用できません。');
+  }
+  if (containsBlockedTerm_(name)) {
+    throw new Error('この名前は使用できません。');
+  }
   return name;
+}
+
+function containsBlockedTerm_(name) {
+  const lower = normalizeModerationText_(name);
+  const compact = compactModerationText_(lower);
+  const tokens = lower.split(/[\s\u3000._\-‐‑–—・･,，、。!！?？"'`~…\/\\|:：;；()\[\]{}<>＜＞+=＋]+/).filter(Boolean);
+  const blocked = getBlockedTerms_();
+
+  return blocked.some(termValue => {
+    const term = normalizeModerationText_(termValue);
+    if (!term) return false;
+    const termCompact = compactModerationText_(term);
+    const length = [...termCompact].length;
+    const ascii = /^[a-z0-9]+$/.test(termCompact);
+
+    if (ascii && length <= 3) return tokens.includes(termCompact);
+    if (!ascii && length <= 2) return compact === termCompact || tokens.includes(termCompact);
+    return compact.includes(termCompact);
+  });
+}
+
+function getBlockedTerms_() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'boonjump-blocked-terms-v2';
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch (_) {}
+
+  const terms = sheet_(CONFIG.SHEETS.BLOCKED_NAMES).getDataRange().getValues().slice(1)
+    .filter(row => row[0] && row[2] === true)
+    .map(row => String(row[0]));
+
+  try { cache.put(cacheKey, JSON.stringify(terms), 300); } catch (_) {}
+  return terms;
+}
+
+function normalizeModerationText_(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, '')
+    .toLocaleLowerCase()
+    .trim();
+}
+
+function compactModerationText_(value) {
+  return normalizeModerationText_(value)
+    .replace(/[\s\u3000._\-‐‑–—・･,，、。!！?？"'`~…\/\\|:：;；()\[\]{}<>＜＞+=＋]/g, '');
 }
 
 function normalizeJudge_(value) {
@@ -612,9 +797,22 @@ function output_(payload, callback) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function spreadsheet_() {
+  if (!SPREADSHEET_CACHE_) SPREADSHEET_CACHE_ = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  return SPREADSHEET_CACHE_;
+}
+
 function sheet_(name) {
-  const sh = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(name);
+  const sh = spreadsheet_().getSheetByName(name);
   if (!sh) throw new Error(`シート「${name}」がありません。`);
+  return sh;
+}
+
+function playersSheet_() {
+  const sh = sheet_(CONFIG.SHEETS.PLAYERS);
+  if (String(sh.getRange(1, 7).getValue() || '') !== 'player_token') {
+    sh.getRange(1, 7).setValue('player_token');
+  }
   return sh;
 }
 
@@ -623,8 +821,7 @@ function todayKey_() {
 }
 
 function getWeekKey_(date) {
-  // 月曜開始。キーはその週の月曜日 yyyy-MM-dd。
-  const local = new Date(Utilities.formatDate(date, CONFIG.TIMEZONE, "yyyy/MM/dd HH:mm:ss"));
+  const local = new Date(Utilities.formatDate(date, CONFIG.TIMEZONE, 'yyyy/MM/dd HH:mm:ss'));
   const day = local.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   local.setDate(local.getDate() + diff);
@@ -634,28 +831,83 @@ function getWeekKey_(date) {
 
 function normalizeDate_(value) {
   if (!value) return null;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? null : d;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function dateToIso_(value) {
   if (!value) return '';
-  const d = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(d.getTime()) ? String(value) : d.toISOString();
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
 }
 
 function nowIso_() {
   return new Date().toISOString();
 }
 
-function truncate_(value, max) {
-  return String(value || '').slice(0, max);
+function truncate_(value, maxLength) {
+  return String(value || '').slice(0, maxLength);
 }
 
-/**
- * Apps Script上で手動実行する接続テスト。
- * 実行ログにJSONが出ればスプレッドシート接続成功。
- */
+/** 管理用: 既存の重複名を整理 */
+function repairDuplicateNames() {
+  const sh = playersSheet_();
+  const values = sh.getDataRange().getValues();
+  const claimed = new Set();
+  let repaired = 0;
+
+  for (let i = 1; i < values.length; i++) {
+    const key = canonicalNameKey_(values[i][1]);
+    if (!key) continue;
+    if (claimed.has(key)) {
+      sh.getRange(i + 1, 2).clearContent();
+      sh.getRange(i + 1, 4).setValue(new Date());
+      sh.getRange(i + 1, 5).setValue('RENAME_REQUIRED');
+      repaired += 1;
+    } else {
+      claimed.add(key);
+    }
+  }
+  SpreadsheetApp.flush();
+  console.log('重複名の整理件数: ' + repaired);
+  return repaired;
+}
+
+/** 管理用: period_bestsの既存重複を整理 */
+function repairPeriodBestDuplicates() {
+  const sh = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
+  const values = sh.getDataRange().getValues();
+  if (values.length < 3) return 0;
+
+  const header = values[0];
+  const bestByKey = new Map();
+  values.slice(1).forEach(row => {
+    if (!row[2]) return;
+    const key = [String(row[0]), normalizePeriodKey_(row[1]), String(row[2]), String(row[4])].join('::');
+    const current = bestByKey.get(key);
+    if (!current || Number(row[6] || 0) > Number(current[6] || 0)) {
+      const copy = row.slice();
+      copy[1] = normalizePeriodKey_(row[1]);
+      bestByKey.set(key, copy);
+    }
+  });
+
+  const rows = [...bestByKey.values()];
+  sh.clearContents();
+  sh.getRange(1, 1, 1, header.length).setValues([header]);
+  if (rows.length) sh.getRange(2, 1, rows.length, header.length).setValues(rows);
+  SpreadsheetApp.flush();
+  return Math.max(0, values.length - 1 - rows.length);
+}
+
+/** Apps Script上で手動実行する接続テスト */
 function testHealth() {
-  console.log(JSON.stringify(getLeaderboard_({ period: 'all', limit: '10' }), null, 2));
+  console.log(JSON.stringify({
+    health: {
+      ok: true,
+      api_version: CONFIG.API_VERSION,
+      ranking_mode: 'manual',
+    },
+    leaderboard: getLeaderboard_({ period: 'all', limit: '10' }),
+  }, null, 2));
 }

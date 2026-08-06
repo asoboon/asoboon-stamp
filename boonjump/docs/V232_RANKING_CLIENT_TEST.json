@@ -1,0 +1,18 @@
+{
+  "pass": true,
+  "initialization_server_calls": 0,
+  "legacy_queue_cleared": true,
+  "identity_recovered_by_token": "player-server-1234567890",
+  "submit_calls": 1,
+  "submitted_fields": {
+    "machine_id": "sport",
+    "distance": "1411",
+    "played_at": "2026-08-07T00:00:00.000Z",
+    "transport": "manual-jsonp"
+  },
+  "period_only_update_preserved": {
+    "machine": false,
+    "today": true,
+    "week": true
+  }
+}

@@ -1,10 +1,10 @@
-const BUILD = "2026-08-07-ranking-rescue-machine-extreme-v8";
+const BUILD = "2026-08-07-manual-ranking-polish-v10";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=230-rescue-8",
+  "./ranking-client.js?v=232-polish-10",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

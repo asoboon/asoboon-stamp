@@ -1,12 +1,22 @@
 # ASOBooN ミニアプリ
 
-GitHub Pages用の完成フォルダです。
+GitHub Pagesへそのまま配置できる完成フォルダです。
 
 ## ブーンジャンプ
 
-- Version: 2.3.0
-- Build: `2026-08-07-ranking-rescue-machine-extreme-v8`
+- Version: **2.3.2**
+- Build: `2026-08-07-manual-ranking-polish-v10`
+- ランキング登録: **任意**
+- 自動送信・未送信キュー: **なし**
+- 保存方針: 歴代／今週登録／今日登録のいずれかを更新する記録だけ保存
 - 世界ランキング保存先: Google Apps Script + Googleスプレッドシート
-- Apps Script API互換版: 2.2.4
+- 必須Apps Script API: **2.3.2**
 
-公開時は、このフォルダの中身をリポジトリのmainへ上書きしてください。
+## 公開手順
+
+1. このフォルダの中身をGitHubリポジトリのmainへ上書きします。
+2. `Code.gs`をランキング用スプレッドシートのApps Scriptへ全文貼り替えます。
+3. Apps Scriptを「新バージョン」で再デプロイします。
+4. 公開後、最初だけ `/boonjump/?v=232` で開きます。
+
+ランキングを見るだけなら名前登録は不要です。結果画面または記録画面で、登録したい記録を選んだときだけ名前登録と送信が行われます。

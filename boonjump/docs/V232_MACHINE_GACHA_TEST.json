@@ -1,0 +1,115 @@
+{
+  "pass": true,
+  "rate_sum": 100,
+  "normal_rates": [
+    {
+      "id": "boon",
+      "rarity": "R",
+      "rate": 29
+    },
+    {
+      "id": "wagon",
+      "rarity": "R",
+      "rate": 29
+    },
+    {
+      "id": "buggy",
+      "rarity": "SR",
+      "rate": 12
+    },
+    {
+      "id": "bike",
+      "rarity": "SR",
+      "rate": 12
+    },
+    {
+      "id": "sport",
+      "rarity": "SR",
+      "rate": 12
+    },
+    {
+      "id": "ssr",
+      "rarity": "EXR",
+      "rate": 3
+    },
+    {
+      "id": "princess",
+      "rarity": "SSR",
+      "rate": 3
+    }
+  ],
+  "ten_pull": {
+    "normal_slots": 9,
+    "bonus_slots": 1,
+    "bonus_pool": [
+      "buggy",
+      "bike",
+      "sport",
+      "ssr",
+      "princess"
+    ],
+    "unowned_weight_multiplier": 3,
+    "pity_after_non_new_draws": 19
+  },
+  "machine_profiles": {
+    "unique_signatures": 8,
+    "profiles": [
+      {
+        "id": "boon",
+        "handling": "BEGINNER｜スローモーション",
+        "accel": "smooth:3100",
+        "turbo": "smooth:2700",
+        "nitro": "linear:2450"
+      },
+      {
+        "id": "wagon",
+        "handling": "BEGINNER｜マグネット",
+        "accel": "targetHold:2350",
+        "turbo": "targetHold:2100",
+        "nitro": "brake:2500"
+      },
+      {
+        "id": "buggy",
+        "handling": "INTERMEDIATE｜暴走",
+        "accel": "chaos:1750",
+        "turbo": "pinball:1450",
+        "nitro": "zigzag:1650"
+      },
+      {
+        "id": "bike",
+        "handling": "INTERMEDIATE｜ワンショット",
+        "accel": "oneway:930",
+        "turbo": "oneway:1020",
+        "nitro": "dash:960"
+      },
+      {
+        "id": "sport",
+        "handling": "ADVANCED｜急加速",
+        "accel": "snap:1950",
+        "turbo": "snap:1500",
+        "nitro": "accelerate:1380"
+      },
+      {
+        "id": "ssr",
+        "handling": "EXPERT｜テレポート",
+        "accel": "teleport:1380",
+        "turbo": "teleport:1250",
+        "nitro": "teleport:1280"
+      },
+      {
+        "id": "princess",
+        "handling": "ADVANCED｜リズム",
+        "accel": "rhythm:2250",
+        "turbo": "rhythm:2350",
+        "nitro": "rhythm:2000"
+      },
+      {
+        "id": "secret",
+        "handling": "MASTER｜カオス",
+        "accel": "rocket:760",
+        "turbo": "rocket:820",
+        "nitro": "decoy:1050"
+      }
+    ]
+  }
+}

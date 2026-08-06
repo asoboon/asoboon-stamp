@@ -1,0 +1,21 @@
+ブーンジャンプ V2.3.2 ランキング更新手順
+
+1. スプレッドシート「ブーンジャンプ 世界ランキング」を開く
+2. 拡張機能 → Apps Script
+3. Code.gsを全文削除
+4. このフォルダ直下のCode.gsを全文貼り付け
+5. 保存
+6. デプロイ → デプロイを管理
+7. 現在のデプロイの鉛筆マーク
+8. バージョンを「新バージョン」
+9. デプロイ
+
+既存の /exec URLは変更不要です。
+
+公開確認URL:
+/boonjump/?v=232
+
+正常なhealth表示:
+api_version: 2.3.2
+ranking_mode: manual
+write_policy: meaningful-best-only

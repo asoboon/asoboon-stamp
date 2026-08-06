@@ -1,0 +1,36 @@
+{
+  "pass": true,
+  "ranking_css_generation": "single V2.3.2 consolidated block",
+  "legacy_ranking_css_markers_remaining": false,
+  "responsive_breakpoints": [
+    "430px",
+    "340px"
+  ],
+  "touch_targets": {
+    "ranking_tabs_min_height_px": 52,
+    "refresh_min_height_px": 54,
+    "name_input_min_height_px": 48,
+    "submit_min_height_px": 56
+  },
+  "layout_safety": [
+    "minmax(0,1fr) used for long names",
+    "mobile ranking distance reflows at 340px",
+    "name form stacks at 430px",
+    "no fixed-width outer ranking canvas"
+  ],
+  "information_hierarchy": [
+    "board title and refresh",
+    "manual-registration notice",
+    "period tabs",
+    "own rank card",
+    "single ranking list",
+    "collapsed name/account controls"
+  ],
+  "labels": [
+    "歴代",
+    "今週登録",
+    "今日登録",
+    "マシン別"
+  ],
+  "visual_browser_render": "not executed: Chromium headless did not initialize in this container (DBus/environment timeout); static DOM/CSS/accessibility checks passed"
+}

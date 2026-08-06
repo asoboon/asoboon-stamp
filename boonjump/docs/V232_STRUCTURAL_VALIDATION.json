@@ -1,0 +1,48 @@
+{
+  "html_duplicate_ids": [],
+  "missing_referenced_ids": [],
+  "missing_markup_assets": [],
+  "missing_sw_precache": [],
+  "version_markers": {
+    "index_2_3_2": true,
+    "client_2_3_2": true,
+    "api_2_3_2": true,
+    "build_v10": true,
+    "no_old_2_3_1": true
+  },
+  "manual_ranking_contract": {
+    "no_auto_send_label": true,
+    "manual_banner": true,
+    "today_registered_label": true,
+    "week_registered_label": true,
+    "client_no_queue": true,
+    "server_meaningful_only": true,
+    "server_period_independent": true
+  },
+  "identity_contract": {
+    "player_token_client": true,
+    "resolve_identity_client": true,
+    "resolve_identity_server": true,
+    "player_token_sheet": true
+  },
+  "state_contract": {
+    "schema_4": true,
+    "best_meta": true,
+    "world_best": true,
+    "played_at_preserved": true
+  },
+  "gacha_contract": {
+    "ten_nine_normal": true,
+    "bonus_excludes_r": true,
+    "unowned_weight_3": true,
+    "pity_20": true
+  },
+  "forbidden_leftovers": [],
+  "checksums": {
+    "boonjump/index.html": "15f71d30fd91d084157dcc324523ed212da713c648ef638d9ea1cf494e4416e6",
+    "boonjump/ranking-client.js": "f5c972beeb09b1bd6c8996e819299e2c8a11b9fc82323649bca7fcd953cba05c",
+    "boonjump/sw.js": "25cca5be7629b4d2bf4d11429ca7482eda960e43b229710020a7e1e2a9d5afef",
+    "Code.gs": "cd499522126af1938db82172893d11c02cafcd3a11e313bce351bdd7e3008656"
+  },
+  "pass": true
+}
