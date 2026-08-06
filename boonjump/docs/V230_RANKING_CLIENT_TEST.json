@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "request": "score-mshpl4ts-2n9c2nbh2ndm2nfr",
+  "result": {
+    "ok": true,
+    "confirmed": true,
+    "review": false,
+    "reason": "",
+    "me": {
+      "rank": 7,
+      "distance": 1234,
+      "machine_name": "テスト車"
+    },
+    "server": {
+      "ok": true,
+      "found": true,
+      "accepted": true,
+      "status": "ACCEPTED",
+      "reason": "",
+      "player_rank": {
+        "rank": 7,
+        "distance": 1234,
+        "machine_name": "テスト車"
+      }
+    }
+  },
+  "pending": 0,
+  "diagnostics": {
+    "state": "saved",
+    "message": "世界ランキングへ保存しました。",
+    "requestId": "score-mshpl4ts-2n9c2nbh2ndm2nfr",
+    "pending": 0,
+    "updatedAt": 1786032417382,
+    "transports": {
+      "beacon": true,
+      "fetch": true,
+      "image": true
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "duplicate_ids": [],
+  "missing_dom_refs": [],
+  "missing_local_files": [],
+  "missing_sw_files": [],
+  "required_ids": {
+    "homeScreen": true,
+    "recordsScreen": true,
+    "rankingScreen": true,
+    "gameScreen": true,
+    "flightScreen": true,
+    "resultScreen": true,
+    "trophyRecords": true,
+    "drawTenButton": true,
+    "rankingList": true,
+    "rankingMeCard": true,
+    "trophyCompleteOverlay": true
+  },
+  "version": "2.3.0",
+  "build_present": true,
+  "score_captured_immediately": true,
+  "score_submission_before_state_updates": true,
+  "ranking_transports": {
+    "beacon": true,
+    "fetch_keepalive": true,
+    "image_get": true,
+    "jsonp": true,
+    "server_confirmation": true
+  },
+  "queue_before_network": true,
+  "ten_draw": {
+    "nine_normal": true,
+    "bonus_sr_plus": true,
+    "unowned_weight_3": true,
+    "pity_20": true
+  },
+  "machine_modes": [
+    "accelerate",
+    "brake",
+    "chaos",
+    "dash",
+    "decoy",
+    "linear",
+    "oneway",
+    "pinball",
+    "rhythm",
+    "rocket",
+    "smooth",
+    "snap",
+    "targetHold",
+    "teleport",
+    "zigzag"
+  ],
+  "machine_count": 8,
+  "ranking_ui": true,
+  "trophy_complete": true,
+  "all_ranking_transports": true,
+  "all_ten_draw_checks": true
+}

@@ -1,0 +1,10 @@
+ブーンジャンプ V2.3.0
+
+Apps Script APIはV2.2.4のままで動作します。
+ゲーム側は結果確定時に端末へ記録を保存し、複数の通信経路で同一request_idを送ります。
+結果画面に「端末保存済み → 世界ランキング確認中」が表示され、スプレッドシートへの保存確認後に「保存完了」へ変わります。
+
+GitHubは全体差し替え推奨です。
+Build: 2026-08-07-ranking-rescue-machine-extreme-v8
+
+検証資料は boonjump/docs/V230_FINAL_VALIDATION.txt に同梱しています。

@@ -1,8 +1,17 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.2.5
- * - 名前登録・記録送信・ランキング取得をすべてJSONPで実行
- * - 同名登録エラーをその場で受け取る
- * - 未送信記録を端末へ保持し、自動再送
+ * ブーンジャンプ 世界ランキング通信 V2.3.0
+ *
+ * 記録は、結果画面が出た瞬間に端末へ確定保存します。
+ * その後、同じ request_id を使って複数の経路から送信し、
+ * Apps Script の score_status で保存確認を取ります。
+ *
+ * - JSONP: 成功/エラー内容の取得
+ * - sendBeacon: 画面遷移や終了に強い書き込み
+ * - fetch(no-cors/keepalive): Beacon非対応端末の補助
+ * - Image GET: CORSやレスポンス解析に依存しない最終予備
+ *
+ * Apps Script側は request_id で重複排除するため、複数経路で
+ * 同じ記録が届いてもランキングには1件だけ保存されます。
  */
 const BOON_RANKING = (() => {
   'use strict';
@@ -10,10 +19,36 @@ const BOON_RANKING = (() => {
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzp4sB67QKmeh-OlE2KPsl-UuKRZzgSF4XUq5trE8YI57h9WBJGBkTu979rNPSeRy_D/exec';
   const PLAYER_ID_KEY = 'boonjump_world_player_id_v1';
   const PLAYER_NAME_KEY = 'boonjump_world_player_name_v1';
-  const SCORE_QUEUE_KEY = 'boonjump_world_score_queue_v3';
-  const MAX_QUEUE = 40;
-  const JSONP_TIMEOUT = 25000;
+  const SCORE_QUEUE_KEY = 'boonjump_world_score_queue_v4';
+  const LEGACY_QUEUE_KEYS = ['boonjump_world_score_queue_v3', 'boonjump_world_score_queue_v2'];
+  const MAX_QUEUE = 60;
+  const JSONP_TIMEOUT = 22000;
+  const CONFIRM_RETRIES = 3;
+
   let flushingPromise = null;
+  let lastDiagnostic = {
+    state: 'idle',
+    message: '',
+    requestId: '',
+    pending: 0,
+    updatedAt: 0,
+  };
+
+  function setDiagnostic(next) {
+    lastDiagnostic = {
+      ...lastDiagnostic,
+      ...next,
+      pending: readQueue().length,
+      updatedAt: Date.now(),
+    };
+    try {
+      window.dispatchEvent(new CustomEvent('boon-ranking-status', { detail: { ...lastDiagnostic } }));
+    } catch (_) {}
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   function createId(prefix = 'p') {
     let random = '';
@@ -39,10 +74,6 @@ const BOON_RANKING = (() => {
     return localStorage.getItem(PLAYER_NAME_KEY) || '';
   }
 
-  function health() {
-    return getJsonp({ action: 'health' }, 15000);
-  }
-
   function normalizePlayerName(name) {
     const normalized = String(name || '')
       .normalize('NFKC')
@@ -58,25 +89,49 @@ const BOON_RANKING = (() => {
     return normalized;
   }
 
-  function readQueue() {
+  function parseQueue(raw) {
     try {
-      const parsed = JSON.parse(localStorage.getItem(SCORE_QUEUE_KEY) || '[]');
+      const parsed = JSON.parse(raw || '[]');
       return Array.isArray(parsed) ? parsed.filter(item => item && item.request_id) : [];
     } catch (_) {
       return [];
     }
   }
 
+  function readQueue() {
+    let queue = parseQueue(localStorage.getItem(SCORE_QUEUE_KEY));
+    if (!queue.length) {
+      for (const key of LEGACY_QUEUE_KEYS) {
+        const legacy = parseQueue(localStorage.getItem(key));
+        if (legacy.length) {
+          queue = legacy;
+          writeQueue(queue);
+          try { localStorage.removeItem(key); } catch (_) {}
+          break;
+        }
+      }
+    }
+    return queue;
+  }
+
   function writeQueue(queue) {
     localStorage.setItem(SCORE_QUEUE_KEY, JSON.stringify(queue.slice(-MAX_QUEUE)));
   }
 
-  function queueScore(payload) {
-    const item = {
+  function removeQueued(requestId) {
+    const queue = readQueue().filter(item => item.request_id !== requestId);
+    writeQueue(queue);
+    return queue.length;
+  }
+
+  function buildScoreItem(payload) {
+    const displayName = getPlayerName();
+    if (!displayName) throw new Error('先にランキングネームを登録してください。');
+    return {
       action: 'submit',
       request_id: createId('score'),
       player_id: getPlayerId(),
-      display_name: getPlayerName(),
+      display_name: displayName,
       machine_id: String(payload.machineId || ''),
       distance: Math.max(0, Math.round(Number(payload.distance) || 0)),
       accel_judge: String(payload.accelJudge || 'MISS'),
@@ -88,9 +143,95 @@ const BOON_RANKING = (() => {
       client_version: String(payload.clientVersion || '').slice(0, 40),
       queued_at: Date.now(),
     };
-    const queue = readQueue();
+  }
+
+  function queueItem(item) {
+    const queue = readQueue().filter(row => row.request_id !== item.request_id);
     queue.push(item);
     writeQueue(queue);
+    setDiagnostic({
+      state: 'queued',
+      message: '端末へ記録を保存しました。',
+      requestId: item.request_id,
+    });
+    return item;
+  }
+
+  function paramsFor(item) {
+    const params = {};
+    Object.entries(item).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) params[key] = String(value);
+    });
+    return params;
+  }
+
+  function queryString(item) {
+    return new URLSearchParams(paramsFor(item)).toString();
+  }
+
+  function fireImageWrite(item) {
+    try {
+      const img = new Image();
+      img.alt = '';
+      img.width = 1;
+      img.height = 1;
+      img.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
+      const clean = () => { try { img.remove(); } catch (_) {} };
+      img.onload = clean;
+      img.onerror = clean;
+      img.src = `${WEB_APP_URL}?${queryString({ ...item, transport: 'image', _t: Date.now() })}`;
+      (document.body || document.documentElement).appendChild(img);
+      setTimeout(clean, 30000);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function fireBeaconWrite(item) {
+    try {
+      if (!navigator.sendBeacon) return false;
+      const body = new URLSearchParams(paramsFor({ ...item, transport: 'beacon' }));
+      return navigator.sendBeacon(WEB_APP_URL, body);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function fireFetchWrite(item) {
+    try {
+      if (!window.fetch) return false;
+      const body = new URLSearchParams(paramsFor({ ...item, transport: 'fetch' }));
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        keepalive: true,
+        body,
+      }).catch(() => {});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function fireWrite(item) {
+    const transports = {
+      beacon: fireBeaconWrite(item),
+      fetch: fireFetchWrite(item),
+      image: fireImageWrite(item),
+    };
+    setDiagnostic({
+      state: 'sending',
+      message: 'ランキングサーバーへ送信しています。',
+      requestId: item.request_id,
+      transports,
+    });
+    return transports;
+  }
+
+  function captureScore(payload) {
+    const item = queueItem(buildScoreItem(payload));
+    fireWrite(item);
     return item;
   }
 
@@ -105,7 +246,7 @@ const BOON_RANKING = (() => {
         settled = true;
         clearTimeout(timer);
         try { delete window[callback]; } catch (_) { window[callback] = undefined; }
-        script.remove();
+        try { script.remove(); } catch (_) {}
         error ? reject(error) : resolve(data);
       };
 
@@ -115,15 +256,12 @@ const BOON_RANKING = (() => {
       );
 
       window[callback] = data => {
-        if (data && data.ok) {
-          finish(null, data);
-        } else {
-          finish(new Error((data && data.error) || 'ランキング通信に失敗しました。'));
-        }
+        if (data && data.ok) finish(null, data);
+        else finish(new Error((data && data.error) || 'ランキング通信に失敗しました。'));
       };
 
       const query = new URLSearchParams({
-        ...params,
+        ...paramsFor(params),
         callback,
         _t: String(Date.now()),
       });
@@ -132,6 +270,10 @@ const BOON_RANKING = (() => {
       script.onerror = () => finish(new Error('ランキングサーバーへ接続できませんでした。'));
       document.head.appendChild(script);
     });
+  }
+
+  function health() {
+    return getJsonp({ action: 'health' }, 15000);
   }
 
   async function getPlayer() {
@@ -150,19 +292,17 @@ const BOON_RANKING = (() => {
       display_name: displayName,
     });
 
-    localStorage.setItem(PLAYER_NAME_KEY, data.display_name || displayName);
-
-    // 保留中の記録も確定した名前へそろえる。
     const fixedName = data.display_name || displayName;
+    localStorage.setItem(PLAYER_NAME_KEY, fixedName);
     const queue = readQueue().map(item => ({ ...item, display_name: fixedName }));
     writeQueue(queue);
+    setDiagnostic({ state: 'registered', message: 'ランキングネームを登録しました。' });
     return data;
   }
 
   async function ensureRegistered() {
     const name = getPlayerName();
     if (!name) return false;
-
     const player = await getPlayer();
     if (player) {
       if (String(player.status || 'ACTIVE') !== 'ACTIVE') {
@@ -170,7 +310,6 @@ const BOON_RANKING = (() => {
       }
       if (player.display_name === name) return true;
     }
-
     await rename(name);
     return true;
   }
@@ -186,71 +325,136 @@ const BOON_RANKING = (() => {
     });
   }
 
-  async function sendQueuedScore(item) {
-    const direct = await getJsonp(item, 30000);
-    const accepted = Boolean(direct.accepted || direct.duplicate);
-    const review = Boolean(direct.review);
-    if (!accepted && !review) throw new Error(direct.reason || '記録が受理されませんでした。');
-    return {ok:true,confirmed:accepted,review,reason:direct.reason||'',me:direct.player_rank||null,server:direct};
+  async function scoreStatus(item) {
+    return getJsonp({
+      action: 'score_status',
+      request_id: item.request_id,
+      player_id: item.player_id,
+    }, 17000);
+  }
+
+  async function jsonpSubmit(item) {
+    const data = await getJsonp({ ...item, transport: 'jsonp' }, 26000);
+    const accepted = Boolean(data.accepted || data.duplicate);
+    const review = Boolean(data.review);
+    if (!accepted && !review) {
+      throw new Error(data.reason || '記録が受理されませんでした。');
+    }
+    return {
+      ok: true,
+      confirmed: accepted,
+      review,
+      reason: data.reason || '',
+      me: data.player_rank || null,
+      server: data,
+    };
+  }
+
+  async function confirmScore(item) {
+    setDiagnostic({
+      state: 'confirming',
+      message: 'スプレッドシートへの保存を確認しています。',
+      requestId: item.request_id,
+    });
+
+    let lastError = null;
+    for (let attempt = 0; attempt < CONFIRM_RETRIES; attempt += 1) {
+      if (attempt > 0) {
+        fireWrite(item);
+        await sleep(650 + attempt * 500);
+      } else {
+        await sleep(420);
+      }
+
+      try {
+        const status = await scoreStatus(item);
+        if (status.found) {
+          removeQueued(item.request_id);
+          setDiagnostic({
+            state: status.accepted ? 'saved' : 'review',
+            message: status.accepted ? '世界ランキングへ保存しました。' : (status.reason || '記録を確認中です。'),
+            requestId: item.request_id,
+          });
+          return {
+            ok: true,
+            confirmed: Boolean(status.accepted),
+            review: !status.accepted,
+            reason: status.reason || '',
+            me: status.player_rank || null,
+            server: status,
+          };
+        }
+      } catch (error) {
+        lastError = error;
+      }
+
+      try {
+        const result = await jsonpSubmit(item);
+        removeQueued(item.request_id);
+        setDiagnostic({
+          state: result.confirmed ? 'saved' : 'review',
+          message: result.confirmed ? '世界ランキングへ保存しました。' : (result.reason || '記録を確認中です。'),
+          requestId: item.request_id,
+        });
+        return result;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    setDiagnostic({
+      state: 'pending',
+      message: (lastError && lastError.message) || '記録は端末に保存されています。',
+      requestId: item.request_id,
+    });
+    throw lastError || new Error('記録は端末に保存しました。通信回復後に自動再送します。');
   }
 
   async function flushQueue() {
     if (flushingPromise) return flushingPromise;
-
     flushingPromise = (async () => {
-      let queue = readQueue();
       const sent = [];
       const failed = [];
-
-      for (const item of [...queue]) {
+      let queue = readQueue();
+      for (const original of [...queue]) {
+        const currentName = getPlayerName();
+        if (!currentName) break;
+        const item = { ...original, display_name: currentName };
         try {
-          // 名前変更後の保留記録にも、現在の名前を反映する。
-          const currentName = getPlayerName();
-          const sendItem = currentName ? { ...item, display_name: currentName } : item;
-          const result = await sendQueuedScore(sendItem);
+          fireWrite(item);
+          const result = await confirmScore(item);
           sent.push({ item, result });
-          queue = queue.filter(row => row.request_id !== item.request_id);
-          writeQueue(queue);
+          queue = readQueue();
         } catch (error) {
           failed.push({ item, error });
-          // 名前の再登録が必要なときは、後続記録も同様に失敗するため中断する。
           if (/ネーム|名前|すでに使われ/.test(String(error && error.message))) break;
         }
       }
-
-      return {
-        ok: failed.length === 0,
-        sent,
-        failed,
-        pending: queue.length,
-      };
+      return { ok: failed.length === 0, sent, failed, pending: readQueue().length };
     })().finally(() => {
       flushingPromise = null;
     });
-
     return flushingPromise;
   }
 
   async function submitScore(payload) {
-    if (!getPlayerName()) {
-      throw new Error('先にランキングネームを登録してください。');
-    }
-
-    const item = queueScore(payload);
-    const result = await flushQueue();
-    const sent = result.sent.find(row => row.item.request_id === item.request_id);
-    if (sent) return sent.result;
-
-    const failed = result.failed.find(row => row.item.request_id === item.request_id);
-    throw (failed && failed.error) || new Error('記録を端末に保存しました。通信回復後に自動送信します。');
+    const item = captureScore(payload);
+    return confirmScore(item);
   }
 
   function getPendingCount() {
     return readQueue().length;
   }
 
+  function getDiagnostics() {
+    return { ...lastDiagnostic, pending: getPendingCount() };
+  }
+
   window.addEventListener('online', () => {
     if (getPlayerName()) flushQueue().catch(() => {});
+  });
+  window.addEventListener('pageshow', () => {
+    if (getPlayerName() && getPendingCount()) flushQueue().catch(() => {});
   });
 
   return {
@@ -260,9 +464,12 @@ const BOON_RANKING = (() => {
     normalizePlayerName,
     rename,
     ensureRegistered,
+    captureScore,
+    confirmScore,
     submitScore,
     flushQueue,
     getPendingCount,
+    getDiagnostics,
     getLeaderboard,
     getPlayer,
   };
