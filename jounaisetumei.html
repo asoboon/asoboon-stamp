@@ -1727,6 +1727,419 @@
       }
     }
 
+  
+    /* v4: information-first visual hierarchy
+       Motion remains only when it explains state changes. */
+
+    /* Remove decorative motion that competes with text. */
+    .star-streak{
+      display:none!important;
+    }
+
+    .ambient::before{
+      opacity:.12!important;
+      animation:none!important;
+    }
+
+    .ambient::after{
+      display:none!important;
+    }
+
+    .frame::before,
+    .stage::after,
+    .mission-btn::after{
+      display:none!important;
+    }
+
+    .hero::after,
+    .page-head::after{
+      opacity:.34;
+      animation:none!important;
+      filter:none!important;
+    }
+
+    .stage::before{
+      opacity:.07;
+      animation:none!important;
+    }
+
+    .orbit{
+      opacity:.20;
+      animation:none!important;
+    }
+
+    .orbit::before,
+    .orbit::after{
+      animation:none!important;
+    }
+
+    .power-meter span{
+      width:68%;
+      opacity:.72;
+      animation:none!important;
+    }
+
+    .status-dot,
+    .live-dot{
+      animation:none!important;
+      opacity:.9;
+    }
+
+    .mission-btn,
+    .tab-btn,
+    .choice-btn,
+    .return-btn,
+    .step{
+      animation:none!important;
+    }
+
+    /* Stop placing TAP labels everywhere. Shape, contrast and copy now do the work. */
+    .mission-btn::before,
+    .return-btn::before,
+    .choice-btn::before,
+    .tab-btn::before,
+    .step::before{
+      display:none!important;
+    }
+
+    .tap-guide,
+    .action-lead{
+      display:none!important;
+    }
+
+    /* Home: one dominant focal point. */
+    .hero{
+      min-height:auto;
+      padding:18px 20px 16px;
+    }
+
+    .hero small,
+    .page-head small{
+      opacity:.52;
+      letter-spacing:.12em;
+    }
+
+    .hero h1{
+      max-width:82%;
+      margin-top:5px;
+      font-size:clamp(1.65rem,5.8vw,2.18rem);
+      line-height:1.14;
+    }
+
+    .hero p{
+      margin-top:7px;
+      color:#c6d6df;
+      font-size:.81rem;
+      font-weight:800;
+    }
+
+    .time-grid{
+      gap:12px;
+    }
+
+    .stage{
+      min-height:470px;
+      border-color:rgba(104,234,255,.16);
+      background:
+        radial-gradient(circle at 50% 51%,var(--mode-color-soft),transparent 31%),
+        linear-gradient(180deg,rgba(7,19,31,.98),rgba(2,7,12,.98));
+    }
+
+    .live-row{
+      opacity:.52;
+      font-size:.58rem;
+    }
+
+    .current-clock{
+      opacity:.76;
+      font-size:1.15rem;
+    }
+
+    .plan-label{
+      margin-top:13px;
+      font-size:.66rem;
+      opacity:.72;
+    }
+
+    .entry-time{
+      margin-top:4px;
+      font-size:clamp(5.6rem,21vw,7.1rem);
+      line-height:.88;
+      text-shadow:0 0 24px var(--mode-color-glow);
+    }
+
+    .status-message{
+      max-width:470px;
+      margin-top:8px;
+      color:#fff8de;
+      font-size:1.14rem;
+      line-height:1.45;
+    }
+
+    .status-note{
+      max-width:470px;
+      color:#9db1bd;
+      font-size:.73rem;
+    }
+
+    .side-column{
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      gap:10px;
+    }
+
+    .mini-panel,
+    .compare-grid,
+    .compare-box{
+      display:none!important;
+    }
+
+    .notice{
+      min-height:auto!important;
+      padding:11px 13px;
+      color:#e5edf2;
+      font-size:.75rem;
+      background:rgba(255,209,93,.045);
+    }
+
+    .notice br{
+      display:none;
+    }
+
+    .mission-btn{
+      min-height:66px;
+      border:2px solid rgba(104,234,255,.38);
+      color:#07131c;
+      background:linear-gradient(180deg,#d8fbff,#5bd5ee);
+      box-shadow:0 8px 24px rgba(0,0,0,.26),0 0 18px rgba(104,234,255,.14);
+      font-size:1.02rem;
+    }
+
+    .mission-btn .subtap{
+      color:#28505f;
+      font-size:.67rem;
+    }
+
+    /* Detail pages: title -> critical rule -> one next action. */
+    .page-head{
+      min-height:auto;
+      padding:18px 20px 16px;
+    }
+
+    .page-head h2{
+      max-width:none;
+      margin-top:5px;
+      font-size:1.7rem;
+    }
+
+    .page-head p{
+      max-width:none;
+      margin-top:7px;
+      color:#c4d4dd;
+      font-size:.82rem;
+    }
+
+    .tabs{
+      margin-bottom:13px;
+    }
+
+    .tab-btn{
+      min-height:64px;
+      border-width:1px;
+      color:#d3e0e7;
+      background:rgba(255,255,255,.02);
+      box-shadow:none;
+    }
+
+    .tab-btn.active{
+      color:#061018;
+      border-color:var(--cyan);
+      background:linear-gradient(180deg,#d7fbff,#63d8ee);
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
+      transform:none;
+    }
+
+    .section-card{
+      min-height:0!important;
+      padding:18px;
+    }
+
+    .section-card h3{
+      color:#ffffff;
+      font-size:1.12rem;
+      line-height:1.35;
+    }
+
+    .section-card > p{
+      margin-top:7px;
+      color:#aebfca;
+      font-size:.78rem;
+    }
+
+    .mission-status{
+      margin-top:13px;
+    }
+
+    .important-rule{
+      padding:13px;
+      border:1px solid rgba(255,209,93,.24);
+      border-left:4px solid var(--amber);
+      background:rgba(255,209,93,.065);
+    }
+
+    .important-rule b{
+      color:#3b2900;
+      border-color:var(--amber);
+      background:var(--amber);
+      box-shadow:none;
+    }
+
+    .important-rule span{
+      color:#eaf1f5;
+      font-size:.76rem;
+      line-height:1.5;
+    }
+
+    .important-rule strong{
+      color:#fff1b6;
+      font-size:.83rem;
+    }
+
+    .steps{
+      margin-top:14px;
+    }
+
+    .step{
+      min-height:86px;
+      padding:13px 15px;
+      padding-right:46px;
+      border:2px solid rgba(104,234,255,.28);
+      background:
+        linear-gradient(90deg,rgba(104,234,255,.06),rgba(255,255,255,.012));
+      box-shadow:0 10px 25px rgba(0,0,0,.20);
+    }
+
+    .step:not(.done){
+      border-color:rgba(255,209,93,.44);
+      background:
+        linear-gradient(90deg,rgba(255,209,93,.095),rgba(104,234,255,.025));
+    }
+
+    .step-num{
+      flex:none;
+    }
+
+    .step-copy strong{
+      color:#ffffff;
+      font-size:.94rem;
+      line-height:1.35;
+    }
+
+    .step-emphasis{
+      display:block;
+      margin-top:5px;
+      color:var(--amber);
+      font-size:.64rem;
+    }
+
+    .step-copy small{
+      margin-top:7px;
+      color:#bacbd4;
+      font-size:.74rem;
+      line-height:1.5;
+    }
+
+    .step.done{
+      opacity:.72;
+      box-shadow:none;
+    }
+
+    .choice-grid{
+      margin-top:14px;
+    }
+
+    .choice-btn,
+    .return-btn{
+      border-width:2px;
+      box-shadow:0 9px 22px rgba(0,0,0,.19);
+    }
+
+    .choice-btn{
+      color:#f2f7fa;
+      background:rgba(255,255,255,.025);
+    }
+
+    .choice-btn.yes{
+      color:#fff4c9;
+      background:rgba(255,209,93,.07);
+    }
+
+    .decision-result{
+      margin-top:13px;
+      font-size:.83rem;
+    }
+
+    .rule-bar{
+      margin-top:13px;
+      color:#dce7ed;
+      font-size:.72rem;
+    }
+
+    .complete-banner{
+      font-size:.84rem;
+    }
+
+    /* Keep only purposeful state-change motion. */
+    .step.reveal,
+    .detail-section.active,
+    .complete-banner.show,
+    .decision-result.show{
+      animation-duration:.30s!important;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .stage{
+        min-height:520px;
+      }
+
+      .entry-time{
+        font-size:7.35rem;
+      }
+
+      .status-message{
+        font-size:1.24rem;
+      }
+
+      .side-column{
+        grid-template-columns:1fr!important;
+      }
+
+      .notice{
+        font-size:.80rem;
+      }
+
+      .mission-btn{
+        min-height:74px;
+        font-size:1.08rem;
+      }
+
+      .section-card{
+        min-height:0!important;
+      }
+
+      .step{
+        min-height:94px;
+      }
+
+      .step-copy strong{
+        font-size:1rem;
+      }
+
+      .step-copy small{
+        font-size:.78rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -1770,9 +2183,9 @@
       <div class="frame">
         <div class="shell">
           <header class="hero">
-            <small>22ND CENTURY MOBILITY CONTROL</small>
-            <h1>退場時間を<br>リアルタイム確認</h1>
-            <p>利用時間を切り替えると、現在の退場対象となる入場時刻を即時表示します。</p>
+            <small>EXIT TIME CONTROL</small>
+            <h1>いま退場する方の<br>入場時刻</h1>
+            <p>中央の時刻をご確認ください。</p>
           </header>
 
           <div class="time-grid">
@@ -1784,7 +2197,7 @@
                 <time id="currentTime" class="current-clock">--:--</time>
                 <div id="planLabel" class="plan-label">2時間30分利用</div>
                 <time id="entryTime" class="entry-time">--:--</time>
-                <div id="statusMessage" class="status-message">退場時間を計算しています</div>
+                <div id="statusMessage" class="status-message">この時刻ごろに入場した方が退場の目安です</div>
                 <div id="statusNote" class="status-note">正確な入場時刻はレシートをご確認ください。</div>
               </div>
 
@@ -1792,26 +2205,13 @@
             </section>
 
             <aside class="side-column">
-              <section class="mini-panel">
-                <div class="compare-grid">
-                  <div class="compare-box">
-                    <strong>2時間30分</strong>
-                    <span id="compare150">--:--</span>
-                  </div>
-                  <div class="compare-box">
-                    <strong>3時間</strong>
-                    <span id="compare180">--:--</span>
-                  </div>
-                </div>
-              </section>
-
               <div class="notice">
                 表示時刻ごろに入場した方が、現在の退場目安です。<br>
                 一時退場中も利用時間は進みます。
               </div>
 
               <button id="openDetailsButton" class="mission-btn" type="button">
-                入退場の方法を見る<span class="subtap">ここをタップすると手順が開きます</span>
+                入退場の方法を見る<span class="subtap">タップして開く</span>
               </button>
             </aside>
           </div>
@@ -1823,10 +2223,9 @@
       <div class="frame">
         <div class="shell">
           <header class="page-head">
-            <small>ENTRY / REENTRY / EXIT GUIDE</small>
-            <h2>状況を選ぶと<br>必要な手順だけ表示</h2>
-            <p>難しい説明はありません。該当するボタンを押して、上から順番に確認してください。</p>
-            <div class="tap-guide"><b>TAP</b><span>光っているカードやボタンをタップすると、必要な説明だけ順番に表示されます</span></div>
+            <small>ENTRY / REENTRY / EXIT</small>
+            <h2>入退場の方法</h2>
+            <p>当てはまる状況を、下から選んでください。</p>
           </header>
 
           <div class="detail-body">
@@ -1847,18 +2246,16 @@
                 <h3>家族みんなで外に出て、あとで戻る</h3>
                 <p>ひとつ確認すると、次の手順が表示されます。上から順番にご確認ください。</p>
 
-                <div class="action-lead"><i>1</i><span>まずは下のカードを上からタップしてください。確認すると次の手順が出ます。</span></div>
-
-                <div class="mission-status">
-                  <b>↻</b>
-                  <span>一時退場中も利用時間は止まりません。再入場にはレシートが必要です。</span>
+                <div class="mission-status important-rule">
+                  <b>!</b>
+                  <span><strong>一時退場中も利用時間は進みます。</strong><br>再入場にはレシートが必要です。</span>
                 </div>
 
                 <div id="familySteps" class="steps">
                   <button class="step" type="button" data-step="1">
                     <span class="step-num">1</span>
                     <span class="step-copy">
-                      <strong>ロッカーを空にする</strong><span class="step-emphasis">▼ ここをタップして確認</span>
+                      <strong>ロッカーを空にする</strong><span class="step-emphasis">タップして確認</span>
                       <small>荷物を残したまま外へ出ないでください。</small>
                     </span>
                     <span class="check">✓</span>
@@ -1867,7 +2264,7 @@
                   <button class="step is-hidden" type="button" data-step="2">
                     <span class="step-num">2</span>
                     <span class="step-copy">
-                      <strong>赤ホルダーからレシートを抜く</strong><span class="step-emphasis">▼ ここをタップして確認</span>
+                      <strong>赤ホルダーからレシートを抜く</strong><span class="step-emphasis">タップして確認</span>
                       <small>再入場時に使用します。なくさずお持ちください。</small>
                     </span>
                     <span class="check">✓</span>
@@ -1876,7 +2273,7 @@
                   <button class="step is-hidden" type="button" data-step="3">
                     <span class="step-num">3</span>
                     <span class="step-copy">
-                      <strong>すべてのホルダーを返却する</strong><span class="step-emphasis">▼ ここをタップして確認</span>
+                      <strong>すべてのホルダーを返却する</strong><span class="step-emphasis">タップして確認</span>
                       <small>赤・黄色ともに返却ボックスへ入れてください。</small>
                     </span>
                     <span class="check">✓</span>
@@ -1885,7 +2282,7 @@
                   <button class="step is-hidden" type="button" data-step="4">
                     <span class="step-num">4</span>
                     <span class="step-copy">
-                      <strong>戻ったらレシートを提示する</strong><span class="step-emphasis">▼ ここをタップして確認</span>
+                      <strong>戻ったらレシートを提示する</strong><span class="step-emphasis">タップして確認</span>
                       <small>スタッフが確認後、再入場できます。</small>
                     </span>
                     <span class="check">✓</span>
@@ -1907,11 +2304,9 @@
                 <h3>大人だけ外に出る</h3>
                 <p>黄色ホルダーを持っているか選んでください。</p>
 
-                <div class="action-lead"><i>!</i><span>下のどちらかをタップしてください。結果がその場で表示されます。</span></div>
-
                 <div class="choice-grid">
-                  <button class="choice-btn yes" type="button" data-yellow="yes">🟡 黄色ホルダーがある<span class="subtap">こちらをタップ</span></button>
-                  <button class="choice-btn" type="button" data-yellow="no">黄色ホルダーがない<span class="subtap">こちらをタップ</span></button>
+                  <button class="choice-btn yes" type="button" data-yellow="yes">🟡 黄色ホルダーがある<span class="subtap">選択する</span></button>
+                  <button class="choice-btn" type="button" data-yellow="no">黄色ホルダーがない<span class="subtap">選択する</span></button>
                 </div>
 
                 <div id="yellowResultYes" class="decision-result ok">
@@ -1935,15 +2330,13 @@
                 <h3>完全退場して帰る</h3>
                 <p>利用を終了する場合は、すべてのホルダーを返却ボックスへお戻しください。</p>
 
-                <div class="mission-status">
-                  <b>🏁</b>
-                  <span>スタッフへのお声掛けは不要です。完全退場後は再入場できません。</span>
+                <div class="mission-status important-rule">
+                  <b>!</b>
+                  <span><strong>完全退場後は再入場できません。</strong><br>ホルダーは返却ボックスへお戻しください。</span>
                 </div>
 
-                <div class="action-lead"><i>✓</i><span>返却が終わったら、下のボタンをタップしてください。</span></div>
-
                 <button id="exitConfirmButton" class="return-btn" type="button">
-                  ホルダーを返却しました<span class="subtap">返却後にここをタップ</span>
+                  ホルダーを返却しました<span class="subtap">返却後にタップ</span>
                 </button>
 
                 <div id="exitComplete" class="complete-banner">
@@ -1997,8 +2390,6 @@
       const entryTime = document.getElementById("entryTime");
       const statusMessage = document.getElementById("statusMessage");
       const statusNote = document.getElementById("statusNote");
-      const compare150 = document.getElementById("compare150");
-      const compare180 = document.getElementById("compare180");
       const modeButtons = [...document.querySelectorAll("[data-mode]")];
       const tabButtons = [...document.querySelectorAll("[data-section]")];
       const detailSections = [...document.querySelectorAll(".detail-section")];
@@ -2014,8 +2405,6 @@
       let currentView = "time";
       let idleTimer = null;
       let toastTimer = null;
-      let brandTapCount = 0;
-      let brandTapTimer = null;
 
       const pad = value => String(value).padStart(2, "0");
 
@@ -2081,16 +2470,12 @@
       function updateTimes() {
         const now = new Date();
         const result = calculateDisplay(activeMode, now);
-        const result150 = calculateDisplay(150, now);
-        const result180 = calculateDisplay(180, now);
 
         currentTime.textContent = formatNow(now);
         planLabel.textContent = MODE_CONFIG[activeMode].label;
         animateTimeChange(result.value);
         statusMessage.textContent = result.message;
         statusNote.textContent = result.note;
-        compare150.textContent = result150.value;
-        compare180.textContent = result180.value;
       }
 
       function burst(x, y, count = 14) {
@@ -2146,9 +2531,7 @@
         updateTimes();
 
         if (sourceElement) {
-          const rect = sourceElement.getBoundingClientRect();
-          burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 16);
-          showToast(mode === 150 ? "2時間30分モードに切り替えました" : "3時間モードに切り替えました");
+          showToast(mode === 150 ? "2時間30分に切り替えました" : "3時間に切り替えました");
         }
       }
 
@@ -2175,11 +2558,6 @@
         detailSections.forEach(section => {
           section.classList.toggle("active", section.id === `section-${name}`);
         });
-
-        if (sourceElement) {
-          const rect = sourceElement.getBoundingClientRect();
-          burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 10);
-        }
       }
 
       function revealNextFamilyStep(currentStep) {
@@ -2243,16 +2621,6 @@
         }
       }
 
-      function activateHyperMode() {
-        body.classList.add("hyper");
-        showToast("HYPER ROUTE MODE");
-        burst(window.innerWidth / 2, 90, 38);
-
-        window.setTimeout(() => {
-          body.classList.remove("hyper");
-        }, 8000);
-      }
-
       modeButtons.forEach(button => {
         button.addEventListener("click", () => setMode(Number(button.dataset.mode), button));
       });
@@ -2277,9 +2645,6 @@
           const yes = button.dataset.yellow === "yes";
           yellowResultYes.classList.toggle("show", yes);
           yellowResultNo.classList.toggle("show", !yes);
-          const target = yes ? yellowResultYes : yellowResultNo;
-          const rect = target.getBoundingClientRect();
-          burst(rect.left + rect.width / 2, rect.top + 8, yes ? 18 : 10);
         });
       });
 
@@ -2294,24 +2659,12 @@
       document.getElementById("openDetailsButton").addEventListener("click", event => {
         showView("detail");
         setSection("family");
-        burst(event.clientX || window.innerWidth / 2, event.clientY || window.innerHeight / 2, 18);
       });
 
       document.getElementById("backButton").addEventListener("click", () => showView("time"));
       document.getElementById("timeButton").addEventListener("click", () => showView("time"));
       document.getElementById("resetButton").addEventListener("click", () => resetAll());
       document.getElementById("fullscreenButton").addEventListener("click", toggleFullscreen);
-
-      document.getElementById("brandButton").addEventListener("click", () => {
-        brandTapCount += 1;
-        clearTimeout(brandTapTimer);
-        brandTapTimer = window.setTimeout(() => { brandTapCount = 0; }, 1300);
-
-        if (brandTapCount >= 5) {
-          brandTapCount = 0;
-          activateHyperMode();
-        }
-      });
 
 
       document.addEventListener("pointerdown", event => {
@@ -2334,7 +2687,7 @@
       window.setTimeout(() => {
         bootScreen.classList.add("hide");
         showToast("SYSTEM READY");
-      }, 1450);
+      }, 850);
 
       setMode(150);
       resetAll(false);
