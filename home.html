@@ -1913,46 +1913,64 @@
 
     .call-howto{
       display:grid;
-      gap:8px;
+      gap:10px;
       margin-top:12px;
     }
 
     .call-howto-item{
       display:grid;
-      grid-template-columns:34px 1fr;
-      gap:9px;
+      grid-template-columns:42px minmax(0,1fr);
+      gap:11px;
       align-items:start;
-      padding:10px;
-      border-radius:13px;
-      background:#fffdf5;
-      border:1px solid rgba(112,78,31,.15);
+      padding:12px;
+      border-radius:15px;
+      background:
+        linear-gradient(180deg,#fff9e9 0%,#f1dfb8 100%);
+      border:2px solid #8a6428;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.75),
+        0 5px 0 rgba(91,63,24,.10);
     }
 
     .call-howto-num{
       display:grid;
       place-items:center;
-      width:34px;
-      height:34px;
+      width:38px;
+      height:38px;
+      margin:0;
       border-radius:50%;
-      color:#fff7df;
-      background:#194b3f;
-      font-size:.75rem;
+      color:#fffaf0;
+      background:
+        linear-gradient(180deg,#285b74 0%,#0c3145 100%);
+      border:3px solid #e7c46a;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 4px 8px rgba(34,48,51,.24);
+      font-size:.88rem;
+      line-height:1;
       font-weight:950;
+      font-variant-numeric:tabular-nums;
     }
 
-    .call-howto-item strong{
-      display:block;
-      color:#24483e;
-      font-size:.78rem;
+    .call-howto-copy{
+      min-width:0;
+      padding-top:2px;
     }
 
-    .call-howto-item span{
+    .call-howto-copy strong{
       display:block;
-      margin-top:3px;
-      color:#665d4f;
-      font-size:.68rem;
-      line-height:1.5;
-      font-weight:750;
+      color:#173f50;
+      font-size:.82rem;
+      line-height:1.35;
+    }
+
+    .call-howto-copy > span{
+      display:block;
+      margin-top:4px;
+      color:#554a3b;
+      font-size:.70rem;
+      line-height:1.58;
+      font-weight:800;
     }
 
     details{
@@ -3739,36 +3757,36 @@
 
         <div class="call-howto">
           <div class="call-howto-item">
-            <span class="call-howto-num">1</span>
+            <span class="call-howto-num" aria-hidden="true">1</span>
 
-            <span>
+            <div class="call-howto-copy">
               <strong>整理券を取得</strong>
               <span>
                 予約完了画面やメールにある受付番号を確認します。
               </span>
-            </span>
+            </div>
           </div>
 
           <div class="call-howto-item">
-            <span class="call-howto-num">2</span>
+            <span class="call-howto-num" aria-hidden="true">2</span>
 
-            <span>
+            <div class="call-howto-copy">
               <strong>呼出状況を見る</strong>
               <span>
                 呼出前は待合室またはお近くでお待ちください。
               </span>
-            </span>
+            </div>
           </div>
 
           <div class="call-howto-item">
-            <span class="call-howto-num">3</span>
+            <span class="call-howto-num" aria-hidden="true">3</span>
 
-            <span>
+            <div class="call-howto-copy">
               <strong>受付へ進む</strong>
               <span>
                 「ご来店ください」と表示されたら、レジの列へお進みください。
               </span>
-            </span>
+            </div>
           </div>
         </div>
       </div>
@@ -4158,7 +4176,7 @@
         <div class="paper">
           <h3>料金</h3>
           <p>
-            大人600円／子ども900円。0〜5か月のお子さまには料金条件があります。
+            大人600円／子ども900円。0〜5ヶ月までの子どもは追加料金無料。
           </p>
         </div>
 
@@ -4176,11 +4194,6 @@
           </p>
         </div>
 
-        <div class="paper">
-          <a class="action" href="./setumei.html">
-            詳しい利用案内を開く <span>→</span>
-          </a>
-        </div>
       </div>
     </section>
 
@@ -4704,7 +4717,7 @@
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              大人600円、子ども900円です。0〜5か月のお子さまの料金には条件があります。
+              大人600円、子ども900円です。0〜5ヶ月までの子どもは追加料金無料。
             </div>
           </details>
 
