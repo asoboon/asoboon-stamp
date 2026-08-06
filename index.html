@@ -15,63 +15,122 @@
 
       - Rich menu:
         https://miniapp.line.me/2009888671-57TOefc3
-        -> no spot -> home.html
+        -> no route parameter -> home.html
 
       - In-venue QR:
         ?spot=spot_01 ... ?spot=spot_04
-        -> keep this index.html and run the existing stamp acquisition logic
+        -> run the existing stamp acquisition logic
 
-      - Stamp progress from home:
+      - Stamp progress from the mini app home:
         ?stamp=home
-        -> keep this index.html and load the stamp list without adding a stamp
+        -> show the stamp ledger without adding a stamp
+
+      LINE can deliver additional information inside liff.state.
+      Both spot and stamp are therefore read from:
+      direct query / liff.state / URL hash.
     */
     (() => {
-      const VALID_SPOTS = new Set(["spot_01", "spot_02", "spot_03", "spot_04"]);
-      const params = new URLSearchParams(location.search);
+      const VALID_SPOTS = new Set([
+        "spot_01",
+        "spot_02",
+        "spot_03",
+        "spot_04"
+      ]);
 
-      const normalizeSpot = (value) => {
-        const spot = String(value || "").trim();
-        return VALID_SPOTS.has(spot) ? spot : "";
-      };
+      const directParams =
+        new URLSearchParams(location.search);
 
-      const readRouteSpot = () => {
-        const direct = normalizeSpot(params.get("spot"));
-        if (direct) return direct;
+      const decodeRepeatedly = (value) => {
+        let decoded = String(value || "");
 
-        const liffState = params.get("liff.state");
-        if (liffState) {
+        for (let i = 0; i < 3; i++) {
           try {
-            let decoded = String(liffState);
+            const next =
+              decodeURIComponent(decoded);
 
-            // LIFF state can arrive encoded more than once.
-            for (let i = 0; i < 3; i++) {
-              const next = decodeURIComponent(decoded);
-              if (next === decoded) break;
-              decoded = next;
-            }
-
-            const queryText = decoded.includes("?")
-              ? decoded.slice(decoded.lastIndexOf("?") + 1)
-              : decoded.replace(/^\/+/, "").replace(/^\?/, "");
-
-            const fromState = normalizeSpot(
-              new URLSearchParams(queryText).get("spot")
-            );
-            if (fromState) return fromState;
-          } catch (error) {}
+            if (next === decoded) break;
+            decoded = next;
+          } catch (error) {
+            break;
+          }
         }
 
-        const fromHash = normalizeSpot(
-          new URLSearchParams(String(location.hash || "").replace(/^#/, "")).get("spot")
-        );
-        return fromHash;
+        return decoded;
       };
 
-      const spot = readRouteSpot();
-      const showStampHome = params.get("stamp") === "home";
+      const parseRouteParams = (value) => {
+        const decoded =
+          decodeRepeatedly(value).trim();
+
+        if (!decoded) {
+          return new URLSearchParams();
+        }
+
+        try {
+          if (/^https?:\/\//i.test(decoded)) {
+            return new URL(decoded).searchParams;
+          }
+        } catch (error) {}
+
+        const withoutHash =
+          decoded.split("#")[0];
+
+        const queryText =
+          withoutHash.includes("?")
+            ? withoutHash.slice(
+                withoutHash.lastIndexOf("?") + 1
+              )
+            : withoutHash
+                .replace(/^\/+/, "")
+                .replace(/^\?/, "");
+
+        return new URLSearchParams(queryText);
+      };
+
+      const stateParams =
+        parseRouteParams(
+          directParams.get("liff.state")
+        );
+
+      const hashParams =
+        parseRouteParams(
+          String(location.hash || "")
+            .replace(/^#/, "")
+        );
+
+      const readRouteParam = (name) => {
+        return (
+          directParams.get(name) ||
+          stateParams.get(name) ||
+          hashParams.get(name) ||
+          ""
+        );
+      };
+
+      const normalizeSpot = (value) => {
+        const spot =
+          String(value || "").trim();
+
+        return VALID_SPOTS.has(spot)
+          ? spot
+          : "";
+      };
+
+      const spot =
+        normalizeSpot(
+          readRouteParam("spot")
+        );
+
+      const showStampHome =
+        readRouteParam("stamp") === "home";
 
       if (!spot && !showStampHome) {
-        location.replace(new URL("./home.html", location.href).href);
+        location.replace(
+          new URL(
+            "./home.html",
+            location.href
+          ).href
+        );
       }
     })();
   </script>
