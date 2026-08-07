@@ -2151,7 +2151,7 @@
     }
 
     .step::after{
-      content:"ここをタップ";
+      content:"次へ";
       position:absolute;
       left:66px;
       right:14px;
@@ -2423,6 +2423,296 @@
       }
     }
 
+  
+    /* v7: stronger message clarity + horizontal mode cards + popup next-step */
+    .hero{
+      padding:20px 22px 18px!important;
+      background:
+        linear-gradient(180deg,rgba(255,209,93,.10),rgba(104,234,255,.04))!important;
+    }
+
+    .hero h1{
+      color:#fff6d0!important;
+      font-size:clamp(1.88rem,6.2vw,2.42rem)!important;
+      line-height:1.10!important;
+      text-shadow:0 0 18px rgba(255,209,93,.14)!important;
+    }
+
+    .hero p{
+      color:#dfe9ee!important;
+      font-size:.84rem!important;
+      font-weight:900!important;
+    }
+
+    .stage{
+      min-height:500px!important;
+      background:
+        radial-gradient(circle at 50% 50%,rgba(255,209,93,.16),transparent 30%),
+        linear-gradient(180deg,rgba(22,31,14,.16),rgba(7,19,31,.98),rgba(2,7,12,.98))!important;
+      border-color:rgba(255,209,93,.26)!important;
+    }
+
+    .plan-label{
+      color:#fff2bf!important;
+      font-size:.82rem!important;
+      font-weight:1000!important;
+      letter-spacing:.06em!important;
+      opacity:1!important;
+    }
+
+    .entry-time{
+      color:#ffffff!important;
+      font-size:clamp(6.2rem,23vw,8.1rem)!important;
+      text-shadow:0 0 30px rgba(255,209,93,.20),0 0 42px rgba(255,209,93,.16)!important;
+    }
+
+    .status-message{
+      max-width:520px!important;
+      color:#071018!important;
+      background:linear-gradient(180deg,#fff8de,#ffd66e)!important;
+      border:2px solid rgba(255,209,93,.60)!important;
+      border-radius:18px!important;
+      padding:12px 18px!important;
+      font-size:1.18rem!important;
+      font-weight:1000!important;
+      line-height:1.38!important;
+      box-shadow:0 10px 24px rgba(0,0,0,.18)!important;
+    }
+
+    .status-note{
+      margin-top:4px!important;
+      color:#a7bac5!important;
+      font-size:.74rem!important;
+    }
+
+    .mission-btn{
+      min-height:72px!important;
+      border:2px solid rgba(255,209,93,.54)!important;
+      color:#3a2700!important;
+      background:linear-gradient(180deg,#fff7d9,#ffd25f)!important;
+      font-size:1.06rem!important;
+      font-weight:1000!important;
+      box-shadow:0 10px 26px rgba(0,0,0,.22)!important;
+    }
+
+    .mission-btn .subtap{
+      color:#705200!important;
+      font-size:.69rem!important;
+    }
+
+    .page-head{
+      background:
+        linear-gradient(180deg,rgba(255,209,93,.10),rgba(104,234,255,.03))!important;
+      border-bottom-color:rgba(255,209,93,.22)!important;
+    }
+
+    .page-head h2{
+      color:#fff2bf!important;
+      font-size:1.82rem!important;
+      text-shadow:0 0 14px rgba(255,209,93,.10)!important;
+    }
+
+    .page-head p{
+      color:#dce6eb!important;
+      font-size:.84rem!important;
+    }
+
+    .mode-chooser-lead{ display:none!important; }
+
+    .tabs{
+      grid-template-columns:repeat(3,1fr)!important;
+      gap:10px!important;
+      align-items:stretch!important;
+      margin-bottom:16px!important;
+    }
+
+    .tab-btn{
+      grid-template-columns:1fr!important;
+      align-content:start!important;
+      justify-items:center!important;
+      text-align:center!important;
+      min-height:148px!important;
+      padding:14px 12px 12px!important;
+      gap:8px!important;
+      border-radius:0!important;
+    }
+
+    .tab-btn .tab-icon{
+      width:56px!important;
+      height:56px!important;
+      font-size:1.55rem!important;
+    }
+
+    .tab-copy{
+      justify-items:center!important;
+      text-align:center!important;
+    }
+
+    .tab-kicker{
+      font-size:.60rem!important;
+      letter-spacing:.07em!important;
+    }
+
+    .tab-main{
+      font-size:1.02rem!important;
+      line-height:1.22!important;
+      letter-spacing:.00em!important;
+    }
+
+    .tab-sub{
+      color:#d7e5ec!important;
+      font-size:.78rem!important;
+      line-height:1.24!important;
+      font-weight:1000!important;
+    }
+
+    .tab-btn.active .tab-sub{
+      color:#3e5563!important;
+    }
+
+    .step{
+      min-height:112px!important;
+    }
+
+    .step::after{
+      content:"次へ"!important;
+      font-size:.78rem!important;
+      background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.08))!important;
+    }
+
+    /* Popup for the next step */
+    .step-overlay{
+      position:fixed;
+      inset:0;
+      z-index:180;
+      display:grid;
+      place-items:center;
+      padding:22px;
+    }
+
+    .step-overlay-backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(1,6,10,.78);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+    }
+
+    .step-overlay-card{
+      position:relative;
+      width:min(88vw,560px);
+      padding:26px 22px 22px;
+      border:2px solid rgba(255,209,93,.48);
+      border-radius:24px;
+      color:#fff;
+      text-align:center;
+      background:
+        linear-gradient(180deg,rgba(255,209,93,.16),rgba(104,234,255,.06)),
+        rgba(8,20,31,.98);
+      box-shadow:0 28px 70px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.04);
+      animation:overlayPop .34s cubic-bezier(.16,.9,.2,1);
+    }
+
+    .step-overlay-kicker{
+      color:#ffe9aa;
+      font-size:.68rem;
+      font-weight:1000;
+      letter-spacing:.18em;
+    }
+
+    .step-overlay-number{
+      margin-top:10px;
+      color:#ffffff;
+      font-size:4.6rem;
+      line-height:1;
+      font-weight:1000;
+      text-shadow:0 0 22px rgba(255,209,93,.22);
+    }
+
+    .step-overlay-title{
+      margin:8px 0 0;
+      color:#fff6d3;
+      font-size:1.52rem;
+      line-height:1.22;
+      font-weight:1000;
+    }
+
+    .step-overlay-desc{
+      margin:10px 0 0;
+      color:#d7e3ea;
+      font-size:.96rem;
+      line-height:1.6;
+      font-weight:800;
+    }
+
+    .step-overlay-button{
+      width:100%;
+      min-height:64px;
+      margin-top:18px;
+      border:0;
+      border-radius:16px;
+      color:#402b00;
+      background:linear-gradient(180deg,#fff8df,#ffd35e);
+      box-shadow:0 12px 28px rgba(0,0,0,.20);
+      font-size:1.10rem;
+      font-weight:1000;
+    }
+
+    @keyframes overlayPop{
+      0%{opacity:0;transform:scale(.88)}
+      100%{opacity:1;transform:scale(1)}
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .entry-time{
+        font-size:8.55rem!important;
+      }
+
+      .status-message{
+        font-size:1.30rem!important;
+      }
+
+      .tabs{
+        grid-template-columns:repeat(3,1fr)!important;
+      }
+
+      .tab-btn{
+        min-height:156px!important;
+        padding:16px 10px 14px!important;
+      }
+
+      .tab-main{
+        font-size:1.06rem!important;
+      }
+
+      .tab-sub{
+        font-size:.80rem!important;
+      }
+
+      .step-overlay-card{
+        width:min(84vw,600px);
+        padding:30px 28px 24px;
+      }
+
+      .step-overlay-number{
+        font-size:5.2rem;
+      }
+
+      .step-overlay-title{
+        font-size:1.66rem;
+      }
+
+      .step-overlay-desc{
+        font-size:1.02rem;
+      }
+    }
+
+    @media (max-width:699px){
+      .tabs{
+        grid-template-columns:1fr!important;
+      }
+    }
+
   </style>
 </head>
 
@@ -2467,8 +2757,8 @@
         <div class="shell">
           <header class="hero">
             <small>EXIT TIME CONTROL</small>
-            <h1>いま退場する方の<br>入場時刻</h1>
-            <p>中央の時刻をご確認ください。</p>
+            <h1>この時間ごろに<br>入場した方は退場です</h1>
+            <p>中央の時刻が、いま退場する方の入場時刻です。</p>
           </header>
 
           <div class="time-grid">
@@ -2480,7 +2770,7 @@
                 <time id="currentTime" class="current-clock">--:--</time>
                 <div id="planLabel" class="plan-label">2時間30分利用</div>
                 <time id="entryTime" class="entry-time">--:--</time>
-                <div id="statusMessage" class="status-message">この時刻ごろに入場した方が退場の目安です</div>
+                <div id="statusMessage" class="status-message">この時刻ごろに入場した方は、いま退場です</div>
                 <div id="statusNote" class="status-note">正確な入場時刻はレシートをご確認ください。</div>
               </div>
 
@@ -2512,33 +2802,32 @@
           </header>
 
           <div class="detail-body">
-            <div class="mode-chooser-lead">まず、状況をひとつ選んでください</div>
 
             <nav class="tabs" aria-label="入退場の状況">
               <button class="tab-btn active" type="button" data-section="family" aria-selected="true">
                 <span class="tab-icon">👨‍👩‍👧</span>
                 <span class="tab-copy">
-                  <span class="tab-kicker">あとで戻るとき</span>
-                  <span class="tab-main">家族みんなで一時退場</span>
-                  <span class="tab-sub">ご家族全員で外へ出て、あとで再入場する</span>
+                  <span class="tab-kicker">あとで戻る</span>
+                  <span class="tab-main">家族みんなで</span>
+                  <span class="tab-sub">一時退場</span>
                 </span>
               </button>
 
               <button class="tab-btn" type="button" data-section="adult" aria-selected="false">
                 <span class="tab-icon">🟡</span>
                 <span class="tab-copy">
-                  <span class="tab-kicker">保護者だけ出るとき</span>
-                  <span class="tab-main">大人だけ外出</span>
-                  <span class="tab-sub">黄色ホルダーを持つ大人だけ外へ出る</span>
+                  <span class="tab-kicker">保護者だけ出る</span>
+                  <span class="tab-main">大人だけ</span>
+                  <span class="tab-sub">外出</span>
                 </span>
               </button>
 
               <button class="tab-btn" type="button" data-section="exit" aria-selected="false">
                 <span class="tab-icon">🏁</span>
                 <span class="tab-copy">
-                  <span class="tab-kicker">利用を終えるとき</span>
-                  <span class="tab-main">完全退場して帰る</span>
-                  <span class="tab-sub">ホルダーを返却して、そのままお帰りになる</span>
+                  <span class="tab-kicker">利用を終える</span>
+                  <span class="tab-main">完全退場</span>
+                  <span class="tab-sub">して帰る</span>
                 </span>
               </button>
             </nav>
@@ -2661,6 +2950,18 @@
     </section>
   </main>
 
+
+  <div id="stepOverlay" class="step-overlay" hidden>
+    <div class="step-overlay-backdrop"></div>
+    <div class="step-overlay-card" role="dialog" aria-modal="true" aria-labelledby="stepOverlayTitle">
+      <div class="step-overlay-kicker">NEXT STEP</div>
+      <div id="stepOverlayNumber" class="step-overlay-number">2</div>
+      <h3 id="stepOverlayTitle" class="step-overlay-title">次の手順</h3>
+      <p id="stepOverlayDesc" class="step-overlay-desc">ここに手順説明が表示されます。</p>
+      <button id="stepOverlayButton" class="step-overlay-button" type="button">次へ</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script>
@@ -2702,11 +3003,17 @@
       const exitConfirmButton = document.getElementById("exitConfirmButton");
       const exitComplete = document.getElementById("exitComplete");
       const toast = document.getElementById("toast");
+      const stepOverlay = document.getElementById("stepOverlay");
+      const stepOverlayNumber = document.getElementById("stepOverlayNumber");
+      const stepOverlayTitle = document.getElementById("stepOverlayTitle");
+      const stepOverlayDesc = document.getElementById("stepOverlayDesc");
+      const stepOverlayButton = document.getElementById("stepOverlayButton");
 
       let activeMode = 150;
       let currentView = "time";
       let idleTimer = null;
       let toastTimer = null;
+      let pendingStep = null;
 
       const pad = value => String(value).padStart(2, "0");
 
@@ -2862,6 +3169,38 @@
         });
       }
 
+      function showStepOverlay(stepElement) {
+        if (!stepElement) return;
+
+        pendingStep = stepElement;
+        stepOverlayNumber.textContent = stepElement.dataset.step || "";
+        stepOverlayTitle.textContent = stepElement.querySelector(".step-copy strong")?.textContent || "次の手順";
+        stepOverlayDesc.textContent = stepElement.querySelector(".step-copy small")?.textContent || "";
+        stepOverlay.hidden = false;
+      }
+
+      function confirmOverlayStep() {
+        if (!pendingStep) {
+          stepOverlay.hidden = true;
+          return;
+        }
+
+        const stepToReveal = pendingStep;
+        pendingStep = null;
+        stepOverlay.hidden = true;
+
+        stepToReveal.classList.remove("is-hidden");
+        stepToReveal.classList.add("reveal");
+
+        window.setTimeout(() => {
+          stepToReveal.classList.remove("reveal");
+          stepToReveal.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }, 140);
+      }
+
       function revealNextFamilyStep(currentStep) {
         const currentIndex = familySteps.indexOf(currentStep);
         const nextStep = familySteps[currentIndex + 1];
@@ -2871,19 +3210,7 @@
           return;
         }
 
-        nextStep.classList.remove("is-hidden");
-        nextStep.classList.add("reveal");
-
-        window.setTimeout(() => {
-          nextStep.classList.remove("reveal");
-        }, 520);
-
-        window.setTimeout(() => {
-          nextStep.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        }, 140);
+        showStepOverlay(nextStep);
       }
 
       function updateFamilyCompletion() {
@@ -2904,6 +3231,8 @@
         });
 
         familyComplete.classList.remove("show");
+        pendingStep = null;
+        stepOverlay.hidden = true;
         yellowResultYes.classList.remove("show");
         yellowResultNo.classList.remove("show");
         exitComplete.classList.remove("show");
@@ -2962,6 +3291,15 @@
         showView("detail");
         setSection("family");
       });
+
+
+      stepOverlayButton.addEventListener("click", confirmOverlayStep);
+      stepOverlay.addEventListener("click", event => {
+        if (event.target === stepOverlay || event.target.classList.contains("step-overlay-backdrop")) {
+          confirmOverlayStep();
+        }
+      });
+
 
       document.getElementById("backButton").addEventListener("click", () => showView("time"));
       document.getElementById("timeButton").addEventListener("click", () => showView("time"));
