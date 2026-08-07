@@ -1,0 +1,15 @@
+{
+  "duplicate_ids": [],
+  "missing_dom_ids": [],
+  "missing_html_refs": [],
+  "missing_sw_precache": [],
+  "dashboard_action": true,
+  "client_dashboard": true,
+  "top10_order": [
+    86168,
+    86669,
+    87167
+  ],
+  "machine_top3_present": true,
+  "old_tabs_refs": 0
+}

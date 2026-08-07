@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.3.2
+ * ブーンジャンプ 世界ランキング API V2.3.4
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
  *
@@ -16,7 +16,7 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
-  API_VERSION: '2.3.2',
+  API_VERSION: '2.3.4',
   SHEETS: Object.freeze({
     PLAYERS: 'players',
     MACHINE_BESTS: 'machine_bests',
@@ -39,8 +39,11 @@ const MACHINES = Object.freeze({
 
 const VALID_JUDGES = new Set(['MISS', 'GOOD', 'GREAT', 'CRITICAL', 'SUPER']);
 let SPREADSHEET_CACHE_ = null;
+let MACHINE_RECORDS_CACHE_ = null;
+let PERIOD_RECORDS_CACHE_ = null;
 
 function doGet(e) {
+  resetRequestCaches_();
   const p = (e && e.parameter) || {};
   const callback = p.callback;
 
@@ -59,6 +62,8 @@ function doGet(e) {
       };
     } else if (action === 'leaderboard') {
       result = getLeaderboard_(p);
+    } else if (action === 'dashboard') {
+      result = getDashboard_(p);
     } else if (action === 'player') {
       result = getPlayer_(p);
     } else if (action === 'resolve_identity') {
@@ -84,6 +89,7 @@ function doGet(e) {
 }
 
 function doPost(e) {
+  resetRequestCaches_();
   try {
     const body = parseBody_(e);
     const action = String(body.action || 'submit').toLowerCase();
@@ -113,10 +119,17 @@ function withScriptLock_(callback) {
 
 function submitScore_(body) {
   const requestId = cleanId_(body.request_id, 12, 100, 'request_id');
-  const playerId = cleanId_(body.player_id, 12, 100, 'player_id');
+  let playerId = cleanId_(body.player_id, 12, 100, 'player_id');
   const playerToken = normalizePlayerToken_(body.player_token);
   const submittedName = validateName_(body.display_name);
-  const player = findPlayerRecord_(playerId);
+  let player = findPlayerRecord_(playerId);
+  if (!player && playerToken) {
+    const tokenPlayer = findPlayerRecordByToken_(playerToken);
+    if (tokenPlayer) {
+      playerId = tokenPlayer.player_id;
+      player = tokenPlayer;
+    }
+  }
 
   enforceRateLimit_('submit', playerId, 30);
 
@@ -143,6 +156,7 @@ function submitScore_(body) {
   const receivedAt = new Date();
   const sourceBuild = truncate_(body.source_build, 100);
   const clientVersion = truncate_(body.client_version, 40);
+  const fastResponse = String(body.response_mode || '').toLowerCase() === 'fast';
 
   if (!machine) throw new Error('存在しないマシンです。');
   if (!Number.isInteger(distance) || distance <= 0) throw new Error('距離が不正です。');
@@ -159,6 +173,7 @@ function submitScore_(body) {
       duplicate: true,
       skipped: false,
       updated: { machine: false, today: false, week: false },
+      fast: fastResponse,
     });
   }
 
@@ -180,6 +195,7 @@ function submitScore_(body) {
       skipped: true,
       reason: 'already_registered',
       updated: { machine: false, today: false, week: false },
+      fast: fastResponse,
     });
   }
 
@@ -257,11 +273,13 @@ function submitScore_(body) {
     duplicate: false,
     skipped: false,
     updated: { machine: machineUpdated, today: dayUpdated, week: weekUpdated },
+    fast: fastResponse,
   });
 }
 
 function makeSubmitResponse_(args) {
-  const ranks = getPlayerRanks_(args.playerId, args.machineId);
+  resetRankingDataCaches_();
+  const ranks = args.fast ? { all: null, today: null, week: null } : getPlayerRanks_(args.playerId, args.machineId);
   return {
     ok: true,
     accepted: true,
@@ -269,6 +287,7 @@ function makeSubmitResponse_(args) {
     skipped: Boolean(args.skipped),
     reason: args.reason || '',
     request_id: args.requestId,
+    player_id: args.playerId,
     updated: args.updated || { machine: false, today: false, week: false },
     player_rank: ranks.all || null,
     player_ranks: ranks,
@@ -340,6 +359,33 @@ function getScoreStatus_(p) {
   }
 
   return { ok: true, found: false, request_id: requestId };
+}
+
+function getDashboard_(p) {
+  const playerId = String(p.player_id || '').trim();
+  const overview = {
+    today: getLeaderboard_({ period: 'today', player_id: playerId, limit: '10' }),
+    week: getLeaderboard_({ period: 'week', player_id: playerId, limit: '10' }),
+    all: getLeaderboard_({ period: 'all', player_id: playerId, limit: '10' }),
+  };
+  const machines = Object.keys(MACHINES).map(machineId => ({
+    machine_id: machineId,
+    machine_name: MACHINES[machineId].name,
+    board: getLeaderboard_({
+      period: 'all',
+      player_id: playerId,
+      machine_id: machineId,
+      include_secret: machineId === 'secret' ? 'true' : 'false',
+      limit: '3',
+    }),
+  }));
+  return {
+    ok: true,
+    api_version: CONFIG.API_VERSION,
+    overview,
+    machines,
+    generated_at: nowIso_(),
+  };
 }
 
 function getLeaderboard_(p) {
@@ -625,9 +671,20 @@ function propagateName_(playerId, displayName) {
   });
 }
 
+function resetRankingDataCaches_() {
+  MACHINE_RECORDS_CACHE_ = null;
+  PERIOD_RECORDS_CACHE_ = null;
+}
+
+function resetRequestCaches_() {
+  SPREADSHEET_CACHE_ = null;
+  resetRankingDataCaches_();
+}
+
 function readMachineBestRecords_() {
+  if (MACHINE_RECORDS_CACHE_) return MACHINE_RECORDS_CACHE_;
   const values = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
-  return values.slice(1).filter(row => row[0]).map(row => ({
+  MACHINE_RECORDS_CACHE_ = values.slice(1).filter(row => row[0]).map(row => ({
     player_id: String(row[0]),
     display_name: String(row[1] || 'NO NAME'),
     machine_id: String(row[2]),
@@ -635,26 +692,52 @@ function readMachineBestRecords_() {
     best_distance: Number(row[4]),
     achieved_at: dateToIso_(row[8]),
   }));
+  return MACHINE_RECORDS_CACHE_;
+}
+
+function readAllPeriodBestRecords_() {
+  if (PERIOD_RECORDS_CACHE_) return PERIOD_RECORDS_CACHE_;
+  const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
+  PERIOD_RECORDS_CACHE_ = values.slice(1).filter(row => row[2]).map(row => ({
+    period_type: String(row[0]),
+    period_key: normalizePeriodKey_(row[1]),
+    player_id: String(row[2]),
+    display_name: String(row[3] || 'NO NAME'),
+    machine_id: String(row[4]),
+    machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
+    best_distance: Number(row[6]),
+    achieved_at: dateToIso_(row[7]),
+  }));
+  return PERIOD_RECORDS_CACHE_;
 }
 
 function readPeriodBestRecords_(periodType, periodKey) {
-  const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
-  return values.slice(1)
-    .filter(row => String(row[0]) === periodType && normalizePeriodKey_(row[1]) === normalizePeriodKey_(periodKey) && row[2])
-    .map(row => ({
-      player_id: String(row[2]),
-      display_name: String(row[3] || 'NO NAME'),
-      machine_id: String(row[4]),
-      machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
-      best_distance: Number(row[6]),
-      achieved_at: dateToIso_(row[7]),
-    }));
+  const normalizedKey = normalizePeriodKey_(periodKey);
+  return readAllPeriodBestRecords_().filter(row => row.period_type === periodType && row.period_key === normalizedKey);
 }
 
 function findPlayerRecord_(playerId) {
   const values = playersSheet_().getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][0]) !== playerId) continue;
+    return {
+      row: i + 1,
+      player_id: String(values[i][0]),
+      display_name: String(values[i][1] || ''),
+      created_at: values[i][2] || '',
+      updated_at: values[i][3] || '',
+      status: String(values[i][4] || 'ACTIVE'),
+      player_token: String(values[i][6] || ''),
+    };
+  }
+  return null;
+}
+
+function findPlayerRecordByToken_(playerToken) {
+  if (!playerToken) return null;
+  const values = playersSheet_().getDataRange().getValues();
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][6] || '') !== String(playerToken)) continue;
     return {
       row: i + 1,
       player_id: String(values[i][0]),

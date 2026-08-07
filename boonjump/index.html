@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.3.3">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.3.4">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-07-ranking-machine-visual-v11">
-  <title>ブーンジャンプ Ver.2.3.3｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-07-ranking-dashboard-fast-v12">
+  <title>ブーンジャンプ Ver.2.3.4｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -194,7 +194,7 @@ main{position:relative;z-index:2;width:min(100%,760px);margin:0 auto;padding:8px
 @keyframes crownBounce{0%{transform:translateY(-45px) rotate(-12deg) scale(.3)}62%{transform:translateY(8px) rotate(5deg) scale(1.18)}100%{transform:none}}
 @media(prefers-reduced-motion:reduce){.impact-flash.show{animation:none;opacity:.62}.trophy-complete-overlay.show{animation:tcOverlayLife 10.4s linear both}.tc-blackout,.tc-rays,.tc-halo,.tc-fireworks,.tc-confetti{display:none}.trophy-complete-overlay.show .tc-sky{animation:none;opacity:1;transform:none}.trophy-complete-overlay.show .tc-crown-wrap,.trophy-complete-overlay.show .tc-title,.trophy-complete-overlay.show .tc-count,.trophy-complete-overlay.show .tc-seal,.trophy-complete-overlay.show .tc-legend{animation:none;opacity:1;transform:translateX(-50%)}.tc-crown{animation:none}}
 
-/* V2.3.3 — visible machine boards + post-registration navigation */
+/* V2.3.4 — visible machine boards + post-registration navigation */
 body[data-machine="boon"]{--machine-accent:#ffd83d}body[data-machine="wagon"]{--machine-accent:#72e8ff}body[data-machine="buggy"]{--machine-accent:#8cff63}body[data-machine="bike"]{--machine-accent:#ff6b38}body[data-machine="sport"]{--machine-accent:#ff4677}body[data-machine="ssr"]{--machine-accent:#8c70ff}body[data-machine="princess"]{--machine-accent:#ff9fe1}body[data-machine="secret"]{--machine-accent:#fff35c}
 .game-shell[data-machine]{border-color:color-mix(in srgb,var(--machine-accent,#49b7ff) 62%,white 12%);box-shadow:0 20px 55px rgba(0,0,0,.36),0 0 34px color-mix(in srgb,var(--machine-accent,#49b7ff) 22%,transparent)}
 .machine-control-note{font-size:.66rem;padding:6px 11px;border:1px solid color-mix(in srgb,var(--machine-accent,#49b7ff) 45%,transparent);background:color-mix(in srgb,var(--machine-accent,#49b7ff) 13%,transparent);color:#fff}
@@ -223,7 +223,7 @@ body.modal-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.ranking-gate::before,.ranking-gate::after,.ranking-gate-globe{animation:none}}
 
 
-/* V2.3.3 — scrolling world board, visible machine chooser, vehicle images */
+/* V2.3.4 — scrolling world board, visible machine chooser, vehicle images */
 #rankingScreen{align-items:start}
 .ranking-panel{overflow:visible;padding-bottom:46px}
 .ranking-tabs{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px}
@@ -244,6 +244,32 @@ body.modal-open{overflow:hidden}
 @media(max-width:560px){.ranking-machine-grid{grid-template-columns:1fr}.ranking-machine-card{grid-template-columns:104px minmax(0,1fr) 20px;min-height:94px}.ranking-machine-card-vehicle{height:72px}.ranking-machine-card-vehicle .vehicle{width:136px}.ranking-row{grid-template-columns:43px 76px minmax(0,1fr);gap:6px}.ranking-row-machine{width:76px}.ranking-distance{grid-column:3;justify-self:start;margin-top:-7px;font-size:1.06rem}.ranking-copy small{white-space:normal;line-height:1.25}.ranking-row.top-1{min-height:98px}}
 @media(max-width:370px){.ranking-tabs{grid-template-columns:1fr}.ranking-machine-hero{grid-template-columns:1fr;text-align:center}.ranking-machine-hero-vehicle{height:82px}.ranking-row{grid-template-columns:38px 68px minmax(0,1fr);padding-inline:7px}.ranking-row-machine{width:68px}.ranking-row-machine .vehicle{width:98px}.ranking-copy strong{font-size:.78rem}}
 
+/* V2.3.4 — TOP10 dashboard + always-visible machine TOP3 */
+.ranking-panel{overflow:visible;padding-bottom:52px}
+.ranking-overview{display:grid;gap:18px;margin-top:12px}
+.ranking-board-block{position:relative;padding:14px 12px 13px;border:1px solid rgba(255,255,255,.13);border-radius:22px;background:linear-gradient(155deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 14px 32px rgba(0,0,0,.18)}
+.ranking-board-today{border-color:rgba(255,216,61,.34);background:linear-gradient(150deg,rgba(255,216,61,.12),rgba(255,138,0,.035))}
+.ranking-board-week{border-color:rgba(73,183,255,.34);background:linear-gradient(150deg,rgba(73,183,255,.12),rgba(111,69,255,.035))}
+.ranking-board-all{border-color:rgba(255,79,216,.27);background:linear-gradient(150deg,rgba(255,79,216,.09),rgba(73,183,255,.035))}
+.ranking-board-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:0 3px 10px}.ranking-board-head small{display:block;color:#8eeaff;font-size:.51rem;font-weight:1000;letter-spacing:.14em}.ranking-board-head strong{display:block;margin-top:3px;color:#fff;font-size:1rem}.ranking-board-head>span{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:#c4d2e4;font-size:.53rem;font-weight:1000}
+.ranking-board-me{margin-top:9px;padding:9px 11px;border:1px solid rgba(99,232,255,.35);border-radius:13px;background:rgba(73,183,255,.1);color:#d9f8ff;font-size:.6rem;font-weight:1000;text-align:center}
+.ranking-machine-guide{margin:-2px 2px 11px;color:#a8b8cc;font-size:.57rem;font-weight:850;line-height:1.5}
+.ranking-machine-boards{display:grid;gap:12px}
+.ranking-machine-board{border:1px solid rgba(255,255,255,.13);border-radius:20px;background:rgba(6,15,31,.62);overflow:hidden;box-shadow:0 9px 23px rgba(0,0,0,.16)}
+.ranking-machine-board.expanded{border-color:color-mix(in srgb,var(--machine-accent,#49b7ff) 62%,white 12%);box-shadow:0 0 0 2px color-mix(in srgb,var(--machine-accent,#49b7ff) 25%,transparent),0 14px 30px rgba(0,0,0,.22)}
+.ranking-machine-board-head{width:100%;min-height:108px;display:grid;grid-template-columns:128px minmax(0,1fr) auto;align-items:center;gap:9px;padding:8px 11px 8px 3px;border:0;background:linear-gradient(120deg,color-mix(in srgb,var(--machine-accent,#49b7ff) 12%,transparent),rgba(255,255,255,.025));color:#fff;text-align:left}
+.ranking-machine-board-vehicle{display:grid;place-items:center;height:86px;overflow:hidden}.ranking-machine-board-vehicle .vehicle{width:158px}.ranking-machine-board-vehicle .vehicle.compact{transform:scale(.86)}
+.ranking-machine-board-copy{min-width:0}.ranking-machine-board-copy small{display:block;color:#85e9ff;font-size:.48rem;font-weight:1000;letter-spacing:.11em}.ranking-machine-board-copy b{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem}.ranking-machine-board-copy em{display:block;margin-top:5px;color:#aebfd3;font-size:.52rem;font-style:normal;font-weight:900;line-height:1.35}
+.ranking-machine-board-action{display:grid;place-items:center;gap:2px;min-width:54px;color:#d9f8ff;font-size:.5rem;font-weight:1000;text-align:center}.ranking-machine-board-action i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.09);font-size:1.2rem;font-style:normal;transition:transform .2s}.ranking-machine-board.expanded .ranking-machine-board-action i{transform:rotate(90deg)}
+.ranking-machine-top3{display:grid;gap:6px;padding:0 11px 12px;cursor:pointer}.ranking-machine-mini-row{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:45px;padding:7px 9px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.045)}.ranking-machine-mini-row .rank{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:rgba(0,0,0,.22);font-size:.69rem;font-weight:1000}.ranking-machine-mini-row:nth-child(1) .rank{background:linear-gradient(135deg,#fff3a1,#ffbd22);color:#4d2f00}.ranking-machine-mini-row .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.64rem;font-weight:1000}.ranking-machine-mini-row .distance{color:#8cecff;font-size:.72rem;font-weight:1000}.ranking-machine-mini-empty{padding:13px;border:1px dashed rgba(255,255,255,.14);border-radius:12px;color:#93a6be;font-size:.58rem;font-weight:900;text-align:center}
+.ranking-machine-full{padding:0 11px 13px}.ranking-machine-full[hidden]{display:none!important}.ranking-machine-full .ranking-list{margin-top:4px}
+.ranking-list{gap:7px}.ranking-row{grid-template-columns:44px 76px minmax(0,1fr) auto;min-height:76px;padding:8px 10px}.ranking-row-machine{width:76px;height:58px}.ranking-row-machine .vehicle{width:104px}.ranking-row.top-1{min-height:88px}.ranking-row.top-1 .ranking-row-machine{height:66px}.ranking-row.top-1 .ranking-row-machine .vehicle{width:116px}
+.ranking-row.no-machine{grid-template-columns:44px minmax(0,1fr) auto}.ranking-row.no-machine .ranking-copy small{display:none}
+.ranking-loading,.ranking-empty{min-height:94px;padding:17px 12px}
+.ranking-account{margin-top:24px}
+@media(max-width:560px){.ranking-board-block{padding-inline:8px}.ranking-machine-board-head{grid-template-columns:104px minmax(0,1fr) 48px;min-height:98px}.ranking-machine-board-vehicle{height:76px}.ranking-machine-board-vehicle .vehicle{width:132px}.ranking-row{grid-template-columns:40px 68px minmax(0,1fr);gap:5px}.ranking-row-machine{width:68px}.ranking-distance{grid-column:3;justify-self:start;margin-top:-6px}.ranking-row.no-machine{grid-template-columns:40px minmax(0,1fr)}.ranking-row.no-machine .ranking-distance{grid-column:2}.ranking-board-head strong{font-size:.91rem}}
+@media(max-width:370px){.ranking-machine-board-head{grid-template-columns:88px minmax(0,1fr) 42px;padding-left:0}.ranking-machine-board-vehicle .vehicle{width:116px}.ranking-machine-board-copy b{font-size:.72rem}.ranking-row{grid-template-columns:36px 58px minmax(0,1fr);padding-inline:6px}.ranking-row-machine{width:58px}.ranking-row-machine .vehicle{width:88px}}
+
 </style>
 </head>
 <body>
@@ -255,7 +281,7 @@ body.modal-open{overflow:hidden}
       <span aria-hidden="true">⌂</span>
     </a>
     <div class="brandbar">
-      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.3.3</em></strong></div>
+      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.3.4</em></strong></div>
       <div class="header-actions">
         <button class="sound-button" id="soundButton" type="button" aria-label="効果音を切り替える">🔊</button>
         <div class="ticket-pill"><small>GACHA</small><b id="ticketCount">🎟 1</b></div>
@@ -358,31 +384,41 @@ body.modal-open{overflow:hidden}
           <div><small>WORLD RANKING</small><h2 id="rankingTitle">世界ランキング</h2></div>
         </div>
         <div class="ranking-dashboard">
-          <div><small>LIVE WORLD BOARD</small><strong id="rankingViewTitle">歴代総合ランキング</strong></div>
+          <div><small>LIVE WORLD BOARD</small><strong>世界のベスト記録</strong></div>
           <button class="ranking-refresh" id="rankingRefresh" type="button" aria-label="ランキングを更新">↻</button>
         </div>
-        <div class="ranking-manual-banner"><span aria-hidden="true">✓</span><div>自動送信はしません。<br>あなたが選んだ記録だけ登録されます。</div></div>
-        <div class="ranking-tabs" id="rankingTabs" role="tablist" aria-label="総合ランキングの期間">
-          <button class="active" data-ranking-period="all" type="button" role="tab" aria-selected="true">🏆 歴代総合</button>
-          <button data-ranking-period="week" type="button" role="tab" aria-selected="false">📅 今週登録</button>
-          <button data-ranking-period="today" type="button" role="tab" aria-selected="false">⚡ 今日登録</button>
+        <div class="ranking-manual-banner"><span aria-hidden="true">✓</span><div>ランキング登録は任意です。<br>選んだ記録だけが世界ランキングへ登録されます。</div></div>
+        <p class="ranking-status" id="rankingStatus" role="status" aria-live="polite">ランキングを読み込みます。</p>
+
+        <div class="ranking-overview" id="rankingOverview">
+          <section class="ranking-board-block ranking-board-today" aria-labelledby="rankingTodayTitle">
+            <div class="ranking-board-head"><div><small>TODAY TOP 10</small><strong id="rankingTodayTitle">⚡ 今日のランキング</strong></div><span id="rankingTodayCount">0人</span></div>
+            <div class="ranking-list" id="rankingTodayList" aria-live="polite"><div class="ranking-loading">読み込み中…</div></div>
+            <div class="ranking-board-me" id="rankingTodayMe" hidden></div>
+          </section>
+
+          <section class="ranking-board-block ranking-board-week" aria-labelledby="rankingWeekTitle">
+            <div class="ranking-board-head"><div><small>WEEK TOP 10</small><strong id="rankingWeekTitle">📅 今週のランキング</strong></div><span id="rankingWeekCount">0人</span></div>
+            <div class="ranking-list" id="rankingWeekList" aria-live="polite"><div class="ranking-loading">読み込み中…</div></div>
+            <div class="ranking-board-me" id="rankingWeekMe" hidden></div>
+          </section>
+
+          <section class="ranking-board-block ranking-board-all" aria-labelledby="rankingAllTitle">
+            <div class="ranking-board-head"><div><small>ALL-TIME TOP 10</small><strong id="rankingAllTitle">🏆 歴代ランキング</strong></div><span id="rankingAllCount">0人</span></div>
+            <div class="ranking-list" id="rankingAllList" aria-live="polite"><div class="ranking-loading">読み込み中…</div></div>
+            <div class="ranking-board-me" id="rankingAllMe" hidden></div>
+          </section>
         </div>
+
         <section class="ranking-machine-browser" aria-labelledby="rankingMachineBrowserTitle">
           <div class="ranking-section-head">
-            <div><small>MACHINE BOARDS</small><strong id="rankingMachineBrowserTitle">マシン別ランキング</strong></div>
-            <span>マシンをタップ</span>
+            <div><small>MACHINE RANKINGS</small><strong id="rankingMachineBrowserTitle">マシン別ランキング</strong></div>
+            <span>各マシンのTOP3を表示</span>
           </div>
-          <div class="ranking-machine-grid" id="rankingMachineGrid" aria-label="マシン別ランキングを選択"></div>
+          <p class="ranking-machine-guide">マシンをタップすると、そのマシンの全順位が開きます。</p>
+          <div class="ranking-machine-boards" id="rankingMachineBoards"></div>
         </section>
-        <div class="ranking-machine-hero" id="rankingMachineHero" hidden>
-          <div class="ranking-machine-hero-vehicle" id="rankingMachineHeroVehicle"></div>
-          <div class="ranking-machine-hero-copy"><small>SELECTED MACHINE</small><strong id="rankingMachineHeroName">---</strong><span id="rankingMachineHeroTrait">---</span></div>
-        </div>
-        <p class="ranking-status" id="rankingStatus" role="status" aria-live="polite">最新順位を読み込みます。</p>
-        <div class="ranking-me-card" id="rankingMeCard" hidden><div id="rankingMeText">---</div></div>
-        <div class="ranking-podium" id="rankingPodium" hidden></div>
-        <div class="ranking-list-title"><strong>ランキング一覧</strong><span id="rankingCountLabel">登録 0人</span></div>
-        <div class="ranking-list" id="rankingList" aria-live="polite"><div class="ranking-loading">ランキングを読み込みます</div></div>
+
         <section class="ranking-account" id="rankingAccount" aria-labelledby="rankingAccountTitle">
           <div class="ranking-account-title" id="rankingAccountTitle">ランキングネームの確認・変更</div>
           <div class="ranking-account-body">
@@ -515,13 +551,13 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=233-machine-visual-11"></script>
+<script src="./ranking-client.js?v=234-dashboard-fast-12"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '2.3.3';
-  const BUILD = '2026-08-07-ranking-machine-visual-v11';
+  const APP_VERSION = '2.3.4';
+  const BUILD = '2026-08-07-ranking-dashboard-fast-v12';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -618,7 +654,7 @@ body.modal-open{overflow:hidden}
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
     play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),carGrid:$('carGrid'),
-    recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),recordsRankingStatus:$('recordsRankingStatus'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingTabs:$('rankingTabs'),rankingMachineGrid:$('rankingMachineGrid'),rankingMachineHero:$('rankingMachineHero'),rankingMachineHeroVehicle:$('rankingMachineHeroVehicle'),rankingMachineHeroName:$('rankingMachineHeroName'),rankingMachineHeroTrait:$('rankingMachineHeroTrait'),rankingMeCard:$('rankingMeCard'),rankingMeText:$('rankingMeText'),rankingList:$('rankingList'),rankingPodium:$('rankingPodium'),rankingViewTitle:$('rankingViewTitle'),rankingRefresh:$('rankingRefresh'),rankingCountLabel:$('rankingCountLabel'),
+    recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),recordsRankingStatus:$('recordsRankingStatus'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),
     resultCard:$('resultCard'),resultDistance:$('resultDistance'),resultKicker:$('resultKicker'),newRecord:$('newRecord'),resultVehicle:$('resultVehicle'),judgeStart:$('judgeStart'),judgeTurbo:$('judgeTurbo'),judgeNitro:$('judgeNitro'),scoreStart:$('scoreStart'),scoreTurbo:$('scoreTurbo'),scoreNitro:$('scoreNitro'),coach:$('coachText'),nextGoal:$('nextGoalText'),nextBar:$('nextGoalBar'),ticketEarned:$('ticketEarned'),resultRankButton:$('resultRankButton'),worldSubmitStatus:$('worldSubmitStatus'),rankingGate:$('rankingGate'),rankingGateInput:$('rankingGateInput'),rankingGateSave:$('rankingGateSave'),rankingGateCancel:$('rankingGateCancel'),rankingGateStatus:$('rankingGateStatus'),
@@ -950,11 +986,9 @@ body.modal-open{overflow:hidden}
   const createCoachMessage=(distance,oldCarBest)=>{if(distance>oldCarBest&&oldCarBest>0)return`自己ベスト更新！ 前の記録を${(distance-oldCarBest).toLocaleString()}m超えた！`;const grades=[attempt.start,attempt.turbo,attempt.nitro||'MISS'];let worst=0;grades.forEach((g,i)=>{if(JUDGE_LEVEL[g]<JUDGE_LEVEL[grades[worst]])worst=i;});if(grades.every(g=>g==='SUPER'))return'SUPER PERFECT！ 3つの違う操作が最高につながった！';if(grades.every(g=>JUDGE_LEVEL[g]>=3))return'3つがきれいにつながった！ 次はSUPER CRITICALを3つ狙おう！';if(worst===0)return attempt.rpm>currentCar.control.accel.ideal?'タコメーターを少し回しすぎた！ レッドゾーンの印で止めよう！':'アクセルが早め！ 針がSHIFTマークへ届くまで待とう！';if(worst===1)return attempt.turboPosition>.5?'ターボが少し遅かった！ 中央線の直前でタップ！':'ターボが少し早かった！ 青いカーソルを中央まで待とう！';return'飛行中の丸が黄色いリングに重なる瞬間がニトロの勝負！';};
   const nextGoal=distance=>{const currentLimit=Math.min(currentCar.finalCap,Math.round(currentCar.rawCap*(1+tuneRate(currentCar.id)))),targets=[500,1000,1500,2000,currentCar.master,currentCar.rawCap,currentLimit].filter((v,i,a)=>v>0&&v<=currentLimit&&a.indexOf(v)===i).sort((a,b)=>a-b),next=targets.find(m=>m>distance);if(!next){if(currentLimit<currentCar.finalCap)return{text:`現在の上限 ${currentLimit.toLocaleString()}m｜チューンでさらに伸びる！`,ratio:1};return{text:'このマシンの限界へ到達！',ratio:1};}const prev=targets.filter(m=>m<=distance).pop()||0;return{text:`${next.toLocaleString()}mまで あと${(next-distance).toLocaleString()}m`,ratio:clamp((distance-prev)/(next-prev),0,1)};};
 
-  let rankingPeriod='all',rankingMachine='boon',rankingBusy=false,rankingNameSaving=false,rankingGateSaving=false,rankingRequestSeq=0;
-  let lastRankCandidate=null,pendingRankCandidate=null,rankSubmitBusy=false;
-  const WRITE_API_MIN='2.3.2';
-  const versionAtLeast=(actual,required)=>{const a=String(actual||'0').split('.').map(v=>Number(v)||0),b=String(required||'0').split('.').map(v=>Number(v)||0);for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)>(b[i]||0))return true;if((a[i]||0)<(b[i]||0))return false;}return true;};
-  const checkRankingServer=async({write=false}={})=>{const health=await BOON_RANKING.health();if(!health||!health.ok)throw new Error('ランキングサーバーへ接続できません。');if(write&&!versionAtLeast(health.api_version,WRITE_API_MIN))throw new Error(`Apps ScriptをV${WRITE_API_MIN}へ更新し、新バージョンで再デプロイしてください。`);return health;};
+  let rankingBusy=false,rankingNameSaving=false,rankingGateSaving=false,rankSubmitBusy=false;
+  let lastRankCandidate=null,pendingRankCandidate=null;
+  const machineFullCache=new Map();
   const setRankingNameUi=()=>{const name=BOON_RANKING.getPlayerName();el.rankingNameInput.value=name;el.rankingNameSave.textContent=name?'変更':'登録';};
   const showRankingGate=(payload=null,context='result',message='')=>{pendingRankCandidate=payload?{payload,context}:null;el.rankingGate.hidden=false;document.body.classList.add('modal-open');el.rankingGateInput.value=BOON_RANKING.getPlayerName();el.rankingGateStatus.textContent=message||'日本語・英語・数字・記号・絵文字が使えます。';setTimeout(()=>el.rankingGateInput.focus(),80);};
   const hideRankingGate=()=>{el.rankingGate.hidden=true;document.body.classList.remove('modal-open');};
@@ -963,113 +997,20 @@ body.modal-open{overflow:hidden}
   const setSubmitButtonsDisabled=disabled=>{el.resultRankButton.disabled=disabled;el.machineRecords.querySelectorAll('[data-rank-record]').forEach(button=>button.disabled=disabled);};
   const worldScorePayload=(distance,playedAt=nowIso())=>({machineId:currentCar.id,distance,accelJudge:attempt&&attempt.start||'MISS',turboJudge:attempt&&attempt.turbo||'MISS',nitroJudge:attempt&&attempt.nitro||'MISS',tuneLevel:getRecord(currentCar.id).tuneLevel||0,playedAt,sourceBuild:BUILD,clientVersion:APP_VERSION});
   const recordScorePayload=car=>{const rec=getRecord(car.id),meta=normalizeBestMeta(rec.bestMeta)||{};return {machineId:car.id,distance:rec.best||0,accelJudge:meta.accelJudge||'MISS',turboJudge:meta.turboJudge||'MISS',nitroJudge:meta.nitroJudge||'MISS',tuneLevel:meta.tuneLevel??rec.tuneLevel??0,playedAt:meta.achievedAt||nowIso(),sourceBuild:BUILD,clientVersion:APP_VERSION};};
-  const rankSummary=result=>{const ranks=result.ranks||{},parts=[];if(ranks.all)parts.push(`歴代${Number(ranks.all.rank).toLocaleString()}位`);if(ranks.week)parts.push(`今週${Number(ranks.week.rank).toLocaleString()}位`);if(ranks.today)parts.push(`今日${Number(ranks.today.rank).toLocaleString()}位`);return parts.join('｜');};
-  const updatedSummary=result=>{const updated=result.updated||{},labels=[];if(updated.machine)labels.push('歴代');if(updated.week)labels.push('今週');if(updated.today)labels.push('今日');return labels.join('・');};
-  const updateLocalRegistration=(payload,result)=>{const rec=getRecord(payload.machineId);if(result.updated&&result.updated.machine)rec.worldBest=Math.max(rec.worldBest||0,Number(payload.distance)||0);else if(result.ranks&&result.ranks.all)rec.worldBest=Math.max(rec.worldBest||0,Number(result.ranks.all.distance)||0);if(Number(payload.distance)===Number(rec.best)&&(result.skipped||Object.values(result.updated||{}).some(Boolean)))rec.worldUpdatedAt=nowIso();save();};
-  const submitRankCandidate=async(payload,context='result')=>{
-    if(rankSubmitBusy||!payload)return;
-    if(!BOON_RANKING.getPlayerName()){showRankingGate(payload,context,'この記録を登録するための名前を決めてください。');return;}
-    const status=statusNodeFor(context),car=CAR_BY_ID[payload.machineId];
-    rankSubmitBusy=true;setSubmitButtonsDisabled(true);status.hidden=false;status.className=context==='result'?'ranking-result-note sending':'records-ranking-status';status.textContent=`🌍 ${car?car.name:'記録'}をランキングへ登録中…`;
-    let completed=false;
-    try{
-      await checkRankingServer({write:true});
-      const result=await BOON_RANKING.submitScore(payload);completed=true;updateLocalRegistration(payload,result);
-      const ranks=rankSummary(result),updated=updatedSummary(result);
-      if(result.skipped){status.className=context==='result'?'ranking-result-note success':'records-ranking-status';status.textContent=`✅ この記録は対象ランキングに登録済み${ranks?`｜${ranks}`:''}`;}
-      else if(result.review){status.className=context==='result'?'ranking-result-note pending':'records-ranking-status';status.textContent=`🕵️ 記録を確認中｜${result.reason||'審査待ち'}`;}
-      else{status.className=context==='result'?'ranking-result-note success':'records-ranking-status';status.textContent=`🏆 ${updated||'世界'}ランキングへ登録完了${ranks?`｜${ranks}`:''}`;}
-      if(context==='result'){el.resultRankButton.classList.add('registered');el.resultRankButton.textContent='✓ ランキング登録済み';}
-      if(context==='records'){
-        renderRecords();
-        status.hidden=false;
-        status.textContent=`🏆 登録完了！ ${car?car.name:'マシン'}のランキングを開きます…`;
-        await new Promise(resolve=>setTimeout(resolve,260));
-        await openRanking({period:'machine',machineId:payload.machineId,scrollTop:true});
-      }
-    }catch(err){const message=String(err&&err.message||'ランキングへ登録できませんでした。');status.className=context==='result'?'ranking-result-note pending':'records-ranking-status';status.hidden=false;status.textContent=`⚠ ${message}`;if(/ネーム|名前|すでに使われ/.test(message))showRankingGate(payload,context,message);}
-    finally{rankSubmitBusy=false;setSubmitButtonsDisabled(false);if(completed&&context==='result')el.resultRankButton.disabled=true;}
-  };
-  const saveInitialRankingName=async()=>{if(rankingGateSaving)return;rankingGateSaving=true;el.rankingGateSave.disabled=true;el.rankingGateStatus.textContent='名前の重複と禁止用語を確認しています…';const queued=pendingRankCandidate;try{await checkRankingServer({write:true});await BOON_RANKING.registerName(el.rankingGateInput.value);setRankingNameUi();el.rankingGateStatus.textContent='名前を登録しました。';pendingRankCandidate=null;await new Promise(resolve=>setTimeout(resolve,220));hideRankingGate();if(queued)await submitRankCandidate(queued.payload,queued.context);}catch(err){el.rankingGateStatus.textContent=err.message||'登録できませんでした。';}finally{rankingGateSaving=false;el.rankingGateSave.disabled=false;}};
-  const syncRankingControls=()=>{
-    el.rankingTabs.querySelectorAll('[data-ranking-period]').forEach(button=>{
-      const active=rankingPeriod===button.dataset.rankingPeriod;
-      button.classList.toggle('active',active);
-      button.setAttribute('aria-selected',String(active));
-    });
-    el.rankingMachineGrid.querySelectorAll('[data-ranking-machine]').forEach(button=>{
-      const active=rankingPeriod==='machine'&&rankingMachine===button.dataset.rankingMachine;
-      button.classList.toggle('active',active);
-      button.setAttribute('aria-pressed',String(active));
-    });
-  };
-  const renderRankingMachineBrowser=()=>{
-    el.rankingMachineGrid.innerHTML=CARS.map(car=>`<button class="ranking-machine-card" data-ranking-machine="${car.id}" type="button" aria-pressed="false"><span class="ranking-machine-card-vehicle" data-ranking-machine-vehicle="${car.id}"></span><span class="ranking-machine-card-copy"><b>${escapeHtml(car.name)}</b><small>${escapeHtml(car.rarity)}｜${escapeHtml(car.trait)}</small></span><span class="ranking-machine-card-arrow" aria-hidden="true">›</span></button>`).join('');
-    el.rankingMachineGrid.querySelectorAll('[data-ranking-machine-vehicle]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.rankingMachineVehicle],{compact:true}));
-    syncRankingControls();
-  };
-  const renderRankingMachineHero=()=>{
-    const machineMode=rankingPeriod==='machine',car=CAR_BY_ID[rankingMachine];
-    el.rankingMachineHero.hidden=!machineMode||!car;
-    if(!machineMode||!car)return;
-    el.rankingMachineHeroName.textContent=car.name;
-    el.rankingMachineHeroTrait.textContent=`${car.rarity}｜${car.trait}｜${car.handling}`;
-    renderVehicle(el.rankingMachineHeroVehicle,car,{compact:true});
-  };
-  const renderRankingRows=data=>{
-    const myId=BOON_RANKING.getPlayerId(),rows=Array.isArray(data.rows)?data.rows:[];
-    el.rankingPodium.innerHTML='';
-    el.rankingCountLabel.textContent=`登録 ${Number(data.total_players||0).toLocaleString()}人`;
-    if(!rows.length){
-      el.rankingList.innerHTML='<div class="ranking-empty"><div><strong>まだ登録された記録がありません</strong><br>結果画面や記録画面から、登録したい記録を選べます。</div></div>';
-    }else{
-      el.rankingList.innerHTML=rows.map(row=>{
-        const top=row.rank<=3,medal=['🥇','🥈','🥉'][row.rank-1]||'',me=row.player_id===myId,machineId=CAR_BY_ID[row.machine_id]?row.machine_id:'boon';
-        return `<article class="ranking-row${top?` top-${row.rank}`:''}${me?' me':''}"><div class="ranking-rank">${medal?`<span class="medal">${medal}</span>`:`<b>${row.rank}</b><small>位</small>`}</div><div class="ranking-row-machine" data-ranking-row-car="${machineId}" aria-label="${escapeHtml(row.machine_name)}"></div><div class="ranking-copy"><strong>${escapeHtml(row.display_name)}${me?'<span class="ranking-me-tag">あなた</span>':''}</strong><small>${escapeHtml(row.machine_name)}</small></div><div class="ranking-distance">${Number(row.distance||0).toLocaleString()}<small>m</small></div></article>`;
-      }).join('');
-      el.rankingList.querySelectorAll('[data-ranking-row-car]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.rankingRowCar],{compact:true}));
-    }
-    if(data.me){
-      el.rankingMeCard.hidden=false;
-      el.rankingMeText.innerHTML=`<span>あなたの順位</span><b>${Number(data.me.rank).toLocaleString()}<small>位</small></b><em>${Number(data.me.distance||0).toLocaleString()}m｜${escapeHtml(data.me.machine_name||'総合ベスト')}</em>`;
-    }else el.rankingMeCard.hidden=true;
-  };
-  const loadRanking=async()=>{
-    const requestSeq=++rankingRequestSeq;
-    rankingBusy=true;
-    syncRankingControls();
-    renderRankingMachineHero();
-    el.rankingList.innerHTML='<div class="ranking-loading">世界ランキングを読み込み中…</div>';
-    try{
-      const requestedPeriod=rankingPeriod,requestedMachine=rankingMachine,machineMode=requestedPeriod==='machine',car=CAR_BY_ID[requestedMachine]||CAR_BY_ID.boon;
-      el.rankingViewTitle.textContent=machineMode?`${car.name} ランキング`:requestedPeriod==='today'?'今日登録ランキング':requestedPeriod==='week'?'今週登録ランキング':'歴代総合ランキング';
-      const data=await BOON_RANKING.getLeaderboard({period:machineMode?'all':requestedPeriod,machineId:machineMode?requestedMachine:'',includeSecret:machineMode&&requestedMachine==='secret',limit:100});
-      if(requestSeq!==rankingRequestSeq)return;
-      renderRankingRows(data);
-      el.rankingStatus.textContent=`${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新｜登録日時を基準｜1人1ベスト`;
-    }catch(err){
-      if(requestSeq!==rankingRequestSeq)return;
-      el.rankingList.innerHTML=`<div class="ranking-empty"><div>ランキングを取得できませんでした<br><small>${escapeHtml(err.message)}</small></div></div>`;
-      el.rankingStatus.textContent='通信状況をご確認ください。';
-    }finally{if(requestSeq===rankingRequestSeq)rankingBusy=false;}
-  };
-  const openRanking=async({period=null,machineId=null,scrollTop=false}={})=>{
-    if(period)rankingPeriod=period;
-    if(machineId&&CAR_BY_ID[machineId])rankingMachine=machineId;
-    renderRankingMachineBrowser();
-    setRankingNameUi();
-    showScreen('ranking');
-    syncRankingControls();
-    renderRankingMachineHero();
-    if(scrollTop)window.scrollTo({top:0,behavior:'smooth'});
-    el.rankingList.innerHTML='<div class="ranking-loading">世界ランキングを読み込み中…</div>';
-    try{
-      const health=await checkRankingServer();
-      el.rankingStatus.textContent=versionAtLeast(health.api_version,WRITE_API_MIN)?`API ${health.api_version}｜任意登録モード`:`閲覧可能｜登録にはApps Script V${WRITE_API_MIN}が必要です`;
-    }catch(err){el.rankingStatus.textContent=err.message||'ランキングサーバーへ接続できません。';}
-    await loadRanking();
-  };
-  const saveRankingName=async()=>{if(rankingNameSaving)return;rankingNameSaving=true;el.rankingNameSave.disabled=true;try{el.rankingStatus.textContent='名前の重複と禁止用語を確認しています…';await checkRankingServer({write:true});await BOON_RANKING.registerName(el.rankingNameInput.value);setRankingNameUi();el.rankingStatus.textContent='ランキングネームを登録しました。';await loadRanking();}catch(err){setRankingNameUi();el.rankingStatus.textContent=err.message||'名前を登録できませんでした。';}finally{rankingNameSaving=false;el.rankingNameSave.disabled=false;}};
+  const updateLocalRegistration=(payload,result)=>{const rec=getRecord(payload.machineId);if(result.updated&&result.updated.machine)rec.worldBest=Math.max(rec.worldBest||0,Number(payload.distance)||0);if(Number(payload.distance)===Number(rec.best)&&(result.skipped||Object.values(result.updated||{}).some(Boolean)))rec.worldUpdatedAt=nowIso();save();};
+  const rankingRowHtml=(row,{showMachine=true}={})=>{const top=Number(row.rank)<=3,medal=['🥇','🥈','🥉'][Number(row.rank)-1]||'',me=row.player_id===BOON_RANKING.getPlayerId(),machineId=CAR_BY_ID[row.machine_id]?row.machine_id:'boon';return `<article class="ranking-row${top?` top-${row.rank}`:''}${me?' me':''}${showMachine?'':' no-machine'}"><div class="ranking-rank">${medal?`<span class="medal">${medal}</span>`:`<b>${Number(row.rank)||'-'}</b><small>位</small>`}</div>${showMachine?`<div class="ranking-row-machine" data-ranking-row-car="${machineId}" aria-label="${escapeHtml(row.machine_name||'マシン')}"></div>`:''}<div class="ranking-copy"><strong>${escapeHtml(row.display_name)}${me?'<span class="ranking-me-tag">あなた</span>':''}</strong><small>${escapeHtml(row.machine_name||'')}</small></div><div class="ranking-distance">${Number(row.distance||0).toLocaleString()}<small>m</small></div></article>`;};
+  const hydrateRankingVehicles=scope=>scope.querySelectorAll('[data-ranking-row-car]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.rankingRowCar],{compact:true}));
+  const renderOverviewBoard=(listNode,countNode,meNode,data)=>{const rows=Array.isArray(data&&data.rows)?data.rows.slice(0,10):[];countNode.textContent=`${Number(data&&data.total_players||0).toLocaleString()}人`;if(!rows.length)listNode.innerHTML='<div class="ranking-empty"><div><strong>まだ記録がありません</strong><br>最初のランカーを目指そう！</div></div>';else{listNode.innerHTML=rows.map(row=>rankingRowHtml(row,{showMachine:true})).join('');hydrateRankingVehicles(listNode);}if(data&&data.me&&!rows.some(row=>row.player_id===data.me.player_id)){meNode.hidden=false;meNode.textContent=`あなたは ${Number(data.me.rank).toLocaleString()}位｜${Number(data.me.distance||0).toLocaleString()}m｜${data.me.machine_name||''}`;}else meNode.hidden=true;};
+  const machineMiniRows=data=>{const rows=Array.isArray(data&&data.rows)?data.rows.slice(0,3):[];if(!rows.length)return '<div class="ranking-machine-mini-empty">まだ登録された記録がありません</div>';return rows.map(row=>`<div class="ranking-machine-mini-row${row.player_id===BOON_RANKING.getPlayerId()?' me':''}"><span class="rank">${['🥇','🥈','🥉'][Number(row.rank)-1]||`${row.rank}位`}</span><span class="name">${escapeHtml(row.display_name)}${row.player_id===BOON_RANKING.getPlayerId()?'（あなた）':''}</span><span class="distance">${Number(row.distance||0).toLocaleString()}m</span></div>`).join('');};
+  const renderMachineBoards=machines=>{const byId=new Map((Array.isArray(machines)?machines:[]).map(entry=>[entry.machine_id,entry]));el.rankingMachineBoards.innerHTML=CARS.map(car=>{const entry=byId.get(car.id)||{board:{rows:[],total_players:0}};return `<article class="ranking-machine-board" id="rankingMachineBoard-${car.id}" data-machine-board="${car.id}" style="--machine-accent:${car.accent}"><button class="ranking-machine-board-head" data-expand-machine="${car.id}" type="button" aria-expanded="false"><span class="ranking-machine-board-vehicle" data-machine-board-vehicle="${car.id}"></span><span class="ranking-machine-board-copy"><small>${escapeHtml(car.rarity)} MACHINE</small><b>${escapeHtml(car.name)}</b><em>TOP3｜登録 ${Number(entry.board&&entry.board.total_players||0).toLocaleString()}人</em></span><span class="ranking-machine-board-action"><i>›</i><span>全順位</span></span></button><div class="ranking-machine-top3" data-machine-top3="${car.id}" data-expand-machine="${car.id}" role="button" tabindex="0" aria-label="${escapeHtml(car.name)}の全順位を表示">${machineMiniRows(entry.board)}</div><div class="ranking-machine-full" data-machine-full="${car.id}" hidden><div class="ranking-loading">全順位を読み込みます</div></div></article>`;}).join('');el.rankingMachineBoards.querySelectorAll('[data-machine-board-vehicle]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.machineBoardVehicle],{compact:true}));};
+  const renderMachineFull=(container,data)=>{const rows=Array.isArray(data&&data.rows)?data.rows:[];container.innerHTML=rows.length?`<div class="ranking-list">${rows.map(row=>rankingRowHtml(row,{showMachine:false})).join('')}</div>`:'<div class="ranking-empty"><div><strong>まだ記録がありません</strong></div></div>';};
+  const expandMachineBoard=async(machineId,{forceOpen=false,scroll=false}={})=>{const board=el.rankingMachineBoards.querySelector(`[data-machine-board="${machineId}"]`);if(!board)return;const top3=board.querySelector(`[data-machine-top3="${machineId}"]`),full=board.querySelector(`[data-machine-full="${machineId}"]`),button=board.querySelector('[data-expand-machine]'),open=board.classList.contains('expanded');if(open&&!forceOpen){board.classList.remove('expanded');button.setAttribute('aria-expanded','false');top3.hidden=false;full.hidden=true;return;}board.classList.add('expanded');button.setAttribute('aria-expanded','true');top3.hidden=true;full.hidden=false;if(!machineFullCache.has(machineId)){full.innerHTML='<div class="ranking-loading">全順位を読み込み中…</div>';try{const data=await BOON_RANKING.getLeaderboard({period:'all',machineId,includeSecret:machineId==='secret',limit:100});machineFullCache.set(machineId,data);}catch(err){full.innerHTML=`<div class="ranking-empty">取得できませんでした<br><small>${escapeHtml(err.message)}</small></div>`;if(scroll)board.scrollIntoView({behavior:'smooth',block:'start'});return;}}renderMachineFull(full,machineFullCache.get(machineId));if(scroll)setTimeout(()=>board.scrollIntoView({behavior:'smooth',block:'start'}),50);};
+  const setRankingLoading=()=>{for(const node of [el.rankingTodayList,el.rankingWeekList,el.rankingAllList])node.innerHTML='<div class="ranking-loading">世界ランキングを読み込み中…</div>';el.rankingMachineBoards.innerHTML='<div class="ranking-loading">マシン別ランキングを読み込み中…</div>';};
+  const loadRankingDashboard=async({force=false,expandMachineId='',scrollToMachine=false}={})=>{if(rankingBusy&&!force)return;rankingBusy=true;setRankingLoading();el.rankingStatus.textContent='今日・今週・歴代・マシン別をまとめて読み込み中…';try{const data=await BOON_RANKING.getDashboard({force});renderOverviewBoard(el.rankingTodayList,el.rankingTodayCount,el.rankingTodayMe,data.overview.today);renderOverviewBoard(el.rankingWeekList,el.rankingWeekCount,el.rankingWeekMe,data.overview.week);renderOverviewBoard(el.rankingAllList,el.rankingAllCount,el.rankingAllMe,data.overview.all);renderMachineBoards(data.machines);el.rankingStatus.textContent=`${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新｜1人につき各ランキング1ベスト`;if(expandMachineId)await expandMachineBoard(expandMachineId,{forceOpen:true,scroll:scrollToMachine});}catch(err){const rawMessage=String(err&&err.message||'ランキングを取得できませんでした。'),message=escapeHtml(/不明なaction|dashboard/i.test(rawMessage)?'Apps ScriptをV2.3.4へ更新し、新バージョンで再デプロイしてください。':rawMessage);for(const node of [el.rankingTodayList,el.rankingWeekList,el.rankingAllList])node.innerHTML=`<div class="ranking-empty">取得できませんでした<br><small>${message}</small></div>`;el.rankingMachineBoards.innerHTML=`<div class="ranking-empty">マシン別ランキングを取得できませんでした<br><small>${message}</small></div>`;el.rankingStatus.textContent='通信状況をご確認ください。';}finally{rankingBusy=false;}};
+  const openRanking=async({expandMachineId='',scrollToMachine=false,force=false,notice=''}={})=>{setRankingNameUi();showScreen('ranking');if(notice)el.rankingStatus.textContent=notice;window.scrollTo({top:0,behavior:'smooth'});await loadRankingDashboard({force,expandMachineId,scrollToMachine});};
+  const submitRankCandidate=async(payload,context='result')=>{if(rankSubmitBusy||!payload)return;if(!BOON_RANKING.getPlayerName()){showRankingGate(payload,context,'この記録を登録するための名前を決めてください。');return;}const status=statusNodeFor(context),car=CAR_BY_ID[payload.machineId];rankSubmitBusy=true;setSubmitButtonsDisabled(true);status.hidden=false;status.className=context==='result'?'ranking-result-note sending':'records-ranking-status';status.textContent=`🌍 ${car?car.name:'記録'}をランキングへ登録中…`;let completed=false;try{const result=await BOON_RANKING.submitScore(payload);completed=true;updateLocalRegistration(payload,result);machineFullCache.delete(payload.machineId);BOON_RANKING.invalidateCache();if(context==='result'){status.className='ranking-result-note success';status.textContent=result.skipped?'✅ この記録はすでに登録済みです。':'🏆 世界ランキングへ登録しました！';el.resultRankButton.classList.add('registered');el.resultRankButton.textContent='✓ ランキング登録済み';}else{renderRecords();status.hidden=false;status.textContent='🏆 登録完了！ ランキングを開きます…';await openRanking({expandMachineId:payload.machineId,scrollToMachine:true,force:true,notice:`🏆 ${car?car.name:'記録'}を登録しました。`});}}catch(err){const message=String(err&&err.message||'ランキングへ登録できませんでした。');status.className=context==='result'?'ranking-result-note pending':'records-ranking-status';status.hidden=false;status.textContent=`⚠ ${message}`;if(/ネーム|名前|すでに使われ|禁止/.test(message)){BOON_RANKING.setPlayerName('');setRankingNameUi();showRankingGate(payload,context,message);}}finally{rankSubmitBusy=false;setSubmitButtonsDisabled(false);if(completed&&context==='result')el.resultRankButton.disabled=true;}};
+  const saveInitialRankingName=async()=>{if(rankingGateSaving)return;rankingGateSaving=true;el.rankingGateSave.disabled=true;const queued=pendingRankCandidate,previous=BOON_RANKING.getPlayerName();try{const name=BOON_RANKING.normalizePlayerName(el.rankingGateInput.value);BOON_RANKING.setPlayerName(name);setRankingNameUi();pendingRankCandidate=null;hideRankingGate();if(queued)await submitRankCandidate(queued.payload,queued.context);else await BOON_RANKING.registerName(name);}catch(err){BOON_RANKING.setPlayerName(previous);el.rankingGate.hidden=false;document.body.classList.add('modal-open');el.rankingGateStatus.textContent=err.message||'登録できませんでした。';}finally{rankingGateSaving=false;el.rankingGateSave.disabled=false;}};
+  const saveRankingName=async()=>{if(rankingNameSaving)return;rankingNameSaving=true;el.rankingNameSave.disabled=true;try{el.rankingStatus.textContent='ランキングネームを登録しています…';await BOON_RANKING.registerName(el.rankingNameInput.value);setRankingNameUi();BOON_RANKING.invalidateCache();el.rankingStatus.textContent='ランキングネームを登録しました。';await loadRankingDashboard({force:true});}catch(err){setRankingNameUi();el.rankingStatus.textContent=err.message||'名前を登録できませんでした。';}finally{rankingNameSaving=false;el.rankingNameSave.disabled=false;}};
   const submitCurrentWorldScore=()=>{if(lastRankCandidate)submitRankCandidate(lastRankCandidate,'result');};
   const submitRecordByCarId=carId=>{const car=CAR_BY_ID[carId],rec=car&&getRecord(car.id);if(!car||!rec||!rec.best)return;submitRankCandidate(recordScorePayload(car),'records');};
 
@@ -1080,7 +1021,7 @@ body.modal-open{overflow:hidden}
   $('playButton').addEventListener('click',startAttempt);$('retryButton').addEventListener('click',startAttempt);
   $('gachaButton').addEventListener('click',showGacha);$('redrawButton').addEventListener('click',showGacha);el.draw.addEventListener('click',runGacha);el.drawTen.addEventListener('click',runTenGacha);el.useDrawn.addEventListener('click',startAttempt);
   $('garageButton').addEventListener('click',()=>{renderGarage();showScreen('garage');});$('resultGarageButton').addEventListener('click',()=>{renderGarage();showScreen('garage');});
-  $('recordsButton').addEventListener('click',()=>{renderRecords();el.recordsRankingStatus.hidden=true;showScreen('records');});el.worldButton.addEventListener('click',openRanking);el.resultRankButton.addEventListener('click',submitCurrentWorldScore);el.machineRecords.addEventListener('click',e=>{const button=e.target.closest('[data-rank-record]');if(button)submitRecordByCarId(button.dataset.rankRecord);});el.rankingNameSave.addEventListener('click',saveRankingName);el.rankingGateSave.addEventListener('click',saveInitialRankingName);el.rankingGateCancel.addEventListener('click',cancelRankingGate);el.rankingGateInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveInitialRankingName();if(e.key==='Escape')cancelRankingGate();});el.rankingNameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveRankingName();});el.rankingTabs.addEventListener('click',e=>{const b=e.target.closest('[data-ranking-period]');if(!b)return;rankingPeriod=b.dataset.rankingPeriod;syncRankingControls();loadRanking();});el.rankingMachineGrid.addEventListener('click',e=>{const b=e.target.closest('[data-ranking-machine]');if(!b)return;rankingPeriod='machine';rankingMachine=b.dataset.rankingMachine;syncRankingControls();loadRanking();window.scrollTo({top:Math.max(0,el.rankingMachineHero.getBoundingClientRect().top+window.scrollY-12),behavior:'smooth'});});el.rankingRefresh.addEventListener('click',async()=>{el.rankingRefresh.disabled=true;try{await loadRanking();}finally{el.rankingRefresh.disabled=false;}});$('resultHomeButton').addEventListener('click',()=>{clearRun();phase='idle';setNavigationLock(false);showScreen('home');});
+  $('recordsButton').addEventListener('click',()=>{renderRecords();el.recordsRankingStatus.hidden=true;showScreen('records');});el.worldButton.addEventListener('click',openRanking);el.resultRankButton.addEventListener('click',submitCurrentWorldScore);el.machineRecords.addEventListener('click',e=>{const button=e.target.closest('[data-rank-record]');if(button)submitRecordByCarId(button.dataset.rankRecord);});el.rankingNameSave.addEventListener('click',saveRankingName);el.rankingGateSave.addEventListener('click',saveInitialRankingName);el.rankingGateCancel.addEventListener('click',cancelRankingGate);el.rankingGateInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveInitialRankingName();if(e.key==='Escape')cancelRankingGate();});el.rankingNameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveRankingName();});el.rankingMachineBoards.addEventListener('click',e=>{const b=e.target.closest('[data-expand-machine]');if(!b)return;expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingMachineBoards.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const b=e.target.closest('[data-expand-machine]');if(!b)return;e.preventDefault();expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingRefresh.addEventListener('click',async()=>{el.rankingRefresh.disabled=true;try{machineFullCache.clear();BOON_RANKING.invalidateCache();await loadRankingDashboard({force:true});}finally{el.rankingRefresh.disabled=false;}});$('resultHomeButton').addEventListener('click',()=>{clearRun();phase='idle';setNavigationLock(false);showScreen('home');});
   document.querySelectorAll('[data-back="home"]').forEach(b=>b.addEventListener('click',()=>{if(navLocked)return;clearRun();phase='idle';showScreen('home');}));
   el.carGrid.addEventListener('click',e=>{const card=e.target.closest('[data-car-id]');if(!card)return;const car=CAR_BY_ID[card.dataset.carId],rec=getRecord(car.id);if(!rec.owned){showGacha();return;}currentCar=car;state.selected=car.id;save();renderGarage();renderHome();schedule(()=>showScreen('home'),90);});
   document.querySelectorAll('[data-record-tab]').forEach(b=>b.addEventListener('click',()=>setRecordTab(b.dataset.recordTab)));

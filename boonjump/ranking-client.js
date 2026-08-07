@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.3.3
+ * ブーンジャンプ 世界ランキング通信 V2.3.4
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -19,7 +19,10 @@ const BOON_RANKING = (() => {
     'boonjump_world_score_queue_v3',
     'boonjump_world_score_queue_v2',
   ];
-  const JSONP_TIMEOUT = 26000;
+  const JSONP_TIMEOUT = 16000;
+  const DASHBOARD_CACHE_MS = 20000;
+  let dashboardCache = null;
+  let dashboardCacheAt = 0;
 
   function safeGet(key) {
     try { return localStorage.getItem(key) || ''; } catch (_) { return ''; }
@@ -212,36 +215,49 @@ const BOON_RANKING = (() => {
 
   async function registerName(name) {
     const displayName = normalizePlayerName(name);
-    let current = await resolveIdentityByToken();
-    if (!current) current = await getPlayer();
-
-    if (!current) {
-      const recovered = await recoverLegacyIdentity(displayName);
-      if (recovered) current = recovered;
-    }
-
-    const data = await getJsonp({
+    const sendRename = () => getJsonp({
       action: 'rename',
       player_id: getPlayerId(),
       player_token: getPlayerToken(),
       display_name: displayName,
-    }, 26000);
+    }, 18000);
 
-    setPlayerName(data.display_name || displayName);
-    return {
-      ...data,
-      reused: Boolean(
-        current &&
-        canonicalName(current.display_name) === canonicalName(data.display_name || displayName)
-      ),
-    };
+    try {
+      const data = await sendRename();
+      setPlayerName(data.display_name || displayName);
+      invalidateCache();
+      return data;
+    } catch (firstError) {
+      // 通常は上の1通信で完了。ID移行が必要な端末だけ復旧処理へ進む。
+      let current = await resolveIdentityByToken();
+      if (!current) current = await recoverLegacyIdentity(displayName);
+      if (!current) throw firstError;
+      const data = await sendRename();
+      setPlayerName(data.display_name || displayName);
+      invalidateCache();
+      return { ...data, reused: true };
+    }
   }
 
-  async function ensureRegistered() {
-    const savedName = getPlayerName();
-    if (!savedName) return false;
-    await registerName(savedName);
-    return true;
+  async function ensureRegistered() { return Boolean(getPlayerName());
+  }
+
+  function invalidateCache() {
+    dashboardCache = null;
+    dashboardCacheAt = 0;
+  }
+
+  async function getDashboard({ force = false } = {}) {
+    if (!force && dashboardCache && Date.now() - dashboardCacheAt < DASHBOARD_CACHE_MS) {
+      return dashboardCache;
+    }
+    const data = await getJsonp({
+      action: 'dashboard',
+      player_id: getPlayerId(),
+    }, 18000);
+    dashboardCache = data;
+    dashboardCacheAt = Date.now();
+    return data;
   }
 
   function getLeaderboard({ period = 'all', machineId = '', includeSecret = false, limit = 100 } = {}) {
@@ -252,7 +268,7 @@ const BOON_RANKING = (() => {
       player_id: getPlayerId(),
       include_secret: String(includeSecret),
       limit: String(limit),
-    }, 22000);
+    }, 16000);
   }
 
   function buildScoreItem(payload) {
@@ -283,15 +299,18 @@ const BOON_RANKING = (() => {
       source_build: String(payload.sourceBuild || '').slice(0, 100),
       client_version: String(payload.clientVersion || '').slice(0, 40),
       transport: 'manual-jsonp',
+      response_mode: 'fast',
     };
   }
 
   async function submitScore(payload) {
-    await ensureRegistered();
+    if (!getPlayerName()) throw new Error('先にランキングネームを登録してください。');
     const item = buildScoreItem(payload);
-    const data = await getJsonp(item, 30000);
+    const data = await getJsonp(item, 20000);
+    if (data.player_id) setPlayerId(data.player_id);
     const accepted = Boolean(data.accepted || data.duplicate || data.skipped);
     if (!accepted) throw new Error(data.reason || '記録が受理されませんでした。');
+    invalidateCache();
 
     return {
       ok: true,
@@ -322,6 +341,7 @@ const BOON_RANKING = (() => {
     health,
     getPlayerId,
     getPlayerName,
+    setPlayerName,
     getPlayerToken,
     normalizePlayerName,
     registerName,
@@ -332,6 +352,8 @@ const BOON_RANKING = (() => {
     getPendingCount,
     getDiagnostics,
     getLeaderboard,
+    getDashboard,
+    invalidateCache,
     getPlayer,
   };
 })();

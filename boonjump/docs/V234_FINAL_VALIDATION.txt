@@ -1,0 +1,60 @@
+ブーンジャンプ V2.3.4 最終検証レポート
+Build: 2026-08-07-ranking-dashboard-fast-v12
+
+【ランキングUI】
+PASS 画面上部の順番: 今日TOP10 → 今週TOP10 → 歴代TOP10
+PASS 各総合ランキングは最大10件を常時表示
+PASS 各総合ランキング行にマシン画像を表示
+PASS その下に全8マシンのTOP3を常時表示
+PASS マシンの見出しまたはTOP3部分をタップすると全順位を展開
+PASS キーボード Enter / Spaceでも全順位を展開
+PASS 記録ページから登録成功後、該当マシンの全順位を開いて自動移動
+PASS ランキングネーム欄は折りたたみなし
+PASS 旧タブ式・旧マシン選択式の参照0件
+
+【高速化】
+PASS 登録済みユーザーの記録送信: submit 1通信のみ
+PASS 初回の名前決定＋記録登録: submit 1通信へ統合
+PASS 名前変更: rename 1通信のみ
+PASS ランキング初期表示: dashboard 1通信のみ
+PASS dashboardは今日・今週・歴代・全8マシンTOP3を一括返却
+PASS dashboard結果をクライアントで20秒キャッシュ
+PASS submitのfast応答では不要な3ランキング順位再計算を省略
+PASS 記録送信前のhealth確認を廃止
+PASS 記録送信前の名前再登録確認を廃止
+
+【本人判定】
+PASS player_idが変わってもplayer_token一致時は既存本人IDを復旧
+PASS 復旧したplayer_idをクライアントへ返して保存
+PASS 同一人物の名前重複誤判定を回避
+PASS 別プレイヤーによる同名登録は禁止を維持
+
+【静的検証】
+PASS JavaScript構文: index.html / ranking-client.js
+PASS Apps Script構文: Code.gs
+PASS HTML ID重複: 0件
+PASS JavaScript参照ID欠落: 0件
+PASS HTMLローカル参照欠落: 0件
+PASS Service Worker precache欠落: 0件
+PASS dashboard action実装
+PASS 旧ランキングタブ参照: 0件
+
+【模擬統合試験】
+PASS クライアント通信回数試験
+  - submit: 1回
+  - rename: 1回
+  - dashboardを2回呼出: 実通信1回（キャッシュ）
+PASS dashboard API試験
+  - 今日・今週・歴代を生成
+  - 全8マシンTOP3を生成
+PASS submit fast試験
+  - 初回登録と記録保存を1回で完了
+  - score_log / machine_bests / period_bests更新
+  - 不要な順位計算なし
+PASS token本人復旧試験
+  - 異なるplayer_idから同一tokenで既存IDを復旧
+
+【実行環境上の制限】
+Chromiumのヘッドレス起動が環境内で停止したため、今回の実ブラウザ画像出力は未実施。
+DOM構造、CSSレスポンシブ定義、タッチ・キーボード操作、通信ロジックは個別検証済み。
+Google Apps Script公開URLへのV2.3.4ライブ試験は、ユーザー側で再デプロイ後に実施が必要。

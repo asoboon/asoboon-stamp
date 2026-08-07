@@ -1,0 +1,12 @@
+{
+  "submitCalls": [
+    "submit"
+  ],
+  "renameCalls": [
+    "rename"
+  ],
+  "dashboardCalls": [
+    "dashboard"
+  ],
+  "pass": true
+}

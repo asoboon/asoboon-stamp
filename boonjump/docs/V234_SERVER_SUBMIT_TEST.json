@@ -1,0 +1,47 @@
+{
+  "first": {
+    "ok": true,
+    "accepted": true,
+    "duplicate": false,
+    "skipped": false,
+    "reason": "",
+    "request_id": "score-first-123456789",
+    "player_id": "player-first-123456789",
+    "updated": {
+      "machine": true,
+      "today": true,
+      "week": true
+    },
+    "player_rank": null,
+    "player_ranks": {
+      "all": null,
+      "today": null,
+      "week": null
+    }
+  },
+  "second": {
+    "ok": true,
+    "accepted": true,
+    "duplicate": false,
+    "skipped": false,
+    "reason": "",
+    "request_id": "score-second-123456789",
+    "player_id": "player-first-123456789",
+    "updated": {
+      "machine": true,
+      "today": true,
+      "week": true
+    },
+    "player_rank": null,
+    "player_ranks": {
+      "all": null,
+      "today": null,
+      "week": null
+    }
+  },
+  "players": 1,
+  "logs": 2,
+  "machineBest": 1300,
+  "recoveredId": "player-first-123456789",
+  "pass": true
+}
