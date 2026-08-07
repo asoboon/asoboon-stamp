@@ -1,0 +1,12 @@
+ブーンジャンプ V2.3.9
+
+変更点:
+- 全記録一括登録からSECRETを除外（通常7マシンのみ）
+- SECRETの個別ランキング登録は継続
+- Apps Script側でもbulk_submitのSECRETを安全に除外
+- playersのstatus入力規則はLIVEシートで ACTIVE / HIDDEN / BANNED に修正済み
+
+公開:
+1. GitHubをV2.3.9へ差し替え
+2. Code.gsをV2.3.9へ差し替え、新バージョンでデプロイ
+3. /boonjump/?v=239 で初回確認

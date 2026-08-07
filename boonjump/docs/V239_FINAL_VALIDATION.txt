@@ -1,0 +1,56 @@
+ブーンジャンプ V2.3.9 最終検証
+
+Version: 2.3.9
+Build: 2026-08-07-ranking-bulk-secret-excluded-v17
+Apps Script API target: 2.3.9
+
+今回の修正
+1. players E列の入力規則不一致を修正
+   - 原因: Apps Scriptは status=ACTIVE を書くが、Google Sheetの入力規則が active/hidden/banned（小文字）だった。
+   - LIVE Sheet players!E2:E10000 を ACTIVE/HIDDEN/BANNED に修正済み。
+   - players!E4=ACTIVE が現在の入力規則に適合することを再読込で確認済み。
+
+2. 全記録一括登録からSECRETを除外
+   - クライアント: collectAllRecordPayloads() は secret を除外。
+   - 一括登録カードの集計も通常7マシンだけで計算。
+   - ボタン表示で「SECRETは対象外・個別登録」を明示。
+   - SECRETの個別登録ボタンは残る。
+   - サーバー: bulk_submit にSECRETが混入しても安全に除外し、通常マシンだけ処理。
+   - SECRET単体のsubmitとSECRET専用ランキングは維持。
+
+構文チェック
+- boonjump/index.html inline JS: PASS
+- boonjump/ranking-client.js: PASS
+- boonjump/sw.js: PASS
+- Code.gs: PASS
+
+静的整合性
+- HTML IDs: 149
+- duplicate IDs: 0
+- missing DOM refs: 0
+- missing HTML local refs: 0
+- missing SW precache refs: 0
+- APP_VERSION 2.3.9: PASS
+- Build v17: PASS
+- API_VERSION 2.3.9: PASS
+- bulk_secret_excluded health flag: PASS
+
+ブラウザ動作試験
+- page errors: 0
+- 通常マシンとSECRETの両方に自己ベストを作成した状態で一括登録を実行
+- 一括送信対象: boon（通常マシン）
+- SECRET混入: false
+- SECRET個別登録ボタン: true
+- ボタン表示: 「通常7マシンの自己ベストを登録 / SECRETは対象外」
+
+サーバー単体試験
+- bulk records入力: boon + secret
+- parseBulkRecords_出力: boon のみ
+- SECRET混入: false
+
+公開手順
+1. GitHubをV2.3.9へ差し替え
+2. Code.gsをV2.3.9へ全文貼り替え
+3. Apps Scriptを「新バージョン」で再デプロイ
+4. healthで api_version=2.3.9, bulk_secret_excluded=true を確認
+5. /boonjump/?v=239 で初回確認

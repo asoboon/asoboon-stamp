@@ -1,0 +1,12 @@
+{
+  "page_errors": [],
+  "button_text": "🏆 通常7マシンの自己ベストを登録\nSECRETは対象外・未プレイと更新済みは自動判定",
+  "bulk_payload_machine_ids": [
+    "boon"
+  ],
+  "bulk_secret_present": false,
+  "bulk_normal_present": true,
+  "secret_individual_button_present": true,
+  "app_version": "2.3.9",
+  "build": "2026-08-07-ranking-bulk-secret-excluded-v17"
+}

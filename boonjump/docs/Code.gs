@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.3.5
+ * ブーンジャンプ 世界ランキング API V2.3.9
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
  *
@@ -16,7 +16,8 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
-  API_VERSION: '2.3.5',
+  API_VERSION: '2.3.9',
+  DASHBOARD_CACHE_TTL: 30,
   SHEETS: Object.freeze({
     PLAYERS: 'players',
     MACHINE_BESTS: 'machine_bests',
@@ -39,6 +40,7 @@ const MACHINES = Object.freeze({
 
 const VALID_JUDGES = new Set(['MISS', 'GOOD', 'GREAT', 'CRITICAL', 'SUPER']);
 let SPREADSHEET_CACHE_ = null;
+let PLAYER_RECORDS_CACHE_ = null;
 let MACHINE_RECORDS_CACHE_ = null;
 let PERIOD_RECORDS_CACHE_ = null;
 
@@ -59,6 +61,11 @@ function doGet(e) {
         ranking_mode: 'manual',
         write_policy: 'meaningful-best-only',
         bulk_submit: true,
+        bulk_secret_excluded: true,
+        secret_ranking: 'machine-only',
+        dashboard_flush_verified: true,
+        dashboard_server_cache: true,
+        secret_score_validation: true,
         now: nowIso_(),
       };
     } else if (action === 'leaderboard') {
@@ -75,15 +82,11 @@ function doGet(e) {
       result = getScoreStatus_(p);
     } else if (action === 'bulk_submit') {
       result = withScriptLock_(function () {
-        const value = bulkSubmitScores_(p);
-        SpreadsheetApp.flush();
-        return value;
+        return bulkSubmitScores_(p);
       });
     } else if (action === 'submit' || action === 'rename') {
       result = withScriptLock_(function () {
-        const value = action === 'submit' ? submitScore_(p) : renamePlayer_(p);
-        SpreadsheetApp.flush();
-        return value;
+        return action === 'submit' ? submitScore_(p) : renamePlayer_(p);
       });
     } else {
       throw new Error('不明なactionです。');
@@ -106,7 +109,6 @@ function doPost(e) {
       else if (action === 'bulk_submit') value = bulkSubmitScores_(body);
       else if (action === 'rename') value = renamePlayer_(body);
       else throw new Error('不明なactionです。');
-      SpreadsheetApp.flush();
       return value;
     });
     return output_(result);
@@ -123,6 +125,21 @@ function withScriptLock_(callback) {
   } finally {
     try { lock.releaseLock(); } catch (_) {}
   }
+}
+
+function assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro) {
+  if (machineId !== 'secret') return;
+  const level = { MISS: 0, GOOD: 1, GREAT: 2, CRITICAL: 3, SUPER: 4 };
+  const grades = [accel, turbo, nitro].map(value => level[value] == null ? 0 : level[value]);
+  const minGrade = Math.min.apply(null, grades);
+  const allSuper = grades.every(value => value === 4);
+
+  // クライアント側のrocketResultCapと同じ上限をサーバーでも強制する。
+  // これにより改変クライアントや旧版から「MISSなのに5000m」を登録できない。
+  if (!allSuper && distance > 4750) throw new Error('SECRETの4750m超はSUPER×3のみ登録できます。');
+  if (minGrade < 3 && distance > 3450) throw new Error('SECRETの3450m超は3コンボすべてCRITICAL以上が必要です。');
+  if (minGrade < 2 && distance > 2250) throw new Error('SECRETの2250m超は3コンボすべてGREAT以上が必要です。');
+  if (minGrade < 1 && distance > 1350) throw new Error('SECRETは1ミスすると1350mを超えて登録できません。');
 }
 
 function submitScore_(body) {
@@ -169,6 +186,7 @@ function submitScore_(body) {
   if (!machine) throw new Error('存在しないマシンです。');
   if (!Number.isInteger(distance) || distance <= 0) throw new Error('距離が不正です。');
   if (distance > machine.finalCap) throw new Error(`距離が上限${machine.finalCap}mを超えています。`);
+  assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro);
 
   const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
   const weekKey = getWeekKey_(receivedAt);
@@ -182,15 +200,17 @@ function submitScore_(body) {
       skipped: false,
       updated: { machine: false, today: false, week: false },
       fast: fastResponse,
+      includeDashboard: String(body.include_dashboard || '').toLowerCase() === 'true',
     });
   }
 
   const currentAll = findMachineBestDistance_(playerId, machineId);
-  const currentDay = findPeriodBestDistance_('DAY', dayKey, playerId, machineId);
-  const currentWeek = findPeriodBestDistance_('WEEK', weekKey, playerId, machineId);
+  const periodEligible = !machine.secret;
+  const currentDay = periodEligible ? findPeriodBestDistance_('DAY', dayKey, playerId, machineId) : 0;
+  const currentWeek = periodEligible ? findPeriodBestDistance_('WEEK', weekKey, playerId, machineId) : 0;
   const improvesAll = distance > currentAll;
-  const improvesDay = distance > currentDay;
-  const improvesWeek = distance > currentWeek;
+  const improvesDay = periodEligible && distance > currentDay;
+  const improvesWeek = periodEligible && distance > currentWeek;
 
   upsertPlayer_(playerId, displayName, receivedAt, 'ACTIVE', !player, playerToken);
 
@@ -204,6 +224,7 @@ function submitScore_(body) {
       reason: 'already_registered',
       updated: { machine: false, today: false, week: false },
       fast: fastResponse,
+      includeDashboard: String(body.include_dashboard || '').toLowerCase() === 'true',
     });
   }
 
@@ -378,13 +399,15 @@ function bulkSubmitScores_(body) {
     }
 
     const currentMachine = machineIndex.get(record.machineId);
+    const machine = MACHINES[record.machineId];
+    const periodEligible = !machine.secret;
     const dayIndexKey = ['DAY', dayKey, record.machineId].join('|');
     const weekIndexKey = ['WEEK', weekKey, record.machineId].join('|');
-    const currentDay = periodIndex.get(dayIndexKey);
-    const currentWeek = periodIndex.get(weekIndexKey);
+    const currentDay = periodEligible ? periodIndex.get(dayIndexKey) : null;
+    const currentWeek = periodEligible ? periodIndex.get(weekIndexKey) : null;
     const improvesMachine = record.distance > (currentMachine ? currentMachine.distance : 0);
-    const improvesDay = record.distance > (currentDay ? currentDay.distance : 0);
-    const improvesWeek = record.distance > (currentWeek ? currentWeek.distance : 0);
+    const improvesDay = periodEligible && record.distance > (currentDay ? currentDay.distance : 0);
+    const improvesWeek = periodEligible && record.distance > (currentWeek ? currentWeek.distance : 0);
 
     if (!improvesMachine && !improvesDay && !improvesWeek) {
       skipped += 1;
@@ -399,7 +422,6 @@ function bulkSubmitScores_(body) {
       return;
     }
 
-    const machine = MACHINES[record.machineId];
     logRows.push([
       record.requestId,
       playerId,
@@ -482,9 +504,13 @@ function bulkSubmitScores_(body) {
     scoreSheet.getRange(scoreSheet.getLastRow() + 1, 1, logRows.length, 15).setValues(logRows);
   }
 
+  // 書き込み完了を確定してからランキングを読み直す。
+  // これにより「登録成功なのに直後のランキングだけ旧データ」を防ぐ。
+  SpreadsheetApp.flush();
   resetRankingDataCaches_();
+  if (registered > 0) bumpDashboardRevision_();
 
-  return {
+  const response = {
     ok: true,
     accepted: true,
     bulk_request_id: bulkRequestId,
@@ -496,6 +522,10 @@ function bulkSubmitScores_(body) {
     updated: boardUpdates,
     results,
   };
+  if (String(body.include_dashboard || '').toLowerCase() === 'true') {
+    response.dashboard = getDashboard_({ player_id: playerId });
+  }
+  return response;
 }
 
 function parseBulkRecords_(body) {
@@ -511,9 +541,13 @@ function parseBulkRecords_(body) {
     }
   }
 
-  const max = Object.keys(MACHINES).length;
-  if (!Array.isArray(rows) || rows.length < 1 || rows.length > max) {
-    throw new Error(`一括登録できる記録は1〜${max}件です。`);
+  if (!Array.isArray(rows)) throw new Error('一括登録データを読み取れませんでした。');
+  // 一括登録は通常7マシン専用。SECRETは個別登録のみ。
+  // 旧クライアントがSECRETを混ぜても一括処理全体を失敗させず、安全に除外する。
+  rows = rows.filter(row => String(row && row.machine_id || '').trim() !== 'secret');
+  const max = Object.values(MACHINES).filter(machine => !machine.secret).length;
+  if (rows.length < 1 || rows.length > max) {
+    throw new Error(`一括登録できる通常マシンの記録は1〜${max}件です。SECRETは個別登録してください。`);
   }
 
   const seenMachines = new Set();
@@ -528,14 +562,18 @@ function parseBulkRecords_(body) {
     const distance = Number(row.distance);
     if (!Number.isInteger(distance) || distance <= 0) throw new Error(`${machine.name}の距離が不正です。`);
     if (distance > machine.finalCap) throw new Error(`${machine.name}の距離が上限${machine.finalCap}mを超えています。`);
+    const accel = normalizeJudge_(row.accel_judge);
+    const turbo = normalizeJudge_(row.turbo_judge);
+    const nitro = normalizeJudge_(row.nitro_judge);
+    assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro);
 
     return {
       requestId,
       machineId,
       distance,
-      accel: normalizeJudge_(row.accel_judge),
-      turbo: normalizeJudge_(row.turbo_judge),
-      nitro: normalizeJudge_(row.nitro_judge),
+      accel,
+      turbo,
+      nitro,
       tuneLevel: Math.max(0, Math.min(50, Math.floor(Number(row.tune_level) || 0))),
       playedAt: normalizeDate_(row.played_at) || new Date(),
       sourceBuild: truncate_(row.source_build, 100),
@@ -545,9 +583,12 @@ function parseBulkRecords_(body) {
 }
 
 function makeSubmitResponse_(args) {
+  // submitレスポンスを返す前に、Sheetsへの書き込みを確定する。
+  SpreadsheetApp.flush();
   resetRankingDataCaches_();
+  if (Object.values(args.updated || {}).some(Boolean)) bumpDashboardRevision_();
   const ranks = args.fast ? { all: null, today: null, week: null } : getPlayerRanks_(args.playerId, args.machineId);
-  return {
+  const response = {
     ok: true,
     accepted: true,
     duplicate: Boolean(args.duplicate),
@@ -559,6 +600,10 @@ function makeSubmitResponse_(args) {
     player_rank: ranks.all || null,
     player_ranks: ranks,
   };
+  if (args.includeDashboard) {
+    response.dashboard = getDashboard_({ player_id: args.playerId });
+  }
+  return response;
 }
 
 function getPlayerRanks_(playerId, machineId) {
@@ -582,6 +627,8 @@ function renamePlayer_(body) {
   const now = new Date();
   upsertPlayer_(playerId, displayName, now, 'ACTIVE', true, playerToken);
   propagateName_(playerId, displayName);
+  SpreadsheetApp.flush();
+  bumpDashboardRevision_();
 
   return {
     ok: true,
@@ -630,6 +677,24 @@ function getScoreStatus_(p) {
 
 function getDashboard_(p) {
   const playerId = String(p.player_id || '').trim();
+  const cache = CacheService.getScriptCache();
+  const revision = getDashboardRevision_();
+  const cacheKey = `boonjump-dashboard:${revision}:${playerId || 'guest'}`;
+
+  // Apps Scriptのコールドスタート後でも、同じランキング状態なら
+  // 30秒キャッシュから即返す。ランキング更新時はrevisionを変更するため、
+  // 登録直後に古いランキングが返ることはない。
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.ok) {
+        parsed.cache_hit = true;
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
   const overview = {
     today: getLeaderboard_({ period: 'today', player_id: playerId, limit: '10' }),
     week: getLeaderboard_({ period: 'week', player_id: playerId, limit: '10' }),
@@ -646,13 +711,37 @@ function getDashboard_(p) {
       limit: '3',
     }),
   }));
-  return {
+  const result = {
     ok: true,
     api_version: CONFIG.API_VERSION,
     overview,
     machines,
+    secret_policy: 'machine-only',
+    cache_hit: false,
     generated_at: nowIso_(),
   };
+  try {
+    cache.put(cacheKey, JSON.stringify(result), CONFIG.DASHBOARD_CACHE_TTL);
+  } catch (_) {}
+  return result;
+}
+
+function getDashboardRevision_() {
+  try {
+    return CacheService.getScriptCache().get('boonjump-dashboard-revision-v238') || 'base';
+  } catch (_) {
+    return 'base';
+  }
+}
+
+function bumpDashboardRevision_() {
+  try {
+    CacheService.getScriptCache().put(
+      'boonjump-dashboard-revision-v238',
+      `${Date.now()}-${Utilities.getUuid().slice(0, 8)}`,
+      21600
+    );
+  } catch (_) {}
 }
 
 function getLeaderboard_(p) {
@@ -789,51 +878,62 @@ function enforceRateLimit_(action, playerId, limit) {
 
 function upsertPlayer_(playerId, displayName, now, status, updateNameTime, playerToken) {
   const sh = playersSheet_();
-  const values = sh.getDataRange().getValues();
   const nextStatus = status || 'ACTIVE';
+  const existing = findPlayerRecord_(playerId);
 
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) !== playerId) continue;
-    const nextToken = String(playerToken || values[i][6] || '');
-    sh.getRange(i + 1, 2, 1, 6).setValues([[
+  if (existing) {
+    const nextToken = String(playerToken || existing.player_token || '');
+    sh.getRange(existing.row, 2, 1, 6).setValues([[
       displayName,
-      values[i][2] || now,
+      existing.created_at || now,
       now,
       nextStatus,
-      updateNameTime ? now : (values[i][5] || now),
+      updateNameTime ? now : (existing.name_updated_at || now),
       nextToken,
     ]]);
-    return i + 1;
+    existing.display_name = displayName;
+    existing.updated_at = now;
+    existing.status = nextStatus;
+    existing.name_updated_at = updateNameTime ? now : (existing.name_updated_at || now);
+    existing.player_token = nextToken;
+    return existing.row;
   }
 
-  sh.appendRow([playerId, displayName, now, now, nextStatus, now, String(playerToken || '')]);
-  return sh.getLastRow();
+  const row = sh.getLastRow() + 1;
+  sh.getRange(row, 1, 1, 7).setValues([[
+    playerId, displayName, now, now, nextStatus, now, String(playerToken || ''),
+  ]]);
+  if (PLAYER_RECORDS_CACHE_) {
+    PLAYER_RECORDS_CACHE_.push({
+      row,
+      player_id: playerId,
+      display_name: displayName,
+      created_at: now,
+      updated_at: now,
+      status: nextStatus,
+      name_updated_at: now,
+      player_token: String(playerToken || ''),
+    });
+  }
+  return row;
 }
 
 function findMachineBestDistance_(playerId, machineId) {
-  const values = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) === playerId && String(values[i][2]) === machineId) {
-      return Number(values[i][4]) || 0;
-    }
-  }
-  return 0;
+  const record = readMachineBestRecords_().find(row =>
+    row.player_id === String(playerId) && row.machine_id === String(machineId)
+  );
+  return record ? (Number(record.best_distance) || 0) : 0;
 }
 
 function findPeriodBestDistance_(periodType, periodKey, playerId, machineId) {
-  const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
   const normalizedKey = normalizePeriodKey_(periodKey);
-  for (let i = 1; i < values.length; i++) {
-    if (
-      String(values[i][0]) === periodType &&
-      normalizePeriodKey_(values[i][1]) === normalizedKey &&
-      String(values[i][2]) === playerId &&
-      String(values[i][4]) === machineId
-    ) {
-      return Number(values[i][6]) || 0;
-    }
-  }
-  return 0;
+  const record = readAllPeriodBestRecords_().find(row =>
+    row.period_type === String(periodType) &&
+    row.period_key === normalizedKey &&
+    row.player_id === String(playerId) &&
+    row.machine_id === String(machineId)
+  );
+  return record ? (Number(record.best_distance) || 0) : 0;
 }
 
 function normalizePeriodKey_(value) {
@@ -850,49 +950,47 @@ function normalizePeriodKey_(value) {
 
 function upsertMachineBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.MACHINE_BESTS);
-  const values = sh.getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) !== record.playerId || String(values[i][2]) !== record.machineId) continue;
-    const oldDistance = Number(values[i][4]) || 0;
-    if (record.distance <= oldDistance) return false;
-    sh.getRange(i + 1, 1, 1, 10).setValues([[
+  const current = readMachineBestRecords_().find(row =>
+    row.player_id === String(record.playerId) && row.machine_id === String(record.machineId)
+  );
+  if (current) {
+    if (record.distance <= (Number(current.best_distance) || 0)) return false;
+    sh.getRange(current._row, 1, 1, 10).setValues([[
       record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
       record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
     ]]);
     return true;
   }
-  sh.appendRow([
+  sh.getRange(sh.getLastRow() + 1, 1, 1, 10).setValues([[
     record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
     record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
-  ]);
+  ]]);
   return true;
 }
 
 function upsertPeriodBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
-  const values = sh.getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    if (
-      String(values[i][0]) === record.periodType &&
-      normalizePeriodKey_(values[i][1]) === normalizePeriodKey_(record.periodKey) &&
-      String(values[i][2]) === record.playerId &&
-      String(values[i][4]) === record.machineId
-    ) {
-      const oldDistance = Number(values[i][6]) || 0;
-      if (record.distance <= oldDistance) return false;
-      sh.getRange(i + 1, 1, 1, 10).setValues([[
-        record.periodType, record.periodKey, record.playerId, record.displayName,
-        record.machineId, record.machineName, record.distance, record.achievedAt,
-        record.verified, record.sourceBuild,
-      ]]);
-      return true;
-    }
+  const normalizedKey = normalizePeriodKey_(record.periodKey);
+  const current = readAllPeriodBestRecords_().find(row =>
+    row.period_type === String(record.periodType) &&
+    row.period_key === normalizedKey &&
+    row.player_id === String(record.playerId) &&
+    row.machine_id === String(record.machineId)
+  );
+  if (current) {
+    if (record.distance <= (Number(current.best_distance) || 0)) return false;
+    sh.getRange(current._row, 1, 1, 10).setValues([[
+      record.periodType, record.periodKey, record.playerId, record.displayName,
+      record.machineId, record.machineName, record.distance, record.achievedAt,
+      record.verified, record.sourceBuild,
+    ]]);
+    return true;
   }
-  sh.appendRow([
+  sh.getRange(sh.getLastRow() + 1, 1, 1, 10).setValues([[
     record.periodType, record.periodKey, record.playerId, record.displayName,
     record.machineId, record.machineName, record.distance, record.achievedAt,
     record.verified, record.sourceBuild,
-  ]);
+  ]]);
   return true;
 }
 
@@ -945,36 +1043,42 @@ function resetRankingDataCaches_() {
 
 function resetRequestCaches_() {
   SPREADSHEET_CACHE_ = null;
+  PLAYER_RECORDS_CACHE_ = null;
   resetRankingDataCaches_();
 }
 
 function readMachineBestRecords_() {
   if (MACHINE_RECORDS_CACHE_) return MACHINE_RECORDS_CACHE_;
   const values = sheet_(CONFIG.SHEETS.MACHINE_BESTS).getDataRange().getValues();
-  MACHINE_RECORDS_CACHE_ = values.slice(1).filter(row => row[0]).map(row => ({
+  MACHINE_RECORDS_CACHE_ = values.slice(1).map((row, index) => ({ row, index })).filter(item => item.row[0]).map(item => { const row = item.row; return ({
     player_id: String(row[0]),
     display_name: String(row[1] || 'NO NAME'),
     machine_id: String(row[2]),
     machine_name: String(row[3] || (MACHINES[row[2]] && MACHINES[row[2]].name) || row[2]),
     best_distance: Number(row[4]),
     achieved_at: dateToIso_(row[8]),
-  }));
+    _row: item.index + 2,
+  }); });
   return MACHINE_RECORDS_CACHE_;
 }
 
 function readAllPeriodBestRecords_() {
   if (PERIOD_RECORDS_CACHE_) return PERIOD_RECORDS_CACHE_;
   const values = sheet_(CONFIG.SHEETS.PERIOD_BESTS).getDataRange().getValues();
-  PERIOD_RECORDS_CACHE_ = values.slice(1).filter(row => row[2]).map(row => ({
-    period_type: String(row[0]),
-    period_key: normalizePeriodKey_(row[1]),
-    player_id: String(row[2]),
-    display_name: String(row[3] || 'NO NAME'),
-    machine_id: String(row[4]),
-    machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
-    best_distance: Number(row[6]),
-    achieved_at: dateToIso_(row[7]),
-  }));
+  PERIOD_RECORDS_CACHE_ = values.slice(1).map((row, index) => ({ row, index })).filter(item => item.row[2]).map(item => {
+    const row = item.row;
+    return {
+      period_type: String(row[0]),
+      period_key: normalizePeriodKey_(row[1]),
+      player_id: String(row[2]),
+      display_name: String(row[3] || 'NO NAME'),
+      machine_id: String(row[4]),
+      machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
+      best_distance: Number(row[6]),
+      achieved_at: dateToIso_(row[7]),
+      _row: item.index + 2,
+    };
+  });
   return PERIOD_RECORDS_CACHE_;
 }
 
@@ -983,39 +1087,29 @@ function readPeriodBestRecords_(periodType, periodKey) {
   return readAllPeriodBestRecords_().filter(row => row.period_type === periodType && row.period_key === normalizedKey);
 }
 
-function findPlayerRecord_(playerId) {
+function readPlayerRecords_() {
+  if (PLAYER_RECORDS_CACHE_) return PLAYER_RECORDS_CACHE_;
   const values = playersSheet_().getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][0]) !== playerId) continue;
-    return {
-      row: i + 1,
-      player_id: String(values[i][0]),
-      display_name: String(values[i][1] || ''),
-      created_at: values[i][2] || '',
-      updated_at: values[i][3] || '',
-      status: String(values[i][4] || 'ACTIVE'),
-      player_token: String(values[i][6] || ''),
-    };
-  }
-  return null;
+  PLAYER_RECORDS_CACHE_ = values.slice(1).map((row, index) => ({
+    row: index + 2,
+    player_id: String(row[0] || ''),
+    display_name: String(row[1] || ''),
+    created_at: row[2] || '',
+    updated_at: row[3] || '',
+    status: String(row[4] || 'ACTIVE'),
+    name_updated_at: row[5] || '',
+    player_token: String(row[6] || ''),
+  })).filter(row => row.player_id);
+  return PLAYER_RECORDS_CACHE_;
+}
+
+function findPlayerRecord_(playerId) {
+  return readPlayerRecords_().find(row => row.player_id === String(playerId)) || null;
 }
 
 function findPlayerRecordByToken_(playerToken) {
   if (!playerToken) return null;
-  const values = playersSheet_().getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][6] || '') !== String(playerToken)) continue;
-    return {
-      row: i + 1,
-      player_id: String(values[i][0]),
-      display_name: String(values[i][1] || ''),
-      created_at: values[i][2] || '',
-      updated_at: values[i][3] || '',
-      status: String(values[i][4] || 'ACTIVE'),
-      player_token: String(values[i][6] || ''),
-    };
-  }
-  return null;
+  return readPlayerRecords_().find(row => row.player_token === String(playerToken)) || null;
 }
 
 function canonicalNameKey_(value) {
@@ -1030,11 +1124,11 @@ function isDisplayNameTaken_(displayName, exceptPlayerId) {
   const target = canonicalNameKey_(displayName);
   if (!target) return false;
 
-  const values = playersSheet_().getDataRange().getValues();
-  for (let i = 1; i < values.length; i++) {
-    const rowPlayerId = String(values[i][0] || '');
-    const rowName = String(values[i][1] || '');
-    const rowStatus = String(values[i][4] || 'ACTIVE');
+  const rows = readPlayerRecords_();
+  for (let i = 0; i < rows.length; i++) {
+    const rowPlayerId = rows[i].player_id;
+    const rowName = rows[i].display_name;
+    const rowStatus = rows[i].status;
     if (!rowPlayerId || rowPlayerId === String(exceptPlayerId || '')) continue;
     if (rowStatus !== 'ACTIVE') continue;
     if (canonicalNameKey_(rowName) === target) return true;
@@ -1159,11 +1253,9 @@ function sheet_(name) {
 }
 
 function playersSheet_() {
-  const sh = sheet_(CONFIG.SHEETS.PLAYERS);
-  if (String(sh.getRange(1, 7).getValue() || '') !== 'player_token') {
-    sh.getRange(1, 7).setValue('player_token');
-  }
-  return sh;
+  // V2.3.2以降のschema（G列 player_token）を前提に、
+  // ランタイムごとのヘッダー読取を省いて通信を短縮する。
+  return sheet_(CONFIG.SHEETS.PLAYERS);
 }
 
 function todayKey_() {
@@ -1219,6 +1311,7 @@ function repairDuplicateNames() {
     }
   }
   SpreadsheetApp.flush();
+  if (repaired > 0) bumpDashboardRevision_();
   console.log('重複名の整理件数: ' + repaired);
   return repaired;
 }
@@ -1247,7 +1340,9 @@ function repairPeriodBestDuplicates() {
   sh.getRange(1, 1, 1, header.length).setValues([header]);
   if (rows.length) sh.getRange(2, 1, rows.length, header.length).setValues(rows);
   SpreadsheetApp.flush();
-  return Math.max(0, values.length - 1 - rows.length);
+  const removed = Math.max(0, values.length - 1 - rows.length);
+  if (removed > 0) bumpDashboardRevision_();
+  return removed;
 }
 
 /** Apps Script上で手動実行する接続テスト */
@@ -1257,6 +1352,12 @@ function testHealth() {
       ok: true,
       api_version: CONFIG.API_VERSION,
       ranking_mode: 'manual',
+      bulk_submit: true,
+      bulk_secret_excluded: true,
+      secret_ranking: 'machine-only',
+      dashboard_flush_verified: true,
+      dashboard_server_cache: true,
+      secret_score_validation: true,
     },
     leaderboard: getLeaderboard_({ period: 'all', limit: '10' }),
   }, null, 2));

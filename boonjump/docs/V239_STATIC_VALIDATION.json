@@ -1,0 +1,19 @@
+{
+  "html_id_count": 149,
+  "duplicate_ids": [],
+  "dom_refs_missing": [],
+  "missing_html_refs": [],
+  "missing_sw_precache_refs": [],
+  "checks": {
+    "app_version_239": true,
+    "build_v17": true,
+    "bulk_ui_excludes_secret": true,
+    "bulk_stats_exclude_secret": true,
+    "bulk_button_secret_note": true,
+    "secret_individual_registration_still_present": true,
+    "server_filters_secret_bulk": true,
+    "api_239": true,
+    "bulk_secret_health_flag": true
+  },
+  "passed": true
+}

@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.3.6
+ * ブーンジャンプ 世界ランキング通信 V2.3.9
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -21,8 +21,11 @@ const BOON_RANKING = (() => {
   ];
   const JSONP_TIMEOUT = 16000;
   const DASHBOARD_CACHE_MS = 20000;
+  const DASHBOARD_STALE_MS = 5 * 60 * 1000;
+  const DASHBOARD_STORAGE_KEY = 'boonjump_world_dashboard_cache_v1';
   let dashboardCache = null;
   let dashboardCacheAt = 0;
+  let dashboardPromise = null;
 
   function safeGet(key) {
     try { return localStorage.getItem(key) || ''; } catch (_) { return ''; }
@@ -30,6 +33,34 @@ const BOON_RANKING = (() => {
 
   function safeSet(key, value) {
     try { localStorage.setItem(key, String(value || '')); return true; } catch (_) { return false; }
+  }
+
+
+  function safeRemove(key) {
+    try { localStorage.removeItem(key); return true; } catch (_) { return false; }
+  }
+
+  function loadPersistedDashboard() {
+    try {
+      const raw = safeGet(DASHBOARD_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const at = Number(parsed && parsed.at) || 0;
+      const data = parsed && parsed.data;
+      if (!data || !data.ok || !data.overview || !Array.isArray(data.machines)) return;
+      if (Date.now() - at > DASHBOARD_STALE_MS) {
+        safeRemove(DASHBOARD_STORAGE_KEY);
+        return;
+      }
+      dashboardCache = data;
+      dashboardCacheAt = at;
+    } catch (_) {}
+  }
+
+  function persistDashboard(data) {
+    try {
+      safeSet(DASHBOARD_STORAGE_KEY, JSON.stringify({ at: dashboardCacheAt, data }));
+    } catch (_) {}
   }
 
   function parseLegacyQueue(raw) {
@@ -235,7 +266,6 @@ const BOON_RANKING = (() => {
       if (!current) throw firstError;
       const data = await sendRename();
       if (data.player_id) setPlayerId(data.player_id);
-      if (data.player_id) setPlayerId(data.player_id);
       setPlayerName(data.display_name || displayName);
       invalidateCache();
       return { ...data, reused: true };
@@ -245,22 +275,45 @@ const BOON_RANKING = (() => {
   async function ensureRegistered() { return Boolean(getPlayerName());
   }
 
-  function invalidateCache() {
+  function invalidateCache({ keepStale = true } = {}) {
+    if (keepStale && dashboardCache) {
+      dashboardCacheAt = 0;
+      return;
+    }
     dashboardCache = null;
     dashboardCacheAt = 0;
+    safeRemove(DASHBOARD_STORAGE_KEY);
+  }
+
+  function peekDashboard() {
+    return dashboardCache;
+  }
+
+  function getDashboardCacheAge() {
+    return dashboardCache ? Math.max(0, Date.now() - dashboardCacheAt) : Infinity;
   }
 
   async function getDashboard({ force = false } = {}) {
     if (!force && dashboardCache && Date.now() - dashboardCacheAt < DASHBOARD_CACHE_MS) {
       return dashboardCache;
     }
-    const data = await getJsonp({
+    if (dashboardPromise) return dashboardPromise;
+    dashboardPromise = getJsonp({
       action: 'dashboard',
       player_id: getPlayerId(),
-    }, 18000);
-    dashboardCache = data;
-    dashboardCacheAt = Date.now();
-    return data;
+    }, 18000).then(data => {
+      dashboardCache = data;
+      dashboardCacheAt = Date.now();
+      persistDashboard(data);
+      return data;
+    }).finally(() => {
+      dashboardPromise = null;
+    });
+    return dashboardPromise;
+  }
+
+  function prefetchDashboard({ force = false } = {}) {
+    return getDashboard({ force }).catch(() => null);
   }
 
   function getLeaderboard({ period = 'all', machineId = '', includeSecret = false, limit = 100 } = {}) {
@@ -306,14 +359,41 @@ const BOON_RANKING = (() => {
     };
   }
 
+  function isIdentitySyncError(error) {
+    const message = String(error && error.message || error || '');
+    return /登録情報が一致|再登録が必要|ランキング登録情報/.test(message);
+  }
+
+  function primeDashboard(data) {
+    if (!data || !data.ok || !data.overview || !Array.isArray(data.machines)) return false;
+    dashboardCache = data;
+    dashboardCacheAt = Date.now();
+    persistDashboard(data);
+    return true;
+  }
+
   async function submitScore(payload) {
     if (!getPlayerName()) throw new Error('先にランキングネームを登録してください。');
     const item = buildScoreItem(payload);
-    const data = await getJsonp(item, 20000);
+    item.include_dashboard = 'false';
+
+    const send = () => getJsonp(item, 20000);
+    let data;
+    try {
+      data = await send();
+    } catch (error) {
+      if (!isIdentitySyncError(error)) throw error;
+      const recovered = await resolveIdentityByToken();
+      if (!recovered) throw error;
+      item.player_id = getPlayerId();
+      item.player_token = getPlayerToken();
+      data = await send();
+    }
+
     if (data.player_id) setPlayerId(data.player_id);
     const accepted = Boolean(data.accepted || data.duplicate || data.skipped);
     if (!accepted) throw new Error(data.reason || '記録が受理されませんでした。');
-    invalidateCache();
+    if (!primeDashboard(data.dashboard)) invalidateCache({ keepStale: true });
 
     return {
       ok: true,
@@ -323,9 +403,11 @@ const BOON_RANKING = (() => {
       me: data.player_rank || (data.player_ranks && data.player_ranks.all) || null,
       ranks: data.player_ranks || null,
       updated: data.updated || null,
+      dashboard: data.dashboard || null,
       server: data,
     };
   }
+
 
 
   function buildBulkRecord(payload) {
@@ -350,7 +432,7 @@ const BOON_RANKING = (() => {
     if (!Array.isArray(payloads) || !payloads.length) throw new Error('登録できる自己ベストがありません。');
 
     const records = payloads.map(buildBulkRecord);
-    const data = await getJsonp({
+    const request = {
       action: 'bulk_submit',
       bulk_request_id: createId('bulk'),
       player_id: getPlayerId(),
@@ -358,11 +440,25 @@ const BOON_RANKING = (() => {
       display_name: displayName,
       records_json: JSON.stringify(records),
       response_mode: 'fast',
-    }, 26000);
+      include_dashboard: 'false',
+    };
+
+    const send = () => getJsonp(request, 24000);
+    let data;
+    try {
+      data = await send();
+    } catch (error) {
+      if (!isIdentitySyncError(error)) throw error;
+      const recovered = await resolveIdentityByToken();
+      if (!recovered) throw error;
+      request.player_id = getPlayerId();
+      request.player_token = getPlayerToken();
+      data = await send();
+    }
 
     if (data.player_id) setPlayerId(data.player_id);
     if (!data.accepted) throw new Error(data.reason || '自己ベストを一括登録できませんでした。');
-    invalidateCache();
+    if (!primeDashboard(data.dashboard)) invalidateCache({ keepStale: true });
 
     return {
       ok: true,
@@ -372,9 +468,11 @@ const BOON_RANKING = (() => {
       duplicates: Number(data.duplicates) || 0,
       updated: data.updated || null,
       results: Array.isArray(data.results) ? data.results : [],
+      dashboard: data.dashboard || null,
       server: data,
     };
   }
+
 
   // V2.3.0以前との互換用。自動キューは常に空として扱う。
   function getPendingCount() { return 0; }
@@ -387,6 +485,7 @@ const BOON_RANKING = (() => {
     };
   }
 
+  loadPersistedDashboard();
   migrateLegacyIdentityAndClearQueues();
 
   return {
@@ -406,6 +505,9 @@ const BOON_RANKING = (() => {
     getDiagnostics,
     getLeaderboard,
     getDashboard,
+    peekDashboard,
+    getDashboardCacheAge,
+    prefetchDashboard,
     invalidateCache,
     getPlayer,
   };
