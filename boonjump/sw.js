@@ -1,10 +1,10 @@
-const BUILD = "2026-08-07-bulk-best-registration-v13";
+const BUILD = "2026-08-07-bulk-identity-sync-v14";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=235-bulk-best-13",
+  "./ranking-client.js?v=236-bulk-identity-14",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

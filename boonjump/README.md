@@ -1,6 +1,6 @@
-# ブーンジャンプ V2.3.5
+# ブーンジャンプ V2.3.6
 
-Build: `2026-08-07-bulk-best-registration-v13`
+Build: `2026-08-07-bulk-identity-sync-v14`
 
 ## 一括ランキング登録
 

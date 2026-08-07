@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.3.5
+ * ブーンジャンプ 世界ランキング通信 V2.3.6
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -224,6 +224,7 @@ const BOON_RANKING = (() => {
 
     try {
       const data = await sendRename();
+      if (data.player_id) setPlayerId(data.player_id);
       setPlayerName(data.display_name || displayName);
       invalidateCache();
       return data;
@@ -233,6 +234,8 @@ const BOON_RANKING = (() => {
       if (!current) current = await recoverLegacyIdentity(displayName);
       if (!current) throw firstError;
       const data = await sendRename();
+      if (data.player_id) setPlayerId(data.player_id);
+      if (data.player_id) setPlayerId(data.player_id);
       setPlayerName(data.display_name || displayName);
       invalidateCache();
       return { ...data, reused: true };
