@@ -2713,6 +2713,522 @@
       }
     }
 
+  
+    /* v8: full-screen-first procedure flow */
+    .family-section-card{
+      min-height:0!important;
+    }
+
+    .family-key-rule{
+      display:grid!important;
+      grid-template-columns:54px 1fr!important;
+      gap:14px!important;
+      align-items:center!important;
+      margin:0 0 14px!important;
+      padding:17px!important;
+      border:2px solid rgba(255,209,93,.52)!important;
+      border-left:8px solid var(--amber)!important;
+      background:
+        linear-gradient(90deg,rgba(255,209,93,.17),rgba(255,209,93,.06))!important;
+      box-shadow:0 12px 28px rgba(0,0,0,.18),0 0 18px rgba(255,209,93,.08)!important;
+    }
+
+    .family-key-rule > b{
+      display:grid!important;
+      place-items:center!important;
+      width:54px!important;
+      height:54px!important;
+      border:0!important;
+      border-radius:50%!important;
+      color:#382500!important;
+      background:linear-gradient(180deg,#fff5c8,#ffd15d)!important;
+      box-shadow:0 0 18px rgba(255,209,93,.20)!important;
+      font-size:1.45rem!important;
+      font-weight:1000!important;
+    }
+
+    .family-key-rule > span{
+      display:grid!important;
+      gap:3px!important;
+    }
+
+    .family-key-rule em{
+      color:#ffd96f!important;
+      font-size:.66rem!important;
+      line-height:1.2!important;
+      font-style:normal!important;
+      font-weight:1000!important;
+      letter-spacing:.10em!important;
+    }
+
+    .family-key-rule strong{
+      color:#fff7d8!important;
+      font-size:1.02rem!important;
+      line-height:1.35!important;
+      font-weight:1000!important;
+    }
+
+    .family-key-rule small{
+      color:#ffffff!important;
+      font-size:.80rem!important;
+      line-height:1.4!important;
+      font-weight:900!important;
+    }
+
+    /* Archived steps are small summaries, not buttons. */
+    .steps{
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      gap:7px!important;
+      margin-top:0!important;
+    }
+
+    .step{
+      pointer-events:none!important;
+    }
+
+    .step::after,
+    .step::before{
+      display:none!important;
+    }
+
+    .step.done{
+      display:grid!important;
+      grid-template-columns:34px 1fr 22px!important;
+      align-items:center!important;
+      min-height:58px!important;
+      padding:9px 11px!important;
+      border:1px solid rgba(101,239,176,.25)!important;
+      color:#eafff3!important;
+      background:
+        linear-gradient(90deg,rgba(101,239,176,.09),rgba(104,234,255,.018))!important;
+      box-shadow:none!important;
+      opacity:1!important;
+      animation:archiveStepIn .36s cubic-bezier(.16,.9,.2,1)!important;
+    }
+
+    .step.done .step-num{
+      width:34px!important;
+      height:34px!important;
+      font-size:.76rem!important;
+      background:linear-gradient(135deg,#d6ffec,var(--green))!important;
+      box-shadow:none!important;
+    }
+
+    .step.done .step-copy strong{
+      color:#effff7!important;
+      font-size:.78rem!important;
+      line-height:1.25!important;
+    }
+
+    .step.done .step-copy small{
+      display:none!important;
+    }
+
+    .step.done .check{
+      color:#041810!important;
+      border-color:var(--green)!important;
+      background:var(--green)!important;
+    }
+
+    @keyframes archiveStepIn{
+      0%{
+        opacity:0;
+        transform:translateY(-18px) scale(1.08);
+        filter:blur(5px);
+      }
+      100%{
+        opacity:1;
+        transform:none;
+        filter:blur(0);
+      }
+    }
+
+    /* Full-screen popup: one instruction at a time. */
+    .step-overlay{
+      padding:0!important;
+      align-items:stretch!important;
+    }
+
+    .step-overlay-backdrop{
+      background:
+        radial-gradient(circle at 50% 38%,rgba(255,209,93,.15),transparent 31%),
+        rgba(1,6,10,.94)!important;
+      backdrop-filter:blur(9px)!important;
+      -webkit-backdrop-filter:blur(9px)!important;
+    }
+
+    .step-overlay-card{
+      align-self:stretch!important;
+      justify-self:stretch!important;
+      width:auto!important;
+      min-height:100dvh!important;
+      display:grid!important;
+      grid-template-rows:auto auto auto auto 1fr auto!important;
+      align-content:center!important;
+      justify-items:center!important;
+      padding:
+        max(24px,env(safe-area-inset-top))
+        max(26px,env(safe-area-inset-right))
+        max(26px,env(safe-area-inset-bottom))
+        max(26px,env(safe-area-inset-left))!important;
+      border:0!important;
+      border-radius:0!important;
+      background:
+        radial-gradient(circle at 50% 44%,rgba(255,209,93,.12),transparent 30%),
+        linear-gradient(180deg,#091723,#02070d 75%)!important;
+      box-shadow:none!important;
+      animation:overlayFullIn .34s cubic-bezier(.16,.9,.2,1)!important;
+    }
+
+    .step-overlay-card.is-collapsing{
+      animation:overlayCollapse .32s cubic-bezier(.4,0,.2,1) forwards!important;
+      transform-origin:50% 76%;
+      pointer-events:none;
+    }
+
+    .step-overlay-close{
+      position:absolute;
+      top:max(18px,env(safe-area-inset-top));
+      right:max(18px,env(safe-area-inset-right));
+      width:48px;
+      height:48px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:50%;
+      color:#d7e3ea;
+      background:rgba(255,255,255,.06);
+      font-size:1.55rem;
+      line-height:1;
+      font-weight:500;
+    }
+
+    .step-overlay-kicker{
+      align-self:end!important;
+      color:#ffd96f!important;
+      font-size:.78rem!important;
+      letter-spacing:.16em!important;
+    }
+
+    .step-overlay-number{
+      margin-top:14px!important;
+      color:#ffffff!important;
+      font-size:clamp(7rem,28vw,11rem)!important;
+      line-height:.80!important;
+      text-shadow:0 0 34px rgba(255,209,93,.20)!important;
+    }
+
+    .step-overlay-title{
+      max-width:680px!important;
+      margin:22px 0 0!important;
+      color:#fff6d2!important;
+      font-size:clamp(2rem,7vw,3rem)!important;
+      line-height:1.16!important;
+    }
+
+    .step-overlay-desc{
+      align-self:start!important;
+      max-width:620px!important;
+      margin:14px 0 0!important;
+      color:#dce7ed!important;
+      font-size:clamp(1rem,3.5vw,1.28rem)!important;
+      line-height:1.65!important;
+      font-weight:800!important;
+    }
+
+    .step-overlay-button{
+      width:min(100%,620px)!important;
+      min-height:76px!important;
+      margin-top:24px!important;
+      border-radius:18px!important;
+      font-size:1.16rem!important;
+      box-shadow:0 14px 34px rgba(0,0,0,.28),0 0 22px rgba(255,209,93,.12)!important;
+    }
+
+    @keyframes overlayFullIn{
+      0%{opacity:0;transform:scale(1.05)}
+      100%{opacity:1;transform:none}
+    }
+
+    @keyframes overlayCollapse{
+      0%{opacity:1;transform:scale(1)}
+      68%{opacity:.85;transform:scale(.58) translateY(26vh)}
+      100%{opacity:0;transform:scale(.18) translateY(110vh)}
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .family-key-rule{
+        grid-template-columns:62px 1fr!important;
+        padding:20px!important;
+      }
+
+      .family-key-rule > b{
+        width:62px!important;
+        height:62px!important;
+        font-size:1.65rem!important;
+      }
+
+      .family-key-rule strong{
+        font-size:1.12rem!important;
+      }
+
+      .family-key-rule small{
+        font-size:.88rem!important;
+      }
+
+      .step-overlay-card{
+        padding:
+          max(34px,env(safe-area-inset-top))
+          52px
+          max(38px,env(safe-area-inset-bottom))!important;
+      }
+
+      .step-overlay-number{
+        font-size:11rem!important;
+      }
+
+      .step-overlay-title{
+        font-size:2.75rem!important;
+      }
+
+      .step-overlay-desc{
+        font-size:1.22rem!important;
+      }
+
+      .step-overlay-button{
+        min-height:84px!important;
+        font-size:1.25rem!important;
+      }
+    }
+
+  
+    /* v8 final: keep the essential rule visible inside every full-screen step */
+    .step-overlay-card{
+      grid-template-rows:auto auto auto auto auto 1fr auto!important;
+    }
+
+    .step-overlay-rule{
+      width:min(100%,620px);
+      margin:54px auto 0;
+      padding:14px 16px;
+      border:2px solid rgba(255,209,93,.55);
+      border-left:7px solid var(--amber);
+      color:#fff;
+      text-align:left;
+      background:linear-gradient(90deg,rgba(255,209,93,.18),rgba(255,209,93,.07));
+      box-shadow:0 10px 24px rgba(0,0,0,.18),0 0 18px rgba(255,209,93,.08);
+    }
+
+    .step-overlay-rule strong{
+      display:block;
+      color:#fff2b8;
+      font-size:1.04rem;
+      line-height:1.35;
+      font-weight:1000;
+    }
+
+    .step-overlay-rule span{
+      display:block;
+      margin-top:3px;
+      color:#ffffff;
+      font-size:.86rem;
+      line-height:1.4;
+      font-weight:900;
+    }
+
+    .step-overlay-kicker{
+      margin-top:26px!important;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .step-overlay-rule{
+        margin-top:72px;
+        padding:17px 19px;
+      }
+
+      .step-overlay-rule strong{
+        font-size:1.16rem;
+      }
+
+      .step-overlay-rule span{
+        font-size:.95rem;
+      }
+    }
+
+  
+    /* v9: adult-only exit result must be unmistakable */
+    #section-adult .section-card{
+      transition:.26s ease;
+    }
+
+    #section-adult .choice-grid{
+      transition:.24s ease;
+    }
+
+    #section-adult.result-active .choice-grid{
+      transform:scale(.96);
+      opacity:.28;
+      filter:grayscale(.65);
+      pointer-events:none;
+    }
+
+    .adult-result{
+      display:none;
+      min-height:300px;
+      margin-top:16px!important;
+      padding:28px 22px!important;
+      border:3px solid transparent!important;
+      border-left-width:3px!important;
+      border-radius:24px;
+      text-align:center;
+      align-content:center;
+      justify-items:center;
+      gap:10px;
+      box-shadow:0 18px 40px rgba(0,0,0,.26)!important;
+    }
+
+    .adult-result.show{
+      display:grid!important;
+      animation:adultResultIn .38s cubic-bezier(.16,.9,.2,1)!important;
+    }
+
+    .adult-result.ok{
+      border-color:rgba(101,239,176,.70)!important;
+      color:#052013!important;
+      background:
+        radial-gradient(circle at 50% 20%,rgba(255,255,255,.65),transparent 26%),
+        linear-gradient(180deg,#dbffec,#72efb5)!important;
+    }
+
+    .adult-result.ng{
+      border-color:rgba(255,77,95,.72)!important;
+      color:#2b0509!important;
+      background:
+        radial-gradient(circle at 50% 20%,rgba(255,255,255,.58),transparent 26%),
+        linear-gradient(180deg,#ffe7ea,#ff8895)!important;
+    }
+
+    .adult-result-icon{
+      display:grid;
+      place-items:center;
+      width:82px;
+      height:82px;
+      border-radius:50%;
+      color:#ffffff;
+      font-size:3.1rem;
+      line-height:1;
+      font-weight:1000;
+      box-shadow:0 12px 26px rgba(0,0,0,.18);
+    }
+
+    .adult-result.ok .adult-result-icon{
+      background:#0fa765;
+    }
+
+    .adult-result.ng .adult-result-icon{
+      background:#d9293d;
+    }
+
+    .adult-result-title{
+      display:block;
+      color:inherit!important;
+      font-size:clamp(2.1rem,7.6vw,3.2rem)!important;
+      line-height:1.08!important;
+      font-weight:1000!important;
+      letter-spacing:-.025em;
+      text-shadow:none!important;
+    }
+
+    .adult-result-rule{
+      display:block;
+      max-width:540px;
+      margin-top:4px;
+      padding:10px 14px;
+      border-radius:14px;
+      color:inherit;
+      background:rgba(255,255,255,.50);
+      font-size:1.02rem;
+      line-height:1.42;
+      font-weight:1000;
+    }
+
+    .adult-result small{
+      display:block;
+      max-width:520px;
+      color:inherit;
+      opacity:.80;
+      font-size:.78rem;
+      line-height:1.48;
+      font-weight:850;
+    }
+
+    .adult-choice-reset{
+      display:block;
+      width:100%;
+      min-height:48px;
+      margin-top:10px;
+      border:1px solid rgba(104,234,255,.20);
+      color:#c7d9e3;
+      background:rgba(255,255,255,.025);
+      font-size:.72rem;
+      font-weight:950;
+    }
+
+    .adult-choice-reset[hidden]{
+      display:none!important;
+    }
+
+    #section-adult.result-active .rule-bar{
+      margin-top:14px;
+    }
+
+    @keyframes adultResultIn{
+      0%{
+        opacity:0;
+        transform:scale(.90) translateY(16px);
+        filter:blur(6px);
+      }
+      70%{
+        opacity:1;
+        transform:scale(1.02) translateY(-2px);
+        filter:blur(0);
+      }
+      100%{
+        opacity:1;
+        transform:none;
+      }
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .adult-result{
+        min-height:390px;
+        padding:34px 28px!important;
+      }
+
+      .adult-result-icon{
+        width:96px;
+        height:96px;
+        font-size:3.7rem;
+      }
+
+      .adult-result-title{
+        font-size:3.25rem!important;
+      }
+
+      .adult-result-rule{
+        font-size:1.14rem;
+        padding:12px 18px;
+      }
+
+      .adult-result small{
+        font-size:.88rem;
+      }
+
+      .adult-choice-reset{
+        min-height:54px;
+        font-size:.78rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -2804,7 +3320,7 @@
           <div class="detail-body">
 
             <nav class="tabs" aria-label="入退場の状況">
-              <button class="tab-btn active" type="button" data-section="family" aria-selected="true">
+              <button class="tab-btn" type="button" data-section="family" aria-selected="false">
                 <span class="tab-icon">👨‍👩‍👧</span>
                 <span class="tab-copy">
                   <span class="tab-kicker">あとで戻る</span>
@@ -2832,48 +3348,49 @@
               </button>
             </nav>
 
-            <section id="section-family" class="detail-section active">
-              <div class="section-card">
-                <h3>家族みんなで外に出て、あとで戻る</h3>
-                <p>ひとつ確認すると、次の手順が表示されます。上から順番にご確認ください。</p>
-
-                <div class="mission-status important-rule">
+            <section id="section-family" class="detail-section">
+              <div class="section-card family-section-card">
+                <div class="mission-status important-rule family-key-rule">
                   <b>!</b>
-                  <span><strong>一時退場中も利用時間は進みます。</strong><br>再入場にはレシートが必要です。</span>
+                  <span>
+                    <em>必ずご確認ください</em>
+                    <strong>一時退場中も利用時間は進みます。</strong>
+                    <small>再入場にはレシートが必要です。</small>
+                  </span>
                 </div>
 
                 <div id="familySteps" class="steps">
-                  <button class="step" type="button" data-step="1">
+                  <button class="step is-hidden" type="button" data-step="1" tabindex="-1">
                     <span class="step-num">1</span>
                     <span class="step-copy">
-                      <strong>ロッカーを空にする</strong><span class="step-emphasis">タップして確認</span>
+                      <strong>ロッカーを空にする</strong>
                       <small>荷物を残したまま外へ出ないでください。</small>
                     </span>
                     <span class="check">✓</span>
                   </button>
 
-                  <button class="step is-hidden" type="button" data-step="2">
+                  <button class="step is-hidden" type="button" data-step="2" tabindex="-1">
                     <span class="step-num">2</span>
                     <span class="step-copy">
-                      <strong>赤ホルダーからレシートを抜く</strong><span class="step-emphasis">タップして確認</span>
+                      <strong>赤ホルダーからレシートを抜く</strong>
                       <small>再入場時に使用します。なくさずお持ちください。</small>
                     </span>
                     <span class="check">✓</span>
                   </button>
 
-                  <button class="step is-hidden" type="button" data-step="3">
+                  <button class="step is-hidden" type="button" data-step="3" tabindex="-1">
                     <span class="step-num">3</span>
                     <span class="step-copy">
-                      <strong>すべてのホルダーを返却する</strong><span class="step-emphasis">タップして確認</span>
+                      <strong>すべてのホルダーを返却する</strong>
                       <small>赤・黄色ともに返却ボックスへ入れてください。</small>
                     </span>
                     <span class="check">✓</span>
                   </button>
 
-                  <button class="step is-hidden" type="button" data-step="4">
+                  <button class="step is-hidden" type="button" data-step="4" tabindex="-1">
                     <span class="step-num">4</span>
                     <span class="step-copy">
-                      <strong>戻ったらレシートを提示する</strong><span class="step-emphasis">タップして確認</span>
+                      <strong>戻ったらレシートを提示する</strong>
                       <small>スタッフが確認後、再入場できます。</small>
                     </span>
                     <span class="check">✓</span>
@@ -2900,15 +3417,23 @@
                   <button class="choice-btn" type="button" data-yellow="no">黄色ホルダーがない<span class="subtap">選択する</span></button>
                 </div>
 
-                <div id="yellowResultYes" class="decision-result ok">
-                  ✅ 外出できます。<br>
-                  館内には必ず別の保護者が残ってください。子どもだけを残すことはできません。
+                <div id="yellowResultYes" class="decision-result adult-result ok" role="status" aria-live="polite">
+                  <span class="adult-result-icon">✓</span>
+                  <strong class="adult-result-title">外出できます</strong>
+                  <span class="adult-result-rule">館内に別の保護者が残る場合のみ</span>
+                  <small>子どもだけを館内に残すことはできません。</small>
                 </div>
 
-                <div id="yellowResultNo" class="decision-result ng">
-                  ⛔ 大人だけの外出はできません。<br>
-                  黄色ホルダーがない場合は、子どもと保護者が一緒に移動してください。
+                <div id="yellowResultNo" class="decision-result adult-result ng" role="status" aria-live="polite">
+                  <span class="adult-result-icon">×</span>
+                  <strong class="adult-result-title">大人だけの外出は<br>できません</strong>
+                  <span class="adult-result-rule">子どもと保護者が一緒に移動してください</span>
+                  <small>黄色ホルダーがない場合は、大人だけで外へ出られません。</small>
                 </div>
+
+                <button id="adultChoiceReset" class="adult-choice-reset" type="button" hidden>
+                  選び直す
+                </button>
 
                 <div class="rule-bar">
                   <span>保護者1名だけで受付した場合、子どもを館内に残して外出することはできません。</span>
@@ -2953,12 +3478,17 @@
 
   <div id="stepOverlay" class="step-overlay" hidden>
     <div class="step-overlay-backdrop"></div>
-    <div class="step-overlay-card" role="dialog" aria-modal="true" aria-labelledby="stepOverlayTitle">
-      <div class="step-overlay-kicker">NEXT STEP</div>
-      <div id="stepOverlayNumber" class="step-overlay-number">2</div>
-      <h3 id="stepOverlayTitle" class="step-overlay-title">次の手順</h3>
-      <p id="stepOverlayDesc" class="step-overlay-desc">ここに手順説明が表示されます。</p>
-      <button id="stepOverlayButton" class="step-overlay-button" type="button">次へ</button>
+    <div id="stepOverlayCard" class="step-overlay-card" role="dialog" aria-modal="true" aria-labelledby="stepOverlayTitle">
+      <button id="stepOverlayClose" class="step-overlay-close" type="button" aria-label="閉じる">×</button>
+      <div class="step-overlay-rule">
+        <strong>一時退場中も利用時間は進みます。</strong>
+        <span>再入場にはレシートが必要です。</span>
+      </div>
+      <div id="stepOverlayKicker" class="step-overlay-kicker">手順 1 / 4</div>
+      <div id="stepOverlayNumber" class="step-overlay-number">1</div>
+      <h3 id="stepOverlayTitle" class="step-overlay-title">ロッカーを空にする</h3>
+      <p id="stepOverlayDesc" class="step-overlay-desc">荷物を残したまま外へ出ないでください。</p>
+      <button id="stepOverlayButton" class="step-overlay-button" type="button">確認して次へ</button>
     </div>
   </div>
 
@@ -3000,14 +3530,19 @@
       const familyComplete = document.getElementById("familyComplete");
       const yellowResultYes = document.getElementById("yellowResultYes");
       const yellowResultNo = document.getElementById("yellowResultNo");
+      const adultSection = document.getElementById("section-adult");
+      const adultChoiceReset = document.getElementById("adultChoiceReset");
       const exitConfirmButton = document.getElementById("exitConfirmButton");
       const exitComplete = document.getElementById("exitComplete");
       const toast = document.getElementById("toast");
       const stepOverlay = document.getElementById("stepOverlay");
+      const stepOverlayCard = document.getElementById("stepOverlayCard");
+      const stepOverlayKicker = document.getElementById("stepOverlayKicker");
       const stepOverlayNumber = document.getElementById("stepOverlayNumber");
       const stepOverlayTitle = document.getElementById("stepOverlayTitle");
       const stepOverlayDesc = document.getElementById("stepOverlayDesc");
       const stepOverlayButton = document.getElementById("stepOverlayButton");
+      const stepOverlayClose = document.getElementById("stepOverlayClose");
 
       let activeMode = 150;
       let currentView = "time";
@@ -3157,7 +3692,22 @@
         }
       }
 
-      function setSection(name, sourceElement = null) {
+      function clearSectionSelection() {
+        tabButtons.forEach(button => {
+          button.classList.remove("active");
+          button.setAttribute("aria-selected", "false");
+        });
+
+        detailSections.forEach(section => {
+          section.classList.remove("active");
+        });
+
+        pendingStep = null;
+        stepOverlay.hidden = true;
+        stepOverlayCard.classList.remove("is-collapsing");
+      }
+
+      function setSection(name) {
         tabButtons.forEach(button => {
           const active = button.dataset.section === name;
           button.classList.toggle("active", active);
@@ -3167,50 +3717,79 @@
         detailSections.forEach(section => {
           section.classList.toggle("active", section.id === `section-${name}`);
         });
+
+        pendingStep = null;
+        stepOverlay.hidden = true;
+        stepOverlayCard.classList.remove("is-collapsing");
+      }
+
+      function getNextFamilyStep() {
+        return familySteps.find(step => !step.classList.contains("done")) || null;
       }
 
       function showStepOverlay(stepElement) {
         if (!stepElement) return;
 
         pendingStep = stepElement;
-        stepOverlayNumber.textContent = stepElement.dataset.step || "";
-        stepOverlayTitle.textContent = stepElement.querySelector(".step-copy strong")?.textContent || "次の手順";
+        const stepNumber = Number(stepElement.dataset.step || 1);
+
+        stepOverlayKicker.textContent = `手順 ${stepNumber} / ${familySteps.length}`;
+        stepOverlayNumber.textContent = String(stepNumber);
+        stepOverlayTitle.textContent = stepElement.querySelector(".step-copy strong")?.textContent || "手順";
         stepOverlayDesc.textContent = stepElement.querySelector(".step-copy small")?.textContent || "";
+        stepOverlayButton.textContent = stepNumber === familySteps.length ? "確認して完了" : "確認して次へ";
+
+        stepOverlayCard.classList.remove("is-collapsing");
         stepOverlay.hidden = false;
+      }
+
+      function startFamilyFlow() {
+        const nextStep = getNextFamilyStep();
+
+        if (nextStep) {
+          window.setTimeout(() => showStepOverlay(nextStep), 120);
+        } else {
+          updateFamilyCompletion();
+        }
+      }
+
+      function closeStepOverlay() {
+        pendingStep = null;
+        stepOverlay.hidden = true;
+        stepOverlayCard.classList.remove("is-collapsing");
       }
 
       function confirmOverlayStep() {
         if (!pendingStep) {
-          stepOverlay.hidden = true;
+          closeStepOverlay();
           return;
         }
 
-        const stepToReveal = pendingStep;
+        const completedStep = pendingStep;
         pendingStep = null;
-        stepOverlay.hidden = true;
-
-        stepToReveal.classList.remove("is-hidden");
-        stepToReveal.classList.add("reveal");
+        stepOverlayCard.classList.add("is-collapsing");
 
         window.setTimeout(() => {
-          stepToReveal.classList.remove("reveal");
-          stepToReveal.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        }, 140);
-      }
+          stepOverlay.hidden = true;
+          stepOverlayCard.classList.remove("is-collapsing");
 
-      function revealNextFamilyStep(currentStep) {
-        const currentIndex = familySteps.indexOf(currentStep);
-        const nextStep = familySteps[currentIndex + 1];
+          completedStep.classList.remove("is-hidden");
+          completedStep.classList.add("done");
 
-        if (!nextStep) {
-          updateFamilyCompletion();
-          return;
-        }
+          const nextStep = getNextFamilyStep();
 
-        showStepOverlay(nextStep);
+          if (nextStep) {
+            window.setTimeout(() => showStepOverlay(nextStep), 360);
+          } else {
+            updateFamilyCompletion();
+            window.setTimeout(() => {
+              familyComplete.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+              });
+            }, 160);
+          }
+        }, 320);
       }
 
       function updateFamilyCompletion() {
@@ -3225,19 +3804,22 @@
       }
 
       function resetAll(showMessage = true) {
-        familySteps.forEach((step, index) => {
+        familySteps.forEach(step => {
           step.classList.remove("done", "reveal");
-          step.classList.toggle("is-hidden", index !== 0);
+          step.classList.add("is-hidden");
         });
 
         familyComplete.classList.remove("show");
         pendingStep = null;
         stepOverlay.hidden = true;
+        stepOverlayCard.classList.remove("is-collapsing");
         yellowResultYes.classList.remove("show");
         yellowResultNo.classList.remove("show");
+        adultSection.classList.remove("result-active");
+        adultChoiceReset.hidden = true;
         exitComplete.classList.remove("show");
         exitConfirmButton.textContent = "ホルダーを返却しました";
-        setSection("family");
+        clearSectionSelection();
 
         if (showMessage) showToast("表示をリセットしました");
       }
@@ -3257,26 +3839,48 @@
       });
 
       tabButtons.forEach(button => {
-        button.addEventListener("click", () => setSection(button.dataset.section, button));
-      });
+        button.addEventListener("click", () => {
+          const sectionName = button.dataset.section;
+          setSection(sectionName);
 
-      familySteps.forEach(step => {
-        step.addEventListener("click", () => {
-          if (step.classList.contains("done")) return;
-
-          step.classList.add("done");
-          const rect = step.getBoundingClientRect();
-          burst(rect.right - 18, rect.top + rect.height / 2, 10);
-          revealNextFamilyStep(step);
+          if (sectionName === "family") {
+            startFamilyFlow();
+          }
         });
       });
+
 
       document.querySelectorAll("[data-yellow]").forEach(button => {
         button.addEventListener("click", () => {
           const yes = button.dataset.yellow === "yes";
+
           yellowResultYes.classList.toggle("show", yes);
           yellowResultNo.classList.toggle("show", !yes);
+          adultSection.classList.add("result-active");
+          adultChoiceReset.hidden = false;
+
+          const visibleResult = yes ? yellowResultYes : yellowResultNo;
+          window.setTimeout(() => {
+            visibleResult.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }, 80);
         });
+      });
+
+      adultChoiceReset.addEventListener("click", () => {
+        yellowResultYes.classList.remove("show");
+        yellowResultNo.classList.remove("show");
+        adultSection.classList.remove("result-active");
+        adultChoiceReset.hidden = true;
+
+        window.setTimeout(() => {
+          adultSection.querySelector(".choice-grid")?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }, 60);
       });
 
       exitConfirmButton.addEventListener("click", () => {
@@ -3287,16 +3891,17 @@
         showToast("ご利用ありがとうございました！");
       });
 
-      document.getElementById("openDetailsButton").addEventListener("click", event => {
+      document.getElementById("openDetailsButton").addEventListener("click", () => {
+        resetAll(false);
         showView("detail");
-        setSection("family");
       });
 
 
       stepOverlayButton.addEventListener("click", confirmOverlayStep);
+      stepOverlayClose.addEventListener("click", closeStepOverlay);
       stepOverlay.addEventListener("click", event => {
-        if (event.target === stepOverlay || event.target.classList.contains("step-overlay-backdrop")) {
-          confirmOverlayStep();
+        if (event.target.classList.contains("step-overlay-backdrop")) {
+          closeStepOverlay();
         }
       });
 
