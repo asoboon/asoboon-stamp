@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "duplicate_ids": [],
+  "missing_js_ids": [],
+  "missing_local_refs": [],
+  "missing_sw_refs": [],
+  "checks": {
+    "version_html": true,
+    "build_html": true,
+    "version_client": true,
+    "submit_scores_export": true,
+    "bulk_action_client": true,
+    "version_server": true,
+    "bulk_action_server": true,
+    "bulk_function": true,
+    "bulk_ui": true,
+    "bulk_listener": true,
+    "gate_bulk_dispatch": true,
+    "auto_ranking_after_bulk": true,
+    "sw_build": true,
+    "sw_client": true,
+    "no_old_build": true
+  },
+  "counts": {
+    "html_ids": 146,
+    "js_id_refs": 123,
+    "precache": 70
+  }
+}

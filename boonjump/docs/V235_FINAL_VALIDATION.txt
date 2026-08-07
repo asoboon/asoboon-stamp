@@ -1,0 +1,51 @@
+ブーンジャンプ V2.3.5 最終検証レポート
+Build: 2026-08-07-bulk-best-registration-v13
+
+■ 実装内容
+- 「記録とトロフィー」画面に全自己ベスト一括登録ボタンを追加
+- プレイ済み全マシン（最大8台）を1回の通信で送信
+- 未プレイ、更新なし、重複記録を自動判定
+- 初回はランキングネーム登録と一括送信を同じ通信で実行
+- 一括登録完了後、世界ランキング画面へ自動移動
+- 個別記録の登録機能は維持
+- 自動送信、未送信キュー、バックグラウンド送信は不使用
+
+■ JavaScript / Apps Script
+- ranking-client.js 構文チェック: 正常
+- index.html インラインJavaScript構文チェック: 正常
+- Code.gs 構文チェック: 正常
+- bulk_submit GET/POSTルーティング: 実装確認
+- submitScoresクライアントAPI: 実装・公開確認
+
+■ 一括登録サーバー模擬試験
+- 初回2台登録: 2台とも登録成功
+- 同一request_id再送: 2台とも重複判定、二重保存なし
+- 既存ベスト未満: 更新なしとして保存回避
+- 既存ベスト超過: machine_bests / today / week を更新
+- score_log: 更新価値のある記録だけ追加
+
+■ クライアント通信試験
+- bulk_submitをJSONP 1通信で実行
+- 2台送信URL長: 1,145文字
+- 8台送信URL長: 3,654文字
+- 8台分のrecords_json生成: 正常
+- 応答の登録／更新なし／重複件数解析: 正常
+
+■ HTML / ファイル構造
+- HTML ID重複: 0件
+- JavaScript参照ID欠落: 0件
+- ローカル参照ファイル欠落: 0件
+- Service Workerプリキャッシュ欠落: 0件
+- V2.3.5表記、Build表記、キャッシュキー: 一致
+- 旧V2.3.4表記・旧Build参照: なし
+
+■ レスポンシブ実ブラウザ試験
+Chromiumは実行環境の管理ポリシーによりローカルHTTPおよびfile URLが
+ERR_BLOCKED_BY_ADMINISTRATORで遮断されたため、画面キャプチャ試験は実行不可。
+DOM構造、CSS、ID参照、JavaScript構文、イベント接続は静的検証済み。
+
+■ 公開条件
+- GitHub側をV2.3.5へ差し替え
+- Apps ScriptのCode.gsをV2.3.5へ全文差し替え
+- 「新バージョン」で再デプロイ必須
+- health応答で api_version: 2.3.5 / bulk_submit: true を確認

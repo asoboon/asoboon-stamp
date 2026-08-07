@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.3.4
+ * ブーンジャンプ 世界ランキング API V2.3.5
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
  *
@@ -16,7 +16,7 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
-  API_VERSION: '2.3.4',
+  API_VERSION: '2.3.5',
   SHEETS: Object.freeze({
     PLAYERS: 'players',
     MACHINE_BESTS: 'machine_bests',
@@ -58,6 +58,7 @@ function doGet(e) {
         api_version: CONFIG.API_VERSION,
         ranking_mode: 'manual',
         write_policy: 'meaningful-best-only',
+        bulk_submit: true,
         now: nowIso_(),
       };
     } else if (action === 'leaderboard') {
@@ -72,6 +73,12 @@ function doGet(e) {
       result = checkNameAvailable_(p);
     } else if (action === 'score_status') {
       result = getScoreStatus_(p);
+    } else if (action === 'bulk_submit') {
+      result = withScriptLock_(function () {
+        const value = bulkSubmitScores_(p);
+        SpreadsheetApp.flush();
+        return value;
+      });
     } else if (action === 'submit' || action === 'rename') {
       result = withScriptLock_(function () {
         const value = action === 'submit' ? submitScore_(p) : renamePlayer_(p);
@@ -96,6 +103,7 @@ function doPost(e) {
     const result = withScriptLock_(function () {
       let value;
       if (action === 'submit') value = submitScore_(body);
+      else if (action === 'bulk_submit') value = bulkSubmitScores_(body);
       else if (action === 'rename') value = renamePlayer_(body);
       else throw new Error('不明なactionです。');
       SpreadsheetApp.flush();
@@ -274,6 +282,265 @@ function submitScore_(body) {
     skipped: false,
     updated: { machine: machineUpdated, today: dayUpdated, week: weekUpdated },
     fast: fastResponse,
+  });
+}
+
+
+function bulkSubmitScores_(body) {
+  const bulkRequestId = cleanId_(body.bulk_request_id, 12, 100, 'bulk_request_id');
+  let playerId = cleanId_(body.player_id, 12, 100, 'player_id');
+  const playerToken = normalizePlayerToken_(body.player_token);
+  const submittedName = validateName_(body.display_name);
+  let player = findPlayerRecord_(playerId);
+
+  if (!player && playerToken) {
+    const tokenPlayer = findPlayerRecordByToken_(playerToken);
+    if (tokenPlayer) {
+      playerId = tokenPlayer.player_id;
+      player = tokenPlayer;
+    }
+  }
+
+  enforceRateLimit_('bulk_submit', playerId, 8);
+
+  if (player && String(player.status || 'ACTIVE') !== 'ACTIVE') {
+    throw new Error('ランキングネームの再登録が必要です。');
+  }
+  assertPlayerIdentity_(player, playerToken, 'submit', submittedName);
+
+  let displayName = submittedName;
+  if (player) displayName = validateName_(player.display_name);
+  else assertNameAvailable_(submittedName, playerId);
+
+  const records = parseBulkRecords_(body);
+  const receivedAt = new Date();
+  const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
+  const weekKey = getWeekKey_(receivedAt);
+
+  upsertPlayer_(playerId, displayName, receivedAt, 'ACTIVE', !player, playerToken);
+
+  const machineSheet = sheet_(CONFIG.SHEETS.MACHINE_BESTS);
+  const periodSheet = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
+  const scoreSheet = sheet_(CONFIG.SHEETS.SCORE_LOG);
+  const machineValues = machineSheet.getDataRange().getValues();
+  const periodValues = periodSheet.getDataRange().getValues();
+  const scoreLastRow = scoreSheet.getLastRow();
+  const requestIds = new Set(
+    scoreLastRow >= 2
+      ? scoreSheet.getRange(2, 1, scoreLastRow - 1, 1).getValues().map(row => String(row[0] || ''))
+      : []
+  );
+  const machineIndex = new Map();
+  for (let i = 1; i < machineValues.length; i++) {
+    if (String(machineValues[i][0]) !== playerId) continue;
+    machineIndex.set(String(machineValues[i][2]), {
+      row: i + 1,
+      distance: Number(machineValues[i][4]) || 0,
+    });
+  }
+
+  const periodIndex = new Map();
+  for (let i = 1; i < periodValues.length; i++) {
+    if (String(periodValues[i][2]) !== playerId) continue;
+    const key = [
+      String(periodValues[i][0]),
+      normalizePeriodKey_(periodValues[i][1]),
+      String(periodValues[i][4]),
+    ].join('|');
+    periodIndex.set(key, {
+      row: i + 1,
+      distance: Number(periodValues[i][6]) || 0,
+    });
+  }
+
+  const logRows = [];
+  const machineUpdates = [];
+  const machineAppends = [];
+  const periodUpdates = [];
+  const periodAppends = [];
+  const results = [];
+  let registered = 0;
+  let skipped = 0;
+  let duplicates = 0;
+  const boardUpdates = { machine: 0, today: 0, week: 0 };
+
+  records.forEach(record => {
+    if (requestIds.has(record.requestId)) {
+      duplicates += 1;
+      results.push({
+        machine_id: record.machineId,
+        distance: record.distance,
+        duplicate: true,
+        skipped: false,
+        updated: { machine: false, today: false, week: false },
+      });
+      return;
+    }
+
+    const currentMachine = machineIndex.get(record.machineId);
+    const dayIndexKey = ['DAY', dayKey, record.machineId].join('|');
+    const weekIndexKey = ['WEEK', weekKey, record.machineId].join('|');
+    const currentDay = periodIndex.get(dayIndexKey);
+    const currentWeek = periodIndex.get(weekIndexKey);
+    const improvesMachine = record.distance > (currentMachine ? currentMachine.distance : 0);
+    const improvesDay = record.distance > (currentDay ? currentDay.distance : 0);
+    const improvesWeek = record.distance > (currentWeek ? currentWeek.distance : 0);
+
+    if (!improvesMachine && !improvesDay && !improvesWeek) {
+      skipped += 1;
+      results.push({
+        machine_id: record.machineId,
+        distance: record.distance,
+        duplicate: false,
+        skipped: true,
+        reason: 'already_registered',
+        updated: { machine: false, today: false, week: false },
+      });
+      return;
+    }
+
+    const machine = MACHINES[record.machineId];
+    logRows.push([
+      record.requestId,
+      playerId,
+      displayName,
+      record.machineId,
+      record.distance,
+      record.accel,
+      record.turbo,
+      record.nitro,
+      record.tuneLevel,
+      record.playedAt,
+      receivedAt,
+      'ACCEPTED',
+      '',
+      record.sourceBuild,
+      record.clientVersion,
+    ]);
+
+    if (improvesMachine) {
+      const rowValues = [[
+        playerId,
+        displayName,
+        record.machineId,
+        machine.name,
+        record.distance,
+        record.accel,
+        record.turbo,
+        record.nitro,
+        receivedAt,
+        record.sourceBuild,
+      ]];
+      if (currentMachine) machineUpdates.push({ row: currentMachine.row, values: rowValues });
+      else machineAppends.push(rowValues[0]);
+      machineIndex.set(record.machineId, { row: currentMachine ? currentMachine.row : 0, distance: record.distance });
+      boardUpdates.machine += 1;
+    }
+
+    if (improvesDay) {
+      const rowValues = [[
+        'DAY', dayKey, playerId, displayName, record.machineId, machine.name,
+        record.distance, receivedAt, true, record.sourceBuild,
+      ]];
+      if (currentDay) periodUpdates.push({ row: currentDay.row, values: rowValues });
+      else periodAppends.push(rowValues[0]);
+      periodIndex.set(dayIndexKey, { row: currentDay ? currentDay.row : 0, distance: record.distance });
+      boardUpdates.today += 1;
+    }
+
+    if (improvesWeek) {
+      const rowValues = [[
+        'WEEK', weekKey, playerId, displayName, record.machineId, machine.name,
+        record.distance, receivedAt, true, record.sourceBuild,
+      ]];
+      if (currentWeek) periodUpdates.push({ row: currentWeek.row, values: rowValues });
+      else periodAppends.push(rowValues[0]);
+      periodIndex.set(weekIndexKey, { row: currentWeek ? currentWeek.row : 0, distance: record.distance });
+      boardUpdates.week += 1;
+    }
+
+    registered += 1;
+    results.push({
+      machine_id: record.machineId,
+      distance: record.distance,
+      duplicate: false,
+      skipped: false,
+      updated: { machine: improvesMachine, today: improvesDay, week: improvesWeek },
+    });
+    requestIds.add(record.requestId);
+  });
+
+  machineUpdates.forEach(item => machineSheet.getRange(item.row, 1, 1, 10).setValues(item.values));
+  if (machineAppends.length) {
+    machineSheet.getRange(machineSheet.getLastRow() + 1, 1, machineAppends.length, 10).setValues(machineAppends);
+  }
+  periodUpdates.forEach(item => periodSheet.getRange(item.row, 1, 1, 10).setValues(item.values));
+  if (periodAppends.length) {
+    periodSheet.getRange(periodSheet.getLastRow() + 1, 1, periodAppends.length, 10).setValues(periodAppends);
+  }
+  if (logRows.length) {
+    scoreSheet.getRange(scoreSheet.getLastRow() + 1, 1, logRows.length, 15).setValues(logRows);
+  }
+
+  resetRankingDataCaches_();
+
+  return {
+    ok: true,
+    accepted: true,
+    bulk_request_id: bulkRequestId,
+    player_id: playerId,
+    total: records.length,
+    registered,
+    skipped,
+    duplicates,
+    updated: boardUpdates,
+    results,
+  };
+}
+
+function parseBulkRecords_(body) {
+  let input = body.records;
+  if (input == null || input === '') input = body.records_json;
+  let rows = input;
+
+  if (!Array.isArray(rows)) {
+    try {
+      rows = JSON.parse(String(rows || '[]'));
+    } catch (_) {
+      throw new Error('一括登録データを読み取れませんでした。');
+    }
+  }
+
+  const max = Object.keys(MACHINES).length;
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > max) {
+    throw new Error(`一括登録できる記録は1〜${max}件です。`);
+  }
+
+  const seenMachines = new Set();
+  return rows.map(row => {
+    const requestId = cleanId_(row.request_id, 12, 100, 'request_id');
+    const machineId = String(row.machine_id || '').trim();
+    const machine = MACHINES[machineId];
+    if (!machine) throw new Error('存在しないマシンが含まれています。');
+    if (seenMachines.has(machineId)) throw new Error('同じマシンの記録が重複しています。');
+    seenMachines.add(machineId);
+
+    const distance = Number(row.distance);
+    if (!Number.isInteger(distance) || distance <= 0) throw new Error(`${machine.name}の距離が不正です。`);
+    if (distance > machine.finalCap) throw new Error(`${machine.name}の距離が上限${machine.finalCap}mを超えています。`);
+
+    return {
+      requestId,
+      machineId,
+      distance,
+      accel: normalizeJudge_(row.accel_judge),
+      turbo: normalizeJudge_(row.turbo_judge),
+      nitro: normalizeJudge_(row.nitro_judge),
+      tuneLevel: Math.max(0, Math.min(50, Math.floor(Number(row.tune_level) || 0))),
+      playedAt: normalizeDate_(row.played_at) || new Date(),
+      sourceBuild: truncate_(row.source_build, 100),
+      clientVersion: truncate_(row.client_version, 40),
+    };
   });
 }
 

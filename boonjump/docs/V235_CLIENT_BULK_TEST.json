@@ -1,0 +1,80 @@
+{
+  "ok": true,
+  "action": "bulk_submit",
+  "urlLength": 1145,
+  "records": 2,
+  "result": {
+    "ok": true,
+    "total": 2,
+    "registered": 1,
+    "skipped": 1,
+    "duplicates": 0,
+    "updated": {
+      "machine": 1,
+      "today": 2,
+      "week": 2
+    },
+    "results": [
+      {
+        "machine_id": "boon",
+        "distance": 1200,
+        "duplicate": false,
+        "skipped": false,
+        "updated": {
+          "machine": true,
+          "today": true,
+          "week": true
+        }
+      },
+      {
+        "machine_id": "sport",
+        "distance": 1700,
+        "duplicate": false,
+        "skipped": true,
+        "updated": {
+          "machine": false,
+          "today": false,
+          "week": false
+        }
+      }
+    ],
+    "server": {
+      "ok": true,
+      "accepted": true,
+      "player_id": "player-client-1234567890",
+      "total": 2,
+      "registered": 1,
+      "skipped": 1,
+      "duplicates": 0,
+      "updated": {
+        "machine": 1,
+        "today": 2,
+        "week": 2
+      },
+      "results": [
+        {
+          "machine_id": "boon",
+          "distance": 1200,
+          "duplicate": false,
+          "skipped": false,
+          "updated": {
+            "machine": true,
+            "today": true,
+            "week": true
+          }
+        },
+        {
+          "machine_id": "sport",
+          "distance": 1700,
+          "duplicate": false,
+          "skipped": true,
+          "updated": {
+            "machine": false,
+            "today": false,
+            "week": false
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.3.4
+ * ブーンジャンプ 世界ランキング通信 V2.3.5
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -324,6 +324,55 @@ const BOON_RANKING = (() => {
     };
   }
 
+
+  function buildBulkRecord(payload) {
+    const item = buildScoreItem(payload);
+    return {
+      request_id: item.request_id,
+      machine_id: item.machine_id,
+      distance: item.distance,
+      accel_judge: item.accel_judge,
+      turbo_judge: item.turbo_judge,
+      nitro_judge: item.nitro_judge,
+      tune_level: item.tune_level,
+      played_at: item.played_at,
+      source_build: item.source_build,
+      client_version: item.client_version,
+    };
+  }
+
+  async function submitScores(payloads) {
+    const displayName = getPlayerName();
+    if (!displayName) throw new Error('先にランキングネームを登録してください。');
+    if (!Array.isArray(payloads) || !payloads.length) throw new Error('登録できる自己ベストがありません。');
+
+    const records = payloads.map(buildBulkRecord);
+    const data = await getJsonp({
+      action: 'bulk_submit',
+      bulk_request_id: createId('bulk'),
+      player_id: getPlayerId(),
+      player_token: getPlayerToken(),
+      display_name: displayName,
+      records_json: JSON.stringify(records),
+      response_mode: 'fast',
+    }, 26000);
+
+    if (data.player_id) setPlayerId(data.player_id);
+    if (!data.accepted) throw new Error(data.reason || '自己ベストを一括登録できませんでした。');
+    invalidateCache();
+
+    return {
+      ok: true,
+      total: Number(data.total) || records.length,
+      registered: Number(data.registered) || 0,
+      skipped: Number(data.skipped) || 0,
+      duplicates: Number(data.duplicates) || 0,
+      updated: data.updated || null,
+      results: Array.isArray(data.results) ? data.results : [],
+      server: data,
+    };
+  }
+
   // V2.3.0以前との互換用。自動キューは常に空として扱う。
   function getPendingCount() { return 0; }
   async function flushQueue() { return { ok: true, sent: [], failed: [], pending: 0 }; }
@@ -348,6 +397,7 @@ const BOON_RANKING = (() => {
     rename: registerName,
     ensureRegistered,
     submitScore,
+    submitScores,
     flushQueue,
     getPendingCount,
     getDiagnostics,

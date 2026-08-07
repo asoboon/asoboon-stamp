@@ -1,10 +1,10 @@
-const BUILD = "2026-08-07-ranking-dashboard-fast-v12";
+const BUILD = "2026-08-07-bulk-best-registration-v13";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=234-dashboard-fast-12",
+  "./ranking-client.js?v=235-bulk-best-13",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

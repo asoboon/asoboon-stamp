@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "urlLength": 3654,
+  "records": 8,
+  "result": {
+    "ok": true,
+    "total": 8,
+    "registered": 8,
+    "skipped": 0,
+    "duplicates": 0,
+    "updated": null,
+    "results": [],
+    "server": {
+      "ok": true,
+      "accepted": true,
+      "total": 8,
+      "registered": 8,
+      "skipped": 0,
+      "duplicates": 0,
+      "results": []
+    }
+  }
+}

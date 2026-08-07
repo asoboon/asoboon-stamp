@@ -1,0 +1,144 @@
+{
+  "ok": true,
+  "first": {
+    "ok": true,
+    "accepted": true,
+    "bulk_request_id": "bulk-test-1234567890",
+    "player_id": "player-test-1234567890",
+    "total": 2,
+    "registered": 2,
+    "skipped": 0,
+    "duplicates": 0,
+    "updated": {
+      "machine": 2,
+      "today": 2,
+      "week": 2
+    },
+    "results": [
+      {
+        "machine_id": "boon",
+        "distance": 1200,
+        "duplicate": false,
+        "skipped": false,
+        "updated": {
+          "machine": true,
+          "today": true,
+          "week": true
+        }
+      },
+      {
+        "machine_id": "sport",
+        "distance": 1700,
+        "duplicate": false,
+        "skipped": false,
+        "updated": {
+          "machine": true,
+          "today": true,
+          "week": true
+        }
+      }
+    ]
+  },
+  "second": {
+    "ok": true,
+    "accepted": true,
+    "bulk_request_id": "bulk-test-1234567890",
+    "player_id": "player-test-1234567890",
+    "total": 2,
+    "registered": 0,
+    "skipped": 0,
+    "duplicates": 2,
+    "updated": {
+      "machine": 0,
+      "today": 0,
+      "week": 0
+    },
+    "results": [
+      {
+        "machine_id": "boon",
+        "distance": 1200,
+        "duplicate": true,
+        "skipped": false,
+        "updated": {
+          "machine": false,
+          "today": false,
+          "week": false
+        }
+      },
+      {
+        "machine_id": "sport",
+        "distance": 1700,
+        "duplicate": true,
+        "skipped": false,
+        "updated": {
+          "machine": false,
+          "today": false,
+          "week": false
+        }
+      }
+    ]
+  },
+  "third": {
+    "ok": true,
+    "accepted": true,
+    "bulk_request_id": "bulk-test-2234567890",
+    "player_id": "player-test-1234567890",
+    "total": 1,
+    "registered": 0,
+    "skipped": 1,
+    "duplicates": 0,
+    "updated": {
+      "machine": 0,
+      "today": 0,
+      "week": 0
+    },
+    "results": [
+      {
+        "machine_id": "boon",
+        "distance": 1100,
+        "duplicate": false,
+        "skipped": true,
+        "reason": "already_registered",
+        "updated": {
+          "machine": false,
+          "today": false,
+          "week": false
+        }
+      }
+    ]
+  },
+  "fourth": {
+    "ok": true,
+    "accepted": true,
+    "bulk_request_id": "bulk-test-3234567890",
+    "player_id": "player-test-1234567890",
+    "total": 1,
+    "registered": 1,
+    "skipped": 0,
+    "duplicates": 0,
+    "updated": {
+      "machine": 1,
+      "today": 1,
+      "week": 1
+    },
+    "results": [
+      {
+        "machine_id": "boon",
+        "distance": 1300,
+        "duplicate": false,
+        "skipped": false,
+        "updated": {
+          "machine": true,
+          "today": true,
+          "week": true
+        }
+      }
+    ]
+  },
+  "rows": {
+    "players": 2,
+    "machine_bests": 3,
+    "period_bests": 5,
+    "score_log": 4
+  }
+}
