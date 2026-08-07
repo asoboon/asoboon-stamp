@@ -3931,6 +3931,69 @@
       font-weight:1000!important;
     }
 
+  
+    /* v16: explain yellow-holder eligibility clearly */
+    .yellow-holder-meaning{
+      margin:0 0 16px;
+      padding:14px 16px;
+      border:2px solid rgba(255,209,93,.42);
+      border-left:7px solid var(--amber);
+      background:linear-gradient(90deg,rgba(255,209,93,.13),rgba(255,209,93,.045));
+      box-shadow:0 10px 24px rgba(0,0,0,.16);
+    }
+
+    .yellow-holder-meaning strong{
+      display:block;
+      color:#fff2bd;
+      font-size:.96rem;
+      line-height:1.42;
+      font-weight:1000;
+    }
+
+    .yellow-holder-meaning span{
+      display:block;
+      margin-top:5px;
+      color:#d8e3e9;
+      font-size:.76rem;
+      line-height:1.42;
+      font-weight:900;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .yellow-holder-meaning{
+        margin-bottom:20px;
+        padding:18px 20px;
+      }
+
+      .yellow-holder-meaning strong{
+        font-size:1.20rem;
+      }
+
+      .yellow-holder-meaning span{
+        font-size:.96rem;
+      }
+    }
+
+  
+    /* v17: exact rule for adult-only exit without a yellow holder */
+    #yellowResultNo .adult-result-rule{
+      max-width:620px!important;
+      font-size:1.12rem!important;
+      line-height:1.45!important;
+      font-weight:1000!important;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      #yellowResultNo .adult-result-rule{
+        font-size:1.42rem!important;
+        padding:18px 22px!important;
+      }
+
+      #yellowResultNo .adult-result-title{
+        font-size:3.95rem!important;
+      }
+    }
+
   </style>
 </head>
 
@@ -4128,7 +4191,11 @@
                 </div>
 
                 <div id="adultOnlyPanel" class="adult-only-panel" hidden>
-                  <h4>黄色ホルダーはありますか？</h4>
+                  <h4>黄色ホルダーを持っていますか？</h4>
+                  <div class="yellow-holder-meaning">
+                    <strong>黄色ホルダーは、大人が2名以上いる会計にお渡ししています。</strong>
+                    <span>黄色ホルダーがない場合は、大人1名でのご利用です。</span>
+                  </div>
 
                   <div class="choice-grid adult-yellow-grid">
                     <button class="choice-btn yes" type="button" data-yellow="yes">
@@ -4137,7 +4204,7 @@
                     </button>
                     <button class="choice-btn" type="button" data-yellow="no">
                       ない
-                      <span class="subtap">ホルダーを交換</span>
+                      <span class="subtap">子どもを残しては外出できません</span>
                     </button>
                   </div>
 
@@ -4147,11 +4214,11 @@
                     <span class="adult-result-rule">黄色ホルダーを持って外出してください</span>
                   </div>
 
-                  <div id="yellowResultNo" class="decision-result adult-result exchange" role="status" aria-live="polite">
-                    <span class="adult-result-icon">↔</span>
-                    <strong class="adult-result-title">ホルダーを<br>交換してください</strong>
-                    <span class="adult-result-rule">スタッフにお声がけください</span>
-                    <small>黄色ホルダーを着用して外出できます。</small>
+                  <div id="yellowResultNo" class="decision-result adult-result ng" role="status" aria-live="polite">
+                    <span class="adult-result-icon">×</span>
+                    <strong class="adult-result-title">子どもを残しては<br>外出できません</strong>
+                    <span class="adult-result-rule">中に保護者がいる場合は、黄色ホルダーを着用して外出してください。</span>
+                    <small>黄色ホルダーは、大人が2名以上いる会計にお渡ししています。</small>
                   </div>
                 </div>
 
