@@ -3906,6 +3906,31 @@
       }
     }
 
+  
+    /* v15: "no yellow holder" means exchange the holder first */
+    .adult-result.exchange{
+      border-color:rgba(255,209,93,.78)!important;
+      color:#332100!important;
+      background:
+        radial-gradient(circle at 50% 20%,rgba(255,255,255,.64),transparent 26%),
+        linear-gradient(180deg,#fff5cf,#ffd25f)!important;
+    }
+
+    .adult-result.exchange .adult-result-icon{
+      background:#d88a00!important;
+      color:#ffffff!important;
+    }
+
+    .adult-result.exchange .adult-result-rule{
+      background:rgba(255,255,255,.58)!important;
+    }
+
+    .adult-result.exchange small{
+      color:#4c3300!important;
+      opacity:1!important;
+      font-weight:1000!important;
+    }
+
   </style>
 </head>
 
@@ -4112,7 +4137,7 @@
                     </button>
                     <button class="choice-btn" type="button" data-yellow="no">
                       ない
-                      <span class="subtap">大人だけでは外出できません</span>
+                      <span class="subtap">ホルダーを交換</span>
                     </button>
                   </div>
 
@@ -4122,10 +4147,11 @@
                     <span class="adult-result-rule">黄色ホルダーを持って外出してください</span>
                   </div>
 
-                  <div id="yellowResultNo" class="decision-result adult-result ng" role="status" aria-live="polite">
-                    <span class="adult-result-icon">×</span>
-                    <strong class="adult-result-title">大人だけの外出は<br>できません</strong>
-                    <span class="adult-result-rule">家族みんなで一時退場してください</span>
+                  <div id="yellowResultNo" class="decision-result adult-result exchange" role="status" aria-live="polite">
+                    <span class="adult-result-icon">↔</span>
+                    <strong class="adult-result-title">ホルダーを<br>交換してください</strong>
+                    <span class="adult-result-rule">スタッフにお声がけください</span>
+                    <small>黄色ホルダーを着用して外出できます。</small>
                   </div>
                 </div>
 
