@@ -2140,6 +2140,289 @@
       }
     }
 
+  
+    /* v5: larger translucent tap zone for progressive steps */
+    .step{
+      position:relative;
+      min-height:112px!important;
+      padding-bottom:58px!important;
+      padding-right:16px!important;
+      align-items:start!important;
+    }
+
+    .step::after{
+      content:"ここをタップ";
+      position:absolute;
+      left:66px;
+      right:14px;
+      bottom:12px;
+      height:38px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      border:1px solid rgba(255,209,93,.32);
+      color:#fff2bf;
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.02),
+        0 0 16px rgba(255,209,93,.08);
+      backdrop-filter:blur(5px);
+      -webkit-backdrop-filter:blur(5px);
+      font-size:.72rem;
+      line-height:1;
+      font-weight:1000;
+      letter-spacing:.06em;
+      pointer-events:none;
+    }
+
+    .step:not(.done)::after{
+      animation:stepTapPulse 2.2s ease-in-out infinite;
+    }
+
+    .step.done::after{
+      content:"確認済み";
+      border-color:rgba(101,239,176,.34);
+      color:#d8ffed;
+      background:linear-gradient(180deg,rgba(101,239,176,.18),rgba(101,239,176,.10));
+      box-shadow:0 0 0 1px rgba(255,255,255,.02),0 0 14px rgba(101,239,176,.08);
+      animation:none!important;
+    }
+
+    .step.is-hidden::after{
+      display:none!important;
+    }
+
+    .step-copy{
+      padding-right:0!important;
+    }
+
+    .step-emphasis{
+      display:none!important;
+    }
+
+    @keyframes stepTapPulse{
+      0%,100%{
+        transform:scale(1);
+        opacity:.90;
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.02),
+          0 0 12px rgba(255,209,93,.07);
+      }
+      50%{
+        transform:scale(1.02);
+        opacity:1;
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.03),
+          0 0 20px rgba(255,209,93,.11);
+      }
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .step{
+        min-height:122px!important;
+        padding-bottom:64px!important;
+      }
+
+      .step::after{
+        left:74px;
+        right:16px;
+        bottom:14px;
+        height:42px;
+        font-size:.78rem;
+      }
+    }
+
+  
+    /* v6: stronger emphasis for the three situation selectors */
+    .mode-chooser-lead{
+      margin:0 0 12px;
+      padding:12px 14px;
+      border-left:4px solid var(--amber);
+      color:#fff2c2;
+      background:rgba(255,209,93,.07);
+      font-size:.80rem;
+      line-height:1.45;
+      font-weight:1000;
+      letter-spacing:.02em;
+    }
+
+    .tabs{
+      grid-template-columns:1fr!important;
+      gap:10px!important;
+      margin-bottom:16px!important;
+    }
+
+    .tab-btn{
+      position:relative;
+      display:grid;
+      grid-template-columns:54px 1fr;
+      align-items:center;
+      gap:12px;
+      min-height:92px!important;
+      padding:14px 16px!important;
+      border:2px solid rgba(104,234,255,.26)!important;
+      border-radius:0;
+      text-align:left;
+      color:#ebf4f8!important;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.03),rgba(255,255,255,.015))!important;
+      box-shadow:0 12px 26px rgba(0,0,0,.22)!important;
+      transition:.18s ease;
+      overflow:hidden;
+    }
+
+    .tab-btn::after{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:6px;
+      background:rgba(255,255,255,.16);
+      transition:.18s ease;
+    }
+
+    .tab-btn[data-section="family"]::after{
+      background:linear-gradient(180deg,#ffd15d,#ff9d33);
+    }
+
+    .tab-btn[data-section="adult"]::after{
+      background:linear-gradient(180deg,#6eeaff,#29c8ea);
+    }
+
+    .tab-btn[data-section="exit"]::after{
+      background:linear-gradient(180deg,#ff8a96,#ff4d5f);
+    }
+
+    .tab-btn.active{
+      color:#071018!important;
+      background:
+        linear-gradient(180deg,#f7fcff,#a7ebf7)!important;
+      border-color:rgba(104,234,255,.78)!important;
+      box-shadow:0 14px 30px rgba(0,0,0,.20),0 0 0 1px rgba(104,234,255,.18)!important;
+    }
+
+    .tab-btn.active[data-section="family"]{
+      background:linear-gradient(180deg,#fff8de,#ffd976)!important;
+      border-color:rgba(255,209,93,.75)!important;
+    }
+
+    .tab-btn.active[data-section="adult"]{
+      background:linear-gradient(180deg,#e7fdff,#8feeff)!important;
+      border-color:rgba(104,234,255,.78)!important;
+    }
+
+    .tab-btn.active[data-section="exit"]{
+      background:linear-gradient(180deg,#fff0f2,#ffb8bf)!important;
+      border-color:rgba(255,77,95,.60)!important;
+    }
+
+    .tab-icon{
+      display:grid;
+      place-items:center;
+      width:54px;
+      height:54px;
+      border-radius:16px;
+      color:#061018;
+      background:linear-gradient(180deg,#ffffff,#d6eef5);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 8px 18px rgba(0,0,0,.14);
+      font-size:1.48rem;
+    }
+
+    .tab-btn[data-section="family"] .tab-icon{
+      background:linear-gradient(180deg,#fff7dd,#ffd774);
+    }
+
+    .tab-btn[data-section="adult"] .tab-icon{
+      background:linear-gradient(180deg,#e8fcff,#98efff);
+    }
+
+    .tab-btn[data-section="exit"] .tab-icon{
+      background:linear-gradient(180deg,#fff2f4,#ffb9c1);
+    }
+
+    .tab-copy{
+      display:grid;
+      gap:3px;
+      min-width:0;
+    }
+
+    .tab-kicker{
+      color:#ffe8a6;
+      font-size:.62rem;
+      line-height:1.2;
+      font-weight:1000;
+      letter-spacing:.08em;
+    }
+
+    .tab-btn[data-section="adult"] .tab-kicker{
+      color:#b7f4ff;
+    }
+
+    .tab-btn[data-section="exit"] .tab-kicker{
+      color:#ffc6cd;
+    }
+
+    .tab-main{
+      color:#ffffff;
+      font-size:1.08rem;
+      line-height:1.25;
+      font-weight:1000;
+      letter-spacing:.01em;
+    }
+
+    .tab-sub{
+      color:#b5c7d2;
+      font-size:.68rem;
+      line-height:1.45;
+      font-weight:800;
+    }
+
+    .tab-btn.active .tab-kicker{
+      color:#6d4f00;
+    }
+
+    .tab-btn.active .tab-main{
+      color:#071018;
+    }
+
+    .tab-btn.active .tab-sub{
+      color:#375160;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      .mode-chooser-lead{
+        font-size:.86rem;
+        padding:13px 16px;
+      }
+
+      .tab-btn{
+        grid-template-columns:62px 1fr;
+        min-height:106px!important;
+        gap:14px;
+        padding:16px 18px!important;
+      }
+
+      .tab-icon{
+        width:62px;
+        height:62px;
+        font-size:1.68rem;
+      }
+
+      .tab-main{
+        font-size:1.18rem;
+      }
+
+      .tab-sub{
+        font-size:.74rem;
+      }
+
+      .tab-kicker{
+        font-size:.66rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -2229,15 +2512,34 @@
           </header>
 
           <div class="detail-body">
+            <div class="mode-chooser-lead">まず、状況をひとつ選んでください</div>
+
             <nav class="tabs" aria-label="入退場の状況">
               <button class="tab-btn active" type="button" data-section="family" aria-selected="true">
-                <span>👨‍👩‍👧</span>家族みんなで<br>一時退場
+                <span class="tab-icon">👨‍👩‍👧</span>
+                <span class="tab-copy">
+                  <span class="tab-kicker">あとで戻るとき</span>
+                  <span class="tab-main">家族みんなで一時退場</span>
+                  <span class="tab-sub">ご家族全員で外へ出て、あとで再入場する</span>
+                </span>
               </button>
+
               <button class="tab-btn" type="button" data-section="adult" aria-selected="false">
-                <span>🟡</span>大人だけ<br>外出
+                <span class="tab-icon">🟡</span>
+                <span class="tab-copy">
+                  <span class="tab-kicker">保護者だけ出るとき</span>
+                  <span class="tab-main">大人だけ外出</span>
+                  <span class="tab-sub">黄色ホルダーを持つ大人だけ外へ出る</span>
+                </span>
               </button>
+
               <button class="tab-btn" type="button" data-section="exit" aria-selected="false">
-                <span>🏁</span>完全退場して<br>帰る
+                <span class="tab-icon">🏁</span>
+                <span class="tab-copy">
+                  <span class="tab-kicker">利用を終えるとき</span>
+                  <span class="tab-main">完全退場して帰る</span>
+                  <span class="tab-sub">ホルダーを返却して、そのままお帰りになる</span>
+                </span>
               </button>
             </nav>
 
