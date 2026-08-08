@@ -4353,203 +4353,217 @@
     }
 
   
+    /* v22: HOME ONLY — fill the current viewport automatically */
+    body.home-view{
+      height:100vh;
+      height:100dvh;
+      overflow:hidden!important;
+    }
 
-    /* v21: HOME ONLY — fit the full main screen on iPad portrait without scrolling */
-    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
-      #timeView{
-        min-height:0!important;
-      }
+    body.home-view .app{
+      width:min(100%,900px);
+      height:100vh;
+      height:100dvh;
+      min-height:0!important;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      overflow:hidden;
+    }
 
-      #timeView .frame{
-        box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 24px rgba(104,234,255,.08)!important;
-      }
+    body.home-view .topbar{
+      min-height:0;
+      margin-bottom:clamp(6px,1dvh,12px)!important;
+    }
 
-      #timeView .hero{
-        min-height:0!important;
-        padding:14px 20px 12px!important;
-      }
+    body.home-view #timeView{
+      min-height:0!important;
+      height:100%!important;
+      overflow:hidden!important;
+    }
 
-      #timeView .hero small{
-        font-size:.58rem!important;
-      }
+    body.home-view #timeView .frame,
+    body.home-view #timeView .shell{
+      height:100%!important;
+      min-height:0!important;
+    }
 
-      #timeView .hero h1{
-        margin-top:3px!important;
-        font-size:1.72rem!important;
-        line-height:1.08!important;
-      }
+    body.home-view #timeView .shell{
+      display:grid!important;
+      grid-template-rows:auto minmax(0,1fr)!important;
+    }
 
-      #timeView .hero p{
-        margin-top:4px!important;
-        font-size:.72rem!important;
-        line-height:1.35!important;
-      }
+    body.home-view #timeView .hero{
+      min-height:0!important;
+      padding:clamp(11px,1.6dvh,20px) clamp(16px,2.5vw,22px) clamp(9px,1.3dvh,18px)!important;
+    }
 
-      #timeView .time-grid{
-        display:grid!important;
-        grid-template-columns:1fr!important;
-        gap:8px!important;
-        padding:10px!important;
-      }
+    body.home-view #timeView .hero h1{
+      margin-top:clamp(2px,.5dvh,6px)!important;
+      font-size:clamp(1.45rem,3.2dvh,2.35rem)!important;
+      line-height:1.08!important;
+    }
 
-      #timeView .stage{
-        min-height:0!important;
-        height:390px!important;
-        padding:14px 16px!important;
-      }
+    body.home-view #timeView .hero p{
+      margin-top:clamp(3px,.6dvh,7px)!important;
+      font-size:clamp(.64rem,1.35dvh,.86rem)!important;
+      line-height:1.35!important;
+    }
 
-      #timeView .orbit{
-        width:270px!important;
-      }
+    body.home-view #timeView .time-grid{
+      min-height:0!important;
+      height:100%!important;
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      grid-template-rows:minmax(0,1fr) auto!important;
+      align-items:stretch!important;
+      gap:clamp(6px,1dvh,12px)!important;
+      padding:clamp(8px,1.2dvh,14px)!important;
+      overflow:hidden!important;
+    }
 
-      #timeView .live-row{
-        font-size:.50rem!important;
-      }
+    body.home-view #timeView .stage{
+      min-height:0!important;
+      height:auto!important;
+      padding:clamp(10px,1.6dvh,20px) 16px!important;
+    }
 
-      #timeView .current-clock{
-        font-size:1.02rem!important;
-      }
+    body.home-view #timeView .stage-content{
+      gap:clamp(4px,.7dvh,8px)!important;
+    }
 
-      #timeView .plan-label{
-        margin-top:6px!important;
-        font-size:.70rem!important;
-      }
+    body.home-view #timeView .orbit{
+      width:min(38dvh,340px)!important;
+      max-width:72vw!important;
+    }
 
-      #timeView .entry-time{
-        margin-top:0!important;
-        font-size:6.15rem!important;
-        line-height:.86!important;
-      }
+    body.home-view #timeView .live-row{
+      font-size:clamp(.46rem,.9dvh,.62rem)!important;
+    }
 
-      #timeView .status-message{
-        margin-top:3px!important;
-        font-size:1.02rem!important;
-        line-height:1.28!important;
-      }
+    body.home-view #timeView .current-clock{
+      font-size:clamp(.92rem,1.8dvh,1.35rem)!important;
+    }
 
-      #timeView .status-note{
-        margin-top:0!important;
-        font-size:.62rem!important;
-        line-height:1.35!important;
-      }
+    body.home-view #timeView .plan-label{
+      margin-top:clamp(3px,.7dvh,10px)!important;
+      font-size:clamp(.62rem,1.25dvh,.84rem)!important;
+    }
 
-      #timeView .power-meter{
-        bottom:9px!important;
-      }
+    body.home-view #timeView .entry-time{
+      margin-top:0!important;
+      font-size:clamp(4.15rem,12dvh,8.15rem)!important;
+      line-height:.84!important;
+    }
 
-      /* Secondary explanation is omitted on the fixed home screen;
-         the same information remains available in the detail flow. */
-      #timeView .notice{
+    body.home-view #timeView .status-message{
+      margin-top:clamp(2px,.5dvh,7px)!important;
+      font-size:clamp(.88rem,1.75dvh,1.28rem)!important;
+      line-height:1.28!important;
+    }
+
+    body.home-view #timeView .status-note{
+      margin-top:0!important;
+      font-size:clamp(.56rem,1.05dvh,.76rem)!important;
+      line-height:1.32!important;
+    }
+
+    body.home-view #timeView .power-meter{
+      bottom:clamp(7px,1dvh,14px)!important;
+    }
+
+    body.home-view #timeView .side-column{
+      min-height:0!important;
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      gap:clamp(5px,.8dvh,10px)!important;
+    }
+
+    body.home-view #timeView .notice{
+      min-height:0!important;
+      padding:clamp(6px,.9dvh,11px) 12px!important;
+      font-size:clamp(.60rem,1.05dvh,.78rem)!important;
+      line-height:1.35!important;
+    }
+
+    body.home-view #timeView .home-exit-cta{
+      gap:clamp(2px,.5dvh,7px)!important;
+      padding:0!important;
+    }
+
+    body.home-view #timeView .home-exit-lead{
+      min-height:clamp(22px,3.2dvh,38px)!important;
+      font-size:clamp(.78rem,1.55dvh,1.18rem)!important;
+    }
+
+    body.home-view #timeView .home-exit-arrows{
+      height:clamp(18px,2.8dvh,32px)!important;
+      margin:-3px 0 0!important;
+    }
+
+    body.home-view #timeView .home-exit-arrows span{
+      width:clamp(20px,3dvh,30px)!important;
+      height:clamp(10px,1.6dvh,16px)!important;
+      border-right-width:clamp(4px,.55dvh,6px)!important;
+      border-bottom-width:clamp(4px,.55dvh,6px)!important;
+    }
+
+    body.home-view #timeView .home-exit-button{
+      min-height:clamp(96px,14dvh,154px)!important;
+      padding:clamp(13px,2dvh,24px) clamp(58px,8vw,80px) clamp(12px,1.8dvh,22px) clamp(18px,3vw,30px)!important;
+      border-radius:clamp(18px,2.5dvh,28px)!important;
+    }
+
+    body.home-view #timeView .home-exit-button-main{
+      font-size:clamp(1.48rem,3.3dvh,2.45rem)!important;
+      line-height:1.05!important;
+    }
+
+    body.home-view #timeView .home-exit-button-sub{
+      margin-top:clamp(5px,.8dvh,11px)!important;
+      padding-top:clamp(5px,.8dvh,11px)!important;
+      font-size:clamp(.70rem,1.45dvh,1.15rem)!important;
+    }
+
+    body.home-view #timeView .home-exit-button-arrow{
+      font-size:clamp(3.4rem,7dvh,5.4rem)!important;
+    }
+
+    @media (max-height:760px){
+      body.home-view #timeView .hero p,
+      body.home-view #timeView .notice,
+      body.home-view #timeView .status-note{
         display:none!important;
       }
 
-      #timeView .home-exit-cta{
-        gap:4px!important;
-        padding:2px 0 0!important;
-      }
-
-      #timeView .home-exit-lead{
-        min-height:28px!important;
-        font-size:1.02rem!important;
-      }
-
-      #timeView .home-exit-lead-line{
-        width:62px!important;
-      }
-
-      #timeView .home-exit-arrows{
-        height:24px!important;
-        margin:-3px 0 -1px!important;
-      }
-
-      #timeView .home-exit-arrows span{
-        width:25px!important;
-        height:13px!important;
-        border-right-width:5px!important;
-        border-bottom-width:5px!important;
-      }
-
-      #timeView .home-exit-button{
-        min-height:126px!important;
-        padding:18px 68px 16px 24px!important;
-        border-radius:24px!important;
-        border-width:3px!important;
-      }
-
-      #timeView .home-exit-button::before{
-        inset:6px!important;
-        border-radius:17px!important;
-      }
-
-      #timeView .home-exit-button-main{
-        font-size:2.02rem!important;
-        line-height:1.08!important;
-      }
-
-      #timeView .home-exit-button-sub{
-        margin-top:8px!important;
+      body.home-view #timeView .hero{
         padding-top:8px!important;
-        font-size:.92rem!important;
+        padding-bottom:7px!important;
       }
 
-      #timeView .home-exit-button-arrow{
-        font-size:4.4rem!important;
+      body.home-view #timeView .home-exit-button{
+        min-height:92px!important;
       }
     }
 
-    /* Shorter portrait iPads / browser chrome visible */
-    @media (min-width:700px) and (max-width:900px) and (orientation:portrait) and (max-height:1000px){
-      #timeView .hero{
-        padding:11px 18px 9px!important;
+    @media (orientation:landscape) and (min-width:700px){
+      body.home-view #timeView .time-grid{
+        grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr)!important;
+        grid-template-rows:minmax(0,1fr)!important;
       }
 
-      #timeView .hero h1{
-        font-size:1.56rem!important;
+      body.home-view #timeView .side-column{
+        align-content:center!important;
       }
 
-      #timeView .hero p{
-        font-size:.67rem!important;
-      }
-
-      #timeView .stage{
-        height:350px!important;
-      }
-
-      #timeView .entry-time{
-        font-size:5.55rem!important;
-      }
-
-      #timeView .status-message{
-        font-size:.94rem!important;
-      }
-
-      #timeView .home-exit-lead{
-        min-height:24px!important;
-        font-size:.94rem!important;
-      }
-
-      #timeView .home-exit-arrows{
-        height:20px!important;
-      }
-
-      #timeView .home-exit-button{
-        min-height:112px!important;
-        padding:14px 62px 13px 22px!important;
-      }
-
-      #timeView .home-exit-button-main{
-        font-size:1.82rem!important;
-      }
-
-      #timeView .home-exit-button-sub{
-        font-size:.84rem!important;
+      body.home-view #timeView .home-exit-button{
+        min-height:clamp(120px,24dvh,190px)!important;
       }
     }
 
   </style>
 </head>
 
-<body data-mode="150">
+<body data-mode="150" class="home-view">
   <div class="ambient"></div>
   <i class="star-streak"></i>
   <i class="star-streak"></i>
@@ -5044,9 +5058,11 @@
 
       function showView(name, animate = true) {
         currentView = name;
-        timeView.classList.toggle("active", name === "time");
+        const isHome = name === "time";
+        body.classList.toggle("home-view", isHome);
+        timeView.classList.toggle("active", isHome);
         detailView.classList.toggle("active", name === "detail");
-        document.getElementById("backButton").hidden = name === "time";
+        document.getElementById("backButton").hidden = isHome;
 
         if (animate) {
           window.scrollTo({ top: 0, behavior: "smooth" });
