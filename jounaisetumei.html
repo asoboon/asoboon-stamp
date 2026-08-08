@@ -4352,6 +4352,200 @@
       }
     }
 
+  
+
+    /* v21: HOME ONLY — fit the full main screen on iPad portrait without scrolling */
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      #timeView{
+        min-height:0!important;
+      }
+
+      #timeView .frame{
+        box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 24px rgba(104,234,255,.08)!important;
+      }
+
+      #timeView .hero{
+        min-height:0!important;
+        padding:14px 20px 12px!important;
+      }
+
+      #timeView .hero small{
+        font-size:.58rem!important;
+      }
+
+      #timeView .hero h1{
+        margin-top:3px!important;
+        font-size:1.72rem!important;
+        line-height:1.08!important;
+      }
+
+      #timeView .hero p{
+        margin-top:4px!important;
+        font-size:.72rem!important;
+        line-height:1.35!important;
+      }
+
+      #timeView .time-grid{
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        gap:8px!important;
+        padding:10px!important;
+      }
+
+      #timeView .stage{
+        min-height:0!important;
+        height:390px!important;
+        padding:14px 16px!important;
+      }
+
+      #timeView .orbit{
+        width:270px!important;
+      }
+
+      #timeView .live-row{
+        font-size:.50rem!important;
+      }
+
+      #timeView .current-clock{
+        font-size:1.02rem!important;
+      }
+
+      #timeView .plan-label{
+        margin-top:6px!important;
+        font-size:.70rem!important;
+      }
+
+      #timeView .entry-time{
+        margin-top:0!important;
+        font-size:6.15rem!important;
+        line-height:.86!important;
+      }
+
+      #timeView .status-message{
+        margin-top:3px!important;
+        font-size:1.02rem!important;
+        line-height:1.28!important;
+      }
+
+      #timeView .status-note{
+        margin-top:0!important;
+        font-size:.62rem!important;
+        line-height:1.35!important;
+      }
+
+      #timeView .power-meter{
+        bottom:9px!important;
+      }
+
+      /* Secondary explanation is omitted on the fixed home screen;
+         the same information remains available in the detail flow. */
+      #timeView .notice{
+        display:none!important;
+      }
+
+      #timeView .home-exit-cta{
+        gap:4px!important;
+        padding:2px 0 0!important;
+      }
+
+      #timeView .home-exit-lead{
+        min-height:28px!important;
+        font-size:1.02rem!important;
+      }
+
+      #timeView .home-exit-lead-line{
+        width:62px!important;
+      }
+
+      #timeView .home-exit-arrows{
+        height:24px!important;
+        margin:-3px 0 -1px!important;
+      }
+
+      #timeView .home-exit-arrows span{
+        width:25px!important;
+        height:13px!important;
+        border-right-width:5px!important;
+        border-bottom-width:5px!important;
+      }
+
+      #timeView .home-exit-button{
+        min-height:126px!important;
+        padding:18px 68px 16px 24px!important;
+        border-radius:24px!important;
+        border-width:3px!important;
+      }
+
+      #timeView .home-exit-button::before{
+        inset:6px!important;
+        border-radius:17px!important;
+      }
+
+      #timeView .home-exit-button-main{
+        font-size:2.02rem!important;
+        line-height:1.08!important;
+      }
+
+      #timeView .home-exit-button-sub{
+        margin-top:8px!important;
+        padding-top:8px!important;
+        font-size:.92rem!important;
+      }
+
+      #timeView .home-exit-button-arrow{
+        font-size:4.4rem!important;
+      }
+    }
+
+    /* Shorter portrait iPads / browser chrome visible */
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait) and (max-height:1000px){
+      #timeView .hero{
+        padding:11px 18px 9px!important;
+      }
+
+      #timeView .hero h1{
+        font-size:1.56rem!important;
+      }
+
+      #timeView .hero p{
+        font-size:.67rem!important;
+      }
+
+      #timeView .stage{
+        height:350px!important;
+      }
+
+      #timeView .entry-time{
+        font-size:5.55rem!important;
+      }
+
+      #timeView .status-message{
+        font-size:.94rem!important;
+      }
+
+      #timeView .home-exit-lead{
+        min-height:24px!important;
+        font-size:.94rem!important;
+      }
+
+      #timeView .home-exit-arrows{
+        height:20px!important;
+      }
+
+      #timeView .home-exit-button{
+        min-height:112px!important;
+        padding:14px 62px 13px 22px!important;
+      }
+
+      #timeView .home-exit-button-main{
+        font-size:1.82rem!important;
+      }
+
+      #timeView .home-exit-button-sub{
+        font-size:.84rem!important;
+      }
+    }
+
   </style>
 </head>
 
