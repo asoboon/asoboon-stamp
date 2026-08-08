@@ -1,6 +1,6 @@
-# ブーンジャンプ V2.3.9
+# ブーンジャンプ V2.4.0
 
-Build: `2026-08-07-ranking-bulk-secret-excluded-v17`
+Build: `2026-08-08-ranking-duplicate-name-fix-v18`
 
 ## 3コンボ入力
 
@@ -21,4 +21,4 @@ SECRET「無敵のロケットアソブーン人間」は超高難度3コンボ�
 
 ## 必須API
 
-Apps Script API **2.3.9**。`Code.gs`を全文差し替え、新バージョンで再デプロイしてください。
+Apps Script API **2.4.0**。`Code.gs`を全文差し替え、新バージョンで再デプロイしてください。

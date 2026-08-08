@@ -1,10 +1,10 @@
-const BUILD = "2026-08-07-ranking-bulk-secret-excluded-v17";
+const BUILD = "2026-08-08-ranking-duplicate-name-fix-v18";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=239-bulk-secret-excluded-17",
+  "./ranking-client.js?v=240-duplicate-name-fix-18",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

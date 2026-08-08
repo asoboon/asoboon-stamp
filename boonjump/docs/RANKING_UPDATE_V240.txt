@@ -1,0 +1,15 @@
+ブーンジャンプ V2.4.0
+
+変更点
+- ランキング表示名の重複を許可
+- 本人識別は player_id + player_token のみ
+- 同じ名前の別ユーザーがいても登録を拒否しない
+- 同一ID/tokenの本人は既存データを更新
+- 通常7マシン一括登録、SECRETは個別登録のみを継続
+
+公開手順
+1. GitHubをV2.4.0へ差し替え
+2. Code.gsをV2.4.0へ全文差し替え
+3. Apps Scriptを新バージョンで再デプロイ
+4. healthで api_version=2.4.0 と duplicate_names_allowed=true を確認
+5. /boonjump/?v=240 で確認

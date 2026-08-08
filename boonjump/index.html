@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.3.9">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.4.0">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-07-ranking-bulk-secret-excluded-v17">
-  <title>ブーンジャンプ Ver.2.3.9｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-08-ranking-duplicate-name-fix-v18">
+  <title>ブーンジャンプ Ver.2.4.0｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -194,7 +194,7 @@ main{position:relative;z-index:2;width:min(100%,760px);margin:0 auto;padding:8px
 @keyframes crownBounce{0%{transform:translateY(-45px) rotate(-12deg) scale(.3)}62%{transform:translateY(8px) rotate(5deg) scale(1.18)}100%{transform:none}}
 @media(prefers-reduced-motion:reduce){.impact-flash.show{animation:none;opacity:.62}.trophy-complete-overlay.show{animation:tcOverlayLife 10.4s linear both}.tc-blackout,.tc-rays,.tc-halo,.tc-fireworks,.tc-confetti{display:none}.trophy-complete-overlay.show .tc-sky{animation:none;opacity:1;transform:none}.trophy-complete-overlay.show .tc-crown-wrap,.trophy-complete-overlay.show .tc-title,.trophy-complete-overlay.show .tc-count,.trophy-complete-overlay.show .tc-seal,.trophy-complete-overlay.show .tc-legend{animation:none;opacity:1;transform:translateX(-50%)}.tc-crown{animation:none}}
 
-/* V2.3.9 — visible machine boards + post-registration navigation */
+/* V2.4.0 — visible machine boards + post-registration navigation */
 body[data-machine="boon"]{--machine-accent:#ffd83d}body[data-machine="wagon"]{--machine-accent:#72e8ff}body[data-machine="buggy"]{--machine-accent:#8cff63}body[data-machine="bike"]{--machine-accent:#ff6b38}body[data-machine="sport"]{--machine-accent:#ff4677}body[data-machine="ssr"]{--machine-accent:#8c70ff}body[data-machine="princess"]{--machine-accent:#ff9fe1}body[data-machine="secret"]{--machine-accent:#fff35c}
 .game-shell[data-machine]{border-color:color-mix(in srgb,var(--machine-accent,#49b7ff) 62%,white 12%);box-shadow:0 20px 55px rgba(0,0,0,.36),0 0 34px color-mix(in srgb,var(--machine-accent,#49b7ff) 22%,transparent)}
 .machine-control-note{font-size:.66rem;padding:6px 11px;border:1px solid color-mix(in srgb,var(--machine-accent,#49b7ff) 45%,transparent);background:color-mix(in srgb,var(--machine-accent,#49b7ff) 13%,transparent);color:#fff}
@@ -223,7 +223,7 @@ body.modal-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.ranking-gate::before,.ranking-gate::after,.ranking-gate-globe{animation:none}}
 
 
-/* V2.3.9 — scrolling world board, visible machine chooser, vehicle images */
+/* V2.4.0 — scrolling world board, visible machine chooser, vehicle images */
 #rankingScreen{align-items:start}
 .ranking-panel{overflow:visible;padding-bottom:46px}
 .ranking-tabs{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px}
@@ -244,7 +244,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:560px){.ranking-machine-grid{grid-template-columns:1fr}.ranking-machine-card{grid-template-columns:104px minmax(0,1fr) 20px;min-height:94px}.ranking-machine-card-vehicle{height:72px}.ranking-machine-card-vehicle .vehicle{width:136px}.ranking-row{grid-template-columns:43px 76px minmax(0,1fr);gap:6px}.ranking-row-machine{width:76px}.ranking-distance{grid-column:3;justify-self:start;margin-top:-7px;font-size:1.06rem}.ranking-copy small{white-space:normal;line-height:1.25}.ranking-row.top-1{min-height:98px}}
 @media(max-width:370px){.ranking-tabs{grid-template-columns:1fr}.ranking-machine-hero{grid-template-columns:1fr;text-align:center}.ranking-machine-hero-vehicle{height:82px}.ranking-row{grid-template-columns:38px 68px minmax(0,1fr);padding-inline:7px}.ranking-row-machine{width:68px}.ranking-row-machine .vehicle{width:98px}.ranking-copy strong{font-size:.78rem}}
 
-/* V2.3.9 — TOP10 dashboard + always-visible machine TOP3 */
+/* V2.4.0 — TOP10 dashboard + always-visible machine TOP3 */
 .ranking-panel{overflow:visible;padding-bottom:52px}
 .ranking-overview{display:grid;gap:18px;margin-top:12px}
 .ranking-board-block{position:relative;padding:14px 12px 13px;border:1px solid rgba(255,255,255,.13);border-radius:22px;background:linear-gradient(155deg,rgba(255,255,255,.07),rgba(255,255,255,.025));box-shadow:0 14px 32px rgba(0,0,0,.18)}
@@ -271,7 +271,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:370px){.ranking-machine-board-head{grid-template-columns:88px minmax(0,1fr) 42px;padding-left:0}.ranking-machine-board-vehicle .vehicle{width:116px}.ranking-machine-board-copy b{font-size:.72rem}.ranking-row{grid-template-columns:36px 58px minmax(0,1fr);padding-inline:6px}.ranking-row-machine{width:58px}.ranking-row-machine .vehicle{width:88px}}
 
 
-/* V2.3.9 — all personal bests bulk registration */
+/* V2.4.0 — all personal bests bulk registration */
 .records-bulk-card{margin:10px 0 12px;padding:14px;border:1px solid rgba(99,232,255,.42);border-radius:20px;background:radial-gradient(circle at 92% 0,rgba(117,74,255,.24),transparent 44%),linear-gradient(135deg,rgba(38,142,205,.18),rgba(41,30,100,.18));box-shadow:0 12px 30px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08)}
 .records-bulk-head{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:center}.records-bulk-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#49b7ff,#754aff);font-size:1.35rem;box-shadow:0 7px 18px rgba(73,183,255,.24)}.records-bulk-copy small{display:block;color:#8fe7ff;font-size:.52rem;font-weight:1000;letter-spacing:.12em}.records-bulk-copy strong{display:block;margin-top:3px;font-size:.86rem;line-height:1.25}.records-bulk-copy p{margin:4px 0 0;color:#a9bdd4;font-size:.56rem;font-weight:800;line-height:1.45}
 .records-bulk-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 9px}.records-bulk-meta span{padding:7px 4px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.05);text-align:center}.records-bulk-meta small{display:block;color:#91a5bf;font-size:.46rem;font-weight:1000}.records-bulk-meta b{display:block;margin-top:2px;font-size:.73rem}
@@ -291,7 +291,7 @@ body.modal-open{overflow:hidden}
       <span aria-hidden="true">⌂</span>
     </a>
     <div class="brandbar">
-      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.3.9</em></strong></div>
+      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.4.0</em></strong></div>
       <div class="header-actions">
         <button class="sound-button" id="soundButton" type="button" aria-label="効果音を切り替える">🔊</button>
         <div class="ticket-pill"><small>GACHA</small><b id="ticketCount">🎟 1</b></div>
@@ -576,13 +576,13 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=239-bulk-secret-excluded-17"></script>
+<script src="./ranking-client.js?v=240-duplicate-name-fix-18"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '2.3.9';
-  const BUILD = '2026-08-07-ranking-bulk-secret-excluded-v17';
+  const APP_VERSION = '2.4.0';
+  const BUILD = '2026-08-08-ranking-duplicate-name-fix-v18';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -1053,9 +1053,9 @@ body.modal-open{overflow:hidden}
   const renderRankingDashboard=data=>{if(!data||!data.overview||!Array.isArray(data.machines))return false;renderOverviewBoard(el.rankingTodayList,el.rankingTodayCount,el.rankingTodayMe,data.overview.today);renderOverviewBoard(el.rankingWeekList,el.rankingWeekCount,el.rankingWeekMe,data.overview.week);renderOverviewBoard(el.rankingAllList,el.rankingAllCount,el.rankingAllMe,data.overview.all);renderMachineBoards(data.machines);return true;};
   const dashboardHasRecord=(data,payload)=>{if(!data||!payload)return false;const machine=(data.machines||[]).find(entry=>entry.machine_id===payload.machineId),me=machine&&machine.board&&machine.board.me;return Boolean(me&&me.player_id===BOON_RANKING.getPlayerId()&&Number(me.distance||0)>=Number(payload.distance||0));};
   const dashboardBulkVerified=(data,payloads)=>{const rows=Array.isArray(payloads)?payloads:[];return rows.filter(payload=>dashboardHasRecord(data,payload)).length;};
-  const loadRankingDashboard=async({force=false,expandMachineId='',scrollToMachine=false,preserve=false,verifyPayloads=null}={})=>{if(rankingBusy&&!force)return null;rankingBusy=true;if(!preserve)setRankingLoading();el.rankingStatus.textContent=preserve?'最新ランキングを確認中…':'今日・今週・歴代・マシン別をまとめて読み込み中…';try{const data=await BOON_RANKING.getDashboard({force});renderRankingDashboard(data);const verified=verifyPayloads?dashboardBulkVerified(data,verifyPayloads):0;el.rankingStatus.textContent=verifyPayloads?`✅ ランキング反映確認 ${verified}/${verifyPayloads.length}台｜${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新`:`${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新｜1人につき各ランキング1ベスト`;if(expandMachineId)await expandMachineBoard(expandMachineId,{forceOpen:true,scroll:scrollToMachine});return data;}catch(err){const rawMessage=String(err&&err.message||'ランキングを取得できませんでした。'),message=escapeHtml(/不明なaction|dashboard/i.test(rawMessage)?'Apps ScriptをV2.3.9へ更新し、新バージョンで再デプロイしてください。':rawMessage);if(!preserve){for(const node of [el.rankingTodayList,el.rankingWeekList,el.rankingAllList])node.innerHTML=`<div class="ranking-empty">取得できませんでした<br><small>${message}</small></div>`;el.rankingMachineBoards.innerHTML=`<div class="ranking-empty">マシン別ランキングを取得できませんでした<br><small>${message}</small></div>`;}el.rankingStatus.textContent=verifyPayloads?'✅ 記録登録は完了しています。ランキング表示の最新確認だけ失敗しました。':'通信状況をご確認ください。';return null;}finally{rankingBusy=false;}};
+  const loadRankingDashboard=async({force=false,expandMachineId='',scrollToMachine=false,preserve=false,verifyPayloads=null}={})=>{if(rankingBusy&&!force)return null;rankingBusy=true;if(!preserve)setRankingLoading();el.rankingStatus.textContent=preserve?'最新ランキングを確認中…':'今日・今週・歴代・マシン別をまとめて読み込み中…';try{const data=await BOON_RANKING.getDashboard({force});renderRankingDashboard(data);const verified=verifyPayloads?dashboardBulkVerified(data,verifyPayloads):0;el.rankingStatus.textContent=verifyPayloads?`✅ ランキング反映確認 ${verified}/${verifyPayloads.length}台｜${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新`:`${new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})} 更新｜1人につき各ランキング1ベスト`;if(expandMachineId)await expandMachineBoard(expandMachineId,{forceOpen:true,scroll:scrollToMachine});return data;}catch(err){const rawMessage=String(err&&err.message||'ランキングを取得できませんでした。'),message=escapeHtml(/不明なaction|dashboard/i.test(rawMessage)?'Apps ScriptをV2.4.0へ更新し、新バージョンで再デプロイしてください。':rawMessage);if(!preserve){for(const node of [el.rankingTodayList,el.rankingWeekList,el.rankingAllList])node.innerHTML=`<div class="ranking-empty">取得できませんでした<br><small>${message}</small></div>`;el.rankingMachineBoards.innerHTML=`<div class="ranking-empty">マシン別ランキングを取得できませんでした<br><small>${message}</small></div>`;}el.rankingStatus.textContent=verifyPayloads?'✅ 記録登録は完了しています。ランキング表示の最新確認だけ失敗しました。':'通信状況をご確認ください。';return null;}finally{rankingBusy=false;}};
   const openRanking=({expandMachineId='',scrollToMachine=false,force=false,notice='',verifyPayloads=null}={})=>{setRankingNameUi();showScreen('ranking');window.scrollTo({top:0,behavior:'smooth'});const cached=BOON_RANKING.peekDashboard&&BOON_RANKING.peekDashboard();const hasCached=renderRankingDashboard(cached);if(notice)el.rankingStatus.textContent=notice;else if(hasCached)el.rankingStatus.textContent='⚡ 前回データを即表示｜最新ランキングを確認中…';loadRankingDashboard({force,preserve:hasCached,expandMachineId,scrollToMachine,verifyPayloads});};
-  const shouldReopenNameGate=message=>/先にランキングネーム|ランキングネームは2|名前は2|すでに使われ|この名前は使用できません|URLや連絡先/.test(String(message||''));
+  const shouldReopenNameGate=message=>/先にランキングネーム|ランキングネームは2|名前は2|この名前は使用できません|URLや連絡先/.test(String(message||''));
   const submitRankCandidate=async(payload,context='result')=>{if(rankSubmitBusy||!payload)return;if(!BOON_RANKING.getPlayerName()){showRankingGate(payload,context,'この記録を登録するための名前を決めてください。');return;}const status=statusNodeFor(context),car=CAR_BY_ID[payload.machineId];rankSubmitBusy=true;setSubmitButtonsDisabled(true);status.hidden=false;status.className=context==='result'?'ranking-result-note sending':'records-ranking-status';status.textContent=`🌍 ${car?car.name:'記録'}をランキングへ登録中…`;let completed=false;try{const result=await BOON_RANKING.submitScore(payload);completed=true;updateLocalRegistration(payload,result);machineFullCache.delete(payload.machineId);BOON_RANKING.invalidateCache({keepStale:true});if(context==='result'){status.className='ranking-result-note success';status.textContent=result.skipped?'✅ この記録はすでに登録済みです。':'🏆 登録完了！ ランキング反映を確認中…';el.resultRankButton.classList.add('registered');el.resultRankButton.textContent='✓ ランキング登録済み';el.resultRankingLink.innerHTML='🏆 登録をランキングで確認<small>最新順位を表示します</small>';BOON_RANKING.getDashboard({force:true}).then(data=>{if(dashboardHasRecord(data,payload))status.textContent='✅ 世界ランキングへの反映を確認しました！';else status.textContent='✅ 登録済みです。ランキング表示を更新しています…';}).catch(()=>{status.textContent='✅ 記録登録は完了しました。ランキング表示はボタンから再確認できます。';});}else{renderRecords();status.hidden=false;status.textContent='🏆 登録完了！ ランキングで反映を確認します…';openRanking({expandMachineId:payload.machineId,scrollToMachine:true,force:true,notice:`🏆 ${car?car.name:'記録'}を登録しました。反映を確認中…`,verifyPayloads:[payload]});}}catch(err){const message=String(err&&err.message||'ランキングへ登録できませんでした。');status.className=context==='result'?'ranking-result-note pending':'records-ranking-status';status.hidden=false;status.textContent=`⚠ ${message}`;if(shouldReopenNameGate(message)){BOON_RANKING.setPlayerName('');setRankingNameUi();showRankingGate(payload,context,message);}}finally{rankSubmitBusy=false;setSubmitButtonsDisabled(false);if(completed&&context==='result')el.resultRankButton.disabled=true;}};
   const saveInitialRankingName=async()=>{if(rankingGateSaving)return;rankingGateSaving=true;el.rankingGateSave.disabled=true;const queued=pendingRankCandidate,previous=BOON_RANKING.getPlayerName();try{const name=BOON_RANKING.normalizePlayerName(el.rankingGateInput.value);el.rankingGateStatus.textContent='名前と記録をまとめて登録します…';BOON_RANKING.setPlayerName(name);setRankingNameUi();pendingRankCandidate=null;hideRankingGate();if(queued&&queued.context==='bulk')await submitAllRecordsToRanking(queued.payload);else if(queued)await submitRankCandidate(queued.payload,queued.context);else await BOON_RANKING.registerName(name);}catch(err){BOON_RANKING.setPlayerName(previous);el.rankingGate.hidden=false;document.body.classList.add('modal-open');el.rankingGateStatus.textContent=err.message||'登録できませんでした。';}finally{rankingGateSaving=false;el.rankingGateSave.disabled=false;}};
   const saveRankingName=async()=>{if(rankingNameSaving)return;rankingNameSaving=true;el.rankingNameSave.disabled=true;try{el.rankingStatus.textContent='ランキングネームを登録しています…';await BOON_RANKING.registerName(el.rankingNameInput.value);setRankingNameUi();BOON_RANKING.invalidateCache();el.rankingStatus.textContent='ランキングネームを登録しました。';await loadRankingDashboard({force:true});}catch(err){setRankingNameUi();el.rankingStatus.textContent=err.message||'名前を登録できませんでした。';}finally{rankingNameSaving=false;el.rankingNameSave.disabled=false;}};

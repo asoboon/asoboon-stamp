@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.3.9
+ * ブーンジャンプ 世界ランキング API V2.4.0
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
  *
@@ -16,7 +16,7 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
-  API_VERSION: '2.3.9',
+  API_VERSION: '2.4.0',
   DASHBOARD_CACHE_TTL: 30,
   SHEETS: Object.freeze({
     PLAYERS: 'players',
@@ -62,6 +62,7 @@ function doGet(e) {
         write_policy: 'meaningful-best-only',
         bulk_submit: true,
         bulk_secret_excluded: true,
+        duplicate_names_allowed: true,
         secret_ranking: 'machine-only',
         dashboard_flush_verified: true,
         dashboard_server_cache: true,
@@ -166,8 +167,6 @@ function submitScore_(body) {
   let displayName = submittedName;
   if (player) {
     displayName = validateName_(player.display_name);
-  } else {
-    assertNameAvailable_(submittedName, playerId);
   }
 
   const machineId = String(body.machine_id || '').trim();
@@ -331,7 +330,7 @@ function bulkSubmitScores_(body) {
 
   let displayName = submittedName;
   if (player) displayName = validateName_(player.display_name);
-  else assertNameAvailable_(submittedName, playerId);
+
 
   const records = parseBulkRecords_(body);
   const receivedAt = new Date();
@@ -622,7 +621,6 @@ function renamePlayer_(body) {
 
   enforceRateLimit_('rename', playerId, 10);
   assertPlayerIdentity_(player, playerToken, 'rename', displayName);
-  assertNameAvailable_(displayName, playerId);
 
   const now = new Date();
   upsertPlayer_(playerId, displayName, now, 'ACTIVE', true, playerToken);
@@ -639,14 +637,14 @@ function renamePlayer_(body) {
 }
 
 function checkNameAvailable_(p) {
-  const playerId = cleanId_(p.player_id, 12, 100, 'player_id');
+  // V2.4.0: 表示名の重複は許可する。本人識別は player_id + player_token で行う。
   const displayName = validateName_(p.display_name);
-  const available = !isDisplayNameTaken_(displayName, playerId);
   return {
     ok: true,
-    available,
+    available: true,
+    duplicate_names_allowed: true,
     display_name: displayName,
-    error: available ? '' : 'このランキングネームはすでに使われています。',
+    error: '',
   };
 }
 
@@ -1121,25 +1119,13 @@ function canonicalNameKey_(value) {
 }
 
 function isDisplayNameTaken_(displayName, exceptPlayerId) {
-  const target = canonicalNameKey_(displayName);
-  if (!target) return false;
-
-  const rows = readPlayerRecords_();
-  for (let i = 0; i < rows.length; i++) {
-    const rowPlayerId = rows[i].player_id;
-    const rowName = rows[i].display_name;
-    const rowStatus = rows[i].status;
-    if (!rowPlayerId || rowPlayerId === String(exceptPlayerId || '')) continue;
-    if (rowStatus !== 'ACTIVE') continue;
-    if (canonicalNameKey_(rowName) === target) return true;
-  }
+  // V2.4.0: 表示名は重複可。本人識別には使用しない。
   return false;
 }
 
 function assertNameAvailable_(displayName, exceptPlayerId) {
-  if (isDisplayNameTaken_(displayName, exceptPlayerId)) {
-    throw new Error('このランキングネームはすでに使われています。別の名前をつけてください。');
-  }
+  // V2.4.0: 表示名は重複可。validateName_による形式/NGワード検査のみ行う。
+  return true;
 }
 
 function validateName_(value) {
@@ -1291,29 +1277,10 @@ function truncate_(value, maxLength) {
   return String(value || '').slice(0, maxLength);
 }
 
-/** 管理用: 既存の重複名を整理 */
+/** 管理用: V2.4.0以降は表示名重複を許可するため何もしない */
 function repairDuplicateNames() {
-  const sh = playersSheet_();
-  const values = sh.getDataRange().getValues();
-  const claimed = new Set();
-  let repaired = 0;
-
-  for (let i = 1; i < values.length; i++) {
-    const key = canonicalNameKey_(values[i][1]);
-    if (!key) continue;
-    if (claimed.has(key)) {
-      sh.getRange(i + 1, 2).clearContent();
-      sh.getRange(i + 1, 4).setValue(new Date());
-      sh.getRange(i + 1, 5).setValue('RENAME_REQUIRED');
-      repaired += 1;
-    } else {
-      claimed.add(key);
-    }
-  }
-  SpreadsheetApp.flush();
-  if (repaired > 0) bumpDashboardRevision_();
-  console.log('重複名の整理件数: ' + repaired);
-  return repaired;
+  console.log('V2.4.0: 表示名の重複は許可されています。整理処理は不要です。');
+  return 0;
 }
 
 /** 管理用: period_bestsの既存重複を整理 */
@@ -1354,6 +1321,7 @@ function testHealth() {
       ranking_mode: 'manual',
       bulk_submit: true,
       bulk_secret_excluded: true,
+      duplicate_names_allowed: true,
       secret_ranking: 'machine-only',
       dashboard_flush_verified: true,
       dashboard_server_cache: true,

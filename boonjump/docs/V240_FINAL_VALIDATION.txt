@@ -1,0 +1,32 @@
+ブーンジャンプ V2.4.0 最終検証
+
+Version: 2.4.0
+Build: 2026-08-08-ranking-duplicate-name-fix-v18
+Apps Script API target: 2.4.0
+
+変更内容
+- 表示名の重複を完全許可
+- 本人識別は player_id + player_token
+- 同じID/tokenの本人は既存プレイヤーとして更新
+- 別ID/tokenでも同じ表示名を使用可能
+- name_available は名前形式/NGワード検証後 available=true
+- 旧「名前が使われています」で名前入力へ戻る処理を撤廃
+- repairDuplicateNames は破壊的処理を停止し no-op化
+- 通常7マシン一括登録、SECRET個別登録を継続
+
+検証
+- Code.gs JavaScript構文: PASS
+- ranking-client.js 構文: PASS
+- sw.js 構文: PASS
+- index.html inline JavaScript構文: PASS
+- assertNameAvailable_ 呼び出し: 0（定義のみ）
+- isDisplayNameTaken_ 呼び出し: 0（定義のみ）
+- duplicate_names_allowed health flag: PASS
+- APP_VERSION 2.4.0: PASS
+- Build v18: PASS
+
+公開後health確認
+api_version=2.4.0
+duplicate_names_allowed=true
+bulk_submit=true
+bulk_secret_excluded=true
