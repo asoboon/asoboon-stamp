@@ -3994,6 +3994,364 @@
       }
     }
 
+  
+
+    /* v18: HOME ONLY — make the entry/exit guide impossible to miss */
+    #timeView .home-exit-cta{
+      position:relative;
+      isolation:isolate;
+      display:grid;
+      gap:8px;
+      padding:8px 0 2px;
+    }
+
+    #timeView .home-exit-cta::before{
+      content:"";
+      position:absolute;
+      z-index:-1;
+      left:4%;
+      right:4%;
+      top:42%;
+      bottom:-12%;
+      border-radius:38px;
+      background:
+        radial-gradient(ellipse at center,
+          rgba(255,209,93,.28) 0%,
+          rgba(255,209,93,.13) 38%,
+          rgba(255,209,93,0) 72%);
+      filter:blur(16px);
+      pointer-events:none;
+      animation:homeCtaHalo 2.6s ease-in-out infinite;
+    }
+
+    #timeView .home-exit-lead{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:11px;
+      min-height:36px;
+      color:#fff0a9;
+      text-align:center;
+      text-shadow:0 0 14px rgba(255,209,93,.24);
+      font-size:.92rem;
+      line-height:1.2;
+      font-weight:1000;
+      letter-spacing:.035em;
+    }
+
+    #timeView .home-exit-lead-line{
+      width:min(13vw,66px);
+      height:2px;
+      border-radius:99px;
+      background:linear-gradient(90deg,transparent,#ffd15d);
+      box-shadow:0 0 9px rgba(255,209,93,.32);
+    }
+
+    #timeView .home-exit-lead-line:last-child{
+      transform:scaleX(-1);
+    }
+
+    #timeView .home-exit-arrows{
+      display:grid;
+      justify-items:center;
+      gap:0;
+      height:30px;
+      margin:-2px 0 1px;
+      pointer-events:none;
+    }
+
+    #timeView .home-exit-arrows span{
+      width:27px;
+      height:15px;
+      border-right:5px solid #ffd15d;
+      border-bottom:5px solid #ffd15d;
+      transform:rotate(45deg);
+      filter:drop-shadow(0 0 6px rgba(255,209,93,.42));
+      animation:homeArrowNudge 1.45s ease-in-out infinite;
+    }
+
+    #timeView .home-exit-arrows span + span{
+      margin-top:-7px;
+      opacity:.62;
+      animation-delay:.12s;
+    }
+
+    #timeView .home-exit-button{
+      position:relative!important;
+      display:grid!important;
+      grid-template-columns:minmax(0,1fr) 42px!important;
+      grid-template-areas:
+        "main arrow"
+        "sub arrow"!important;
+      align-items:center!important;
+      width:100%!important;
+      min-height:118px!important;
+      padding:20px 60px 18px 22px!important;
+      overflow:hidden!important;
+      border:3px solid rgba(255,225,113,.96)!important;
+      border-radius:24px!important;
+      clip-path:none!important;
+      color:#251900!important;
+      text-align:left!important;
+      background:
+        linear-gradient(180deg,#fff7bf 0%,#ffd84e 44%,#ffbf18 100%)!important;
+      box-shadow:
+        0 18px 36px rgba(0,0,0,.34),
+        0 0 0 3px rgba(255,209,93,.09),
+        0 0 32px rgba(255,209,93,.34),
+        inset 0 2px 0 rgba(255,255,255,.70),
+        inset 0 -5px 0 rgba(168,103,0,.16)!important;
+      transform:none!important;
+      animation:homeButtonPulse 2.4s ease-in-out infinite!important;
+    }
+
+    #timeView .home-exit-button::before{
+      content:"";
+      position:absolute!important;
+      display:block!important;
+      inset:5px!important;
+      border:1px solid rgba(255,255,255,.65)!important;
+      border-radius:18px!important;
+      pointer-events:none!important;
+    }
+
+    #timeView .home-exit-button::after{
+      content:"";
+      position:absolute!important;
+      display:block!important;
+      top:-20%!important;
+      bottom:-20%!important;
+      left:-34%!important;
+      width:22%!important;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.70),transparent)!important;
+      transform:skewX(-18deg)!important;
+      animation:homeButtonSweep 3.8s ease-in-out infinite!important;
+      pointer-events:none!important;
+    }
+
+    #timeView .home-exit-button-main{
+      grid-area:main;
+      display:block;
+      position:relative;
+      z-index:2;
+      color:#171100;
+      font-size:clamp(1.35rem,4.8vw,2.02rem);
+      line-height:1.12;
+      font-weight:1000;
+      letter-spacing:-.02em;
+      text-shadow:0 1px 0 rgba(255,255,255,.35);
+    }
+
+    #timeView .home-exit-button-sub{
+      grid-area:sub;
+      display:block;
+      position:relative;
+      z-index:2;
+      margin-top:8px;
+      padding-top:8px;
+      border-top:2px dotted rgba(55,38,0,.38);
+      color:#5a3c00;
+      font-size:clamp(.72rem,2.4vw,.98rem);
+      line-height:1.3;
+      font-weight:1000;
+      letter-spacing:.015em;
+    }
+
+    #timeView .home-exit-button-arrow{
+      grid-area:arrow;
+      display:grid;
+      place-items:center;
+      position:relative;
+      z-index:2;
+      align-self:stretch;
+      color:#2d2100;
+      font-size:3.9rem;
+      line-height:.8;
+      font-weight:500;
+      transform:translateX(2px);
+      animation:homeArrowSlide 1.6s ease-in-out infinite;
+    }
+
+    #timeView .home-exit-button:active{
+      transform:translateY(2px) scale(.992)!important;
+      box-shadow:
+        0 10px 22px rgba(0,0,0,.30),
+        0 0 24px rgba(255,209,93,.28),
+        inset 0 2px 0 rgba(255,255,255,.55)!important;
+    }
+
+    @keyframes homeCtaHalo{
+      0%,100%{opacity:.58;transform:scale(.96)}
+      50%{opacity:1;transform:scale(1.035)}
+    }
+
+    @keyframes homeArrowNudge{
+      0%,100%{transform:translateY(-2px) rotate(45deg);opacity:.48}
+      50%{transform:translateY(5px) rotate(45deg);opacity:1}
+    }
+
+    @keyframes homeButtonPulse{
+      0%,100%{
+        box-shadow:
+          0 18px 36px rgba(0,0,0,.34),
+          0 0 0 3px rgba(255,209,93,.09),
+          0 0 26px rgba(255,209,93,.26),
+          inset 0 2px 0 rgba(255,255,255,.70),
+          inset 0 -5px 0 rgba(168,103,0,.16);
+      }
+      50%{
+        box-shadow:
+          0 20px 40px rgba(0,0,0,.36),
+          0 0 0 6px rgba(255,209,93,.12),
+          0 0 46px rgba(255,209,93,.44),
+          inset 0 2px 0 rgba(255,255,255,.78),
+          inset 0 -5px 0 rgba(168,103,0,.14);
+      }
+    }
+
+    @keyframes homeButtonSweep{
+      0%,58%{left:-34%;opacity:0}
+      67%{opacity:.85}
+      84%,100%{left:124%;opacity:0}
+    }
+
+    @keyframes homeArrowSlide{
+      0%,100%{transform:translateX(0)}
+      50%{transform:translateX(7px)}
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      #timeView .home-exit-cta{
+        gap:10px;
+        padding-top:12px;
+      }
+
+      #timeView .home-exit-lead{
+        min-height:44px;
+        font-size:1.28rem;
+      }
+
+      #timeView .home-exit-lead-line{
+        width:76px;
+      }
+
+      #timeView .home-exit-arrows{
+        height:38px;
+      }
+
+      #timeView .home-exit-arrows span{
+        width:34px;
+        height:18px;
+        border-right-width:6px;
+        border-bottom-width:6px;
+      }
+
+      #timeView .home-exit-button{
+        min-height:164px!important;
+        padding:28px 78px 26px 30px!important;
+        border-radius:28px!important;
+        border-width:4px!important;
+      }
+
+      #timeView .home-exit-button::before{
+        inset:7px!important;
+        border-radius:20px!important;
+      }
+
+      #timeView .home-exit-button-main{
+        font-size:2.46rem!important;
+      }
+
+      #timeView .home-exit-button-sub{
+        margin-top:12px;
+        padding-top:12px;
+        font-size:1.22rem!important;
+      }
+
+      #timeView .home-exit-button-arrow{
+        font-size:5.4rem!important;
+      }
+    }
+
+    @media (max-width:699px){
+      #timeView .home-exit-button{
+        min-height:110px!important;
+      }
+
+      #timeView .home-exit-lead{
+        font-size:.86rem;
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      #timeView .home-exit-cta::before,
+      #timeView .home-exit-arrows span,
+      #timeView .home-exit-button,
+      #timeView .home-exit-button::after,
+      #timeView .home-exit-button-arrow{
+        animation:none!important;
+      }
+    }
+
+  
+
+    /* v19: HOME ONLY — distinguish information from tappable controls */
+    #timeView .status-message{
+      max-width:560px!important;
+      margin-top:10px!important;
+      padding:0!important;
+      border:0!important;
+      border-radius:0!important;
+      color:#fff4c5!important;
+      background:none!important;
+      box-shadow:none!important;
+      font-size:1.16rem!important;
+      line-height:1.45!important;
+      font-weight:1000!important;
+      text-shadow:0 0 12px rgba(255,209,93,.10)!important;
+      pointer-events:none!important;
+    }
+
+    #timeView .status-message::before,
+    #timeView .status-message::after{
+      display:none!important;
+      content:none!important;
+    }
+
+    #timeView .status-note{
+      padding:0!important;
+      border:0!important;
+      background:none!important;
+      box-shadow:none!important;
+      pointer-events:none!important;
+    }
+
+    /* The stage is a display panel, not an action card. */
+    #timeView .stage{
+      cursor:default!important;
+    }
+
+    #timeView .stage-content,
+    #timeView .stage-content *{
+      cursor:default!important;
+    }
+
+    /* Only the actual CTA receives the strong button language. */
+    #timeView .home-exit-button{
+      cursor:pointer!important;
+    }
+
+    #timeView .home-exit-lead,
+    #timeView .home-exit-arrows{
+      pointer-events:none!important;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      #timeView .status-message{
+        font-size:1.34rem!important;
+      }
+    }
+
   </style>
 </head>
 
@@ -4064,9 +4422,24 @@
                 一時退場中も利用時間は進みます。
               </div>
 
-              <button id="openDetailsButton" class="mission-btn" type="button">
-                入退場の方法を見る<span class="subtap">タップして開く</span>
-              </button>
+              <div class="home-exit-cta" aria-label="入退場案内">
+                <div class="home-exit-lead" aria-hidden="true">
+                  <span class="home-exit-lead-line"></span>
+                  <span class="home-exit-lead-text">外に出る方はこちら</span>
+                  <span class="home-exit-lead-line"></span>
+                </div>
+
+                <div class="home-exit-arrows" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                </div>
+
+                <button id="openDetailsButton" class="mission-btn home-exit-button" type="button">
+                  <span class="home-exit-button-main">入退場の方法を見る</span>
+                  <span class="home-exit-button-sub">一時退場・再入場・完全退場はこちら</span>
+                  <span class="home-exit-button-arrow" aria-hidden="true">›</span>
+                </button>
+              </div>
             </aside>
           </div>
         </div>
@@ -4317,7 +4690,7 @@
       const entryTime = document.getElementById("entryTime");
       const statusMessage = document.getElementById("statusMessage");
       const statusNote = document.getElementById("statusNote");
-      const modeButtons = [...document.querySelectorAll("[data-mode]")];
+      const modeButtons = [...document.querySelectorAll(".staff-mode button[data-mode]")];
       const tabButtons = [...document.querySelectorAll("[data-section]")];
       const detailSections = [...document.querySelectorAll(".detail-section")];
       const familySteps = [...document.querySelectorAll("#familySteps .step")];
