@@ -1,2 +1,2 @@
-1.0.12
-2026-08-10-playable-v1.0.12-world-live-final
+1.0.15
+2026-08-11-playable-v1.0.15-one-shot-special

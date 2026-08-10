@@ -59,7 +59,7 @@ const OBSTACLES = Object.freeze({
     answer: 'JUMP1', measuredWindowMs: { speed100: 118, speed165: 276 },
   },
   CRATE: {
-    type: 'CRATE', width: 42, height: 148, visualWidth: 46, visualHeight: 148, unlockM: 1000,
+    type: 'CRATE', width: 34, height: 124, visualWidth: 38, visualHeight: 126, unlockM: 1000,
     answer: 'VEHICLE_SPECIFIC_HIGH_CLEAR', measuredWindowMs: { speed100: 155, speed165: 298 },
   },
   PIT: {
@@ -157,45 +157,45 @@ const FUEL_RULES = Object.freeze({
 const CARS = Object.freeze([
   {
     id:'boon', name:'ブーンピックアップ', rarity:'R', role:'ARMORED_HEAVY',
-    hitboxScale:1.18, visualScale:1.12, jumpScale:0.88, secondJumpScale:1.15, gravityScale:1.08,
+    hitboxScale:1.18, visualScale:1.12, jumpScale:0.82, secondJumpScale:1.22, gravityScale:1.12,
     fuelMax:100, fuelRate:1.15, maxJumps:2,
     ability:{ id:'ARMOR_RAM', armorMax:2, smashTypes:['CONE','BARRIER'], smashFuelCost:5,
-      text:'ARMOR最大2。CONE/BARRIER接触を必ず1回防ぎ、ARMOR＋燃料5を消費。SHIELDで1回復。1段目は低いが2段目は強いサス反発' },
+      text:'HEAVY。1段目は低く重い。2段目だけ強烈なサス反発。ARMOR最大2でCONE/BARRIERを突破し、1回ごとに燃料5消費' },
   },
   {
     id:'wagon', name:'スマートワゴン', rarity:'R', role:'FLOAT_CONTROL',
-    hitboxScale:0.98, visualScale:0.98, jumpScale:0.92, secondJumpScale:0.95, gravityScale:0.78,
+    hitboxScale:0.98, visualScale:0.98, jumpScale:0.90, secondJumpScale:0.82, gravityScale:0.66,
     fuelMax:100, fuelRate:1.00, maxJumps:2,
-    inputBufferMs:220,
-    ability:{ id:'FLOAT_CONTROL', text:'長くゆっくり浮く。地上障害に強いが、DRONE/LOWBEAM前で着地が間に合いにくい' },
+    inputBufferMs:260,
+    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。ふわっと長時間滞空。2段目は弱めで高度より滞空延長。地上障害に強いがDRONE/LOWBEAM前は降りにくい' },
   },
   {
     id:'buggy', name:'ラッキーバギー', rarity:'SR', role:'COMMIT_HOP',
-    hitboxScale:0.94, visualScale:0.96, jumpScale:1.32, secondJumpScale:1.00, gravityScale:1.12,
+    hitboxScale:0.94, visualScale:0.96, jumpScale:1.40, secondJumpScale:1.00, gravityScale:1.16,
     fuelMax:100, fuelRate:1.05, maxJumps:1,
-    ability:{ id:'COMMIT_HOP', archBreakFuelCost:12, text:'2段なし。超大ジャンプでCRATE/PITを越える。ARCH天井は燃料12で破壊、飛んだ後の修正は不能' },
+    ability:{ id:'COMMIT_HOP', archBreakFuelCost:12, text:'COMMIT。2段なし。1タップが超大ジャンプになり、飛んだ後の修正不能。ARCH天井は燃料12で破壊' },
   },
   {
     id:'bike', name:'パワーバイク', rarity:'SR', role:'PRECISION_FUEL',
-    hitboxScale:0.60, visualScale:0.62, jumpScale:0.88, secondJumpScale:1.35, gravityScale:1.22,
+    hitboxScale:0.60, visualScale:0.62, jumpScale:0.78, secondJumpScale:1.42, gravityScale:1.34,
     fuelMax:60, fuelRate:1.12, maxJumps:2,
     ability:{ id:'FUEL_STEP', secondJumpFuelCost:4,
-      text:'最小ボディ＋鋭い2段。ただしタンク60、2段ジャンプ1回ごとに燃料4を消費' },
+      text:'QUICK。1段目は低く鋭くすぐ落ちる。2段目だけ強烈に跳ね上がる。最小ボディ・タンク60・2段ごとに燃料4' },
   },
   {
     id:'sport', name:'ニトロスポーツ', rarity:'SR', role:'OVERDRIVE',
-    hitboxScale:0.90, visualScale:0.92, jumpScale:0.96, secondJumpScale:1.02, gravityScale:1.05,
-    fuelMax:95, fuelRate:1.08, maxJumps:2, speedMultiplier:1.12,
+    hitboxScale:0.90, visualScale:0.92, jumpScale:0.98, secondJumpScale:1.08, gravityScale:1.10,
+    fuelMax:95, fuelRate:1.08, maxJumps:2, speedMultiplier:1.14,
     ability:{ id:'NITRO', nitroMax:30, fuelPickupCharge:8, closeCharge:6, overflowToNitro:true,
       durationSec:2.2, scrollMultiplier:1.65, invulnerable:true, boostFuelMultiplier:2.50,
-      text:'常時12%高速。FUEL/CLOSEでNITRO、発動中は爆速無敵だが燃料消費×2.5' },
+      text:'FAST。常時14%高速で判断時間が短い。ジャンプも戻りが速い。FUEL/CLOSEでNITRO、発動中は爆速無敵・燃料×2.5' },
   },
   {
     id:'ssr', name:'コズミックファントム', rarity:'EXR', role:'DEATH_BET',
     hitboxScale:1.00, visualScale:0.90, jumpScale:1.00, secondJumpScale:1.00, gravityScale:1.00,
     fuelMax:100, fuelRate:1.06, maxJumps:2,
     ability:{ id:'PHANTOM_RESERVE', closeNeeded:2, saveFuelCost:35, saveInvulnSec:1.2,
-      text:'CLOSE×2でPHANTOM READY。致死衝突を1回透過できるが燃料35を失う。PIT/GAS欠には無効' },
+      text:'STANDARD。クセの少ない基準操作。ただしCLOSE×2を攻めてPHANTOM READY。致死回避は燃料35、PIT/GAS欠には無効' },
   },
   {
     id:'princess', name:'プリンセス・スターライナー', rarity:'SSR', role:'RISK_CHAIN',
@@ -204,7 +204,7 @@ const CARS = Object.freeze([
     ability:{ id:'RISK_STAR', maxStars:5, decayEveryM:700,
       fuelRateByStars:[1.12,1.06,1.00,0.94,0.88,0.80], jumpBonusByStars:[1,1,1.03,1.06,1.08,1.10],
       thirdJumpMinStars:3, thirdJumpCost:1, thirdJumpScale:0.94,
-      text:'初期は大きく燃費も悪い。CHOICE/COMMIT燃料だけでSTAR成長。★3から星を使って3段ジャンプ' },
+      text:'GROW。序盤は普通の2段。危険燃料でSTAR成長し、ジャンプ力と燃費が上昇。★3から星を使う3段ジャンプへ変化' },
   },
   {
     id:'secret', name:'無敵のロケットアソブーン人間', rarity:'SECRET', role:'ROCKET_DANGER',
@@ -218,9 +218,9 @@ const CARS = Object.freeze([
 
 const ENVELOPE_CARS = Object.freeze([
   // Real-world boundary profiles. Avoid impossible hybrid cars that no player can actually select.
-  { id:'GROUND_WORST', hitboxScale:1.18, jumpScale:0.88, secondJumpScale:1.15, gravityScale:1.08, maxJumps:2 },
-  { id:'CEILING_WORST', hitboxScale:0.98, jumpScale:0.92, secondJumpScale:0.95, gravityScale:0.78, maxJumps:2 },
-  { id:'SMALL_WORST', hitboxScale:0.60, jumpScale:0.88, secondJumpScale:1.35, gravityScale:1.22, maxJumps:2 },
+  { id:'GROUND_WORST', hitboxScale:1.18, jumpScale:0.82, secondJumpScale:1.22, gravityScale:1.12, maxJumps:2 },
+  { id:'CEILING_WORST', hitboxScale:0.98, jumpScale:0.90, secondJumpScale:0.82, gravityScale:0.66, maxJumps:2 },
+  { id:'SMALL_WORST', hitboxScale:0.60, jumpScale:0.78, secondJumpScale:1.42, gravityScale:1.34, maxJumps:2 },
 ]);
 
 const J = sec => Number((sec / DERIVED.jump1AirTime).toFixed(6));
@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-10-playable-v1.0.12-world-live-final';
-const CLIENT_VERSION = '1.0.12';
+const BUILD = '2026-08-11-playable-v1.0.15-one-shot-special';
+const CLIENT_VERSION = '1.0.15';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -353,18 +353,35 @@ const CAR_COLORS = {
 const CAR_VISUAL_WIDTH = {boon:155,wagon:145,buggy:142,bike:100,sport:140,ssr:142,princess:150,secret:145};
 const CAUSE_LABEL = {CONE:'コーン',BARRIER:'バリケード',CRATE:'木箱',PIT:'落下',ROLLTIRE:'タイヤ',DRONE:'低空ドローン',LOWBEAM:'低いゲート',ARCH:'アーチ',gas:'GAS欠',quit:'終了'};
 const ABILITY_SHORT = {
-  boon:'🛡 ARMOR 2/2', wagon:'☁ LONG AIR', buggy:'⬆ 1 HOP', bike:'⛽ 2段−4', sport:'⚡ NITRO', ssr:'🌌 CLOSE×2', princess:'★ RISK STAR', secret:'🚀 HOLD'
+  boon:'🛻 HEAVY', wagon:'☁ FLOAT', buggy:'⬆ COMMIT', bike:'🏍 QUICK', sport:'⚡ FAST', ssr:'🌌 STANDARD', princess:'★ GROW', secret:'🚀 ROCKET'
+};
+const HANDLING_LABEL = {
+  boon:'重い｜低い1段 → 強烈2段', wagon:'浮く｜長い滞空・弱い2段', buggy:'一発｜超大ジャンプ・修正不可', bike:'鋭い｜低い1段 → 強烈2段',
+  sport:'高速｜短い判断時間・速い落下', ssr:'素直｜基準操作＋CLOSE勝負', princess:'成長｜★で性能と入力段数が変化', secret:'別操作｜HOLD上昇 / RELEASE落下'
 };
 const HOME_GUIDE = {
-  boon:[['TAP','ジャンプ'],['TAP×2','2段ジャンプ'],['🛡','ARMOR最大2・SHIELDで回復']],
-  wagon:[['TAP','ふわっとジャンプ'],['TAP×2','2段ジャンプ'],['↓','飛びすぎ注意']],
-  buggy:[['TAP','一発大ジャンプ'],['×2','2段ジャンプなし'],['⛽','ARCH破壊は−12']],
-  bike:[['TAP','低く速いジャンプ'],['TAP×2','2段は燃料−4'],['🏍','最小ボディ']],
-  sport:[['TAP','ジャンプ'],['⚡','NITRO自動発動'],['⛽','BOOST中×2.5']],
-  ssr:[['TAP','ジャンプ'],['CLOSE×2','PHANTOM'],['⛽','SAVEは−35']],
-  princess:[['RISK','危険燃料で★'],['★3','3段ジャンプ解放'],['700m','★が1つ減る']],
-  secret:[['HOLD','ロケット上昇'],['RELEASE','落下'],['CLOSE×3','3秒無敵']]
+  boon:[['TAP','重く低い1段'],['TAP×2','強烈サス2段'],['🛡','ARMORで小障害突破']],
+  wagon:[['TAP','ふわっと長時間滞空'],['TAP×2','弱い2段で滞空延長'],['↓','降りたい時に降りにくい']],
+  buggy:[['TAP','一発超大ジャンプ'],['×2','空中修正なし'],['⛽','ARCH破壊は−12']],
+  bike:[['TAP','低く鋭く・すぐ落下'],['TAP×2','強烈2段・燃料−4'],['🏍','最小ボディで精密回避']],
+  sport:[['FAST','常時14%高速'],['TAP×2','クイック2段'],['⚡','NITROで爆速無敵']],
+  ssr:[['TAP','最も素直な基準ジャンプ'],['CLOSE×2','PHANTOM'],['⛽','SAVEは−35']],
+  princess:[['RISK','危険燃料で★成長'],['★3','3段ジャンプへ進化'],['700m','★が1つ減る']],
+  secret:[['HOLD','ロケット上昇'],['RELEASE','即落下へ'],['CLOSE×3','3秒無敵']]
 };
+
+// ONE SHOT SPECIAL: every car gets one deliberately rule-breaking moment per run.
+// The special is never random and is legal for ranked play. The player chooses when to spend it.
+const SPECIALS = Object.freeze({
+  boon:{name:'TITAN BREAK',short:'TITAN',duration:5.0,color:'#ffe04a',sub:'巨大重戦車化｜地上障害を粉砕＋ARMOR全回復'},
+  wagon:{name:'ZERO GRAVITY',short:'ZERO-G',duration:4.0,color:'#55efff',sub:'重力ほぼゼロ｜タップで上昇微調整'},
+  buggy:{name:'SKY RODEO',short:'RODEO',duration:5.0,color:'#a9ff52',sub:'普段は禁止の空中キックを3回だけ解禁'},
+  bike:{name:'LIGHTNING MODE',short:'LIGHT',duration:6.0,color:'#57dfff',sub:'極小判定＋2段燃料0＋鋭いレスポンス'},
+  sport:{name:'OVERDRIVE',short:'OVER',duration:4.0,color:'#ff4a8e',sub:'速度上限突破＋完全突破｜終了時FUEL−18'},
+  ssr:{name:'DIMENSION SHIFT',short:'SHIFT',duration:5.0,color:'#a26cff',sub:'異次元化｜PIT以外を完全すり抜け'},
+  princess:{name:'ROYAL ASCENSION',short:'ASCEND',duration:8.0,color:'#ff78dc',sub:'即★5＋STAR停止＋3段ジャンプ無制限'},
+  secret:{name:'FINAL IGNITION',short:'IGNITE',duration:4.0,color:'#ffe73f',sub:'燃料0消費＋完全無敵＋最大推力'}
+});
 
 function makeDefaultState(){
   return {
@@ -416,6 +433,7 @@ const els={
   resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
   rankingMachineSelect:$('rankingMachineSelect'),rankingOverallButton:$('rankingOverallButton'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
+  specialButton:$('specialButton'),specialBanner:$('specialBanner'),specialBannerName:$('specialBannerName'),specialBannerSub:$('specialBannerSub'),
   debugButton:$('debugButton'),debugPanel:$('debugPanel')
 };
 const ctx=els.canvas.getContext('2d',{alpha:false});
@@ -447,7 +465,7 @@ function renderGarage(){
     b.className=`car-card${state.selected===car.id?' selected':''}${owned?'':' locked'}`;
     b.type='button'; b.dataset.car=car.id;b.setAttribute('aria-pressed',String(state.selected===car.id));
     b.setAttribute('aria-label',owned?`${car.name}。${car.ability.text}`:`未解放。${car.id==='secret'?'ブーンジャンプ通常7台コンプリートで解放':'ブーンジャンプで獲得すると解放'}`);
-    b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3><p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
+    b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3>${owned?`<div class="handling">${HANDLING_LABEL[car.id]}</div><div class="special-chip">⚡ ONE SHOT｜${SPECIALS[car.id].name}</div>`:''}<p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
     els.carGrid.appendChild(b);
   });
 }
@@ -514,7 +532,9 @@ function makeRun(car){
     fuelPickups:0, luckyCount:0, stars:0, lastEfficientFuelM:0, phantomClose:0, phantomReady:false, armor:car.ability?.armorMax||0, droneTutorialShown:false, crateTutorialShown:false,
     elapsed:0, gameTime:0, endReason:null, endCause:null, startedAt:performance.now(),
     nextMilestone:1000, tutorial:true, lastPatternEndType:null, lastPatternEndX:0, patternHistory:[],
-    stats:{fuel:0,jumps:0,doubleJumps:0,boosts:0,close:0,abilityUse:0,riskFuel:0,boostTime:0}, rankingSession:null,rankingEligible:false,rankingSessionError:'',rocketThrust:false,rocketDanger:0,rocketInvincibleUntil:0, rewardFxUntil:0,rewardFxKind:'',rewardFxStrength:0, debug:{invincible:false}
+    stats:{fuel:0,jumps:0,doubleJumps:0,boosts:0,close:0,abilityUse:0,riskFuel:0,boostTime:0}, rankingSession:null,rankingEligible:false,rankingSessionError:'',rocketThrust:false,rocketDanger:0,rocketInvincibleUntil:0, rewardFxUntil:0,rewardFxKind:'',rewardFxStrength:0,
+    specialUsed:false,specialStartedAt:0,specialUntil:0,specialCharges:0,specialFuelPending:0,specialFuelSettled:false,
+    debug:{invincible:false}
   };
 }
 function speedMultiplierAt(m){
@@ -551,9 +571,9 @@ function crateTutorialFor(carId){
     wagon:'木箱は1回でも越えられる。飛びすぎには注意！',
     buggy:'木箱は1回の大ジャンプ！ 2段ジャンプはない',
     bike:'木箱は2段！ 2段目は燃料−4',
-    sport:'木箱は2段！ NITRO中なら突っ切れる',
-    ssr:'木箱は2段。PHANTOMは保険として温存',
-    princess:'木箱は基本2段。STARが育つとジャンプも強化',
+    sport:'木箱は1回で越えられる。NITRO中ならそのまま突破！',
+    ssr:'木箱は1回で越えられる。PHANTOMは難所まで温存',
+    princess:'木箱は1回で越えられる。STARは危険ルート用に温存',
     secret:'長押しで高度を上げて木箱を越えろ'
   })[carId]||'木箱は高く越えよう';
 }
@@ -653,17 +673,18 @@ function startGame(){
 function setStartGuide(){
   if(!run)return;
   const guides={
-    boon:['ARMOR最大2｜SHIELDで1回復','CONE/BARRIER接触はARMOR＋燃料5で必ず防ぐ'],
-    wagon:['長く浮くジャンプ','飛びすぎるとDRONE/LOWBEAMが天敵'],
-    buggy:['1回の超大ジャンプ','2段なし。飛んだ後は修正不能'],
-    bike:['最小ボディ＋鋭い2段','タンク60・2段ジャンプで燃料−4'],
-    sport:['常時12%高速','NITRO中は無敵・爆速・燃料消費×2.5'],
-    ssr:['素の当たり判定は標準','CLOSE×2で致死回避1回。発動＝燃料35 / PIT無効'],
-    princess:['危険燃料でSTAR成長','初期は弱い。★3から星消費3段ジャンプ'],
-    secret:['長押しでロケット噴射','離すと落下。噴射中FUEL×3 / CLOSE×3で3秒無敵']
+    boon:['HEAVY｜1段目は低い','2段目だけ強烈サス反発｜ARMORでCONE/BARRIER突破'],
+    wagon:['FLOAT｜とにかく長く浮く','2段目は高度より滞空延長｜DRONE/LOWBEAM前は早めに判断'],
+    buggy:['COMMIT｜1タップ超大ジャンプ','2段なし・空中修正なし｜飛ぶ前に決める'],
+    bike:['QUICK｜低い1段から鋭い2段','すぐ落ちる精密操作｜2段ごとに燃料−4'],
+    sport:['FAST｜常時14%高速','判断時間が短い｜NITRO中は爆速無敵・燃料×2.5'],
+    ssr:['STANDARD｜最も素直な操作','CLOSE×2でPHANTOM｜危険を攻めて保険を作る'],
+    princess:['GROW｜危険燃料で操作性が成長','★3から3段ジャンプ｜STAR維持が鍵'],
+    secret:['ROCKET｜タップジャンプではない','HOLD上昇 / RELEASE落下｜噴射中FUEL×3']
   };
   const g=guides[run.car.id]||['タップでジャンプ','空中タップで2段ジャンプ'];
-  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small>`;
+  const sp=SPECIALS[run.car.id];
+  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small><em>⚡ ${sp.name}｜1プレイ1回　　赤・橙＝避ける ／ 緑・金＝突破OK</em>`;
 }
 function startAbilityToast(){
   const t={boon:'ARMOR ×2',wagon:'FLOAT CONTROL',buggy:'COMMIT HOP!',bike:'FUEL STEP!',sport:'OVERDRIVE!',ssr:'CLOSE ×2 → PHANTOM',princess:'RISK → STAR',secret:'ROCKET DANGER'}[run?.car.id];
@@ -679,16 +700,54 @@ function pauseGame(auto=false){if(!run||run.phase!=='running')return;run.rocketT
 function resumeGame(){if(!run||run.phase!=='paused')return;els.pauseModal.hidden=true;run.phase='running';lastTime=performance.now();accumulator=0;raf=requestAnimationFrame(loop);}
 function quitGame(){if(!run)return;els.pauseModal.hidden=true;cancelAnimationFrame(raf);run=null;showScreen('menu');renderMenu();}
 
+function specialActive(){return !!run&&run.specialUsed&&run.gameTime<run.specialUntil;}
+function specialRemaining(){return specialActive()?Math.max(0,run.specialUntil-run.gameTime):0;}
+function specialBreaks(obj){
+  if(!specialActive()||!obj)return false;
+  if(run.car.id==='boon')return ['CONE','BARRIER','CRATE','ROLLTIRE'].includes(obj.type);
+  if(run.car.id==='sport'||run.car.id==='secret')return true;
+  if(run.car.id==='ssr')return obj.type!=='PIT';
+  return false;
+}
+function showSpecialBanner(){
+  const sp=SPECIALS[run.car.id];
+  els.specialBanner.dataset.car=run.car.id;els.specialBannerName.textContent=sp.name;els.specialBannerSub.textContent=sp.sub;
+  els.specialBanner.style.setProperty('--special-color',sp.color);els.specialBanner.classList.remove('show');void els.specialBanner.offsetWidth;els.specialBanner.classList.add('show');
+  setTimeout(()=>els.specialBanner.classList.remove('show'),1050);
+}
+function activateSpecial(){
+  if(!run||run.phase!=='running'||run.specialUsed)return;
+  sound.ensure();const sp=SPECIALS[run.car.id];run.specialUsed=true;run.specialStartedAt=run.gameTime;run.specialUntil=run.gameTime+sp.duration;run.stats.abilityUse++;
+  if(run.car.id==='boon'){run.armor=run.car.ability.armorMax||2;}
+  if(run.car.id==='wagon'){run.vy=Math.max(run.vy,90);run.onGround=false;}
+  if(run.car.id==='buggy'){run.specialCharges=3;}
+  if(run.car.id==='sport'){run.specialFuelPending=18;run.specialFuelSettled=false;}
+  if(run.car.id==='princess'){run.stars=run.car.ability.maxStars;run.lastEfficientFuelM=run.distance;}
+  if(run.car.id==='secret'){run.vy=Math.max(run.vy,420);run.onGround=false;}
+  showSpecialBanner();rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
+  burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,32);sound.tone(run.car.id==='boon'?105:run.car.id==='princess'?880:520,.18,'sawtooth',.045,420);setTimeout(()=>sound.special(),70);updateSpecialHud();
+}
+function updateSpecialHud(){
+  if(!run||!els.specialButton)return;const sp=SPECIALS[run.car.id];els.specialButton.style.setProperty('--special-color',sp.color);els.specialButton.dataset.car=run.car.id;
+  els.specialButton.classList.toggle('active',specialActive());els.specialButton.classList.toggle('used',run.specialUsed&&!specialActive());els.specialButton.disabled=run.phase!=='running'||(run.specialUsed&&!specialActive());
+  if(specialActive()){els.specialButton.innerHTML=`<small>SPECIAL ACTIVE</small><b>${sp.short}</b><em>${specialRemaining().toFixed(1)}s</em>`;}
+  else if(run.specialUsed){els.specialButton.innerHTML=`<small>ONE SHOT</small><b>USED</b><em>${sp.short}</em>`;}
+  else{els.specialButton.innerHTML=`<small>ONE SHOT</small><b>⚡ ${sp.short}</b><em>READY</em>`;}
+}
+
 function requestJump(){
   if(!run||run.phase!=='running')return;sound.ensure();
   if(run.car.id==='secret')return;
+  if(run.car.id==='wagon'&&specialActive()){run.vy=Math.min(360,Math.max(80,run.vy)+185);run.onGround=false;run.stats.jumps++;spawnDust(3,'#6ff4ff');sound.tone(610,.05,'sine',.02,160);return;}
+  if(run.car.id==='buggy'&&specialActive()&&!run.onGround&&run.specialCharges>0){run.specialCharges--;run.vy=Math.max(run.vy,PHYSICS.jump2Velocity*1.16);run.stats.jumps++;run.stats.doubleJumps++;burst(PHYSICS.carCenterX,ROAD_Y-run.y-20,'#a9ff52',9);toast(`SKY KICK ×${run.specialCharges}`);sound.tone(760,.06,'square',.025,180);return;}
+  if(run.car.id==='princess'&&specialActive()&&!run.onGround&&run.jumpsUsed>=2){run.vy=Math.max(run.vy,PHYSICS.jump2Velocity*1.02);run.jumpsUsed=3;run.stats.jumps++;run.stats.doubleJumps++;burst(PHYSICS.carCenterX,ROAD_Y-run.y-18,'#ff78dc',8);sound.tone(820,.055,'sine',.022,160);return;}
   if(run.onGround){doJump('first');return;}
   if(run.jumpsUsed<run.cp.maxJumps){
-    if(run.car.id==='bike'){
+    if(run.car.id==='bike'&&!specialActive()){
       const cost=run.car.ability.secondJumpFuelCost||4;
       if(run.fuel<cost){toast('2段FUEL不足!');sound.tone(170,.08,'square',.03,-60);return;}
       run.fuel=Math.max(0,run.fuel-cost);run.stats.abilityUse++;toast(`FUEL STEP −${cost}⛽`);
-    }
+    }else if(run.car.id==='bike'&&specialActive()){toast('LIGHTNING STEP 0⛽');}
     doJump('second');return;
   }
   if(run.car.id==='princess'){
@@ -704,17 +763,22 @@ function requestJump(){
 function doJump(kind='first',starBonusOverride=null){
   const second=kind==='second',third=kind==='third';
   const starBonus=starBonusOverride??(run.car.id==='princess'?(run.car.ability.jumpBonusByStars?.[run.stars]||1):1);
-  const vel=third?PHYSICS.jump2Velocity*(run.car.ability?.thirdJumpScale??.92)*starBonus:(second?run.cp.jump2:run.cp.jump1)*starBonus;
-  // v1.0.11: second-jump impulse preserves lift; pickup gets a stronger suspension rebound so its full body clears CRATE.
-  // While rising, add 40% of the second-jump impulse instead of cancelling existing lift.
+  let vel=third?PHYSICS.jump2Velocity*(run.car.ability?.thirdJumpScale??.92)*starBonus:(second?run.cp.jump2:run.cp.jump1)*starBonus;
+  if(run.car.id==='bike'&&specialActive())vel*=1.10;
+  // v1.0.14: every vehicle keeps the same input grammar, but its jump arc is intentionally distinct.
+  // Second-jump impulse preserves existing lift so early double taps remain intuitive.
   run.vy=second?Math.max(vel,run.vy+vel*(PHYSICS.secondJumpAssist||0)):vel;run.onGround=false;run.jumpsUsed=third?3:(second?2:1);run.pendingJumpMs=0;
-  run.stats.jumps++; if(second||third)run.stats.doubleJumps++;sound.jump(second||third);spawnDust(third?8:4,third?'#ff9ee8':(second?'#7cecff':'#d8f4ff'));
+  run.stats.jumps++; if(second||third)run.stats.doubleJumps++;
+  const jumpTone={boon:[255,390],wagon:[360,470],buggy:[210,210],bike:[510,760],sport:[430,650],ssr:[390,520],princess:[470,680]}[run.car.id]||[390,520];
+  sound.tone((second||third)?jumpTone[1]:jumpTone[0],run.car.id==='wagon'?.12:.075,run.car.id==='buggy'?'sawtooth':'square',.023,(second||third)?180:110);
+  const jumpFx={boon:'#ffca45',wagon:'#bff7ff',buggy:'#b7ff55',bike:'#ff8a3d',sport:'#ff4f83',ssr:'#8d7cff',princess:'#ff9ee8'}[run.car.id]||'#d8f4ff';
+  spawnDust(third?9:(second?6:4),jumpFx);
 }
 
 function updatePlayer(dt){
   if(run.car.id==='secret'){
-    const a=run.car.ability;
-    if(run.rocketThrust&&run.fuel>0)run.vy=Math.min(a.maxRiseSpeed||610,run.vy+(a.thrustAccel||3150)*dt);
+    const a=run.car.ability,ignite=specialActive();
+    if(run.rocketThrust&&run.fuel>0)run.vy=Math.min(ignite?760:(a.maxRiseSpeed||610),run.vy+(a.thrustAccel||3150)*(ignite?1.55:1)*dt);
     else run.vy=Math.max(-(a.maxFallSpeed||650),run.vy-PHYSICS.gravity*(run.cp.gravityScale||.88)*dt);
     run.y+=run.vy*dt;
     const maxY=430;
@@ -722,11 +786,17 @@ function updatePlayer(dt){
     if(run.y>=maxY){run.y=maxY;if(run.vy>0)run.vy=0;}
     return;
   }
+  if(run.car.id==='wagon'&&specialActive()){
+    run.vy-=PHYSICS.gravity*.10*dt;run.y+=run.vy*dt;
+    if(run.y<=0){run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;}else run.onGround=false;
+    if(run.y>=430){run.y=430;if(run.vy>0)run.vy=0;}return;
+  }
   run.pendingJumpMs=Math.max(0,run.pendingJumpMs-dt*1000);
   if(!run.onGround){run.vy-=PHYSICS.gravity*(run.cp.gravityScale||1)*dt;run.y+=run.vy*dt;if(run.y<=0){run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;spawnDust(6,'#cddae7');if(run.pendingJumpMs>0)doJump('first');}}
 }
 function playerRect(expand=0){
-  const w=run.cp.width+expand*2,h=run.cp.height+expand*2;
+  const lightning=(run.car.id==='bike'&&specialActive())?.72:1;
+  const w=run.cp.width*lightning+expand*2,h=run.cp.height*lightning+expand*2;
   return {x:PHYSICS.carCenterX-w/2,y:ROAD_Y-run.y-h-expand*0,w,h};
 }
 function rectsIntersect(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
@@ -761,6 +831,7 @@ function activeBoostMultiplier(){
   return m;
 }
 function handleCollision(obj){
+  if(specialBreaks(obj)){const sp=SPECIALS[run.car.id];obj.destroyed=true;burst(obj.x,ROAD_Y-40,sp.color,22);rewardFx(run.car.id==='ssr'?'phantom':'gold',.24,.72);sound.tone(run.car.id==='boon'?95:180,.045,'square',.018,120);return false;}
   if(run.debug.invincible||run.gameTime<run.invulnerableUntil||(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil)){obj.destroyed=true;burst(obj.x,ROAD_Y-40,'#ffe45c',14);return false;}
   if(anyBoostActive()){obj.destroyed=true;burst(obj.x,ROAD_Y-50,'#ff9b38',14);sound.tone(140,.05,'square',.025,180);return false;}
   // Pickup: ARMOR is contact protection, not a ground-only ram. Any CONE/BARRIER contact consumes one finite charge.
@@ -851,23 +922,24 @@ function activateBoost(reason,duration=3,multiplier=1.35){
 
 function updateAbilities(dt){
   if(run.shield&&run.distance>=run.shieldUntilM){run.shield=false;toast('SHIELD END');}
-  if(run.car.id==='princess'&&run.stars>0&&run.distance-run.lastEfficientFuelM>=run.car.ability.decayEveryM){run.stars--;run.lastEfficientFuelM+=run.car.ability.decayEveryM;toast(`STAR ×${run.stars}`);}
+  if(run.car.id==='sport'&&run.specialUsed&&!specialActive()&&!run.specialFuelSettled&&run.specialFuelPending>0){const cost=run.specialFuelPending;run.specialFuelSettled=true;run.specialFuelPending=0;run.fuel=Math.max(0,run.fuel-cost);toast(`OVERDRIVE END −${cost}⛽`);if(run.fuel<=0){endGame('gas','gas');return;}}
+  if(run.car.id==='princess'&&!specialActive()&&run.stars>0&&run.distance-run.lastEfficientFuelM>=run.car.ability.decayEveryM){run.stars--;run.lastEfficientFuelM+=run.car.ability.decayEveryM;toast(`STAR ×${run.stars}`);}
 }
 function effectiveFuelRate(){
   let rate=run.car.fuelRate||1;
   if(run.car.id==='princess'){const arr=run.car.ability.fuelRateByStars;rate=arr[run.stars]??rate;}
   if(nitroActive())rate*=run.car.ability.boostFuelMultiplier||2.5;
   else if(itemBoostActive())rate*=ITEMS.BOOST.fuelBurnMultiplier||1.75;
-  if(run.car.id==='secret'){if(run.gameTime<run.rocketInvincibleUntil)return 0;if(run.rocketThrust)rate*=run.car.ability.thrustFuelMultiplier||3;}
+  if(run.car.id==='secret'){if(specialActive()||run.gameTime<run.rocketInvincibleUntil)return 0;if(run.rocketThrust)rate*=run.car.ability.thrustFuelMultiplier||3;}
   return rate;
 }
 function updateWorld(dt){
-  const boostActive=anyBoostActive();run.speedMult=speedMultiplierAt(run.distance);let specialMult=activeBoostMultiplier();if(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil)specialMult*=run.car.ability.invincibleSpeedMultiplier||1.28;const carSpeed=run.car.speedMultiplier||1;run.scrollSpeed=run.baseSpeed*run.speedMult*carSpeed*specialMult;
+  const boostActive=anyBoostActive();run.speedMult=speedMultiplierAt(run.distance);let specialMult=activeBoostMultiplier();if(run.car.id==='sport'&&specialActive())specialMult=Math.max(specialMult,1.72);if(run.car.id==='secret'&&specialActive())specialMult=Math.max(specialMult,1.65);else if(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil)specialMult*=run.car.ability.invincibleSpeedMultiplier||1.28;const carSpeed=run.car.speedMultiplier||1;run.scrollSpeed=run.baseSpeed*run.speedMult*carSpeed*specialMult;
   const dx=run.scrollSpeed*dt,dm=dx/PHYSICS.pxPerMeter;
   run.distance+=dm;run.displayDistance=run.distance;run.gameTime+=dt;
   updateFuelDebts(dm);
   run.fuel-=dm*PHYSICS.scoreFuelPerMeter*effectiveFuelRate();if(run.fuel<=0){run.fuel=0;endGame('gas','gas');return;}
-  if(boostActive||(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil))run.stats.boostTime+=dt*1000;
+  if(boostActive||(specialActive()&&(run.car.id==='sport'||run.car.id==='secret'))||(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil))run.stats.boostTime+=dt*1000;
   for(const obj of run.objects){if(obj.dead)continue;obj.x-=dx;if(obj.type==='ROLLTIRE')obj.x-=(obj.ownSpeed||0)*dt;if(objectRight(obj)<-180)obj.dead=true;}
   run.spawnCursorX-=dx;run.lastPatternEndX-=dx;
   maybeSpawnSpecial();ensureWorld();run.objects=run.objects.filter(o=>!o.dead&&!o.collected&&objectRight(o)>-200);
@@ -875,7 +947,7 @@ function updateWorld(dt){
 }
 function milestone(m){els.milestoneLabel.textContent=`${m/1000} km`;sound.milestone();rewardFx('milestone',1.1,1);setTimeout(()=>{if(els.milestoneLabel.textContent===`${m/1000} km`)els.milestoneLabel.textContent='';},1100);}
 function step(dt){
-  if(!run||run.phase!=='running')return;updatePlayer(dt);updateAbilities(dt);updateWorld(dt);if(!run||run.phase!=='running')return;checkCollisions();updateParticles(dt);updateHud();
+  if(!run||run.phase!=='running')return;updatePlayer(dt);updateAbilities(dt);if(!run||run.phase!=='running')return;updateWorld(dt);if(!run||run.phase!=='running')return;checkCollisions();updateParticles(dt);updateHud();
 }
 function loop(t){
   if(!run||run.phase!=='running')return;const frame=Math.min(MAX_FRAME_DT,Math.max(0,(t-lastTime)/1000));lastTime=t;accumulator+=frame;let guard=0;while(accumulator>=FIXED_DT&&guard++<12){step(FIXED_DT);accumulator-=FIXED_DT;if(!run||run.phase!=='running')break;}render();if(run&&run.phase==='running')raf=requestAnimationFrame(loop);
@@ -897,7 +969,7 @@ function showResult(oldBest){
   els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 この記録を世界ランキングへ':'🌍 ランキング登録不可（通信なし）';els.resultModal.hidden=false;
 }
 
-function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');els.fuelBox.classList.remove('low','critical');}
+function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
 function updateHud(){
   els.distanceLabel.textContent=fmt(run.distance);const fuelPct=clamp(run.fuel/run.fuelMax*100,0,100);els.fuelBar.style.width=`${fuelPct}%`;els.fuelLabel.textContent=String(Math.ceil(run.fuel));els.fuelBox.classList.toggle('low',fuelPct<=30&&fuelPct>10);els.fuelBox.classList.toggle('critical',fuelPct<=10);
   let extra='';
@@ -911,7 +983,8 @@ function updateHud(){
   if(run.car.id==='secret')extra=run.gameTime<run.rocketInvincibleUntil?`無敵 ${(run.rocketInvincibleUntil-run.gameTime).toFixed(1)}秒 ｜ 噴射燃料0`:`${run.rocketThrust?'噴射中 燃料×3':'惰性飛行'} ｜ DANGER ${run.rocketDanger}/${run.car.ability.dangerNeeded}`;
   if(run.shield)extra+=(extra?' ｜ ':'')+'🛡 SHIELD';
   if(run.magnetUntilM>run.distance)extra+=(extra?' ｜ ':'')+'🧲 MAGNET';
-  els.extraMeter.textContent=extra;
+  if(specialActive())extra+=(extra?' ｜ ':'')+`⚡ ${SPECIALS[run.car.id].name} ${specialRemaining().toFixed(1)}s`;
+  els.extraMeter.textContent=extra;updateSpecialHud();
   if(DEBUG)renderDebugPanel();
 }
 
@@ -930,7 +1003,9 @@ function burst(x,y,color,n){
 function updateParticles(dt){for(const p of run.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=210*dt;}run.particles=run.particles.filter(p=>p.life>0);}
 
 function render(){
-  if(!run){return;}const c=ctx,w=PHYSICS.logicalWidth,h=PHYSICS.logicalHeight;c.save();drawBackground(c,w,h);drawRoad(c,w,h);drawObjects(c);drawParticles(c);drawCar(c);if(anyBoostActive())drawBoostFx(c);drawRewardFx(c,w,h);c.restore();
+  if(!run){return;}const c=ctx,w=PHYSICS.logicalWidth,h=PHYSICS.logicalHeight;c.save();
+  if(run.car.id==='ssr'&&specialActive()){c.save();c.filter='saturate(.28) brightness(.82)';drawBackground(c,w,h);drawRoad(c,w,h);c.restore();}else{drawBackground(c,w,h);drawRoad(c,w,h);}
+  drawObjects(c);drawParticles(c);drawCar(c);if(anyBoostActive()||(specialActive()&&(run.car.id==='sport'||run.car.id==='secret')))drawBoostFx(c);drawSpecialFx(c,w,h);drawRewardFx(c,w,h);c.restore();
 }
 function coursePalette(m){
   const day={skyTop:'#a9c3cf',skyBottom:'#dbe5e1',far:'#9eb1ad',near:'#7e9691',town:'#718385',rail:'#89979b',roadTop:'#48535b',roadBottom:'#3f4951',shoulder:'#343d44',edge:'#9ca8aa',line:'rgba(239,241,233,.42)',accent:'rgba(211,174,93,.24)'};
@@ -989,31 +1064,53 @@ function drawObjects(c){
   const sorted=[...run.objects].sort((a,b)=>a.x-b.x);
   for(const o of sorted){if(o.dead||o.collected)continue;if(ITEMS[o.type])drawItem(c,o);else drawObstacle(c,o);}
 }
+function obstacleSignal(o){
+  const powered=specialBreaks(o)||run.debug.invincible||run.gameTime<run.invulnerableUntil||anyBoostActive()||(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil);
+  const armorBreak=run.car.id==='boon'&&run.armor>0&&(run.car.ability.smashTypes||[]).includes(o.type);
+  if(powered||armorBreak)return {kind:'BREAK',color:'#9dff4f',core:'#ffe45d'};
+  return {kind:'DANGER',color:'#ff3f4f',core:'#ff9a34'};
+}
 function drawObstacle(c,o){
-  const x=o.x;c.save();if(o.destroyed)c.globalAlpha=.18;c.shadowColor='rgba(13,20,24,.26)';c.shadowBlur=3;c.shadowOffsetY=2;
+  const x=o.x;c.save();if(o.destroyed)c.globalAlpha=.18;
+  const signal=obstacleSignal(o);
+  // Signal language: RED/ORANGE = avoid. LIME/GOLD = current state can break through it.
+  c.save();c.globalAlpha=o.destroyed?.16:.74;c.shadowColor=signal.color;c.shadowBlur=22;c.strokeStyle=signal.color;c.lineWidth=4;
+  const auraRects=o.type==='PIT'?[{x:o.x,y:ROAD_Y-8,w:o.width,h:18}]:obstacleRects(o);for(const r of auraRects){c.strokeRect(r.x-3,r.y-3,r.w+6,r.h+6);}c.restore();
+  // Obstacles use a crisp dark silhouette and a short contact shadow. The course stays calm; hazards do not.
+  c.shadowColor='rgba(5,12,18,.58)';c.shadowBlur=7;c.shadowOffsetY=3;
+  const outline='#13202a', ivory='#fff4dc', hazard='#ffd43b', orange='#ff6b2c', red='#f04d45';
+  const groundShadow=(w,dx=0)=>{c.save();c.shadowBlur=0;c.fillStyle='rgba(4,10,15,.34)';c.beginPath();c.ellipse(x+dx+w/2,ROAD_Y+4,Math.max(13,w*.68),5,0,0,Math.PI*2);c.fill();c.restore();};
   switch(o.type){
     case'CONE':{
-      c.fillStyle='#cf7547';c.beginPath();c.moveTo(x+o.width*.5,ROAD_Y-o.height);c.lineTo(x+o.width,ROAD_Y);c.lineTo(x,ROAD_Y);c.closePath();c.fill();
-      c.fillStyle='#ece5d9';c.fillRect(x+o.width*.23,ROAD_Y-o.height*.53,o.width*.54,Math.max(3,o.height*.12));
-      c.fillStyle='#4c5356';c.fillRect(x-o.width*.16,ROAD_Y-4,o.width*1.32,4);break;}
+      groundShadow(o.width);c.fillStyle=orange;c.strokeStyle=outline;c.lineWidth=3;c.beginPath();c.moveTo(x+o.width*.5,ROAD_Y-o.height);c.lineTo(x+o.width,ROAD_Y);c.lineTo(x,ROAD_Y);c.closePath();c.fill();c.stroke();
+      c.fillStyle=ivory;c.fillRect(x+o.width*.18,ROAD_Y-o.height*.56,o.width*.64,Math.max(4,o.height*.16));
+      c.fillStyle=outline;c.fillRect(x-o.width*.20,ROAD_Y-5,o.width*1.40,5);break;}
     case'BARRIER':{
-      c.fillStyle='#d9ddd9';roundRect(c,x,ROAD_Y-o.height,o.width,o.height,5);c.fill();c.save();c.beginPath();c.rect(x,ROAD_Y-o.height,o.width,o.height);c.clip();c.strokeStyle='#c66f5b';c.lineWidth=6;for(let q=x-36;q<x+o.width+36;q+=22){c.beginPath();c.moveTo(q,ROAD_Y);c.lineTo(q+34,ROAD_Y-o.height);c.stroke();}c.restore();c.fillStyle='#4d5559';c.fillRect(x+4,ROAD_Y,o.width-8,6);break;}
+      groundShadow(o.width);c.fillStyle='#f5f3e8';c.strokeStyle=outline;c.lineWidth=3;roundRect(c,x,ROAD_Y-o.height,o.width,o.height,5);c.fill();c.stroke();c.save();c.beginPath();c.rect(x+1,ROAD_Y-o.height+1,o.width-2,o.height-2);c.clip();c.strokeStyle=red;c.lineWidth=7;for(let q=x-36;q<x+o.width+36;q+=22){c.beginPath();c.moveTo(q,ROAD_Y);c.lineTo(q+34,ROAD_Y-o.height);c.stroke();}c.restore();c.fillStyle=outline;c.fillRect(x+3,ROAD_Y,o.width-6,6);break;}
     case'CRATE':{
-      c.fillStyle='#896a4e';roundRect(c,x,ROAD_Y-o.height,o.width,o.height,4);c.fill();c.strokeStyle='#b99976';c.lineWidth=4;c.strokeRect(x+4,ROAD_Y-o.height+4,o.width-8,o.height-8);c.globalAlpha=.62;c.beginPath();c.moveTo(x+6,ROAD_Y-o.height+10);c.lineTo(x+o.width-6,ROAD_Y-10);c.moveTo(x+o.width-6,ROAD_Y-o.height+10);c.lineTo(x+6,ROAD_Y-10);c.stroke();break;}
+      groundShadow(o.width);c.fillStyle='#c57a32';c.strokeStyle=outline;c.lineWidth=3;roundRect(c,x,ROAD_Y-o.height,o.width,o.height,4);c.fill();c.stroke();
+      c.strokeStyle='#ffd29a';c.lineWidth=3;c.strokeRect(x+4,ROAD_Y-o.height+5,o.width-8,o.height-10);
+      c.strokeStyle='rgba(71,37,17,.88)';c.lineWidth=3;c.beginPath();c.moveTo(x+6,ROAD_Y-o.height+10);c.lineTo(x+o.width-6,ROAD_Y-10);c.moveTo(x+o.width-6,ROAD_Y-o.height+10);c.lineTo(x+6,ROAD_Y-10);c.stroke();
+      c.fillStyle=hazard;c.fillRect(x-2,ROAD_Y-o.height-5,o.width+4,4);break;}
     case'PIT':{
-      c.fillStyle='#20262a';c.fillRect(x,ROAD_Y-1,o.width,126);c.fillStyle='#14191d';c.fillRect(x+7,ROAD_Y+10,o.width-14,94);c.fillStyle='#d3aa5f';c.globalAlpha=.68;c.fillRect(x,ROAD_Y-3,5,11);c.fillRect(x+o.width-5,ROAD_Y-3,5,11);for(let q=x+12;q<x+o.width-12;q+=42)c.fillRect(q,ROAD_Y+5,20,3);c.globalAlpha=1;break;}
+      c.shadowBlur=0;c.fillStyle='#081018';c.fillRect(x,ROAD_Y-1,o.width,126);c.fillStyle='#02070b';c.fillRect(x+7,ROAD_Y+9,o.width-14,95);
+      c.fillStyle=hazard;c.fillRect(x,ROAD_Y-6,o.width,6);c.fillStyle=outline;for(let q=x;q<x+o.width;q+=30)c.fillRect(q,ROAD_Y-6,14,6);
+      c.fillStyle=ivory;c.globalAlpha=.86;c.fillRect(x,ROAD_Y-1,5,13);c.fillRect(x+o.width-5,ROAD_Y-1,5,13);c.globalAlpha=1;break;}
     case'ROLLTIRE':{
-      c.translate(x+o.width/2,ROAD_Y-o.height/2);c.rotate(-(run.gameTime*4.2));c.strokeStyle='#20272b';c.lineWidth=Math.max(9,o.width*.28);c.beginPath();c.arc(0,0,o.width*.40,0,Math.PI*2);c.stroke();c.strokeStyle='#b7c0c1';c.lineWidth=3;c.beginPath();c.arc(0,0,o.width*.18,0,Math.PI*2);c.stroke();for(let i=0;i<5;i++){const a=i*Math.PI*2/5;c.beginPath();c.moveTo(Math.cos(a)*o.width*.12,Math.sin(a)*o.width*.12);c.lineTo(Math.cos(a)*o.width*.31,Math.sin(a)*o.width*.31);c.stroke();}break;}
+      groundShadow(o.width);c.translate(x+o.width/2,ROAD_Y-o.height/2);c.rotate(-(run.gameTime*4.2));c.strokeStyle='#05090d';c.lineWidth=Math.max(10,o.width*.31);c.beginPath();c.arc(0,0,o.width*.40,0,Math.PI*2);c.stroke();c.strokeStyle='#f2f5ef';c.lineWidth=4;c.beginPath();c.arc(0,0,o.width*.18,0,Math.PI*2);c.stroke();c.strokeStyle='#48ddff';c.lineWidth=2;for(let i=0;i<5;i++){const a=i*Math.PI*2/5;c.beginPath();c.moveTo(Math.cos(a)*o.width*.12,Math.sin(a)*o.width*.12);c.lineTo(Math.cos(a)*o.width*.31,Math.sin(a)*o.width*.31);c.stroke();}break;}
     case'DRONE':{
-      const cy=ROAD_Y-o.lowerEdge-o.height/2;c.translate(x+o.width/2,cy);c.fillStyle='#53646b';roundRect(c,-o.width/2,-o.height/2,o.width,o.height,8);c.fill();
-      c.fillStyle='#ff756d';c.shadowBlur=10;c.shadowColor='rgba(255,93,83,.45)';c.beginPath();c.arc(0,0,6,0,Math.PI*2);c.fill();c.shadowBlur=3;c.shadowColor='rgba(13,20,24,.26)';c.strokeStyle='#bbc8c9';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.40,-o.height*.38);c.lineTo(-o.width*.58,-o.height*.72);c.moveTo(o.width*.40,-o.height*.38);c.lineTo(o.width*.58,-o.height*.72);c.stroke();
-      c.strokeStyle='#c8d1d0';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.73,-o.height*.72);c.lineTo(-o.width*.46,-o.height*.72);c.moveTo(o.width*.46,-o.height*.72);c.lineTo(o.width*.73,-o.height*.72);c.stroke();
-      c.fillStyle='rgba(194,116,99,.10)';c.beginPath();c.moveTo(-13,o.height/2);c.lineTo(13,o.height/2);c.lineTo(25,63);c.lineTo(-25,63);c.closePath();c.fill();
-      c.fillStyle='#dfc67b';c.font='800 14px system-ui';c.textAlign='center';c.fillText('LOW',0,-19);break;}
+      const cy=ROAD_Y-o.lowerEdge-o.height/2;c.translate(x+o.width/2,cy);c.fillStyle='#273843';c.strokeStyle=ivory;c.lineWidth=2.5;roundRect(c,-o.width/2,-o.height/2,o.width,o.height,8);c.fill();c.stroke();
+      c.fillStyle='#ff3d45';c.shadowBlur=14;c.shadowColor='rgba(255,44,55,.85)';c.beginPath();c.arc(0,0,6,0,Math.PI*2);c.fill();c.shadowBlur=5;c.shadowColor='rgba(5,12,18,.58)';c.strokeStyle='#e7f4f5';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.40,-o.height*.38);c.lineTo(-o.width*.58,-o.height*.72);c.moveTo(o.width*.40,-o.height*.38);c.lineTo(o.width*.58,-o.height*.72);c.stroke();
+      c.strokeStyle='#e7f4f5';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.73,-o.height*.72);c.lineTo(-o.width*.46,-o.height*.72);c.moveTo(o.width*.46,-o.height*.72);c.lineTo(o.width*.73,-o.height*.72);c.stroke();
+      c.fillStyle='rgba(255,61,69,.12)';c.beginPath();c.moveTo(-13,o.height/2);c.lineTo(13,o.height/2);c.lineTo(25,63);c.lineTo(-25,63);c.closePath();c.fill();
+      c.fillStyle=hazard;c.font='900 14px system-ui';c.textAlign='center';c.fillText('LOW',0,-19);break;}
     case'LOWBEAM':{
-      c.fillStyle='#59646b';c.fillRect(x,ROAD_Y-o.lowerEdge-o.thickness,o.width,o.thickness);c.fillStyle='#d2b866';c.globalAlpha=.82;for(let q=x;q<x+o.width;q+=58)c.fillRect(q,ROAD_Y-o.lowerEdge-o.thickness,26,o.thickness);c.globalAlpha=1;c.fillStyle='#747e83';c.fillRect(x+16,ROAD_Y-o.lowerEdge,7,o.lowerEdge);c.fillRect(x+o.width-23,ROAD_Y-o.lowerEdge,7,o.lowerEdge);break;}
+      c.shadowBlur=5;c.fillStyle=hazard;c.strokeStyle=outline;c.lineWidth=3;c.fillRect(x,ROAD_Y-o.lowerEdge-o.thickness,o.width,o.thickness);c.strokeRect(x,ROAD_Y-o.lowerEdge-o.thickness,o.width,o.thickness);
+      c.fillStyle=outline;for(let q=x;q<x+o.width;q+=46)c.fillRect(q,ROAD_Y-o.lowerEdge-o.thickness,20,o.thickness);
+      c.fillStyle='#f1f1e7';c.strokeStyle=outline;c.lineWidth=2;c.fillRect(x+14,ROAD_Y-o.lowerEdge,8,o.lowerEdge);c.strokeRect(x+14,ROAD_Y-o.lowerEdge,8,o.lowerEdge);c.fillRect(x+o.width-22,ROAD_Y-o.lowerEdge,8,o.lowerEdge);c.strokeRect(x+o.width-22,ROAD_Y-o.lowerEdge,8,o.lowerEdge);break;}
     case'ARCH':{
-      c.fillStyle='#515d64';c.fillRect(x,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);c.fillRect(x+o.roofWidth-o.pillarWidth,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);c.fillStyle='#c8a85d';c.fillRect(x,ROAD_Y-o.roofLowerEdge-38,o.roofWidth,38);c.fillStyle='#3f494f';c.globalAlpha=.72;for(let q=x;q<x+o.roofWidth;q+=52)c.fillRect(q,ROAD_Y-o.roofLowerEdge-38,24,38);c.globalAlpha=1;break;}
+      c.fillStyle='#f0eee5';c.strokeStyle=outline;c.lineWidth=3;c.fillRect(x,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);c.strokeRect(x,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);c.fillRect(x+o.roofWidth-o.pillarWidth,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);c.strokeRect(x+o.roofWidth-o.pillarWidth,ROAD_Y-o.pillarHeight,o.pillarWidth,o.pillarHeight);
+      c.fillStyle=hazard;c.fillRect(x,ROAD_Y-o.roofLowerEdge-38,o.roofWidth,38);c.strokeRect(x,ROAD_Y-o.roofLowerEdge-38,o.roofWidth,38);c.fillStyle=outline;for(let q=x;q<x+o.roofWidth;q+=46)c.fillRect(q,ROAD_Y-o.roofLowerEdge-38,20,38);break;}
   }
   c.restore();
 }
@@ -1022,8 +1119,8 @@ function drawItem(c,o){
   const tags=PATTERN_BY_ID[o.patternId]?.tags||[],risk=tags.includes('CHOICE')||tags.includes('COMMIT');
   if(o.type==='FUEL_S'||o.type==='FUEL_L'||o.type==='FULL'){
     const s=o.type==='FUEL_L'?vis*.86:vis*.74,isFull=o.type==='FULL';
-    if(isFull||risk){c.shadowBlur=isFull?22:15;c.shadowColor=isFull?'#ffe85d':'#84ff5f';c.strokeStyle=isFull?'rgba(255,236,94,.92)':'rgba(121,255,90,.78)';c.lineWidth=2.5;c.beginPath();c.arc(0,0,s*.56+3*Math.sin(run.gameTime*5),0,Math.PI*2);c.stroke();}
-    else{c.shadowBlur=5;c.shadowColor='rgba(97,160,103,.35)';}
+    if(isFull||risk){c.shadowBlur=isFull?28:24;c.shadowColor=isFull?'#ffe85d':'#84ff5f';c.strokeStyle=isFull?'rgba(255,236,94,.98)':'rgba(133,255,91,.96)';c.lineWidth=3;c.beginPath();c.arc(0,0,s*.60+3*Math.sin(run.gameTime*5),0,Math.PI*2);c.stroke();}
+    else{c.shadowBlur=20;c.shadowColor='#42f0c1';c.strokeStyle='rgba(74,244,199,.82)';c.lineWidth=2.5;c.beginPath();c.arc(0,0,s*.56+2*Math.sin(run.gameTime*4),0,Math.PI*2);c.stroke();}
     c.fillStyle=isFull?'#ffe34f':risk?'#78e85f':'#73b17a';roundRect(c,-s*.34,-s*.42,s*.68,s*.84,7);c.fill();c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2;c.strokeRect(-s*.28,-s*.34,s*.56,s*.68);c.fillStyle='#203329';c.font=`800 ${Math.round(s*.28)}px system-ui`;c.textAlign='center';c.textBaseline='middle';c.fillText('F',0,1);
   }else{
     const color=o.type==='BOOST'?'#ffcf32':o.type==='MAGNET'?'#36e9ff':'#a878ff';
@@ -1032,8 +1129,8 @@ function drawItem(c,o){
   c.restore();
 }
 function drawCar(c){
-  const car=run.car,img=images.get(carAsset(car.id));const width=CAR_VISUAL_WIDTH[car.id]||300,height=width*(280/760);const bob=run.onGround?Math.sin(run.gameTime*10)*.8:0;const x=PHYSICS.carCenterX-width*.50,y=ROAD_Y-run.y-height+bob+5;
-  c.save();if(run.car.id==='ssr'&&run.phantomReady){c.shadowBlur=28;c.shadowColor='#a068ff';}if(run.car.id==='princess'&&run.stars>=3){c.shadowBlur=Math.max(c.shadowBlur,18);c.shadowColor='#ff70d8';}if(run.gameTime<run.invulnerableUntil)c.globalAlpha=.84+.08*Math.sin(run.gameTime*7);
+  const car=run.car,img=images.get(carAsset(car.id));let width=CAR_VISUAL_WIDTH[car.id]||300;if(specialActive()&&car.id==='boon')width*=1.18;if(specialActive()&&car.id==='bike')width*=.88;const height=width*(280/760);const bob=run.onGround?Math.sin(run.gameTime*10)*.8:0;const x=PHYSICS.carCenterX-width*.50,y=ROAD_Y-run.y-height+bob+5;
+  c.save();if(run.car.id==='ssr'&&run.phantomReady){c.shadowBlur=28;c.shadowColor='#a068ff';}if(run.car.id==='princess'&&run.stars>=3){c.shadowBlur=Math.max(c.shadowBlur,18);c.shadowColor='#ff70d8';}if(run.gameTime<run.invulnerableUntil)c.globalAlpha=.84+.08*Math.sin(run.gameTime*7);if(run.car.id==='ssr'&&specialActive())c.globalAlpha=.55+.16*Math.sin(run.gameTime*11);
   c.shadowBlur=Math.max(c.shadowBlur,5);c.shadowColor='rgba(0,0,0,.28)';if(img?.complete&&img.naturalWidth>0)c.drawImage(img,x,y,width,height);else{c.fillStyle=CAR_COLORS[car.id]?.[0]||'#5ee';roundRect(c,x,y+25,width,height-25,28);c.fill();}
   if(run.car.id==='secret'&&run.rocketThrust){const fx=x-5,fy=y+height*.62,pulse=.5+.5*Math.sin(run.gameTime*17),len=58+pulse*13;c.save();c.globalCompositeOperation='lighter';c.globalAlpha=.62;const rg=c.createLinearGradient(fx-len,fy,fx+6,fy);rg.addColorStop(0,'rgba(218,91,45,0)');rg.addColorStop(.62,'rgba(225,138,73,.55)');rg.addColorStop(1,'rgba(244,226,165,.9)');c.fillStyle=rg;c.beginPath();c.moveTo(fx+4,fy-9);c.lineTo(fx-len,fy);c.lineTo(fx+4,fy+9);c.closePath();c.fill();c.restore();}
   if(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil){c.strokeStyle='rgba(255,238,64,.95)';c.lineWidth=4;c.shadowBlur=24;c.shadowColor='#ffe83e';c.beginPath();c.ellipse(PHYSICS.carCenterX,ROAD_Y-run.y-height*.5,width*.60,height*.80,0,0,Math.PI*2);c.stroke();}
@@ -1041,6 +1138,19 @@ function drawCar(c){
   if(run.car.id==='boon'){for(let i=0;i<(run.car.ability.armorMax||2);i++){c.fillStyle=i<run.armor?'#d7bd64':'rgba(255,255,255,.14)';c.fillRect(x+8+i*17,y-8,12,5);}}
   c.restore();
 }
+function drawSpecialFx(c,w,h){
+  if(!specialActive())return;const sp=SPECIALS[run.car.id],t=run.gameTime-run.specialStartedAt,pulse=.5+.5*Math.sin(t*10),cx=PHYSICS.carCenterX,cy=ROAD_Y-run.y-42;c.save();c.globalCompositeOperation='lighter';
+  if(run.car.id==='boon'){c.globalAlpha=.34;c.strokeStyle=sp.color;c.lineWidth=7;c.shadowBlur=30;c.shadowColor=sp.color;c.beginPath();c.ellipse(cx,cy,118+pulse*14,70+pulse*7,0,0,Math.PI*2);c.stroke();for(let i=0;i<3;i++){c.globalAlpha=.15;c.fillStyle=sp.color;c.fillRect(cx-150-i*32,cy+32+i*5,125,5);}}
+  if(run.car.id==='wagon'){c.strokeStyle=sp.color;c.shadowBlur=25;c.shadowColor=sp.color;for(let i=0;i<3;i++){c.globalAlpha=.18+i*.08;c.lineWidth=3;c.beginPath();c.ellipse(cx,cy,82+i*25+pulse*5,34+i*12,0,0,Math.PI*2);c.stroke();}}
+  if(run.car.id==='buggy'){c.strokeStyle=sp.color;c.shadowBlur=22;c.shadowColor=sp.color;c.lineWidth=4;c.globalAlpha=.42;c.beginPath();c.arc(cx,cy,66+pulse*12,0,Math.PI*2);c.stroke();for(let i=0;i<run.specialCharges;i++){c.fillStyle='#fff';c.beginPath();c.arc(cx-24+i*24,cy-64,6,0,Math.PI*2);c.fill();}}
+  if(run.car.id==='bike'){c.strokeStyle=sp.color;c.shadowBlur=26;c.shadowColor=sp.color;c.lineWidth=4;c.globalAlpha=.50;for(let i=0;i<4;i++){const xx=cx-68+i*36,yy=cy-52+(i%2)*18;c.beginPath();c.moveTo(xx,yy);c.lineTo(xx+15,yy+18);c.lineTo(xx+4,yy+35);c.stroke();}}
+  if(run.car.id==='sport'){c.globalAlpha=.34;c.fillStyle=sp.color;for(let i=0;i<5;i++){const yy=cy-38+i*18,len=190+i*18+pulse*40;c.fillRect(cx-len,yy,len-65,4);}c.globalAlpha=.18;c.fillStyle='#58f2ff';c.fillRect(0,ROAD_Y+20,w,4);}
+  if(run.car.id==='ssr'){c.strokeStyle=sp.color;c.shadowBlur=34;c.shadowColor=sp.color;c.globalAlpha=.44;c.lineWidth=5;c.beginPath();c.ellipse(cx,cy,104+pulse*18,72+pulse*8,0,0,Math.PI*2);c.stroke();c.globalAlpha=.10;c.fillStyle=sp.color;c.fillRect(0,0,w,h);}
+  if(run.car.id==='princess'){c.strokeStyle=sp.color;c.shadowBlur=30;c.shadowColor=sp.color;c.globalAlpha=.55;c.lineWidth=5;c.beginPath();c.moveTo(cx-34,cy);c.quadraticCurveTo(cx-130,cy-95,cx-145,cy+25);c.moveTo(cx+34,cy);c.quadraticCurveTo(cx+130,cy-95,cx+145,cy+25);c.stroke();c.fillStyle='#fff4a6';c.font='900 34px system-ui';c.textAlign='center';c.fillText('♛',cx,cy-72);}
+  if(run.car.id==='secret'){c.strokeStyle=sp.color;c.shadowBlur=36;c.shadowColor=sp.color;c.globalAlpha=.58;c.lineWidth=6;c.beginPath();c.ellipse(cx,cy,104+pulse*18,72+pulse*12,0,0,Math.PI*2);c.stroke();c.globalAlpha=.33;c.fillStyle='#ff6b2d';c.beginPath();c.moveTo(cx-70,cy+10);c.lineTo(cx-300-pulse*90,cy+54);c.lineTo(cx-78,cy+58);c.closePath();c.fill();}
+  c.restore();
+}
+
 function drawBoostFx(c){
   c.save();const x=PHYSICS.carCenterX-118,y=ROAD_Y-run.y-42,pulse=.5+.5*Math.sin(run.gameTime*13);c.globalAlpha=.78;
   const g=c.createLinearGradient(x-180,0,x+14,0);g.addColorStop(0,'rgba(255,55,170,0)');g.addColorStop(.50,'rgba(255,76,184,.62)');g.addColorStop(.82,'rgba(82,238,255,.82)');g.addColorStop(1,'rgba(255,247,176,.98)');c.fillStyle=g;
@@ -1056,7 +1166,7 @@ function mix(a,b,t){const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),
 function roundRect(c,x,y,w,h,r){if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);}else{c.beginPath();c.rect(x,y,w,h);}}
 
 function onOrientation(){if(run&&run.phase==='running'&&innerHeight>innerWidth)pauseGame(true);}
-function renderDebugPanel(){if(!DEBUG||!run)return;els.debugPanel.innerHTML=`DIST ${run.distance.toFixed(1)}<br>SPEED ${(run.speedMult*100).toFixed(0)}% / ${run.scrollSpeed.toFixed(0)}px/s<br>FUEL ${run.fuel.toFixed(1)} / ${run.fuelMax}<br>SAFE debt ${run.safeDebt.toFixed(1)}<br>OPT debt ${run.optionalDebt.toFixed(1)}<br>JUMPS ${run.jumpsUsed}/${run.cp.maxJumps}${run.car.id==='princess'?'(+STAR)':''}<br>ARMOR ${run.armor||0} PHANTOM ${run.phantomReady?'READY':run.phantomClose}<br>PAT ${run.lastPattern?.id||'-'}<br>OBJ ${run.objects.length}<br><button data-dbg="fuel">FUEL+40</button><button data-dbg="jump">+5km</button><button data-dbg="inv">INV ${run.debug.invincible?'ON':'OFF'}</button>`;}
+function renderDebugPanel(){if(!DEBUG||!run)return;els.debugPanel.innerHTML=`DIST ${run.distance.toFixed(1)}<br>SPEED ${(run.speedMult*100).toFixed(0)}% / ${run.scrollSpeed.toFixed(0)}px/s<br>FUEL ${run.fuel.toFixed(1)} / ${run.fuelMax}<br>SAFE debt ${run.safeDebt.toFixed(1)}<br>OPT debt ${run.optionalDebt.toFixed(1)}<br>JUMPS ${run.jumpsUsed}/${run.cp.maxJumps}${run.car.id==='princess'?'(+STAR)':''}<br>ARMOR ${run.armor||0} PHANTOM ${run.phantomReady?'READY':run.phantomClose}<br>SPECIAL ${run.specialUsed?(specialActive()?specialRemaining().toFixed(1)+'s':'USED'):'READY'}<br>PAT ${run.lastPattern?.id||'-'}<br>OBJ ${run.objects.length}<br><button data-dbg="fuel">FUEL+40</button><button data-dbg="jump">+5km</button><button data-dbg="inv">INV ${run.debug.invincible?'ON':'OFF'}</button>`;}
 
 
 let rankingPeriod='all',rankingMachine='',pendingRankSubmit=false;
@@ -1086,6 +1196,7 @@ document.querySelectorAll('[data-back="menu"]').forEach(b=>b.addEventListener('c
 els.carGrid.addEventListener('click',e=>{const b=e.target.closest('[data-car]');if(!b)return;const id=b.dataset.car;if(!ownedCars.has(id)){toast('ブーンジャンプで解放しよう！');return;}state.selected=id;saveState();renderGarage();renderMenu();setTimeout(()=>showScreen('menu'),100);});
 els.soundButton.addEventListener('click',()=>{state.sound=!state.sound;saveState();renderMenu();if(state.sound)sound.tone(620,.08,'sine',.03,180);});
 els.pauseButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();pauseGame(false);});
+els.specialButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();activateSpecial();});
 els.resumeButton.addEventListener('click',resumeGame);els.restartButton.addEventListener('click',restartGame);els.quitButton.addEventListener('click',quitGame);els.retryButton.addEventListener('click',restartGame);
 els.resultGarageButton.addEventListener('click',()=>{els.resultModal.hidden=true;run=null;renderGarage();showScreen('garage');});
 els.resultMenuButton.addEventListener('click',()=>{els.resultModal.hidden=true;run=null;renderMenu();showScreen('menu');});
@@ -1093,7 +1204,7 @@ const gamePress=(e)=>{if(e.target&&typeof e.target.closest==='function'&&e.targe
 const gameRelease=(e)=>{if(run?.car.id==='secret'){if(e&&e.cancelable)e.preventDefault();run.rocketThrust=false;}};
 if('PointerEvent' in window){els.viewport.addEventListener('pointerdown',gamePress,{passive:false});els.viewport.addEventListener('pointerup',gameRelease,{passive:false});els.viewport.addEventListener('pointercancel',gameRelease,{passive:false});}
 else{els.viewport.addEventListener('touchstart',gamePress,{passive:false});els.viewport.addEventListener('touchend',gameRelease,{passive:false});els.viewport.addEventListener('mousedown',gamePress,{passive:false});window.addEventListener('mouseup',gameRelease,{passive:false});}
-window.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}if(e.key==='Escape'&&run?.phase==='running')pauseGame(false);});
+window.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}if(e.code==='KeyX'){e.preventDefault();activateSpecial();}if(e.key==='Escape'&&run?.phase==='running')pauseGame(false);});
 window.addEventListener('keyup',e=>{if((e.code==='Space'||e.key==='ArrowUp')&&run?.car.id==='secret')run.rocketThrust=false;});
 window.addEventListener('resize',onOrientation);document.addEventListener('visibilitychange',()=>{if(document.hidden&&run?.phase==='running')pauseGame(false);});
 window.addEventListener('pagehide',saveState);
@@ -1110,8 +1221,8 @@ window.addEventListener('unhandledrejection',e=>{console.error('[BOONRUN] promis
 window.__BOONRUN_TEST={
   build:BUILD,
   boot:()=>window.__BOONRUN_BOOT||null,
-  status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,rankingEligible:run.rankingEligible}:null,
-  start:startGame, jump:requestJump, pause:()=>pauseGame(false),
+  status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,fuelRate:effectiveFuelRate(),car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,scrollSpeed:run.scrollSpeed,armor:run.armor,stars:run.stars,specialCharges:run.specialCharges,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,specialUsed:run.specialUsed,specialActive:specialActive(),specialRemaining:specialRemaining(),rankingEligible:run.rankingEligible}:null,
+  start:startGame, jump:requestJump, special:activateSpecial, pause:()=>pauseGame(false),
   press(){if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}, release(){if(run)run.rocketThrust=false;},
   tick(n=1){for(let i=0;i<Math.max(1,Number(n)||1);i++){if(run?.phase==='running')step(FIXED_DT);}if(run)render();return this.status();},
   smoke(){try{const before=run&&run.distance;if(!run)startGame();return {ok:true,build:BUILD,before,boot:window.__BOONRUN_BOOT};}catch(err){return {ok:false,error:String(err&&err.stack||err)};}}
