@@ -1,0 +1,13 @@
+ブーンジャンプ V2.6.2 PRINCESS 3 RHYTHMS UPDATE
+
+ランキング/API変更: なし
+Apps Script再デプロイ: 不要
+
+変更内容:
+- プリンセス・スターライナー ACCEL 100.00%到達不能を修正
+- ACCEL / TURBO / NITROを別々の固定リズムへ再設計
+- 3入力すべて100.00%を実ブラウザ操作で確認
+- LIMIT BREAK発動を確認
+- LIMIT BREAK描画時のshockwave負半径をclamp
+
+ランキングのPRECISIONタイブレーク、同名登録、RIVAL CHASE、SECRET方針はV2.6.1から変更なし。

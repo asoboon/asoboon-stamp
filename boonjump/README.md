@@ -1,87 +1,83 @@
-# ブーンジャンプ V2.6.1 — MASTERPIECE EDITION
+# ブーンジャンプ V2.6.2 — PRINCESS 3 RHYTHMS UPDATE
 
-Build: `2026-08-10-masterpiece-v1`
+Build: `2026-08-10-princess-rhythm-v2`
 
-V2.6.0 RIVAL CHASEを正本に、ゲームバランスを変更せず、RIVAL体験・トロフィー最終演出・軽量性・セーブ互換性を最終研磨した公開候補版です。
+V2.6.1 MASTERPIECE EDITIONを正本に、プリンセス・スターライナーの100.00%到達不能バグを修正し、ACCEL / TURBO / NITROを明確に異なる3つの固定リズムへ再設計した更新版です。
 
-## RIVAL CHASE FINAL POLISH
+## 修正: プリンセス100.00%
 
-NEXT RIVALは従来どおり、現在マシン別ランキングの自分の1つ上を、既存dashboardキャッシュからスナップショットします。
+V2.6.1ではACCELの理想値が `.80` なのに、旧rhythm軌道の最大アンカーが `.78` でした。
+そのためACCELの100.00%が構造上不可能で、3 COMBO PRECISION 100.00%も実プレイでは到達できませんでした。
 
-飛行中:
-- `NEXT RIVAL · #順位`
-- ライバル名 / あと○m
-- 進捗バー
-- 残り100m以内: `LOCK ON`
-- 残り20m以内: `PHOTO FINISH`
-- 突破: `OVERTAKE` / `+○m 突破！`
-- 同距離: `PRECISION BATTLE`
-- CanvasのNEXT RIVALライン
+V2.6.2では各入力に短い `PERFECT LOCK` を設け、実際の60fps相当ブラウザ操作で以下を確認しています。
 
-リザルト:
-- 距離で突破: `OVERTAKE! +○mで突破！`
-- 同距離でPRECISION勝利: `同距離・PRECISION勝利！`
-- 1〜5m差: `PHOTO FINISH!!`
-- 6〜20m差: `SO CLOSE!!`
-- 完全同着にも専用文言
+- ACCEL: 100.00%
+- TURBO: 100.00%
+- NITRO: 100.00%
+- 3 COMBO: 100.00%
+- LIMIT BREAK: 発動
 
-RIVAL情報はプレイ開始時点のキャッシュです。実順位はランキング登録後に反映されます。
+PERFECT LOCKは短時間のみで、乱数はありません。
 
-## 通信 / 軽量性
+## PRINCESS — 3 RHYTHMS
 
-- RIVAL専用APIなし
-- 飛行中ポーリングなし
-- `getMachineRival()`はローカルキャッシュ参照のみ
-- **飛行中の追加通信0回**
-- RIVAL取得失敗でも通常プレイ継続
-- トロコン演出の紙吹雪を常設72 DOM要素から、達成時のみ動的36要素へ変更
-- 演出終了後は紙吹雪DOMを破棄
+### ACCEL — WALTZ
+`ゆったりワン・ツー・スリー♪ 3拍目の星で止める`
 
-## 本当の38 / 38トロコン
+- 2600ms周期
+- 3拍子で段階的に上昇
+- 3拍目だけ `.80` に短くPERFECT LOCK
+- ゆっくり覚えて合わせるリズム
 
-従来の大演出内にV2.4時代の `27 / 27` 表記が残っていたため整理しました。
+### TURBO — SYNCOPATION
+`高速タン・タン…タンタン♪ 裏拍の中央を狙う`
 
-- 既存38トロフィーの定義・取得状態は変更しない
-- `trophyComplete`（V2.4までの26個取得条件）は既存トロフィーとして保持
-- **現行38個すべて取得した瞬間だけ** `38 / 38 ALL TROPHIES COMPLETE` の最終演出を1回発動
-- `grandCompleteAt` を保存し、同じ端末で毎起動ごとに最終演出を繰り返さない
-- V2.6.0以前の保存に `grandCompleteAt` が無くても自動補完
-- OSの「視差効果を減らす / reduced motion」設定中は、静止版の最終画面を確実に表示
+- 1450ms周期
+- 左右へ不規則にジャンプ
+- 中央 `.50` は短い裏拍のみ
+- ACCELとは速度も動きも別物
+
+### NITRO — STAIR
+`ためて落ちる階段リズム♪ 5段目のキラッを狙う`
+
+- 2050ms travel
+- 停止→落下を不均等に繰り返す階段型
+- 5段目でリング中心 `.76` に短くPERFECT LOCK
+- 横ゲージではなく縦ステップとして攻略
+
+## 追加安定化
+
+LIMIT BREAK時に `nitroFlash > 1` となった瞬間、shockwave半径が負数になる可能性があった既存描画処理をclampしました。
+プリンセス100%実機相当テスト中に検出し、Canvas例外が出ないことを再確認しています。
 
 ## バランス保護
 
-V2.6.0から以下を変更していません。
+変更したのはプリンセスの3入力モーションだけです。
+以下はV2.6.1から維持しています。
 
-- 8台のCARS性能
-- ACCEL / TURBO / NITRO判定幅
-- 各マシンの固定ゲージ軌道
-- 通常飛距離計算
-- 3 COMBO PRECISION計算
-- LIMIT BREAK条件 / 倍率
-- ガチャ主要ロジック
-- チューン
-- SECRETの距離・ランキング方針
-
-## セーブ
-
-- STORE_KEY: `asoboonBoonjump.v2` 継続
-- BACKUP_KEY: `asoboonBoonjump.v2.backup` 継続
-- schema: 7
-- V2.6.0 schema 6から自動移行
-- 車庫 / チューン / 自己ベスト / プレイ数 / PRECISION / LIMIT BREAK / トロフィーを保持
+- プリンセス rawCap 2952 / finalCap 3100 / Lv50 3100m
+- LIMIT BREAK最大 3162m
+- 判定幅（SUPER / CRITICAL / GREAT / GOOD）
+- distanceScale / baseSpeed / launchAngle / boostPower / gravity / drag
+- 他7台の性能・操作軌道
+- ガチャ率
+- ランキング仕様
+- RIVAL CHASE
+- トロフィー38個
+- セーブキー `asoboonBoonjump.v2`
+- schema 7
 
 ## Apps Script
 
-**再デプロイ不要です。**
-
-V2.6.1はバックエンドAPIを追加していません。V2.5.1 APIをそのまま使用します。同梱`Code.gs`は参照用で、現在V2.5.1が稼働している場合は差し替え不要です。
+バックエンド変更はありません。V2.5.1以降の現行GASをそのまま使用できます。
+再デプロイ不要です。
 
 ## 公開
 
-GitHub更新後、初回確認:
+GitHub更新後の初回確認:
 
-`/boonjump/?v=261`
+`/boonjump/?v=262`
 
 Service Worker build:
 
-`2026-08-10-masterpiece-v1`
+`2026-08-10-princess-rhythm-v2`

@@ -1,0 +1,72 @@
+ブーンジャンプ V2.6.2 — PRINCESS 3 RHYTHMS UPDATE
+Final Validation
+Build: 2026-08-10-princess-rhythm-v2
+
+[1] V2.6.1不具合の確認
+PASS: プリンセスACCEL ideal=.80 に対し旧rhythm最大アンカー=.78 を確認
+PASS: 旧ACCEL理論上限PRECISION = 92.00%
+PASS: TURBO/NITROを100.00%と仮定しても旧3 COMBO PRECISION理論上限 = 95.47%
+結論: V2.6.1では実プレイでPRINCESS 100.00% / LIMIT BREAK 99%条件が構造上不可能
+
+[2] V2.6.2 3 RHYTHMS
+ACCEL: princessWaltz / 2600ms / ゆったり3拍子
+TURBO: princessSyncopation / 1450ms / 高速・左右シンコペーション
+NITRO: princessStair / 2050ms / 縦の階段リズム
+PASS: 3モーションは別アルゴリズム
+PASS: 乱数なし・毎回同じ固定軌道
+
+[3] 100.00%到達性
+PERFECT LOCK概算:
+- ACCEL 約69.3ms
+- TURBO 約43.5ms
+- NITRO 約71.8ms
+PASS: 60fps相当ブラウザ操作で ACCEL 100.00%
+PASS: 60fps相当ブラウザ操作で TURBO 100.00%
+PASS: 60fps相当ブラウザ操作で NITRO 100.00%
+PASS: 3 COMBO 100.00%
+PASS: LIMIT BREAK +2.00% 発動
+
+ブラウザ実測 attempt:
+start=SUPER / startPrecision=100
+turbo=SUPER / turboPrecision=100
+nitro=SUPER / nitroPrecision=100
+limitBreakRate=0.02
+
+[4] バランス保護
+PASS: プリンセス distanceScale 2.149 維持
+PASS: baseSpeed 144 維持
+PASS: launchAngle 38 維持
+PASS: boostPower 62 / boostLift 23 維持
+PASS: gravity 8.0 / drag .0021 維持
+PASS: rawCap 2952 / finalCap 3100 / master 2900 維持
+PASS: 判定幅 SUPER/CRITICAL/GREAT/GOOD 維持
+PASS: 他7台のCARS定義はV2.6.1から変更なし
+PASS: LIMIT BREAK倍率・ランキング・RIVAL CHASE・38トロフィー変更なし
+
+[5] 追加安定化
+PASS: LIMIT BREAK時 nitroFlash>1 でshockwave半径が負になる既存Canvas例外を修正
+PASS: drawShockwave tを0..1へclamp
+PASS: 修正後 browser page errors = 0
+PASS: console errors = 0
+
+[6] 静的監査
+PASS: index inline JS syntax
+PASS: ranking-client.js syntax
+PASS: sw.js syntax
+PASS: Code.gs syntax
+PASS: HTML id重複 0
+PASS: DOM参照欠落 0
+PASS: ローカル静的参照欠落 0
+
+[7] モバイル
+Viewport: 390 x 844
+PASS: scrollWidth 390 / clientWidth 390（横はみ出しなし）
+
+[8] セーブ / GAS
+STORE_KEY: asoboonBoonjump.v2 継続
+BACKUP_KEY: asoboonBoonjump.v2.backup 継続
+schema: 7 継続
+Apps Script backend変更なし / 再デプロイ不要
+
+公開確認URL:
+/boonjump/?v=262

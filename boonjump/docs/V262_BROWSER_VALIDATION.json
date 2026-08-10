@@ -1,0 +1,32 @@
+{
+  "version": "2.6.2",
+  "build": "2026-08-10-princess-rhythm-v2",
+  "attempt": {
+    "carId": "princess",
+    "start": "SUPER",
+    "turbo": "SUPER",
+    "nitro": "SUPER",
+    "rpm": 0.8,
+    "turboPosition": 0.5,
+    "startQuality": 1,
+    "turboQuality": 1,
+    "nitroQuality": 1,
+    "startPrecision": 100,
+    "turboPrecision": 100,
+    "nitroPrecision": 100,
+    "limitBreakRate": 0.02
+  },
+  "limitBreak": true,
+  "viewport": {
+    "sw": 390,
+    "cw": 390,
+    "sh": 863
+  },
+  "errors": [],
+  "console_errors": [],
+  "labels": {
+    "accel": "ゆったりワン・ツー・スリー♪ 3拍目の星で止める",
+    "turbo": "高速タン・タン…タンタン♪ 裏拍の中央を狙う",
+    "nitro": "ためて落ちる階段リズム♪ 5段目のキラッを狙う"
+  }
+}

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.6.1">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.6.2">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-10-masterpiece-v1">
-  <title>ブーンジャンプ Ver.2.6.1｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-10-princess-rhythm-v2">
+  <title>ブーンジャンプ Ver.2.6.2｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -198,7 +198,7 @@ main{position:relative;z-index:2;width:min(100%,760px);margin:0 auto;padding:8px
 body[data-machine="boon"]{--machine-accent:#ffd83d}body[data-machine="wagon"]{--machine-accent:#72e8ff}body[data-machine="buggy"]{--machine-accent:#8cff63}body[data-machine="bike"]{--machine-accent:#ff6b38}body[data-machine="sport"]{--machine-accent:#ff4677}body[data-machine="ssr"]{--machine-accent:#8c70ff}body[data-machine="princess"]{--machine-accent:#ff9fe1}body[data-machine="secret"]{--machine-accent:#fff35c}
 .game-shell[data-machine]{border-color:color-mix(in srgb,var(--machine-accent,#49b7ff) 62%,white 12%);box-shadow:0 20px 55px rgba(0,0,0,.36),0 0 34px color-mix(in srgb,var(--machine-accent,#49b7ff) 22%,transparent)}
 .machine-control-note{font-size:.66rem;padding:6px 11px;border:1px solid color-mix(in srgb,var(--machine-accent,#49b7ff) 45%,transparent);background:color-mix(in srgb,var(--machine-accent,#49b7ff) 13%,transparent);color:#fff}
-.nitro-lane[data-mode="zigzag"],.nitro-lane[data-mode="decoy"]{width:122px}.nitro-lane[data-mode="teleport"]{border-style:dashed;box-shadow:inset 0 0 28px rgba(111,85,255,.42),0 0 18px rgba(82,232,255,.28)}.nitro-lane[data-mode="rhythm"]{background:repeating-linear-gradient(180deg,rgba(255,159,225,.18) 0 15%,rgba(255,255,255,.05) 15% 20%)}
+.nitro-lane[data-mode="zigzag"],.nitro-lane[data-mode="decoy"]{width:122px}.nitro-lane[data-mode="teleport"]{border-style:dashed;box-shadow:inset 0 0 28px rgba(111,85,255,.42),0 0 18px rgba(82,232,255,.28)}.nitro-lane[data-mode="princessStair"]{background:repeating-linear-gradient(180deg,rgba(255,159,225,.20) 0 12%,rgba(255,255,255,.045) 12% 19%,rgba(185,140,255,.12) 19% 20%);box-shadow:inset 0 0 28px rgba(255,159,225,.20),0 0 18px rgba(185,140,255,.16)}
 .home-actions.four{grid-template-columns:repeat(3,1fr)}.home-actions.four .world-button{grid-column:1/-1;border-color:rgba(73,183,255,.5);background:linear-gradient(135deg,rgba(73,183,255,.19),rgba(113,60,255,.17));color:#e7fbff}
 body.modal-open{overflow:hidden}
 .ranking-panel{padding:13px 12px 34px;background:linear-gradient(180deg,rgba(8,19,38,.99),rgba(5,12,27,.99))}
@@ -343,6 +343,7 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
 @media(prefers-reduced-motion:reduce){.combo-finale.show,.combo-finale::before,.record-break-flash.show,.flight-screen.fx-record-break,.game-shell.fx-precision-super::after,.limit-break-overlay.show,.limit-break-overlay.show::before,.limit-break-overlay.show::after,.limit-break-result::before{animation:none}.combo-finale.show,.record-break-flash.show{opacity:.94}.combo-finale::before{display:none}}
 
 /* V2.6.1 — MASTERPIECE FINAL POLISH */
+/* V2.6.2 — PRINCESS 3 RHYTHMS: 100.00% reachable + distinct ACCEL/TURBO/NITRO patterns */
 .rival-flight-chip .rival-progress{display:block;position:relative;width:100%;height:4px;margin-top:5px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.18);box-shadow:inset 0 1px 2px rgba(0,0,0,.28)}
 .rival-flight-chip .rival-progress b{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7cecff,#fff36b);box-shadow:0 0 10px rgba(255,243,107,.7);transition:width .12s linear}
 .rival-flight-chip.near .rival-progress b{background:linear-gradient(90deg,#fff36b,#ffad3d)}
@@ -360,7 +361,7 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
       <span aria-hidden="true">⌂</span>
     </a>
     <div class="brandbar">
-      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.6.1</em></strong></div>
+      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.6.2</em></strong></div>
       <div class="header-actions">
         <button class="sound-button" id="soundButton" type="button" aria-label="効果音を切り替える">🔊</button>
         <div class="ticket-pill"><small>GACHA</small><b id="ticketCount">🎟 1</b></div>
@@ -661,13 +662,13 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=261-masterpiece-1"></script>
+<script src="./ranking-client.js?v=262-princess-rhythm-2"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '2.6.1';
-  const BUILD = '2026-08-10-masterpiece-v1';
+  const APP_VERSION = '2.6.2';
+  const BUILD = '2026-08-10-princess-rhythm-v2';
   const SCHEMA = 7;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -686,7 +687,7 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
     {id:'bike',distanceScale:2.757,name:'パワーバイク',rarity:'SR',rate:12,trait:'戻らない一方向勝負。通過は一瞬',handling:'INTERMEDIATE｜ワンショット',color:'#ed572f',accent:'#ffca62',baseSpeed:144,launchAngle:32,boostPower:46,boostLift:13,gravity:9.1,drag:.0031,bounce:0,skill:'powerStart',rawCap:2350,finalCap:2468,master:2250,asset:['bike','suv'],control:{accel:{mode:'oneway',period:930,reset:75,ideal:.84,super:.022,critical:.052,great:.11,good:.20,label:'0→MAXを一気に駆け抜ける'},turbo:{mode:'oneway',period:1020,reset:70,super:.027,critical:.063,great:.125,good:.22,label:'戻りなし・中央を一度だけ通過'},nitro:{mode:'dash',travel:960,orb:64,target:82,super:.026,critical:.06,great:.115,good:.21,label:'上から一気に突っ込む'}}},
     {id:'sport',distanceScale:2.455,name:'ニトロスポーツ',rarity:'SR',rate:12,trait:'前半は眠いほど遅く、最後だけ弾丸加速',handling:'ADVANCED｜急加速',color:'#d72458',accent:'#ff758f',baseSpeed:139,launchAngle:31,boostPower:68,boostLift:16,gravity:9.0,drag:.0025,bounce:0,skill:'nitro',rawCap:2525,finalCap:2651,master:2400,asset:['sport'],control:{accel:{mode:'snap',period:1950,ideal:.82,super:.024,critical:.056,great:.115,good:.21,label:'低速から突然フルスロットル'},turbo:{mode:'snap',period:1500,super:.025,critical:.058,great:.115,good:.20,label:'中央直前で速度が跳ね上がる'},nitro:{mode:'accelerate',travel:1380,orb:58,target:72,super:.021,critical:.05,great:.10,good:.18,label:'落下しながら急加速'}}},
     {id:'ssr',distanceScale:1.903,name:'コズミックファントム',rarity:'EXR',rate:3,trait:'決まった順番でワープする。順番を覚えれば攻略できる',handling:'EXPERT｜固定ワープ',color:'#6f55ff',accent:'#52e8ff',baseSpeed:148,launchAngle:39,boostPower:64,boostLift:25,gravity:7.9,drag:.0019,bounce:0,skill:'warp',rawCap:3000,finalCap:3150,master:3000,asset:['ssr','cosmic'],control:{accel:{mode:'patternWarp',period:1380,ideal:.83,super:.018,critical:.044,great:.092,good:.17,label:'固定10地点｜5番目のワープが本命'},turbo:{mode:'patternWarp',period:1250,super:.02,critical:.047,great:.095,good:.17,label:'固定10地点｜中央ワープの順番を覚えろ'},nitro:{mode:'patternTeleport',travel:1280,orb:52,target:64,super:.018,critical:.043,great:.087,good:.16,label:'固定6地点｜4番目が黄色リング'}}},
-    {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'音楽の拍のように止まり、次の拍で動く',handling:'ADVANCED｜リズム',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'rhythm',period:2250,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'4拍子で動いて止まる'},turbo:{mode:'rhythm',period:2350,super:.034,critical:.078,great:.15,good:.26,label:'拍ごとに中央へ戻る'},nitro:{mode:'rhythm',travel:2000,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'虹の丸が拍に合わせてステップ'}}},
+    {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'3つのまったく違うリズムを覚えてつなぐ、音楽型マシン',handling:'ADVANCED｜3 RHYTHMS',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'princessWaltz',period:2600,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'ゆったりワン・ツー・スリー♪ 3拍目の星で止める'},turbo:{mode:'princessSyncopation',period:1450,super:.034,critical:.078,great:.15,good:.26,label:'高速タン・タン…タンタン♪ 裏拍の中央を狙う'},nitro:{mode:'princessStair',travel:2050,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'ためて落ちる階段リズム♪ 5段目のキラッを狙う'}}},
     {id:'secret',distanceScale:2.623,name:'無敵のロケットアソブーン人間',rarity:'SECRET',rate:0,trait:'3コンボを極めた時だけ5000m級。1ミスで大失速する最終試験',handling:'LEGEND｜超高難度3コンボ',color:'#ff5a24',accent:'#fff35c',baseSpeed:172,launchAngle:46,boostPower:92,boostLift:37,gravity:6.6,drag:.0014,bounce:0,skill:'rocket',rawCap:5000,finalCap:5000,master:5000,asset:['secret'],control:{accel:{mode:'patternRocket',period:720,ideal:.86,super:.013,critical:.032,great:.068,good:.125,label:'固定8手｜逆走後の一瞬だけが本命'},turbo:{mode:'patternRocket',period:760,super:.014,critical:.034,great:.070,good:.13,label:'固定8手｜フェイント後の中央を見切れ'},nitro:{mode:'patternDecoy',travel:960,orb:44,target:56,super:.013,critical:.032,great:.066,good:.12,label:'固定フェイント｜逆走後の2回目だけを狙え'}}}
   ];
   const CAR_BY_ID = Object.fromEntries(CARS.map(car => [car.id, car]));
@@ -726,12 +727,29 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
       const steps=[.04,.23,clamp(center-.19,0,1),.91,center,.96,.69,.16,clamp(center+.13,0,1),.34];
       const idx=Math.min(steps.length-1,Math.floor(p*steps.length));
       v=steps[idx];
-    }else if(mode==='rhythm'){
-      const beat=(p*4)%1,section=Math.floor(p*4)%4;
-      const anchors=[.08,.38,.78,.52];
-      const next=[.38,.78,.52,.08][section];
-      const move=smoothStep(clamp((beat-.32)/.38,0,1));
-      v=lerp(anchors[section],next,move);
+    }else if(mode==='princessWaltz'){
+      // ACCEL: 3拍子ワルツ。1→2→3で大きく上がり、3拍目だけ理想値へ短くPERFECT LOCK。
+      // 約69msだけ center(.80) にPERFECT LOCKされるため、100.00%は実際に到達可能。
+      const beat=(p*3)%1,section=Math.floor(p*3)%3;
+      if(section===0)v=lerp(.08,.34,smoothStep(clamp((beat-.10)/.66,0,1)));
+      else if(section===1)v=lerp(.34,.56,smoothStep(clamp((beat-.08)/.68,0,1)));
+      else if(beat<.69)v=lerp(.56,center,smoothStep(clamp((beat-.08)/.61,0,1)));
+      else if(beat<.77)v=center;
+      else v=lerp(center,.08,smoothStep(clamp((beat-.77)/.20,0,1)));
+    }else if(mode==='princessSyncopation'){
+      // TURBO: シンコペーション。左右へ不規則に跳ね、中央の短い裏拍だけPERFECT LOCK。
+      // ACCELの連続上昇とは見た目もタイミングも別物。
+      if(p<.11)v=.12;
+      else if(p<.20)v=lerp(.12,.82,smoothStep((p-.11)/.09));
+      else if(p<.32)v=.82;
+      else if(p<.40)v=lerp(.82,.24,smoothStep((p-.32)/.08));
+      else if(p<.51)v=.24;
+      else if(p<.59)v=lerp(.24,.68,smoothStep((p-.51)/.08));
+      else if(p<.70)v=.68;
+      else if(p<.77)v=lerp(.68,center,smoothStep((p-.70)/.07));
+      else if(p<.80)v=center;
+      else if(p<.89)v=lerp(center,.92,smoothStep((p-.80)/.09));
+      else v=.92;
     }else if(mode==='patternRocket'){
       // 8手固定。高速だが順番は変わらない。4手目の逆走を見切る攻略型。
       const anchors=[.03,.48,.94,.22,.78,.12,center,.97,.03];
@@ -1123,11 +1141,22 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
       const idx=Math.min(stops.length-1,Math.floor(t*stops.length));
       y=stops[idx];
       x=(idx%2?14:-14);
-    }else if(mode==='rhythm'){
-      const beat=(t*5)%1,step=Math.floor(t*5);
-      const anchors=[.03,.23,.47,.72,.91,1.09];
-      y=lerp(anchors[Math.min(step,4)],anchors[Math.min(step+1,5)],smoothStep(clamp((beat-.42)/.35,0,1)));
-      x=Math.sin(step*Math.PI/2)*10;
+    }else if(mode==='princessStair'){
+      // NITRO: 階段リズム。停止→落下を不均等に繰り返し、5段目だけリング中心(.76)で短く止まる。
+      // ACCELの3拍子 / TURBOの左右シンコペーションとは完全に異なる縦ステップ。
+      if(t<.11)y=.04;
+      else if(t<.20)y=lerp(.04,.20,smoothStep((t-.11)/.09));
+      else if(t<.31)y=.20;
+      else if(t<.39)y=lerp(.20,.41,smoothStep((t-.31)/.08));
+      else if(t<.52)y=.41;
+      else if(t<.60)y=lerp(.41,.60,smoothStep((t-.52)/.08));
+      else if(t<.70)y=.60;
+      else if(t<.765)y=lerp(.60,.76,smoothStep((t-.70)/.065));
+      else if(t<.800)y=.76;
+      else if(t<.89)y=lerp(.76,.94,smoothStep((t-.800)/.09));
+      else y=.94+(t-.89)*1.36;
+      const stair=Math.min(5,Math.floor(t*6));
+      x=[-10,8,-12,10,0,12][stair]||0;
     }else if(mode==='patternDecoy'){
       // 1回だけ固定で逆走するフェイント。2回目の.76通過が本命。
       if(t<.46)y=t*1.52;
@@ -1146,7 +1175,7 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
   const worldToScreen=(x,y)=>({x:(x-flight.cameraX)*.72+canvasMetrics.w*.18,y:canvasMetrics.h*.72-y*.68});
   const drawFlight=()=>{if(!ctx||!flight)return;const{w,h}=canvasMetrics,car=currentCar,f=flight;ctx.clearRect(0,0,w,h);const shake=f.cameraShake||0,zoom=1+(f.cameraZoom||0)*.045,kick=f.cameraKick||0,dx=Math.sin(f.time*93)*shake*7-kick*5,dy=Math.cos(f.time*71)*shake*4;ctx.save();ctx.translate(w/2+dx,h/2+dy);ctx.scale(zoom,zoom);ctx.translate(-w/2,-h/2);const altitudeT=clamp(f.maxHeight/750,0,1),distanceT=clamp((f.x*f.distanceScale)/(car.skill==='rocket'?5000:3000),0,1),spaceT=clamp(altitudeT*.75+distanceT*.5-.38,0,1),grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,colorMix('#123a88','#02030e',spaceT));grad.addColorStop(.7,colorMix('#83dcff','#311657',clamp(spaceT*1.15,0,1)));grad.addColorStop(1,'#152038');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);drawStars(spaceT,w,h,f.time);drawSpeedLines(w,h);drawClouds(w,h,altitudeT);drawCity(w,h,distanceT);drawGround(w,h);drawLandmarks(w);drawRecordLine(w);drawRivalLine(w);drawTrail(car);drawCar(car);drawShockwave();drawParticles();if(car.skill==='warp')drawWarp(w,h,f.time,spaceT);if(car.skill==='star'&&f.nitroUsed&&JUDGE_LEVEL[f.nitroJudge]>=3)drawRainbow(w,h);ctx.restore();};
   const drawSpeedLines=(w,h)=>{const f=flight,speed=Math.hypot(f.vx,f.vy),intensity=clamp((speed-58)/92,0,1)+Math.min(1.15,f.nitroFlash||0);if(intensity<=.04)return;ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';for(let i=0;i<52;i++){const seed=(i*47.13+f.time*215)%(w+h),y=(i*83.7+f.time*54)%(h*.78),len=38+((i*19)%105)*intensity,x=(seed%(w+180))-110;ctx.globalAlpha=clamp((.08+(i%6)*.026)*intensity,0,.52);ctx.strokeStyle=i%8===0?'#fff4a8':i%5===0?'#79edff':'#eafcff';ctx.lineWidth=1.2+(i%4)*.85;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-len,y+len*.06);ctx.stroke();}ctx.restore();};
-  const drawShockwave=()=>{const f=flight;if(!f.nitroFlash)return;const p=worldToScreen(f.x,f.y),t=1-f.nitroFlash;ctx.save();ctx.globalCompositeOperation='screen';ctx.translate(p.x,p.y);for(let i=0;i<3;i++){ctx.globalAlpha=clamp(f.nitroFlash*(.72-i*.12),0,1);ctx.strokeStyle=i===0?'#fff':'#78ecff';ctx.lineWidth=5-i;ctx.beginPath();ctx.arc(0,0,22+t*150+i*16,0,Math.PI*2);ctx.stroke();}ctx.restore();};
+  const drawShockwave=()=>{const f=flight;if(!f.nitroFlash)return;const p=worldToScreen(f.x,f.y),t=clamp(1-f.nitroFlash,0,1);ctx.save();ctx.globalCompositeOperation='screen';ctx.translate(p.x,p.y);for(let i=0;i<3;i++){ctx.globalAlpha=clamp(f.nitroFlash*(.72-i*.12),0,1);ctx.strokeStyle=i===0?'#fff':'#78ecff';ctx.lineWidth=5-i;ctx.beginPath();ctx.arc(0,0,22+t*150+i*16,0,Math.PI*2);ctx.stroke();}ctx.restore();};
   const drawStars=(spaceT,w,h,time)=>{if(spaceT<=.04)return;ctx.save();for(let i=0;i<55;i++){const x=((i*97.3+flight.cameraX*.035)%(w+70))-35,y=18+((i*43.7)%(h*.62)),r=.6+((i*17)%3)*.45;ctx.fillStyle=i%8===0?'#ffe784':'#fff';ctx.globalAlpha=spaceT*(.45+.55*Math.abs(Math.sin(time*1.8+i)));ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}ctx.restore();};
   const drawClouds=(w,h,altitudeT)=>{ctx.save();ctx.globalAlpha=clamp(1-altitudeT*.9,.12,.8);for(let i=0;i<8;i++){const p=worldToScreen(i*460+240,180+(i%3)*115);if(p.x<-150||p.x>w+150)continue;ctx.fillStyle='rgba(255,255,255,.72)';ctx.beginPath();ctx.ellipse(p.x,p.y,58,22,0,0,Math.PI*2);ctx.ellipse(p.x-32,p.y+4,36,17,0,0,Math.PI*2);ctx.ellipse(p.x+35,p.y+5,42,18,0,0,Math.PI*2);ctx.fill();}ctx.restore();};
   const drawCity=(w,h,distanceT)=>{const gy=h*.72;ctx.save();ctx.globalAlpha=clamp(1-distanceT*1.3,.08,.45);ctx.fillStyle='#153d56';for(let i=0;i<30;i++){const x=((i*79-flight.cameraX*.18)%(w+120))-60,bh=25+(i*31%75);ctx.fillRect(x,gy-bh,35+(i%4)*10,bh);}ctx.restore();};
@@ -1389,6 +1418,8 @@ body[data-machine="ssr"] .flight-screen.fx-nitro .nitro-lane{filter:drop-shadow(
       drawTen:runTenGacha,
       setTickets(count){state.gachaTickets=Math.max(0,Math.floor(Number(count)||0));save();renderHome();syncGachaUi();return state.gachaTickets;},
       get phase(){return phase;},
+      get rpmValue(){return rpmValue;},
+      get turboValue(){return turboValue;},
       get navLocked(){return navLocked;},
       get attempt(){return attempt?JSON.parse(JSON.stringify(attempt)):null;},
       get flight(){return flight?{...flight,particles:undefined,trail:undefined}:null;},

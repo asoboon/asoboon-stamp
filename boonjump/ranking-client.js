@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.6.1
+ * ブーンジャンプ 世界ランキング通信 V2.6.2
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -316,7 +316,7 @@ const BOON_RANKING = (() => {
     return getDashboard({ force }).catch(() => null);
   }
 
-  // V2.6.1 RIVAL CHASE / MASTERPIECE POLISH
+  // V2.6.2 RIVAL CHASE / PRINCESS RHYTHM FIX (ranking behavior unchanged)
   // 既存dashboardキャッシュだけから「現在順位の1つ上」を返す。
   // ここでは通信を発生させないため、飛行中のネットワーク負荷は増えない。
   function getMachineRival(machineId) {
