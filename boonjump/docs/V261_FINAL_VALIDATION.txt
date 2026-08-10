@@ -1,0 +1,92 @@
+ブーンジャンプ V2.6.1 — MASTERPIECE EDITION
+最終検証レポート
+Build: 2026-08-10-masterpiece-v1
+基準版: V2.6.0 RIVAL CHASE UPDATE
+
+[結論]
+公開候補として確認できる範囲の監査をPASS。
+V2.6.0のゲームバランスを維持し、RIVAL表示・38/38トロコン最終演出・軽量性・セーブ移行を最終研磨した。
+
+[ゲームバランス比較 — V2.6.0と完全一致]
+PASS: CARS定義
+PASS: JUDGE_SCORE / 判定閾値 / 各固定モーション / PRECISION計算 / LIMIT BREAK定義
+PASS: weightedDraw / weightedBonusDraw / ガチャ主要処理
+PASS: beginFlight物理コア
+PASS: applyBoost物理コア
+PASS: nitroMotion
+PASS: finishFlight通常距離〜LIMIT BREAK前の距離計算コア
+変更はRIVAL表示・トロフィー最終演出・セーブ追加フィールドのみ。
+
+[RIVAL CHASE FINAL POLISH]
+PASS: NEXT RIVALは既存dashboardキャッシュから取得
+PASS: 飛行中追加API通信0回
+PASS: NEXT RIVAL進捗バー
+PASS: 残り100m以内 LOCK ON
+PASS: 残り20m以内 PHOTO FINISH
+PASS: 距離突破 OVERTAKE +○m表示
+PASS: 同距離PRECISION勝利表示
+PASS: 完全同着表示
+PASS: RIVAL無しでも通常プレイ継続
+
+[トロフィー]
+PASS: TROPHIES定義はV2.6.0と同じ38個
+PASS: 既存trophyCompleteを削除・改名しない
+PASS: 38個すべて取得した時だけ最終演出を追加
+PASS: 最終演出表示 38 / 38
+PASS: ALL TROPHIES COMPLETE表示
+PASS: grandCompleteAtを保存し次回起動で再演出しない
+PASS: reduced-motion環境でも最終画面のopacity 1 / visibility visible
+PASS: 通常motion環境でもshow=true / visibility visible / JavaScript error 0
+
+[軽量化]
+V2.6.0 index.html: 259,559 bytes
+V2.6.1 index.html: 256,971 bytes
+差分: -2,588 bytes
+PASS: 常設紙吹雪72 DOM要素を廃止
+PASS: 38/38達成時のみ36要素を動的生成
+PASS: 演出終了後に紙吹雪DOMを破棄
+追加画像・動画アセット: 0
+
+[セーブ移行]
+STORE_KEY: asoboonBoonjump.v2 継続
+BACKUP_KEY: asoboonBoonjump.v2.backup 継続
+schema: 6 -> 7
+ブラウザ移行テスト:
+PASS: best 1,234m保持
+PASS: plays 7保持
+PASS: gachaTickets 4保持
+PASS: boon best 1,234m保持
+PASS: comboPrecision 87.65保持
+PASS: 既存取得トロフィー保持
+PASS: grandCompleteAt未取得時はnullで移行
+
+[静的監査]
+PASS: HTML ID 184 / 重複0
+PASS: DOM $()参照 159 / 欠落0
+PASS: HTMLローカル参照 欠落0
+PASS: Service Worker precache 70 / 欠落0
+PASS: index inline JavaScript node --check
+PASS: ranking-client.js node --check
+PASS: sw.js node --check
+PASS: Code.gs syntax check
+
+[ブラウザ検証 390x844 / reduced-motion]
+PASS: V2.6.1 / build 2026-08-10-masterpiece-v1 / schema 7
+PASS: RIVALチップ表示
+PASS: RIVAL進捗バー更新
+PASS: OVERTAKE / PHOTO FINISH条件の動作確認
+PASS: 38/38最終演出
+PASS: ページJavaScriptエラー0
+PASS: コンソールエラー0
+PASS: 横はみ出し0 (viewport 390 / scrollWidth 390)
+PASS: モック環境でGoogle Apps Scriptリクエスト0
+
+[Apps Script]
+Code.gsはV2.6.0同梱版とSHA-256完全一致。
+V2.6.1でバックエンド機能追加なし。
+現在API V2.5.1が稼働済みなら再デプロイ不要。
+
+[公開]
+GitHub: V2.6.1 ZIPで上書き
+初回確認URL: /boonjump/?v=261
+Apps Script: 現在のV2.5.1を継続

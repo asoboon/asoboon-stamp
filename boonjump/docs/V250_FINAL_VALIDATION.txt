@@ -1,0 +1,61 @@
+ブーンジャンプ V2.5.0 最終検証（パッケージ前）
+
+Version: 2.5.0
+Build: 2026-08-10-mastery-effects-v19
+Apps Script API target: 2.5.0
+
+【総合】
+Static audit: PASS
+Browser UI / result test: PASS
+V2.4 → V2.5 save migration: PASS
+Apps Script ranking logic harness: PASS
+
+【ゲームバランス凍結】
+- V2.4.0 CARS定義完全一致: PASS
+- 判定・モーション・ロケット上限・チューン・ガチャ主要関数一致: PASS
+- 飛距離計算式（空白除外）完全一致: PASS
+- マシン上限: boon 1995 / wagon 1943 / buggy 2310 / bike 2468 / sport 2651 / ssr 3150 / princess 3100 / secret 5000: PASS
+- ガチャ以外の距離決定へ乱数追加なし: PASS
+
+【V2.5.0】
+- 3 COMBO PRECISION: PASS
+- PRECISIONは飛距離に影響せず、同距離時のみランキングタイブレーク: PASS
+- SUPER×3専用演出 / 自己ベスト突破演出 / リザルト強化: PASS
+- MACHINE MASTERY（性能変化なし）: PASS
+- V2.5新規トロフィー10個、総数37: PASS
+- 既存V2.4トロフィー取得状態の引継ぎ: PASS
+- 保存キー asoboonBoonjump.v2 継続 / schema 5: PASS
+- 同名ランキング共存: PASS
+- 本人識別 player_id + player_token 継続: PASS
+- 通常7台一括登録 / SECRET一括除外: PASS
+- SECRET総合ランキング除外・専用ランキング維持: PASS
+
+【静的監査】
+- HTML ID: 162 / 重複 0
+- DOM参照: 138 / 欠落 0
+- Service Worker precache: 69 / 欠落 0
+- JavaScript / ranking-client / sw.js / Code.gs syntax: PASS
+
+【ブラウザ動作監査】
+- V2.5.0 boot: PASS
+- 390×844スマホ画面: PASS
+- SUPER×3 debug result: 1900m / PRECISION 100.00% / LEGEND: PASS
+- 同名「店長」2行表示: PASS
+- PRECISIONランキング表示: PASS
+- Result SUPER / LEGEND演出クラス: PASS
+- console / page error: 0
+
+【セーブ移行監査】
+- V2.4 schema 4 → V2.5 schema 5: PASS
+- best / tune / plays / tickets / sound保持: PASS
+- 既存トロフィー firstVehicle / superPerfect / master_sport保持: PASS
+
+【Apps Script監査】
+- API 2.5.0: PASS
+- 3150m同距離 99.42% > 98.11% の順位: PASS
+- 同名プレイヤー2名共存: PASS
+- SECRET 5000mはSUPER×3のみ許可: PASS
+- SECRET総合ランキング除外: PASS
+- combo_precision列は初回登録時に自動ヘッダー設定: PASS（コード監査）
+
+※Apps Scriptの実環境デプロイ自体はこのパッケージでは実行していません。Code.gsを新バージョンで再デプロイ後、healthを確認してください。

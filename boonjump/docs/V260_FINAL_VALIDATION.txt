@@ -1,0 +1,108 @@
+ブーンジャンプ V2.6.0 — RIVAL CHASE UPDATE
+最終検証レポート
+Build: 2026-08-10-rival-chase-v1
+基準版: V2.5.1 LIMIT BREAK UPDATE
+
+[結論]
+公開候補として確認できる範囲の監査をPASS。
+V2.6.0はRIVAL CHASEをクライアント側へ追加し、V2.5.1のゲームバランス・セーブ・ランキング基盤を維持する。
+
+[RIVAL CHASE]
+PASS: NEXT RIVALは現在マシン別ランキングの「自分の1つ上」
+PASS: 既存dashboardキャッシュの me / around_me を利用
+PASS: プレイ開始時に1人をスナップショット
+PASS: 飛行中に順位 / 名前 / あと○mを表示
+PASS: CanvasにNEXT RIVALターゲットラインを描画
+PASS: 画面外のターゲットライン文字が端で欠けないよう表示範囲を制御
+PASS: 記録突破時 OVERTAKE
+PASS: 1〜5m差 PHOTO FINISH
+PASS: 6〜20m差 SO CLOSE
+PASS: 同距離はPRECISION BATTLE
+PASS: マシン別1位・未登録・キャッシュ無しではRIVALを非表示
+PASS: OVERTAKE後もランキング順位反映は手動登録後と明記
+
+[負荷 / 通信]
+V2.5.1 getJsonp呼出箇所: 8
+V2.6.0 getJsonp呼出箇所: 8
+PASS: 通信経路数の増加なし
+PASS: getMachineRival() 内に getJsonp 呼び出しなし
+PASS: 飛行中のRIVAL更新はローカル計算のみ
+PASS: RIVAL専用API / ポーリング追加なし
+ランタイム3ファイル(index/ranking-client/sw)増加: 12,714 bytes（未圧縮）
+追加画像・動画アセット: 0
+
+[ゲームバランス比較 — V2.5.1と完全一致]
+PASS: CARS
+PASS: LIMIT_BREAK
+PASS: judgeByThreshold
+PASS: nitroMotion
+PASS: weightedDraw
+PASS: weightedBonusDraw
+PASS: runGacha
+PASS: runTenGacha
+PASS: settleSingleGacha
+PASS: syncGachaUi
+PASS: applyBoost
+PASS: comboPrecisionOf
+PASS: rocketGradeFactor
+PASS: absoluteLimitBreakCap
+
+[既存処理への挿入箇所]
+PASS: startAttemptはRIVALスナップショット追加のみ
+PASS: beginFlightはRIVAL表示用フィールド追加のみ
+PASS: updatePhysicsはupdateRivalFlight呼び出し追加のみ
+PASS: drawFlightはdrawRivalLine呼び出し追加のみ
+PASS: finishFlightはrenderRivalResult呼び出し追加のみ
+
+[セーブ / トロフィー]
+PASS: STORE_KEY asoboonBoonjump.v2 継続
+PASS: schema 6 継続
+PASS: normalizeState V2.5.1と一致
+PASS: loadState V2.5.1と一致
+PASS: save V2.5.1と一致
+PASS: TROPHIES定義 V2.5.1と一致（38個）
+PASS: refreshTrophies V2.5.1と一致
+V2.6.0ではRIVAL用の新しい永続データを作らず、既存セーブをそのまま使用する。
+
+[ランキング / Apps Script]
+PASS: Code.gsはV2.5.1正本から変更なし
+PASS: V2.5.1 APIのaround_meを利用
+PASS: 同名プレイヤー許可仕様を維持
+PASS: player_id + player_token本人識別を維持
+PASS: 通常7台一括登録 / SECRET個別登録を維持
+PASS: SECRET総合ランキング除外を維持
+Apps Script再デプロイ: 不要（V2.5.1が既にデプロイ済みの場合）
+
+[静的監査]
+HTML ID: 177 / 重複 0
+DOM $()参照: 153 / 欠落 0
+HTMLローカル参照: 3 / 欠落 0
+Service Worker precache: 70 / 欠落 0
+PASS: index inline JavaScript node --check
+PASS: ranking-client.js node --check
+PASS: sw.js node --check
+
+[ブラウザ検証 390x844 / reduced-motion]
+PASS: 表示バージョン V2.6.0
+PASS: NEXT RIVAL #2 / ぽん を表示
+PASS: 飛行中の距離差表示（検証時: あと917m）
+PASS: 1,000mターゲットを突破後 OVERTAKEリザルト
+PASS: 「ランキング登録後に順位へ反映」表示
+PASS: ページJavaScriptエラー 0
+PASS: コンソールエラー 0
+PASS: 横はみ出し 0 (viewport 390 / scrollWidth 390)
+PASS: モック環境でApps Scriptリクエスト 0
+
+[フォールバック]
+PASS: マシン別ランキング1位ではRIVALチップ非表示
+PASS: RIVAL情報が無くても3 COMBO / 飛行は継続
+
+[ランキングクライアント単体]
+PASS: キャッシュ上で自分3位 → 2位行をNEXT RIVALとして返却
+PASS: 自分1位 → null
+PASS: getMachineRivalはネットワーク通信なし
+
+[公開]
+GitHub: V2.6.0 ZIPで上書き
+初回確認URL: /boonjump/?v=260
+Apps Script: V2.5.1を継続

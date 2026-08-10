@@ -1,0 +1,85 @@
+ブーンジャンプ V2.5.1 — LIMIT BREAK UPDATE 最終検証
+Build: 2026-08-10-limit-break-v20
+Validation date: 2026-08-10
+
+[1] 構文 / 静的監査
+PASS  index.html inline JavaScript: node --check
+PASS  ranking-client.js: node --check
+PASS  sw.js: node --check
+PASS  docs/Code.gs: JavaScript syntax check
+PASS  HTML ID: 168 / duplicate 0
+PASS  $() DOM references: missing 0
+PASS  Service Worker precache: missing 0
+PASS  boonjump-onlyの ../home.html は親リポジトリ参照として意図通り
+PASS  full repo内では ../home.html を含むローカル参照欠落 0
+
+[2] V2.5.0バランス保護比較
+PASS  CARS定義: V2.5.0と完全一致
+PASS  motion/judge core: V2.5.0と完全一致
+PASS  LIMIT BREAK前の通常飛距離計算: V2.5.0と完全一致
+PASS  保存キー asoboonBoonjump.v2 を継続
+PASS  通常7台一括登録 / SECRET除外を継続
+PASS  同名表示名を許可するV2.4以降の方針を継続
+
+[3] LIMIT BREAK仕様
+PASS  発動条件: ACCEL/TURBO/NITROすべてSUPER + COMBO PRECISION 99.00%以上
+PASS  98.99%: 0%
+PASS  99.00%: +0.35%
+PASS  99.50%: +1.175%
+PASS  100.00%: +2.00%
+PASS  乱数を使わない決定論的ボーナス
+PASS  現在のチューン上限を基準に計算
+
+100% PRECISION時の上限:
+- boon: 2035m
+- wagon: 1982m
+- buggy: 2356m
+- bike: 2517m
+- sport: 2704m
+- ssr: 3213m
+- princess: 3162m
+- secret: 5100m
+
+[4] サーバー側スコア検証
+PASS  通常範囲の既存スコアを許可
+PASS  現在チューン上限超え + 非SUPER×3 を拒否
+PASS  SUPER×3でもPRECISION 98.99%を拒否
+PASS  SSR 99.50%: 3187mを許可 / 3188mを拒否
+PASS  SSR 100%: 3213mを許可 / 3214mを拒否
+PASS  SECRET 100%: 5100mを許可 / 5101mを拒否
+PASS  boon tune Lv.0: 1938mを許可 / 1939mを拒否
+PASS  SECRET既存妥当性検証を継続
+
+[5] ブラウザ動作検証 (Chromium 390x844)
+PASS  page error: 0
+PASS  V2.5.0 schema 5セーブ → schema 6へ自動移行
+PASS  選択マシン / 自己ベスト / プレイ回数 / チューンを保持
+PASS  既存取得済みトロフィーを保持
+PASS  既存PRECISION / ランキング登録情報を保持
+PASS  LIMIT BREAK用新規stateは未取得状態で安全に初期化
+PASS  SSR Lv.50 / SUPER×3 / 100.00%で3213m
+PASS  リザルト「LIMIT BREAK FLIGHT!」表示
+PASS  「+63m · +2.00%」表示
+PASS  LIMIT BREAKERトロフィー取得
+
+[6] マシン別操作感
+PASS  視覚/触覚フィードバックを8台別に実装
+PASS  判定位置・判定幅・ゲージ軌道・通常飛距離には非干渉
+PASS  prefers-reduced-motion対応を継続
+
+[7] セーブ / トロフィー
+PASS  保存キー変更なし
+PASS  schema 5 → 6
+PASS  V2.4までのトロコン条件を変更しない
+PASS  37個の既存トロフィー + LIMIT BREAKER = 38個
+
+[8] ランキング互換
+PASS  API_VERSION 2.5.1
+PASS  PRECISIONタイブレーク継続
+PASS  duplicate display names allowed継続
+PASS  SECRETは総合ランキング除外 / 個別マシンランキングのみ
+PASS  通常7台bulk / SECRET個別登録
+PASS  新しいGoogle Sheets手動列追加なし
+
+公開時はApps Script Code.gsをV2.5.1へ全文差し替え、新バージョンで再デプロイが必要。
+初回確認URL: /boonjump/?v=251

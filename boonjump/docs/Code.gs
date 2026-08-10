@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング API V2.4.0
+ * ブーンジャンプ 世界ランキング API V2.5.1
  * 保存先: Google Spreadsheet
  * Spreadsheet ID: 1oFLApJ_0IlTUc-DLhoFSDIS7OspzlrZ9rm4ia71EvME
  *
@@ -16,7 +16,7 @@ const CONFIG = Object.freeze({
   LEADERBOARD_LIMIT: 100,
   NAME_MIN: 2,
   NAME_MAX: 12,
-  API_VERSION: '2.4.0',
+  API_VERSION: '2.5.1',
   DASHBOARD_CACHE_TTL: 30,
   SHEETS: Object.freeze({
     PLAYERS: 'players',
@@ -28,15 +28,17 @@ const CONFIG = Object.freeze({
 });
 
 const MACHINES = Object.freeze({
-  boon:     { name: 'ブーンピックアップ', finalCap: 1995, secret: false },
-  wagon:    { name: 'スマートワゴン', finalCap: 1943, secret: false },
-  buggy:    { name: 'ラッキーバギー', finalCap: 2310, secret: false },
-  bike:     { name: 'パワーバイク', finalCap: 2468, secret: false },
-  sport:    { name: 'ニトロスポーツ', finalCap: 2651, secret: false },
-  ssr:      { name: 'コズミックファントム', finalCap: 3150, secret: false },
-  princess: { name: 'プリンセス・スターライナー', finalCap: 3100, secret: false },
-  secret:   { name: '無敵のロケットアソブーン人間', finalCap: 5000, secret: true },
+  boon:     { name: 'ブーンピックアップ', rawCap: 1900, finalCap: 1995, limitCap: 2035, secret: false },
+  wagon:    { name: 'スマートワゴン', rawCap: 1850, finalCap: 1943, limitCap: 1982, secret: false },
+  buggy:    { name: 'ラッキーバギー', rawCap: 2200, finalCap: 2310, limitCap: 2356, secret: false },
+  bike:     { name: 'パワーバイク', rawCap: 2350, finalCap: 2468, limitCap: 2517, secret: false },
+  sport:    { name: 'ニトロスポーツ', rawCap: 2525, finalCap: 2651, limitCap: 2704, secret: false },
+  ssr:      { name: 'コズミックファントム', rawCap: 3000, finalCap: 3150, limitCap: 3213, secret: false },
+  princess: { name: 'プリンセス・スターライナー', rawCap: 2952, finalCap: 3100, limitCap: 3162, secret: false },
+  secret:   { name: '無敵のロケットアソブーン人間', rawCap: 5000, finalCap: 5000, limitCap: 5100, secret: true },
 });
+
+const LIMIT_BREAK = Object.freeze({ threshold: 99.00, minBonus: 0.0035, maxBonus: 0.0200 });
 
 const VALID_JUDGES = new Set(['MISS', 'GOOD', 'GREAT', 'CRITICAL', 'SUPER']);
 let SPREADSHEET_CACHE_ = null;
@@ -63,6 +65,11 @@ function doGet(e) {
         bulk_submit: true,
         bulk_secret_excluded: true,
         duplicate_names_allowed: true,
+        precision_tiebreak: true,
+        limit_break: true,
+        limit_break_threshold: LIMIT_BREAK.threshold,
+        limit_break_max_bonus_percent: LIMIT_BREAK.maxBonus * 100,
+        machine_control_fx: true,
         secret_ranking: 'machine-only',
         dashboard_flush_verified: true,
         dashboard_server_cache: true,
@@ -128,6 +135,28 @@ function withScriptLock_(callback) {
   }
 }
 
+function limitBreakRateFromPrecision_(precision) {
+  const p = Math.max(0, Math.min(100, Number(precision) || 0));
+  if (p < LIMIT_BREAK.threshold) return 0;
+  const t = Math.max(0, Math.min(1, (p - LIMIT_BREAK.threshold) / (100 - LIMIT_BREAK.threshold)));
+  return LIMIT_BREAK.minBonus + (LIMIT_BREAK.maxBonus - LIMIT_BREAK.minBonus) * t;
+}
+
+function assertLimitBreakScorePlausible_(machineId, distance, accel, turbo, nitro, comboPrecision, tuneLevel) {
+  const machine = MACHINES[machineId];
+  if (!machine) return;
+  const level = machine.secret ? 0 : Math.max(0, Math.min(50, Math.floor(Number(tuneLevel) || 0)));
+  const tune = machine.secret ? 0 : Math.min(.05, level * .001);
+  const tunedCap = Math.min(machine.finalCap, Math.round(machine.rawCap * (1 + tune)));
+  if (distance <= tunedCap) return;
+  const allSuper = [accel, turbo, nitro].every(value => value === 'SUPER');
+  if (!allSuper) throw new Error('現在のチューン上限を超える記録は3コンボすべてSUPERのLIMIT BREAKが必要です。');
+  const rate = limitBreakRateFromPrecision_(comboPrecision);
+  if (rate <= 0) throw new Error(`LIMIT BREAKにはPRECISION ${LIMIT_BREAK.threshold.toFixed(2)}%以上が必要です。`);
+  const allowed = Math.min(machine.limitCap, Math.round(tunedCap * (1 + rate)));
+  if (distance > allowed) throw new Error(`LIMIT BREAK記録が精度から計算される上限${allowed}mを超えています。`);
+}
+
 function assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro) {
   if (machineId !== 'secret') return;
   const level = { MISS: 0, GOOD: 1, GREAT: 2, CRITICAL: 3, SUPER: 4 };
@@ -165,9 +194,7 @@ function submitScore_(body) {
   assertPlayerIdentity_(player, playerToken, 'submit', submittedName);
 
   let displayName = submittedName;
-  if (player) {
-    displayName = validateName_(player.display_name);
-  }
+  if (player) displayName = validateName_(player.display_name);
 
   const machineId = String(body.machine_id || '').trim();
   const machine = MACHINES[machineId];
@@ -175,6 +202,7 @@ function submitScore_(body) {
   const accel = normalizeJudge_(body.accel_judge);
   const turbo = normalizeJudge_(body.turbo_judge);
   const nitro = normalizeJudge_(body.nitro_judge);
+  const comboPrecision = normalizePrecision_(body.combo_precision);
   const tuneLevel = Math.max(0, Math.min(50, Math.floor(Number(body.tune_level) || 0)));
   const playedAt = normalizeDate_(body.played_at) || new Date();
   const receivedAt = new Date();
@@ -184,8 +212,10 @@ function submitScore_(body) {
 
   if (!machine) throw new Error('存在しないマシンです。');
   if (!Number.isInteger(distance) || distance <= 0) throw new Error('距離が不正です。');
-  if (distance > machine.finalCap) throw new Error(`距離が上限${machine.finalCap}mを超えています。`);
+  if (distance > machine.limitCap) throw new Error(`距離がLIMIT BREAK上限${machine.limitCap}mを超えています。`);
+  assertLimitBreakScorePlausible_(machineId, distance, accel, turbo, nitro, comboPrecision, body.tune_level);
   assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro);
+  ensureV250Schema_();
 
   const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
   const weekKey = getWeekKey_(receivedAt);
@@ -203,13 +233,13 @@ function submitScore_(body) {
     });
   }
 
-  const currentAll = findMachineBestDistance_(playerId, machineId);
+  const currentAll = findMachineBestRecord_(playerId, machineId);
   const periodEligible = !machine.secret;
-  const currentDay = periodEligible ? findPeriodBestDistance_('DAY', dayKey, playerId, machineId) : 0;
-  const currentWeek = periodEligible ? findPeriodBestDistance_('WEEK', weekKey, playerId, machineId) : 0;
-  const improvesAll = distance > currentAll;
-  const improvesDay = periodEligible && distance > currentDay;
-  const improvesWeek = periodEligible && distance > currentWeek;
+  const currentDay = periodEligible ? findPeriodBestRecord_('DAY', dayKey, playerId, machineId) : null;
+  const currentWeek = periodEligible ? findPeriodBestRecord_('WEEK', weekKey, playerId, machineId) : null;
+  const improvesAll = scoreBeats_(distance, comboPrecision, currentAll && currentAll.best_distance, currentAll && currentAll.combo_precision);
+  const improvesDay = periodEligible && scoreBeats_(distance, comboPrecision, currentDay && currentDay.best_distance, currentDay && currentDay.combo_precision);
+  const improvesWeek = periodEligible && scoreBeats_(distance, comboPrecision, currentWeek && currentWeek.best_distance, currentWeek && currentWeek.combo_precision);
 
   upsertPlayer_(playerId, displayName, receivedAt, 'ACTIVE', !player, playerToken);
 
@@ -236,6 +266,7 @@ function submitScore_(body) {
     accel,
     turbo,
     nitro,
+    comboPrecision,
     tuneLevel,
     playedAt,
     receivedAt,
@@ -259,6 +290,7 @@ function submitScore_(body) {
       accel,
       turbo,
       nitro,
+      comboPrecision,
       achievedAt: receivedAt,
       sourceBuild,
     });
@@ -273,6 +305,7 @@ function submitScore_(body) {
       machineId,
       machineName: machine.name,
       distance,
+      comboPrecision,
       achievedAt: receivedAt,
       verified: true,
       sourceBuild,
@@ -288,6 +321,7 @@ function submitScore_(body) {
       machineId,
       machineName: machine.name,
       distance,
+      comboPrecision,
       achievedAt: receivedAt,
       verified: true,
       sourceBuild,
@@ -304,7 +338,6 @@ function submitScore_(body) {
     fast: fastResponse,
   });
 }
-
 
 function bulkSubmitScores_(body) {
   const bulkRequestId = cleanId_(body.bulk_request_id, 12, 100, 'bulk_request_id');
@@ -333,6 +366,7 @@ function bulkSubmitScores_(body) {
 
 
   const records = parseBulkRecords_(body);
+  ensureV250Schema_();
   const receivedAt = new Date();
   const dayKey = Utilities.formatDate(receivedAt, CONFIG.TIMEZONE, 'yyyy-MM-dd');
   const weekKey = getWeekKey_(receivedAt);
@@ -356,6 +390,7 @@ function bulkSubmitScores_(body) {
     machineIndex.set(String(machineValues[i][2]), {
       row: i + 1,
       distance: Number(machineValues[i][4]) || 0,
+      precision: normalizePrecision_(machineValues[i][10]),
     });
   }
 
@@ -370,6 +405,7 @@ function bulkSubmitScores_(body) {
     periodIndex.set(key, {
       row: i + 1,
       distance: Number(periodValues[i][6]) || 0,
+      precision: normalizePrecision_(periodValues[i][10]),
     });
   }
 
@@ -404,9 +440,9 @@ function bulkSubmitScores_(body) {
     const weekIndexKey = ['WEEK', weekKey, record.machineId].join('|');
     const currentDay = periodEligible ? periodIndex.get(dayIndexKey) : null;
     const currentWeek = periodEligible ? periodIndex.get(weekIndexKey) : null;
-    const improvesMachine = record.distance > (currentMachine ? currentMachine.distance : 0);
-    const improvesDay = periodEligible && record.distance > (currentDay ? currentDay.distance : 0);
-    const improvesWeek = periodEligible && record.distance > (currentWeek ? currentWeek.distance : 0);
+    const improvesMachine = scoreBeats_(record.distance, record.comboPrecision, currentMachine && currentMachine.distance, currentMachine && currentMachine.precision);
+    const improvesDay = periodEligible && scoreBeats_(record.distance, record.comboPrecision, currentDay && currentDay.distance, currentDay && currentDay.precision);
+    const improvesWeek = periodEligible && scoreBeats_(record.distance, record.comboPrecision, currentWeek && currentWeek.distance, currentWeek && currentWeek.precision);
 
     if (!improvesMachine && !improvesDay && !improvesWeek) {
       skipped += 1;
@@ -437,6 +473,7 @@ function bulkSubmitScores_(body) {
       '',
       record.sourceBuild,
       record.clientVersion,
+      record.comboPrecision,
     ]);
 
     if (improvesMachine) {
@@ -451,32 +488,33 @@ function bulkSubmitScores_(body) {
         record.nitro,
         receivedAt,
         record.sourceBuild,
+        record.comboPrecision,
       ]];
       if (currentMachine) machineUpdates.push({ row: currentMachine.row, values: rowValues });
       else machineAppends.push(rowValues[0]);
-      machineIndex.set(record.machineId, { row: currentMachine ? currentMachine.row : 0, distance: record.distance });
+      machineIndex.set(record.machineId, { row: currentMachine ? currentMachine.row : 0, distance: record.distance, precision: record.comboPrecision });
       boardUpdates.machine += 1;
     }
 
     if (improvesDay) {
       const rowValues = [[
         'DAY', dayKey, playerId, displayName, record.machineId, machine.name,
-        record.distance, receivedAt, true, record.sourceBuild,
+        record.distance, receivedAt, true, record.sourceBuild, record.comboPrecision,
       ]];
       if (currentDay) periodUpdates.push({ row: currentDay.row, values: rowValues });
       else periodAppends.push(rowValues[0]);
-      periodIndex.set(dayIndexKey, { row: currentDay ? currentDay.row : 0, distance: record.distance });
+      periodIndex.set(dayIndexKey, { row: currentDay ? currentDay.row : 0, distance: record.distance, precision: record.comboPrecision });
       boardUpdates.today += 1;
     }
 
     if (improvesWeek) {
       const rowValues = [[
         'WEEK', weekKey, playerId, displayName, record.machineId, machine.name,
-        record.distance, receivedAt, true, record.sourceBuild,
+        record.distance, receivedAt, true, record.sourceBuild, record.comboPrecision,
       ]];
       if (currentWeek) periodUpdates.push({ row: currentWeek.row, values: rowValues });
       else periodAppends.push(rowValues[0]);
-      periodIndex.set(weekIndexKey, { row: currentWeek ? currentWeek.row : 0, distance: record.distance });
+      periodIndex.set(weekIndexKey, { row: currentWeek ? currentWeek.row : 0, distance: record.distance, precision: record.comboPrecision });
       boardUpdates.week += 1;
     }
 
@@ -491,16 +529,16 @@ function bulkSubmitScores_(body) {
     requestIds.add(record.requestId);
   });
 
-  machineUpdates.forEach(item => machineSheet.getRange(item.row, 1, 1, 10).setValues(item.values));
+  machineUpdates.forEach(item => machineSheet.getRange(item.row, 1, 1, 11).setValues(item.values));
   if (machineAppends.length) {
-    machineSheet.getRange(machineSheet.getLastRow() + 1, 1, machineAppends.length, 10).setValues(machineAppends);
+    machineSheet.getRange(machineSheet.getLastRow() + 1, 1, machineAppends.length, 11).setValues(machineAppends);
   }
-  periodUpdates.forEach(item => periodSheet.getRange(item.row, 1, 1, 10).setValues(item.values));
+  periodUpdates.forEach(item => periodSheet.getRange(item.row, 1, 1, 11).setValues(item.values));
   if (periodAppends.length) {
-    periodSheet.getRange(periodSheet.getLastRow() + 1, 1, periodAppends.length, 10).setValues(periodAppends);
+    periodSheet.getRange(periodSheet.getLastRow() + 1, 1, periodAppends.length, 11).setValues(periodAppends);
   }
   if (logRows.length) {
-    scoreSheet.getRange(scoreSheet.getLastRow() + 1, 1, logRows.length, 15).setValues(logRows);
+    scoreSheet.getRange(scoreSheet.getLastRow() + 1, 1, logRows.length, 16).setValues(logRows);
   }
 
   // 書き込み完了を確定してからランキングを読み直す。
@@ -560,10 +598,12 @@ function parseBulkRecords_(body) {
 
     const distance = Number(row.distance);
     if (!Number.isInteger(distance) || distance <= 0) throw new Error(`${machine.name}の距離が不正です。`);
-    if (distance > machine.finalCap) throw new Error(`${machine.name}の距離が上限${machine.finalCap}mを超えています。`);
+    if (distance > machine.limitCap) throw new Error(`${machine.name}の距離がLIMIT BREAK上限${machine.limitCap}mを超えています。`);
     const accel = normalizeJudge_(row.accel_judge);
     const turbo = normalizeJudge_(row.turbo_judge);
     const nitro = normalizeJudge_(row.nitro_judge);
+    const comboPrecision = normalizePrecision_(row.combo_precision);
+    assertLimitBreakScorePlausible_(machineId, distance, accel, turbo, nitro, comboPrecision, row.tune_level);
     assertSecretScorePlausible_(machineId, distance, accel, turbo, nitro);
 
     return {
@@ -573,6 +613,7 @@ function parseBulkRecords_(body) {
       accel,
       turbo,
       nitro,
+      comboPrecision: comboPrecision,
       tuneLevel: Math.max(0, Math.min(50, Math.floor(Number(row.tune_level) || 0))),
       playedAt: normalizeDate_(row.played_at) || new Date(),
       sourceBuild: truncate_(row.source_build, 100),
@@ -771,14 +812,15 @@ function getLeaderboard_(p) {
     if (
       !current ||
       row.best_distance > current.best_distance ||
-      (row.best_distance === current.best_distance && row.achieved_at < current.achieved_at)
+      (row.best_distance === current.best_distance && normalizePrecision_(row.combo_precision) > normalizePrecision_(current.combo_precision)) ||
+      (row.best_distance === current.best_distance && normalizePrecision_(row.combo_precision) === normalizePrecision_(current.combo_precision) && row.achieved_at < current.achieved_at)
     ) {
       byPlayer.set(row.player_id, row);
     }
   });
 
   const ranked = [...byPlayer.values()]
-    .sort((a, b) => b.best_distance - a.best_distance || String(a.achieved_at).localeCompare(String(b.achieved_at)))
+    .sort((a, b) => b.best_distance - a.best_distance || normalizePrecision_(b.combo_precision) - normalizePrecision_(a.combo_precision) || String(a.achieved_at).localeCompare(String(b.achieved_at)))
     .map((row, index) => ({
       rank: index + 1,
       player_id: row.player_id,
@@ -786,6 +828,7 @@ function getLeaderboard_(p) {
       machine_id: row.machine_id,
       machine_name: row.machine_name,
       distance: row.best_distance,
+      combo_precision: normalizePrecision_(row.combo_precision),
       achieved_at: row.achieved_at,
     }));
 
@@ -916,21 +959,37 @@ function upsertPlayer_(playerId, displayName, now, status, updateNameTime, playe
   return row;
 }
 
-function findMachineBestDistance_(playerId, machineId) {
-  const record = readMachineBestRecords_().find(row =>
+function scoreBeats_(distance, precision, currentDistance, currentPrecision) {
+  const nextDistance = Number(distance) || 0;
+  const prevDistance = Number(currentDistance) || 0;
+  const nextPrecision = normalizePrecision_(precision);
+  const prevPrecision = normalizePrecision_(currentPrecision);
+  return nextDistance > prevDistance || (nextDistance === prevDistance && nextPrecision > prevPrecision + 0.0001);
+}
+
+function findMachineBestRecord_(playerId, machineId) {
+  return readMachineBestRecords_().find(row =>
     row.player_id === String(playerId) && row.machine_id === String(machineId)
-  );
+  ) || null;
+}
+
+function findMachineBestDistance_(playerId, machineId) {
+  const record = findMachineBestRecord_(playerId, machineId);
   return record ? (Number(record.best_distance) || 0) : 0;
 }
 
-function findPeriodBestDistance_(periodType, periodKey, playerId, machineId) {
+function findPeriodBestRecord_(periodType, periodKey, playerId, machineId) {
   const normalizedKey = normalizePeriodKey_(periodKey);
-  const record = readAllPeriodBestRecords_().find(row =>
+  return readAllPeriodBestRecords_().find(row =>
     row.period_type === String(periodType) &&
     row.period_key === normalizedKey &&
     row.player_id === String(playerId) &&
     row.machine_id === String(machineId)
-  );
+  ) || null;
+}
+
+function findPeriodBestDistance_(periodType, periodKey, playerId, machineId) {
+  const record = findPeriodBestRecord_(periodType, periodKey, playerId, machineId);
   return record ? (Number(record.best_distance) || 0) : 0;
 }
 
@@ -948,20 +1007,20 @@ function normalizePeriodKey_(value) {
 
 function upsertMachineBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.MACHINE_BESTS);
-  const current = readMachineBestRecords_().find(row =>
-    row.player_id === String(record.playerId) && row.machine_id === String(record.machineId)
-  );
+  const current = findMachineBestRecord_(record.playerId, record.machineId);
   if (current) {
-    if (record.distance <= (Number(current.best_distance) || 0)) return false;
-    sh.getRange(current._row, 1, 1, 10).setValues([[
+    if (!scoreBeats_(record.distance, record.comboPrecision, current.best_distance, current.combo_precision)) return false;
+    sh.getRange(current._row, 1, 1, 11).setValues([[
       record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
       record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
+      normalizePrecision_(record.comboPrecision),
     ]]);
     return true;
   }
-  sh.getRange(sh.getLastRow() + 1, 1, 1, 10).setValues([[
+  sh.getRange(sh.getLastRow() + 1, 1, 1, 11).setValues([[
     record.playerId, record.displayName, record.machineId, record.machineName, record.distance,
     record.accel, record.turbo, record.nitro, record.achievedAt, record.sourceBuild,
+    normalizePrecision_(record.comboPrecision),
   ]]);
   return true;
 }
@@ -969,25 +1028,20 @@ function upsertMachineBest_(record) {
 function upsertPeriodBest_(record) {
   const sh = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
   const normalizedKey = normalizePeriodKey_(record.periodKey);
-  const current = readAllPeriodBestRecords_().find(row =>
-    row.period_type === String(record.periodType) &&
-    row.period_key === normalizedKey &&
-    row.player_id === String(record.playerId) &&
-    row.machine_id === String(record.machineId)
-  );
+  const current = findPeriodBestRecord_(record.periodType, normalizedKey, record.playerId, record.machineId);
   if (current) {
-    if (record.distance <= (Number(current.best_distance) || 0)) return false;
-    sh.getRange(current._row, 1, 1, 10).setValues([[
+    if (!scoreBeats_(record.distance, record.comboPrecision, current.best_distance, current.combo_precision)) return false;
+    sh.getRange(current._row, 1, 1, 11).setValues([[
       record.periodType, record.periodKey, record.playerId, record.displayName,
       record.machineId, record.machineName, record.distance, record.achievedAt,
-      record.verified, record.sourceBuild,
+      record.verified, record.sourceBuild, normalizePrecision_(record.comboPrecision),
     ]]);
     return true;
   }
-  sh.getRange(sh.getLastRow() + 1, 1, 1, 10).setValues([[
+  sh.getRange(sh.getLastRow() + 1, 1, 1, 11).setValues([[
     record.periodType, record.periodKey, record.playerId, record.displayName,
     record.machineId, record.machineName, record.distance, record.achievedAt,
-    record.verified, record.sourceBuild,
+    record.verified, record.sourceBuild, normalizePrecision_(record.comboPrecision),
   ]]);
   return true;
 }
@@ -997,6 +1051,7 @@ function appendScoreLog_(record) {
     record.requestId, record.playerId, record.displayName, record.machineId, record.distance,
     record.accel, record.turbo, record.nitro, record.tuneLevel, record.playedAt, record.receivedAt,
     record.status, record.reason, record.sourceBuild, record.clientVersion,
+    normalizePrecision_(record.comboPrecision),
   ]);
 }
 
@@ -1054,6 +1109,7 @@ function readMachineBestRecords_() {
     machine_id: String(row[2]),
     machine_name: String(row[3] || (MACHINES[row[2]] && MACHINES[row[2]].name) || row[2]),
     best_distance: Number(row[4]),
+    combo_precision: normalizePrecision_(row[10]),
     achieved_at: dateToIso_(row[8]),
     _row: item.index + 2,
   }); });
@@ -1073,6 +1129,7 @@ function readAllPeriodBestRecords_() {
       machine_id: String(row[4]),
       machine_name: String(row[5] || (MACHINES[row[4]] && MACHINES[row[4]].name) || row[4]),
       best_distance: Number(row[6]),
+      combo_precision: normalizePrecision_(row[10]),
       achieved_at: dateToIso_(row[7]),
       _row: item.index + 2,
     };
@@ -1195,6 +1252,12 @@ function compactModerationText_(value) {
     .replace(/[\s\u3000._\-‐‑–—・･,，、。!！?？"'`~…\/\\|:：;；()\[\]{}<>＜＞+=＋]/g, '');
 }
 
+function normalizePrecision_(value) {
+  const precision = Number(value);
+  if (!Number.isFinite(precision)) return 0;
+  return Math.round(Math.max(0, Math.min(100, precision)) * 100) / 100;
+}
+
 function normalizeJudge_(value) {
   const judge = String(value || 'MISS').toUpperCase();
   if (!VALID_JUDGES.has(judge)) throw new Error('判定値が不正です。');
@@ -1225,6 +1288,18 @@ function output_(payload, callback) {
   }
   return ContentService.createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureV250Schema_() {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty('boonjump_schema_v250') === 'ready') return;
+  const machine = sheet_(CONFIG.SHEETS.MACHINE_BESTS);
+  const period = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
+  const log = sheet_(CONFIG.SHEETS.SCORE_LOG);
+  if (String(machine.getRange(1, 11).getValue() || '') !== 'combo_precision') machine.getRange(1, 11).setValue('combo_precision');
+  if (String(period.getRange(1, 11).getValue() || '') !== 'combo_precision') period.getRange(1, 11).setValue('combo_precision');
+  if (String(log.getRange(1, 16).getValue() || '') !== 'combo_precision') log.getRange(1, 16).setValue('combo_precision');
+  props.setProperty('boonjump_schema_v250', 'ready');
 }
 
 function spreadsheet_() {
@@ -1277,14 +1352,15 @@ function truncate_(value, maxLength) {
   return String(value || '').slice(0, maxLength);
 }
 
-/** 管理用: V2.4.0以降は表示名重複を許可するため何もしない */
+/** 管理用: V2.4.0以降は表示名重複を許可するため何もしない（V2.5.1でも継続） */
 function repairDuplicateNames() {
-  console.log('V2.4.0: 表示名の重複は許可されています。整理処理は不要です。');
+  console.log('V2.5.1: 表示名の重複は許可されています。整理処理は不要です。');
   return 0;
 }
 
 /** 管理用: period_bestsの既存重複を整理 */
 function repairPeriodBestDuplicates() {
+  ensureV250Schema_();
   const sh = sheet_(CONFIG.SHEETS.PERIOD_BESTS);
   const values = sh.getDataRange().getValues();
   if (values.length < 3) return 0;
@@ -1295,7 +1371,7 @@ function repairPeriodBestDuplicates() {
     if (!row[2]) return;
     const key = [String(row[0]), normalizePeriodKey_(row[1]), String(row[2]), String(row[4])].join('::');
     const current = bestByKey.get(key);
-    if (!current || Number(row[6] || 0) > Number(current[6] || 0)) {
+    if (!current || scoreBeats_(Number(row[6] || 0), row[10], Number(current[6] || 0), current[10])) {
       const copy = row.slice();
       copy[1] = normalizePeriodKey_(row[1]);
       bestByKey.set(key, copy);
@@ -1322,6 +1398,11 @@ function testHealth() {
       bulk_submit: true,
       bulk_secret_excluded: true,
       duplicate_names_allowed: true,
+      precision_tiebreak: true,
+      limit_break: true,
+      limit_break_threshold: LIMIT_BREAK.threshold,
+      limit_break_max_bonus_percent: LIMIT_BREAK.maxBonus * 100,
+      machine_control_fx: true,
       secret_ranking: 'machine-only',
       dashboard_flush_verified: true,
       dashboard_server_cache: true,

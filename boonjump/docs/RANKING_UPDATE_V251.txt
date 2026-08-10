@@ -1,0 +1,38 @@
+ブーンジャンプ V2.5.1 — LIMIT BREAK UPDATE 公開手順
+
+【GitHub】
+1. boonjumpフォルダをV2.5.1の内容で上書き
+2. 公開後、最初だけ /boonjump/?v=251 で開く
+3. ホーム表示が V2.5.1 になっていることを確認
+
+【Apps Script】
+1. 同梱 docs/Code.gs を既存Apps Scriptへ全文貼り替え
+2. 「デプロイ」→「デプロイを管理」→既存Webアプリを編集
+3. バージョンを「新バージョン」にしてデプロイ
+4. WebアプリURLは変更しない
+
+【health確認】
+以下が返ればV2.5.1 APIへ切替完了。
+- api_version: 2.5.1
+- precision_tiebreak: true
+- duplicate_names_allowed: true
+- bulk_secret_excluded: true
+- secret_ranking: machine-only
+- limit_break: true
+- limit_break_threshold: 99
+- limit_break_max_bonus_percent: 2
+- machine_control_fx: true
+
+【Google Sheets】
+V2.5.1で新しい手動列追加は不要。
+V2.5.0のcombo_precision列をそのまま使用する。
+
+【セーブ】
+保存キー asoboonBoonjump.v2 は変更なし。
+V2.5.0 schema 5 → V2.5.1 schema 6 へ自動正規化。
+既存トロフィー・車庫・チューン・自己ベストは削除しない。
+
+【LIMIT BREAKランキング】
+通常上限を超える記録はサーバー側でも検証する。
+現在のチューン上限を超える場合、SUPER×3 + PRECISION 99%以上が必要。
+最大ボーナスは100%精度時 +2.00%。

@@ -1,0 +1,15 @@
+ブーンジャンプ V2.5.0 ランキング更新手順
+
+1. GitHubをV2.5.0へ差し替え
+2. Apps ScriptのCode.gsを同梱版へ全文差し替え
+3. Apps Scriptを「新バージョン」で再デプロイ
+4. /boonjump/?v=250 で初回確認
+5. health確認
+   api_version = 2.5.0
+   precision_tiebreak = true
+   duplicate_names_allowed = true
+   bulk_secret_excluded = true
+
+V2.5.0では同距離の場合、3 COMBO PRECISIONが高い記録を上位として保存します。
+初回スコア登録時に machine_bests K列 / period_bests K列 / score_log P列へ combo_precision ヘッダーを自動設定します。
+SECRETは従来どおり通常7台の一括登録対象外です。

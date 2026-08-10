@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.4.0
+ * ブーンジャンプ 世界ランキング通信 V2.6.1
  *
  * - ランキング登録は完全な任意操作
  * - 自動送信・未送信キュー・バックグラウンド再送なし
@@ -316,6 +316,31 @@ const BOON_RANKING = (() => {
     return getDashboard({ force }).catch(() => null);
   }
 
+  // V2.6.1 RIVAL CHASE / MASTERPIECE POLISH
+  // 既存dashboardキャッシュだけから「現在順位の1つ上」を返す。
+  // ここでは通信を発生させないため、飛行中のネットワーク負荷は増えない。
+  function getMachineRival(machineId) {
+    const id = String(machineId || '').trim();
+    if (!id || !dashboardCache || !Array.isArray(dashboardCache.machines)) return null;
+
+    const entry = dashboardCache.machines.find(item =>
+      item && String(item.machine_id || '') === id
+    );
+    const board = entry && entry.board;
+    const me = board && board.me;
+    const around = board && Array.isArray(board.around_me) ? board.around_me : [];
+    const myRank = Number(me && me.rank);
+
+    if (!Number.isFinite(myRank) || myRank <= 1) return null;
+
+    const rival = around.find(row =>
+      row && Number(row.rank) === myRank - 1
+    );
+    if (!rival || String(rival.player_id || '') === getPlayerId()) return null;
+
+    return { ...rival };
+  }
+
   function getLeaderboard({ period = 'all', machineId = '', includeSecret = false, limit = 100 } = {}) {
     return getJsonp({
       action: 'leaderboard',
@@ -350,6 +375,7 @@ const BOON_RANKING = (() => {
       accel_judge: String(payload.accelJudge || 'MISS'),
       turbo_judge: String(payload.turboJudge || 'MISS'),
       nitro_judge: String(payload.nitroJudge || 'MISS'),
+      combo_precision: Math.max(0, Math.min(100, Number(payload.comboPrecision) || 0)).toFixed(2),
       tune_level: Math.max(0, Math.min(50, Math.floor(Number(payload.tuneLevel) || 0))),
       played_at: safePlayedAt.toISOString(),
       source_build: String(payload.sourceBuild || '').slice(0, 100),
@@ -419,6 +445,7 @@ const BOON_RANKING = (() => {
       accel_judge: item.accel_judge,
       turbo_judge: item.turbo_judge,
       nitro_judge: item.nitro_judge,
+      combo_precision: item.combo_precision,
       tune_level: item.tune_level,
       played_at: item.played_at,
       source_build: item.source_build,
@@ -508,6 +535,7 @@ const BOON_RANKING = (() => {
     peekDashboard,
     getDashboardCacheAge,
     prefetchDashboard,
+    getMachineRival,
     invalidateCache,
     getPlayer,
   };

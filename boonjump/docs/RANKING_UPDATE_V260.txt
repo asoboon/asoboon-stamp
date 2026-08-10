@@ -1,0 +1,46 @@
+ブーンジャンプ V2.6.0 RIVAL CHASE UPDATE
+
+【変更内容】
+・現在のマシン別ランキングで、自分の1つ上をNEXT RIVALとして表示
+・飛行中にライバル名 / 順位 / あと○mを表示
+・Canvas上にNEXT RIVALターゲットラインを描画
+・ライバル記録突破時にOVERTAKE演出
+・リザルトにOVERTAKE / PHOTO FINISH / SO CLOSE / PRECISION BATTLEを追加
+
+【軽量化方針】
+・RIVAL専用APIは追加しない
+・既存dashboardキャッシュ内の me / around_me を利用
+・getMachineRival()はネットワーク通信を行わない
+・プレイ開始時にスナップショットし、飛行中の追加API通信は0回
+・キャッシュが無ければRIVAL UIを非表示にして通常プレイ
+
+【バランス保護】
+V2.5.1から以下を変更しない:
+・CARS性能
+・判定幅
+・ゲージ軌道
+・通常飛距離コア
+・LIMIT BREAK条件/倍率
+・ガチャ主要ロジック
+・チューン
+・SECRETのランキング方針
+
+【セーブ】
+・STORE_KEY: asoboonBoonjump.v2 継続
+・schema: 6 継続
+・トロフィー38個、車庫、チューン、自己ベスト、PRECISION等を保持
+
+【ランキング】
+・同名OK
+・本人識別 player_id + player_token
+・一括登録は通常7台のみ
+・SECRETは個別登録
+・SECRETは総合ランキング対象外
+・ランキング反映は従来どおり手動登録後
+
+【Apps Script】
+V2.5.1 APIをそのまま使用。
+V2.6.0でバックエンド変更は無いため再デプロイ不要。
+
+【公開時】
+GitHubへ上書き後、初回だけ /boonjump/?v=260

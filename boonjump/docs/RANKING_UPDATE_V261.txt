@@ -1,0 +1,47 @@
+ブーンジャンプ V2.6.1 MASTERPIECE EDITION
+
+【RIVAL CHASE 最終研磨】
+・NEXT RIVAL進捗バー追加
+・100m以内 LOCK ON
+・20m以内 PHOTO FINISH
+・突破時 OVERTAKE +○m を表示
+・同距離PRECISION勝利のリザルトを明確化
+・完全同着にも専用表示
+
+【通信】
+・RIVAL専用APIなし
+・飛行中ポーリングなし
+・既存dashboardキャッシュのaround_meを利用
+・飛行中の追加API通信 0回
+
+【トロフィー】
+・現行38個の定義と取得済み状態を維持
+・V2.4までのtrophyCompleteも消さない
+・38個すべて取得時だけ38 / 38 ALL TROPHIES COMPLETE最終演出
+・grandCompleteAtで1回だけ記録
+・常設紙吹雪72要素を廃止し、最終演出時だけ36要素を生成して終了後破棄
+
+【セーブ】
+・STORE_KEY asoboonBoonjump.v2 継続
+・BACKUP_KEY asoboonBoonjump.v2.backup 継続
+・schema 7
+・V2.6.0 schema 6から自動移行
+・車庫 / チューン / 自己ベスト / プレイ回数 / PRECISION / トロフィーを保持
+
+【ゲームバランス】
+V2.6.0から以下は変更なし:
+・CARS性能
+・判定幅
+・ゲージ軌道
+・3 COMBO PRECISION計算
+・通常飛距離計算
+・LIMIT BREAK条件/倍率
+・ガチャ主要ロジック
+・SECRETランキング方針
+
+【Apps Script】
+V2.5.1 APIをそのまま使用。
+バックエンド変更なし。再デプロイ不要。
+
+【公開】
+GitHub上書き後、初回確認 /boonjump/?v=261
