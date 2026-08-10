@@ -2204,7 +2204,7 @@
 
     .instagram-thumb-viewport{
       position:relative;
-      height:520px;
+      height:735px;
       overflow:hidden;
       background:#fff;
     }
@@ -2214,7 +2214,7 @@
       left:0;
       top:-150px;
       width:100%;
-      height:820px;
+      height:1060px;
       border:0;
       background:#fff;
     }
@@ -3141,6 +3141,977 @@
       }
     }
 
+  
+    /* V2.4.1 — Reservation UI: fewer words, stronger visual hierarchy */
+    .reservation-page-head{
+      padding-bottom:10px;
+    }
+
+    .reservation-page-head h2{
+      margin-bottom:0;
+    }
+
+    .reservation-live-card{
+      margin-top:8px;
+      padding:13px;
+    }
+
+    .reservation-live-card .availability-head{
+      align-items:center;
+    }
+
+    .reservation-live-card .availability-head h3{
+      font-size:1.10rem;
+      line-height:1.2;
+    }
+
+    .reservation-live-card .availability-widget{
+      min-height:218px;
+      margin-top:9px;
+    }
+
+    .reservation-live-card .availability-frame{
+      min-height:218px;
+    }
+
+    .reservation-live-card .availability-fallback{
+      min-height:218px;
+      place-items:center;
+      padding:16px;
+    }
+
+    .availability-loading{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      color:#4b5d55;
+      font-size:.80rem;
+      font-weight:950;
+    }
+
+    .availability-loading-dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#b84f39;
+      box-shadow:0 0 0 5px rgba(184,79,57,.10);
+      animation:livePulse 1.3s ease-in-out infinite;
+    }
+
+    .reservation-main-cta{
+      min-height:86px;
+      margin-top:12px;
+      border-color:#684512;
+      background:linear-gradient(180deg,#ffe989,#d9a72d);
+      box-shadow:0 8px 0 rgba(73,49,14,.24),0 15px 30px rgba(52,37,13,.17);
+    }
+
+    .reservation-main-cta .reservation-quick-time{
+      min-height:52px;
+      padding:8px 11px;
+      font-size:.78rem;
+    }
+
+    .reservation-main-cta .reservation-quick-copy strong{
+      font-size:1.14rem;
+      line-height:1.2;
+    }
+
+    .reservation-main-cta .reservation-quick-copy small{
+      margin-top:4px;
+      font-size:.70rem;
+    }
+
+    .reservation-start-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:12px;
+    }
+
+    .reservation-start-card{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      align-items:center;
+      gap:10px;
+      min-height:58px;
+      padding:10px 12px;
+      border-radius:15px;
+      background:#fffaf0;
+      border:2px solid rgba(113,80,34,.16);
+      box-shadow:0 4px 0 rgba(80,57,27,.06);
+    }
+
+    .reservation-start-card span{
+      display:grid;
+      place-items:center;
+      min-width:48px;
+      min-height:30px;
+      padding:4px 7px;
+      border-radius:999px;
+      color:#fff;
+      background:#17493d;
+      font-size:.63rem;
+      font-weight:1000;
+    }
+
+    .reservation-start-card.local span{
+      background:#805025;
+    }
+
+    .reservation-start-card strong{
+      color:#244d42;
+      font-size:1.00rem;
+      line-height:1.2;
+      white-space:nowrap;
+    }
+
+    .reservation-simple-flow{
+      margin-top:12px;
+      padding:14px;
+      border-radius:21px;
+      background:rgba(255,249,235,.97);
+      border:2px solid rgba(117,82,34,.22);
+      box-shadow:var(--soft-shadow);
+    }
+
+    .reservation-simple-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .reservation-simple-head h3{
+      margin:0;
+      color:#17483c;
+      font-size:1.05rem;
+    }
+
+    .reservation-route-focus{
+      margin-top:10px;
+    }
+
+    .reservation-route-focus .reservation-route-step{
+      min-height:62px;
+      display:grid;
+      align-content:center;
+      padding:8px 5px;
+      color:#f8edd3;
+      background:linear-gradient(180deg,#244f43,#14372f);
+      border:1px solid rgba(224,195,126,.32);
+      font-size:.72rem;
+    }
+
+    .reservation-route-focus .reservation-route-step b{
+      margin-bottom:2px;
+      color:#f1d07c;
+      font-size:1.12rem;
+    }
+
+    .reservation-call-cta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-height:66px;
+      margin-top:11px;
+      padding:11px 13px;
+      border:2px solid #1b4e65;
+      border-radius:15px;
+      color:#0c3141;
+      text-decoration:none;
+      background:linear-gradient(180deg,#ddf6ff,#9ad9ee);
+      box-shadow:0 5px 0 rgba(31,77,94,.16);
+    }
+
+    .reservation-call-cta strong{
+      display:block;
+      font-size:.96rem;
+      line-height:1.25;
+    }
+
+    .reservation-call-cta small{
+      display:block;
+      margin-top:3px;
+      color:#456d7c;
+      font-size:.65rem;
+      font-weight:850;
+    }
+
+    .reservation-call-arrow{
+      flex:0 0 auto;
+      font-size:1.28rem;
+      font-weight:1000;
+    }
+
+    .reservation-critical{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+      padding:10px 11px;
+      border-radius:13px;
+      color:#6e3025;
+      background:#fff0e9;
+      border-left:6px solid #b84d38;
+    }
+
+    .reservation-critical strong{
+      font-size:.74rem;
+      line-height:1.35;
+    }
+
+    .reservation-critical span{
+      flex:0 0 auto;
+      padding:5px 7px;
+      border-radius:999px;
+      color:#fff8ef;
+      background:#a84431;
+      font-size:.62rem;
+      font-weight:1000;
+      white-space:nowrap;
+    }
+
+  
+    /* V2.4.2 — stronger tap affordance / clearer hierarchy */
+
+    .reservation-start-section{
+      margin-top:12px;
+      padding:12px;
+      border:2px solid rgba(113,80,34,.16);
+      border-radius:17px;
+      background:rgba(255,250,240,.88);
+    }
+
+    .reservation-start-section > h3{
+      margin:0 0 8px;
+      color:#244d42;
+      font-size:.82rem;
+      line-height:1.25;
+      font-weight:1000;
+    }
+
+    .reservation-start-section .reservation-start-grid{
+      margin-top:0;
+    }
+
+    .reservation-start-card span{
+      min-width:64px;
+      font-size:.60rem;
+    }
+
+    /* CALL STATUS: one clear action, no instructional step list */
+    #callView .call-status-launch{
+      margin-top:13px;
+    }
+
+    #callView .call-status-launch h3{
+      font-size:1.18rem;
+    }
+
+    #callView .call-status-launch p{
+      margin-bottom:12px;
+      font-size:.76rem;
+      line-height:1.45;
+    }
+
+    #callView .call-status-button{
+      min-height:72px;
+      font-size:1.00rem;
+      box-shadow:0 6px 0 rgba(25,60,79,.20),0 13px 26px rgba(24,54,69,.15);
+    }
+
+    /* PARKING: important fact lives in content, not the title */
+    .parking-entry-note{
+      display:grid;
+      grid-template-columns:42px 1fr;
+      align-items:center;
+      gap:10px;
+      margin-top:11px;
+      padding:11px 12px;
+      border:2px solid rgba(184,75,53,.28);
+      border-left:6px solid #b84b35;
+      border-radius:14px;
+      color:#5d2d22;
+      background:#fff1e9;
+      box-shadow:0 4px 0 rgba(112,61,42,.06);
+    }
+
+    .parking-entry-note-icon{
+      display:grid;
+      place-items:center;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      color:#fff;
+      background:#b84b35;
+      font-size:1.15rem;
+      font-weight:1000;
+    }
+
+    .parking-entry-note strong{
+      display:block;
+      font-size:.82rem;
+      line-height:1.25;
+      font-weight:1000;
+    }
+
+    .parking-entry-note small{
+      display:block;
+      margin-top:2px;
+      color:#765044;
+      font-size:.66rem;
+      line-height:1.4;
+      font-weight:850;
+    }
+
+    .arrival-choice{
+      margin-top:12px;
+      padding:14px;
+      border:3px solid rgba(34,73,63,.24);
+      border-radius:20px;
+      background:linear-gradient(180deg,#fffdf6,#f4ead5);
+      box-shadow:0 7px 0 rgba(65,48,25,.10),0 15px 28px rgba(61,47,27,.10);
+    }
+
+    .arrival-choice-title{
+      display:block;
+      margin-bottom:11px;
+      color:#173f35;
+      font-size:1.02rem;
+      line-height:1.2;
+      font-weight:1000;
+      text-align:center;
+    }
+
+    .arrival-choice-grid{
+      gap:10px;
+    }
+
+    .arrival-choice-btn{
+      position:relative;
+      min-height:104px;
+      padding:13px 11px 12px;
+      border:3px solid #42545a;
+      border-radius:17px;
+      color:#f8f3e7;
+      background:linear-gradient(180deg,#39484b,#202d30);
+      box-shadow:0 7px 0 rgba(19,27,29,.34),0 12px 20px rgba(25,33,34,.14);
+      text-align:center;
+      cursor:pointer;
+    }
+
+    .arrival-choice-btn strong{
+      font-size:1.02rem;
+      line-height:1.2;
+    }
+
+    .arrival-choice-btn small{
+      margin-top:5px;
+      font-size:.68rem;
+      opacity:.88;
+    }
+
+    .arrival-choice-action{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      margin-top:9px;
+      min-height:25px;
+      padding:4px 9px;
+      border-radius:999px;
+      color:#293015;
+      background:#efd27f;
+      font-size:.60rem;
+      line-height:1;
+      font-weight:1000;
+    }
+
+    .arrival-choice-btn:active{
+      transform:translateY(4px);
+      box-shadow:0 3px 0 rgba(19,27,29,.34);
+    }
+
+    .arrival-choice-btn.active{
+      color:#291d0d;
+      border-color:#a36b22;
+      background:linear-gradient(180deg,#ffe89b,#c88e35);
+      box-shadow:0 7px 0 rgba(95,59,16,.24),0 12px 22px rgba(96,65,22,.14);
+    }
+
+    .arrival-choice-btn.active .arrival-choice-action{
+      color:#fff;
+      background:#17493d;
+    }
+
+    .arrival-choice-btn.active .arrival-choice-action::before{
+      content:"✓ ";
+    }
+
+    /* Highway steps: fixed number column + solid contrast */
+    #parkingHighwayPanel .access-step{
+      position:relative;
+      display:grid;
+      grid-template-columns:48px minmax(0,1fr);
+      gap:12px;
+      align-items:center;
+      min-height:76px;
+      padding:12px;
+      overflow:visible;
+      background:#fffdf5;
+    }
+
+    #parkingHighwayPanel .access-step-num{
+      position:relative;
+      z-index:2;
+      display:grid;
+      place-items:center;
+      width:48px;
+      height:48px;
+      margin:0;
+      border:3px solid #f1d07c;
+      border-radius:50%;
+      color:#fff;
+      background:#9b442e;
+      box-shadow:0 4px 0 rgba(78,37,27,.18);
+      font-size:1.05rem;
+      line-height:1;
+      font-weight:1000;
+    }
+
+    #parkingHighwayPanel .access-step > span:last-child{
+      position:relative;
+      z-index:1;
+      min-width:0;
+      padding:0;
+      background:none;
+    }
+
+    #parkingHighwayPanel .access-step > span:last-child > strong{
+      font-size:.86rem;
+      line-height:1.3;
+    }
+
+    #parkingHighwayPanel .access-step > span:last-child > span{
+      display:block;
+      margin-top:4px;
+      color:#685c4d;
+      font-size:.68rem;
+      line-height:1.45;
+    }
+
+    /* Instagram profile crop: show three rows (3×3) */
+    .instagram-thumb-viewport{
+      height:735px;
+    }
+
+    .instagram-thumb-viewport iframe{
+      height:1060px;
+    }
+
+    @media (max-width:430px){
+      .instagram-thumb-viewport{
+        height:690px;
+      }
+
+      .instagram-thumb-viewport iframe{
+        height:1010px;
+      }
+    }
+
+  
+    /* V2.4.3 — Playtime: clear tap surfaces / less reading */
+
+    .playtime-page-head{
+      padding-bottom:9px;
+    }
+
+    .time-result-note:empty{
+      display:none;
+    }
+
+    .time-settings{
+      gap:13px;
+      padding:15px;
+    }
+
+    .setting-head-simple{
+      display:block;
+    }
+
+    .setting-head-simple strong{
+      display:block;
+      color:#21483d;
+      font-size:.94rem;
+      line-height:1.2;
+      font-weight:1000;
+    }
+
+    .entry-time-control{
+      padding:10px;
+      border:2px solid rgba(90,66,31,.18);
+      border-radius:16px;
+      background:#eee4cc;
+      box-shadow:inset 0 2px 6px rgba(76,55,28,.08);
+    }
+
+    .entry-time-control .entry-select{
+      height:62px;
+      border:3px solid #4f4028;
+      border-radius:13px;
+      background:#fffef8;
+      color:#2d281e;
+      font-size:1.72rem;
+      font-weight:1000;
+      box-shadow:inset 0 2px 5px rgba(0,0,0,.06);
+    }
+
+    .time-adjust-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:7px;
+      margin-top:9px;
+    }
+
+    .time-adjust{
+      min-width:0;
+      height:56px;
+      padding:5px 3px;
+      border:2px solid #573d15;
+      border-radius:13px;
+      color:#34220d;
+      background:linear-gradient(180deg,#ffe89c,#d6a743);
+      box-shadow:
+        0 6px 0 rgba(91,62,20,.27),
+        0 10px 18px rgba(76,54,22,.12);
+      font-size:.82rem;
+      line-height:1.05;
+      font-weight:1000;
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+
+    .time-adjust-ten{
+      color:#fff8e7;
+      border-color:#174438;
+      background:linear-gradient(180deg,#2d6858,#164437);
+      box-shadow:
+        0 6px 0 rgba(14,52,42,.28),
+        0 10px 18px rgba(20,52,43,.12);
+    }
+
+    .time-adjust:active,
+    .time-adjust-ten:active{
+      transform:translateY(4px);
+      box-shadow:0 2px 0 rgba(64,45,18,.22);
+    }
+
+    .time-now-btn{
+      min-height:54px;
+      border:3px solid #315d72;
+      border-radius:14px;
+      color:#123747;
+      background:linear-gradient(180deg,#e5f8ff,#a7dbea);
+      box-shadow:
+        0 6px 0 rgba(36,82,101,.20),
+        0 10px 18px rgba(36,82,101,.10);
+      font-size:.88rem;
+      font-weight:1000;
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+
+    .time-now-btn:active{
+      transform:translateY(4px);
+      box-shadow:0 2px 0 rgba(36,82,101,.18);
+    }
+
+    .duration-switch{
+      gap:7px;
+      padding:7px;
+      border-radius:15px;
+      background:#1f2c28;
+    }
+
+    .duration-btn{
+      min-height:60px;
+      border:2px solid rgba(255,255,255,.18);
+      border-radius:11px;
+      background:linear-gradient(180deg,#465650,#33413c);
+      color:#f1f1e8;
+      box-shadow:0 4px 0 rgba(0,0,0,.22);
+      font-size:.78rem;
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+
+    .duration-btn.active{
+      border-color:#8c631f;
+      color:#2d200c;
+      background:linear-gradient(180deg,#ffe796,#d09c38);
+      box-shadow:0 5px 0 rgba(93,60,14,.28);
+    }
+
+    .duration-btn:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 rgba(0,0,0,.20);
+    }
+
+    .time-save{
+      display:grid;
+      place-items:center;
+      gap:4px;
+      min-height:78px;
+      padding:11px 14px;
+      border:3px solid #09251e;
+      border-radius:17px;
+      color:#fff9e8;
+      background:linear-gradient(180deg,#28725c,#0d3d31);
+      box-shadow:
+        0 8px 0 rgba(5,36,29,.34),
+        0 15px 28px rgba(10,49,39,.18);
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+
+    .time-save strong{
+      display:block;
+      font-size:1.08rem;
+      line-height:1.15;
+      font-weight:1000;
+    }
+
+    .time-save small{
+      display:block;
+      color:#d9f3e9;
+      font-size:.69rem;
+      line-height:1.2;
+      font-weight:900;
+    }
+
+    .time-save.saved{
+      border-color:#73520e;
+      color:#30210b;
+      background:linear-gradient(180deg,#fff0a8,#d8aa3e);
+      box-shadow:
+        0 8px 0 rgba(99,66,13,.25),
+        0 15px 28px rgba(93,65,18,.13);
+    }
+
+    .time-save.saved small{
+      color:#594115;
+    }
+
+    .time-save:active{
+      transform:translateY(5px);
+      box-shadow:0 3px 0 rgba(5,36,29,.26);
+    }
+
+    .time-footnote{
+      margin-top:10px;
+      color:#eadfbd;
+      font-size:.68rem;
+      line-height:1.4;
+      font-weight:900;
+    }
+
+    @media(max-width:380px){
+      .time-adjust-grid{
+        gap:5px;
+      }
+
+      .time-adjust{
+        height:52px;
+        font-size:.74rem;
+      }
+
+      .entry-time-control .entry-select{
+        font-size:1.55rem;
+      }
+    }
+
+  
+    /* =========================================================
+       V2.5.0 — BOON RUN / MINI GAME SELECTOR
+       タップ領域と情報領域を明確に分離
+       ========================================================= */
+
+    .play-contents-head{
+      padding-bottom:8px;
+    }
+
+    .mini-game-hub{
+      position:relative;
+      padding:14px;
+      border:2px solid rgba(112,78,31,.20);
+      border-radius:22px;
+      background:rgba(255,249,235,.95);
+      box-shadow:var(--soft-shadow);
+    }
+
+    .mini-game-hub-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:11px;
+      padding:0 2px;
+      pointer-events:none;
+    }
+
+    .mini-game-hub-head span{
+      order:2;
+      color:#8d7045;
+      font-size:.58rem;
+      font-weight:1000;
+      letter-spacing:.14em;
+    }
+
+    .mini-game-hub-head h3{
+      margin:0;
+      color:#173f35;
+      font-size:1.08rem;
+      line-height:1.15;
+      font-weight:1000;
+    }
+
+    .mini-game-list{
+      display:grid;
+      gap:11px;
+    }
+
+    .mini-game-card{
+      position:relative;
+      display:grid;
+      grid-template-columns:76px minmax(0,1fr) 34px;
+      align-items:center;
+      gap:11px;
+      min-height:112px;
+      padding:13px 13px 13px 11px;
+      overflow:hidden;
+      border:3px solid #172e36;
+      border-radius:18px;
+      color:#fff;
+      text-decoration:none;
+      box-shadow:
+        0 8px 0 rgba(14,29,35,.27),
+        0 15px 28px rgba(31,42,46,.16);
+      cursor:pointer;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
+      transition:
+        transform .12s ease,
+        box-shadow .12s ease,
+        border-color .15s ease;
+    }
+
+    .mini-game-card::before{
+      content:"";
+      position:absolute;
+      inset:5px;
+      border:1px solid rgba(255,255,255,.13);
+      border-radius:12px;
+      pointer-events:none;
+    }
+
+    .mini-game-card::after{
+      content:"";
+      position:absolute;
+      top:-45%;
+      right:-15%;
+      width:145px;
+      height:190px;
+      opacity:.19;
+      transform:rotate(24deg);
+      background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.75),
+        transparent
+      );
+      pointer-events:none;
+    }
+
+    .mini-game-jump{
+      border-color:#275270;
+      background:
+        radial-gradient(circle at 82% 18%,rgba(88,199,255,.26),transparent 28%),
+        linear-gradient(135deg,#173a54,#0c2638 68%,#071c29);
+    }
+
+    .mini-game-run{
+      border-color:#6e4916;
+      background:
+        radial-gradient(circle at 84% 18%,rgba(255,196,64,.28),transparent 30%),
+        linear-gradient(135deg,#624017,#2d2919 60%,#18352d);
+    }
+
+    .mini-game-card:active{
+      transform:translateY(5px) scale(.995);
+      box-shadow:
+        0 3px 0 rgba(14,29,35,.25),
+        0 8px 15px rgba(31,42,46,.12);
+    }
+
+    .mini-game-visual{
+      position:relative;
+      display:grid;
+      place-items:center;
+      width:76px;
+      height:76px;
+      overflow:hidden;
+      border:2px solid rgba(255,255,255,.24);
+      border-radius:17px;
+      background:rgba(0,0,0,.16);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.14),
+        0 5px 12px rgba(0,0,0,.16);
+      pointer-events:none;
+    }
+
+    .mini-game-road{
+      position:absolute;
+      left:-8px;
+      right:-8px;
+      bottom:15px;
+      height:15px;
+      transform:skewX(-18deg);
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.86) 0 14px,
+          transparent 14px 24px
+        );
+      opacity:.28;
+    }
+
+    .mini-game-machine{
+      position:relative;
+      z-index:2;
+      font-size:2.25rem;
+      line-height:1;
+      filter:drop-shadow(0 4px 3px rgba(0,0,0,.35));
+    }
+
+    .mini-game-copy{
+      position:relative;
+      z-index:2;
+      display:block;
+      min-width:0;
+      pointer-events:none;
+    }
+
+    .mini-game-copy small{
+      display:block;
+      margin-bottom:3px;
+      color:#d8eaf2;
+      font-size:.58rem;
+      line-height:1;
+      font-weight:1000;
+      letter-spacing:.12em;
+    }
+
+    .mini-game-run .mini-game-copy small{
+      color:#ffe098;
+    }
+
+    .mini-game-copy strong{
+      display:block;
+      font-size:1.20rem;
+      line-height:1.18;
+      font-weight:1000;
+      letter-spacing:.01em;
+    }
+
+    .mini-game-copy > span{
+      display:block;
+      margin-top:6px;
+      color:rgba(255,255,255,.82);
+      font-size:.69rem;
+      line-height:1.35;
+      font-weight:850;
+    }
+
+    .mini-game-arrow{
+      position:relative;
+      z-index:2;
+      display:grid;
+      place-items:center;
+      width:34px;
+      height:48px;
+      border-radius:999px;
+      color:#173127;
+      background:#f0d278;
+      box-shadow:0 4px 0 rgba(0,0,0,.18);
+      font-size:2rem;
+      line-height:1;
+      font-weight:1000;
+      pointer-events:none;
+    }
+
+    .mini-game-new{
+      position:absolute;
+      z-index:4;
+      top:8px;
+      right:9px;
+      padding:5px 8px;
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:999px;
+      color:#30210b;
+      background:linear-gradient(180deg,#fff3ac,#e8b846);
+      box-shadow:0 3px 0 rgba(79,50,9,.18);
+      font-size:.55rem;
+      line-height:1;
+      font-weight:1000;
+      letter-spacing:.08em;
+      pointer-events:none;
+    }
+
+    .mini-game-run .mini-game-arrow{
+      color:#103930;
+      background:linear-gradient(180deg,#c7ffd9,#61d6a1);
+    }
+
+    @media(max-width:380px){
+      .mini-game-card{
+        grid-template-columns:66px minmax(0,1fr) 30px;
+        gap:9px;
+        min-height:104px;
+        padding-left:9px;
+      }
+
+      .mini-game-visual{
+        width:66px;
+        height:66px;
+      }
+
+      .mini-game-machine{
+        font-size:2rem;
+      }
+
+      .mini-game-copy strong{
+        font-size:1.05rem;
+      }
+
+      .mini-game-copy > span{
+        font-size:.62rem;
+      }
+
+      .mini-game-arrow{
+        width:30px;
+        height:44px;
+        font-size:1.7rem;
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      .mini-game-card{
+        transition:none;
+      }
+    }
+
   </style>
 </head>
 
@@ -3433,36 +4404,15 @@
     </section>
 
     <section class="view" id="reservationView">
-      <div class="page-head">
+      <div class="page-head reservation-page-head">
         <small>BEFORE VISIT 01</small>
-        <h2>当日予約・入場方法</h2>
-        <p>
-          当日のWEB予約（整理券）と、入場までの手順をまとめています。
-        </p>
+        <h2>当日予約</h2>
       </div>
 
-      <a
-        class="reservation-quick-card"
-        id="reservationQuickLink"
-        href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span class="reservation-quick-time">当日 7:00〜</span>
-        <span class="reservation-quick-copy">
-          <strong>WEB予約（整理券）はこちら</strong>
-          <small>対象日の当日分を予約できます</small>
-        </span>
-        <span class="reservation-quick-arrow">↗</span>
-      </a>
-
-      <section class="availability-card">
+      <section class="availability-card reservation-live-card">
         <div class="availability-head">
           <div>
-            <h3>まず混雑速報を確認</h3>
-            <p>
-              現在受付中の入場枠と残り人数を、最初に確認できます。
-            </p>
+            <h3>本日の空き状況</h3>
           </div>
           <span class="live-chip">LIVE</span>
         </div>
@@ -3471,255 +4421,105 @@
           <iframe
             class="availability-frame"
             id="availabilityFrame"
-            title="ASOBooN 混雑速報"
+            title="ASOBooN 本日の空き状況"
             hidden
           ></iframe>
 
           <div class="availability-fallback" id="availabilityFallback">
-            <div class="availability-demo-row">
-              <span>受付中の入場枠</span>
-              <strong>接続待ち</strong>
-            </div>
-
-            <div class="availability-demo-row">
-              <span>残り人数</span>
-              <strong>—</strong>
-            </div>
-
-            <div class="availability-setup">
-              混雑速報を読み込んでいます。表示されない場合はページを再読み込みしてください。
+            <div class="availability-loading">
+              <span class="availability-loading-dot"></span>
+              <strong>読み込み中</strong>
             </div>
           </div>
-        </div>
-
-        <p class="availability-note">
-          ※「0」も表示し、終了済みなどのマイナス値は表示しない仕様です。<br>
-          ※「現地のみ」の枠は専用バッジで区別します。
-        </p>
-      </section>
-
-      <div class="reservation-hero">
-        <p>
-          WEB予約（整理券）は対象日の<strong>当日朝7:00</strong>から開始します。
-          予約後は、整理券番号と呼出状況を確認しながらご来場ください。
-        </p>
-
-        <div class="reservation-route">
-          <div class="reservation-route-step">
-            <b>①</b>
-            整理券を取る
-          </div>
-
-          <div class="reservation-route-step">
-            <b>②</b>
-            呼出を待つ
-          </div>
-
-          <div class="reservation-route-step">
-            <b>③</b>
-            受付して入場
-          </div>
-        </div>
-      </div>
-
-      <section class="entry-flow-card">
-        <div class="entry-flow-head">
-          <div>
-            <h3>WEB予約から入場までの5ステップ</h3>
-            <p>この順番で進めば、当日の動きに迷いません。</p>
-          </div>
-
-          <span class="entry-flow-chip">保存版</span>
-        </div>
-
-        <div class="entry-flow-list">
-          <article class="entry-step">
-            <span class="entry-step-num">1</span>
-
-            <div>
-              <div class="entry-step-title">
-                WEB予約（整理券）を取得する
-                <span class="entry-step-tag">WEB</span>
-                <span class="entry-step-tag local">現地</span>
-              </div>
-
-              <span class="entry-step-text">
-                対象日は当日7:00からWEB予約（整理券）を取得できます。現地整理券は当日9:30から、入口すぐ左のタブレットで取得します。
-              </span>
-
-              <div class="entry-step-actions">
-                <a
-                  class="entry-mini-action"
-                  id="entryReservationLink"
-                  href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  オンライン受付へ ↗
-                </a>
-              </div>
-            </div>
-          </article>
-
-          <article class="entry-step">
-            <span class="entry-step-num">2</span>
-
-            <div>
-              <div class="entry-step-title">
-                呼出状況を確認する
-              </div>
-
-              <span class="entry-step-text">
-                整理券の受付番号を確認しながら、呼出状況ページで順番を見ます。呼出前は待合室またはお近くでお待ちください。
-              </span>
-
-              <div class="entry-step-actions">
-                <a
-                  class="entry-mini-action secondary"
-                  href="https://comaam.jp/airwaitapi/reserve.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  呼出状況を見る ↗
-                </a>
-              </div>
-            </div>
-          </article>
-
-          <article class="entry-step">
-            <span class="entry-step-num">3</span>
-
-            <div>
-              <div class="entry-step-title">
-                「ご来店ください」になったら受付へ
-              </div>
-
-              <span class="entry-step-text">
-                表示が切り替わったら、ASOBooN受付のレジ列へお進みください。
-              </span>
-
-              <span class="entry-step-note">
-                呼出後30分を過ぎると自動キャンセルになります。遅れそうな場合は事前にお電話ください。
-              </span>
-            </div>
-          </article>
-
-          <article class="entry-step">
-            <span class="entry-step-num">4</span>
-
-            <div>
-              <div class="entry-step-title">
-                受付・お会計
-              </div>
-
-              <span class="entry-step-text">
-                受付で人数を確認してお会計します。利用時間は、最初のお会計時点から始まります。
-              </span>
-            </div>
-          </article>
-
-          <article class="entry-step">
-            <span class="entry-step-num">5</span>
-
-            <div>
-              <div class="entry-step-title">
-                ホルダーを受け取って入場
-              </div>
-
-              <span class="entry-step-text">
-                1会計につき赤ホルダーを1つお渡しします。大人が複数の場合は、2人目以降の保護者へ黄色ホルダーをお渡しします。
-              </span>
-
-              <div class="entry-arrival-summary">
-                <div class="entry-arrival-item">
-                  <strong>ロッカー</strong>
-                  1会計につき1つ利用できます。
-                </div>
-
-                <div class="entry-arrival-item">
-                  <strong>入場後</strong>
-                  レシートの入場時刻で、退場予定を確認できます。
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div class="entry-flow-safety">
-          👨‍👩‍👧 入場後は、保護者の方がお子さまから目を離さず、一緒にお過ごしください。
         </div>
       </section>
 
       <a
-        class="reservation-primary"
-        id="reservationPrimaryLink"
+        class="reservation-quick-card reservation-main-cta"
+        id="reservationQuickLink"
         href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918"
         target="_blank"
         rel="noopener noreferrer"
       >
-        <span>
-          <strong>当日WEB予約（整理券）へ進む</strong>
-          <small>当日分のみ・Airウェイトが開きます</small>
+        <span class="reservation-quick-time">当日 7:00〜</span>
+        <span class="reservation-quick-copy">
+          <strong>WEB予約する</strong>
+          <small>当日分の整理券</small>
         </span>
-        <span>↗</span>
+        <span class="reservation-quick-arrow">↗</span>
       </a>
 
-      <div class="reservation-info-grid">
-        <div class="reservation-info">
-          <span>オンライン受付</span>
-          <strong>当日 7:00〜</strong>
-          <p>土日月・祝日・特定日など対象日のみ</p>
-        </div>
+      <section class="reservation-start-section" aria-label="整理券受付開始時間">
+        <h3>整理券の受付開始時間</h3>
 
-        <div class="reservation-info">
-          <span>現地受付</span>
-          <strong>当日 9:30〜</strong>
-          <p>入口付近の端末で整理券を発券</p>
-        </div>
-      </div>
+        <div class="reservation-start-grid">
+          <div class="reservation-start-card web">
+            <span>WEB受付</span>
+            <strong>7:00〜</strong>
+          </div>
 
-      <section class="slot-guide">
-        <h3>主な入場枠</h3>
-
-        <div class="slot-type">
-          <span class="slot-type-label">土日祝など</span>
-
-          <span>
-            <strong>10:00／12:30／15:00</strong>
-            <span>対象日の運用により変更される場合があります。</span>
-          </span>
-        </div>
-
-        <div class="slot-type">
-          <span class="slot-type-label special">平日特定日</span>
-
-          <span>
-            <strong>10:00／13:30</strong>
-            <span>15:00回はありません。</span>
-          </span>
+          <div class="reservation-start-card local">
+            <span>現地受付</span>
+            <strong>9:30〜</strong>
+          </div>
         </div>
       </section>
 
-      <div class="reservation-warning">
-        ⚠️ 前日以前の予約ではなく、当日分のオンライン受付です。受付数はオンライン・現地でそれぞれ設定されています。
-      </div>
+      <section class="reservation-simple-flow">
+        <div class="reservation-simple-head">
+          <h3>入場まで</h3>
+        </div>
+
+        <div class="reservation-route reservation-route-focus">
+          <div class="reservation-route-step">
+            <b>①</b>
+            整理券
+          </div>
+
+          <div class="reservation-route-step">
+            <b>②</b>
+            呼出確認
+          </div>
+
+          <div class="reservation-route-step">
+            <b>③</b>
+            受付
+          </div>
+        </div>
+
+        <a
+          class="reservation-call-cta"
+          id="reservationCallLink"
+          href="https://comaam.jp/airwaitapi/reserve.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>
+            <strong>呼出状況を見る</strong>
+            <small>受付番号を確認</small>
+          </span>
+          <span class="reservation-call-arrow">↗</span>
+        </a>
+
+        <div class="reservation-critical">
+          <strong>「ご来店ください」になったら受付へ</strong>
+          <span>呼出後30分以内</span>
+        </div>
+      </section>
     </section>
 
     <section class="view" id="callView">
       <div class="page-head">
         <small>BEFORE VISIT 02</small>
         <h2>呼出状況</h2>
-        <p>
-          整理券を取得したあと、現在の呼出状況を確認するページです。
-        </p>
+
       </div>
 
       <div class="call-status-launch">
-        <h3>現在の呼出状況を確認</h3>
+        <h3>現在の呼出状況</h3>
 
         <p>
-          ご自身の受付番号が表示されたら、施設受付へお進みください。
-          このボタンはオンライン受付ではなく、<strong>呼出状況専用</strong>です。
+          「ご来店ください」と表示されたら受付へお進みください。
         </p>
 
         <a
@@ -3732,45 +4532,6 @@
           <span>呼出状況ページを開く</span>
           <span>↗</span>
         </a>
-      </div>
-
-      <div class="paper" style="margin-top:12px">
-        <h3>確認の流れ</h3>
-
-        <div class="call-howto">
-          <div class="call-howto-item">
-            <span class="call-howto-num">1</span>
-
-            <span>
-              <strong>整理券を取得</strong>
-              <span>
-                予約完了画面やメールにある受付番号を確認します。
-              </span>
-            </span>
-          </div>
-
-          <div class="call-howto-item">
-            <span class="call-howto-num">2</span>
-
-            <span>
-              <strong>呼出状況を見る</strong>
-              <span>
-                呼出前は待合室またはお近くでお待ちください。
-              </span>
-            </span>
-          </div>
-
-          <div class="call-howto-item">
-            <span class="call-howto-num">3</span>
-
-            <span>
-              <strong>受付へ進む</strong>
-              <span>
-                「ご来店ください」と表示されたら、レジの列へお進みください。
-              </span>
-            </span>
-          </div>
-        </div>
       </div>
 
       <div class="paper alert" style="margin-top:12px">
@@ -3791,9 +4552,6 @@
       <div class="page-head">
         <small>PARKING ROUTE GUIDE</small>
         <h2>駐車場・アクセス</h2>
-        <p>
-          一般道側と首都高側で入口が異なります。出発前にルートと駐車場所をご確認ください。
-        </p>
       </div>
 
       <div class="parking-intro-card">
@@ -3808,6 +4566,14 @@
         </div>
       </div>
 
+      <div class="parking-entry-note">
+        <span class="parking-entry-note-icon">!</span>
+        <span>
+          <strong>入口が異なります</strong>
+          <small>一般道側と首都高側で入口が異なります。</small>
+        </span>
+      </div>
+
       <div class="arrival-choice">
         <span class="arrival-choice-title">
           どちらからお越しですか？
@@ -3815,12 +4581,13 @@
 
         <div class="arrival-choice-grid">
           <button
-            class="arrival-choice-btn active"
+            class="arrival-choice-btn"
             type="button"
             data-parking-route="general"
           >
             <strong>🛣️ 一般道から</strong>
             <small>東門・正門駐車場</small>
+            <span class="arrival-choice-action">タップして選ぶ</span>
           </button>
 
           <button
@@ -3830,12 +4597,13 @@
           >
             <strong>🚗 首都高から</strong>
             <small>川口PA駐車場</small>
+            <span class="arrival-choice-action">タップして選ぶ</span>
           </button>
         </div>
       </div>
 
       <div
-        class="parking-route-panel active"
+        class="parking-route-panel"
         id="parkingGeneralPanel"
       >
         <div class="parking-overview">
@@ -4180,12 +4948,9 @@
     </section>
 
     <section class="view" id="playtimeView">
-      <div class="page-head">
+      <div class="page-head playtime-page-head">
         <small>NOW EXPLORING 01</small>
         <h2>何時まであそべる？</h2>
-        <p>
-          営業時間は10:00から。入場時刻と本日の利用時間から、閉館時刻を超えない退場予定を確認します。
-        </p>
       </div>
 
       <div class="playtime-console">
@@ -4235,9 +5000,7 @@
           <span
             class="time-result-note"
             id="timeResultNote"
-          >
-            設定内容は本日中のみ保存され、毎日0:00に自動リセットされます
-          </span>
+          ></span>
         </div>
 
         <div class="journey-card" id="journeyCard">
@@ -4270,25 +5033,11 @@
         </div>
 
         <div class="time-settings">
-          <div class="setting-head">
+          <div class="setting-head setting-head-simple">
             <strong>レシートの入場時刻</strong>
-            <span>1分単位で入力</span>
           </div>
 
-          <p class="time-input-help">
-            レシートに印字された入場時刻を、そのまま入力してください。
-          </p>
-
-          <div class="entry-time-row">
-            <button
-              class="time-adjust"
-              id="timeMinus"
-              type="button"
-              aria-label="入場時刻を1分戻す"
-            >
-              −1分
-            </button>
-
+          <div class="entry-time-control">
             <input
               class="entry-select"
               id="startTime"
@@ -4299,14 +5048,43 @@
               aria-label="レシートの入場時刻"
             >
 
-            <button
-              class="time-adjust"
-              id="timePlus"
-              type="button"
-              aria-label="入場時刻を1分進める"
-            >
-              ＋1分
-            </button>
+            <div class="time-adjust-grid" role="group" aria-label="入場時刻を調整">
+              <button
+                class="time-adjust time-adjust-ten"
+                id="timeMinus10"
+                type="button"
+                aria-label="入場時刻を10分戻す"
+              >
+                −10分
+              </button>
+
+              <button
+                class="time-adjust"
+                id="timeMinus"
+                type="button"
+                aria-label="入場時刻を1分戻す"
+              >
+                −1分
+              </button>
+
+              <button
+                class="time-adjust"
+                id="timePlus"
+                type="button"
+                aria-label="入場時刻を1分進める"
+              >
+                ＋1分
+              </button>
+
+              <button
+                class="time-adjust time-adjust-ten"
+                id="timePlus10"
+                type="button"
+                aria-label="入場時刻を10分進める"
+              >
+                ＋10分
+              </button>
+            </div>
           </div>
 
           <button
@@ -4314,12 +5092,11 @@
             id="timeNowBtn"
             type="button"
           >
-            🕒 現在時刻を入力
+            🕒 いまの時刻にする
           </button>
 
-          <div class="setting-head">
+          <div class="setting-head setting-head-simple">
             <strong>本日の利用時間</strong>
-            <span>閉館時刻も自動で反映</span>
           </div>
 
           <div
@@ -4360,12 +5137,13 @@
             id="calcBtn"
             type="button"
           >
-            この入場時刻を保存する
+            <strong id="calcBtnLabel">この入場時刻で設定する</strong>
+            <small id="calcBtnSub">何時まで遊べるか表示</small>
           </button>
         </div>
 
         <p class="time-footnote">
-          営業開始は10:00です。2時間30分の日は18:00閉館、3時間の日と時間制限なしの日は17:00閉館です。一時退場中も利用時間は進みます。最終的な退場時刻は受付時の案内をご確認ください。
+          一時退場中も利用時間は進みます。
         </p>
       </div>
     </section>
@@ -4579,29 +5357,62 @@
     </section>
 
     <section class="view" id="stampView">
-      <div class="page-head">
+      <div class="page-head play-contents-head">
         <small>PLAY CONTENTS</small>
         <h2>あそびコンテンツ</h2>
-        <p>
-          ミニゲーム・おみくじ・スタンプラリーから、遊びたいものを選んでください。
-        </p>
       </div>
 
       <div class="stack">
-        <div class="paper">
-          <h3>🚀 ミニゲーム「ブーンジャンプ」</h3>
-          <p>
-            3回のタップで車を飛ばし、自己ベストやトロフィーを目指すミニゲームです。
-          </p>
+        <section class="mini-game-hub" aria-labelledby="miniGameHubTitle">
+          <div class="mini-game-hub-head">
+            <span>MINI GAME</span>
+            <h3 id="miniGameHubTitle">ミニゲーム</h3>
+          </div>
 
-          <a
-            class="action"
-            id="miniGameLink"
-            href="./boonjump/"
-          >
-            ミニゲームを始める <span>→</span>
-          </a>
-        </div>
+          <div class="mini-game-list">
+            <a
+              class="mini-game-card mini-game-jump"
+              id="miniGameLink"
+              href="./boonjump/"
+              aria-label="ブーンジャンプを遊ぶ"
+            >
+              <span class="mini-game-visual" aria-hidden="true">
+                <span class="mini-game-road"></span>
+                <span class="mini-game-machine">🚀</span>
+              </span>
+
+              <span class="mini-game-copy">
+                <small>BOON JUMP</small>
+                <strong>ブーンジャンプ</strong>
+                <span>3タップで飛距離勝負</span>
+              </span>
+
+              <span class="mini-game-arrow" aria-hidden="true">›</span>
+            </a>
+
+            <a
+              class="mini-game-card mini-game-run"
+              id="boonRunLink"
+              href="./boonrun/"
+              aria-label="ブーンRUNを遊ぶ"
+            >
+              <span class="mini-game-new">NEW</span>
+
+              <span class="mini-game-visual" aria-hidden="true">
+                <span class="mini-game-road"></span>
+                <span class="mini-game-machine">🏎️</span>
+              </span>
+
+              <span class="mini-game-copy">
+                <small>BOON RUN</small>
+                <strong>ブーンRUN</strong>
+                <span>障害物をかわして、どこまで走れる？</span>
+              </span>
+
+              <span class="mini-game-arrow" aria-hidden="true">›</span>
+            </a>
+          </div>
+        </section>
 
         <div class="paper">
           <h3>⛩️ ASOBooN おみくじ</h3>
@@ -4667,12 +5478,12 @@
             </div>
           </details>
 
-          <details data-keywords="予約 必ず 入場">
+          <details data-keywords="予約 必ず 入場 呼出 30分 キャンセル">
             <summary>予約したのに入れないことはありますか？</summary>
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              有効な整理券があれば入場枠は確保されています。呼出状況をご確認ください。
+              有効な整理券があれば入場枠は確保されています。ただし、呼び出しから30分を過ぎると自動キャンセルになります。呼出状況をご確認いただき、「ご来店ください」と表示されたら受付へお進みください。
             </div>
           </details>
 
@@ -4803,6 +5614,9 @@
 
       miniGameUrl:
         "./boonjump/",
+
+      boonRunUrl:
+        "./boonrun/",
 
       congestionWidgetUrl:
         "https://script.google.com/macros/s/AKfycby0YZHPyZzraq8FdBxcumDa6ad6GZbSkjzVF5h7Y3_uUdFsc5ezcDJEiTHGS-cbse-3/exec"
@@ -5173,24 +5987,19 @@
       const appConfig =
         window.ASOBOON_CONFIG || {};
 
-      const reservationPrimaryLink =
-        document.getElementById(
-          "reservationPrimaryLink"
-        );
-
-      const reservationQuickLink =
+const reservationQuickLink =
         document.getElementById(
           "reservationQuickLink"
         );
 
-      const entryReservationLink =
-        document.getElementById(
-          "entryReservationLink"
-        );
-
-      const callStatusLink =
+const callStatusLink =
         document.getElementById(
           "callStatusLink"
+        );
+
+      const reservationCallLink =
+        document.getElementById(
+          "reservationCallLink"
         );
 
       const stampRallyLink =
@@ -5208,6 +6017,11 @@
           "miniGameLink"
         );
 
+      const boonRunLink =
+        document.getElementById(
+          "boonRunLink"
+        );
+
       const availabilityFrame =
         document.getElementById(
           "availabilityFrame"
@@ -5219,18 +6033,15 @@
         );
 
       if (appConfig.reservationUrl) {
-        reservationPrimaryLink.href =
-          appConfig.reservationUrl;
-
         reservationQuickLink.href =
-          appConfig.reservationUrl;
-
-        entryReservationLink.href =
           appConfig.reservationUrl;
       }
 
       if (appConfig.callStatusUrl) {
         callStatusLink.href =
+          appConfig.callStatusUrl;
+
+        reservationCallLink.href =
           appConfig.callStatusUrl;
       }
 
@@ -5247,6 +6058,11 @@
       if (appConfig.miniGameUrl) {
         miniGameLink.href =
           appConfig.miniGameUrl;
+      }
+
+      if (appConfig.boonRunUrl) {
+        boonRunLink.href =
+          appConfig.boonRunUrl;
       }
 
       if (appConfig.congestionWidgetUrl) {
@@ -5301,6 +6117,23 @@
           ".duration-btn"
         )
       ];
+
+      const calcBtn =
+        document.getElementById(
+          "calcBtn"
+        );
+
+      const calcBtnLabel =
+        document.getElementById(
+          "calcBtnLabel"
+        );
+
+      const calcBtnSub =
+        document.getElementById(
+          "calcBtnSub"
+        );
+
+      let calcBtnFeedbackTimer = 0;
 
       const PLAYTIME_STORAGE_KEY =
         "asoboon-adventure-time";
@@ -5740,9 +6573,8 @@
             "入場時刻を確認してください";
           main.classList.add("expired");
           sub.textContent =
-            "営業開始は10:00です";
-          note.textContent =
-            "レシートの入場時刻を入力してください";
+            "10:00以降を入力してください";
+          note.textContent = "";
           progress.style.width = "8%";
           car.style.left = "8%";
           return;
@@ -5753,9 +6585,8 @@
             "入場時刻を確認してください";
           main.classList.add("expired");
           sub.textContent =
-            `${timeText(closing)}が閉館時刻です`;
-          note.textContent =
-            "閉館時刻より前の入場時刻を入力してください";
+            `${timeText(closing)}より前を入力してください`;
+          note.textContent = "";
           progress.style.width = "8%";
           car.style.left = "8%";
 
@@ -5771,9 +6602,8 @@
             "入場時刻を確認してください";
           main.classList.add("expired");
           sub.textContent =
-            `入力時刻 ${timeText(entry)}`;
-          note.textContent =
-            "現在より後の時刻が入力されています";
+            `入力 ${timeText(entry)}`;
+          note.textContent = "";
           progress.style.width = "8%";
           car.style.left = "8%";
 
@@ -5840,18 +6670,10 @@
           sub.textContent =
             `${timeText(end)}まで遊べます`;
 
-          if (selectedDuration === 0) {
-            note.textContent =
-              `時間制限なし・本日は${timeText(closing)}閉館です`;
-          } else if (closingCapped) {
-            note.textContent =
-              `利用時間より閉館時刻が先のため、${timeText(closing)}までです`;
-          } else {
-            note.textContent =
-              remaining <= 10
-                ? "そろそろお片付けの時間です"
-                : `本日の閉館時刻は${timeText(closing)}です`;
-          }
+          note.textContent =
+            remaining <= 10
+              ? "そろそろお片付けの時間です"
+              : "";
         } else {
           main.textContent =
             "終了予定時刻を過ぎています";
@@ -6143,6 +6965,15 @@
       );
 
       document
+        .getElementById("timeMinus10")
+        .addEventListener(
+          "click",
+          () => {
+            adjustStart(-10);
+          }
+        );
+
+      document
         .getElementById("timeMinus")
         .addEventListener(
           "click",
@@ -6161,20 +6992,54 @@
         );
 
       document
+        .getElementById("timePlus10")
+        .addEventListener(
+          "click",
+          () => {
+            adjustStart(10);
+          }
+        );
+
+      document
         .getElementById("timeNowBtn")
         .addEventListener(
           "click",
           setStartToCurrentTime
         );
 
-      document
-        .getElementById("calcBtn")
-        .addEventListener(
-          "click",
-          () => {
-            renderPlaytime(true);
-          }
-        );
+      calcBtn.addEventListener(
+        "click",
+        () => {
+          renderPlaytime(true);
+
+          clearTimeout(
+            calcBtnFeedbackTimer
+          );
+
+          calcBtn.classList.add(
+            "saved"
+          );
+
+          calcBtnLabel.textContent =
+            "設定しました ✓";
+
+          calcBtnSub.textContent =
+            "上の残り時間をご確認ください";
+
+          calcBtnFeedbackTimer =
+            setTimeout(() => {
+              calcBtn.classList.remove(
+                "saved"
+              );
+
+              calcBtnLabel.textContent =
+                "この入場時刻で設定する";
+
+              calcBtnSub.textContent =
+                "何時まで遊べるか表示";
+            }, 1600);
+        }
+      );
 
       function refreshPlaytimeForCurrentDay() {
         const dayChanged =
@@ -6254,13 +7119,18 @@
       applyMode();
       updateStatus();
 
-      setParkingRoute(
-        params.get("parking") ===
-        "highway"
-          ? "highway"
-          : "general",
-        false
-      );
+      const initialParkingRoute =
+        params.get("parking");
+
+      if (
+        initialParkingRoute === "general" ||
+        initialParkingRoute === "highway"
+      ) {
+        setParkingRoute(
+          initialParkingRoute,
+          false
+        );
+      }
 
       showView(
         initialView,
