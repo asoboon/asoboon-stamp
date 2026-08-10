@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#46525a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>ブーンRUN｜ASOBooN</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css?v=20260810-v112worldlive">
+</head>
+<body>
+<div id="app">
+  <div id="rotateGate" class="rotate-gate" aria-live="polite">
+    <div class="rotate-card">
+      <div class="phone-rotate" aria-hidden="true">📱↻</div>
+      <strong>スマホを横向きにしてね！</strong>
+      <span>ブーンRUNは横画面専用です</span>
+    </div>
+  </div>
+
+  <header class="topbar shell-ui">
+    <a class="mini-home" href="../home.html" aria-label="ミニアプリへ戻る">‹ <span>ミニアプリ</span></a>
+    <div class="brand"><b>BOON</b><em>RUN</em><small>ENDLESS DRIVE</small></div>
+    <button id="soundButton" class="icon-button" type="button" aria-label="サウンド切替">🔊</button>
+  </header>
+
+  <main id="menuScreen" class="screen active menu-screen">
+    <section class="hero-card">
+      <div class="hero-copy">
+        <span class="eyebrow">ASOBOON MINI GAME 02</span>
+        <h1>ブーン<span>RUN</span></h1>
+        <p>走れ。避けろ。<br><b>燃料を切らすな。</b></p>
+        <div class="best-line"><small>YOUR BEST</small><strong id="homeBest">0m</strong></div>
+      </div>
+      <div class="hero-car-wrap"><img id="homeCarImage" alt="選択中の車"></div>
+      <div class="speed-lines" aria-hidden="true"></div>
+    </section>
+
+    <section class="menu-actions">
+      <button id="startButton" class="start-button" type="button"><span>START</span><small>タップして走る</small></button>
+      <button id="garageButton" class="sub-button" type="button"><span>🚗</span><b>車を選ぶ</b><small id="selectedCarLabel">スマートワゴン</small></button>
+      <button id="recordsButton" class="sub-button" type="button"><span>🏆</span><b>記録</b><small id="playCountLabel">PLAY 0</small></button>
+      <button id="rankingButton" class="sub-button ranking-menu-button" type="button"><span>🌍</span><b>世界ランキング</b><small>今日・今週・歴代</small></button>
+    <section class="howto-strip" aria-label="選択中の車の操作">
+      <div><span id="howtoIcon1" class="tap-dot">TAP</span><b id="howtoText1">ジャンプ</b></div>
+      <i>•</i>
+      <div><span id="howtoIcon2" class="tap-dot double">TAP×2</span><b id="howtoText2">2段ジャンプ</b></div>
+      <i>•</i>
+      <div><span id="howtoIcon3" class="fuel-mini">⛽</span><b id="howtoText3">燃料を取る</b></div>
+    </section>
+    </section>
+  </main>
+
+  <main id="garageScreen" class="screen panel-screen">
+    <div class="panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>BOON GARAGE</small><h2>車を選ぶ</h2></div></div>
+    <div id="carGrid" class="car-grid"></div>
+  </main>
+
+  <main id="recordsScreen" class="screen panel-screen">
+    <div class="panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>RUN RECORDS</small><h2>記録</h2></div></div>
+    <section class="record-summary">
+      <div><small>BEST</small><strong id="recordBest">0m</strong></div>
+      <div><small>TOTAL</small><strong id="recordTotal">0m</strong></div>
+      <div><small>PLAY</small><strong id="recordPlays">0</strong></div>
+    </section>
+    <div id="recordCars" class="record-cars"></div>
+  </main>
+
+  <main id="rankingScreen" class="screen panel-screen ranking-screen">
+    <div class="panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>WORLD RANKING</small><h2>ブーンRUN 世界ランキング</h2></div></div>
+    <div class="ranking-tabs"><button data-rank-period="today" type="button">今日</button><button data-rank-period="week" type="button">今週</button><button data-rank-period="all" class="active" type="button">歴代</button></div>
+    <div class="ranking-filter"><button id="rankingOverallButton" data-rank-machine="" class="active" type="button">🌍 総合</button><select id="rankingMachineSelect"><option value="">車種を選ぶ</option></select></div>
+    <p id="rankingStatus" class="ranking-status">ランキングを読み込みます。</p>
+    <div id="rankingMe" class="ranking-me" hidden></div>
+    <div id="rankingList" class="ranking-list"></div>
+    <p class="ranking-note">※ SECRET「無敵のロケットアソブーン人間」は通常総合には入りません。専用ランキングで競います。</p>
+  </main>
+
+  <main id="gameScreen" class="screen game-screen">
+    <div id="gameViewport" class="game-viewport">
+      <canvas id="gameCanvas" width="1600" height="720"></canvas>
+      <div class="game-hud shell-ui">
+        <div class="hud-left"><button id="pauseButton" class="pause-button" type="button">Ⅱ</button><div id="abilityBadge" class="ability-badge"></div></div>
+        <div class="distance-box"><small>DISTANCE</small><strong id="distanceLabel">0m</strong><span id="milestoneLabel"></span></div>
+        <div class="fuel-box"><div class="fuel-row"><span>⛽</span><div class="fuel-track"><i id="fuelBar"></i></div><b id="fuelLabel">100</b></div><div id="extraMeter" class="extra-meter"></div></div>
+      </div>
+      <div id="startGuide" class="start-guide"><span>タップでジャンプ</span><small>空中でもう一度タップで2段ジャンプ</small></div>
+      <div id="countdown" class="countdown"></div>
+      <div id="toast" class="game-toast"></div>
+      <div id="flash" class="flash"></div>
+      <button id="debugButton" class="debug-button" type="button" hidden>DBG</button>
+      <div id="debugPanel" class="debug-panel" hidden></div>
+    </div>
+  </main>
+
+  <div id="pauseModal" class="modal" hidden>
+    <div class="modal-card"><small>PAUSE</small><h2>一時停止</h2><button type="button" id="resumeButton" class="primary-modal">つづける</button><button type="button" id="restartButton">最初から</button><button type="button" id="quitButton">ゲームを終了</button></div>
+  </div>
+
+  <div id="rankingNameModal" class="modal" hidden>
+    <div class="modal-card ranking-name-card"><small>WORLD RANKING</small><h2>ランキングネーム</h2><p>2〜12文字。同じ名前でも登録できます。</p><input id="rankingNameInput" maxlength="12" autocomplete="nickname" inputmode="text" aria-label="ランキングネーム" placeholder="なまえ"><button type="button" id="rankingNameSave" class="primary-modal">この名前で登録</button><button type="button" id="rankingNameCancel">キャンセル</button></div>
+  </div>
+
+  <div id="resultModal" class="modal result-modal" hidden>
+    <div class="result-card">
+      <span id="resultReason" class="result-reason">CRASH!</span>
+      <small>RUN RESULT</small>
+      <strong id="resultDistance" class="result-distance">0m</strong>
+      <div id="newBest" class="new-best" hidden>NEW BEST!</div>
+      <div class="result-meta"><div><small>CAR</small><b id="resultCar">-</b></div><div><small>BEST</small><b id="resultBest">0m</b></div><div><small>CAUSE</small><b id="resultCause">-</b></div></div>
+      <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 この記録を世界ランキングへ</button>
+      <p id="resultRankingStatus" class="result-ranking-status" hidden></p>
+      <button type="button" id="retryButton" class="primary-modal">もう一回！</button>
+      <div class="result-sub"><button type="button" id="resultRankingButton">世界ランキング</button><button type="button" id="resultGarageButton">車を変える</button><button type="button" id="resultMenuButton">ゲーム最初へ</button></div>
+    </div>
+  </div>
+</div>
+<script>
+window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
+window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
+</script>
+<script src="./run-ranking.js?v=20260810-v112worldlive"></script>
+<script src="./game.bundle.js?v=20260810-v112worldlive"></script>
+</body>
+</html>

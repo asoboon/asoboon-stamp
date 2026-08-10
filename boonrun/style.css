@@ -1,0 +1,180 @@
+:root{
+  --bg:#07101d;--panel:#0d1a2c;--line:rgba(255,255,255,.14);--text:#f7fbff;--sub:#8fa4bd;
+  --cyan:#4de7ff;--yellow:#ffe24c;--orange:#ff8b2b;--danger:#ff465d;--green:#55e88b;
+  font-family:Inter,"Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body,#app{width:100%;height:100%;margin:0;overflow:hidden;background:radial-gradient(circle at 50% -20%,#1a3559 0,#08111f 44%,#040912 100%);color:var(--text)}body{touch-action:none;user-select:none}.screen{display:none;width:100%;height:100%;padding:calc(70px + env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));overflow:auto}.screen.active{display:block}.shell-ui{position:fixed;z-index:50}.topbar{top:0;left:0;right:0;height:64px;padding:env(safe-area-inset-top) max(18px,env(safe-area-inset-right)) 0 max(18px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(3,8,16,.94),rgba(3,8,16,.2));pointer-events:none}.topbar>*{pointer-events:auto}.mini-home,.icon-button,.back-button,.pause-button{border:1px solid var(--line);background:rgba(8,18,32,.76);color:#fff;border-radius:14px;text-decoration:none;backdrop-filter:blur(12px)}.mini-home{padding:8px 12px;font-size:13px}.brand{display:flex;align-items:baseline;gap:4px;letter-spacing:.05em}.brand b{font-size:19px}.brand em{font-style:italic;color:var(--yellow);font-size:21px}.brand small{margin-left:6px;color:var(--sub);font-size:8px;letter-spacing:.18em}.icon-button{width:42px;height:38px;font-size:18px}.menu-screen{max-width:1180px;margin:auto;display:none!important}.menu-screen.active{display:flex!important;gap:18px;align-items:stretch;overflow:hidden}.hero-card{position:relative;flex:1.5;min-width:0;border:1px solid rgba(77,231,255,.22);border-radius:30px;overflow:hidden;background:linear-gradient(135deg,rgba(8,25,44,.98),rgba(11,31,57,.83));box-shadow:0 30px 80px rgba(0,0,0,.32),inset 0 0 60px rgba(46,205,255,.06)}.hero-card:after{content:"";position:absolute;inset:auto 0 0;height:34%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.38))}.hero-copy{position:absolute;z-index:3;left:34px;top:30px}.eyebrow{font-size:10px;letter-spacing:.25em;color:var(--cyan);font-weight:800}.hero-copy h1{font-size:58px;line-height:.9;margin:10px 0 14px;letter-spacing:-.07em;font-style:italic}.hero-copy h1 span{color:var(--yellow)}.hero-copy p{margin:0;color:#b8c8d9;font-size:16px;line-height:1.5}.hero-copy p b{color:#fff;font-size:20px}.best-line{margin-top:22px;display:flex;flex-direction:column}.best-line small{font-size:9px;letter-spacing:.18em;color:#7590ad}.best-line strong{font-size:35px;font-style:italic}.hero-car-wrap{position:absolute;z-index:2;right:-3%;bottom:1%;width:62%;height:58%;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 22px 12px rgba(0,0,0,.45))}.hero-car-wrap img{width:100%;height:auto;object-fit:contain;transform:skewX(-2deg)}.speed-lines{position:absolute;right:-20%;top:25%;width:90%;height:55%;background:repeating-linear-gradient(170deg,transparent 0 13px,rgba(77,231,255,.08) 14px 16px);transform:skewX(-24deg)}.menu-actions{width:36%;min-width:330px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.start-button,.sub-button{border:0;border-radius:24px;color:#07101d;box-shadow:0 18px 45px rgba(0,0,0,.25);font-weight:900}.start-button{grid-column:1/-1;background:linear-gradient(135deg,#fff45c,#ff9b2e);position:relative;overflow:hidden}.start-button:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.55) 45%,transparent 65%);transform:translateX(-120%);animation:shine 2.6s infinite}.start-button span{display:block;font-size:42px;font-style:italic;letter-spacing:-.04em}.start-button small{font-size:12px;opacity:.6}.sub-button{background:linear-gradient(145deg,#f4fbff,#bfeeff);padding:12px}.sub-button:nth-child(3){background:linear-gradient(145deg,#fff,#d7d3ff)}.sub-button>span{font-size:22px;display:block}.sub-button b{font-size:16px}.sub-button small{display:block;font-size:10px;opacity:.6;margin-top:3px}.howto-strip{position:fixed;left:50%;bottom:max(13px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:12px;background:rgba(3,9,18,.78);border:1px solid var(--line);border-radius:999px;padding:7px 18px;backdrop-filter:blur(12px);font-size:10px}.howto-strip div{display:flex;align-items:center;gap:6px}.howto-strip i{color:#526980}.tap-dot{display:grid;place-items:center;min-width:30px;height:24px;padding:0 6px;border-radius:7px;background:#eafaff;color:#0b2130;font-size:8px;font-weight:900}.tap-dot.double{background:#ffe75d}.fuel-mini{font-size:18px}@keyframes shine{0%,55%{transform:translateX(-120%)}75%,100%{transform:translateX(120%)}}
+.panel-screen{max-width:1100px;margin:auto}.panel-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}.back-button{width:44px;height:44px;font-size:28px}.panel-head small{font-size:9px;letter-spacing:.22em;color:var(--cyan)}.panel-head h2{margin:2px 0 0;font-size:25px}.car-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-bottom:20px}.car-card{position:relative;min-height:220px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(15,31,52,.96),rgba(7,17,31,.96));color:#fff;padding:12px;text-align:left;overflow:hidden}.car-card.selected{border-color:var(--yellow);box-shadow:0 0 0 2px rgba(255,226,76,.18),0 14px 34px rgba(0,0,0,.35)}.car-card.locked{filter:saturate(.1);opacity:.52}.car-card img{display:block;width:100%;height:92px;object-fit:contain;filter:drop-shadow(0 8px 6px rgba(0,0,0,.5))}.car-card .rarity{position:absolute;top:10px;left:10px;padding:4px 8px;border-radius:8px;background:#101d2c;font-size:9px;color:var(--cyan);font-weight:900}.car-card h3{font-size:14px;margin:7px 0 3px}.car-card p{font-size:10px;line-height:1.45;color:#91a7bd;margin:0}.car-card .best{margin-top:7px;color:#fff;font-size:11px}.record-summary{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}.record-summary>div,.record-row{border:1px solid var(--line);border-radius:18px;background:rgba(11,25,43,.85)}.record-summary>div{padding:14px}.record-summary small,.result-meta small{font-size:8px;letter-spacing:.15em;color:#8298af}.record-summary strong{display:block;font-size:25px}.record-cars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-bottom:25px}.record-row{display:grid;grid-template-columns:110px 1fr auto;align-items:center;padding:8px 12px}.record-row img{width:100px;height:54px;object-fit:contain}.record-row h3{font-size:12px;margin:0}.record-row p{font-size:9px;color:#8298af;margin:3px 0}.record-row strong{font-size:20px}
+.game-screen{padding:0;overflow:hidden;background:#000}.game-viewport{position:absolute;inset:0;display:grid;place-items:center;background:#000}.game-viewport canvas{width:100%;height:100%;object-fit:contain;display:block;background:#10213b}.game-hud{position:absolute;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));height:76px;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;pointer-events:none}.game-hud>*{pointer-events:auto}.hud-left{display:flex;align-items:flex-start;gap:8px}.pause-button{width:44px;height:44px;font-size:18px}.ability-badge{min-height:42px;display:none;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(5,12,22,.7);font-size:9px;color:#9fb4c8}.ability-badge.active{display:block}.distance-box{min-width:180px;text-align:center;padding:5px 18px 8px;border-radius:0 0 20px 20px;background:linear-gradient(180deg,rgba(3,8,15,.92),rgba(3,8,15,.55));border:1px solid rgba(255,255,255,.1);border-top:0}.distance-box small{display:block;font-size:8px;letter-spacing:.22em;color:#8ba2b9}.distance-box strong{font-size:30px;line-height:1}.distance-box span{display:block;height:11px;font-size:8px;color:var(--yellow);font-weight:900}.fuel-box{justify-self:end;width:250px;padding:9px 11px;border:1px solid var(--line);border-radius:15px;background:rgba(4,10,18,.72);backdrop-filter:blur(10px)}.fuel-row{display:grid;grid-template-columns:22px 1fr 30px;gap:6px;align-items:center}.fuel-track{height:13px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px;background:#050b13}.fuel-track i{display:block;height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#49e981,#eaff59);transition:width .08s linear}.fuel-row b{font-size:11px;text-align:right}.fuel-box.low .fuel-track i{background:linear-gradient(90deg,#ff9b31,#ffe24c)}.fuel-box.critical .fuel-track i{background:linear-gradient(90deg,#ff314f,#ff8b2b);animation:pulse .5s infinite alternate}.extra-meter{margin-top:5px;font-size:8px;color:#8fdfff;min-height:10px;text-align:right}@keyframes pulse{to{filter:brightness(1.7)}}.start-guide{position:absolute;left:50%;bottom:16%;transform:translateX(-50%);z-index:20;border:1px solid rgba(255,255,255,.16);background:rgba(4,11,20,.72);backdrop-filter:blur(12px);padding:9px 18px;border-radius:999px;text-align:center;pointer-events:none;transition:.35s}.start-guide.hidden{opacity:0;transform:translate(-50%,15px)}.start-guide span{font-weight:900;font-size:13px}.start-guide small{display:block;font-size:9px;color:#9cb1c5;margin-top:2px}.countdown{position:absolute;inset:0;display:grid;place-items:center;z-index:19;font-size:110px;font-style:italic;font-weight:1000;text-shadow:0 12px 40px #000;pointer-events:none}.game-toast{position:absolute;left:50%;top:24%;transform:translate(-50%,-12px);z-index:30;opacity:0;padding:8px 15px;border-radius:999px;background:rgba(5,12,22,.76);border:1px solid rgba(255,255,255,.16);font-weight:1000;font-style:italic;letter-spacing:.04em;pointer-events:none}.game-toast.show{animation:toast .7s ease}@keyframes toast{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}20%,70%{opacity:1;transform:translate(-50%,0) scale(1.05)}100%{opacity:0;transform:translate(-50%,-12px) scale(1)}}.flash{position:absolute;inset:0;z-index:29;pointer-events:none;opacity:0;background:#fff}.flash.hit{animation:flash .3s ease}.flash.fuel{background:#baff5e;animation:flash .18s ease}.flash.phantom{background:#6ee7ff;animation:flash .35s ease}@keyframes flash{0%{opacity:.75}100%{opacity:0}}.modal{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:rgba(1,5,10,.72);backdrop-filter:blur(10px);padding:20px}.modal[hidden]{display:none}.modal-card,.result-card{width:min(430px,90vw);border:1px solid rgba(255,255,255,.18);border-radius:28px;background:linear-gradient(150deg,#142841,#081321);box-shadow:0 30px 90px #000;padding:24px;text-align:center}.modal-card small,.result-card>small{font-size:9px;letter-spacing:.25em;color:var(--cyan)}.modal-card h2{margin:5px 0 16px}.modal-card button,.result-card button{width:100%;height:48px;margin-top:8px;border:1px solid var(--line);border-radius:14px;background:#12253d;color:#fff;font-weight:900}.modal-card .primary-modal,.result-card .primary-modal{height:58px;border:0;background:linear-gradient(135deg,#fff35a,#ff9f2e);color:#09111d;font-size:17px}.result-card{position:relative}.result-reason{display:inline-block;margin-bottom:8px;padding:6px 12px;border-radius:999px;background:#ff425b;color:#fff;font-weight:1000;font-size:12px}.result-distance{display:block;font-size:58px;font-style:italic;line-height:1;margin:7px 0}.new-best{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--yellow);color:#172030;font-weight:1000;font-size:11px;animation:newbest .65s infinite alternate}@keyframes newbest{to{transform:scale(1.08);filter:brightness(1.2)}}.result-meta{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:7px;margin:16px 0}.result-meta>div{padding:9px 5px;border-radius:12px;background:rgba(255,255,255,.06)}.result-meta b{display:block;font-size:11px;margin-top:2px}.result-sub{display:grid;grid-template-columns:1fr 1fr;gap:8px}.result-sub button{font-size:11px}.rotate-gate{display:none;position:fixed;z-index:1000;inset:0;background:radial-gradient(circle at 50% 30%,#173758,#06101c 70%);place-items:center;text-align:center;padding:25px}.rotate-card{display:flex;flex-direction:column;align-items:center;gap:6px}.phone-rotate{font-size:62px;animation:rotatephone 1.7s infinite ease-in-out}.rotate-card strong{font-size:20px}.rotate-card span{font-size:11px;color:#9eb3c7}@keyframes rotatephone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}.debug-button{position:absolute;z-index:90;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));border:1px solid #ffdc52;background:#111;color:#ffdc52;border-radius:8px;padding:7px}.debug-panel{position:absolute;z-index:89;right:max(12px,env(safe-area-inset-right));bottom:50px;width:250px;max-height:55%;overflow:auto;background:rgba(0,0,0,.82);border:1px solid #ffdc52;border-radius:10px;padding:8px;font:10px/1.4 ui-monospace,monospace;color:#fff}.debug-panel button{margin:2px;padding:5px;background:#222;color:#fff;border:1px solid #555;border-radius:5px}
+@media (orientation:portrait) and (max-width:900px){.rotate-gate{display:grid}.topbar,.screen,.modal{visibility:hidden}}
+@media (max-height:520px){.topbar{height:52px}.screen{padding-top:57px}.hero-copy{top:20px;left:26px}.hero-copy h1{font-size:45px}.hero-copy p{font-size:13px}.hero-copy p b{font-size:16px}.best-line{margin-top:12px}.best-line strong{font-size:28px}.howto-strip{bottom:7px}.car-card{min-height:185px}.car-card img{height:72px}.panel-head{margin-bottom:8px}.game-hud{height:60px}.fuel-box{width:220px}}
+@media (max-width:850px) and (orientation:landscape){.menu-screen{gap:10px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.hero-card{border-radius:22px}.menu-actions{min-width:285px}.hero-copy h1{font-size:40px}.start-button span{font-size:33px}.car-grid{grid-template-columns:repeat(4,1fr);gap:8px}.car-card{padding:8px}.car-card p{display:none}.record-cars{grid-template-columns:1fr 1fr}}
+
+body.in-game .topbar{display:none}
+
+
+/* v1.0.5 WORLD RANKING */
+.ranking-menu-button{grid-column:1/-1;background:linear-gradient(145deg,#dffcff,#9cecff)!important}
+.ranking-screen{max-width:900px}.ranking-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.ranking-tabs button,.ranking-filter button{min-height:44px;border:1px solid var(--line);border-radius:13px;background:#10233a;color:#b8c9da;font-weight:900}.ranking-tabs button.active,.ranking-filter button.active{background:linear-gradient(135deg,#fff45c,#ffb52f);color:#101725;border-color:transparent}.ranking-filter{display:grid;grid-template-columns:130px 1fr;gap:8px}.ranking-filter select{min-height:44px;border:1px solid var(--line);border-radius:13px;background:#0d1e33;color:#fff;padding:0 12px;font-weight:900}.ranking-status{min-height:22px;color:#91a7bd;font-size:11px;font-weight:800}.ranking-me{padding:10px 13px;margin-bottom:10px;border:1px solid #ffe25a;border-radius:14px;background:rgba(255,226,90,.1);font-weight:900;text-align:center}.ranking-list{display:grid;gap:7px;padding-bottom:30px}.ranking-row{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;min-height:58px;padding:8px 12px;border:1px solid var(--line);border-radius:15px;background:rgba(10,24,41,.86)}.ranking-row .rank{font-size:17px;font-weight:1000;text-align:center}.ranking-row .name{min-width:0;font-size:13px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ranking-row .name small{display:block;margin-top:2px;color:#7891a8;font-size:9px}.ranking-row .distance{font-size:20px;font-weight:1000;color:#80ebff}.ranking-row.top1{border-color:#ffe25a;background:linear-gradient(135deg,rgba(255,226,90,.16),rgba(13,29,49,.92))}.ranking-row.me{box-shadow:0 0 0 2px rgba(100,230,255,.25)}.ranking-note{padding:9px 11px;border:1px solid rgba(255,226,90,.25);border-radius:12px;color:#ffeaa0;font-size:10px;line-height:1.45}.ranking-submit-button{height:52px!important;border-color:#66eaff!important;background:linear-gradient(135deg,#0aa8c8,#625cff)!important;color:#fff!important}.result-ranking-status{margin:7px 0 0;padding:7px 9px;border-radius:10px;background:rgba(74,200,255,.12);font-size:10px;color:#bdefff}.result-ranking-status.error{background:rgba(255,76,101,.13);color:#ffd1d9}.ranking-name-card p{color:#9fb2c5;font-size:11px}.ranking-name-card input{width:100%;height:52px;margin:6px 0 4px;border:1px solid rgba(125,235,255,.45);border-radius:14px;background:#071522;color:#fff;padding:0 14px;font-size:18px;font-weight:900;text-align:center;outline:none}.result-sub{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:850px) and (orientation:landscape){.ranking-screen{padding-top:66px}.ranking-row{min-height:48px}.ranking-row .distance{font-size:17px}.ranking-name-card{padding:16px}.ranking-name-card input{height:46px}}
+
+
+/* v1.0.6 EYE COMFORT COURSE -------------------------------------------------
+   Visual-only pass: gameplay physics / hitboxes / spawn logic are unchanged. */
+.game-viewport{background:#46525a}
+.game-viewport canvas{background:#a9c3cf;filter:saturate(.88) contrast(.94)}
+.game-viewport:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:12;box-shadow:inset 0 0 110px rgba(22,31,36,.13),inset 0 -70px 90px rgba(22,29,34,.08)}
+.game-hud{z-index:22}
+.distance-box{background:linear-gradient(180deg,rgba(29,40,47,.80),rgba(29,40,47,.58));border-color:rgba(235,242,239,.12);box-shadow:none}
+.distance-box small{color:#b4c0c2}.distance-box strong{color:#f5f4ed}.distance-box span{color:#d8c174}
+.pause-button,.ability-badge,.fuel-box,.start-guide,.game-toast{background:rgba(34,45,52,.72);border-color:rgba(236,242,239,.12);backdrop-filter:blur(7px)}
+.ability-badge{color:#c2cdcf}.extra-meter{color:#b7ced1}.fuel-row b{color:#edf0eb}
+.fuel-track{background:#2b353b;border-color:rgba(255,255,255,.10)}
+.fuel-track i{background:linear-gradient(90deg,#6fae7b,#b6c978);transition:width .12s linear}
+.fuel-box.low .fuel-track i{background:linear-gradient(90deg,#c99b62,#d5c675)}
+.fuel-box.critical .fuel-track i{background:linear-gradient(90deg,#c87569,#c99b62);animation:none}
+.countdown{color:#f3efe5;text-shadow:0 7px 24px rgba(18,24,28,.42)}
+.game-toast{color:#f1f0e9;box-shadow:none}
+.start-guide span{color:#f1f0e9}.start-guide small{color:#b9c4c5}
+
+/* Full-screen flashes were the biggest eye-strain source. Keep feedback, lose glare. */
+.flash{background:transparent;opacity:0}
+.flash.hit{background:rgba(185,83,77,.12);animation:comfortFlash .26s ease}
+.flash.fuel{background:rgba(117,166,105,.08);animation:comfortFlash .18s ease}
+.flash.phantom{background:rgba(111,136,177,.10);animation:comfortFlash .28s ease}
+@keyframes comfortFlash{0%{opacity:1}100%{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .fuel-box.critical .fuel-track i,.new-best,.start-button:before,.phone-rotate{animation:none!important}
+  .game-toast.show{animation:none!important;opacity:1}
+  .flash.hit,.flash.fuel,.flash.phantom{animation:none!important;opacity:0!important}
+}
+
+
+/* v1.0.7 DOPAMINE CONTRAST --------------------------------------------------
+   Calm baseline + rare high-saturation reward spikes. Gameplay unchanged. */
+.game-viewport canvas{filter:saturate(.91) contrast(.96)}
+.distance-box span:not(:empty){color:#65edff;text-shadow:0 0 8px rgba(55,229,255,.45),0 0 18px rgba(55,229,255,.18);animation:milestoneNeon .75s ease-out}
+@keyframes milestoneNeon{0%{filter:brightness(2.2);transform:scale(1.22)}45%{filter:brightness(1.4)}100%{filter:none;transform:none}}
+/* Normal fuel stays calm; only urgent states become saturated. */
+.fuel-box.critical .fuel-track i{background:linear-gradient(90deg,#ff334f,#ff9b21);box-shadow:0 0 10px rgba(255,67,78,.42)}
+/* Ability text becomes a small neon signal instead of making the whole HUD loud. */
+.extra-meter{color:#91c8cb;text-shadow:none}
+.ability-badge.active{box-shadow:inset 0 0 0 1px rgba(75,235,255,.06)}
+/* Feedback flashes remain restrained; reward intensity is drawn locally on canvas. */
+.flash.phantom{background:rgba(113,72,255,.13)}
+.flash.fuel{background:rgba(115,255,91,.065)}
+/* Ranking/new-record screens are allowed a stronger payoff because gameplay has stopped. */
+.new-best{background:linear-gradient(100deg,#ffe83d,#ff68cb,#55ebff);box-shadow:0 0 22px rgba(255,86,202,.34)}
+@media (prefers-reduced-motion:reduce){.distance-box span:not(:empty){animation:none!important}}
+
+/* v1.0.8 DESIGN / UX AUDIT ---------------------------------------------------
+   Production UI audit: touch clarity, small-landscape readability, modal fit,
+   dynamic car guidance, obstacle legibility, and local-neon contrast. */
+
+/* Do not desaturate the entire canvas: the course palette is already muted.
+   Keeping the canvas unfiltered lets rare neon/reward colours stay genuinely vivid. */
+.game-viewport canvas{filter:none}
+
+/* Touch targets and focus states */
+.icon-button{width:44px;height:44px}
+.mini-home{min-height:44px;display:flex;align-items:center}
+button,select,.mini-home{touch-action:manipulation}
+button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-visible{outline:3px solid rgba(77,231,255,.72);outline-offset:2px}
+
+/* Scrollable panels must remain scrollable even though gameplay disables body panning. */
+.panel-screen,.modal{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.ranking-name-card input{user-select:text;-webkit-user-select:text;touch-action:manipulation}
+
+/* Garage: the car difference is core gameplay information, never hide it on phones. */
+.car-card{transition:border-color .16s ease,transform .16s ease,background .16s ease}
+.car-card:active{transform:scale(.985)}
+.car-card.selected{background:linear-gradient(145deg,rgba(36,45,44,.98),rgba(9,23,34,.98))}
+.selected-mark{position:absolute;top:9px;right:9px;padding:4px 7px;border-radius:999px;background:#ffe24c;color:#15202b;font-size:8px;font-weight:1000;letter-spacing:.02em}
+.car-card.locked{filter:none;opacity:.58;border-style:dashed}
+.car-card.locked p{color:#d0b98b}
+.car-card p{font-size:10.5px;line-height:1.45}
+
+/* HUD info is information, not a button. Softer surfaces keep tap targets distinct. */
+.ability-badge{border-color:transparent!important;border-left:2px solid rgba(109,222,232,.36)!important;border-radius:6px!important;background:rgba(28,40,47,.45)!important;backdrop-filter:none!important}
+.start-guide{border-style:dashed}
+
+/* Make the changing per-car operation guide readable without looking like 3 buttons. */
+.howto-strip{max-width:calc(100vw - 30px);white-space:nowrap}
+.howto-strip>div{min-width:0}
+.howto-strip b{overflow:hidden;text-overflow:ellipsis}
+.howto-strip i{font-style:normal;color:#526980}
+
+/* Ranking controls: total is a real button; selector becomes the alternate filter. */
+.ranking-filter button,.ranking-filter select{cursor:pointer}
+.ranking-filter button:not(.active){background:#0a1726;color:#8ea3b8}
+.ranking-filter select:focus{border-color:#54e7ff}
+
+/* Long ranking lists and results must never trap content below the landscape viewport. */
+.modal{overflow:auto;align-items:center}
+.modal-card,.result-card{max-height:calc(100dvh - 24px);overflow:auto;scrollbar-width:thin}
+.result-card{overscroll-behavior:contain}
+
+/* The three secondary result actions are clearly secondary and compact. */
+.result-sub button{background:rgba(13,31,50,.72);border-color:rgba(255,255,255,.11)}
+.ranking-submit-button{box-shadow:0 0 0 1px rgba(73,231,255,.12),0 8px 24px rgba(25,86,126,.18)}
+
+/* Small landscape phones: two-column garage so the peak-performance descriptions remain readable. */
+@media (max-width:900px) and (orientation:landscape){
+  .car-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .car-card{min-height:150px;display:grid;grid-template-columns:118px 1fr;grid-template-rows:auto auto 1fr auto;column-gap:10px;align-items:start;padding:9px 10px}
+  .car-card img{grid-column:1;grid-row:1/5;width:112px;height:100%;max-height:112px;align-self:center}
+  .car-card .rarity{position:static;grid-column:2;grid-row:1;justify-self:start;margin:0}
+  .car-card h3{grid-column:2;grid-row:2;margin:4px 0 2px;font-size:13px}
+  .car-card p{display:block!important;grid-column:2;grid-row:3;font-size:9.5px;line-height:1.35;color:#a6b8c8;max-height:3.95em;overflow:hidden}
+  .car-card .best{grid-column:2;grid-row:4;margin:3px 0 0;font-size:10px}
+  .selected-mark{top:7px;right:7px}
+  .ranking-note{font-size:9px}
+}
+
+/* Height, not width, is the limiting axis on real landscape phones. */
+@media (max-height:520px){
+  .modal{padding:8px}
+  .result-card{width:min(620px,96vw);padding:12px 14px;border-radius:20px}
+  .result-reason{margin-bottom:2px;padding:4px 10px;font-size:10px}
+  .result-distance{font-size:42px;margin:2px 0}
+  .new-best{font-size:9px;padding:3px 9px}
+  .result-meta{margin:7px 0;gap:5px}
+  .result-meta>div{padding:6px 4px}
+  .result-card button{height:40px;margin-top:5px}
+  .result-card .primary-modal{height:46px;font-size:15px}
+  .ranking-submit-button{height:44px!important}
+  .result-sub{gap:5px}
+  .result-sub button{font-size:10px}
+  .result-ranking-status{margin-top:4px;padding:5px 7px}
+  .howto-strip{font-size:9px;padding:5px 12px;gap:8px}
+  .tap-dot{height:22px}
+}
+
+
+@media (prefers-reduced-motion:reduce){
+  .car-card{transition:none!important}
+}
+
+/* v1.0.8 menu audit: operation cue belongs to the action area, not floating over content. */
+.menu-actions .howto-strip{position:static;grid-column:1/-1;width:100%;max-width:none;transform:none;z-index:auto;justify-content:center;border-radius:14px;background:rgba(7,17,29,.62);backdrop-filter:none;padding:6px 10px;gap:9px;color:#aebdca}
+.menu-actions .howto-strip b{font-size:9px;color:#dfe8ee}
+.menu-actions .howto-strip .tap-dot{height:21px;min-width:28px;font-size:7.5px}
+.menu-actions .howto-strip .fuel-mini{font-size:15px}
+@media (max-height:520px){
+  .menu-actions{grid-template-rows:1fr 1fr .95fr auto;gap:8px}
+  .menu-actions .howto-strip{padding:4px 7px;gap:6px;font-size:8px}
+  .menu-actions .howto-strip b{font-size:8px}
+}
+
+/* v1.0.8 HUD legibility audit */
+.ability-badge{font-size:10.5px!important;font-weight:900;line-height:1.2;padding:8px 10px}
+.fuel-row>span{font-size:16px;line-height:1;text-align:center}
+.fuel-row b{font-size:12px}
+.extra-meter{font-size:9.5px;line-height:1.25;letter-spacing:.01em}
+@media (max-height:520px){
+  .ability-badge{font-size:9.5px!important;min-height:40px;padding:7px 8px}
+  .extra-meter{font-size:8.7px}
+  .fuel-row>span{font-size:14px}
+}
+@media (max-height:520px){.result-card button{height:44px}.result-sub button{min-height:44px}}
