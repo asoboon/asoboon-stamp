@@ -1,10 +1,10 @@
-const BUILD = "2026-08-11-combo-precision-v262";
+const BUILD = "2026-08-11-cinematic-awakening-v1";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=262-combo-precision",
+  "./ranking-client.js?v=270-flight-fx-overhaul",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
