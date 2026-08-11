@@ -1,10 +1,10 @@
-const BUILD = "2026-08-10-princess-rhythm-v2";
+const BUILD = "2026-08-11-highway-valkyrie-v2";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=262-princess-rhythm-2",
+  "./ranking-client.js?v=240-duplicate-name-fix-18",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -71,6 +71,11 @@ const PRECACHE = [
   "./assets/cars/suv-rear-wheel.png",
   "./assets/cars/wagon-front-wheel.png",
   "./assets/cars/wagon-rear-wheel.png",
+  "./assets/cars/valkyrie-body.png",
+  "./assets/cars/valkyrie-front.png",
+  "./assets/cars/valkyrie-rear.png",
+  "./assets/cars/valkyrie-shadow.png",
+  "./assets/cars/valkyrie-boost.png",
 ];
 self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting();});
 self.addEventListener("install",event=>{event.waitUntil((async()=>{const staticCache=await caches.open(STATIC_CACHE),imageCache=await caches.open(IMAGE_CACHE);await Promise.allSettled(PRECACHE.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Precache failed: ${path} (${response.status})`);const target=path.includes("/assets/cars/")||path.includes("/icons/")?imageCache:staticCache;await target.put(path,response);}));})());});
