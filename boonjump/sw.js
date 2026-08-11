@@ -1,4 +1,4 @@
-const BUILD = "2026-08-11-stability-princess-wheel-v9";
+const BUILD = "2026-08-11-result-ui-cleanup-v261";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
