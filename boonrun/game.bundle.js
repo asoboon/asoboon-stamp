@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.22-ranking-focus';
-const CLIENT_VERSION = '1.0.22';
+const BUILD = '2026-08-11-playable-v1.0.23-ranking-scroll';
+const CLIENT_VERSION = '1.0.23';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -1293,9 +1293,9 @@ function syncRankingFilterUI(){
   if(els.rankingSubtitle)els.rankingSubtitle.textContent=rankingMachine?machine:'全マシン共通の世界記録';
   if(els.rankingMeTitle)els.rankingMeTitle.textContent=rankingMachine?`${machine} BEST`:'あなたの総合BEST';
   if(els.rankingBoardTitle)els.rankingBoardTitle.textContent=rankingMachine?machine:'総合ランキング';
-  if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP10`:`${rankingPeriodLabel()}｜全マシン共通・使用マシンも表示`;
+  if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP100`:`${rankingPeriodLabel()}｜全マシン共通・使用マシンも表示`;
 }
-async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,10);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriodLabel()} ｜ ${d.total_players||0}人`;if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP10`:`${rankingPeriodLabel()}｜${d.total_players||0}人参加・使用マシンも表示`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
+async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,100);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriodLabel()} ｜ ${d.total_players||0}人`;if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP100`:`${rankingPeriodLabel()}｜${d.total_players||0}人参加・使用マシンも表示`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
 async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
 function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
