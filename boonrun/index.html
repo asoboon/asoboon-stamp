@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>ブーンRUN｜ASOBooN</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=20260811-v121wheelsyncfix">
+  <link rel="stylesheet" href="./style.css?v=20260811-v122rankingfocus">
 </head>
 <body>
 <div id="app">
@@ -70,19 +70,24 @@
 
   <main id="rankingScreen" class="screen panel-screen ranking-screen">
     <div class="ranking-topline">
-      <div class="panel-head ranking-panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>WORLD RANKING</small><h2>ブーンRUN 世界ランキング</h2></div></div>
-      <div class="ranking-tabs"><button data-rank-period="today" type="button">今日</button><button data-rank-period="week" type="button">今週</button><button data-rank-period="all" class="active" type="button">歴代</button></div>
+      <div class="panel-head ranking-panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>WORLD RANKING</small><h2 id="rankingTitle">総合ランキング</h2><span id="rankingSubtitle" class="ranking-subtitle">全マシン共通の世界記録</span></div></div>
+      <div class="ranking-tabs" aria-label="ランキング期間"><button data-rank-period="today" type="button">今日</button><button data-rank-period="week" type="button">今週</button><button data-rank-period="all" class="active" type="button">歴代</button></div>
     </div>
     <div class="ranking-landscape">
       <aside class="ranking-sidebar">
-        <div class="ranking-side-title"><small>YOUR POSITION</small><strong>あなたの記録</strong></div>
+        <div class="ranking-side-title"><small>YOUR BEST</small><strong id="rankingMeTitle">あなたの総合BEST</strong></div>
         <div id="rankingMe" class="ranking-me" hidden></div>
-        <div class="ranking-filter"><button id="rankingOverallButton" data-rank-machine="" class="active" type="button">🌍 総合</button><select id="rankingMachineSelect"><option value="">車種を選ぶ</option></select></div>
+        <button id="rankingMachineToggle" class="ranking-machine-toggle" type="button" aria-expanded="false"><span>🚗</span><b>マシン別ランキング</b><small>やり込み・研究はこちら</small><em>›</em></button>
+        <div id="rankingMachinePanel" class="ranking-machine-panel" hidden>
+          <label for="rankingMachineSelect">マシンを選択</label>
+          <select id="rankingMachineSelect"><option value="">マシンを選ぶ</option></select>
+          <button id="rankingOverallButton" data-rank-machine="" type="button">← 総合ランキングへ戻る</button>
+        </div>
         <p id="rankingStatus" class="ranking-status">ランキングを読み込みます。</p>
-        <p class="ranking-note">SECRET「無敵のロケットアソブーン人間」は通常総合には入りません。専用ランキングで競います。</p>
+        <p class="ranking-note">🚀 SECRETは通常総合の対象外。マシン別ランキングで競います。</p>
       </aside>
       <section class="ranking-board-shell" aria-label="世界ランキング一覧">
-        <div class="ranking-board-head"><div><small>WORLD TOP</small><strong>世界のランナー</strong></div><span>1〜10位を横画面で一覧</span></div>
+        <div class="ranking-board-head"><div><small>WORLD TOP 10</small><strong id="rankingBoardTitle">総合ランキング</strong></div><span id="rankingScopeCaption">全マシン共通｜使用マシンも表示</span></div>
         <div id="rankingList" class="ranking-list"></div>
       </section>
     </div>
@@ -137,7 +142,7 @@
 window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
 window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
 </script>
-<script src="./run-ranking.js?v=20260811-v121wheelsyncfix"></script>
-<script src="./game.bundle.js?v=20260811-v121wheelsyncfix"></script>
+<script src="./run-ranking.js?v=20260811-v122rankingfocus"></script>
+<script src="./game.bundle.js?v=20260811-v122rankingfocus"></script>
 </body>
 </html>

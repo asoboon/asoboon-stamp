@@ -1,4 +1,4 @@
-const CACHE='boonrun-20260811-v121wheelsyncfix';
+const CACHE='boonrun-20260811-v122rankingfocus';
 const CORE=['./','./index.html','./style.css','./game.bundle.js','./run-ranking.js','./manifest.webmanifest'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(CORE.map(u=>c.add(u)))));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('boonrun-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

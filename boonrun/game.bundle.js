@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.21-wheel-sync-fix';
-const CLIENT_VERSION = '1.0.21';
+const BUILD = '2026-08-11-playable-v1.0.22-ranking-focus';
+const CLIENT_VERSION = '1.0.22';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -432,7 +432,7 @@ const els={
   pauseModal:$('pauseModal'),resumeButton:$('resumeButton'),restartButton:$('restartButton'),quitButton:$('quitButton'),
   resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
-  rankingMachineSelect:$('rankingMachineSelect'),rankingOverallButton:$('rankingOverallButton'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
+  rankingMachineSelect:$('rankingMachineSelect'),rankingOverallButton:$('rankingOverallButton'),rankingMachineToggle:$('rankingMachineToggle'),rankingMachinePanel:$('rankingMachinePanel'),rankingTitle:$('rankingTitle'),rankingSubtitle:$('rankingSubtitle'),rankingMeTitle:$('rankingMeTitle'),rankingBoardTitle:$('rankingBoardTitle'),rankingScopeCaption:$('rankingScopeCaption'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
   specialButton:$('specialButton'),specialBanner:$('specialBanner'),specialBannerName:$('specialBannerName'),specialBannerSub:$('specialBannerSub'),
   highwayBoard:$('highwayBoard'),highwayBoardTag:$('highwayBoardTag'),highwayBoardMessage:$('highwayBoardMessage'),
   debugButton:$('debugButton'),debugPanel:$('debugPanel')
@@ -1270,26 +1270,46 @@ function onOrientation(){if(run&&run.phase==='running'&&innerHeight>innerWidth)p
 function renderDebugPanel(){if(!DEBUG||!run)return;els.debugPanel.innerHTML=`DIST ${run.distance.toFixed(1)}<br>SPEED ${(run.speedMult*100).toFixed(0)}% / ${run.scrollSpeed.toFixed(0)}px/s<br>FUEL ${run.fuel.toFixed(1)} / ${run.fuelMax}<br>SAFE debt ${run.safeDebt.toFixed(1)}<br>OPT debt ${run.optionalDebt.toFixed(1)}<br>JUMPS ${run.jumpsUsed}/${run.cp.maxJumps}${run.car.id==='princess'?'(+STAR)':''}<br>ARMOR ${run.armor||0} PHANTOM ${run.phantomReady?'READY':run.phantomClose}<br>SPECIAL ${run.specialUsed?(specialActive()?specialRemaining().toFixed(1)+'s':'USED'):'READY'}<br>PAT ${run.lastPattern?.id||'-'}<br>OBJ ${run.objects.length}<br><button data-dbg="fuel">FUEL+40</button><button data-dbg="jump">+5km</button><button data-dbg="inv">INV ${run.debug.invincible?'ON':'OFF'}</button>`;}
 
 
-let rankingPeriod='all',rankingMachine='',pendingRankSubmit=false;
+let rankingPeriod='all',rankingMachine='',rankingMachinePanelOpen=false,pendingRankSubmit=false;
+const RANK_CAR_ICON={boon:'🛻',wagon:'🚙',buggy:'🏜️',bike:'🏍️',sport:'🏎️',ssr:'🌌',princess:'👑',secret:'🚀'};
 function rankCarName(id){return CAR_BY_ID[id]?.name||id||'-';}
+function rankCarIcon(id){return RANK_CAR_ICON[id]||'🚗';}
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-function populateRankingMachines(){if(!els.rankingMachineSelect)return;els.rankingMachineSelect.innerHTML='<option value="">車種を選ぶ</option>'+CARS.map(c=>`<option value="${c.id}">${c.secret?'🚀 SECRET｜':''}${c.name}</option>`).join('');}
-function renderRankingRows(data){const rows=(data?.rows||[]).slice(0,10);const myId=RUN_RANKING?.playerId?.()||'';els.rankingList.innerHTML=rows.length?rows.map(r=>`<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name">${escapeHtml(r.display_name)}<small>${escapeHtml(r.machine_name||rankCarName(r.machine_id))}</small></div><div class="distance">${fmt(r.distance)}</div></div>`).join(''):'<div class="ranking-row"><div class="name">まだ記録がありません。</div></div>';if(data?.me){els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small>${escapeHtml(data.me.machine_name||rankCarName(data.me.machine_id)||'あなたのベスト')}</small>`;}else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録するとここに順位が表示されます</small>';}}
-function syncRankingFilterUI(){if(els.rankingOverallButton)els.rankingOverallButton.classList.toggle('active',!rankingMachine);if(els.rankingMachineSelect)els.rankingMachineSelect.value=rankingMachine;}
-async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,10);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
+function populateRankingMachines(){if(!els.rankingMachineSelect)return;els.rankingMachineSelect.innerHTML='<option value="">マシンを選ぶ</option>'+CARS.map(c=>`<option value="${c.id}">${rankCarIcon(c.id)} ${c.secret?'SECRET｜':''}${c.name}</option>`).join('');}
+function rankingPeriodLabel(){return rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代';}
+function renderRankingRows(data){
+  const rows=(data?.rows||[]).slice(0,10),myId=RUN_RANKING?.playerId?.()||'';
+  els.rankingList.innerHTML=rows.length?rows.map(r=>{const machineId=r.machine_id||'',machineName=r.machine_name||rankCarName(machineId);return `<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name"><strong>${escapeHtml(r.display_name)}</strong><small class="rank-machine"><span>${rankCarIcon(machineId)}</span>${escapeHtml(machineName)}</small></div><div class="distance">${fmt(r.distance)}</div></div>`;}).join(''):'<div class="ranking-empty"><b>まだ記録がありません</b><small>最初の世界記録を狙おう！</small></div>';
+  if(data?.me){const mid=data.me.machine_id||'',mn=data.me.machine_name||rankCarName(mid);els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small><span>${rankCarIcon(mid)}</span>${escapeHtml(mn||'あなたのベスト')}</small>`;}
+  else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録すると世界順位が表示されます</small>';}
+}
+function syncRankingFilterUI(){
+  if(els.rankingMachineSelect)els.rankingMachineSelect.value=rankingMachine;
+  if(rankingMachine)rankingMachinePanelOpen=true;
+  if(els.rankingMachinePanel)els.rankingMachinePanel.hidden=!rankingMachinePanelOpen;
+  if(els.rankingMachineToggle){els.rankingMachineToggle.setAttribute('aria-expanded',String(rankingMachinePanelOpen));els.rankingMachineToggle.classList.toggle('open',rankingMachinePanelOpen);}
+  const machine=rankingMachine?rankCarName(rankingMachine):'';
+  if(els.rankingTitle)els.rankingTitle.textContent=rankingMachine?'マシン別ランキング':'総合ランキング';
+  if(els.rankingSubtitle)els.rankingSubtitle.textContent=rankingMachine?machine:'全マシン共通の世界記録';
+  if(els.rankingMeTitle)els.rankingMeTitle.textContent=rankingMachine?`${machine} BEST`:'あなたの総合BEST';
+  if(els.rankingBoardTitle)els.rankingBoardTitle.textContent=rankingMachine?machine:'総合ランキング';
+  if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP10`:`${rankingPeriodLabel()}｜全マシン共通・使用マシンも表示`;
+}
+async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,10);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriodLabel()} ｜ ${d.total_players||0}人`;if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP10`:`${rankingPeriodLabel()}｜${d.total_players||0}人参加・使用マシンも表示`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
 async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
 function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
 
 els.startButton.addEventListener('click',startGame);
-els.rankingButton.addEventListener('click',()=>{rankingPeriod='all';rankingMachine='';document.querySelectorAll('[data-rank-period]').forEach(b=>b.classList.toggle('active',b.dataset.rankPeriod==='all'));syncRankingFilterUI();loadRanking();});
-els.resultRankingButton.addEventListener('click',()=>{els.resultModal.hidden=true;rankingMachine=run?.car.id==='secret'?'secret':'';els.rankingMachineSelect.value=rankingMachine;loadRanking();});
+els.rankingButton.addEventListener('click',()=>{rankingPeriod='all';rankingMachine='';rankingMachinePanelOpen=false;document.querySelectorAll('[data-rank-period]').forEach(b=>b.classList.toggle('active',b.dataset.rankPeriod==='all'));syncRankingFilterUI();loadRanking();});
+els.resultRankingButton.addEventListener('click',()=>{els.resultModal.hidden=true;rankingMachine=run?.car.id==='secret'?'secret':'';rankingMachinePanelOpen=!!rankingMachine;loadRanking();});
 els.resultSubmitButton.addEventListener('click',requestRankSubmit);
 els.rankingNameSave.addEventListener('click',()=>{try{const n=RUN_RANKING.validateName(els.rankingNameInput.value);RUN_RANKING.setPlayerName(n);els.rankingNameModal.hidden=true;if(pendingRankSubmit){pendingRankSubmit=false;submitCurrentRun(n);}}catch(err){els.rankingNameInput.setCustomValidity(String(err&&err.message||err));els.rankingNameInput.reportValidity();els.rankingNameInput.setCustomValidity('');}});
 els.rankingNameCancel.addEventListener('click',()=>{pendingRankSubmit=false;els.rankingNameModal.hidden=true;});
 document.querySelectorAll('[data-rank-period]').forEach(b=>b.addEventListener('click',()=>{rankingPeriod=b.dataset.rankPeriod;document.querySelectorAll('[data-rank-period]').forEach(x=>x.classList.toggle('active',x===b));loadRanking();}));
-els.rankingMachineSelect.addEventListener('change',()=>{rankingMachine=els.rankingMachineSelect.value;syncRankingFilterUI();loadRanking();});
-if(els.rankingOverallButton)els.rankingOverallButton.addEventListener('click',()=>{rankingMachine='';syncRankingFilterUI();loadRanking();});
+els.rankingMachineSelect.addEventListener('change',()=>{const next=els.rankingMachineSelect.value;if(!next){syncRankingFilterUI();return;}rankingMachine=next;rankingMachinePanelOpen=true;loadRanking();});
+if(els.rankingMachineToggle)els.rankingMachineToggle.addEventListener('click',()=>{rankingMachinePanelOpen=!rankingMachinePanelOpen;syncRankingFilterUI();});
+if(els.rankingOverallButton)els.rankingOverallButton.addEventListener('click',()=>{rankingMachine='';rankingMachinePanelOpen=false;loadRanking();});
 
 els.garageButton.addEventListener('click',()=>{renderGarage();showScreen('garage');});
 els.recordsButton.addEventListener('click',()=>{renderRecords();showScreen('records');});

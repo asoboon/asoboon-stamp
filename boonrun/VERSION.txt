@@ -1,5 +1,6 @@
-BOONRUN v1.0.21
-Build: 2026-08-11-playable-v1.0.21-wheel-sync-fix
-Balance: identical to v1.0.20 3K BREAKTHROUGH
-Visual sync: latest BOONJUMP body + rear-wheel + front-wheel; local complete art fallback
+BOONRUN v1.0.22
+Build: 2026-08-11-playable-v1.0.22-ranking-focus
+Balance: identical to v1.0.21 / v1.0.20 3K BREAKTHROUGH
+Ranking UI: overall WORLD TOP 10 is primary; machine rankings are secondary drill-down
+Visual sync: BOONJUMP body + rear-wheel + front-wheel retained
 Valkyrie: excluded
