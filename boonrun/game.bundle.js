@@ -167,13 +167,13 @@ const CARS = Object.freeze([
     hitboxScale:0.98, visualScale:0.98, jumpScale:0.90, secondJumpScale:0.82, gravityScale:0.66,
     fuelMax:100, fuelRate:1.00, maxJumps:2,
     inputBufferMs:260,
-    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。ふわっと長時間滞空。2段目は弱めで高度より滞空延長。地上障害に強いがDRONE/LOWBEAM前は降りにくい' },
+    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。ふわっと長時間滞空。2段目は弱めで高度より滞空延長。地上障害に強いがドローン/ロービーム前は降りにくい' },
   },
   {
     id:'buggy', name:'ラッキーバギー', rarity:'SR', role:'COMMIT_HOP',
     hitboxScale:0.94, visualScale:0.96, jumpScale:1.40, secondJumpScale:1.00, gravityScale:1.16,
     fuelMax:100, fuelRate:1.05, maxJumps:1,
-    ability:{ id:'COMMIT_HOP', archBreakFuelCost:12, text:'COMMIT。2段なし。1タップが超大ジャンプになり、飛んだ後の修正不能。ARCH天井は燃料12で破壊' },
+    ability:{ id:'COMMIT_HOP', archBreakFuelCost:12, text:'COMMIT。2段なし。1タップが超大ジャンプになり、飛んだ後の修正不能。アーチ天井は燃料12で破壊' },
   },
   {
     id:'bike', name:'パワーバイク', rarity:'SR', role:'PRECISION_FUEL',
@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.15-one-shot-special';
-const CLIENT_VERSION = '1.0.15';
+const BUILD = '2026-08-11-playable-v1.0.16-ultimate-highway';
+const CLIENT_VERSION = '1.0.16';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -351,7 +351,7 @@ const CAR_COLORS = {
   sport:['#f12958','#ff7a92'], ssr:['#6b55ff','#5feaff'], princess:['#ff8ad8','#ffffff'], secret:['#ff672c','#fff05a']
 };
 const CAR_VISUAL_WIDTH = {boon:155,wagon:145,buggy:142,bike:100,sport:140,ssr:142,princess:150,secret:145};
-const CAUSE_LABEL = {CONE:'コーン',BARRIER:'バリケード',CRATE:'木箱',PIT:'落下',ROLLTIRE:'タイヤ',DRONE:'低空ドローン',LOWBEAM:'低いゲート',ARCH:'アーチ',gas:'GAS欠',quit:'終了'};
+const CAUSE_LABEL = {CONE:'コーン',BARRIER:'バリケード',CRATE:'木箱',PIT:'落下',ROLLTIRE:'タイヤ',DRONE:'低空ドローン',LOWBEAM:'ロービーム',ARCH:'アーチ',gas:'GAS欠',quit:'終了'};
 const ABILITY_SHORT = {
   boon:'🛻 HEAVY', wagon:'☁ FLOAT', buggy:'⬆ COMMIT', bike:'🏍 QUICK', sport:'⚡ FAST', ssr:'🌌 STANDARD', princess:'★ GROW', secret:'🚀 ROCKET'
 };
@@ -362,7 +362,7 @@ const HANDLING_LABEL = {
 const HOME_GUIDE = {
   boon:[['TAP','重く低い1段'],['TAP×2','強烈サス2段'],['🛡','ARMORで小障害突破']],
   wagon:[['TAP','ふわっと長時間滞空'],['TAP×2','弱い2段で滞空延長'],['↓','降りたい時に降りにくい']],
-  buggy:[['TAP','一発超大ジャンプ'],['×2','空中修正なし'],['⛽','ARCH破壊は−12']],
+  buggy:[['TAP','一発超大ジャンプ'],['×2','空中修正なし'],['⛽','アーチ破壊は−12']],
   bike:[['TAP','低く鋭く・すぐ落下'],['TAP×2','強烈2段・燃料−4'],['🏍','最小ボディで精密回避']],
   sport:[['FAST','常時14%高速'],['TAP×2','クイック2段'],['⚡','NITROで爆速無敵']],
   ssr:[['TAP','最も素直な基準ジャンプ'],['CLOSE×2','PHANTOM'],['⛽','SAVEは−35']],
@@ -434,6 +434,7 @@ const els={
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
   rankingMachineSelect:$('rankingMachineSelect'),rankingOverallButton:$('rankingOverallButton'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
   specialButton:$('specialButton'),specialBanner:$('specialBanner'),specialBannerName:$('specialBannerName'),specialBannerSub:$('specialBannerSub'),
+  highwayBoard:$('highwayBoard'),highwayBoardTag:$('highwayBoardTag'),highwayBoardMessage:$('highwayBoardMessage'),
   debugButton:$('debugButton'),debugPanel:$('debugPanel')
 };
 const ctx=els.canvas.getContext('2d',{alpha:false});
@@ -465,7 +466,7 @@ function renderGarage(){
     b.className=`car-card${state.selected===car.id?' selected':''}${owned?'':' locked'}`;
     b.type='button'; b.dataset.car=car.id;b.setAttribute('aria-pressed',String(state.selected===car.id));
     b.setAttribute('aria-label',owned?`${car.name}。${car.ability.text}`:`未解放。${car.id==='secret'?'ブーンジャンプ通常7台コンプリートで解放':'ブーンジャンプで獲得すると解放'}`);
-    b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3>${owned?`<div class="handling">${HANDLING_LABEL[car.id]}</div><div class="special-chip">⚡ ONE SHOT｜${SPECIALS[car.id].name}</div>`:''}<p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
+    b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3>${owned?`<div class="handling">${HANDLING_LABEL[car.id]}</div><div class="special-chip">⚡ 最終奥義・1回限り｜${SPECIALS[car.id].name}</div>`:''}<p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
     els.carGrid.appendChild(b);
   });
 }
@@ -529,7 +530,7 @@ function makeRun(car){
     objects:[], particles:[], rng:new RNG(COURSE_SEED), spawnCursorX:PHYSICS.logicalWidth+300, patternIndex:0, lastPattern:null,
     safeDebt:0, optionalDebt:0, lastFuelZone:0, nextSpecialAt:4200, specialIndex:0, nextFullAt:11800,
     invulnerableUntil:0, shieldUntilM:0, shield:false, magnetUntilM:0, itemBoostUntilSec:0, nitroUntilSec:0, nitro:0,
-    fuelPickups:0, luckyCount:0, stars:0, lastEfficientFuelM:0, phantomClose:0, phantomReady:false, armor:car.ability?.armorMax||0, droneTutorialShown:false, crateTutorialShown:false,
+    fuelPickups:0, luckyCount:0, stars:0, lastEfficientFuelM:0, phantomClose:0, phantomReady:false, armor:car.ability?.armorMax||0, droneTutorialShown:false, crateTutorialShown:false, obstacleTipsShown:{},
     elapsed:0, gameTime:0, endReason:null, endCause:null, startedAt:performance.now(),
     nextMilestone:1000, tutorial:true, lastPatternEndType:null, lastPatternEndX:0, patternHistory:[],
     stats:{fuel:0,jumps:0,doubleJumps:0,boosts:0,close:0,abilityUse:0,riskFuel:0,boostTime:0}, rankingSession:null,rankingEligible:false,rankingSessionError:'',rocketThrust:false,rocketDanger:0,rocketInvincibleUntil:0, rewardFxUntil:0,rewardFxKind:'',rewardFxStrength:0,
@@ -567,15 +568,34 @@ function patternGapSecAt(m,d){
 }
 function crateTutorialFor(carId){
   return ({
-    boon:'木箱は2回タップ！ 2段目のサス反発で越えろ',
-    wagon:'木箱は1回でも越えられる。飛びすぎには注意！',
-    buggy:'木箱は1回の大ジャンプ！ 2段ジャンプはない',
-    bike:'木箱は2段！ 2段目は燃料−4',
-    sport:'木箱は1回で越えられる。NITRO中ならそのまま突破！',
-    ssr:'木箱は1回で越えられる。PHANTOMは難所まで温存',
-    princess:'木箱は1回で越えられる。STARは危険ルート用に温存',
-    secret:'長押しで高度を上げて木箱を越えろ'
-  })[carId]||'木箱は高く越えよう';
+    boon:'木箱｜2段ジャンプ',
+    wagon:'木箱｜1段ジャンプ',
+    buggy:'木箱｜大ジャンプ1回',
+    bike:'木箱｜2段ジャンプ・FUEL−4',
+    sport:'木箱｜1段ジャンプ',
+    ssr:'木箱｜1段ジャンプ',
+    princess:'木箱｜1段ジャンプ',
+    secret:'木箱｜長押しで上昇'
+  })[carId]||'木箱｜ジャンプ';
+}
+function obstacleTipFor(type,carId){
+  if(type==='CONE')return carId==='boon'?'コーン｜ARMORなら突破OK':'コーン｜ジャンプ';
+  if(type==='BARRIER')return carId==='boon'?'バリケード｜ARMORなら突破OK':'バリケード｜ジャンプ';
+  if(type==='DRONE')return 'ドローン｜ジャンプ禁止';
+  if(type==='CRATE')return crateTutorialFor(carId);
+  if(type==='PIT')return 'ピット｜ジャンプ';
+  if(type==='ROLLTIRE')return 'タイヤ｜ジャンプ';
+  if(type==='LOWBEAM')return 'ロービーム｜ジャンプ禁止';
+  if(type==='ARCH')return carId==='buggy'?'アーチ｜屋根破壊 FUEL−12':'アーチ｜1段ジャンプ';
+  return '';
+}
+function queuePatternTip(p){
+  if(!run||!p)return;
+  const type=p.events.map(e=>e.type).find(t=>OBSTACLES[t]&&!run.obstacleTipsShown[t]);
+  if(!type)return;
+  run.obstacleTipsShown[type]=true;
+  const text=obstacleTipFor(type,run.car.id);
+  if(text)setTimeout(()=>highwayInfo(text,(type==='DRONE'||type==='LOWBEAM'||type==='ARCH')?'WARN':'INFO',3800),100);
 }
 function choosePattern(){
   const m=run.distance, pool=eligiblePatterns(m);
@@ -593,14 +613,7 @@ function choosePattern(){
   let filtered=candidates.filter(p=>!recent.has(p.id)); if(!filtered.length)filtered=candidates;
   if(run.lastPattern?.d>=4){const easier=filtered.filter(p=>p.d<=3||p.tags.includes('REST'));if(easier.length&&run.rng.next()<.62)filtered=easier;}
   const p=run.rng.pick(filtered.length?filtered:pool);
-  if(!run.droneTutorialShown && p.events.some(e=>e.type==='DRONE')){
-    run.droneTutorialShown=true;
-    setTimeout(()=>toast('⚠ ドローンは飛ぶな！下をくぐれ！'),80);
-  }
-  if(!run.crateTutorialShown && p.events.some(e=>e.type==='CRATE')){
-    run.crateTutorialShown=true;
-    setTimeout(()=>toast(crateTutorialFor(run.car.id)),80);
-  }
+  queuePatternTip(p);
   run.patternHistory.push(p.id); if(run.patternHistory.length>8)run.patternHistory.shift();
   const val=patternFuelValue(p);
   if(p.tags.includes('SAFE'))run.safeDebt=Math.max(0,run.safeDebt-val);
@@ -661,7 +674,7 @@ function startGame(){
     try{if(window.screen&&screen.orientation&&typeof screen.orientation.lock==='function'){const p=screen.orientation.lock('landscape');if(p&&typeof p.catch==='function')p.catch(()=>{});}}catch{}
     const car=currentCar(); if(!ownedCars.has(car.id)){state.selected='wagon';saveState();}
     run=makeRun(currentCar()); const token=run.token; showScreen('game'); els.resultModal.hidden=true;els.pauseModal.hidden=true;els.startGuide.classList.remove('hidden');setStartGuide();
-    document.body.dataset.car=run.car.id; resetHud();ensureWorld();render();
+    document.body.dataset.car=run.car.id; resetHud();resetHighwayBoard();ensureWorld();render();
     if(RUN_RANKING){RUN_RANKING.startSession(run.car.id,BUILD,CLIENT_VERSION).then(s=>{if(run&&run.token===token){run.rankingSession=s;run.rankingEligible=true;if(els.resultModal&&!els.resultModal.hidden){els.resultSubmitButton.disabled=false;els.resultSubmitButton.textContent='🌍 この記録を世界ランキングへ';}}}).catch(err=>{if(run&&run.token===token){run.rankingEligible=false;run.rankingSessionError=String(err&&err.message||err);}});}
     window.__BOONRUN_BOOT={phase:'countdown',car:run.car.id,objects:run.objects.length,at:Date.now()};
     countdownStart();
@@ -684,11 +697,11 @@ function setStartGuide(){
   };
   const g=guides[run.car.id]||['タップでジャンプ','空中タップで2段ジャンプ'];
   const sp=SPECIALS[run.car.id];
-  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small><em>⚡ ${sp.name}｜1プレイ1回　　赤・橙＝避ける ／ 緑・金＝突破OK</em>`;
+  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small><em>⚡ 最終奥義 ${sp.name}｜1プレイ1回限り　　赤・橙＝回避 ／ 緑・金＝突破OK</em>`;
 }
 function startAbilityToast(){
-  const t={boon:'ARMOR ×2',wagon:'FLOAT CONTROL',buggy:'COMMIT HOP!',bike:'FUEL STEP!',sport:'OVERDRIVE!',ssr:'CLOSE ×2 → PHANTOM',princess:'RISK → STAR',secret:'ROCKET DANGER'}[run?.car.id];
-  if(t)setTimeout(()=>toast(t),180);
+  const t={boon:'ピックアップ｜ARMOR ×2',wagon:'ワゴン｜長時間フロート',buggy:'バギー｜大ジャンプ1回',bike:'バイク｜2段でFUEL−4',sport:'スポーツ｜常時高速',ssr:'ファントム｜CLOSE×2',princess:'プリンセス｜危険燃料でSTAR',secret:'ロケット｜長押しで上昇'}[run?.car.id];
+  if(t)setTimeout(()=>highwayInfo(t,'INFO',4200),180);
 }
 function countdownStart(){
   run.phase='countdown';const token=run.token;let n=3;els.countdown.textContent='3';
@@ -724,15 +737,15 @@ function activateSpecial(){
   if(run.car.id==='sport'){run.specialFuelPending=18;run.specialFuelSettled=false;}
   if(run.car.id==='princess'){run.stars=run.car.ability.maxStars;run.lastEfficientFuelM=run.distance;}
   if(run.car.id==='secret'){run.vy=Math.max(run.vy,420);run.onGround=false;}
-  showSpecialBanner();rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
+  showSpecialBanner();highwayInfo(`最終奥義｜${sp.name} 発動`,'SPECIAL',2800);rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
   burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,32);sound.tone(run.car.id==='boon'?105:run.car.id==='princess'?880:520,.18,'sawtooth',.045,420);setTimeout(()=>sound.special(),70);updateSpecialHud();
 }
 function updateSpecialHud(){
   if(!run||!els.specialButton)return;const sp=SPECIALS[run.car.id];els.specialButton.style.setProperty('--special-color',sp.color);els.specialButton.dataset.car=run.car.id;
   els.specialButton.classList.toggle('active',specialActive());els.specialButton.classList.toggle('used',run.specialUsed&&!specialActive());els.specialButton.disabled=run.phase!=='running'||(run.specialUsed&&!specialActive());
-  if(specialActive()){els.specialButton.innerHTML=`<small>SPECIAL ACTIVE</small><b>${sp.short}</b><em>${specialRemaining().toFixed(1)}s</em>`;}
-  else if(run.specialUsed){els.specialButton.innerHTML=`<small>ONE SHOT</small><b>USED</b><em>${sp.short}</em>`;}
-  else{els.specialButton.innerHTML=`<small>ONE SHOT</small><b>⚡ ${sp.short}</b><em>READY</em>`;}
+  if(specialActive()){els.specialButton.innerHTML=`<small>最終奥義・発動中</small><b>⚡ ${sp.short}</b><em>${specialRemaining().toFixed(1)}秒</em>`;}
+  else if(run.specialUsed){els.specialButton.innerHTML=`<small>1プレイ1回限り</small><b>使用済み</b><em>${sp.short}</em>`;}
+  else{els.specialButton.innerHTML=`<small>1プレイ1回限り</small><b>⚡ 最終奥義</b><em>${sp.short}｜残り1回</em>`;}
 }
 
 function requestJump(){
@@ -945,7 +958,7 @@ function updateWorld(dt){
   maybeSpawnSpecial();ensureWorld();run.objects=run.objects.filter(o=>!o.dead&&!o.collected&&objectRight(o)>-200);
   if(run.distance>=run.nextMilestone){milestone(run.nextMilestone);run.nextMilestone+=1000;}
 }
-function milestone(m){els.milestoneLabel.textContent=`${m/1000} km`;sound.milestone();rewardFx('milestone',1.1,1);setTimeout(()=>{if(els.milestoneLabel.textContent===`${m/1000} km`)els.milestoneLabel.textContent='';},1100);}
+function milestone(m){els.milestoneLabel.textContent=`${m/1000} km`;sound.milestone();rewardFx('milestone',1.1,1);highwayInfo(`走行距離｜${m.toLocaleString()}m 突破`,'INFO',2600);setTimeout(()=>{if(els.milestoneLabel.textContent===`${m/1000} km`)els.milestoneLabel.textContent='';},1100);}
 function step(dt){
   if(!run||run.phase!=='running')return;updatePlayer(dt);updateAbilities(dt);if(!run||run.phase!=='running')return;updateWorld(dt);if(!run||run.phase!=='running')return;checkCollisions();updateParticles(dt);updateHud();
 }
@@ -989,7 +1002,19 @@ function updateHud(){
 }
 
 function flash(kind){els.flash.className=`flash ${kind}`;setTimeout(()=>els.flash.className='flash',360);}
-let toastTimer=0;function toast(text){clearTimeout(toastTimer);els.toast.textContent=text;els.toast.classList.remove('show');void els.toast.offsetWidth;els.toast.classList.add('show');toastTimer=setTimeout(()=>els.toast.classList.remove('show'),760);}
+let boardQueue=[],boardTimer=0,boardBusy=false;
+function resetHighwayBoard(){boardQueue=[];boardBusy=false;clearTimeout(boardTimer);if(!els.highwayBoard)return;els.highwayBoard.dataset.level='INFO';els.highwayBoardTag.textContent='走行案内';els.highwayBoardMessage.textContent='赤・橙＝回避　緑・金＝突破OK';}
+function highwayInfo(text,level='INFO',duration=3400){
+  if(!els.highwayBoard||!text)return;
+  const last=boardQueue[boardQueue.length-1];if(last&&last.text===text)return;
+  boardQueue.push({text:String(text),level,duration:Math.max(2400,duration||3400)});pumpHighwayBoard();
+}
+function pumpHighwayBoard(){
+  if(boardBusy||!boardQueue.length||!els.highwayBoard)return;
+  boardBusy=true;const m=boardQueue.shift();els.highwayBoard.dataset.level=m.level||'INFO';els.highwayBoardTag.textContent=m.level==='SPECIAL'?'最終奥義':m.level==='DANGER'?'危険情報':m.level==='WARN'?'注意情報':'走行案内';els.highwayBoardMessage.textContent=m.text;els.highwayBoard.classList.remove('bump');void els.highwayBoard.offsetWidth;els.highwayBoard.classList.add('bump');
+  clearTimeout(boardTimer);boardTimer=setTimeout(()=>{boardBusy=false;pumpHighwayBoard();if(!boardQueue.length){els.highwayBoard.dataset.level='INFO';els.highwayBoardTag.textContent='走行案内';els.highwayBoardMessage.textContent='赤・橙＝回避　緑・金＝突破OK';}},m.duration);
+}
+let toastTimer=0;function toast(text){clearTimeout(toastTimer);els.toast.textContent=text;els.toast.classList.remove('show');void els.toast.offsetWidth;els.toast.classList.add('show');toastTimer=setTimeout(()=>els.toast.classList.remove('show'),900);}
 function spawnDust(n,color){
   if(!run)return;
   n=Math.max(1,Math.ceil(n*.48));
@@ -1067,19 +1092,22 @@ function drawObjects(c){
 function obstacleSignal(o){
   const powered=specialBreaks(o)||run.debug.invincible||run.gameTime<run.invulnerableUntil||anyBoostActive()||(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil);
   const armorBreak=run.car.id==='boon'&&run.armor>0&&(run.car.ability.smashTypes||[]).includes(o.type);
-  if(powered||armorBreak)return {kind:'BREAK',color:'#9dff4f',core:'#ffe45d'};
-  return {kind:'DANGER',color:'#ff3f4f',core:'#ff9a34'};
+  if(powered||armorBreak)return {kind:'BREAK',color:'#83ff39',core:'#ffe84d'};
+  return {kind:'DANGER',color:'#ff3048',core:'#ff9b2f'};
 }
 function drawObstacle(c,o){
   const x=o.x;c.save();if(o.destroyed)c.globalAlpha=.18;
   const signal=obstacleSignal(o);
   // Signal language: RED/ORANGE = avoid. LIME/GOLD = current state can break through it.
-  c.save();c.globalAlpha=o.destroyed?.16:.74;c.shadowColor=signal.color;c.shadowBlur=22;c.strokeStyle=signal.color;c.lineWidth=4;
-  const auraRects=o.type==='PIT'?[{x:o.x,y:ROAD_Y-8,w:o.width,h:18}]:obstacleRects(o);for(const r of auraRects){c.strokeRect(r.x-3,r.y-3,r.w+6,r.h+6);}c.restore();
+  c.save();c.globalCompositeOperation='lighter';const auraRects=o.type==='PIT'?[{x:o.x,y:ROAD_Y-8,w:o.width,h:18}]:obstacleRects(o);
+  c.globalAlpha=o.destroyed?.08:.22;c.shadowColor=signal.color;c.shadowBlur=38;c.fillStyle=signal.color;for(const r of auraRects)c.fillRect(r.x-7,r.y-7,r.w+14,r.h+14);
+  c.globalAlpha=o.destroyed?.12:.48;c.shadowBlur=30;c.strokeStyle=signal.color;c.lineWidth=9;for(const r of auraRects)c.strokeRect(r.x-5,r.y-5,r.w+10,r.h+10);
+  c.globalAlpha=o.destroyed?.16:.96;c.shadowBlur=17;c.strokeStyle=signal.core;c.lineWidth=3;for(const r of auraRects)c.strokeRect(r.x-2,r.y-2,r.w+4,r.h+4);c.restore();
   // Obstacles use a crisp dark silhouette and a short contact shadow. The course stays calm; hazards do not.
   c.shadowColor='rgba(5,12,18,.58)';c.shadowBlur=7;c.shadowOffsetY=3;
   const outline='#13202a', ivory='#fff4dc', hazard='#ffd43b', orange='#ff6b2c', red='#f04d45';
   const groundShadow=(w,dx=0)=>{c.save();c.shadowBlur=0;c.fillStyle='rgba(4,10,15,.34)';c.beginPath();c.ellipse(x+dx+w/2,ROAD_Y+4,Math.max(13,w*.68),5,0,0,Math.PI*2);c.fill();c.restore();};
+  const sr=auraRects[0];if(sr&&o.type!=='PIT'){c.save();c.shadowBlur=15;c.shadowColor=signal.color;c.fillStyle=signal.core;c.font='1000 17px system-ui';c.textAlign='center';c.textBaseline='middle';c.fillText(signal.kind==='BREAK'?'✓':'!',sr.x+sr.w/2,Math.max(18,sr.y-13));c.restore();}
   switch(o.type){
     case'CONE':{
       groundShadow(o.width);c.fillStyle=orange;c.strokeStyle=outline;c.lineWidth=3;c.beginPath();c.moveTo(x+o.width*.5,ROAD_Y-o.height);c.lineTo(x+o.width,ROAD_Y);c.lineTo(x,ROAD_Y);c.closePath();c.fill();c.stroke();
@@ -1103,7 +1131,7 @@ function drawObstacle(c,o){
       c.fillStyle='#ff3d45';c.shadowBlur=14;c.shadowColor='rgba(255,44,55,.85)';c.beginPath();c.arc(0,0,6,0,Math.PI*2);c.fill();c.shadowBlur=5;c.shadowColor='rgba(5,12,18,.58)';c.strokeStyle='#e7f4f5';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.40,-o.height*.38);c.lineTo(-o.width*.58,-o.height*.72);c.moveTo(o.width*.40,-o.height*.38);c.lineTo(o.width*.58,-o.height*.72);c.stroke();
       c.strokeStyle='#e7f4f5';c.lineWidth=3;c.beginPath();c.moveTo(-o.width*.73,-o.height*.72);c.lineTo(-o.width*.46,-o.height*.72);c.moveTo(o.width*.46,-o.height*.72);c.lineTo(o.width*.73,-o.height*.72);c.stroke();
       c.fillStyle='rgba(255,61,69,.12)';c.beginPath();c.moveTo(-13,o.height/2);c.lineTo(13,o.height/2);c.lineTo(25,63);c.lineTo(-25,63);c.closePath();c.fill();
-      c.fillStyle=hazard;c.font='900 14px system-ui';c.textAlign='center';c.fillText('LOW',0,-19);break;}
+      c.fillStyle=hazard;c.font='900 14px system-ui';c.textAlign='center';c.fillText('低空',0,-19);break;}
     case'LOWBEAM':{
       c.shadowBlur=5;c.fillStyle=hazard;c.strokeStyle=outline;c.lineWidth=3;c.fillRect(x,ROAD_Y-o.lowerEdge-o.thickness,o.width,o.thickness);c.strokeRect(x,ROAD_Y-o.lowerEdge-o.thickness,o.width,o.thickness);
       c.fillStyle=outline;for(let q=x;q<x+o.width;q+=46)c.fillRect(q,ROAD_Y-o.lowerEdge-o.thickness,20,o.thickness);
@@ -1173,9 +1201,9 @@ let rankingPeriod='all',rankingMachine='',pendingRankSubmit=false;
 function rankCarName(id){return CAR_BY_ID[id]?.name||id||'-';}
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function populateRankingMachines(){if(!els.rankingMachineSelect)return;els.rankingMachineSelect.innerHTML='<option value="">車種を選ぶ</option>'+CARS.map(c=>`<option value="${c.id}">${c.secret?'🚀 SECRET｜':''}${c.name}</option>`).join('');}
-function renderRankingRows(data){const rows=data?.rows||[];const myId=RUN_RANKING?.playerId?.()||'';els.rankingList.innerHTML=rows.length?rows.map(r=>`<div class="ranking-row ${r.rank===1?'top1':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:r.rank}</div><div class="name">${escapeHtml(r.display_name)}<small>${escapeHtml(r.machine_name||rankCarName(r.machine_id))}</small></div><div class="distance">${fmt(r.distance)}</div></div>`).join(''):'<div class="ranking-row"><div class="name">まだ記録がありません。</div></div>';if(data?.me){els.rankingMe.hidden=false;els.rankingMe.textContent=`あなたは ${data.me.rank}位 ｜ ${fmt(data.me.distance)}`;}else els.rankingMe.hidden=true;}
+function renderRankingRows(data){const rows=(data?.rows||[]).slice(0,20);const myId=RUN_RANKING?.playerId?.()||'';els.rankingList.innerHTML=rows.length?rows.map(r=>`<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name">${escapeHtml(r.display_name)}<small>${escapeHtml(r.machine_name||rankCarName(r.machine_id))}</small></div><div class="distance">${fmt(r.distance)}</div></div>`).join(''):'<div class="ranking-row"><div class="name">まだ記録がありません。</div></div>';if(data?.me){els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small>${escapeHtml(data.me.machine_name||rankCarName(data.me.machine_id)||'あなたのベスト')}</small>`;}else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録するとここに順位が表示されます</small>';}}
 function syncRankingFilterUI(){if(els.rankingOverallButton)els.rankingOverallButton.classList.toggle('active',!rankingMachine);if(els.rankingMachineSelect)els.rankingMachineSelect.value=rankingMachine;}
-async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,100);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
+async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,20);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
 async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
 function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
@@ -1222,6 +1250,7 @@ window.__BOONRUN_TEST={
   build:BUILD,
   boot:()=>window.__BOONRUN_BOOT||null,
   status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,fuelRate:effectiveFuelRate(),car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,scrollSpeed:run.scrollSpeed,armor:run.armor,stars:run.stars,specialCharges:run.specialCharges,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,specialUsed:run.specialUsed,specialActive:specialActive(),specialRemaining:specialRemaining(),rankingEligible:run.rankingEligible}:null,
+  selectCar(id){if(CAR_BY_ID[id]){ownedCars.add(id);state.selected=id;saveState();renderMenu();return id;}return null;},
   start:startGame, jump:requestJump, special:activateSpecial, pause:()=>pauseGame(false),
   press(){if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}, release(){if(run)run.rocketThrust=false;},
   tick(n=1){for(let i=0;i<Math.max(1,Number(n)||1);i++){if(run?.phase==='running')step(FIXED_DT);}if(run)render();return this.status();},
