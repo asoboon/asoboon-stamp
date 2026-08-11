@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.20-3k-breakthrough';
-const CLIENT_VERSION = '1.0.20';
+const BUILD = '2026-08-11-playable-v1.0.21-wheel-sync-fix';
+const CLIENT_VERSION = '1.0.21';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -445,13 +445,40 @@ function showScreen(name){
   document.body.classList.toggle('in-game',name==='game');
 }
 const BOONJUMP_SYNC_CARS=new Set(['boon','wagon','buggy','bike','sport','ssr','princess','secret']);
+const BOONJUMP_SYNC_VERSION='121-wheel';
+const SYNC_WHEEL_LAYOUT={
+  boon:{rear:{x:230,y:188,w:90,h:90},front:{x:600,y:188,w:90,h:90}},
+  wagon:{rear:{x:224,y:185,w:92,h:92},front:{x:510,y:185,w:92,h:92}},
+  buggy:{rear:{x:220,y:181,w:88,h:88},front:{x:550,y:181,w:88,h:88}},
+  bike:{rear:{x:170,y:170,w:64,h:71},front:{x:542,y:168,w:62,h:70}},
+  sport:{rear:{x:185,y:180,w:92,h:92},front:{x:535,y:180,w:92,h:92}},
+  ssr:{rear:{x:90,y:172,w:78,h:86},front:{x:518,y:182,w:66,h:73}},
+  princess:{rear:{x:256,y:186,w:96,h:96},front:{x:561,y:186,w:96,h:96}}
+};
 function carAssetLocal(id){return `./assets/cars/${id}-body.png`;}
-function carAsset(id){return BOONJUMP_SYNC_CARS.has(id)?`../boonjump/assets/cars/${id}-body.png?run-sync=119`:carAssetLocal(id);}
-function bindCarImageFallback(img,id){
-  if(!img)return;
-  delete img.dataset.boonrunFallback;
-  img.onerror=()=>{if(img.dataset.boonrunFallback==='1')return;img.dataset.boonrunFallback='1';img.src=carAssetLocal(id);};
+function carPartAsset(id,part='body'){
+  const suffix=part==='rear'?'rear-wheel':part==='front'?'front-wheel':part;
+  return `../boonjump/assets/cars/${id}-${suffix}.png?run-sync=${BOONJUMP_SYNC_VERSION}`;
 }
+// Static previews always start with a complete local car so a failed live sync can never remove wheels.
+function carAsset(id){return carAssetLocal(id);}
+function loadDetachedImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=src;});}
+function drawSyncedWheel(cc,img,v){if(!img||!v)return;cc.drawImage(img,v.x-v.w/2,v.y-v.h/2,v.w,v.h);}
+async function syncCompositePreview(img,id){
+  if(!img||!BOONJUMP_SYNC_CARS.has(id))return;
+  const body=await loadDetachedImage(carPartAsset(id,'body'));if(!body?.naturalWidth)return;
+  try{
+    const cv=document.createElement('canvas');cv.width=760;cv.height=280;const cc=cv.getContext('2d');cc.drawImage(body,0,0,760,280);
+    if(id!=='secret'){
+      const layout=SYNC_WHEEL_LAYOUT[id];if(!layout)return;
+      const [rear,front]=await Promise.all([loadDetachedImage(carPartAsset(id,'rear')),loadDetachedImage(carPartAsset(id,'front'))]);
+      if(!rear?.naturalWidth||!front?.naturalWidth)return;
+      drawSyncedWheel(cc,rear,layout.rear);drawSyncedWheel(cc,front,layout.front);
+    }
+    img.src=cv.toDataURL('image/png');
+  }catch(_){/* local complete fallback remains visible */}
+}
+function bindCarImageFallback(img,id){if(!img)return;img.onerror=()=>{img.onerror=null;img.src=carAssetLocal(id);};syncCompositePreview(img,id);}
 function currentCar(){return CAR_BY_ID[state.selected]||CAR_BY_ID.wagon;}
 function renderMenu(){
   const car=currentCar();
@@ -530,7 +557,13 @@ function loadImage(src,fallback=''){
   if(fallback)img.onerror=()=>{if(img.__boonrunFallbackUsed)return;img.__boonrunFallbackUsed=true;img.src=fallback;};
   img.src=src;images.set(src,img);return img;
 }
-CARS.forEach(c=>loadImage(carAsset(c.id),carAssetLocal(c.id)));
+CARS.forEach(c=>{
+  loadImage(carAssetLocal(c.id));
+  if(BOONJUMP_SYNC_CARS.has(c.id)){
+    loadImage(carPartAsset(c.id,'body'));
+    if(c.id!=='secret'){loadImage(carPartAsset(c.id,'rear'));loadImage(carPartAsset(c.id,'front'));}
+  }
+});
 
 let run=null, raf=0, lastTime=0, accumulator=0;
 function makeRun(car){
@@ -1185,10 +1218,21 @@ function drawItem(c,o){
   }
   c.restore();
 }
+function drawRuntimeWheel(c,img,v,x,y,width,height){
+  if(!img?.complete||!img.naturalWidth||!v)return;
+  const cx=x+(v.x/760)*width,cy=y+(v.y/280)*height,ww=(v.w/760)*width,hh=(v.h/280)*height;
+  c.save();c.translate(cx,cy);c.rotate((run.distance||0)*1.8);c.drawImage(img,-ww/2,-hh/2,ww,hh);c.restore();
+}
 function drawCar(c){
-  const car=run.car,img=images.get(carAsset(car.id));let width=CAR_VISUAL_WIDTH[car.id]||300;if(specialActive()&&car.id==='boon')width*=1.18;if(specialActive()&&car.id==='bike')width*=.88;const height=width*(280/760);const bob=run.onGround?Math.sin(run.gameTime*10)*.8:0;const x=PHYSICS.carCenterX-width*.50,y=ROAD_Y-run.y-height+bob+5;
+  const car=run.car;let width=CAR_VISUAL_WIDTH[car.id]||300;if(specialActive()&&car.id==='boon')width*=1.18;if(specialActive()&&car.id==='bike')width*=.88;const height=width*(280/760);const bob=run.onGround?Math.sin(run.gameTime*10)*.8:0;const x=PHYSICS.carCenterX-width*.50,y=ROAD_Y-run.y-height+bob+5;
+  const localImg=images.get(carAssetLocal(car.id));const bodyImg=images.get(carPartAsset(car.id,'body'));const rearImg=images.get(carPartAsset(car.id,'rear'));const frontImg=images.get(carPartAsset(car.id,'front'));const layout=SYNC_WHEEL_LAYOUT[car.id];
+  const bodyReady=BOONJUMP_SYNC_CARS.has(car.id)&&bodyImg?.complete&&bodyImg.naturalWidth>0;
+  const wheelsReady=car.id==='secret'||(layout&&rearImg?.complete&&rearImg.naturalWidth>0&&frontImg?.complete&&frontImg.naturalWidth>0);
   c.save();if(run.car.id==='ssr'&&run.phantomReady){c.shadowBlur=28;c.shadowColor='#a068ff';}if(run.car.id==='princess'&&run.stars>=3){c.shadowBlur=Math.max(c.shadowBlur,18);c.shadowColor='#ff70d8';}if(run.gameTime<run.invulnerableUntil)c.globalAlpha=.84+.08*Math.sin(run.gameTime*7);if(run.car.id==='ssr'&&specialActive())c.globalAlpha=.55+.16*Math.sin(run.gameTime*11);
-  c.shadowBlur=Math.max(c.shadowBlur,5);c.shadowColor='rgba(0,0,0,.28)';if(img?.complete&&img.naturalWidth>0)c.drawImage(img,x,y,width,height);else{c.fillStyle=CAR_COLORS[car.id]?.[0]||'#5ee';roundRect(c,x,y+25,width,height-25,28);c.fill();}
+  c.shadowBlur=Math.max(c.shadowBlur,5);c.shadowColor='rgba(0,0,0,.28)';
+  if(bodyReady&&wheelsReady){c.drawImage(bodyImg,x,y,width,height);if(car.id!=='secret'){drawRuntimeWheel(c,rearImg,layout.rear,x,y,width,height);drawRuntimeWheel(c,frontImg,layout.front,x,y,width,height);}}
+  else if(localImg?.complete&&localImg.naturalWidth>0)c.drawImage(localImg,x,y,width,height);
+  else{c.fillStyle=CAR_COLORS[car.id]?.[0]||'#5ee';roundRect(c,x,y+25,width,height-25,28);c.fill();}
   if(run.car.id==='secret'&&run.rocketThrust){const fx=x-5,fy=y+height*.62,pulse=.5+.5*Math.sin(run.gameTime*17),len=58+pulse*13;c.save();c.globalCompositeOperation='lighter';c.globalAlpha=.62;const rg=c.createLinearGradient(fx-len,fy,fx+6,fy);rg.addColorStop(0,'rgba(218,91,45,0)');rg.addColorStop(.62,'rgba(225,138,73,.55)');rg.addColorStop(1,'rgba(244,226,165,.9)');c.fillStyle=rg;c.beginPath();c.moveTo(fx+4,fy-9);c.lineTo(fx-len,fy);c.lineTo(fx+4,fy+9);c.closePath();c.fill();c.restore();}
   if(run.car.id==='secret'&&run.gameTime<run.rocketInvincibleUntil){c.strokeStyle='rgba(255,238,64,.95)';c.lineWidth=4;c.shadowBlur=24;c.shadowColor='#ffe83e';c.beginPath();c.ellipse(PHYSICS.carCenterX,ROAD_Y-run.y-height*.5,width*.60,height*.80,0,0,Math.PI*2);c.stroke();}
   if(run.shield){c.strokeStyle='rgba(111,182,193,.62)';c.lineWidth=3;c.beginPath();c.ellipse(PHYSICS.carCenterX,ROAD_Y-run.y-height*.48,width*.57,height*.70,0,0,Math.PI*2);c.stroke();}
