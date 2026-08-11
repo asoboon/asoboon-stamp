@@ -1,4 +1,4 @@
-const BUILD = "2026-08-11-highway-valkyrie-princess-assets-v5";
+const BUILD = "2026-08-11-balance-super-reachability-v7";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
