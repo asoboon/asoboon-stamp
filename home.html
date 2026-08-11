@@ -5634,15 +5634,204 @@
       const drawer = document.getElementById("drawer");
       const toast = document.getElementById("toast");
 
-      const params = new URLSearchParams(location.search);
+      const routeKeys = [
+        "mode",
+        "view",
+        "parking"
+      ];
 
-      let mode =
-        params.get("mode") === "inside"
+      const routeViewAliases = {
+        games: "stamp"
+      };
+
+      function decodeRouteValue(value) {
+        let current =
+          String(value || "").trim();
+
+        for (let index = 0; index < 2; index += 1) {
+          try {
+            const decoded =
+              decodeURIComponent(current);
+
+            if (decoded === current) {
+              break;
+            }
+
+            current = decoded;
+          } catch (error) {
+            break;
+          }
+        }
+
+        return current;
+      }
+
+      function copyRouteParams(source, target) {
+        routeKeys.forEach(key => {
+          if (source.has(key)) {
+            target.set(
+              key,
+              source.get(key)
+            );
+          }
+        });
+      }
+
+      function hasRouteParams(paramsToCheck) {
+        return routeKeys.some(key =>
+          paramsToCheck.has(key)
+        );
+      }
+
+      function parseLiffStateParams(rawState) {
+        const paramsFromState =
+          new URLSearchParams();
+
+        if (!rawState) {
+          return paramsFromState;
+        }
+
+        [
+          String(rawState),
+          decodeRouteValue(rawState)
+        ].forEach(candidate => {
+          const text =
+            candidate.trim();
+
+          if (!text) {
+            return;
+          }
+
+          const queryTexts = [];
+
+          try {
+            const parsedUrl =
+              new URL(text, location.origin);
+
+            if (parsedUrl.search) {
+              queryTexts.push(
+                parsedUrl.search.slice(1)
+              );
+            }
+
+            if (
+              parsedUrl.hash &&
+              parsedUrl.hash.includes("?")
+            ) {
+              queryTexts.push(
+                parsedUrl.hash
+                  .split("?")
+                  .pop()
+              );
+            }
+          } catch (error) {
+            // Fall through to plain query parsing.
+          }
+
+          if (text.startsWith("?")) {
+            queryTexts.push(text.slice(1));
+          } else if (text.startsWith("#")) {
+            queryTexts.push(
+              text
+                .slice(1)
+                .replace(/^\?/, "")
+            );
+          } else if (text.includes("?")) {
+            queryTexts.push(
+              text
+                .split("?")
+                .pop()
+                .split("#")
+                .shift()
+            );
+          } else if (text.includes("=")) {
+            queryTexts.push(text);
+          }
+
+          queryTexts.forEach(queryText => {
+            copyRouteParams(
+              new URLSearchParams(queryText),
+              paramsFromState
+            );
+          });
+        });
+
+        return paramsFromState;
+      }
+
+      function collectRouteParams(searchText = location.search) {
+        const collected =
+          new URLSearchParams(searchText);
+
+        const stateParams =
+          parseLiffStateParams(
+            collected.get("liff.state")
+          );
+
+        if (hasRouteParams(stateParams)) {
+          copyRouteParams(
+            stateParams,
+            collected
+          );
+        }
+
+        return collected;
+      }
+
+      function normalizeModeName(value) {
+        return value === "inside"
           ? "inside"
           : "before";
+      }
+
+      function normalizeViewName(value) {
+        const rawName =
+          (value || "home").toLowerCase();
+
+        const viewName =
+          routeViewAliases[rawName] ||
+          rawName;
+
+        if (viewName === "home") {
+          return "home";
+        }
+
+        return document.getElementById(
+          viewName + "View"
+        )
+          ? viewName
+          : "home";
+      }
+
+      function viewNameForUrl(viewName) {
+        return viewName === "stamp"
+          ? "games"
+          : viewName;
+      }
+
+      function routeFromParams(routeParams) {
+        return {
+          mode: normalizeModeName(
+            routeParams.get("mode")
+          ),
+
+          view: normalizeViewName(
+            routeParams.get("view")
+          )
+        };
+      }
+
+      const params =
+        collectRouteParams(location.search);
+
+      const initialRoute =
+        routeFromParams(params);
+
+      let mode =
+        initialRoute.mode;
 
       const initialView =
-        params.get("view") || "home";
+        initialRoute.view;
 
       function notify(text) {
         toast.textContent = text;
@@ -5657,29 +5846,47 @@
 
       function setQuery(viewName) {
         const url = new URL(location.href);
+        const normalizedView =
+          normalizeViewName(viewName);
 
+        url.searchParams.delete("liff.state");
+        url.searchParams.delete("liff.source");
         url.searchParams.set("mode", mode);
 
-        if (viewName && viewName !== "home") {
-          url.searchParams.set("view", viewName);
+        if (
+          normalizedView &&
+          normalizedView !== "home"
+        ) {
+          url.searchParams.set(
+            "view",
+            viewNameForUrl(normalizedView)
+          );
         } else {
           url.searchParams.delete("view");
         }
 
         history.replaceState(
-          { view: viewName },
+          {
+            mode,
+            view: normalizedView
+          },
           "",
           url
         );
       }
 
       function showView(name, update = true) {
+        const normalizedName =
+          normalizeViewName(name);
+
         views.forEach(view => {
           view.classList.remove("active");
         });
 
         const target =
-          document.getElementById(name + "View") ||
+          document.getElementById(
+            normalizedName + "View"
+          ) ||
           home;
 
         target.classList.add("active");
@@ -5694,7 +5901,7 @@
           setQuery(
             target === home
               ? "home"
-              : name
+              : normalizedName
           );
         }
 
@@ -7096,21 +7303,21 @@ const callStatusLink =
         "popstate",
         () => {
           const currentParams =
-            new URLSearchParams(
+            collectRouteParams(
               location.search
             );
 
           mode =
-            currentParams.get("mode") ===
-            "inside"
-              ? "inside"
-              : "before";
+            normalizeModeName(
+              currentParams.get("mode")
+            );
 
           applyMode();
 
           showView(
-            currentParams.get("view") ||
-            "home",
+            normalizeViewName(
+              currentParams.get("view")
+            ),
             false
           );
         }
@@ -7136,6 +7343,8 @@ const callStatusLink =
         initialView,
         false
       );
+
+      setQuery(initialView);
     })();
   </script>
 </body>
