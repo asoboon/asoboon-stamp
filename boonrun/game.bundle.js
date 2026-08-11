@@ -67,11 +67,11 @@ const OBSTACLES = Object.freeze({
     answer: 'JUMP1_LANDING', measuredWindowMs: { speed100: 310, speed165: 310 },
   },
   ROLLTIRE: {
-    type: 'ROLLTIRE', width: 36, height: 42, visualWidth: 42, visualHeight: 48, ownLeftPxPerSec: 135, unlockM: 2800,
+    type: 'ROLLTIRE', width: 36, height: 42, visualWidth: 42, visualHeight: 48, ownLeftPxPerSec: 135, unlockM: 3600,
     answer: 'JUMP1_TIMING', measuredWindowMs: { speed100: 159, speed165: 266 },
   },
   LOWBEAM: {
-    type: 'LOWBEAM', width: 180, thickness: 20, lowerEdge: 92, unlockM: 2600,
+    type: 'LOWBEAM', width: 180, thickness: 20, lowerEdge: 92, unlockM: 5200,
     answer: 'NO_JUMP',
   },
   DRONE: {
@@ -80,7 +80,7 @@ const OBSTACLES = Object.freeze({
   },
   ARCH: {
     type: 'ARCH', pillarWidth: 28, pillarHeight: 42,
-    roofWidth: 170, roofLowerEdge: 218, unlockM: 4300,
+    roofWidth: 170, roofLowerEdge: 218, unlockM: 7600,
     answer: 'JUMP1_ONLY', measuredWindowMs: { speed100: 204, speed165: 331 },
   },
 });
@@ -164,10 +164,10 @@ const CARS = Object.freeze([
   },
   {
     id:'wagon', name:'スマートワゴン', rarity:'R', role:'FLOAT_CONTROL',
-    hitboxScale:0.98, visualScale:0.98, jumpScale:0.76, secondJumpScale:0.82, gravityScale:0.66,
+    hitboxScale:0.98, visualScale:0.98, jumpScale:0.76, secondJumpScale:0.98, gravityScale:0.66,
     fuelMax:100, fuelRate:1.00, maxJumps:2,
     inputBufferMs:260,
-    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。1段目は低めでも長く浮く。2段目で高さと滞空を足す。地上障害に強いがドローン/ロービーム前は降りにくい' },
+    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。1段目は低めでも長く浮く。2段目でしっかり高度を足す。地上障害に強いがドローン/ロービーム前は降りにくい' },
   },
   {
     id:'buggy', name:'ラッキーバギー', rarity:'SR', role:'COMMIT_HOP',
@@ -219,14 +219,14 @@ const CARS = Object.freeze([
 const ENVELOPE_CARS = Object.freeze([
   // Real-world boundary profiles. Avoid impossible hybrid cars that no player can actually select.
   { id:'GROUND_WORST', hitboxScale:1.18, jumpScale:0.82, secondJumpScale:1.22, gravityScale:1.12, maxJumps:2 },
-  { id:'CEILING_WORST', hitboxScale:0.98, jumpScale:0.90, secondJumpScale:0.82, gravityScale:0.66, maxJumps:2 },
+  { id:'CEILING_WORST', hitboxScale:0.98, jumpScale:0.90, secondJumpScale:0.98, gravityScale:0.66, maxJumps:2 },
   { id:'SMALL_WORST', hitboxScale:0.60, jumpScale:0.78, secondJumpScale:1.42, gravityScale:1.34, maxJumps:2 },
 ]);
 
 const J = sec => Number((sec / DERIVED.jump1AirTime).toFixed(6));
 const O = (sec, type, extra={}) => ({ type, atJ:J(sec), ...extra });
 
-// 47 authored pattern roots. atJ is speed-normalized: 1.0 = one base first-jump airtime.
+// 55 authored pattern roots. atJ is speed-normalized: 1.0 = one base first-jump airtime.
 // The generator converts it at spawn: deltaPx = atJ * jump1AirTime * currentScrollSpeed.
 const PATTERNS = Object.freeze([
   {id:'P001_CONE',d:1,minM:0,tags:['GROUND'],events:[O(0,'CONE')]},
@@ -251,35 +251,35 @@ const PATTERNS = Object.freeze([
   {id:'P019_CONE_FUEL2',d:2,minM:1500,tags:['CHOICE','FUEL'],events:[O(0,'CONE'),O(.35,'FUEL_L',{lane:'AIR2',required:true})]},
   {id:'P020_PIT_FUEL2',d:2,minM:2200,tags:['CHOICE','FUEL','GAP'],events:[O(0,'PIT'),O(.35,'FUEL_L',{lane:'AIR2',required:true})]},
 
-  {id:'P021_ROLL',d:3,minM:3000,tags:['MOVING'],events:[O(0,'ROLLTIRE')]},
-  {id:'P022_CONE_ROLL',d:3,minM:3000,tags:['MOVING','SEQUENCE'],events:[O(0,'CONE'),O(.85,'ROLLTIRE')]},
-  {id:'P023_ROLL_CONE',d:3,minM:3000,tags:['MOVING','SEQUENCE'],events:[O(0,'ROLLTIRE'),O(.85,'CONE')]},
-  {id:'P024_BARRIER_ROLL',d:3,minM:3000,tags:['MOVING','SEQUENCE'],events:[O(0,'BARRIER'),O(.90,'ROLLTIRE')]},
-  {id:'P025_ROLL_BARRIER',d:3,minM:3000,tags:['MOVING','SEQUENCE'],events:[O(0,'ROLLTIRE'),O(.90,'BARRIER')]},
-  {id:'P026_PIT_ROLL',d:3,minM:3000,tags:['MOVING','GAP'],events:[O(0,'PIT'),O(.90,'ROLLTIRE')]},
-  {id:'P027_ROLL_PIT',d:3,minM:3000,tags:['MOVING','GAP'],events:[O(0,'ROLLTIRE'),O(.95,'PIT')]},
-  {id:'P028_CRATE_ROLL',d:3,minM:3000,tags:['MOVING','DOUBLE'],events:[O(0,'CRATE'),O(1.40,'ROLLTIRE')]},
-  {id:'P029_ROLL_CRATE',d:3,minM:3000,tags:['MOVING','DOUBLE'],events:[O(0,'ROLLTIRE'),O(1.05,'CRATE')]},
-  {id:'P030_TRIPLE_GROUND',d:3,minM:3000,tags:['SEQUENCE'],events:[O(0,'CONE'),O(.70,'BARRIER'),O(1.48,'CONE')]},
+  {id:'P021_ROLL',d:3,minM:3800,tags:['MOVING'],events:[O(0,'ROLLTIRE')]},
+  {id:'P022_CONE_ROLL',d:3,minM:3800,tags:['MOVING','SEQUENCE'],events:[O(0,'CONE'),O(.85,'ROLLTIRE')]},
+  {id:'P023_ROLL_CONE',d:3,minM:3800,tags:['MOVING','SEQUENCE'],events:[O(0,'ROLLTIRE'),O(.85,'CONE')]},
+  {id:'P024_BARRIER_ROLL',d:3,minM:3800,tags:['MOVING','SEQUENCE'],events:[O(0,'BARRIER'),O(.90,'ROLLTIRE')]},
+  {id:'P025_ROLL_BARRIER',d:3,minM:3800,tags:['MOVING','SEQUENCE'],events:[O(0,'ROLLTIRE'),O(.90,'BARRIER')]},
+  {id:'P026_PIT_ROLL',d:3,minM:3800,tags:['MOVING','GAP'],events:[O(0,'PIT'),O(.90,'ROLLTIRE')]},
+  {id:'P027_ROLL_PIT',d:3,minM:3800,tags:['MOVING','GAP'],events:[O(0,'ROLLTIRE'),O(.95,'PIT')]},
+  {id:'P028_CRATE_ROLL',d:3,minM:3800,tags:['MOVING','DOUBLE'],events:[O(0,'CRATE'),O(1.40,'ROLLTIRE')]},
+  {id:'P029_ROLL_CRATE',d:3,minM:3800,tags:['MOVING','DOUBLE'],events:[O(0,'ROLLTIRE'),O(1.05,'CRATE')]},
+  {id:'P030_TRIPLE_GROUND',d:3,minM:3600,tags:['SEQUENCE'],events:[O(0,'CONE'),O(.70,'BARRIER'),O(1.48,'CONE')]},
 
-  {id:'P031_LOWBEAM',d:4,minM:4200,tags:['NOJUMP'],events:[O(0,'LOWBEAM')]},
-  {id:'P032_LOWBEAM_CONE',d:4,minM:4200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'LOWBEAM'),O(.95,'CONE')]},
-  {id:'P033_CONE_LOWBEAM',d:4,minM:4200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'CONE'),O(1.10,'LOWBEAM')]},
-  {id:'P034_LOWBEAM_BARRIER',d:4,minM:4200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'LOWBEAM'),O(1.00,'BARRIER')]},
-  {id:'P035_BARRIER_LOWBEAM',d:4,minM:4200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'BARRIER'),O(1.15,'LOWBEAM')]},
-  {id:'P036_LOWBEAM_PIT',d:4,minM:4200,tags:['NOJUMP','GAP'],events:[O(0,'LOWBEAM'),O(1.00,'PIT')]},
-  {id:'P037_PIT_LOWBEAM',d:4,minM:4200,tags:['NOJUMP','GAP'],events:[O(0,'PIT'),O(1.10,'LOWBEAM')]},
-  {id:'P038_RISK_FUEL_CAGE',d:4,minM:4200,tags:['COMMIT','FUEL','NOJUMP'],events:[O(0,'LOWBEAM'),O(.75,'FUEL_L',{lane:'AIR1',required:true}),O(1.50,'LOWBEAM')]},
-  {id:'P039_LOWBEAM_SAFE_FUEL',d:4,minM:4200,tags:['SAFE','FUEL','NOJUMP'],events:[O(0,'LOWBEAM'),O(.70,'FUEL_S',{lane:'GROUND',required:true})]},
-  {id:'P040_LOWBEAM_ROLL',d:4,minM:4200,tags:['NOJUMP','MOVING'],events:[O(0,'LOWBEAM'),O(1.60,'ROLLTIRE')]},
+  {id:'P031_LOWBEAM',d:4,minM:5600,tags:['NOJUMP'],events:[O(0,'LOWBEAM')]},
+  {id:'P032_LOWBEAM_CONE',d:4,minM:5600,tags:['NOJUMP','SEQUENCE'],events:[O(0,'LOWBEAM'),O(.95,'CONE')]},
+  {id:'P033_CONE_LOWBEAM',d:4,minM:5600,tags:['NOJUMP','SEQUENCE'],events:[O(0,'CONE'),O(1.10,'LOWBEAM')]},
+  {id:'P034_LOWBEAM_BARRIER',d:4,minM:5600,tags:['NOJUMP','SEQUENCE'],events:[O(0,'LOWBEAM'),O(1.00,'BARRIER')]},
+  {id:'P035_BARRIER_LOWBEAM',d:4,minM:5600,tags:['NOJUMP','SEQUENCE'],events:[O(0,'BARRIER'),O(1.15,'LOWBEAM')]},
+  {id:'P036_LOWBEAM_PIT',d:4,minM:5600,tags:['NOJUMP','GAP'],events:[O(0,'LOWBEAM'),O(1.00,'PIT')]},
+  {id:'P037_PIT_LOWBEAM',d:4,minM:5600,tags:['NOJUMP','GAP'],events:[O(0,'PIT'),O(1.10,'LOWBEAM')]},
+  {id:'P038_RISK_FUEL_CAGE',d:4,minM:5600,tags:['COMMIT','FUEL','NOJUMP'],events:[O(0,'LOWBEAM'),O(.75,'FUEL_L',{lane:'AIR1',required:true}),O(1.50,'LOWBEAM')]},
+  {id:'P039_LOWBEAM_SAFE_FUEL',d:4,minM:5600,tags:['SAFE','FUEL','NOJUMP'],events:[O(0,'LOWBEAM'),O(.70,'FUEL_S',{lane:'GROUND',required:true})]},
+  {id:'P040_LOWBEAM_ROLL',d:4,minM:5600,tags:['NOJUMP','MOVING'],events:[O(0,'LOWBEAM'),O(1.60,'ROLLTIRE')]},
 
-  {id:'P041_ARCH',d:5,minM:6500,tags:['ONEJUMP'],events:[O(0,'ARCH')]},
-  {id:'P042_ARCH_CONE',d:5,minM:6500,tags:['ONEJUMP','SEQUENCE'],events:[O(0,'ARCH'),O(.95,'CONE')]},
-  {id:'P043_CONE_ARCH',d:5,minM:6500,tags:['ONEJUMP','SEQUENCE'],events:[O(0,'CONE'),O(1.05,'ARCH')]},
-  {id:'P044_ARCH_CRATE',d:5,minM:6500,tags:['ONEJUMP','DOUBLE'],events:[O(0,'ARCH'),O(1.10,'CRATE')]},
-  {id:'P045_CRATE_ARCH',d:5,minM:6500,tags:['DOUBLE','ONEJUMP'],events:[O(0,'CRATE'),O(1.30,'ARCH')]},
-  {id:'P046_ARCH_PIT_LOW',d:5,minM:6500,tags:['ONEJUMP','GAP','NOJUMP'],events:[O(0,'ARCH'),O(1.00,'PIT'),O(2.15,'LOWBEAM')]},
-  {id:'P047_LOW_ARCH_FUEL2',d:5,minM:6500,tags:['COMMIT','ONEJUMP','FUEL'],events:[O(0,'LOWBEAM'),O(1.00,'ARCH'),O(1.55,'FUEL_L',{lane:'AIR2',required:true})]},
+  {id:'P041_ARCH',d:5,minM:8200,tags:['ONEJUMP'],events:[O(0,'ARCH')]},
+  {id:'P042_ARCH_CONE',d:5,minM:8200,tags:['ONEJUMP','SEQUENCE'],events:[O(0,'ARCH'),O(.95,'CONE')]},
+  {id:'P043_CONE_ARCH',d:5,minM:8200,tags:['ONEJUMP','SEQUENCE'],events:[O(0,'CONE'),O(1.05,'ARCH')]},
+  {id:'P044_ARCH_CRATE',d:5,minM:8200,tags:['ONEJUMP','DOUBLE'],events:[O(0,'ARCH'),O(1.10,'CRATE')]},
+  {id:'P045_CRATE_ARCH',d:5,minM:8200,tags:['DOUBLE','ONEJUMP'],events:[O(0,'CRATE'),O(1.30,'ARCH')]},
+  {id:'P046_ARCH_PIT_LOW',d:5,minM:8200,tags:['ONEJUMP','GAP','NOJUMP'],events:[O(0,'ARCH'),O(1.00,'PIT'),O(2.15,'LOWBEAM')]},
+  {id:'P047_LOW_ARCH_FUEL2',d:5,minM:8200,tags:['COMMIT','ONEJUMP','FUEL'],events:[O(0,'LOWBEAM'),O(1.00,'ARCH'),O(1.55,'FUEL_L',{lane:'AIR2',required:true})]},
 
   {id:'P048_DRONE',d:2,minM:650,tags:['NOJUMP','AIR_HAZARD'],events:[O(0,'DRONE')]},
   {id:'P049_DRONE_SAFE_FUEL',d:2,minM:700,tags:['NOJUMP','SAFE','FUEL'],events:[O(0,'DRONE'),O(.82,'FUEL_S',{lane:'GROUND',required:true})]},
@@ -287,8 +287,8 @@ const PATTERNS = Object.freeze([
   {id:'P051_DRONE_CONE',d:2,minM:1000,tags:['NOJUMP','SEQUENCE'],events:[O(0,'DRONE'),O(.95,'CONE')]},
   {id:'P052_BARRIER_DRONE',d:2,minM:1200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'BARRIER'),O(1.36,'DRONE')]},
   {id:'P053_DRONE_BARRIER',d:2,minM:1200,tags:['NOJUMP','SEQUENCE'],events:[O(0,'DRONE'),O(1.00,'BARRIER')]},
-  {id:'P054_DRONE_AIR_FUEL',d:3,minM:1800,tags:['CHOICE','NOJUMP','FUEL'],events:[O(0,'DRONE'),O(1.25,'FUEL_L',{lane:'AIR1',required:true})]},
-  {id:'P055_DRONE_CRATE',d:3,minM:2400,tags:['NOJUMP','DOUBLE','SEQUENCE'],events:[O(0,'DRONE'),O(1.15,'CRATE')]},
+  {id:'P054_DRONE_AIR_FUEL',d:3,minM:3000,tags:['CHOICE','NOJUMP','FUEL'],events:[O(0,'DRONE'),O(1.25,'FUEL_L',{lane:'AIR1',required:true})]},
+  {id:'P055_DRONE_CRATE',d:3,minM:3400,tags:['NOJUMP','DOUBLE','SEQUENCE'],events:[O(0,'DRONE'),O(1.15,'CRATE')]},
 ]);
 
 const PATTERN_RULES = Object.freeze({
@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.17-crate-double-ultimate-xl';
-const CLIENT_VERSION = '1.0.17';
+const BUILD = '2026-08-11-playable-v1.0.20-3k-breakthrough';
+const CLIENT_VERSION = '1.0.20';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -356,12 +356,12 @@ const ABILITY_SHORT = {
   boon:'🛻 HEAVY', wagon:'☁ FLOAT', buggy:'⬆ COMMIT', bike:'🏍 QUICK', sport:'⚡ FAST', ssr:'🌌 STANDARD', princess:'★ GROW', secret:'🚀 ROCKET'
 };
 const HANDLING_LABEL = {
-  boon:'重い｜低い1段 → 強烈2段', wagon:'浮く｜低い1段・長い滞空・2段で上へ', buggy:'一発｜超大ジャンプ・修正不可', bike:'鋭い｜低い1段 → 強烈2段',
+  boon:'重い｜低い1段 → 強烈2段', wagon:'浮く｜低い1段・長い滞空・強い2段', buggy:'一発｜超大ジャンプ・修正不可', bike:'鋭い｜低い1段 → 強烈2段',
   sport:'高速｜短い判断時間・速い落下', ssr:'素直｜低め1段＋基準2段＋CLOSE勝負', princess:'成長｜低め1段→★で性能と入力段数が変化', secret:'別操作｜HOLD上昇 / RELEASE落下'
 };
 const HOME_GUIDE = {
   boon:[['TAP','重く低い1段'],['TAP×2','強烈サス2段'],['🛡','ARMORで小障害突破']],
-  wagon:[['TAP','低めにふわっと長時間滞空'],['TAP×2','2段で高さ＋滞空を追加'],['↓','降りたい時に降りにくい']],
+  wagon:[['TAP','低めにふわっと長時間滞空'],['TAP×2','強い2段で高度を追加'],['↓','降りたい時に降りにくい']],
   buggy:[['TAP','一発超大ジャンプ'],['×2','空中修正なし'],['⛽','アーチ破壊は−12']],
   bike:[['TAP','低く鋭く・すぐ落下'],['TAP×2','強烈2段・燃料−4'],['🏍','最小ボディで精密回避']],
   sport:[['FAST','常時14%高速'],['TAP×2','クイック2段'],['⚡','NITROで爆速無敵']],
@@ -444,11 +444,19 @@ function showScreen(name){
   Object.entries(els.screens).forEach(([k,node])=>node.classList.toggle('active',k===name));
   document.body.classList.toggle('in-game',name==='game');
 }
-function carAsset(id){return `./assets/cars/${id}-body.png`;}
+const BOONJUMP_SYNC_CARS=new Set(['boon','wagon','buggy','bike','sport','ssr','princess','secret']);
+function carAssetLocal(id){return `./assets/cars/${id}-body.png`;}
+function carAsset(id){return BOONJUMP_SYNC_CARS.has(id)?`../boonjump/assets/cars/${id}-body.png?run-sync=119`:carAssetLocal(id);}
+function bindCarImageFallback(img,id){
+  if(!img)return;
+  delete img.dataset.boonrunFallback;
+  img.onerror=()=>{if(img.dataset.boonrunFallback==='1')return;img.dataset.boonrunFallback='1';img.src=carAssetLocal(id);};
+}
 function currentCar(){return CAR_BY_ID[state.selected]||CAR_BY_ID.wagon;}
 function renderMenu(){
   const car=currentCar();
   els.homeBest.textContent=fmt(state.best);
+  bindCarImageFallback(els.homeCarImage,car.id);
   els.homeCarImage.src=carAsset(car.id);
   els.selectedCarLabel.textContent=car.name;
   els.playCountLabel.textContent=`PLAY ${state.plays.toLocaleString()}`;
@@ -468,6 +476,7 @@ function renderGarage(){
     b.setAttribute('aria-label',owned?`${car.name}。${car.ability.text}`:`未解放。${car.id==='secret'?'ブーンジャンプ通常7台コンプリートで解放':'ブーンジャンプで獲得すると解放'}`);
     b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3>${owned?`<div class="handling">${HANDLING_LABEL[car.id]}</div><div class="special-chip">⚡ 最終奥義・1回限り｜${SPECIALS[car.id].name}</div>`:''}<p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
     els.carGrid.appendChild(b);
+    bindCarImageFallback(b.querySelector('img'),car.id);
   });
 }
 function renderRecords(){
@@ -478,6 +487,7 @@ function renderRecords(){
     const row=document.createElement('div');row.className='record-row';
     row.innerHTML=`<img src="${carAsset(car.id)}" alt=""><div><h3>${car.name}</h3><p>${ABILITY_SHORT[car.id]}｜PLAY ${rec.plays||0}</p></div><strong>${fmt(rec.best)}</strong>`;
     els.recordCars.appendChild(row);
+    bindCarImageFallback(row.querySelector('img'),car.id);
   });
 }
 
@@ -514,11 +524,13 @@ class RNG{
 }
 
 const images=new Map();
-function loadImage(src){
+function loadImage(src,fallback=''){
   if(images.has(src))return images.get(src);
-  const img=new Image();img.src=src;images.set(src,img);return img;
+  const img=new Image();
+  if(fallback)img.onerror=()=>{if(img.__boonrunFallbackUsed)return;img.__boonrunFallbackUsed=true;img.src=fallback;};
+  img.src=src;images.set(src,img);return img;
 }
-CARS.forEach(c=>loadImage(carAsset(c.id)));
+CARS.forEach(c=>loadImage(carAsset(c.id),carAssetLocal(c.id)));
 
 let run=null, raf=0, lastTime=0, accumulator=0;
 function makeRun(car){
@@ -539,15 +551,25 @@ function makeRun(car){
   };
 }
 function speedMultiplierAt(m){
-  if(m<500)return lerp(1,1.10,m/500);
-  if(m<2000)return lerp(1.10,1.25,(m-500)/1500);
-  if(m<5000)return lerp(1.25,1.45,(m-2000)/3000);
-  if(m<10000)return lerp(1.45,1.60,(m-5000)/5000);
-  if(m<20000)return lerp(1.60,1.65,(m-10000)/10000);
+  // v1.0.20: remove the observed 3km difficulty cliff. Speed still reaches the
+  // same 1.65 endless cap, but the 2–6km learning band gets more preview time.
+  if(m<800)return lerp(1,1.08,m/800);
+  if(m<3000)return lerp(1.08,1.22,(m-800)/2200);
+  if(m<6000)return lerp(1.22,1.40,(m-3000)/3000);
+  if(m<10000)return lerp(1.40,1.56,(m-6000)/4000);
+  if(m<20000)return lerp(1.56,1.65,(m-10000)/10000);
   return 1.65;
 }
 function difficultyRange(m){
-  if(m<500)return [1,1]; if(m<1500)return [1,2]; if(m<2500)return [1,2]; if(m<4000)return [1,3]; if(m<6000)return [2,4]; if(m<10000)return [2,5]; if(m<20000)return [3,5]; return [4,5];
+  // 0–3.2km: learn the core vocabulary. 3.2–5km: introduce d3 without d4.
+  // 5km+: real midgame. 20km+ remains the same d4–5 endless band.
+  if(m<600)return [1,1];
+  if(m<3200)return [1,2];
+  if(m<5000)return [1,3];
+  if(m<7000)return [2,4];
+  if(m<10000)return [2,5];
+  if(m<20000)return [3,5];
+  return [4,5];
 }
 function patternFuelValue(p){let sum=0;p.events.forEach(e=>{if(e.type==='FUEL_S')sum+=20;if(e.type==='FUEL_L')sum+=40;});return sum;}
 function eligiblePatterns(m){
@@ -558,13 +580,17 @@ function eligiblePatterns(m){
   return pool;
 }
 function patternGapSecAt(m,d){
-  // Preserve validated within-pattern timings; only add breathing room between patterns.
-  if(m<300)return 1.05;
-  if(m<600)return .90;
-  if(m<1000)return .75;
-  if(m<1800)return .60;
-  if(m<3000)return .48;
-  return d>=4?.55:.38;
+  // Preserve validated within-pattern timings. The live-player data showed that the
+  // old 3km transition (.48 -> .38s plus new moving hazards) was too abrupt.
+  if(m<300)return 1.10;
+  if(m<800)return .95;
+  if(m<1500)return .82;
+  if(m<2500)return .70;
+  if(m<3500)return .62;
+  if(m<5000)return .56;
+  if(m<7000)return d>=4?.62:.50;
+  if(m<10000)return d>=4?.58:.46;
+  return d>=4?.55:.42;
 }
 function crateTutorialFor(carId){
   return ({
@@ -611,6 +637,9 @@ function choosePattern(){
   // avoid identical recent patterns and overloading high difficulty back-to-back
   const recent=new Set(run.patternHistory.slice(-3));
   let filtered=candidates.filter(p=>!recent.has(p.id)); if(!filtered.length)filtered=candidates;
+  // Learning-band recovery: avoid stacking d3 immediately after d3 before 5km.
+  // This does not change any authored pattern; it only gives the player a recovery question.
+  if(m<5000&&run.lastPattern?.d>=3){const easier=filtered.filter(p=>p.d<=2||p.tags.includes('REST'));if(easier.length&&run.rng.next()<.72)filtered=easier;}
   if(run.lastPattern?.d>=4){const easier=filtered.filter(p=>p.d<=3||p.tags.includes('REST'));if(easier.length&&run.rng.next()<.62)filtered=easier;}
   const p=run.rng.pick(filtered.length?filtered:pool);
   queuePatternTip(p);
@@ -687,7 +716,7 @@ function setStartGuide(){
   if(!run)return;
   const guides={
     boon:['HEAVY｜1段目は低い','2段目だけ強烈サス反発｜ARMORでCONE/BARRIER突破'],
-    wagon:['FLOAT｜とにかく長く浮く','2段目は高度より滞空延長｜DRONE/LOWBEAM前は早めに判断'],
+    wagon:['FLOAT｜低く長く浮く','2段目でしっかり上へ｜DRONE/LOWBEAM前は早めに判断'],
     buggy:['COMMIT｜1タップ超大ジャンプ','2段なし・空中修正なし｜飛ぶ前に決める'],
     bike:['QUICK｜低い1段から鋭い2段','すぐ落ちる精密操作｜2段ごとに燃料−4'],
     sport:['FAST｜常時14%高速','判断時間が短い｜NITRO中は爆速無敵・燃料×2.5'],
@@ -873,7 +902,7 @@ function checkCollisions(){
   for(const obj of run.objects){
     if(obj.dead||obj.collected||obj.destroyed)continue;
     if(ITEMS[obj.type]){
-      const ir=itemRect(obj);
+      const ir=itemRectWithMagnet(obj);
       if(run.magnetUntilM>run.distance&&['FUEL_S','FUEL_L','FULL'].includes(obj.type)){
         const pcx=PHYSICS.carCenterX,pcy=ROAD_Y-run.y-run.cp.height*.5,icx=ir.x+ir.w/2,icy=ir.y+ir.h/2,dx=pcx-icx,dy=pcy-icy,d=Math.hypot(dx,dy);
         if(d<ITEMS.MAGNET.radiusPx){obj.magnetPulled=true;obj.x+=dx*0.18; const targetH=ROAD_Y-pcy; const cur=ITEM_LANES[obj.lane]??52; if(Math.abs(dy)>2)obj.magnetYOffset=(obj.magnetYOffset||0)+dy*.18;}
@@ -924,7 +953,7 @@ function pickup(obj){
     return;
   }
   if(obj.type==='BOOST'){activateBoost('BOOST',ITEMS.BOOST.durationSec,ITEMS.BOOST.scrollMultiplier);sound.special();}
-  if(obj.type==='MAGNET'){run.magnetUntilM=run.distance+ITEMS.MAGNET.durationM;toast('MAGNET 450m');rewardFx('cyan',.72,.9);sound.special();}
+  if(obj.type==='MAGNET'){run.magnetUntilM=run.distance+ITEMS.MAGNET.durationM;toast(`MAGNET ${ITEMS.MAGNET.durationM}m`);rewardFx('cyan',.72,.9);sound.special();}
   if(obj.type==='SHIELD'){if(run.car.id==='boon'){run.armor=Math.min(run.car.ability.armorMax||2,run.armor+1);toast(`ARMOR REPAIR ${run.armor}/2`);}else{run.shield=true;run.shieldUntilM=run.distance+ITEMS.SHIELD.expiresAfterM;toast('SHIELD ×1');}rewardFx(obj.type==='SHIELD'?'violet':'cyan',.72,.9);sound.special();}
 }
 function activateBoost(reason,duration=3,multiplier=1.35){
@@ -1201,9 +1230,9 @@ let rankingPeriod='all',rankingMachine='',pendingRankSubmit=false;
 function rankCarName(id){return CAR_BY_ID[id]?.name||id||'-';}
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function populateRankingMachines(){if(!els.rankingMachineSelect)return;els.rankingMachineSelect.innerHTML='<option value="">車種を選ぶ</option>'+CARS.map(c=>`<option value="${c.id}">${c.secret?'🚀 SECRET｜':''}${c.name}</option>`).join('');}
-function renderRankingRows(data){const rows=(data?.rows||[]).slice(0,20);const myId=RUN_RANKING?.playerId?.()||'';els.rankingList.innerHTML=rows.length?rows.map(r=>`<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name">${escapeHtml(r.display_name)}<small>${escapeHtml(r.machine_name||rankCarName(r.machine_id))}</small></div><div class="distance">${fmt(r.distance)}</div></div>`).join(''):'<div class="ranking-row"><div class="name">まだ記録がありません。</div></div>';if(data?.me){els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small>${escapeHtml(data.me.machine_name||rankCarName(data.me.machine_id)||'あなたのベスト')}</small>`;}else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録するとここに順位が表示されます</small>';}}
+function renderRankingRows(data){const rows=(data?.rows||[]).slice(0,10);const myId=RUN_RANKING?.playerId?.()||'';els.rankingList.innerHTML=rows.length?rows.map(r=>`<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name">${escapeHtml(r.display_name)}<small>${escapeHtml(r.machine_name||rankCarName(r.machine_id))}</small></div><div class="distance">${fmt(r.distance)}</div></div>`).join(''):'<div class="ranking-row"><div class="name">まだ記録がありません。</div></div>';if(data?.me){els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small>${escapeHtml(data.me.machine_name||rankCarName(data.me.machine_id)||'あなたのベスト')}</small>`;}else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録するとここに順位が表示されます</small>';}}
 function syncRankingFilterUI(){if(els.rankingOverallButton)els.rankingOverallButton.classList.toggle('active',!rankingMachine);if(els.rankingMachineSelect)els.rankingMachineSelect.value=rankingMachine;}
-async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,20);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
+async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,10);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
 async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
 function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
