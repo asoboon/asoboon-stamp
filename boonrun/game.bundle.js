@@ -59,8 +59,8 @@ const OBSTACLES = Object.freeze({
     answer: 'JUMP1', measuredWindowMs: { speed100: 118, speed165: 276 },
   },
   CRATE: {
-    type: 'CRATE', width: 34, height: 124, visualWidth: 38, visualHeight: 126, unlockM: 1000,
-    answer: 'VEHICLE_SPECIFIC_HIGH_CLEAR', measuredWindowMs: { speed100: 155, speed165: 298 },
+    type: 'CRATE', width: 34, height: 138, visualWidth: 38, visualHeight: 140, unlockM: 1000,
+    answer: 'DOUBLE_JUMP_OR_COMMIT', measuredWindowMs: { speed100: 155, speed165: 298 },
   },
   PIT: {
     type: 'PIT', temporalWidthMs: 285, unlockM: 1900,
@@ -164,10 +164,10 @@ const CARS = Object.freeze([
   },
   {
     id:'wagon', name:'スマートワゴン', rarity:'R', role:'FLOAT_CONTROL',
-    hitboxScale:0.98, visualScale:0.98, jumpScale:0.90, secondJumpScale:0.82, gravityScale:0.66,
+    hitboxScale:0.98, visualScale:0.98, jumpScale:0.76, secondJumpScale:0.82, gravityScale:0.66,
     fuelMax:100, fuelRate:1.00, maxJumps:2,
     inputBufferMs:260,
-    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。ふわっと長時間滞空。2段目は弱めで高度より滞空延長。地上障害に強いがドローン/ロービーム前は降りにくい' },
+    ability:{ id:'FLOAT_CONTROL', text:'FLOAT。1段目は低めでも長く浮く。2段目で高さと滞空を足す。地上障害に強いがドローン/ロービーム前は降りにくい' },
   },
   {
     id:'buggy', name:'ラッキーバギー', rarity:'SR', role:'COMMIT_HOP',
@@ -192,19 +192,19 @@ const CARS = Object.freeze([
   },
   {
     id:'ssr', name:'コズミックファントム', rarity:'EXR', role:'DEATH_BET',
-    hitboxScale:1.00, visualScale:0.90, jumpScale:1.00, secondJumpScale:1.00, gravityScale:1.00,
+    hitboxScale:1.00, visualScale:0.90, jumpScale:0.94, secondJumpScale:1.00, gravityScale:1.00,
     fuelMax:100, fuelRate:1.06, maxJumps:2,
     ability:{ id:'PHANTOM_RESERVE', closeNeeded:2, saveFuelCost:35, saveInvulnSec:1.2,
-      text:'STANDARD。クセの少ない基準操作。ただしCLOSE×2を攻めてPHANTOM READY。致死回避は燃料35、PIT/GAS欠には無効' },
+      text:'STANDARD。低めで素直な1段＋基準2段。CLOSE×2を攻めてPHANTOM READY。致死回避は燃料35、PIT/GAS欠には無効' },
   },
   {
     id:'princess', name:'プリンセス・スターライナー', rarity:'SSR', role:'RISK_CHAIN',
-    hitboxScale:1.02, visualScale:1.04, jumpScale:1.00, secondJumpScale:1.00, gravityScale:0.96,
+    hitboxScale:1.02, visualScale:1.04, jumpScale:0.84, secondJumpScale:1.00, gravityScale:0.96,
     fuelMax:100, fuelRate:1.12, maxJumps:2,
     ability:{ id:'RISK_STAR', maxStars:5, decayEveryM:700,
       fuelRateByStars:[1.12,1.06,1.00,0.94,0.88,0.80], jumpBonusByStars:[1,1,1.03,1.06,1.08,1.10],
       thirdJumpMinStars:3, thirdJumpCost:1, thirdJumpScale:0.94,
-      text:'GROW。序盤は普通の2段。危険燃料でSTAR成長し、ジャンプ力と燃費が上昇。★3から星を使う3段ジャンプへ変化' },
+      text:'GROW。1段目は低め、2段目で高く飛ぶ。危険燃料でSTAR成長し、ジャンプ力と燃費が上昇。★3から星を使う3段ジャンプへ変化' },
   },
   {
     id:'secret', name:'無敵のロケットアソブーン人間', rarity:'SECRET', role:'ROCKET_DANGER',
@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.16-ultimate-highway';
-const CLIENT_VERSION = '1.0.16';
+const BUILD = '2026-08-11-playable-v1.0.17-crate-double-ultimate-xl';
+const CLIENT_VERSION = '1.0.17';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -356,16 +356,16 @@ const ABILITY_SHORT = {
   boon:'🛻 HEAVY', wagon:'☁ FLOAT', buggy:'⬆ COMMIT', bike:'🏍 QUICK', sport:'⚡ FAST', ssr:'🌌 STANDARD', princess:'★ GROW', secret:'🚀 ROCKET'
 };
 const HANDLING_LABEL = {
-  boon:'重い｜低い1段 → 強烈2段', wagon:'浮く｜長い滞空・弱い2段', buggy:'一発｜超大ジャンプ・修正不可', bike:'鋭い｜低い1段 → 強烈2段',
-  sport:'高速｜短い判断時間・速い落下', ssr:'素直｜基準操作＋CLOSE勝負', princess:'成長｜★で性能と入力段数が変化', secret:'別操作｜HOLD上昇 / RELEASE落下'
+  boon:'重い｜低い1段 → 強烈2段', wagon:'浮く｜低い1段・長い滞空・2段で上へ', buggy:'一発｜超大ジャンプ・修正不可', bike:'鋭い｜低い1段 → 強烈2段',
+  sport:'高速｜短い判断時間・速い落下', ssr:'素直｜低め1段＋基準2段＋CLOSE勝負', princess:'成長｜低め1段→★で性能と入力段数が変化', secret:'別操作｜HOLD上昇 / RELEASE落下'
 };
 const HOME_GUIDE = {
   boon:[['TAP','重く低い1段'],['TAP×2','強烈サス2段'],['🛡','ARMORで小障害突破']],
-  wagon:[['TAP','ふわっと長時間滞空'],['TAP×2','弱い2段で滞空延長'],['↓','降りたい時に降りにくい']],
+  wagon:[['TAP','低めにふわっと長時間滞空'],['TAP×2','2段で高さ＋滞空を追加'],['↓','降りたい時に降りにくい']],
   buggy:[['TAP','一発超大ジャンプ'],['×2','空中修正なし'],['⛽','アーチ破壊は−12']],
   bike:[['TAP','低く鋭く・すぐ落下'],['TAP×2','強烈2段・燃料−4'],['🏍','最小ボディで精密回避']],
   sport:[['FAST','常時14%高速'],['TAP×2','クイック2段'],['⚡','NITROで爆速無敵']],
-  ssr:[['TAP','最も素直な基準ジャンプ'],['CLOSE×2','PHANTOM'],['⛽','SAVEは−35']],
+  ssr:[['TAP','低めで素直な1段ジャンプ'],['CLOSE×2','PHANTOM'],['⛽','SAVEは−35']],
   princess:[['RISK','危険燃料で★成長'],['★3','3段ジャンプへ進化'],['700m','★が1つ減る']],
   secret:[['HOLD','ロケット上昇'],['RELEASE','即落下へ'],['CLOSE×3','3秒無敵']]
 };
@@ -569,12 +569,12 @@ function patternGapSecAt(m,d){
 function crateTutorialFor(carId){
   return ({
     boon:'木箱｜2段ジャンプ',
-    wagon:'木箱｜1段ジャンプ',
+    wagon:'木箱｜2段ジャンプ',
     buggy:'木箱｜大ジャンプ1回',
     bike:'木箱｜2段ジャンプ・FUEL−4',
-    sport:'木箱｜1段ジャンプ',
-    ssr:'木箱｜1段ジャンプ',
-    princess:'木箱｜1段ジャンプ',
+    sport:'木箱｜2段ジャンプ',
+    ssr:'木箱｜2段ジャンプ',
+    princess:'木箱｜2段ジャンプ',
     secret:'木箱｜長押しで上昇'
   })[carId]||'木箱｜ジャンプ';
 }
