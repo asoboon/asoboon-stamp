@@ -1,4 +1,4 @@
-const BUILD = "2026-08-11-highway-valkyrie-v2";
+const BUILD = "2026-08-11-highway-valkyrie-princess-assets-v5";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
@@ -76,6 +76,8 @@ const PRECACHE = [
   "./assets/cars/valkyrie-rear.png",
   "./assets/cars/valkyrie-shadow.png",
   "./assets/cars/valkyrie-boost.png",
+  "./assets/cars/valkyrie-front-wheel.png",
+  "./assets/cars/valkyrie-rear-wheel.png",
 ];
 self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting();});
 self.addEventListener("install",event=>{event.waitUntil((async()=>{const staticCache=await caches.open(STATIC_CACHE),imageCache=await caches.open(IMAGE_CACHE);await Promise.allSettled(PRECACHE.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Precache failed: ${path} (${response.status})`);const target=path.includes("/assets/cars/")||path.includes("/icons/")?imageCache:staticCache;await target.put(path,response);}));})());});

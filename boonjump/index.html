@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.4.0">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.2.5.2">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-08-ranking-duplicate-name-fix-v18">
-  <title>ブーンジャンプ Ver.2.4.0｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-11-highway-valkyrie-princess-rhythm-v3">
+  <title>ブーンジャンプ Ver.2.5.2｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -291,7 +291,7 @@ body.modal-open{overflow:hidden}
       <span aria-hidden="true">⌂</span>
     </a>
     <div class="brandbar">
-      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.4.0</em></strong></div>
+      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.5.2</em></strong></div>
       <div class="header-actions">
         <button class="sound-button" id="soundButton" type="button" aria-label="効果音を切り替える">🔊</button>
         <div class="ticket-pill"><small>GACHA</small><b id="ticketCount">🎟 1</b></div>
@@ -581,8 +581,8 @@ body.modal-open{overflow:hidden}
 (() => {
   'use strict';
 
-  const APP_VERSION = '2.5.0';
-  const BUILD = '2026-08-11-highway-valkyrie-v1';
+  const APP_VERSION = '2.5.2';
+  const BUILD = '2026-08-11-highway-valkyrie-princess-rhythm-v3';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -601,7 +601,7 @@ body.modal-open{overflow:hidden}
     {id:'bike',distanceScale:2.757,name:'パワーバイク',rarity:'SR',rate:12,trait:'戻らない一方向勝負。通過は一瞬',handling:'INTERMEDIATE｜ワンショット',color:'#ed572f',accent:'#ffca62',baseSpeed:144,launchAngle:32,boostPower:46,boostLift:13,gravity:9.1,drag:.0031,bounce:0,skill:'powerStart',rawCap:2350,finalCap:2468,master:2250,asset:['bike','suv'],control:{accel:{mode:'oneway',period:930,reset:75,ideal:.84,super:.022,critical:.052,great:.11,good:.20,label:'0→MAXを一気に駆け抜ける'},turbo:{mode:'oneway',period:1020,reset:70,super:.027,critical:.063,great:.125,good:.22,label:'戻りなし・中央を一度だけ通過'},nitro:{mode:'dash',travel:960,orb:64,target:82,super:.026,critical:.06,great:.115,good:.21,label:'上から一気に突っ込む'}}},
     {id:'sport',distanceScale:2.455,name:'ニトロスポーツ',rarity:'SR',rate:12,trait:'前半は眠いほど遅く、最後だけ弾丸加速',handling:'ADVANCED｜急加速',color:'#d72458',accent:'#ff758f',baseSpeed:139,launchAngle:31,boostPower:68,boostLift:16,gravity:9.0,drag:.0025,bounce:0,skill:'nitro',rawCap:2525,finalCap:2651,master:2400,asset:['sport'],control:{accel:{mode:'snap',period:1950,ideal:.82,super:.024,critical:.056,great:.115,good:.21,label:'低速から突然フルスロットル'},turbo:{mode:'snap',period:1500,super:.025,critical:.058,great:.115,good:.20,label:'中央直前で速度が跳ね上がる'},nitro:{mode:'accelerate',travel:1380,orb:58,target:72,super:.021,critical:.05,great:.10,good:.18,label:'落下しながら急加速'}}},
     {id:'ssr',distanceScale:1.903,name:'コズミックファントム',rarity:'EXR',rate:3,trait:'決まった順番でワープする。順番を覚えれば攻略できる',handling:'EXPERT｜固定ワープ',color:'#6f55ff',accent:'#52e8ff',baseSpeed:148,launchAngle:39,boostPower:64,boostLift:25,gravity:7.9,drag:.0019,bounce:0,skill:'warp',rawCap:3000,finalCap:3150,master:3000,asset:['ssr','cosmic'],control:{accel:{mode:'patternWarp',period:1380,ideal:.83,super:.018,critical:.044,great:.092,good:.17,label:'固定10地点｜5番目のワープが本命'},turbo:{mode:'patternWarp',period:1250,super:.02,critical:.047,great:.095,good:.17,label:'固定10地点｜中央ワープの順番を覚えろ'},nitro:{mode:'patternTeleport',travel:1280,orb:52,target:64,super:.018,critical:.043,great:.087,good:.16,label:'固定6地点｜4番目が黄色リング'}}},
-    {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'音楽の拍のように止まり、次の拍で動く',handling:'ADVANCED｜リズム',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'rhythm',period:2250,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'4拍子で動いて止まる'},turbo:{mode:'rhythm',period:2350,super:.034,critical:.078,great:.15,good:.26,label:'拍ごとに中央へ戻る'},nitro:{mode:'rhythm',travel:2000,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'虹の丸が拍に合わせてステップ'}}},
+    {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'3つの異なるリズムを奏で、すべてを重ねると真価を放つ',handling:'ADVANCED｜3 RHYTHMS',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'princessWaltz',period:2600,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'ゆったり3拍子｜3拍目の頂点を狙う'},turbo:{mode:'princessSyncopation',period:1450,super:.034,critical:.078,great:.15,good:.26,label:'高速シンコペーション｜左右から中央へ戻る一瞬'},nitro:{mode:'princessStair',travel:2050,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'階段リズム｜4段目のリングで重ねる'}}},
     {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜選別・精密操作',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie','ssr'],control:{accel:{mode:'valkyrieAccel',period:1180,ideal:.84,super:.017,critical:.040,great:.085,good:.155,label:'ACCEL｜高速スイープを見切れ'},turbo:{mode:'valkyrieShift',period:1320,super:.018,critical:.043,great:.09,good:.165,label:'SHIFT｜6速に入る瞬間を掴め'},nitro:{mode:'valkyrieRing',travel:1220,orb:48,target:62,super:.017,critical:.041,great:.083,good:.15,label:'OVERDRIVE｜収束するリングを射抜け'}}},
     {id:'secret',distanceScale:2.623,name:'無敵のロケットアソブーン人間',rarity:'SECRET',rate:0,trait:'3コンボを極めた時だけ5000m級。1ミスで大失速する最終試験',handling:'LEGEND｜超高難度3コンボ',color:'#ff5a24',accent:'#fff35c',baseSpeed:172,launchAngle:46,boostPower:92,boostLift:37,gravity:6.6,drag:.0014,bounce:0,skill:'rocket',rawCap:5000,finalCap:5000,master:5000,asset:['secret'],control:{accel:{mode:'patternRocket',period:720,ideal:.86,super:.013,critical:.032,great:.068,good:.125,label:'固定8手｜逆走後の一瞬だけが本命'},turbo:{mode:'patternRocket',period:760,super:.014,critical:.034,great:.070,good:.13,label:'固定8手｜フェイント後の中央を見切れ'},nitro:{mode:'patternDecoy',travel:960,orb:44,target:56,super:.013,critical:.032,great:.066,good:.12,label:'固定フェイント｜逆走後の2回目だけを狙え'}}}
   ];
@@ -650,6 +650,28 @@ body.modal-open{overflow:hidden}
       const next=[.38,.78,.52,.08][section];
       const move=smoothStep(clamp((beat-.32)/.38,0,1));
       v=lerp(anchors[section],next,move);
+    }else if(mode==='princessWaltz'){
+      // PRINCESS 1st: ゆったりした3拍子。理想値 .80 を必ず通り、短いPERFECT LOCKを持つ。
+      const cycle=p*3,beat=Math.floor(cycle)%3,local=cycle-Math.floor(cycle);
+      if(beat===0){
+        v=lerp(.12,.46,smoothStep(clamp((local-.16)/.64,0,1)));
+      }else if(beat===1){
+        v=lerp(.46,.80,smoothStep(clamp((local-.10)/.84,0,1)));
+      }else{
+        // 約70msだけ .80 に留まり、60fpsでも100%が実際に狙える。
+        v=local<.026?.80:lerp(.80,.12,smoothStep(clamp((local-.026)/.73,0,1)));
+      }
+    }else if(mode==='princessSyncopation'){
+      // PRINCESS 2nd: 高速の左右シンコペーション。中央 .50 のロックは約44msだけ。
+      const q=p;
+      if(q<.14)v=lerp(.12,.82,smoothStep(q/.14));
+      else if(q<.28)v=lerp(.82,.22,smoothStep((q-.14)/.14));
+      else if(q<.42)v=lerp(.22,.78,smoothStep((q-.28)/.14));
+      else if(q<.54)v=lerp(.78,.50,smoothStep((q-.42)/.12));
+      else if(q<.57)v=.50;
+      else if(q<.70)v=lerp(.50,.16,smoothStep((q-.57)/.13));
+      else if(q<.84)v=lerp(.16,.88,smoothStep((q-.70)/.14));
+      else v=lerp(.88,.12,smoothStep((q-.84)/.16));
     }else if(mode==='patternRocket'){
       // 8手固定。高速だが順番は変わらない。4手目の逆走を見切る攻略型。
       const anchors=[.03,.48,.94,.22,.78,.12,center,.97,.03];
@@ -856,7 +878,7 @@ body.modal-open{overflow:hidden}
     bike:{rear:{x:170,y:170,w:64,h:71},front:{x:542,y:168,w:62,h:70}},
     sport:{rear:{x:185,y:180,w:92,h:92},front:{x:535,y:180,w:92,h:92}},
     ssr:{rear:{x:90,y:172,w:78,h:86},front:{x:518,y:182,w:66,h:73}},
-    princess:{rear:{x:238,y:190,w:84,h:84},front:{x:555,y:190,w:84,h:84}},
+    princess:{rear:{x:256,y:186,w:98,h:98},front:{x:561,y:186,w:98,h:98}},
     valkyrie:{rear:{x:164,y:198,w:98,h:98},front:{x:549,y:201,w:98,h:98}}
   };
   const applyWheelOrigins=(wrap,car)=>{const layout=WHEEL_LAYOUT[car.id];if(!layout)return;const rear=wrap.querySelector('.part-rear'),front=wrap.querySelector('.part-front');if(rear)rear.style.transformOrigin=`${layout.rear.x/7.6}% ${layout.rear.y/2.8}%`;if(front)front.style.transformOrigin=`${layout.front.x/7.6}% ${layout.front.y/2.8}%`;};
@@ -991,6 +1013,18 @@ body.modal-open{overflow:hidden}
       const anchors=[.03,.23,.47,.72,.91,1.09];
       y=lerp(anchors[Math.min(step,4)],anchors[Math.min(step+1,5)],smoothStep(clamp((beat-.42)/.35,0,1)));
       x=Math.sin(step*Math.PI/2)*10;
+    }else if(mode==='princessStair'){
+      // PRINCESS 3rd: 縦の階段リズム。ターゲット .76 は約72msの独立した段として存在する。
+      if(t<.13)y=.07;
+      else if(t<.26)y=.23;
+      else if(t<.39)y=.41;
+      else if(t<.52)y=.59;
+      else if(t<.59)y=lerp(.59,.76,smoothStep((t-.52)/.07));
+      else if(t<.625)y=.76;
+      else if(t<.76)y=.93;
+      else if(t<.91)y=1.08;
+      else y=1.16;
+      x=Math.sin(t*Math.PI*6)*5;
     }else if(mode==='valkyrieRing'){
       y=Math.pow(t,.72)*1.08; x=Math.sin(t*Math.PI*2)*3;
     }else if(mode==='patternDecoy'){
