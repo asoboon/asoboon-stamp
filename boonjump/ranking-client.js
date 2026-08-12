@@ -1,9 +1,9 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V2.4.0
+ * ブーンジャンプ 世界ランキング通信 V2.5.0 AUTO
  *
- * - ランキング登録は完全な任意操作
- * - 自動送信・未送信キュー・バックグラウンド再送なし
- * - プレイヤーが選んだ記録だけを送信
+ * - プレイ終了時の自動ランキング参加に対応
+ * - 初回は匿名ゲスト名を自動発行
+ * - 未送信キュー・バックグラウンド再送は行わない
  * - 同一端末の本人判定用トークンを保持
  */
 const BOON_RANKING = (() => {
@@ -355,7 +355,7 @@ const BOON_RANKING = (() => {
       played_at: safePlayedAt.toISOString(),
       source_build: String(payload.sourceBuild || '').slice(0, 100),
       client_version: String(payload.clientVersion || '').slice(0, 40),
-      transport: 'manual-jsonp',
+      transport: 'auto-jsonp',
       response_mode: 'fast',
     };
   }
@@ -481,8 +481,8 @@ const BOON_RANKING = (() => {
   async function flushQueue() { return { ok: true, sent: [], failed: [], pending: 0 }; }
   function getDiagnostics() {
     return {
-      state: 'manual',
-      message: 'ランキング登録は任意です。選んだ記録だけ送信します。',
+      state: 'auto',
+      message: 'プレイ記録は自動でランキングへ送信します。',
       pending: 0,
     };
   }
