@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.4">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.5">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-12-boonrun-card-unified-v324">
-  <title>ブーンジャンプ Ver.3.2.4｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-12-machine-selector-polish-v325">
+  <title>ブーンジャンプ｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -373,86 +373,179 @@ body.modal-open{overflow:hidden}
 
 
 
-/* v3.2.4 — BOON RUN CARD DESIGN UNIFICATION ---------------------------------
-   The machine selector now uses the actual BOON RUN garage-card visual language:
-   dark diagonal card, rarity chip, selected badge, large machine art, handling chip,
-   simple description, and BEST at the foot.  The carousel/detail interaction from
-   v3.2.3 remains, but the central object is now unmistakably the shared series card. */
-#garageScreen .selector-stage-run-card{
-  min-height:338px;padding:18px 48px 17px;justify-content:center;
-  background:linear-gradient(180deg,rgba(6,17,31,.97),rgba(3,10,19,.99));
+/* v3.2.5 — MACHINE SELECT PRODUCT POLISH --------------------------------------
+   Shared BOON RUN card language, tuned for a one-machine-at-a-time selector.
+   Changes are presentation/input only: vehicle performance and timing logic stay untouched. */
+#garageScreen{--selector-card-w:318px}
+#garageScreen .machine-selector-shell{
+  width:min(100%,760px);padding:12px;border-color:rgba(255,255,255,.105);
+  background:linear-gradient(180deg,rgba(6,16,29,.99),rgba(3,9,18,.995));
+  box-shadow:0 22px 54px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.025)
 }
-#garageScreen .selector-stage-run-card::before{opacity:.14}
-#garageScreen .selector-stage-run-card::after{opacity:.34}
+#garageScreen .machine-selector-head{margin-bottom:9px}
+#garageScreen .machine-selector-head h2{font-size:1.03rem;letter-spacing:-.01em}
+#garageScreen .selector-head-metrics{display:flex;align-items:center;gap:5px;flex:none}
+#garageScreen .selector-owned,#garageScreen .selector-count{
+  min-height:25px;display:grid;place-items:center;padding:4px 8px;border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;background:rgba(255,255,255,.045);font-size:.50rem;font-weight:1000;white-space:nowrap
+}
+#garageScreen .selector-owned{color:#bfefff;border-color:rgba(100,226,255,.18)}
+#garageScreen .selector-count{color:#93a9bd}
+
+#garageScreen .selector-stage-run-card{
+  --selector-accent:#49b7ff;position:relative;min-height:344px;padding:17px 48px 16px;display:flex;
+  align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.105);border-radius:24px;
+  overflow:hidden;isolation:isolate;touch-action:pan-y;background:
+    radial-gradient(ellipse at 50% 98%,color-mix(in srgb,var(--selector-accent) 13%,transparent),transparent 48%),
+    linear-gradient(180deg,rgba(8,21,38,.985),rgba(3,10,19,.995))
+}
+#garageScreen .selector-stage-run-card::before{
+  content:"";position:absolute;z-index:-2;inset:-24% -18% 24%;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 74%,color-mix(in srgb,var(--selector-accent) 21%,transparent),transparent 62%);
+  opacity:.72;filter:blur(22px)
+}
+#garageScreen .selector-stage-run-card::after{
+  content:"";position:absolute;z-index:-1;left:-10%;right:-10%;bottom:-82px;height:160px;pointer-events:none;
+  border-top:1px solid rgba(255,255,255,.10);background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.038) 0 1px,transparent 1px 34px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.032) 0 1px,transparent 1px 24px);
+  transform:perspective(220px) rotateX(61deg);transform-origin:50% 0;opacity:.72
+}
 #garageScreen .run-machine-card{
-  --run-card-accent:#49b7ff;
-  position:relative;width:min(100%,318px);min-height:292px;
-  display:grid;grid-template-rows:132px auto auto 1fr auto;align-content:start;
-  padding:12px 13px 11px;border:1px solid var(--line);border-radius:22px;
-  overflow:hidden;text-align:left;color:#fff;
-  background:linear-gradient(145deg,rgba(15,31,52,.98),rgba(7,17,31,.98));
-  box-shadow:0 18px 38px rgba(0,0,0,.28);
-  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+  --run-card-accent:#49b7ff;position:relative;width:min(100%,var(--selector-card-w));min-height:300px;
+  display:grid;grid-template-rows:136px auto auto auto 1fr auto;align-content:start;padding:12px 13px 11px;
+  border:1px solid rgba(255,255,255,.15);border-radius:22px;overflow:hidden;text-align:left;color:#fff;
+  background:linear-gradient(145deg,rgba(16,33,55,.985),rgba(7,17,31,.992));
+  box-shadow:0 20px 42px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.025);
+  transform:translateZ(0);will-change:transform,opacity;transition:border-color .16s ease,box-shadow .16s ease,filter .16s ease
 }
 #garageScreen .run-machine-card::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(circle at 72% 15%,color-mix(in srgb,var(--run-card-accent) 19%,transparent),transparent 38%);
+  content:"";position:absolute;z-index:0;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 78% 10%,color-mix(in srgb,var(--run-card-accent) 19%,transparent),transparent 39%)
+}
+#garageScreen .run-machine-card::after{
+  content:"";position:absolute;z-index:1;left:0;top:0;bottom:0;width:3px;pointer-events:none;
+  background:linear-gradient(180deg,transparent 2%,var(--run-card-accent) 26%,color-mix(in srgb,var(--run-card-accent) 18%,transparent) 72%,transparent 98%);
+  opacity:.88
 }
 #garageScreen .run-machine-card.selected{
-  border-color:var(--yellow);
-  background:linear-gradient(145deg,rgba(36,45,44,.98),rgba(9,23,34,.98));
-  box-shadow:0 0 0 2px rgba(255,226,76,.18),0 18px 42px rgba(0,0,0,.36);
+  border-color:rgba(255,226,76,.82);background:linear-gradient(145deg,rgba(34,44,44,.99),rgba(8,22,34,.995));
+  box-shadow:0 0 0 2px rgba(255,226,76,.14),0 22px 46px rgba(0,0,0,.40)
 }
-#garageScreen .run-machine-card.locked{opacity:.58;border-style:dashed;filter:none}
+#garageScreen .run-machine-card.locked{opacity:.60;border-style:dashed;filter:saturate(.3)}
 #garageScreen .run-machine-card .rarity{
-  position:absolute;z-index:8;top:10px;left:10px;padding:4px 8px;border-radius:8px;
-  background:#101d2c;color:var(--cyan);font-size:.56rem;font-weight:1000;
+  position:absolute;z-index:8;top:10px;left:10px;padding:4px 9px;border-radius:8px;background:#101d2c;
+  color:var(--cyan);font-size:.56rem;font-weight:1000;letter-spacing:.04em
 }
 #garageScreen .run-machine-card .selected-mark{
-  position:absolute;z-index:9;top:9px;right:9px;padding:5px 8px;border-radius:999px;
-  background:var(--yellow);color:#15202b;font-size:.50rem;font-weight:1000;letter-spacing:.02em;
+  position:absolute;z-index:9;top:9px;right:9px;padding:5px 9px;border-radius:999px;background:var(--yellow);
+  color:#15202b;font-size:.49rem;font-weight:1000;letter-spacing:.02em;box-shadow:0 5px 14px rgba(0,0,0,.24)
 }
 #garageScreen .run-card-art{
-  position:relative;z-index:2;height:132px;display:grid;place-items:center;margin:-1px 0 1px;
+  position:relative;z-index:2;height:136px;display:grid;place-items:center;margin:-1px 0 1px;overflow:visible
 }
-#garageScreen .run-card-art .vehicle-slot{width:100%;min-height:126px;overflow:visible}
-#garageScreen .run-card-art .vehicle{width:min(276px,72vw);height:126px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.48))}
-#garageScreen .run-card-art.locked .vehicle-slot{filter:brightness(.22) saturate(0)}
+#garageScreen .run-card-art::after{
+  content:"";position:absolute;left:14%;right:14%;bottom:10px;height:10px;border-radius:50%;pointer-events:none;
+  background:rgba(0,0,0,.30);filter:blur(7px);opacity:.65
+}
+#garageScreen .run-card-art .vehicle-slot{position:relative;z-index:2;width:100%;min-height:130px;display:grid;place-items:center;overflow:visible}
+#garageScreen .run-card-art .vehicle{width:min(280px,72vw);height:128px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.48))}
+#garageScreen .run-card-art.locked .vehicle-slot{filter:brightness(.18) saturate(0)}
 #garageScreen .run-card-lock{
-  position:absolute;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:52px;height:52px;display:grid;place-items:center;border-radius:50%;
-  background:rgba(3,8,16,.82);border:1px solid rgba(255,255,255,.18);font-size:1.45rem;
-  box-shadow:0 12px 28px rgba(0,0,0,.35);
+  position:absolute;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:52px;height:52px;
+  display:grid;place-items:center;border-radius:50%;background:rgba(3,8,16,.84);border:1px solid rgba(255,255,255,.18);
+  font-size:1.42rem;box-shadow:0 12px 28px rgba(0,0,0,.36)
 }
-#garageScreen .run-machine-card h3{position:relative;z-index:2;margin:5px 0 4px;font-size:.95rem;line-height:1.16}
+#garageScreen .run-machine-card h3{position:relative;z-index:2;margin:5px 0 4px;font-size:.96rem;line-height:1.16;letter-spacing:-.015em}
 #garageScreen .run-machine-card .handling{
-  position:relative;z-index:2;justify-self:start;margin:0 0 6px;padding:5px 7px;
-  border:1px solid rgba(73,231,255,.28);border-radius:8px;background:rgba(5,18,31,.72);
-  color:#e9fbff;font-size:.56rem;font-weight:1000;letter-spacing:.02em;line-height:1.25;
+  position:relative;z-index:2;justify-self:start;margin:0 0 5px;padding:5px 7px;border:1px solid rgba(73,231,255,.27);
+  border-radius:8px;background:rgba(5,18,31,.72);color:#e9fbff;font-size:.55rem;font-weight:1000;line-height:1.25
 }
 #garageScreen .run-machine-card.selected .handling{border-color:rgba(255,226,76,.46);color:#fff4aa}
+#garageScreen .jump-chip{
+  position:relative;z-index:2;justify-self:stretch;margin:0 0 6px;padding:5px 7px;border-left:2px solid var(--run-card-accent);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--run-card-accent) 12%,transparent),transparent 86%);
+  color:#dff8ff;font-size:.50rem;font-weight:1000;letter-spacing:.025em;line-height:1.28
+}
 #garageScreen .run-machine-card>p{
-  position:relative;z-index:2;margin:0;color:#a7bbcc;font-size:.64rem;line-height:1.48;font-weight:850;
+  position:relative;z-index:2;margin:0;color:#aebfce;font-size:.62rem;line-height:1.48;font-weight:850
 }
-#garageScreen .run-machine-card.locked>p{color:#d0b98b}
+#garageScreen .run-machine-card.locked>p{color:#cfbb98}
 #garageScreen .run-machine-card .best{
-  position:relative;z-index:2;display:flex;align-items:end;justify-content:space-between;gap:10px;
-  margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.09);
+  position:relative;z-index:2;display:flex;align-items:end;justify-content:space-between;gap:10px;margin-top:8px;
+  padding-top:8px;border-top:1px solid rgba(255,255,255,.085)
 }
-#garageScreen .run-machine-card .best small{color:#8298af;font-size:.49rem;letter-spacing:.09em;font-weight:1000}
-#garageScreen .run-machine-card .best strong{color:#fff;font-size:.82rem;font-weight:1000;font-variant-numeric:tabular-nums}
-#garageScreen .selector-arrow{top:50%;width:39px;height:62px}
-#garageScreen .selector-guide-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:6px}
-#garageScreen .selector-guide-head small{color:#73efff;font-size:.48rem;letter-spacing:.16em;font-weight:1000}
+#garageScreen .run-machine-card .best small{color:#8096aa;font-size:.47rem;letter-spacing:.11em;font-weight:1000}
+#garageScreen .run-machine-card .best strong{color:#fff;font-size:.84rem;font-weight:1000;font-variant-numeric:tabular-nums}
+
+#garageScreen .selector-arrow{
+  position:absolute;z-index:12;top:50%;transform:translateY(-50%);width:39px;height:62px;border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;background:rgba(3,10,19,.78);color:#fff;font-size:1.65rem;font-weight:700;backdrop-filter:blur(7px);
+  box-shadow:0 9px 22px rgba(0,0,0,.25)
+}
+#garageScreen .selector-arrow:active{transform:translateY(-50%) scale(.95)}
+#garageScreen .selector-arrow-prev{left:7px}#garageScreen .selector-arrow-next{right:7px}
+#garageScreen .selector-nav-hint{margin:6px 0 2px;color:#6f879d;font-size:.45rem;font-weight:900;text-align:center;letter-spacing:.03em}
+
+#garageScreen .selector-rail{gap:6px;margin:6px -1px 9px;padding:2px 1px 5px;scroll-padding-inline:38%}
+#garageScreen .selector-rail-item{
+  position:relative;flex:0 0 72px;height:62px;padding:3px 4px 4px;border:1px solid rgba(255,255,255,.09);border-radius:13px;
+  background:rgba(255,255,255,.035);color:#fff;scroll-snap-align:center;overflow:hidden;transition:border-color .14s ease,background .14s ease,transform .14s ease
+}
+#garageScreen .selector-rail-item:active{transform:scale(.97)}
+#garageScreen .selector-rail-item.active{border-color:color-mix(in srgb,var(--rail-accent,#ffe25a) 76%,white);background:color-mix(in srgb,var(--rail-accent,#ffe25a) 10%,rgba(255,255,255,.025));box-shadow:0 0 0 1px color-mix(in srgb,var(--rail-accent,#ffe25a) 10%,transparent)}
+#garageScreen .selector-rail-item.selected::after{content:"✓";position:absolute;z-index:4;right:4px;top:4px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:var(--yellow);color:#07101b;font-size:.43rem;font-weight:1000}
+#garageScreen .selector-rail-item.locked{opacity:.38;filter:saturate(.18)}
+#garageScreen .selector-rail-item .vehicle-slot{height:40px;min-height:40px;display:grid;place-items:center}
+#garageScreen .selector-rail-item .vehicle{width:90px}
+#garageScreen .selector-rail-item span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#94a9bd;font-size:.42rem;font-weight:1000;text-align:center;letter-spacing:.035em}
+
+#garageScreen .selector-detail{padding:12px;border-color:rgba(255,255,255,.095);border-radius:19px;background:rgba(255,255,255,.035)}
+#garageScreen .selector-guide-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:7px}
+#garageScreen .selector-guide-head small{color:#72e9ff;font-size:.46rem;letter-spacing:.16em;font-weight:1000}
 #garageScreen .selector-guide-head strong{font-size:.69rem;font-weight:1000}
-#garageScreen .selector-stats-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+#garageScreen .selector-summary{margin:0 0 9px;color:#e1edf6;font-size:.63rem;line-height:1.56;font-weight:850}
+#garageScreen .selector-controls{display:grid;gap:6px}
+#garageScreen .selector-control{grid-template-columns:66px minmax(0,1fr);min-height:39px;padding:7px 8px;border-color:rgba(255,255,255,.07);background:rgba(3,10,19,.38)}
+#garageScreen .selector-control b{display:flex;flex-direction:column;gap:1px;color:#7fefff;font-size:.52rem;letter-spacing:.05em}
+#garageScreen .selector-control b small{color:#6f879c;font-size:.40rem;letter-spacing:0;font-weight:900}
+#garageScreen .selector-control span{color:#b9cad8;font-size:.54rem;line-height:1.42;font-weight:850}
+#garageScreen .selector-stats-two{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+#garageScreen .selector-stats>div{padding:8px 5px;border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
+#garageScreen .selector-stats small{font-size:.42rem}.selector-stats strong{font-variant-numeric:tabular-nums}
+#garageScreen .selector-choose{
+  min-height:56px;margin-top:10px;border-radius:15px;background:linear-gradient(135deg,#fff25a,#ffad31);font-size:.76rem;
+  box-shadow:0 12px 28px rgba(255,169,44,.14);transition:transform .12s ease,filter .12s ease
+}
+#garageScreen .selector-choose:active{transform:scale(.985);filter:brightness(.96)}
+#garageScreen .selector-choose.current{background:linear-gradient(135deg,#dffaff,#91ecff);box-shadow:0 10px 24px rgba(80,220,255,.10)}
+#garageScreen .selector-choose:disabled{background:rgba(255,255,255,.075);color:#7e91a2;box-shadow:none}
+#garageScreen .selector-unlock-note{margin:7px 2px 0;color:#d4b27c;font-size:.50rem;line-height:1.45;font-weight:900;text-align:center}
+
+/* A short directional cue when changing cards; no continuous animation. */
+#garageScreen .selector-stage-run-card.switch-next .run-machine-card{animation:selectorNextIn .19s cubic-bezier(.2,.72,.2,1)}
+#garageScreen .selector-stage-run-card.switch-prev .run-machine-card{animation:selectorPrevIn .19s cubic-bezier(.2,.72,.2,1)}
+@keyframes selectorNextIn{from{opacity:.40;transform:translateX(18px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes selectorPrevIn{from{opacity:.40;transform:translateX(-18px) scale(.985)}to{opacity:1;transform:none}}
+
+@media(min-width:620px){
+  #garageScreen{--selector-card-w:336px}#garageScreen .machine-selector-shell{padding:15px}
+  #garageScreen .selector-stage-run-card{min-height:364px;padding:18px 54px 17px}
+  #garageScreen .run-machine-card{min-height:312px;grid-template-rows:142px auto auto auto 1fr auto}
+  #garageScreen .run-card-art{height:142px}#garageScreen .run-card-art .vehicle{width:294px;height:136px}
+}
 @media(max-width:380px){
-  #garageScreen .selector-stage-run-card{min-height:318px;padding:15px 39px 14px}
-  #garageScreen .run-machine-card{min-height:274px;grid-template-rows:122px auto auto 1fr auto;padding:11px}
-  #garageScreen .run-card-art{height:122px}
-  #garageScreen .run-card-art .vehicle{width:min(255px,76vw);height:118px}
-  #garageScreen .run-machine-card>p{font-size:.59rem}
-  #garageScreen .selector-arrow-prev{left:5px}#garageScreen .selector-arrow-next{right:5px}
+  #garageScreen{--selector-card-w:292px}#garageScreen .machine-selector-shell{padding:9px;border-radius:20px}
+  #garageScreen .selector-stage-run-card{min-height:322px;padding:14px 39px 13px;border-radius:20px}
+  #garageScreen .run-machine-card{min-height:282px;grid-template-rows:122px auto auto auto 1fr auto;padding:11px}
+  #garageScreen .run-card-art{height:122px}#garageScreen .run-card-art .vehicle{width:min(254px,76vw);height:118px}
+  #garageScreen .run-machine-card>p{font-size:.58rem}#garageScreen .selector-arrow{width:34px;height:58px}
+  #garageScreen .selector-arrow-prev{left:4px}#garageScreen .selector-arrow-next{right:4px}
+  #garageScreen .selector-control{grid-template-columns:60px minmax(0,1fr)}
+  #garageScreen .selector-head-metrics{gap:3px}#garageScreen .selector-owned,#garageScreen .selector-count{padding-inline:6px;font-size:.46rem}
+}
+@media(prefers-reduced-motion:reduce){
+  #garageScreen .selector-stage-run-card.switch-next .run-machine-card,#garageScreen .selector-stage-run-card.switch-prev .run-machine-card{animation:none!important}
 }
 
 </style>
@@ -466,7 +559,7 @@ body.modal-open{overflow:hidden}
       <span aria-hidden="true">⌂</span>
     </a>
     <div class="brandbar">
-      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ <em>V2.5.2</em></strong></div>
+      <div class="brand"><small>ASOBooN MINI GAME</small><strong>ブーンジャンプ</strong></div>
       <div class="header-actions">
         <button class="sound-button" id="soundButton" type="button" aria-label="効果音を切り替える">🔊</button>
         <div class="ticket-pill"><small>GACHA</small><b id="ticketCount">🎟 1</b></div>
@@ -539,10 +632,13 @@ body.modal-open{overflow:hidden}
         <div class="panel-head machine-selector-head">
           <button class="icon-button" data-back="home" type="button" aria-label="戻る">‹</button>
           <div><small>MACHINE SELECT</small><h2 id="garageTitle">飛ぶマシンを選ぶ</h2></div>
-          <span class="selector-count" id="selectorCount">1 / 9</span>
+          <div class="selector-head-metrics">
+            <span class="selector-owned" id="selectorOwnedCount">所持 1 / 9</span>
+            <span class="selector-count" id="selectorCount">1 / 9</span>
+          </div>
         </div>
 
-        <section class="selector-stage selector-stage-run-card" id="selectorStage" aria-live="polite">
+        <section class="selector-stage selector-stage-run-card" id="selectorStage" aria-live="polite" tabindex="0" aria-label="マシン選択。左右にスワイプ、または左右矢印キーで切り替え">
           <button class="selector-arrow selector-arrow-prev" id="selectorPrev" type="button" aria-label="前のマシン">‹</button>
 
           <article class="run-machine-card" id="selectorRunCard">
@@ -554,6 +650,7 @@ body.modal-open{overflow:hidden}
             </div>
             <h3 id="selectorName">ブーンピックアップ</h3>
             <div class="handling" id="selectorDifficulty">★ はじめやすい</div>
+            <div class="jump-chip" id="selectorJumpChip">🚀 最大飛距離 1,995m</div>
             <p id="selectorTagline">いちばん素直。最初の1台におすすめ。</p>
             <div class="best"><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
           </article>
@@ -561,20 +658,21 @@ body.modal-open{overflow:hidden}
           <button class="selector-arrow selector-arrow-next" id="selectorNext" type="button" aria-label="次のマシン">›</button>
         </section>
 
+        <div class="selector-nav-hint" aria-hidden="true">← 左右にスワイプ、または矢印でマシン切替 →</div>
         <div class="selector-rail" id="selectorRail" aria-label="マシン一覧"></div>
 
         <section class="selector-detail">
-          <div class="selector-guide-head"><small>3 TAP GUIDE</small><strong>このマシンの押しどころ</strong></div>
+          <div class="selector-guide-head"><small>3 TAP GUIDE</small><strong>3回のタップはこう狙う</strong></div>
           <p class="selector-summary" id="selectorSummary"></p>
 
           <div class="selector-controls" aria-label="3つの操作の特徴">
-            <div class="selector-control"><b>ACCEL</b><span id="selectorAccel">ゆっくり動くので狙いやすい</span></div>
-            <div class="selector-control"><b>TURBO</b><span id="selectorTurbo">中央を見てタップ</span></div>
-            <div class="selector-control"><b>NITRO</b><span id="selectorNitro">大きな丸をリングに合わせる</span></div>
+            <div class="selector-control"><b>ACCEL<small>アクセル</small></b><span id="selectorAccel">ゆっくり動くので狙いやすい</span></div>
+            <div class="selector-control"><b>TURBO<small>ターボ</small></b><span id="selectorTurbo">中央を見てタップ</span></div>
+            <div class="selector-control"><b>NITRO<small>ニトロ</small></b><span id="selectorNitro">大きな丸をリングに合わせる</span></div>
           </div>
 
           <div class="selector-stats selector-stats-two">
-            <div><small>この車のMAX</small><strong id="selectorMax">1,995m</strong></div>
+            <div><small>最大飛距離</small><strong id="selectorMax">1,995m</strong></div>
             <div><small>チューン</small><strong id="selectorTune">Lv.0</strong></div>
           </div>
 
@@ -803,13 +901,13 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=323-showroom-selector"></script>
+<script src="./ranking-client.js?v=325-machine-selector-polish"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.2.4';
-  const BUILD = '2026-08-12-boonrun-card-unified-v324';
+  const APP_VERSION = '3.2.5';
+  const BUILD = '2026-08-12-machine-selector-polish-v325';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -1010,7 +1108,7 @@ body.modal-open{overflow:hidden}
   };
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
-    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCount:$('selectorCount'),selectorRarity:$('selectorRarity'),selectorState:$('selectorState'),selectorVehicleWrap:$('selectorVehicleWrap'),selectorVehicle:$('selectorVehicle'),selectorLock:$('selectorLock'),selectorName:$('selectorName'),selectorTagline:$('selectorTagline'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
+    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorRarity:$('selectorRarity'),selectorState:$('selectorState'),selectorVehicleWrap:$('selectorVehicleWrap'),selectorVehicle:$('selectorVehicle'),selectorLock:$('selectorLock'),selectorName:$('selectorName'),selectorJumpChip:$('selectorJumpChip'),selectorTagline:$('selectorTagline'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
     recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),bulkRankButton:$('bulkRankButton'),bulkRankMeta:$('bulkRankMeta'),recordsRankingStatus:$('recordsRankingStatus'),recordsRankingLink:$('recordsRankingLink'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),
@@ -1425,6 +1523,7 @@ body.modal-open{overflow:hidden}
     const index=CARS.findIndex(c=>c.id===car.id);
 
     el.selectorStage.style.setProperty('--selector-accent',car.accent||car.color||'#49b7ff');
+    el.selectorOwnedCount.textContent=`所持 ${ownedCount()} / ${CARS.length}`;
     el.selectorCount.textContent=`${index+1} / ${CARS.length}`;
     el.selectorRarity.textContent=car.rarity;
     el.selectorRarity.className=`rarity rarity-${car.rarity.toLowerCase()}`;
@@ -1438,8 +1537,9 @@ body.modal-open{overflow:hidden}
     el.selectorVehicle.innerHTML='';
     renderVehicle(el.selectorVehicle,car,{compact:false});
 
-    const hiddenSecret=!owned&&car.id==='secret';
-    el.selectorName.textContent=hiddenSecret?'？？？？？？':car.name;
+    const hiddenMachine=!owned;
+    el.selectorName.textContent=hiddenMachine?'？？？？？？':car.name;
+    el.selectorJumpChip.textContent=owned?`🚀 最大飛距離 ${formatM(car.finalCap)}`:'🚀 最大飛距離 ---';
     el.selectorTagline.textContent=owned?detail.tagline:(car.id==='secret'?'通常7台をそろえた先に待つ、ひみつのマシン。':'ガチャで当てると、このマシンで飛べます。');
     el.selectorDifficulty.textContent=owned?guide.level:'🔒 未解放';
     el.selectorSummary.textContent=owned?detail.summary:(car.id==='secret'?'通常7台をすべて集めると解放されます。':'ガチャからこの車を獲得すると、ここで選べるようになります。');
@@ -1447,7 +1547,7 @@ body.modal-open{overflow:hidden}
     el.selectorTurbo.textContent=owned?detail.turbo:'解放すると操作の特徴が表示されます。';
     el.selectorNitro.textContent=owned?detail.nitro:'解放すると操作の特徴が表示されます。';
     el.selectorBest.textContent=owned?formatM(rec.best||0):'---';
-    el.selectorMax.textContent=formatM(car.finalCap);
+    el.selectorMax.textContent=owned?formatM(car.finalCap):'---';
     el.selectorTune.textContent=owned?(car.id==='secret'?'なし':`Lv.${rec.tuneLevel}`):'---';
     el.selectorChoose.disabled=!owned;
     el.selectorChoose.classList.toggle('current',selected&&owned);
@@ -1461,6 +1561,7 @@ body.modal-open{overflow:hidden}
       const btn=document.createElement('button');
       btn.type='button';btn.dataset.selectorCar=railCar.id;
       btn.className=`selector-rail-item${railCar.id===car.id?' active':''}${railCar.id===currentCar.id?' selected':''}${railOwned?'':' locked'}`;
+      btn.style.setProperty('--rail-accent',railCar.accent||railCar.color||'#49b7ff');
       btn.setAttribute('aria-label',`${i+1}。${railOwned?(railCar.id==='secret'?'SECRET':railCar.name):'未解放マシン'}`);
       btn.innerHTML=`<div class="vehicle-slot"></div><span>${railOwned?(railCar.id==='secret'?'SECRET':railCar.rarity):'LOCK'}</span>`;
       renderVehicle(btn.querySelector('.vehicle-slot'),railCar,{compact:true});
@@ -1470,8 +1571,15 @@ body.modal-open{overflow:hidden}
     if(active)requestAnimationFrame(()=>active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
   };
 
-  const previewMachine=id=>{if(!CAR_BY_ID[id])return;selectorPreviewId=id;renderGarage();};
-  const stepMachine=delta=>{const idx=Math.max(0,CARS.findIndex(c=>c.id===selectorPreviewId));previewMachine(CARS[(idx+delta+CARS.length)%CARS.length].id);};
+  const animateSelectorSwitch=direction=>{
+    if(!el.selectorStage)return;
+    el.selectorStage.classList.remove('switch-next','switch-prev');
+    void el.selectorStage.offsetWidth;
+    el.selectorStage.classList.add(direction>0?'switch-next':'switch-prev');
+    schedule(()=>el.selectorStage&&el.selectorStage.classList.remove('switch-next','switch-prev'),230);
+  };
+  const previewMachine=(id,direction=0)=>{if(!CAR_BY_ID[id])return;if(id===selectorPreviewId){renderGarage();return;}selectorPreviewId=id;renderGarage();if(direction)animateSelectorSwitch(direction);};
+  const stepMachine=delta=>{const idx=Math.max(0,CARS.findIndex(c=>c.id===selectorPreviewId));previewMachine(CARS[(idx+delta+CARS.length)%CARS.length].id,delta);};
 
   const localDayKey=value=>{const d=value?new Date(value):new Date();if(Number.isNaN(d.getTime()))return '';return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
   const localWeekKey=value=>{const d=value?new Date(value):new Date();if(Number.isNaN(d.getTime()))return '';const copy=new Date(d.getFullYear(),d.getMonth(),d.getDate());const day=copy.getDay();copy.setDate(copy.getDate()+(day===0?-6:1-day));return localDayKey(copy);};
@@ -1703,9 +1811,24 @@ body.modal-open{overflow:hidden}
   $('garageButton').addEventListener('click',()=>{selectorPreviewId=currentCar.id;renderGarage();showScreen('garage');});$('resultGarageButton').addEventListener('click',()=>{selectorPreviewId=currentCar.id;renderGarage();showScreen('garage');});
   $('recordsButton').addEventListener('click',()=>{renderRecords();el.recordsRankingStatus.hidden=true;showScreen('records');});el.worldButton.addEventListener('click',()=>openRanking());el.recordsRankingLink.addEventListener('click',()=>openRanking());el.resultRankingLink.addEventListener('click',()=>openRanking({expandMachineId:currentCar.id,scrollToMachine:true,force:true}));el.resultRecordsButton.addEventListener('click',openCurrentMachineRecord);el.resultRankButton.addEventListener('click',submitCurrentWorldScore);el.bulkRankButton.addEventListener('click',()=>submitAllRecordsToRanking());el.machineRecords.addEventListener('click',e=>{const button=e.target.closest('[data-rank-record]');if(button)submitRecordByCarId(button.dataset.rankRecord);});el.rankingNameSave.addEventListener('click',saveRankingName);el.rankingGateSave.addEventListener('click',saveInitialRankingName);el.rankingGateCancel.addEventListener('click',cancelRankingGate);el.rankingGateInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveInitialRankingName();if(e.key==='Escape')cancelRankingGate();});el.rankingNameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveRankingName();});el.rankingMachineBoards.addEventListener('click',e=>{const b=e.target.closest('[data-expand-machine]');if(!b)return;expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingMachineBoards.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const b=e.target.closest('[data-expand-machine]');if(!b)return;e.preventDefault();expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingRefresh.addEventListener('click',async()=>{el.rankingRefresh.disabled=true;try{machineFullCache.clear();BOON_RANKING.invalidateCache();await loadRankingDashboard({force:true});}finally{el.rankingRefresh.disabled=false;}});$('resultHomeButton').addEventListener('click',()=>{clearRun();phase='idle';setNavigationLock(false);showScreen('home');});
   document.querySelectorAll('[data-back="home"]').forEach(b=>b.addEventListener('click',()=>{if(navLocked)return;clearRun();phase='idle';showScreen('home');}));
-  el.selectorRail.addEventListener('click',e=>{const item=e.target.closest('[data-selector-car]');if(item)previewMachine(item.dataset.selectorCar);});
+  el.selectorRail.addEventListener('click',e=>{const item=e.target.closest('[data-selector-car]');if(!item)return;const from=CARS.findIndex(c=>c.id===selectorPreviewId),to=CARS.findIndex(c=>c.id===item.dataset.selectorCar);previewMachine(item.dataset.selectorCar,to===from?0:(to>from?1:-1));});
   el.selectorPrev.addEventListener('click',()=>stepMachine(-1));
   el.selectorNext.addEventListener('click',()=>stepMachine(1));
+  let selectorSwipe=null;
+  el.selectorStage.addEventListener('pointerdown',e=>{
+    if(e.button!=null&&e.button!==0)return;
+    if(e.target.closest('.selector-arrow'))return;
+    selectorSwipe={id:e.pointerId,x:e.clientX,y:e.clientY};
+  },{passive:true});
+  el.selectorStage.addEventListener('pointerup',e=>{
+    if(!selectorSwipe||selectorSwipe.id!==e.pointerId)return;
+    const dx=e.clientX-selectorSwipe.x,dy=e.clientY-selectorSwipe.y;selectorSwipe=null;
+    if(Math.abs(dx)>=42&&Math.abs(dx)>Math.abs(dy)*1.15)stepMachine(dx<0?1:-1);
+  },{passive:true});
+  el.selectorStage.addEventListener('pointercancel',()=>{selectorSwipe=null;},{passive:true});
+  el.selectorStage.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'){e.preventDefault();stepMachine(-1);}else if(e.key==='ArrowRight'){e.preventDefault();stepMachine(1);}
+  });
   el.selectorChoose.addEventListener('click',()=>{const car=CAR_BY_ID[selectorPreviewId],rec=car&&getRecord(car.id);if(!car||!rec?.owned)return;if(car.id!==currentCar.id){currentCar=car;state.selected=car.id;save();renderHome();}renderGarage();schedule(()=>showScreen('home'),90);});
   document.querySelectorAll('[data-record-tab]').forEach(b=>b.addEventListener('click',()=>setRecordTab(b.dataset.recordTab)));
   el.sound.addEventListener('click',()=>{state.sound=!state.sound;save();renderHome();if(state.sound)Sound.tone(660,.12,'sine',.03);});
@@ -1800,7 +1923,7 @@ body.modal-open{overflow:hidden}
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=323-showroom-selector',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=325-machine-selector-polish',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});
     }).catch(()=>{}));
     let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});
