@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>ブーンRUN｜ASOBooN</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=20260811-v123rankingscroll">
+  <link rel="stylesheet" href="./style.css?v=20260812-v131autorank">
 </head>
 <body>
 <div id="app">
@@ -53,9 +53,72 @@
     </section>
   </main>
 
-  <main id="garageScreen" class="screen panel-screen">
-    <div class="panel-head"><button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button><div><small>BOON GARAGE</small><h2>車を選ぶ</h2></div></div>
-    <div id="carGrid" class="car-grid"></div>
+  <main id="garageScreen" class="screen catalog-screen">
+    <section class="catalog-shell" aria-label="マシンカード選択">
+      <header class="catalog-head">
+        <div class="catalog-title-row">
+          <button class="back-button" data-back="menu" type="button" aria-label="戻る">‹</button>
+          <div class="catalog-title"><small>ASOBOON MACHINE COLLECTION</small><h2>MACHINE CARD <em>SELECT</em></h2><span>マシンを選ぼう</span></div>
+        </div>
+        <div class="catalog-head-meta"><span>左右スワイプ / ◀︎ ▶︎</span><strong id="catalogCount">01 / 08</strong></div>
+      </header>
+
+      <div class="catalog-body">
+        <nav id="catalogRail" class="catalog-rail" aria-label="マシンカード一覧"></nav>
+
+        <div id="catalogStage" class="catalog-stage">
+          <button id="catalogPrev" class="catalog-arrow prev" type="button" aria-label="前のマシン">‹</button>
+
+          <article id="machineCard" class="machine-card" data-car="wagon">
+            <div class="machine-card-glow" aria-hidden="true"></div>
+            <div class="machine-card-foil" aria-hidden="true"></div>
+            <section class="machine-card-art">
+              <div id="cardArtFallback" class="card-art-fallback" aria-hidden="true">
+                <div class="card-scene-lines"></div>
+                <div class="card-scene-orb"></div>
+                <img id="cardFallbackCar" class="card-fallback-car" alt="">
+              </div>
+              <img id="cardArtwork" class="card-artwork" alt="" decoding="async" hidden>
+              <div class="card-art-shade" aria-hidden="true"></div>
+              <div class="card-art-topline">
+                <span id="cardRarity" class="card-rarity">R</span>
+                <span id="cardNumber" class="card-number">MACHINE 02</span>
+                <span id="cardType" class="card-type">TYPE : FLOAT</span>
+              </div>
+              <div class="card-art-name">
+                <span id="cardSelectionMark" class="card-selection-mark">SELECTED MACHINE</span>
+                <small id="cardEnglishName">⚡ ZERO GRAVITY</small>
+                <strong id="cardName">スマートワゴン</strong>
+              </div>
+            </section>
+
+            <section class="machine-card-info">
+              <div class="card-profile">
+                <div class="card-profile-head"><span>DRIVE STYLE</span><b id="cardDriveStyle">☁ FLOAT</b></div>
+                <p id="cardHandling" class="card-handling">浮く｜低い1段・長い滞空・強い2段</p>
+                <p id="cardAbility" class="card-ability">長く浮き、2段目でしっかり高度を足す。</p>
+              </div>
+
+              <div class="card-special">
+                <div class="card-special-head"><span>⚡ 最終奥義</span><em><b>1プレイ1回</b><small>ONE SHOT</small></em></div>
+                <strong id="cardSpecialName">ZERO GRAVITY</strong>
+                <p id="cardSpecialEffect">4秒間｜重力ほぼゼロ。タップで上方向へ微調整。</p>
+              </div>
+
+              <div class="card-record-line">
+                <div><small>RUN BEST</small><strong id="cardBest">0m</strong></div>
+                <span id="cardOwnedState" class="card-owned-state">OWNED</span>
+              </div>
+
+              <button id="catalogRunButton" class="catalog-run-button" type="button"><span>このマシンで走る</span><small>SELECT &amp; START</small></button>
+              <p id="catalogStatus" class="catalog-status" aria-live="polite"></p>
+            </section>
+          </article>
+
+          <button id="catalogNext" class="catalog-arrow next" type="button" aria-label="次のマシン">›</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <main id="recordsScreen" class="screen panel-screen">
@@ -77,17 +140,17 @@
       <aside class="ranking-sidebar">
         <div class="ranking-side-title"><small>YOUR BEST</small><strong id="rankingMeTitle">あなたの総合BEST</strong></div>
         <div id="rankingMe" class="ranking-me" hidden></div>
-        <button id="rankingMachineToggle" class="ranking-machine-toggle" type="button" aria-expanded="false"><span>🚗</span><b>マシン別ランキング</b><small>やり込み・研究はこちら</small><em>›</em></button>
-        <div id="rankingMachinePanel" class="ranking-machine-panel" hidden>
-          <label for="rankingMachineSelect">マシンを選択</label>
-          <select id="rankingMachineSelect"><option value="">マシンを選ぶ</option></select>
-          <button id="rankingOverallButton" data-rank-machine="" type="button">← 総合ランキングへ戻る</button>
+        <button id="rankingMachineToggle" class="ranking-machine-toggle" type="button" aria-expanded="false"><span>🚗</span><b>マシン別ランキング</b><small>8台から選んで記録を見る</small><em>›</em></button>
+        <button id="rankingOverallButton" class="ranking-overall-button" type="button" hidden>← 総合ランキングへ戻る</button>
+        <div id="rankingMachinePanel" class="ranking-machine-panel" hidden role="dialog" aria-modal="true" aria-labelledby="rankingMachinePickerTitle">
+          <div class="ranking-machine-picker-head"><div><small>MACHINE RANKING</small><strong id="rankingMachinePickerTitle">マシンを選ぶ</strong><span>見たいマシンをタップ</span></div><button id="rankingMachinePickerClose" type="button" aria-label="マシン選択を閉じる">×</button></div>
+          <div id="rankingMachineGrid" class="ranking-machine-grid"></div>
         </div>
-        <p id="rankingStatus" class="ranking-status">ランキングを読み込みます。</p>
-        <p class="ranking-note">🚀 SECRETは通常総合の対象外。マシン別ランキングで競います。</p>
+        <p id="rankingStatus" class="ranking-status" aria-live="polite">ランキングを読み込みます。</p>
+        <p class="ranking-note">🌍 記録はプレイ終了時に自動登録。初回のみランキングネームを設定します。<br>🚀 SECRETは通常総合の対象外。マシン別ランキングで競います。</p>
       </aside>
       <section class="ranking-board-shell" aria-label="世界ランキング一覧">
-        <div class="ranking-board-head"><div><small>WORLD TOP 100</small><strong id="rankingBoardTitle">総合ランキング</strong></div><span id="rankingScopeCaption">全マシン共通｜使用マシンも表示</span></div>
+        <div class="ranking-board-head"><div><small>WORLD TOP 100</small><strong id="rankingBoardTitle">総合ランキング</strong></div><div class="ranking-board-actions"><span id="rankingScopeCaption">全マシン共通｜使用マシンも表示</span><button id="rankingRefreshButton" class="ranking-refresh-button" type="button" aria-label="ランキングを最新に更新">↻ 最新</button></div></div>
         <div id="rankingList" class="ranking-list"></div>
       </section>
     </div>
@@ -121,7 +184,7 @@
   </div>
 
   <div id="rankingNameModal" class="modal" hidden>
-    <div class="modal-card ranking-name-card"><small>WORLD RANKING</small><h2>ランキングネーム</h2><p>2〜12文字。同じ名前でも登録できます。</p><input id="rankingNameInput" maxlength="12" autocomplete="nickname" inputmode="text" aria-label="ランキングネーム" placeholder="なまえ"><button type="button" id="rankingNameSave" class="primary-modal">この名前で登録</button><button type="button" id="rankingNameCancel">キャンセル</button></div>
+    <div class="modal-card ranking-name-card"><small>WORLD RANKING</small><h2>ランキングネーム</h2><p>初回のみ名前を決めると、以後の記録は自動登録されます。2〜12文字。同じ名前でも登録できます。</p><input id="rankingNameInput" maxlength="12" autocomplete="nickname" inputmode="text" aria-label="ランキングネーム" placeholder="なまえ"><button type="button" id="rankingNameSave" class="primary-modal">この名前で登録</button><button type="button" id="rankingNameCancel">キャンセル</button></div>
   </div>
 
   <div id="resultModal" class="modal result-modal" hidden>
@@ -131,7 +194,7 @@
       <strong id="resultDistance" class="result-distance">0m</strong>
       <div id="newBest" class="new-best" hidden>NEW BEST!</div>
       <div class="result-meta"><div><small>CAR</small><b id="resultCar">-</b></div><div><small>BEST</small><b id="resultBest">0m</b></div><div><small>CAUSE</small><b id="resultCause">-</b></div></div>
-      <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 この記録を世界ランキングへ</button>
+      <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 記録は世界ランキングへ自動登録</button>
       <p id="resultRankingStatus" class="result-ranking-status" hidden></p>
       <button type="button" id="retryButton" class="primary-modal">もう一回！</button>
       <div class="result-sub"><button type="button" id="resultRankingButton">世界ランキング</button><button type="button" id="resultGarageButton">車を変える</button><button type="button" id="resultMenuButton">ゲーム最初へ</button></div>
@@ -142,7 +205,7 @@
 window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
 window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
 </script>
-<script src="./run-ranking.js?v=20260811-v123rankingscroll"></script>
-<script src="./game.bundle.js?v=20260811-v123rankingscroll"></script>
+<script src="./run-ranking.js?v=20260812-v131autorank"></script>
+<script src="./game.bundle.js?v=20260812-v131autorank"></script>
 </body>
 </html>

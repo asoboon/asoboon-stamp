@@ -327,8 +327,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-11-playable-v1.0.23-ranking-scroll';
-const CLIENT_VERSION = '1.0.23';
+const BUILD = '2026-08-12-playable-v1.0.31-auto-ranking-final';
+const CLIENT_VERSION = '1.0.31';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -371,7 +371,7 @@ const HOME_GUIDE = {
 };
 
 // ONE SHOT SPECIAL: every car gets one deliberately rule-breaking moment per run.
-// The special is never random and is legal for ranked play. The player chooses when to spend it.
+// The special is never random and is legal for ranked play. Manual use gives full value; if still unused at a fatal event, EMERGENCY ULTIMATE auto-starts at reduced duration as a last-chance rescue.
 const SPECIALS = Object.freeze({
   boon:{name:'TITAN BREAK',short:'TITAN',duration:5.0,color:'#ffe04a',sub:'巨大重戦車化｜地上障害を粉砕＋ARMOR全回復'},
   wagon:{name:'ZERO GRAVITY',short:'ZERO-G',duration:4.0,color:'#55efff',sub:'重力ほぼゼロ｜タップで上昇微調整'},
@@ -382,6 +382,40 @@ const SPECIALS = Object.freeze({
   princess:{name:'ROYAL ASCENSION',short:'ASCEND',duration:8.0,color:'#ff78dc',sub:'即★5＋STAR停止＋3段ジャンプ無制限'},
   secret:{name:'FINAL IGNITION',short:'IGNITE',duration:4.0,color:'#ffe73f',sub:'燃料0消費＋完全無敵＋最大推力'}
 });
+
+// MACHINE CARD presentation data is display-only. It never changes physics, fuel, ranking, or ability behavior.
+const CARD_PRESENTATION = Object.freeze({
+  boon:{english:'BOON PICKUP',type:'HEAVY BREAKER',drive:'🛻 HEAVY',tagline:'重く低い1段。2段目とARMORで押し切る重量級。',special:'5秒間｜コーン・バリア・木箱・タイヤを粉砕＋ARMOR全回復'},
+  wagon:{english:'SMART WAGON',type:'FLOAT CONTROL',drive:'☁ FLOAT',tagline:'低めに長く浮き、2段目で必要な高度を足す安定型。',special:'4秒間｜重力ほぼゼロ。タップで上方向へ微調整'},
+  buggy:{english:'LUCKY BUGGY',type:'COMMIT JUMPER',drive:'⬆ COMMIT',tagline:'2段なし。一度の超大ジャンプにすべてを賭ける。',special:'5秒間｜普段は禁止の空中キックを3回だけ解禁'},
+  bike:{english:'POWER BIKE',type:'PRECISION QUICK',drive:'🏍 QUICK',tagline:'最小ボディと鋭い落下。2段目だけ強烈な精密型。',special:'6秒間｜当たり判定縮小＋2段燃料0＋ジャンプ強化'},
+  sport:{english:'NITRO SPORT',type:'HIGH SPEED',drive:'⚡ FAST',tagline:'常時高速。短い判断時間を攻めるスピード特化。',special:'4秒間｜速度上限突破＋PIT含む完全突破。終了時FUEL−18'},
+  ssr:{english:'COSMIC PHANTOM',type:'DIMENSION TECH',drive:'🌌 PHANTOM',tagline:'素直なジャンプとCLOSE勝負。危険を力へ変える。',special:'5秒間｜異次元化してPIT以外を完全すり抜け'},
+  princess:{english:'PRINCESS STARLINER',type:'STAR GROW',drive:'👑 GROW',tagline:'危険燃料でSTAR成長。育つほど燃費と空中性能が変化。',special:'8秒間｜即★5＋STAR減衰停止＋3段ジャンプをSTAR消費なしで使用可能'},
+  secret:{english:'ROCKET ASOBOON HUMAN',type:'SECRET ROCKET',drive:'🚀 ROCKET',tagline:'HOLDで上昇、RELEASEで落下。通常車とは別ルール。',special:'4秒間｜燃料消費0＋PIT含む完全突破。HOLDで最大推力'}
+});
+const CARD_ART_ROOT='./assets/cards';
+const CARD_ART_VERSION='130';
+const CARD_ART_POSITION = Object.freeze({
+  boon:'52% 53%', wagon:'52% 49%', buggy:'54% 48%', bike:'52% 52%',
+  sport:'52% 53%', ssr:'50% 54%', princess:'50% 53%', secret:'57% 48%'
+});
+const CARD_ART_PRELOADED=new Set();
+function cardArtSources(id,thumb=false){
+  const prefix=thumb?`${CARD_ART_ROOT}/thumb`:`${CARD_ART_ROOT}`;
+  const out=[`${prefix}/${id}.webp?v=${CARD_ART_VERSION}`];
+  if(!thumb)out.push(`${CARD_ART_ROOT}/${id}.png?v=${CARD_ART_VERSION}`,`${CARD_ART_ROOT}/${id}.jpg?v=${CARD_ART_VERSION}`);
+  return out;
+}
+function preloadCardArtwork(id){
+  if(!id||CARD_ART_PRELOADED.has(id))return;CARD_ART_PRELOADED.add(id);
+  const im=new Image();im.decoding='async';im.src=cardArtSources(id,false)[0];
+}
+function warmAdjacentCardArtwork(id){
+  const idx=CARS.findIndex(c=>c.id===id);if(idx<0)return;
+  const warm=()=>{preloadCardArtwork(CARS[(idx-1+CARS.length)%CARS.length].id);preloadCardArtwork(CARS[(idx+1)%CARS.length].id);};
+  if('requestIdleCallback' in window)requestIdleCallback(warm,{timeout:700});else setTimeout(warm,120);
+}
 
 function makeDefaultState(){
   return {
@@ -421,18 +455,22 @@ function getOwnedCars(){
 }
 let state=loadState();
 let ownedCars=getOwnedCars();
+let catalogFocusId=state.selected;
 
 const els={
   screens:{menu:$('menuScreen'),garage:$('garageScreen'),records:$('recordsScreen'),ranking:$('rankingScreen'),game:$('gameScreen')},
   homeBest:$('homeBest'),homeCarImage:$('homeCarImage'),selectedCarLabel:$('selectedCarLabel'),playCountLabel:$('playCountLabel'),howtoIcon1:$('howtoIcon1'),howtoText1:$('howtoText1'),howtoIcon2:$('howtoIcon2'),howtoText2:$('howtoText2'),howtoIcon3:$('howtoIcon3'),howtoText3:$('howtoText3'),
   startButton:$('startButton'),garageButton:$('garageButton'),recordsButton:$('recordsButton'),rankingButton:$('rankingButton'),soundButton:$('soundButton'),
-  carGrid:$('carGrid'),recordBest:$('recordBest'),recordTotal:$('recordTotal'),recordPlays:$('recordPlays'),recordCars:$('recordCars'),
+  catalogRail:$('catalogRail'),catalogStage:$('catalogStage'),catalogPrev:$('catalogPrev'),catalogNext:$('catalogNext'),catalogCount:$('catalogCount'),machineCard:$('machineCard'),
+  cardArtwork:$('cardArtwork'),cardArtFallback:$('cardArtFallback'),cardFallbackCar:$('cardFallbackCar'),cardRarity:$('cardRarity'),cardNumber:$('cardNumber'),cardType:$('cardType'),cardSelectionMark:$('cardSelectionMark'),cardEnglishName:$('cardEnglishName'),cardName:$('cardName'),
+  cardDriveStyle:$('cardDriveStyle'),cardHandling:$('cardHandling'),cardAbility:$('cardAbility'),cardSpecialName:$('cardSpecialName'),cardSpecialEffect:$('cardSpecialEffect'),cardBest:$('cardBest'),cardOwnedState:$('cardOwnedState'),catalogRunButton:$('catalogRunButton'),catalogStatus:$('catalogStatus'),
+  recordBest:$('recordBest'),recordTotal:$('recordTotal'),recordPlays:$('recordPlays'),recordCars:$('recordCars'),
   canvas:$('gameCanvas'),viewport:$('gameViewport'),pauseButton:$('pauseButton'),abilityBadge:$('abilityBadge'),distanceLabel:$('distanceLabel'),milestoneLabel:$('milestoneLabel'),
   fuelBar:$('fuelBar'),fuelLabel:$('fuelLabel'),fuelBox:document.querySelector('.fuel-box'),extraMeter:$('extraMeter'),startGuide:$('startGuide'),countdown:$('countdown'),toast:$('toast'),flash:$('flash'),
   pauseModal:$('pauseModal'),resumeButton:$('resumeButton'),restartButton:$('restartButton'),quitButton:$('quitButton'),
   resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
-  rankingMachineSelect:$('rankingMachineSelect'),rankingOverallButton:$('rankingOverallButton'),rankingMachineToggle:$('rankingMachineToggle'),rankingMachinePanel:$('rankingMachinePanel'),rankingTitle:$('rankingTitle'),rankingSubtitle:$('rankingSubtitle'),rankingMeTitle:$('rankingMeTitle'),rankingBoardTitle:$('rankingBoardTitle'),rankingScopeCaption:$('rankingScopeCaption'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
+  rankingOverallButton:$('rankingOverallButton'),rankingMachineToggle:$('rankingMachineToggle'),rankingMachinePanel:$('rankingMachinePanel'),rankingMachineGrid:$('rankingMachineGrid'),rankingMachinePickerClose:$('rankingMachinePickerClose'),rankingRefreshButton:$('rankingRefreshButton'),rankingTitle:$('rankingTitle'),rankingSubtitle:$('rankingSubtitle'),rankingMeTitle:$('rankingMeTitle'),rankingBoardTitle:$('rankingBoardTitle'),rankingScopeCaption:$('rankingScopeCaption'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
   specialButton:$('specialButton'),specialBanner:$('specialBanner'),specialBannerName:$('specialBannerName'),specialBannerSub:$('specialBannerSub'),
   highwayBoard:$('highwayBoard'),highwayBoardTag:$('highwayBoardTag'),highwayBoardMessage:$('highwayBoardMessage'),
   debugButton:$('debugButton'),debugPanel:$('debugPanel')
@@ -491,21 +529,48 @@ function renderMenu(){
   const guide=HOME_GUIDE[car.id]||HOME_GUIDE.wagon;
   [1,2,3].forEach((n,i)=>{els[`howtoIcon${n}`].textContent=guide[i][0];els[`howtoText${n}`].textContent=guide[i][1];});
 }
-function renderGarage(){
-  ownedCars=getOwnedCars();
-  els.carGrid.innerHTML='';
-  CARS.forEach(car=>{
+function cardUnlockText(car){return car.id==='secret'?'ブーンジャンプ通常7台コンプリートで解放':'ブーンジャンプで獲得すると解放';}
+function loadCatalogThumbArtwork(img,id){
+  if(!img)return;
+  img.classList.remove('has-card-art');img.onerror=null;img.onload=null;
+  const useFallback=()=>{img.classList.remove('has-card-art');bindCarImageFallback(img,id);img.src=carAsset(id);};
+  const sources=[...cardArtSources(id,true),...cardArtSources(id,false)];let i=0;
+  const next=()=>{if(i>=sources.length){useFallback();return;}img.src=sources[i++];};
+  img.onload=()=>img.classList.add('has-card-art');img.onerror=next;next();
+}
+function renderCatalogRail(){
+  if(!els.catalogRail)return;
+  els.catalogRail.innerHTML='';
+  CARS.forEach((car,index)=>{
     const owned=ownedCars.has(car.id);
-    const rec=state.carRecords[car.id]||{best:0,plays:0};
     const b=document.createElement('button');
-    b.className=`car-card${state.selected===car.id?' selected':''}${owned?'':' locked'}`;
-    b.type='button'; b.dataset.car=car.id;b.setAttribute('aria-pressed',String(state.selected===car.id));
-    b.setAttribute('aria-label',owned?`${car.name}。${car.ability.text}`:`未解放。${car.id==='secret'?'ブーンジャンプ通常7台コンプリートで解放':'ブーンジャンプで獲得すると解放'}`);
-    b.innerHTML=`<span class="rarity">${car.rarity}</span>${state.selected===car.id?'<span class="selected-mark">✓ 選択中</span>':''}<img src="${carAsset(car.id)}" alt=""><h3>${owned?car.name:'？？？？？？'}</h3>${owned?`<div class="handling">${HANDLING_LABEL[car.id]}</div><div class="special-chip">⚡ 最終奥義・1回限り｜${SPECIALS[car.id].name}</div>`:''}<p>${owned?car.ability.text:(car.id==='secret'?'🔒 ブーンジャンプ通常7台コンプリートで解放':'🔒 ブーンジャンプで獲得すると解放')}</p><div class="best">RUN BEST ${fmt(rec.best)}</div>`;
-    els.carGrid.appendChild(b);
-    bindCarImageFallback(b.querySelector('img'),car.id);
+    b.type='button';b.className=`catalog-thumb${catalogFocusId===car.id?' active':''}${state.selected===car.id?' current':''}${owned?'':' locked'}`;
+    b.dataset.catalogCar=car.id;b.setAttribute('aria-label',`${index+1}. ${car.name}${owned?'':' 未解放'}`);b.setAttribute('aria-pressed',String(catalogFocusId===car.id));
+    b.innerHTML=`<span class="catalog-thumb-rarity">${car.rarity}</span><span class="catalog-thumb-visual"><img src="${carAsset(car.id)}" alt="" loading="lazy" decoding="async"><span class="catalog-thumb-sheen" aria-hidden="true"></span></span><span class="catalog-thumb-copy"><b>${owned?car.name:'LOCKED'}</b><small>⚡ ${SPECIALS[car.id].short}</small></span>${state.selected===car.id?'<i>SELECTED</i>':''}`;
+    els.catalogRail.appendChild(b);loadCatalogThumbArtwork(b.querySelector('img'),car.id);
   });
 }
+function loadCardArtwork(id){
+  if(!els.cardArtwork||!els.cardArtFallback)return;
+  const art=els.cardArtwork,token=`${id}-${Date.now()}`;art.dataset.token=token;art.hidden=true;art.alt='';els.cardArtFallback.hidden=false;els.machineCard?.classList.remove('has-card-art');
+  const sources=cardArtSources(id,false);let i=0;
+  const next=()=>{if(art.dataset.token!==token)return;if(i>=sources.length){art.removeAttribute('src');art.hidden=true;els.cardArtFallback.hidden=false;els.machineCard?.classList.remove('has-card-art');return;}art.src=sources[i++];};
+  art.onload=()=>{if(art.dataset.token!==token)return;art.hidden=false;els.cardArtFallback.hidden=true;els.machineCard?.classList.add('has-card-art');CARD_ART_PRELOADED.add(id);warmAdjacentCardArtwork(id);};art.onerror=next;next();
+}
+function setCatalogFocus(id,direction=0){
+  const car=CAR_BY_ID[id]||currentCar(),meta=CARD_PRESENTATION[car.id],sp=SPECIALS[car.id],idx=CARS.findIndex(c=>c.id===car.id),owned=ownedCars.has(car.id),rec=state.carRecords[car.id]||{best:0,plays:0};
+  catalogFocusId=car.id;
+  if(els.machineCard){els.machineCard.dataset.car=car.id;els.machineCard.style.setProperty('--card-a',CAR_COLORS[car.id]?.[0]||'#4de7ff');els.machineCard.style.setProperty('--card-b',CAR_COLORS[car.id]?.[1]||'#ffffff');els.machineCard.style.setProperty('--card-pos',CARD_ART_POSITION[car.id]||'50% 50%');els.machineCard.classList.toggle('locked',!owned);els.machineCard.classList.remove('shift-left','shift-right');if(direction){void els.machineCard.offsetWidth;els.machineCard.classList.add(direction>0?'shift-left':'shift-right');}}
+  if(els.catalogCount)els.catalogCount.textContent=`${String(idx+1).padStart(2,'0')} / ${String(CARS.length).padStart(2,'0')}`;if(els.cardNumber)els.cardNumber.textContent=`MACHINE ${String(idx+1).padStart(2,'0')}`;
+  els.cardRarity.textContent=car.rarity;els.cardType.textContent=`TYPE : ${meta.type}`;els.cardEnglishName.textContent=`⚡ ${sp.name}`;els.cardName.textContent=car.name;els.cardDriveStyle.textContent=meta.drive;els.cardHandling.textContent=HANDLING_LABEL[car.id];els.cardAbility.textContent=meta.tagline;els.cardSpecialName.textContent=sp.name;els.cardSpecialEffect.textContent=meta.special;els.cardBest.textContent=fmt(rec.best);
+  els.cardOwnedState.textContent=owned?(state.selected===car.id?'SELECTED':'OWNED'):'LOCKED';els.cardOwnedState.classList.toggle('locked',!owned);if(els.cardSelectionMark){els.cardSelectionMark.hidden=state.selected!==car.id;els.cardSelectionMark.textContent='SELECTED MACHINE';}els.catalogRunButton.disabled=!owned;
+  els.catalogRunButton.querySelector('span').textContent=owned?'このマシンで走る':'🔒 未解放';els.catalogRunButton.querySelector('small').textContent=owned?'SELECT & START':cardUnlockText(car);
+  els.catalogStatus.textContent=owned?(state.selected===car.id?'':'このカードでスタートすると選択マシンが切り替わります'):cardUnlockText(car);
+  bindCarImageFallback(els.cardFallbackCar,car.id);els.cardFallbackCar.src=carAsset(car.id);loadCardArtwork(car.id);if(direction&&state.sound)sound.tone(360+(idx*34),.035,'sine',.012,70);
+  els.catalogRail?.querySelectorAll('[data-catalog-car]').forEach(b=>{const active=b.dataset.catalogCar===car.id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));if(active&&els.screens.garage.classList.contains('active'))b.scrollIntoView({block:'nearest',behavior:REDUCED_MOTION?'auto':'smooth'});});
+}
+function shiftCatalog(delta){const i=Math.max(0,CARS.findIndex(c=>c.id===catalogFocusId)),next=(i+delta+CARS.length)%CARS.length;setCatalogFocus(CARS[next].id,delta);}
+function renderGarage(){ownedCars=getOwnedCars();if(!CAR_BY_ID[catalogFocusId])catalogFocusId=state.selected;renderCatalogRail();setCatalogFocus(catalogFocusId,0);}
 function renderRecords(){
   els.recordBest.textContent=fmt(state.best); els.recordTotal.textContent=fmt(state.totalDistance); els.recordPlays.textContent=state.plays.toLocaleString();
   els.recordCars.innerHTML='';
@@ -579,7 +644,7 @@ function makeRun(car){
     elapsed:0, gameTime:0, endReason:null, endCause:null, startedAt:performance.now(),
     nextMilestone:1000, tutorial:true, lastPatternEndType:null, lastPatternEndX:0, patternHistory:[],
     stats:{fuel:0,jumps:0,doubleJumps:0,boosts:0,close:0,abilityUse:0,riskFuel:0,boostTime:0}, rankingSession:null,rankingEligible:false,rankingSessionError:'',rocketThrust:false,rocketDanger:0,rocketInvincibleUntil:0, rewardFxUntil:0,rewardFxKind:'',rewardFxStrength:0,
-    specialUsed:false,specialStartedAt:0,specialUntil:0,specialCharges:0,specialFuelPending:0,specialFuelSettled:false,
+    specialUsed:false,specialStartedAt:0,specialUntil:0,specialCharges:0,specialFuelPending:0,specialFuelSettled:false,specialEmergency:false,specialEmergencyCause:'',
     debug:{invincible:false}
   };
 }
@@ -737,7 +802,33 @@ function startGame(){
     const car=currentCar(); if(!ownedCars.has(car.id)){state.selected='wagon';saveState();}
     run=makeRun(currentCar()); const token=run.token; showScreen('game'); els.resultModal.hidden=true;els.pauseModal.hidden=true;els.startGuide.classList.remove('hidden');setStartGuide();
     document.body.dataset.car=run.car.id; resetHud();resetHighwayBoard();ensureWorld();render();
-    if(RUN_RANKING){RUN_RANKING.startSession(run.car.id,BUILD,CLIENT_VERSION).then(s=>{if(run&&run.token===token){run.rankingSession=s;run.rankingEligible=true;if(els.resultModal&&!els.resultModal.hidden){els.resultSubmitButton.disabled=false;els.resultSubmitButton.textContent='🌍 この記録を世界ランキングへ';}}}).catch(err=>{if(run&&run.token===token){run.rankingEligible=false;run.rankingSessionError=String(err&&err.message||err);}});}
+    if(RUN_RANKING){
+      run.rankingSessionPending=true;
+      run.rankingSessionPromise=RUN_RANKING.startSession(run.car.id,BUILD,CLIENT_VERSION).then(s=>{
+        if(run&&run.token===token){
+          run.rankingSession=s;
+          run.rankingEligible=true;
+          run.rankingSessionPending=false;
+          if(run.resultShown) autoRegisterCurrentRun();
+        }
+        return s;
+      }).catch(err=>{
+        if(run&&run.token===token){
+          run.rankingEligible=false;
+          run.rankingSessionPending=false;
+          run.rankingSessionError=String(err&&err.message||err);
+          if(run.resultShown){
+            els.resultSubmitButton.disabled=true;
+            els.resultSubmitButton.textContent='🌍 今回はランキング未登録';
+            els.resultRankingStatus.hidden=false;
+            els.resultRankingStatus.className='result-ranking-status error';
+            els.resultRankingStatus.textContent='ランキング通信を開始できなかったため、今回は自動登録されませんでした。';
+          }
+        }
+        throw err;
+      });
+      run.rankingSessionPromise.catch(()=>{});
+    }
     window.__BOONRUN_BOOT={phase:'countdown',car:run.car.id,objects:run.objects.length,at:Date.now()};
     countdownStart();
   }catch(err){
@@ -759,7 +850,7 @@ function setStartGuide(){
   };
   const g=guides[run.car.id]||['タップでジャンプ','空中タップで2段ジャンプ'];
   const sp=SPECIALS[run.car.id];
-  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small><em>⚡ 最終奥義 ${sp.name}｜1プレイ1回限り　　赤・橙＝回避 ／ 緑・金＝突破OK</em>`;
+  els.startGuide.innerHTML=`<span>${g[0]}</span><small>${g[1]}</small><em>⚡ 最終奥義 ${sp.name}｜手動発動OK・未使用なら致死時に自動起動　　赤・橙＝回避 ／ 緑・金＝突破OK</em>`;
 }
 function startAbilityToast(){
   const t={boon:'ピックアップ｜ARMOR ×2',wagon:'ワゴン｜長時間フロート',buggy:'バギー｜大ジャンプ1回',bike:'バイク｜2段でFUEL−4',sport:'スポーツ｜常時高速',ssr:'ファントム｜CLOSE×2',princess:'プリンセス｜危険燃料でSTAR',secret:'ロケット｜長押しで上昇'}[run?.car.id];
@@ -784,30 +875,61 @@ function specialBreaks(obj){
   if(run.car.id==='ssr')return obj.type!=='PIT';
   return false;
 }
-function showSpecialBanner(){
-  const sp=SPECIALS[run.car.id];
-  els.specialBanner.dataset.car=run.car.id;els.specialBannerName.textContent=sp.name;els.specialBannerSub.textContent=sp.sub;
+const EMERGENCY_SPECIAL = Object.freeze({
+  durationScale:.75,
+  crashInvulnSec:.60,
+  fuelRestoreRatio:.25,
+  pitLift:72,
+  pitLiftVelocity:390
+});
+function showSpecialBanner(emergency=false){
+  const sp=SPECIALS[run.car.id],label=els.specialBanner.querySelector('small');
+  if(label)label.textContent=emergency?'FINAL CHANCE｜最終奥義 自動起動':'最終奥義・1回限り';
+  els.specialBanner.dataset.car=run.car.id;els.specialBanner.classList.toggle('emergency',emergency);els.specialBannerName.textContent=sp.name;els.specialBannerSub.textContent=emergency?`致死回避｜${sp.sub}`:sp.sub;
   els.specialBanner.style.setProperty('--special-color',sp.color);els.specialBanner.classList.remove('show');void els.specialBanner.offsetWidth;els.specialBanner.classList.add('show');
-  setTimeout(()=>els.specialBanner.classList.remove('show'),1050);
+  setTimeout(()=>{els.specialBanner.classList.remove('show');els.specialBanner.classList.remove('emergency');},emergency?1250:1050);
 }
-function activateSpecial(){
-  if(!run||run.phase!=='running'||run.specialUsed)return;
-  sound.ensure();const sp=SPECIALS[run.car.id];run.specialUsed=true;run.specialStartedAt=run.gameTime;run.specialUntil=run.gameTime+sp.duration;run.stats.abilityUse++;
+function activateSpecial(options={}){
+  const emergency=!!options.emergency,cause=options.cause||'';
+  if(!run||run.phase!=='running'||run.specialUsed)return false;
+  sound.ensure();const sp=SPECIALS[run.car.id],duration=sp.duration*(emergency?EMERGENCY_SPECIAL.durationScale:1);
+  run.specialUsed=true;run.specialEmergency=emergency;run.specialEmergencyCause=emergency?cause:'';run.specialStartedAt=run.gameTime;run.specialUntil=run.gameTime+duration;run.stats.abilityUse++;
   if(run.car.id==='boon'){run.armor=run.car.ability.armorMax||2;}
   if(run.car.id==='wagon'){run.vy=Math.max(run.vy,90);run.onGround=false;}
-  if(run.car.id==='buggy'){run.specialCharges=3;}
+  if(run.car.id==='buggy'){run.specialCharges=emergency?2:3;}
   if(run.car.id==='sport'){run.specialFuelPending=18;run.specialFuelSettled=false;}
   if(run.car.id==='princess'){run.stars=run.car.ability.maxStars;run.lastEfficientFuelM=run.distance;}
   if(run.car.id==='secret'){run.vy=Math.max(run.vy,420);run.onGround=false;}
-  showSpecialBanner();highwayInfo(`最終奥義｜${sp.name} 発動`,'SPECIAL',2800);rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
-  burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,32);sound.tone(run.car.id==='boon'?105:run.car.id==='princess'?880:520,.18,'sawtooth',.045,420);setTimeout(()=>sound.special(),70);updateSpecialHud();
+  showSpecialBanner(emergency);highwayInfo(emergency?`FINAL CHANCE｜${sp.name} 自動起動`:`最終奥義｜${sp.name} 発動`,'SPECIAL',emergency?3400:2800);rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
+  burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,emergency?42:32);sound.tone(run.car.id==='boon'?105:run.car.id==='princess'?880:520,.18,'sawtooth',emergency?.055:.045,420);setTimeout(()=>sound.special(),70);updateSpecialHud();
+  return true;
+}
+function tryEmergencyUltimate(reason,cause,obj=null){
+  if(!run||run.phase!=='running'||run.specialUsed)return false;
+  const triggered=activateSpecial({emergency:true,cause:cause||reason});
+  if(!triggered)return false;
+  run.invulnerableUntil=Math.max(run.invulnerableUntil,run.gameTime+EMERGENCY_SPECIAL.crashInvulnSec);
+  if(reason==='gas'){
+    const floor=Math.max(1,run.fuelMax*EMERGENCY_SPECIAL.fuelRestoreRatio);
+    run.fuel=Math.max(run.fuel,floor);
+    toast(`EMERGENCY FUEL ${Math.ceil(run.fuel)}⛽`);
+  }else{
+    if(obj){obj.destroyed=true;obj.dead=obj.type==='PIT';}
+    if(cause==='PIT'){
+      run.y=Math.max(run.y,EMERGENCY_SPECIAL.pitLift);
+      run.vy=Math.max(run.vy,EMERGENCY_SPECIAL.pitLiftVelocity);
+      run.onGround=false;run.pendingJumpMs=0;
+    }
+  }
+  flash('phantom');rewardFx('gold',1.15,1);
+  return true;
 }
 function updateSpecialHud(){
   if(!run||!els.specialButton)return;const sp=SPECIALS[run.car.id];els.specialButton.style.setProperty('--special-color',sp.color);els.specialButton.dataset.car=run.car.id;
   els.specialButton.classList.toggle('active',specialActive());els.specialButton.classList.toggle('used',run.specialUsed&&!specialActive());els.specialButton.disabled=run.phase!=='running'||(run.specialUsed&&!specialActive());
   if(specialActive()){els.specialButton.innerHTML=`<small>最終奥義・発動中</small><b>⚡ ${sp.short}</b><em>${specialRemaining().toFixed(1)}秒</em>`;}
   else if(run.specialUsed){els.specialButton.innerHTML=`<small>1プレイ1回限り</small><b>使用済み</b><em>${sp.short}</em>`;}
-  else{els.specialButton.innerHTML=`<small>1プレイ1回限り</small><b>⚡ 最終奥義</b><em>${sp.short}｜残り1回</em>`;}
+  else{els.specialButton.innerHTML=`<small>手動OK｜未使用なら自動救命</small><b>⚡ 最終奥義</b><em>${sp.short}｜残り1回</em>`;}
 }
 
 function requestJump(){
@@ -928,7 +1050,7 @@ function handleCollision(obj){
       burst(obj.x,ROAD_Y-50,'#8a7cff',24);toast(`PHANTOM SAVE! −${cost}⛽`);flash('phantom');sound.special();if(run.fuel<=0){endGame('gas','gas');return true;}return false;}
   }
   if(run.shield){run.shield=false;obj.destroyed=true;burst(obj.x,ROAD_Y-60,'#6feaff',22);toast('SHIELD SAVE!');flash('phantom');sound.special();return false;}
-  endGame('crash',obj.type);return true;
+  endGame('crash',obj.type,obj);return true;
 }
 function checkCollisions(){
   const pr=playerRect(0),nearPr=playerRect(26);
@@ -1028,8 +1150,10 @@ function loop(t){
   if(!run||run.phase!=='running')return;const frame=Math.min(MAX_FRAME_DT,Math.max(0,(t-lastTime)/1000));lastTime=t;accumulator+=frame;let guard=0;while(accumulator>=FIXED_DT&&guard++<12){step(FIXED_DT);accumulator-=FIXED_DT;if(!run||run.phase!=='running')break;}render();if(run&&run.phase==='running')raf=requestAnimationFrame(loop);
 }
 
-function endGame(reason,cause){
-  if(!run||run.phase==='ended')return;run.phase='ended';run.endReason=reason;run.endCause=cause;cancelAnimationFrame(raf);
+function endGame(reason,cause,obj=null){
+  if(!run||run.phase==='ended')return;
+  if(tryEmergencyUltimate(reason,cause,obj))return;
+  run.phase='ended';run.endReason=reason;run.endCause=cause;cancelAnimationFrame(raf);
   if(reason==='crash')sound.crash();else sound.gas();flash('hit');
   state.plays++;state.totalDistance+=Math.floor(run.distance);const rec=state.carRecords[run.car.id]||{best:0,plays:0,total:0};rec.plays=(rec.plays||0)+1;rec.total=(rec.total||0)+Math.floor(run.distance);
   const oldBest=rec.best||0;rec.best=Math.max(oldBest,Math.floor(run.distance));state.carRecords[run.car.id]=rec;const globalOld=state.best||0;state.best=Math.max(globalOld,Math.floor(run.distance));
@@ -1041,7 +1165,34 @@ function showResult(oldBest){
   if(!run)return;const d=Math.floor(run.distance),rec=state.carRecords[run.car.id];
   els.resultReason.textContent=run.endReason==='gas'?'GAS OUT!':'CRASH!';els.resultReason.style.background=run.endReason==='gas'?'#ff9b2e':'#ff425b';
   els.resultDistance.textContent=fmt(d);els.resultCar.textContent=run.car.name;els.resultBest.textContent=fmt(rec.best);els.resultCause.textContent=CAUSE_LABEL[run.endCause]||run.endCause||'-';
-  els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 この記録を世界ランキングへ':'🌍 ランキング登録不可（通信なし）';els.resultModal.hidden=false;
+  els.newBest.hidden=!(d>oldBest);
+  run.resultShown=true;
+  run.rankingAutoState=run.rankingAutoState||'idle';
+  els.resultRankingStatus.hidden=false;
+  els.resultRankingStatus.className='result-ranking-status';
+  els.resultModal.hidden=false;
+  if(!RUN_RANKING){
+    els.resultSubmitButton.disabled=true;
+    els.resultSubmitButton.textContent='🌍 ランキング機能なし';
+    els.resultRankingStatus.className='result-ranking-status error';
+    els.resultRankingStatus.textContent='ランキング機能を読み込めなかったため、今回は登録されません。';
+    return;
+  }
+  if(run.rankingEligible){
+    els.resultSubmitButton.disabled=true;
+    els.resultSubmitButton.textContent='🌍 ランキング自動登録';
+    els.resultRankingStatus.textContent='この記録は自動で世界ランキングへ登録されます。';
+    setTimeout(autoRegisterCurrentRun,220);
+  }else if(run.rankingSessionPending){
+    els.resultSubmitButton.disabled=true;
+    els.resultSubmitButton.textContent='🌍 ランキング準備中…';
+    els.resultRankingStatus.textContent='ランキング登録の準備中です…';
+  }else{
+    els.resultSubmitButton.disabled=true;
+    els.resultSubmitButton.textContent='🌍 今回はランキング未登録';
+    els.resultRankingStatus.className='result-ranking-status error';
+    els.resultRankingStatus.textContent='ランキング通信を開始できなかったため、今回は自動登録されませんでした。';
+  }
 }
 
 function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
@@ -1267,65 +1418,235 @@ function mix(a,b,t){const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),
 function roundRect(c,x,y,w,h,r){if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);}else{c.beginPath();c.rect(x,y,w,h);}}
 
 function onOrientation(){if(run&&run.phase==='running'&&innerHeight>innerWidth)pauseGame(true);}
-function renderDebugPanel(){if(!DEBUG||!run)return;els.debugPanel.innerHTML=`DIST ${run.distance.toFixed(1)}<br>SPEED ${(run.speedMult*100).toFixed(0)}% / ${run.scrollSpeed.toFixed(0)}px/s<br>FUEL ${run.fuel.toFixed(1)} / ${run.fuelMax}<br>SAFE debt ${run.safeDebt.toFixed(1)}<br>OPT debt ${run.optionalDebt.toFixed(1)}<br>JUMPS ${run.jumpsUsed}/${run.cp.maxJumps}${run.car.id==='princess'?'(+STAR)':''}<br>ARMOR ${run.armor||0} PHANTOM ${run.phantomReady?'READY':run.phantomClose}<br>SPECIAL ${run.specialUsed?(specialActive()?specialRemaining().toFixed(1)+'s':'USED'):'READY'}<br>PAT ${run.lastPattern?.id||'-'}<br>OBJ ${run.objects.length}<br><button data-dbg="fuel">FUEL+40</button><button data-dbg="jump">+5km</button><button data-dbg="inv">INV ${run.debug.invincible?'ON':'OFF'}</button>`;}
+function renderDebugPanel(){if(!DEBUG||!run)return;els.debugPanel.innerHTML=`DIST ${run.distance.toFixed(1)}<br>SPEED ${(run.speedMult*100).toFixed(0)}% / ${run.scrollSpeed.toFixed(0)}px/s<br>FUEL ${run.fuel.toFixed(1)} / ${run.fuelMax}<br>SAFE debt ${run.safeDebt.toFixed(1)}<br>OPT debt ${run.optionalDebt.toFixed(1)}<br>JUMPS ${run.jumpsUsed}/${run.cp.maxJumps}${run.car.id==='princess'?'(+STAR)':''}<br>ARMOR ${run.armor||0} PHANTOM ${run.phantomReady?'READY':run.phantomClose}<br>SPECIAL ${run.specialUsed?(specialActive()?specialRemaining().toFixed(1)+'s'+(run.specialEmergency?' AUTO':''):'USED'):'READY/AUTO'}<br>PAT ${run.lastPattern?.id||'-'}<br>OBJ ${run.objects.length}<br><button data-dbg="fuel">FUEL+40</button><button data-dbg="jump">+5km</button><button data-dbg="inv">INV ${run.debug.invincible?'ON':'OFF'}</button>`;}
 
 
-let rankingPeriod='all',rankingMachine='',rankingMachinePanelOpen=false,pendingRankSubmit=false;
+let rankingPeriod='all',rankingMachine='',rankingMachinePanelOpen=false,pendingRankSubmit=false,mandatoryRankName=false,rankingRequestSeq=0,rankingLastScopeKey='';
+const rankingWarmScopes=new Set();
 const RANK_CAR_ICON={boon:'🛻',wagon:'🚙',buggy:'🏜️',bike:'🏍️',sport:'🏎️',ssr:'🌌',princess:'👑',secret:'🚀'};
 function rankCarName(id){return CAR_BY_ID[id]?.name||id||'-';}
 function rankCarIcon(id){return RANK_CAR_ICON[id]||'🚗';}
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-function populateRankingMachines(){if(!els.rankingMachineSelect)return;els.rankingMachineSelect.innerHTML='<option value="">マシンを選ぶ</option>'+CARS.map(c=>`<option value="${c.id}">${rankCarIcon(c.id)} ${c.secret?'SECRET｜':''}${c.name}</option>`).join('');}
+function rankingScopeKey(){return `${rankingPeriod}|${rankingMachine||'overall'}`;}
+function populateRankingMachines(){
+  if(!els.rankingMachineGrid)return;
+  els.rankingMachineGrid.innerHTML=CARS.map(c=>{
+    const best=Number(state.carRecords?.[c.id]?.best)||0;
+    return `<button class="ranking-machine-choice ${c.secret?'secret':''}" type="button" data-rank-machine-choice="${c.id}" aria-label="${escapeHtml(c.name)}のランキングを見る"><span class="machine-choice-art"><img src="${carAssetLocal(c.id)}" alt="" data-rank-machine-img="${c.id}"></span><span class="machine-choice-copy"><b>${escapeHtml(c.name)}</b><small>${c.secret?'SECRET ｜ ':''}MY BEST ${fmt(best)}</small></span><em>ランキングを見る ›</em></button>`;
+  }).join('');
+  els.rankingMachineGrid.querySelectorAll('[data-rank-machine-img]').forEach(img=>bindCarImageFallback(img,img.dataset.rankMachineImg));
+}
 function rankingPeriodLabel(){return rankingPeriod==='today'?'今日':rankingPeriod==='week'?'今週':'歴代';}
+function rankingLoadingMarkup(){return '<div class="ranking-loading"><i></i><b>ランキング取得中</b><small>画面はそのまま。取得でき次第すぐ表示します</small></div>';}
+function rankingErrorMarkup(message){return `<div class="ranking-error"><b>ランキングを取得できませんでした</b><small>${escapeHtml(message||'通信状態を確認してください。')}</small><button type="button" data-ranking-retry>↻ もう一度読み込む</button></div>`;}
 function renderRankingRows(data){
-  const rows=(data?.rows||[]).slice(0,10),myId=RUN_RANKING?.playerId?.()||'';
-  els.rankingList.innerHTML=rows.length?rows.map(r=>{const machineId=r.machine_id||'',machineName=r.machine_name||rankCarName(machineId);return `<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${r.player_id===myId?'me':''}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name"><strong>${escapeHtml(r.display_name)}</strong><small class="rank-machine"><span>${rankCarIcon(machineId)}</span>${escapeHtml(machineName)}</small></div><div class="distance">${fmt(r.distance)}</div></div>`;}).join(''):'<div class="ranking-empty"><b>まだ記録がありません</b><small>最初の世界記録を狙おう！</small></div>';
-  if(data?.me){const mid=data.me.machine_id||'',mn=data.me.machine_name||rankCarName(mid);els.rankingMe.hidden=false;els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small><span>${rankCarIcon(mid)}</span>${escapeHtml(mn||'あなたのベスト')}</small>`;}
-  else{els.rankingMe.hidden=false;els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録すると世界順位が表示されます</small>';}
+  const rows=(data?.rows||[]).slice(0,100),myId=RUN_RANKING?.playerId?.()||'',machineScope=!!rankingMachine;
+  els.rankingList.innerHTML=rows.length?rows.map(r=>{
+    const machineId=r.machine_id||rankingMachine||'',machineName=r.machine_name||rankCarName(machineId);
+    const isMe=r.player_id===myId,machineLine=machineScope?'':`<small class="rank-machine"><span>${rankCarIcon(machineId)}</span>${escapeHtml(machineName)}</small>`,youTag=isMe?'<i class="rank-you">YOU</i>':'';
+    return `<div class="ranking-row ${r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':''} ${isMe?'me':''}" data-rank="${Number(r.rank)||0}"><div class="rank">${r.rank<=3?['','🥇','🥈','🥉'][r.rank]:`#${r.rank}`}</div><div class="name"><div class="rank-name-line"><strong>${escapeHtml(r.display_name)}</strong>${youTag}</div>${machineLine}</div><div class="distance">${fmt(r.distance)}</div></div>`;
+  }).join(''):'<div class="ranking-empty"><b>まだ記録がありません</b><small>最初の世界記録を狙おう！</small></div>';
+  if(data?.me){
+    const mid=data.me.machine_id||rankingMachine||'',mn=data.me.machine_name||rankCarName(mid);
+    els.rankingMe.hidden=false;
+    els.rankingMe.innerHTML=`<div class="me-rank"><b>#${Number(data.me.rank)||'-'}</b><strong>${fmt(data.me.distance)}</strong></div><small>${rankingMachine?`${rankCarIcon(mid)} ${escapeHtml(mn)}`:`${rankCarIcon(mid)} ${escapeHtml(mn||'あなたのベスト')}`}</small>`;
+  }else{
+    els.rankingMe.hidden=false;
+    els.rankingMe.innerHTML='<div class="me-rank"><b>--</b><strong>未登録</strong></div><small>記録を登録すると世界順位が表示されます</small>';
+  }
+}
+function updateRankingMachineToggleVisual(){
+  if(!els.rankingMachineToggle)return;
+  const visual=els.rankingMachineToggle.querySelector(':scope > span');
+  if(!visual)return;
+  if(!rankingMachine){visual.textContent='🚗';visual.classList.remove('has-machine');return;}
+  visual.innerHTML=`<img src="${carAssetLocal(rankingMachine)}" alt="">`;
+  visual.classList.add('has-machine');
+  const img=visual.querySelector('img');if(img)bindCarImageFallback(img,rankingMachine);
 }
 function syncRankingFilterUI(){
-  if(els.rankingMachineSelect)els.rankingMachineSelect.value=rankingMachine;
-  if(rankingMachine)rankingMachinePanelOpen=true;
   if(els.rankingMachinePanel)els.rankingMachinePanel.hidden=!rankingMachinePanelOpen;
-  if(els.rankingMachineToggle){els.rankingMachineToggle.setAttribute('aria-expanded',String(rankingMachinePanelOpen));els.rankingMachineToggle.classList.toggle('open',rankingMachinePanelOpen);}
+  if(els.rankingMachineToggle){
+    els.rankingMachineToggle.setAttribute('aria-expanded',String(rankingMachinePanelOpen));
+    els.rankingMachineToggle.classList.toggle('open',rankingMachinePanelOpen);
+    els.rankingMachineToggle.classList.toggle('selected',!!rankingMachine);
+    const b=els.rankingMachineToggle.querySelector('b'),small=els.rankingMachineToggle.querySelector('small');
+    if(b)b.textContent=rankingMachine?rankCarName(rankingMachine):'マシン別ランキングを見る';
+    if(small)small.textContent=rankingMachine?'タップして別のマシンへ切り替え':'8台からマシンを選ぶ';
+    updateRankingMachineToggleVisual();
+  }
+  if(els.rankingOverallButton){els.rankingOverallButton.hidden=!rankingMachine;els.rankingOverallButton.textContent=rankingMachine?'🌍 総合ランキングへ戻る':'総合ランキング';}
+  if(els.rankingMachineGrid)els.rankingMachineGrid.querySelectorAll('[data-rank-machine-choice]').forEach(b=>b.classList.toggle('active',b.dataset.rankMachineChoice===rankingMachine));
   const machine=rankingMachine?rankCarName(rankingMachine):'';
   if(els.rankingTitle)els.rankingTitle.textContent=rankingMachine?'マシン別ランキング':'総合ランキング';
-  if(els.rankingSubtitle)els.rankingSubtitle.textContent=rankingMachine?machine:'全マシン共通の世界記録';
+  if(els.rankingSubtitle)els.rankingSubtitle.textContent=rankingMachine?`${rankCarIcon(rankingMachine)} ${machine}`:'全マシン共通の世界記録';
   if(els.rankingMeTitle)els.rankingMeTitle.textContent=rankingMachine?`${machine} BEST`:'あなたの総合BEST';
   if(els.rankingBoardTitle)els.rankingBoardTitle.textContent=rankingMachine?machine:'総合ランキング';
   if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP100`:`${rankingPeriodLabel()}｜全マシン共通・使用マシンも表示`;
 }
-async function loadRanking(){showScreen('ranking');syncRankingFilterUI();els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}try{const d=await RUN_RANKING.leaderboard(rankingPeriod,rankingMachine,100);renderRankingRows(d);els.rankingStatus.textContent=`${rankingMachine?rankCarName(rankingMachine):'総合'} ｜ ${rankingPeriodLabel()} ｜ ${d.total_players||0}人`;if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=rankingMachine?`${rankingPeriodLabel()}｜マシン別TOP100`:`${rankingPeriodLabel()}｜${d.total_players||0}人参加・使用マシンも表示`;}catch(err){els.rankingStatus.textContent=String(err&&err.message||err);}}
+function setRankingRefreshing(on){
+  els.rankingRefreshButton?.classList.toggle('loading',on);
+  if(els.rankingRefreshButton){els.rankingRefreshButton.disabled=on;els.rankingRefreshButton.textContent=on?'↻ 更新中':'↻ 最新';}
+}
+function warmSiblingRankingPeriods(machine,current){
+  if(!RUN_RANKING?.leaderboard)return;
+  const scope=machine||'overall';
+  if(rankingWarmScopes.has(scope))return;
+  rankingWarmScopes.add(scope);
+  const periods=['today','week','all'].filter(p=>p!==current);
+  const runWarm=async()=>{
+    for(const p of periods){
+      try{await RUN_RANKING.leaderboard(p,machine,100,false);}catch(_){/* current board remains usable */}
+      await new Promise(r=>setTimeout(r,140));
+    }
+  };
+  setTimeout(runWarm,420);
+}
+async function loadRanking({force=false}={}){
+  showScreen('ranking');syncRankingFilterUI();
+  const seq=++rankingRequestSeq,period=rankingPeriod,machine=rankingMachine,scopeKey=rankingScopeKey();
+  const scopeChanged=scopeKey!==rankingLastScopeKey;rankingLastScopeKey=scopeKey;
+  if(scopeChanged&&els.rankingList){els.rankingList.scrollTop=0;els.rankingList.scrollLeft=0;}
+  if(!RUN_RANKING){const msg='ランキング機能を読み込めませんでした。';els.rankingStatus.textContent=msg;els.rankingList.innerHTML=rankingErrorMarkup(msg);return;}
+  const cached=RUN_RANKING.peekLeaderboard?.(period,machine);
+  if(cached){
+    renderRankingRows(cached);
+    const age=Math.max(0,Math.round((cached._cache_age_ms||0)/1000));
+    els.rankingStatus.textContent=`${age<5?'保存済みランキングを即表示':'保存済みランキングを表示'}。最新データを確認中…`;
+  }else{
+    els.rankingList.innerHTML=rankingLoadingMarkup();
+    els.rankingStatus.textContent='最新ランキングを取得中…';
+  }
+  setRankingRefreshing(true);
+  try{
+    const d=await RUN_RANKING.leaderboard(period,machine,100,force);
+    if(seq!==rankingRequestSeq)return;
+    renderRankingRows(d);
+    const cacheMark=d._client_cache?' ｜ 保存データ':' ｜ 最新';
+    els.rankingStatus.textContent=`${machine?rankCarName(machine):'総合'} ｜ ${rankingPeriodLabel()} ｜ ${d.total_players||0}人${cacheMark}`;
+    if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=machine?`${rankingPeriodLabel()}｜マシン別TOP100`:`${rankingPeriodLabel()}｜${d.total_players||0}人参加・使用マシンも表示`;
+    warmSiblingRankingPeriods(machine,period);
+  }catch(err){
+    if(seq!==rankingRequestSeq)return;
+    if(cached){els.rankingStatus.textContent='通信に失敗しました。保存済みランキングを表示しています。';}
+    else{const msg=String(err&&err.message||err);els.rankingStatus.textContent=msg;els.rankingList.innerHTML=rankingErrorMarkup(msg);}
+  }finally{if(seq===rankingRequestSeq)setRankingRefreshing(false);}
+}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
-async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
-function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
+function setRankingNameMode(forced){
+  mandatoryRankName=!!forced;
+  if(els.rankingNameCancel)els.rankingNameCancel.hidden=mandatoryRankName;
+  const card=els.rankingNameModal?.querySelector('.ranking-name-card');
+  if(card){
+    const h=card.querySelector('h2'),p=card.querySelector('p');
+    if(h)h.textContent=mandatoryRankName?'初回だけランキングネームを決めよう':'ランキングネーム';
+    if(p)p.textContent=mandatoryRankName?'この名前で以後の記録を自動登録します。2〜12文字。同じ名前でも登録できます。':'2〜12文字。同じ名前でも登録できます。';
+  }
+}
+async function submitCurrentRun(name,{auto=false}={}){
+  const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return false;
+  if(run?.rankingAutoState==='submitting'||run?.rankingAutoState==='done')return true;
+  if(run)run.rankingAutoState='submitting';
+  els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';
+  els.resultRankingStatus.textContent=auto?'世界ランキングへ自動登録中…':'世界ランキングへ登録中…';
+  els.resultSubmitButton.textContent=auto?'🌍 自動登録中…':'🌍 登録中…';
+  try{
+    const d=await RUN_RANKING.submit(payload,name);
+    rankingWarmScopes.clear();rankingLastScopeKey='';
+    if(run)run.rankingAutoState='done';
+    els.resultRankingStatus.textContent=d.skipped?'ランキング確認済み。自己ベスト未更新のため順位はそのままです。':`自動登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;
+    els.resultSubmitButton.textContent='✓ 世界ランキング反映済み';
+    els.resultSubmitButton.disabled=true;
+    return true;
+  }catch(err){
+    if(run)run.rankingAutoState='failed';
+    els.resultRankingStatus.className='result-ranking-status error';
+    els.resultRankingStatus.textContent=`自動登録に失敗しました。タップして再試行できます。 ${String(err&&err.message||err)}`;
+    els.resultSubmitButton.textContent='↻ ランキング登録を再試行';
+    els.resultSubmitButton.disabled=false;
+    return false;
+  }
+}
+function openRankingNameModal(forced){
+  pendingRankSubmit=true;
+  setRankingNameMode(!!forced);
+  els.rankingNameInput.value=RUN_RANKING?.playerName()||'';
+  els.rankingNameModal.hidden=false;
+  setTimeout(()=>els.rankingNameInput.focus(),50);
+}
+function autoRegisterCurrentRun(){
+  if(!run?.resultShown||!RUN_RANKING||!run.rankingEligible)return;
+  if(run.rankingAutoState==='submitting'||run.rankingAutoState==='done'||run.rankingAutoState==='need-name')return;
+  const name=RUN_RANKING.playerName()||'';
+  if(!name){
+    run.rankingAutoState='need-name';
+    els.resultSubmitButton.disabled=true;
+    els.resultSubmitButton.textContent='🌍 初回のみ名前を登録';
+    els.resultRankingStatus.hidden=false;
+    els.resultRankingStatus.className='result-ranking-status';
+    els.resultRankingStatus.textContent='初回のみランキングネームを決めると、以後の記録は自動登録されます。';
+    openRankingNameModal(true);
+    return;
+  }
+  submitCurrentRun(name,{auto:true});
+}
+function requestRankSubmit(){
+  if(!run?.rankingEligible)return;
+  const name=RUN_RANKING?.playerName()||'';
+  if(name){submitCurrentRun(name,{auto:false});return;}
+  openRankingNameModal(false);
+}
 
 els.startButton.addEventListener('click',startGame);
 els.rankingButton.addEventListener('click',()=>{rankingPeriod='all';rankingMachine='';rankingMachinePanelOpen=false;document.querySelectorAll('[data-rank-period]').forEach(b=>b.classList.toggle('active',b.dataset.rankPeriod==='all'));syncRankingFilterUI();loadRanking();});
-els.resultRankingButton.addEventListener('click',()=>{els.resultModal.hidden=true;rankingMachine=run?.car.id==='secret'?'secret':'';rankingMachinePanelOpen=!!rankingMachine;loadRanking();});
+els.resultRankingButton.addEventListener('click',()=>{els.resultModal.hidden=true;rankingMachine=run?.car.id==='secret'?'secret':'';rankingMachinePanelOpen=false;loadRanking();});
 els.resultSubmitButton.addEventListener('click',requestRankSubmit);
-els.rankingNameSave.addEventListener('click',()=>{try{const n=RUN_RANKING.validateName(els.rankingNameInput.value);RUN_RANKING.setPlayerName(n);els.rankingNameModal.hidden=true;if(pendingRankSubmit){pendingRankSubmit=false;submitCurrentRun(n);}}catch(err){els.rankingNameInput.setCustomValidity(String(err&&err.message||err));els.rankingNameInput.reportValidity();els.rankingNameInput.setCustomValidity('');}});
-els.rankingNameCancel.addEventListener('click',()=>{pendingRankSubmit=false;els.rankingNameModal.hidden=true;});
-document.querySelectorAll('[data-rank-period]').forEach(b=>b.addEventListener('click',()=>{rankingPeriod=b.dataset.rankPeriod;document.querySelectorAll('[data-rank-period]').forEach(x=>x.classList.toggle('active',x===b));loadRanking();}));
-els.rankingMachineSelect.addEventListener('change',()=>{const next=els.rankingMachineSelect.value;if(!next){syncRankingFilterUI();return;}rankingMachine=next;rankingMachinePanelOpen=true;loadRanking();});
-if(els.rankingMachineToggle)els.rankingMachineToggle.addEventListener('click',()=>{rankingMachinePanelOpen=!rankingMachinePanelOpen;syncRankingFilterUI();});
+els.rankingNameSave.addEventListener('click',()=>{try{
+  const n=RUN_RANKING.validateName(els.rankingNameInput.value);
+  RUN_RANKING.setPlayerName(n);
+  els.rankingNameModal.hidden=true;
+  if(pendingRankSubmit){
+    pendingRankSubmit=false;
+    const wasForced=mandatoryRankName;
+    setRankingNameMode(false);
+    if(run)run.rankingAutoState='idle';
+    submitCurrentRun(n,{auto:wasForced});
+  }
+}catch(err){els.rankingNameInput.setCustomValidity(String(err&&err.message||err));els.rankingNameInput.reportValidity();els.rankingNameInput.setCustomValidity('');}});
+els.rankingNameCancel.addEventListener('click',()=>{if(mandatoryRankName)return;pendingRankSubmit=false;setRankingNameMode(false);els.rankingNameModal.hidden=true;});
+document.querySelectorAll('[data-rank-period]').forEach(b=>b.addEventListener('click',()=>{rankingPeriod=b.dataset.rankPeriod;rankingMachinePanelOpen=false;document.querySelectorAll('[data-rank-period]').forEach(x=>x.classList.toggle('active',x===b));loadRanking();}));
+if(els.rankingMachineToggle)els.rankingMachineToggle.addEventListener('click',()=>{rankingMachinePanelOpen=true;syncRankingFilterUI();});
+if(els.rankingMachinePickerClose)els.rankingMachinePickerClose.addEventListener('click',()=>{rankingMachinePanelOpen=false;syncRankingFilterUI();});
+if(els.rankingMachinePanel)els.rankingMachinePanel.addEventListener('click',e=>{if(e.target===els.rankingMachinePanel){rankingMachinePanelOpen=false;syncRankingFilterUI();}});
+if(els.rankingMachineGrid)els.rankingMachineGrid.addEventListener('click',e=>{const b=e.target.closest('[data-rank-machine-choice]');if(!b)return;rankingMachine=b.dataset.rankMachineChoice||'';rankingMachinePanelOpen=false;loadRanking();});
 if(els.rankingOverallButton)els.rankingOverallButton.addEventListener('click',()=>{rankingMachine='';rankingMachinePanelOpen=false;loadRanking();});
+if(els.rankingRefreshButton)els.rankingRefreshButton.addEventListener('click',()=>loadRanking({force:true}));
+if(els.rankingList)els.rankingList.addEventListener('click',e=>{const retry=e.target.closest('[data-ranking-retry]');if(!retry)return;loadRanking({force:true});});
 
-els.garageButton.addEventListener('click',()=>{renderGarage();showScreen('garage');});
+els.garageButton.addEventListener('click',()=>{catalogFocusId=state.selected;showScreen('garage');renderGarage();});
 els.recordsButton.addEventListener('click',()=>{renderRecords();showScreen('records');});
 document.querySelectorAll('[data-back="menu"]').forEach(b=>b.addEventListener('click',()=>{showScreen('menu');renderMenu();}));
-els.carGrid.addEventListener('click',e=>{const b=e.target.closest('[data-car]');if(!b)return;const id=b.dataset.car;if(!ownedCars.has(id)){toast('ブーンジャンプで解放しよう！');return;}state.selected=id;saveState();renderGarage();renderMenu();setTimeout(()=>showScreen('menu'),100);});
+if(els.catalogRail)els.catalogRail.addEventListener('click',e=>{const b=e.target.closest('[data-catalog-car]');if(!b)return;const next=b.dataset.catalogCar,cur=CARS.findIndex(c=>c.id===catalogFocusId),ni=CARS.findIndex(c=>c.id===next);setCatalogFocus(next,ni>=cur?1:-1);});
+if(els.catalogPrev)els.catalogPrev.addEventListener('click',()=>shiftCatalog(-1));
+if(els.catalogNext)els.catalogNext.addEventListener('click',()=>shiftCatalog(1));
+if(els.catalogRunButton)els.catalogRunButton.addEventListener('click',()=>{const car=CAR_BY_ID[catalogFocusId];if(!car||!ownedCars.has(car.id))return;state.selected=car.id;saveState();renderMenu();startGame();});
+let catalogSwipe=null;
+if(els.catalogStage&&'PointerEvent' in window){
+  els.catalogStage.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;catalogSwipe={id:e.pointerId,x:e.clientX,y:e.clientY};try{els.catalogStage.setPointerCapture(e.pointerId);}catch(_){}});
+  els.catalogStage.addEventListener('pointerup',e=>{if(!catalogSwipe||catalogSwipe.id!==e.pointerId)return;const dx=e.clientX-catalogSwipe.x,dy=e.clientY-catalogSwipe.y;catalogSwipe=null;if(Math.abs(dx)>=42&&Math.abs(dx)>Math.abs(dy)*1.15)shiftCatalog(dx<0?1:-1);});
+  els.catalogStage.addEventListener('pointercancel',()=>{catalogSwipe=null;});
+}
 els.soundButton.addEventListener('click',()=>{state.sound=!state.sound;saveState();renderMenu();if(state.sound)sound.tone(620,.08,'sine',.03,180);});
 els.pauseButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();pauseGame(false);});
 els.specialButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();activateSpecial();});
 els.resumeButton.addEventListener('click',resumeGame);els.restartButton.addEventListener('click',restartGame);els.quitButton.addEventListener('click',quitGame);els.retryButton.addEventListener('click',restartGame);
-els.resultGarageButton.addEventListener('click',()=>{els.resultModal.hidden=true;run=null;renderGarage();showScreen('garage');});
+els.resultGarageButton.addEventListener('click',()=>{els.resultModal.hidden=true;run=null;catalogFocusId=state.selected;showScreen('garage');renderGarage();});
 els.resultMenuButton.addEventListener('click',()=>{els.resultModal.hidden=true;run=null;renderMenu();showScreen('menu');});
 const gamePress=(e)=>{if(e.target&&typeof e.target.closest==='function'&&e.target.closest('button'))return;if(e.cancelable)e.preventDefault();if(run?.car.id==='secret'&&run.phase==='running'){run.rocketThrust=true;sound.ensure();return;}requestJump();};
 const gameRelease=(e)=>{if(run?.car.id==='secret'){if(e&&e.cancelable)e.preventDefault();run.rocketThrust=false;}};
 if('PointerEvent' in window){els.viewport.addEventListener('pointerdown',gamePress,{passive:false});els.viewport.addEventListener('pointerup',gameRelease,{passive:false});els.viewport.addEventListener('pointercancel',gameRelease,{passive:false});}
 else{els.viewport.addEventListener('touchstart',gamePress,{passive:false});els.viewport.addEventListener('touchend',gameRelease,{passive:false});els.viewport.addEventListener('mousedown',gamePress,{passive:false});window.addEventListener('mouseup',gameRelease,{passive:false});}
-window.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}if(e.code==='KeyX'){e.preventDefault();activateSpecial();}if(e.key==='Escape'&&run?.phase==='running')pauseGame(false);});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.screens.ranking.classList.contains('active')&&rankingMachinePanelOpen){e.preventDefault();rankingMachinePanelOpen=false;syncRankingFilterUI();return;}if(els.screens.garage.classList.contains('active')&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();shiftCatalog(e.key==='ArrowRight'?1:-1);return;}if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}if(e.code==='KeyX'){e.preventDefault();activateSpecial();}if(e.key==='Escape'&&run?.phase==='running')pauseGame(false);});
 window.addEventListener('keyup',e=>{if((e.code==='Space'||e.key==='ArrowUp')&&run?.car.id==='secret')run.rocketThrust=false;});
 window.addEventListener('resize',onOrientation);document.addEventListener('visibilitychange',()=>{if(document.hidden&&run?.phase==='running')pauseGame(false);});
 window.addEventListener('pagehide',saveState);
@@ -1342,7 +1663,7 @@ window.addEventListener('unhandledrejection',e=>{console.error('[BOONRUN] promis
 window.__BOONRUN_TEST={
   build:BUILD,
   boot:()=>window.__BOONRUN_BOOT||null,
-  status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,fuelRate:effectiveFuelRate(),car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,scrollSpeed:run.scrollSpeed,armor:run.armor,stars:run.stars,specialCharges:run.specialCharges,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,specialUsed:run.specialUsed,specialActive:specialActive(),specialRemaining:specialRemaining(),rankingEligible:run.rankingEligible}:null,
+  status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,fuelRate:effectiveFuelRate(),car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,scrollSpeed:run.scrollSpeed,armor:run.armor,stars:run.stars,specialCharges:run.specialCharges,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,specialUsed:run.specialUsed,specialEmergency:run.specialEmergency,specialActive:specialActive(),specialRemaining:specialRemaining(),rankingEligible:run.rankingEligible}:null,
   selectCar(id){if(CAR_BY_ID[id]){ownedCars.add(id);state.selected=id;saveState();renderMenu();return id;}return null;},
   start:startGame, jump:requestJump, special:activateSpecial, pause:()=>pauseGame(false),
   press(){if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}, release(){if(run)run.rocketThrust=false;},
@@ -1351,4 +1672,9 @@ window.__BOONRUN_TEST={
 };
 window.__BOONRUN_BOOT={phase:'ready',build:BUILD,at:Date.now()};
 populateRankingMachines();renderMenu();renderGarage();
+const prefetchRanking=()=>RUN_RANKING?.prefetch?.();
+// Ranking is a primary menu destination. Warm the single default board early instead of
+// waiting up to 1.8s for requestIdleCallback; run-ranking.js deduplicates this with a
+// simultaneous user-initiated open.
+setTimeout(prefetchRanking,280);
 if('serviceWorker'in navigator&&location.protocol!=='file:'){navigator.serviceWorker.register('./sw.js').then(r=>r.update&&r.update()).catch(err=>console.warn('[BOONRUN] SW skipped',err));}

@@ -1,6 +1,10 @@
-BOONRUN v1.0.23
-Build: 2026-08-11-playable-v1.0.23-ranking-scroll
-Balance: identical to v1.0.22 / v1.0.20 3K BREAKTHROUGH
-Ranking UI: overall WORLD TOP 100 is primary and vertically scrollable; machine rankings remain secondary drill-down
-Visual sync: BOONJUMP body + rear-wheel + front-wheel retained
-Valkyrie: excluded
+BOONRUN v1.0.31
+Build: 2026-08-12-playable-v1.0.31-auto-ranking-final
+Feature: AUTO RANKING FINAL — v1.0.30 final polish + forced first-time ranking name + automatic score submission after every eligible run
+Emergency Ultimate: retained — unused FINAL ULTIMATE auto-rescues fatal events at reduced duration; manual activation remains full power
+Ranking UX: retained from v1.0.29/v1.0.30 — landscape TOP100, fixed YOUR BEST sidebar, large machine picker, cached instant display, background refresh
+Ranking registration: first eligible result requires a 2–12 character ranking name once; after that every eligible result auto-submits. Backend meaningful-best-only policy prevents lower scores from replacing best records
+Failure behavior: ranking/network failure never blocks retry/menu/garage; failed auto-submit exposes a retry button
+Gameplay/balance: v1.0.30 physics, fuel, cars, 55 patterns, 3K curve, cards and specials unchanged
+GAS/backend: endpoint/API contract unchanged; no redeploy required
+Valkyrie: series reference only; excluded from BOONRUN gameplay and ranking
