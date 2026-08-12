@@ -1,4 +1,4 @@
-const BUILD = "2026-08-12-showroom-selector-v323";
+const BUILD = "2026-08-12-boonrun-card-unified-v324";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [

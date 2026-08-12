@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.2">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.4">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-12-showroom-selector-v323">
-  <title>ブーンジャンプ Ver.3.2.2｜ASOBooN</title>
+  <meta name="boonjump-build" content="2026-08-12-boonrun-card-unified-v324">
+  <title>ブーンジャンプ Ver.3.2.4｜ASOBooN</title>
   <style>
 :root{
   --yellow:#ffd83d;--yellow-hi:#fff27a;--yellow-sh:#a96900;
@@ -371,6 +371,90 @@ body.modal-open{overflow:hidden}
 @media(min-width:620px){#garageScreen .machine-selector-shell{padding:16px}.selector-layout-wide{display:grid}#garageScreen .selector-stage{min-height:300px}#garageScreen .selector-vehicle-wrap{height:185px}#garageScreen .selector-vehicle .vehicle{width:360px}}
 @media(max-width:380px){#garageScreen .machine-selector-shell{padding:9px;border-radius:20px}#garageScreen .selector-stage{min-height:244px;padding-inline:34px}#garageScreen .selector-vehicle-wrap{height:145px}#garageScreen .selector-vehicle .vehicle{width:min(300px,86vw)}#garageScreen .selector-rail-item{flex-basis:68px}.selector-control{grid-template-columns:54px minmax(0,1fr)!important}}
 
+
+
+/* v3.2.4 — BOON RUN CARD DESIGN UNIFICATION ---------------------------------
+   The machine selector now uses the actual BOON RUN garage-card visual language:
+   dark diagonal card, rarity chip, selected badge, large machine art, handling chip,
+   simple description, and BEST at the foot.  The carousel/detail interaction from
+   v3.2.3 remains, but the central object is now unmistakably the shared series card. */
+#garageScreen .selector-stage-run-card{
+  min-height:338px;padding:18px 48px 17px;justify-content:center;
+  background:linear-gradient(180deg,rgba(6,17,31,.97),rgba(3,10,19,.99));
+}
+#garageScreen .selector-stage-run-card::before{opacity:.14}
+#garageScreen .selector-stage-run-card::after{opacity:.34}
+#garageScreen .run-machine-card{
+  --run-card-accent:#49b7ff;
+  position:relative;width:min(100%,318px);min-height:292px;
+  display:grid;grid-template-rows:132px auto auto 1fr auto;align-content:start;
+  padding:12px 13px 11px;border:1px solid var(--line);border-radius:22px;
+  overflow:hidden;text-align:left;color:#fff;
+  background:linear-gradient(145deg,rgba(15,31,52,.98),rgba(7,17,31,.98));
+  box-shadow:0 18px 38px rgba(0,0,0,.28);
+  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+#garageScreen .run-machine-card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 72% 15%,color-mix(in srgb,var(--run-card-accent) 19%,transparent),transparent 38%);
+}
+#garageScreen .run-machine-card.selected{
+  border-color:var(--yellow);
+  background:linear-gradient(145deg,rgba(36,45,44,.98),rgba(9,23,34,.98));
+  box-shadow:0 0 0 2px rgba(255,226,76,.18),0 18px 42px rgba(0,0,0,.36);
+}
+#garageScreen .run-machine-card.locked{opacity:.58;border-style:dashed;filter:none}
+#garageScreen .run-machine-card .rarity{
+  position:absolute;z-index:8;top:10px;left:10px;padding:4px 8px;border-radius:8px;
+  background:#101d2c;color:var(--cyan);font-size:.56rem;font-weight:1000;
+}
+#garageScreen .run-machine-card .selected-mark{
+  position:absolute;z-index:9;top:9px;right:9px;padding:5px 8px;border-radius:999px;
+  background:var(--yellow);color:#15202b;font-size:.50rem;font-weight:1000;letter-spacing:.02em;
+}
+#garageScreen .run-card-art{
+  position:relative;z-index:2;height:132px;display:grid;place-items:center;margin:-1px 0 1px;
+}
+#garageScreen .run-card-art .vehicle-slot{width:100%;min-height:126px;overflow:visible}
+#garageScreen .run-card-art .vehicle{width:min(276px,72vw);height:126px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.48))}
+#garageScreen .run-card-art.locked .vehicle-slot{filter:brightness(.22) saturate(0)}
+#garageScreen .run-card-lock{
+  position:absolute;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:52px;height:52px;display:grid;place-items:center;border-radius:50%;
+  background:rgba(3,8,16,.82);border:1px solid rgba(255,255,255,.18);font-size:1.45rem;
+  box-shadow:0 12px 28px rgba(0,0,0,.35);
+}
+#garageScreen .run-machine-card h3{position:relative;z-index:2;margin:5px 0 4px;font-size:.95rem;line-height:1.16}
+#garageScreen .run-machine-card .handling{
+  position:relative;z-index:2;justify-self:start;margin:0 0 6px;padding:5px 7px;
+  border:1px solid rgba(73,231,255,.28);border-radius:8px;background:rgba(5,18,31,.72);
+  color:#e9fbff;font-size:.56rem;font-weight:1000;letter-spacing:.02em;line-height:1.25;
+}
+#garageScreen .run-machine-card.selected .handling{border-color:rgba(255,226,76,.46);color:#fff4aa}
+#garageScreen .run-machine-card>p{
+  position:relative;z-index:2;margin:0;color:#a7bbcc;font-size:.64rem;line-height:1.48;font-weight:850;
+}
+#garageScreen .run-machine-card.locked>p{color:#d0b98b}
+#garageScreen .run-machine-card .best{
+  position:relative;z-index:2;display:flex;align-items:end;justify-content:space-between;gap:10px;
+  margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.09);
+}
+#garageScreen .run-machine-card .best small{color:#8298af;font-size:.49rem;letter-spacing:.09em;font-weight:1000}
+#garageScreen .run-machine-card .best strong{color:#fff;font-size:.82rem;font-weight:1000;font-variant-numeric:tabular-nums}
+#garageScreen .selector-arrow{top:50%;width:39px;height:62px}
+#garageScreen .selector-guide-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:6px}
+#garageScreen .selector-guide-head small{color:#73efff;font-size:.48rem;letter-spacing:.16em;font-weight:1000}
+#garageScreen .selector-guide-head strong{font-size:.69rem;font-weight:1000}
+#garageScreen .selector-stats-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:380px){
+  #garageScreen .selector-stage-run-card{min-height:318px;padding:15px 39px 14px}
+  #garageScreen .run-machine-card{min-height:274px;grid-template-rows:122px auto auto 1fr auto;padding:11px}
+  #garageScreen .run-card-art{height:122px}
+  #garageScreen .run-card-art .vehicle{width:min(255px,76vw);height:118px}
+  #garageScreen .run-machine-card>p{font-size:.59rem}
+  #garageScreen .selector-arrow-prev{left:5px}#garageScreen .selector-arrow-next{right:5px}
+}
+
 </style>
 </head>
 <body>
@@ -458,30 +542,29 @@ body.modal-open{overflow:hidden}
           <span class="selector-count" id="selectorCount">1 / 9</span>
         </div>
 
-        <section class="selector-stage" id="selectorStage" aria-live="polite">
-          <div class="selector-stage-badges">
-            <span class="selector-rarity" id="selectorRarity">R</span>
-            <span class="selector-state" id="selectorState">選択中</span>
-          </div>
+        <section class="selector-stage selector-stage-run-card" id="selectorStage" aria-live="polite">
           <button class="selector-arrow selector-arrow-prev" id="selectorPrev" type="button" aria-label="前のマシン">‹</button>
-          <div class="selector-vehicle-wrap" id="selectorVehicleWrap">
-            <div class="vehicle-slot selector-vehicle" id="selectorVehicle"></div>
-            <span class="selector-lock" id="selectorLock" hidden>🔒</span>
-          </div>
-          <button class="selector-arrow selector-arrow-next" id="selectorNext" type="button" aria-label="次のマシン">›</button>
-          <div class="selector-identity">
+
+          <article class="run-machine-card" id="selectorRunCard">
+            <span class="rarity" id="selectorRarity">R</span>
+            <span class="selected-mark" id="selectorState">✓ 選択中</span>
+            <div class="run-card-art" id="selectorVehicleWrap">
+              <div class="vehicle-slot" id="selectorVehicle"></div>
+              <span class="run-card-lock" id="selectorLock" hidden>🔒</span>
+            </div>
             <h3 id="selectorName">ブーンピックアップ</h3>
+            <div class="handling" id="selectorDifficulty">★ はじめやすい</div>
             <p id="selectorTagline">いちばん素直。最初の1台におすすめ。</p>
-          </div>
+            <div class="best"><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
+          </article>
+
+          <button class="selector-arrow selector-arrow-next" id="selectorNext" type="button" aria-label="次のマシン">›</button>
         </section>
 
         <div class="selector-rail" id="selectorRail" aria-label="マシン一覧"></div>
 
         <section class="selector-detail">
-          <div class="selector-difficulty-row">
-            <span>操作のむずかしさ</span>
-            <strong id="selectorDifficulty">★ はじめやすい</strong>
-          </div>
+          <div class="selector-guide-head"><small>3 TAP GUIDE</small><strong>このマシンの押しどころ</strong></div>
           <p class="selector-summary" id="selectorSummary"></p>
 
           <div class="selector-controls" aria-label="3つの操作の特徴">
@@ -490,8 +573,7 @@ body.modal-open{overflow:hidden}
             <div class="selector-control"><b>NITRO</b><span id="selectorNitro">大きな丸をリングに合わせる</span></div>
           </div>
 
-          <div class="selector-stats">
-            <div><small>あなたのBEST</small><strong id="selectorBest">0m</strong></div>
+          <div class="selector-stats selector-stats-two">
             <div><small>この車のMAX</small><strong id="selectorMax">1,995m</strong></div>
             <div><small>チューン</small><strong id="selectorTune">Lv.0</strong></div>
           </div>
@@ -726,8 +808,8 @@ body.modal-open{overflow:hidden}
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.2.3';
-  const BUILD = '2026-08-12-showroom-selector-v323';
+  const APP_VERSION = '3.2.4';
+  const BUILD = '2026-08-12-boonrun-card-unified-v324';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -765,15 +847,15 @@ body.modal-open{overflow:hidden}
 
 
   const SELECTOR_GUIDE = {
-    boon:{tagline:'いちばん素直。最初の1台におすすめ。',summary:'3つとも動きがゆっくりで分かりやすいマシン。タイミングゲームに慣れるなら、まずこの車。',accel:'針がゆっくり往復。黄色のベスト位置を見てから押せる。',turbo:'中央をゆっくり通る。真ん中に来た瞬間をタップ。',nitro:'大きな丸がゆっくり進む。リングの中心で重ねる。'},
-    wagon:{tagline:'ベスト位置でスローになる安心タイプ。',summary:'当たりの近くまで来るとゲージがゆっくりになる。速い操作が苦手でも、落ち着いて100%を狙いやすい。',accel:'ベスト位置の近くで針が減速。止まりそうな瞬間がチャンス。',turbo:'中央に近づくほど動きがゆっくり。真ん中を狙う。',nitro:'リングの手前でブレーキがかかる。減速したところで合わせる。'},
-    buggy:{tagline:'跳ね方は派手。でも順番は毎回同じ。',summary:'ピンボールみたいに跳ね回るけれど、動く順番は固定。何回か遊ぶと「次にどこへ来るか」が読める。',accel:'決まったリズムで大きくバウンド。後半の高い位置が狙い目。',turbo:'左右に3回バウンド。2往復目の中央を狙う。',nitro:'ジグザグ軌道は毎回同じ。黄色リングへ来るタイミングを覚える。'},
-    bike:{tagline:'戻ってこない。3回とも一発勝負。',summary:'ACCELもTURBOもNITROも、ベスト位置を一度だけ通過する反射神経タイプ。待ちすぎるとチャンスが終わる。',accel:'0からMAXへ一直線。ベスト位置を通る一瞬だけが勝負。',turbo:'左から右へ一度だけ進む。中央を通過した瞬間に押す。',nitro:'上から一気に突っ込む。リングを通過する一瞬を狙う。'},
-    sport:{tagline:'ゆっくりから突然フル加速。',summary:'最初は簡単そうに見えて、ベスト位置の手前から急に速くなる。スピードが変わる瞬間を見切れるほど飛距離が伸びる。',accel:'前半は遅い。終盤だけ一気に加速するので早めに集中。',turbo:'中央の直前で急加速。短い「中央ピタッ」の瞬間を狙う。',nitro:'落ちながらどんどん速くなる。早すぎず遅すぎずリング中央へ。'},
-    princess:{tagline:'3つ全部、リズムがちがう。',summary:'ACCEL・TURBO・NITROを同じ感覚では押せない上級マシン。3種類のリズムを覚えて全部そろえると一気に伸びる。',accel:'ゆったり3拍子。「1・2・3」の3拍目がベスト。',turbo:'左右を高速で往復。中央へ戻る短い瞬間を狙う。',nitro:'階段みたいに段階的に進む。4段目でリングに重ねる。'},
-    ssr:{tagline:'反射神経より「順番を覚える」マシン。',summary:'ゲージが瞬間移動する超上級タイプ。ただしワープする場所と順番は毎回同じ。覚えた人ほど正確に100%を狙える。',accel:'10か所を順番にワープ。5番目の位置がベスト。',turbo:'中央へ来るワープの順番を覚えて、出た瞬間に押す。',nitro:'6地点をワープ。黄色リングに現れる順番を覚える。'},
-    valkyrie:{tagline:'3つの「ほんの一瞬」を全部つかめ。',summary:'シリーズ最高クラスの精密操作マシン。速いだけではなく、ACCEL・TURBO・NITROそれぞれの短い100%タイミングを見切る必要がある。',accel:'高速スイープ。ベスト位置を横切る一瞬を正確に押す。',turbo:'6段階で変速。最後に中央へ噛み合う瞬間が100%チャンス。',nitro:'リングが収束する短い瞬間。中心が重なったら即タップ。'},
-    secret:{tagline:'5000mへ行くための最終試験。',summary:'すべてが高速フェイント付き。3回ともほぼ完璧に決めた時だけ本当の飛距離が出る、最後のチャレンジマシン。',accel:'高速8手＋逆走フェイント。本命位置を覚えて狙う。',turbo:'中央へ来る前にフェイントあり。だまされず本命だけを押す。',nitro:'一度外してから戻ってくる。2回目のリング通過が本命。'}
+    boon:{tagline:'ゆっくり動くから、見てから押せる。',summary:'3つとも動きがゆっくりで分かりやすいマシン。タイミングゲームに慣れるなら、まずこの車。',accel:'針がゆっくり往復。黄色のベスト位置を見てから押せる。',turbo:'中央をゆっくり通る。真ん中に来た瞬間をタップ。',nitro:'大きな丸がゆっくり進む。リングの中心で重ねる。'},
+    wagon:{tagline:'当たりの近くでゆっくり。落ち着いて押せる。',summary:'当たりの近くまで来るとゲージがゆっくりになる。速い操作が苦手でも、落ち着いて100%を狙いやすい。',accel:'ベスト位置の近くで針が減速。止まりそうな瞬間がチャンス。',turbo:'中央に近づくほど動きがゆっくり。真ん中を狙う。',nitro:'リングの手前でブレーキがかかる。減速したところで合わせる。'},
+    buggy:{tagline:'ピョンピョン動く。でも順番はいつも同じ。',summary:'ピンボールみたいに跳ね回るけれど、動く順番は固定。何回か遊ぶと「次にどこへ来るか」が読める。',accel:'決まったリズムで大きくバウンド。後半の高い位置が狙い目。',turbo:'左右に3回バウンド。2往復目の中央を狙う。',nitro:'ジグザグ軌道は毎回同じ。黄色リングへ来るタイミングを覚える。'},
+    bike:{tagline:'戻ってこない。通り過ぎる前に押す。',summary:'ACCELもTURBOもNITROも、ベスト位置を一度だけ通過する反射神経タイプ。待ちすぎるとチャンスが終わる。',accel:'0からMAXへ一直線。ベスト位置を通る一瞬だけが勝負。',turbo:'左から右へ一度だけ進む。中央を通過した瞬間に押す。',nitro:'上から一気に突っ込む。リングを通過する一瞬を狙う。'},
+    sport:{tagline:'途中から急に速くなる。変わる瞬間が勝負。',summary:'最初は簡単そうに見えて、ベスト位置の手前から急に速くなる。スピードが変わる瞬間を見切れるほど飛距離が伸びる。',accel:'前半は遅い。終盤だけ一気に加速するので早めに集中。',turbo:'中央の直前で急加速。短い「中央ピタッ」の瞬間を狙う。',nitro:'落ちながらどんどん速くなる。早すぎず遅すぎずリング中央へ。'},
+    princess:{tagline:'3回とも違うリズム。覚えるほど強くなる。',summary:'ACCEL・TURBO・NITROを同じ感覚では押せない上級マシン。3種類のリズムを覚えて全部そろえると一気に伸びる。',accel:'ゆったり3拍子。「1・2・3」の3拍目がベスト。',turbo:'左右を高速で往復。中央へ戻る短い瞬間を狙う。',nitro:'階段みたいに段階的に進む。4段目でリングに重ねる。'},
+    ssr:{tagline:'ワープの順番は毎回同じ。覚えて狙う。',summary:'ゲージが瞬間移動する超上級タイプ。ただしワープする場所と順番は毎回同じ。覚えた人ほど正確に100%を狙える。',accel:'10か所を順番にワープ。5番目の位置がベスト。',turbo:'中央へ来るワープの順番を覚えて、出た瞬間に押す。',nitro:'6地点をワープ。黄色リングに現れる順番を覚える。'},
+    valkyrie:{tagline:'3回とも一瞬。全部ピッタリで3300m級。',summary:'シリーズ最高クラスの精密操作マシン。速いだけではなく、ACCEL・TURBO・NITROそれぞれの短い100%タイミングを見切る必要がある。',accel:'高速スイープ。ベスト位置を横切る一瞬を正確に押す。',turbo:'6段階で変速。最後に中央へ噛み合う瞬間が100%チャンス。',nitro:'リングが収束する短い瞬間。中心が重なったら即タップ。'},
+    secret:{tagline:'超高速フェイント。3回ほぼ完璧で5000m級。',summary:'すべてが高速フェイント付き。3回ともほぼ完璧に決めた時だけ本当の飛距離が出る、最後のチャレンジマシン。',accel:'高速8手＋逆走フェイント。本命位置を覚えて狙う。',turbo:'中央へ来る前にフェイントあり。だまされず本命だけを押す。',nitro:'一度外してから戻ってくる。2回目のリング通過が本命。'}
   };
 
   const CAR_BY_ID = Object.fromEntries(CARS.map(car => [car.id, car]));
@@ -928,7 +1010,7 @@ body.modal-open{overflow:hidden}
   };
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
-    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorCount:$('selectorCount'),selectorRarity:$('selectorRarity'),selectorState:$('selectorState'),selectorVehicleWrap:$('selectorVehicleWrap'),selectorVehicle:$('selectorVehicle'),selectorLock:$('selectorLock'),selectorName:$('selectorName'),selectorTagline:$('selectorTagline'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
+    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCount:$('selectorCount'),selectorRarity:$('selectorRarity'),selectorState:$('selectorState'),selectorVehicleWrap:$('selectorVehicleWrap'),selectorVehicle:$('selectorVehicle'),selectorLock:$('selectorLock'),selectorName:$('selectorName'),selectorTagline:$('selectorTagline'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
     recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),bulkRankButton:$('bulkRankButton'),bulkRankMeta:$('bulkRankMeta'),recordsRankingStatus:$('recordsRankingStatus'),recordsRankingLink:$('recordsRankingLink'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),
@@ -1345,8 +1427,12 @@ body.modal-open{overflow:hidden}
     el.selectorStage.style.setProperty('--selector-accent',car.accent||car.color||'#49b7ff');
     el.selectorCount.textContent=`${index+1} / ${CARS.length}`;
     el.selectorRarity.textContent=car.rarity;
-    el.selectorState.textContent=!owned?'LOCKED':selected?'✓ 選択中':'使用できます';
-    el.selectorState.className=`selector-state${!owned?' locked':selected?' current':''}`;
+    el.selectorRarity.className=`rarity rarity-${car.rarity.toLowerCase()}`;
+    el.selectorRunCard.classList.toggle('selected',selected&&owned);
+    el.selectorRunCard.classList.toggle('locked',!owned);
+    el.selectorRunCard.style.setProperty('--run-card-accent',car.accent||car.color||'#49b7ff');
+    el.selectorState.hidden=!selected||!owned;
+    el.selectorState.textContent='✓ 選択中';
     el.selectorVehicleWrap.classList.toggle('locked',!owned);
     el.selectorLock.hidden=owned;
     el.selectorVehicle.innerHTML='';
