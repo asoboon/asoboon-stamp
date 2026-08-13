@@ -1,37 +1,31 @@
-BOON RUN 2 v1.0.36 — MACHINE SERIES v1.1 UI / IDENTITY SYNC
+BOON RUN 2 v1.0.38 DEV — MACHINE CARD TRUE FIT
 
-Build: 2026-08-13-playable-v1.0.36-machine-series-v11
-Client: 1.0.36
+Build: 2026-08-13-dev-v1.0.38-card-fit
+Client: 1.0.38-dev
+Base: v1.0.37 DEV REPLAY DRIVE
 
-BASE
-- v1.0.35 responsive size fix + COMMON asset safe.
-- COMMON workflow B remains authoritative: assets/machines/ is source of truth; boonrun/assets/ and boonjump/assets/ keep runtime sync copies.
+STATUS
+- ISOLATED DEV PACKAGE. Google Drive production runtime is not modified.
+- COMMON / BOONJUMP assets are not modified.
 
-MACHINE SERIES v1.1
-- Added non-runtime audit registry: assets/machines/machine-registry.json.
-- Added publication verifier: assets/machines/verify-machine-assets.sh.
-- Registry contains IDENTITY only: machine ID / Series No. / official Japanese name / card / body / wheel / shadow.
-- No RUN/JUMP performance values are stored in COMMON registry.
-- SECRET wheel entries are null by design because SECRET has no runtime wheel pair.
-- Internal ID ssr remains コズミックファントム; legacy suv alias remains forbidden.
+SIZE FIX
+- MACHINE SELECT no longer relies on competing viewport-height width formulas.
+- The 1024:683 completed MACHINE CARD is fitted from the actual rendered feature box.
+- Resize / orientation change / LINE-Safari viewport changes re-fit the card automatically.
+- 44px navigation tap targets are preserved without forcing the card itself smaller.
+- Phone landscape keeps the top machine strip + card/info two-column structure.
 
-RUN MACHINE SELECT
-- Finished 3:2 MACHINE CARD remains the visual source of truth; crop/warp prohibited.
-- Fixed finished-card detection so duplicate overlay badges/captions are removed when card art loads.
-- External machine name is hidden when finished card art is present; RUN-specific profile remains.
-- Selector position is no longer displayed as MACHINE Series No.; the profile label is RUN PROFILE. Series No. stays on the authoritative card art.
-- Back / card navigation / machine rail / primary CTA use >=44px interaction targets.
-- Existing compact landscape layout and safe-area behavior remain RUN-specific.
+REPLAY DRIVE FEATURES RETAINED
+- SELF BEST CHASE
+- CRITICAL FLOW feedback only
+- SECTION CLEAR
+- RUN RESULT STORY
+- DEATH COACH
 
-UNCHANGED GAMEPLAY
-- CRITICAL rules
-- Valkyrie MACH SYNC / DIVINE MACH
-- ULTIMATE behavior
-- 55 course patterns
-- obstacles / fuel / drone / speed
-- ranking API / ranking keys
-- save keys
-- machine internal IDs
-
-SERVICE WORKER
-- Cache build bumped to v136-machine-series-v11 because index/style/game bundle changed.
+UNCHANGED
+- 9 machine IDs and all gameplay parameters
+- 55 course patterns and spawn timings
+- CRITICAL judgement / MACH SYNC / DIVINE MACH
+- all ULTIMATE performance
+- fuel / hitboxes / jump physics / speed curve
+- ranking endpoint / payload schema / save key

@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>ブーンRUN｜ASOBooN</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=20260813-v136-machine-series-v11">
+  <link rel="stylesheet" href="./style.css?v=20260813-v138-card-fit">
 </head>
 <body>
 <div id="app">
@@ -143,8 +143,8 @@
     <div id="gameViewport" class="game-viewport">
       <canvas id="gameCanvas" width="1600" height="720"></canvas>
       <div class="game-hud shell-ui">
-        <div class="hud-left"><button id="pauseButton" class="pause-button" type="button">Ⅱ</button><div id="abilityBadge" class="ability-badge"></div></div>
-        <div class="distance-box"><small>DISTANCE</small><strong id="distanceLabel">0m</strong><span id="milestoneLabel"></span></div>
+        <div class="hud-left"><button id="pauseButton" class="pause-button" type="button">Ⅱ</button><div id="abilityBadge" class="ability-badge"></div><div id="flowBadge" class="flow-badge" hidden></div></div>
+        <div class="distance-box"><small>DISTANCE</small><strong id="distanceLabel">0m</strong><span id="milestoneLabel"></span><em id="bestChase" class="best-chase"></em></div>
         <div class="fuel-box"><div class="fuel-row"><span>⛽</span><div class="fuel-track"><i id="fuelBar"></i></div><b id="fuelLabel">100</b></div><div id="extraMeter" class="extra-meter"></div></div>
       </div>
       <div id="highwayBoard" class="highway-board" data-level="INFO" aria-live="polite">
@@ -156,6 +156,7 @@
       <div id="startGuide" class="start-guide"><span>タップでジャンプ</span><small>空中でもう一度タップで2段ジャンプ</small></div>
       <div id="countdown" class="countdown"></div>
       <div id="toast" class="game-toast"></div>
+      <div id="sectionBanner" class="section-banner" aria-live="polite"><small>SECTION CLEAR</small><strong id="sectionBannerValue">1 KM</strong><span id="sectionBannerSub">KEEP RUNNING</span></div>
       <div id="flash" class="flash"></div>
       <button id="debugButton" class="debug-button" type="button" hidden>DBG</button>
       <div id="debugPanel" class="debug-panel" hidden></div>
@@ -190,7 +191,12 @@
       <small>RUN RESULT</small>
       <strong id="resultDistance" class="result-distance">0m</strong>
       <div id="newBest" class="new-best" hidden>NEW BEST!</div>
+      <div id="resultDelta" class="result-delta"></div>
       <div class="result-meta"><div><small>CAR</small><b id="resultCar">-</b></div><div><small>BEST</small><b id="resultBest">0m</b></div><div><small>CAUSE</small><b id="resultCause">-</b></div></div>
+      <section class="result-story" aria-label="今回のランまとめ">
+        <div id="resultBadges" class="result-badges"></div>
+        <div class="result-coach"><small>NEXT RUN</small><strong id="resultCoachTitle">次はもっと伸ばせる！</strong><p id="resultCoachText">原因を見て、次の1回で更新を狙おう。</p></div>
+      </section>
       <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 ランキングに自動登録</button>
       <p id="resultRankingStatus" class="result-ranking-status" hidden></p>
       <button type="button" id="retryButton" class="primary-modal">もう一回！</button>
@@ -202,7 +208,7 @@
 window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
 window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
 </script>
-<script src="./run-ranking.js?v=20260813-v136-machine-series-v11"></script>
-<script src="./game.bundle.js?v=20260813-v136-machine-series-v11"></script>
+<script src="./run-ranking.js?v=20260813-v138-card-fit"></script>
+<script src="./game.bundle.js?v=20260813-v138-card-fit"></script>
 </body>
 </html>

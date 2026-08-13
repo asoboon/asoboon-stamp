@@ -616,3 +616,133 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
   .machine-card-hero{width:min(97%,calc((100dvh - 148px)*1.4993))!important}
   .machine-card-cta{min-height:44px!important}
 }
+
+
+/* v1.0.37 DEV — REPLAY DRIVE ----------------------------------------------
+   Feedback-only gameplay polish. Physics, hitboxes, fuel balance, patterns,
+   CRITICAL thresholds, ULTIMATE performance and ranking schema are unchanged. */
+.hud-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.flow-badge{padding:5px 8px;border:1px solid rgba(61,239,255,.48);border-radius:999px;background:rgba(5,31,43,.82);color:#78f4ff;font:1000 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.045em;box-shadow:0 0 14px rgba(49,225,255,.18);white-space:nowrap}
+.best-chase{display:block;min-height:10px;margin-top:1px;color:#94aab8;font:900 7px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.02em;white-space:nowrap}
+.best-chase.near{color:#ffe66a;text-shadow:0 0 8px rgba(255,218,64,.25)}
+.best-chase.ahead{color:#62efff;text-shadow:0 0 9px rgba(74,230,255,.30)}
+.section-banner{position:absolute;z-index:28;left:50%;top:50%;transform:translate(-50%,-43%) scale(.96);min-width:min(300px,58vw);padding:10px 18px 11px;border:1px solid rgba(95,236,255,.42);border-radius:16px;background:linear-gradient(135deg,rgba(5,21,31,.90),rgba(8,39,53,.86));box-shadow:0 10px 34px rgba(0,0,0,.30),0 0 30px rgba(53,220,255,.12);text-align:center;pointer-events:none;opacity:0;visibility:hidden}
+.section-banner.show{visibility:visible;animation:sectionClearIn 1.5s ease both}
+.section-banner small{display:block;color:#89bdc9;font:900 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.22em}
+.section-banner strong{display:block;margin:4px 0 2px;color:#f6fbff;font-size:28px;line-height:1;text-shadow:0 0 16px rgba(95,232,255,.34)}
+.section-banner span{display:block;color:#6eeeff;font:1000 8px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+@keyframes sectionClearIn{0%{opacity:0;transform:translate(-50%,-38%) scale(.88)}14%,68%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-58%) scale(1.02)}}
+.highway-board[data-level="FLOW"]{--board-color:#54f1ff;border-color:#4ba8b5}
+.highway-board[data-level="BEST"]{--board-color:#ffe15a;border-color:#bca34d}
+.highway-board[data-level="SECTION"]{--board-color:#78eaff;border-color:#589fac}
+.result-delta{min-height:17px;margin:0 0 4px;color:#9fb2c5;font-size:10px;font-weight:900;text-align:center}
+.result-delta.positive{color:#6ff1ff;text-shadow:0 0 10px rgba(75,226,255,.22)}
+.result-story{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,1.05fr);gap:8px;margin:8px 0 2px}
+.result-badges{display:flex;align-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:5px;min-height:52px;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.035)}
+.result-badge{padding:5px 7px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:#142435;color:#cbd8e3;font:1000 7.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;white-space:nowrap}
+.result-badge.best{border-color:rgba(255,226,74,.48);color:#ffe66a;background:rgba(255,218,57,.09)}
+.result-badge.flow,.result-badge.critical{border-color:rgba(79,233,255,.42);color:#74efff;background:rgba(52,221,255,.08)}
+.result-badge.ultimate,.result-badge.emergency{border-color:rgba(180,111,255,.42);color:#d8b4ff;background:rgba(154,80,255,.09)}
+.result-badge.risk{border-color:rgba(122,255,114,.34);color:#a7ff91;background:rgba(90,232,86,.07)}
+.result-badge.distance{border-color:rgba(255,255,255,.18);color:#e7edf2}
+.result-coach{padding:7px 9px;border-left:3px solid #5be9ff;border-radius:10px;background:rgba(34,190,217,.07);text-align:left}
+.result-coach small{display:block;color:#6fa3af;font:900 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em}
+.result-coach strong{display:block;margin:3px 0;color:#effcff;font-size:11px;line-height:1.15}
+.result-coach p{margin:0;color:#aebdca;font-size:9px;line-height:1.35;font-weight:700}
+@media(max-height:520px){.flow-badge{padding:4px 6px;font-size:6.5px}.best-chase{font-size:5.8px}.section-banner{padding:7px 13px;min-width:min(250px,54vw)}.section-banner strong{font-size:22px}.result-story{margin:5px 0 0;gap:5px}.result-badges{min-height:40px;padding:5px;gap:3px}.result-badge{padding:4px 5px;font-size:6.5px}.result-coach{padding:5px 7px}.result-coach strong{font-size:9.5px}.result-coach p{font-size:7.8px}}
+@media(max-width:620px){.result-story{grid-template-columns:1fr}.result-badges{min-height:auto}}
+@media(prefers-reduced-motion:reduce){.section-banner.show{animation:none!important;opacity:1;visibility:visible}.flow-badge,.best-chase{transition:none!important}}
+\n\n/* v1.0.38 DEV — MACHINE CARD TRUE FIT --------------------------------------
+   Fixes the garage sizing conflict between the v1.0.35 viewport formulas and
+   v1.1 44px tap-target overrides. The JS now fits the 1024:683 card to the
+   measured feature box; these rules remove competing width formulas. */
+.machine-card-feature{padding:6px 56px;box-sizing:border-box}
+.machine-card-hero,
+.machine-card-hero.has-card-art{
+  width:auto!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  aspect-ratio:1024/683!important;
+  flex:0 0 auto;
+}
+@media (max-width:760px) and (orientation:landscape){
+  .machine-card-screen.active{padding-top:calc(49px + env(safe-area-inset-top))}
+  .machine-card-head{height:36px!important;min-height:36px!important;margin-bottom:3px!important}
+  .machine-card-head .back-button{width:44px!important;height:44px!important;position:relative;z-index:6}
+  .machine-card-layout{grid-template-rows:46px minmax(0,1fr)!important;gap:4px!important}
+  .machine-card-feature{padding:4px 48px;border-radius:12px}
+  .machine-card-nav{width:44px!important;height:48px!important}
+  .machine-card-nav.prev{left:2px}.machine-card-nav.next{right:2px}
+  .machine-card-info{padding:2px 1px!important;gap:3px!important}
+  .machine-card-best{padding:3px 5px!important}
+  .machine-card-ultimate{padding:5px!important}
+}
+@media (max-height:360px) and (orientation:landscape){
+  .machine-card-screen.active{padding-top:calc(47px + env(safe-area-inset-top))}
+  .machine-card-head{height:34px!important;min-height:34px!important;margin-bottom:2px!important}
+  .machine-card-layout{grid-template-rows:44px minmax(0,1fr)!important;gap:3px!important}
+  .machine-card-feature{padding:3px 47px}
+  .machine-card-handling{display:none!important}
+  .machine-card-ultimate p,.machine-card-ultimate em{display:none!important}
+}
+
+/* v1.0.38 DEV — tablet/modern-iPhone garage reflow
+   761–1180px landscape was still falling back to the old 3-column rail/card/info
+   layout. On current iPhones (812/844/852/932px) and iPad-class widths this made
+   the completed card look unnaturally small. Use the compact top-strip layout
+   through tablet landscape widths; desktop keeps the 3-column collection rail. */
+@media (max-width:1180px) and (orientation:landscape){
+  .machine-card-screen.active{
+    padding-top:calc(49px + env(safe-area-inset-top));
+    padding-left:max(6px,env(safe-area-inset-left));
+    padding-right:max(6px,env(safe-area-inset-right));
+    padding-bottom:max(5px,env(safe-area-inset-bottom));
+  }
+  .machine-card-head{height:36px!important;min-height:36px!important;margin-bottom:3px!important}
+  .machine-card-head small{display:none}.machine-card-head h2{font-size:13px;margin:0}
+  .machine-card-layout{
+    grid-template-columns:minmax(0,1fr) clamp(176px,24vw,224px)!important;
+    grid-template-rows:44px minmax(0,1fr)!important;
+    gap:4px!important;
+  }
+  .machine-card-rail{
+    grid-column:1/-1;grid-row:1;
+    flex-direction:row;overflow-x:auto;overflow-y:hidden;
+    touch-action:pan-x;scroll-snap-type:x proximity;
+    gap:4px;padding:0 1px 2px;
+  }
+  .machine-rail-card{
+    flex:0 0 clamp(82px,12vw,108px);height:44px!important;min-height:44px!important;
+    grid-template-columns:40px minmax(0,1fr);padding:2px 3px;
+    scroll-snap-align:start;border-radius:8px;
+  }
+  .machine-rail-card img{width:40px!important;height:34px!important;max-width:40px!important;object-fit:contain}
+  .machine-rail-copy small,.machine-rail-copy em{display:none}
+  .machine-rail-copy b{font-size:6.9px;line-height:1.02;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .machine-rail-num{font-size:6px;left:2px;top:2px}.machine-rail-card.selected:after{display:none}
+  .machine-card-feature{grid-column:1;grid-row:2;padding:4px 48px;border-radius:12px}
+  .machine-card-info{grid-column:2;grid-row:2;overflow-y:auto;padding:2px 1px!important;gap:4px!important}
+  .machine-card-nav{width:44px!important;height:48px!important}.machine-card-nav.prev{left:2px}.machine-card-nav.next{right:2px}
+  .machine-card-kicker{font-size:7px}.machine-card-kicker em{padding:2px 4px;font-size:6.5px}
+  .machine-card-info h3{font-size:clamp(13px,1.8vw,18px);line-height:1.03}
+  .machine-card-handling{font-size:clamp(7.5px,1vw,9.5px);line-height:1.22}
+  .machine-card-best{padding:3px 5px!important;gap:4px;border-radius:8px}.machine-card-best small{font-size:6.5px}.machine-card-best strong{font-size:clamp(14px,1.8vw,18px)}
+  .machine-card-description{font-size:7.5px;line-height:1.28}
+  .machine-card-ultimate{padding:5px!important;border-radius:9px;gap:2px}.machine-card-ultimate small{font-size:6.5px}.machine-card-ultimate strong{font-size:clamp(10px,1.5vw,14px)}.machine-card-ultimate p{font-size:7px;line-height:1.2}.machine-card-ultimate em{font-size:6.5px}
+  .machine-card-cta{min-height:44px!important;font-size:9.5px!important;border-radius:9px}
+  .machine-card-locknote{font-size:6.5px}
+}
+@media (max-width:760px) and (orientation:landscape){
+  .machine-card-layout{grid-template-columns:minmax(0,1fr) clamp(160px,29vw,200px)!important}
+  .machine-card-description{display:none}
+  .machine-card-ultimate em{display:none}
+}
+@media (max-height:360px) and (orientation:landscape){
+  .machine-card-head{height:34px!important;min-height:34px!important;margin-bottom:2px!important}
+  .machine-card-layout{grid-template-rows:42px minmax(0,1fr)!important;gap:3px!important}
+  .machine-rail-card{height:42px!important;min-height:42px!important}
+  .machine-card-feature{padding:3px 47px}
+  .machine-card-handling{display:none!important}.machine-card-description{display:none!important}
+  .machine-card-ultimate p,.machine-card-ultimate em{display:none!important}
+}

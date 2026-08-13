@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-13-playable-v1.0.36-machine-series-v11';
-const CLIENT_VERSION = '1.0.36';
+const BUILD = '2026-08-13-dev-v1.0.38-card-fit';
+const CLIENT_VERSION = '1.0.38-dev';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -437,10 +437,10 @@ const els={
   homeBest:$('homeBest'),homeCarImage:$('homeCarImage'),selectedCarLabel:$('selectedCarLabel'),playCountLabel:$('playCountLabel'),howtoIcon1:$('howtoIcon1'),howtoText1:$('howtoText1'),howtoIcon2:$('howtoIcon2'),howtoText2:$('howtoText2'),howtoIcon3:$('howtoIcon3'),howtoText3:$('howtoText3'),
   startButton:$('startButton'),helpButton:$('helpButton'),garageButton:$('garageButton'),recordsButton:$('recordsButton'),rankingButton:$('rankingButton'),rankingRefreshButton:$('rankingRefreshButton'),soundButton:$('soundButton'),
   carGrid:$('carGrid'),garageFeature:$('garageFeature'),garagePrev:$('garagePrev'),garageNext:$('garageNext'),garageCard:$('garageCard'),garageCardArt:$('garageCardArt'),garageRarity:$('garageRarity'),garageType:$('garageType'),garageState:$('garageState'),garageUltimateLabel:$('garageUltimateLabel'),garageUltimateName:$('garageUltimateName'),garageCardName:$('garageCardName'),garageIndex:$('garageIndex'),garageOwnedBadge:$('garageOwnedBadge'),garageName:$('garageName'),garageHandling:$('garageHandling'),garageBest:$('garageBest'),garageDescription:$('garageDescription'),garageSpecialName:$('garageSpecialName'),garageSpecialEffect:$('garageSpecialEffect'),garageSelectButton:$('garageSelectButton'),garageLockNote:$('garageLockNote'),recordBest:$('recordBest'),recordTotal:$('recordTotal'),recordPlays:$('recordPlays'),recordCars:$('recordCars'),
-  canvas:$('gameCanvas'),viewport:$('gameViewport'),pauseButton:$('pauseButton'),abilityBadge:$('abilityBadge'),distanceLabel:$('distanceLabel'),milestoneLabel:$('milestoneLabel'),
+  canvas:$('gameCanvas'),viewport:$('gameViewport'),pauseButton:$('pauseButton'),abilityBadge:$('abilityBadge'),flowBadge:$('flowBadge'),distanceLabel:$('distanceLabel'),milestoneLabel:$('milestoneLabel'),bestChase:$('bestChase'),sectionBanner:$('sectionBanner'),sectionBannerValue:$('sectionBannerValue'),sectionBannerSub:$('sectionBannerSub'),
   fuelBar:$('fuelBar'),fuelLabel:$('fuelLabel'),fuelBox:document.querySelector('.fuel-box'),extraMeter:$('extraMeter'),startGuide:$('startGuide'),countdown:$('countdown'),toast:$('toast'),flash:$('flash'),
   rulePrepModal:$('rulePrepModal'),rulePrepCar:$('rulePrepCar'),rulePrepJump:$('rulePrepJump'),rulePrepObstacle:$('rulePrepObstacle'),rulePrepMachine:$('rulePrepMachine'),rulePrepStart:$('rulePrepStart'),pauseModal:$('pauseModal'),resumeButton:$('resumeButton'),restartButton:$('restartButton'),quitButton:$('quitButton'),
-  resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),
+  resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultDelta:$('resultDelta'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),resultBadges:$('resultBadges'),resultCoachTitle:$('resultCoachTitle'),resultCoachText:$('resultCoachText'),
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
   rankingMachineSelect:$('rankingMachineSelect'),rankingMachineGrid:$('rankingMachineGrid'),rankingOverallButton:$('rankingOverallButton'),rankingMachineToggle:$('rankingMachineToggle'),rankingMachinePanel:$('rankingMachinePanel'),rankingTitle:$('rankingTitle'),rankingSubtitle:$('rankingSubtitle'),rankingMeTitle:$('rankingMeTitle'),rankingBoardTitle:$('rankingBoardTitle'),rankingScopeCaption:$('rankingScopeCaption'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
   specialButton:$('specialButton'),specialBanner:$('specialBanner'),specialBannerName:$('specialBannerName'),specialBannerSub:$('specialBannerSub'),
@@ -450,9 +450,27 @@ const els={
 const ctx=els.canvas.getContext('2d',{alpha:false});
 ctx.imageSmoothingEnabled=true;
 
+const GARAGE_CARD_RATIO=1024/683;
+function fitGarageCard(){
+  const feature=els.garageFeature,card=els.garageCard;
+  if(!feature||!card||!els.screens.garage?.classList.contains('active'))return;
+  const r=feature.getBoundingClientRect();
+  if(r.width<40||r.height<40)return;
+  const phoneLandscape=matchMedia('(max-width:760px) and (orientation:landscape)').matches;
+  const arrowReserve=phoneLandscape?96:116;
+  const edgeY=phoneLandscape?8:14;
+  const maxW=Math.max(120,r.width-arrowReserve);
+  const maxH=Math.max(90,r.height-edgeY);
+  let w=Math.min(720,maxW,maxH*GARAGE_CARD_RATIO);
+  let h=w/GARAGE_CARD_RATIO;
+  if(h>maxH){h=maxH;w=h*GARAGE_CARD_RATIO;}
+  card.style.width=`${Math.floor(w)}px`;
+  card.style.height=`${Math.floor(h)}px`;
+}
 function showScreen(name){
   Object.entries(els.screens).forEach(([k,node])=>node.classList.toggle('active',k===name));
   document.body.classList.toggle('in-game',name==='game');
+  if(name==='garage')requestAnimationFrame(()=>requestAnimationFrame(fitGarageCard));
 }
 const BOONJUMP_SYNC_CARS=new Set(['boon','wagon','buggy','bike','sport','ssr','princess','valkyrie','secret']);
 const BOONJUMP_SYNC_VERSION='121-wheel';
@@ -621,6 +639,8 @@ function makeRun(car){
     invulnerableUntil:0, shieldUntilM:0, shield:false, magnetUntilM:0, itemBoostUntilSec:0, nitroUntilSec:0, nitro:0,
     fuelPickups:0, luckyCount:0, stars:0, lastEfficientFuelM:0, phantomClose:0, phantomReady:false, valkyrieClose:0, valkyrieSyncUntil:0, armor:car.ability?.armorMax||0, droneTutorialShown:false, crateTutorialShown:false, fuelTipShown:false, obstacleTipsShown:{},
     elapsed:0, gameTime:0, endReason:null, endCause:null, startedAt:performance.now(),
+    personalBestStart:Number(state.carRecords?.[car.id]?.best)||0, bestPassed:false, bestPassAt:0,
+    feedback:{criticalFlow:0,maxCriticalFlow:0,lastCriticalAt:-999,sectionCount:0},
     nextMilestone:1000, tutorial:true, lastPatternEndType:null, lastPatternEndX:0, patternHistory:[],
     stats:{fuel:0,jumps:0,doubleJumps:0,boosts:0,close:0,abilityUse:0,riskFuel:0,boostTime:0}, rankingSession:null,rankingEligible:false,rankingSessionError:'',rocketThrust:false,rocketDanger:0,rocketInvincibleUntil:0, rewardFxUntil:0,rewardFxKind:'',rewardFxStrength:0,
     specialUsed:false,specialEmergency:false,specialStartedAt:0,specialUntil:0,specialCharges:0,specialFuelPending:0,specialFuelSettled:false,
@@ -1047,8 +1067,91 @@ function checkCollisions(){
 }
 function itemRectWithMagnet(obj){const r=itemRect(obj);if(obj.magnetYOffset){r.y+=obj.magnetYOffset;}return r;}
 function objectRight(obj){if(obj.type==='ARCH')return obj.x+obj.roofWidth;if(obj.type==='PIT')return obj.x+obj.width;return obj.x+(obj.width||48);}
+function updateCriticalFlow(){
+  if(!run)return 1;
+  const windowSec=5.5;
+  const chained=(run.gameTime-run.feedback.lastCriticalAt)<=windowSec;
+  run.feedback.criticalFlow=chained?run.feedback.criticalFlow+1:1;
+  run.feedback.lastCriticalAt=run.gameTime;
+  run.feedback.maxCriticalFlow=Math.max(run.feedback.maxCriticalFlow,run.feedback.criticalFlow);
+  return run.feedback.criticalFlow;
+}
+function updateBestChase(){
+  if(!run||!els.bestChase)return;
+  const best=Math.floor(run.personalBestStart||0),d=Math.floor(run.distance||0);
+  els.bestChase.classList.remove('near','ahead');
+  if(best<=0){els.bestChase.textContent='FIRST RUN';return;}
+  const delta=best-d;
+  if(delta>500){els.bestChase.textContent='';return;}
+  if(delta>0){
+    els.bestChase.textContent=`MACHINE BESTまで ${delta.toLocaleString()}m`;
+    if(delta<=120)els.bestChase.classList.add('near');
+    return;
+  }
+  const ahead=Math.abs(delta);
+  els.bestChase.textContent=`NEW BEST +${ahead.toLocaleString()}m`;
+  els.bestChase.classList.add('ahead');
+  if(!run.bestPassed){
+    run.bestPassed=true;run.bestPassAt=run.distance;
+    highwayInfo('自己ベスト突破！｜ここから全部NEW BEST','BEST',2600);
+    rewardFx('gold',1.15,1);sound.special();
+  }
+}
+function updateFlowHud(){
+  if(!run||!els.flowBadge)return;
+  const active=run.feedback.criticalFlow>=2&&(run.gameTime-run.feedback.lastCriticalAt)<=5.5;
+  els.flowBadge.hidden=!active;
+  if(active)els.flowBadge.textContent=`CRITICAL FLOW ×${run.feedback.criticalFlow}`;
+}
+function resultCoach(cause,car){
+  if(cause==='gas')return ['燃料ルートを先に見る','⛽が30%を切る前に次の燃料を探そう。危険燃料は余裕がある時だけ狙う。'];
+  if(cause==='DRONE'||cause==='LOWBEAM')return ['ここはジャンプしない！','ドローンと低いバーは地面を走り抜けるのが正解。見えたら指を待たせよう。'];
+  if(cause==='PIT')return ['穴は早めに1段目','PITは直前反応より、少し手前から飛ぶ方が安定する。2段目は距離調整に残そう。'];
+  if(cause==='CRATE'){
+    if(car.id==='buggy')return ['木箱は一発で越える','ラッキーバギーは空中修正なし。木箱の少し手前で大ジャンプを1回。'];
+    if(car.id==='secret')return ['長押しを早めに','ロケットは木箱が見えたら少し早めにHOLD。越えたらRELEASEで燃料を守ろう。'];
+    return ['木箱は2段を準備','1段目を少し早め、足りない分だけ2段目。連打より“2回を分ける”と安定する。'];
+  }
+  if(cause==='ROLLTIRE')return ['タイヤの動きを見る','動くタイヤは位置よりタイミング。正面へ来る前にジャンプを始めよう。'];
+  if(cause==='ARCH')return ['高さを出しすぎない','アーチは高く飛びすぎない。低い1段で抜けるか、マシン特性に合わせて調整しよう。'];
+  if(cause==='CONE'||cause==='BARRIER')return ['あと少し遅らせられる','障害物をしっかり引きつけてジャンプ。慣れたらCRITICALも狙える。'];
+  return ['次の1回で更新を狙おう','原因を1つだけ意識して、同じマシンでもう一度走ると伸びやすい。'];
+}
+function buildResultBadges(d,oldBest){
+  const b=[];
+  if(d>oldBest)b.push(['NEW BEST','best']);
+  if(run.feedback.maxCriticalFlow>=2)b.push([`FLOW ×${run.feedback.maxCriticalFlow}`,'flow']);
+  if(run.stats.close>0)b.push([`CRITICAL ×${run.stats.close}`,'critical']);
+  if(run.specialEmergency)b.push(['EMERGENCY ULT','emergency']);
+  else if(run.specialUsed)b.push(['ULTIMATE USED','ultimate']);
+  if(run.stats.riskFuel>0)b.push([`RISK FUEL ×${run.stats.riskFuel}`,'risk']);
+  if(d>=5000)b.push(['5KM DRIVER','distance']);
+  else if(d>=3000)b.push(['3KM DRIVER','distance']);
+  else if(d>=1000)b.push(['1KM DRIVER','distance']);
+  return b.slice(0,5);
+}
+function renderResultStory(d,oldBest){
+  const delta=d-oldBest;
+  if(els.resultDelta){
+    if(oldBest<=0)els.resultDelta.textContent='このマシンの最初の記録！';
+    else if(delta>0)els.resultDelta.textContent=`MACHINE BESTを +${delta.toLocaleString()}m 更新`;
+    else if(delta===0)els.resultDelta.textContent='MACHINE BESTと同記録！';
+    else els.resultDelta.textContent=`MACHINE BESTまで ${Math.abs(delta).toLocaleString()}m`;
+    els.resultDelta.classList.toggle('positive',delta>0);
+  }
+  if(els.resultBadges){
+    els.resultBadges.innerHTML='';
+    buildResultBadges(d,oldBest).forEach(([label,kind])=>{const s=document.createElement('span');s.className=`result-badge ${kind}`;s.textContent=label;els.resultBadges.appendChild(s);});
+  }
+  const [title,text]=resultCoach(run.endCause||run.endReason,run.car);
+  if(els.resultCoachTitle)els.resultCoachTitle.textContent=title;
+  if(els.resultCoachText)els.resultCoachText.textContent=text;
+}
 function triggerClose(){
-  run.stats.close++;sound.close();toast(`CRITICAL! ×${run.stats.close}`);rewardFx('close',.34,.72);
+  run.stats.close++;const flow=updateCriticalFlow();sound.close();toast(flow>=2?`CRITICAL! ｜ FLOW ×${flow}`:`CRITICAL! ×${run.stats.close}`);rewardFx('close',flow>=3?.52:.34,flow>=3?.90:.72);
+  if(flow===2)highwayInfo('CRITICAL FLOW ×2｜連続ギリギリ回避','FLOW',1800);
+  else if(flow===3)highwayInfo('CRITICAL FLOW ×3｜リズムに乗ってる！','FLOW',2000);
+  else if(flow>=5&&flow%2===1)highwayInfo(`CRITICAL FLOW ×${flow}｜KEEP FLOW!`,'FLOW',1900);
   if(run.car.id==='sport'){
     const a=run.car.ability;run.nitro=Math.min(a.nitroMax,run.nitro+(a.closeCharge||0));
     if(run.nitro>=a.nitroMax){run.nitro=0;activateBoost('NITRO',a.durationSec,a.scrollMultiplier);}
@@ -1121,7 +1224,12 @@ function updateWorld(dt){
   maybeSpawnSpecial();ensureWorld();run.objects=run.objects.filter(o=>!o.dead&&!o.collected&&objectRight(o)>-200);
   if(run.distance>=run.nextMilestone){milestone(run.nextMilestone);run.nextMilestone+=1000;}
 }
-function milestone(m){els.milestoneLabel.textContent=`${m/1000} km`;sound.milestone();rewardFx('milestone',1.1,1);highwayInfo(`走行距離｜${m.toLocaleString()}m 突破`,'INFO',2600);setTimeout(()=>{if(els.milestoneLabel.textContent===`${m/1000} km`)els.milestoneLabel.textContent='';},1100);}
+function milestone(m){
+  const km=m/1000;run.feedback.sectionCount++;els.milestoneLabel.textContent=`${km} km`;sound.milestone();rewardFx('milestone',1.1,1);
+  highwayInfo(`SECTION ${String(run.feedback.sectionCount).padStart(2,'0')} CLEAR｜${m.toLocaleString()}m 突破`,'SECTION',2600);
+  if(els.sectionBanner){els.sectionBannerValue.textContent=`${km} KM`;els.sectionBannerSub.textContent=run.personalBestStart>m?`BESTまで ${Math.max(0,Math.floor(run.personalBestStart-m)).toLocaleString()}m`:(run.bestPassed?'NEW BEST RUN':'KEEP RUNNING');els.sectionBanner.classList.remove('show');void els.sectionBanner.offsetWidth;els.sectionBanner.classList.add('show');setTimeout(()=>els.sectionBanner&&els.sectionBanner.classList.remove('show'),1500);}
+  setTimeout(()=>{if(els.milestoneLabel.textContent===`${km} km`)els.milestoneLabel.textContent='';},1100);
+}
 function step(dt){
   if(!run||run.phase!=='running')return;updatePlayer(dt);updateAbilities(dt);if(!run||run.phase!=='running')return;updateWorld(dt);if(!run||run.phase!=='running')return;checkCollisions();updateParticles(dt);updateHud();
 }
@@ -1142,10 +1250,11 @@ function showResult(oldBest){
   if(!run)return;const d=Math.floor(run.distance),rec=state.carRecords[run.car.id];
   els.resultReason.textContent=run.endReason==='gas'?'GAS OUT!':'CRASH!';els.resultReason.style.background=run.endReason==='gas'?'#ff9b2e':'#ff425b';
   els.resultDistance.textContent=fmt(d);els.resultCar.textContent=run.car.name;els.resultBest.textContent=fmt(rec.best);els.resultCause.textContent=CAUSE_LABEL[run.endCause]||run.endCause||'-';
+  renderResultStory(d,oldBest);
   els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=!run.rankingEligible;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent=run.rankingEligible?'世界ランキングへ自動登録します…':'ランキング接続を確認しています…';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 ランキングに自動登録':'🌍 ランキング接続待ち';els.resultModal.hidden=false;if(run.rankingEligible)autoRankSubmit();
 }
 
-function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
+function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');if(els.bestChase)els.bestChase.textContent=run.personalBestStart>0?`MACHINE BEST ${fmt(run.personalBestStart)}`:'FIRST RUN';if(els.flowBadge){els.flowBadge.hidden=true;els.flowBadge.textContent='';}if(els.sectionBanner)els.sectionBanner.classList.remove('show');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
 function updateHud(){
   els.distanceLabel.textContent=fmt(run.distance);const fuelPct=clamp(run.fuel/run.fuelMax*100,0,100);els.fuelBar.style.width=`${fuelPct}%`;els.fuelLabel.textContent=String(Math.ceil(run.fuel));els.fuelBox.classList.toggle('low',fuelPct<=30&&fuelPct>10);els.fuelBox.classList.toggle('critical',fuelPct<=10);
   let extra='';
@@ -1161,7 +1270,7 @@ function updateHud(){
   if(run.shield)extra+=(extra?' ｜ ':'')+'🛡 SHIELD';
   if(run.magnetUntilM>run.distance)extra+=(extra?' ｜ ':'')+'🧲 MAGNET';
   if(specialActive())extra+=(extra?' ｜ ':'')+`⚡ ${SPECIALS[run.car.id].name} ${specialRemaining().toFixed(1)}s`;
-  els.extraMeter.textContent=extra;updateSpecialHud();
+  els.extraMeter.textContent=extra;updateBestChase();updateFlowHud();updateSpecialHud();
   if(DEBUG)renderDebugPanel();
 }
 
@@ -1175,7 +1284,7 @@ function highwayInfo(text,level='INFO',duration=3400){
 }
 function pumpHighwayBoard(){
   if(boardBusy||!boardQueue.length||!els.highwayBoard)return;
-  boardBusy=true;const m=boardQueue.shift();els.highwayBoard.dataset.level=m.level||'INFO';els.highwayBoardTag.textContent=m.level==='SPECIAL'?'最終奥義':m.level==='DANGER'?'危険情報':m.level==='WARN'?'注意情報':'走行案内';els.highwayBoardMessage.textContent=m.text;els.highwayBoard.classList.remove('bump');void els.highwayBoard.offsetWidth;els.highwayBoard.classList.add('bump');
+  boardBusy=true;const m=boardQueue.shift();els.highwayBoard.dataset.level=m.level||'INFO';els.highwayBoardTag.textContent=m.level==='SPECIAL'?'最終奥義':m.level==='DANGER'?'危険情報':m.level==='WARN'?'注意情報':m.level==='BEST'?'自己ベスト':m.level==='FLOW'?'CRITICAL FLOW':m.level==='SECTION'?'SECTION CLEAR':'走行案内';els.highwayBoardMessage.textContent=m.text;els.highwayBoard.classList.remove('bump');void els.highwayBoard.offsetWidth;els.highwayBoard.classList.add('bump');
   clearTimeout(boardTimer);boardTimer=setTimeout(()=>{boardBusy=false;pumpHighwayBoard();if(!boardQueue.length){els.highwayBoard.dataset.level='INFO';els.highwayBoardTag.textContent='走行案内';els.highwayBoardMessage.textContent='赤・橙＝回避　緑・金＝突破OK';}},m.duration);
 }
 let toastTimer=0;function toast(text){clearTimeout(toastTimer);els.toast.textContent=text;els.toast.classList.remove('show');void els.toast.offsetWidth;els.toast.classList.add('show');toastTimer=setTimeout(()=>els.toast.classList.remove('show'),900);}
@@ -1432,6 +1541,9 @@ if(els.rankingMachineGrid)els.rankingMachineGrid.addEventListener('click',e=>{co
 if(els.rankingMachineToggle)els.rankingMachineToggle.addEventListener('click',()=>{rankingMachinePanelOpen=!rankingMachinePanelOpen;syncRankingFilterUI();});
 if(els.rankingOverallButton)els.rankingOverallButton.addEventListener('click',()=>{rankingMachine='';rankingMachinePanelOpen=false;loadRanking();});
 
+window.addEventListener('resize',()=>requestAnimationFrame(fitGarageCard),{passive:true});
+window.addEventListener('orientationchange',()=>setTimeout(fitGarageCard,120),{passive:true});
+if(typeof ResizeObserver!=='undefined'&&els.garageFeature){new ResizeObserver(()=>requestAnimationFrame(fitGarageCard)).observe(els.garageFeature);}
 els.garageButton.addEventListener('click',()=>{renderGarage();showScreen('garage');});
 els.recordsButton.addEventListener('click',()=>{renderRecords();showScreen('records');});
 document.querySelectorAll('[data-back="menu"]').forEach(b=>b.addEventListener('click',()=>{showScreen('menu');renderMenu();}));
