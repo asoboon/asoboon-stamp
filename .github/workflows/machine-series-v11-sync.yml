@@ -1,0 +1,227 @@
+name: MACHINE SERIES v1.1 Sync
+
+on:
+  push:
+    branches:
+      - 'release/machine-series-v1.1-*'
+    paths:
+      - '.github/workflows/machine-series-v11-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: machine-series-v11-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync-verify-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync Drive source of truth and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fetch_drive() {
+            local id="$1" dst="$2" expected="$3"
+            mkdir -p "$(dirname "$dst")"
+            local url="https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t"
+            curl -L --fail --retry 3 --retry-delay 2 -sS "$url" -o "$dst"
+            local got
+            got=$(wc -c < "$dst" | tr -d ' ')
+            if [ "$got" != "$expected" ]; then
+              echo "Drive size mismatch: $dst expected=$expected got=$got" >&2
+              exit 1
+            fi
+          }
+
+          # Preserve the pre-COMMON RUN card illustrations once, before runtime cards are replaced.
+          if [ ! -d assets/machines/keep-separate/boonrun-card-illustrations ]; then
+            mkdir -p assets/machines/keep-separate/boonrun-card-illustrations/thumb
+            for id in boon wagon buggy bike sport ssr princess secret; do
+              if [ -f "boonrun/assets/cards/${id}.webp" ]; then
+                cp "boonrun/assets/cards/${id}.webp" "assets/machines/keep-separate/boonrun-card-illustrations/${id}.webp"
+              fi
+            done
+            if [ -d boonrun/assets/cards/thumb ]; then
+              cp -a boonrun/assets/cards/thumb/. assets/machines/keep-separate/boonrun-card-illustrations/thumb/
+            fi
+          fi
+
+          # Build COMMON identity from existing production runtime bytes.
+          rm -rf assets/machines/common assets/machines/cards
+          mkdir -p assets/machines/common assets/machines/cards assets/machines/migration
+          for id in boon wagon buggy bike sport ssr princess valkyrie secret; do
+            mkdir -p "assets/machines/common/${id}"
+            for part in body boost shadow front rear front-wheel rear-wheel; do
+              src="boonjump/assets/cars/${id}-${part}.png"
+              if [ -f "$src" ]; then cp "$src" "assets/machines/common/${id}/${part}.png"; fi
+            done
+            src="boonrun/assets/cars/${id}-complete.png"
+            if [ -f "$src" ]; then cp "$src" "assets/machines/common/${id}/complete.png"; fi
+          done
+
+          if [ -d boonjump/cards ]; then
+            cp boonjump/cards/*.webp assets/machines/cards/
+          elif [ -d boonjump/assets/cards ]; then
+            cp boonjump/assets/cards/*.webp assets/machines/cards/
+          else
+            echo 'No authoritative card source found' >&2
+            exit 1
+          fi
+
+          # Latest BOONJUMP v3.2.8 from Drive.
+          fetch_drive 1CWiEeQjM_EW6kaL-SCJGayOFlBjFIOCN boonjump/index.html 319252
+          fetch_drive 1c1uEjXtIVdDEYkY7TPjXKqn5_oMEN2gW boonjump/sw.js 5278
+          fetch_drive 1Z2kWQMfmzsCZt-SHOsEYvU9En7gwkDDn boonjump/README.md 4752
+
+          # Latest BOONRUN v1.0.36 from Drive.
+          fetch_drive 19Z12gKn2cMPsnFPyPp4huRFYCg6eAirP boonrun/index.html 15773
+          fetch_drive 11XJEepnQ88ezQQfJ0vuGfDH9WtP9Ie-x boonrun/style.css 79947
+          fetch_drive 1rNSkJeyCo9GDPftsFwXE55mPi-N3P3a- boonrun/game.bundle.js 127232
+          fetch_drive 1XjJ9fkOGSjwJF6GTpEqb8pZ5MJHGevy5 boonrun/sw.js 1731
+          fetch_drive 1p8M-CQfrNUI0kizsAjVPCy0uQPPWAf04 boonrun/README.md 1630
+          fetch_drive 1bHfskerlgintHodRt09GHio17rrR7ang boonrun/VERSION.txt 1796
+
+          # COMMON v1.1 machine governance and audit files.
+          fetch_drive 1G5yyNlbYe4xqD2jkB_uqvK1V386XfbzA assets/machines/machine-registry.json 3901
+          fetch_drive 117_m6tibBZUKONHYjaWefdTsLM167kT6 assets/machines/verify-machine-assets.sh 5112
+          fetch_drive 16UWkv56BPQDRpabTPp7dVjkOUguihx3_ assets/machines/sync-machine-assets.sh 2535
+          fetch_drive 1fyI8hpOA0-ptBipkEbJAVXfdBCnEYRtA assets/machines/README.md 6186
+          fetch_drive 1sOZDnq_Rapxvsvf4v1Idi34Jhapk8Rz4 assets/machines/COMMON_UI_DNA.md 2354
+          fetch_drive 1pgs_Oa6nGj93Vbalgo3q2S3DgLg1qKLU assets/machines/migration/asset-comparison.csv 42244
+          fetch_drive 18y_C5w0Sts7qEHXA8tQ3CYRwGg63_rSV assets/machines/migration/asset-validation.json 58
+          fetch_drive 1ourTzQc-s-mEMejcGyZUou_8VKaM7bCE assets/machines/migration/asset-migration-ops.tsv 14329
+          fetch_drive 1jrhiMuceUA4-lrBYN9r3VOVPFRgNAruC ASSET_CONSOLIDATION_REPORT.md 10475
+          fetch_drive 1y2JVMLgxARoAZ9W2yE88GgQ2WwOIW4zc boonrun/assets/cards/README.txt 438
+          chmod +x assets/machines/verify-machine-assets.sh assets/machines/sync-machine-assets.sh
+
+          # Replace runtime card copies from COMMON and remove old derived runtime thumbnails.
+          rm -rf boonrun/assets/cards/thumb
+          mkdir -p boonjump/assets/cards boonrun/assets/cards
+          bash assets/machines/sync-machine-assets.sh
+
+          # Remove proven duplicate / forbidden aliases from JUMP upload surface.
+          rm -f boonjump/assets/cars/suv-*.png
+          rm -rf boonjump/cards boonjump/cars boonjump/vfx
+
+          # Archive historical QA/docs instead of deleting history.
+          mkdir -p docs/archive/boonjump docs/archive/boonrun
+          if [ -d boonjump/docs ]; then
+            cp -a boonjump/docs/. docs/archive/boonjump/
+            rm -rf boonjump/docs
+          fi
+          shopt -s nullglob
+          for f in boonjump/QA_REPORT*.md; do mv "$f" docs/archive/boonjump/; done
+          for f in boonrun/QA_REPORT*.md; do mv "$f" docs/archive/boonrun/; done
+          shopt -u nullglob
+
+          # Mandatory verifier after the final filesystem shape is in place.
+          bash assets/machines/verify-machine-assets.sh | tee /tmp/machine-verify.log
+          grep -q '^failures: 0$' /tmp/machine-verify.log
+          grep -q '^RESULT: PASS$' /tmp/machine-verify.log
+
+          # Syntax protection. Gameplay code is not rewritten here; only the Drive-approved versions are published.
+          node --check boonrun/game.bundle.js
+          node --check boonrun/sw.js
+          node --check boonrun/run-ranking.js
+          node --check boonjump/sw.js
+          node --check boonjump/ranking-client.js
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, json, sys
+          root=Path('.')
+          html=(root/'boonjump/index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',html,flags=re.S|re.I)
+          for i,s in enumerate(scripts):
+              if not s.strip(): continue
+              p=Path('/tmp')/f'jump-inline-{i}.js'
+              p.write_text(s,encoding='utf-8')
+              r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
+              if r.returncode:
+                  print(r.stderr); sys.exit(r.returncode)
+
+          checks=0; failures=[]
+          def check(cond,msg):
+              global checks
+              checks += 1
+              if not cond: failures.append(msg)
+
+          for p in ['boonjump/index.html','boonjump/sw.js','boonjump/ranking-client.js','boonrun/index.html','boonrun/style.css','boonrun/game.bundle.js','boonrun/sw.js','boonrun/run-ranking.js','assets/machines/machine-registry.json']:
+              check((root/p).is_file(),f'missing {p}')
+
+          for htmlp in [root/'boonjump/index.html',root/'boonrun/index.html']:
+              txt=htmlp.read_text(encoding='utf-8')
+              for _,path in re.findall(r'\b(src|href)=["\']([^"\']+)["\']',txt):
+                  if path.startswith(('http:','https:','data:','#','javascript:')): continue
+                  clean=path.split('?')[0].split('#')[0]
+                  if not clean: continue
+                  check((htmlp.parent/clean).exists(),f'{htmlp}: missing {path}')
+
+          for swp in [root/'boonjump/sw.js',root/'boonrun/sw.js']:
+              txt=swp.read_text(encoding='utf-8')
+              for path in re.findall(r'["\'](\./[^"\']+)["\']',txt):
+                  clean=path.split('?')[0]
+                  target=swp.parent/'index.html' if clean=='./' else swp.parent/clean
+                  check(target.exists(),f'{swp}: missing {path}')
+
+          cards=['01-boon-pickup.webp','02-smart-wagon.webp','03-lucky-buggy.webp','04-power-bike.webp','05-nitro-sport.webp','06-cosmic-phantom.webp','07-princess-starliner.webp','08-secret-rocket.webp','09-highway-valkyrie.webp']
+          for card in cards:
+              check(card in html,f'JUMP index missing card ref {card}')
+              check((root/'boonjump/assets/cards'/card).is_file(),f'JUMP missing card {card}')
+
+          run=(root/'boonrun/game.bundle.js').read_text(encoding='utf-8')
+          for mid in ['boon','wagon','buggy','bike','sport','ssr','princess','secret','valkyrie']:
+              check(mid in run,f'RUN missing machine id {mid}')
+              check((root/'boonrun/assets/cards'/f'{mid}.webp').is_file(),f'RUN missing card {mid}')
+
+          for p in ['boonjump/cards','boonjump/cars','boonjump/vfx']:
+              check(not (root/p).exists(),f'obsolete duplicate remains {p}')
+          check('asoboonBoonjump.v2' in html,'JUMP save key missing')
+          check('asoboonBooncar.v6' in html,'JUMP legacy save key missing')
+          reg=json.loads((root/'assets/machines/machine-registry.json').read_text(encoding='utf-8'))
+          check([m['id'] for m in reg['machines']]==['boon','wagon','buggy','bike','sport','ssr','princess','secret','valkyrie'],'registry IDs/order unexpected')
+          check([m['seriesNumber'] for m in reg['machines']]==list(range(1,10)),'registry Series No. unexpected')
+          print(f'STATIC_PATH_CHECKS {checks}')
+          print(f'STATIC_PATH_FAILURES {len(failures)}')
+          if failures:
+              print('\n'.join('FAIL '+x for x in failures)); sys.exit(1)
+          print('STATIC_PATH_RESULT PASS')
+          PY
+
+          grep -q 'Ver.3.2.8' boonjump/index.html
+          grep -q '2026-08-13-series-v11-card-safe-v328' boonjump/index.html
+          grep -q 'BOON RUN 2 v1.0.36' boonrun/VERSION.txt
+          grep -q '2026-08-13-playable-v1.0.36-machine-series-v11' boonrun/VERSION.txt
+          test "$(find boonjump/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
+          test "$(find boonrun/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
+          test "$(find boonjump/assets/cars boonrun/assets/cars -maxdepth 1 -name 'suv-*' -type f | wc -l)" -eq 0
+          git diff --check
+
+          echo '--- release diff summary ---'
+          git status --short
+          echo "JUMP files: $(find boonjump -type f | wc -l)"
+          echo "RUN files: $(find boonrun -type f | wc -l)"
+          echo "COMMON files: $(find assets/machines -type f | wc -l)"
+
+      - name: Commit verified release state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'asoboon-machine-series-bot'
+          git config user.email 'asoboon425@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Sync MACHINE SERIES v1.1, BOONJUMP v3.2.8 and BOONRUN v1.0.36'
+          git push origin HEAD:${GITHUB_REF_NAME}
