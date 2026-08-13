@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.5">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.6">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-12-machine-selector-polish-v325">
+  <meta name="boonjump-build" content="2026-08-13-machine-card-showcase-v326">
   <title>ブーンジャンプ｜ASOBooN</title>
   <style>
 :root{
@@ -548,6 +548,91 @@ body.modal-open{overflow:hidden}
   #garageScreen .selector-stage-run-card.switch-next .run-machine-card,#garageScreen .selector-stage-run-card.switch-prev .run-machine-card{animation:none!important}
 }
 
+
+/* v3.2.6 — MACHINE CARD SHOWCASE
+   The finished MACHINE CARD artwork is now the hero of MACHINE SELECT.
+   Card numbers remain historical debut numbers; selector order intentionally stays unchanged. */
+#garageScreen{--selector-card-w:min(100%,520px)}
+#garageScreen .machine-selector-shell{width:min(100%,760px);padding:11px;border-radius:24px}
+#garageScreen .selector-stage-card-art{
+  --selector-accent:#49b7ff;position:relative;min-height:0;padding:10px 45px 11px;display:flex;
+  align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.10);border-radius:22px;
+  overflow:hidden;isolation:isolate;touch-action:pan-y;background:
+    radial-gradient(ellipse at 50% 98%,color-mix(in srgb,var(--selector-accent) 13%,transparent),transparent 48%),
+    linear-gradient(180deg,rgba(8,21,38,.985),rgba(3,10,19,.995))
+}
+#garageScreen .selector-stage-card-art::before{
+  content:"";position:absolute;z-index:-2;inset:-26% -16% 14%;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 68%,color-mix(in srgb,var(--selector-accent) 22%,transparent),transparent 64%);
+  filter:blur(24px);opacity:.74
+}
+#garageScreen .machine-card-frame{
+  position:relative;width:var(--selector-card-w);aspect-ratio:3/2;border-radius:18px;overflow:hidden;
+  background:#050b13;border:1px solid rgba(255,255,255,.17);
+  box-shadow:0 18px 42px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.025);
+  transform:translateZ(0);will-change:transform,opacity
+}
+#garageScreen .machine-card-image{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+#garageScreen .machine-card-frame::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -26px 42px rgba(0,0,0,.04)
+}
+#garageScreen .machine-card-frame.selected{border-color:rgba(255,226,76,.86);box-shadow:0 0 0 2px rgba(255,226,76,.13),0 20px 46px rgba(0,0,0,.45)}
+#garageScreen .machine-card-frame.locked .machine-card-image{filter:brightness(.25) saturate(.22) blur(.6px)}
+#garageScreen .machine-card-lock{
+  position:absolute;z-index:9;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,rgba(3,7,13,.14),rgba(3,7,13,.52));
+  text-align:center
+}
+#garageScreen .machine-card-lock>span{
+  display:grid;place-items:center;width:54px;height:54px;margin:auto;border-radius:50%;
+  background:rgba(3,8,16,.84);border:1px solid rgba(255,255,255,.20);font-size:1.42rem;
+  box-shadow:0 12px 28px rgba(0,0,0,.40)
+}
+#garageScreen .machine-card-lock>b{display:block;margin-top:8px;color:#fff;font-size:.62rem;letter-spacing:.05em}
+#garageScreen .selector-nav-hint{margin:7px 0 3px}
+#garageScreen .selector-rail{margin-top:5px;margin-bottom:8px}
+#garageScreen .selector-detail{padding:11px;border-radius:18px}
+#garageScreen .selector-guide-head{align-items:center;margin-bottom:7px}
+#garageScreen .selector-guide-head small{font-size:.45rem}
+#garageScreen .selector-guide-head strong{
+  flex:none;padding:5px 8px;border:1px solid rgba(126,239,255,.18);border-radius:999px;
+  background:rgba(126,239,255,.06);color:#dffbff;font-size:.55rem
+}
+#garageScreen .selector-summary{font-size:.61rem;line-height:1.52;margin-bottom:8px}
+#garageScreen .selector-control{min-height:38px}
+#garageScreen .selector-stats-three{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+#garageScreen .selector-stats-three>div{padding:7px 4px}
+#garageScreen .selector-stats-three small{font-size:.39rem}
+#garageScreen .selector-stats-three strong{font-size:.68rem;font-variant-numeric:tabular-nums}
+#garageScreen .selector-stage-card-art.switch-next .machine-card-frame{animation:selectorCardNextIn .19s cubic-bezier(.2,.72,.2,1)}
+#garageScreen .selector-stage-card-art.switch-prev .machine-card-frame{animation:selectorCardPrevIn .19s cubic-bezier(.2,.72,.2,1)}
+@keyframes selectorCardNextIn{from{opacity:.35;transform:translateX(20px) scale(.982)}to{opacity:1;transform:none}}
+@keyframes selectorCardPrevIn{from{opacity:.35;transform:translateX(-20px) scale(.982)}to{opacity:1;transform:none}}
+@media(max-width:380px){
+  #garageScreen .machine-selector-shell{padding:8px;border-radius:20px}
+  #garageScreen .selector-stage-card-art{padding:8px 37px 9px;border-radius:19px}
+  #garageScreen .machine-card-frame{border-radius:14px}
+  #garageScreen .selector-summary{font-size:.57rem}
+  #garageScreen .selector-control{grid-template-columns:58px minmax(0,1fr);padding:6px 7px}
+  #garageScreen .selector-control span{font-size:.51rem}
+  #garageScreen .selector-stats-three strong{font-size:.61rem}
+}
+@media(prefers-reduced-motion:reduce){
+  #garageScreen .selector-stage-card-art.switch-next .machine-card-frame,
+  #garageScreen .selector-stage-card-art.switch-prev .machine-card-frame{animation:none!important}
+}
+
+/* Gacha reveal reuses the same official MACHINE CARD artwork. */
+.gacha-machine-card{
+  position:relative;z-index:3;display:block;width:min(100%,520px);aspect-ratio:3/2;margin:0 auto 9px;
+  object-fit:cover;border-radius:15px;border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 16px 34px rgba(0,0,0,.34);user-select:none;-webkit-user-drag:none
+}
+.gacha-card.revealed.has-machine-card{padding:9px;min-height:0}
+.gacha-card.revealed.has-machine-card .gacha-stage{display:none}
+.gacha-card.revealed.has-machine-card .gacha-rays{opacity:.28}
+.gacha-card.revealed.has-machine-card .gacha-reveal{padding:2px 2px 5px}
+
 </style>
 </head>
 <body>
@@ -611,6 +696,7 @@ body.modal-open{overflow:hidden}
         <div class="gacha-card" id="gachaCard">
           <div class="gacha-rays" aria-hidden="true"></div>
           <div class="gacha-stage" id="gachaVehicle"></div>
+          <img class="gacha-machine-card" id="gachaMachineCard" alt="" decoding="async" draggable="false" hidden>
           <div class="gacha-reveal" id="gachaReveal" hidden>
             <span id="gachaRarity">R</span>
             <strong id="gachaName">ブーンピックアップ</strong>
@@ -638,21 +724,12 @@ body.modal-open{overflow:hidden}
           </div>
         </div>
 
-        <section class="selector-stage selector-stage-run-card" id="selectorStage" aria-live="polite" tabindex="0" aria-label="マシン選択。左右にスワイプ、または左右矢印キーで切り替え">
+        <section class="selector-stage selector-stage-card-art" id="selectorStage" aria-live="polite" tabindex="0" aria-label="マシン選択。左右にスワイプ、または左右矢印キーで切り替え">
           <button class="selector-arrow selector-arrow-prev" id="selectorPrev" type="button" aria-label="前のマシン">‹</button>
 
-          <article class="run-machine-card" id="selectorRunCard">
-            <span class="rarity" id="selectorRarity">R</span>
-            <span class="selected-mark" id="selectorState">✓ 選択中</span>
-            <div class="run-card-art" id="selectorVehicleWrap">
-              <div class="vehicle-slot" id="selectorVehicle"></div>
-              <span class="run-card-lock" id="selectorLock" hidden>🔒</span>
-            </div>
-            <h3 id="selectorName">ブーンピックアップ</h3>
-            <div class="handling" id="selectorDifficulty">★ はじめやすい</div>
-            <div class="jump-chip" id="selectorJumpChip">🚀 最大飛距離 1,995m</div>
-            <p id="selectorTagline">いちばん素直。最初の1台におすすめ。</p>
-            <div class="best"><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
+          <article class="machine-card-frame" id="selectorRunCard">
+            <img class="machine-card-image" id="selectorCardImage" alt="ブーンピックアップのマシンカード" decoding="async" draggable="false">
+            <div class="machine-card-lock" id="selectorLock" hidden><div><span>🔒</span><b>未解放</b></div></div>
           </article>
 
           <button class="selector-arrow selector-arrow-next" id="selectorNext" type="button" aria-label="次のマシン">›</button>
@@ -662,7 +739,7 @@ body.modal-open{overflow:hidden}
         <div class="selector-rail" id="selectorRail" aria-label="マシン一覧"></div>
 
         <section class="selector-detail">
-          <div class="selector-guide-head"><small>3 TAP GUIDE</small><strong>3回のタップはこう狙う</strong></div>
+          <div class="selector-guide-head"><small>JUMP PROFILE</small><strong id="selectorDifficulty">★ はじめやすい</strong></div>
           <p class="selector-summary" id="selectorSummary"></p>
 
           <div class="selector-controls" aria-label="3つの操作の特徴">
@@ -671,9 +748,10 @@ body.modal-open{overflow:hidden}
             <div class="selector-control"><b>NITRO<small>ニトロ</small></b><span id="selectorNitro">大きな丸をリングに合わせる</span></div>
           </div>
 
-          <div class="selector-stats selector-stats-two">
-            <div><small>最大飛距離</small><strong id="selectorMax">1,995m</strong></div>
-            <div><small>チューン</small><strong id="selectorTune">Lv.0</strong></div>
+          <div class="selector-stats selector-stats-three">
+            <div><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
+            <div><small>MAX</small><strong id="selectorMax">1,995m</strong></div>
+            <div><small>TUNE</small><strong id="selectorTune">Lv.0</strong></div>
           </div>
 
           <button class="selector-choose" id="selectorChoose" type="button">このマシンを選ぶ</button>
@@ -901,13 +979,13 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=325-machine-selector-polish"></script>
+<script src="./ranking-client.js?v=326-machine-card-showcase"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.2.5';
-  const BUILD = '2026-08-12-machine-selector-polish-v325';
+  const APP_VERSION = '3.2.6';
+  const BUILD = '2026-08-13-machine-card-showcase-v326';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -931,6 +1009,31 @@ body.modal-open{overflow:hidden}
     {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜選別・精密操作',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie','ssr'],control:{accel:{mode:'valkyrieAccel',period:1180,ideal:.84,super:.017,critical:.040,great:.085,good:.155,label:'ACCEL｜高速スイープを見切れ'},turbo:{mode:'valkyrieShift',period:1320,super:.018,critical:.043,great:.09,good:.165,label:'SHIFT｜6速に入る瞬間を掴め'},nitro:{mode:'valkyrieRing',travel:1220,orb:48,target:62,super:.017,critical:.041,great:.083,good:.15,label:'OVERDRIVE｜収束するリングを射抜け'}}},
     {id:'secret',distanceScale:2.623,name:'無敵のロケットアソブーン人間',rarity:'SECRET',rate:0,trait:'3コンボを極めた時だけ5000m級。1ミスで大失速する最終試験',handling:'LEGEND｜超高難度3コンボ',color:'#ff5a24',accent:'#fff35c',baseSpeed:172,launchAngle:46,boostPower:92,boostLift:37,gravity:6.6,drag:.0014,bounce:0,skill:'rocket',rawCap:5000,finalCap:5000,master:5000,asset:['secret'],control:{accel:{mode:'patternRocket',period:720,ideal:.86,super:.013,critical:.032,great:.068,good:.125,label:'固定8手｜逆走後の一瞬だけが本命'},turbo:{mode:'patternRocket',period:760,super:.014,critical:.034,great:.070,good:.13,label:'固定8手｜フェイント後の中央を見切れ'},nitro:{mode:'patternDecoy',travel:960,orb:44,target:56,super:.017,critical:.032,great:.066,good:.12,label:'固定フェイント｜逆走後の2回目だけを狙え'}}}
   ];
+  const MACHINE_CARD_ASSETS = Object.freeze({
+    boon:'./assets/cards/01-boon-pickup.webp',
+    wagon:'./assets/cards/02-smart-wagon.webp',
+    buggy:'./assets/cards/03-lucky-buggy.webp',
+    bike:'./assets/cards/04-power-bike.webp',
+    sport:'./assets/cards/05-nitro-sport.webp',
+    ssr:'./assets/cards/06-cosmic-phantom.webp',
+    princess:'./assets/cards/07-princess-starliner.webp',
+    secret:'./assets/cards/08-secret-rocket.webp',
+    valkyrie:'./assets/cards/09-highway-valkyrie.webp'
+  });
+  const machineCardPreload = new Map();
+  const preloadMachineCard=id=>{
+    const src=MACHINE_CARD_ASSETS[id];if(!src)return Promise.resolve(false);
+    if(machineCardPreload.has(id))return machineCardPreload.get(id);
+    const promise=new Promise(resolve=>{const img=new Image();img.decoding='async';img.onload=()=>resolve(true);img.onerror=()=>resolve(false);img.src=src;});
+    machineCardPreload.set(id,promise);return promise;
+  };
+  const setMachineCardImage=(img,car,owned=true)=>{
+    if(!img||!car)return;
+    const src=MACHINE_CARD_ASSETS[car.id];
+    if(src&&img.getAttribute('src')!==src)img.src=src;
+    img.alt=owned?`${car.name}のマシンカード`:'未解放マシンのカード';
+  };
+
   const GARAGE_GUIDE = {
     boon:{level:'★ はじめやすい',home:'タイミングをつかみやすい基本マシン',summary:'3つのゲージが素直で見やすい。初めてでも100%を狙いやすい基本マシン。',tip:'まずは3回とも光るベスト位置をねらおう。'},
     wagon:{level:'★ はじめやすい',home:'中央でゆっくり。落ち着いて狙える',summary:'中央付近で動きがゆっくりになる安定タイプ。あわてず見て押したい人向け。',tip:'ゆっくりになった瞬間を見てタップ。'},
@@ -945,15 +1048,15 @@ body.modal-open{overflow:hidden}
 
 
   const SELECTOR_GUIDE = {
-    boon:{tagline:'ゆっくり動くから、見てから押せる。',summary:'3つとも動きがゆっくりで分かりやすいマシン。タイミングゲームに慣れるなら、まずこの車。',accel:'針がゆっくり往復。黄色のベスト位置を見てから押せる。',turbo:'中央をゆっくり通る。真ん中に来た瞬間をタップ。',nitro:'大きな丸がゆっくり進む。リングの中心で重ねる。'},
-    wagon:{tagline:'当たりの近くでゆっくり。落ち着いて押せる。',summary:'当たりの近くまで来るとゲージがゆっくりになる。速い操作が苦手でも、落ち着いて100%を狙いやすい。',accel:'ベスト位置の近くで針が減速。止まりそうな瞬間がチャンス。',turbo:'中央に近づくほど動きがゆっくり。真ん中を狙う。',nitro:'リングの手前でブレーキがかかる。減速したところで合わせる。'},
-    buggy:{tagline:'ピョンピョン動く。でも順番はいつも同じ。',summary:'ピンボールみたいに跳ね回るけれど、動く順番は固定。何回か遊ぶと「次にどこへ来るか」が読める。',accel:'決まったリズムで大きくバウンド。後半の高い位置が狙い目。',turbo:'左右に3回バウンド。2往復目の中央を狙う。',nitro:'ジグザグ軌道は毎回同じ。黄色リングへ来るタイミングを覚える。'},
-    bike:{tagline:'戻ってこない。通り過ぎる前に押す。',summary:'ACCELもTURBOもNITROも、ベスト位置を一度だけ通過する反射神経タイプ。待ちすぎるとチャンスが終わる。',accel:'0からMAXへ一直線。ベスト位置を通る一瞬だけが勝負。',turbo:'左から右へ一度だけ進む。中央を通過した瞬間に押す。',nitro:'上から一気に突っ込む。リングを通過する一瞬を狙う。'},
-    sport:{tagline:'途中から急に速くなる。変わる瞬間が勝負。',summary:'最初は簡単そうに見えて、ベスト位置の手前から急に速くなる。スピードが変わる瞬間を見切れるほど飛距離が伸びる。',accel:'前半は遅い。終盤だけ一気に加速するので早めに集中。',turbo:'中央の直前で急加速。短い「中央ピタッ」の瞬間を狙う。',nitro:'落ちながらどんどん速くなる。早すぎず遅すぎずリング中央へ。'},
-    princess:{tagline:'3回とも違うリズム。覚えるほど強くなる。',summary:'ACCEL・TURBO・NITROを同じ感覚では押せない上級マシン。3種類のリズムを覚えて全部そろえると一気に伸びる。',accel:'ゆったり3拍子。「1・2・3」の3拍目がベスト。',turbo:'左右を高速で往復。中央へ戻る短い瞬間を狙う。',nitro:'階段みたいに段階的に進む。4段目でリングに重ねる。'},
-    ssr:{tagline:'ワープの順番は毎回同じ。覚えて狙う。',summary:'ゲージが瞬間移動する超上級タイプ。ただしワープする場所と順番は毎回同じ。覚えた人ほど正確に100%を狙える。',accel:'10か所を順番にワープ。5番目の位置がベスト。',turbo:'中央へ来るワープの順番を覚えて、出た瞬間に押す。',nitro:'6地点をワープ。黄色リングに現れる順番を覚える。'},
-    valkyrie:{tagline:'3回とも一瞬。全部ピッタリで3300m級。',summary:'シリーズ最高クラスの精密操作マシン。速いだけではなく、ACCEL・TURBO・NITROそれぞれの短い100%タイミングを見切る必要がある。',accel:'高速スイープ。ベスト位置を横切る一瞬を正確に押す。',turbo:'6段階で変速。最後に中央へ噛み合う瞬間が100%チャンス。',nitro:'リングが収束する短い瞬間。中心が重なったら即タップ。'},
-    secret:{tagline:'超高速フェイント。3回ほぼ完璧で5000m級。',summary:'すべてが高速フェイント付き。3回ともほぼ完璧に決めた時だけ本当の飛距離が出る、最後のチャレンジマシン。',accel:'高速8手＋逆走フェイント。本命位置を覚えて狙う。',turbo:'中央へ来る前にフェイントあり。だまされず本命だけを押す。',nitro:'一度外してから戻ってくる。2回目のリング通過が本命。'}
+    boon:{summary:'ゆっくり動く、いちばん分かりやすいマシン。まずは3回とも真ん中を狙おう。',accel:'ゆっくり往復。光るベスト位置で押す。',turbo:'中央をゆっくり通る。真ん中で押す。',nitro:'大きな丸をリングの中心に重ねる。'},
+    wagon:{summary:'当たりの近くでスピードが落ちるマシン。急がず、ゆっくりになった所を狙おう。',accel:'ベスト位置の近くでゆっくりになる。',turbo:'中央に近づくほど減速。真ん中で押す。',nitro:'リングの手前で減速。中心まで待って押す。'},
+    buggy:{summary:'ピョンピョン跳ねるけど、動く順番はいつも同じ。遊ぶほどタイミングが分かってくる。',accel:'決まったリズムでバウンド。高く跳ねる所を狙う。',turbo:'左右に跳ねる。2往復目の中央がチャンス。',nitro:'ジグザグは毎回同じ。リングに来る順番を覚える。'},
+    bike:{summary:'戻ってこない一発勝負。3回とも、ベスト位置を通る一瞬を逃さず押そう。',accel:'一直線に加速。ベスト位置を通った瞬間に押す。',turbo:'左から右へ一度だけ進む。中央で押す。',nitro:'一気にリングへ突っ込む。重なった瞬間に押す。'},
+    sport:{summary:'最初はゆっくり、途中から急加速。速くなる瞬間にだまされず狙えるかが勝負。',accel:'終盤で急に速くなる。早めに集中する。',turbo:'中央の直前で急加速。中央に合った瞬間を押す。',nitro:'進むほど速くなる。リング中央を狙う。'},
+    princess:{summary:'アクセル・ターボ・ニトロが全部ちがうリズム。3つのリズムを覚えると一気に強くなる。',accel:'ゆったり3拍子。3拍目のいちばん高い所で押す。',turbo:'高速で左右に動く。中央へ戻った瞬間に押す。',nitro:'階段のように進む。4段目でリングに重ねる。'},
+    ssr:{summary:'ゲージがワープする超上級マシン。でもワープの順番は毎回同じ。順番を覚えて攻略しよう。',accel:'10か所を順番にワープ。5番目がチャンス。',turbo:'中央に現れる順番を覚えて、出た瞬間に押す。',nitro:'6か所をワープ。リングに現れた瞬間に押す。'},
+    valkyrie:{summary:'3回とも100%の時間がとても短い最高難度マシン。3つ全部を決めれば3300m級。',accel:'針が一気に走る。ベスト位置を通る瞬間に押す。',turbo:'段階的に変速。中央にピタッと合う瞬間を押す。',nitro:'リングが一気に縮む。中心が重なった瞬間に押す。'},
+    secret:{summary:'超高速のだまし動きが入る最終マシン。3回ほぼ完璧に決めた時だけ5000m級。',accel:'高速で動いて一度逆走。本命の位置を覚えて押す。',turbo:'中央の前にだまし動き。2回目の本命を狙う。',nitro:'一度外れてから戻る。2回目のリング通過で押す。'}
   };
 
   const CAR_BY_ID = Object.fromEntries(CARS.map(car => [car.id, car]));
@@ -1108,7 +1211,7 @@ body.modal-open{overflow:hidden}
   };
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
-    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorRarity:$('selectorRarity'),selectorState:$('selectorState'),selectorVehicleWrap:$('selectorVehicleWrap'),selectorVehicle:$('selectorVehicle'),selectorLock:$('selectorLock'),selectorName:$('selectorName'),selectorJumpChip:$('selectorJumpChip'),selectorTagline:$('selectorTagline'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
+    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaMachineCard:$('gachaMachineCard'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCardImage:$('selectorCardImage'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorLock:$('selectorLock'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
     recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),bulkRankButton:$('bulkRankButton'),bulkRankMeta:$('bulkRankMeta'),recordsRankingStatus:$('recordsRankingStatus'),recordsRankingLink:$('recordsRankingLink'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),
@@ -1525,33 +1628,28 @@ body.modal-open{overflow:hidden}
     el.selectorStage.style.setProperty('--selector-accent',car.accent||car.color||'#49b7ff');
     el.selectorOwnedCount.textContent=`所持 ${ownedCount()} / ${CARS.length}`;
     el.selectorCount.textContent=`${index+1} / ${CARS.length}`;
-    el.selectorRarity.textContent=car.rarity;
-    el.selectorRarity.className=`rarity rarity-${car.rarity.toLowerCase()}`;
-    el.selectorRunCard.classList.toggle('selected',selected&&owned);
-    el.selectorRunCard.classList.toggle('locked',!owned);
-    el.selectorRunCard.style.setProperty('--run-card-accent',car.accent||car.color||'#49b7ff');
-    el.selectorState.hidden=!selected||!owned;
-    el.selectorState.textContent='✓ 選択中';
-    el.selectorVehicleWrap.classList.toggle('locked',!owned);
-    el.selectorLock.hidden=owned;
-    el.selectorVehicle.innerHTML='';
-    renderVehicle(el.selectorVehicle,car,{compact:false});
 
-    const hiddenMachine=!owned;
-    el.selectorName.textContent=hiddenMachine?'？？？？？？':car.name;
-    el.selectorJumpChip.textContent=owned?`🚀 最大飛距離 ${formatM(car.finalCap)}`:'🚀 最大飛距離 ---';
-    el.selectorTagline.textContent=owned?detail.tagline:(car.id==='secret'?'通常7台をそろえた先に待つ、ひみつのマシン。':'ガチャで当てると、このマシンで飛べます。');
+    el.selectorRunCard.classList.toggle('locked',!owned);
+    el.selectorRunCard.classList.toggle('selected',selected&&owned);
+    el.selectorRunCard.style.setProperty('--run-card-accent',car.accent||car.color||'#49b7ff');
+    el.selectorLock.hidden=owned;
+    setMachineCardImage(el.selectorCardImage,car,owned);
+
+    // Preload the next/previous card so swipe feels instant without front-loading all 9.
+    const prev=CARS[(index-1+CARS.length)%CARS.length],next=CARS[(index+1)%CARS.length];
+    [car,prev,next].forEach(c=>preloadMachineCard(c.id));
+
     el.selectorDifficulty.textContent=owned?guide.level:'🔒 未解放';
-    el.selectorSummary.textContent=owned?detail.summary:(car.id==='secret'?'通常7台をすべて集めると解放されます。':'ガチャからこの車を獲得すると、ここで選べるようになります。');
-    el.selectorAccel.textContent=owned?detail.accel:'解放すると操作の特徴が表示されます。';
-    el.selectorTurbo.textContent=owned?detail.turbo:'解放すると操作の特徴が表示されます。';
-    el.selectorNitro.textContent=owned?detail.nitro:'解放すると操作の特徴が表示されます。';
+    el.selectorSummary.textContent=owned?detail.summary:(car.id==='secret'?'通常7台をすべて集めると解放されます。':'ガチャでこのマシンを当てると使えるようになります。');
+    el.selectorAccel.textContent=owned?detail.accel:'解放するとアクセルの狙い方が表示されます。';
+    el.selectorTurbo.textContent=owned?detail.turbo:'解放するとターボの狙い方が表示されます。';
+    el.selectorNitro.textContent=owned?detail.nitro:'解放するとニトロの狙い方が表示されます。';
     el.selectorBest.textContent=owned?formatM(rec.best||0):'---';
     el.selectorMax.textContent=owned?formatM(car.finalCap):'---';
     el.selectorTune.textContent=owned?(car.id==='secret'?'なし':`Lv.${rec.tuneLevel}`):'---';
     el.selectorChoose.disabled=!owned;
     el.selectorChoose.classList.toggle('current',selected&&owned);
-    el.selectorChoose.textContent=!owned?(car.id==='secret'?'🔒 7台コンプリートで解放':'🔒 ガチャで解放'):selected?'✓ このマシンを選択中｜ホームへ':'このマシンを選ぶ';
+    el.selectorChoose.textContent=!owned?(car.id==='secret'?'🔒 7台コンプリートで解放':'🔒 ガチャで解放'):selected?'✓ 選択中｜ホームへ':'このマシンを選ぶ';
     el.selectorUnlockNote.hidden=owned;
     el.selectorUnlockNote.textContent=car.id==='secret'?'SECRETは通常7台をそろえると解放されます。':'このマシンはガチャで獲得すると使えるようになります。';
 
@@ -1632,10 +1730,22 @@ body.modal-open{overflow:hidden}
     el.gachaBatchGrid.hidden=false;
   };
   const syncGachaUi=()=>{const tickets=Math.max(0,state.gachaTickets||0),busy=phase==='gacha';el.draw.disabled=tickets<=0||busy;el.draw.textContent=tickets>0?`1回ガチャ 🎟${tickets}`:'1回飛ぶとガチャ！';el.drawTen.disabled=tickets<10||busy;el.drawTen.textContent=tickets>=10?'10連ガチャ 🎟10':`10連まであと${10-tickets}枚`;el.gachaTicketStatus.textContent=!state.firstDrawDone&&tickets>0?'最初の1回は無料・未所持確定！':tickets>=10?`チケット ${tickets}枚｜最後の1枠はSR以上確定！`:tickets>0?`ガチャチケット ${tickets}枚｜10連まであと${10-tickets}枚`:'チケットがありません。1回飛ぶと1枚もらえます。';};
-  const showGacha=()=>{clearRun();phase='idle';setShield(false);setNavigationLock(false);el.gachaCard.className='gacha-card';el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');};
-  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):`TUNE UP！ Lv.${getRecord(drawnCar.id).tuneLevel}`;el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;el.gachaReveal.hidden=false;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.draw.disabled=false;phase='idle';setNavigationLock(false);Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();syncGachaUi();};
-  const runGacha=()=>{if(phase==='gacha'||state.gachaTickets<=0){syncGachaUi();return;}clearRun();const token=runToken,wasFirst=!state.firstDrawDone;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaBatchGrid.hidden=true;el.gachaReveal.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning';Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<9)schedule(spin,70+ticks*18,token);else{state.gachaTickets=Math.max(0,state.gachaTickets-1);settleSingleGacha(weightedDraw(),wasFirst);}};spin();};
-  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':'10連BONUS｜SR以上確定';el.gachaCard.className='gacha-card revealed rare';el.gachaReveal.hidden=false;renderBatchResults(results);el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';phase='idle';setNavigationLock(false);Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();};spin();};
+  const hideGachaMachineCard=()=>{
+    if(!el.gachaMachineCard)return;
+    el.gachaMachineCard.hidden=true;el.gachaMachineCard.removeAttribute('src');
+    el.gachaCard.classList.remove('has-machine-card');
+  };
+  const showGachaMachineCard=car=>{
+    if(!el.gachaMachineCard||!car)return;
+    setMachineCardImage(el.gachaMachineCard,car,true);
+    el.gachaMachineCard.hidden=false;el.gachaCard.classList.add('has-machine-card');
+    preloadMachineCard(car.id);
+  };
+
+  const showGacha=()=>{clearRun();phase='idle';setShield(false);setNavigationLock(false);el.gachaCard.className='gacha-card';hideGachaMachineCard();el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');};
+  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):`TUNE UP！ Lv.${getRecord(drawnCar.id).tuneLevel}`;el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;showGachaMachineCard(drawnCar);el.gachaReveal.hidden=false;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.draw.disabled=false;phase='idle';setNavigationLock(false);Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();syncGachaUi();};
+  const runGacha=()=>{if(phase==='gacha'||state.gachaTickets<=0){syncGachaUi();return;}clearRun();const token=runToken,wasFirst=!state.firstDrawDone;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaBatchGrid.hidden=true;el.gachaReveal.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<9)schedule(spin,70+ticks*18,token);else{state.gachaTickets=Math.max(0,state.gachaTickets-1);settleSingleGacha(weightedDraw(),wasFirst);}};spin();};
+  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':'10連BONUS｜SR以上確定';el.gachaCard.className='gacha-card revealed rare';showGachaMachineCard(bonusCar);el.gachaReveal.hidden=false;renderBatchResults(results);el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';phase='idle';setNavigationLock(false);Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();};spin();};
 
   const configureProgress=(activeIndex,judgments=[])=>{[el.progressStart,el.progressTurbo,el.progressNitro].forEach((item,i)=>{item.className='progress-step';const judge=judgments[i];item.querySelector('em').textContent=judge?JUDGE_SHORT[judge]:'---';if(judge){item.classList.add('done');if(judge==='SUPER')item.classList.add('super');}else if(i===activeIndex)item.classList.add('active');});};
   const setGameVehicle=(options={})=>renderVehicle(el.gameVehicle,currentCar,options);
@@ -1923,7 +2033,7 @@ body.modal-open{overflow:hidden}
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=325-machine-selector-polish',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=326-machine-card-showcase',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});
     }).catch(()=>{}));
     let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});

@@ -1,10 +1,10 @@
-const BUILD = "2026-08-12-machine-selector-polish-v325";
+const BUILD = "2026-08-13-machine-card-showcase-v326";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=325-machine-selector-polish",
+  "./ranking-client.js?v=326-machine-card-showcase",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -85,4 +85,4 @@ self.addEventListener("activate",event=>{event.waitUntil((async()=>{const keep=n
 const networkFirstDocument=async request=>{const cache=await caches.open(STATIC_CACHE);try{const response=await fetch(request);if(response.ok)await cache.put("./index.html",response.clone());return response;}catch(_){return(await cache.match("./index.html"))||Response.error();}};
 const cacheFirstImage=async request=>{const cache=await caches.open(IMAGE_CACHE),cached=await cache.match(request);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(request,response.clone());return response;};
 const networkFirstStatic=async request=>{const cache=await caches.open(STATIC_CACHE);try{const response=await fetch(request);if(response.ok)await cache.put(request,response.clone());return response;}catch(_){return(await cache.match(request))||Response.error();}};
-self.addEventListener("fetch",event=>{const request=event.request;if(request.method!=="GET")return;const url=new URL(request.url);if(url.origin!==self.location.origin)return;if(request.mode==="navigate"||request.destination==="document"){event.respondWith(networkFirstDocument(request));return;}const isGameImage=request.destination==="image"&&(url.pathname.includes("/assets/cars/")||url.pathname.includes("/assets/vfx/")||url.pathname.includes("/icons/"));event.respondWith(isGameImage?cacheFirstImage(request):networkFirstStatic(request));});
+self.addEventListener("fetch",event=>{const request=event.request;if(request.method!=="GET")return;const url=new URL(request.url);if(url.origin!==self.location.origin)return;if(request.mode==="navigate"||request.destination==="document"){event.respondWith(networkFirstDocument(request));return;}const isGameImage=request.destination==="image"&&(url.pathname.includes("/assets/cars/")||url.pathname.includes("/assets/vfx/")||url.pathname.includes("/assets/cards/")||url.pathname.includes("/icons/"));event.respondWith(isGameImage?cacheFirstImage(request):networkFirstStatic(request));});
