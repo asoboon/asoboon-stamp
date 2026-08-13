@@ -1,31 +1,45 @@
-BOON RUN 2 v1.0.38 DEV — MACHINE CARD TRUE FIT
+BOON RUN 2 v1.0.37 — RELEASE CANDIDATE / REPLAY DRIVE / WEBP
 
-Build: 2026-08-13-dev-v1.0.38-card-fit
-Client: 1.0.38-dev
-Base: v1.0.37 DEV REPLAY DRIVE
+Build: 2026-08-13-release-v1.0.37-replay-webp
+Client: 1.0.37
 
-STATUS
-- ISOLATED DEV PACKAGE. Google Drive production runtime is not modified.
-- COMMON / BOONJUMP assets are not modified.
+BASE
+- v1.0.36 MACHINE SERIES v1.1を正本として統合。
+- COMMON = MACHINE IDENTITY / RUN = どう走るか を維持。
 
-SIZE FIX
-- MACHINE SELECT no longer relies on competing viewport-height width formulas.
-- The 1024:683 completed MACHINE CARD is fitted from the actual rendered feature box.
-- Resize / orientation change / LINE-Safari viewport changes re-fit the card automatically.
-- 44px navigation tap targets are preserved without forcing the card itself smaller.
-- Phone landscape keeps the top machine strip + card/info two-column structure.
+MACHINE SELECT
+- 1180px以下の横画面をcompact layoutへ。
+- 上段マシンストリップ / 下段MACHINE CARD + RUN PROFILE。
+- 1024:683比率、contain、crop/warp禁止、safe-area、44px以上操作領域。
+- 実viewportからカード幅をresize/orientationchangeで再計算。
+- 遊び方ボタンを黄色〜オレンジの明確な操作色へ。
 
-REPLAY DRIVE FEATURES RETAINED
-- SELF BEST CHASE
-- CRITICAL FLOW feedback only
-- SECTION CLEAR
-- RUN RESULT STORY
-- DEATH COACH
+REPLAY DRIVE
+- SELF BEST CHASE：自己ベストまであと○m / NEW BEST RUN。性能補正なし。
+- CRITICAL FLOW：3秒以内の連続CRITICALをFLOW表示。性能補正なし。
+- SECTION CLEAR：既存1km milestoneを達成演出化。距離計算変更なし。
+- RUN RESULT STORY：プレイ内容を最大4勲章で表示。
+- DEATH COACH：GAME OVER理由に応じて短い1アドバイス。
 
-UNCHANGED
-- 9 machine IDs and all gameplay parameters
-- 55 course patterns and spawn timings
-- CRITICAL judgement / MACH SYNC / DIVINE MACH
-- all ULTIMATE performance
-- fuel / hitboxes / jump physics / speed curve
-- ranking endpoint / payload schema / save key
+WEBP
+- RUNの主要complete画像をWebP優先、PNG fallback。
+- 非SECRET bodyをWebP優先、PNG fallback/既存互換。
+- MACHINE CARDは既存WebPを再圧縮し、RUN/JUMP/COMMON同期対象。
+- wheel/shadow等の小容量PNGは無理に変換せず維持。
+
+UNCHANGED GAMEPLAY
+- 9 machine IDs
+- CRITICAL判定
+- Valkyrie MACH SYNC / DIVINE MACH性能
+- ULTIMATE性能
+- 55 course patterns
+- obstacles / fuel / drone / speed
+- ranking endpoint / ranking計算 / buildRunSubmission schema
+- save key
+
+SERVICE WORKER
+- boonrun-20260813-v137-replay-webp
+- index/style/game/rankingのqueryを20260813-v137-replay-webpへ統一。
+- cardはnetwork-first + cache fallback。
+- car WebP/PNGはcache-first。
+- installはPromise.allSettledで1件失敗による全滅を防止。

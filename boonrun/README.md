@@ -1,51 +1,54 @@
-# ブーンRUN — v1.0.37 DEV / REPLAY DRIVE
+# ブーンRUN — CURRENT README
 
-Runtime: `1.0.37-dev`  
-Build: `2026-08-13-dev-v1.0.37-replay-drive`  
-Base: `v1.0.36 / MACHINE SERIES v1.1`
-
-> このフォルダは隔離DEV版です。Google Drive本番正本へ自動反映しません。
-
-## 今回の目的
-
-ゲームバランスを変えずに、RUNの「もう1回！」を強化します。
-
-- SELF BEST CHASE
-- CRITICAL FLOW
-- SECTION CLEAR
-- RUN RESULT STORY
-- DEATH COACH
+Runtime: `1.0.35`  
+Build: `2026-08-13-playable-v1.0.35-responsive-machine-cards-common`
 
 ## MACHINE SERIES COMMON CONTRACT
+
+共通正本：
+
+`00_SHARED_SPEC / ASOBooN MACHINE SERIES 共通仕様 v1.0`
 
 - **COMMON = そのマシンが何者か**
 - **BOONJUMP = そのマシンがどう飛ぶか**
 - **BOONRUN = そのマシンがどう走るか**
 
-方式Bを維持し、COMMON IDENTITYとRUN GAMEPLAYを混ぜません。
+マシン性能はゲーム間で共有しません。
 
 ## Current 9 Machine IDs
 
 `boon, wagon, buggy, bike, sport, ssr, princess, valkyrie, secret`
 
-`ssr` = コズミックファントム。`suv`は新machine IDとして復活させません。
+`ssr` = コズミックファントム。`suv`を新IDとして追加しません。
 
-## v1.0.37 DEVで変更していないもの
+## COMMON Asset Workflow
 
-- 9台の性能
-- 走行速度 / 難易度カーブ
-- ジャンプ物理 / hitbox
-- CRITICAL判定幅
-- Valkyrie MACH SYNC / DIVINE MACH
-- 全ULTIMATE性能
-- 燃料消費 / 燃料供給
+方式B：`assets/machines/`をSOURCE OF TRUTHとし、BOONRUNは単独アップロード安全性のためruntime sync copyを`boonrun/assets/`に保持します。
+
+9枚のMACHINE CARD、body、wheel、shadow等のIDENTITYはCOMMON。  
+CRITICAL、ULTIMATE、障害物、ガソリン、ドローン、道路、走行VFX、走行性能はBOONRUN専用です。
+
+## Current RUN Display Order
+
+`boon → wagon → buggy → bike → sport → ssr → princess → valkyrie → secret`
+
+カード番号は表示順ではなくシリーズ登場順です。
+
+## Protection
+
+COMMON同期を理由に以下を変更しません。
+
+- 走行性能
+- ジャンプ物理
+- CRITICAL
+- ULTIMATE
+- 障害物 / ガソリン / ドローン
 - 55 course patterns
-- 障害物挙動
-- ranking endpoint / payload schema
-- save key `asoboonBoonrun.v1`
-- COMMON asset bytes
-- BOONJUMP
+- ranking endpoint / keys
+- save data
+- internal machine IDs
 
-## リリース条件
 
-このDEVを本番候補へ昇格する場合は、JUMP側公開作業終了後に差分を再取り込みし、実機QAを行ってください。
+## RUN/JUMP Coordination
+
+変更通知・アイデア共有は `00_SHARED_SPEC` 内の `RUN-JUMP 連携ログ` / `RUN-JUMP アイデア共有ボード` を使用します。

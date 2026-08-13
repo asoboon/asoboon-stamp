@@ -1,7 +1,7 @@
 # ブーンジャンプ
 
-Current Build: `2026-08-13-machine-select-responsive-v329`
-App meta: `Ver.3.2.9`
+Current Build: `2026-08-13-first-nickname-webp-v330`
+App meta: `Ver.3.3.0`
 
 ## ASOBooN MACHINE SERIES 共通仕様
 
@@ -129,3 +129,12 @@ RUN/JUMP間の変更通知・アイデア共有は、同フォルダの
 - `RUN-JUMP アイデア共有ボード`
 
 を使用します。
+
+
+## v3.3.0 — First Nickname + Lightweight Vehicle Body
+
+- 初回起動時にニックネーム登録を必須化（2〜12文字）。以後は端末に保存し、ランキング表示名として利用。
+- 初回登録画面はキャンセル不可。登録後はランキング画面から変更可能。
+- 9台の主要body画像に透過WebP軽量版を追加し、WebP優先・PNG fallbackで表示。
+- COMMONのPNG正本は変更せず、BOONJUMP runtime向け最適化派生として扱う。RUN gameplay / COMMON bytesには影響なし。
+- ACCEL / TURBO / NITRO / 距離 / ガチャ / AWAKENING / ranking endpoint / save key / machine IDは変更なし。

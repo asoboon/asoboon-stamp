@@ -1,0 +1,20 @@
+ASOBooN GitHub upload overlay — 2026-08-13
+
+Repository: asoboon/asoboon-stamp
+Target: main (manual upload)
+
+UPLOAD METHOD
+1. Do NOT delete existing boonjump/ or boonrun/ folders.
+2. Upload this folder's contents to repository root, preserving paths.
+3. Overwrite same-name files when GitHub asks.
+4. Keep all existing PNG fallback, wheel, shadow, VFX, ranking files that are not included here.
+5. GAS / ranking endpoint does NOT need updating.
+
+Included:
+- BOONJUMP v3.3.0: first nickname registration + body WebP runtime
+- BOONRUN v1.0.37 release candidate: responsive MACHINE SELECT + REPLAY DRIVE + WebP runtime
+- Optimized MACHINE CARD WebP synced to COMMON / JUMP / RUN
+
+IMPORTANT
+- Do not delete old PNG car assets. They remain fallback assets.
+- machine IDs and save/ranking behavior are unchanged.
