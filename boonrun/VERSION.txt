@@ -1,10 +1,26 @@
-BOONRUN v1.0.31
-Build: 2026-08-12-playable-v1.0.31-auto-ranking-final
-Feature: AUTO RANKING FINAL — v1.0.30 final polish + forced first-time ranking name + automatic score submission after every eligible run
-Emergency Ultimate: retained — unused FINAL ULTIMATE auto-rescues fatal events at reduced duration; manual activation remains full power
-Ranking UX: retained from v1.0.29/v1.0.30 — landscape TOP100, fixed YOUR BEST sidebar, large machine picker, cached instant display, background refresh
-Ranking registration: first eligible result requires a 2–12 character ranking name once; after that every eligible result auto-submits. Backend meaningful-best-only policy prevents lower scores from replacing best records
-Failure behavior: ranking/network failure never blocks retry/menu/garage; failed auto-submit exposes a retry button
-Gameplay/balance: v1.0.30 physics, fuel, cars, 55 patterns, 3K curve, cards and specials unchanged
-GAS/backend: endpoint/API contract unchanged; no redeploy required
-Valkyrie: series reference only; excluded from BOONRUN gameplay and ranking
+BOON RUN 2 v1.0.34 — VALKYRIE / CRITICAL FULL SET
+
+Build: 2026-08-13-playable-v1.0.34-valkyrie-critical-full
+Client: 1.0.34
+
+BASE
+- Physical runtime foundation available in this session: BOONRUN v1.0.23.
+- Later validated UX contracts (v1.0.24–v1.0.33) were reconstructed from QA history where source files were not physically available.
+- This package does not claim byte-identical parity with the missing v1.0.33 runtime.
+
+MAIN CHANGES
+- Highway Valkyrie added as UR / DIVINE_PRECISION.
+- User-facing CLOSE removed. Perfect near-miss display is CRITICAL.
+- Valkyrie: CRITICAL x3 => MACH SYNC 2.4s. No meter accumulation during sync.
+- DIVINE MACH: manual 5.0s; speed x1.55 / fuel x0.55 / hitbox x0.60 / 3rd DIVINE AIR STEP.
+- Emergency Ultimate: unused FINAL ULTIMATE can rescue a fatal event once at 75% duration; GAS rescue restores 25%; triggering hazard gets 0.60s safety.
+- Pre-run quick rules: jump, fuel, drone/low beam no-jump, crate/PIT.
+- Dedicated HOW TO PLAY screen + first-encounter road tips.
+- MACHINE CARD SELECT restored for 9 machines with swipe / arrows / lock preview / RUN BEST / FINAL ULTIMATE.
+- Optional premium card art slot: assets/cards/{id}.webp; complete vehicle art is the automatic fallback.
+- Ranking: no run_health preflight on hot path; 20s fresh cache; 7-day stale snapshot; in-flight dedupe; TOP100 vertical board; manual refresh.
+- Ranking name is requested on first eligible result; later eligible runs auto-submit.
+- All 9 car runtime artwork is self-contained under assets/cars with complete fallbacks.
+
+BACKEND
+- Valkyrie ranking requires the supplied V2.6.1 RUN FAST Valkyrie patch and a new Apps Script deployment version.
