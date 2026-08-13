@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "1.1",
+  "workflow": "B",
+  "principle": "Machine identity is common. Gameplay is independent.",
+  "machines": [
+    {
+      "id": "boon",
+      "seriesNumber": 1,
+      "nameJa": "ブーンピックアップ",
+      "card": "cards/01-boon-pickup.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "wagon",
+      "seriesNumber": 2,
+      "nameJa": "スマートワゴン",
+      "card": "cards/02-smart-wagon.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "buggy",
+      "seriesNumber": 3,
+      "nameJa": "ラッキーバギー",
+      "card": "cards/03-lucky-buggy.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "bike",
+      "seriesNumber": 4,
+      "nameJa": "パワーバイク",
+      "card": "cards/04-power-bike.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "sport",
+      "seriesNumber": 5,
+      "nameJa": "ニトロスポーツ",
+      "card": "cards/05-nitro-sport.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "ssr",
+      "seriesNumber": 6,
+      "nameJa": "コズミックファントム",
+      "card": "cards/06-cosmic-phantom.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "princess",
+      "seriesNumber": 7,
+      "nameJa": "プリンセス・スターライナー",
+      "card": "cards/07-princess-starliner.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "secret",
+      "seriesNumber": 8,
+      "nameJa": "無敵のロケットアソブーン人間",
+      "card": "cards/08-secret-rocket.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    },
+    {
+      "id": "valkyrie",
+      "seriesNumber": 9,
+      "nameJa": "ハイウェイ・ヴァルキリー",
+      "card": "cards/09-highway-valkyrie.webp",
+      "commonParts": [
+        "body.png",
+        "boost.png",
+        "complete.png",
+        "front-wheel.png",
+        "front.png",
+        "rear-wheel.png",
+        "rear.png",
+        "shadow.png"
+      ]
+    }
+  ],
+  "sourceOfTruth": "assets/machines/",
+  "runtimeUsage": "audit-only; BOONJUMP/BOONRUN do not load this registry at runtime in workflow B",
+  "seriesNumberMeaning": "ASOBooN MACHINE SERIES introduction order; not game display order, performance order, save ID or ranking ID",
+  "forbiddenMachineAliases": [
+    "suv"
+  ],
+  "identityNotes": {
+    "ssr": "Established internal ID for コズミックファントム. Do not rename to cosmic.",
+    "secret": "SECRET has no front-wheel/rear-wheel runtime pair by design."
+  }
+}

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.6">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.8">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-13-machine-card-showcase-v326">
+  <meta name="boonjump-build" content="2026-08-13-series-v11-card-safe-v328">
   <title>ブーンジャンプ｜ASOBooN</title>
   <style>
 :root{
@@ -633,6 +633,21 @@ body.modal-open{overflow:hidden}
 .gacha-card.revealed.has-machine-card .gacha-rays{opacity:.28}
 .gacha-card.revealed.has-machine-card .gacha-reveal{padding:2px 2px 5px}
 
+
+/* v3.2.8 — SERIES v1.1 UI DNA SAFETY PASS
+   Presentation/accessibility only. Gameplay, timing, distance and ranking logic are untouched. */
+.sound-button{width:44px;height:44px;min-width:44px;min-height:44px}
+#garageScreen .machine-card-frame,.gacha-machine-card{aspect-ratio:1024/683;background:#050b13}
+#garageScreen .machine-card-image,.gacha-machine-card{object-fit:contain;background:#050b13}
+#garageScreen .selector-arrow{width:44px;min-width:44px;min-height:44px}
+#garageScreen .selector-rail-item{min-width:72px;min-height:62px}
+#garageScreen .selector-choose{min-height:56px}
+@media(max-width:380px){
+  #garageScreen .selector-arrow{width:44px;min-width:44px;height:58px}
+  #garageScreen .selector-arrow-prev{left:2px}
+  #garageScreen .selector-arrow-next{right:2px}
+}
+
 </style>
 </head>
 <body>
@@ -979,19 +994,19 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=326-machine-card-showcase"></script>
+<script src="./ranking-client.js?v=328-series-v11"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.2.6';
-  const BUILD = '2026-08-13-machine-card-showcase-v326';
+  const APP_VERSION = '3.2.8';
+  const BUILD = '2026-08-13-series-v11-card-safe-v328';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
   const LEGACY_KEY = 'asoboonBooncar.v6';
   const ASSET_ROOT = './assets/cars';
-  const ASSET_VERSION = '310-art-source-integration';
+  const ASSET_VERSION = '327-asset-common';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -1002,11 +1017,11 @@ body.modal-open{overflow:hidden}
     {id:'boon',distanceScale:2.165,name:'ブーンピックアップ',rarity:'R',rate:28.5,trait:'全部がゆっくり。ゲージを見てからでも間に合う',handling:'BEGINNER｜スローモーション',color:'#ffb11f',accent:'#ffe36a',baseSpeed:126,launchAngle:35,boostPower:48,boostLift:16,gravity:8.7,drag:.0027,bounce:0,skill:'recovery',rawCap:1900,finalCap:1995,master:1800,asset:['boon'],control:{accel:{mode:'smooth',period:3100,ideal:.79,super:.035,critical:.078,great:.16,good:.29,label:'超ゆっくり・素直な往復'},turbo:{mode:'smooth',period:2700,super:.038,critical:.085,great:.17,good:.29,label:'見てから押せる低速ゲージ'},nitro:{mode:'linear',travel:2450,orb:88,target:108,super:.035,critical:.078,great:.15,good:.26,label:'大きな丸がゆっくり直進'}}},
     {id:'wagon',distanceScale:2.043,name:'スマートワゴン',rarity:'R',rate:28.5,trait:'当たり位置へ吸い寄せられ、そこで長く減速する',handling:'BEGINNER｜マグネット',color:'#49b7ff',accent:'#b8f7ff',baseSpeed:122,launchAngle:34,boostPower:46,boostLift:17,gravity:8.6,drag:.0025,bounce:0,skill:'stable',rawCap:1850,finalCap:1943,master:1750,asset:['wagon'],control:{accel:{mode:'targetHold',period:2350,ideal:.77,super:.04,critical:.09,great:.18,good:.31,label:'CRITICAL位置で露骨にスロー'},turbo:{mode:'targetHold',period:2100,super:.045,critical:.105,great:.22,good:.35,label:'中央に吸い付くマグネットゲージ'},nitro:{mode:'brake',travel:2500,orb:92,target:112,super:.042,critical:.095,great:.18,good:.30,label:'リング直前でブレーキ'}}},
     {id:'buggy',distanceScale:2.392,name:'ラッキーバギー',rarity:'SR',rate:12,trait:'固定リズムで跳ね返る。クセを覚えるほど狙いやすい',handling:'INTERMEDIATE｜固定バウンド',color:'#40d66b',accent:'#d5ff70',baseSpeed:134,launchAngle:37,boostPower:52,boostLift:19,gravity:8.9,drag:.0029,bounce:.31,skill:'bounce',rawCap:2200,finalCap:2310,master:2100,asset:['buggy'],control:{accel:{mode:'patternBounce',period:1750,ideal:.81,super:.026,critical:.062,great:.13,good:.24,label:'固定6拍｜3拍目で反転、5拍目が本命'},turbo:{mode:'patternPinball',period:1450,super:.03,critical:.07,great:.14,good:.25,label:'固定3バウンド｜2往復目の中央を狙え'},nitro:{mode:'zigzag',travel:1650,orb:72,target:92,super:.03,critical:.068,great:.13,good:.23,label:'固定3蛇行｜軌道は毎回まったく同じ'}}},
-    {id:'bike',distanceScale:2.757,name:'パワーバイク',rarity:'SR',rate:12,trait:'戻らない一方向勝負。通過は一瞬',handling:'INTERMEDIATE｜ワンショット',color:'#ed572f',accent:'#ffca62',baseSpeed:144,launchAngle:32,boostPower:46,boostLift:13,gravity:9.1,drag:.0031,bounce:0,skill:'powerStart',rawCap:2350,finalCap:2468,master:2250,asset:['bike','suv'],control:{accel:{mode:'oneway',period:930,reset:75,ideal:.84,super:.022,critical:.052,great:.11,good:.20,label:'0→MAXを一気に駆け抜ける'},turbo:{mode:'oneway',period:1020,reset:70,super:.027,critical:.063,great:.125,good:.22,label:'戻りなし・中央を一度だけ通過'},nitro:{mode:'dash',travel:960,orb:64,target:82,super:.026,critical:.06,great:.115,good:.21,label:'上から一気に突っ込む'}}},
+    {id:'bike',distanceScale:2.757,name:'パワーバイク',rarity:'SR',rate:12,trait:'戻らない一方向勝負。通過は一瞬',handling:'INTERMEDIATE｜ワンショット',color:'#ed572f',accent:'#ffca62',baseSpeed:144,launchAngle:32,boostPower:46,boostLift:13,gravity:9.1,drag:.0031,bounce:0,skill:'powerStart',rawCap:2350,finalCap:2468,master:2250,asset:['bike'],control:{accel:{mode:'oneway',period:930,reset:75,ideal:.84,super:.022,critical:.052,great:.11,good:.20,label:'0→MAXを一気に駆け抜ける'},turbo:{mode:'oneway',period:1020,reset:70,super:.027,critical:.063,great:.125,good:.22,label:'戻りなし・中央を一度だけ通過'},nitro:{mode:'dash',travel:960,orb:64,target:82,super:.026,critical:.06,great:.115,good:.21,label:'上から一気に突っ込む'}}},
     {id:'sport',distanceScale:2.455,name:'ニトロスポーツ',rarity:'SR',rate:12,trait:'前半は眠いほど遅く、最後だけ弾丸加速',handling:'ADVANCED｜急加速',color:'#d72458',accent:'#ff758f',baseSpeed:139,launchAngle:31,boostPower:68,boostLift:16,gravity:9.0,drag:.0025,bounce:0,skill:'nitro',rawCap:2525,finalCap:2651,master:2400,asset:['sport'],control:{accel:{mode:'snap',period:1950,ideal:.82,super:.024,critical:.056,great:.115,good:.21,label:'低速から突然フルスロットル'},turbo:{mode:'sportSnapTurbo',period:1500,super:.025,critical:.058,great:.115,good:.20,label:'中央直前で急加速｜一瞬だけPERFECT LOCK'},nitro:{mode:'accelerate',travel:1380,orb:58,target:72,super:.025,critical:.05,great:.10,good:.18,label:'落下しながら急加速'}}},
     {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'3つの異なるリズムを奏で、すべてを重ねると真価を放つ',handling:'ADVANCED｜3 RHYTHMS',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'princessWaltz',period:2600,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'ゆったり3拍子｜3拍目の頂点を狙う'},turbo:{mode:'princessSyncopation',period:1450,super:.034,critical:.078,great:.15,good:.26,label:'高速シンコペーション｜左右から中央へ戻る一瞬'},nitro:{mode:'princessStair',travel:2050,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'階段リズム｜4段目のリングで重ねる'}}},
-    {id:'ssr',distanceScale:1.903,name:'コズミックファントム',rarity:'EXR',rate:3,trait:'決まった順番でワープする。順番を覚えれば攻略できる',handling:'EXPERT｜固定ワープ',color:'#6f55ff',accent:'#52e8ff',baseSpeed:148,launchAngle:39,boostPower:64,boostLift:25,gravity:7.9,drag:.0019,bounce:0,skill:'warp',rawCap:3000,finalCap:3150,master:3000,asset:['ssr','cosmic'],control:{accel:{mode:'patternWarp',period:1380,ideal:.83,super:.018,critical:.044,great:.092,good:.17,label:'固定10地点｜5番目のワープが本命'},turbo:{mode:'patternWarp',period:1250,super:.02,critical:.047,great:.095,good:.17,label:'固定10地点｜中央ワープの順番を覚えろ'},nitro:{mode:'patternTeleport',travel:1280,orb:52,target:64,super:.018,critical:.043,great:.087,good:.16,label:'固定6地点｜4番目が黄色リング'}}},
-    {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜選別・精密操作',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie','ssr'],control:{accel:{mode:'valkyrieAccel',period:1180,ideal:.84,super:.017,critical:.040,great:.085,good:.155,label:'ACCEL｜高速スイープを見切れ'},turbo:{mode:'valkyrieShift',period:1320,super:.018,critical:.043,great:.09,good:.165,label:'SHIFT｜6速に入る瞬間を掴め'},nitro:{mode:'valkyrieRing',travel:1220,orb:48,target:62,super:.017,critical:.041,great:.083,good:.15,label:'OVERDRIVE｜収束するリングを射抜け'}}},
+    {id:'ssr',distanceScale:1.903,name:'コズミックファントム',rarity:'EXR',rate:3,trait:'決まった順番でワープする。順番を覚えれば攻略できる',handling:'EXPERT｜固定ワープ',color:'#6f55ff',accent:'#52e8ff',baseSpeed:148,launchAngle:39,boostPower:64,boostLift:25,gravity:7.9,drag:.0019,bounce:0,skill:'warp',rawCap:3000,finalCap:3150,master:3000,asset:['ssr'],control:{accel:{mode:'patternWarp',period:1380,ideal:.83,super:.018,critical:.044,great:.092,good:.17,label:'固定10地点｜5番目のワープが本命'},turbo:{mode:'patternWarp',period:1250,super:.02,critical:.047,great:.095,good:.17,label:'固定10地点｜中央ワープの順番を覚えろ'},nitro:{mode:'patternTeleport',travel:1280,orb:52,target:64,super:.018,critical:.043,great:.087,good:.16,label:'固定6地点｜4番目が黄色リング'}}},
+    {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜選別・精密操作',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie'],control:{accel:{mode:'valkyrieAccel',period:1180,ideal:.84,super:.017,critical:.040,great:.085,good:.155,label:'ACCEL｜高速スイープを見切れ'},turbo:{mode:'valkyrieShift',period:1320,super:.018,critical:.043,great:.09,good:.165,label:'SHIFT｜6速に入る瞬間を掴め'},nitro:{mode:'valkyrieRing',travel:1220,orb:48,target:62,super:.017,critical:.041,great:.083,good:.15,label:'OVERDRIVE｜収束するリングを射抜け'}}},
     {id:'secret',distanceScale:2.623,name:'無敵のロケットアソブーン人間',rarity:'SECRET',rate:0,trait:'3コンボを極めた時だけ5000m級。1ミスで大失速する最終試験',handling:'LEGEND｜超高難度3コンボ',color:'#ff5a24',accent:'#fff35c',baseSpeed:172,launchAngle:46,boostPower:92,boostLift:37,gravity:6.6,drag:.0014,bounce:0,skill:'rocket',rawCap:5000,finalCap:5000,master:5000,asset:['secret'],control:{accel:{mode:'patternRocket',period:720,ideal:.86,super:.013,critical:.032,great:.068,good:.125,label:'固定8手｜逆走後の一瞬だけが本命'},turbo:{mode:'patternRocket',period:760,super:.014,critical:.034,great:.070,good:.13,label:'固定8手｜フェイント後の中央を見切れ'},nitro:{mode:'patternDecoy',travel:960,orb:44,target:56,super:.017,critical:.032,great:.066,good:.12,label:'固定フェイント｜逆走後の2回目だけを狙え'}}}
   ];
   const MACHINE_CARD_ASSETS = Object.freeze({
@@ -2033,7 +2048,7 @@ body.modal-open{overflow:hidden}
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=326-machine-card-showcase',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=328-series-v11',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});
     }).catch(()=>{}));
     let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});

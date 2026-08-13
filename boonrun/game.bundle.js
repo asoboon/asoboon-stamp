@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-13-playable-v1.0.34-valkyrie-critical-full';
-const CLIENT_VERSION = '1.0.34';
+const BUILD = '2026-08-13-playable-v1.0.36-machine-series-v11';
+const CLIENT_VERSION = '1.0.36';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -505,14 +505,26 @@ function renderMenu(){
 let garageFocusId=state.selected;
 function optionalCardArt(img,id){
   if(!img)return;
-  img.onerror=()=>{img.onerror=null;img.src=carAsset(id);};
-  img.src=`./assets/cards/${id}.webp?v=134`;
+  const card=els.garageCard;
+  if(card)card.classList.remove('has-card-art');
+  if(els.garageName)els.garageName.hidden=false;
+  img.onload=()=>{
+    if(card)card.classList.add('has-card-art');
+    if(els.garageName)els.garageName.hidden=true;
+  };
+  img.onerror=()=>{
+    img.onerror=null;img.onload=null;
+    if(card)card.classList.remove('has-card-art');
+    if(els.garageName)els.garageName.hidden=false;
+    img.src=carAsset(id);
+  };
+  img.src=`./assets/cards/${id}.webp?v=136`;
 }
 function garageFocusCar(){return CAR_BY_ID[garageFocusId]||currentCar();}
 function renderGarageFocus(){
   const car=garageFocusCar(),idx=Math.max(0,CARS.findIndex(x=>x.id===car.id)),owned=ownedCars.has(car.id),rec=state.carRecords[car.id]||{best:0,plays:0};
   garageFocusId=car.id;
-  els.garageIndex.textContent=`MACHINE ${String(idx+1).padStart(2,'0')} / ${String(CARS.length).padStart(2,'0')}`;
+  els.garageIndex.textContent='RUN PROFILE';
   els.garageRarity.textContent=car.rarity;els.garageType.textContent=car.role||'RUN';
   els.garageState.textContent=state.selected===car.id?'SELECTED':owned?'OWNED':'LOCKED';
   els.garageOwnedBadge.textContent=state.selected===car.id?'SELECTED':owned?'OWNED':'LOCKED';

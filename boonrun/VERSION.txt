@@ -1,26 +1,37 @@
-BOON RUN 2 v1.0.34 — VALKYRIE / CRITICAL FULL SET
+BOON RUN 2 v1.0.36 — MACHINE SERIES v1.1 UI / IDENTITY SYNC
 
-Build: 2026-08-13-playable-v1.0.34-valkyrie-critical-full
-Client: 1.0.34
+Build: 2026-08-13-playable-v1.0.36-machine-series-v11
+Client: 1.0.36
 
 BASE
-- Physical runtime foundation available in this session: BOONRUN v1.0.23.
-- Later validated UX contracts (v1.0.24–v1.0.33) were reconstructed from QA history where source files were not physically available.
-- This package does not claim byte-identical parity with the missing v1.0.33 runtime.
+- v1.0.35 responsive size fix + COMMON asset safe.
+- COMMON workflow B remains authoritative: assets/machines/ is source of truth; boonrun/assets/ and boonjump/assets/ keep runtime sync copies.
 
-MAIN CHANGES
-- Highway Valkyrie added as UR / DIVINE_PRECISION.
-- User-facing CLOSE removed. Perfect near-miss display is CRITICAL.
-- Valkyrie: CRITICAL x3 => MACH SYNC 2.4s. No meter accumulation during sync.
-- DIVINE MACH: manual 5.0s; speed x1.55 / fuel x0.55 / hitbox x0.60 / 3rd DIVINE AIR STEP.
-- Emergency Ultimate: unused FINAL ULTIMATE can rescue a fatal event once at 75% duration; GAS rescue restores 25%; triggering hazard gets 0.60s safety.
-- Pre-run quick rules: jump, fuel, drone/low beam no-jump, crate/PIT.
-- Dedicated HOW TO PLAY screen + first-encounter road tips.
-- MACHINE CARD SELECT restored for 9 machines with swipe / arrows / lock preview / RUN BEST / FINAL ULTIMATE.
-- Optional premium card art slot: assets/cards/{id}.webp; complete vehicle art is the automatic fallback.
-- Ranking: no run_health preflight on hot path; 20s fresh cache; 7-day stale snapshot; in-flight dedupe; TOP100 vertical board; manual refresh.
-- Ranking name is requested on first eligible result; later eligible runs auto-submit.
-- All 9 car runtime artwork is self-contained under assets/cars with complete fallbacks.
+MACHINE SERIES v1.1
+- Added non-runtime audit registry: assets/machines/machine-registry.json.
+- Added publication verifier: assets/machines/verify-machine-assets.sh.
+- Registry contains IDENTITY only: machine ID / Series No. / official Japanese name / card / body / wheel / shadow.
+- No RUN/JUMP performance values are stored in COMMON registry.
+- SECRET wheel entries are null by design because SECRET has no runtime wheel pair.
+- Internal ID ssr remains コズミックファントム; legacy suv alias remains forbidden.
 
-BACKEND
-- Valkyrie ranking requires the supplied V2.6.1 RUN FAST Valkyrie patch and a new Apps Script deployment version.
+RUN MACHINE SELECT
+- Finished 3:2 MACHINE CARD remains the visual source of truth; crop/warp prohibited.
+- Fixed finished-card detection so duplicate overlay badges/captions are removed when card art loads.
+- External machine name is hidden when finished card art is present; RUN-specific profile remains.
+- Selector position is no longer displayed as MACHINE Series No.; the profile label is RUN PROFILE. Series No. stays on the authoritative card art.
+- Back / card navigation / machine rail / primary CTA use >=44px interaction targets.
+- Existing compact landscape layout and safe-area behavior remain RUN-specific.
+
+UNCHANGED GAMEPLAY
+- CRITICAL rules
+- Valkyrie MACH SYNC / DIVINE MACH
+- ULTIMATE behavior
+- 55 course patterns
+- obstacles / fuel / drone / speed
+- ranking API / ranking keys
+- save keys
+- machine internal IDs
+
+SERVICE WORKER
+- Cache build bumped to v136-machine-series-v11 because index/style/game bundle changed.

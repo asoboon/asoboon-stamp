@@ -1,4 +1,8 @@
-Optional premium MACHINE CARD artwork slot.
-Drop illustration-only 3:2 files here as {id}.webp.
+Runtime MACHINE CARD sync copies.
+
+Authoritative numbered cards live in ../../../assets/machines/cards/ at the repository root.
+This folder keeps per-game upload safety by storing {id}.webp copies for BOONRUN.
 IDs: boon, wagon, buggy, bike, sport, ssr, princess, valkyrie, secret.
-If absent, the runtime automatically falls back to the authoritative local complete vehicle artwork.
+
+Do not replace these with run-only illustrations. Put run-only derived art under the
+root keep-separate archive until a future design decision promotes it.

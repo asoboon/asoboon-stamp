@@ -1,24 +1,125 @@
-# ブーンジャンプ V2.4.0
+# ブーンジャンプ
 
-Build: `2026-08-08-ranking-duplicate-name-fix-v18`
+Current Build: `2026-08-13-series-v11-card-safe-v328`
+App meta: `Ver.3.2.8`
+
+## ASOBooN MACHINE SERIES 共通仕様
+
+BOONJUMP / BOONRUN の共通マシン素材は **方式B** で管理します。
+
+- 正本: `assets/machines/`
+- BOONJUMP runtime copy: `boonjump/assets/`
+- BOONRUN runtime copy: `boonrun/assets/`
+- COMMON変更後は `assets/machines/sync-machine-assets.sh` で同期
+- 同期後は `assets/machines/verify-machine-assets.sh` の `RESULT: PASS` を必須とする
+- 同期後はService Worker / cache buildを確認・更新
+- GAMEPLAY性能・VFXはゲーム間で共通化しない
+
+基本原則:
+
+> 機体のIDENTITYは共通、GAMEPLAYは独立。
+
+## 9マシン
+
+| machine ID | 正式名称 | MACHINE CARD |
+|---|---|---|
+| `boon` | ブーンピックアップ | `01-boon-pickup.webp` |
+| `wagon` | スマートワゴン | `02-smart-wagon.webp` |
+| `buggy` | ラッキーバギー | `03-lucky-buggy.webp` |
+| `bike` | パワーバイク | `04-power-bike.webp` |
+| `sport` | ニトロスポーツ | `05-nitro-sport.webp` |
+| `ssr` | コズミックファントム | `06-cosmic-phantom.webp` |
+| `princess` | プリンセス・スターライナー | `07-princess-starliner.webp` |
+| `secret` | 無敵のロケットアソブーン人間 | `08-secret-rocket.webp` |
+| `valkyrie` | ハイウェイ・ヴァルキリー | `09-highway-valkyrie.webp` |
+
+MACHINE CARDの01〜09は**シリーズ登場順**です。ゲーム内表示順・ガチャ順・性能順を意味しません。
+
+`machine ID` は保存データ・ランキング・内部参照との互換性があるため変更禁止です。
+
+機械可読なIDENTITY正本は `assets/machines/machine-registry.json` です。JUMP距離・判定・ガチャ・チューン等のGAMEPLAY値はregistryへ入れません。
+
+## BOONJUMP所有領域
+
+- ACCEL / TURBO / NITRO
+- 飛行
+- AWAKENING
+- 着地
+- JUMP専用VFX / WORLD FX / SCREEN FX
+- 距離・チューン・ガチャ・JUMP固有ゲームバランス
+
+BOONRUNのCRITICAL / 障害物 / 燃料 / ドローン / 道路 / RUN ULTIMATEには影響させません。
 
 ## 3コンボ入力
 
-ゲーム本編の判定に乱数は使いません。ガチャだけが運要素です。アクセル・ターボ・ニトロは学習・再現可能です。
-
-SECRET「無敵のロケットアソブーン人間」は超高難度3コンボ機。総合ランキングには入らず、SECRET専用ランキングへ個別登録します。
+ゲーム本編の判定に乱数は使いません。ガチャだけが運要素です。  
+ACCEL / TURBO / NITROは学習・再現可能な操作として設計します。
 
 ## ランキング
 
-- 今日TOP10 → 今週TOP10 → 歴代TOP10
-- その下に全8マシンTOP3
-- マシンをタップすると全順位
-- 通常7マシンは「まとめて登録」可能
-- SECRETは一括登録対象外で、個別登録のみ
-- 記録・トロフィー／リザルトの両方に「世界ランキングを見る」
-- 起動250ms後の事前読込＋端末キャッシュ即表示＋Apps Script側30秒キャッシュ
-- 登録後はSheets書込flush完了後に最新ランキングを再取得して反映確認
+現行UIではプレイ記録が世界ランキングへ自動参加します。
 
-## 必須API
+- 未設定時はゲスト名を自動発行
+- 表示名は後から変更可能
+- 今日 / 今週 / 歴代 / マシン別ランキング
+- 1人につき各ランキング1ベストを基本とする
+- SECRETは通常車と別扱いの既存仕様を維持
 
-Apps Script API **2.4.0**。`Code.gs`を全文差し替え、新バージョンで再デプロイしてください。
+ランキングendpoint / ranking key / save keyは、アセット整理を理由に変更しません。
+
+## COMMON素材
+
+COMMON正本:
+
+- body
+- front / rear wheel
+- shadow
+- MACHINE CARD
+- ゲームに依存しないマシンIDENTITY素材
+
+JUMP専用VFXは `boonjump/assets/vfx/` で独立管理します。
+
+## v3.2.8 UI DNA safety pass
+
+COMMON UI DNAの初回適用として、MACHINE CARDとガチャカードは正本比率 `1024:683` を保持し、`object-fit: contain` でcropを禁止しました。マシン切替矢印・サウンド操作も44px以上の操作領域へ統一しています。
+
+この変更は表示・アクセシビリティのみで、ACCEL / TURBO / NITRO / 距離 / ガチャ確率 / ランキングロジックは変更していません。
+
+## COMMON UI DNA / SERIES PROFILE
+
+品質基準は `assets/machines/COMMON_UI_DNA.md` を参照します。
+
+- 完成MACHINE CARDを主役にする
+- crop / distortion禁止
+- safe-areaを尊重
+- 主要操作領域は44×44 CSS px以上
+- カード内の車名・レアリティを外側で過剰に重複表示しない
+- CSS/JSそのものはRUNと共通化しない
+
+JUMPでは同じCOMMONカードの下に、ACCEL / TURBO / NITRO / JUMP BEST / MAX / TUNEなどJUMP固有PROFILEだけを表示します。
+
+## 更新ルール
+
+COMMONを変更する場合:
+
+1. `RUN-JUMP 連携ログ`へ実装前報告
+2. 必要ならRUN担当から意見を受け取る
+3. `assets/machines/` の正本を変更
+4. `sync-machine-assets.sh` でRUN/JUMPへ同期
+5. `verify-machine-assets.sh` が `RESULT: PASS` であることを確認
+6. SHA-256 / パス参照を確認
+7. Service Worker / cache buildを更新
+8. 実装後の結果をRUN-JUMP連携ログへ報告
+
+ゲーム側runtime copyだけを直接編集して正本化しないでください。
+
+## 共通仕様正本
+
+`00_SHARED_SPEC / ASOBooN MACHINE SERIES 共通仕様 v1.1`
+
+RUN/JUMP間の変更通知・アイデア共有は、同フォルダの
+
+- `RUN-JUMP 連携ログ`
+- `RUN-JUMP アイデア共有ボード`
+
+を使用します。

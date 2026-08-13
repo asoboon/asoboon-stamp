@@ -1,10 +1,10 @@
-const BUILD = "2026-08-13-machine-card-showcase-v326";
+const BUILD = "2026-08-13-series-v11-card-safe-v328";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=326-machine-card-showcase",
+  "./ranking-client.js?v=328-series-v11",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -45,11 +45,6 @@ const PRECACHE = [
   "./assets/cars/ssr-front.png",
   "./assets/cars/ssr-rear.png",
   "./assets/cars/ssr-shadow.png",
-  "./assets/cars/suv-body.png",
-  "./assets/cars/suv-boost.png",
-  "./assets/cars/suv-front.png",
-  "./assets/cars/suv-rear.png",
-  "./assets/cars/suv-shadow.png",
   "./assets/cars/wagon-body.png",
   "./assets/cars/wagon-boost.png",
   "./assets/cars/wagon-front.png",
@@ -67,8 +62,6 @@ const PRECACHE = [
   "./assets/cars/sport-rear-wheel.png",
   "./assets/cars/ssr-front-wheel.png",
   "./assets/cars/ssr-rear-wheel.png",
-  "./assets/cars/suv-front-wheel.png",
-  "./assets/cars/suv-rear-wheel.png",
   "./assets/cars/wagon-front-wheel.png",
   "./assets/cars/wagon-rear-wheel.png",
   "./assets/cars/valkyrie-body.png",
@@ -78,9 +71,18 @@ const PRECACHE = [
   "./assets/cars/valkyrie-boost.png",
   "./assets/cars/valkyrie-front-wheel.png",
   "./assets/cars/valkyrie-rear-wheel.png",
+  "./assets/cards/01-boon-pickup.webp",
+  "./assets/cards/02-smart-wagon.webp",
+  "./assets/cards/03-lucky-buggy.webp",
+  "./assets/cards/04-power-bike.webp",
+  "./assets/cards/05-nitro-sport.webp",
+  "./assets/cards/06-cosmic-phantom.webp",
+  "./assets/cards/07-princess-starliner.webp",
+  "./assets/cards/08-secret-rocket.webp",
+  "./assets/cards/09-highway-valkyrie.webp",
 ];
 self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting();});
-self.addEventListener("install",event=>{event.waitUntil((async()=>{const staticCache=await caches.open(STATIC_CACHE),imageCache=await caches.open(IMAGE_CACHE);await Promise.allSettled(PRECACHE.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Precache failed: ${path} (${response.status})`);const target=path.includes("/assets/cars/")||path.includes("/icons/")?imageCache:staticCache;await target.put(path,response);}));})());});
+self.addEventListener("install",event=>{event.waitUntil((async()=>{const staticCache=await caches.open(STATIC_CACHE),imageCache=await caches.open(IMAGE_CACHE);await Promise.allSettled(PRECACHE.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Precache failed: ${path} (${response.status})`);const target=path.includes("/assets/cars/")||path.includes("/assets/cards/")||path.includes("/icons/")?imageCache:staticCache;await target.put(path,response);}));})());});
 self.addEventListener("activate",event=>{event.waitUntil((async()=>{const keep=new Set([STATIC_CACHE,IMAGE_CACHE]),keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith("boonjump-")&&!keep.has(key)).map(key=>caches.delete(key)));await self.clients.claim();})());});
 const networkFirstDocument=async request=>{const cache=await caches.open(STATIC_CACHE);try{const response=await fetch(request);if(response.ok)await cache.put("./index.html",response.clone());return response;}catch(_){return(await cache.match("./index.html"))||Response.error();}};
 const cacheFirstImage=async request=>{const cache=await caches.open(IMAGE_CACHE),cached=await cache.match(request);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(request,response.clone());return response;};

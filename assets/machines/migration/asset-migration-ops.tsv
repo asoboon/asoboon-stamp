@@ -1,0 +1,171 @@
+source	destination	operation
+boonjump/cars/boon-body.png	assets/machines/common/boon/body.png	moved
+boonjump/cars/boon-boost.png	assets/machines/common/boon/boost.png	moved
+boonjump/cars/boon-front-wheel.png	assets/machines/common/boon/front-wheel.png	moved
+boonjump/cars/boon-front.png	assets/machines/common/boon/front.png	moved
+boonjump/cars/boon-rear-wheel.png	assets/machines/common/boon/rear-wheel.png	moved
+boonjump/cars/boon-rear.png	assets/machines/common/boon/rear.png	moved
+boonjump/cars/boon-shadow.png	assets/machines/common/boon/shadow.png	moved
+boonrun/assets/cars/boon-complete.png	assets/machines/common/boon/complete.png	copied
+boonjump/cars/wagon-body.png	assets/machines/common/wagon/body.png	moved
+boonjump/cars/wagon-boost.png	assets/machines/common/wagon/boost.png	moved
+boonjump/cars/wagon-front-wheel.png	assets/machines/common/wagon/front-wheel.png	moved
+boonjump/cars/wagon-front.png	assets/machines/common/wagon/front.png	moved
+boonjump/cars/wagon-rear-wheel.png	assets/machines/common/wagon/rear-wheel.png	moved
+boonjump/cars/wagon-rear.png	assets/machines/common/wagon/rear.png	moved
+boonjump/cars/wagon-shadow.png	assets/machines/common/wagon/shadow.png	moved
+boonrun/assets/cars/wagon-complete.png	assets/machines/common/wagon/complete.png	copied
+boonjump/cars/buggy-body.png	assets/machines/common/buggy/body.png	moved
+boonjump/cars/buggy-boost.png	assets/machines/common/buggy/boost.png	moved
+boonjump/cars/buggy-front-wheel.png	assets/machines/common/buggy/front-wheel.png	moved
+boonjump/cars/buggy-front.png	assets/machines/common/buggy/front.png	moved
+boonjump/cars/buggy-rear-wheel.png	assets/machines/common/buggy/rear-wheel.png	moved
+boonjump/cars/buggy-rear.png	assets/machines/common/buggy/rear.png	moved
+boonjump/cars/buggy-shadow.png	assets/machines/common/buggy/shadow.png	moved
+boonrun/assets/cars/buggy-complete.png	assets/machines/common/buggy/complete.png	copied
+boonjump/cars/bike-body.png	assets/machines/common/bike/body.png	moved
+boonjump/cars/bike-boost.png	assets/machines/common/bike/boost.png	moved
+boonjump/cars/bike-front-wheel.png	assets/machines/common/bike/front-wheel.png	moved
+boonjump/cars/bike-front.png	assets/machines/common/bike/front.png	moved
+boonjump/cars/bike-rear-wheel.png	assets/machines/common/bike/rear-wheel.png	moved
+boonjump/cars/bike-rear.png	assets/machines/common/bike/rear.png	moved
+boonjump/cars/bike-shadow.png	assets/machines/common/bike/shadow.png	moved
+boonrun/assets/cars/bike-complete.png	assets/machines/common/bike/complete.png	copied
+boonjump/cars/sport-body.png	assets/machines/common/sport/body.png	moved
+boonjump/cars/sport-boost.png	assets/machines/common/sport/boost.png	moved
+boonjump/cars/sport-front-wheel.png	assets/machines/common/sport/front-wheel.png	moved
+boonjump/cars/sport-front.png	assets/machines/common/sport/front.png	moved
+boonjump/cars/sport-rear-wheel.png	assets/machines/common/sport/rear-wheel.png	moved
+boonjump/cars/sport-rear.png	assets/machines/common/sport/rear.png	moved
+boonjump/cars/sport-shadow.png	assets/machines/common/sport/shadow.png	moved
+boonrun/assets/cars/sport-complete.png	assets/machines/common/sport/complete.png	copied
+boonjump/cars/ssr-body.png	assets/machines/common/ssr/body.png	moved
+boonjump/cars/ssr-boost.png	assets/machines/common/ssr/boost.png	moved
+boonjump/cars/ssr-front-wheel.png	assets/machines/common/ssr/front-wheel.png	moved
+boonjump/cars/ssr-front.png	assets/machines/common/ssr/front.png	moved
+boonjump/cars/ssr-rear-wheel.png	assets/machines/common/ssr/rear-wheel.png	moved
+boonjump/cars/ssr-rear.png	assets/machines/common/ssr/rear.png	moved
+boonjump/cars/ssr-shadow.png	assets/machines/common/ssr/shadow.png	moved
+boonrun/assets/cars/ssr-complete.png	assets/machines/common/ssr/complete.png	copied
+boonjump/cars/princess-body.png	assets/machines/common/princess/body.png	moved
+boonjump/cars/princess-boost.png	assets/machines/common/princess/boost.png	moved
+boonjump/cars/princess-front-wheel.png	assets/machines/common/princess/front-wheel.png	moved
+boonjump/cars/princess-front.png	assets/machines/common/princess/front.png	moved
+boonjump/cars/princess-rear-wheel.png	assets/machines/common/princess/rear-wheel.png	moved
+boonjump/cars/princess-rear.png	assets/machines/common/princess/rear.png	moved
+boonjump/cars/princess-shadow.png	assets/machines/common/princess/shadow.png	moved
+boonrun/assets/cars/princess-complete.png	assets/machines/common/princess/complete.png	copied
+boonjump/cars/valkyrie-body.png	assets/machines/common/valkyrie/body.png	moved
+boonjump/cars/valkyrie-boost.png	assets/machines/common/valkyrie/boost.png	moved
+boonjump/cars/valkyrie-front-wheel.png	assets/machines/common/valkyrie/front-wheel.png	moved
+boonjump/cars/valkyrie-front.png	assets/machines/common/valkyrie/front.png	moved
+boonjump/cars/valkyrie-rear-wheel.png	assets/machines/common/valkyrie/rear-wheel.png	moved
+boonjump/cars/valkyrie-rear.png	assets/machines/common/valkyrie/rear.png	moved
+boonjump/cars/valkyrie-shadow.png	assets/machines/common/valkyrie/shadow.png	moved
+boonrun/assets/cars/valkyrie-complete.png	assets/machines/common/valkyrie/complete.png	copied
+boonjump/cars/secret-body.png	assets/machines/common/secret/body.png	moved
+boonjump/cars/secret-boost.png	assets/machines/common/secret/boost.png	moved
+boonjump/cars/secret-front.png	assets/machines/common/secret/front.png	moved
+boonjump/cars/secret-rear.png	assets/machines/common/secret/rear.png	moved
+boonjump/cars/secret-shadow.png	assets/machines/common/secret/shadow.png	moved
+boonrun/assets/cars/secret-complete.png	assets/machines/common/secret/complete.png	copied
+boonjump/cars/suv-rear.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-shadow.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-boost.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-front-wheel.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-rear-wheel.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-front.png	deleted duplicate legacy bike alias	deleted
+boonjump/cars/suv-body.png	deleted duplicate legacy bike alias	deleted
+boonjump/vfx/princess/star-orbit.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/princess/crystal-wing.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/princess/crystal-orbit-trail.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/princess/royal-crown-wing.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/boon/fireball-flight.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/boon/overpressure.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/boon/impact-burst.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/buggy/electric-ground-trail.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/buggy/electric-bounce-arc.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/buggy/chaos-impact-burst.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/sport/pressure-burst.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/sport/nitro-spear.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/sport/plasma-line.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/wing-front.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/mach-cone.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/wing-rear.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/sonic-trail.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/rune-halo.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/valkyrie/README.txt	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/ssr/dimension-rift.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/ssr/gravity-core.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/ssr/gravity-lens-fracture.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/ssr/dimension-comet.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/wagon/stability-ring.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/wagon/airflow-stream.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/vfx/wagon/air-capsule.webp	deleted duplicate of boonjump/assets/vfx	deleted
+boonjump/assets/cars/suv-body.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-boost.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-front-wheel.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-front.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-rear-wheel.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-rear.png	deleted duplicate legacy bike alias	deleted
+boonjump/assets/cars/suv-shadow.png	deleted duplicate legacy bike alias	deleted
+boonjump/cards/01-boon-pickup.webp	assets/machines/cards/01-boon-pickup.webp	moved
+boonjump/cards/02-smart-wagon.webp	assets/machines/cards/02-smart-wagon.webp	moved
+boonjump/cards/03-lucky-buggy.webp	assets/machines/cards/03-lucky-buggy.webp	moved
+boonjump/cards/04-power-bike.webp	assets/machines/cards/04-power-bike.webp	moved
+boonjump/cards/05-nitro-sport.webp	assets/machines/cards/05-nitro-sport.webp	moved
+boonjump/cards/06-cosmic-phantom.webp	assets/machines/cards/06-cosmic-phantom.webp	moved
+boonjump/cards/07-princess-starliner.webp	assets/machines/cards/07-princess-starliner.webp	moved
+boonjump/cards/08-secret-rocket.webp	assets/machines/cards/08-secret-rocket.webp	moved
+boonjump/cards/09-highway-valkyrie.webp	assets/machines/cards/09-highway-valkyrie.webp	moved
+assets/machines/cards/01-boon-pickup.webp	boonjump/assets/cards/01-boon-pickup.webp	copied
+assets/machines/cards/02-smart-wagon.webp	boonjump/assets/cards/02-smart-wagon.webp	copied
+assets/machines/cards/03-lucky-buggy.webp	boonjump/assets/cards/03-lucky-buggy.webp	copied
+assets/machines/cards/04-power-bike.webp	boonjump/assets/cards/04-power-bike.webp	copied
+assets/machines/cards/05-nitro-sport.webp	boonjump/assets/cards/05-nitro-sport.webp	copied
+assets/machines/cards/06-cosmic-phantom.webp	boonjump/assets/cards/06-cosmic-phantom.webp	copied
+assets/machines/cards/07-princess-starliner.webp	boonjump/assets/cards/07-princess-starliner.webp	copied
+assets/machines/cards/08-secret-rocket.webp	boonjump/assets/cards/08-secret-rocket.webp	copied
+assets/machines/cards/09-highway-valkyrie.webp	boonjump/assets/cards/09-highway-valkyrie.webp	copied
+boonrun/assets/cards/bike.webp	assets/machines/keep-separate/boonrun-card-illustrations/bike.webp	moved
+boonrun/assets/cards/boon.webp	assets/machines/keep-separate/boonrun-card-illustrations/boon.webp	moved
+boonrun/assets/cards/buggy.webp	assets/machines/keep-separate/boonrun-card-illustrations/buggy.webp	moved
+boonrun/assets/cards/princess.webp	assets/machines/keep-separate/boonrun-card-illustrations/princess.webp	moved
+boonrun/assets/cards/secret.webp	assets/machines/keep-separate/boonrun-card-illustrations/secret.webp	moved
+boonrun/assets/cards/sport.webp	assets/machines/keep-separate/boonrun-card-illustrations/sport.webp	moved
+boonrun/assets/cards/ssr.webp	assets/machines/keep-separate/boonrun-card-illustrations/ssr.webp	moved
+boonrun/assets/cards/wagon.webp	assets/machines/keep-separate/boonrun-card-illustrations/wagon.webp	moved
+boonrun/assets/cards/thumb/bike.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/bike.webp	moved
+boonrun/assets/cards/thumb/boon.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/boon.webp	moved
+boonrun/assets/cards/thumb/buggy.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/buggy.webp	moved
+boonrun/assets/cards/thumb/princess.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/princess.webp	moved
+boonrun/assets/cards/thumb/secret.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/secret.webp	moved
+boonrun/assets/cards/thumb/sport.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/sport.webp	moved
+boonrun/assets/cards/thumb/ssr.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/ssr.webp	moved
+boonrun/assets/cards/thumb/wagon.webp	assets/machines/keep-separate/boonrun-card-illustrations/thumb/wagon.webp	moved
+assets/machines/cards/01-boon-pickup.webp	boonrun/assets/cards/boon.webp	copied
+assets/machines/cards/02-smart-wagon.webp	boonrun/assets/cards/wagon.webp	copied
+assets/machines/cards/03-lucky-buggy.webp	boonrun/assets/cards/buggy.webp	copied
+assets/machines/cards/04-power-bike.webp	boonrun/assets/cards/bike.webp	copied
+assets/machines/cards/05-nitro-sport.webp	boonrun/assets/cards/sport.webp	copied
+assets/machines/cards/06-cosmic-phantom.webp	boonrun/assets/cards/ssr.webp	copied
+assets/machines/cards/07-princess-starliner.webp	boonrun/assets/cards/princess.webp	copied
+assets/machines/cards/08-secret-rocket.webp	boonrun/assets/cards/secret.webp	copied
+assets/machines/cards/09-highway-valkyrie.webp	boonrun/assets/cards/valkyrie.webp	copied
+boonjump/docs	docs/archive/boonjump/docs	moved archive
+boonjump/QA_REPORT_V324.md	docs/archive/boonjump/QA_REPORT_V324.md	moved
+boonjump/QA_REPORT_V325.md	docs/archive/boonjump/QA_REPORT_V325.md	moved
+boonjump/QA_REPORT_V326.md	docs/archive/boonjump/QA_REPORT_V326.md	moved
+boonrun/QA_REPORT_V116.md	docs/archive/boonrun/QA_REPORT_V116.md	moved
+boonrun/QA_REPORT_V117.md	docs/archive/boonrun/QA_REPORT_V117.md	moved
+boonrun/QA_REPORT_V120.md	docs/archive/boonrun/QA_REPORT_V120.md	moved
+boonrun/QA_REPORT_V121.md	docs/archive/boonrun/QA_REPORT_V121.md	moved
+boonrun/QA_REPORT_V122.md	docs/archive/boonrun/QA_REPORT_V122.md	moved
+boonrun/QA_REPORT_V123.md	docs/archive/boonrun/QA_REPORT_V123.md	moved
+boonrun/QA_REPORT_V124.md	docs/archive/boonrun/QA_REPORT_V124.md	moved
+boonrun/QA_REPORT_V125.md	docs/archive/boonrun/QA_REPORT_V125.md	moved
+boonrun/QA_REPORT_V126.md	docs/archive/boonrun/QA_REPORT_V126.md	moved
+boonrun/QA_REPORT_V127.md	docs/archive/boonrun/QA_REPORT_V127.md	moved
+boonrun/QA_REPORT_V128.md	docs/archive/boonrun/QA_REPORT_V128.md	moved
+boonrun/QA_REPORT_V129.md	docs/archive/boonrun/QA_REPORT_V129.md	moved
+boonrun/QA_REPORT_V130.md	docs/archive/boonrun/QA_REPORT_V130.md	moved
