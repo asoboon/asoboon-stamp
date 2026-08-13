@@ -85,7 +85,7 @@ jobs:
           # Latest BOONRUN v1.0.36 from Drive.
           fetch_drive 19Z12gKn2cMPsnFPyPp4huRFYCg6eAirP boonrun/index.html 15773
           fetch_drive 11XJEepnQ88ezQQfJ0vuGfDH9WtP9Ie-x boonrun/style.css 79947
-          fetch_drive 1rNSkJeyCo9GDPftsFwXE55mPi-N3P3a- boonrun/game.bundle.js 127232
+          fetch_drive 1rNSkJeyCo9GDPftsFwXE55mPi-N3P3a- boonrun/game.bundle.js 127219
           fetch_drive 1XjJ9fkOGSjwJF6GTpEqb8pZ5MJHGevy5 boonrun/sw.js 1731
           fetch_drive 1p8M-CQfrNUI0kizsAjVPCy0uQPPWAf04 boonrun/README.md 1630
           fetch_drive 1bHfskerlgintHodRt09GHio17rrR7ang boonrun/VERSION.txt 1796
