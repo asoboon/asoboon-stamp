@@ -103,13 +103,15 @@ jobs:
           fetch_drive 1y2JVMLgxARoAZ9W2yE88GgQ2WwOIW4zc boonrun/assets/cards/README.txt 438
           chmod +x assets/machines/verify-machine-assets.sh assets/machines/sync-machine-assets.sh
 
+          # Remove forbidden physical alias before sync, because sync finishes by invoking verifier.
+          rm -f boonjump/assets/cars/suv-*.png
+
           # Replace runtime card copies from COMMON and remove old derived runtime thumbnails.
           rm -rf boonrun/assets/cards/thumb
           mkdir -p boonjump/assets/cards boonrun/assets/cards
           bash assets/machines/sync-machine-assets.sh
 
-          # Remove proven duplicate / forbidden aliases from JUMP upload surface.
-          rm -f boonjump/assets/cars/suv-*.png
+          # Remove proven duplicate upload surfaces after COMMON has been built and synced.
           rm -rf boonjump/cards boonjump/cars boonjump/vfx
 
           # Archive historical QA/docs instead of deleting history.
