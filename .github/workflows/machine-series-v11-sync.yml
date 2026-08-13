@@ -206,7 +206,9 @@ jobs:
           test "$(find boonjump/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
           test "$(find boonrun/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
           test "$(find boonjump/assets/cars boonrun/assets/cars -maxdepth 1 -name 'suv-*' -type f | wc -l)" -eq 0
-          git diff --check
+          # The canonical JUMP README intentionally contains Markdown hard-break trailing spaces.
+          # Preserve Drive bytes exactly, while retaining whitespace checks for every other path.
+          git diff --check -- . ':(exclude)boonjump/README.md'
 
           echo '--- release diff summary ---'
           git status --short
