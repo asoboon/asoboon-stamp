@@ -1,0 +1,45 @@
+name: MACHINE SERIES Verify
+
+on:
+  pull_request:
+    paths:
+      - 'assets/machines/**'
+      - 'boonjump/**'
+      - 'boonrun/**'
+      - '.github/workflows/machine-series-verify.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/machines/**'
+      - 'boonjump/**'
+      - 'boonrun/**'
+      - '.github/workflows/machine-series-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify COMMON and runtime copies
+        run: bash assets/machines/verify-machine-assets.sh
+      - name: Syntax checks
+        run: |
+          node --check boonjump/sw.js
+          node --check boonjump/ranking-client.js
+          node --check boonrun/game.bundle.js
+          node --check boonrun/sw.js
+          node --check boonrun/run-ranking.js
+      - name: Release markers and card counts
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Ver.3.2.8' boonjump/index.html
+          grep -q '2026-08-13-series-v11-card-safe-v328' boonjump/index.html
+          grep -q 'BOON RUN 2 v1.0.36' boonrun/VERSION.txt
+          grep -q '2026-08-13-playable-v1.0.36-machine-series-v11' boonrun/VERSION.txt
+          test "$(find boonjump/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
+          test "$(find boonrun/assets/cards -maxdepth 1 -name '*.webp' -type f | wc -l)" -eq 9
+          test "$(find boonjump/assets/cars boonrun/assets/cars -maxdepth 1 -name 'suv-*' -type f | wc -l)" -eq 0
