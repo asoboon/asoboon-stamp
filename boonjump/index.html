@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.8">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.2.9">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-13-series-v11-card-safe-v328">
+  <meta name="boonjump-build" content="2026-08-13-machine-select-responsive-v329">
   <title>ブーンジャンプ｜ASOBooN</title>
   <style>
 :root{
@@ -648,6 +648,102 @@ body.modal-open{overflow:hidden}
   #garageScreen .selector-arrow-next{right:2px}
 }
 
+/* v3.2.9 — MACHINE SELECT RESPONSIVE FIX
+   Root cause: the active screen is a CSS grid. The selector shell used width:min(100%,760px),
+   which could resolve against the grid's max-content track and become ~720px on a 390px phone.
+   This pass forces a zero-min-width track and makes every selector layer size from the viewport.
+   Gameplay, machine order, gacha, ranking and save data are unchanged. */
+#garageScreen{
+  width:100%;min-width:0;max-width:100%;
+  grid-template-columns:minmax(0,1fr);
+  justify-items:stretch;align-items:start;
+  overflow-x:clip;
+}
+#garageScreen .machine-selector-shell{
+  width:100%!important;max-width:760px!important;min-width:0!important;
+  margin:0 auto;box-sizing:border-box;overflow:hidden;
+  padding:clamp(8px,2.4vw,12px);
+}
+#garageScreen .machine-selector-head,
+#garageScreen .selector-stage-card-art,
+#garageScreen .selector-rail,
+#garageScreen .selector-detail{
+  width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+}
+#garageScreen .machine-selector-head{
+  gap:8px;align-items:center;
+}
+#garageScreen .machine-selector-head>div{min-width:0}
+#garageScreen .machine-selector-head h2{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#garageScreen .selector-head-metrics{min-width:0;gap:4px}
+#garageScreen .selector-owned,#garageScreen .selector-count{padding-inline:7px}
+
+/* Card is the hero: use almost all phone width; navigation floats above it instead
+   of reserving a 90px horizontal gutter. */
+#garageScreen .selector-stage-card-art{
+  padding:9px clamp(18px,5vw,28px) 10px;
+  min-height:0;
+}
+#garageScreen .machine-card-frame{
+  width:min(100%,520px)!important;max-width:520px;min-width:0;
+  aspect-ratio:1024/683;
+  border-radius:clamp(14px,4vw,18px);
+}
+#garageScreen .machine-card-image{
+  width:100%;height:100%;object-fit:contain!important;object-position:center;
+}
+#garageScreen .selector-arrow{
+  width:44px!important;height:58px;min-width:44px!important;min-height:44px!important;
+  background:rgba(3,10,19,.88);
+  box-shadow:0 8px 22px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.04);
+}
+#garageScreen .selector-arrow-prev{left:2px!important}
+#garageScreen .selector-arrow-next{right:2px!important}
+#garageScreen .selector-nav-hint{
+  width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#garageScreen .selector-rail{
+  margin-left:0;margin-right:0;padding-left:0;padding-right:0;
+  scroll-padding-inline:42%;
+}
+#garageScreen .selector-rail-item{
+  flex:0 0 clamp(64px,18vw,76px);min-width:64px!important;
+}
+#garageScreen .selector-detail{overflow:hidden}
+#garageScreen .selector-controls,#garageScreen .selector-stats{min-width:0}
+#garageScreen .selector-control{
+  grid-template-columns:clamp(54px,17vw,66px) minmax(0,1fr);
+  min-width:0;
+}
+#garageScreen .selector-control span{min-width:0;overflow-wrap:anywhere}
+#garageScreen .selector-stats-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+#garageScreen .selector-stats-three>div{min-width:0}
+#garageScreen .selector-stats-three strong{overflow:hidden;text-overflow:ellipsis}
+#garageScreen .selector-choose{width:100%;max-width:100%;box-sizing:border-box}
+
+@media(max-width:420px){
+  #garageScreen .machine-selector-head h2{font-size:.94rem}
+  #garageScreen .selector-owned{display:none}
+  #garageScreen .selector-stage-card-art{padding-inline:18px}
+  #garageScreen .selector-arrow{height:54px;font-size:1.45rem}
+  #garageScreen .selector-nav-hint{font-size:.42rem}
+  #garageScreen .selector-detail{padding:10px}
+  #garageScreen .selector-summary{font-size:.58rem}
+  #garageScreen .selector-control{padding:6px 7px}
+}
+@media(max-width:350px){
+  #garageScreen .machine-selector-shell{padding:7px}
+  #garageScreen .machine-selector-head{gap:5px}
+  #garageScreen .machine-selector-head h2{font-size:.86rem}
+  #garageScreen .selector-stage-card-art{padding-inline:16px}
+  #garageScreen .selector-arrow{width:44px!important;height:50px}
+  #garageScreen .selector-rail-item{flex-basis:62px}
+  #garageScreen .selector-summary{font-size:.55rem}
+  #garageScreen .selector-control span{font-size:.49rem}
+}
+
 </style>
 </head>
 <body>
@@ -994,13 +1090,13 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=328-series-v11"></script>
+<script src="./ranking-client.js?v=329-machine-select-responsive"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.2.8';
-  const BUILD = '2026-08-13-series-v11-card-safe-v328';
+  const APP_VERSION = '3.2.9';
+  const BUILD = '2026-08-13-machine-select-responsive-v329';
   const SCHEMA = 4;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -2048,7 +2144,7 @@ body.modal-open{overflow:hidden}
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=328-series-v11',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=329-machine-select-responsive',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});
     }).catch(()=>{}));
     let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});

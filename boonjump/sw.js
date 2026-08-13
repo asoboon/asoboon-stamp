@@ -1,10 +1,10 @@
-const BUILD = "2026-08-13-series-v11-card-safe-v328";
+const BUILD = "2026-08-13-machine-select-responsive-v329";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=328-series-v11",
+  "./ranking-client.js?v=329-machine-select-responsive",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

@@ -1,7 +1,7 @@
 # ブーンジャンプ
 
-Current Build: `2026-08-13-series-v11-card-safe-v328`
-App meta: `Ver.3.2.8`
+Current Build: `2026-08-13-machine-select-responsive-v329`
+App meta: `Ver.3.2.9`
 
 ## ASOBooN MACHINE SERIES 共通仕様
 
@@ -84,6 +84,12 @@ JUMP専用VFXは `boonjump/assets/vfx/` で独立管理します。
 COMMON UI DNAの初回適用として、MACHINE CARDとガチャカードは正本比率 `1024:683` を保持し、`object-fit: contain` でcropを禁止しました。マシン切替矢印・サウンド操作も44px以上の操作領域へ統一しています。
 
 この変更は表示・アクセシビリティのみで、ACCEL / TURBO / NITRO / 距離 / ガチャ確率 / ランキングロジックは変更していません。
+
+## v3.2.9 MACHINE SELECT responsive fix
+
+スマホ幅でMACHINE SELECTの内部grid trackがmax-content幅へ膨らみ、390px端末でもselector shellが約720pxになるケースを修正しました。`#garageScreen`を`minmax(0,1fr)`の1列gridへ固定し、shell / stage / rail / profileをすべてviewport由来の`width:100% + min-width:0`へ統一しています。
+
+完成MACHINE CARDを画面幅いっぱいに近いサイズで表示しつつ、左右矢印はカード横幅を奪わないoverlay配置へ変更。横スクロールや右側切れを防ぎます。Gameplay値、表示順、ガチャ、ランキング、save keyは変更していません。
 
 ## COMMON UI DNA / SERIES PROFILE
 
