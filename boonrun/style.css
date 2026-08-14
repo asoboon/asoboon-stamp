@@ -316,7 +316,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
 /* v1.0.34 FULL — first-play comprehension / self-contained Valkyrie */
 .menu-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .menu-actions .start-button{grid-column:1/-1}
-.help-menu-button{border:1px solid rgba(255,210,62,.76)!important;background:linear-gradient(145deg,#ffe66a,#ffae35)!important;color:#2a1a00!important;box-shadow:0 10px 26px rgba(255,170,45,.19)!important}.help-menu-button small{color:#674100!important;opacity:.82!important}
+.help-menu-button{border-color:rgba(255,226,76,.72)!important;background:linear-gradient(145deg,rgba(255,197,47,.96),rgba(230,126,34,.94))!important;box-shadow:0 8px 20px rgba(255,174,36,.22),inset 0 1px 0 rgba(255,255,255,.34)!important;color:#201608!important}
+.help-menu-button b{color:#201608!important;text-shadow:0 1px 0 rgba(255,255,255,.32)}
+.help-menu-button small{color:rgba(32,22,8,.76)!important}
+.help-menu-button>span{filter:drop-shadow(0 2px 2px rgba(255,255,255,.22))}
 .help-screen{overflow-y:auto!important;touch-action:pan-y!important;overscroll-behavior:contain}
 .help-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:1180px;margin:0 auto 12px}
 .help-card{min-height:118px;display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:linear-gradient(145deg,rgba(15,33,53,.96),rgba(5,15,27,.98));box-shadow:0 14px 35px rgba(0,0,0,.2)}
@@ -477,7 +480,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
 
 /* Phone landscape: the old 144 + 320 + 225 px minimum columns overflowed on
    667 px / 740 px class viewports. Use a scrollable machine strip instead. */
-@media (max-width:1180px) and (orientation:landscape){
+@media (max-width:760px) and (orientation:landscape){
   .topbar{height:48px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
   .mini-home{min-height:36px;padding:5px 8px;font-size:10px;border-radius:10px}
   .icon-button{width:36px;height:36px;font-size:15px;border-radius:10px}
@@ -510,7 +513,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
   .machine-rail-card.selected:after{display:none}
   .machine-card-feature{grid-column:1;grid-row:2;border-radius:13px}
   .machine-card-info{grid-column:2;grid-row:2;overflow-y:auto;padding:2px 2px 2px 1px;gap:4px}
-  .machine-card-hero{width:min(97%,var(--machine-card-fit-w,720px),calc((100dvh - 142px)*1.4993));border-radius:12px}
+  .machine-card-hero{width:min(97%,calc((100dvh - 142px)*1.4993));border-radius:12px}
   .machine-card-nav{width:27px;height:44px;font-size:22px;border-radius:8px}
   .machine-card-nav.prev{left:3px}.machine-card-nav.next{right:3px}
   .machine-card-kicker{font-size:6.5px}.machine-card-kicker em{padding:2px 4px;font-size:6px}
@@ -618,12 +621,147 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
 }
 
 
-/* v1.0.37 — REPLAY DRIVE + runtime-fit machine select */
-.machine-card-hero{width:min(96%,var(--machine-card-fit-w,720px),720px)}
-.best-chase-label{display:block;min-height:12px;margin-top:2px;font-size:clamp(6px,.9vw,9px);font-style:normal;font-weight:900;letter-spacing:.05em;color:#8beaff;white-space:nowrap}
-.best-chase-label.new-best{color:#ffe66d;text-shadow:0 0 10px rgba(255,221,87,.45)}
-.result-story{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:7px 0 3px}
-.result-story span{padding:4px 8px;border:1px solid rgba(122,226,255,.25);border-radius:999px;background:rgba(17,53,72,.64);color:#dff8ff;font-size:9px;font-weight:1000;letter-spacing:.03em}
-.result-story span.gold{border-color:rgba(255,224,80,.45);background:rgba(94,69,10,.48);color:#fff0a3}
-.death-coach{margin:5px auto 8px;max-width:520px;padding:7px 10px;border-left:3px solid #ffbc4c;border-radius:8px;background:rgba(255,186,69,.08);color:#f5e4c5;font-size:10px;font-weight:800;line-height:1.4;text-align:left}
-@media (max-height:390px) and (orientation:landscape){.result-story{margin:3px 0}.result-story span{padding:2px 5px;font-size:7px}.death-coach{margin:3px auto 4px;padding:4px 7px;font-size:8px}.best-chase-label{font-size:6px}}
+/* v1.1.0 — REPLAY DRIVE ----------------------------------------------
+   Feedback-only gameplay polish. Physics, hitboxes, fuel balance, patterns,
+   CRITICAL thresholds, ULTIMATE performance and ranking schema are unchanged. */
+.hud-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.flow-badge{padding:5px 8px;border:1px solid rgba(61,239,255,.48);border-radius:999px;background:rgba(5,31,43,.82);color:#78f4ff;font:1000 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.045em;box-shadow:0 0 14px rgba(49,225,255,.18);white-space:nowrap}
+.best-chase{display:block;min-height:10px;margin-top:1px;color:#94aab8;font:900 7px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.02em;white-space:nowrap}
+.best-chase.near{color:#ffe66a;text-shadow:0 0 8px rgba(255,218,64,.25)}
+.best-chase.ahead{color:#62efff;text-shadow:0 0 9px rgba(74,230,255,.30)}
+.section-banner{position:absolute;z-index:28;left:50%;top:50%;transform:translate(-50%,-43%) scale(.96);min-width:min(300px,58vw);padding:10px 18px 11px;border:1px solid rgba(95,236,255,.42);border-radius:16px;background:linear-gradient(135deg,rgba(5,21,31,.90),rgba(8,39,53,.86));box-shadow:0 10px 34px rgba(0,0,0,.30),0 0 30px rgba(53,220,255,.12);text-align:center;pointer-events:none;opacity:0;visibility:hidden}
+.section-banner.show{visibility:visible;animation:sectionClearIn 1.5s ease both}
+.section-banner small{display:block;color:#89bdc9;font:900 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.22em}
+.section-banner strong{display:block;margin:4px 0 2px;color:#f6fbff;font-size:28px;line-height:1;text-shadow:0 0 16px rgba(95,232,255,.34)}
+.section-banner span{display:block;color:#6eeeff;font:1000 8px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+@keyframes sectionClearIn{0%{opacity:0;transform:translate(-50%,-38%) scale(.88)}14%,68%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-58%) scale(1.02)}}
+.highway-board[data-level="FLOW"]{--board-color:#54f1ff;border-color:#4ba8b5}
+.highway-board[data-level="BEST"]{--board-color:#ffe15a;border-color:#bca34d}
+.highway-board[data-level="SECTION"]{--board-color:#78eaff;border-color:#589fac}
+.result-delta{min-height:17px;margin:0 0 4px;color:#9fb2c5;font-size:10px;font-weight:900;text-align:center}
+.result-delta.positive{color:#6ff1ff;text-shadow:0 0 10px rgba(75,226,255,.22)}
+.result-story{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,1.05fr);gap:8px;margin:8px 0 2px}
+.result-badges{display:flex;align-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:5px;min-height:52px;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.035)}
+.result-badge{padding:5px 7px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:#142435;color:#cbd8e3;font:1000 7.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;white-space:nowrap}
+.result-badge.best{border-color:rgba(255,226,74,.48);color:#ffe66a;background:rgba(255,218,57,.09)}
+.result-badge.flow,.result-badge.critical{border-color:rgba(79,233,255,.42);color:#74efff;background:rgba(52,221,255,.08)}
+.result-badge.ultimate,.result-badge.emergency{border-color:rgba(180,111,255,.42);color:#d8b4ff;background:rgba(154,80,255,.09)}
+.result-badge.risk{border-color:rgba(122,255,114,.34);color:#a7ff91;background:rgba(90,232,86,.07)}
+.result-badge.distance{border-color:rgba(255,255,255,.18);color:#e7edf2}
+.result-coach{padding:7px 9px;border-left:3px solid #5be9ff;border-radius:10px;background:rgba(34,190,217,.07);text-align:left}
+.result-coach small{display:block;color:#6fa3af;font:900 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em}
+.result-coach strong{display:block;margin:3px 0;color:#effcff;font-size:11px;line-height:1.15}
+.result-coach p{margin:0;color:#aebdca;font-size:9px;line-height:1.35;font-weight:700}
+@media(max-height:520px){.flow-badge{padding:4px 6px;font-size:6.5px}.best-chase{font-size:5.8px}.section-banner{padding:7px 13px;min-width:min(250px,54vw)}.section-banner strong{font-size:22px}.result-story{margin:5px 0 0;gap:5px}.result-badges{min-height:40px;padding:5px;gap:3px}.result-badge{padding:4px 5px;font-size:6.5px}.result-coach{padding:5px 7px}.result-coach strong{font-size:9.5px}.result-coach p{font-size:7.8px}}
+@media(max-width:620px){.result-story{grid-template-columns:1fr}.result-badges{min-height:auto}}
+@media(prefers-reduced-motion:reduce){.section-banner.show{animation:none!important;opacity:1;visibility:visible}.flow-badge,.best-chase{transition:none!important}}
+\n\n/* v1.1.0 — MACHINE CARD TRUE FIT --------------------------------------
+   Fixes the garage sizing conflict between the v1.0.35 viewport formulas and
+   v1.1 44px tap-target overrides. The JS now fits the 1024:683 card to the
+   measured feature box; these rules remove competing width formulas. */
+.machine-card-feature{padding:6px 56px;box-sizing:border-box}
+.machine-card-hero,
+.machine-card-hero.has-card-art{
+  width:auto!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  aspect-ratio:1024/683!important;
+  flex:0 0 auto;
+}
+@media (max-width:760px) and (orientation:landscape){
+  .machine-card-screen.active{padding-top:calc(49px + env(safe-area-inset-top))}
+  .machine-card-head{height:36px!important;min-height:36px!important;margin-bottom:3px!important}
+  .machine-card-head .back-button{width:44px!important;height:44px!important;position:relative;z-index:6}
+  .machine-card-layout{grid-template-rows:46px minmax(0,1fr)!important;gap:4px!important}
+  .machine-card-feature{padding:4px 48px;border-radius:12px}
+  .machine-card-nav{width:44px!important;height:48px!important}
+  .machine-card-nav.prev{left:2px}.machine-card-nav.next{right:2px}
+  .machine-card-info{padding:2px 1px!important;gap:3px!important}
+  .machine-card-best{padding:3px 5px!important}
+  .machine-card-ultimate{padding:5px!important}
+}
+@media (max-height:360px) and (orientation:landscape){
+  .machine-card-screen.active{padding-top:calc(47px + env(safe-area-inset-top))}
+  .machine-card-head{height:34px!important;min-height:34px!important;margin-bottom:2px!important}
+  .machine-card-layout{grid-template-rows:44px minmax(0,1fr)!important;gap:3px!important}
+  .machine-card-feature{padding:3px 47px}
+  .machine-card-handling{display:none!important}
+  .machine-card-ultimate p,.machine-card-ultimate em{display:none!important}
+}
+
+/* v1.1.0 — tablet/modern-iPhone garage reflow
+   761–1180px landscape was still falling back to the old 3-column rail/card/info
+   layout. On current iPhones (812/844/852/932px) and iPad-class widths this made
+   the completed card look unnaturally small. Use the compact top-strip layout
+   through tablet landscape widths; desktop keeps the 3-column collection rail. */
+@media (max-width:1180px) and (orientation:landscape){
+  .machine-card-screen.active{
+    padding-top:calc(49px + env(safe-area-inset-top));
+    padding-left:max(6px,env(safe-area-inset-left));
+    padding-right:max(6px,env(safe-area-inset-right));
+    padding-bottom:max(5px,env(safe-area-inset-bottom));
+  }
+  .machine-card-head{height:36px!important;min-height:36px!important;margin-bottom:3px!important}
+  .machine-card-head small{display:none}.machine-card-head h2{font-size:13px;margin:0}
+  .machine-card-layout{
+    grid-template-columns:minmax(0,1fr) clamp(176px,24vw,224px)!important;
+    grid-template-rows:44px minmax(0,1fr)!important;
+    gap:4px!important;
+  }
+  .machine-card-rail{
+    grid-column:1/-1;grid-row:1;
+    flex-direction:row;overflow-x:auto;overflow-y:hidden;
+    touch-action:pan-x;scroll-snap-type:x proximity;
+    gap:4px;padding:0 1px 2px;
+  }
+  .machine-rail-card{
+    flex:0 0 clamp(82px,12vw,108px);height:44px!important;min-height:44px!important;
+    grid-template-columns:40px minmax(0,1fr);padding:2px 3px;
+    scroll-snap-align:start;border-radius:8px;
+  }
+  .machine-rail-card img{width:40px!important;height:34px!important;max-width:40px!important;object-fit:contain}
+  .machine-rail-copy small,.machine-rail-copy em{display:none}
+  .machine-rail-copy b{font-size:6.9px;line-height:1.02;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .machine-rail-num{font-size:6px;left:2px;top:2px}.machine-rail-card.selected:after{display:none}
+  .machine-card-feature{grid-column:1;grid-row:2;padding:4px 48px;border-radius:12px}
+  .machine-card-info{grid-column:2;grid-row:2;overflow-y:auto;padding:2px 1px!important;gap:4px!important}
+  .machine-card-nav{width:44px!important;height:48px!important}.machine-card-nav.prev{left:2px}.machine-card-nav.next{right:2px}
+  .machine-card-kicker{font-size:7px}.machine-card-kicker em{padding:2px 4px;font-size:6.5px}
+  .machine-card-info h3{font-size:clamp(13px,1.8vw,18px);line-height:1.03}
+  .machine-card-handling{font-size:clamp(7.5px,1vw,9.5px);line-height:1.22}
+  .machine-card-best{padding:3px 5px!important;gap:4px;border-radius:8px}.machine-card-best small{font-size:6.5px}.machine-card-best strong{font-size:clamp(14px,1.8vw,18px)}
+  .machine-card-description{font-size:7.5px;line-height:1.28}
+  .machine-card-ultimate{padding:5px!important;border-radius:9px;gap:2px}.machine-card-ultimate small{font-size:6.5px}.machine-card-ultimate strong{font-size:clamp(10px,1.5vw,14px)}.machine-card-ultimate p{font-size:7px;line-height:1.2}.machine-card-ultimate em{font-size:6.5px}
+  .machine-card-cta{min-height:44px!important;font-size:9.5px!important;border-radius:9px}
+  .machine-card-locknote{font-size:6.5px}
+}
+@media (max-width:760px) and (orientation:landscape){
+  .machine-card-layout{grid-template-columns:minmax(0,1fr) clamp(160px,29vw,200px)!important}
+  .machine-card-description{display:none}
+  .machine-card-ultimate em{display:none}
+}
+@media (max-height:360px) and (orientation:landscape){
+  .machine-card-head{height:34px!important;min-height:34px!important;margin-bottom:2px!important}
+  .machine-card-layout{grid-template-rows:42px minmax(0,1fr)!important;gap:3px!important}
+  .machine-rail-card{height:42px!important;min-height:42px!important}
+  .machine-card-feature{padding:3px 47px}
+  .machine-card-handling{display:none!important}.machine-card-description{display:none!important}
+  .machine-card-ultimate p,.machine-card-ultimate em{display:none!important}
+}
+
+
+/* v1.1.0 — DRIVER SKILL UPDATE ---------------------------------------
+   Adds feedback-only RISK LINE grading and per-machine DRIVER MISSION.
+   CRITICAL threshold, hitboxes, physics, fuel, speed, ranking schema and
+   ULTIMATE performance remain unchanged. */
+.mastery-badge{max-width:160px;padding:5px 8px;border:1px solid rgba(183,255,98,.30);border-radius:999px;background:rgba(18,39,24,.72);color:#bfe9a3;font:900 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mastery-badge.complete{border-color:rgba(198,255,93,.72);background:rgba(45,72,25,.82);color:#e5ff93;box-shadow:0 0 16px rgba(171,255,75,.18)}
+.driver-mission{display:inline-block;margin-top:5px;color:#d9ff8a;font-size:9px;font-weight:900;letter-spacing:.02em}
+.flash.critical{background:rgba(75,232,255,.10);animation:comfortFlash .16s ease}
+.highway-board[data-level="RISK"]{--board-color:#ffe45d;border-color:#c3a548;box-shadow:0 7px 18px rgba(0,0,0,.42),inset 0 0 0 2px #322c13,0 0 22px rgba(255,224,73,.20)}
+.highway-board[data-level="MASTER"]{--board-color:#c8ff62;border-color:#8bac4b;box-shadow:0 7px 18px rgba(0,0,0,.42),inset 0 0 0 2px #203116,0 0 22px rgba(174,255,80,.18)}
+.result-badge.riskline{border-color:rgba(255,228,84,.55);color:#ffe97f;background:rgba(255,216,54,.09)}
+.result-badge.mastery{border-color:rgba(183,255,98,.50);color:#d8ff9c;background:rgba(129,220,66,.09)}
+@media(max-height:520px){.mastery-badge{max-width:128px;padding:4px 6px;font-size:6px}.driver-mission{font-size:7.5px}}
+@media(prefers-reduced-motion:reduce){.flash.critical{animation:none!important;opacity:0!important}}

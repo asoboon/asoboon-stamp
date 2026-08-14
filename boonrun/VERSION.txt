@@ -1,45 +1,51 @@
-BOON RUN 2 v1.0.37 — RELEASE CANDIDATE / REPLAY DRIVE / WEBP
+BOON RUN 2 v1.1.1 — DRIVER SKILL / REPLAY DRIVE / WEBP PUBLICATION
 
-Build: 2026-08-13-release-v1.0.37-replay-webp
-Client: 1.0.37
+Build: 2026-08-14-playable-v1.1.1-webp-publication
+Client: 1.1.1
+Base: v1.0.36 MACHINE SERIES v1.1
 
-BASE
-- v1.0.36 MACHINE SERIES v1.1を正本として統合。
-- COMMON = MACHINE IDENTITY / RUN = どう走るか を維持。
+LATEST RUN
+- REPLAY DRIVE: SELF BEST CHASE / CRITICAL FLOW / SECTION CLEAR / RUN RESULT STORY / DEATH COACH.
+- DRIVER SKILL: RISK LINE / CRITICAL FEEL / 9-machine DRIVER MISSION.
+- MACHINE CARD TRUE FIT: modern iPhone / compact landscape reflow, 1024:683 contain, safe-area, >=44px tap targets.
+- HELP button: brighter yellow-orange visual so it reads as an active control.
 
-MACHINE SELECT
-- 1180px以下の横画面をcompact layoutへ。
-- 上段マシンストリップ / 下段MACHINE CARD + RUN PROFILE。
-- 1024:683比率、contain、crop/warp禁止、safe-area、44px以上操作領域。
-- 実viewportからカード幅をresize/orientationchangeで再計算。
-- 遊び方ボタンを黄色〜オレンジの明確な操作色へ。
+DRIVER MISSIONS
+- BOON PICKUP: ARMOR smash x2
+- SMART WAGON: reach 1km with at most 2 double jumps
+- LUCKY BUGGY: CRITICAL x2
+- POWER BIKE: FUEL STEP x3
+- NITRO SPORT: NITRO x2
+- COSMIC PHANTOM: reach PHANTOM READY
+- PRINCESS STARLINER: reach STAR 3
+- HIGHWAY VALKYRIE: trigger MACH SYNC
+- SECRET ROCKET: trigger INVINCIBLE ROCKET
 
-REPLAY DRIVE
-- SELF BEST CHASE：自己ベストまであと○m / NEW BEST RUN。性能補正なし。
-- CRITICAL FLOW：3秒以内の連続CRITICALをFLOW表示。性能補正なし。
-- SECTION CLEAR：既存1km milestoneを達成演出化。距離計算変更なし。
-- RUN RESULT STORY：プレイ内容を最大4勲章で表示。
-- DEATH COACH：GAME OVER理由に応じて短い1アドバイス。
+GAMEPLAY CONTRACT
+- RISK LINE / FLOW / DRIVER MISSION are feedback/achievement systems only; they do not add ranking score, speed, fuel, distance, hitbox, or hidden performance buffs.
+- CRITICAL judgement threshold is unchanged.
+- Valkyrie MACH SYNC / DIVINE MACH conditions and performance are unchanged.
+- 9 machine IDs, 55 course patterns, vehicle physics, fuel model, obstacle behavior and all ULTIMATE performance are unchanged.
+- ranking endpoint / payload schema and save key `asoboonBoonrun.v1` are unchanged.
 
-WEBP
-- RUNの主要complete画像をWebP優先、PNG fallback。
-- 非SECRET bodyをWebP優先、PNG fallback/既存互換。
-- MACHINE CARDは既存WebPを再圧縮し、RUN/JUMP/COMMON同期対象。
-- wheel/shadow等の小容量PNGは無理に変換せず維持。
+MACHINE SERIES CONTRACT
+- COMMON = machine identity.
+- BOONJUMP = how the machine flies.
+- BOONRUN = how the machine drives.
+- Workflow B remains: assets/machines is source-of-truth; RUN/JUMP keep runtime copies.
+- `ssr` remains the internal ID for Cosmic Phantom; `suv` must not return as a machine ID.
 
-UNCHANGED GAMEPLAY
-- 9 machine IDs
-- CRITICAL判定
-- Valkyrie MACH SYNC / DIVINE MACH性能
-- ULTIMATE性能
-- 55 course patterns
-- obstacles / fuel / drone / speed
-- ranking endpoint / ranking計算 / buildRunSubmission schema
-- save key
+ASSETS / WEBP PUBLICATION
+- COMMON asset bytes and MACHINE CARD WebP bytes are unchanged.
+- Added 9 lightweight complete-car WebP runtime derivatives.
+- Added 8 lightweight body WebP runtime derivatives; SECRET body stays PNG because its PNG is smaller.
+- Runtime prefers WebP and falls back to existing PNG.
+- wheel / shadow / boost stay PNG.
 
 SERVICE WORKER
-- boonrun-20260813-v137-replay-webp
-- index/style/game/rankingのqueryを20260813-v137-replay-webpへ統一。
-- cardはnetwork-first + cache fallback。
-- car WebP/PNGはcache-first。
-- installはPromise.allSettledで1件失敗による全滅を防止。
+- Cache/build query bumped to v111-webp-publication; new WebP car assets are precached with Promise.allSettled.
+- RUN Service Worker remains independent from BOONJUMP.
+
+RELEASE NOTE
+- Static/code/package QA is required and performed before Drive update.
+- Real iPhone/Android/LINE in-app browser one-play smoke test remains the final physical-device acceptance step.

@@ -1,54 +1,72 @@
-# ブーンRUN — CURRENT README
+# BOON RUN 2 — v1.1.1
 
-Runtime: `1.0.35`  
-Build: `2026-08-13-playable-v1.0.35-responsive-machine-cards-common`
+Runtime: `1.1.1`  
+Build: `2026-08-14-playable-v1.1.1-webp-publication`
 
-## MACHINE SERIES COMMON CONTRACT
+## Core idea
 
-共通正本：
+BOON RUN is moving from “just avoid obstacles” toward **skillful driving where the player can feel improvement every run**.
 
-`00_SHARED_SPEC / ASOBooN MACHINE SERIES 共通仕様 v1.0`
+### REPLAY DRIVE
 
-- **COMMON = そのマシンが何者か**
-- **BOONJUMP = そのマシンがどう飛ぶか**
-- **BOONRUN = そのマシンがどう走るか**
+- **SELF BEST CHASE** — shows the remaining distance to the selected machine's best and celebrates NEW BEST RUN.
+- **CRITICAL FLOW** — rewards consecutive CRITICALs with visible flow feedback only; no performance/ranking multiplier.
+- **SECTION CLEAR** — 1 km milestones become clearer section achievements.
+- **RUN RESULT STORY** — result badges summarize what kind of run the player just had.
+- **DEATH COACH** — one short cause-specific tip points directly to the next attempt.
 
-マシン性能はゲーム間で共有しません。
+### DRIVER SKILL
 
-## Current 9 Machine IDs
+- **RISK LINE** — an inner precision feedback zone inside the existing CRITICAL interaction. It does not widen or change CRITICAL judgement.
+- **CRITICAL FEEL** — short visual/audio/haptic feedback without slowing physics or changing game time.
+- **DRIVER MISSION** — one machine-specific skill objective for each of the 9 machines.
+
+## 9 current machine IDs
 
 `boon, wagon, buggy, bike, sport, ssr, princess, valkyrie, secret`
 
-`ssr` = コズミックファントム。`suv`を新IDとして追加しません。
+`ssr` = Cosmic Phantom. Legacy `suv` is forbidden as a machine ID.
 
-## COMMON Asset Workflow
+## MACHINE SELECT
 
-方式B：`assets/machines/`をSOURCE OF TRUTHとし、BOONRUNは単独アップロード安全性のためruntime sync copyを`boonrun/assets/`に保持します。
+- Finished MACHINE CARD remains the visual hero.
+- Authoritative card ratio is `1024:683` and uses `object-fit: contain`.
+- No crop / no distortion.
+- Modern iPhone / short landscape widths reflow to a horizontal machine strip + large card + RUN profile instead of simply shrinking the card.
+- safe-area and >=44px primary tap targets are preserved.
+- “遊び方” uses a brighter yellow-orange treatment so it reads as interactive without overpowering START.
 
-9枚のMACHINE CARD、body、wheel、shadow等のIDENTITYはCOMMON。  
-CRITICAL、ULTIMATE、障害物、ガソリン、ドローン、道路、走行VFX、走行性能はBOONRUN専用です。
+## Protected gameplay
 
-## Current RUN Display Order
+v1.1.0 does **not** intentionally change:
 
-`boon → wagon → buggy → bike → sport → ssr → princess → valkyrie → secret`
+- 9 machine IDs
+- 55 authored course patterns
+- car physics / speed / fuel / hitboxes
+- obstacle geometry or behavior
+- CRITICAL judgement threshold
+- Valkyrie MACH SYNC / DIVINE MACH performance
+- any ULTIMATE performance
+- ranking endpoint / payload schema
+- save key `asoboonBoonrun.v1`
 
-カード番号は表示順ではなくシリーズ登場順です。
+## MACHINE SERIES contract
 
-## Protection
+- **COMMON = who the machine is**
+- **BOONJUMP = how it flies**
+- **BOONRUN = how it drives**
 
-COMMON同期を理由に以下を変更しません。
+Workflow B is retained. COMMON identity assets are not rewritten for RUN-specific display needs.
 
-- 走行性能
-- ジャンプ物理
-- CRITICAL
-- ULTIMATE
-- 障害物 / ガソリン / ドローン
-- 55 course patterns
-- ranking endpoint / keys
-- save data
-- internal machine IDs
+## WebP publication
 
+- MACHINE CARD WebP bytes remain unchanged.
+- Runtime complete-car WebP derivatives: 9/9.
+- Runtime body WebP derivatives: 8/9; SECRET body intentionally keeps PNG because it is already smaller.
+- WebP is preferred at runtime, with PNG retained as fallback/source.
+- wheel / shadow / boost remain PNG because they are already small and/or runtime-position-sensitive.
+- COMMON identity bytes are not rewritten by this RUN publication pass.
 
-## RUN/JUMP Coordination
+## Release gate
 
-変更通知・アイデア共有は `00_SHARED_SPEC` 内の `RUN-JUMP 連携ログ` / `RUN-JUMP アイデア共有ボード` を使用します。
+Static/code/package checks must pass before publication. Final visual/touch acceptance still requires at least one real landscape phone run in LINE/iPhone/Android because this environment cannot claim a physical-device test.
