@@ -1,10 +1,10 @@
-const BUILD = "2026-08-13-first-nickname-webp-v330";
+const BUILD = "2026-08-14-limit-break-final-rc-v420";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=330-first-nickname-webp",
+  "./ranking-client.js?v=420-limit-break-final",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

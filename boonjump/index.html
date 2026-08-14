@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.3.3.0">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.4.2.0 FINAL RC">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonjump-build" content="2026-08-13-first-nickname-webp-v330">
+  <meta name="boonjump-build" content="2026-08-14-limit-break-final-rc-v420">
   <title>ブーンジャンプ｜ASOBooN</title>
   <style>
 :root{
@@ -93,6 +93,11 @@ main{position:relative;z-index:2;width:min(100%,760px);margin:0 auto;padding:8px
 /* Result */
 .result-card{text-align:center}.result-kicker{position:relative;margin:0;color:var(--cyan);font-size:.65rem;font-weight:1000;letter-spacing:.12em}.result-card h2{position:relative;margin:0;font-size:clamp(3.4rem,17vw,6rem);line-height:1;color:var(--yellow);font-variant-numeric:tabular-nums}.result-card h2 small{font-size:.25em}.new-record{position:relative;display:inline-block;margin:4px 0 1px;padding:5px 11px;border-radius:999px;background:var(--pink);font-size:.64rem;font-weight:1000;animation:recordPop .55s ease-out}.judgment-grid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.judgment-grid>div{min-width:0;padding:8px 3px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.05)}.judgment-grid small{display:block;color:var(--mute);font-size:.5rem;font-weight:1000}.judgment-grid strong{display:block;margin-top:4px;color:#fff;font-size:1.08rem;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}.judgment-grid span{display:block;margin-top:4px;color:var(--dim);font-size:.51rem;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.judge-SUPER{color:var(--yellow);text-shadow:0 0 10px var(--yellow)}.judge-CRITICAL{color:#ff9c45}.judge-GREAT{color:#62e898}.judge-GOOD{color:#64c9ff}.judge-MISS{color:#ff7d7d}.combo-precision{position:relative;margin:8px 0 0;padding:9px 12px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,216,61,.28);border-radius:14px;background:rgba(255,216,61,.07)}.combo-precision small{color:var(--mute);font-size:.52rem;font-weight:1000;letter-spacing:.08em}.combo-precision strong{color:var(--yellow);font-size:1.08rem;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(255,216,61,.28)}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.result-actions .wide{grid-column:1/-1}
 .result-next-block{position:relative;margin-top:11px;padding-top:2px}.result-next-block .result-actions{margin-top:8px}.result-record-block{position:relative;margin-top:15px;padding-top:12px;border-top:1px solid rgba(255,255,255,.10)}.result-section-label{display:block;margin:0 0 6px;color:var(--mute);font-size:.49rem;font-weight:1000;letter-spacing:.14em;text-align:left}.result-record-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.result-record-actions .result-records-link,.result-record-actions .result-ranking-link{min-height:58px;margin:0;padding:9px 7px;border-radius:14px;font-size:.70rem;line-height:1.15}.result-record-actions .result-records-link small,.result-record-actions .result-ranking-link small{font-size:.45rem;line-height:1.2}.result-home-link{margin:12px auto 0;padding:8px 12px;border:0;background:transparent;color:#8190a6;font-size:.58rem;font-weight:900;text-decoration:underline;text-underline-offset:3px}.result-home-link:active{color:#c7d2e3}.result-card .ranking-submit-button[hidden],.result-card .ranking-result-note[hidden]{display:none!important}@media(max-width:360px){.result-record-actions{grid-template-columns:1fr}.result-record-actions .result-records-link,.result-record-actions .result-ranking-link{min-height:50px}}
+
+/* v4.0 MACHINE GROWTH */
+
+.duplicate-choice{margin:10px 0 12px;padding:13px;border:2px solid rgba(255,216,61,.42);border-radius:18px;background:linear-gradient(145deg,rgba(255,216,61,.10),rgba(64,210,255,.07));text-align:left;box-shadow:0 0 28px rgba(255,216,61,.08)}.duplicate-choice>small{display:flex;justify-content:space-between;gap:8px;color:#ffe98c;font-size:.55rem;font-weight:1000;letter-spacing:.08em}.duplicate-choice>strong{display:block;margin-top:5px;color:#fff;font-size:.92rem}.duplicate-choice>p{margin:5px 0 10px;color:#afc3d4;font-size:.61rem;line-height:1.5;font-weight:850}.duplicate-choice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.duplicate-choice-actions button{min-height:58px;border:0;border-radius:14px;padding:8px;color:#07121e;font-size:.7rem;font-weight:1000;line-height:1.2}.duplicate-choice-actions button small{display:block;margin-top:3px;font-size:.5rem;opacity:.72}.duplicate-tune-button{background:linear-gradient(180deg,#fff06a,#ffb82e);box-shadow:0 5px 0 #9c6515}.duplicate-convert-button{background:linear-gradient(180deg,#8eefff,#49b7ff);box-shadow:0 5px 0 #176496}.limit-part-balance{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.18);color:#a7bdce;font-size:.58rem;font-weight:900}.limit-part-balance b{color:#fff0a0;font-size:.78rem}.tune-lab{margin-top:8px;padding:10px;border:1px solid rgba(255,216,61,.24);border-radius:14px;background:linear-gradient(135deg,rgba(255,216,61,.065),rgba(61,201,255,.045))}.tune-lab-head{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tune-lab-head>div{padding:7px 9px;border-radius:10px;background:rgba(4,13,24,.45)}.tune-lab-head small{display:block;color:#8096aa;font-size:.43rem;font-weight:1000}.tune-lab-head strong{display:block;margin-top:2px;color:#fff1a4;font-size:.67rem;font-weight:1000}.material-tune-button{width:100%;min-height:48px;margin-top:8px;border:0;border-radius:12px;padding:8px 10px;background:linear-gradient(180deg,#fff06a,#ffbd35);color:#081421;font-size:.68rem;font-weight:1000;box-shadow:0 4px 0 #8e651b}.material-tune-button:disabled{filter:saturate(.35);opacity:.52;box-shadow:none}.tune-lab-note{display:block;margin-top:7px;color:#8fa6b9;font-size:.48rem;line-height:1.45;font-weight:850}.tune-lab-note.high-rarity{color:#ffd98e}.part-flash{animation:partFlash .42s ease-out}@keyframes partFlash{0%{transform:scale(.96);box-shadow:0 0 0 rgba(255,226,76,0)}50%{transform:scale(1.015);box-shadow:0 0 28px rgba(255,226,76,.18)}100%{transform:none;box-shadow:none}}@media(max-width:350px){.duplicate-choice-actions{grid-template-columns:1fr}}
+.machine-growth-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}.machine-growth-panel>div{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:36px;padding:7px 9px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(4,13,24,.42)}.machine-growth-panel span{color:#7f94a8;font-size:.43rem;font-weight:1000;letter-spacing:.05em}.machine-growth-panel strong{color:#fff1a4;font-size:.59rem;font-weight:1000}.machine-special-copy{margin:7px 2px 0;padding:8px 10px;border:1px solid rgba(255,218,70,.15);border-radius:11px;background:linear-gradient(135deg,rgba(255,215,61,.07),rgba(78,221,255,.045));color:#d9e7f2;font-size:.52rem;line-height:1.45;font-weight:900}.machine-special-copy.ready{border-color:rgba(255,226,76,.42);color:#fff2a4;box-shadow:inset 0 0 20px rgba(255,211,63,.05)}.result-growth{margin-top:8px;padding:10px 11px;border:1px solid rgba(104,231,255,.19);border-radius:14px;background:linear-gradient(135deg,rgba(48,200,255,.075),rgba(255,220,68,.055));text-align:left}.result-growth small{display:block;color:#68e7ff;font-size:.45rem;font-weight:1000;letter-spacing:.13em}.result-growth strong{display:block;margin-top:3px;color:#fff;font-size:.70rem;font-weight:1000}.result-growth span{display:block;margin-top:3px;color:#9fb5c7;font-size:.49rem;line-height:1.45;font-weight:850}.result-growth.special{border-color:rgba(255,226,76,.48);box-shadow:0 0 24px rgba(255,210,55,.08)}.result-growth.special strong{color:#fff0a0}.result-growth.unlock{animation:growthUnlock .72s ease-out}@keyframes growthUnlock{0%{transform:scale(.96);box-shadow:0 0 0 rgba(255,226,76,0)}45%{transform:scale(1.015);box-shadow:0 0 34px rgba(255,226,76,.28)}100%{transform:scale(1);box-shadow:0 0 0 rgba(255,226,76,0)}}
 /* Effects and safety */
 .judge-burst{position:fixed;z-index:90;left:50%;top:48%;transform:translate(-50%,-50%) scale(.7);width:min(92vw,480px);pointer-events:none;text-align:center;opacity:0}.judge-burst small{display:block;color:#fff0a3;font-size:1rem;font-weight:1000}.judge-burst strong{display:block;font-size:clamp(2.4rem,12vw,5rem);line-height:.9;font-weight:1000;font-style:italic;text-shadow:0 5px 0 rgba(0,0,0,.28),0 0 28px rgba(255,216,61,.65)}.judge-burst.show{animation:judgeBurst .72s ease-out}.super-overlay{position:fixed;z-index:120;inset:0;display:grid;place-items:center;background:radial-gradient(circle,rgba(255,255,255,.97) 0 7%,rgba(255,234,104,.86) 8% 28%,rgba(255,121,0,.42) 29% 58%,rgba(7,18,34,.88) 78%);opacity:0;visibility:hidden;pointer-events:none}.super-overlay.show{visibility:visible;pointer-events:auto;animation:superFlash .64s ease-out}.super-overlay div{text-align:center;transform:rotate(-4deg)}.super-overlay small{display:block;color:#5b3300;font-size:.9rem;font-weight:1000}.super-overlay strong{display:block;color:#5b2500;font-size:clamp(2.8rem,14vw,5.7rem);line-height:.84;font-style:italic;text-shadow:0 3px #fff,0 8px 0 rgba(120,60,0,.25)}.input-shield{position:fixed;z-index:115;inset:0;display:none;pointer-events:auto;background:transparent}.input-shield.active{display:block}.trophy-toast{position:fixed;z-index:150;left:50%;top:max(12px,env(safe-area-inset-top));width:min(calc(100% - 24px),420px);padding:10px 12px;display:grid;grid-template-columns:42px 1fr;align-items:center;gap:9px;border:2px solid #fff;border-radius:17px;background:linear-gradient(135deg,#25165d,#8b55ff);box-shadow:0 15px 35px rgba(0,0,0,.4);transform:translate(-50%,-150%);transition:transform .35s ease;pointer-events:none}.trophy-toast.show{transform:translate(-50%,0)}.trophy-toast>span{font-size:1.7rem}.trophy-toast small{display:block;color:#eadfff;font-size:.53rem;font-weight:1000}.trophy-toast strong{display:block;font-size:.77rem}.orientation-note{display:none;position:fixed;z-index:200;inset:0;place-items:center;padding:25px;background:#071222;color:#fff;text-align:center;font-weight:1000}
 @keyframes vehicleRev{to{transform:translateY(2px) scale(1.015)}}@keyframes vehicleHit{35%{transform:translateY(5px) scale(.97)}100%{transform:none}}@keyframes flamePulse{to{transform:scaleX(1.13);filter:brightness(1.25)}}@keyframes gachaShake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}@keyframes gachaSlide{from{transform:translateX(35px);opacity:.4}to{transform:none;opacity:1}}@keyframes spin{to{transform:rotate(1turn)}}@keyframes boostReady{to{transform:translateX(-50%) scale(1.035)}}@keyframes recordPop{from{transform:scale(.4) rotate(-5deg)}70%{transform:scale(1.15) rotate(2deg)}to{transform:none}}@keyframes judgeBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.14)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(.94)}}@keyframes superFlash{0%{opacity:0}15%{opacity:1}76%{opacity:1}100%{opacity:0}}
@@ -815,6 +820,16 @@ body.modal-open{overflow:hidden}
           </div>
         </div>
         <div class="gacha-batch-grid" id="gachaBatchGrid" hidden></div>
+        <section class="duplicate-choice" id="duplicateDecision" hidden aria-live="polite">
+          <small><span>DUPLICATE CHOICE</span><span id="duplicateQueueCount">あと1台</span></small>
+          <strong id="duplicateChoiceName">ブーンピックアップ</strong>
+          <p id="duplicateChoiceMeta">同じマシンをそのまま強化するか、別のマシンに使えるLIMIT BREAK素材へ変換できます。</p>
+          <div class="duplicate-choice-actions">
+            <button class="duplicate-tune-button" id="duplicateTuneButton" type="button">このマシンをTUNE +1<small id="duplicateTunePreview">TUNE Lv.0 → Lv.1</small></button>
+            <button class="duplicate-convert-button" id="duplicateConvertButton" type="button">素材に変換<small id="duplicateConvertPreview">LIMIT BREAK素材 +1</small></button>
+          </div>
+          <div class="limit-part-balance"><span>LIMIT BREAK 素材</span><b id="gachaPartBalance">0</b></div>
+        </section>
         <div class="gacha-actions" id="gachaActions">
           <button class="primary" id="drawButton" type="button">1回ガチャ 🎟1</button>
           <button class="primary ten-draw-button" id="drawTenButton" type="button" disabled>10連まであと9枚</button>
@@ -861,9 +876,24 @@ body.modal-open{overflow:hidden}
 
           <div class="selector-stats selector-stats-three">
             <div><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
-            <div><small>MAX</small><strong id="selectorMax">1,995m</strong></div>
-            <div><small>TUNE</small><strong id="selectorTune">Lv.0</strong></div>
+            <div><small>GROWTH</small><strong id="selectorMax">Lv.0</strong></div>
+            <div><small>SPECIAL</small><strong id="selectorTune">LOCKED</strong></div>
           </div>
+          <div class="machine-growth-panel" id="selectorGrowth" aria-label="マシン成長">
+            <div><span>ENGINE</span><strong data-growth-axis="engine">Lv.0</strong></div>
+            <div><span>AERO</span><strong data-growth-axis="aero">Lv.0</strong></div>
+            <div><span>BOOST</span><strong data-growth-axis="boost">Lv.0</strong></div>
+            <div><span>AWAKENING</span><strong data-growth-axis="awakening">Lv.0</strong></div>
+          </div>
+          <p class="machine-special-copy" id="selectorSpecial">走り込むと必殺技が目覚める。</p>
+          <section class="tune-lab" id="selectorTuneLab">
+            <div class="tune-lab-head">
+              <div><small>TUNE</small><strong id="selectorTuneLevel">Lv.0</strong></div>
+              <div><small>LIMIT BREAK 素材</small><strong id="selectorPartBalance">0</strong></div>
+            </div>
+            <button class="material-tune-button" id="selectorMaterialTune" type="button">素材 2個で TUNE +1</button>
+            <small class="tune-lab-note" id="selectorTuneCostNote">ダブりを素材へ変換すると、好きな所持マシンを強化できます。</small>
+          </section>
 
           <button class="selector-choose" id="selectorChoose" type="button">このマシンを選ぶ</button>
           <p class="selector-unlock-note" id="selectorUnlockNote" hidden></p>
@@ -1029,6 +1059,9 @@ body.modal-open{overflow:hidden}
           <div><small>NITRO</small><strong id="scoreNitro">0.00%</strong><span id="judgeNitro">---</span></div>
         </div>
         <div class="combo-precision" aria-label="3回の平均精度"><small>3 COMBO 平均</small><strong id="resultPrecision">0.00%</strong></div>
+        <div class="result-growth" id="resultGrowth" aria-live="polite">
+          <small>MACHINE GROWTH</small><strong>このマシンは、飛ぶほど育つ。</strong><span>ENGINE / AERO / BOOST / AWAKENING</span>
+        </div>
         <div class="ticket-earned" id="ticketEarned"><span>🎟</span><b>ガチャチケット＋1</b><small>1回飛んだごほうび！</small></div>
 
         <!-- ランキングはプレイ終了時に自動送信。JS互換用ボタンは非表示で残す -->
@@ -1090,14 +1123,14 @@ body.modal-open{overflow:hidden}
     </div>
   </div>
 </div>
-<script src="./ranking-client.js?v=330-first-nickname-webp"></script>
+<script src="./ranking-client.js?v=420-limit-break-final"></script>
 <script>
 (() => {
   'use strict';
 
-  const APP_VERSION = '3.3.0';
-  const BUILD = '2026-08-13-first-nickname-webp-v330';
-  const SCHEMA = 4;
+  const APP_VERSION = '4.2.0-rc';
+  const BUILD = '2026-08-14-limit-break-final-rc-v420';
+  const SCHEMA = 7;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
   const LEGACY_KEY = 'asoboonBooncar.v6';
@@ -1117,7 +1150,7 @@ body.modal-open{overflow:hidden}
     {id:'sport',distanceScale:2.455,name:'ニトロスポーツ',rarity:'SR',rate:12,trait:'前半は眠いほど遅く、最後だけ弾丸加速',handling:'ADVANCED｜急加速',color:'#d72458',accent:'#ff758f',baseSpeed:139,launchAngle:31,boostPower:68,boostLift:16,gravity:9.0,drag:.0025,bounce:0,skill:'nitro',rawCap:2525,finalCap:2651,master:2400,asset:['sport'],control:{accel:{mode:'snap',period:1950,ideal:.82,super:.024,critical:.056,great:.115,good:.21,label:'低速から突然フルスロットル'},turbo:{mode:'sportSnapTurbo',period:1500,super:.025,critical:.058,great:.115,good:.20,label:'中央直前で急加速｜一瞬だけPERFECT LOCK'},nitro:{mode:'accelerate',travel:1380,orb:58,target:72,super:.025,critical:.05,great:.10,good:.18,label:'落下しながら急加速'}}},
     {id:'princess',distanceScale:2.149,name:'プリンセス・スターライナー',rarity:'SSR',rate:3,trait:'3つの異なるリズムを奏で、すべてを重ねると真価を放つ',handling:'ADVANCED｜3 RHYTHMS',color:'#ff9fe1',accent:'#ffffff',baseSpeed:144,launchAngle:38,boostPower:62,boostLift:23,gravity:8.0,drag:.0021,bounce:0,skill:'star',rawCap:2952,finalCap:3100,master:2900,asset:['princess'],control:{accel:{mode:'princessWaltz',period:2600,ideal:.80,super:.03,critical:.07,great:.14,good:.25,label:'ゆったり3拍子｜3拍目の頂点を狙う'},turbo:{mode:'princessSyncopation',period:1450,super:.034,critical:.078,great:.15,good:.26,label:'高速シンコペーション｜左右から中央へ戻る一瞬'},nitro:{mode:'princessStair',travel:2050,orb:76,target:94,super:.03,critical:.07,great:.135,good:.235,label:'階段リズム｜4段目のリングで重ねる'}}},
     {id:'ssr',distanceScale:1.903,name:'コズミックファントム',rarity:'EXR',rate:3,trait:'決まった順番でワープする。順番を覚えれば攻略できる',handling:'EXPERT｜固定ワープ',color:'#6f55ff',accent:'#52e8ff',baseSpeed:148,launchAngle:39,boostPower:64,boostLift:25,gravity:7.9,drag:.0019,bounce:0,skill:'warp',rawCap:3000,finalCap:3150,master:3000,asset:['ssr'],control:{accel:{mode:'patternWarp',period:1380,ideal:.83,super:.018,critical:.044,great:.092,good:.17,label:'固定10地点｜5番目のワープが本命'},turbo:{mode:'patternWarp',period:1250,super:.02,critical:.047,great:.095,good:.17,label:'固定10地点｜中央ワープの順番を覚えろ'},nitro:{mode:'patternTeleport',travel:1280,orb:52,target:64,super:.018,critical:.043,great:.087,good:.16,label:'固定6地点｜4番目が黄色リング'}}},
-    {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜選別・精密操作',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie'],control:{accel:{mode:'valkyrieAccel',period:1180,ideal:.84,super:.017,critical:.040,great:.085,good:.155,label:'ACCEL｜高速スイープを見切れ'},turbo:{mode:'valkyrieShift',period:1320,super:.018,critical:.043,great:.09,good:.165,label:'SHIFT｜6速に入る瞬間を掴め'},nitro:{mode:'valkyrieRing',travel:1220,orb:48,target:62,super:.017,critical:.041,great:.083,good:.15,label:'OVERDRIVE｜収束するリングを射抜け'}}},
+    {id:'valkyrie',distanceScale:2.08,name:'ハイウェイ・ヴァルキリー',rarity:'UR',rate:1,trait:'速さを与えるのではない。ACCEL・TURBO・NITRO、3つの瞬間を制した者だけを選ぶ',handling:'MASTER｜高速・精密3コンボ',color:'#f5f7ff',accent:'#66d9ff',baseSpeed:153,launchAngle:40,boostPower:72,boostLift:27,gravity:7.8,drag:.00185,bounce:0,skill:'valkyrie',rawCap:3143,finalCap:3300,master:3100,asset:['valkyrie'],control:{accel:{mode:'valkyrieAccel',period:940,ideal:.84,super:.014,critical:.034,great:.073,good:.135,label:'ACCEL｜高速スイープの一瞬を射抜け'},turbo:{mode:'valkyrieTurbo',period:1040,super:.014,critical:.033,great:.070,good:.130,label:'TURBO｜二段加速の中央通過を見切れ'},nitro:{mode:'valkyrieRing',travel:920,orb:42,target:52,super:.013,critical:.031,great:.065,good:.120,label:'NITRO｜高速収束するリングを射抜け'}}},
     {id:'secret',distanceScale:2.623,name:'無敵のロケットアソブーン人間',rarity:'SECRET',rate:0,trait:'3コンボを極めた時だけ5000m級。1ミスで大失速する最終試験',handling:'LEGEND｜超高難度3コンボ',color:'#ff5a24',accent:'#fff35c',baseSpeed:172,launchAngle:46,boostPower:92,boostLift:37,gravity:6.6,drag:.0014,bounce:0,skill:'rocket',rawCap:5000,finalCap:5000,master:5000,asset:['secret'],control:{accel:{mode:'patternRocket',period:720,ideal:.86,super:.013,critical:.032,great:.068,good:.125,label:'固定8手｜逆走後の一瞬だけが本命'},turbo:{mode:'patternRocket',period:760,super:.014,critical:.034,great:.070,good:.13,label:'固定8手｜フェイント後の中央を見切れ'},nitro:{mode:'patternDecoy',travel:960,orb:44,target:56,super:.017,critical:.032,great:.066,good:.12,label:'固定フェイント｜逆走後の2回目だけを狙え'}}}
   ];
   const MACHINE_CARD_ASSETS = Object.freeze({
@@ -1153,7 +1186,7 @@ body.modal-open{overflow:hidden}
     sport:{level:'★★★ むずかしい',home:'遅いと思ったら一気に急加速',summary:'最初はゆっくり、途中から突然スピードアップ。変化する瞬間を見切るマシン。',tip:'速くなる直前から集中。急加速にだまされない。'},
     princess:{level:'★★★★ 上級',home:'3つの違うリズムをそろえる',summary:'ACCEL・TURBO・NITROが全部ちがうリズム。3つをそろえた時に大きく伸びる。',tip:'1つのやり方で押さず、3つのリズムを覚えよう。'},
     ssr:{level:'★★★★★ 超上級',home:'ワープの順番を覚える攻略型',summary:'ゲージが決まった場所へワープする。順番は毎回同じだから、覚えるほど100%に近づく。',tip:'反射神経だけじゃなく、ワープの順番を覚える。'},
-    valkyrie:{level:'★★★★★ 最高難度',home:'3つの短いPERFECTを見切る',summary:'ACCEL・SHIFT・OVERDRIVE、3つともPERFECTの時間が短い。決めれば3300m級。',tip:'速さではなく正確さ。3つの一瞬を全部つかめ。'},
+    valkyrie:{level:'★★★★★ 最高難度',home:'ACCEL・TURBO・NITROを高速で制す',summary:'ACCEL・TURBO・NITRO、3つともSUPERの時間が短い。育成だけでは真価を出せない上級者専用UR。',tip:'3回とも一瞬勝負。4000mの壁を越えるにはDIVINE MACH級の精度が必要。'},
     secret:{level:'👑 LEGEND',home:'3回ほぼ完璧で5000m級',summary:'3回ともほぼ完璧に決めた時だけ5000m級。1回のズレが大きく響く最終マシン。',tip:'最難関。3コンボ100%を本気で狙うための車。'}
   };
 
@@ -1166,7 +1199,7 @@ body.modal-open{overflow:hidden}
     sport:{summary:'最初はゆっくり、途中から急加速。速くなる瞬間にだまされず狙えるかが勝負。',accel:'終盤で急に速くなる。早めに集中する。',turbo:'中央の直前で急加速。中央に合った瞬間を押す。',nitro:'進むほど速くなる。リング中央を狙う。'},
     princess:{summary:'アクセル・ターボ・ニトロが全部ちがうリズム。3つのリズムを覚えると一気に強くなる。',accel:'ゆったり3拍子。3拍目のいちばん高い所で押す。',turbo:'高速で左右に動く。中央へ戻った瞬間に押す。',nitro:'階段のように進む。4段目でリングに重ねる。'},
     ssr:{summary:'ゲージがワープする超上級マシン。でもワープの順番は毎回同じ。順番を覚えて攻略しよう。',accel:'10か所を順番にワープ。5番目がチャンス。',turbo:'中央に現れる順番を覚えて、出た瞬間に押す。',nitro:'6か所をワープ。リングに現れた瞬間に押す。'},
-    valkyrie:{summary:'3回とも100%の時間がとても短い最高難度マシン。3つ全部を決めれば3300m級。',accel:'針が一気に走る。ベスト位置を通る瞬間に押す。',turbo:'段階的に変速。中央にピタッと合う瞬間を押す。',nitro:'リングが一気に縮む。中心が重なった瞬間に押す。'},
+    valkyrie:{summary:'ACCEL・TURBO・NITROがすべて高速。URの性能は育成だけでは出ず、3コンボの精度で初めて解放される。',accel:'高速スイープ。ベスト位置を一度で射抜く。',turbo:'二段加速で中央を高速通過。戻りを待たず本命を取る。',nitro:'最速クラスの収束リング。中心が重なる一瞬を押す。'},
     secret:{summary:'超高速のだまし動きが入る最終マシン。3回ほぼ完璧に決めた時だけ5000m級。',accel:'高速で動いて一度逆走。本命の位置を覚えて押す。',turbo:'中央の前にだまし動き。2回目の本命を狙う。',nitro:'一度外れてから戻る。2回目のリング通過で押す。'}
   };
 
@@ -1187,19 +1220,16 @@ body.modal-open{overflow:hidden}
     const tri=triangleWave(p);
     let v=tri;
     if(mode==='oneway')return p;
-    if(mode==='valkyrieAccel')return clamp(Math.pow(tri,.72),0,1);
-    if(mode==='valkyrieShift'){
-      // 1→6速を順に刻み、6速へ噛み合った瞬間だけ中央へロックする。
-      // 旧版は最接近が .52 で SUPER(.018) が数学的に不可能だったため修正。
-      if(p<.14)return .08;
-      if(p<.28)return .22;
-      if(p<.42)return .37;
-      if(p<.56)return .68;
-      if(p<.70)return .84;
-      if(p<.82)return .94;
-      if(p<.852)return lerp(.94,.50,smoothStep((p-.82)/.032));
-      if(p<.884)return .50; // 約42msの6速 PERFECT LOCK
-      return lerp(.50,.08,smoothStep((p-.884)/.116));
+    if(mode==='valkyrieAccel'){
+      // ACCELは1周期につき本命通過1回。終端→始端のリセットは判定横断として扱われない幅で戻す。
+      return clamp(p*1.08,0,1);
+    }
+    if(mode==='valkyrieTurbo'){
+      // TURBO専用の固定二段加速。本命の中央通過は1周期に1回だけ。
+      // 停止/ロックなし・ランダムなし。第1段で.36まで溜め、第2段で一気に.96へ抜ける。
+      if(p<.34)return lerp(.08,.36,smoothStep(p/.34));
+      if(p<.62)return lerp(.36,.96,smoothStep((p-.34)/.28));
+      return lerp(.96,.78,smoothStep((p-.62)/.38));
     }
     if(mode==='targetHold'){
       const d=tri-center,range=.27,magnet=Math.exp(-Math.pow(d/range,2)*2.2);
@@ -1290,7 +1320,7 @@ body.modal-open{overflow:hidden}
   // When a continuous meter crosses the exact target between display frames, it is captured
   // on the target for a very short, difficulty-scaled period. This removes 60/90/120Hz luck
   // without flattening the different machine rhythms or widening SUPER CRITICAL itself.
-  const PERFECT_HOLD_MS=Object.freeze({boon:84,wagon:72,buggy:54,bike:40,sport:38,princess:46,ssr:34,valkyrie:30,secret:24});
+  const PERFECT_HOLD_MS=Object.freeze({boon:84,wagon:72,buggy:54,bike:40,sport:38,princess:46,ssr:34,valkyrie:22,secret:24});
   const DISCRETE_MOTION_MODES=new Set(['patternWarp','patternTeleport','princessStair']);
   const makePerfectCapture=()=>({lastRaw:null,lockUntil:0});
   const crossedTarget=(a,b,target)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(b-a)<=.52&&((a-target)*(b-target)<=0);
@@ -1322,11 +1352,11 @@ body.modal-open{overflow:hidden}
   };
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
-    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaMachineCard:$('gachaMachineCard'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCardImage:$('selectorCardImage'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorLock:$('selectorLock'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
+    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaMachineCard:$('gachaMachineCard'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),duplicateDecision:$('duplicateDecision'),duplicateQueueCount:$('duplicateQueueCount'),duplicateChoiceName:$('duplicateChoiceName'),duplicateChoiceMeta:$('duplicateChoiceMeta'),duplicateTune:$('duplicateTuneButton'),duplicateTunePreview:$('duplicateTunePreview'),duplicateConvert:$('duplicateConvertButton'),duplicateConvertPreview:$('duplicateConvertPreview'),gachaPartBalance:$('gachaPartBalance'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCardImage:$('selectorCardImage'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorLock:$('selectorLock'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorGrowth:$('selectorGrowth'),selectorSpecial:$('selectorSpecial'),selectorTuneLab:$('selectorTuneLab'),selectorTuneLevel:$('selectorTuneLevel'),selectorPartBalance:$('selectorPartBalance'),selectorMaterialTune:$('selectorMaterialTune'),selectorTuneCostNote:$('selectorTuneCostNote'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
     recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),bulkRankButton:$('bulkRankButton'),bulkRankMeta:$('bulkRankMeta'),recordsRankingStatus:$('recordsRankingStatus'),recordsRankingLink:$('recordsRankingLink'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),
-    resultCard:$('resultCard'),resultDistance:$('resultDistance'),resultKicker:$('resultKicker'),newRecord:$('newRecord'),resultVehicle:$('resultVehicle'),judgeStart:$('judgeStart'),judgeTurbo:$('judgeTurbo'),judgeNitro:$('judgeNitro'),scoreStart:$('scoreStart'),scoreTurbo:$('scoreTurbo'),scoreNitro:$('scoreNitro'),resultPrecision:$('resultPrecision'),ticketEarned:$('ticketEarned'),resultRankButton:$('resultRankButton'),resultRankingLink:$('resultRankingLink'),resultRecordsButton:$('resultRecordsButton'),worldSubmitStatus:$('worldSubmitStatus'),rankingGate:$('rankingGate'),rankingGateInput:$('rankingGateInput'),rankingGateSave:$('rankingGateSave'),rankingGateCancel:$('rankingGateCancel'),rankingGateStatus:$('rankingGateStatus'),
+    resultCard:$('resultCard'),resultDistance:$('resultDistance'),resultKicker:$('resultKicker'),newRecord:$('newRecord'),resultVehicle:$('resultVehicle'),judgeStart:$('judgeStart'),judgeTurbo:$('judgeTurbo'),judgeNitro:$('judgeNitro'),scoreStart:$('scoreStart'),scoreTurbo:$('scoreTurbo'),scoreNitro:$('scoreNitro'),resultPrecision:$('resultPrecision'),resultGrowth:$('resultGrowth'),ticketEarned:$('ticketEarned'),resultRankButton:$('resultRankButton'),resultRankingLink:$('resultRankingLink'),resultRecordsButton:$('resultRecordsButton'),worldSubmitStatus:$('worldSubmitStatus'),rankingGate:$('rankingGate'),rankingGateInput:$('rankingGateInput'),rankingGateSave:$('rankingGateSave'),rankingGateCancel:$('rankingGateCancel'),rankingGateStatus:$('rankingGateStatus'),
     impactFlash:$('impactFlash'),trophyCompleteOverlay:$('trophyCompleteOverlay'),trophyCompleteSkip:$('trophyCompleteSkip'),judgeBurst:$('judgeBurst'),superOverlay:$('superOverlay'),shield:$('inputShield'),trophyToast:$('trophyToast'),trophyToastIcon:$('trophyToastIcon'),trophyToastName:$('trophyToastName')
   };
 
@@ -1336,15 +1366,84 @@ body.modal-open{overflow:hidden}
     remove(key){try{localStorage.removeItem(key);return true;}catch(_){return false;}}
   };
 
+  // v4.0 MACHINE GROWTH -------------------------------------------------------
+  const blankGrowth=()=>({engineXp:0,aeroXp:0,boostXp:0,awakeningXp:0});
+  const growthLevel=xp=>Math.max(0,Math.floor(Math.sqrt(Math.max(0,Number(xp)||0)/90)));
+  const mergeGrowth=(target={},source={},plays=0,tuneLevel=0)=>{
+    const keys=['engineXp','aeroXp','boostXp','awakeningXp'];
+    const hasSource=source&&typeof source==='object'&&keys.some(key=>Object.prototype.hasOwnProperty.call(source,key));
+    const legacyBase=hasSource?0:Math.max(0,(Number(plays)||0)*11+(Number(tuneLevel)||0)*7);
+    const legacyAwakening=hasSource?0:Math.max(0,(Number(plays)||0)*6+(Number(tuneLevel)||0)*4);
+    return {
+      engineXp:Math.max(0,Math.round(Math.max(Number(target.engineXp)||0,Number(source.engineXp)||0,legacyBase))),
+      aeroXp:Math.max(0,Math.round(Math.max(Number(target.aeroXp)||0,Number(source.aeroXp)||0,legacyBase))),
+      boostXp:Math.max(0,Math.round(Math.max(Number(target.boostXp)||0,Number(source.boostXp)||0,legacyBase))),
+      awakeningXp:Math.max(0,Math.round(Math.max(Number(target.awakeningXp)||0,Number(source.awakeningXp)||0,legacyAwakening)))
+    };
+  };
+  const growthSnapshot=rec=>{
+    const g=rec&&rec.growth||blankGrowth();
+    const engine=growthLevel(g.engineXp),aero=growthLevel(g.aeroXp),boost=growthLevel(g.boostXp),awakening=growthLevel(g.awakeningXp);
+    return {engine,aero,boost,awakening,overall:Math.floor((engine+aero+boost+awakening)/4)};
+  };
+  const growthEase=(level,max)=>max*(1-Math.exp(-Math.max(0,level)/3.5));
+  const growthPassiveScale=g=>1+growthEase(g.engine,.014)+growthEase(g.aero,.011)+growthEase(g.boost,.016);
+  const SPECIAL_PROFILE=Object.freeze({
+    boon:{name:'BOOST CHARGE',focus:'combo',base:.006,max:.030},
+    wagon:{name:'STABLE DRIVE',focus:'turbo',base:.005,max:.026},
+    buggy:{name:'LUCKY BURST',focus:'combo',base:.007,max:.034},
+    bike:{name:'RED ZONE',focus:'accel',base:.008,max:.038},
+    sport:{name:'OVER NITRO',focus:'nitro',base:.008,max:.040},
+    princess:{name:'ROYAL ASCEND',focus:'super',base:.008,max:.038},
+    ssr:{name:'DIMENSION SHIFT',focus:'turbo',base:.009,max:.041},
+    valkyrie:{name:'DIVINE MACH',focus:'combo',base:.010,max:.043},
+    secret:{name:'ROCKET OVERDRIVE',focus:'super',base:.007,max:.030}
+  });
+  const specialProfile=car=>SPECIAL_PROFILE[car.id]||SPECIAL_PROFILE.boon;
+  const specialFocusFactor=(profile,grades)=>{
+    const start=clamp((attempt?.startPrecision||0)/100,0,1),turbo=clamp((attempt?.turboPrecision||0)/100,0,1),nitro=clamp((attempt?.nitroPrecision||0)/100,0,1),combo=(start+turbo+nitro)/3,superCount=grades.filter(g=>g==='SUPER').length;
+    if(profile.focus==='accel')return .80+.20*start;
+    if(profile.focus==='turbo')return .80+.20*turbo;
+    if(profile.focus==='nitro')return .80+.20*nitro;
+    if(profile.focus==='super')return .82+.06*superCount;
+    return .80+.20*combo;
+  };
+  const specialMoveState=(car,grades,growth)=>{
+    const profile=specialProfile(car),unlocked=growth.awakening>=1,allCritical=grades.every(g=>JUDGE_LEVEL[g]>=3),allSuper=grades.every(g=>g==='SUPER');
+    if(!unlocked||!allCritical)return {profile,unlocked,active:false,bonus:0,tier:0,displayName:profile.name};
+    const learned=profile.base+profile.max*(1-Math.exp(-growth.awakening/3.2)),focus=specialFocusFactor(profile,grades);
+    if(car.id==='valkyrie'){
+      const p=comboPrecisionFromAttempt();
+      if(allSuper&&p>=99.70)return {profile,unlocked,active:true,bonus:learned*focus*1.20,tier:3,displayName:'DIVINE MACH PERFECT'};
+      if(allSuper&&p>=99.00)return {profile,unlocked,active:true,bonus:learned*focus*1.10,tier:2,displayName:'DIVINE MACH'};
+      return {profile,unlocked,active:true,bonus:learned*focus*(allSuper?.78:.55),tier:1,displayName:'MACH SYNC'};
+    }
+    const tier=allSuper?2:1,bonus=learned*focus*(allSuper?1.20:1);
+    return {profile,unlocked,active:true,bonus,tier,displayName:profile.name};
+  };
+  const awardMachineGrowth=(rec,grades)=>{
+    if(!rec.growth||typeof rec.growth!=='object')rec.growth=blankGrowth();
+    const before=growthSnapshot(rec),atLeastCritical=grades.every(g=>JUDGE_LEVEL[g]>=3),allSuper=grades.every(g=>g==='SUPER');
+    const gains={
+      engine:8+Math.round(clamp(Number(attempt?.startPrecision)||0,0,100)*.12),
+      aero:8+Math.round(clamp(Number(attempt?.turboPrecision)||0,0,100)*.10),
+      boost:8+Math.round(clamp(Number(attempt?.nitroPrecision)||0,0,100)*.12),
+      awakening:4+Math.round(clamp(Number(attempt?.comboPrecision)||0,0,100)*.06)+(atLeastCritical?10:0)+(allSuper?10:0)
+    };
+    rec.growth.engineXp+=gains.engine;rec.growth.aeroXp+=gains.aero;rec.growth.boostXp+=gains.boost;rec.growth.awakeningXp+=gains.awakening;
+    const after=growthSnapshot(rec),unlocked=before.awakening<1&&after.awakening>=1;
+    return {before,after,gains,total:gains.engine+gains.aero+gains.boost+gains.awakening,unlocked};
+  };
+
   const normalizeBestMeta = value => {
     if(!value || typeof value!=='object') return null;
     const validJudge=value=>JUDGE_LEVEL[value]!=null?value:'MISS';
     const achievedAt=String(value.achievedAt||value.playedAt||'');
-    return {accelJudge:validJudge(value.accelJudge),turboJudge:validJudge(value.turboJudge),nitroJudge:validJudge(value.nitroJudge),comboPrecision:Math.round(Math.max(0,Math.min(100,Number(value.comboPrecision)||0))*100)/100,tuneLevel:Math.min(50,Math.max(0,Math.floor(Number(value.tuneLevel)||0))),achievedAt};
+    return {accelJudge:validJudge(value.accelJudge),turboJudge:validJudge(value.turboJudge),nitroJudge:validJudge(value.nitroJudge),comboPrecision:Math.round(Math.max(0,Math.min(100,Number(value.comboPrecision)||0))*100)/100,tuneLevel:Math.max(0,Math.floor(Number(value.tuneLevel)||0)),achievedAt};
   };
-  const blankRecord = (owned=false, obtained=0) => ({owned,obtained,tuneLevel:Math.min(50,Math.max(0,obtained-1)),best:0,plays:0,classicBest:0,bestMeta:null,worldBest:0,worldUpdatedAt:null});
+  const blankRecord = (owned=false, obtained=0) => ({owned,obtained,tuneLevel:Math.max(0,obtained-1),growth:blankGrowth(),best:0,plays:0,classicBest:0,bestMeta:null,worldBest:0,worldUpdatedAt:null});
   const defaultState = () => ({
-    schema:SCHEMA,build:BUILD,selected:'boon',best:0,classicBest:0,plays:0,classicPlays:0,total:0,sound:true,gachaTickets:1,firstDrawDone:false,drawsWithoutNew:0,
+    schema:SCHEMA,build:BUILD,selected:'boon',best:0,classicBest:0,plays:0,classicPlays:0,total:0,sound:true,gachaTickets:1,firstDrawDone:false,drawsWithoutNew:0,limitBreakParts:0,pendingDuplicates:[],
     garage:Object.fromEntries(CARS.map(c => [c.id,blankRecord(c.id==='boon',c.id==='boon'?1:0)])),
     gradeCounts:{MISS:0,GOOD:0,GREAT:0,CRITICAL:0,SUPER:0},
     runFlags:{allGood:false,allGreat:false,allCritical:false,superPerfect:false,boostSuper:false},
@@ -1356,10 +1455,12 @@ body.modal-open{overflow:hidden}
     const owned=Boolean(target.owned||source.owned||obtained>0);
     const targetBest=Number(target.best)||0,sourceBest=Number(source.best)||0,best=Math.max(targetBest,sourceBest);
     const chosenMeta=sourceBest>=targetBest?normalizeBestMeta(source.bestMeta):normalizeBestMeta(target.bestMeta);
+    const sourceHasTune=source.tuneLevel!=null||source.tune!=null,legacyTune=sourceHasTune?Math.max(0,Math.floor(Number(source.tuneLevel ?? source.tune)||0)):Math.min(50,owned?Math.max(0,obtained-1):0),tuneLevel=Math.max(Number(target.tuneLevel)||0,legacyTune);
+    const plays=Math.max(Number(target.plays)||0,Number(source.plays)||0);
     return {
-      owned,obtained:owned?Math.max(1,obtained):0,
-      tuneLevel:Math.min(50,Math.max(Number(target.tuneLevel)||0,Number(source.tuneLevel ?? source.tune ?? 0)||0,owned?obtained-1:0)),
-      best,plays:Math.max(Number(target.plays)||0,Number(source.plays)||0),
+      owned,obtained:owned?Math.max(1,obtained):0,tuneLevel,
+      growth:mergeGrowth(target.growth,source.growth,plays,tuneLevel),
+      best,plays,
       classicBest:Math.max(Number(target.classicBest)||0,Number(source.classicBest ?? source.best)||0),
       bestMeta:chosenMeta,
       worldBest:Math.max(Number(target.worldBest)||0,Number(source.worldBest)||0),
@@ -1381,7 +1482,7 @@ body.modal-open{overflow:hidden}
     base.selected = CAR_BY_ID[selected] && base.garage[selected].owned ? selected : CARS.find(c=>base.garage[c.id].owned)?.id || 'boon';
     base.best = Math.max(Number(input.best)||0,Number(input.overallBest)||0,...CARS.map(c=>base.garage[c.id].best));
     base.classicBest = Math.max(Number(input.classicBest)||0,Number(input.overallBest)||0,Number(input.best)||0,...CARS.map(c=>base.garage[c.id].classicBest));
-    base.plays = Math.max(0,Number(input.plays)||0);base.classicPlays=Math.max(0,Number(input.classicPlays)||0);base.total=Math.max(0,Number(input.total)||0);base.sound=input.sound!==false;base.gachaTickets=Math.min(999,Math.max(0,Math.floor(Number(input.gachaTickets ?? 1)||0)));base.firstDrawDone=Boolean(input.firstDrawDone);base.drawsWithoutNew=Math.max(0,Math.floor(Number(input.drawsWithoutNew)||0));
+    base.plays = Math.max(0,Number(input.plays)||0);base.classicPlays=Math.max(0,Number(input.classicPlays)||0);base.total=Math.max(0,Number(input.total)||0);base.sound=input.sound!==false;base.gachaTickets=Math.min(999,Math.max(0,Math.floor(Number(input.gachaTickets ?? 1)||0)));base.firstDrawDone=Boolean(input.firstDrawDone);base.drawsWithoutNew=Math.max(0,Math.floor(Number(input.drawsWithoutNew)||0));base.limitBreakParts=Math.max(0,Math.floor(Number(input.limitBreakParts)||0));base.pendingDuplicates=Array.isArray(input.pendingDuplicates)?input.pendingDuplicates.filter(id=>CAR_BY_ID[id]&&id!=='secret').slice(0,50):[];
     base.gradeCounts={...base.gradeCounts,...(input.gradeCounts||{})};
     if (base.gradeCounts.TRUE && !base.gradeCounts.SUPER) base.gradeCounts.SUPER=base.gradeCounts.TRUE;
     delete base.gradeCounts.TRUE;
@@ -1469,7 +1570,74 @@ body.modal-open{overflow:hidden}
   };
 
   const getRecord=id=>state.garage[id]||(state.garage[id]=blankRecord());
-  const tuneRate=id=>CAR_BY_ID[id]?.id==='secret'?0:Math.min(.05,(getRecord(id).tuneLevel||0)*.001);
+  const LIMIT_BREAK_YIELD=Object.freeze({R:1,SR:3,SSR:8,EXR:16,UR:32});
+  const LIMIT_BREAK_BASE_COST=Object.freeze({R:2,SR:6,SSR:24,EXR:48,UR:96});
+
+  // TUNE + LIMIT BREAK FINAL CURVE --------------------------------------------
+  // Lv.1-50 preserves the legacy +0.10% per level exactly.
+  // Lv.51+ no longer stacks percentage forever. Instead it unlocks additive
+  // potential distance. Every completed band adds +600m of potential, while the
+  // required number of TUNE levels doubles each band.
+  // 51-100:+12m/Lv / 101-200:+6m/Lv / 201-400:+3m/Lv / 401-800:+1.5m/Lv / ...
+  // The potential is skill-gated at result time and a soft wall compresses 4000m+.
+  const LEGACY_TUNE_MAX=50;
+  const LIMIT_BREAK_BAND_DISTANCE=600;
+  const SOFT_WALL_START=4000;
+  const SOFT_WALL_K=180;
+  const tuneRateForLevel=level=>Math.min(LEGACY_TUNE_MAX,Math.max(0,Math.floor(Number(level)||0)))*.001;
+  const tuneRate=id=>CAR_BY_ID[id]?.id==='secret'?0:tuneRateForLevel(getRecord(id).tuneLevel);
+  const tuneBandForLevel=level=>{
+    const lv=Math.max(1,Math.floor(Number(level)||1));
+    if(lv<=50)return{from:1,to:50,percentStep:.001,distanceStep:0,mult:1};
+    if(lv<=100)return{from:51,to:100,percentStep:0,distanceStep:12,mult:2};
+    let from=101,to=200,distanceStep=6,mult=4;
+    while(lv>to){from=to+1;to*=2;distanceStep*=.5;mult*=2;}
+    return{from,to,percentStep:0,distanceStep,mult};
+  };
+  const tuneStepForNextLevel=currentLevel=>tuneBandForLevel(Math.max(0,Math.floor(Number(currentLevel)||0))+1);
+  const limitBreakPotential=level=>{
+    const lv=Math.max(0,Math.floor(Number(level)||0));
+    if(lv<=LEGACY_TUNE_MAX)return 0;
+    let remaining=lv-LEGACY_TUNE_MAX,width=50,step=12,bonus=0;
+    while(remaining>0){
+      const used=Math.min(remaining,width);
+      bonus+=used*step;
+      remaining-=used;
+      width*=2;
+      step*=.5;
+      if(step<1e-9)break;
+    }
+    return bonus;
+  };
+  const skillBandFactor=(grades,comboPrecision,car)=>{
+    const levels=grades.map(g=>JUDGE_LEVEL[g]||0),min=Math.min(...levels),allSuper=grades.every(g=>g==='SUPER'),p=clamp(Number(comboPrecision)||0,0,100);
+    if(min<=0)return 0;
+    if(car?.id==='valkyrie'){
+      if(allSuper&&p>=99.70)return 1;
+      if(allSuper&&p>=99.00)return .94;
+      if(allSuper)return .80;
+      if(min>=3)return .28;
+      if(min>=2)return .16;
+      return .05;
+    }
+    if(allSuper)return .78+.22*clamp((p-95)/5,0,1);
+    if(min>=3)return .48+.18*clamp((p-90)/10,0,1);
+    if(min>=2)return .24+.10*clamp((p-85)/15,0,1);
+    return .08+.06*clamp((p-80)/20,0,1);
+  };
+  const limitBreakAppliedBonus=(car,level,grades,comboPrecision)=>car?.id==='secret'?0:Math.round(limitBreakPotential(level)*skillBandFactor(grades,comboPrecision,car));
+  const softWallDistance=distance=>{
+    const d=Math.max(0,Number(distance)||0);
+    if(d<=SOFT_WALL_START)return Math.round(d);
+    return Math.round(SOFT_WALL_START+SOFT_WALL_K*Math.log1p((d-SOFT_WALL_START)/SOFT_WALL_K));
+  };
+  const limitBreakYield=car=>Math.max(0,LIMIT_BREAK_YIELD[car?.rarity]||0);
+  const materialTuneCost=car=>{
+    if(!car||car.id==='secret')return Infinity;
+    const base=LIMIT_BREAK_BASE_COST[car.rarity]||9999,lv=Math.max(0,Math.floor(Number(getRecord(car.id).tuneLevel)||0));
+    const band=tuneStepForNextLevel(lv),raw=base*band.mult;
+    return Math.min(Number.MAX_SAFE_INTEGER,Math.ceil(raw));
+  };
   const ownedCount=()=>CARS.filter(c=>getRecord(c.id).owned).length;
 
   const assetCandidates=(car,part)=>car.asset.flatMap(alias=>part==='body'&&car.id!=='secret'?[`${ASSET_ROOT}/${alias}-${part}.webp?v=${ASSET_VERSION}`,`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]:[`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]);
@@ -1724,7 +1892,7 @@ body.modal-open{overflow:hidden}
     currentCar=CAR_BY_ID[state.selected]&&getRecord(state.selected).owned?CAR_BY_ID[state.selected]:CARS.find(c=>getRecord(c.id).owned)||CAR_BY_ID.boon;state.selected=currentCar.id;
     if(getMachineVfxContract(currentCar.id))preloadMachineVfx(currentCar.id).catch(()=>{});
     const rec=getRecord(currentCar.id);renderVehicle(el.homeVehicle,currentCar,{compact:true});
-    el.homeName.textContent=currentCar.name;const homeGuide=GARAGE_GUIDE[currentCar.id]||GARAGE_GUIDE.boon;el.homeTrait.textContent=`${homeGuide.level}｜${homeGuide.home}`;el.homeTune.textContent=currentCar.id==='secret'?'SECRET｜チューンなし':`TUNE Lv.${rec.tuneLevel}　＋${(tuneRate(currentCar.id)*100).toFixed(1)}%`;
+    el.homeName.textContent=currentCar.name;const homeGuide=GARAGE_GUIDE[currentCar.id]||GARAGE_GUIDE.boon,growth=growthSnapshot(rec),special=specialProfile(currentCar);el.homeTrait.textContent=`${homeGuide.level}｜${homeGuide.home}`;el.homeTune.textContent=`TUNE Lv.${rec.tuneLevel||0}｜GROWTH Lv.${growth.overall}`;
     el.best.textContent=formatM(state.best);el.ticketCount.textContent=`🎟 ${state.gachaTickets}`;el.gachaButton.textContent=state.gachaTickets>0?`ガチャ 🎟${state.gachaTickets}`:'ガチャ（飛ぶと解放）';el.gachaButton.classList.toggle('no-ticket',state.gachaTickets<=0);el.homePlays.textContent=(state.plays||0).toLocaleString();el.homeOwned.textContent=`${ownedCount()} / ${CARS.length}`;el.homeTrophies.textContent=`${unlockedTrophyCount()} / ${DISPLAY_TROPHIES.length}`;el.sound.textContent=state.sound?'🔊':'🔇';
   };
 
@@ -1756,8 +1924,26 @@ body.modal-open{overflow:hidden}
     el.selectorTurbo.textContent=owned?detail.turbo:'解放するとターボの狙い方が表示されます。';
     el.selectorNitro.textContent=owned?detail.nitro:'解放するとニトロの狙い方が表示されます。';
     el.selectorBest.textContent=owned?formatM(rec.best||0):'---';
-    el.selectorMax.textContent=owned?formatM(car.finalCap):'---';
-    el.selectorTune.textContent=owned?(car.id==='secret'?'なし':`Lv.${rec.tuneLevel}`):'---';
+    const growth=growthSnapshot(rec),special=specialProfile(car);
+    el.selectorMax.textContent=owned?`Lv.${growth.overall}`:'---';
+    el.selectorTune.textContent=owned?(growth.awakening>=1?'READY':'LOCKED'):'---';
+    if(el.selectorGrowth){el.selectorGrowth.querySelector('[data-growth-axis="engine"]').textContent=owned?`Lv.${growth.engine}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="aero"]').textContent=owned?`Lv.${growth.aero}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="boost"]').textContent=owned?`Lv.${growth.boost}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="awakening"]').textContent=owned?`Lv.${growth.awakening}`:'---';}
+    if(el.selectorSpecial){el.selectorSpecial.classList.toggle('ready',owned&&growth.awakening>=1);el.selectorSpecial.textContent=!owned?'解放すると成長が始まる。':growth.awakening>=1?`⚡ ${special.name}｜3 COMBOを高精度で決めると発動`:`？？？｜このマシンで飛び続けると必殺技が目覚める`;}
+    if(el.selectorTuneLab){
+      const cost=materialTuneCost(car),parts=Math.max(0,state.limitBreakParts||0),isHigh=['SSR','EXR','UR'].includes(car.rarity);
+      el.selectorTuneLevel.textContent=owned?`Lv.${rec.tuneLevel||0}`:'---';
+      el.selectorPartBalance.textContent=parts.toLocaleString();
+      el.selectorMaterialTune.disabled=!owned||car.id==='secret'||parts<cost;
+      el.selectorMaterialTune.textContent=car.id==='secret'?'SECRETは素材チューン不可':!owned?'🔒 解放後にチューン可能':`🔧 素材 ${Number.isFinite(cost)?cost.toLocaleString():'---'}個で TUNE +1`;
+      el.selectorTuneCostNote.classList.toggle('high-rarity',owned&&isHigh);
+      if(!owned)el.selectorTuneCostNote.textContent='まずガチャでマシンを解放しよう。';
+      else if(car.id==='secret')el.selectorTuneCostNote.textContent='SECRETは独自性能のためLIMIT BREAK素材を使用しません。';
+      else{
+        const band=tuneStepForNextLevel(rec.tuneLevel||0);
+        const gain=band.percentStep>0?`性能 +${(band.percentStep*100).toFixed(2)}%`:`LIMIT BREAK潜在距離 +${Number(band.distanceStep.toFixed(4))}m`;
+        el.selectorTuneCostNote.textContent=`次のTUNE：${gain}｜Lv.${band.from.toLocaleString()}〜${band.to.toLocaleString()}帯｜素材コスト ×${band.mult}${isHigh?'｜高レアは基礎必要量も大きい':''}`;
+      }
+    }
     el.selectorChoose.disabled=!owned;
     el.selectorChoose.classList.toggle('current',selected&&owned);
     el.selectorChoose.textContent=!owned?(car.id==='secret'?'🔒 7台コンプリートで解放':'🔒 ガチャで解放'):selected?'✓ 選択中｜ホームへ':'このマシンを選ぶ';
@@ -1800,7 +1986,7 @@ body.modal-open{overflow:hidden}
     el.bulkRankButton.disabled=rankSubmitBusy||playedRecords.length===0;
     el.bulkRankButton.classList.toggle('done',playedRecords.length>0&&pendingRecords===0);
     el.bulkRankButton.innerHTML=playedRecords.length===0?'まだ登録できる通常マシンの記録がありません<small>SECRETは個別登録です</small>':pendingRecords===0?'✓ 通常8マシンを登録済み<small>SECRETは個別登録できます</small>':'🏆 通常8マシンの自己ベストを登録<small>SECRETは対象外・未プレイと更新済みは自動判定</small>';
-    el.machineRecords.innerHTML=`<div class="machine-list">${CARS.map(car=>{const rec=getRecord(car.id),ratio=Math.min(1,(rec.best||0)/car.master),canSubmit=rec.owned&&(rec.best||0)>0;return `<article class="machine-row"><div class="vehicle-slot" data-record-car="${car.id}"></div><div class="machine-row-copy"><h3>${rec.owned?car.name:'？？？？？？'}　${car.rarity}</h3><p>${rec.owned?`BEST ${(rec.best||0).toLocaleString()}m｜PLAY ${rec.plays||0}｜Lv.${rec.tuneLevel}`:'未解放'}<br>MASTER ${car.master.toLocaleString()}m</p><div class="bar"><i style="width:${ratio*100}%"></i></div></div></article>`;}).join('')}</div>`;
+    el.machineRecords.innerHTML=`<div class="machine-list">${CARS.map(car=>{const rec=getRecord(car.id),growth=growthSnapshot(rec),special=specialProfile(car),ratio=Math.min(.96,.12+growth.overall*.10),canSubmit=rec.owned&&(rec.best||0)>0;return `<article class="machine-row"><div class="vehicle-slot" data-record-car="${car.id}"></div><div class="machine-row-copy"><h3>${rec.owned?car.name:'？？？？？？'}　${car.rarity}</h3><p>${rec.owned?`BEST ${(rec.best||0).toLocaleString()}m｜PLAY ${rec.plays||0}｜GROWTH Lv.${growth.overall}`:'未解放'}<br>${rec.owned?(growth.awakening>=1?`⚡ ${special.name}`:'SPECIAL ？？？'):'飛ぶほどマシンが育つ'}</p><div class="bar"><i style="width:${ratio*100}%"></i></div></div></article>`;}).join('')}</div>`;
     el.machineRecords.querySelectorAll('[data-record-car]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.recordCar],{compact:true}));
     el.trophyRecords.innerHTML=`<div class="trophy-grid">${DISPLAY_TROPHIES.map(t=>{const s=trophyState(t.id),p=trophyProgress(t);return `<article class="trophy-card ${s.unlocked?'':'locked'}"><span class="icon">${s.unlocked?t.icon:'❔'}</span><strong>${s.unlocked?t.name:(t.cat==='master'?'？？？？':t.name)}</strong><small>${s.unlocked?'獲得済み':`${t.desc}<br>${Math.min(p.value,p.target).toLocaleString()} / ${p.target.toLocaleString()}${t.unit||''}`}</small><div class="bar"><i style="width:${p.ratio*100}%"></i></div></article>`;}).join('')}</div>`;
     setRecordTab(recordTab);
@@ -1834,13 +2020,55 @@ body.modal-open{overflow:hidden}
     for(const car of source){r-=car.rate*(getRecord(car.id).owned?1:3);if(r<=0)return car;}
     return source[source.length-1]||CAR_BY_ID.buggy;
   };
-  const applyAcquisition=car=>{const rec=getRecord(car.id),isNew=!rec.owned;rec.owned=true;rec.obtained=Math.max(0,rec.obtained||0)+1;rec.tuneLevel=car.id==='secret'?0:Math.min(50,Math.max(0,rec.obtained-1));state.drawsWithoutNew=isNew?0:(state.drawsWithoutNew||0)+1;let secretUnlocked=false;if(SECRET_UNLOCK_IDS.every(id=>getRecord(id).owned)&&!getRecord('secret').owned){const secret=getRecord('secret');secret.owned=true;secret.obtained=1;secret.tuneLevel=0;secretUnlocked=true;}return{isNew,secretUnlocked,tuneLevel:rec.tuneLevel};};
+  const applyAcquisition=car=>{
+    const rec=getRecord(car.id),isNew=!rec.owned;
+    rec.owned=true;rec.obtained=Math.max(0,rec.obtained||0)+1;
+    if(!isNew&&car.id!=='secret')state.pendingDuplicates.push(car.id);
+    state.drawsWithoutNew=isNew?0:(state.drawsWithoutNew||0)+1;
+    let secretUnlocked=false;
+    if(SECRET_UNLOCK_IDS.every(id=>getRecord(id).owned)&&!getRecord('secret').owned){const secret=getRecord('secret');secret.owned=true;secret.obtained=1;secret.tuneLevel=0;secretUnlocked=true;}
+    return{isNew,duplicate:!isNew,secretUnlocked,tuneLevel:rec.tuneLevel||0,partYield:limitBreakYield(car)};
+  };
   const renderBatchResults=results=>{
     el.gachaBatchGrid.innerHTML='';
-    results.forEach((item,index)=>{const card=document.createElement('article');card.className=`batch-card${item.bonus?' bonus':''}`;card.innerHTML=`<span class="batch-rarity">${item.car.rarity}</span>${item.bonus?'<span class="bonus-label">BONUS</span>':''}<div class="vehicle-slot"></div><b>${item.car.name}</b><small>${item.result.isNew?'NEW MACHINE!':`TUNE UP Lv.${item.result.tuneLevel}`}</small>`;renderVehicle(card.querySelector('.vehicle-slot'),item.car,{compact:true});el.gachaBatchGrid.appendChild(card);});
+    results.forEach(item=>{const card=document.createElement('article');card.className=`batch-card${item.bonus?' bonus':''}`;card.innerHTML=`<span class="batch-rarity">${item.car.rarity}</span>${item.bonus?'<span class="bonus-label">BONUS</span>':''}<div class="vehicle-slot"></div><b>${item.car.name}</b><small>${item.result.isNew?'NEW MACHINE!':'DUPLICATE｜選択待ち'}</small>`;renderVehicle(card.querySelector('.vehicle-slot'),item.car,{compact:true});el.gachaBatchGrid.appendChild(card);});
     el.gachaBatchGrid.hidden=false;
   };
-  const syncGachaUi=()=>{const tickets=Math.max(0,state.gachaTickets||0),busy=phase==='gacha';el.draw.disabled=tickets<=0||busy;el.draw.textContent=tickets>0?`1回ガチャ 🎟${tickets}`:'1回飛ぶとガチャ！';el.drawTen.disabled=tickets<10||busy;el.drawTen.textContent=tickets>=10?'10連ガチャ 🎟10':`10連まであと${10-tickets}枚`;el.gachaTicketStatus.textContent=!state.firstDrawDone&&tickets>0?'最初の1回は無料・未所持確定！':tickets>=10?`チケット ${tickets}枚｜最後の1枠はSR以上確定！`:tickets>0?`ガチャチケット ${tickets}枚｜10連まであと${10-tickets}枚`:'チケットがありません。1回飛ぶと1枚もらえます。';};
+  const currentPendingDuplicate=()=>state.pendingDuplicates.length?CAR_BY_ID[state.pendingDuplicates[0]]:null;
+  const showDuplicateChoice=()=>{
+    const car=currentPendingDuplicate();
+    if(!car){el.duplicateDecision.hidden=true;el.useDrawn.hidden=!drawnCar;setNavigationLock(false);return false;}
+    const rec=getRecord(car.id),gain=limitBreakYield(car);
+    el.duplicateDecision.hidden=false;el.duplicateQueueCount.textContent=`あと${state.pendingDuplicates.length}台`;
+    el.duplicateChoiceName.textContent=`${car.rarity}｜${car.name}`;
+    el.duplicateChoiceMeta.textContent='同じマシンなら即TUNE +1。別のマシンを育てたいならLIMIT BREAK素材へ変換できます。';
+    el.duplicateTunePreview.textContent=`TUNE Lv.${rec.tuneLevel||0} → Lv.${(rec.tuneLevel||0)+1}`;
+    el.duplicateConvertPreview.textContent=`LIMIT BREAK素材 +${gain}`;
+    el.gachaPartBalance.textContent=Math.max(0,state.limitBreakParts||0).toLocaleString();
+    el.useDrawn.hidden=true;el.draw.hidden=true;el.drawTen.hidden=true;setNavigationLock(true);
+    return true;
+  };
+  const finishDuplicateChoices=()=>{
+    el.duplicateDecision.hidden=true;setNavigationLock(false);el.useDrawn.hidden=!drawnCar;
+    if(drawnCar){renderVehicle(el.gachaVehicle,drawnCar);showGachaMachineCard(drawnCar);el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;}
+    renderHome();renderGarage();syncGachaUi();
+  };
+  const resolveDuplicateChoice=mode=>{
+    const car=currentPendingDuplicate();if(!car)return finishDuplicateChoices();
+    const rec=getRecord(car.id);
+    if(mode==='tune'){rec.tuneLevel=Math.max(0,Number(rec.tuneLevel)||0)+1;el.gachaResult.textContent=`TUNE UP！ ${car.name} Lv.${rec.tuneLevel}`;}
+    else{const gain=limitBreakYield(car);state.limitBreakParts=Math.max(0,state.limitBreakParts||0)+gain;el.gachaResult.textContent=`LIMIT BREAK素材 +${gain}`;}
+    state.pendingDuplicates.shift();save();Sound.tone(mode==='tune'?760:560,.10,'sine',.035);vibrate(mode==='tune'?[35,20,65]:[25,18,40]);
+    if(!showDuplicateChoice())finishDuplicateChoices();else{renderHome();renderGarage();}
+  };
+  const materialTune=carId=>{
+    const car=CAR_BY_ID[carId],rec=car&&getRecord(carId);if(!car||!rec?.owned||car.id==='secret')return false;
+    const cost=materialTuneCost(car);if((state.limitBreakParts||0)<cost)return false;
+    state.limitBreakParts-=cost;rec.tuneLevel=Math.max(0,Number(rec.tuneLevel)||0)+1;save();renderHome();renderGarage();
+    if(el.selectorTuneLab){el.selectorTuneLab.classList.remove('part-flash');void el.selectorTuneLab.offsetWidth;el.selectorTuneLab.classList.add('part-flash');}
+    Sound.tone(820,.12,'sine',.04);vibrate([30,18,55]);return true;
+  };
+  const syncGachaUi=()=>{const tickets=Math.max(0,state.gachaTickets||0),busy=phase==='gacha'||state.pendingDuplicates.length>0;el.draw.disabled=tickets<=0||busy;el.draw.textContent=tickets>0?`1回ガチャ 🎟${tickets}`:'1回飛ぶとガチャ！';el.drawTen.disabled=tickets<10||busy;el.drawTen.textContent=tickets>=10?'10連ガチャ 🎟10':`10連まであと${10-tickets}枚`;const parts=Math.max(0,state.limitBreakParts||0);el.gachaTicketStatus.textContent=state.pendingDuplicates.length?`LIMIT BREAK素材 ${parts}｜重複マシンの使い道を選択中`:!state.firstDrawDone&&tickets>0?'最初の1回は無料・未所持確定！':tickets>=10?`チケット ${tickets}枚｜LIMIT BREAK素材 ${parts}`:tickets>0?`ガチャチケット ${tickets}枚｜素材 ${parts}`:`チケット0枚｜LIMIT BREAK素材 ${parts}`;};
   const hideGachaMachineCard=()=>{
     if(!el.gachaMachineCard)return;
     el.gachaMachineCard.hidden=true;el.gachaMachineCard.removeAttribute('src');
@@ -1853,10 +2081,10 @@ body.modal-open{overflow:hidden}
     preloadMachineCard(car.id);
   };
 
-  const showGacha=()=>{clearRun();phase='idle';setShield(false);setNavigationLock(false);el.gachaCard.className='gacha-card';hideGachaMachineCard();el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');};
-  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):`TUNE UP！ Lv.${getRecord(drawnCar.id).tuneLevel}`;el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;showGachaMachineCard(drawnCar);el.gachaReveal.hidden=false;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.draw.disabled=false;phase='idle';setNavigationLock(false);Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();syncGachaUi();};
-  const runGacha=()=>{if(phase==='gacha'||state.gachaTickets<=0){syncGachaUi();return;}clearRun();const token=runToken,wasFirst=!state.firstDrawDone;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaBatchGrid.hidden=true;el.gachaReveal.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<9)schedule(spin,70+ticks*18,token);else{state.gachaTickets=Math.max(0,state.gachaTickets-1);settleSingleGacha(weightedDraw(),wasFirst);}};spin();};
-  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':'10連BONUS｜SR以上確定';el.gachaCard.className='gacha-card revealed rare';showGachaMachineCard(bonusCar);el.gachaReveal.hidden=false;renderBatchResults(results);el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';phase='idle';setNavigationLock(false);Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();};spin();};
+  const showGacha=()=>{clearRun();phase='idle';setShield(false);el.gachaCard.className='gacha-card';hideGachaMachineCard();el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.duplicateDecision.hidden=true;el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');if(state.pendingDuplicates.length){el.gachaReveal.hidden=false;el.gachaRarity.textContent='DUP';el.gachaName.textContent='重複マシンの選択';el.gachaResult.textContent='使い道を決めよう';showDuplicateChoice();}else setNavigationLock(false);};
+  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):'DUPLICATE｜使い道を選ぼう';el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;showGachaMachineCard(drawnCar);el.gachaReveal.hidden=false;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;phase='idle';Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();syncGachaUi();if(result.duplicate)showDuplicateChoice();else{el.useDrawn.hidden=false;setNavigationLock(false);}};
+  const runGacha=()=>{if(phase==='gacha'||state.gachaTickets<=0||state.pendingDuplicates.length){syncGachaUi();return;}clearRun();const token=runToken,wasFirst=!state.firstDrawDone;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaBatchGrid.hidden=true;el.gachaReveal.hidden=true;el.duplicateDecision.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<9)schedule(spin,70+ticks*18,token);else{state.gachaTickets=Math.max(0,state.gachaTickets-1);settleSingleGacha(weightedDraw(),wasFirst);}};spin();};
+  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10||state.pendingDuplicates.length){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.duplicateDecision.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':`10連｜重複${results.filter(x=>x.result.duplicate).length}台の使い道を選択`;el.gachaCard.className='gacha-card revealed rare';showGachaMachineCard(bonusCar);el.gachaReveal.hidden=false;renderBatchResults(results);el.draw.hidden=true;el.drawTen.hidden=true;phase='idle';Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();if(state.pendingDuplicates.length)showDuplicateChoice();else{el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';setNavigationLock(false);}};spin();};
 
   const configureProgress=(activeIndex,judgments=[])=>{[el.progressStart,el.progressTurbo,el.progressNitro].forEach((item,i)=>{item.className='progress-step';const judge=judgments[i];item.querySelector('em').textContent=judge?JUDGE_SHORT[judge]:'---';if(judge){item.classList.add('done');if(judge==='SUPER')item.classList.add('super');}else if(i===activeIndex)item.classList.add('active');});};
   const setGameVehicle=(options={})=>renderVehicle(el.gameVehicle,currentCar,options);
@@ -1869,13 +2097,13 @@ body.modal-open{overflow:hidden}
   const startAttempt=()=>{accelPerfect=makePerfectCapture();turboPerfect=makePerfectCapture();document.body.dataset.machine=currentCar.id;el.gameShell.dataset.machine=currentCar.id;if(!getRecord(currentCar.id).owned)return showGacha();if(getMachineVfxContract(currentCar.id))preloadMachineVfx(currentCar.id).catch(()=>{});clearRun();attempt={carId:currentCar.id,start:null,turbo:null,nitro:null,rpm:0,turboPosition:.5,startQuality:0,turboQuality:0,nitroQuality:0,startPrecision:0,turboPrecision:0,nitroPrecision:0,comboPrecision:0};phase='start';setNavigationLock(true);setShield(false);setGameVehicle({revving:true,rolling:true});configureProgress(0);el.phaseCount.textContent='1 / 3';el.phaseTag.textContent='3 COMBO · 1';el.phaseTitle.textContent=currentCar.skill==='valkyrie'?'ACCEL':'アクセル';el.phaseHint.textContent=currentCar.control.accel.label;el.rpmMeter.hidden=false;el.turboMeter.hidden=true;el.tap.querySelector('span').textContent='タップ！';el.tapSub.textContent=currentCar.skill==='valkyrie'?'戦乙女に走りを示せ':'アクセルを決める';setTachTarget();showScreen('game');phaseStart=performance.now();phaseRAF=requestAnimationFrame(updateStartMeter);};
   const updateStartMeter=now=>{if(phase!=='start')return;const cfg=currentCar.control.accel,elapsed=now-phaseStart,raw=motionValue(cfg.mode,elapsed,cfg,cfg.ideal);rpmValue=capturePerfectPosition(raw,cfg.ideal,now,accelPerfect,cfg.mode);const angle=tachNeedleAngle(rpmValue);el.rpmNeedle.style.transform=`rotate(${angle}deg)`;el.rpmNumber.textContent=Math.round(rpmValue*9000).toLocaleString();phaseRAF=requestAnimationFrame(updateStartMeter);};
   const lockStart=()=>{if(phase!=='start')return;cancelAnimationFrame(phaseRAF);phase='transition';setShield(true);const cfg=currentCar.control.accel,error=Math.abs(rpmValue-cfg.ideal),judge=judgeByThreshold(error,cfg);let q=qualityFromError(error,cfg,.18);if(judge==='SUPER')q=1;if(currentCar.skill==='recovery'&&judge==='MISS')q=Math.max(q,.48);if(currentCar.skill==='powerStart'&&JUDGE_LEVEL[judge]>=3)q=Math.min(1.08,q+.08);attempt.rpm=rpmValue;attempt.start=judge;attempt.startQuality=q;attempt.startPrecision=timingPrecision(error,cfg.ideal);setGameVehicle({rolling:true});showJudge('アクセル',judge,0);configureProgress(1,[judge]);schedule(startTurboPhase,reduceMotion?120:judge==='SUPER'?680:500);};
-  const startTurboPhase=()=>{turboPerfect=makePerfectCapture();phase='turbo';setShield(false);el.superOverlay.classList.remove('show');el.phaseCount.textContent='2 / 3';el.phaseTag.textContent='3 COMBO · 2';el.phaseTitle.textContent=currentCar.skill==='valkyrie'?'SHIFT':'ターボ';el.phaseHint.textContent=currentCar.control.turbo.label;el.rpmMeter.hidden=true;el.turboMeter.hidden=false;el.tap.querySelector('span').textContent='タップ！';el.tapSub.textContent=currentCar.skill==='valkyrie'?'6速を射抜け':'ターボを決める';setTurboZones();phaseStart=performance.now();phaseRAF=requestAnimationFrame(updateTurboMeter);};
+  const startTurboPhase=()=>{turboPerfect=makePerfectCapture();phase='turbo';setShield(false);el.superOverlay.classList.remove('show');el.phaseCount.textContent='2 / 3';el.phaseTag.textContent='3 COMBO · 2';el.phaseTitle.textContent='ターボ';el.phaseHint.textContent=currentCar.control.turbo.label;el.rpmMeter.hidden=true;el.turboMeter.hidden=false;el.tap.querySelector('span').textContent='タップ！';el.tapSub.textContent=currentCar.skill==='valkyrie'?'TURBOを射抜け':'ターボを決める';setTurboZones();phaseStart=performance.now();phaseRAF=requestAnimationFrame(updateTurboMeter);};
   const updateTurboMeter=now=>{if(phase!=='turbo')return;const cfg=currentCar.control.turbo,elapsed=now-phaseStart,raw=motionValue(cfg.mode,elapsed,cfg,.5);turboValue=capturePerfectPosition(raw,.5,now,turboPerfect,cfg.mode);el.turboCursor.style.left=`${turboValue*100}%`;el.turboNumber.textContent=Math.round(Math.abs(turboValue-.5)*200);phaseRAF=requestAnimationFrame(updateTurboMeter);};
   const lockTurbo=()=>{if(phase!=='turbo')return;cancelAnimationFrame(phaseRAF);phase='transition';setShield(true);const cfg=currentCar.control.turbo,error=Math.abs(turboValue-.5),judge=judgeByThreshold(error,cfg);let q=qualityFromError(error,cfg,.20);if(judge==='SUPER')q=1;if(currentCar.skill==='stable')q=Math.max(q,.67);attempt.turboPosition=turboValue;attempt.turbo=judge;attempt.turboQuality=q;attempt.turboPrecision=timingPrecision(error,.5);showJudge('ターボ',judge,1);configureProgress(2,[attempt.start,judge]);schedule(beginFlight,reduceMotion?130:judge==='SUPER'?700:510);};
 
   const resizeCanvas=()=>{const rect=el.canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);canvasMetrics={w:Math.max(1,rect.width),h:Math.max(1,rect.height),dpr};el.canvas.width=Math.round(canvasMetrics.w*dpr);el.canvas.height=Math.round(canvasMetrics.h*dpr);ctx=el.canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);};
-  const beginFlight=()=>{phase='flight';el.flightScreen.dataset.machine=currentCar.id;setShield(false);el.superOverlay.classList.remove('show');showScreen('flight');resizeCanvas();pulseClass(el.flightScreen,'fx-launch',620);flashImpact('accel',attempt.start);const car=currentCar,rec=getRecord(car.id),tune=1+tuneRate(car.id),startFactor=car.skill==='rocket'?rocketGradeFactor(attempt.start):.61+attempt.startQuality*.49,turboFactor=car.skill==='rocket'?rocketGradeFactor(attempt.turbo):.76+attempt.turboQuality*.32,speed=car.baseSpeed*startFactor*turboFactor*tune,rad=car.launchAngle*Math.PI/180,synergy=[attempt.start,attempt.turbo].filter(j=>JUDGE_LEVEL[j]>=3).length,star=car.skill==='star'?1+synergy*.035:1,powerStart=car.skill==='powerStart'&&JUDGE_LEVEL[attempt.start]>=3?1.08:(car.skill==='powerStart'&&JUDGE_LEVEL[attempt.start]<=1?.93:1),vx=speed*Math.cos(rad)*powerStart*star,vy=speed*Math.sin(rad)*(car.skill==='rocket'?1.08:1);flight={x:0,y:0,vx,vy,time:0,distanceScale:car.distanceScale||1,lastReal:performance.now(),nitroStartReal:performance.now()+260,nitroProgress:0,nitroPerfect:makePerfectCapture(),nitroUsed:false,nitroJudge:null,nitroQuality:0,bounceCount:0,maxHeight:0,cameraX:0,startContribution:Math.max(0,Math.round((speed-65)*6.4*(car.distanceScale||1))),turboContribution:Math.max(0,Math.round(attempt.turboQuality*690*(car.distanceScale||1))),nitroContribution:0,recordLine:rec.best||0,rawCap:car.rawCap,finalCap:car.finalCap,particles:[],trail:[],wheelAngle:0,nitroFlash:0,awakeningTier:0,awakeningFlash:0,awakeningAge:0,awakeningPulse:0,awakeningLabel:'',awakeningVfx:makeAwakeningVfxState(),artVfxAge:0,artLandingAge:0,artVfxOriginX:0,artVfxOriginY:0,cameraShake:.65,cameraZoom:.45,cameraKick:.7,landingFx:false,finishAt:0,finished:false,nitroAnnounced:false};for(let i=0;i<(reduceMotion?8:18);i++)flight.particles.push({x:-5-Math.random()*10,y:Math.random()*8,vx:-28-Math.random()*72,vy:(Math.random()-.35)*34,life:.45+Math.random()*.55,size:2+Math.random()*5,gravity:10,drag:1.8,hue:i%4===0?42:null});el.flightDistance.textContent='0m';el.flightName.textContent=car.name;const nc=car.control.nitro;el.nitroLane.style.setProperty('--orb-size',`${nc.orb}px`);el.nitroLane.style.setProperty('--target-size',`${nc.target}px`);el.nitroLane.className='nitro-lane';el.nitroOrb.style.top='0%';el.nitroOrb.style.left='50%';el.boost.className='boost-button waiting';el.boost.querySelector('span').textContent='タップ！';el.boost.querySelector('small').textContent=car.skill==='valkyrie'?'OVERDRIVE｜リングを射抜け':'丸をリングに重ねる';el.boostCall.textContent=`3 COMBO · 3｜${nc.label}`;Sound.launch();vibrate([55,28,75]);flightRAF=requestAnimationFrame(flightLoop);};
-  const applyBoost=()=>{if(phase!=='flight'||!flight||flight.nitroUsed||flight.finished)return;const cfg=currentCar.control.nitro;if(flight.nitroProgress<.02)return;const target=.76,error=Math.abs(flight.nitroProgress-target),judge=judgeByThreshold(error,cfg),q=JUDGE_SCORE[judge],car=currentCar,willValkyrieAwaken=car.id==='valkyrie'&&[attempt.start,attempt.turbo,judge].every(j=>JUDGE_LEVEL[j]>=3);flight.nitroUsed=true;if(willValkyrieAwaken){flight.nitroFlash=.06;flight.cameraShake=.05;flight.cameraZoom=.04;flight.cameraKick=.03;}else{flight.nitroFlash=1;flight.cameraShake=1;flight.cameraZoom=1;flight.cameraKick=1;pulseClass(el.flightScreen,'fx-nitro',680);flashImpact('nitro',judge);}const tune=1+tuneRate(car.id);let power=car.boostPower*q*tune;if(car.skill==='rocket')power=car.boostPower*rocketGradeFactor(judge)*tune;if(car.skill==='nitro'){power*=judge==='SUPER'?1.40:judge==='CRITICAL'?1.28:judge==='GREAT'?1.15:1;}flight.vx+=power*(car.skill==='rocket'?1.16:1);flight.vy+=car.boostLift*q;if(car.skill==='warp'&&JUDGE_LEVEL[judge]>=3)flight.x+=130+q*110;if(car.skill==='warp'&&JUDGE_LEVEL[judge]<=1)flight.x=Math.max(0,flight.x-80);if(car.skill==='valkyrie'&&JUDGE_LEVEL[judge]>=3){const chosen=[attempt.start,attempt.turbo,judge].every(j=>JUDGE_LEVEL[j]>=3);flight.vx*=chosen?1.13:1.05;flight.vy+=chosen?10:4;if(!chosen){flight.nitroFlash=1.35;flight.cameraShake=1.3;flight.cameraZoom=1.2;}}if(car.skill==='star'){const chain=[attempt.start,attempt.turbo,judge].filter(j=>j==='SUPER').length;flight.vx*=1+chain*.035;flight.vy+=chain*2.8;}flight.nitroJudge=judge;flight.nitroQuality=q;attempt.nitroPrecision=timingPrecision(error,target);flight.nitroContribution=Math.round((power*8.2+(car.skill==='warp'&&JUDGE_LEVEL[judge]>=3?190:0))*(car.distanceScale||1));attempt.nitro=judge;attempt.nitroQuality=q;el.nitroLane.classList.add('used');el.boost.className='boost-button used';el.boost.querySelector('span').textContent=JUDGE_SHORT[judge];el.boostCall.textContent=car.skill==='valkyrie'&&JUDGE_LEVEL[judge]>=3?'VALKYRIE MODE｜選ばれた':judge==='SUPER'?'完璧なニトロ！':judge==='CRITICAL'?'最高のタイミング！':judge==='MISS'?'まだ飛べる！':'ニトロ成功！';triggerAwakening(car,judge);const valkyrieBreaking=car.id==='valkyrie'&&Boolean(flight.awakeningTier);if(!valkyrieBreaking){Sound.judge(judge,2);Sound.noise(.18,.035,350);}if(judge==='SUPER'&&!valkyrieBreaking){const overlaySmall=el.superOverlay.querySelector('small'),overlayStrong=el.superOverlay.querySelector('strong'),awakened=Boolean(flight.awakeningTier);if(awakened){const ap=awakeningProfile(car);overlaySmall.textContent=ap.label;overlayStrong.innerHTML=flight.awakeningTier===2?'AWAKENING<br>MAXIMUM!':'AWAKENING!';}else{overlaySmall.textContent='PERFECT TIMING';overlayStrong.innerHTML='SUPER<br>CRITICAL!';}el.superOverlay.classList.remove('show');void el.superOverlay.offsetWidth;el.superOverlay.classList.add('show');schedule(()=>{el.superOverlay.classList.remove('show');overlaySmall.textContent='PERFECT TIMING';overlayStrong.innerHTML='SUPER<br>CRITICAL!';},awakened?900:620);vibrate(awakened?[70,20,110,24,160,28,210]:[60,22,110,28,150]);}else if(!valkyrieBreaking)vibrate(judge==='CRITICAL'?[50,20,90]:35);const nitroParticles=valkyrieBreaking?0:(flight.awakeningTier?(reduceMotion?4:10):(reduceMotion?3:8));for(let i=0;i<nitroParticles;i++)flight.particles.push({x:flight.x,y:flight.y,vx:-20-Math.random()*55,vy:(Math.random()-.5)*40,life:.48+Math.random()*.48,size:2.5+Math.random()*4.5,gravity:3,drag:.8,hue:null});};
+  const beginFlight=()=>{phase='flight';el.flightScreen.dataset.machine=currentCar.id;setShield(false);el.superOverlay.classList.remove('show');showScreen('flight');resizeCanvas();pulseClass(el.flightScreen,'fx-launch',620);flashImpact('accel',attempt.start);const car=currentCar,rec=getRecord(car.id),growth=growthSnapshot(rec),growthScale=growthPassiveScale(growth),tune=1+tuneRate(car.id),startFactor=car.skill==='rocket'?rocketGradeFactor(attempt.start):.61+attempt.startQuality*.49,turboFactor=car.skill==='rocket'?rocketGradeFactor(attempt.turbo):.76+attempt.turboQuality*.32,speed=car.baseSpeed*startFactor*turboFactor*tune,rad=car.launchAngle*Math.PI/180,synergy=[attempt.start,attempt.turbo].filter(j=>JUDGE_LEVEL[j]>=3).length,star=car.skill==='star'?1+synergy*.035:1,powerStart=car.skill==='powerStart'&&JUDGE_LEVEL[attempt.start]>=3?1.08:(car.skill==='powerStart'&&JUDGE_LEVEL[attempt.start]<=1?.93:1),vx=speed*Math.cos(rad)*powerStart*star,vy=speed*Math.sin(rad)*(car.skill==='rocket'?1.08:1);flight={x:0,y:0,vx,vy,time:0,distanceScale:(car.distanceScale||1)*growthScale,growthScale,growthSnapshot:growth,lastReal:performance.now(),nitroStartReal:performance.now()+260,nitroProgress:0,nitroPerfect:makePerfectCapture(),nitroUsed:false,nitroJudge:null,nitroQuality:0,bounceCount:0,maxHeight:0,cameraX:0,startContribution:Math.max(0,Math.round((speed-65)*6.4*(car.distanceScale||1))),turboContribution:Math.max(0,Math.round(attempt.turboQuality*690*(car.distanceScale||1))),nitroContribution:0,recordLine:rec.best||0,rawCap:Math.round(car.rawCap*growthScale),finalCap:Math.round(car.finalCap*growthScale+limitBreakPotential(rec.tuneLevel||0)+420),limitBreakPotential:limitBreakPotential(rec.tuneLevel||0),limitBreakApplied:0,specialMoveActive:false,specialMoveName:'',specialBonus:0,particles:[],trail:[],wheelAngle:0,nitroFlash:0,awakeningTier:0,awakeningFlash:0,awakeningAge:0,awakeningPulse:0,awakeningLabel:'',awakeningVfx:makeAwakeningVfxState(),artVfxAge:0,artLandingAge:0,artVfxOriginX:0,artVfxOriginY:0,cameraShake:.65,cameraZoom:.45,cameraKick:.7,landingFx:false,finishAt:0,finished:false,nitroAnnounced:false};for(let i=0;i<(reduceMotion?8:18);i++)flight.particles.push({x:-5-Math.random()*10,y:Math.random()*8,vx:-28-Math.random()*72,vy:(Math.random()-.35)*34,life:.45+Math.random()*.55,size:2+Math.random()*5,gravity:10,drag:1.8,hue:i%4===0?42:null});el.flightDistance.textContent='0m';el.flightName.textContent=car.name;const nc=car.control.nitro;el.nitroLane.style.setProperty('--orb-size',`${nc.orb}px`);el.nitroLane.style.setProperty('--target-size',`${nc.target}px`);el.nitroLane.className='nitro-lane';el.nitroOrb.style.top='0%';el.nitroOrb.style.left='50%';el.boost.className='boost-button waiting';el.boost.querySelector('span').textContent='タップ！';el.boost.querySelector('small').textContent=car.skill==='valkyrie'?'NITRO｜リングを射抜け':'丸をリングに重ねる';el.boostCall.textContent=`3 COMBO · 3｜${nc.label}`;Sound.launch();vibrate([55,28,75]);flightRAF=requestAnimationFrame(flightLoop);};
+  const applyBoost=()=>{if(phase!=='flight'||!flight||flight.nitroUsed||flight.finished)return;const cfg=currentCar.control.nitro;if(flight.nitroProgress<.02)return;const target=.76,error=Math.abs(flight.nitroProgress-target),judge=judgeByThreshold(error,cfg),q=JUDGE_SCORE[judge],car=currentCar,willValkyrieAwaken=car.id==='valkyrie'&&[attempt.start,attempt.turbo,judge].every(j=>JUDGE_LEVEL[j]>=3);flight.nitroUsed=true;if(willValkyrieAwaken){flight.nitroFlash=.06;flight.cameraShake=.05;flight.cameraZoom=.04;flight.cameraKick=.03;}else{flight.nitroFlash=1;flight.cameraShake=1;flight.cameraZoom=1;flight.cameraKick=1;pulseClass(el.flightScreen,'fx-nitro',680);flashImpact('nitro',judge);}const tune=1+tuneRate(car.id);let power=car.boostPower*q*tune;if(car.skill==='rocket')power=car.boostPower*rocketGradeFactor(judge)*tune;if(car.skill==='nitro'){power*=judge==='SUPER'?1.40:judge==='CRITICAL'?1.28:judge==='GREAT'?1.15:1;}flight.vx+=power*(car.skill==='rocket'?1.16:1);flight.vy+=car.boostLift*q;if(car.skill==='warp'&&JUDGE_LEVEL[judge]>=3)flight.x+=130+q*110;if(car.skill==='warp'&&JUDGE_LEVEL[judge]<=1)flight.x=Math.max(0,flight.x-80);if(car.skill==='valkyrie'&&JUDGE_LEVEL[judge]>=3){const chosen=[attempt.start,attempt.turbo,judge].every(j=>JUDGE_LEVEL[j]>=3);flight.vx*=chosen?1.13:1.05;flight.vy+=chosen?10:4;if(!chosen){flight.nitroFlash=1.35;flight.cameraShake=1.3;flight.cameraZoom=1.2;}}if(car.skill==='star'){const chain=[attempt.start,attempt.turbo,judge].filter(j=>j==='SUPER').length;flight.vx*=1+chain*.035;flight.vy+=chain*2.8;}flight.nitroJudge=judge;flight.nitroQuality=q;attempt.nitroPrecision=timingPrecision(error,target);flight.nitroContribution=Math.round((power*8.2+(car.skill==='warp'&&JUDGE_LEVEL[judge]>=3?190:0))*(car.distanceScale||1));attempt.nitro=judge;attempt.nitroQuality=q;el.nitroLane.classList.add('used');el.boost.className='boost-button used';el.boost.querySelector('span').textContent=JUDGE_SHORT[judge];el.boostCall.textContent=car.skill==='valkyrie'&&JUDGE_LEVEL[judge]>=3?'MACH SYNC｜判定中':judge==='SUPER'?'完璧なニトロ！':judge==='CRITICAL'?'最高のタイミング！':judge==='MISS'?'まだ飛べる！':'ニトロ成功！';triggerAwakening(car,judge);activateGrowthSpecial(car,judge);const valkyrieBreaking=car.id==='valkyrie'&&Boolean(flight.awakeningTier);if(!valkyrieBreaking){Sound.judge(judge,2);Sound.noise(.18,.035,350);}if(judge==='SUPER'&&!valkyrieBreaking){const overlaySmall=el.superOverlay.querySelector('small'),overlayStrong=el.superOverlay.querySelector('strong'),awakened=Boolean(flight.awakeningTier);if(awakened){const ap=awakeningProfile(car);overlaySmall.textContent=ap.label;overlayStrong.innerHTML=flight.awakeningTier===2?'AWAKENING<br>MAXIMUM!':'AWAKENING!';}else{overlaySmall.textContent='PERFECT TIMING';overlayStrong.innerHTML='SUPER<br>CRITICAL!';}el.superOverlay.classList.remove('show');void el.superOverlay.offsetWidth;el.superOverlay.classList.add('show');schedule(()=>{el.superOverlay.classList.remove('show');overlaySmall.textContent='PERFECT TIMING';overlayStrong.innerHTML='SUPER<br>CRITICAL!';},awakened?900:620);vibrate(awakened?[70,20,110,24,160,28,210]:[60,22,110,28,150]);}else if(!valkyrieBreaking)vibrate(judge==='CRITICAL'?[50,20,90]:35);const nitroParticles=valkyrieBreaking?0:(flight.awakeningTier?(reduceMotion?4:10):(reduceMotion?3:8));for(let i=0;i<nitroParticles;i++)flight.particles.push({x:flight.x,y:flight.y,vx:-20-Math.random()*55,vy:(Math.random()-.5)*40,life:.48+Math.random()*.48,size:2.5+Math.random()*4.5,gravity:3,drag:.8,hue:null});};
   const nitroMotion=(mode,elapsed,cfg)=>{
     const t=clamp(elapsed/Math.max(450,cfg.travel||1500),0,1.22);
     let y=t,x=0;
@@ -1949,7 +2177,7 @@ body.modal-open{overflow:hidden}
   const drawClouds=(w,h,altitudeT)=>{ctx.save();ctx.globalAlpha=clamp(1-altitudeT*.9,.12,.8);for(let i=0;i<8;i++){const p=worldToScreen(i*460+240,180+(i%3)*115);if(p.x<-150||p.x>w+150)continue;ctx.fillStyle='rgba(255,255,255,.72)';ctx.beginPath();ctx.ellipse(p.x,p.y,58,22,0,0,Math.PI*2);ctx.ellipse(p.x-32,p.y+4,36,17,0,0,Math.PI*2);ctx.ellipse(p.x+35,p.y+5,42,18,0,0,Math.PI*2);ctx.fill();}ctx.restore();};
   const drawCity=(w,h,distanceT)=>{const gy=h*.72;ctx.save();ctx.globalAlpha=clamp(1-distanceT*1.3,.08,.45);ctx.fillStyle='#153d56';for(let i=0;i<30;i++){const x=((i*79-flight.cameraX*.18)%(w+120))-60,bh=25+(i*31%75);ctx.fillRect(x,gy-bh,35+(i%4)*10,bh);}ctx.restore();};
   const drawGround=(w,h)=>{const gy=h*.72;ctx.fillStyle='#447c38';ctx.fillRect(0,gy-15,w,22);const road=ctx.createLinearGradient(0,gy,0,h);road.addColorStop(0,'#566276');road.addColorStop(1,'#121a2a');ctx.fillStyle=road;ctx.fillRect(0,gy,w,h-gy);ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.setLineDash([40,34]);ctx.lineDashOffset=flight.cameraX*.45;ctx.beginPath();ctx.moveTo(0,gy+(h-gy)*.43);ctx.lineTo(w,gy+(h-gy)*.43);ctx.stroke();ctx.setLineDash([]);};
-  const drawLandmarks=w=>{const max=currentCar.skill==='rocket'?5000:3500;for(let m=500;m<=max;m+=500){const p=worldToScreen(m/flight.distanceScale,0);if(p.x<-40||p.x>w+40)continue;ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle=m%1000===0?'#ffd83d':'#fff';ctx.fillRect(-2,-86,4,86);ctx.beginPath();ctx.moveTo(2,-84);ctx.lineTo(48,-70);ctx.lineTo(2,-56);ctx.closePath();ctx.fill();ctx.fillStyle='#071222';ctx.font='900 12px sans-serif';ctx.textAlign='center';ctx.fillText(`${m}m`,24,-66);ctx.restore();}};
+  const drawLandmarks=w=>{const max=Math.max(3500,Math.ceil((flight?.finalCap||currentCar.finalCap||3500)/500)*500);for(let m=500;m<=max;m+=500){const p=worldToScreen(m/flight.distanceScale,0);if(p.x<-40||p.x>w+40)continue;ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle=m%1000===0?'#ffd83d':'#fff';ctx.fillRect(-2,-86,4,86);ctx.beginPath();ctx.moveTo(2,-84);ctx.lineTo(48,-70);ctx.lineTo(2,-56);ctx.closePath();ctx.fill();ctx.fillStyle='#071222';ctx.font='900 12px sans-serif';ctx.textAlign='center';ctx.fillText(`${m}m`,24,-66);ctx.restore();}};
   const drawRecordLine=w=>{if(!flight.recordLine)return;const p=worldToScreen(flight.recordLine/flight.distanceScale,0);if(p.x<-30||p.x>w+30)return;ctx.save();ctx.strokeStyle='#ff53ce';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(p.x,15);ctx.lineTo(p.x,canvasMetrics.h*.72);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff53ce';ctx.font='1000 11px sans-serif';ctx.textAlign='center';ctx.fillText('MACHINE BEST',p.x,30);ctx.restore();};
   const drawTrail=car=>{const trail=flight.trail;if(trail.length<2)return;const sourceArtScale=flight.awakeningTier&&machineSourceArtReady(car.id)?.42:1,trailScale=(car.id==='valkyrie'&&flight.awakeningVfx?flight.awakeningVfx.trailIntensity:1)*sourceArtScale;const fx=fxProfile(car),pts=[];for(let i=0;i<trail.length;i++){const p=worldToScreen(trail[i].x,trail[i].y);p.life=trail[i].life*trailScale;p.i=i;pts.push(p);}const boosted=flight.nitroUsed&&JUDGE_LEVEL[flight.nitroJudge]>=1,boost=boosted?1.45:1;ctx.save();ctx.globalAlpha=flight.awakeningTier?(flight.awakeningTier===2?1:.84):.56;ctx.globalCompositeOperation='lighter';if(fx.kind==='road'){strokeRibbon(pts,fx.edge,9*boost,.10,10);strokeRibbon(pts,fx.mid,4.2*boost,.32,7);ctx.setLineDash([18,14]);strokeRibbon(pts,fx.core,1.6,.58,3);ctx.setLineDash([]);}else if(fx.kind==='stabilizer'){for(const off of [-7,7]){const q=pts.map((p,i)=>({x:p.x,y:p.y+off*Math.sin(i*.28+flight.time*3.2)}));strokeRibbon(q,fx.edge,7,.11,10);strokeRibbon(q,fx.mid,2.8,.46,7);}strokeRibbon(pts,fx.core,1.2,.65,4);}else if(fx.kind==='bounce'){const q=pts.map((p,i)=>({x:p.x,y:p.y+Math.sin(i*.68+flight.time*5)*5}));strokeRibbon(q,fx.edge,8,.11,8);strokeRibbon(q,fx.mid,3.2,.46,5);for(let i=4;i<pts.length;i+=8){const p=pts[i];ctx.globalAlpha=.28*p.life;ctx.strokeStyle=fx.core;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,5+(i%3)*3,0,Math.PI*2);ctx.stroke();}}else if(fx.kind==='spear'){strokeRibbon(pts,fx.edge,13*boost,.12,14);strokeRibbon(pts,fx.mid,5.2*boost,.45,8);strokeRibbon(pts,fx.core,1.4,.8,3);for(let i=5;i<pts.length;i+=10){const p=pts[i],n=pts[Math.max(0,i-2)];ctx.globalAlpha=.20*p.life;ctx.fillStyle=fx.mid;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(n.x-22,n.y-8);ctx.lineTo(n.x-12,n.y+8);ctx.closePath();ctx.fill();}}else if(fx.kind==='plasma'){strokeRibbon(pts,fx.edge,16*boost,.12,16);strokeRibbon(pts,fx.mid,7*boost,.42,10);strokeRibbon(pts,fx.core,2.1,.83,5);for(let i=8;i<pts.length;i+=12){const p=pts[i];ctx.globalAlpha=.22*p.life;ctx.strokeStyle=fx.core;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x-18,p.y-8);ctx.lineTo(p.x+4,p.y);ctx.lineTo(p.x-18,p.y+8);ctx.stroke();}}else if(fx.kind==='crystal'){const upper=pts.map((p,i)=>({x:p.x,y:p.y-5-Math.sin(i*.22+flight.time*2.2)*5})),lower=pts.map((p,i)=>({x:p.x,y:p.y+5+Math.sin(i*.22+flight.time*2.2)*5}));strokeRibbon(upper,fx.edge,8,.13,12);strokeRibbon(lower,fx.mid,6,.13,12);strokeRibbon(upper,fx.mid,2.4,.5,6);strokeRibbon(lower,'#ffd8f4',2,.48,5);strokeRibbon(pts,fx.core,1.2,.68,3);}else if(fx.kind==='rift'){const a=pts.filter((_,i)=>i%2===0),b=pts.filter((_,i)=>i%2===1);strokeRibbon(a,fx.edge,10,.18,14);strokeRibbon(b,fx.mid,5,.38,9);for(let i=7;i<pts.length;i+=11){const p=pts[i];ctx.globalAlpha=.25*p.life;ctx.strokeStyle=i%2?fx.mid:fx.edge;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x-16,p.y-14);ctx.lineTo(p.x+8,p.y);ctx.lineTo(p.x-12,p.y+13);ctx.stroke();}}else if(fx.kind==='valkyrie'){strokeRibbon(pts,fx.mid,15*boost,.10,18);strokeRibbon(pts,fx.edge,7,.18,10);strokeRibbon(pts,fx.core,2.1,.76,5);for(let i=8;i<pts.length;i+=13){const p=pts[i];ctx.globalAlpha=.3*p.life;ctx.strokeStyle=fx.edge;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(p.x-17,p.y);ctx.lineTo(p.x-7,p.y-7);ctx.lineTo(p.x+3,p.y);ctx.lineTo(p.x-7,p.y+7);ctx.closePath();ctx.stroke();}}else{strokeRibbon(pts,fx.edge,20*boost,.13,20);strokeRibbon(pts,fx.mid,9*boost,.38,12);strokeRibbon(pts,fx.core,3.2,.9,6);for(let i=6;i<pts.length;i+=10){const p=pts[i];ctx.globalAlpha=.22*p.life;ctx.strokeStyle=fx.core;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x-18,p.y-11);ctx.lineTo(p.x+2,p.y);ctx.lineTo(p.x-18,p.y+11);ctx.stroke();}}ctx.restore();};
   const canvasImages=new Map();
@@ -1976,13 +2204,33 @@ body.modal-open{overflow:hidden}
     secret:{label:'ABSOLUTE ROCKET',core:'#ffffff',mid:'#ffe45d',edge:'#ff4d1f',kind:'solar'}
   });
   const awakeningProfile=car=>AWAKENING_PROFILE[car.id]||AWAKENING_PROFILE.boon;
+  const activateGrowthSpecial=(car,judge)=>{
+    if(!flight)return;
+    const grades=[attempt.start,attempt.turbo,judge],growth=flight.growthSnapshot||growthSnapshot(getRecord(car.id)),special=specialMoveState(car,grades,growth);
+    const displayName=special.displayName||special.profile.name;
+    flight.specialMoveActive=special.active;flight.specialMoveName=displayName;flight.specialBonus=special.bonus;
+    if(!special.active)return;
+    flight.finalCap=Math.round((flight.finalCap||car.finalCap)*(1+special.bonus));
+    el.boostCall.textContent=`${displayName}｜${special.tier>=3?'PERFECT':special.tier>=2?'MAXIMUM':'ACTIVATE'}`;
+    flight.cameraShake=Math.max(flight.cameraShake||0,special.tier>=2?1.75:1.30);flight.cameraZoom=Math.max(flight.cameraZoom||0,special.tier>=2?1.48:1.16);flight.cameraKick=Math.max(flight.cameraKick||0,special.tier>=2?1.28:.88);
+    if(car.id==='ssr')flight.x+=40+growth.awakening*5;
+    if(car.id==='bike')flight.vx*=1.015;
+    if(car.id==='sport')flight.vx*=1.018;
+    if(car.id==='wagon')flight.vy+=2.5;
+    if(car.id==='buggy')flight.vx*=1.012;
+    if(car.id==='princess')flight.vy+=3.5;
+    if(car.id==='valkyrie')flight.vx*=1.018;
+    if(car.id==='secret')flight.vx*=1.012;
+    Sound.tone(special.tier===2?1480:1180,.16,'triangle',special.tier===2?.052:.040);Sound.tone(special.tier===2?2160:1760,.22,'sine',special.tier===2?.038:.028,.05);
+  };
   const triggerAwakening=(car,judge)=>{if(!flight)return;const grades=[attempt.start,attempt.turbo,judge],allCritical=grades.every(g=>JUDGE_LEVEL[g]>=3),allSuper=grades.every(g=>g==='SUPER');if(!allCritical)return;const tier=allSuper?2:1,profile=awakeningProfile(car);flight.awakeningTier=tier;flight.awakeningFlash=car.id==='valkyrie'?0:(tier===2?1.45:1);flight.awakeningPulse=car.id==='valkyrie'?0:(tier===2?1.25:.9);flight.awakeningAge=0;flight.artVfxAge=0;flight.artLandingAge=0;flight.artVfxOriginX=flight.x;flight.artVfxOriginY=flight.y;flight.awakeningLabel=profile.label;if(car.id==='valkyrie'){flight.awakeningVfx=makeAwakeningVfxState();setAwakeningPhase(AWAKENING_PHASE.BREAK);flight.cameraShake=.08;flight.cameraZoom=.06;flight.cameraKick=.04;flight.nitroFlash=.08;el.boostCall.textContent='VALKYRIE｜BREAK';schedule(()=>{if(!flight||currentCar.id!=='valkyrie'||flight.awakeningVfx?.phase!==AWAKENING_PHASE.ASCEND)return;flight.awakeningFlash=tier===2?1.30:1;flight.awakeningPulse=tier===2?1.12:.86;flight.cameraShake=Math.max(flight.cameraShake||0,tier===2?1.55:1.18);flight.cameraZoom=Math.max(flight.cameraZoom||0,tier===2?1.34:1.08);flight.cameraKick=Math.max(flight.cameraKick||0,tier===2?1.2:.82);flight.nitroFlash=Math.max(flight.nitroFlash||0,tier===2?1.35:1.05);el.boostCall.textContent=tier===2?`${profile.label}｜MAXIMUM`:`${profile.label}｜AWAKEN`;Sound.tone(tier===2?1320:1040,.13,'triangle',tier===2?.055:.042);Sound.tone(tier===2?1980:1560,.18,'sine',tier===2?.040:.028,.045);vibrate(tier===2?[70,20,110,24,160,28,210]:[60,22,110,28,150]);if(!reduceMotion){const count=tier===2?12:8;for(let i=0;i<count;i++){const a=i/count*Math.PI*2,spd=24+(i%5)*11;flight.particles.push({x:flight.x,y:flight.y,vx:Math.cos(a)*spd-14,vy:Math.sin(a)*spd,life:.55+(i%4)*.12,size:2.5+(i%3)*1.3,gravity:2,drag:.7,hue:null});}}},150);return;}flight.cameraShake=Math.max(flight.cameraShake||0,tier===2?1.55:1.18);flight.cameraZoom=Math.max(flight.cameraZoom||0,tier===2?1.34:1.08);flight.cameraKick=Math.max(flight.cameraKick||0,tier===2?1.2:.82);flight.nitroFlash=Math.max(flight.nitroFlash||0,tier===2?1.45:1.12);el.boostCall.textContent=tier===2?`${profile.label}｜MAXIMUM`:`${profile.label}｜AWAKEN`;Sound.tone(tier===2?1320:1040,.13,'triangle',tier===2?.055:.042);Sound.tone(tier===2?1980:1560,.18,'sine',tier===2?.040:.028,.045);if(!reduceMotion){const count=tier===2?18:11;for(let i=0;i<count;i++){const a=i/count*Math.PI*2,spd=24+(i%5)*11;flight.particles.push({x:flight.x,y:flight.y,vx:Math.cos(a)*spd-14,vy:Math.sin(a)*spd,life:.55+(i%4)*.12,size:2.5+(i%3)*1.3,gravity:2,drag:.7,hue:null});}}};
   const drawAwakeningBackdrop=(car,w,h,spaceT)=>{const f=flight,tier=f.awakeningTier||0;if(!tier||(car.id==='valkyrie'&&isValkyrieBreak()))return;if(car.id!=='valkyrie'&&machineSourceArtReady(car.id))return;const a=awakeningProfile(car),strength=(tier===2?.18:.11)+Math.min(.12,(f.awakeningPulse||0)*.08);ctx.save();ctx.globalCompositeOperation='lighter';if(a.kind==='lane'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;ctx.lineWidth=tier===2?3:2;for(const off of [-1,1]){ctx.beginPath();ctx.moveTo(w*.52,h*.48);ctx.lineTo(w*.52+off*w*.48,h*.92);ctx.stroke();}}else if(a.kind==='stability'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;for(let i=0;i<2+tier;i++){ctx.lineWidth=1.2+i*.5;ctx.beginPath();ctx.ellipse(w*.54,h*.40,95+i*42,28+i*11,0,0,Math.PI*2);ctx.stroke();}}else if(a.kind==='volt'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;ctx.lineWidth=1.5;for(let i=0;i<4+tier;i++){const x=(i+1)*w/(5+tier),y=h*(.20+(i%3)*.10);ctx.beginPath();ctx.moveTo(x-55,y);ctx.lineTo(x-20,y+16);ctx.lineTo(x+5,y-6);ctx.lineTo(x+38,y+9);ctx.stroke();}}else if(a.kind==='spear'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;ctx.lineWidth=tier===2?3.5:2.2;ctx.beginPath();ctx.moveTo(0,h*.42);ctx.lineTo(w*.68,h*.42);ctx.stroke();ctx.lineWidth=1;for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(w*.15+i*85,h*.42-18);ctx.lineTo(w*.20+i*85,h*.42);ctx.lineTo(w*.15+i*85,h*.42+18);ctx.stroke();}}else if(a.kind==='diamond'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;for(let i=0;i<3+tier;i++){const r=56+i*46;ctx.lineWidth=1.2+i*.35;ctx.beginPath();ctx.moveTo(w*.55,h*.36-r*.55);ctx.lineTo(w*.55+r,h*.36);ctx.lineTo(w*.55,h*.36+r*.55);ctx.lineTo(w*.55-r,h*.36);ctx.closePath();ctx.stroke();}}else if(a.kind==='royal'){ctx.globalAlpha=strength;ctx.strokeStyle=a.mid;for(let i=0;i<3+tier;i++){const r=75+i*38;ctx.lineWidth=1.1+i*.3;ctx.beginPath();ctx.arc(w*.55,h*.36,r,Math.PI*1.08,Math.PI*1.92);ctx.stroke();}ctx.strokeStyle=a.edge;ctx.beginPath();ctx.moveTo(w*.46,h*.18);ctx.lineTo(w*.50,h*.10);ctx.lineTo(w*.55,h*.17);ctx.lineTo(w*.60,h*.09);ctx.lineTo(w*.64,h*.18);ctx.stroke();}else if(a.kind==='rift'){ctx.globalAlpha=strength+.04;ctx.translate(w*.57,h*.36);for(let i=0;i<3+tier;i++){ctx.strokeStyle=i%2?a.mid:a.edge;ctx.lineWidth=1.2+i*.45;ctx.beginPath();ctx.ellipse(0,0,90+i*42,24+i*13,f.time*.04+i*.62,0,Math.PI*2);ctx.stroke();}}else if(a.kind==='valkyrie'){if(valkyrieArtReady(['rune-halo'])){ctx.restore();return;}const v=f.awakeningVfx||makeAwakeningVfxState();ctx.globalAlpha=(strength+.04)*clamp(v.worldFxAlpha/.62,0,1);ctx.strokeStyle=a.edge;for(let i=0;i<3+tier;i++){const r=82+i*48;ctx.lineWidth=1.1+i*.3;ctx.beginPath();ctx.arc(w*.58,h*.37,r,Math.PI*1.12,Math.PI*1.88);ctx.stroke();}ctx.strokeStyle=a.mid;ctx.beginPath();ctx.moveTo(w*.45,h*.26);ctx.lineTo(w*.58,h*.15);ctx.lineTo(w*.71,h*.26);ctx.stroke();}else if(a.kind==='solar'){ctx.globalAlpha=strength+.03;ctx.translate(w*.56,h*.36);ctx.strokeStyle=a.mid;for(let i=0;i<3+tier;i++){const r=48+i*35;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();}for(let i=0;i<8;i++){const ang=i*Math.PI/4;ctx.beginPath();ctx.moveTo(Math.cos(ang)*55,Math.sin(ang)*55);ctx.lineTo(Math.cos(ang)*(95+tier*20),Math.sin(ang)*(95+tier*20));ctx.stroke();}}ctx.restore();};
   const drawAwakeningForeground=(car,w,h,spaceT)=>{const f=flight,tier=f.awakeningTier||0;if(!tier||(car.id==='valkyrie'&&isValkyrieBreak()))return;if(car.id!=='valkyrie'&&machineSourceArtReady(car.id))return;const a=awakeningProfile(car),p=worldToScreen(f.x,f.y),flash=clamp(f.awakeningFlash||0,0,1),pulse=.5+.5*Math.sin(f.time*8);ctx.save();ctx.globalCompositeOperation='lighter';if(flash>.02){const g=ctx.createRadialGradient(p.x,p.y,6,p.x,p.y,90+flash*120);g.addColorStop(0,`rgba(255,255,255,${.22*flash})`);g.addColorStop(.28,a.mid);g.addColorStop(1,'rgba(255,255,255,0)');ctx.globalAlpha=.18*flash;ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}ctx.translate(p.x,p.y);ctx.globalAlpha=tier===2?.30:.20;ctx.strokeStyle=a.core;ctx.lineWidth=tier===2?2.2:1.5;if(a.kind==='lane'){ctx.beginPath();ctx.moveTo(-90,-16);ctx.lineTo(-130,0);ctx.lineTo(-90,16);ctx.stroke();}else if(a.kind==='stability'){for(const off of [-18,18]){ctx.beginPath();ctx.ellipse(-8,off,76+8*pulse,14,0,0,Math.PI*2);ctx.stroke();}}else if(a.kind==='volt'){for(let i=0;i<3+tier;i++){const y=-24+i*16;ctx.beginPath();ctx.moveTo(-72,y);ctx.lineTo(-42,y-9);ctx.lineTo(-18,y+4);ctx.lineTo(10,y-5);ctx.stroke();}}else if(a.kind==='spear'){ctx.lineWidth=tier===2?4:2.6;ctx.beginPath();ctx.moveTo(-145,0);ctx.lineTo(-12,0);ctx.stroke();ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-55,-18);ctx.lineTo(-18,0);ctx.lineTo(-55,18);ctx.stroke();}else if(a.kind==='diamond'){for(let i=0;i<2+tier;i++){const r=36+i*23;ctx.beginPath();ctx.moveTo(0,-r*.62);ctx.lineTo(r,0);ctx.lineTo(0,r*.62);ctx.lineTo(-r,0);ctx.closePath();ctx.stroke();}}else if(a.kind==='royal'){for(let i=0;i<4+tier;i++){const ang=i/(4+tier)*Math.PI*2+f.time*.18,r=54+(i%2)*12;ctx.save();ctx.rotate(ang);ctx.fillStyle=i%2?a.mid:a.edge;ctx.globalAlpha=.24;ctx.fillRect(r,-1.2,16,2.4);ctx.restore();}ctx.strokeStyle='#ffe8a1';ctx.beginPath();ctx.moveTo(-18,-50);ctx.lineTo(-8,-66);ctx.lineTo(0,-52);ctx.lineTo(10,-68);ctx.lineTo(20,-50);ctx.stroke();}else if(a.kind==='rift'){ctx.strokeStyle=a.edge;for(let i=0;i<2+tier;i++){ctx.beginPath();ctx.moveTo(-82-i*12,-28-i*6);ctx.lineTo(-20,0);ctx.lineTo(-82-i*12,28+i*6);ctx.stroke();}}else if(a.kind==='valkyrie'){if(valkyrieArtAllReady(['mach-cone','wing-front'])){ctx.restore();return;}const vv=f.awakeningVfx||makeAwakeningVfxState();ctx.globalAlpha*=clamp(vv.screenFxAlpha/.30,0,1);ctx.strokeStyle=a.edge;ctx.lineWidth=tier===2?2.5:1.8;ctx.beginPath();ctx.moveTo(18,-34);ctx.lineTo(-128,0);ctx.lineTo(18,34);ctx.stroke();ctx.strokeStyle=a.mid;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,-3,58+8*pulse,Math.PI*.12,Math.PI*.88);ctx.stroke();}else if(a.kind==='solar'){for(let i=0;i<3+tier;i++){ctx.strokeStyle=i===0?a.core:(i%2?a.mid:a.edge);ctx.lineWidth=2-i*.2;ctx.beginPath();ctx.arc(0,0,34+i*18+5*pulse,0,Math.PI*2);ctx.stroke();}}ctx.restore();};
 
   const animateMeter=(node,end,duration=720)=>{const start=performance.now();const tick=now=>{const t=clamp((now-start)/duration,0,1),e=1-Math.pow(1-t,3);node.textContent=Math.round(end*e).toLocaleString();if(t<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);};
-  const finishFlight=()=>{if(!flight||phase!=='flight')return;phase='result';el.worldSubmitStatus.hidden=true;el.worldSubmitStatus.className='ranking-result-note';el.worldSubmitStatus.textContent='';el.resultRankButton.disabled=false;el.resultRankButton.classList.remove('registered');el.resultRankButton.textContent='🌍 この記録をランキングへ登録';el.resultRankingLink.innerHTML='🏆 世界ランキングを見る<small>このマシンの順位もすぐ確認</small>';if(!attempt.nitro){attempt.nitro='MISS';attempt.nitroQuality=0;attempt.nitroPrecision=0;}const raw=Math.max(0,Math.round(Math.min(flight.x*flight.distanceScale,flight.rawCap))),grades=[attempt.start,attempt.turbo,attempt.nitro||'MISS'],allSuper=grades.every(j=>j==='SUPER'),allCritical=grades.every(j=>JUDGE_LEVEL[j]>=3),tune=tuneRate(currentCar.id);let distance=raw;if(allSuper)distance=currentCar.rawCap;else if(allCritical)distance=Math.max(Math.round(distance*1.04),Math.round(currentCar.rawCap*.90));if(currentCar.skill==='valkyrie'){if(allSuper)distance=3143;else if(allCritical)distance=Math.max(distance,2960);else if(grades.some(g=>g==='MISS'))distance=Math.min(distance,2250);}
-    if(currentCar.skill==='rocket'){const rocketCap=rocketResultCap(grades);if(allSuper)distance=5000;else if(allCritical)distance=Math.min(rocketCap,Math.max(distance,4200));else distance=Math.min(distance,rocketCap);}distance=Math.min(currentCar.rawCap,distance);distance=Math.round(distance*(1+tune));distance=Math.min(currentCar.finalCap,distance);const achievedAt=nowIso();attempt.comboPrecision=comboPrecisionFromAttempt();lastRankCandidate=worldScorePayload(distance,achievedAt);const rec=getRecord(currentCar.id),oldCarBest=rec.best||0,oldOverall=state.best||0,isCarRecord=distance>oldCarBest;rec.best=Math.max(oldCarBest,distance);if(isCarRecord)rec.bestMeta={accelJudge:attempt.start||'MISS',turboJudge:attempt.turbo||'MISS',nitroJudge:attempt.nitro||'MISS',comboPrecision:attempt.comboPrecision||0,tuneLevel:rec.tuneLevel||0,achievedAt};rec.plays=(rec.plays||0)+1;state.best=Math.max(oldOverall,distance);state.plays=(state.plays||0)+1;state.total=(state.total||0)+distance;state.gachaTickets=(state.gachaTickets||0)+1;grades.forEach(j=>state.gradeCounts[j]=(state.gradeCounts[j]||0)+1);const atLeast=l=>grades.every(j=>JUDGE_LEVEL[j]>=l);state.runFlags.allGood=state.runFlags.allGood||atLeast(1);state.runFlags.allGreat=state.runFlags.allGreat||atLeast(2);state.runFlags.allCritical=state.runFlags.allCritical||atLeast(3);state.runFlags.superPerfect=state.runFlags.superPerfect||allSuper;state.runFlags.boostSuper=state.runFlags.boostSuper||attempt.nitro==='SUPER';refreshTrophies(true);save();el.resultDistance.textContent='0';animateMeter(el.resultDistance,distance,isCarRecord?900:720);pulseClass(el.resultCard,'fx-celebrate',620);el.resultKicker.textContent=currentCar.skill==='valkyrie'&&allCritical?'VALKYRIE MODE｜CHOSEN':allSuper?'SUPER PERFECT FLIGHT!':allCritical?'PERFECT FLIGHT!':'FLIGHT RESULT';el.newRecord.hidden=!isCarRecord;el.ticketEarned.hidden=false;renderVehicle(el.resultVehicle,currentCar,{boosting:allCritical,rolling:allCritical});fillResultJudge(el.judgeStart,el.scoreStart,attempt.start,attempt.startPrecision);fillResultJudge(el.judgeTurbo,el.scoreTurbo,attempt.turbo,attempt.turboPrecision);fillResultJudge(el.judgeNitro,el.scoreNitro,attempt.nitro||'MISS',attempt.nitroPrecision);el.resultPrecision.textContent=`${(attempt.comboPrecision||0).toFixed(2)}%`;Sound.land(isCarRecord);vibrate(isCarRecord?[45,25,75,25,110]:[32,22,45]);setNavigationLock(false);renderHome();showScreen('result');requestAnimationFrame(()=>autoSubmitWorldScore(lastRankCandidate));};
+  const finishFlight=()=>{if(!flight||phase!=='flight')return;phase='result';el.worldSubmitStatus.hidden=true;el.worldSubmitStatus.className='ranking-result-note';el.worldSubmitStatus.textContent='';el.resultRankButton.disabled=false;el.resultRankButton.classList.remove('registered');el.resultRankButton.textContent='🌍 この記録をランキングへ登録';el.resultRankingLink.innerHTML='🏆 世界ランキングを見る<small>このマシンの順位もすぐ確認</small>';if(!attempt.nitro){attempt.nitro='MISS';attempt.nitroQuality=0;attempt.nitroPrecision=0;}const rec=getRecord(currentCar.id),growthBefore=flight.growthSnapshot||growthSnapshot(rec),growthScale=flight.growthScale||growthPassiveScale(growthBefore),raw=Math.max(0,Math.round(Math.min(flight.x*flight.distanceScale,flight.rawCap))),grades=[attempt.start,attempt.turbo,attempt.nitro||'MISS'],allSuper=grades.every(j=>j==='SUPER'),allCritical=grades.every(j=>JUDGE_LEVEL[j]>=3),tune=tuneRate(currentCar.id);attempt.comboPrecision=comboPrecisionFromAttempt();const special=specialMoveState(currentCar,grades,growthBefore);let distance=raw;if(allSuper)distance=flight.rawCap;else if(allCritical)distance=Math.max(Math.round(distance*1.04),Math.round(currentCar.rawCap*.90*growthScale));if(currentCar.skill==='valkyrie'){if(allSuper)distance=Math.round(3143*growthScale);else if(allCritical)distance=Math.max(distance,Math.round(2960*growthScale));else if(grades.some(g=>g==='MISS'))distance=Math.min(distance,Math.round(2250*growthScale));}
+    if(currentCar.skill==='rocket'){const rocketCap=Math.round(rocketResultCap(grades)*growthScale);if(allSuper)distance=Math.round(5000*growthScale);else if(allCritical)distance=Math.min(rocketCap,Math.max(distance,Math.round(4200*growthScale)));else distance=Math.min(distance,rocketCap);}distance=Math.min(flight.rawCap,distance);distance=Math.round(distance*(1+tune));if(special.active)distance=Math.round(distance*(1+special.bonus));const growthFinalCap=currentCar.id==='secret'?Math.round(currentCar.finalCap*growthScale*(1+(special.active?special.bonus:0))):Math.round(currentCar.rawCap*(1+tune)*growthScale*(1+(special.active?special.bonus:0)));distance=Math.min(growthFinalCap,distance);const lbApplied=limitBreakAppliedBonus(currentCar,rec.tuneLevel||0,grades,attempt.comboPrecision);flight.limitBreakApplied=lbApplied;if(currentCar.id!=='secret'){distance+=lbApplied;if(currentCar.id==='valkyrie'&&distance>=SOFT_WALL_START&&!(allSuper&&attempt.comboPrecision>=99.00))distance=SOFT_WALL_START-1;distance=softWallDistance(distance);}const achievedAt=nowIso();lastRankCandidate=worldScorePayload(distance,achievedAt);const oldCarBest=rec.best||0,oldOverall=state.best||0,isCarRecord=distance>oldCarBest;rec.best=Math.max(oldCarBest,distance);if(isCarRecord)rec.bestMeta={accelJudge:attempt.start||'MISS',turboJudge:attempt.turbo||'MISS',nitroJudge:attempt.nitro||'MISS',comboPrecision:attempt.comboPrecision||0,tuneLevel:rec.tuneLevel||0,achievedAt};rec.plays=(rec.plays||0)+1;state.best=Math.max(oldOverall,distance);state.plays=(state.plays||0)+1;state.total=(state.total||0)+distance;state.gachaTickets=(state.gachaTickets||0)+1;grades.forEach(j=>state.gradeCounts[j]=(state.gradeCounts[j]||0)+1);const atLeast=l=>grades.every(j=>JUDGE_LEVEL[j]>=l);state.runFlags.allGood=state.runFlags.allGood||atLeast(1);state.runFlags.allGreat=state.runFlags.allGreat||atLeast(2);state.runFlags.allCritical=state.runFlags.allCritical||atLeast(3);state.runFlags.superPerfect=state.runFlags.superPerfect||allSuper;state.runFlags.boostSuper=state.runFlags.boostSuper||attempt.nitro==='SUPER';const growthResult=awardMachineGrowth(rec,grades);refreshTrophies(true);save();el.resultDistance.textContent='0';animateMeter(el.resultDistance,distance,isCarRecord?900:720);pulseClass(el.resultCard,'fx-celebrate',620);el.resultKicker.textContent=special.active?`${special.displayName||special.profile.name}｜${special.tier>=3?'PERFECT':special.tier>=2?'MAXIMUM':'ACTIVATED'}`:currentCar.skill==='valkyrie'&&allCritical?'MACH SYNC':allSuper?'SUPER PERFECT FLIGHT!':allCritical?'PERFECT FLIGHT!':'FLIGHT RESULT';el.newRecord.hidden=!isCarRecord;el.ticketEarned.hidden=false;renderVehicle(el.resultVehicle,currentCar,{boosting:allCritical,rolling:allCritical});fillResultJudge(el.judgeStart,el.scoreStart,attempt.start,attempt.startPrecision);fillResultJudge(el.judgeTurbo,el.scoreTurbo,attempt.turbo,attempt.turboPrecision);fillResultJudge(el.judgeNitro,el.scoreNitro,attempt.nitro||'MISS',attempt.nitroPrecision);el.resultPrecision.textContent=`${(attempt.comboPrecision||0).toFixed(2)}%`;if(el.resultGrowth){el.resultGrowth.className=`result-growth${special.active?' special':''}${growthResult.unlocked?' unlock':''}`;const after=growthResult.after,headline=growthResult.unlocked?`⚡ ${special.profile.name} 解放！`:special.active?`⚡ ${special.displayName||special.profile.name} 発動！`:`MACHINE GROWTH +${growthResult.total}`,lbText=flight.limitBreakApplied>0?`｜LIMIT BREAK +${flight.limitBreakApplied.toLocaleString()}m`:'';el.resultGrowth.innerHTML=`<small>MACHINE GROWTH / LIMIT BREAK</small><strong>${headline}</strong><span>ENGINE Lv.${after.engine}　AERO Lv.${after.aero}　BOOST Lv.${after.boost}　AWAKENING Lv.${after.awakening}${lbText}</span>`;}Sound.land(isCarRecord);vibrate(isCarRecord?[45,25,75,25,110]:[32,22,45]);setNavigationLock(false);renderHome();showScreen('result');requestAnimationFrame(()=>autoSubmitWorldScore(lastRankCandidate));};
+
   const fillResultJudge=(node,scoreNode,judge,precision)=>{node.className=`judge-${judge}`;node.textContent=JUDGE_LABEL[judge];const value=clamp(Number(precision)||0,0,100);scoreNode.textContent=`${value.toFixed(2)}%`;};
 
   let rankingBusy=false,rankingNameSaving=false,rankingGateSaving=false,rankSubmitBusy=false,rankingGateOnboarding=false;
@@ -2050,6 +2298,7 @@ body.modal-open{overflow:hidden}
     if(e.key==='ArrowLeft'){e.preventDefault();stepMachine(-1);}else if(e.key==='ArrowRight'){e.preventDefault();stepMachine(1);}
   });
   el.selectorChoose.addEventListener('click',()=>{const car=CAR_BY_ID[selectorPreviewId],rec=car&&getRecord(car.id);if(!car||!rec?.owned)return;if(car.id!==currentCar.id){currentCar=car;state.selected=car.id;save();renderHome();}renderGarage();schedule(()=>showScreen('home'),90);});
+  el.duplicateTune.addEventListener('click',()=>resolveDuplicateChoice('tune'));el.duplicateConvert.addEventListener('click',()=>resolveDuplicateChoice('convert'));el.selectorMaterialTune.addEventListener('click',()=>materialTune(selectorPreviewId));
   document.querySelectorAll('[data-record-tab]').forEach(b=>b.addEventListener('click',()=>setRecordTab(b.dataset.recordTab)));
   el.sound.addEventListener('click',()=>{state.sound=!state.sound;save();renderHome();if(state.sound)Sound.tone(660,.12,'sine',.03);});
   if(el.trophyCompleteSkip)el.trophyCompleteSkip.addEventListener('click',e=>{prevent(e);closeTrophyComplete();});
@@ -2077,16 +2326,21 @@ body.modal-open{overflow:hidden}
       },
       setTune(id,level){
         if(!CAR_BY_ID[id]||id==='secret')return false;
-        const rec=getRecord(id),lv=Math.min(50,Math.max(0,Number(level)||0));
+        const rec=getRecord(id),lv=Math.max(0,Math.floor(Number(level)||0));
         rec.owned=true;rec.tuneLevel=lv;rec.obtained=Math.max(rec.obtained||0,lv+1);
         save();renderHome();return true;
       },
+      tuneCurve(level){const lv=Math.max(0,Math.floor(Number(level)||0)),band=tuneStepForNextLevel(lv);return{level:lv,totalBonus:tuneRateForLevel(lv),nextBand:band};},
+      materialCost(id){const car=CAR_BY_ID[id];return car?materialTuneCost(car):null;},
       start:startAttempt,
       tap:handleTap,
       boost:applyBoost,
       draw:runGacha,
       drawTen:runTenGacha,
       setTickets(count){state.gachaTickets=Math.max(0,Math.floor(Number(count)||0));save();renderHome();syncGachaUi();return state.gachaTickets;},
+      setLimitBreakParts(count){state.limitBreakParts=Math.max(0,Math.floor(Number(count)||0));save();renderHome();renderGarage();syncGachaUi();return state.limitBreakParts;},
+      materialTune(id){return materialTune(id);},
+      queueDuplicate(id){if(!CAR_BY_ID[id]||id==='secret')return false;const rec=getRecord(id);rec.owned=true;rec.obtained=Math.max(1,rec.obtained||1)+1;state.pendingDuplicates.push(id);save();showGacha();return true;},
       get phase(){return phase;},
       get navLocked(){return navLocked;},
       get attempt(){return attempt?JSON.parse(JSON.stringify(attempt)):null;},
@@ -2143,7 +2397,7 @@ body.modal-open{overflow:hidden}
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();if(!BOON_RANKING.getPlayerName())setTimeout(()=>showRankingGate(null,'onboarding'),120);setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=330-first-nickname-webp',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=420-limit-break-final',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});
       reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});
     }).catch(()=>{}));
     let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});

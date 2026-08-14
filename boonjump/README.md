@@ -1,7 +1,67 @@
+# BOONJUMP v4.2.0-rc — LIMIT BREAK FINAL / VALKYRIE HARD
+
+Build: `2026-08-14-limit-break-final-rc-v420`
+
+## Final balance
+- ガチャで同じマシンが重複した場合:
+  - **そのマシンを即 TUNE +1**
+  - または **LIMIT BREAK素材へ変換**
+- LIMIT BREAK素材変換: R 1 / SR 3 / SSR 8 / EXR 16 / UR 32
+- 素材TUNE基礎コスト: R 2 / SR 6 / SSR 24 / EXR 48 / UR 96
+- 高TUNE帯ほど素材コスト倍率: ×1 / ×2 / ×4 / ×8 / ×16 / ×32 ...
+- SECRETは素材TUNE対象外。
+
+## TUNE curve
+- **Lv.1–50:** 旧仕様を完全維持し、+0.10% / Lv（Lv.50で+5%）。
+- **Lv.51以降:** パーセント強化を積み続けず、LIMIT BREAKの「潜在飛距離」を解放する。
+- Lv.51–100: +12m / Lv
+- Lv.101–200: +6m / Lv
+- Lv.201–400: +3m / Lv
+- Lv.401–800: +1.5m / Lv
+- Lv.801–1600: +0.75m / Lv
+- 以降もレベル帯が2倍になるたびに1Lvあたりの伸びは半減。
+- 各帯を完走すると潜在値は約+600m。TUNEレベル自体にハード上限は設けない。
+
+LIMIT BREAKの潜在値は入力精度でしか実距離にならない。SUPER×3が最大、CRITICAL/GREAT/GOODでは大幅に減衰、MISSを含む場合はLIMIT BREAK距離ボーナス0。
+
+## 4000m SOFT WALL
+通常8マシンはすべて4000m突破可能。ただし4000m以降は対数型SOFT WALLで強く圧縮する。
+上限値は画面へ表示しない。育成を続ければ伸びるが、4000m以降は記録更新が急激に難しくなる。
+
+SECRETは独立した5000m級設計を維持する。
+
+## HIGHWAY VALKYRIE HARD
+ヴァルキリーの入力は **ACCEL / TURBO / NITRO** の3つのみ。SHIFT / OVERDRIVE入力は存在しない。
+
+- ACCEL: period 940ms / SUPER ±0.014
+- TURBO: period 1040ms / SUPER ±0.014
+- NITRO: travel 920ms / SUPER ±0.013
+- Valkyrie PERFECT HOLD: 22ms
+- TURBOは停止ロックなしの固定二段加速。ランダムではなく学習可能。
+- CRITICAL以上×3: MACH SYNC
+- SUPER×3 + COMBO PRECISION 99.00%以上: DIVINE MACH
+- SUPER×3 + COMBO PRECISION 99.70%以上: DIVINE MACH PERFECT
+- ヴァルキリーが4000mを越えるには SUPER×3 + PRECISION 99.00%以上が必須。
+
+## Compatibility
+- save key: `asoboonBoonjump.v2` 維持
+- machine IDs / gacha rates / 3-tap architecture 維持
+- MACHINE GROWTH / AWAKENING 維持
+- RUN gameplay / COMMON bytes は変更しない
+
+## Release gate
+このRCの4000m級記録を世界ランキングへ登録するには、同梱のRanking API v2.7 patchを先にGASへ反映すること。
+旧APIはTUNE 50 / 旧距離上限で拒否するため、ゲームだけ先行公開しない。
+
+実機 iPhone / Android / LINE で1プレイ確認後にproduction昇格する。
+
+---
+
+
 # ブーンジャンプ
 
-Current Build: `2026-08-13-first-nickname-webp-v330`
-App meta: `Ver.3.3.0`
+Current Build: `2026-08-14-machine-growth-v400`
+App meta: `Ver.4.0.0`
 
 ## ASOBooN MACHINE SERIES 共通仕様
 
@@ -59,7 +119,7 @@ ACCEL / TURBO / NITROは学習・再現可能な操作として設計します�
 
 現行UIではプレイ記録が世界ランキングへ自動参加します。
 
-- 未設定時はゲスト名を自動発行
+- 初回起動時に2〜12文字のニックネーム登録を必須化
 - 表示名は後から変更可能
 - 今日 / 今週 / 歴代 / マシン別ランキング
 - 1人につき各ランキング1ベストを基本とする
@@ -91,6 +151,36 @@ COMMON UI DNAの初回適用として、MACHINE CARDとガチャカードは正�
 
 完成MACHINE CARDを画面幅いっぱいに近いサイズで表示しつつ、左右矢印はカード横幅を奪わないoverlay配置へ変更。横スクロールや右側切れを防ぎます。Gameplay値、表示順、ガチャ、ランキング、save keyは変更していません。
 
+
+## v4.0.0 MACHINE GROWTH
+
+「記録の上限を見るゲーム」から、「好きなマシンを育てて記録を伸ばすゲーム」へ進化させる大型アップデートです。
+
+各マシンはプレイ内容に応じて、以下の4軸が成長します。
+
+- ENGINE: ACCEL精度で成長
+- AERO: TURBO精度で成長
+- BOOST: NITRO精度で成長
+- AWAKENING: 3 COMBO精度と高判定連続で成長
+
+成長Lvに明示的な上限表示は設けません。既存のTUNEは保存互換のため維持しますが、MACHINE SELECTでは距離MAXを表示せず、GROWTHとSPECIALを主役にします。
+
+AWAKENINGが育つと、各マシン固有のSPECIALが解放されます。SPECIALは3 COMBOすべてCRITICAL以上で発動し、SUPER×3ではMAXIMUMになります。判定幅や入力速度は変更せず、成功したプレイの記録伸長ルートだけを追加します。
+
+| machine ID | SPECIAL |
+|---|---|
+| `boon` | BOOST CHARGE |
+| `wagon` | STABLE DRIVE |
+| `buggy` | LUCKY BURST |
+| `bike` | RED ZONE |
+| `sport` | OVER NITRO |
+| `ssr` | DIMENSION SHIFT |
+| `princess` | ROYAL ASCEND |
+| `valkyrie` | DIVINE MACH |
+| `secret` | ROCKET OVERDRIVE |
+
+既存save key `asoboonBoonjump.v2` は変更せず、schema 5でgrowth情報を後方互換追加します。旧プレイヤーは既存PLAY数/TUNE履歴から最低限の成長値を引き継ぎます。ranking endpoint / ranking key / machine ID / ガチャ率 / 3タップ判定幅は変更しません。
+
 ## COMMON UI DNA / SERIES PROFILE
 
 品質基準は `assets/machines/COMMON_UI_DNA.md` を参照します。
@@ -102,7 +192,7 @@ COMMON UI DNAの初回適用として、MACHINE CARDとガチャカードは正�
 - カード内の車名・レアリティを外側で過剰に重複表示しない
 - CSS/JSそのものはRUNと共通化しない
 
-JUMPでは同じCOMMONカードの下に、ACCEL / TURBO / NITRO / JUMP BEST / MAX / TUNEなどJUMP固有PROFILEだけを表示します。
+JUMPでは同じCOMMONカードの下に、ACCEL / TURBO / NITRO / JUMP BEST / MACHINE GROWTH / SPECIALなどJUMP固有PROFILEだけを表示します。上限距離はUIへ表示しません。
 
 ## 更新ルール
 
