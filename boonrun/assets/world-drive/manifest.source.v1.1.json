@@ -1,0 +1,210 @@
+{
+  "pack": "BOONRUN WORLD DRIVE BACKGROUND ASSET PACK v1.0",
+  "masterSize": [
+    5824,
+    512
+  ],
+  "scrollDirection": "right-to-left",
+  "parallax": {
+    "far": [
+      0.04,
+      0.06
+    ],
+    "mid": [
+      0.1,
+      0.16
+    ],
+    "near": [
+      0.25,
+      0.35
+    ]
+  },
+  "worlds": [
+    {
+      "worldId": "01",
+      "name": "DAY HIGHWAY",
+      "distanceStart": 0.0,
+      "distanceEnd": 1.0,
+      "far": "01-day-highway/far.webp",
+      "mid": "01-day-highway/mid.webp",
+      "near": "01-day-highway/near.webp",
+      "farMaster": "01-day-highway/far-master.png",
+      "midMaster": "01-day-highway/mid-master.png",
+      "nearMaster": "01-day-highway/near-master.png",
+      "landmark": "送電鉄塔",
+      "previewStartDistance": 0.6,
+      "transitionStart": 0.84,
+      "transitionEnd": 1.0,
+      "loop": false
+    },
+    {
+      "worldId": "02",
+      "name": "CITY APPROACH",
+      "distanceStart": 1.0,
+      "distanceEnd": 2.0,
+      "far": "02-city-approach/far.webp",
+      "mid": "02-city-approach/mid.webp",
+      "near": "02-city-approach/near.webp",
+      "farMaster": "02-city-approach/far-master.png",
+      "midMaster": "02-city-approach/mid-master.png",
+      "nearMaster": "02-city-approach/near-master.png",
+      "landmark": "遠くの高層ビル群",
+      "previewStartDistance": 1.6,
+      "transitionStart": 1.84,
+      "transitionEnd": 2.0,
+      "loop": false
+    },
+    {
+      "worldId": "03",
+      "name": "METRO RING",
+      "distanceStart": 2.0,
+      "distanceEnd": 3.0,
+      "far": "03-metro-ring/far.webp",
+      "mid": "03-metro-ring/mid.webp",
+      "near": "03-metro-ring/near.webp",
+      "farMaster": "03-metro-ring/far-master.png",
+      "midMaster": "03-metro-ring/mid-master.png",
+      "nearMaster": "03-metro-ring/near-master.png",
+      "landmark": "巨大都市JCT",
+      "previewStartDistance": 2.6,
+      "transitionStart": 2.84,
+      "transitionEnd": 3.0,
+      "loop": false
+    },
+    {
+      "worldId": "04",
+      "name": "SUNSET EXPRESS",
+      "distanceStart": 3.0,
+      "distanceEnd": 5.0,
+      "far": "04-sunset-express/far.webp",
+      "mid": "04-sunset-express/mid.webp",
+      "near": "04-sunset-express/near.webp",
+      "farMaster": "04-sunset-express/far-master.png",
+      "midMaster": "04-sunset-express/mid-master.png",
+      "nearMaster": "04-sunset-express/near-master.png",
+      "landmark": "巨大吊り橋",
+      "previewStartDistance": 4.6,
+      "transitionStart": 4.84,
+      "transitionEnd": 5.16,
+      "loop": false
+    },
+    {
+      "worldId": "05",
+      "name": "NIGHT CITY",
+      "distanceStart": 5.0,
+      "distanceEnd": 7.0,
+      "far": "05-night-city/far.webp",
+      "mid": "05-night-city/mid.webp",
+      "near": "05-night-city/near.webp",
+      "farMaster": "05-night-city/far-master.png",
+      "midMaster": "05-night-city/mid-master.png",
+      "nearMaster": "05-night-city/near-master.png",
+      "landmark": "光る観覧車",
+      "previewStartDistance": 6.6,
+      "transitionStart": 6.84,
+      "transitionEnd": 7.0,
+      "loop": false
+    },
+    {
+      "worldId": "06",
+      "name": "MIDNIGHT LOOP",
+      "distanceStart": 7.0,
+      "distanceEnd": 10.0,
+      "far": "06-midnight-loop/far.webp",
+      "mid": "06-midnight-loop/mid.webp",
+      "near": "06-midnight-loop/near.webp",
+      "farMaster": "06-midnight-loop/far-master.png",
+      "midMaster": "06-midnight-loop/mid-master.png",
+      "nearMaster": "06-midnight-loop/near-master.png",
+      "landmark": "巨大多層ジャンクション",
+      "previewStartDistance": 9.2,
+      "transitionStart": 9.84,
+      "transitionEnd": 10.0,
+      "loop": false
+    },
+    {
+      "worldId": "07",
+      "name": "STARLIGHT EXPRESS",
+      "distanceStart": 10.0,
+      "distanceEnd": null,
+      "far": "07-starlight-express/far.webp",
+      "mid": "07-starlight-express/mid.webp",
+      "near": "07-starlight-express/near.webp",
+      "farMaster": "07-starlight-express/far-master.png",
+      "midMaster": "07-starlight-express/mid-master.png",
+      "nearMaster": "07-starlight-express/near-master.png",
+      "landmark": "ASOBOON TOWER",
+      "previewStartDistance": 9.2,
+      "transitionStart": 9.84,
+      "transitionEnd": 10.16,
+      "loop": true
+    }
+  ],
+  "transitions": [
+    {
+      "from": "01",
+      "to": "02",
+      "files": {
+        "far": "transition/01-02/far.webp",
+        "mid": "transition/01-02/mid.webp",
+        "near": "transition/01-02/near.webp"
+      }
+    },
+    {
+      "from": "02",
+      "to": "03",
+      "files": {
+        "far": "transition/02-03/far.webp",
+        "mid": "transition/02-03/mid.webp",
+        "near": "transition/02-03/near.webp"
+      }
+    },
+    {
+      "from": "03",
+      "to": "04",
+      "files": {
+        "far": "transition/03-04/far.webp",
+        "mid": "transition/03-04/mid.webp",
+        "near": "transition/03-04/near.webp"
+      }
+    },
+    {
+      "from": "04",
+      "to": "05",
+      "files": {
+        "far": "transition/04-05/far.webp",
+        "mid": "transition/04-05/mid.webp",
+        "near": "transition/04-05/near.webp"
+      }
+    },
+    {
+      "from": "05",
+      "to": "06",
+      "files": {
+        "far": "transition/05-06/far.webp",
+        "mid": "transition/05-06/mid.webp",
+        "near": "transition/05-06/near.webp"
+      }
+    },
+    {
+      "from": "06",
+      "to": "07",
+      "files": {
+        "far": "transition/06-07/far.webp",
+        "mid": "transition/06-07/mid.webp",
+        "near": "transition/06-07/near.webp"
+      }
+    }
+  ],
+  "starlightLoop": {
+    "far": "07-starlight-express/loop/far-loop.webp",
+    "mid": "07-starlight-express/loop/mid-loop.webp",
+    "near": "07-starlight-express/loop/near-loop.webp"
+  },
+  "packRevision": "v1.1",
+  "artRevisions": {
+    "06-midnight-loop": "v1.1 — completely redesigned; not WORLD03 night-grade",
+    "transition/05-06": "v1.1",
+    "transition/06-07": "v1.1"
+  }
+}
