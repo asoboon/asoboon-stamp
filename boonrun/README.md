@@ -1,7 +1,19 @@
-# BOON RUN 2 — v1.2.3 RC6 FULL GAME BALANCE POLISH
+# BOON RUN 2 — v1.2.3 RC7 100-POINT FLOW POLISH
 
-Runtime: `1.2.3-rc6`  
-Build: `2026-08-15-rc6-v1.2.3-full-balance-polish`
+Runtime: `1.2.3-rc7`  
+Build: `2026-08-15-rc7-v1.2.3-100point-polish`
+
+## RC7 — final flow polish
+
+- HOME shows the next WORLD / distance target.
+- First-drive guidance appears once per machine; learned machines start immediately.
+- DISTANCE keeps the current WORLD code visible between milestone flashes.
+- RESULT prioritizes same-machine retry over ranking registration.
+- Reached WORLD and the next journey target are surfaced in the result story.
+- Highway-board messages use a small priority queue so high-value BEST / WORLD / ULTIMATE information wins over stale guidance.
+- RC6 compact-phone MACHINE / RECORDS layout selectors are now correctly wired to their buttons.
+
+These changes are presentation / flow only. Gameplay performance, course data, ranking payload and the existing save key are unchanged.
 
 ## Core idea
 

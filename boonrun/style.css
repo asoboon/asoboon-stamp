@@ -993,3 +993,25 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
   .ranking-menu-button,.help-menu-button{height:44px!important;min-height:44px!important}
   .ranking-submit-button{height:44px!important;min-height:44px!important}.result-card .primary-modal{height:46px!important;min-height:46px!important}.result-sub button{height:44px!important;min-height:44px!important}
 }
+
+
+/* ========================================================================== */
+/* v1.2.3 RC7 — 100-POINT FLOW POLISH                                         */
+/* Replay motivation / information priority only. Gameplay contract unchanged. */
+/* ========================================================================== */
+.journey-goal{display:inline-grid;grid-template-columns:auto auto;align-items:baseline;column-gap:7px;row-gap:2px;margin-top:10px;padding:7px 10px;border:1px solid rgba(93,231,255,.18);border-radius:12px;background:rgba(3,15,27,.48);backdrop-filter:blur(8px)}
+.journey-goal small{grid-column:1;color:#6f9eb2;font-size:7px;font-weight:1000;letter-spacing:.16em}.journey-goal strong{grid-column:2;color:#74edff;font-size:10px;letter-spacing:.04em}.journey-goal span{grid-column:1/-1;color:#bdcbd6;font-size:8px;font-weight:850;white-space:nowrap}
+.result-badge.world{border-color:rgba(94,218,255,.34);color:#9cefff;background:linear-gradient(135deg,rgba(27,126,166,.14),rgba(56,91,164,.10))}
+.result-card .primary-modal{box-shadow:0 10px 26px rgba(255,174,41,.16),0 0 0 1px rgba(255,244,91,.08)}
+.ranking-submit-button{border:1px solid rgba(94,223,255,.32)!important;background:rgba(11,35,54,.86)!important;color:#c6f5ff!important;box-shadow:none!important}
+.ranking-submit-button:not(:disabled):active{background:rgba(19,61,87,.94)!important}
+.rule-prep-card .primary-modal{background:linear-gradient(135deg,#fff45c,#ff9b2e);color:#07101d;border:0;font-size:15px}
+@media (orientation:landscape) and (max-height:520px){
+  .journey-goal{margin-top:5px;padding:4px 7px;border-radius:8px}.journey-goal small{font-size:5.5px}.journey-goal strong{font-size:7.5px}.journey-goal span{font-size:6px}
+  .result-card .primary-modal{font-size:12px!important}.ranking-submit-button{font-size:8px!important}
+}
+@media (orientation:landscape) and (max-height:360px){.journey-goal span{display:none}.journey-goal{margin-top:3px;padding:3px 6px}}
+@media(prefers-reduced-motion:reduce){.journey-goal{backdrop-filter:none}}
+
+.rule-prep-actions{display:grid;grid-template-columns:minmax(88px,.32fr) minmax(0,1fr);gap:8px;align-items:stretch}.rule-prep-actions .primary-modal{margin-top:2px!important}.rule-prep-cancel{min-height:48px;margin-top:2px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.055);color:#d9e5ee;font-weight:900}.rule-prep-cancel:active{background:rgba(255,255,255,.10)}
+@media (orientation:landscape) and (max-height:520px){.rule-prep-actions{grid-template-columns:82px minmax(0,1fr);gap:6px}.rule-prep-cancel{min-height:44px}}

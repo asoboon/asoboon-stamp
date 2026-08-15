@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-15-rc6-v1.2.3-full-balance-polish';
-const CLIENT_VERSION = '1.2.3-rc6';
+const BUILD = '2026-08-15-rc7-v1.2.3-100point-polish';
+const CLIENT_VERSION = '1.2.3-rc7';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -389,6 +389,22 @@ const HOME_GUIDE = {
   valkyrie:[['精密2段','常時8%高速'],['CRITICAL×3','MACH SYNC 2.4秒'],['DIVINE','奥義中のみ3段AIR STEP']],
   secret:[['HOLD','ロケット上昇'],['RELEASE','即落下へ'],['CRITICAL×3','3秒無敵']]
 };
+
+const JOURNEY_TARGETS = Object.freeze([
+  {m:1000,code:'CITY APPROACH',jp:'街へ入る'},
+  {m:2000,code:'METRO RING',jp:'都市高速へ'},
+  {m:3000,code:'SUNSET EXPRESS',jp:'夕暮れの湾岸へ'},
+  {m:5000,code:'NIGHT CITY',jp:'夜景都市へ'},
+  {m:7000,code:'MIDNIGHT LOOP',jp:'深夜JCTへ'},
+  {m:10000,code:'STARLIGHT EXPRESS',jp:'星空高速へ'}
+]);
+function journeyGoalAt(distance){
+  const d=Math.max(0,Math.floor(Number(distance)||0));
+  const next=JOURNEY_TARGETS.find(x=>d<x.m);
+  if(next)return {...next,gap:next.m-d,text:`${next.code}まで あと${(next.m-d).toLocaleString()}m`};
+  const target=Math.ceil((d+500)/500)*500;
+  return {m:target,code:'STARLIGHT DRIVE',jp:'自己ベストの先へ',gap:target-d,text:`次は ${target.toLocaleString()}m を目指そう`};
+}
 
 // ONE SHOT SPECIAL: every car gets one deliberately rule-breaking moment per run.
 // The special is never random and is legal for ranked play. The player chooses when to spend it.
@@ -445,12 +461,12 @@ let ownedCars=getOwnedCars();
 
 const els={
   screens:{menu:$('menuScreen'),help:$('helpScreen'),garage:$('garageScreen'),records:$('recordsScreen'),ranking:$('rankingScreen'),game:$('gameScreen')},
-  homeBest:$('homeBest'),homeCarImage:$('homeCarImage'),selectedCarLabel:$('selectedCarLabel'),playCountLabel:$('playCountLabel'),howtoIcon1:$('howtoIcon1'),howtoText1:$('howtoText1'),howtoIcon2:$('howtoIcon2'),howtoText2:$('howtoText2'),howtoIcon3:$('howtoIcon3'),howtoText3:$('howtoText3'),
+  homeBest:$('homeBest'),homeJourneyGoal:$('homeJourneyGoal'),homeCarImage:$('homeCarImage'),selectedCarLabel:$('selectedCarLabel'),playCountLabel:$('playCountLabel'),howtoIcon1:$('howtoIcon1'),howtoText1:$('howtoText1'),howtoIcon2:$('howtoIcon2'),howtoText2:$('howtoText2'),howtoIcon3:$('howtoIcon3'),howtoText3:$('howtoText3'),
   startButton:$('startButton'),rotateStartButton:$('rotateStartButton'),rotateStartHint:$('rotateStartHint'),helpButton:$('helpButton'),garageButton:$('garageButton'),recordsButton:$('recordsButton'),rankingButton:$('rankingButton'),rankingRefreshButton:$('rankingRefreshButton'),soundButton:$('soundButton'),
   carGrid:$('carGrid'),garageFeature:$('garageFeature'),garagePrev:$('garagePrev'),garageNext:$('garageNext'),garageCard:$('garageCard'),garageCardArt:$('garageCardArt'),garageRarity:$('garageRarity'),garageType:$('garageType'),garageState:$('garageState'),garageUltimateLabel:$('garageUltimateLabel'),garageUltimateName:$('garageUltimateName'),garageCardName:$('garageCardName'),garageIndex:$('garageIndex'),garageOwnedBadge:$('garageOwnedBadge'),garageName:$('garageName'),garageHandling:$('garageHandling'),garageBest:$('garageBest'),garageDescription:$('garageDescription'),garageSpecialName:$('garageSpecialName'),garageSpecialEffect:$('garageSpecialEffect'),garageSelectButton:$('garageSelectButton'),garageLockNote:$('garageLockNote'),recordBest:$('recordBest'),recordTotal:$('recordTotal'),recordPlays:$('recordPlays'),recordCars:$('recordCars'),
   canvas:$('gameCanvas'),viewport:$('gameViewport'),pauseButton:$('pauseButton'),abilityBadge:$('abilityBadge'),masteryBadge:$('masteryBadge'),flowBadge:$('flowBadge'),distanceLabel:$('distanceLabel'),milestoneLabel:$('milestoneLabel'),bestChase:$('bestChase'),sectionBanner:$('sectionBanner'),sectionBannerValue:$('sectionBannerValue'),sectionBannerSub:$('sectionBannerSub'),
   fuelBar:$('fuelBar'),fuelLabel:$('fuelLabel'),fuelBox:document.querySelector('.fuel-box'),extraMeter:$('extraMeter'),startGuide:$('startGuide'),countdown:$('countdown'),toast:$('toast'),flash:$('flash'),
-  rulePrepModal:$('rulePrepModal'),rulePrepCar:$('rulePrepCar'),rulePrepJump:$('rulePrepJump'),rulePrepObstacle:$('rulePrepObstacle'),rulePrepMachine:$('rulePrepMachine'),rulePrepStart:$('rulePrepStart'),pauseModal:$('pauseModal'),resumeButton:$('resumeButton'),restartButton:$('restartButton'),quitButton:$('quitButton'),
+  rulePrepModal:$('rulePrepModal'),rulePrepCar:$('rulePrepCar'),rulePrepJump:$('rulePrepJump'),rulePrepObstacle:$('rulePrepObstacle'),rulePrepMachine:$('rulePrepMachine'),rulePrepStart:$('rulePrepStart'),rulePrepCancel:$('rulePrepCancel'),pauseModal:$('pauseModal'),resumeButton:$('resumeButton'),restartButton:$('restartButton'),quitButton:$('quitButton'),
   resultModal:$('resultModal'),resultReason:$('resultReason'),resultDistance:$('resultDistance'),newBest:$('newBest'),resultDelta:$('resultDelta'),resultCar:$('resultCar'),resultBest:$('resultBest'),resultCause:$('resultCause'),resultBadges:$('resultBadges'),resultCoachTitle:$('resultCoachTitle'),resultCoachText:$('resultCoachText'),
   retryButton:$('retryButton'),resultSubmitButton:$('resultSubmitButton'),resultRankingButton:$('resultRankingButton'),resultRankingStatus:$('resultRankingStatus'),resultGarageButton:$('resultGarageButton'),resultMenuButton:$('resultMenuButton'),
   rankingMachineSelect:$('rankingMachineSelect'),rankingMachineGrid:$('rankingMachineGrid'),rankingOverallButton:$('rankingOverallButton'),rankingMachineToggle:$('rankingMachineToggle'),rankingMachinePanel:$('rankingMachinePanel'),rankingTitle:$('rankingTitle'),rankingSubtitle:$('rankingSubtitle'),rankingMeTitle:$('rankingMeTitle'),rankingBoardTitle:$('rankingBoardTitle'),rankingScopeCaption:$('rankingScopeCaption'),rankingStatus:$('rankingStatus'),rankingMe:$('rankingMe'),rankingList:$('rankingList'),rankingNameModal:$('rankingNameModal'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingNameCancel:$('rankingNameCancel'),
@@ -523,6 +539,7 @@ function currentCar(){return CAR_BY_ID[state.selected]||CAR_BY_ID.wagon;}
 function renderMenu(){
   const car=currentCar();
   els.homeBest.textContent=fmt(state.best);
+  if(els.homeJourneyGoal){const carBest=Number(state.carRecords?.[car.id]?.best)||0,g=journeyGoalAt(carBest);els.homeJourneyGoal.innerHTML=`<small>${carBest<10000?'NEXT WORLD':'NEXT TARGET'}</small><strong>${g.code}</strong><span>このマシンで ${g.m.toLocaleString()}mまで あと${g.gap.toLocaleString()}m</span>`;}
   bindCarImageFallback(els.homeCarImage,car.id);
   els.homeCarImage.src=carAsset(car.id);
   els.selectedCarLabel.textContent=car.name;
@@ -1072,8 +1089,12 @@ function maybeSpawnSpecial(){
 }
 function ensureWorld(){while(run.spawnCursorX<PHYSICS.logicalWidth+1800)spawnPattern();}
 
-const RULE_PREP_KEY='boonrun_rule_prep_seen_v134';
-let rulePrepTimer=0,rulePrepUnlockTimer=0;
+const RULE_PREP_KEY='boonrun_rule_prep_seen_v2';
+function rulePrepSeenCars(){
+  try{const v=JSON.parse(localStorage.getItem(RULE_PREP_KEY)||'[]');return new Set(Array.isArray(v)?v:[]);}catch{return new Set();}
+}
+function hasSeenRulePrep(id){return rulePrepSeenCars().has(id);}
+function markRulePrepSeen(id){try{const seen=rulePrepSeenCars();seen.add(id);localStorage.setItem(RULE_PREP_KEY,JSON.stringify([...seen]));}catch{}}
 function prepControlText(car){
   if(car.id==='secret')return '長押しで上昇 / 離すと落下';
   if(car.id==='buggy')return '1タップで大ジャンプ（2段なし）';
@@ -1084,21 +1105,18 @@ function prepCrateText(car){
   if(car.id==='buggy')return '木箱は大ジャンプ1回 / PITは飛び越える';
   return '木箱は2段ジャンプ / PITは飛び越える';
 }
-function showRulePrep(){
-  const car=currentCar(),sp=SPECIALS[car.id];
+function showRulePrep(force=false){
+  const car=currentCar();
+  if(!force&&hasSeenRulePrep(car.id)){startGame();return;}
+  const sp=SPECIALS[car.id];
   els.rulePrepCar.textContent=car.name;els.rulePrepJump.textContent=prepControlText(car);els.rulePrepObstacle.textContent=prepCrateText(car);
   const critical=car.id==='valkyrie'?'<br><strong>⚡ CRITICAL×3 → MACH SYNC</strong>｜障害物をギリギリで回避するとCRITICAL！':'';
-  const mastery=DRIVER_MASTERY[car.id];els.rulePrepMachine.innerHTML=`<strong>${HANDLING_LABEL[car.id]}</strong>｜最終奥義 ${sp.name}（手動＝フル性能 / 未使用ならピンチ時に75%で自動発動）${critical}<br><span class="driver-mission">🎯 DRIVER MISSION｜${mastery.goal}</span>`;
-  els.rulePrepStart.disabled=true;els.rulePrepModal.hidden=false;
-  clearTimeout(rulePrepTimer);clearTimeout(rulePrepUnlockTimer);
-  rulePrepUnlockTimer=setTimeout(()=>{if(els.rulePrepStart)els.rulePrepStart.disabled=false;},700);
-  let seen=0;try{seen=Number(localStorage.getItem(RULE_PREP_KEY)||0)}catch{}
-  rulePrepTimer=setTimeout(finishRulePrep,seen?1900:3000);
+  const mastery=DRIVER_MASTERY[car.id];els.rulePrepMachine.innerHTML=`<strong>${HANDLING_LABEL[car.id]}</strong>｜最終奥義 ${sp.name}（押すとフル発動 / 未使用ならピンチ時に自動救済）${critical}<br><span class="driver-mission">🎯 DRIVER MISSION｜${mastery.goal}</span>`;
+  els.rulePrepStart.disabled=false;els.rulePrepStart.textContent='このマシンでSTART!';els.rulePrepModal.hidden=false;
 }
 function finishRulePrep(){
-  if(els.rulePrepModal.hidden)return;clearTimeout(rulePrepTimer);clearTimeout(rulePrepUnlockTimer);els.rulePrepModal.hidden=true;
-  try{localStorage.setItem(RULE_PREP_KEY,'1')}catch{}
-  startGame();
+  if(els.rulePrepModal.hidden)return;
+  markRulePrepSeen(currentCar().id);els.rulePrepModal.hidden=true;startGame();
 }
 function startGame(){
   try{
@@ -1108,7 +1126,7 @@ function startGame(){
     const car=currentCar(); if(!ownedCars.has(car.id)){state.selected='wagon';saveState();}
     run=makeRun(currentCar()); const token=run.token; showScreen('game'); els.screens.game.classList.add('prestart');els.resultModal.hidden=true;els.pauseModal.hidden=true;els.startGuide.classList.remove('hidden');setStartGuide();
     document.body.dataset.car=run.car.id; resetHud();resetHighwayBoard();ensureWorld();render();
-    if(RUN_RANKING){RUN_RANKING.startSession(run.car.id,BUILD,CLIENT_VERSION).then(s=>{if(run&&run.token===token){run.rankingSession=s;run.rankingEligible=true;if(els.resultModal&&!els.resultModal.hidden){els.resultSubmitButton.disabled=false;els.resultSubmitButton.textContent='🌍 ランキングへ登録';els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='この記録を世界ランキングへ登録できます。';}}}).catch(err=>{if(run&&run.token===token){run.rankingEligible=false;run.rankingSessionError=String(err&&err.message||err);if(els.resultModal&&!els.resultModal.hidden){els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent='ランキング通信に失敗しました。あとで再試行できます。';}}});}
+    if(RUN_RANKING){RUN_RANKING.startSession(run.car.id,BUILD,CLIENT_VERSION).then(s=>{if(run&&run.token===token){run.rankingSession=s;run.rankingEligible=true;if(els.resultModal&&!els.resultModal.hidden){els.resultSubmitButton.disabled=false;els.resultSubmitButton.textContent='🌍 この記録をランキングへ';els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='';}}}).catch(err=>{if(run&&run.token===token){run.rankingEligible=false;run.rankingSessionError=String(err&&err.message||err);if(els.resultModal&&!els.resultModal.hidden){els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent='ランキング通信に失敗しました。あとで再試行できます。';}}});}
     window.__BOONRUN_BOOT={phase:'countdown',car:run.car.id,objects:run.objects.length,at:Date.now()};
     countdownStart();
   }catch(err){
@@ -1423,6 +1441,7 @@ function resultCoach(cause,car){
 function buildResultBadges(d,oldBest){
   const b=[];
   if(d>oldBest)b.push(['NEW BEST','best']);
+  const zone=worldZoneAt(Math.max(0,d));if(zone)b.push([zone.code,'world']);
   if(run.feedback.masteryComplete)b.push([DRIVER_MASTERY[run.car.id].label,'mastery']);
   if(run.feedback.riskLines>0)b.push([`RISK LINE ×${run.feedback.riskLines}`,'riskline']);
   if(run.feedback.maxCriticalFlow>=2)b.push([`FLOW ×${run.feedback.maxCriticalFlow}`,'flow']);
@@ -1448,9 +1467,9 @@ function renderResultStory(d,oldBest){
     els.resultBadges.innerHTML='';
     buildResultBadges(d,oldBest).forEach(([label,kind])=>{const s=document.createElement('span');s.className=`result-badge ${kind}`;s.textContent=label;els.resultBadges.appendChild(s);});
   }
-  const [title,text]=resultCoach(run.endCause||run.endReason,run.car);
-  if(els.resultCoachTitle)els.resultCoachTitle.textContent=title;
-  if(els.resultCoachText)els.resultCoachText.textContent=text;
+  const [title,text]=resultCoach(run.endCause||run.endReason,run.car),goal=journeyGoalAt(d);
+  if(els.resultCoachTitle)els.resultCoachTitle.textContent=delta>0?`NEW BEST！次は ${goal.code}`:title;
+  if(els.resultCoachText)els.resultCoachText.textContent=`${text} ${goal.text}。`;
 }
 function triggerClose(obj=null){
   const riskLine=!!obj?.riskNear;
@@ -1539,7 +1558,7 @@ function milestone(m){
   run.feedback.sectionCount++;els.milestoneLabel.textContent=`${km} km`;sound.milestone();rewardFx('milestone',changed?1.35:1.1,changed?1.15:1);
   highwayInfo(changed?`${zone.code}｜${m.toLocaleString()}m 突破`:`SECTION ${String(run.feedback.sectionCount).padStart(2,'0')} CLEAR｜${m.toLocaleString()}m 突破`,'SECTION',changed?3200:2600);
   if(els.sectionBanner){els.sectionBannerValue.textContent=changed?zone.code:`${km} KM`;const chase=run.personalBestStart>m?`BESTまで ${Math.max(0,Math.floor(run.personalBestStart-m)).toLocaleString()}m`:(run.bestPassed?'NEW BEST RUN':'KEEP RUNNING');els.sectionBannerSub.textContent=changed?`${zone.jp}｜${chase}`:chase;els.sectionBanner.classList.remove('show');void els.sectionBanner.offsetWidth;els.sectionBanner.classList.add('show');setTimeout(()=>els.sectionBanner&&els.sectionBanner.classList.remove('show'),changed?1900:1500);}
-  setTimeout(()=>{if(els.milestoneLabel.textContent===`${km} km`)els.milestoneLabel.textContent='';},1100);
+  setTimeout(()=>{if(els.milestoneLabel.textContent===`${km} km`)els.milestoneLabel.textContent=worldZoneAt(run?.distance||m).code;},1100);
 }
 function step(dt){
   if(!run||run.phase!=='running')return;updatePlayer(dt);updateAbilities(dt);if(!run||run.phase!=='running')return;updateWorld(dt);if(!run||run.phase!=='running')return;checkCollisions();updateParticles(dt);updateHud();
@@ -1562,10 +1581,10 @@ function showResult(oldBest){
   els.resultReason.textContent=run.endReason==='gas'?'GAS OUT!':'CRASH!';els.resultReason.style.background=run.endReason==='gas'?'#ff9b2e':'#ff425b';
   els.resultDistance.textContent=fmt(d);els.resultCar.textContent=run.car.name;els.resultBest.textContent=fmt(rec.best);els.resultCause.textContent=CAUSE_LABEL[run.endCause]||run.endCause||'-';
   renderResultStory(d,oldBest);
-  els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent=run.rankingEligible?'この記録を世界ランキングへ登録できます。':'ランキング接続を確認しています…';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 ランキングへ登録':'🌍 ランキング接続待ち';els.resultModal.hidden=false;
+  els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 この記録をランキングへ':'🌍 ランキング接続待ち';els.resultModal.hidden=false;
 }
 
-function resetHud(){els.distanceLabel.textContent='0m';els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');if(els.bestChase)els.bestChase.textContent=run.personalBestStart>0?`MACHINE BEST ${fmt(run.personalBestStart)}`:'FIRST RUN';if(els.flowBadge){els.flowBadge.hidden=true;els.flowBadge.textContent='';}if(els.masteryBadge){els.masteryBadge.textContent=`🎯 ${driverMasteryStatus().text}`;els.masteryBadge.classList.remove('complete');}if(els.sectionBanner)els.sectionBanner.classList.remove('show');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
+function resetHud(){els.distanceLabel.textContent='0m';els.milestoneLabel.textContent=worldZoneAt(0).code;els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');if(els.bestChase)els.bestChase.textContent=run.personalBestStart>0?`MACHINE BEST ${fmt(run.personalBestStart)}`:'FIRST RUN';if(els.flowBadge){els.flowBadge.hidden=true;els.flowBadge.textContent='';}if(els.masteryBadge){els.masteryBadge.textContent=`🎯 ${driverMasteryStatus().text}`;els.masteryBadge.classList.remove('complete');}if(els.sectionBanner)els.sectionBanner.classList.remove('show');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
 function updateHud(){
   els.distanceLabel.textContent=fmt(run.distance);const fuelPct=clamp(run.fuel/run.fuelMax*100,0,100);els.fuelBar.style.width=`${fuelPct}%`;els.fuelLabel.textContent=String(Math.ceil(run.fuel));els.fuelBox.classList.toggle('low',fuelPct<=30&&fuelPct>10);els.fuelBox.classList.toggle('critical',fuelPct<=10);
   let extra='';
@@ -1586,12 +1605,17 @@ function updateHud(){
 }
 
 function flash(kind){els.flash.className=`flash ${kind}`;setTimeout(()=>els.flash.className='flash',360);}
+const BOARD_PRIORITY={INFO:1,WARN:2,FLOW:3,RISK:4,SECTION:4,BEST:5,MASTER:5,SPECIAL:6,DANGER:6};
 let boardQueue=[],boardTimer=0,boardBusy=false;
 function resetHighwayBoard(){boardQueue=[];boardBusy=false;clearTimeout(boardTimer);if(!els.highwayBoard)return;els.highwayBoard.dataset.level='INFO';els.highwayBoardTag.textContent='走行案内';els.highwayBoardMessage.textContent='赤・橙＝回避　緑・金＝突破OK';}
 function highwayInfo(text,level='INFO',duration=3400){
   if(!els.highwayBoard||!text)return;
-  const last=boardQueue[boardQueue.length-1];if(last&&last.text===text)return;
-  boardQueue.push({text:String(text),level,duration:Math.max(2400,duration||3400)});pumpHighwayBoard();
+  const msg=String(text),pri=BOARD_PRIORITY[level]||1;
+  if(boardQueue.some(x=>x.text===msg))return;
+  if(boardBusy&&pri>=4)boardQueue=boardQueue.filter(x=>(BOARD_PRIORITY[x.level]||1)>=pri-1);
+  boardQueue.push({text:msg,level,duration:Math.max(2200,duration||3400),pri});
+  while(boardQueue.length>3){let drop=0;for(let i=1;i<boardQueue.length;i++)if(boardQueue[i].pri<boardQueue[drop].pri)drop=i;boardQueue.splice(drop,1);}
+  pumpHighwayBoard();
 }
 function pumpHighwayBoard(){
   if(boardBusy||!boardQueue.length||!els.highwayBoard)return;
@@ -1847,8 +1871,7 @@ function syncRankingFilterUI(){
 async function loadRanking(force=false){const seq=++rankingRequestSeq,period=rankingPeriod,machine=rankingMachine;showScreen('ranking');syncRankingFilterUI();if(!RUN_RANKING){els.rankingStatus.textContent='ランキング機能を読み込めませんでした。';return;}const cached=RUN_RANKING.peekLeaderboard?.(period,machine,100);if(cached){renderRankingRows(cached);els.rankingStatus.textContent='保存済みランキングを表示中… 最新情報を確認しています';}else{els.rankingStatus.textContent='ランキングを読み込み中…';els.rankingList.innerHTML='';}if(els.rankingRefreshButton)els.rankingRefreshButton.classList.add('loading');try{const d=await RUN_RANKING.leaderboard(period,machine,100,{force});if(seq!==rankingRequestSeq)return;renderRankingRows(d);els.rankingStatus.textContent=`${machine?rankCarName(machine):'総合'} ｜ ${period==='today'?'今日':period==='week'?'今週':'歴代'} ｜ ${d.total_players||0}人`;if(els.rankingScopeCaption)els.rankingScopeCaption.textContent=machine?`${period==='today'?'今日':period==='week'?'今週':'歴代'}｜マシン別TOP100`:`${period==='today'?'今日':period==='week'?'今週':'歴代'}｜${d.total_players||0}人参加・使用マシンも表示`;}catch(err){if(seq!==rankingRequestSeq)return;els.rankingStatus.textContent=cached?'通信できませんでした。保存済みランキングを表示しています。':String(err&&err.message||err);}finally{if(seq===rankingRequestSeq&&els.rankingRefreshButton)els.rankingRefreshButton.classList.remove('loading');}}
 function buildRunSubmission(){if(!run||!run.rankingSession)return null;return {session_id:run.rankingSession.session_id,machine_id:run.car.id,distance:Math.floor(run.distance),play_time_ms:Math.max(250,Math.floor(run.gameTime*1000)),death_reason:run.endCause||run.endReason||'unknown',fuel_remaining:Number(run.fuel.toFixed(2)),jump_count:run.stats.jumps||0,double_jump_count:run.stats.doubleJumps||0,close_count:run.stats.close||0,ability_use_count:run.stats.abilityUse||0,boost_time_ms:Math.floor(run.stats.boostTime||0),risk_fuel_count:run.stats.riskFuel||0,played_at:run.finishedAtIso||new Date().toISOString(),source_build:BUILD,client_version:CLIENT_VERSION};}
 async function submitCurrentRun(name){const payload=buildRunSubmission();if(!payload||!RUN_RANKING)return;els.resultSubmitButton.disabled=true;els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='世界ランキングへ登録中…';try{const d=await RUN_RANKING.submit(payload,name);els.resultRankingStatus.textContent=d.skipped?'登録済みの記録を超えていないため、ランキングはそのままです。':`登録しました！${d.player_rank?` 現在 ${d.player_rank.rank}位`:''}`;els.resultSubmitButton.textContent='✓ 世界ランキング登録済み';}catch(err){els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=String(err&&err.message||err);els.resultSubmitButton.disabled=false;}}
-function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
-function autoRankSubmit(){if(!run||run.phase!=='ended'||!run.rankingEligible||!run.rankingSession||run.autoRankStarted)return;run.autoRankStarted=true;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;els.resultRankingStatus.hidden=false;els.resultRankingStatus.textContent='最初の1回だけランキングネームを登録してください。';setTimeout(()=>els.rankingNameInput.focus(),50);}
+function requestRankSubmit(){if(!run?.rankingEligible){els.resultRankingStatus.hidden=false;els.resultRankingStatus.className='result-ranking-status error';els.resultRankingStatus.textContent=run?.rankingSessionError?'ランキング通信に失敗しました。通信環境を確認してください。':'ランキング接続を確認しています。少し待ってからもう一度押してください。';return;}const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
 
 let portraitStartPending=false;
 async function requestPortraitStart(){
@@ -1881,7 +1904,7 @@ function continuePortraitStartIfReady(){
 }
 if(els.rotateStartButton)els.rotateStartButton.addEventListener('click',requestPortraitStart);
 els.startButton.addEventListener('click',showRulePrep);
-els.rulePrepStart.addEventListener('click',finishRulePrep);
+els.rulePrepStart.addEventListener('click',finishRulePrep);if(els.rulePrepCancel)els.rulePrepCancel.addEventListener('click',()=>{els.rulePrepModal.hidden=true;});
 els.helpButton.addEventListener('click',()=>showScreen('help'));
 if(els.rankingRefreshButton)els.rankingRefreshButton.addEventListener('click',()=>loadRanking(true));
 try{RUN_RANKING?.warmCore?.();}catch{}

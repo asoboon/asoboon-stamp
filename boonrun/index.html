@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>ブーンRUN｜ASOBooN</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=20260815-v123-rc6-full-balance-polish">
+  <link rel="stylesheet" href="./style.css?v=20260815-v123-rc7-100point-polish">
 </head>
 <body>
 <div id="app">
@@ -37,6 +37,7 @@
         <h1>ブーン<span>RUN</span></h1>
         <p>走れ。避けろ。<br><b>燃料を切らすな。</b></p>
         <div class="best-line"><small>YOUR BEST</small><strong id="homeBest">0m</strong></div>
+        <div id="homeJourneyGoal" class="journey-goal"><small>NEXT WORLD</small><strong>CITY APPROACH</strong><span>1,000mまで あと1,000m</span></div>
       </div>
       <div class="hero-car-wrap"><img id="homeCarImage" alt="選択中の車"></div>
       <div class="speed-lines" aria-hidden="true"></div>
@@ -44,8 +45,8 @@
 
     <section class="menu-actions">
       <button id="startButton" class="start-button" type="button"><span>ゲームを始める</span><small>START / タップして開始</small></button>
-      <button id="garageButton" class="sub-button" type="button"><span>🚗</span><b>車を選ぶ</b><small id="selectedCarLabel">スマートワゴン</small></button>
-      <button id="recordsButton" class="sub-button" type="button"><span>🏆</span><b>記録</b><small id="playCountLabel">PLAY 0</small></button>
+      <button id="garageButton" class="sub-button garage-button" type="button"><span>🚗</span><b>車を選ぶ</b><small id="selectedCarLabel">スマートワゴン</small></button>
+      <button id="recordsButton" class="sub-button records-button" type="button"><span>🏆</span><b>記録</b><small id="playCountLabel">PLAY 0</small></button>
       <button id="rankingButton" class="sub-button ranking-menu-button" type="button"><span>🌍</span><b>世界ランキング</b><small>今日・今週・歴代</small></button>
       <button id="helpButton" class="sub-button help-menu-button" type="button"><span>❓</span><b>遊び方</b><small>障害物・ガソリン</small></button>
     <section class="howto-strip" aria-label="選択中の車の操作">
@@ -170,7 +171,7 @@
 
   <div id="rulePrepModal" class="modal rule-prep-modal" hidden>
     <div class="rule-prep-card">
-      <div class="rule-prep-head"><small>RUN READY</small><h2>走る前にこれだけ！</h2><span id="rulePrepCar">スマートワゴン</span></div>
+      <div class="rule-prep-head"><small>FIRST DRIVE GUIDE</small><h2>このマシンのコツ</h2><span id="rulePrepCar">スマートワゴン</span></div>
       <div class="rule-prep-rules">
         <div><b>👆 ジャンプ</b><span id="rulePrepJump">タップ → 空中でもう一度で2段</span></div>
         <div><b>⛽ ガソリン</b><span>取って回復。0でゲームオーバー</span></div>
@@ -178,7 +179,7 @@
         <div><b>📦 木箱 / 🕳️ PIT</b><span id="rulePrepObstacle">2段ジャンプ / 飛び越える</span></div>
       </div>
       <div id="rulePrepMachine" class="rule-prep-machine"></div>
-      <button id="rulePrepStart" class="primary-modal" type="button" disabled>START!</button>
+      <div class="rule-prep-actions"><button id="rulePrepCancel" class="rule-prep-cancel" type="button">戻る</button><button id="rulePrepStart" class="primary-modal" type="button">このマシンでSTART!</button></div>
     </div>
   </div>
 
@@ -202,9 +203,9 @@
         <div id="resultBadges" class="result-badges"></div>
         <div class="result-coach"><small>NEXT RUN</small><strong id="resultCoachTitle">次はもっと伸ばせる！</strong><p id="resultCoachText">原因を見て、次の1回で更新を狙おう。</p></div>
       </section>
-      <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 ランキングへ登録</button>
+      <button type="button" id="retryButton" class="primary-modal">同じマシンでもう一回！</button>
+      <button type="button" id="resultSubmitButton" class="ranking-submit-button">🌍 この記録をランキングへ</button>
       <p id="resultRankingStatus" class="result-ranking-status" hidden></p>
-      <button type="button" id="retryButton" class="primary-modal">もう一回！</button>
       <div class="result-sub"><button type="button" id="resultRankingButton">世界ランキング</button><button type="button" id="resultGarageButton">車を変える</button><button type="button" id="resultMenuButton">ゲーム最初へ</button></div>
     </div>
   </div>
@@ -213,7 +214,7 @@
 window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
 window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
 </script>
-<script src="./run-ranking.js?v=20260815-v123-rc6-full-balance-polish"></script>
-<script src="./game.bundle.js?v=20260815-v123-rc6-full-balance-polish"></script>
+<script src="./run-ranking.js?v=20260815-v123-rc7-100point-polish"></script>
+<script src="./game.bundle.js?v=20260815-v123-rc7-100point-polish"></script>
 </body>
 </html>

@@ -1,30 +1,25 @@
-BOON RUN 2 v1.2.3-rc6 — FULL GAME BALANCE POLISH
-Build: 2026-08-15-rc6-v1.2.3-full-balance-polish
+BOON RUN 2 v1.2.3-rc7 — 100-POINT FLOW POLISH
+Build: 2026-08-15-rc7-v1.2.3-100point-polish
 
-RC6 WHOLE-GAME POLISH
-- Rebalances the smartphone UI hierarchy without changing gameplay performance.
-- HOME now fits START / MACHINE / RECORDS / RANKING / HELP / per-machine controls in normal landscape phone heights.
-- HELP uses height-driven compact layout so wide phones such as 932×430 no longer miss the lower ROAD GUIDE.
-- RECORDS becomes a compact 3×3 machine dashboard on landscape phones >=700px wide; smaller phones keep a readable 2-column layout.
-- RESULT is compressed into one landscape view: retry remains primary, ranking registration is explicit/optional, and all 3 secondary actions share one row.
-- Countdown/pre-start reduces ULTIMATE / highway-board visual weight so the car, countdown and control guide win the hierarchy.
-- Keeps RC5 MACHINE CARD visual hierarchy and RC4 0×0 card fix.
-
-RANKING UX
-- Ranking registration is user-initiated from the result screen.
-- No automatic submission or automatic name modal at game over.
-- Ranking endpoint, session, payload schema and run-ranking.js remain unchanged.
+RC7 FINAL FLOW POLISH
+- HOME adds a compact NEXT WORLD / NEXT TARGET cue so distance becomes a visible journey goal.
+- First-drive guidance is now shown once per machine; learned machines enter countdown immediately.
+- Current WORLD code remains under DISTANCE between milestone flashes.
+- RESULT is replay-first: same-machine retry is the primary action, ranking registration is secondary and quiet until requested.
+- RESULT includes reached WORLD and a concrete next journey target.
+- Highway-board notifications are priority-capped to prevent stale INFO/FLOW messages from piling up over WORLD / BEST / ULTIMATE feedback.
+- Fixes RC6 menu class wiring so MACHINE / RECORDS receive the intended compact-phone layout rules.
 
 UNCHANGED GAMEPLAY CONTRACT
 - PHYSICS / speed curve / FUEL
 - 9 machine IDs and performance
 - 55 authored patterns / obstacles / drone
-- CRITICAL / RISK LINE / DRIVER MISSION
+- CRITICAL / RISK LINE / DRIVER MISSION conditions
 - all FINAL ULTIMATE performance
-- WORLD DRIVE art / distance anchors / parallax / loading policy
-- ranking payload / run-ranking.js
+- WORLD DRIVE v1.1 art / distance anchors / parallax / loading policy
+- ranking endpoint / submission payload / run-ranking.js
 - save key asoboonBoonrun.v1
 
 RELEASE GATE
-- Static/package/layout/runtime-harness QA is required for RC6.
+- Static/package/source-contract QA required before upload.
 - Final acceptance still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE real-device confirmation.
