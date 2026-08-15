@@ -1,10 +1,10 @@
-const BUILD = "2026-08-15-ultimate-ux-v650";
+const BUILD = "2026-08-15-balance-lock-v660";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=650-ultimate",
+  "./ranking-client.js?v=660-balance",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

@@ -2,7 +2,7 @@
   "id": "./",
   "name": "ブーンジャンプ｜ASOBooN",
   "short_name": "ブーンジャンプ",
-  "description": "ACCEL・TURBO・NITROの3 COMBOと、飛行中の固定10矢印AIR COMMANDで飛距離を競うASOBooNのミニゲーム",
+  "description": "3 COMBOと固定10矢印AIR COMMAND。実際に飛んだ着地点がそのまま記録になるASOBooNのミニゲーム",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",
