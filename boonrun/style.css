@@ -766,26 +766,39 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
 @media(max-height:520px){.mastery-badge{max-width:128px;padding:4px 6px;font-size:6px}.driver-mission{font-size:7.5px}}
 @media(prefers-reduced-motion:reduce){.flash.critical{animation:none!important;opacity:0!important}}
 
-
-/* v1.2.3 RC2 — MOBILE START CTA HOTFIX
-   Portrait previously hid the complete menu, so users saw no actionable start CTA.
-   Keep the landscape-only game rule, but make the next action explicit and tappable. */
-.rotate-card{width:min(360px,92vw)}
+/* v1.2.3 RC3 — MOBILE START / ENTRY BALANCE
+   Portrait stays a simple landscape-entry gate, but keeps a clear exit path and
+   stronger information hierarchy. Gameplay/layout outside the entry UI is unchanged. */
+.rotate-gate{padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
+.rotate-card{
+  width:min(372px,92vw);padding:24px 20px 18px;border:1px solid rgba(109,231,255,.18);border-radius:28px;
+  background:linear-gradient(155deg,rgba(12,31,52,.92),rgba(5,15,27,.86));
+  box-shadow:0 28px 72px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05);gap:7px
+}
+.rotate-brand{display:flex;align-items:baseline;justify-content:center;gap:3px;margin-bottom:4px;letter-spacing:.04em}
+.rotate-brand b{font-size:16px}.rotate-brand em{font-size:18px;font-style:italic;color:var(--yellow)}
+.rotate-brand small{margin-left:5px;color:#7890a6;font-size:6px;letter-spacing:.16em}
+.phone-rotate{font-size:54px;margin:2px 0 4px}
+.rotate-card>strong{font-size:22px;line-height:1.15}
+.rotate-card>span{font-size:11px;color:#a9bac9}
 .rotate-start-button{
-  margin-top:18px;width:min(320px,84vw);min-height:64px;padding:10px 18px;border:0;border-radius:18px;
+  margin-top:14px;width:100%;min-height:64px;padding:10px 18px;border:0;border-radius:18px;
   background:linear-gradient(135deg,#fff45c,#ff9b2e);color:#07101d;font-weight:1000;
-  box-shadow:0 18px 45px rgba(0,0,0,.34),0 0 28px rgba(255,214,58,.18)
+  box-shadow:0 16px 38px rgba(0,0,0,.30),0 0 24px rgba(255,214,58,.16)
 }
 .rotate-start-button b{display:block;font-size:21px;line-height:1.1}
-.rotate-start-button small{display:block;margin-top:4px;font-size:10px;opacity:.65}
-.rotate-start-hint{display:block;max-width:300px;margin-top:10px;color:#9eb3c7;font-size:10px;line-height:1.45;font-style:normal}
+.rotate-start-button small{display:block;margin-top:4px;font-size:10px;opacity:.66}
+.rotate-start-button:disabled{filter:saturate(.72);opacity:.86}
+.rotate-start-hint{display:block;max-width:310px;margin-top:6px;color:#98adbf;font-size:10px;line-height:1.45;font-style:normal}
+.rotate-home{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:3px;padding:7px 12px;border-radius:12px;color:#d8e5ef;text-decoration:none;font-size:11px;font-weight:900}
+.rotate-home:active{background:rgba(255,255,255,.06)}
 .menu-actions .start-button{min-height:72px;z-index:2}
-@media (max-height:520px) and (orientation:landscape){
-  .menu-actions .start-button{min-height:58px}
+@media (max-height:620px) and (orientation:portrait){
+  .rotate-card{padding:18px 18px 14px;gap:5px}.phone-rotate{font-size:44px;margin:0}.rotate-start-button{margin-top:10px;min-height:60px}.rotate-start-hint{margin-top:4px}.rotate-home{min-height:38px}
 }
+@media (max-height:520px) and (orientation:landscape){.menu-actions .start-button{min-height:58px}}
 @media (max-height:390px) and (orientation:landscape){
-  .menu-actions .start-button{min-height:50px}
-  .start-button span{font-size:clamp(20px,4.2vw,28px)!important}
+  .menu-actions .start-button{min-height:50px}.start-button span{font-size:clamp(20px,4.2vw,28px)!important}
 }
 @media (max-width:760px) and (orientation:landscape){
   .start-button span{font-size:clamp(20px,4.2vw,27px)!important;white-space:nowrap}

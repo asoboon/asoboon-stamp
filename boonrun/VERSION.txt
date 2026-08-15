@@ -1,62 +1,39 @@
-BOON RUN 2 v1.2.3 RC2 — WORLD DRIVE / MOBILE START HOTFIX
+BOON RUN 2 v1.2.3 RC3 — WORLD DRIVE / MOBILE ENTRY BALANCE
 
-Build: 2026-08-15-rc2-v1.2.3-mobile-start
-Client: 1.2.3-rc2
-Base: v1.2.2 DEV WORLD DRIVE FINAL QA + WORLD DRIVE BACKGROUND ART v1.1
+Build: 2026-08-15-rc3-v1.2.3-mobile-balance
+Client: 1.2.3-rc3
+Base: v1.2.3 RC1 WORLD DRIVE + RC2 mobile-start fix
 
-MOBILE START HOTFIX
-- Portrait smartphone gate now includes a visible primary 「ゲームを始める」 CTA.
-- CTA attempts fullscreen/landscape lock where supported; if unavailable, it clearly asks the user to rotate the phone.
-- After the user rotates to landscape, the normal pre-run confirmation opens automatically.
-- Landscape home CTA is now labeled 「ゲームを始める」 instead of START-only.
-- Compact landscape CSS guarantees a minimum primary CTA height.
-- Gameplay, physics, fuel, machines, patterns, ranking, save and WORLD DRIVE art are unchanged.
+MOBILE ENTRY BALANCE
+- Portrait smartphone entry keeps the game landscape-only while always exposing a primary 「ゲームを始める」 CTA.
+- Portrait entry now has a clear visual hierarchy: BOONRUN identity → rotate cue → start CTA → fallback hint.
+- Portrait entry now includes 「ミニアプリへ戻る」 so the rotate gate never traps navigation.
+- Small-height portrait spacing is compressed without shrinking the primary CTA below 60px.
+- Landscape home CTA remains the largest action and reads 「ゲームを始める」; helper copy is 「START / タップして開始」.
+- CTA attempts fullscreen/landscape lock where supported. If unavailable, it waits for the user to rotate and then opens the normal pre-run confirmation.
 
-WORLD DRIVE ENGINE HARDENING
-- No art changes. WORLD DRIVE BACKGROUND ART v1.1 bytes are retained exactly.
-- Finite-world landmark timing remains authored/distance-locked through MID.
-- FAR / NEAR use smooth local parallax bumps between anchors.
-- Local parallax offset and relative-speed differential both return to zero at every authored anchor.
-- Normal representative depth targets remain FAR 5% / MID 13% / NEAR 30%.
-- WORLD06 anchors remain 7.0 / 8.0 / 9.0 / 9.2 / 9.6 / 10.0km.
-- 9.2km TOWER-preview anchor remains exactly locked.
-- prefers-reduced-motion reduces finite/transition local depth gain and aligns STARLIGHT LOOP layers to MID speed.
-
-MEMORY / LOAD HARDENING
-- Boundary decoded-image policy is now a two-group handoff: outgoing+transition OR transition+incoming.
-- Incoming WORLD compressed bytes are warmed before the handoff without retaining a decoded Image group.
-- Transition strips remain the bridge if incoming art is still decoding.
-- WORLD07 finite panorama is no longer recreated after STARLIGHT LOOP takeover.
-- After 12.12km, only the STARLIGHT LOOP group remains intentionally resident.
-- WORLD01 compressed art is warmed from the menu and included in Service Worker CORE for repeat launches.
-
-UNCHANGED GAMEPLAY CONTRACT
+WORLD DRIVE / GAMEPLAY
+- WORLD DRIVE BACKGROUND ART v1.1 is unchanged.
+- WORLD DRIVE engine, parallax, landmark anchors, loading/unloading and STARLIGHT LOOP behavior are unchanged from RC1/RC2.
 - PHYSICS / FUEL / speed curve unchanged.
 - 9 machine IDs and machine performance unchanged.
 - 55 course patterns unchanged.
 - obstacles / drone / collision rules unchanged.
 - CRITICAL / RISK LINE / FLOW / DRIVER MISSION unchanged.
-- Valkyrie MACH SYNC / DIVINE MACH unchanged.
 - all ULTIMATE behavior unchanged.
 - ranking payload / save schema unchanged.
 - save key remains asoboonBoonrun.v1.
 
-QA STATUS
+RC3 STATIC QA
 - Node syntax: PASS (`game.bundle.js`, `sw.js`, `run-ranking.js`).
-- Package re-extraction: PASS; 129 files present.
-- WORLD DRIVE runtime art identity vs approved v1.1 source pack: PASS (42/42 runtime WebPs byte-identical).
-- Runtime art dimensions: PASS (21 WORLD body WebPs = 5824×512; 18 transition WebPs = 1536×512; 3 STARLIGHT LOOP WebPs = 5824×512).
-- MID / NEAR alpha requirement: PASS for WORLD, transition and loop runtime layers.
-- HTML duplicate IDs: 0. Direct HTML asset refs missing: 0.
-- Service Worker CORE refs missing: 0. WORLD DRIVE manifest asset refs missing: 0 / 42.
-- `style.css`: byte-identical to the pre-WORLD-DRIVE Drive copy used for comparison; `index.html` changes are asset-version query strings only.
-- Gameplay protected blocks vs pre-WORLD-DRIVE Drive `game.bundle.js`: PHYSICS / FUEL_ZONES / FUEL_RULES / CARS / PATTERNS / SPECIALS / STORE_KEY / `effectiveFuelRate()` / `step()` / `startGame()` / `buildRunSubmission()` = byte-identical.
-- `run-ranking.js`: byte-identical to current Drive root copy (SHA-256 `23662d77cc50e51b3e845a57b5ac4c2db1a08780ffc163a7b5162afa497e1783`).
-- Anchor phase error: 0. Anchor parallax slope jump: ~3.0e-8 in numerical check. Finite-layer progress monotonicity: PASS.
-- Static cache-policy simulation: max intended WORLD DRIVE decoded groups = 2; at 12.12km+ intended resident group = `loop:07` only.
-- Local Chromium runtime execution: NOT VERIFIED in this re-audit because organization policy blocks local/file URLs in the available Chromium. Previous browser-PASS claims are not used for final acceptance.
-- Real iPhone / Android / LINE FPS, memory pressure, actual rendering, visibility and comfort gate: STILL REQUIRED.
+- CSS parse errors: 0. HTML duplicate IDs: 0.
+- Portrait start CTA exists in HTML and has >=60px minimum height on compact portrait.
+- Landscape start CTA has >=50px minimum height on very short landscape and >=58–72px in normal phone landscape rules.
+- Phone landscape menu retains START + car + record + ranking + help + operation guide in one action grid.
+- RC3 `game.bundle.js` differs from RC2 only in BUILD/CLIENT_VERSION and the portrait CTA helper microcopy; gameplay blocks are unchanged.
+- `run-ranking.js` is unchanged.
+- Real iPhone / Android / LINE rendering, FPS, memory and touch-flow acceptance are STILL REQUIRED.
 
 LOCK RULE
 WORLD DRIVE BACKGROUND ART v1.1 remains LOCK CANDIDATE only.
-Final LOCK requires real-device 05→06→07 continuous-run acceptance.
+Final LOCK requires real-device continuous-run acceptance.

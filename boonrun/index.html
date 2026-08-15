@@ -8,17 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>ブーンRUN｜ASOBooN</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=20260815-v123-rc2-mobile-start">
+  <link rel="stylesheet" href="./style.css?v=20260815-v123-rc3-mobile-balance">
 </head>
 <body>
 <div id="app">
   <div id="rotateGate" class="rotate-gate" aria-live="polite">
     <div class="rotate-card">
+      <div class="rotate-brand" aria-hidden="true"><b>BOON</b><em>RUN</em><small>ENDLESS DRIVE</small></div>
       <div class="phone-rotate" aria-hidden="true">📱↻</div>
-      <strong>スマホを横向きにしてね！</strong>
+      <strong>横向きで遊ぼう！</strong>
       <span>ブーンRUNは横画面専用です</span>
-      <button id="rotateStartButton" class="rotate-start-button" type="button"><b>ゲームを始める</b><small>タップして横画面へ</small></button>
-      <em id="rotateStartHint" class="rotate-start-hint">自動で横向きにならない場合は、スマホを横向きにしてください</em>
+      <button id="rotateStartButton" class="rotate-start-button" type="button"><b>ゲームを始める</b><small>タップして横向きへ</small></button>
+      <em id="rotateStartHint" class="rotate-start-hint">自動回転しない場合は、スマホを横向きにしてください</em>
+      <a class="rotate-home" href="../home.html">‹ ミニアプリへ戻る</a>
     </div>
   </div>
 
@@ -41,7 +43,7 @@
     </section>
 
     <section class="menu-actions">
-      <button id="startButton" class="start-button" type="button"><span>ゲームを始める</span><small>START / タップして走る</small></button>
+      <button id="startButton" class="start-button" type="button"><span>ゲームを始める</span><small>START / タップして開始</small></button>
       <button id="garageButton" class="sub-button" type="button"><span>🚗</span><b>車を選ぶ</b><small id="selectedCarLabel">スマートワゴン</small></button>
       <button id="recordsButton" class="sub-button" type="button"><span>🏆</span><b>記録</b><small id="playCountLabel">PLAY 0</small></button>
       <button id="rankingButton" class="sub-button ranking-menu-button" type="button"><span>🌍</span><b>世界ランキング</b><small>今日・今週・歴代</small></button>
@@ -210,7 +212,7 @@
 window.__BOONRUN_BOOT={phase:'html-ready',at:Date.now()};
 window.addEventListener('error',function(e){window.__BOONRUN_EARLY_ERROR=String(e.message||e.error||'unknown');});
 </script>
-<script src="./run-ranking.js?v=20260815-v123-rc2-mobile-start"></script>
-<script src="./game.bundle.js?v=20260815-v123-rc2-mobile-start"></script>
+<script src="./run-ranking.js?v=20260815-v123-rc3-mobile-balance"></script>
+<script src="./game.bundle.js?v=20260815-v123-rc3-mobile-balance"></script>
 </body>
 </html>

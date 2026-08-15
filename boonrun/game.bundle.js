@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-15-rc2-v1.2.3-mobile-start';
-const CLIENT_VERSION = '1.2.3-rc2';
+const BUILD = '2026-08-15-rc3-v1.2.3-mobile-balance';
+const CLIENT_VERSION = '1.2.3-rc3';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -1853,7 +1853,7 @@ async function requestPortraitStart(){
   }catch{}
   if(innerWidth>innerHeight){
     portraitStartPending=false;
-    if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横画面へ';}
+    if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横向きへ';}
     setTimeout(showRulePrep,100);
   }else{
     if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='スマホを横向きにしてね';}
@@ -1863,7 +1863,7 @@ async function requestPortraitStart(){
 function continuePortraitStartIfReady(){
   if(!portraitStartPending||innerWidth<=innerHeight)return;
   portraitStartPending=false;
-  if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横画面へ';}
+  if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横向きへ';}
   setTimeout(showRulePrep,120);
 }
 if(els.rotateStartButton)els.rotateStartButton.addEventListener('click',requestPortraitStart);
