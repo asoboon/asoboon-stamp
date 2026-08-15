@@ -1,51 +1,54 @@
-BOON RUN 2 v1.1.1 — DRIVER SKILL / REPLAY DRIVE / WEBP PUBLICATION
+BOON RUN 2 v1.2.3 RC1 — WORLD DRIVE
 
-Build: 2026-08-14-playable-v1.1.1-webp-publication
-Client: 1.1.1
-Base: v1.0.36 MACHINE SERIES v1.1
+Build: 2026-08-15-rc1-v1.2.3-world-drive
+Client: 1.2.3-rc1
+Base: v1.2.2 DEV WORLD DRIVE FINAL QA + WORLD DRIVE BACKGROUND ART v1.1
 
-LATEST RUN
-- REPLAY DRIVE: SELF BEST CHASE / CRITICAL FLOW / SECTION CLEAR / RUN RESULT STORY / DEATH COACH.
-- DRIVER SKILL: RISK LINE / CRITICAL FEEL / 9-machine DRIVER MISSION.
-- MACHINE CARD TRUE FIT: modern iPhone / compact landscape reflow, 1024:683 contain, safe-area, >=44px tap targets.
-- HELP button: brighter yellow-orange visual so it reads as an active control.
+WORLD DRIVE ENGINE HARDENING
+- No art changes. WORLD DRIVE BACKGROUND ART v1.1 bytes are retained exactly.
+- Finite-world landmark timing remains authored/distance-locked through MID.
+- FAR / NEAR use smooth local parallax bumps between anchors.
+- Local parallax offset and relative-speed differential both return to zero at every authored anchor.
+- Normal representative depth targets remain FAR 5% / MID 13% / NEAR 30%.
+- WORLD06 anchors remain 7.0 / 8.0 / 9.0 / 9.2 / 9.6 / 10.0km.
+- 9.2km TOWER-preview anchor remains exactly locked.
+- prefers-reduced-motion reduces finite/transition local depth gain and aligns STARLIGHT LOOP layers to MID speed.
 
-DRIVER MISSIONS
-- BOON PICKUP: ARMOR smash x2
-- SMART WAGON: reach 1km with at most 2 double jumps
-- LUCKY BUGGY: CRITICAL x2
-- POWER BIKE: FUEL STEP x3
-- NITRO SPORT: NITRO x2
-- COSMIC PHANTOM: reach PHANTOM READY
-- PRINCESS STARLINER: reach STAR 3
-- HIGHWAY VALKYRIE: trigger MACH SYNC
-- SECRET ROCKET: trigger INVINCIBLE ROCKET
+MEMORY / LOAD HARDENING
+- Boundary decoded-image policy is now a two-group handoff: outgoing+transition OR transition+incoming.
+- Incoming WORLD compressed bytes are warmed before the handoff without retaining a decoded Image group.
+- Transition strips remain the bridge if incoming art is still decoding.
+- WORLD07 finite panorama is no longer recreated after STARLIGHT LOOP takeover.
+- After 12.12km, only the STARLIGHT LOOP group remains intentionally resident.
+- WORLD01 compressed art is warmed from the menu and included in Service Worker CORE for repeat launches.
 
-GAMEPLAY CONTRACT
-- RISK LINE / FLOW / DRIVER MISSION are feedback/achievement systems only; they do not add ranking score, speed, fuel, distance, hitbox, or hidden performance buffs.
-- CRITICAL judgement threshold is unchanged.
-- Valkyrie MACH SYNC / DIVINE MACH conditions and performance are unchanged.
-- 9 machine IDs, 55 course patterns, vehicle physics, fuel model, obstacle behavior and all ULTIMATE performance are unchanged.
-- ranking endpoint / payload schema and save key `asoboonBoonrun.v1` are unchanged.
+UNCHANGED GAMEPLAY CONTRACT
+- PHYSICS / FUEL / speed curve unchanged.
+- 9 machine IDs and machine performance unchanged.
+- 55 course patterns unchanged.
+- obstacles / drone / collision rules unchanged.
+- CRITICAL / RISK LINE / FLOW / DRIVER MISSION unchanged.
+- Valkyrie MACH SYNC / DIVINE MACH unchanged.
+- all ULTIMATE behavior unchanged.
+- ranking payload / save schema unchanged.
+- save key remains asoboonBoonrun.v1.
 
-MACHINE SERIES CONTRACT
-- COMMON = machine identity.
-- BOONJUMP = how the machine flies.
-- BOONRUN = how the machine drives.
-- Workflow B remains: assets/machines is source-of-truth; RUN/JUMP keep runtime copies.
-- `ssr` remains the internal ID for Cosmic Phantom; `suv` must not return as a machine ID.
+QA STATUS
+- Node syntax: PASS (`game.bundle.js`, `sw.js`, `run-ranking.js`).
+- Package re-extraction: PASS; 129 files present.
+- WORLD DRIVE runtime art identity vs approved v1.1 source pack: PASS (42/42 runtime WebPs byte-identical).
+- Runtime art dimensions: PASS (21 WORLD body WebPs = 5824×512; 18 transition WebPs = 1536×512; 3 STARLIGHT LOOP WebPs = 5824×512).
+- MID / NEAR alpha requirement: PASS for WORLD, transition and loop runtime layers.
+- HTML duplicate IDs: 0. Direct HTML asset refs missing: 0.
+- Service Worker CORE refs missing: 0. WORLD DRIVE manifest asset refs missing: 0 / 42.
+- `style.css`: byte-identical to the pre-WORLD-DRIVE Drive copy used for comparison; `index.html` changes are asset-version query strings only.
+- Gameplay protected blocks vs pre-WORLD-DRIVE Drive `game.bundle.js`: PHYSICS / FUEL_ZONES / FUEL_RULES / CARS / PATTERNS / SPECIALS / STORE_KEY / `effectiveFuelRate()` / `step()` / `startGame()` / `buildRunSubmission()` = byte-identical.
+- `run-ranking.js`: byte-identical to current Drive root copy (SHA-256 `23662d77cc50e51b3e845a57b5ac4c2db1a08780ffc163a7b5162afa497e1783`).
+- Anchor phase error: 0. Anchor parallax slope jump: ~3.0e-8 in numerical check. Finite-layer progress monotonicity: PASS.
+- Static cache-policy simulation: max intended WORLD DRIVE decoded groups = 2; at 12.12km+ intended resident group = `loop:07` only.
+- Local Chromium runtime execution: NOT VERIFIED in this re-audit because organization policy blocks local/file URLs in the available Chromium. Previous browser-PASS claims are not used for final acceptance.
+- Real iPhone / Android / LINE FPS, memory pressure, actual rendering, visibility and comfort gate: STILL REQUIRED.
 
-ASSETS / WEBP PUBLICATION
-- COMMON asset bytes and MACHINE CARD WebP bytes are unchanged.
-- Added 9 lightweight complete-car WebP runtime derivatives.
-- Added 8 lightweight body WebP runtime derivatives; SECRET body stays PNG because its PNG is smaller.
-- Runtime prefers WebP and falls back to existing PNG.
-- wheel / shadow / boost stay PNG.
-
-SERVICE WORKER
-- Cache/build query bumped to v111-webp-publication; new WebP car assets are precached with Promise.allSettled.
-- RUN Service Worker remains independent from BOONJUMP.
-
-RELEASE NOTE
-- Static/code/package QA is required and performed before Drive update.
-- Real iPhone/Android/LINE in-app browser one-play smoke test remains the final physical-device acceptance step.
+LOCK RULE
+WORLD DRIVE BACKGROUND ART v1.1 remains LOCK CANDIDATE only.
+Final LOCK requires real-device 05→06→07 continuous-run acceptance.

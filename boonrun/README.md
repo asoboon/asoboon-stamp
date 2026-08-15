@@ -1,54 +1,82 @@
-# BOON RUN 2 — v1.1.1
+# BOON RUN 2 — v1.2.3 RC1 WORLD DRIVE
 
-Runtime: `1.1.1`  
-Build: `2026-08-14-playable-v1.1.1-webp-publication`
+Runtime: `1.2.3-rc1`  
+Build: `2026-08-15-rc1-v1.2.3-world-drive`
 
 ## Core idea
 
-BOON RUN is moving from “just avoid obstacles” toward **skillful driving where the player can feel improvement every run**.
+BOON RUN now treats distance as **a journey through changing road worlds**, not only a number. The player should feel that every section goes somewhere while obstacle readability stays stronger than scenery.
+
+## WORLD DRIVE — 7 road worlds
+
+1. `0–1 km` — **DAY HIGHWAY** / デイ・ハイウェイ  
+   Soft hills, fields, utility lines, sparse roadside town.
+2. `1–2 km` — **CITY APPROACH** / シティ・アプローチ  
+   Tree line, growing skyline, distant overpass.
+3. `2–3 km` — **METRO RING** / メトロ・リング  
+   Denser skyline and elevated expressway silhouette.
+4. `3–5 km` — **SUNSET EXPRESS** / サンセット・エクスプレス  
+   Bay horizon, sunset palette, suspension bridge.
+5. `5–7 km` — **NIGHT CITY** / ナイト・シティ  
+   Lit high-rises, city glow, night road lighting.
+6. `7–10 km` — **MIDNIGHT LOOP** / ミッドナイト・ループ  
+   Deep-night skyline, elevated loop, distant expressway signs.
+7. `10 km+` — **STARLIGHT EXPRESS** / スターライト・エクスプレス  
+   Deep sky, denser stars, subtle aurora tone, distant beacon skyline.
+
+World scene changes cross-fade over the first ~160 m of a new zone so the background does not pop abruptly.
+
+## SECTION CLEAR × WORLD DRIVE
+
+The existing 1 km SECTION CLEAR system now announces a new world when a world boundary is crossed. The banner shows the world name plus SELF BEST chase information. This remains presentation only and does not alter course difficulty, speed, ranking, fuel, or scoring.
+
+## Background readability rules
+
+- Far scenery uses slow parallax only.
+- High-contrast objects are not placed in the active obstacle lane.
+- City windows and lights remain subdued and behind hazards.
+- Road markers remain intentionally long/sparse to avoid excessive optic flow.
+- `prefers-reduced-motion` continues to suppress decorative motion such as stronger sky animation.
+- Current v1.2.x uses authored `assets/world-drive/` FAR / MID / NEAR WebP art. The procedural Canvas renderer remains fallback-only when an authored image group is not ready.
+
+## Existing v1.1.0 systems retained
 
 ### REPLAY DRIVE
-
-- **SELF BEST CHASE** — shows the remaining distance to the selected machine's best and celebrates NEW BEST RUN.
-- **CRITICAL FLOW** — rewards consecutive CRITICALs with visible flow feedback only; no performance/ranking multiplier.
-- **SECTION CLEAR** — 1 km milestones become clearer section achievements.
-- **RUN RESULT STORY** — result badges summarize what kind of run the player just had.
-- **DEATH COACH** — one short cause-specific tip points directly to the next attempt.
+- SELF BEST CHASE
+- CRITICAL FLOW
+- SECTION CLEAR
+- RUN RESULT STORY
+- DEATH COACH
 
 ### DRIVER SKILL
+- RISK LINE
+- CRITICAL FEEL
+- 9-machine DRIVER MISSION
 
-- **RISK LINE** — an inner precision feedback zone inside the existing CRITICAL interaction. It does not widen or change CRITICAL judgement.
-- **CRITICAL FEEL** — short visual/audio/haptic feedback without slowing physics or changing game time.
-- **DRIVER MISSION** — one machine-specific skill objective for each of the 9 machines.
-
-## 9 current machine IDs
-
-`boon, wagon, buggy, bike, sport, ssr, princess, valkyrie, secret`
-
-`ssr` = Cosmic Phantom. Legacy `suv` is forbidden as a machine ID.
-
-## MACHINE SELECT
-
-- Finished MACHINE CARD remains the visual hero.
-- Authoritative card ratio is `1024:683` and uses `object-fit: contain`.
-- No crop / no distortion.
-- Modern iPhone / short landscape widths reflow to a horizontal machine strip + large card + RUN profile instead of simply shrinking the card.
-- safe-area and >=44px primary tap targets are preserved.
-- “遊び方” uses a brighter yellow-orange treatment so it reads as interactive without overpowering START.
+### MACHINE SELECT
+- Finished MACHINE CARD is the visual hero.
+- `1024:683`, `object-fit: contain`, no crop / no distortion.
+- modern iPhone / compact landscape reflow.
+- safe-area and >=44px primary tap targets.
+- bright yellow-orange “遊び方” button.
 
 ## Protected gameplay
 
-v1.1.0 does **not** intentionally change:
+v1.1.1 does **not** intentionally change:
 
 - 9 machine IDs
 - 55 authored course patterns
-- car physics / speed / fuel / hitboxes
+- PHYSICS
+- speed curve
+- fuel model
 - obstacle geometry or behavior
 - CRITICAL judgement threshold
-- Valkyrie MACH SYNC / DIVINE MACH performance
+- Valkyrie MACH SYNC / DIVINE MACH conditions or performance
 - any ULTIMATE performance
-- ranking endpoint / payload schema
+- ranking endpoint / submission payload schema
 - save key `asoboonBoonrun.v1`
+
+Static comparison against v1.1.0 confirms PHYSICS / CARS / SPECIALS / PATTERNS / `speedMultiplierAt()` / `effectiveFuelRate()` / `buildRunSubmission()` are byte-identical blocks.
 
 ## MACHINE SERIES contract
 
@@ -56,17 +84,75 @@ v1.1.0 does **not** intentionally change:
 - **BOONJUMP = how it flies**
 - **BOONRUN = how it drives**
 
-Workflow B is retained. COMMON identity assets are not rewritten for RUN-specific display needs.
+Workflow B remains. COMMON identity bytes are not changed by WORLD DRIVE.
 
-## WebP publication
+## WebP handoff
 
-- MACHINE CARD WebP bytes remain unchanged.
-- Runtime complete-car WebP derivatives: 9/9.
-- Runtime body WebP derivatives: 8/9; SECRET body intentionally keeps PNG because it is already smaller.
-- WebP is preferred at runtime, with PNG retained as fallback/source.
-- wheel / shadow / boost remain PNG because they are already small and/or runtime-position-sensitive.
-- COMMON identity bytes are not rewritten by this RUN publication pass.
+MACHINE CARD WebP assets are retained. Runtime car-part WebP work remains independent from WORLD DRIVE. Current WORLD DRIVE does add its own authored image dependency under `assets/world-drive/`; those background files do not change machine identity or gameplay performance.
 
 ## Release gate
 
-Static/code/package checks must pass before publication. Final visual/touch acceptance still requires at least one real landscape phone run in LINE/iPhone/Android because this environment cannot claim a physical-device test.
+Static/code/package QA is included. Final acceptance still requires a real landscape-device one-play smoke test in iPhone/Android/LINE after the WebP handoff is merged.
+
+## v1.2.0 DEV — WORLD DRIVE ASSET INTEGRATION
+
+- Integrates `BOONRUN WORLD DRIVE BACKGROUND ASSET PACK v1.0` as lazy-loaded runtime art.
+- Runtime path: `assets/world-drive/`.
+- Seven worlds use authored FAR / MID / NEAR WebP panoramas; six boundary transition sets are used between worlds.
+- WORLD07 blends to the supplied STARLIGHT LOOP after the ASOBOON TOWER pass.
+- `world-drive-preview.html` is a QA-only distance scrubber for direct 0–14km visual inspection.
+- Procedural WORLD DRIVE remains the fallback if art is missing or not ready.
+- Gameplay, rankings and save schema are unchanged from the v1.1.1 base.
+
+## v1.2.1 DEV — WORLD06 MIDNIGHT LOOP ART REVISION
+
+WORLD06 art revision v1.1 has been applied without changing gameplay. Only `06-midnight-loop` runtime FAR/MID/NEAR and the `05-06` / `06-07` transition layers are replaced. WORLD01–05 and WORLD07 body art remain unchanged. Build/cache identifiers were bumped to avoid stale Service Worker art.
+
+
+## v1.2.2 DEV — WORLD DRIVE FINAL QA
+
+WORLD DRIVE v1.1 art is unchanged. This build finalizes the background runtime before device LOCK.
+
+### Landmark-locked local parallax
+- MID is the authored landmark track and stays exactly distance-locked.
+- FAR / MID / NEAR representative depth rates: 5% / 13% / 30%.
+- FAR / NEAR only drift between authored anchor distances and return to zero offset at every anchor.
+- This keeps bridge/JCT/ferris-wheel/TOWER timing intact while adding true layer-relative motion.
+- WORLD06 anchors explicitly include 9.2km, so the ASOBOON TOWER preview gate is not shifted by parallax.
+- STARLIGHT LOOP remains continuous literal 5% / 13% / 30% scrolling.
+
+### Runtime loading
+- Current WORLD is kept resident.
+- Transition art is prefetched before the boundary.
+- Incoming WORLD is prefetched shortly before visibility.
+- Outgoing WORLD is released after the midpoint.
+- All 7 worlds are never intentionally kept resident together.
+
+### Device acceptance still required
+Check 05→06→07 continuously on iPhone / Android / LINE for FPS, memory, obstacle/fuel/drone visibility, CRITICAL/ULTIMATE competition, and eye fatigue.
+
+
+## v1.2.3 RC1 — WORLD DRIVE
+
+No art is changed in this build. It hardens the runtime discovered during final audit.
+
+### Parallax continuity
+- MID remains the authored landmark/distance truth.
+- FAR / NEAR local offsets now use a smooth bump with zero offset **and zero relative-speed differential** at every authored anchor.
+- This removes a possible micro-jerk at 0.6 / 1.6 / 2.6 / 3.5 / 4.0 / 4.5 / 6.0 / 6.6 / 8.0 / 9.0 / 9.2 / 9.6 / 10.0km checkpoints.
+- Reduced-motion users receive weaker local parallax; STARLIGHT LOOP aligns all layers to MID speed.
+
+### Memory / loading
+- WORLD boundaries use a two-decoded-group handoff instead of retaining outgoing WORLD + transition + incoming WORLD simultaneously.
+- Incoming compressed bytes are warmed before handoff.
+- WORLD01 is warmed while the player is on the menu and its three WebPs are part of SW CORE.
+- A v1.2.2 issue that recreated finite `world:07` after the STARLIGHT LOOP takeover is fixed. After 12.12km only `loop:07` remains intentionally resident.
+
+### QA status before real-device acceptance
+- Static/package audit: PASS. JS/SW syntax, asset references, image dimensions, manifest references, duplicate HTML IDs, and Service Worker CORE references were rechecked.
+- WORLD DRIVE runtime WebP identity: 42/42 runtime WebPs are byte-identical to the approved BACKGROUND ASSET PACK v1.1 source.
+- Gameplay-contract comparison: PHYSICS / FUEL / CARS / PATTERNS / SPECIALS / `buildRunSubmission()` remain byte-identical to the pre-WORLD-DRIVE RUN base used for comparison; `run-ranking.js` is byte-identical to the current Drive root copy.
+- Landmark-lock math: anchor phase error is 0; finite-layer progress is monotonic; the smooth local-parallax derivative returns effectively to 0 at authored anchors.
+- Cache-policy logic: at most two decoded WORLD DRIVE groups are intentionally retained at boundaries; after 12.12km the finite WORLD07 group is released by policy and the STARLIGHT LOOP remains.
+- Local Chromium execution is **not counted as PASS in this audit** because the available Chromium is blocked from local/file URLs by organization policy.
+- Final acceptance therefore still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE device testing for actual FPS, memory pressure, rendering, visibility and comfort.
