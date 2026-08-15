@@ -1,26 +1,30 @@
-BOON RUN 2 v1.2.3-rc4 — MACHINE CARD LAYOUT FIX
-Build: 2026-08-15-rc4-v1.2.3-machine-card-layout-fix
+BOON RUN 2 v1.2.3-rc6 — FULL GAME BALANCE POLISH
+Build: 2026-08-15-rc6-v1.2.3-full-balance-polish
 
-RC4 ROOT-CAUSE HOTFIX
-- Fixes MACHINE CARD hero collapsing to 0×0 in the car-selection screen.
-- The v1.1 TRUE FIT CSS used width:auto!important / height:auto!important, which overrode fitGarageCard() inline dimensions.
-- Removed those competing !important size rules so fitGarageCard() controls the actual 1024:683 card box.
-- Removed a literal \n\n token that incorrectly prefixed the TRUE FIT feature rule.
-- Short-landscape width override no longer uses !important, so JS fitting remains authoritative.
-- Full 9 MACHINE CARD WebP files are included in this upload patch as a deployment safety check.
+RC6 WHOLE-GAME POLISH
+- Rebalances the smartphone UI hierarchy without changing gameplay performance.
+- HOME now fits START / MACHINE / RECORDS / RANKING / HELP / per-machine controls in normal landscape phone heights.
+- HELP uses height-driven compact layout so wide phones such as 932×430 no longer miss the lower ROAD GUIDE.
+- RECORDS becomes a compact 3×3 machine dashboard on landscape phones >=700px wide; smaller phones keep a readable 2-column layout.
+- RESULT is compressed into one landscape view: retry remains primary, ranking registration is explicit/optional, and all 3 secondary actions share one row.
+- Countdown/pre-start reduces ULTIMATE / highway-board visual weight so the car, countdown and control guide win the hierarchy.
+- Keeps RC5 MACHINE CARD visual hierarchy and RC4 0×0 card fix.
 
-UNCHANGED
-- Mobile START flow from RC3
-- PHYSICS / FUEL / machine performance
-- 55 patterns / obstacles / drone
-- CRITICAL / ULTIMATE
-- WORLD DRIVE
-- ranking contract / run-ranking.js
+RANKING UX
+- Ranking registration is user-initiated from the result screen.
+- No automatic submission or automatic name modal at game over.
+- Ranking endpoint, session, payload schema and run-ranking.js remain unchanged.
+
+UNCHANGED GAMEPLAY CONTRACT
+- PHYSICS / speed curve / FUEL
+- 9 machine IDs and performance
+- 55 authored patterns / obstacles / drone
+- CRITICAL / RISK LINE / DRIVER MISSION
+- all FINAL ULTIMATE performance
+- WORLD DRIVE art / distance anchors / parallax / loading policy
+- ranking payload / run-ranking.js
 - save key asoboonBoonrun.v1
 
-QA
-- 9 MACHINE CARD files: 1024×683 verified
-- JS / SW syntax: PASS
-- CSS parse: PASS
-- MACHINE CARD layout: non-zero hero box verified in isolated Chromium CSS render
-- Real iPhone / Android / LINE final verification still required
+RELEASE GATE
+- Static/package/layout/runtime-harness QA is required for RC6.
+- Final acceptance still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE real-device confirmation.

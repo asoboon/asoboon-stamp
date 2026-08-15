@@ -1,7 +1,7 @@
-# BOON RUN 2 — v1.2.3 RC1 WORLD DRIVE
+# BOON RUN 2 — v1.2.3 RC6 FULL GAME BALANCE POLISH
 
-Runtime: `1.2.3-rc1`  
-Build: `2026-08-15-rc1-v1.2.3-world-drive`
+Runtime: `1.2.3-rc6`  
+Build: `2026-08-15-rc6-v1.2.3-full-balance-polish`
 
 ## Core idea
 
@@ -62,7 +62,7 @@ The existing 1 km SECTION CLEAR system now announces a new world when a world bo
 
 ## Protected gameplay
 
-v1.1.1 does **not** intentionally change:
+RC6 still does **not** intentionally change:
 
 - 9 machine IDs
 - 55 authored course patterns
@@ -156,3 +156,18 @@ No art is changed in this build. It hardens the runtime discovered during final 
 - Cache-policy logic: at most two decoded WORLD DRIVE groups are intentionally retained at boundaries; after 12.12km the finite WORLD07 group is released by policy and the STARLIGHT LOOP remains.
 - Local Chromium execution is **not counted as PASS in this audit** because the available Chromium is blocked from local/file URLs by organization policy.
 - Final acceptance therefore still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE device testing for actual FPS, memory pressure, rendering, visibility and comfort.
+
+## v1.2.3 RC6 — whole-game balance polish
+
+RC6 is a UI / flow / readability pass over the complete BOONRUN experience. It intentionally does not rebalance machine performance or course difficulty.
+
+- HOME: height-driven landscape layout so all actions remain visible.
+- HELP: compact rules apply by phone height, including wide 932px-class devices.
+- MACHINE SELECT: RC5 finished-card-first presentation retained.
+- RECORDS: compact landscape dashboard, 3×3 when width permits.
+- GAME HUD: pre-start ULTIMATE / highway board are visually quieter.
+- RESULT: retry, optional ranking registration, and all secondary actions fit normal landscape phone heights.
+- RANKING: submission is explicit from RESULT; automatic end-of-run submission is disabled. Endpoint/session/payload and `run-ranking.js` are unchanged.
+- WORLD DRIVE: v1.1 art and v1.2.3 background engine are unchanged.
+
+Final LOCK still requires real-device smoke testing.
