@@ -616,7 +616,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
   .machine-card-head{height:44px!important;min-height:44px!important}
   .machine-card-layout{grid-template-rows:48px minmax(0,1fr)!important}
   .machine-rail-card{height:44px!important;min-height:44px!important}
-  .machine-card-hero{width:min(97%,calc((100dvh - 148px)*1.4993))!important}
+  .machine-card-hero{width:min(97%,calc((100dvh - 148px)*1.4993))}
   .machine-card-cta{min-height:44px!important}
 }
 
@@ -655,15 +655,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,.mini-home:focus-v
 @media(max-height:520px){.flow-badge{padding:4px 6px;font-size:6.5px}.best-chase{font-size:5.8px}.section-banner{padding:7px 13px;min-width:min(250px,54vw)}.section-banner strong{font-size:22px}.result-story{margin:5px 0 0;gap:5px}.result-badges{min-height:40px;padding:5px;gap:3px}.result-badge{padding:4px 5px;font-size:6.5px}.result-coach{padding:5px 7px}.result-coach strong{font-size:9.5px}.result-coach p{font-size:7.8px}}
 @media(max-width:620px){.result-story{grid-template-columns:1fr}.result-badges{min-height:auto}}
 @media(prefers-reduced-motion:reduce){.section-banner.show{animation:none!important;opacity:1;visibility:visible}.flow-badge,.best-chase{transition:none!important}}
-\n\n/* v1.1.0 — MACHINE CARD TRUE FIT --------------------------------------
+/* v1.1.0 — MACHINE CARD TRUE FIT --------------------------------------
    Fixes the garage sizing conflict between the v1.0.35 viewport formulas and
    v1.1 44px tap-target overrides. The JS now fits the 1024:683 card to the
    measured feature box; these rules remove competing width formulas. */
 .machine-card-feature{padding:6px 56px;box-sizing:border-box}
 .machine-card-hero,
 .machine-card-hero.has-card-art{
-  width:auto!important;
-  height:auto!important;
   max-width:100%!important;
   max-height:100%!important;
   aspect-ratio:1024/683!important;

@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-15-rc3-v1.2.3-mobile-balance';
-const CLIENT_VERSION = '1.2.3-rc3';
+const BUILD = '2026-08-15-rc4-v1.2.3-machine-card-layout-fix';
+const CLIENT_VERSION = '1.2.3-rc4';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;

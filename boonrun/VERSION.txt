@@ -1,39 +1,26 @@
-BOON RUN 2 v1.2.3 RC3 — WORLD DRIVE / MOBILE ENTRY BALANCE
+BOON RUN 2 v1.2.3-rc4 — MACHINE CARD LAYOUT FIX
+Build: 2026-08-15-rc4-v1.2.3-machine-card-layout-fix
 
-Build: 2026-08-15-rc3-v1.2.3-mobile-balance
-Client: 1.2.3-rc3
-Base: v1.2.3 RC1 WORLD DRIVE + RC2 mobile-start fix
+RC4 ROOT-CAUSE HOTFIX
+- Fixes MACHINE CARD hero collapsing to 0×0 in the car-selection screen.
+- The v1.1 TRUE FIT CSS used width:auto!important / height:auto!important, which overrode fitGarageCard() inline dimensions.
+- Removed those competing !important size rules so fitGarageCard() controls the actual 1024:683 card box.
+- Removed a literal \n\n token that incorrectly prefixed the TRUE FIT feature rule.
+- Short-landscape width override no longer uses !important, so JS fitting remains authoritative.
+- Full 9 MACHINE CARD WebP files are included in this upload patch as a deployment safety check.
 
-MOBILE ENTRY BALANCE
-- Portrait smartphone entry keeps the game landscape-only while always exposing a primary 「ゲームを始める」 CTA.
-- Portrait entry now has a clear visual hierarchy: BOONRUN identity → rotate cue → start CTA → fallback hint.
-- Portrait entry now includes 「ミニアプリへ戻る」 so the rotate gate never traps navigation.
-- Small-height portrait spacing is compressed without shrinking the primary CTA below 60px.
-- Landscape home CTA remains the largest action and reads 「ゲームを始める」; helper copy is 「START / タップして開始」.
-- CTA attempts fullscreen/landscape lock where supported. If unavailable, it waits for the user to rotate and then opens the normal pre-run confirmation.
+UNCHANGED
+- Mobile START flow from RC3
+- PHYSICS / FUEL / machine performance
+- 55 patterns / obstacles / drone
+- CRITICAL / ULTIMATE
+- WORLD DRIVE
+- ranking contract / run-ranking.js
+- save key asoboonBoonrun.v1
 
-WORLD DRIVE / GAMEPLAY
-- WORLD DRIVE BACKGROUND ART v1.1 is unchanged.
-- WORLD DRIVE engine, parallax, landmark anchors, loading/unloading and STARLIGHT LOOP behavior are unchanged from RC1/RC2.
-- PHYSICS / FUEL / speed curve unchanged.
-- 9 machine IDs and machine performance unchanged.
-- 55 course patterns unchanged.
-- obstacles / drone / collision rules unchanged.
-- CRITICAL / RISK LINE / FLOW / DRIVER MISSION unchanged.
-- all ULTIMATE behavior unchanged.
-- ranking payload / save schema unchanged.
-- save key remains asoboonBoonrun.v1.
-
-RC3 STATIC QA
-- Node syntax: PASS (`game.bundle.js`, `sw.js`, `run-ranking.js`).
-- CSS parse errors: 0. HTML duplicate IDs: 0.
-- Portrait start CTA exists in HTML and has >=60px minimum height on compact portrait.
-- Landscape start CTA has >=50px minimum height on very short landscape and >=58–72px in normal phone landscape rules.
-- Phone landscape menu retains START + car + record + ranking + help + operation guide in one action grid.
-- RC3 `game.bundle.js` differs from RC2 only in BUILD/CLIENT_VERSION and the portrait CTA helper microcopy; gameplay blocks are unchanged.
-- `run-ranking.js` is unchanged.
-- Real iPhone / Android / LINE rendering, FPS, memory and touch-flow acceptance are STILL REQUIRED.
-
-LOCK RULE
-WORLD DRIVE BACKGROUND ART v1.1 remains LOCK CANDIDATE only.
-Final LOCK requires real-device continuous-run acceptance.
+QA
+- 9 MACHINE CARD files: 1024×683 verified
+- JS / SW syntax: PASS
+- CSS parse: PASS
+- MACHINE CARD layout: non-zero hero box verified in isolated Chromium CSS render
+- Real iPhone / Android / LINE final verification still required
