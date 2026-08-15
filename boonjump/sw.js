@@ -1,10 +1,10 @@
-const BUILD = "2026-08-15-ultimate-v600";
+const BUILD = "2026-08-15-virtual-button-v620-production";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=600-physics",
+  "./ranking-client.js?v=620-buttons",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
