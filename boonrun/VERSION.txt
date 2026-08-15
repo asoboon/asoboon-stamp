@@ -1,8 +1,16 @@
-BOON RUN 2 v1.2.3 RC1 — WORLD DRIVE
+BOON RUN 2 v1.2.3 RC2 — WORLD DRIVE / MOBILE START HOTFIX
 
-Build: 2026-08-15-rc1-v1.2.3-world-drive
-Client: 1.2.3-rc1
+Build: 2026-08-15-rc2-v1.2.3-mobile-start
+Client: 1.2.3-rc2
 Base: v1.2.2 DEV WORLD DRIVE FINAL QA + WORLD DRIVE BACKGROUND ART v1.1
+
+MOBILE START HOTFIX
+- Portrait smartphone gate now includes a visible primary 「ゲームを始める」 CTA.
+- CTA attempts fullscreen/landscape lock where supported; if unavailable, it clearly asks the user to rotate the phone.
+- After the user rotates to landscape, the normal pre-run confirmation opens automatically.
+- Landscape home CTA is now labeled 「ゲームを始める」 instead of START-only.
+- Compact landscape CSS guarantees a minimum primary CTA height.
+- Gameplay, physics, fuel, machines, patterns, ranking, save and WORLD DRIVE art are unchanged.
 
 WORLD DRIVE ENGINE HARDENING
 - No art changes. WORLD DRIVE BACKGROUND ART v1.1 bytes are retained exactly.

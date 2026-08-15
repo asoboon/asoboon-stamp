@@ -1,5 +1,5 @@
-const CACHE='boonrun-20260815-v123-rc1-world-drive';
-const CORE=['./','./index.html','./style.css?v=20260815-v123-rc1-world-drive','./game.bundle.js?v=20260815-v123-rc1-world-drive','./run-ranking.js?v=20260815-v123-rc1-world-drive','./manifest.webmanifest','./assets/world-drive/manifest.json','./assets/world-drive/BACKGROUND-ASSET-GUIDE.md','./assets/world-drive/01-day-highway/far.webp','./assets/world-drive/01-day-highway/mid.webp','./assets/world-drive/01-day-highway/near.webp'];
+const CACHE='boonrun-20260815-v123-rc2-mobile-start';
+const CORE=['./','./index.html','./style.css?v=20260815-v123-rc2-mobile-start','./game.bundle.js?v=20260815-v123-rc2-mobile-start','./run-ranking.js?v=20260815-v123-rc2-mobile-start','./manifest.webmanifest','./assets/world-drive/manifest.json','./assets/world-drive/BACKGROUND-ASSET-GUIDE.md','./assets/world-drive/01-day-highway/far.webp','./assets/world-drive/01-day-highway/mid.webp','./assets/world-drive/01-day-highway/near.webp'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(CORE.map(u=>c.add(u)))));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('boonrun-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{

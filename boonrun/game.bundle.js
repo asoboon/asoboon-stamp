@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-15-rc1-v1.2.3-world-drive';
-const CLIENT_VERSION = '1.2.3-rc1';
+const BUILD = '2026-08-15-rc2-v1.2.3-mobile-start';
+const CLIENT_VERSION = '1.2.3-rc2';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -446,7 +446,7 @@ let ownedCars=getOwnedCars();
 const els={
   screens:{menu:$('menuScreen'),help:$('helpScreen'),garage:$('garageScreen'),records:$('recordsScreen'),ranking:$('rankingScreen'),game:$('gameScreen')},
   homeBest:$('homeBest'),homeCarImage:$('homeCarImage'),selectedCarLabel:$('selectedCarLabel'),playCountLabel:$('playCountLabel'),howtoIcon1:$('howtoIcon1'),howtoText1:$('howtoText1'),howtoIcon2:$('howtoIcon2'),howtoText2:$('howtoText2'),howtoIcon3:$('howtoIcon3'),howtoText3:$('howtoText3'),
-  startButton:$('startButton'),helpButton:$('helpButton'),garageButton:$('garageButton'),recordsButton:$('recordsButton'),rankingButton:$('rankingButton'),rankingRefreshButton:$('rankingRefreshButton'),soundButton:$('soundButton'),
+  startButton:$('startButton'),rotateStartButton:$('rotateStartButton'),rotateStartHint:$('rotateStartHint'),helpButton:$('helpButton'),garageButton:$('garageButton'),recordsButton:$('recordsButton'),rankingButton:$('rankingButton'),rankingRefreshButton:$('rankingRefreshButton'),soundButton:$('soundButton'),
   carGrid:$('carGrid'),garageFeature:$('garageFeature'),garagePrev:$('garagePrev'),garageNext:$('garageNext'),garageCard:$('garageCard'),garageCardArt:$('garageCardArt'),garageRarity:$('garageRarity'),garageType:$('garageType'),garageState:$('garageState'),garageUltimateLabel:$('garageUltimateLabel'),garageUltimateName:$('garageUltimateName'),garageCardName:$('garageCardName'),garageIndex:$('garageIndex'),garageOwnedBadge:$('garageOwnedBadge'),garageName:$('garageName'),garageHandling:$('garageHandling'),garageBest:$('garageBest'),garageDescription:$('garageDescription'),garageSpecialName:$('garageSpecialName'),garageSpecialEffect:$('garageSpecialEffect'),garageSelectButton:$('garageSelectButton'),garageLockNote:$('garageLockNote'),recordBest:$('recordBest'),recordTotal:$('recordTotal'),recordPlays:$('recordPlays'),recordCars:$('recordCars'),
   canvas:$('gameCanvas'),viewport:$('gameViewport'),pauseButton:$('pauseButton'),abilityBadge:$('abilityBadge'),masteryBadge:$('masteryBadge'),flowBadge:$('flowBadge'),distanceLabel:$('distanceLabel'),milestoneLabel:$('milestoneLabel'),bestChase:$('bestChase'),sectionBanner:$('sectionBanner'),sectionBannerValue:$('sectionBannerValue'),sectionBannerSub:$('sectionBannerSub'),
   fuelBar:$('fuelBar'),fuelLabel:$('fuelLabel'),fuelBox:document.querySelector('.fuel-box'),extraMeter:$('extraMeter'),startGuide:$('startGuide'),countdown:$('countdown'),toast:$('toast'),flash:$('flash'),
@@ -1837,6 +1837,36 @@ async function submitCurrentRun(name){const payload=buildRunSubmission();if(!pay
 function requestRankSubmit(){if(!run?.rankingEligible)return;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;setTimeout(()=>els.rankingNameInput.focus(),50);}
 function autoRankSubmit(){if(!run||run.phase!=='ended'||!run.rankingEligible||!run.rankingSession||run.autoRankStarted)return;run.autoRankStarted=true;const name=RUN_RANKING?.playerName()||'';if(name){submitCurrentRun(name);return;}pendingRankSubmit=true;els.rankingNameInput.value='';els.rankingNameModal.hidden=false;els.resultRankingStatus.hidden=false;els.resultRankingStatus.textContent='最初の1回だけランキングネームを登録してください。';setTimeout(()=>els.rankingNameInput.focus(),50);}
 
+let portraitStartPending=false;
+async function requestPortraitStart(){
+  portraitStartPending=true;
+  if(els.rotateStartButton){els.rotateStartButton.disabled=true;els.rotateStartButton.querySelector('small').textContent='横画面へ切り替え中…';}
+  try{
+    if(document.documentElement.requestFullscreen&&!document.fullscreenElement){
+      const p=document.documentElement.requestFullscreen({navigationUI:'hide'});if(p&&typeof p.catch==='function')await p.catch(()=>{});
+    }
+  }catch{}
+  try{
+    if(window.screen&&screen.orientation&&typeof screen.orientation.lock==='function'){
+      const p=screen.orientation.lock('landscape');if(p&&typeof p.then==='function')await p.catch(()=>{});
+    }
+  }catch{}
+  if(innerWidth>innerHeight){
+    portraitStartPending=false;
+    if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横画面へ';}
+    setTimeout(showRulePrep,100);
+  }else{
+    if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='スマホを横向きにしてね';}
+    if(els.rotateStartHint)els.rotateStartHint.textContent='自動回転しない場合は、画面回転ロックを解除してスマホを横向きにしてください';
+  }
+}
+function continuePortraitStartIfReady(){
+  if(!portraitStartPending||innerWidth<=innerHeight)return;
+  portraitStartPending=false;
+  if(els.rotateStartButton){els.rotateStartButton.disabled=false;els.rotateStartButton.querySelector('small').textContent='タップして横画面へ';}
+  setTimeout(showRulePrep,120);
+}
+if(els.rotateStartButton)els.rotateStartButton.addEventListener('click',requestPortraitStart);
 els.startButton.addEventListener('click',showRulePrep);
 els.rulePrepStart.addEventListener('click',finishRulePrep);
 els.helpButton.addEventListener('click',()=>showScreen('help'));
@@ -1853,8 +1883,8 @@ if(els.rankingMachineGrid)els.rankingMachineGrid.addEventListener('click',e=>{co
 if(els.rankingMachineToggle)els.rankingMachineToggle.addEventListener('click',()=>{rankingMachinePanelOpen=!rankingMachinePanelOpen;syncRankingFilterUI();});
 if(els.rankingOverallButton)els.rankingOverallButton.addEventListener('click',()=>{rankingMachine='';rankingMachinePanelOpen=false;loadRanking();});
 
-window.addEventListener('resize',()=>requestAnimationFrame(fitGarageCard),{passive:true});
-window.addEventListener('orientationchange',()=>setTimeout(fitGarageCard,120),{passive:true});
+window.addEventListener('resize',()=>{requestAnimationFrame(fitGarageCard);continuePortraitStartIfReady();},{passive:true});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{fitGarageCard();continuePortraitStartIfReady();},120),{passive:true});
 if(typeof ResizeObserver!=='undefined'&&els.garageFeature){new ResizeObserver(()=>requestAnimationFrame(fitGarageCard)).observe(els.garageFeature);}
 els.garageButton.addEventListener('click',()=>{renderGarage();showScreen('garage');});
 els.recordsButton.addEventListener('click',()=>{renderRecords();showScreen('records');});
