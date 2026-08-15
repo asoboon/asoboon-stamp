@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.4.0 ULTIMATE FIXED COMMAND">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.5.0 ULTIMATE UX">
   <meta name="robots" content="noindex,nofollow">
   <meta name="boonjump-build" content="2026-08-15-ultimate-fixed-command-v640">
   <title>ブーンジャンプ｜ASOBooN</title>
@@ -847,10 +847,130 @@ body.modal-open{overflow:hidden}
 .air-command-button-pad.air-complete{border-color:rgba(255,216,61,.72);box-shadow:0 0 42px rgba(255,216,61,.28),inset 0 0 34px rgba(255,216,61,.10)}
 @media(prefers-reduced-motion:reduce){.air-command-fixed-sequence .air-command-chip.current{animation:none}.air-command-fixed-sequence .air-command-chip.done{animation:none}}
 
+
+/* ===== v6.5.0 ULTIMATE UX ===== */
+.home-air-tip{
+  margin:8px 0 1px;padding:8px 10px;border:1px solid rgba(135,246,255,.18);border-radius:13px;
+  background:linear-gradient(135deg,rgba(73,183,255,.075),rgba(255,216,61,.045));
+  display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;text-align:left
+}
+.home-air-tip b{grid-row:1/3;color:#87f6ff;font-size:.50rem;letter-spacing:.10em;font-weight:1000}
+.home-air-tip span{color:#d6e7f3;font-size:.53rem;font-weight:900;line-height:1.25}
+.home-air-tip strong{color:#fff36b;font-size:.55rem;font-weight:1000;line-height:1.25}
+
+.air-drive{
+  width:min(calc(100% - 10px),520px);padding:8px 10px 9px;border-radius:20px;
+  background:linear-gradient(180deg,rgba(2,10,24,.50),rgba(2,9,22,.31));backdrop-filter:blur(6px)
+}
+.air-drive-head span{font-size:.68rem}
+.air-drive-head strong{font-size:.92rem;color:#fff;font-variant-numeric:tabular-nums}
+.air-command-help{margin:3px 0 3px;font-size:.67rem}
+.air-command-time{height:8px}
+.air-drive-track-fixed{min-height:110px}
+.air-command-fixed-label{margin-bottom:5px}
+.air-command-fixed-label span{font-size:.54rem}
+.air-command-fixed-label strong{font-size:.70rem}
+
+.air-command-fixed-sequence{grid-template-rows:repeat(2,49px);gap:5px;border-radius:14px}
+.air-command-fixed-sequence .air-command-chip{
+  height:49px;border-radius:12px;font-size:1.82rem;border-color:rgba(255,255,255,.18);
+  background:linear-gradient(180deg,rgba(10,27,50,.67),rgba(4,13,29,.67));color:#f5fbff;opacity:.90;
+  transform:none!important
+}
+.air-command-fixed-sequence .air-command-chip::before{
+  left:5px;top:4px;font-size:.39rem;color:rgba(255,255,255,.38)
+}
+.air-command-fixed-sequence .air-command-chip.pending{opacity:.82}
+.air-command-fixed-sequence .air-command-chip.current{
+  opacity:1;border-color:#fff36b;background:linear-gradient(180deg,#fff46b,#ffac26);color:#071222;
+  box-shadow:0 0 0 2px rgba(255,243,107,.14),0 0 22px rgba(255,216,61,.72);
+  animation:v65CurrentGlow .28s ease-in-out infinite alternate
+}
+.air-command-fixed-sequence .air-command-chip.current::after{
+  content:"NOW";position:absolute;right:4px;top:3px;padding:2px 4px;border-radius:999px;
+  background:#071222;color:#fff36b;font-size:.34rem;line-height:1;font-weight:1000;letter-spacing:.05em
+}
+.air-command-fixed-sequence .air-command-chip.done{
+  opacity:.34;border-color:rgba(135,246,255,.28);background:rgba(23,94,117,.26);color:#bff8ff
+}
+.air-command-fixed-sequence .air-command-chip.done::after{
+  content:"✓";right:5px;top:3px;padding:0;background:none;color:#87f6ff;font-size:.56rem
+}
+@keyframes v65CurrentGlow{
+  from{filter:brightness(1);box-shadow:0 0 0 2px rgba(255,243,107,.13),0 0 15px rgba(255,216,61,.50)}
+  to{filter:brightness(1.12);box-shadow:0 0 0 3px rgba(255,243,107,.18),0 0 27px rgba(255,216,61,.90)}
+}
+.air-drive-feedback{margin-top:2px;min-height:17px;font-size:.65rem}
+
+.air-command-button-pad{
+  width:min(96%,430px);height:238px;padding:6px;gap:6px;border-radius:28px;
+  background:linear-gradient(180deg,rgba(3,12,28,.13),rgba(3,12,28,.31));border-color:rgba(255,255,255,.25)
+}
+.air-command-button{
+  min-width:76px;min-height:67px;border-radius:22px;border-color:rgba(255,255,255,.48);
+  background:linear-gradient(180deg,rgba(20,49,84,.88),rgba(5,20,44,.90));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.13),0 7px 16px rgba(0,0,0,.24)
+}
+.air-command-button>span{font-size:clamp(2.45rem,11.5vw,3.8rem)}
+.air-command-button>small{font-size:.43rem}
+.air-command-button.press{transform:scale(.90);filter:brightness(1.32)}
+.air-command-button.correct{
+  border-color:#fff36b;background:linear-gradient(180deg,#fff36b,#ff9e1a);color:#06101f;
+  box-shadow:0 0 27px rgba(255,216,61,.92),0 8px 18px rgba(0,0,0,.22)
+}
+.air-command-button.wrong{border-color:#ff7878;background:linear-gradient(180deg,#d94f58,#6c1722)}
+.air-command-pad-core{
+  border-color:rgba(135,246,255,.16);
+  background:radial-gradient(circle,rgba(135,246,255,.13),rgba(73,183,255,.025) 66%,transparent 71%)
+}
+.air-command-pad-core b{font-size:1.52rem}
+.air-command-pad-core small{font-size:.43rem}
+
+.result-air-drive{position:relative;overflow:hidden}
+.result-air-drive::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.12) 46%,transparent 66%)
+}
+.result-air-drive.perfect{
+  border-color:rgba(255,216,61,.68);background:linear-gradient(135deg,rgba(255,216,61,.18),rgba(56,189,248,.10));
+  box-shadow:0 0 22px rgba(255,216,61,.12)
+}
+.result-air-drive.perfect::after{opacity:1}
+.result-air-drive.perfect>strong{color:#fff36b;text-shadow:0 0 15px rgba(255,216,61,.48)}
+.result-air-drive.burst{border-color:rgba(135,246,255,.45);background:linear-gradient(135deg,rgba(73,183,255,.14),rgba(255,216,61,.08))}
+.result-air-drive.burst>strong{color:#87f6ff}
+.result-air-drive.boost{border-color:rgba(101,215,255,.30)}
+.result-air-drive.nice{border-color:rgba(255,255,255,.18)}
+.result-air-drive.none{opacity:.82;border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.035)}
+.result-air-drive.none>strong{color:#c7d5df}
+
+.ranking-result-note.sending,.ranking-result-note.pending,.ranking-result-note.success{
+  border-radius:11px;padding:8px 10px;font-weight:1000
+}
+.ranking-result-note.sending{background:rgba(73,183,255,.08)}
+.ranking-result-note.success{background:rgba(86,220,133,.09)}
+.ranking-result-note.pending{background:rgba(255,177,31,.09)}
+
+@media(max-height:720px){
+  .home-air-tip{padding:6px 8px}
+  .air-drive-track-fixed{min-height:98px}
+  .air-command-fixed-sequence{grid-template-rows:repeat(2,43px);gap:4px}
+  .air-command-fixed-sequence .air-command-chip{height:43px;font-size:1.55rem}
+  .air-command-button-pad{height:214px}
+}
+@media(max-width:350px){
+  .home-air-tip{grid-template-columns:1fr}.home-air-tip b{grid-row:auto}
+  .air-command-fixed-sequence{grid-template-rows:repeat(2,42px)}
+  .air-command-fixed-sequence .air-command-chip{height:42px;font-size:1.48rem}
+  .air-command-button-pad{height:218px}
+}
+@media(prefers-reduced-motion:reduce){
+  .air-command-fixed-sequence .air-command-chip.current{animation:none}
+}
+
 </style>
 </head>
 <body>
-<div style="position:fixed;z-index:200;right:8px;top:8px;padding:5px 9px;border-radius:999px;background:#fff36b;color:#06101f;font:900 10px/1 system-ui;box-shadow:0 3px 10px #0005;pointer-events:none">v6.2 BUTTON POLISHED</div>
 
 <div class="app" id="app">
   <header class="topnav" id="topnav">
@@ -872,9 +992,9 @@ body.modal-open{overflow:hidden}
   <main>
     <section class="screen active" id="homeScreen" aria-labelledby="homeTitle">
       <div class="hero-card">
-        <p class="eyebrow">3回のタップで、飛び方が変わる。</p>
+        <p class="eyebrow">3 COMBOを決めて、空中でAIR COMMAND！</p>
         <h1 id="homeTitle">ブーン<br><span>ジャンプ</span></h1>
-        <p class="lead">アクセル、ターボ、空中ニトロ。<br>3つの操作で限界まで飛ばそう！</p>
+        <p class="lead">ACCEL → TURBO → NITROで飛び出して、<br>最後は10個の矢印を4方向ボタンで決めろ！</p>
 
         <div class="current-car" id="homeCarCard">
           <div class="vehicle-slot" id="homeVehicle"></div>
@@ -887,6 +1007,9 @@ body.modal-open{overflow:hidden}
         </div>
 
         <button class="primary huge" id="playButton" type="button">このマシンで飛ぶ</button>
+        <div class="home-air-tip" aria-label="AIR COMMANDの遊び方">
+          <b>AIR COMMAND</b><span>飛行中に10個の矢印が固定表示</span><strong>↓ 4方向ボタンで順番に入力</strong>
+        </div>
         <div class="home-actions four">
           <button class="secondary" id="gachaButton" type="button">ガチャ 🎟1</button>
           <button class="secondary" id="garageButton" type="button">🚗 車を選ぶ</button>
@@ -1138,14 +1261,14 @@ body.modal-open{overflow:hidden}
       <div class="air-drive" id="airDrive" hidden aria-live="polite">
         <div class="air-drive-head"><span>AIR COMMAND</span><strong id="airDriveGateCount">HIT 0 / 10 · 3.0s</strong></div>
         <div class="air-command-time" id="airCommandTime"><i id="airCommandTimeBar"></i></div>
-        <div class="air-command-help"><b>左上から順番に！</b> 矢印はずっと同じ場所</div>
+        <div class="air-command-help"><b>黄色を順番に！</b> 10個の矢印は動かない</div>
         <div class="air-drive-track air-drive-track-fixed" id="airDriveTrack" aria-label="固定表示された10個の矢印を左上から順番に押す">
           <div class="air-command-fixed-wrap">
             <div class="air-command-fixed-label"><span>COMMAND</span><strong id="airDriveCursor">1 / 10</strong></div>
             <div class="air-command-fixed-sequence" id="airCommandQueue" aria-label="AIR COMMAND 10個"></div>
           </div>
         </div>
-        <div class="air-drive-feedback" id="airDriveFeedback" aria-live="polite">👇 黄色の矢印と同じ方向ボタンを押せ！</div>
+        <div class="air-drive-feedback" id="airDriveFeedback" aria-live="polite">👇 黄色と同じ方向を押せ！</div>
       </div>
       <div class="air-command-button-pad" id="airCommandButtonPad" hidden aria-label="AIR COMMAND 4方向ボタン">
         <button class="air-command-button" type="button" data-air-command="UP" aria-label="上"><span>↑</span><small>UP</small></button>
@@ -1247,14 +1370,14 @@ body.modal-open{overflow:hidden}
   window.BOON_RANKING_FALLBACK=fallback;window.BOON_RANKING=fallback;
 })();
 </script>
-<script src="./ranking-client.js?v=640-ultimate" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
+<script src="./ranking-client.js?v=650-ultimate" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
 <script>
 (() => {
   'use strict';
 
   const BOON_RANKING=window.BOON_RANKING||window.BOON_RANKING_FALLBACK;
-  const APP_VERSION = '6.4.0';
-  const BUILD = '2026-08-15-ultimate-fixed-command-v640';
+  const APP_VERSION = '6.5.0';
+  const BUILD = '2026-08-15-ultimate-ux-v650';
   const SCHEMA = 5;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -2170,9 +2293,9 @@ body.modal-open{overflow:hidden}
   const showAirCommandHitFx=correct=>{const fx=document.getElementById('airCommandHitFlash');if(!fx)return;fx.className=`air-command-hit-flash${correct===5||correct===9?' milestone':''}`;void fx.offsetWidth;fx.classList.add('pop');setTimeout(()=>{if(fx)fx.className='air-command-hit-flash';},260);if(flight){flight.airCommandVisualBoost=Math.max(flight.airCommandVisualBoost||0,.28+correct*.045);flight.cameraKick=Math.max(flight.cameraKick||0,.20+correct*.018);flight.nitroFlash=Math.max(flight.nitroFlash||0,.14+correct*.018);const count=reduceMotion?1:Math.min(6,2+Math.floor(correct/2));for(let i=0;i<count;i++)flight.particles.push({x:flight.x,y:flight.y,vx:-40-Math.random()*70,vy:(Math.random()-.5)*34,life:.26+Math.random()*.28,size:2.2+Math.random()*3.2,gravity:1.5,drag:.55,hue:correct>=8?42:null});}};
   const showAirCommandClearFx=(kind,correct,elapsed)=>{const fx=document.getElementById('airCommandClearFx');if(!fx)return;const small=document.getElementById('airCommandClearSmall'),title=document.getElementById('airCommandClearTitle'),bonusNode=document.getElementById('airCommandClearBonus');fx.className=`air-command-clear-fx ${kind}`;if(kind==='perfect'){small.textContent=`10 COMMAND COMPLETE · ${elapsed.toFixed(2)}s`;title.innerHTML='AIR<br>PERFECT!!';bonusNode.textContent='MAX FORWARD THRUST';}else if(kind==='burst'){small.textContent=`${correct} / 10 COMMAND`;title.innerHTML='AIR<br>BURST!!';bonusNode.textContent='HIGH FORWARD THRUST';}else if(kind==='boost'){small.textContent=`${correct} / 10 COMMAND`;title.innerHTML='COMMAND<br>BOOST!';bonusNode.textContent='FORWARD THRUST';}else{small.textContent=`${correct} / 10 COMMAND`;title.innerHTML='NICE<br>COMMAND!';bonusNode.textContent='BONUS BURST';}void fx.offsetWidth;fx.classList.add('show');setTimeout(()=>fx.classList.remove('show'),kind==='perfect'?1380:kind==='burst'?1180:980);};
   const finishAirCommand=(reason='complete')=>{const ad=flight?.airDrive;if(!ad||ad.complete)return;ad.active=false;ad.acceptInput=false;ad.complete=true;ad.completedAt=performance.now();const elapsed=ad.startedAt?Math.min(AIR_COMMAND_SECONDS,(ad.completedAt-ad.startedAt)/1000):AIR_COMMAND_SECONDS;ad.bonus=0;attempt.airDriveBonus=0;attempt.airCommandCorrect=ad.correct;attempt.airCommandWrong=ad.wrong;attempt.airCommandElapsed=elapsed;attempt.airCommandReason=reason;const grade=airCommandGrade(ad.correct);el.airDriveGateCount.textContent=`${ad.correct} / ${AIR_COMMAND_COUNT} · ${elapsed.toFixed(2)}s`;el.airDriveFeedback.innerHTML=ad.correct===10?'<strong>AIR PERFECT!!</strong> MAX FORWARD THRUST':`AIR COMMAND <strong>${ad.correct}/10 · ${grade}</strong>`;const jumpStrength=airCommandJumpStrength(ad.correct);if(ad.correct>0)showStageJump(3,jumpStrength);if(ad.correct===AIR_COMMAND_COUNT){showAirCommandClearFx('perfect',ad.correct,elapsed);flight.airCommandVisualBoost=1.55;flight.vx*=1.045;flight.cameraShake=Math.max(flight.cameraShake||0,1.90);flight.cameraZoom=Math.max(flight.cameraZoom||0,1.72);flight.cameraKick=Math.max(flight.cameraKick||0,2.05);flight.nitroFlash=Math.max(flight.nitroFlash||0,1.65);flashImpact('nitro','SUPER');pulseClass(el.flightScreen,'fx-nitro',980);for(let i=0;i<(reduceMotion?10:38);i++){const a=i/38*Math.PI*2,spd=38+(i%8)*14;flight.particles.push({x:flight.x,y:flight.y,vx:Math.cos(a)*spd-55,vy:Math.sin(a)*spd,life:.62+(i%5)*.12,size:3.2+(i%4)*1.9,gravity:2.2,drag:.58,hue:i%3===0?42:null});}Sound.tone(920,.08,'square',.034);Sound.tone(1280,.11,'triangle',.050,.035);Sound.tone(1760,.17,'sine',.044,.085);Sound.tone(2320,.23,'sine',.030,.145);vibrate([65,16,95,18,135,22,190,28,240]);}else if(ad.correct>=7){showAirCommandClearFx('burst',ad.correct,elapsed);flight.airCommandVisualBoost=1.15;flight.cameraShake=Math.max(flight.cameraShake||0,1.28);flight.cameraKick=Math.max(flight.cameraKick||0,1.38);flight.nitroFlash=Math.max(flight.nitroFlash||0,1.15);flashImpact('nitro',ad.correct>=9?'CRITICAL':'');pulseClass(el.flightScreen,'fx-nitro',720);Sound.tone(760,.08,'square',.026);Sound.tone(1040,.13,'triangle',.038,.045);Sound.tone(1480,.17,'sine',.025,.095);vibrate([38,14,62,18,95]);}else if(ad.correct>=4){showAirCommandClearFx('boost',ad.correct,elapsed);flight.airCommandVisualBoost=.78;flight.cameraShake=Math.max(flight.cameraShake||0,.88);flight.cameraKick=Math.max(flight.cameraKick||0,.90);flight.nitroFlash=Math.max(flight.nitroFlash||0,.78);flashImpact('nitro','GREAT');Sound.tone(690,.09,'triangle',.028);Sound.tone(980,.12,'sine',.020,.055);vibrate([26,12,44]);}else if(ad.correct>0){showAirCommandClearFx('nice',ad.correct,elapsed);flight.airCommandVisualBoost=.46;flight.nitroFlash=Math.max(flight.nitroFlash||0,.48);Sound.tone(560,.08,'triangle',.020);vibrate(20);}schedule(()=>{if(el.airDrive){el.airDrive.hidden=true;el.flightScreen.classList.remove('air-driving');}const commandPad=document.getElementById('airCommandButtonPad');if(commandPad){commandPad.hidden=true;commandPad.classList.remove('charged','air-complete','air-last-second');commandPad.querySelectorAll('.air-command-button').forEach(b=>b.classList.remove('correct','wrong','press','target'));}},reduceMotion?100:(ad.correct===AIR_COMMAND_COUNT?980:ad.correct>=7?780:620));};
-  const startAirDrive=()=>{if(!flight||phase!=='flight'||flight.finished||flight.airDriveStarted)return;flight.airDrivePending=false;flight.airDriveStarted=true;flight.airDrive={active:true,acceptInput:false,inputComplete:false,complete:false,commands:airCommandPattern(),index:0,correct:0,wrong:0,bonus:0,startedAt:0,deadline:0,completedAt:0,renderedSequenceState:''};flight.y=Math.max(flight.y,22);flight.vy=Math.max(flight.vy,13);el.airDrive.hidden=false;el.flightScreen.classList.add('air-driving');const commandPad=document.getElementById('airCommandButtonPad');if(commandPad){commandPad.hidden=false;commandPad.classList.remove('charged','air-complete','air-last-second');commandPad.querySelectorAll('.air-command-button').forEach(b=>b.classList.remove('target','correct','wrong','press'));}el.airDriveCursor.textContent='1 / 10';el.airDriveFeedback.innerHTML='<strong>READY!</strong> 左上から順番に押せ！';el.airDriveGateCount.textContent='HIT 0 / 10 · 3.0s';const time=document.getElementById('airCommandTime'),bar=document.getElementById('airCommandTimeBar');if(time)time.classList.remove('low');if(bar)bar.style.width='100%';const queue=document.getElementById('airCommandQueue');if(queue){queue.innerHTML=flight.airDrive.commands.map((cmd,i)=>`<span class="air-command-chip ${i===0?'current':'pending'}" data-step="${i+1}" aria-label="${i+1}番 ${cmd}" aria-current="${i===0?'step':'false'}">${AIR_COMMAND_ARROW[cmd]}</span>`).join('');flight.airDrive.renderedSequenceState='0:0';}Sound.tone(520,.10,'triangle',.025);Sound.tone(780,.14,'sine',.022,.07);vibrate(24);schedule(()=>{const ad=flight?.airDrive;if(!ad||ad.complete)return;ad.acceptInput=true;ad.startedAt=performance.now();ad.deadline=ad.startedAt+AIR_COMMAND_SECONDS*1000;el.airDriveFeedback.innerHTML='<strong>GO!</strong> 👇 黄色の矢印と同じ方向をタップ！';renderAirCommand();Sound.tone(980,.10,'square',.025);vibrate(18);},360);};
+  const startAirDrive=()=>{if(!flight||phase!=='flight'||flight.finished||flight.airDriveStarted)return;flight.airDrivePending=false;flight.airDriveStarted=true;flight.airDrive={active:true,acceptInput:false,inputComplete:false,complete:false,commands:airCommandPattern(),index:0,correct:0,wrong:0,bonus:0,startedAt:0,deadline:0,completedAt:0,renderedSequenceState:''};flight.y=Math.max(flight.y,22);flight.vy=Math.max(flight.vy,13);el.airDrive.hidden=false;el.flightScreen.classList.add('air-driving');const commandPad=document.getElementById('airCommandButtonPad');if(commandPad){commandPad.hidden=false;commandPad.classList.remove('charged','air-complete','air-last-second');commandPad.querySelectorAll('.air-command-button').forEach(b=>b.classList.remove('target','correct','wrong','press'));}el.airDriveCursor.textContent='1 / 10';el.airDriveFeedback.innerHTML='<strong>READY!</strong> 黄色を順番に押せ！';el.airDriveGateCount.textContent='HIT 0 / 10 · 3.0s';const time=document.getElementById('airCommandTime'),bar=document.getElementById('airCommandTimeBar');if(time)time.classList.remove('low');if(bar)bar.style.width='100%';const queue=document.getElementById('airCommandQueue');if(queue){queue.innerHTML=flight.airDrive.commands.map((cmd,i)=>`<span class="air-command-chip ${i===0?'current':'pending'}" data-step="${i+1}" aria-label="${i+1}番 ${cmd}" aria-current="${i===0?'step':'false'}">${AIR_COMMAND_ARROW[cmd]}</span>`).join('');flight.airDrive.renderedSequenceState='0:0';}Sound.tone(520,.10,'triangle',.025);Sound.tone(780,.14,'sine',.022,.07);vibrate(24);schedule(()=>{const ad=flight?.airDrive;if(!ad||ad.complete)return;ad.acceptInput=true;ad.startedAt=performance.now();ad.deadline=ad.startedAt+AIR_COMMAND_SECONDS*1000;el.airDriveFeedback.innerHTML='<strong>GO!</strong> 👇 黄色と同じ方向を押せ！';renderAirCommand();Sound.tone(980,.10,'square',.025);vibrate(18);},360);};
   const queueAirDrive=()=>{if(!flight||flight.airDriveStarted||flight.airDrivePending||flight.finished)return;flight.airDrivePending=true;flight.y=Math.max(flight.y,22);flight.vy=Math.max(flight.vy,11);schedule(startAirDrive,220);};
-  const submitAirCommandDirection=direction=>{const ad=flight?.airDrive;if(!ad?.active||!ad.acceptInput||ad.complete||ad.inputComplete)return false;const expected=ad.commands[ad.index];if(direction===expected){ad.correct++;ad.index++;showAirCommandHitFx(ad.correct);flight.cameraKick=Math.max(flight.cameraKick||0,.24);flight.nitroFlash=Math.max(flight.nitroFlash||0,.18);const commandButton=document.querySelector(`[data-air-command="${direction}"]`);if(commandButton){commandButton.classList.remove('wrong','correct');void commandButton.offsetWidth;commandButton.classList.add('correct');setTimeout(()=>commandButton.classList.remove('correct'),150);}Sound.tone(660+ad.correct*38,.055,'triangle',.02);vibrate(10);if(ad.index>=AIR_COMMAND_COUNT){ad.inputComplete=true;ad.acceptInput=false;el.airDriveFeedback.innerHTML='<strong>10 / 10 COMPLETE!</strong> ⚡ BURST CHARGING…';Sound.tone(1260,.10,'triangle',.030);vibrate([24,12,40]);renderAirCommand();return true;}el.airDriveFeedback.innerHTML=`<strong>HIT ${ad.correct}/10</strong>　次の黄色へ！`;renderAirCommand();return true;}ad.wrong++;const wrongButton=document.querySelector(`[data-air-command="${direction}"]`);if(wrongButton){wrongButton.classList.remove('correct','wrong');void wrongButton.offsetWidth;wrongButton.classList.add('wrong');setTimeout(()=>wrongButton.classList.remove('wrong'),180);}el.airDriveFeedback.innerHTML=`<strong>MISS</strong>　黄色の ${AIR_COMMAND_ARROW[expected]} を押せ`;Sound.judge('MISS',2);vibrate(24);renderAirCommand();return false;};
+  const submitAirCommandDirection=direction=>{const ad=flight?.airDrive;if(!ad?.active||!ad.acceptInput||ad.complete||ad.inputComplete)return false;const expected=ad.commands[ad.index];if(direction===expected){ad.correct++;ad.index++;showAirCommandHitFx(ad.correct);flight.cameraKick=Math.max(flight.cameraKick||0,.24);flight.nitroFlash=Math.max(flight.nitroFlash||0,.18);const commandButton=document.querySelector(`[data-air-command="${direction}"]`);if(commandButton){commandButton.classList.remove('wrong','correct');void commandButton.offsetWidth;commandButton.classList.add('correct');setTimeout(()=>commandButton.classList.remove('correct'),150);}Sound.tone(660+ad.correct*38,.055,'triangle',.02);vibrate(10);if(ad.index>=AIR_COMMAND_COUNT){ad.inputComplete=true;ad.acceptInput=false;el.airDriveFeedback.innerHTML='<strong>10 / 10 COMPLETE!</strong> ⚡ BURST CHARGING…';Sound.tone(1260,.10,'triangle',.030);vibrate([24,12,40]);renderAirCommand();return true;}el.airDriveFeedback.innerHTML=`<strong>HIT ${ad.correct}/10</strong>　次の黄色！`;renderAirCommand();return true;}ad.wrong++;const wrongButton=document.querySelector(`[data-air-command="${direction}"]`);if(wrongButton){wrongButton.classList.remove('correct','wrong');void wrongButton.offsetWidth;wrongButton.classList.add('wrong');setTimeout(()=>wrongButton.classList.remove('wrong'),180);}el.airDriveFeedback.innerHTML=`<strong>MISS</strong>　${AIR_COMMAND_ARROW[expected]} を押せ！`;Sound.judge('MISS',2);vibrate(24);renderAirCommand();return false;};
   const updateAirDrive=realDt=>{const ad=flight?.airDrive;if(!ad?.active||ad.complete||!ad.startedAt)return;const remaining=ad.deadline-performance.now();if(remaining<=0){finishAirCommand(ad.inputComplete?'complete':'timeout');return;}renderAirCommand();};
   const updateNitroUi=realNow=>{if(!flight||flight.nitroUsed)return;const cfg=currentCar.control.nitro,elapsed=realNow-flight.nitroStartReal,motion=nitroMotion(cfg.mode||'linear',elapsed,cfg),shownY=capturePerfectPosition(motion.y,.76,realNow,flight.nitroPerfect,cfg.mode||'linear');flight.nitroProgress=shownY;el.nitroOrb.style.top=`${shownY*100}%`;el.nitroOrb.style.left=`calc(50% + ${motion.x}px)`;el.nitroLane.dataset.mode=cfg.mode||'linear';const near=Math.abs(shownY-.76)<=cfg.good;el.nitroLane.classList.toggle('ready',near);if(near&&!flight.nitroAnnounced){flight.nitroAnnounced=true;Sound.ring();}if(elapsed>cfg.travel*1.17){flight.nitroUsed=true;flight.nitroJudge='MISS';flight.nitroQuality=0;attempt.nitro='MISS';attempt.nitroQuality=0;el.nitroLane.classList.add('used');el.boost.className='boost-button used';el.boost.querySelector('span').textContent='MISS';el.boostCall.textContent='AIR COMMANDへ！';Sound.judge('MISS',2);queueAirDrive();}};
   const updateLandingFx=(realDt)=>{const f=flight;updateAwakeningVfx(realDt);const dt=realDt*2.45;f.nitroFlash=Math.max(0,(f.nitroFlash||0)-dt*1.5);f.awakeningFlash=Math.max(0,(f.awakeningFlash||0)-dt*1.35);f.awakeningPulse=Math.max(0,(f.awakeningPulse||0)-dt*.8);f.awakeningAge=(f.awakeningAge||0)+realDt;f.cameraShake=Math.max(0,(f.cameraShake||0)-dt*2.2);f.cameraZoom=Math.max(0,(f.cameraZoom||0)-dt*1.8);f.cameraKick=Math.max(0,(f.cameraKick||0)-dt*2);f.trail.forEach(p=>p.life-=dt*1.35);f.particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.max(0,1-(p.drag||0)*dt);p.vy-=(p.gravity??5)*dt;p.life-=dt;});f.particles=f.particles.filter(p=>p.life>0);};
@@ -2251,7 +2374,7 @@ body.modal-open{overflow:hidden}
   const drawAwakeningForeground=(car,w,h,spaceT)=>{const f=flight,tier=f.awakeningTier||0;if(!tier||(car.id==='valkyrie'&&isValkyrieBreak()))return;if(car.id!=='valkyrie'&&machineSourceArtReady(car.id))return;const a=awakeningProfile(car),p=worldToScreen(f.x,f.y),flash=clamp(f.awakeningFlash||0,0,1),pulse=.5+.5*Math.sin(f.time*8);ctx.save();ctx.globalCompositeOperation='lighter';if(flash>.02){const g=ctx.createRadialGradient(p.x,p.y,6,p.x,p.y,90+flash*120);g.addColorStop(0,`rgba(255,255,255,${.22*flash})`);g.addColorStop(.28,a.mid);g.addColorStop(1,'rgba(255,255,255,0)');ctx.globalAlpha=.18*flash;ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}ctx.translate(p.x,p.y);ctx.globalAlpha=tier===2?.30:.20;ctx.strokeStyle=a.core;ctx.lineWidth=tier===2?2.2:1.5;if(a.kind==='lane'){ctx.beginPath();ctx.moveTo(-90,-16);ctx.lineTo(-130,0);ctx.lineTo(-90,16);ctx.stroke();}else if(a.kind==='stability'){for(const off of [-18,18]){ctx.beginPath();ctx.ellipse(-8,off,76+8*pulse,14,0,0,Math.PI*2);ctx.stroke();}}else if(a.kind==='volt'){for(let i=0;i<3+tier;i++){const y=-24+i*16;ctx.beginPath();ctx.moveTo(-72,y);ctx.lineTo(-42,y-9);ctx.lineTo(-18,y+4);ctx.lineTo(10,y-5);ctx.stroke();}}else if(a.kind==='spear'){ctx.lineWidth=tier===2?4:2.6;ctx.beginPath();ctx.moveTo(-145,0);ctx.lineTo(-12,0);ctx.stroke();ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-55,-18);ctx.lineTo(-18,0);ctx.lineTo(-55,18);ctx.stroke();}else if(a.kind==='diamond'){for(let i=0;i<2+tier;i++){const r=36+i*23;ctx.beginPath();ctx.moveTo(0,-r*.62);ctx.lineTo(r,0);ctx.lineTo(0,r*.62);ctx.lineTo(-r,0);ctx.closePath();ctx.stroke();}}else if(a.kind==='royal'){for(let i=0;i<4+tier;i++){const ang=i/(4+tier)*Math.PI*2+f.time*.18,r=54+(i%2)*12;ctx.save();ctx.rotate(ang);ctx.fillStyle=i%2?a.mid:a.edge;ctx.globalAlpha=.24;ctx.fillRect(r,-1.2,16,2.4);ctx.restore();}ctx.strokeStyle='#ffe8a1';ctx.beginPath();ctx.moveTo(-18,-50);ctx.lineTo(-8,-66);ctx.lineTo(0,-52);ctx.lineTo(10,-68);ctx.lineTo(20,-50);ctx.stroke();}else if(a.kind==='rift'){ctx.strokeStyle=a.edge;for(let i=0;i<2+tier;i++){ctx.beginPath();ctx.moveTo(-82-i*12,-28-i*6);ctx.lineTo(-20,0);ctx.lineTo(-82-i*12,28+i*6);ctx.stroke();}}else if(a.kind==='valkyrie'){if(valkyrieArtAllReady(['mach-cone','wing-front'])){ctx.restore();return;}const vv=f.awakeningVfx||makeAwakeningVfxState();ctx.globalAlpha*=clamp(vv.screenFxAlpha/.30,0,1);ctx.strokeStyle=a.edge;ctx.lineWidth=tier===2?2.5:1.8;ctx.beginPath();ctx.moveTo(18,-34);ctx.lineTo(-128,0);ctx.lineTo(18,34);ctx.stroke();ctx.strokeStyle=a.mid;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,-3,58+8*pulse,Math.PI*.12,Math.PI*.88);ctx.stroke();}else if(a.kind==='solar'){for(let i=0;i<3+tier;i++){ctx.strokeStyle=i===0?a.core:(i%2?a.mid:a.edge);ctx.lineWidth=2-i*.2;ctx.beginPath();ctx.arc(0,0,34+i*18+5*pulse,0,Math.PI*2);ctx.stroke();}}ctx.restore();};
 
   const animateMeter=(node,end,duration=720)=>{const start=performance.now();const tick=now=>{const t=clamp((now-start)/duration,0,1),e=1-Math.pow(1-t,3);node.textContent=Math.round(end*e).toLocaleString();if(t<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);};
-  const finishFlight=()=>{if(!flight||phase!=='flight')return;phase='result';el.worldSubmitStatus.hidden=true;el.worldSubmitStatus.className='ranking-result-note';el.worldSubmitStatus.textContent='';el.resultRankButton.disabled=false;el.resultRankButton.classList.remove('registered');el.resultRankButton.textContent='🌍 自動ランキング送信';el.resultRankingLink.innerHTML='🏆 世界ランキングを見る<small>このマシンの順位もすぐ確認</small>';if(!attempt.nitro){attempt.nitro='MISS';attempt.nitroQuality=0;attempt.nitroPrecision=0;}const rec=getRecord(currentCar.id),grades=[attempt.start,attempt.turbo,attempt.nitro||'MISS'],allSuper=grades.every(j=>j==='SUPER'),allCritical=grades.every(j=>JUDGE_LEVEL[j]>=3),distance=Math.max(1,Math.round(flight.x*flight.distanceScale)),achievedAt=nowIso();attempt.comboPrecision=comboPrecisionFromAttempt();lastRankCandidate=worldScorePayload(distance,achievedAt);const oldCarBest=rec.best||0,oldOverall=state.best||0,isCarRecord=distance>oldCarBest;rec.best=Math.max(oldCarBest,distance);if(isCarRecord)rec.bestMeta={accelJudge:attempt.start||'MISS',turboJudge:attempt.turbo||'MISS',nitroJudge:attempt.nitro||'MISS',comboPrecision:attempt.comboPrecision||0,tuneLevel:rec.tuneLevel||0,achievedAt};rec.plays=(rec.plays||0)+1;state.best=Math.max(oldOverall,distance);state.plays=(state.plays||0)+1;state.total=(state.total||0)+distance;state.gachaTickets=(state.gachaTickets||0)+1;grades.forEach(j=>state.gradeCounts[j]=(state.gradeCounts[j]||0)+1);const atLeast=l=>grades.every(j=>JUDGE_LEVEL[j]>=l);state.runFlags.allGood=state.runFlags.allGood||atLeast(1);state.runFlags.allGreat=state.runFlags.allGreat||atLeast(2);state.runFlags.allCritical=state.runFlags.allCritical||atLeast(3);state.runFlags.superPerfect=state.runFlags.superPerfect||allSuper;state.runFlags.boostSuper=state.runFlags.boostSuper||attempt.nitro==='SUPER';const growthResult=awardMachineGrowth(rec,grades);refreshTrophies(true);save();el.resultDistance.textContent='0';animateMeter(el.resultDistance,distance,isCarRecord?900:720);pulseClass(el.resultCard,'fx-celebrate',620);const airCorrect=Number(attempt.airCommandCorrect||0);el.resultKicker.textContent=airCorrect===10?'AIR PERFECT FLIGHT!':flight.specialMoveActive?`${flight.specialMoveName}｜ACTIVATED`:currentCar.skill==='valkyrie'&&allCritical?'VALKYRIE MODE｜CHOSEN':allSuper?'SUPER PERFECT FLIGHT!':allCritical?'PERFECT FLIGHT!':'FLIGHT RESULT';el.newRecord.hidden=!isCarRecord;el.ticketEarned.hidden=false;renderVehicle(el.resultVehicle,currentCar,{boosting:allCritical||airCorrect>=7,rolling:allCritical});fillResultJudge(el.judgeStart,el.scoreStart,attempt.start,attempt.startPrecision);fillResultJudge(el.judgeTurbo,el.scoreTurbo,attempt.turbo,attempt.turboPrecision);fillResultJudge(el.judgeNitro,el.scoreNitro,attempt.nitro||'MISS',attempt.nitroPrecision);el.resultPrecision.textContent=`${(attempt.comboPrecision||0).toFixed(2)}%`;if(el.resultAirDrive){const correct=Number(attempt.airCommandCorrect||0),wrong=Number(attempt.airCommandWrong||0),elapsed=Number(attempt.airCommandElapsed||AIR_COMMAND_SECONDS),grade=airCommandGrade(correct);el.resultAirDrive.classList.remove('negative');el.resultAirDriveBonus.textContent=`${correct} / ${AIR_COMMAND_COUNT}`;el.resultAirDriveDetail.textContent=`3.00 sec · MISS ${wrong} · ${grade}`;}if(el.resultGrowth){el.resultGrowth.className=`result-growth${flight.specialMoveActive?' special':''}${growthResult.unlocked?' unlock':''}`;const after=growthResult.after,profile=specialProfile(currentCar),headline=growthResult.unlocked?`⚡ ${profile.name} 解放！`:flight.specialMoveActive?`⚡ ${profile.name} 発動！`:`MACHINE GROWTH +${growthResult.total}`;el.resultGrowth.innerHTML=`<small>MACHINE GROWTH</small><strong>${headline}</strong><span>ENGINE Lv.${after.engine}　AERO Lv.${after.aero}　BOOST Lv.${after.boost}　AWAKENING Lv.${after.awakening}</span>`;}Sound.land(isCarRecord);vibrate(isCarRecord?[45,25,75,25,110]:[32,22,45]);setNavigationLock(false);renderHome();showScreen('result');requestAnimationFrame(()=>autoSubmitWorldScore(lastRankCandidate));};
+  const finishFlight=()=>{if(!flight||phase!=='flight')return;phase='result';el.worldSubmitStatus.hidden=true;el.worldSubmitStatus.className='ranking-result-note';el.worldSubmitStatus.textContent='';el.resultRankButton.disabled=false;el.resultRankButton.classList.remove('registered');el.resultRankButton.textContent='🌍 自動ランキング送信';el.resultRankingLink.innerHTML='🏆 世界ランキングを見る<small>このマシンの順位もすぐ確認</small>';if(!attempt.nitro){attempt.nitro='MISS';attempt.nitroQuality=0;attempt.nitroPrecision=0;}const rec=getRecord(currentCar.id),grades=[attempt.start,attempt.turbo,attempt.nitro||'MISS'],allSuper=grades.every(j=>j==='SUPER'),allCritical=grades.every(j=>JUDGE_LEVEL[j]>=3),distance=Math.max(1,Math.round(flight.x*flight.distanceScale)),achievedAt=nowIso();attempt.comboPrecision=comboPrecisionFromAttempt();lastRankCandidate=worldScorePayload(distance,achievedAt);const oldCarBest=rec.best||0,oldOverall=state.best||0,isCarRecord=distance>oldCarBest;rec.best=Math.max(oldCarBest,distance);if(isCarRecord)rec.bestMeta={accelJudge:attempt.start||'MISS',turboJudge:attempt.turbo||'MISS',nitroJudge:attempt.nitro||'MISS',comboPrecision:attempt.comboPrecision||0,tuneLevel:rec.tuneLevel||0,achievedAt};rec.plays=(rec.plays||0)+1;state.best=Math.max(oldOverall,distance);state.plays=(state.plays||0)+1;state.total=(state.total||0)+distance;state.gachaTickets=(state.gachaTickets||0)+1;grades.forEach(j=>state.gradeCounts[j]=(state.gradeCounts[j]||0)+1);const atLeast=l=>grades.every(j=>JUDGE_LEVEL[j]>=l);state.runFlags.allGood=state.runFlags.allGood||atLeast(1);state.runFlags.allGreat=state.runFlags.allGreat||atLeast(2);state.runFlags.allCritical=state.runFlags.allCritical||atLeast(3);state.runFlags.superPerfect=state.runFlags.superPerfect||allSuper;state.runFlags.boostSuper=state.runFlags.boostSuper||attempt.nitro==='SUPER';const growthResult=awardMachineGrowth(rec,grades);refreshTrophies(true);save();el.resultDistance.textContent='0';animateMeter(el.resultDistance,distance,isCarRecord?900:720);pulseClass(el.resultCard,'fx-celebrate',620);const airCorrect=Number(attempt.airCommandCorrect||0);el.resultKicker.textContent=airCorrect===10?'AIR PERFECT FLIGHT!':flight.specialMoveActive?`${flight.specialMoveName}｜ACTIVATED`:currentCar.skill==='valkyrie'&&allCritical?'VALKYRIE MODE｜CHOSEN':allSuper?'SUPER PERFECT FLIGHT!':allCritical?'PERFECT FLIGHT!':'FLIGHT RESULT';el.newRecord.hidden=!isCarRecord;el.ticketEarned.hidden=false;renderVehicle(el.resultVehicle,currentCar,{boosting:allCritical||airCorrect>=7,rolling:allCritical});fillResultJudge(el.judgeStart,el.scoreStart,attempt.start,attempt.startPrecision);fillResultJudge(el.judgeTurbo,el.scoreTurbo,attempt.turbo,attempt.turboPrecision);fillResultJudge(el.judgeNitro,el.scoreNitro,attempt.nitro||'MISS',attempt.nitroPrecision);el.resultPrecision.textContent=`${(attempt.comboPrecision||0).toFixed(2)}%`;if(el.resultAirDrive){const correct=Number(attempt.airCommandCorrect||0),wrong=Number(attempt.airCommandWrong||0),grade=airCommandGrade(correct),tone=correct===10?'perfect':correct>=7?'burst':correct>=4?'boost':correct>0?'nice':'none';el.resultAirDrive.className=`result-air-drive ${tone}`;el.resultAirDriveBonus.textContent=`${correct} / ${AIR_COMMAND_COUNT}`;el.resultAirDriveDetail.textContent=`${grade} · MISS ${wrong}`;}if(el.resultGrowth){el.resultGrowth.className=`result-growth${flight.specialMoveActive?' special':''}${growthResult.unlocked?' unlock':''}`;const after=growthResult.after,profile=specialProfile(currentCar),headline=growthResult.unlocked?`⚡ ${profile.name} 解放！`:flight.specialMoveActive?`⚡ ${profile.name} 発動！`:`MACHINE GROWTH +${growthResult.total}`;el.resultGrowth.innerHTML=`<small>MACHINE GROWTH</small><strong>${headline}</strong><span>ENGINE Lv.${after.engine}　AERO Lv.${after.aero}　BOOST Lv.${after.boost}　AWAKENING Lv.${after.awakening}</span>`;}Sound.land(isCarRecord);vibrate(isCarRecord?[45,25,75,25,110]:[32,22,45]);setNavigationLock(false);renderHome();showScreen('result');requestAnimationFrame(()=>autoSubmitWorldScore(lastRankCandidate));};
 
   const fillResultJudge=(node,scoreNode,judge,precision)=>{node.className=`judge-${judge}`;node.textContent=JUDGE_LABEL[judge];const value=clamp(Number(precision)||0,0,100);scoreNode.textContent=`${value.toFixed(2)}%`;};
 
@@ -2420,7 +2543,7 @@ body.modal-open{overflow:hidden}
 
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();if(!BOON_RANKING.getPlayerName())setTimeout(()=>showRankingGate(null,'onboarding'),120);setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);setTimeout(()=>flushRankQueue(),900);window.addEventListener('online',()=>setTimeout(flushRankQueue,200));if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
-  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=640-ultimate',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=650-ultimate',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
 
 })();
 
