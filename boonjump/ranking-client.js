@@ -1,12 +1,12 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V3 CLIENT COMPAT
+ * ブーンジャンプ 世界ランキング通信 V3 / BOONJUMP v6.4
  *
  * - プレイ終了時の自動ランキング参加に対応
  * - 初回は匿名ゲスト名を自動発行
  * - v6本体側の未送信キュー・オンライン復帰再送と連携
  * - 同一端末の本人判定用トークンを保持
  */
-const BOON_RANKING = (() => {
+window.BOON_RANKING = (() => {
   'use strict';
 
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzp4sB67QKmeh-OlE2KPsl-UuKRZzgSF4XUq5trE8YI57h9WBJGBkTu979rNPSeRy_D/exec';

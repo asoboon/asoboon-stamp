@@ -2,7 +2,7 @@
   "id": "./",
   "name": "ブーンジャンプ｜ASOBooN",
   "short_name": "ブーンジャンプ",
-  "description": "ACCEL・TURBO・NITROと、飛行中の4方向AIR COMMANDで飛距離を競うASOBooNのミニゲーム",
+  "description": "ACCEL・TURBO・NITROと、固定10コマンド＋4方向ボタンのAIR COMMANDで飛距離を競うASOBooNのミニゲーム",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",
