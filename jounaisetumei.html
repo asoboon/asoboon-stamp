@@ -4560,6 +4560,244 @@
       }
     }
 
+  
+    /* v23: COMPLETE EXIT — make "返却ボックスへ" the dominant instruction */
+    #section-exit .exit-section-card{
+      padding:18px!important;
+      background:
+        radial-gradient(circle at 50% 8%,rgba(255,209,93,.10),transparent 32%),
+        linear-gradient(180deg,rgba(8,20,31,.98),rgba(3,8,14,.98))!important;
+    }
+
+    #section-exit .exit-return-hero{
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      justify-items:center;
+      gap:8px;
+      padding:24px 18px 26px;
+      border:3px solid rgba(255,209,93,.64);
+      border-radius:26px;
+      text-align:center;
+      background:
+        radial-gradient(circle at 50% -5%,rgba(255,255,255,.16),transparent 34%),
+        linear-gradient(180deg,rgba(255,209,93,.16),rgba(255,209,93,.055));
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.28),
+        0 0 30px rgba(255,209,93,.09),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    #section-exit .exit-return-hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:.20;
+      background:
+        linear-gradient(90deg,rgba(255,209,93,.18) 1px,transparent 1px) 0 0/42px 42px,
+        linear-gradient(rgba(255,209,93,.13) 1px,transparent 1px) 0 0/42px 42px;
+      mask-image:linear-gradient(180deg,rgba(0,0,0,.75),transparent 78%);
+    }
+
+    #section-exit .exit-return-kicker{
+      position:relative;
+      z-index:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:6px 15px;
+      border:1px solid rgba(255,209,93,.55);
+      border-radius:999px;
+      color:#ffeaa5;
+      background:rgba(255,209,93,.08);
+      font-size:.72rem;
+      line-height:1;
+      font-weight:1000;
+      letter-spacing:.12em;
+    }
+
+    #section-exit .exit-return-lead,
+    #section-exit .exit-return-finish{
+      position:relative;
+      z-index:1;
+      display:block;
+      color:#ffffff;
+      font-size:clamp(1.45rem,5.4vw,2.05rem);
+      line-height:1.18;
+      font-weight:1000;
+      letter-spacing:.005em;
+    }
+
+    #section-exit .exit-return-lead{
+      margin-top:8px;
+    }
+
+    #section-exit .exit-return-box{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:58px minmax(0,1fr);
+      align-items:center;
+      width:100%;
+      min-height:108px;
+      margin:5px 0;
+      padding:14px 18px 14px 14px;
+      border:4px solid rgba(255,241,185,.95);
+      border-radius:22px;
+      color:#06150f;
+      background:linear-gradient(180deg,#bfffdc 0%,#68efae 48%,#37c982 100%);
+      box-shadow:
+        0 10px 0 rgba(15,108,70,.32),
+        0 20px 38px rgba(0,0,0,.28),
+        0 0 34px rgba(101,239,176,.20),
+        inset 0 2px 0 rgba(255,255,255,.70);
+      font-size:clamp(2.05rem,8vw,3.15rem);
+      line-height:1.03;
+      font-weight:1000;
+      letter-spacing:-.035em;
+      text-shadow:0 1px 0 rgba(255,255,255,.38);
+    }
+
+    #section-exit .exit-return-box-mark{
+      display:grid;
+      place-items:center;
+      width:58px;
+      height:58px;
+      border-radius:17px;
+      color:#fff8d5;
+      background:#0c5137;
+      box-shadow:
+        inset 0 -3px 0 rgba(0,0,0,.18),
+        0 5px 12px rgba(0,0,0,.14);
+      font-size:2rem;
+      line-height:1;
+      font-weight:1000;
+    }
+
+    #section-exit .exit-no-reentry{
+      display:grid;
+      grid-template-columns:44px minmax(0,1fr);
+      align-items:center;
+      gap:12px;
+      margin-top:18px;
+      padding:13px 15px;
+      border-left:6px solid var(--red);
+      color:#ffe9ec;
+      background:rgba(255,77,95,.075);
+      box-shadow:0 8px 20px rgba(0,0,0,.14);
+    }
+
+    #section-exit .exit-no-reentry-mark{
+      display:grid;
+      place-items:center;
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      color:#fff;
+      background:#d92b3f;
+      font-size:1.35rem;
+      line-height:1;
+      font-weight:1000;
+    }
+
+    #section-exit .exit-no-reentry strong{
+      color:#fff0f2;
+      font-size:.92rem;
+      line-height:1.35;
+      font-weight:1000;
+    }
+
+    #section-exit .exit-confirm-btn{
+      min-height:78px!important;
+      margin-top:18px!important;
+      border:2px solid rgba(104,234,255,.44)!important;
+      color:#eafdff!important;
+      background:
+        linear-gradient(180deg,rgba(104,234,255,.13),rgba(104,234,255,.045))!important;
+      box-shadow:
+        0 10px 24px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.05)!important;
+      font-size:.92rem!important;
+    }
+
+    #section-exit .exit-confirm-btn .subtap{
+      color:#aeeffc!important;
+    }
+
+    #section-exit .exit-final-rule{
+      opacity:.82;
+    }
+
+    @media (min-width:700px) and (max-width:900px) and (orientation:portrait){
+      #section-exit .exit-section-card{
+        padding:26px!important;
+      }
+
+      #section-exit .exit-return-hero{
+        gap:12px;
+        padding:34px 26px 38px;
+        border-width:4px;
+        border-radius:30px;
+      }
+
+      #section-exit .exit-return-kicker{
+        min-height:42px;
+        padding:8px 19px;
+        font-size:.88rem;
+      }
+
+      #section-exit .exit-return-lead,
+      #section-exit .exit-return-finish{
+        font-size:2.25rem;
+      }
+
+      #section-exit .exit-return-box{
+        grid-template-columns:78px minmax(0,1fr);
+        min-height:154px;
+        margin:9px 0;
+        padding:20px 24px 20px 18px;
+        border-width:5px;
+        border-radius:28px;
+        font-size:4.05rem;
+      }
+
+      #section-exit .exit-return-box-mark{
+        width:78px;
+        height:78px;
+        border-radius:21px;
+        font-size:2.65rem;
+      }
+
+      #section-exit .exit-no-reentry{
+        grid-template-columns:58px minmax(0,1fr);
+        gap:16px;
+        margin-top:24px;
+        padding:18px 20px;
+      }
+
+      #section-exit .exit-no-reentry-mark{
+        width:58px;
+        height:58px;
+        font-size:1.75rem;
+      }
+
+      #section-exit .exit-no-reentry strong{
+        font-size:1.24rem;
+      }
+
+      #section-exit .exit-confirm-btn{
+        min-height:104px!important;
+        margin-top:24px!important;
+        font-size:1.24rem!important;
+      }
+
+      #section-exit .exit-confirm-btn .subtap{
+        font-size:.88rem!important;
+      }
+    }
+
   </style>
 </head>
 
@@ -4817,24 +5055,32 @@
             </section>
 
             <section id="section-exit" class="detail-section">
-              <div class="section-card">
-                <h3>完全退場して帰る</h3>
-                <p>利用を終了する場合は、すべてのホルダーを返却ボックスへお戻しください。</p>
-
-                <div class="mission-status important-rule">
-                  <b>!</b>
-                  <span><strong>完全退場後は再入場できません。</strong><br>ホルダーは返却ボックスへお戻しください。</span>
+              <div class="section-card exit-section-card">
+                <div class="exit-return-hero" role="status" aria-label="すべてのホルダーを返却ボックスへお戻しください">
+                  <span class="exit-return-kicker">完全退場</span>
+                  <span class="exit-return-lead">すべてのホルダーを</span>
+                  <strong class="exit-return-box">
+                    <span class="exit-return-box-mark" aria-hidden="true">↓</span>
+                    <span>返却ボックスへ</span>
+                  </strong>
+                  <span class="exit-return-finish">お戻しください</span>
                 </div>
 
-                <button id="exitConfirmButton" class="return-btn" type="button">
-                  ホルダーを返却しました<span class="subtap">返却後にタップ</span>
+                <div class="exit-no-reentry">
+                  <span class="exit-no-reentry-mark" aria-hidden="true">!</span>
+                  <strong>完全退場後は再入場できません。</strong>
+                </div>
+
+                <button id="exitConfirmButton" class="return-btn exit-confirm-btn" type="button">
+                  ホルダーを返却しました
+                  <span class="subtap">返却後にタップ</span>
                 </button>
 
                 <div id="exitComplete" class="complete-banner">
                   ✨ ご利用ありがとうございました！ 忘れ物にお気をつけください
                 </div>
 
-                <div class="rule-bar">
+                <div class="rule-bar exit-final-rule">
                   <span>もう一度利用する場合は、あらためて受付が必要です。</span>
                 </div>
               </div>
