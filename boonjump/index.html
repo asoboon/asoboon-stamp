@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.6.0 BALANCE LOCK">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.8.0 TUNE LAB / MACHINE CORE">
   <meta name="robots" content="noindex,nofollow">
   <meta name="boonjump-build" content="2026-08-15-ultimate-fixed-command-v640">
   <title>ブーンジャンプ｜ASOBooN</title>
@@ -968,6 +968,48 @@ body.modal-open{overflow:hidden}
   .air-command-fixed-sequence .air-command-chip.current{animation:none}
 }
 
+
+/* ===== v6.7.0 TUNE LIMIT BREAK ===== */
+.selector-stats-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.selector-stats-four>div{min-width:0}
+.selector-stats-four small{font-size:.40rem}
+.selector-stats-four strong{font-size:.57rem;white-space:nowrap}
+#homeTune{display:block;color:#fff0a0}
+.gacha-card.limit-break{
+  border-color:rgba(255,225,76,.86)!important;
+  box-shadow:0 0 0 2px rgba(255,225,76,.12),0 0 38px rgba(255,195,42,.35)!important;
+  animation:tuneLimitBreakPulse .72s ease-out
+}
+.gacha-card.limit-break .gacha-reveal small{
+  color:#fff36b!important;font-weight:1000;text-shadow:0 0 16px rgba(255,216,61,.72)
+}
+.batch-card.limit-break{
+  border-color:rgba(255,225,76,.66)!important;
+  background:linear-gradient(150deg,rgba(255,216,61,.15),rgba(45,204,255,.08))!important;
+  box-shadow:0 0 18px rgba(255,199,47,.18)
+}
+.batch-card.limit-break small{color:#fff36b!important;font-weight:1000}
+@keyframes tuneLimitBreakPulse{
+  0%{transform:scale(.96);filter:brightness(1)}
+  48%{transform:scale(1.018);filter:brightness(1.28)}
+  100%{transform:scale(1);filter:brightness(1)}
+}
+@media(max-width:380px){
+  .selector-stats-four{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+
+/* ===== v6.8.0 TUNE LAB / MACHINE CORE ===== */
+.duplicate-choice,.batch-duplicate-actions,.tune-lab{border:1px solid rgba(135,246,255,.22);background:linear-gradient(150deg,rgba(5,22,44,.94),rgba(17,30,55,.88));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 12px 28px rgba(0,0,0,.18)}
+.duplicate-choice{margin:10px 0 8px;padding:11px;border-radius:16px}.duplicate-choice-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}.duplicate-choice-head small{color:#87f6ff;font-size:.48rem;font-weight:1000;letter-spacing:.10em}.duplicate-choice-head strong{font-size:.74rem;color:#fff}
+.duplicate-choice>p{margin:5px 0 9px;font-size:.57rem;color:#bcd1e2}.duplicate-choice-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.duplicate-choice button{min-height:50px;border-radius:13px;font-weight:1000}.duplicate-tune-button{border:1px solid rgba(255,239,91,.58);background:linear-gradient(180deg,#fff36b,#ffaf28);color:#071222}.duplicate-core-button{border:1px solid rgba(135,246,255,.5);background:linear-gradient(180deg,#38d7ee,#1985bc);color:#03131f}.duplicate-later-button{width:100%;min-height:38px!important;margin-top:7px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.045);color:#d6e7f3}.duplicate-choice.resolved{border-color:rgba(116,255,174,.38);background:linear-gradient(150deg,rgba(12,55,48,.90),rgba(9,28,47,.90))}
+.batch-duplicate-actions{margin:9px 0;padding:10px;border-radius:15px}.batch-duplicate-actions>div:first-child{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;align-items:center}.batch-duplicate-actions small{color:#87f6ff;font-size:.46rem;font-weight:1000;letter-spacing:.09em}.batch-duplicate-actions strong{justify-self:end;color:#fff36b;font-size:.78rem}.batch-duplicate-actions span{grid-column:1/-1;color:#bcd1e2;font-size:.52rem}.batch-duplicate-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.batch-duplicate-buttons button{min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.065);color:#fff;font-size:.58rem;font-weight:1000}.batch-duplicate-buttons #batchAllTune{border-color:rgba(255,239,91,.40);color:#fff36b}.batch-duplicate-buttons #batchAllCore{border-color:rgba(135,246,255,.40);color:#87f6ff}.batch-duplicate-buttons #batchOpenLab{grid-column:1/-1}#batchDuplicateStatus{margin:6px 0 0;min-height:15px;color:#d6e7f3;font-size:.52rem;text-align:center}
+.tune-lab{margin:10px 0 12px;padding:11px;border-radius:17px}.tune-lab-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.tune-lab-head>div:first-child{display:grid}.tune-lab-head small{color:#87f6ff;font-size:.46rem;font-weight:1000;letter-spacing:.11em}.tune-lab-head strong{color:#fff;font-size:.72rem}.core-wallet{min-width:92px;padding:6px 9px;border-radius:12px;text-align:right;border:1px solid rgba(135,246,255,.24);background:rgba(26,124,170,.10)}.core-wallet small{display:block;font-size:.38rem}.core-wallet b{display:block;color:#87f6ff;font-size:1.05rem;line-height:1.05;text-shadow:0 0 12px rgba(135,246,255,.35)}
+.tune-lab-current{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.tune-lab-current>div{padding:8px;border-radius:12px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.08);display:grid}.tune-lab-current small{font-size:.40rem;color:#9db5c8;font-weight:900}.tune-lab-current strong{font-size:.92rem;color:#fff}.tune-lab-current span{font-size:.45rem;color:#bcd1e2}.tune-lab-actions{display:grid;gap:6px;margin-top:8px}.tune-lab-actions button{min-height:48px;padding:7px 9px;border-radius:13px;text-align:left;display:grid;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.055);color:#fff}.tune-lab-actions button b{font-size:.62rem}.tune-lab-actions button span{font-size:.46rem;color:#bcd1e2}.tune-lab-actions button:not(:disabled):active{transform:scale(.985)}.tune-lab-actions button:disabled{opacity:.38;filter:saturate(.4)}.tune-lab-actions .core-action{border-color:rgba(135,246,255,.28)}.tune-lab-actions .primary-core{background:linear-gradient(135deg,rgba(19,167,200,.20),rgba(255,219,69,.08));border-color:rgba(135,246,255,.42)}
+.tune-lab-status{margin:7px 1px 0;min-height:16px;color:#bcd1e2;font-size:.50rem;line-height:1.35}.tune-lab-status.success{color:#8dffc0}.tune-lab-status.limit{color:#fff36b;text-shadow:0 0 10px rgba(255,216,61,.35)}.tune-lab-status.core{color:#87f6ff}.tune-lab button.confirming,.batch-duplicate-actions button.confirming,.duplicate-choice button.confirming{border-color:#ffb63b!important;background:rgba(255,169,31,.14)!important;color:#ffd37b!important}
+.batch-card.duplicate-stock{border-color:rgba(135,246,255,.28)!important;background:linear-gradient(150deg,rgba(40,130,170,.10),rgba(255,255,255,.035))!important}.batch-card.duplicate-stock small{color:#87f6ff!important;font-weight:1000}
+@media(max-width:380px){.duplicate-choice-actions{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1047,6 +1089,24 @@ body.modal-open{overflow:hidden}
           <button class="primary" id="drawButton" type="button">1回ガチャ 🎟1</button>
           <button class="primary ten-draw-button" id="drawTenButton" type="button" disabled>10連まであと9枚</button>
         </div>
+        <section class="duplicate-choice" id="gachaDuplicateChoice" hidden aria-label="重複マシンの使い道">
+          <div class="duplicate-choice-head"><small>DUPLICATE MACHINE</small><strong>この1台をどう使う？</strong></div>
+          <p id="gachaDuplicateMeta">あとからTUNE LABでも決められます。</p>
+          <div class="duplicate-choice-actions">
+            <button class="duplicate-tune-button" id="gachaDuplicateTune" type="button">このマシンを TUNE +1</button>
+            <button class="duplicate-core-button" id="gachaDuplicateCore" type="button">MACHINE COREへ変換</button>
+          </div>
+          <button class="duplicate-later-button" id="gachaDuplicateLater" type="button">あとでTUNE LABで決める</button>
+        </section>
+        <section class="batch-duplicate-actions" id="batchDuplicateActions" hidden aria-label="10連重複マシンの使い道">
+          <div><small>DUPLICATE STOCK</small><strong id="batchDuplicateCount">0台</strong><span>重複分は消えずに保管されています</span></div>
+          <div class="batch-duplicate-buttons">
+            <button id="batchAllTune" type="button">全部そのままTUNE</button>
+            <button id="batchAllCore" type="button">全部COREへ変換</button>
+            <button id="batchOpenLab" type="button">TUNE LABで選ぶ</button>
+          </div>
+          <p id="batchDuplicateStatus"></p>
+        </section>
         <button class="primary huge" id="useDrawnButton" type="button" hidden>このマシンで飛ぶ</button>
         <p class="gacha-ticket-status" id="gachaTicketStatus">最初の1回は無料！</p><p class="fineprint">最初の1回は未所持確定。10連の最後の1枠はSR以上確定。未所持マシンは3倍抽選されますが、確定ではありません。</p>
       </div>
@@ -1087,8 +1147,9 @@ body.modal-open{overflow:hidden}
             <div class="selector-control"><b>NITRO<small>ニトロ</small></b><span id="selectorNitro">大きな丸をリングに合わせる</span></div>
           </div>
 
-          <div class="selector-stats selector-stats-three">
+          <div class="selector-stats selector-stats-four">
             <div><small>JUMP BEST</small><strong id="selectorBest">0m</strong></div>
+            <div><small>TUNE</small><strong id="selectorTuneLevel">Lv.0</strong></div>
             <div><small>GROWTH</small><strong id="selectorMax">Lv.0</strong></div>
             <div><small>SPECIAL</small><strong id="selectorTune">LOCKED</strong></div>
           </div>
@@ -1099,6 +1160,23 @@ body.modal-open{overflow:hidden}
             <div><span>AWAKENING</span><strong data-growth-axis="awakening">Lv.0</strong></div>
           </div>
           <p class="machine-special-copy" id="selectorSpecial">走り込むと必殺技が目覚める。</p>
+
+          <section class="tune-lab" id="tuneLab" aria-label="TUNE LAB">
+            <div class="tune-lab-head">
+              <div><small>TUNE LAB</small><strong>好きなマシンを育てる</strong></div>
+              <div class="core-wallet"><small>MACHINE CORE</small><b id="machineCoreBalance">0</b></div>
+            </div>
+            <div class="tune-lab-current">
+              <div><small>DUPLICATE STOCK</small><strong id="tuneLabStock">0</strong><span id="tuneLabStockHint">このマシンの重複分</span></div>
+              <div><small>NEXT TUNE</small><strong id="tuneLabNext">Lv.1</strong><span id="tuneLabOutput">OUTPUT +0.10%</span></div>
+            </div>
+            <div class="tune-lab-actions">
+              <button id="tuneLabUseDuplicate" type="button"><b>同じマシンを強化</b><span>DUPLICATE ×1 → TUNE +1</span></button>
+              <button id="tuneLabConvertCore" class="core-action" type="button"><b>COREへ変換</b><span id="tuneLabConvertLabel">DUPLICATE ×1 → CORE +1</span></button>
+              <button id="tuneLabUseCore" class="core-action primary-core" type="button"><b>このマシンへCORE投入</b><span id="tuneLabUseCoreLabel">CORE 1 → TUNE +1</span></button>
+            </div>
+            <p class="tune-lab-status" id="tuneLabStatus" role="status" aria-live="polite">重複マシンはここでいつでも振り分けできます。</p>
+          </section>
 
           <button class="selector-choose" id="selectorChoose" type="button">このマシンを選ぶ</button>
           <p class="selector-unlock-note" id="selectorUnlockNote" hidden></p>
@@ -1370,15 +1448,15 @@ body.modal-open{overflow:hidden}
   window.BOON_RANKING_FALLBACK=fallback;window.BOON_RANKING=fallback;
 })();
 </script>
-<script src="./ranking-client.js?v=660-balance" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
+<script src="./ranking-client.js?v=680-core" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
 <script>
 (() => {
   'use strict';
 
   const BOON_RANKING=window.BOON_RANKING||window.BOON_RANKING_FALLBACK;
-  const APP_VERSION = '6.6.0';
-  const BUILD = '2026-08-15-balance-lock-v660';
-  const SCHEMA = 5;
+  const APP_VERSION = '6.8.0';
+  const BUILD = '2026-08-15-tune-lab-core-v680';
+  const SCHEMA = 7;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
   const LEGACY_KEY = 'asoboonBooncar.v6';
@@ -1603,7 +1681,7 @@ body.modal-open{overflow:hidden}
   };
   const el = {
     miniappLink:$('miniappLink'),best:$('bestMeters'),ticketCount:$('ticketCount'),sound:$('soundButton'),homeVehicle:$('homeVehicle'),homeName:$('homeCarName'),homeTrait:$('homeCarTrait'),homeTune:$('homeTune'),homePlays:$('homePlays'),homeOwned:$('homeOwned'),homeTrophies:$('homeTrophies'),gachaButton:$('gachaButton'),gachaTicketStatus:$('gachaTicketStatus'),
-    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaMachineCard:$('gachaMachineCard'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCardImage:$('selectorCardImage'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorLock:$('selectorLock'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorGrowth:$('selectorGrowth'),selectorSpecial:$('selectorSpecial'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
+    play:$('playButton'),gachaVehicle:$('gachaVehicle'),gachaMachineCard:$('gachaMachineCard'),gachaCard:$('gachaCard'),gachaReveal:$('gachaReveal'),gachaRarity:$('gachaRarity'),gachaName:$('gachaName'),gachaResult:$('gachaResultText'),draw:$('drawButton'),drawTen:$('drawTenButton'),gachaBatchGrid:$('gachaBatchGrid'),gachaDuplicateChoice:$('gachaDuplicateChoice'),gachaDuplicateMeta:$('gachaDuplicateMeta'),gachaDuplicateTune:$('gachaDuplicateTune'),gachaDuplicateCore:$('gachaDuplicateCore'),gachaDuplicateLater:$('gachaDuplicateLater'),batchDuplicateActions:$('batchDuplicateActions'),batchDuplicateCount:$('batchDuplicateCount'),batchAllTune:$('batchAllTune'),batchAllCore:$('batchAllCore'),batchOpenLab:$('batchOpenLab'),batchDuplicateStatus:$('batchDuplicateStatus'),useDrawn:$('useDrawnButton'),selectorStage:$('selectorStage'),selectorRunCard:$('selectorRunCard'),selectorCardImage:$('selectorCardImage'),selectorOwnedCount:$('selectorOwnedCount'),selectorCount:$('selectorCount'),selectorLock:$('selectorLock'),selectorRail:$('selectorRail'),selectorDifficulty:$('selectorDifficulty'),selectorSummary:$('selectorSummary'),selectorAccel:$('selectorAccel'),selectorTurbo:$('selectorTurbo'),selectorNitro:$('selectorNitro'),selectorBest:$('selectorBest'),selectorTuneLevel:$('selectorTuneLevel'),selectorMax:$('selectorMax'),selectorTune:$('selectorTune'),selectorGrowth:$('selectorGrowth'),selectorSpecial:$('selectorSpecial'),tuneLab:$('tuneLab'),machineCoreBalance:$('machineCoreBalance'),tuneLabStock:$('tuneLabStock'),tuneLabStockHint:$('tuneLabStockHint'),tuneLabNext:$('tuneLabNext'),tuneLabOutput:$('tuneLabOutput'),tuneLabUseDuplicate:$('tuneLabUseDuplicate'),tuneLabConvertCore:$('tuneLabConvertCore'),tuneLabConvertLabel:$('tuneLabConvertLabel'),tuneLabUseCore:$('tuneLabUseCore'),tuneLabUseCoreLabel:$('tuneLabUseCoreLabel'),tuneLabStatus:$('tuneLabStatus'),selectorChoose:$('selectorChoose'),selectorUnlockNote:$('selectorUnlockNote'),selectorPrev:$('selectorPrev'),selectorNext:$('selectorNext'),
     recordSummary:$('recordSummary'),machineRecords:$('machineRecords'),trophyRecords:$('trophyRecords'),bulkRankButton:$('bulkRankButton'),bulkRankMeta:$('bulkRankMeta'),recordsRankingStatus:$('recordsRankingStatus'),recordsRankingLink:$('recordsRankingLink'),worldButton:$('worldButton'),rankingNameInput:$('rankingNameInput'),rankingNameSave:$('rankingNameSave'),rankingStatus:$('rankingStatus'),rankingRefresh:$('rankingRefresh'),rankingTodayList:$('rankingTodayList'),rankingWeekList:$('rankingWeekList'),rankingAllList:$('rankingAllList'),rankingTodayCount:$('rankingTodayCount'),rankingWeekCount:$('rankingWeekCount'),rankingAllCount:$('rankingAllCount'),rankingTodayMe:$('rankingTodayMe'),rankingWeekMe:$('rankingWeekMe'),rankingAllMe:$('rankingAllMe'),rankingMachineBoards:$('rankingMachineBoards'),rankingOverview:$('rankingOverview'),rankingViewOverall:$('rankingViewOverall'),rankingViewMachine:$('rankingViewMachine'),
     gameShell:$('gameShell'),phaseCount:$('phaseCount'),phaseTag:$('phaseTag'),phaseTitle:$('phaseTitle'),phaseHint:$('phaseHint'),progressStart:$('progressStart'),progressTurbo:$('progressTurbo'),progressNitro:$('progressNitro'),gameScreen:$('gameScreen'),gameVehicle:$('gameVehicle'),rpmMeter:$('rpmMeter'),rpmNeedle:$('rpmNeedle'),rpmNumber:$('rpmNumber'),tachRedline:$('tachRedline'),accelProfile:$('accelProfile'),turboMeter:$('turboMeter'),turboGood:$('turboGood'),turboGreat:$('turboGreat'),turboCritical:$('turboCritical'),turboSuper:$('turboSuper'),turboCursor:$('turboCursor'),turboNumber:$('turboNumber'),turboProfile:$('turboProfile'),tap:$('tapButton'),tapSub:$('tapSub'),
     flightScreen:$('flightScreen'),canvas:$('flightCanvas'),flightDistance:$('flightDistance'),flightName:$('flightCarName'),boost:$('boostButton'),boostCall:$('boostCall'),nitroLane:$('nitroLane'),nitroTarget:$('nitroTarget'),nitroOrb:$('nitroOrb'),airDrive:$('airDrive'),airDriveTrack:$('airDriveTrack'),airDriveGateCount:$('airDriveGateCount'),airDriveCursor:$('airDriveCursor'),airDriveFeedback:$('airDriveFeedback'),stageJumpCallout:$('stageJumpCallout'),
@@ -1688,11 +1766,11 @@ body.modal-open{overflow:hidden}
     if(!value || typeof value!=='object') return null;
     const validJudge=value=>JUDGE_LEVEL[value]!=null?value:'MISS';
     const achievedAt=String(value.achievedAt||value.playedAt||'');
-    return {accelJudge:validJudge(value.accelJudge),turboJudge:validJudge(value.turboJudge),nitroJudge:validJudge(value.nitroJudge),comboPrecision:Math.round(Math.max(0,Math.min(100,Number(value.comboPrecision)||0))*100)/100,tuneLevel:Math.min(50,Math.max(0,Math.floor(Number(value.tuneLevel)||0))),achievedAt};
+    return {accelJudge:validJudge(value.accelJudge),turboJudge:validJudge(value.turboJudge),nitroJudge:validJudge(value.nitroJudge),comboPrecision:Math.round(Math.max(0,Math.min(100,Number(value.comboPrecision)||0))*100)/100,tuneLevel:normalizeTuneLevel(value.tuneLevel),achievedAt};
   };
-  const blankRecord = (owned=false, obtained=0) => ({owned,obtained,tuneLevel:Math.min(50,Math.max(0,obtained-1)),growth:blankGrowth(),best:0,plays:0,classicBest:0,bestMeta:null,worldBest:0,worldUpdatedAt:null});
+  const blankRecord = (owned=false, obtained=0) => ({owned,obtained,tuneLevel:normalizeTuneLevel(obtained-1),duplicateStock:0,growth:blankGrowth(),best:0,plays:0,classicBest:0,bestMeta:null,worldBest:0,worldUpdatedAt:null});
   const defaultState = () => ({
-    schema:SCHEMA,build:BUILD,selected:'boon',best:0,classicBest:0,plays:0,classicPlays:0,total:0,sound:true,gachaTickets:1,firstDrawDone:false,drawsWithoutNew:0,
+    schema:SCHEMA,build:BUILD,selected:'boon',best:0,classicBest:0,plays:0,classicPlays:0,total:0,sound:true,gachaTickets:1,firstDrawDone:false,drawsWithoutNew:0,machineCore:0,
     garage:Object.fromEntries(CARS.map(c => [c.id,blankRecord(c.id==='boon',c.id==='boon'?1:0)])),
     gradeCounts:{MISS:0,GOOD:0,GREAT:0,CRITICAL:0,SUPER:0},
     runFlags:{allGood:false,allGreat:false,allCritical:false,superPerfect:false,boostSuper:false},
@@ -1704,10 +1782,13 @@ body.modal-open{overflow:hidden}
     const owned=Boolean(target.owned||source.owned||obtained>0);
     const targetBest=Number(target.best)||0,sourceBest=Number(source.best)||0,best=Math.max(targetBest,sourceBest);
     const chosenMeta=sourceBest>=targetBest?normalizeBestMeta(source.bestMeta):normalizeBestMeta(target.bestMeta);
-    const tuneLevel=Math.min(50,Math.max(Number(target.tuneLevel)||0,Number(source.tuneLevel ?? source.tune ?? 0)||0,owned?obtained-1:0));
+    const hasStockField=Object.prototype.hasOwnProperty.call(source,'duplicateStock');
+    const legacyTuneFloor=hasStockField?0:(owned?Math.max(0,obtained-1):0);
+    const tuneLevel=normalizeTuneLevel(Math.max(Number(target.tuneLevel)||0,Number(source.tuneLevel ?? source.tune ?? 0)||0,legacyTuneFloor));
+    const duplicateStock=hasStockField?Math.max(0,Math.floor(Number(source.duplicateStock)||0)):0;
     const plays=Math.max(Number(target.plays)||0,Number(source.plays)||0);
     return {
-      owned,obtained:owned?Math.max(1,obtained):0,tuneLevel,
+      owned,obtained:owned?Math.max(1,obtained):0,tuneLevel,duplicateStock,
       growth:mergeGrowth(target.growth,source.growth,plays,tuneLevel),
       best,plays,
       classicBest:Math.max(Number(target.classicBest)||0,Number(source.classicBest ?? source.best)||0),
@@ -1731,7 +1812,7 @@ body.modal-open{overflow:hidden}
     base.selected = CAR_BY_ID[selected] && base.garage[selected].owned ? selected : CARS.find(c=>base.garage[c.id].owned)?.id || 'boon';
     base.best = Math.max(Number(input.best)||0,Number(input.overallBest)||0,...CARS.map(c=>base.garage[c.id].best));
     base.classicBest = Math.max(Number(input.classicBest)||0,Number(input.overallBest)||0,Number(input.best)||0,...CARS.map(c=>base.garage[c.id].classicBest));
-    base.plays = Math.max(0,Number(input.plays)||0);base.classicPlays=Math.max(0,Number(input.classicPlays)||0);base.total=Math.max(0,Number(input.total)||0);base.sound=input.sound!==false;base.gachaTickets=Math.min(999,Math.max(0,Math.floor(Number(input.gachaTickets ?? 1)||0)));base.firstDrawDone=Boolean(input.firstDrawDone);base.drawsWithoutNew=Math.max(0,Math.floor(Number(input.drawsWithoutNew)||0));
+    base.plays = Math.max(0,Number(input.plays)||0);base.classicPlays=Math.max(0,Number(input.classicPlays)||0);base.total=Math.max(0,Number(input.total)||0);base.sound=input.sound!==false;base.gachaTickets=Math.min(999,Math.max(0,Math.floor(Number(input.gachaTickets ?? 1)||0)));base.firstDrawDone=Boolean(input.firstDrawDone);base.drawsWithoutNew=Math.max(0,Math.floor(Number(input.drawsWithoutNew)||0));base.machineCore=normalizeCore(input.machineCore ?? input.coreBalance ?? 0);
     base.gradeCounts={...base.gradeCounts,...(input.gradeCounts||{})};
     if (base.gradeCounts.TRUE && !base.gradeCounts.SUPER) base.gradeCounts.SUPER=base.gradeCounts.TRUE;
     delete base.gradeCounts.TRUE;
@@ -1819,7 +1900,17 @@ body.modal-open{overflow:hidden}
   };
 
   const getRecord=id=>state.garage[id]||(state.garage[id]=blankRecord());
-  const tuneRate=id=>CAR_BY_ID[id]?.id==='secret'?0:Math.min(.05,(getRecord(id).tuneLevel||0)*.001);
+  const MAX_TUNE_LEVEL_STORED=1000000000;
+  const normalizeTuneLevel=value=>Math.max(0,Math.min(MAX_TUNE_LEVEL_STORED,Math.floor(Number(value)||0)));
+  const tuneRateForLevel=level=>{const lv=normalizeTuneLevel(level);if(lv<=50)return lv*.001;return .05+.01*Math.log2(1+(lv-50)/50);};
+  const romanTuneTier=value=>{let n=Math.max(1,Math.floor(Number(value)||1)),out='';for(const [v,s] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){out+=s;n-=v;}return out||'I';};
+  const tuneLimitInfo=level=>{const lv=normalizeTuneLevel(level),rate=tuneRateForLevel(lv);if(lv<=50)return{level:lv,break:false,tier:0,label:'STANDARD',rate,next:51};const tier=1+Math.floor(Math.log2(Math.max(1,lv/50))),next=Math.min(MAX_TUNE_LEVEL_STORED,50*Math.pow(2,tier));return{level:lv,break:true,tier,label:`BREAK ${romanTuneTier(tier)}`,rate,next};};
+  const tuneDisplay=level=>{const info=tuneLimitInfo(level);return info.break?`TUNE Lv.${info.level}｜⚡ ${info.label}｜OUTPUT +${(info.rate*100).toFixed(2)}%`:`TUNE Lv.${info.level}｜OUTPUT +${(info.rate*100).toFixed(1)}%`;};
+  const tuneRate=id=>CAR_BY_ID[id]?.id==='secret'?0:tuneRateForLevel(getRecord(id).tuneLevel||0);
+  const CORE_VALUE=Object.freeze({R:1,SR:2,SSR:4,EXR:5,UR:6,SECRET:0});
+  const coreValueFor=car=>Math.max(0,CORE_VALUE[car?.rarity]||0);
+  const coreCostFor=car=>Math.max(0,CORE_VALUE[car?.rarity]||0);
+  const normalizeCore=value=>Math.max(0,Math.min(999999999,Math.floor(Number(value)||0)));
   const ownedCount=()=>CARS.filter(c=>getRecord(c.id).owned).length;
 
   const assetCandidates=(car,part)=>car.asset.flatMap(alias=>part==='body'&&car.id!=='secret'?[`${ASSET_ROOT}/${alias}-${part}.webp?v=${ASSET_VERSION}`,`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]:[`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]);
@@ -2074,7 +2165,7 @@ body.modal-open{overflow:hidden}
     currentCar=CAR_BY_ID[state.selected]&&getRecord(state.selected).owned?CAR_BY_ID[state.selected]:CARS.find(c=>getRecord(c.id).owned)||CAR_BY_ID.boon;state.selected=currentCar.id;
     if(getMachineVfxContract(currentCar.id))preloadMachineVfx(currentCar.id).catch(()=>{});
     const rec=getRecord(currentCar.id);renderVehicle(el.homeVehicle,currentCar,{compact:true});
-    el.homeName.textContent=currentCar.name;const homeGuide=GARAGE_GUIDE[currentCar.id]||GARAGE_GUIDE.boon,growth=growthSnapshot(rec),special=specialProfile(currentCar);el.homeTrait.textContent=`${homeGuide.level}｜${homeGuide.home}`;el.homeTune.textContent=`GROWTH Lv.${growth.overall}｜${growth.awakening>=1?'⚡ '+special.name:'SPECIAL ？？？'}`;
+    el.homeName.textContent=currentCar.name;const homeGuide=GARAGE_GUIDE[currentCar.id]||GARAGE_GUIDE.boon,growth=growthSnapshot(rec),special=specialProfile(currentCar),tuneInfo=tuneLimitInfo(rec.tuneLevel||0);el.homeTrait.textContent=`${homeGuide.level}｜${homeGuide.home}`;el.homeTune.textContent=currentCar.id==='secret'?`GROWTH Lv.${growth.overall}｜LEGEND`:`${tuneInfo.break?`⚡ ${tuneInfo.label}`:`TUNE Lv.${tuneInfo.level}`}｜GROWTH Lv.${growth.overall}`;el.homeTune.title=currentCar.id==='secret'?'SECRETはTUNEなし':tuneDisplay(rec.tuneLevel||0);
     el.best.textContent=formatM(state.best);el.ticketCount.textContent=`🎟 ${state.gachaTickets}`;el.gachaButton.textContent=state.gachaTickets>0?`ガチャ 🎟${state.gachaTickets}`:'ガチャ（飛ぶと解放）';el.gachaButton.classList.toggle('no-ticket',state.gachaTickets<=0);el.homePlays.textContent=(state.plays||0).toLocaleString();el.homeOwned.textContent=`${ownedCount()} / ${CARS.length}`;el.homeTrophies.textContent=`${unlockedTrophyCount()} / ${DISPLAY_TROPHIES.length}`;el.sound.textContent=state.sound?'🔊':'🔇';
   };
 
@@ -2106,11 +2197,13 @@ body.modal-open{overflow:hidden}
     el.selectorTurbo.textContent=owned?detail.turbo:'解放するとターボの狙い方が表示されます。';
     el.selectorNitro.textContent=owned?detail.nitro:'解放するとニトロの狙い方が表示されます。';
     el.selectorBest.textContent=owned?formatM(rec.best||0):'---';
-    const growth=growthSnapshot(rec),special=specialProfile(car);
+    const growth=growthSnapshot(rec),special=specialProfile(car),tuneInfo=tuneLimitInfo(rec.tuneLevel||0);
+    if(el.selectorTuneLevel)el.selectorTuneLevel.textContent=!owned?'---':car.id==='secret'?'---':tuneInfo.break?`Lv.${tuneInfo.level} ⚡${romanTuneTier(tuneInfo.tier)}`:`Lv.${tuneInfo.level}`;
     el.selectorMax.textContent=owned?`Lv.${growth.overall}`:'---';
     el.selectorTune.textContent=owned?(growth.awakening>=1?'READY':'LOCKED'):'---';
     if(el.selectorGrowth){el.selectorGrowth.querySelector('[data-growth-axis="engine"]').textContent=owned?`Lv.${growth.engine}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="aero"]').textContent=owned?`Lv.${growth.aero}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="boost"]').textContent=owned?`Lv.${growth.boost}`:'---';el.selectorGrowth.querySelector('[data-growth-axis="awakening"]').textContent=owned?`Lv.${growth.awakening}`:'---';}
-    if(el.selectorSpecial){el.selectorSpecial.classList.toggle('ready',owned&&growth.awakening>=1);el.selectorSpecial.textContent=!owned?'解放すると成長が始まる。':growth.awakening>=1?`⚡ ${special.name}｜3 COMBOを高精度で決めると発動`:`？？？｜ENGINE・AERO・BOOSTを育てながら、必殺技を目覚めさせよう`;}
+    if(el.selectorSpecial){el.selectorSpecial.classList.toggle('ready',owned&&growth.awakening>=1);if(!owned)el.selectorSpecial.textContent='解放すると成長が始まる。';else if(car.id==='secret')el.selectorSpecial.textContent=growth.awakening>=1?`⚡ ${special.name}｜3 COMBOを高精度で決めると発動`:`？？？｜LEGEND MACHINEはTUNEなし。走り込みで覚醒。`;else{const tuneText=tuneInfo.break?`TUNE Lv.${tuneInfo.level}｜${tuneInfo.label}｜OUTPUT +${(tuneInfo.rate*100).toFixed(2)}%`:`TUNE Lv.${tuneInfo.level}｜OUTPUT +${(tuneInfo.rate*100).toFixed(1)}%`;el.selectorSpecial.textContent=growth.awakening>=1?`${tuneText}　⚡ ${special.name}`:`${tuneText}　｜Lv.51からLIMIT BREAK`;}}
+    renderTuneLab();
     el.selectorChoose.disabled=!owned;
     el.selectorChoose.classList.toggle('current',selected&&owned);
     el.selectorChoose.textContent=!owned?(car.id==='secret'?'🔒 7台コンプリートで解放':'🔒 ガチャで解放'):selected?'✓ 選択中｜ホームへ':'このマシンを選ぶ';
@@ -2153,7 +2246,7 @@ body.modal-open{overflow:hidden}
     el.bulkRankButton.disabled=rankSubmitBusy||playedRecords.length===0;
     el.bulkRankButton.classList.toggle('done',playedRecords.length>0&&pendingRecords===0);
     el.bulkRankButton.innerHTML=playedRecords.length===0?'まだ登録できる通常マシンの記録がありません<small>SECRETは個別登録です</small>':pendingRecords===0?'✓ 通常8マシンを登録済み<small>SECRETは個別登録できます</small>':'🏆 通常8マシンの自己ベストを登録<small>SECRETは対象外・未プレイと更新済みは自動判定</small>';
-    el.machineRecords.innerHTML=`<div class="machine-list">${CARS.map(car=>{const rec=getRecord(car.id),growth=growthSnapshot(rec),special=specialProfile(car),ratio=Math.min(.96,.12+growth.overall*.10),canSubmit=rec.owned&&(rec.best||0)>0;return `<article class="machine-row"><div class="vehicle-slot" data-record-car="${car.id}"></div><div class="machine-row-copy"><h3>${rec.owned?car.name:'？？？？？？'}　${car.rarity}</h3><p>${rec.owned?`BEST ${(rec.best||0).toLocaleString()}m｜PLAY ${rec.plays||0}｜GROWTH Lv.${growth.overall}`:'未解放'}<br>${rec.owned?(growth.awakening>=1?`⚡ ${special.name}`:'SPECIAL ？？？'):'飛ぶほどマシンが育つ'}</p><div class="bar"><i style="width:${ratio*100}%"></i></div></div></article>`;}).join('')}</div>`;
+    el.machineRecords.innerHTML=`<div class="machine-list">${CARS.map(car=>{const rec=getRecord(car.id),growth=growthSnapshot(rec),special=specialProfile(car),ratio=Math.min(.96,.12+growth.overall*.10),canSubmit=rec.owned&&(rec.best||0)>0;return `<article class="machine-row"><div class="vehicle-slot" data-record-car="${car.id}"></div><div class="machine-row-copy"><h3>${rec.owned?car.name:'？？？？？？'}　${car.rarity}</h3><p>${rec.owned?`BEST ${(rec.best||0).toLocaleString()}m｜PLAY ${rec.plays||0}｜TUNE Lv.${rec.tuneLevel||0}｜GROWTH Lv.${growth.overall}`:'未解放'}<br>${rec.owned?(growth.awakening>=1?`⚡ ${special.name}`:'SPECIAL ？？？'):'飛ぶほどマシンが育つ'}</p><div class="bar"><i style="width:${ratio*100}%"></i></div></div></article>`;}).join('')}</div>`;
     el.machineRecords.querySelectorAll('[data-record-car]').forEach(slot=>renderVehicle(slot,CAR_BY_ID[slot.dataset.recordCar],{compact:true}));
     el.trophyRecords.innerHTML=`<div class="trophy-grid">${DISPLAY_TROPHIES.map(t=>{const s=trophyState(t.id),p=trophyProgress(t);return `<article class="trophy-card ${s.unlocked?'':'locked'}"><span class="icon">${s.unlocked?t.icon:'❔'}</span><strong>${s.unlocked?t.name:(t.cat==='master'?'？？？？':t.name)}</strong><small>${s.unlocked?'獲得済み':`${t.desc}<br>${Math.min(p.value,p.target).toLocaleString()} / ${p.target.toLocaleString()}${t.unit||''}`}</small><div class="bar"><i style="width:${p.ratio*100}%"></i></div></article>`;}).join('')}</div>`;
     setRecordTab(recordTab);
@@ -2187,10 +2280,26 @@ body.modal-open{overflow:hidden}
     for(const car of source){r-=car.rate*(getRecord(car.id).owned?1:3);if(r<=0)return car;}
     return source[source.length-1]||CAR_BY_ID.buggy;
   };
-  const applyAcquisition=car=>{const rec=getRecord(car.id),isNew=!rec.owned;rec.owned=true;rec.obtained=Math.max(0,rec.obtained||0)+1;rec.tuneLevel=car.id==='secret'?0:Math.min(50,Math.max(0,rec.obtained-1));state.drawsWithoutNew=isNew?0:(state.drawsWithoutNew||0)+1;let secretUnlocked=false;if(SECRET_UNLOCK_IDS.every(id=>getRecord(id).owned)&&!getRecord('secret').owned){const secret=getRecord('secret');secret.owned=true;secret.obtained=1;secret.tuneLevel=0;secretUnlocked=true;}return{isNew,secretUnlocked,tuneLevel:rec.tuneLevel};};
+  let latestDuplicateCarId=null,lastBatchDuplicateCounts={};
+  const tuneMilestoneResult=(car,before,after)=>{const beforeInfo=tuneLimitInfo(before),afterInfo=tuneLimitInfo(after);return{tuneLevel:after,limitBreak:before<=50&&after>=51,tierUp:afterInfo.tier>beforeInfo.tier,tuneInfo:afterInfo};};
+  const addTuneLevels=(carId,count=1)=>{const car=CAR_BY_ID[carId],rec=car&&getRecord(carId);if(!car||!rec||!rec.owned||car.id==='secret')return null;const before=normalizeTuneLevel(rec.tuneLevel||0),amount=Math.max(1,Math.floor(Number(count)||1));rec.tuneLevel=normalizeTuneLevel(before+amount);return tuneMilestoneResult(car,before,rec.tuneLevel);};
+  const useDuplicateForTune=(carId,count=1)=>{const car=CAR_BY_ID[carId],rec=car&&getRecord(carId);if(!car||!rec||car.id==='secret')return null;const amount=Math.min(Math.max(1,Math.floor(Number(count)||1)),Math.max(0,Math.floor(Number(rec.duplicateStock)||0)));if(amount<=0)return null;rec.duplicateStock-=amount;const result=addTuneLevels(carId,amount);save();return{...result,used:amount};};
+  const convertDuplicateToCore=(carId,count=1)=>{const car=CAR_BY_ID[carId],rec=car&&getRecord(carId);if(!car||!rec||car.id==='secret')return null;const amount=Math.min(Math.max(1,Math.floor(Number(count)||1)),Math.max(0,Math.floor(Number(rec.duplicateStock)||0))),value=coreValueFor(car);if(amount<=0||value<=0)return null;rec.duplicateStock-=amount;const gained=amount*value;state.machineCore=normalizeCore((state.machineCore||0)+gained);save();return{used:amount,gained,balance:state.machineCore};};
+  const useCoreForTune=(carId,count=1)=>{const car=CAR_BY_ID[carId],rec=car&&getRecord(carId);if(!car||!rec||!rec.owned||car.id==='secret')return null;const cost=coreCostFor(car);if(cost<=0)return null;const requested=Math.max(1,Math.floor(Number(count)||1)),affordable=Math.floor((state.machineCore||0)/cost),amount=Math.min(requested,affordable);if(amount<=0)return null;state.machineCore=normalizeCore((state.machineCore||0)-amount*cost);const result=addTuneLevels(carId,amount);save();return{...result,used:amount,cost:amount*cost,balance:state.machineCore};};
+  const tuneResultLabel=result=>!result?'':result.limitBreak?`⚡ TUNE LIMIT BREAK！ Lv.${result.tuneLevel}`:result.tierUp?`⚡ ${result.tuneInfo.label}！ Lv.${result.tuneLevel}`:`TUNE UP！ Lv.${result.tuneLevel}`;
+  const renderTuneLab=()=>{const car=CAR_BY_ID[selectorPreviewId],rec=car&&getRecord(car.id);if(!car||!rec)return;const owned=Boolean(rec.owned),secret=car.id==='secret',stock=Math.max(0,Math.floor(Number(rec.duplicateStock)||0)),cost=coreCostFor(car),value=coreValueFor(car),nextLevel=normalizeTuneLevel(rec.tuneLevel||0)+1,nextRate=tuneRateForLevel(nextLevel);el.machineCoreBalance.textContent=(state.machineCore||0).toLocaleString();el.tuneLabStock.textContent=secret?'—':String(stock);el.tuneLabStockHint.textContent=secret?'SECRETはCORE対象外':owned?'このマシンの未使用重複':'未所持';el.tuneLabNext.textContent=secret?'—':`Lv.${nextLevel}`;el.tuneLabOutput.textContent=secret?'TUNEなし':`OUTPUT +${(nextRate*100).toFixed(nextLevel>50?2:1)}%`;el.tuneLabConvertLabel.textContent=secret?'変換不可':`DUPLICATE ×1 → CORE +${value}`;el.tuneLabUseCoreLabel.textContent=secret?'使用不可':`CORE ${cost} → TUNE +1`;el.tuneLabUseDuplicate.disabled=!owned||secret||stock<1;el.tuneLabConvertCore.disabled=!owned||secret||stock<1;el.tuneLabUseCore.disabled=!owned||secret||cost<=0||(state.machineCore||0)<cost;if(secret)el.tuneLabStatus.textContent='LEGEND MACHINEはTUNE / MACHINE COREの対象外です。';else if(!owned)el.tuneLabStatus.textContent='まずこのマシンをガチャで解放しよう。';else if(stock>0)el.tuneLabStatus.textContent=`重複 ${stock}台を、TUNEかCOREへ振り分けできます。`;else if((state.machineCore||0)>=cost)el.tuneLabStatus.textContent=`CORE ${cost}でこのマシンをTUNE +1できます。`;else el.tuneLabStatus.textContent='重複マシンをCOREに変換すると、好きなマシンへ使えます。';};
+  const setTuneLabStatus=(message,type='')=>{if(!el.tuneLabStatus)return;el.tuneLabStatus.className=`tune-lab-status${type?' '+type:''}`;el.tuneLabStatus.textContent=message;};
+  const refreshTuneUi=()=>{renderHome();renderGarage();syncGachaUi();};
+  const armDestructiveAction=(button,label,action)=>{if(!button||button.disabled)return;const now=Date.now(),armed=Number(button.dataset.armedUntil||0)>now;if(!armed){button.dataset.armedUntil=String(now+2400);button.dataset.originalLabel=button.innerHTML;button.classList.add('confirming');button.innerHTML=`<b>もう一度押して確定</b><span>${label}</span>`;setTimeout(()=>{if(Number(button.dataset.armedUntil||0)<=Date.now()){button.classList.remove('confirming');if(button.dataset.originalLabel)button.innerHTML=button.dataset.originalLabel;button.dataset.armedUntil='0';}},2500);return;}button.dataset.armedUntil='0';button.classList.remove('confirming');if(button.dataset.originalLabel)button.innerHTML=button.dataset.originalLabel;action();};
+  const renderSingleDuplicateChoice=(car,result)=>{latestDuplicateCarId=result?.duplicate?car.id:null;el.gachaDuplicateChoice.hidden=!result?.duplicate;if(!result?.duplicate)return;const rec=getRecord(car.id),value=coreValueFor(car);el.gachaDuplicateChoice.classList.remove('resolved');el.gachaDuplicateMeta.textContent=`未使用重複 ${rec.duplicateStock}台｜CORE変換なら +${value}`;el.gachaDuplicateTune.disabled=false;el.gachaDuplicateCore.disabled=false;el.gachaDuplicateLater.disabled=false;el.gachaDuplicateTune.textContent=`${car.name}を TUNE +1`;el.gachaDuplicateCore.textContent=`MACHINE CORE +${value}`;};
+  const resolveSingleDuplicate=mode=>{const car=CAR_BY_ID[latestDuplicateCarId];if(!car)return;if(mode==='tune'){const result=useDuplicateForTune(car.id,1);if(!result)return;el.gachaResult.textContent=tuneResultLabel(result);Sound.tone(760,.12,'sine',.035);vibrate([25,20,45]);}else if(mode==='core'){const result=convertDuplicateToCore(car.id,1);if(!result)return;el.gachaResult.textContent=`MACHINE CORE +${result.gained}｜TOTAL ${result.balance}`;Sound.tone(980,.10,'sine',.03);vibrate([18,16,38]);}el.gachaDuplicateChoice.classList.add('resolved');el.gachaDuplicateMeta.textContent='振り分け完了！';el.gachaDuplicateTune.disabled=true;el.gachaDuplicateCore.disabled=true;latestDuplicateCarId=null;refreshTuneUi();};
+  const totalLastBatchDuplicates=()=>Object.values(lastBatchDuplicateCounts||{}).reduce((a,b)=>a+Math.max(0,Number(b)||0),0);
+  const renderBatchDuplicateActions=()=>{const total=totalLastBatchDuplicates();el.batchDuplicateActions.hidden=total<=0;if(total<=0)return;el.batchDuplicateCount.textContent=`${total}台`;el.batchDuplicateStatus.textContent='全部まとめて処理するか、TUNE LABでマシンごとに選べます。';el.batchAllTune.disabled=false;el.batchAllCore.disabled=false;};
+  const resolveBatchDuplicates=mode=>{let tuned=0,cores=0,breaks=0;for(const [carId,countRaw] of Object.entries(lastBatchDuplicateCounts||{})){const count=Math.max(0,Math.floor(Number(countRaw)||0));if(count<=0)continue;if(mode==='tune'){const result=useDuplicateForTune(carId,count);if(result){tuned+=result.used;if(result.limitBreak||result.tierUp)breaks++;}}else{const result=convertDuplicateToCore(carId,count);if(result)cores+=result.gained;}}lastBatchDuplicateCounts={};refreshTuneUi();el.batchDuplicateActions.hidden=false;el.batchDuplicateCount.textContent='処理完了';el.batchDuplicateStatus.textContent=mode==='tune'?`TUNE +${tuned} 完了${breaks?`｜BREAK更新 ${breaks}台`:''}`:`MACHINE CORE +${cores}｜TOTAL ${(state.machineCore||0).toLocaleString()}`;el.batchAllTune.disabled=true;el.batchAllCore.disabled=true;};
+  const applyAcquisition=car=>{const rec=getRecord(car.id),isNew=!rec.owned;rec.owned=true;rec.obtained=Math.max(0,rec.obtained||0)+1;const duplicate=!isNew&&car.id!=='secret';if(duplicate)rec.duplicateStock=Math.max(0,Math.floor(Number(rec.duplicateStock)||0))+1;if(car.id==='secret')rec.tuneLevel=0;state.drawsWithoutNew=isNew?0:(state.drawsWithoutNew||0)+1;let secretUnlocked=false;if(SECRET_UNLOCK_IDS.every(id=>getRecord(id).owned)&&!getRecord('secret').owned){const secret=getRecord('secret');secret.owned=true;secret.obtained=1;secret.tuneLevel=0;secret.duplicateStock=0;secretUnlocked=true;}return{isNew,duplicate,secretUnlocked,tuneLevel:rec.tuneLevel,duplicateStock:rec.duplicateStock||0,coreValue:coreValueFor(car)};};
   const renderBatchResults=results=>{
     el.gachaBatchGrid.innerHTML='';
-    results.forEach((item,index)=>{const card=document.createElement('article');card.className=`batch-card${item.bonus?' bonus':''}`;card.innerHTML=`<span class="batch-rarity">${item.car.rarity}</span>${item.bonus?'<span class="bonus-label">BONUS</span>':''}<div class="vehicle-slot"></div><b>${item.car.name}</b><small>${item.result.isNew?'NEW MACHINE!':`TUNE UP Lv.${item.result.tuneLevel}`}</small>`;renderVehicle(card.querySelector('.vehicle-slot'),item.car,{compact:true});el.gachaBatchGrid.appendChild(card);});
+    results.forEach((item,index)=>{const card=document.createElement('article');card.className=`batch-card${item.bonus?' bonus':''}${item.result.duplicate?' duplicate-stock':''}`;const tuneLabel=item.result.isNew?'NEW MACHINE!':'DUPLICATE STOCK +1';card.innerHTML=`<span class="batch-rarity">${item.car.rarity}</span>${item.bonus?'<span class="bonus-label">BONUS</span>':''}<div class="vehicle-slot"></div><b>${item.car.name}</b><small>${tuneLabel}</small>`;renderVehicle(card.querySelector('.vehicle-slot'),item.car,{compact:true});el.gachaBatchGrid.appendChild(card);});
     el.gachaBatchGrid.hidden=false;
   };
   const syncGachaUi=()=>{const tickets=Math.max(0,state.gachaTickets||0),busy=phase==='gacha';el.draw.disabled=tickets<=0||busy;el.draw.textContent=tickets>0?`1回ガチャ 🎟${tickets}`:'1回飛ぶとガチャ！';el.drawTen.disabled=tickets<10||busy;el.drawTen.textContent=tickets>=10?'10連ガチャ 🎟10':`10連まであと${10-tickets}枚`;el.gachaTicketStatus.textContent=!state.firstDrawDone&&tickets>0?'最初の1回は無料・未所持確定！':tickets>=10?`チケット ${tickets}枚｜最後の1枠はSR以上確定！`:tickets>0?`ガチャチケット ${tickets}枚｜10連まであと${10-tickets}枚`:'チケットがありません。1回飛ぶと1枚もらえます。';};
@@ -2206,10 +2315,10 @@ body.modal-open{overflow:hidden}
     preloadMachineCard(car.id);
   };
 
-  const showGacha=()=>{clearRun();phase='idle';setShield(false);setNavigationLock(false);el.gachaCard.className='gacha-card';hideGachaMachineCard();el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');};
-  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):`TUNE UP！ Lv.${getRecord(drawnCar.id).tuneLevel}`;el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;showGachaMachineCard(drawnCar);el.gachaReveal.hidden=false;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.draw.disabled=false;phase='idle';setNavigationLock(false);Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();syncGachaUi();};
+  const showGacha=()=>{clearRun();phase='idle';setShield(false);setNavigationLock(false);el.gachaCard.className='gacha-card';hideGachaMachineCard();el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.gachaBatchGrid.innerHTML='';el.gachaDuplicateChoice.hidden=true;el.batchDuplicateActions.hidden=true;latestDuplicateCarId=null;lastBatchDuplicateCounts={};el.draw.hidden=false;el.drawTen.hidden=false;el.useDrawn.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';renderVehicle(el.gachaVehicle,currentCar);syncGachaUi();showScreen('gacha');};
+  const settleSingleGacha=(car,wasFirst)=>{drawnCar=car;state.firstDrawDone=true;renderVehicle(el.gachaVehicle,drawnCar);const result=applyAcquisition(drawnCar);state.selected=drawnCar.id;currentCar=drawnCar;refreshTrophies(true);save();el.gachaRarity.textContent=drawnCar.rarity;el.gachaName.textContent=drawnCar.name;el.gachaResult.textContent=result.isNew?(wasFirst?'FIRST NEW MACHINE!':'NEW MACHINE!'):`DUPLICATE STOCK +1｜未使用 ${result.duplicateStock}`;el.gachaCard.className=`gacha-card revealed${drawnCar.rarity==='R'?'':' rare'}`;showGachaMachineCard(drawnCar);el.gachaReveal.hidden=false;renderSingleDuplicateChoice(drawnCar,result);el.batchDuplicateActions.hidden=true;el.useDrawn.textContent='このマシンで飛ぶ';el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.draw.disabled=false;phase='idle';setNavigationLock(false);Sound.reveal(drawnCar.rarity!=='R');vibrate(drawnCar.rarity==='R'?[35,20,55]:[55,25,95,30,130]);renderHome();renderGarage();syncGachaUi();};
   const runGacha=()=>{if(phase==='gacha'||state.gachaTickets<=0){syncGachaUi();return;}clearRun();const token=runToken,wasFirst=!state.firstDrawDone;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaBatchGrid.hidden=true;el.gachaReveal.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<9)schedule(spin,70+ticks*18,token);else{state.gachaTickets=Math.max(0,state.gachaTickets-1);settleSingleGacha(weightedDraw(),wasFirst);}};spin();};
-  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':'10連BONUS｜SR以上確定';el.gachaCard.className='gacha-card revealed rare';showGachaMachineCard(bonusCar);el.gachaReveal.hidden=false;renderBatchResults(results);el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';phase='idle';setNavigationLock(false);Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();};spin();};
+  const runTenGacha=()=>{if(phase==='gacha'||state.gachaTickets<10){syncGachaUi();return;}clearRun();const token=runToken;phase='gacha';setNavigationLock(true);el.draw.disabled=true;el.drawTen.disabled=true;el.gachaReveal.hidden=true;el.gachaBatchGrid.hidden=true;el.useDrawn.hidden=true;el.gachaCard.className='gacha-card spinning rare';hideGachaMachineCard();Sound.gacha();let ticks=0;const spin=()=>{if(token!==runToken)return;ticks++;renderVehicle(el.gachaVehicle,GACHA_CARS[Math.floor(Math.random()*GACHA_CARS.length)]);if(ticks<12)schedule(spin,55+ticks*11,token);else settle();};const settle=()=>{state.gachaTickets=Math.max(0,state.gachaTickets-10);const results=[];let secretUnlocked=false;lastBatchDuplicateCounts={};for(let i=0;i<9;i++){const car=weightedDraw();state.firstDrawDone=true;const result=applyAcquisition(car);secretUnlocked=secretUnlocked||result.secretUnlocked;if(result.duplicate)lastBatchDuplicateCounts[car.id]=(lastBatchDuplicateCounts[car.id]||0)+1;results.push({car,result,bonus:false});}const bonusCar=weightedBonusDraw(),bonusResult=applyAcquisition(bonusCar);secretUnlocked=secretUnlocked||bonusResult.secretUnlocked;if(bonusResult.duplicate)lastBatchDuplicateCounts[bonusCar.id]=(lastBatchDuplicateCounts[bonusCar.id]||0)+1;results.push({car:bonusCar,result:bonusResult,bonus:true});drawnCar=bonusCar;currentCar=bonusCar;state.selected=bonusCar.id;refreshTrophies(true);save();renderVehicle(el.gachaVehicle,bonusCar);el.gachaRarity.textContent=bonusCar.rarity;el.gachaName.textContent=bonusCar.name;const duplicateTotal=totalLastBatchDuplicates();el.gachaResult.textContent=bonusResult.isNew?'10連BONUS｜NEW MACHINE！':`10連BONUS｜DUPLICATE STOCK ${duplicateTotal}台`;el.gachaCard.className='gacha-card revealed rare';showGachaMachineCard(bonusCar);el.gachaReveal.hidden=false;renderBatchResults(results);el.gachaDuplicateChoice.hidden=true;renderBatchDuplicateActions();el.draw.hidden=true;el.drawTen.hidden=true;el.useDrawn.hidden=false;el.useDrawn.textContent='ボーナスマシンで飛ぶ';phase='idle';setNavigationLock(false);Sound.reveal(true);vibrate([55,25,90,25,120,30,160]);renderHome();syncGachaUi();};spin();};
 
   const configureProgress=(activeIndex,judgments=[])=>{[el.progressStart,el.progressTurbo,el.progressNitro].forEach((item,i)=>{item.className='progress-step';const judge=judgments[i];item.querySelector('em').textContent=judge?JUDGE_SHORT[judge]:'---';if(judge){item.classList.add('done');if(judge==='SUPER')item.classList.add('super');}else if(i===activeIndex)item.classList.add('active');});};
   const setGameVehicle=(options={})=>renderVehicle(el.gameVehicle,currentCar,options);
@@ -2444,6 +2553,15 @@ body.modal-open{overflow:hidden}
   // v6.4 production: primary UI navigation/action bindings.
   $('playButton').addEventListener('click',startAttempt);$('retryButton').addEventListener('click',startAttempt);
   $('gachaButton').addEventListener('click',showGacha);$('redrawButton').addEventListener('click',showGacha);el.draw.addEventListener('click',runGacha);el.drawTen.addEventListener('click',runTenGacha);el.useDrawn.addEventListener('click',startAttempt);
+  el.gachaDuplicateTune.addEventListener('click',()=>resolveSingleDuplicate('tune'));
+  el.gachaDuplicateCore.addEventListener('click',()=>armDestructiveAction(el.gachaDuplicateCore,'この重複マシンをCOREへ変換',()=>resolveSingleDuplicate('core')));
+  el.gachaDuplicateLater.addEventListener('click',()=>{el.gachaDuplicateChoice.hidden=true;latestDuplicateCarId=null;});
+  el.batchAllTune.addEventListener('click',()=>resolveBatchDuplicates('tune'));
+  el.batchAllCore.addEventListener('click',()=>armDestructiveAction(el.batchAllCore,'今回の重複をすべてCOREへ変換',()=>resolveBatchDuplicates('core')));
+  el.batchOpenLab.addEventListener('click',()=>{selectorPreviewId=currentCar.id;renderGarage();showScreen('garage');});
+  el.tuneLabUseDuplicate.addEventListener('click',()=>{const result=useDuplicateForTune(selectorPreviewId,1);if(!result)return;refreshTuneUi();setTuneLabStatus(tuneResultLabel(result),result.limitBreak||result.tierUp?'limit':'success');Sound.tone(result.limitBreak?1040:760,.12,'sine',.035);vibrate(result.limitBreak?[35,20,65,25,95]:[25,18,42]);});
+  el.tuneLabConvertCore.addEventListener('click',()=>{const car=CAR_BY_ID[selectorPreviewId];armDestructiveAction(el.tuneLabConvertCore,`CORE +${coreValueFor(car)}へ変換`,()=>{const result=convertDuplicateToCore(selectorPreviewId,1);if(!result)return;refreshTuneUi();setTuneLabStatus(`MACHINE CORE +${result.gained}｜TOTAL ${result.balance}`,'core');Sound.tone(980,.10,'sine',.03);vibrate([18,15,36]);});});
+  el.tuneLabUseCore.addEventListener('click',()=>{const car=CAR_BY_ID[selectorPreviewId],cost=coreCostFor(car),result=useCoreForTune(selectorPreviewId,1);if(!result){setTuneLabStatus(`COREが足りません。必要 ${cost}`);return;}refreshTuneUi();setTuneLabStatus(`${tuneResultLabel(result)}｜CORE -${result.cost}`,result.limitBreak||result.tierUp?'limit':'success');Sound.tone(result.limitBreak?1080:820,.12,'sine',.035);vibrate(result.limitBreak?[35,20,70,25,105]:[22,16,45]);});
   $('garageButton').addEventListener('click',()=>{selectorPreviewId=currentCar.id;renderGarage();showScreen('garage');});$('resultGarageButton').addEventListener('click',()=>{selectorPreviewId=currentCar.id;renderGarage();showScreen('garage');});
   $('recordsButton').addEventListener('click',()=>{renderRecords();el.recordsRankingStatus.hidden=true;showScreen('records');});el.worldButton.addEventListener('click',()=>openRanking());el.recordsRankingLink.addEventListener('click',()=>openRanking());el.resultRankingLink.addEventListener('click',()=>openRanking({expandMachineId:currentCar.id,scrollToMachine:true,force:true}));el.resultRecordsButton.addEventListener('click',openCurrentMachineRecord);el.resultRankButton.addEventListener('click',submitCurrentWorldScore);el.bulkRankButton.addEventListener('click',()=>submitAllRecordsToRanking());el.machineRecords.addEventListener('click',e=>{const button=e.target.closest('[data-rank-record]');if(button)submitRecordByCarId(button.dataset.rankRecord);});el.rankingNameSave.addEventListener('click',saveRankingName);el.rankingGateSave.addEventListener('click',saveInitialRankingName);el.rankingGateCancel.addEventListener('click',cancelRankingGate);el.rankingGateInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveInitialRankingName();if(e.key==='Escape'&&!rankingGateOnboarding)cancelRankingGate();});el.rankingNameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveRankingName();});el.rankingViewOverall?.addEventListener('click',()=>setRankingView('overall'));el.rankingViewMachine?.addEventListener('click',()=>setRankingView('machine'));screens.ranking?.querySelectorAll('[data-ranking-period]').forEach(button=>button.addEventListener('click',()=>setRankingPeriod(button.dataset.rankingPeriod)));el.rankingMachineBoards.addEventListener('click',e=>{const b=e.target.closest('[data-expand-machine]');if(!b)return;expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingMachineBoards.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const b=e.target.closest('[data-expand-machine]');if(!b)return;e.preventDefault();expandMachineBoard(b.dataset.expandMachine,{scroll:true});});el.rankingRefresh.addEventListener('click',async()=>{el.rankingRefresh.disabled=true;try{machineFullCache.clear();BOON_RANKING.invalidateCache();await loadRankingDashboard({force:true});}finally{el.rankingRefresh.disabled=false;}});$('resultHomeButton').addEventListener('click',()=>{clearRun();phase='idle';setNavigationLock(false);showScreen('home');});
   document.querySelectorAll('[data-back="home"]').forEach(b=>b.addEventListener('click',()=>{if(navLocked)return;clearRun();phase='idle';showScreen('home');}));
@@ -2483,7 +2601,7 @@ body.modal-open{overflow:hidden}
       },
       setTune(id,level){
         if(!CAR_BY_ID[id]||id==='secret')return false;
-        const rec=getRecord(id),lv=Math.min(50,Math.max(0,Number(level)||0));
+        const rec=getRecord(id),lv=normalizeTuneLevel(level);
         rec.owned=true;rec.tuneLevel=lv;rec.obtained=Math.max(rec.obtained||0,lv+1);
         save();renderHome();return true;
       },
@@ -2548,7 +2666,7 @@ body.modal-open{overflow:hidden}
 
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();if(!BOON_RANKING.getPlayerName())setTimeout(()=>showRankingGate(null,'onboarding'),120);setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);setTimeout(()=>flushRankQueue(),900);window.addEventListener('online',()=>setTimeout(flushRankQueue,200));if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
-  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=660-balance',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=680-core',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
 
 })();
 

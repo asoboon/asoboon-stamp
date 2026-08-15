@@ -2,7 +2,7 @@
   "id": "./",
   "name": "ブーンジャンプ｜ASOBooN",
   "short_name": "ブーンジャンプ",
-  "description": "3 COMBOと固定10矢印AIR COMMAND。実際に飛んだ着地点がそのまま記録になるASOBooNのミニゲーム",
+  "description": "重複マシンをMACHINE COREへ変換し、好きなマシンへTUNEできるTUNE LAB搭載のASOBooNミニゲーム",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",
