@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#071222">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.8.0 TUNE LAB / MACHINE CORE">
+  <meta name="description" content="ASOBooNのミニゲーム ブーンジャンプ Ver.6.8.1 STABLE HOTFIX">
   <meta name="robots" content="noindex,nofollow">
   <meta name="boonjump-build" content="2026-08-15-ultimate-fixed-command-v640">
   <title>ブーンジャンプ｜ASOBooN</title>
@@ -1448,14 +1448,14 @@ body.modal-open{overflow:hidden}
   window.BOON_RANKING_FALLBACK=fallback;window.BOON_RANKING=fallback;
 })();
 </script>
-<script src="./ranking-client.js?v=680-core" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
+<script src="./ranking-client.js?v=681-stable" onerror="window.BOON_RANKING=window.BOON_RANKING_FALLBACK"></script>
 <script>
 (() => {
   'use strict';
 
   const BOON_RANKING=window.BOON_RANKING||window.BOON_RANKING_FALLBACK;
-  const APP_VERSION = '6.8.0';
-  const BUILD = '2026-08-15-tune-lab-core-v680';
+  const APP_VERSION = '6.8.1';
+  const BUILD = '2026-08-15-stable-hotfix-v681';
   const SCHEMA = 7;
   const STORE_KEY = 'asoboonBoonjump.v2';
   const BACKUP_KEY = `${STORE_KEY}.backup`;
@@ -1762,6 +1762,12 @@ body.modal-open{overflow:hidden}
     return {before,after,gains,total:gains.engine+gains.aero+gains.boost+gains.awakening,unlocked};
   };
 
+  // v6.8.1 BOOT-SAFE NORMALIZERS
+  // These are intentionally declared before defaultState()/loadState().
+  // Never move them below `let state=loadState()`.
+  function normalizeTuneLevel(value){return Math.max(0,Math.min(1000000000,Math.floor(Number(value)||0)));}
+  function normalizeCore(value){return Math.max(0,Math.min(999999999,Math.floor(Number(value)||0)));}
+
   const normalizeBestMeta = value => {
     if(!value || typeof value!=='object') return null;
     const validJudge=value=>JUDGE_LEVEL[value]!=null?value:'MISS';
@@ -1863,6 +1869,7 @@ body.modal-open{overflow:hidden}
   };
 
   let state=loadState();
+  window.__BOONJUMP_BOOT_OK__=true;
   let currentCar=CAR_BY_ID[state.selected]||CAR_BY_ID.boon;
   let selectorPreviewId=currentCar.id;
   let drawnCar=null,phase='idle',phaseRAF=0,flightRAF=0,phaseStart=0,rpmValue=0,turboValue=.5,attempt=null,flight=null,ctx=null,audioCtx=null,accelPerfect=makePerfectCapture(),turboPerfect=makePerfectCapture(),airDrivePointer=null;
@@ -1901,7 +1908,6 @@ body.modal-open{overflow:hidden}
 
   const getRecord=id=>state.garage[id]||(state.garage[id]=blankRecord());
   const MAX_TUNE_LEVEL_STORED=1000000000;
-  const normalizeTuneLevel=value=>Math.max(0,Math.min(MAX_TUNE_LEVEL_STORED,Math.floor(Number(value)||0)));
   const tuneRateForLevel=level=>{const lv=normalizeTuneLevel(level);if(lv<=50)return lv*.001;return .05+.01*Math.log2(1+(lv-50)/50);};
   const romanTuneTier=value=>{let n=Math.max(1,Math.floor(Number(value)||1)),out='';for(const [v,s] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){out+=s;n-=v;}return out||'I';};
   const tuneLimitInfo=level=>{const lv=normalizeTuneLevel(level),rate=tuneRateForLevel(lv);if(lv<=50)return{level:lv,break:false,tier:0,label:'STANDARD',rate,next:51};const tier=1+Math.floor(Math.log2(Math.max(1,lv/50))),next=Math.min(MAX_TUNE_LEVEL_STORED,50*Math.pow(2,tier));return{level:lv,break:true,tier,label:`BREAK ${romanTuneTier(tier)}`,rate,next};};
@@ -1910,7 +1916,6 @@ body.modal-open{overflow:hidden}
   const CORE_VALUE=Object.freeze({R:1,SR:2,SSR:4,EXR:5,UR:6,SECRET:0});
   const coreValueFor=car=>Math.max(0,CORE_VALUE[car?.rarity]||0);
   const coreCostFor=car=>Math.max(0,CORE_VALUE[car?.rarity]||0);
-  const normalizeCore=value=>Math.max(0,Math.min(999999999,Math.floor(Number(value)||0)));
   const ownedCount=()=>CARS.filter(c=>getRecord(c.id).owned).length;
 
   const assetCandidates=(car,part)=>car.asset.flatMap(alias=>part==='body'&&car.id!=='secret'?[`${ASSET_ROOT}/${alias}-${part}.webp?v=${ASSET_VERSION}`,`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]:[`${ASSET_ROOT}/${alias}-${part}.png?v=${ASSET_VERSION}`]);
@@ -2666,7 +2671,7 @@ body.modal-open{overflow:hidden}
 
   const bootTrophies=refreshTrophies(false);save();clearLegacyCaches();renderHome();renderGarage();showScreen('home');setRankingNameUi();if(!BOON_RANKING.getPlayerName())setTimeout(()=>showRankingGate(null,'onboarding'),120);setTimeout(()=>BOON_RANKING.prefetchDashboard&&BOON_RANKING.prefetchDashboard({force:false}),250);setTimeout(()=>flushRankQueue(),900);window.addEventListener('online',()=>setTimeout(flushRankQueue,200));if(bootTrophies.some(t=>t.id==='trophyComplete'))setTimeout(()=>queueTrophy(bootTrophies.find(t=>t.id==='trophyComplete')),650);
 
-  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=680-core',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js?v=681-stable',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});reg.addEventListener('updatefound',()=>{const worker=reg.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)worker.postMessage({type:'SKIP_WAITING'});});});}).catch(()=>{});});}
 
 })();
 
