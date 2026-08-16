@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#253241">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonmonster-build" content="2026-08-16-growth-loop-v020">
+  <meta name="boonmonster-build" content="2026-08-16-growth-loop-v021-pages-patch">
   <title>BOON MONSTER｜育成ループ v0.2</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -24,22 +24,27 @@
         <div id="aura" class="aura"></div>
         <div id="particles" class="particles" aria-hidden="true"></div>
         <div id="monsterMotion" class="monster-motion">
-          <img id="monsterImg" src="./assets/baby-expressions.png" alt="もふーん" draggable="false">
+          <canvas id="monsterCanvas" width="96" height="96" aria-label="もふーん"></canvas>
         </div>
       </button>
       <div class="identity"><strong id="monsterName">もふーん</strong><span id="maturityHint">のんびりしている</span></div>
       <div class="message" id="message">今日はなにしよう？</div>
     </section>
 
-    <nav class="main-nav" aria-label="メインメニュー">
+    <nav class="main-nav" id="mainNav" aria-label="メインメニュー">
       <button id="outingBtn"><span>🛞</span><b>おでかけ</b></button>
       <button id="careBtn" class="active"><span>🫶</span><b>おせわ</b></button>
       <button id="garageBtn"><span>🔩</span><b>ガレージ</b></button>
     </nav>
 
+    <section class="action-dock" id="actionDock" hidden aria-live="polite">
+      <div class="dock-head"><strong id="dockTitle">おせわ</strong><button id="dockClose" aria-label="メニューへ戻る">戻る</button></div>
+      <div class="dock-actions" id="dockActions"></div>
+    </section>
+
     <div id="sheetBackdrop" class="backdrop" hidden></div>
     <section id="sheet" class="sheet" aria-live="polite" hidden>
-      <div class="sheet-head"><div><small id="sheetKicker">BOON MONSTER</small><h2 id="sheetTitle">おせわ</h2></div><button id="sheetClose" aria-label="閉じる">×</button></div>
+      <div class="sheet-head"><div><small id="sheetKicker">BOON MONSTER</small><h2 id="sheetTitle">おでかけ</h2></div><button id="sheetClose" aria-label="閉じる">×</button></div>
       <div id="sheetBody" class="sheet-body"></div>
     </section>
   </main>
