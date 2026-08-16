@@ -1,10 +1,10 @@
-const BUILD = "2026-08-15-stable-hotfix-v681";
+const BUILD = "2026-08-16-advisor-polish-v730";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
-  "./ranking-client.js?v=681-stable",
+  "./ranking-client.js?v=730-advisor",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

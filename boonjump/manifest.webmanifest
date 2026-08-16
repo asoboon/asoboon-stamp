@@ -2,7 +2,7 @@
   "id": "./",
   "name": "ブーンジャンプ｜ASOBooN",
   "short_name": "ブーンジャンプ",
-  "description": "重複マシンをMACHINE COREへ変換し、好きなマシンへTUNEできるTUNE LAB搭載のASOBooNミニゲーム",
+  "description": "最初は3コンボに集中し、遊ぶほど記録・成長・サポートが自然に開くASOBooNのブーンジャンプ",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",

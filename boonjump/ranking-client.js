@@ -1,5 +1,5 @@
 /**
- * ブーンジャンプ 世界ランキング通信 V3 / BOONJUMP v6.4
+ * ブーンジャンプ 世界ランキング通信 V3 / BOONJUMP v7.3
  *
  * - プレイ終了時の自動ランキング参加に対応
  * - 初回は匿名ゲスト名を自動発行
@@ -351,7 +351,9 @@ window.BOON_RANKING = (() => {
       turbo_judge: String(payload.turboJudge || 'MISS'),
       nitro_judge: String(payload.nitroJudge || 'MISS'),
       combo_precision: Math.round(Math.max(0, Math.min(100, Number(payload.comboPrecision) || 0)) * 100) / 100,
-      tune_level: Math.max(0, Math.min(50, Math.floor(Number(payload.tuneLevel) || 0))),
+      tune_level: Math.max(0, Math.min(1000000000, Math.floor(Number(payload.tuneLevel) || 0))),
+      support_id: String(payload.supportId || 'none').slice(0, 40),
+      air_command_correct: Math.max(0, Math.min(10, Math.floor(Number(payload.airCommandCorrect) || 0))),
       played_at: safePlayedAt.toISOString(),
       source_build: String(payload.sourceBuild || '').slice(0, 100),
       client_version: String(payload.clientVersion || '').slice(0, 40),
@@ -422,6 +424,8 @@ window.BOON_RANKING = (() => {
       nitro_judge: item.nitro_judge,
       combo_precision: item.combo_precision,
       tune_level: item.tune_level,
+      support_id: item.support_id,
+      air_command_correct: item.air_command_correct,
       played_at: item.played_at,
       source_build: item.source_build,
       client_version: item.client_version,
