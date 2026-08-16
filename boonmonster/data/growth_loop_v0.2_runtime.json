@@ -1,0 +1,60 @@
+{
+  "version": "BOON MONSTER 育成ループ v0.2",
+  "build": "2026-08-16-growth-loop-v020",
+  "inherits": {
+    "home_layout": "HOME v0.1",
+    "sprite_canvas": [96, 96],
+    "anchor": [48, 80],
+    "character_display_px": [192, 192]
+  },
+  "storage": {
+    "type": "localStorage",
+    "key": "boon_monster_growth_loop_v0_2",
+    "saved_fields": ["currentCharacter", "fuel", "condition", "mood", "maturity", "outingHistory", "evolutionDirection", "evolutionReady", "sleeping", "lastPlayedAt"]
+  },
+  "care": {
+    "cooldown_ms": 3500,
+    "pet": {"status":{"mood":10},"maturity":0.15,"reaction":["smile"]},
+    "refuel": {"status":{"fuel":35},"maturity":0.1,"reaction":["surprised","smile"]},
+    "inspect": {"status":{"condition":24},"maturity":0.1,"reaction":["smile"]},
+    "affects_evolution_direction": false,
+    "affects_category_or_rank": false
+  },
+  "outing": {
+    "maturity_gain": 2.5,
+    "user_visible_internal_direction": false,
+    "characters": {
+      "BM-BABY-MOF": {"風の砂地":"BM-FEN-ANIMAL direction","森":"BM-SAP-ANIMAL direction"},
+      "BM-BABY-FLO": {"草原":"BM-RAB-ANIMAL direction","水辺":"BM-OTR-ANIMAL direction"},
+      "BM-BABY-GIG": {"岩場":"BM-LIZ-ANIMAL direction","高台":"BM-EAG-ANIMAL direction"}
+    }
+  },
+  "maturity": {
+    "numeric_visible_to_user": false,
+    "evolution_ready_threshold": 10,
+    "hints": [
+      {"at":3,"text":"最近ちょっと大きくなった？"},
+      {"at":6,"text":"雰囲気が変わってきた…"},
+      {"at":10,"text":"なんだか様子が違う……！"}
+    ],
+    "auto_evolution": false
+  },
+  "expressions": {
+    "normal":"default",
+    "blink":{"interval_ms":[4000,8000],"closed_ms":100},
+    "smile":"care/happy",
+    "surprised":"tap/refuel",
+    "sad":{"if":{"mood_lt":30,"condition_lt":25,"fuel_lt":10}},
+    "sleep":"garage sleep toggle",
+    "evolution_ready":"maturity threshold"
+  },
+  "system_transforms": {
+    "idle":"occasional 1px bob with long still time",
+    "smile":"small jump",
+    "surprised":"light pop/squash",
+    "sad":"1-2px down",
+    "sleep":"1px breath",
+    "evolution_ready":"1-2px float + glow + particles"
+  },
+  "evolution": {"actual_evolution_implemented":false,"stop_at":"evolution_ready"}
+}

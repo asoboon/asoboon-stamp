@@ -1,0 +1,16 @@
+{
+  "version": "v0.2",
+  "result": "PASS",
+  "checks": [
+    "21 expression images are 96x96 RGBA with binary alpha",
+    "3 characters share anchor (48,80)",
+    "care changes status without changing evolution direction",
+    "outing stores hidden evolution direction",
+    "4 outings reach evolution_ready",
+    "low fuel uses one-tap refuel path",
+    "localStorage persists each character independently",
+    "garage sleep state connects to sleep expression",
+    "actual animal evolution is intentionally not implemented"
+  ],
+  "note": "GitHub Pages実機確認前のコード/アセットQA。"
+}
