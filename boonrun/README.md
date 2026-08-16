@@ -1,3 +1,37 @@
+# BOON RUN 2 — v1.2.3 RC9 SOUND MASTER
+
+Runtime: `1.2.3-rc9`  
+Build: `2026-08-16-rc9-v1.2.3-sound-master`  
+Audio: `ASOBooN SOUND SYSTEM v1.2.0`
+
+## RC9 — SOUND MASTER
+
+RC9 keeps RC7 gameplay and WORLD DRIVE intact, then masters the RC8 shared audio layer for smartphone play.
+
+- COMMON success language is shared with BOONJUMP.
+- All 9 MACHINE SIGNATURE MP3s are byte-identical between BOONRUN and BOONJUMP.
+- BOONRUN adds road-specific engine / jump / fuel / collision / drone / world-transition layers.
+- FINAL ULTIMATE uses `machine signature + BOONRUN boost layer`; machine identity and gameplay sound remain separate.
+- `🔊 / 🔇` persists across both games via `asoboon.sound.enabled.v1`; the existing BOONRUN save key remains `asoboonBoonrun.v1`.
+- Web Audio unlock is initiated from user interaction. Audio load/decode failures never block gameplay.
+- Service Worker uses small CORE warming plus lazy cache fill rather than eagerly precaching every sound.
+- v1.2.0 uses a shared focus/bed mix bus: CRITICAL / SUPER / MACHINE SIGNATURE / NEW BEST automatically duck lower-priority sounds.
+- A DynamicsCompressorNode protects stacked transients from harsh clipping on phone speakers.
+- Voice caps are applied by sound family so rapid jump / fuel / AIR COMMAND / UI events remain articulate rather than noisy.
+- RUN countdown GO is separated from engine ignition; ULTIMATE machine signature is kept in front of the generic boost layer.
+
+### Protected gameplay
+
+RC8 does **not** rebalance PHYSICS, FUEL, CARS, 55 PATTERNS, SPECIALS, CRITICAL, DRIVER MISSION, WORLD DRIVE, ranking payload or save data. Static block comparison against RC7 confirms the core gameplay constants/functions remain byte-identical.
+
+### Release gate
+
+Static / audio-decode / package QA passes. Real-device acceptance is still required for actual speaker latency, volume balance and autoplay-unlock behavior on iPhone Safari / LINE and Android Chrome / LINE.
+
+---
+
+## Previous RC7 documentation (retained)
+
 # BOON RUN 2 — v1.2.3 RC7 100-POINT FLOW POLISH
 
 Runtime: `1.2.3-rc7`  

@@ -1,0 +1,472 @@
+{
+  "version": "1.2.0",
+  "build": "2026-08-16-sound-master-v1.2.0",
+  "sampleRate": 48000,
+  "runtimeFormat": "mp3",
+  "principle": "COMMON = identity/success language; BOONJUMP = flight gameplay; BOONRUN = road gameplay",
+  "machineMap": {
+    "boon": "machines.boon-titan-break",
+    "wagon": "machines.wagon-zero-gravity",
+    "buggy": "machines.buggy-sky-rodeo",
+    "bike": "machines.bike-lightning-mode",
+    "sport": "machines.sport-overdrive",
+    "ssr": "machines.ssr-dimension-shift",
+    "princess": "machines.princess-royal-ascension",
+    "secret": "machines.secret-final-ignition",
+    "valkyrie": "machines.valkyrie-valkyrie-ascent"
+  },
+  "commonEventMap": {
+    "ui.tap": "common.ui-tap",
+    "ui.confirm": "common.ui-confirm",
+    "ui.back": "common.ui-back",
+    "countdown.tick": "common.countdown-tick",
+    "countdown.go": "common.countdown-go",
+    "judge.GOOD": "common.judge-good",
+    "judge.GREAT": "common.judge-great",
+    "judge.CRITICAL": "common.judge-critical",
+    "judge.SUPER": "common.judge-super",
+    "judge.MISS": "common.miss",
+    "ultimate.ready": "common.ultimate-ready",
+    "mission.clear": "common.mission-clear",
+    "record.newBest": "common.new-best",
+    "result": "common.result-sting"
+  },
+  "game": "BOONRUN",
+  "assets": [
+    {
+      "id": "common.ui-tap",
+      "category": "common",
+      "file": "runtime/common/ui-tap.mp3",
+      "duration": 0.075,
+      "volume": 0.72,
+      "description": "共通UIタップ。軽く硬質で、子ども向けでも安っぽくしない。",
+      "tags": [
+        "ui"
+      ]
+    },
+    {
+      "id": "common.ui-confirm",
+      "category": "common",
+      "file": "runtime/common/ui-confirm.mp3",
+      "duration": 0.18,
+      "volume": 0.78,
+      "description": "決定・選択。ASOBooN共通の660→990Hzモチーフ。",
+      "tags": [
+        "ui",
+        "brand"
+      ]
+    },
+    {
+      "id": "common.ui-back",
+      "category": "common",
+      "file": "runtime/common/ui-back.mp3",
+      "duration": 0.15,
+      "volume": 0.68,
+      "description": "戻る。上昇ではなく下降して意味を分ける。",
+      "tags": [
+        "ui"
+      ]
+    },
+    {
+      "id": "common.countdown-tick",
+      "category": "common",
+      "file": "runtime/common/countdown-tick.mp3",
+      "duration": 0.09,
+      "volume": 0.76,
+      "description": "カウントダウン。短く明瞭。",
+      "tags": [
+        "countdown"
+      ]
+    },
+    {
+      "id": "common.countdown-go",
+      "category": "common",
+      "file": "runtime/common/countdown-go.mp3",
+      "duration": 0.279,
+      "volume": 0.82,
+      "description": "GO。スタートを邪魔せず一段だけ明るい。",
+      "tags": [
+        "countdown"
+      ]
+    },
+    {
+      "id": "common.judge-good",
+      "category": "common",
+      "file": "runtime/common/judge-good.mp3",
+      "duration": 0.11,
+      "volume": 0.74,
+      "description": "GOOD。低めで肯定。",
+      "tags": [
+        "judge"
+      ]
+    },
+    {
+      "id": "common.judge-great",
+      "category": "common",
+      "file": "runtime/common/judge-great.mp3",
+      "duration": 0.16,
+      "volume": 0.78,
+      "description": "GREAT。GOODより明るい二音。",
+      "tags": [
+        "judge"
+      ]
+    },
+    {
+      "id": "common.judge-critical",
+      "category": "common",
+      "file": "runtime/common/judge-critical.mp3",
+      "duration": 0.21,
+      "volume": 0.88,
+      "description": "CRITICAL。ジャンプ既存音程を継承した鋭い成功音。",
+      "tags": [
+        "judge",
+        "brand"
+      ]
+    },
+    {
+      "id": "common.judge-super",
+      "category": "common",
+      "file": "runtime/common/judge-super.mp3",
+      "duration": 0.33,
+      "volume": 0.94,
+      "description": "SUPER CRITICAL。最上位成功。900→1450Hzを正本化。",
+      "tags": [
+        "judge",
+        "brand"
+      ]
+    },
+    {
+      "id": "common.miss",
+      "category": "common",
+      "file": "runtime/common/miss.mp3",
+      "duration": 0.17,
+      "volume": 0.7,
+      "description": "MISS。怖くせず、低く短い失敗音。",
+      "tags": [
+        "judge",
+        "negative"
+      ]
+    },
+    {
+      "id": "common.ultimate-ready",
+      "category": "common",
+      "file": "runtime/common/ultimate-ready.mp3",
+      "duration": 0.52,
+      "volume": 0.78,
+      "description": "ULTIMATE READY。期待感だけを上げ、発動音は奪わない。",
+      "tags": [
+        "ultimate"
+      ]
+    },
+    {
+      "id": "common.mission-clear",
+      "category": "common",
+      "file": "runtime/common/mission-clear.mp3",
+      "duration": 0.65,
+      "volume": 0.82,
+      "description": "DRIVER MISSION / 成長達成。短い上昇ジングル。",
+      "tags": [
+        "reward"
+      ]
+    },
+    {
+      "id": "common.new-best",
+      "category": "common",
+      "file": "runtime/common/new-best.mp3",
+      "duration": 0.895,
+      "volume": 0.9,
+      "description": "NEW BEST。派手すぎない特別報酬。",
+      "tags": [
+        "reward",
+        "record"
+      ]
+    },
+    {
+      "id": "common.result-sting",
+      "category": "common",
+      "file": "runtime/common/result-sting.mp3",
+      "duration": 0.62,
+      "volume": 0.72,
+      "description": "RESULT確定。次の操作を待てる長さ。",
+      "tags": [
+        "result"
+      ]
+    },
+    {
+      "id": "machines.boon-titan-break",
+      "category": "machines",
+      "file": "runtime/machines/boon-titan-break.mp3",
+      "duration": 0.642,
+      "volume": 0.92,
+      "description": "ブーンピックアップ｜TITAN BREAK。重量・装甲・突破。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.wagon-zero-gravity",
+      "category": "machines",
+      "file": "runtime/machines/wagon-zero-gravity.mp3",
+      "duration": 0.912,
+      "volume": 0.92,
+      "description": "スマートワゴン｜ZERO GRAVITY。浮遊・静かな上昇。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.buggy-sky-rodeo",
+      "category": "machines",
+      "file": "runtime/machines/buggy-sky-rodeo.mp3",
+      "duration": 0.73,
+      "volume": 0.92,
+      "description": "ラッキーバギー｜SKY RODEO。跳ね・ロデオ・遊び心。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.bike-lightning-mode",
+      "category": "machines",
+      "file": "runtime/machines/bike-lightning-mode.mp3",
+      "duration": 0.52,
+      "volume": 0.92,
+      "description": "パワーバイク｜LIGHTNING MODE。電撃・一瞬・鋭さ。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.sport-overdrive",
+      "category": "machines",
+      "file": "runtime/machines/sport-overdrive.mp3",
+      "duration": 0.75,
+      "volume": 0.92,
+      "description": "ニトロスポーツ｜OVERDRIVE。タービンが溜まり一気に抜ける。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.ssr-dimension-shift",
+      "category": "machines",
+      "file": "runtime/machines/ssr-dimension-shift.mp3",
+      "duration": 0.979,
+      "volume": 0.92,
+      "description": "コズミックファントム｜DIMENSION SHIFT。空間が裏返るワープ。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.princess-royal-ascension",
+      "category": "machines",
+      "file": "runtime/machines/princess-royal-ascension.mp3",
+      "duration": 1.065,
+      "volume": 0.92,
+      "description": "プリンセス・スターライナー｜ROYAL ASCENSION。星・王冠・上昇。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.secret-final-ignition",
+      "category": "machines",
+      "file": "runtime/machines/secret-final-ignition.mp3",
+      "duration": 0.962,
+      "volume": 0.92,
+      "description": "無敵のロケットアソブーン人間｜FINAL IGNITION。ロケット点火・最終兵器。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "machines.valkyrie-valkyrie-ascent",
+      "category": "machines",
+      "file": "runtime/machines/valkyrie-valkyrie-ascent.mp3",
+      "duration": 0.942,
+      "volume": 0.92,
+      "description": "ハイウェイ・ヴァルキリー｜VALKYRIE ASCENT。金属翼・ジェット・音速突破。",
+      "tags": [
+        "machine",
+        "signature",
+        "ultimate"
+      ]
+    },
+    {
+      "id": "boonrun.engine-start",
+      "category": "boonrun",
+      "file": "runtime/boonrun/engine-start.mp3",
+      "duration": 0.609,
+      "volume": 0.78,
+      "description": "走行開始。エンジン始動からアイドル上昇。",
+      "tags": [
+        "boonrun",
+        "start"
+      ]
+    },
+    {
+      "id": "boonrun.jump",
+      "category": "boonrun",
+      "file": "runtime/boonrun/jump.mp3",
+      "duration": 0.14,
+      "volume": 0.72,
+      "description": "通常ジャンプ。",
+      "tags": [
+        "boonrun",
+        "action"
+      ]
+    },
+    {
+      "id": "boonrun.double-jump",
+      "category": "boonrun",
+      "file": "runtime/boonrun/double-jump.mp3",
+      "duration": 0.172,
+      "volume": 0.75,
+      "description": "2段ジャンプ。通常より一段明るい。",
+      "tags": [
+        "boonrun",
+        "action"
+      ]
+    },
+    {
+      "id": "boonrun.land",
+      "category": "boonrun",
+      "file": "runtime/boonrun/land.mp3",
+      "duration": 0.189,
+      "volume": 0.68,
+      "description": "着地。低く短い重量感。",
+      "tags": [
+        "boonrun",
+        "action"
+      ]
+    },
+    {
+      "id": "boonrun.fuel-small",
+      "category": "boonrun",
+      "file": "runtime/boonrun/fuel-small.mp3",
+      "duration": 0.17,
+      "volume": 0.74,
+      "description": "小FUEL取得。",
+      "tags": [
+        "boonrun",
+        "item"
+      ]
+    },
+    {
+      "id": "boonrun.fuel-big",
+      "category": "boonrun",
+      "file": "runtime/boonrun/fuel-big.mp3",
+      "duration": 0.21,
+      "volume": 0.78,
+      "description": "大FUEL / FULL取得。",
+      "tags": [
+        "boonrun",
+        "item"
+      ]
+    },
+    {
+      "id": "boonrun.hit",
+      "category": "boonrun",
+      "file": "runtime/boonrun/hit.mp3",
+      "duration": 0.22,
+      "volume": 0.86,
+      "description": "障害物接触。重いが怖すぎない。",
+      "tags": [
+        "boonrun",
+        "negative"
+      ]
+    },
+    {
+      "id": "boonrun.drone-warning",
+      "category": "boonrun",
+      "file": "runtime/boonrun/drone-warning.mp3",
+      "duration": 0.23,
+      "volume": 0.66,
+      "description": "ドローン接近警告。短い2音。",
+      "tags": [
+        "boonrun",
+        "warning"
+      ]
+    },
+    {
+      "id": "boonrun.critical-pass",
+      "category": "boonrun",
+      "file": "runtime/boonrun/critical-pass.mp3",
+      "duration": 0.165,
+      "volume": 0.82,
+      "description": "CRITICAL回避 / RISK LINE。風を切る成功音。",
+      "tags": [
+        "boonrun",
+        "skill"
+      ]
+    },
+    {
+      "id": "boonrun.boost",
+      "category": "boonrun",
+      "file": "runtime/boonrun/boost.mp3",
+      "duration": 0.34,
+      "volume": 0.74,
+      "description": "BOOST / MAGNET / SHIELDなど正のアイテム発動。",
+      "tags": [
+        "boonrun",
+        "item"
+      ]
+    },
+    {
+      "id": "boonrun.world-shift",
+      "category": "boonrun",
+      "file": "runtime/boonrun/world-shift.mp3",
+      "duration": 0.72,
+      "volume": 0.52,
+      "description": "WORLD DRIVE境界。背景の邪魔をしない静かな遷移。",
+      "tags": [
+        "boonrun",
+        "world"
+      ]
+    },
+    {
+      "id": "boonrun.game-over-crash",
+      "category": "boonrun",
+      "file": "runtime/boonrun/game-over-crash.mp3",
+      "duration": 0.35,
+      "volume": 0.76,
+      "description": "衝突終了。",
+      "tags": [
+        "boonrun",
+        "negative",
+        "result"
+      ]
+    },
+    {
+      "id": "boonrun.game-over-fuel",
+      "category": "boonrun",
+      "file": "runtime/boonrun/game-over-fuel.mp3",
+      "duration": 0.49,
+      "volume": 0.68,
+      "description": "燃料切れ。電源が落ちるように減衰。",
+      "tags": [
+        "boonrun",
+        "negative",
+        "result"
+      ]
+    }
+  ],
+  "runtimeNote": "Runtime manifest ships browser MP3 assets. SOUND MASTER v1.2.0 adds focus ducking, output limiting, group voice caps, retry-safe loading and mobile-first mix control; WAV masters remain in 00_SHARED_SPEC/ASOBOON_SOUND_SYSTEM_v1.0."
+}

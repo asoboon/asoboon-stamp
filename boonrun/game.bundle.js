@@ -335,8 +335,8 @@ function fuelZoneAt(meters) {
 }
 
 
-const BUILD = '2026-08-15-rc7-v1.2.3-100point-polish';
-const CLIENT_VERSION = '1.2.3-rc7';
+const BUILD = '2026-08-16-rc9-v1.2.3-sound-master';
+const CLIENT_VERSION = '1.2.3-rc9';
 const STORE_KEY = 'asoboonBoonrun.v1';
 const JUMP_STORE_KEY = 'asoboonBoonjump.v2';
 const COURSE_SEED = 0xB00B2026;
@@ -457,6 +457,8 @@ function getOwnedCars(){
   return owned;
 }
 let state=loadState();
+const SHARED_SOUND_KEY='asoboon.sound.enabled.v1';
+try{const shared=localStorage.getItem(SHARED_SOUND_KEY);if(shared===null)localStorage.setItem(SHARED_SOUND_KEY,state.sound?'1':'0');else state.sound=shared!=='0';}catch{}
 let ownedCars=getOwnedCars();
 
 const els={
@@ -544,7 +546,7 @@ function renderMenu(){
   els.homeCarImage.src=carAsset(car.id);
   els.selectedCarLabel.textContent=car.name;
   els.playCountLabel.textContent=`PLAY ${state.plays.toLocaleString()}`;
-  els.soundButton.textContent=state.sound?'🔊':'🔇';
+  els.soundButton.textContent=state.sound?'🔊':'🔇';els.soundButton.setAttribute('aria-pressed',String(state.sound));els.soundButton.setAttribute('aria-label',state.sound?'効果音オン。タップでオフ':'効果音オフ。タップでオン');
   const guide=HOME_GUIDE[car.id]||HOME_GUIDE.wagon;
   [1,2,3].forEach((n,i)=>{els[`howtoIcon${n}`].textContent=guide[i][0];els[`howtoText${n}`].textContent=guide[i][1];});
 }
@@ -621,29 +623,44 @@ function renderRecords(){
   });
 }
 
+const RUN_AUDIO_CORE=Object.freeze(['common.ui-confirm','common.ui-back','common.countdown-tick','common.countdown-go','common.new-best','common.mission-clear','common.result-sting','boonrun.engine-start','boonrun.jump','boonrun.double-jump','boonrun.land','boonrun.fuel-small','boonrun.fuel-big','boonrun.critical-pass']);
+
 class SoundEngine{
-  constructor(){this.ctx=null;this.engine=null;this.engineGain=null;}
+  constructor(){
+    this.ctx=null;this.warmed=false;
+    this.asset=window.ASOBOON_AUDIO?.create?.({base:'./assets/audio/',enabled:state.sound,master:.86,maxVoices:10,autoWarm:true})||null;
+  }
   ensure(){
     if(!state.sound)return false;
     try{
-      const AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC)return false;
-      if(!this.ctx)this.ctx=new AC();
-      if(this.ctx.state==='suspended'){const p=this.ctx.resume();if(p&&typeof p.catch==='function')p.catch(()=>{});}
-      return true;
+      if(this.asset){this.asset.setEnabled(true);this.asset.unlock().catch(()=>{});if(!this.warmed){this.warmed=true;this.asset.preload(RUN_AUDIO_CORE).catch(()=>{});}if(this.asset.ctx)this.ctx=this.asset.ctx;return true;}
+      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;if(!this.ctx)this.ctx=new AC({latencyHint:'interactive'});if(this.ctx.state==='suspended'){const p=this.ctx.resume();if(p&&typeof p.catch==='function')p.catch(()=>{});}return true;
     }catch(err){console.warn('[BOONRUN] audio disabled',err);return false;}
   }
+  setEnabled(v){if(this.asset)this.asset.setEnabled(!!v);if(v)this.ensure();}
+  play(id,opts={},fallback=null){if(!state.sound)return null;this.ensure();if(this.asset?.play){const result=this.asset.play(id,opts);if(typeof fallback==='function'&&result?.then)result.then(source=>{if(!source)fallback();}).catch(()=>fallback());return result;}if(typeof fallback==='function')fallback();return null;}
+  machine(id,opts={}){if(!state.sound)return null;this.ensure();return this.asset?.machine?.(id,opts)||null;}
   tone(freq=440,dur=.08,type='sine',gain=.04,slide=0){
-    if(!state.sound||!this.ensure()||!this.ctx)return;
-    try{const t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),t+dur);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(this.ctx.destination);o.start(t);o.stop(t+dur+.02);}catch(err){console.warn('[BOONRUN] tone skipped',err);}
+    if(!state.sound||!this.ensure())return;
+    const c=this.asset?.ctx||this.ctx;if(!c)return;
+    try{const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),t+dur);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(this.asset?.output?.(3)||c.destination);o.start(t);o.stop(t+dur+.02);}catch(err){console.warn('[BOONRUN] tone skipped',err);}
   }
-  jump(second=false){this.tone(second?520:390,.09,'square',.025,second?260:180);}
-  fuel(big=false){this.tone(big?880:720,.10,'sine',.04,260);setTimeout(()=>this.tone(big?1180:920,.08,'sine',.025),55);}
-  crash(){this.tone(120,.32,'sawtooth',.09,-70);this.tone(62,.38,'square',.05,-20);}
-  gas(){this.tone(180,.15,'sawtooth',.04,-70);setTimeout(()=>this.tone(110,.25,'sawtooth',.03,-50),130);}
-  close(){this.tone(980,.055,'square',.018,120);}
-  special(){this.tone(540,.11,'sine',.04,400);setTimeout(()=>this.tone(940,.15,'sine',.04,300),80);}
-  milestone(){this.tone(660,.10,'triangle',.03,220);setTimeout(()=>this.tone(990,.12,'triangle',.03,200),90);}
+  ui(kind='tap'){return this.play(`common.ui-${kind}`,{priority:1,cooldown:35});}
+  countdown(go=false){return this.play(go?'common.countdown-go':'common.countdown-tick',{priority:4,cooldown:70});}
+  engineStart(){return this.play('boonrun.engine-start',{priority:5,cooldown:500,gain:.82,delay:.055,group:'action'});}
+  jump(second=false){return this.play(second?'boonrun.double-jump':'boonrun.jump',{priority:3,cooldown:45},()=>this.tone(second?520:390,.09,'square',.025,second?260:180));}
+  land(){return this.play('boonrun.land',{priority:2,cooldown:95,gain:.72,group:'action'});}
+  fuel(big=false){return this.play(big?'boonrun.fuel-big':'boonrun.fuel-small',{priority:4,cooldown:55},()=>{this.tone(big?880:720,.10,'sine',.04,260);setTimeout(()=>this.tone(big?1180:920,.08,'sine',.025),55);});}
+  crash(){this.play('boonrun.hit',{priority:8,cooldown:120});setTimeout(()=>this.play('boonrun.game-over-crash',{priority:9},()=>{this.tone(120,.32,'sawtooth',.09,-70);this.tone(62,.38,'square',.05,-20);}),45);}
+  gas(){this.play('boonrun.game-over-fuel',{priority:9,cooldown:400},()=>{this.tone(180,.15,'sawtooth',.04,-70);setTimeout(()=>this.tone(110,.25,'sawtooth',.03,-50),130);});}
+  close(){this.play('boonrun.critical-pass',{priority:7,cooldown:62,gain:.92,group:'judge'},()=>this.tone(980,.055,'square',.018,120));}
+  special(opts={}){this.play('boonrun.boost',{priority:5,cooldown:90,gain:.72,group:'ultimate',...opts},()=>{this.tone(540,.11,'sine',.032,400);setTimeout(()=>this.tone(940,.15,'sine',.032,300),80);});}
+  milestone(worldShift=false){this.play('boonrun.world-shift',{priority:worldShift?5:3,gain:worldShift?1:.68,cooldown:500},()=>{this.tone(660,.10,'triangle',.03,220);setTimeout(()=>this.tone(990,.12,'triangle',.03,200),90);});}
+  mission(){this.play('common.mission-clear',{priority:8,cooldown:650,gain:.92,group:'reward',duck:.62,duckMs:380});}
+  newBest(){this.play('common.new-best',{priority:10,cooldown:1600,gain:.96,group:'reward',duck:.48,duckMs:720});}
+  result(){this.play('common.result-sting',{priority:6,cooldown:720,gain:.90,group:'result'});}
+  droneWarning(){this.play('boonrun.drone-warning',{priority:4,cooldown:1400});}
+  status(){return this.asset?.status?.()||{enabled:state.sound,context:this.ctx?.state||'none',fallback:true};}
 }
 const sound=new SoundEngine();
 
@@ -1014,7 +1031,7 @@ function queuePatternTip(p){
   if(!type)return;
   run.obstacleTipsShown[type]=true;
   const text=obstacleTipFor(type,run.car.id);
-  if(text)setTimeout(()=>highwayInfo(text,(type==='DRONE'||type==='LOWBEAM'||type==='ARCH')?'WARN':'INFO',3800),100);
+  if(text)setTimeout(()=>{highwayInfo(text,(type==='DRONE'||type==='LOWBEAM'||type==='ARCH')?'WARN':'INFO',3800);if(type==='DRONE')sound.droneWarning();},100);
 }
 function choosePattern(){
   const m=run.distance, pool=eligiblePatterns(m);
@@ -1157,8 +1174,8 @@ function startAbilityToast(){
 }
 function countdownStart(){
   run.phase='countdown';const token=run.token;let n=3;els.countdown.textContent='3';
-  const tick=()=>{if(!run||run.token!==token||run.phase!=='countdown')return;n--;if(n>0){els.countdown.textContent=n;sound.tone(440+n*80,.08,'square',.025);setTimeout(tick,550);}else{els.countdown.textContent='GO!';sound.tone(820,.13,'square',.035,260);setTimeout(()=>{if(!run||run.token!==token)return;els.countdown.textContent='';els.screens.game.classList.remove('prestart');run.phase='running';lastTime=performance.now();accumulator=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);startAbilityToast();setTimeout(()=>els.startGuide.classList.add('hidden'),2300);},480);}};
-  sound.tone(600,.08,'square',.025);setTimeout(tick,550);
+  const tick=()=>{if(!run||run.token!==token||run.phase!=='countdown')return;n--;if(n>0){els.countdown.textContent=n;sound.countdown(false);setTimeout(tick,550);}else{els.countdown.textContent='GO!';sound.countdown(true);sound.engineStart();setTimeout(()=>{if(!run||run.token!==token)return;els.countdown.textContent='';els.screens.game.classList.remove('prestart');run.phase='running';lastTime=performance.now();accumulator=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);startAbilityToast();setTimeout(()=>els.startGuide.classList.add('hidden'),2300);},480);}};
+  sound.countdown(false);setTimeout(tick,550);
 }
 function restartGame(){els.pauseModal.hidden=true;els.resultModal.hidden=true;startGame();}
 function pauseGame(auto=false){if(!run||run.phase!=='running')return;run.rocketThrust=false;run.phase='paused';cancelAnimationFrame(raf);els.pauseModal.hidden=false;if(auto)els.pauseModal.querySelector('h2').textContent='横向きに戻してね';else els.pauseModal.querySelector('h2').textContent='一時停止';}
@@ -1191,7 +1208,7 @@ function activateSpecial(emergency=false){
   if(run.car.id==='valkyrie'){run.valkyrieClose=0;run.valkyrieSyncUntil=0;}
   if(run.car.id==='secret'){run.vy=Math.max(run.vy,420);run.onGround=false;}
   showSpecialBanner();highwayInfo(`${emergency?'EMERGENCY ULTIMATE':'最終奥義'}｜${sp.name} 発動`,'SPECIAL',2800);rewardFx(run.car.id==='ssr'?'phantom':run.car.id==='princess'?'magenta':run.car.id==='valkyrie'?'divine':run.car.id==='secret'?'rocket':'gold',1.05,1);flash('phantom');
-  burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,32);sound.tone(run.car.id==='boon'?105:run.car.id==='princess'?880:run.car.id==='valkyrie'?760:520,.18,'sawtooth',.045,420);setTimeout(()=>sound.special(),70);updateSpecialHud();return true;
+  burst(PHYSICS.carCenterX,ROAD_Y-run.y-45,sp.color,32);sound.machine(run.car.id,{gain:.98,priority:10});setTimeout(()=>sound.special({gain:.55,priority:5}),170);updateSpecialHud();return true;
 }
 function tryEmergencyUltimate(kind,obj=null){
   if(!run||run.phase!=='running'||run.specialUsed)return false;
@@ -1245,8 +1262,7 @@ function doJump(kind='first',starBonusOverride=null){
   // Second-jump impulse preserves existing lift so early double taps remain intuitive.
   run.vy=second?Math.max(vel,run.vy+vel*(PHYSICS.secondJumpAssist||0)):vel;run.onGround=false;run.jumpsUsed=third?3:(second?2:1);run.pendingJumpMs=0;
   run.stats.jumps++; if(second||third)run.stats.doubleJumps++;
-  const jumpTone={boon:[255,390],wagon:[360,470],buggy:[210,210],bike:[510,760],sport:[430,650],ssr:[390,520],princess:[470,680],valkyrie:[560,820]}[run.car.id]||[390,520];
-  sound.tone((second||third)?jumpTone[1]:jumpTone[0],run.car.id==='wagon'?.12:.075,run.car.id==='buggy'?'sawtooth':'square',.023,(second||third)?180:110);
+  sound.jump(second||third);
   const jumpFx={boon:'#ffca45',wagon:'#bff7ff',buggy:'#b7ff55',bike:'#ff8a3d',sport:'#ff4f83',ssr:'#8d7cff',princess:'#ff9ee8',valkyrie:'#88eaff'}[run.car.id]||'#d8f4ff';
   spawnDust(third?9:(second?6:4),jumpFx);
 }
@@ -1258,17 +1274,17 @@ function updatePlayer(dt){
     else run.vy=Math.max(-(a.maxFallSpeed||650),run.vy-PHYSICS.gravity*(run.cp.gravityScale||.88)*dt);
     run.y+=run.vy*dt;
     const maxY=430;
-    if(run.y<=0){run.y=0;if(run.vy<0)run.vy=0;run.onGround=true;}else run.onGround=false;
+    if(run.y<=0){const landed=!run.onGround&&run.y<0;run.y=0;if(run.vy<0)run.vy=0;run.onGround=true;if(landed)sound.land();}else run.onGround=false;
     if(run.y>=maxY){run.y=maxY;if(run.vy>0)run.vy=0;}
     return;
   }
   if(run.car.id==='wagon'&&specialActive()){
     run.vy-=PHYSICS.gravity*.10*dt;run.y+=run.vy*dt;
-    if(run.y<=0){run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;}else run.onGround=false;
+    if(run.y<=0){const landed=!run.onGround&&run.y<0;run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;if(landed)sound.land();}else run.onGround=false;
     if(run.y>=430){run.y=430;if(run.vy>0)run.vy=0;}return;
   }
   run.pendingJumpMs=Math.max(0,run.pendingJumpMs-dt*1000);
-  if(!run.onGround){run.vy-=PHYSICS.gravity*(run.cp.gravityScale||1)*dt;run.y+=run.vy*dt;if(run.y<=0){run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;spawnDust(6,'#cddae7');if(run.pendingJumpMs>0)doJump('first');}}
+  if(!run.onGround){run.vy-=PHYSICS.gravity*(run.cp.gravityScale||1)*dt;run.y+=run.vy*dt;if(run.y<=0){run.y=0;run.vy=0;run.onGround=true;run.jumpsUsed=0;spawnDust(6,'#cddae7');sound.land();if(run.pendingJumpMs>0)doJump('first');}}
 }
 function playerRect(expand=0){
   const lightning=(run.car.id==='bike'&&specialActive())?.72:1;
@@ -1390,7 +1406,7 @@ function updateBestChase(){
   if(!run.bestPassed){
     run.bestPassed=true;run.bestPassAt=run.distance;
     highwayInfo('自己ベスト突破！｜ここから全部NEW BEST','BEST',2600);
-    rewardFx('gold',1.15,1);sound.special();
+    rewardFx('gold',1.15,1);sound.newBest();
   }
 }
 function updateFlowHud(){
@@ -1421,7 +1437,7 @@ function updateDriverMastery(){
   els.masteryBadge.classList.toggle('complete',st.complete);
   if(st.complete&&!run.feedback.masteryComplete){
     run.feedback.masteryComplete=true;
-    if(!run.feedback.masteryAnnounced){run.feedback.masteryAnnounced=true;highwayInfo(`${cfg.label}｜DRIVER MISSION CLEAR`,'MASTER',2600);toast('DRIVER MISSION CLEAR!');rewardFx('master',1.0,1);sound.special();}
+    if(!run.feedback.masteryAnnounced){run.feedback.masteryAnnounced=true;highwayInfo(`${cfg.label}｜DRIVER MISSION CLEAR`,'MASTER',2600);toast('DRIVER MISSION CLEAR!');rewardFx('master',1.0,1);sound.mission();}
   }
 }
 function resultCoach(cause,car){
@@ -1555,7 +1571,7 @@ function updateWorld(dt){
 }
 function milestone(m){
   const km=m/1000,zone=worldZoneAt(m+1),changed=worldZoneChangedAt(m);
-  run.feedback.sectionCount++;els.milestoneLabel.textContent=`${km} km`;sound.milestone();rewardFx('milestone',changed?1.35:1.1,changed?1.15:1);
+  run.feedback.sectionCount++;els.milestoneLabel.textContent=`${km} km`;sound.milestone(changed);rewardFx('milestone',changed?1.35:1.1,changed?1.15:1);
   highwayInfo(changed?`${zone.code}｜${m.toLocaleString()}m 突破`:`SECTION ${String(run.feedback.sectionCount).padStart(2,'0')} CLEAR｜${m.toLocaleString()}m 突破`,'SECTION',changed?3200:2600);
   if(els.sectionBanner){els.sectionBannerValue.textContent=changed?zone.code:`${km} KM`;const chase=run.personalBestStart>m?`BESTまで ${Math.max(0,Math.floor(run.personalBestStart-m)).toLocaleString()}m`:(run.bestPassed?'NEW BEST RUN':'KEEP RUNNING');els.sectionBannerSub.textContent=changed?`${zone.jp}｜${chase}`:chase;els.sectionBanner.classList.remove('show');void els.sectionBanner.offsetWidth;els.sectionBanner.classList.add('show');setTimeout(()=>els.sectionBanner&&els.sectionBanner.classList.remove('show'),changed?1900:1500);}
   setTimeout(()=>{if(els.milestoneLabel.textContent===`${km} km`)els.milestoneLabel.textContent=worldZoneAt(run?.distance||m).code;},1100);
@@ -1581,7 +1597,7 @@ function showResult(oldBest){
   els.resultReason.textContent=run.endReason==='gas'?'GAS OUT!':'CRASH!';els.resultReason.style.background=run.endReason==='gas'?'#ff9b2e':'#ff425b';
   els.resultDistance.textContent=fmt(d);els.resultCar.textContent=run.car.name;els.resultBest.textContent=fmt(rec.best);els.resultCause.textContent=CAUSE_LABEL[run.endCause]||run.endCause||'-';
   renderResultStory(d,oldBest);
-  els.newBest.hidden=!(d>oldBest);els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 この記録をランキングへ':'🌍 ランキング接続待ち';els.resultModal.hidden=false;
+  els.newBest.hidden=!(d>oldBest);sound.result();if(d>oldBest&&!run.bestPassed)setTimeout(()=>sound.newBest(),160);els.resultRankingStatus.hidden=true;els.resultRankingStatus.className='result-ranking-status';els.resultRankingStatus.textContent='';els.resultSubmitButton.disabled=!run.rankingEligible;els.resultSubmitButton.textContent=run.rankingEligible?'🌍 この記録をランキングへ':'🌍 ランキング接続待ち';els.resultModal.hidden=false;
 }
 
 function resetHud(){els.distanceLabel.textContent='0m';els.milestoneLabel.textContent=worldZoneAt(0).code;els.fuelBar.style.width='100%';els.fuelLabel.textContent=String(Math.ceil(run.fuelMax));els.extraMeter.textContent='';els.abilityBadge.textContent=ABILITY_SHORT[run.car.id];els.abilityBadge.classList.add('active');if(els.bestChase)els.bestChase.textContent=run.personalBestStart>0?`MACHINE BEST ${fmt(run.personalBestStart)}`:'FIRST RUN';if(els.flowBadge){els.flowBadge.hidden=true;els.flowBadge.textContent='';}if(els.masteryBadge){els.masteryBadge.textContent=`🎯 ${driverMasteryStatus().text}`;els.masteryBadge.classList.remove('complete');}if(els.sectionBanner)els.sectionBanner.classList.remove('show');els.fuelBox.classList.remove('low','critical');updateSpecialHud();}
@@ -1903,7 +1919,7 @@ function continuePortraitStartIfReady(){
   setTimeout(showRulePrep,120);
 }
 if(els.rotateStartButton)els.rotateStartButton.addEventListener('click',requestPortraitStart);
-els.startButton.addEventListener('click',showRulePrep);
+els.startButton.addEventListener('click',()=>{sound.ensure();sound.ui('confirm');showRulePrep();});
 els.rulePrepStart.addEventListener('click',finishRulePrep);if(els.rulePrepCancel)els.rulePrepCancel.addEventListener('click',()=>{els.rulePrepModal.hidden=true;});
 els.helpButton.addEventListener('click',()=>showScreen('help'));
 if(els.rankingRefreshButton)els.rankingRefreshButton.addEventListener('click',()=>loadRanking(true));
@@ -1924,13 +1940,13 @@ window.addEventListener('orientationchange',()=>setTimeout(()=>{fitGarageCard();
 if(typeof ResizeObserver!=='undefined'&&els.garageFeature){new ResizeObserver(()=>requestAnimationFrame(fitGarageCard)).observe(els.garageFeature);}
 els.garageButton.addEventListener('click',()=>{renderGarage();showScreen('garage');});
 els.recordsButton.addEventListener('click',()=>{renderRecords();showScreen('records');});
-document.querySelectorAll('[data-back="menu"]').forEach(b=>b.addEventListener('click',()=>{showScreen('menu');renderMenu();}));
+document.querySelectorAll('[data-back="menu"]').forEach(b=>b.addEventListener('click',()=>{sound.ui('back');showScreen('menu');renderMenu();}));
 els.carGrid.addEventListener('click',e=>{const b=e.target.closest('[data-car]');if(!b)return;garageFocusId=b.dataset.car;renderGarageFocus();});
 els.garagePrev.addEventListener('click',()=>garageStep(-1));els.garageNext.addEventListener('click',()=>garageStep(1));
 els.garageSelectButton.addEventListener('click',()=>{const car=garageFocusCar();if(!ownedCars.has(car.id)){toast('ブーンジャンプで解放しよう！');return;}state.selected=car.id;saveState();renderMenu();showRulePrep();});
 let garageSwipeX=null;els.garageFeature.addEventListener('pointerdown',e=>{garageSwipeX=e.clientX;});els.garageFeature.addEventListener('pointerup',e=>{if(garageSwipeX==null)return;const dx=e.clientX-garageSwipeX;garageSwipeX=null;if(Math.abs(dx)>55)garageStep(dx<0?1:-1);});
 window.addEventListener('keydown',e=>{if(!els.screens.garage.classList.contains('active'))return;if(e.key==='ArrowLeft')garageStep(-1);else if(e.key==='ArrowRight')garageStep(1);});
-els.soundButton.addEventListener('click',()=>{state.sound=!state.sound;saveState();renderMenu();if(state.sound)sound.tone(620,.08,'sine',.03,180);});
+els.soundButton.addEventListener('click',()=>{state.sound=!state.sound;try{localStorage.setItem(SHARED_SOUND_KEY,state.sound?'1':'0');}catch{}sound.setEnabled(state.sound);saveState();renderMenu();if(state.sound)sound.ui('confirm');});
 els.pauseButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();pauseGame(false);});
 els.specialButton.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();activateSpecial();});
 els.resumeButton.addEventListener('click',resumeGame);els.restartButton.addEventListener('click',restartGame);els.quitButton.addEventListener('click',quitGame);els.retryButton.addEventListener('click',restartGame);
@@ -1943,6 +1959,7 @@ else{els.viewport.addEventListener('touchstart',gamePress,{passive:false});els.v
 window.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();if(run?.car.id==='secret')run.rocketThrust=true;else requestJump();}if(e.code==='KeyX'){e.preventDefault();activateSpecial();}if(e.key==='Escape'&&run?.phase==='running')pauseGame(false);});
 window.addEventListener('keyup',e=>{if((e.code==='Space'||e.key==='ArrowUp')&&run?.car.id==='secret')run.rocketThrust=false;});
 window.addEventListener('resize',onOrientation);document.addEventListener('visibilitychange',()=>{if(document.hidden&&run?.phase==='running')pauseGame(false);});
+window.addEventListener('storage',e=>{if(e.key!==SHARED_SOUND_KEY)return;state.sound=e.newValue!=='0';sound.setEnabled(state.sound);renderMenu();});
 window.addEventListener('pagehide',saveState);
 if(DEBUG){els.debugButton.hidden=false;els.debugButton.addEventListener('click',()=>els.debugPanel.hidden=!els.debugPanel.hidden);els.debugPanel.addEventListener('click',e=>{const b=e.target.closest('[data-dbg]');if(!b||!run)return;if(b.dataset.dbg==='fuel')run.fuel=Math.min(run.fuelMax,run.fuel+40);if(b.dataset.dbg==='jump'){run.distance+=5000;run.spawnCursorX=PHYSICS.logicalWidth+300;run.objects=[];}if(b.dataset.dbg==='inv')run.debug.invincible=!run.debug.invincible;});}
 
@@ -1956,6 +1973,7 @@ window.addEventListener('error',e=>{console.error('[BOONRUN] window error',e.err
 window.addEventListener('unhandledrejection',e=>{console.error('[BOONRUN] promise rejection',e.reason);showFatalError('ブーンRUNで処理エラーが発生しました',e.reason);});
 window.__BOONRUN_TEST={
   build:BUILD,
+  sound:()=>sound.status(),
   boot:()=>window.__BOONRUN_BOOT||null,
   status:()=>run?{phase:run.phase,distance:run.distance,fuel:run.fuel,fuelRate:effectiveFuelRate(),car:run.car.id,objects:run.objects.length,y:run.y,vy:run.vy,scrollSpeed:run.scrollSpeed,armor:run.armor,stars:run.stars,specialCharges:run.specialCharges,rocketThrust:run.rocketThrust,rocketDanger:run.rocketDanger,rocketInvincible:run.gameTime<run.rocketInvincibleUntil,valkyrieClose:run.valkyrieClose,valkyrieSync:valkyrieSyncActive(),specialUsed:run.specialUsed,specialEmergency:run.specialEmergency,specialActive:specialActive(),specialRemaining:specialRemaining(),rankingEligible:run.rankingEligible}:null,
   selectCar(id){if(CAR_BY_ID[id]){ownedCars.add(id);state.selected=id;saveState();renderMenu();return id;}return null;},

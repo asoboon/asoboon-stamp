@@ -1,14 +1,21 @@
-BOON RUN 2 v1.2.3-rc7 — 100-POINT FLOW POLISH
-Build: 2026-08-15-rc7-v1.2.3-100point-polish
+BOON RUN 2 v1.2.3-rc9 — SOUND MASTER
+Build: 2026-08-16-rc9-v1.2.3-sound-master
+Audio Runtime: ASOBooN SOUND SYSTEM v1.2.0
 
-RC7 FINAL FLOW POLISH
-- HOME adds a compact NEXT WORLD / NEXT TARGET cue so distance becomes a visible journey goal.
-- First-drive guidance is now shown once per machine; learned machines enter countdown immediately.
-- Current WORLD code remains under DISTANCE between milestone flashes.
-- RESULT is replay-first: same-machine retry is the primary action, ranking registration is secondary and quiet until requested.
-- RESULT includes reached WORLD and a concrete next journey target.
-- Highway-board notifications are priority-capped to prevent stale INFO/FLOW messages from piling up over WORLD / BEST / ULTIMATE feedback.
-- Fixes RC6 menu class wiring so MACHINE / RECORDS receive the intended compact-phone layout rules.
+RC9 SOUND MASTER
+- Integrates the ASOBooN shared sound language used by BOONJUMP and BOONRUN.
+- 14 COMMON sounds: UI / countdown / judge / mission / NEW BEST / result.
+- 9 MACHINE SIGNATURE sounds shared byte-for-byte with BOONJUMP.
+- 13 BOONRUN-specific sounds: engine / jump / landing / fuel / hit / game over / critical pass / drone / boost / world shift.
+- FINAL ULTIMATE activation layers the selected machine signature over BOONRUN gameplay audio.
+- SOUND ON/OFF is shared between BOONRUN and BOONJUMP with key `asoboon.sound.enabled.v1` while each existing game save key remains unchanged.
+- First user gesture unlocks Web Audio; encoded bytes may warm before the gesture, decoding starts after unlock.
+- Runtime has max-voice control, priority-based voice stealing, cooldowns, background-stop behavior and silent failure fallback.
+- SOUND MASTER v1.2.0 adds focus ducking so CRITICAL / SUPER / MACHINE SIGNATURE / NEW BEST stay readable over lower-priority sounds.
+- Shared limiter/compressor protects smartphone speakers from stacked transients without changing gameplay timing.
+- Per-group voice caps prevent rapid AIR/FUEL/JUMP/UI sounds from piling up.
+- RUN mix: GO stays clear before engine ignition; ULTIMATE signature leads and the generic boost layer sits behind it.
+- Audio files are cached lazily by Service Worker; only a small critical subset is warmed in CORE.
 
 UNCHANGED GAMEPLAY CONTRACT
 - PHYSICS / speed curve / FUEL
@@ -18,8 +25,14 @@ UNCHANGED GAMEPLAY CONTRACT
 - all FINAL ULTIMATE performance
 - WORLD DRIVE v1.1 art / distance anchors / parallax / loading policy
 - ranking endpoint / submission payload / run-ranking.js
-- save key asoboonBoonrun.v1
+- save key `asoboonBoonrun.v1`
 
-RELEASE GATE
-- Static/package/source-contract QA required before upload.
-- Final acceptance still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE real-device confirmation.
+QA STATUS
+- JS / SW / inline JS syntax: PASS
+- 36 runtime sound assets referenced by the RUN manifest: 36/36 present and decodable
+- decoded audio clipping check: PASS (peak below 0 dBFS)
+- COMMON + MACHINE MP3 identity against BOONJUMP: byte-identical
+- protected gameplay blocks: byte-identical to RC7
+- run-ranking.js: byte-identical to RC7
+- local Chromium audio E2E: NOT COUNTED (environment blocks localhost with ERR_BLOCKED_BY_ADMINISTRATOR)
+- final acceptance still requires iPhone Safari / iPhone LINE / Android Chrome / Android LINE real-device audio confirmation.
