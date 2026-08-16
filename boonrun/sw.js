@@ -2,7 +2,7 @@ const CACHE='boonrun-20260816-v123-rc9-sound-fix1';
 const SOUND_VERSION='20260816-v123-rc9-sound-fix1';
 const CORE=[
   './','./index.html','./style.css?v=20260816-v123-rc9-sound-master','./game.bundle.js?v=20260816-v123-rc9-sound-master','./run-ranking.js?v=20260816-v123-rc9-sound-master','./manifest.webmanifest',
-  `./assets/audio/asoboon-audio.js?v=${SOUND_VERSION}`,`./assets/audio/sound-manifest.json?v=${SOUND_VERSION}`,
+  './assets/audio/asoboon-audio.js?v=20260816-v123-rc9-sound-master',`./assets/audio/boonrun-audio-runtime.js?v=${SOUND_VERSION}`,`./assets/audio/sound-manifest.json?v=${SOUND_VERSION}`,
   `./assets/audio/runtime/common/ui-confirm.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/common/countdown-tick.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/common/countdown-go.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/boonrun/engine-start.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/boonrun/jump.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/boonrun/fuel-small.mp3?v=${SOUND_VERSION}`,`./assets/audio/runtime/boonrun/critical-pass.mp3?v=${SOUND_VERSION}`,
   './assets/world-drive/manifest.json','./assets/world-drive/BACKGROUND-ASSET-GUIDE.md','./assets/world-drive/01-day-highway/far.webp','./assets/world-drive/01-day-highway/mid.webp','./assets/world-drive/01-day-highway/near.webp'
 ];
