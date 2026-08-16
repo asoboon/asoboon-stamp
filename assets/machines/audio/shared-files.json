@@ -1,0 +1,142 @@
+{
+  "version": "1.2.1",
+  "sourceOfTruth": "assets/audio/",
+  "workflow": "B",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "f53c2b257211f0bd1b51376645340c56f8539fb84297d9f420bd1d65d34fc91b",
+      "bytes": 787
+    },
+    {
+      "path": "asoboon-audio.js",
+      "sha256": "482be24695f04fe857300ba1182dd8bac92d7759f14a45801c7624cde6d6e06a",
+      "bytes": 11526
+    },
+    {
+      "path": "runtime/common/countdown-go.mp3",
+      "sha256": "2357aaacc820e11e5fa0377367a90972bfcffc5e041386af081ddb9c80b82a69",
+      "bytes": 4748
+    },
+    {
+      "path": "runtime/common/countdown-tick.mp3",
+      "sha256": "3b512c56aea4ef40b6e76a83475a33535c71b3e238f34fc7aeada5e8ec25e0a2",
+      "bytes": 2060
+    },
+    {
+      "path": "runtime/common/judge-critical.mp3",
+      "sha256": "eb5cfaed8ddd940464c660bf0046cc126ae116b8d0085f5771fe403b4aefd81e",
+      "bytes": 3740
+    },
+    {
+      "path": "runtime/common/judge-good.mp3",
+      "sha256": "296699db8551b2eeae7221a28408b938d80d78d3c2d42aff42faca126a40139b",
+      "bytes": 2396
+    },
+    {
+      "path": "runtime/common/judge-great.mp3",
+      "sha256": "a95d3ed16838ad06aadbe07d5ff90feb236c2d5f1bb21bbd47d9e5a0f20faa73",
+      "bytes": 3068
+    },
+    {
+      "path": "runtime/common/judge-super.mp3",
+      "sha256": "b87b071f6f924e551b654c55569868064e11e8eabb4571aa223ebb91989473f2",
+      "bytes": 5420
+    },
+    {
+      "path": "runtime/common/miss.mp3",
+      "sha256": "095e6f69edc83adf57e0d94ed48c425a3b40e2377acc9388ff6cc5729d5234ab",
+      "bytes": 3404
+    },
+    {
+      "path": "runtime/common/mission-clear.mp3",
+      "sha256": "04904de3842629f7149a3d79565d98cf8543cb75740c222b2234bdccb7d2d090",
+      "bytes": 10124
+    },
+    {
+      "path": "runtime/common/new-best.mp3",
+      "sha256": "546db391daba7a8e205f0d6bd1941ea83acc8811aea5809c8313c376ebd39488",
+      "bytes": 13484
+    },
+    {
+      "path": "runtime/common/result-sting.mp3",
+      "sha256": "9edd5c174fe8df84d75b276e63d453e3f76059ed9aba1e5e2a5da5536e264ae1",
+      "bytes": 9452
+    },
+    {
+      "path": "runtime/common/ui-back.mp3",
+      "sha256": "02c15a65109eb91545f5d895f150832e8a9c7e8adcc08ad23b5b88b362c66b5c",
+      "bytes": 3068
+    },
+    {
+      "path": "runtime/common/ui-confirm.mp3",
+      "sha256": "6cc42a82d08f9dfe8baef9e34a39dd44df696acced7d8dab5b215c61de43ef9f",
+      "bytes": 3404
+    },
+    {
+      "path": "runtime/common/ui-tap.mp3",
+      "sha256": "4bf5937412353969d44aecadab9609b6d22e245a2117f90dc87abb395061e3fd",
+      "bytes": 2060
+    },
+    {
+      "path": "runtime/common/ultimate-ready.mp3",
+      "sha256": "93baab1aae796ff2bb7fc410ee29f32edcdb4219f0af023545b8c80c0d581cfa",
+      "bytes": 8108
+    },
+    {
+      "path": "runtime/machines/bike-lightning-mode.mp3",
+      "sha256": "8c76c1bb8cd7a65b63bd3f57b3d77d3f566384b0213e86060ca0395fb4eb4165",
+      "bytes": 8108
+    },
+    {
+      "path": "runtime/machines/boon-titan-break.mp3",
+      "sha256": "180b9c7d723b415e8b6b89b604c8574c0f4ff63876523c859c6d503489a6d0bb",
+      "bytes": 9788
+    },
+    {
+      "path": "runtime/machines/buggy-sky-rodeo.mp3",
+      "sha256": "6aa3fa4675f4ee05950004ca0e4d5ce3dba71b01e446d939862464fcf1186b73",
+      "bytes": 11132
+    },
+    {
+      "path": "runtime/machines/princess-royal-ascension.mp3",
+      "sha256": "9cff56e06b4fa7d2e19a0d4b17b2ffe8aeeab817cae8cf02197294dc1255e4dd",
+      "bytes": 15836
+    },
+    {
+      "path": "runtime/machines/secret-final-ignition.mp3",
+      "sha256": "3a742090634f53fbc06212da7829a2fbc96430fe33dc5605de1552a0fdf438b0",
+      "bytes": 14492
+    },
+    {
+      "path": "runtime/machines/sport-overdrive.mp3",
+      "sha256": "99fdda5ddd9609cb7f4de9fbfdf3b05d42c2460f63ef0ae666878cdf05bab221",
+      "bytes": 11468
+    },
+    {
+      "path": "runtime/machines/ssr-dimension-shift.mp3",
+      "sha256": "83c86d86877c9c3bc73edce6b79ab30cb71a07ad5717fa9b8f570e4b65c91618",
+      "bytes": 14492
+    },
+    {
+      "path": "runtime/machines/valkyrie-valkyrie-ascent.mp3",
+      "sha256": "a913fede4bd9da525a8b2caab379d4a8f9816dc8e2969f54366897b4efc9200e",
+      "bytes": 14156
+    },
+    {
+      "path": "runtime/machines/wagon-zero-gravity.mp3",
+      "sha256": "328ccae4ac0e88d56329f156caac6ec60362a821b16010b1e553c11b389e83a5",
+      "bytes": 13484
+    },
+    {
+      "path": "sync-sound-assets.sh",
+      "sha256": "355b14cf7a85fe21be9404bde2af4e56474dccc6bb2d66587a42b8d6a6ea0ff7",
+      "bytes": 482
+    },
+    {
+      "path": "verify-sound-assets.sh",
+      "sha256": "1194f0dbd0df7af40f9165c8f7a91574085ea495f2cae4f0ac93e9bc6cc959b0",
+      "bytes": 948
+    }
+  ]
+}
