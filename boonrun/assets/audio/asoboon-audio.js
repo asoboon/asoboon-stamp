@@ -1,11 +1,11 @@
 /* ASOBooN SOUND SYSTEM v1.2.0 — SOUND MASTER
-   BOONRUN runtime hotfix: reliable user-gesture unlock + fresh runtime fetches.
-   Shared sound identity/mix remains unchanged. */
+   Shared by BOONJUMP / BOONRUN.
+   Mobile-first Web Audio runtime with focus ducking, limiter/compressor,
+   group voice caps, retry-safe loading and silent failure semantics. */
 (function(global){
   'use strict';
   const AC=()=>global.AudioContext||global.webkitAudioContext;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-  const RUNTIME_TOKEN='20260816-v123-rc9-sound-fix1';
   const GROUP_LIMIT=Object.freeze({signature:1,judge:2,ui:2,item:3,action:4,warning:1,world:1,reward:2,result:2,ultimate:2,default:4});
   class Player{
     constructor(opts={}){
@@ -19,33 +19,15 @@
       this.masterGain=null;this.bedBus=null;this.focusBus=null;this.compressor=null;
       this.duckUntil=0;this.duckTimer=0;
       this.debug=!!opts.debug;this.stopOnHidden=opts.stopOnHidden!==false;
-      this._gestureEvents=['pointerdown','touchstart','mousedown','keydown','click'];
-      this._gestureInstalled=false;
-      this._onGesture=()=>{
-        if(!this.enabled)return;
-        this.unlock().then(ok=>{if(ok)this._removeGestureUnlock();}).catch(()=>{});
-      };
       this._onVisibility=()=>{if(this.stopOnHidden&&global.document?.hidden)this.stopAll();};
       global.document?.addEventListener?.('visibilitychange',this._onVisibility,{passive:true});
-      this._installGestureUnlock();
       this._loadManifest().then(()=>{if(opts.autoWarm!==false&&this.enabled)this.warmBytes().catch(()=>{});}).catch(()=>{});
     }
     _log(...a){if(this.debug&&global.console)console.debug('[ASOBOON AUDIO]',...a);}
-    _installGestureUnlock(){
-      if(this._gestureInstalled||!global.document?.addEventListener)return;
-      this._gestureInstalled=true;
-      for(const type of this._gestureEvents)global.document.addEventListener(type,this._onGesture,{capture:true,passive:true});
-    }
-    _removeGestureUnlock(){
-      if(!this._gestureInstalled||!global.document?.removeEventListener)return;
-      this._gestureInstalled=false;
-      for(const type of this._gestureEvents)global.document.removeEventListener(type,this._onGesture,true);
-    }
-    _versioned(path){return `${path}${path.includes('?')?'&':'?'}v=${RUNTIME_TOKEN}`;}
     async _loadManifest(){
       if(this.manifest)return this.manifest;
       if(this.manifestPromise)return this.manifestPromise;
-      this.manifestPromise=fetch(this._versioned(this.base+'sound-manifest.json'),{cache:'reload'})
+      this.manifestPromise=fetch(this.base+'sound-manifest.json',{cache:'force-cache'})
         .then(r=>{if(!r.ok)throw new Error('manifest '+r.status);return r.json();})
         .then(m=>{this.manifest=m;this.assetMap=new Map((m.assets||[]).map(a=>[a.id,a]));this.machineMap=m.machineMap||{};return m;})
         .catch(err=>{this._log('manifest unavailable',err);this.manifestPromise=null;return null;});
@@ -66,8 +48,7 @@
     output(priority=3){this._ensureGraph();return Number(priority)>=6?(this.focusBus||this.ctx?.destination):(this.bedBus||this.ctx?.destination);}
     setEnabled(v){
       const was=this.enabled;this.enabled=!!v;
-      if(!this.enabled){if(this.masterGain&&this.ctx){const t=this.ctx.currentTime;this.masterGain.gain.cancelScheduledValues(t);this.masterGain.gain.setValueAtTime(0,t);}this.stopAll();this._installGestureUnlock();return;}
-      this._installGestureUnlock();
+      if(!this.enabled){if(this.masterGain&&this.ctx){const t=this.ctx.currentTime;this.masterGain.gain.cancelScheduledValues(t);this.masterGain.gain.setValueAtTime(0,t);}this.stopAll();return;}
       this.unlock().then(ok=>{if(ok&&this.masterGain&&this.ctx){const t=this.ctx.currentTime;this.masterGain.gain.cancelScheduledValues(t);this.masterGain.gain.setTargetAtTime(this.master,t,.018);}}).catch(()=>{});
       if(!was)this.warmBytes().catch(()=>{});
     }
@@ -81,14 +62,13 @@
     async _fetchBytes(id){
       if(this.bytes.has(id))return this.bytes.get(id);
       const a=this.assetMap.get(id);if(!a)return null;
-      const p=fetch(this._versioned(this.base+a.file),{cache:'reload'})
+      const p=fetch(this.base+a.file,{cache:'force-cache'})
         .then(r=>{if(!r.ok)throw new Error(a.file+' '+r.status);return r.arrayBuffer();})
         .catch(err=>{this._log('fetch failed',id,err);this.bytes.delete(id);return null;});
       this.bytes.set(id,p);return p;
     }
     async unlock(){
       if(!this.enabled)return false;
-      if(this.ctx?.state==='running'){this._removeGestureUnlock();return true;}
       if(this.unlockPromise)return this.unlockPromise;
       this.unlockPromise=(async()=>{
         try{
@@ -97,15 +77,9 @@
           if(this.ctx.state==='suspended')await this.ctx.resume().catch(()=>{});
           if(this.ctx.state==='closed')return false;
           this._ensureGraph();
-          try{
-            const b=this.ctx.createBuffer(1,1,this.ctx.sampleRate),s=this.ctx.createBufferSource();
-            s.buffer=b;s.connect(this.output(7));s.start();
-          }catch(_){}
-          if(this.ctx.state==='suspended')await this.ctx.resume().catch(()=>{});
-          const ok=this.ctx.state==='running';
-          if(ok)this._removeGestureUnlock();else this._installGestureUnlock();
-          return ok;
-        }catch(err){this._log('unlock failed',err);this._installGestureUnlock();return false;}
+          const b=this.ctx.createBuffer(1,1,this.ctx.sampleRate),s=this.ctx.createBufferSource();s.buffer=b;s.connect(this.output(7));s.start();
+          return this.ctx.state!=='closed';
+        }catch(err){this._log('unlock failed',err);return false;}
       })();
       const ok=await this.unlockPromise;this.unlockPromise=null;return ok;
     }
@@ -113,7 +87,7 @@
     async preloadAll(){const m=await this._loadManifest();if(!m)return false;return this.preload((m.assets||[]).map(a=>a.id));}
     async _decode(id){
       const existing=this.buffers.get(id);if(existing)return existing;
-      const p=(async()=>{if(!this.ctx||this.ctx.state!=='running'){const ok=await this.unlock();if(!ok)return null;}const ab=await this._fetchBytes(id);if(!ab||!this.ctx||this.ctx.state!=='running')return null;try{return await this.ctx.decodeAudioData(ab.slice(0));}catch(err){this._log('decode failed',id,err);return null;}})();
+      const p=(async()=>{if(!this.ctx){const ok=await this.unlock();if(!ok)return null;}const ab=await this._fetchBytes(id);if(!ab||!this.ctx)return null;try{return await this.ctx.decodeAudioData(ab.slice(0));}catch(err){this._log('decode failed',id,err);return null;}})();
       this.buffers.set(id,p);const b=await p;if(b)this.buffers.set(id,b);else this.buffers.delete(id);return b;
     }
     _groupFor(a,opts){
@@ -158,8 +132,7 @@
       const m=await this._loadManifest();if(!m||!this.enabled)return null;
       const a=this.assetMap.get(id);if(!a)return null;
       const group=this._groupFor(a,opts),now=performance.now(),cool=Math.max(0,Number(opts.cooldown??this._defaultCooldown(group))||0),last=this.cooldowns.get(id)||-Infinity;if(now-last<cool)return null;
-      if(!this.ctx||this.ctx.state!=='running'){const ok=await this.unlock();if(!ok)return null;}
-      const b=await this._decode(id);if(!b||!this.ctx||this.ctx.state!=='running'||!this.enabled)return null;
+      const b=await this._decode(id);if(!b||!this.ctx||!this.enabled)return null;
       const priority=clamp(Number(opts.priority)||2,0,10);if(!this._claim(priority,group,opts.groupLimit))return null;
       this.cooldowns.set(id,performance.now());this._duck(priority,a,opts);
       try{
@@ -171,8 +144,8 @@
       }catch(err){this._log('play failed',id,err);return null;}
     }
     machine(machineId,opts={}){const id=this.machineMap[machineId];return id?this.play(id,{priority:10,group:'signature',groupLimit:1,duck:.46,duckMs:620,...opts}):null;}
-    status(){return {version:'1.2.0',runtimeFix:'rc9-audio1',enabled:this.enabled,context:this.ctx?.state||'none',manifest:!!this.manifest,assets:this.assetMap.size,bytes:this.bytes.size,buffers:[...this.buffers.values()].filter(v=>v&&typeof v.then!=='function').length,voices:this.voices.filter(v=>!v.done).length,master:this.master,limiter:!!this.compressor};}
-    destroy(){this.stopAll();this._removeGestureUnlock();global.document?.removeEventListener?.('visibilitychange',this._onVisibility);try{this.ctx?.close?.();}catch(_){}this.ctx=null;this.masterGain=this.bedBus=this.focusBus=this.compressor=null;}
+    status(){return {version:'1.2.0',enabled:this.enabled,context:this.ctx?.state||'none',manifest:!!this.manifest,assets:this.assetMap.size,bytes:this.bytes.size,buffers:[...this.buffers.values()].filter(v=>v&&typeof v.then!=='function').length,voices:this.voices.filter(v=>!v.done).length,master:this.master,limiter:!!this.compressor};}
+    destroy(){this.stopAll();global.document?.removeEventListener?.('visibilitychange',this._onVisibility);try{this.ctx?.close?.();}catch(_){}this.ctx=null;this.masterGain=this.bedBus=this.focusBus=this.compressor=null;}
   }
-  global.ASOBOON_AUDIO={version:'1.2.0',runtimeFix:'rc9-audio1',create:opts=>new Player(opts),Player};
+  global.ASOBOON_AUDIO={version:'1.2.0',create:opts=>new Player(opts),Player};
 })(window);
