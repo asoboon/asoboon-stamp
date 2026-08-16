@@ -1,16 +1,13 @@
 {
-  "version": "v0.2",
-  "result": "PASS",
-  "checks": [
-    "21 expression images are 96x96 RGBA with binary alpha",
-    "3 characters share anchor (48,80)",
-    "care changes status without changing evolution direction",
-    "outing stores hidden evolution direction",
-    "4 outings reach evolution_ready",
-    "low fuel uses one-tap refuel path",
-    "localStorage persists each character independently",
-    "garage sleep state connects to sleep expression",
-    "actual animal evolution is intentionally not implemented"
-  ],
-  "note": "GitHub Pages実機確認前のコード/アセットQA。"
+  "build": "2026-08-16-growth-loop-v021-pages-patch",
+  "status": "PASS",
+  "asset_count": 21,
+  "runtime_asset_strategy": "ART LOCK 21 images packed without redraw into existing 672x288 atlas; Canvas crops one 96x96 cell and renders at 192x192",
+  "atlas_path": "./assets/baby-expressions.png",
+  "care_ui": "inline action dock; monster remains visible",
+  "garage_ui": "inline action dock; monster remains visible",
+  "outing_ui": "bottom sheet allowed",
+  "sprite_canvas": [96, 96],
+  "display_px": [192, 192],
+  "anchor": [48, 80]
 }
