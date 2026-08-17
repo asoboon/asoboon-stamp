@@ -1,0 +1,56 @@
+name: BOONJUMP Technique UI HOME Fix
+
+on:
+  push:
+    branches:
+      - agent/boonjump-technique-ui-v741
+    paths:
+      - .github/workflows/boonjump-technique-ui-home-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/boonjump-technique-ui-v741
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Restore HOME machine copy
+        run: python tools/fix_boonjump_home_machine_copy.py
+      - name: Full syntax and UI contract QA
+        run: |
+          node --check boonjump/sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, sys, json
+          s=Path('boonjump/index.html').read_text()
+          assert '\x01' not in s
+          for token in ['id="homeCarName"','id="homeCarTrait"','id="homeTune"','id="homeMachineChange"']:
+              assert s.count(token)==1, token
+          assert s.index('id="homeCarCard"') < s.index('id="homeSupportTip"') < s.index('id="playButton"')
+          assert 'id="techniqueScreen"' in s
+          assert "const AIR_COMMAND_FIXED_COUNT=10;" in s
+          assert "const AIR_COMMAND_SECONDS=3;" in s
+          assert "supportId:normalizeSupportId(attempt&&attempt.supportId)" in s
+          assert "airCommandCorrect:Math.max(0,Math.min(10" in s
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          for i,code in enumerate(scripts):
+              if not code.strip(): continue
+              f=Path(f'/tmp/inline-{i}.js'); f.write_text(code)
+              if subprocess.run(['node','--check',str(f)]).returncode: sys.exit(1)
+          json.loads(Path('boonjump/manifest.webmanifest').read_text())
+          print('HOME + syntax + technique contracts PASS')
+          PY
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add boonjump/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Restore BOONJUMP HOME machine copy"
+          git push origin HEAD:agent/boonjump-technique-ui-v741
