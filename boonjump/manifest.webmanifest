@@ -2,7 +2,7 @@
   "id": "./",
   "name": "ブーンジャンプ｜ASOBooN",
   "short_name": "ブーンジャンプ",
-  "description": "最初は3コンボに集中し、遊ぶほど記録・成長・サポートが自然に開くASOBooNのブーンジャンプ",
+  "description": "最初は3コンボに集中し、3回遊ぶと好きな技を選べるASOBooNのブーンジャンプ",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",

@@ -1,9 +1,10 @@
-const BUILD = "2026-08-16-advisor-polish-v730";
+const BUILD = "2026-08-17-technique-ui-v741";
 const STATIC_CACHE = `boonjump-static-${BUILD}`;
 const IMAGE_CACHE = `boonjump-images-${BUILD}`;
 const PRECACHE = [
   "./",
   "./index.html",
+  "./technique-ui-v741.css?v=741-technique-ui",
   "./ranking-client.js?v=730-advisor",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
