@@ -4215,7 +4215,49 @@
   transform:translateY(2px);
 }
 
-  </style>
+  
+/* V2.5.3 — 呼出状況連携を HOME のコンパス/真鍮デザインへ統一 */
+.auto-entry-notice{
+  position:relative!important;
+  overflow:hidden!important;
+  grid-template-columns:58px minmax(0,1fr)!important;
+  gap:12px!important;
+  margin-bottom:12px!important;
+  padding:14px 14px!important;
+  border:3px solid #684817!important;
+  border-radius:18px!important;
+  color:#3d2a14!important;
+  background:
+    repeating-linear-gradient(0deg,rgba(86,58,23,.035) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f1dca6,#cba85d)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,249,223,.35),0 9px 20px rgba(0,0,0,.2)!important;
+}
+.auto-entry-notice:before,.auto-entry-notice:after{
+  content:"";position:absolute;top:9px;width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f);
+}
+.auto-entry-notice:before{left:9px}.auto-entry-notice:after{right:9px}
+.auto-entry-notice-icon{
+  display:grid!important;place-items:center!important;width:58px!important;height:58px!important;border-radius:50%!important;
+  border:3px solid #b88937!important;color:#fff4d4!important;background:linear-gradient(180deg,#2d6c55,#103b2e)!important;
+  box-shadow:0 6px 0 rgba(66,43,16,.18),inset 0 0 0 2px rgba(255,255,255,.08)!important;
+  font-size:1.5rem!important;
+}
+.auto-entry-notice-copy{display:grid!important;gap:3px!important;min-width:0!important}
+.auto-entry-notice-copy strong{
+  display:inline-flex!important;width:max-content!important;align-items:center!important;min-height:25px!important;padding:4px 9px!important;
+  border:1px solid #593d15!important;border-radius:999px!important;color:#fff4d6!important;background:#846126!important;
+  font-size:.65rem!important;line-height:1!important;font-weight:1000!important;letter-spacing:.08em!important;
+}
+.auto-entry-notice-main{display:block!important;margin-top:2px!important;color:#4c2d15!important;font-size:clamp(1.13rem,4.7vw,1.48rem)!important;line-height:1.12!important;font-weight:1000!important}
+.auto-entry-notice-copy small{margin-top:2px!important;color:#634b2b!important;font-size:.69rem!important;line-height:1.42!important;font-weight:900!important}
+.auto-entry-edit{
+  border:2px solid #b88937!important;border-radius:13px!important;color:#f9e9bd!important;
+  background:linear-gradient(180deg,rgba(44,87,70,.88),rgba(11,45,35,.96))!important;
+  box-shadow:0 5px 0 rgba(0,0,0,.16)!important;
+}
+
+</style>
 </head>
 
 <body>
