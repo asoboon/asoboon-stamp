@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#fff8e8">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V4.3</title>
+<title>あなたの呼出状況｜アソブーン V4.4</title>
 <style>
 :root{--bg:#fff8e8;--ink:#17212a;--muted:#687781;--line:#e5e9eb;--orange:#f47d16;--blue:#167fc6;--green:#0c8a50;--amber:#d68a00;--red:#c93448;--shadow:0 14px 34px rgba(53,43,30,.10)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}body{color:var(--ink);background:radial-gradient(circle at 8% -4%,rgba(255,180,66,.27),transparent 29%),radial-gradient(circle at 100% 12%,rgba(22,127,198,.12),transparent 27%),var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
@@ -113,14 +113,69 @@
   letter-spacing:.04em;
 }
 
+
+/* V4.4 — 受付番号案内 / 先頭→自分の呼出グラフ */
+.lookup-guide{
+  margin-top:7px;
+  max-width:620px;
+  color:#715f43;
+  font-size:.76rem;
+  line-height:1.55;
+  font-weight:850;
+}
+.currentlabel{
+  position:absolute;
+  top:30px;
+  transform:translateX(-50%);
+  color:#087744;
+  font-size:.58rem;
+  line-height:1;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.timeline{
+  padding-top:24px;
+}
+.ends{
+  gap:18px;
+  align-items:flex-start;
+}
+.ends span{
+  width:48%;
+  line-height:1.35;
+}
+.ends span:last-child{
+  text-align:right;
+  color:#cf6a0d;
+}
+.youlabel{
+  top:-8px;
+}
+@media(max-width:480px){
+  .lookup-guide{
+    font-size:.72rem;
+  }
+  .ends{
+    font-size:.58rem;
+  }
+}
+
 </style>
 </head>
 <body>
 <main class="app">
   <div class="top"><button id="backButton" class="back" type="button">← 戻る</button><div class="live"><span class="dot"></span>60秒ごとに自動更新</div></div>
   <header class="hero"><small>ASOBooN / AIRウェイト</small><h1>あなたの呼出状況</h1><div id="storeName">アソブーン</div></header>
-  <section class="lookup"><div class="lookup-title">受付番号</div><form id="numberForm" class="form"><input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="例：1004"><button class="submit" type="submit">自分の状況を見る</button></form><div id="lookupError" class="error" hidden></div></section>
-  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="kicker">YOUR STATUS / あなたの状況</div><div class="mybox"><label>あなたの受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>現在の進行を反映した 呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+  <section class="lookup">
+  <div class="lookup-title">受付番号</div>
+  <div class="lookup-guide">予約時のメールに記載された受付番号、または現地で発券された受付番号を入力してください。</div>
+  <form id="numberForm" class="form">
+    <input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="例：1004" aria-label="受付番号">
+    <button class="submit" type="submit">確認する</button>
+  </form>
+  <div id="lookupError" class="error" hidden></div>
+</section>
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="kicker">YOUR STATUS / あなたの状況</div><div class="mybox"><label>あなたの受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
 <div id="entryAction" class="entry-action" hidden>
   <button id="enteredButton" class="entry-confirm-btn" type="button">
     <strong id="enteredButtonLabel">入場しました</strong>
@@ -129,11 +184,23 @@
   <div class="entry-action-note">実際に入場したあとに押してください。時刻は次の画面で修正できます。</div>
 </div>
 <div class="foot">「入場可能」は実際に呼出中になった時だけ表示します。時刻はあくまで目安です。</div></section>
-  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>進行状況</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>有効受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>呼出・案内が進んだ組</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline"><div class="track"><div id="timelineProgress" class="progress"></div><div id="progressMarker" class="marker progressmark" style="left:0%"></div><div id="youMarker" class="marker you" style="left:0%"></div><div id="youMarkerLabel" class="youlabel" style="left:0%">あなた</div></div><div class="ends"><span id="timelineStart">呼出開始 --:--</span><span id="timelineEnd">全員呼出 --:--目安</span></div></div><div class="flownote">当日の進行状況により前後します。</div><div class="qhead"><h2>この回の受付順</h2><span>WEB＋現地を受付時間順で統合</span></div><div id="userRoundQueue" class="queue"></div></section>
+  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>進行状況</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>有効受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>呼出・案内が進んだ組</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
+  <div class="track">
+    <div id="timelineProgress" class="progress"></div>
+    <div id="progressMarker" class="marker progressmark" style="left:0%"></div>
+    <div id="progressMarkerLabel" class="currentlabel" style="left:0%">現在</div>
+    <div id="youMarker" class="marker you" style="left:100%"></div>
+    <div id="youMarkerLabel" class="youlabel" style="left:100%">あなた</div>
+  </div>
+  <div class="ends">
+    <span id="timelineStart">先頭から入場開始 --:--</span>
+    <span id="timelineEnd">あなたの番号 呼び出し --:--</span>
+  </div>
+</div><div class="flownote">当日の進行状況により前後します。</div><div class="qhead"><h2>この回の受付順</h2></div><div id="userRoundQueue" class="queue"></div></section>
   <section class="rounds"><h2>本日の各回</h2><div id="roundList"></div></section>
   <div class="controls"><button id="changeNumberButton" class="ctrl" type="button">番号を変更</button><button id="refreshButton" class="ctrl primary" type="button">最新に更新</button></div>
   <div id="message" class="message">GitHub Pagesの公開URLでAirウェイトの最新情報を取得します。</div>
-  <footer class="footer">ASOBooN 呼出状況ページ V4.2<br>呼出時間は当日の進行状況を使った目安です。</footer>
+  <footer class="footer">ASOBooN 呼出状況</footer>
 </main>
 <script>
 (()=>{"use strict";
@@ -188,8 +255,46 @@ async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComp
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
 function findMine(n){const a=state.rows.filter(r=>rowNum(r)===n);if(!a.length)return null;const pri=r=>calling(r)?0:String(r.status)==="0"?1:String(r.status)==="4"?2:String(r.status)==="1"?3:String(r.status)==="2"?4:String(r.status)==="3"?5:9;return [...a].sort((x,y)=>pri(x)-pri(y))[0]}
 function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=`${state.myRound.label} / ${state.myRound.system||""}`;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
-let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=`${e.mode==="live"?"現在の実際の進行を反映":"標準進行から算出"}。当日の進行により前後します。`}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p);renderRounds(groups())}
-function renderFlow(g,p){const rd=g.round;$("flowTitle").textContent=`${rd.label} / ${rd.system||""}`;$("flowTotal").textContent=`${p.total}組`;$("flowProgressed").textContent=`${p.progressed}組`;$("flowAhead").textContent=Number.isFinite(p.ahead)?`${p.ahead}組`:"—";const[pl,pc]=pace(rd,p);$("paceBadge").textContent=pl;$("paceBadge").className=`pace ${pc}`;const pp=p.total?Math.min(100,p.progressed/p.total*100):0,yp=p.total&&p.rank?Math.min(100,Math.max(0,(p.rank-.5)/p.total*100)):0;$("timelineProgress").style.width=`${pp}%`;$("progressMarker").style.left=`${pp}%`;$("youMarker").style.left=`${yp}%`;$("youMarkerLabel").style.left=`${yp}%`;$("timelineStart").textContent=rd.start?`呼出開始 ${rd.start}`:"開始時刻なし";$("timelineEnd").textContent=rd.start?`全員呼出 ${clock(cmin(rd.start)+30)}目安`:"時間予測なし";$("userRoundQueue").innerHTML=g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=`${e.mode==="live"?"現在の実際の進行を反映":"標準進行から算出"}。当日の進行により前後します。`}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(groups())}
+function renderFlow(g,p,e){
+  const rd=g.round;
+  $("flowTitle").textContent=`${rd.label} / ${rd.system||""}`;
+  $("flowTotal").textContent=`${p.total}組`;
+  $("flowProgressed").textContent=`${p.progressed}組`;
+  $("flowAhead").textContent=Number.isFinite(p.ahead)?`${p.ahead}組`:"—";
+
+  const[pl,pc]=pace(rd,p);
+  $("paceBadge").textContent=pl;
+  $("paceBadge").className=`pace ${pc}`;
+
+  // このグラフは「回全体」ではなく、
+  // 左端＝先頭から入場開始、右端＝このお客様の番号呼び出し。
+  // その区間の中で現在どこまで進んだかだけを表示する。
+  const progressToMe=p.rank
+    ?Math.min(100,Math.max(0,(p.progressed/p.rank)*100))
+    :0;
+
+  $("timelineProgress").style.width=`${progressToMe}%`;
+  $("progressMarker").style.left=`${progressToMe}%`;
+  $("progressMarkerLabel").style.left=`${progressToMe}%`;
+  $("youMarker").style.left="100%";
+  $("youMarkerLabel").style.left="100%";
+
+  const myNumber=rowNum(state.myRow)??state.myRow?.number??"あなた";
+  $("timelineStart").textContent=rd.start
+    ?`先頭から入場開始 ${rd.start}`
+    :"先頭から入場開始";
+
+  if(calling(state.myRow)){
+    $("timelineEnd").textContent=`${myNumber}番 呼び出し中`;
+  }else if(e?.clock){
+    $("timelineEnd").textContent=`${myNumber}番 呼び出し ${e.clock}ごろ`;
+  }else{
+    $("timelineEnd").textContent=`${myNumber}番 呼び出し`;
+  }
+
+  $("userRoundQueue").innerHTML=g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("");
+}
 function renderRounds(gs){const root=$("roundList");root.innerHTML="";gs.forEach(g=>{const eff=g.rows.filter(r=>!canceled(r)),prog=eff.filter(advanced).length,open=state.open.has(g.round.id)||g.round.id===state.myRound?.id,card=document.createElement("article"),btn=document.createElement("button"),body=document.createElement("div");card.className="rcard";btn.className="rtoggle";btn.type="button";btn.innerHTML=`<span><strong>${esc(g.round.label)} / ${esc(g.round.system||"")}</strong><small>登録 ${g.rows.length}件 / 有効 ${eff.length}件 / 進行 ${prog}組</small></span><span class="arrow">›</span>`;body.className="rbody";body.hidden=!open;body.innerHTML=`<div class="queue">${g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}</div>`;btn.addEventListener("click",()=>{body.hidden=!body.hidden;if(!body.hidden)state.open.add(g.round.id);else state.open.delete(g.round.id)});card.append(btn,body);root.append(card)});if(!gs.length)root.innerHTML='<div class="message">本日の受付データはまだありません。</div>'}
 function resolve(){if(!state.my){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=true;$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}const r=findMine(state.my);if(!r){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=false;$("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}state.myRow=r;state.myRound=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};state.open.add(state.myRound.id);$("lookupError").hidden=true;renderMine()}
 async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="Airウェイトの最新情報を取得しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最新情報を表示中：${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")} 更新`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="最新情報を取得できませんでした。GitHub Pagesの公開URLで開いているか確認して、もう一度更新してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
@@ -236,7 +341,7 @@ $("enteredButton").addEventListener("click",()=>{
   window.setTimeout(()=>{location.href=url.toString()},450);
 });
 
-$("numberInput").addEventListener("input",e=>{const d=String(e.target.value).replace(/\D/g,"").slice(0,4);if(e.target.value!==d)e.target.value=d});$("numberForm").addEventListener("submit",e=>{e.preventDefault();const n=num($("numberInput").value);if(!n){$("lookupError").hidden=false;$("lookupError").textContent="1〜4桁の受付番号を入力してください。";return}state.my=n;localStorage.setItem(STORE_KEY,n);resolve()});$("changeNumberButton").addEventListener("click",()=>{state.my=state.myRow=state.myRound=null;localStorage.removeItem(STORE_KEY);$("numberInput").value="";resolve();$("numberInput").focus();window.scrollTo({top:0,behavior:"smooth"})});$("refreshButton").addEventListener("click",()=>refresh(true));$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");const saved=num(localStorage.getItem(STORE_KEY));if(saved){state.my=saved;$("numberInput").value=saved}refresh(true);setInterval(()=>refresh(false),60000);
+$("numberInput").addEventListener("input",e=>{const d=String(e.target.value).replace(/\D/g,"").slice(0,4);if(e.target.value!==d)e.target.value=d});$("numberForm").addEventListener("submit",e=>{e.preventDefault();const n=num($("numberInput").value);if(!n){$("lookupError").hidden=false;$("lookupError").textContent="受付番号を入力してください。";return}state.my=n;localStorage.setItem(STORE_KEY,n);resolve()});$("changeNumberButton").addEventListener("click",()=>{state.my=state.myRow=state.myRound=null;localStorage.removeItem(STORE_KEY);$("numberInput").value="";resolve();$("numberInput").focus();window.scrollTo({top:0,behavior:"smooth"})});$("refreshButton").addEventListener("click",()=>refresh(true));$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");const saved=num(localStorage.getItem(STORE_KEY));if(saved){state.my=saved;$("numberInput").value=saved}refresh(true);setInterval(()=>refresh(false),60000);
 })();
 </script>
 </body></html>
