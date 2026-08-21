@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#fff8e8">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン</title>
+<title>あなたの呼出状況｜アソブーン V4.3</title>
 <style>
 :root{--bg:#fff8e8;--ink:#17212a;--muted:#687781;--line:#e5e9eb;--orange:#f47d16;--blue:#167fc6;--green:#0c8a50;--amber:#d68a00;--red:#c93448;--shadow:0 14px 34px rgba(53,43,30,.10)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}body{color:var(--ink);background:radial-gradient(circle at 8% -4%,rgba(255,180,66,.27),transparent 29%),radial-gradient(circle at 100% 12%,rgba(22,127,198,.12),transparent 27%),var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
@@ -18,19 +18,122 @@
 .qhead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:16px 2px 8px}.qhead h2{margin:0;font-size:1.02rem}.qhead span{color:#7b878e;font-size:.62rem;font-weight:850}.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px}.q{position:relative;min-height:66px;display:grid;align-content:center;justify-items:center;padding:7px 5px;border:2px solid #dce5e9;border-radius:14px;background:#fff;text-align:center}.ord{position:absolute;top:5px;left:7px;color:#9ba5aa;font-size:.49rem;font-weight:1000}.qn{font-size:1.15rem;line-height:1;font-weight:1000}.qs{margin-top:5px;color:#75838b;font-size:.55rem;font-weight:1000}.q.waiting{border-color:#d2e7f2;background:#f9fdff}.q.calling{border-color:#4cc985;background:#e9fbf2}.q.calling .qn,.q.calling .qs{color:#087745}.q.done{opacity:.58;background:#f1f3f4}.q.hold{border-color:#e7b95d;background:#fff7df}.q.cancel{opacity:.42;background:#f4f4f4;text-decoration:line-through}.q.processing{border-color:#a9c1d0;background:#f2f7fa}.q.me{z-index:1;border:4px solid #f47d16!important;background:#fff3df!important;box-shadow:0 8px 18px rgba(215,110,19,.18)}.q.me .qn{color:#e8710b;font-size:1.33rem}.q.me:after{content:"あなた";position:absolute;right:4px;top:4px;padding:3px 5px;border-radius:999px;color:#fff;background:#f47d16;font-size:.46rem;font-weight:1000}
 .rounds{margin-top:15px}.rounds h2{margin:0 2px 9px;font-size:1rem}.rcard{margin-bottom:9px;overflow:hidden;border:1px solid #e0e6e8;border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(49,43,34,.05)}.rtoggle{width:100%;min-height:70px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 14px;border:0;color:var(--ink);text-align:left;background:#fff}.rtoggle strong{display:block;font-size:.95rem}.rtoggle small{display:block;margin-top:4px;color:#78858d;font-size:.63rem;font-weight:850}.arrow{color:#2877a6;font-size:1.55rem}.rbody{padding:0 12px 13px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.ctrl{min-height:49px;border:1px solid #d8e0e4;border-radius:15px;color:#334650;background:#fff;font-size:.73rem;font-weight:1000}.ctrl.primary{color:#fff;border-color:#263740;background:#263740}.message{margin-top:12px;padding:12px 13px;border-left:5px solid var(--orange);border-radius:13px;color:#5c4931;background:#fff;font-size:.7rem;line-height:1.5;font-weight:850}.message.error{color:#7d2e38;border-left-color:var(--red);background:#fff5f6}.footer{padding:17px 8px 5px;color:#89949a;text-align:center;font-size:.61rem;line-height:1.5;font-weight:750}
 @media(max-width:480px){.app{padding-left:10px;padding-right:10px}.form{grid-template-columns:1fr}.submit{width:100%}.flowstats{grid-template-columns:1fr 1fr}.flowstat:last-child{grid-column:1/-1}.queue{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.q{min-height:62px;padding-left:2px;padding-right:2px}.qn{font-size:1.02rem}.q.me .qn{font-size:1.16rem}}
+
+/* v4.1: 入場確定 → 「何時まであそべる？」自動連携 */
+.entry-action{
+  margin:0 15px 18px;
+}
+.entry-confirm-btn{
+  width:100%;
+  min-height:92px;
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  gap:5px;
+  padding:16px 18px;
+  border:3px solid #087b47;
+  border-radius:22px;
+  color:#fff;
+  background:
+    linear-gradient(180deg,#22b96f 0%,#0b8b51 100%);
+  box-shadow:
+    0 14px 30px rgba(12,139,80,.24),
+    inset 0 2px 0 rgba(255,255,255,.22);
+  font-weight:1000;
+}
+.entry-confirm-btn strong{
+  font-size:clamp(1.45rem,6vw,2rem);
+  line-height:1.1;
+}
+.entry-confirm-btn span{
+  font-size:.73rem;
+  line-height:1.35;
+  opacity:.95;
+}
+.entry-confirm-btn:active{
+  transform:translateY(2px) scale(.992);
+}
+.entry-confirm-btn:disabled{
+  cursor:default;
+  opacity:.82;
+}
+.entry-action-note{
+  margin-top:7px;
+  color:#64747d;
+  text-align:center;
+  font-size:.62rem;
+  line-height:1.45;
+  font-weight:800;
+}
+.personal.calling .entry-confirm-btn{
+  min-height:104px;
+  box-shadow:
+    0 16px 34px rgba(12,139,80,.28),
+    0 0 0 5px rgba(69,198,127,.08),
+    inset 0 2px 0 rgba(255,255,255,.24);
+}
+@media(max-width:480px){
+  .entry-action{margin-left:12px;margin-right:12px}
+  .entry-confirm-btn{min-height:88px}
+}
+
+
+/* V4.3 UI-FIRST — 説明文より視線誘導 */
+.hero{
+  padding-bottom:14px!important;
+}
+.hero h1{
+  margin-bottom:0!important;
+}
+.lookup{
+  padding-top:15px!important;
+}
+.lookup-head{
+  margin-bottom:0!important;
+}
+.lookup-title{
+  font-size:1.28rem!important;
+}
+.number-form{
+  margin-top:10px!important;
+}
+.queue-heading{
+  align-items:center!important;
+}
+.queue-heading h2{
+  font-size:1.08rem!important;
+}
+.flow-title small{
+  color:#4f7589!important;
+  font-size:.72rem!important;
+  letter-spacing:.06em;
+}
+.forecast-label{
+  font-size:.74rem!important;
+  letter-spacing:.04em;
+}
+
 </style>
 </head>
 <body>
 <main class="app">
   <div class="top"><button id="backButton" class="back" type="button">← 戻る</button><div class="live"><span class="dot"></span>60秒ごとに自動更新</div></div>
-  <header class="hero"><small>ASOBooN / AIRウェイト</small><h1>あなたの呼出状況</h1><p>自分の状態と、その回全体がどこまで進んでいるかを一緒に確認できます。</p><div id="storeName">アソブーン</div></header>
-  <section class="lookup"><div class="lookup-title">受付番号を入力</div><div class="lookup-copy">WEB・現地受付を同じ入場回にまとめ、実際の受付順で確認します。</div><form id="numberForm" class="form"><input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="例：1004"><button class="submit" type="submit">自分の状況を見る</button></form><div id="lookupError" class="error" hidden></div></section>
-  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="kicker">YOUR STATUS / あなたの状況</div><div class="mybox"><label>あなたの受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>現在の進行を反映した 呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div><div class="foot">「入場可能」は実際に呼出中になった時だけ表示します。時刻はあくまで目安です。</div></section>
-  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>この回 全体の流れ</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>有効受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>呼出・案内が進んだ組</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline"><div class="track"><div id="timelineProgress" class="progress"></div><div id="progressMarker" class="marker progressmark" style="left:0%"></div><div id="youMarker" class="marker you" style="left:0%"></div><div id="youMarkerLabel" class="youlabel" style="left:0%">あなた</div></div><div class="ends"><span id="timelineStart">呼出開始 --:--</span><span id="timelineEnd">全員呼出 --:--目安</span></div></div><div class="flownote">標準進行：最初の20組は5分以内、以降10組ごとに約5分、全体で約30分を目安にしています。</div><div class="qhead"><h2>この回の受付順</h2><span>WEB＋現地を受付時間順で統合</span></div><div id="userRoundQueue" class="queue"></div></section>
+  <header class="hero"><small>ASOBooN / AIRウェイト</small><h1>あなたの呼出状況</h1><div id="storeName">アソブーン</div></header>
+  <section class="lookup"><div class="lookup-title">受付番号</div><form id="numberForm" class="form"><input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="例：1004"><button class="submit" type="submit">自分の状況を見る</button></form><div id="lookupError" class="error" hidden></div></section>
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="kicker">YOUR STATUS / あなたの状況</div><div class="mybox"><label>あなたの受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>現在の進行を反映した 呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+<div id="entryAction" class="entry-action" hidden>
+  <button id="enteredButton" class="entry-confirm-btn" type="button">
+    <strong id="enteredButtonLabel">入場しました</strong>
+    <span id="enteredButtonSub">入場時刻を登録して「何時まであそべる？」へ</span>
+  </button>
+  <div class="entry-action-note">実際に入場したあとに押してください。時刻は次の画面で修正できます。</div>
+</div>
+<div class="foot">「入場可能」は実際に呼出中になった時だけ表示します。時刻はあくまで目安です。</div></section>
+  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>進行状況</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>有効受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>呼出・案内が進んだ組</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline"><div class="track"><div id="timelineProgress" class="progress"></div><div id="progressMarker" class="marker progressmark" style="left:0%"></div><div id="youMarker" class="marker you" style="left:0%"></div><div id="youMarkerLabel" class="youlabel" style="left:0%">あなた</div></div><div class="ends"><span id="timelineStart">呼出開始 --:--</span><span id="timelineEnd">全員呼出 --:--目安</span></div></div><div class="flownote">当日の進行状況により前後します。</div><div class="qhead"><h2>この回の受付順</h2><span>WEB＋現地を受付時間順で統合</span></div><div id="userRoundQueue" class="queue"></div></section>
   <section class="rounds"><h2>本日の各回</h2><div id="roundList"></div></section>
   <div class="controls"><button id="changeNumberButton" class="ctrl" type="button">番号を変更</button><button id="refreshButton" class="ctrl primary" type="button">最新に更新</button></div>
   <div id="message" class="message">GitHub Pagesの公開URLでAirウェイトの最新情報を取得します。</div>
-  <footer class="footer">ASOBooN 呼出状況ページ V4.0<br>呼出時間は当日の進行状況を使った目安です。</footer>
+  <footer class="footer">ASOBooN 呼出状況ページ V4.2<br>呼出時間は当日の進行状況を使った目安です。</footer>
 </main>
 <script>
 (()=>{"use strict";
@@ -47,6 +150,30 @@ const ROUNDS=[
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
 const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set()};
+const ENTRY_TRANSFER_KEY="asoboon-entry-transfer-v1";
+// V4.2: 利用時間は「回」ではなく受付番号レンジで判定する。
+function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function localTimeText(d=new Date()){return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+function playtimeDurationForNumber(number){
+  const n=Number(number);
+  if(!Number.isInteger(n))return null;
+
+  // 正本ルール
+  // 1〜799       → 3時間
+  // 1001〜2699   → 2時間30分
+  if(n>=1 && n<=799)return 180;
+  if(n>=1001 && n<=2699)return 150;
+
+  // それ以外は自動判定せず、次画面で手動選択
+  return null;
+}
+function updateEntryAction(row){
+  const action=$("entryAction");
+  if(!action)return;
+  if(!row){action.hidden=true;return}
+  const s=String(row.status);
+  action.hidden=!(calling(row)||s==="4"||s==="2");
+}
 const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 function num(v){const d=String(v??"").replace(/\D/g,"").slice(0,4);if(!d)return null;const n=Number(d);return n>=1&&n<=9999?n:null}function rowNum(r){const m=String(r?.number??"").match(/(\d{1,4})$/);return m?Number(m[1]):null}function cmin(c){if(!c)return null;const[h,m]=c.split(":").map(Number);return h*60+m}function nowm(){const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60}function clock(v){const n=((Math.round(v)%1440)+1440)%1440;return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
 function std(rank,total){if(!rank)return 0;const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));if(r<=20)return r/20*5;if(r<=30)return 5+(r-20)/10*5;if(r<=40)return 10+(r-30)/10*5;if(r<=50)return 15+(r-40)/10*5;if(r<=60)return 20+(r-50)/10*5;return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5}
@@ -61,11 +188,54 @@ async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComp
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
 function findMine(n){const a=state.rows.filter(r=>rowNum(r)===n);if(!a.length)return null;const pri=r=>calling(r)?0:String(r.status)==="0"?1:String(r.status)==="4"?2:String(r.status)==="1"?3:String(r.status)==="2"?4:String(r.status)==="3"?5:9;return [...a].sort((x,y)=>pri(x)-pri(y))[0]}
 function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=`${state.myRound.label} / ${state.myRound.system||""}`;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
-let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=`${e.mode==="live"?"現在の実際の進行を反映":"標準進行から算出"}。当日の進行により前後します。`}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p);renderRounds(groups())}
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=`${e.mode==="live"?"現在の実際の進行を反映":"標準進行から算出"}。当日の進行により前後します。`}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p);renderRounds(groups())}
 function renderFlow(g,p){const rd=g.round;$("flowTitle").textContent=`${rd.label} / ${rd.system||""}`;$("flowTotal").textContent=`${p.total}組`;$("flowProgressed").textContent=`${p.progressed}組`;$("flowAhead").textContent=Number.isFinite(p.ahead)?`${p.ahead}組`:"—";const[pl,pc]=pace(rd,p);$("paceBadge").textContent=pl;$("paceBadge").className=`pace ${pc}`;const pp=p.total?Math.min(100,p.progressed/p.total*100):0,yp=p.total&&p.rank?Math.min(100,Math.max(0,(p.rank-.5)/p.total*100)):0;$("timelineProgress").style.width=`${pp}%`;$("progressMarker").style.left=`${pp}%`;$("youMarker").style.left=`${yp}%`;$("youMarkerLabel").style.left=`${yp}%`;$("timelineStart").textContent=rd.start?`呼出開始 ${rd.start}`:"開始時刻なし";$("timelineEnd").textContent=rd.start?`全員呼出 ${clock(cmin(rd.start)+30)}目安`:"時間予測なし";$("userRoundQueue").innerHTML=g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}
 function renderRounds(gs){const root=$("roundList");root.innerHTML="";gs.forEach(g=>{const eff=g.rows.filter(r=>!canceled(r)),prog=eff.filter(advanced).length,open=state.open.has(g.round.id)||g.round.id===state.myRound?.id,card=document.createElement("article"),btn=document.createElement("button"),body=document.createElement("div");card.className="rcard";btn.className="rtoggle";btn.type="button";btn.innerHTML=`<span><strong>${esc(g.round.label)} / ${esc(g.round.system||"")}</strong><small>登録 ${g.rows.length}件 / 有効 ${eff.length}件 / 進行 ${prog}組</small></span><span class="arrow">›</span>`;body.className="rbody";body.hidden=!open;body.innerHTML=`<div class="queue">${g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}</div>`;btn.addEventListener("click",()=>{body.hidden=!body.hidden;if(!body.hidden)state.open.add(g.round.id);else state.open.delete(g.round.id)});card.append(btn,body);root.append(card)});if(!gs.length)root.innerHTML='<div class="message">本日の受付データはまだありません。</div>'}
-function resolve(){if(!state.my){state.myRow=state.myRound=null;$("lookupError").hidden=true;$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}const r=findMine(state.my);if(!r){state.myRow=state.myRound=null;$("lookupError").hidden=false;$("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}state.myRow=r;state.myRound=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};state.open.add(state.myRound.id);$("lookupError").hidden=true;renderMine()}
+function resolve(){if(!state.my){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=true;$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}const r=findMine(state.my);if(!r){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=false;$("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}state.myRow=r;state.myRound=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};state.open.add(state.myRound.id);$("lookupError").hidden=true;renderMine()}
 async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="Airウェイトの最新情報を取得しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最新情報を表示中：${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")} 更新`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="最新情報を取得できませんでした。GitHub Pagesの公開URLで開いているか確認して、もう一度更新してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
+$("enteredButton").addEventListener("click",()=>{
+  if(!state.myRow||!state.myRound)return;
+
+  const now=new Date();
+  const start=localTimeText(now);
+  const entryNumber=rowNum(state.myRow)??state.myRow.number??null;
+  const duration=playtimeDurationForNumber(entryNumber);
+  const payload={
+    start,
+    duration,
+    date:localDateKey(now),
+    number:entryNumber,
+    roundId:state.myRound.id,
+    roundLabel:state.myRound.label,
+    system:state.myRound.system||"",
+    createdAt:now.toISOString()
+  };
+
+  try{
+    localStorage.setItem(ENTRY_TRANSFER_KEY,JSON.stringify(payload));
+  }catch(error){
+    console.warn("entry transfer storage failed",error);
+  }
+
+  const label=$("enteredButtonLabel");
+  const sub=$("enteredButtonSub");
+  const btn=$("enteredButton");
+  btn.disabled=true;
+  label.textContent=`${start} 入場で登録 ✓`;
+  sub.textContent=duration===null
+    ?"利用時間は次の画面で選択してください"
+    :`${duration===180?"3時間":"2時間30分"}で自動登録して移動します`;
+
+  const url=new URL("./home.html",location.href);
+  url.searchParams.set("mode","inside");
+  url.searchParams.set("view","playtime");
+  url.searchParams.set("entry","auto");
+  url.searchParams.set("entryTime",start);
+  if(duration!==null)url.searchParams.set("entryDuration",String(duration));
+
+  window.setTimeout(()=>{location.href=url.toString()},450);
+});
+
 $("numberInput").addEventListener("input",e=>{const d=String(e.target.value).replace(/\D/g,"").slice(0,4);if(e.target.value!==d)e.target.value=d});$("numberForm").addEventListener("submit",e=>{e.preventDefault();const n=num($("numberInput").value);if(!n){$("lookupError").hidden=false;$("lookupError").textContent="1〜4桁の受付番号を入力してください。";return}state.my=n;localStorage.setItem(STORE_KEY,n);resolve()});$("changeNumberButton").addEventListener("click",()=>{state.my=state.myRow=state.myRound=null;localStorage.removeItem(STORE_KEY);$("numberInput").value="";resolve();$("numberInput").focus();window.scrollTo({top:0,behavior:"smooth"})});$("refreshButton").addEventListener("click",()=>refresh(true));$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");const saved=num(localStorage.getItem(STORE_KEY));if(saved){state.my=saved;$("numberInput").value=saved}refresh(true);setInterval(()=>refresh(false),60000);
 })();
 </script>
