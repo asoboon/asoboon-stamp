@@ -4157,6 +4157,64 @@
   font-weight:850;
 }
 
+  
+/* V2.5.2 — 呼出状況からの自動登録を「完了済み」と明確化 */
+.auto-entry-notice{
+  grid-template-columns:56px minmax(0,1fr)!important;
+  padding:15px!important;
+  border:3px solid #21a866!important;
+  background:linear-gradient(180deg,#f3fff8,#d9f8e7)!important;
+}
+.auto-entry-notice-icon{
+  width:56px!important;
+  height:56px!important;
+  border-radius:18px!important;
+  font-size:1.65rem!important;
+}
+.auto-entry-notice-copy strong{
+  display:inline-flex;
+  width:max-content;
+  align-items:center;
+  min-height:28px;
+  padding:4px 10px;
+  border-radius:999px;
+  color:#fff!important;
+  background:#0d8e55;
+  font-size:.76rem!important;
+  letter-spacing:.06em;
+}
+.auto-entry-notice-main{
+  display:block;
+  margin-top:2px;
+  color:#063e28;
+  font-size:clamp(1.15rem,4.8vw,1.52rem);
+  line-height:1.15;
+  font-weight:1000;
+}
+.auto-entry-notice-copy small{
+  margin-top:1px;
+  color:#17613f!important;
+  font-size:.73rem!important;
+}
+.auto-entry-actions{
+  position:relative;
+  z-index:2;
+  margin:12px 0 2px;
+}
+.auto-entry-edit{
+  width:100%;
+  min-height:50px;
+  border:2px solid rgba(236,211,154,.50);
+  border-radius:15px;
+  color:#f9e9bd;
+  background:rgba(5,18,16,.38);
+  font-size:.78rem;
+  font-weight:1000;
+}
+.auto-entry-edit:active{
+  transform:translateY(2px);
+}
+
   </style>
 </head>
 
@@ -5002,8 +5060,9 @@
         <div id="autoEntryNotice" class="auto-entry-notice" hidden role="status" aria-live="polite">
           <span class="auto-entry-notice-icon">✓</span>
           <span class="auto-entry-notice-copy">
-            <strong id="autoEntryNoticeTitle">入場時刻を自動登録しました</strong>
-            <small id="autoEntryNoticeText">呼出状況ページから入場時刻を引き継ぎました。</small>
+            <strong id="autoEntryNoticeTitle">設定済み</strong>
+            <span id="autoEntryNoticeMain" class="auto-entry-notice-main">--:-- 入場</span>
+            <small id="autoEntryNoticeText">このままでOKです。</small>
           </span>
         </div>
 
@@ -5085,7 +5144,13 @@
           </div>
         </div>
 
-        <div class="time-settings">
+        <div id="autoEntryActions" class="auto-entry-actions" hidden>
+          <button id="editAutoEntryButton" class="auto-entry-edit" type="button">
+            入場時刻・利用時間を変更する
+          </button>
+        </div>
+
+        <div class="time-settings" id="playtimeSettings">
           <div class="setting-head setting-head-simple">
             <strong>レシートの入場時刻</strong>
           </div>
@@ -6186,6 +6251,22 @@ const callStatusLink =
           "calcBtnSub"
         );
 
+      const playtimeSettings =
+        document.getElementById(
+          "playtimeSettings"
+        );
+
+      const autoEntryActions =
+        document.getElementById(
+          "autoEntryActions"
+        );
+
+      const editAutoEntryButton =
+        document.getElementById(
+          "editAutoEntryButton"
+        );
+
+      let playtimeAutoMode = false;
       let calcBtnFeedbackTimer = 0;
 
       const PLAYTIME_STORAGE_KEY =
@@ -6767,6 +6848,76 @@ const callStatusLink =
         }
       }
 
+      function setAutoEntryMode(
+        enabled,
+        entryStart = start.value,
+        entryDuration = selectedDuration
+      ) {
+        playtimeAutoMode =
+          Boolean(enabled);
+
+        if (playtimeSettings) {
+          playtimeSettings.hidden =
+            playtimeAutoMode;
+        }
+
+        if (autoEntryActions) {
+          autoEntryActions.hidden =
+            !playtimeAutoMode;
+        }
+
+        if (playtimeAutoMode) {
+          calcBtnLabel.textContent =
+            "変更を保存する";
+
+          calcBtnSub.textContent =
+            "修正した内容を反映";
+
+          const notice =
+            document.getElementById(
+              "autoEntryNotice"
+            );
+
+          const noticeTitle =
+            document.getElementById(
+              "autoEntryNoticeTitle"
+            );
+
+          const noticeMain =
+            document.getElementById(
+              "autoEntryNoticeMain"
+            );
+
+          const noticeText =
+            document.getElementById(
+              "autoEntryNoticeText"
+            );
+
+          if (notice) {
+            notice.hidden =
+              false;
+          }
+
+          if (noticeTitle) {
+            noticeTitle.textContent =
+              "設定済み ✓";
+          }
+
+          if (noticeMain) {
+            noticeMain.textContent =
+              `${entryStart} 入場・${durationLabel(entryDuration)}`;
+          }
+
+          if (noticeText) {
+            const schedule =
+              getSchedule();
+
+            noticeText.textContent =
+              `${timeText(schedule.end)}まで遊べます。この画面での操作は不要です。`;
+          }
+        }
+      }
+
       function applyEntryTransfer() {
         const notice =
           document.getElementById(
@@ -6871,17 +7022,43 @@ const callStatusLink =
           );
         }
 
-        if (notice) {
-          notice.hidden =
-            false;
+        if (hasKnownDuration) {
+          setAutoEntryMode(
+            true,
+            entryStart,
+            entryDuration
+          );
+        } else {
+          if (notice) {
+            notice.hidden =
+              false;
+          }
 
           noticeTitle.textContent =
-            `${entryStart} 入場で登録しました`;
+            "入場時刻を登録しました";
+
+          const noticeMain =
+            document.getElementById(
+              "autoEntryNoticeMain"
+            );
+
+          if (noticeMain) {
+            noticeMain.textContent =
+              `${entryStart} 入場`;
+          }
 
           noticeText.textContent =
-            hasKnownDuration
-              ? `${durationLabel(entryDuration)}として「何時まであそべる？」に反映しています。`
-              : "入場時刻を引き継ぎました。本日の利用時間を選択して設定してください。";
+            "利用時間を選択して設定してください。";
+
+          if (playtimeSettings) {
+            playtimeSettings.hidden =
+              false;
+          }
+
+          if (autoEntryActions) {
+            autoEntryActions.hidden =
+              true;
+          }
         }
 
         localStorage.removeItem(
@@ -7115,6 +7292,35 @@ const callStatusLink =
           status.sub;
       }
 
+      editAutoEntryButton.addEventListener(
+        "click",
+        () => {
+          playtimeAutoMode =
+            true;
+
+          if (playtimeSettings) {
+            playtimeSettings.hidden =
+              false;
+          }
+
+          if (autoEntryActions) {
+            autoEntryActions.hidden =
+              true;
+          }
+
+          calcBtnLabel.textContent =
+            "変更を保存する";
+
+          calcBtnSub.textContent =
+            "修正した内容を反映";
+
+          playtimeSettings.scrollIntoView({
+            behavior:"smooth",
+            block:"start"
+          });
+        }
+      );
+
       durationButtons.forEach(
         button => {
           button.addEventListener(
@@ -7191,6 +7397,26 @@ const callStatusLink =
         "click",
         () => {
           renderPlaytime(true);
+
+          if (playtimeAutoMode) {
+            setAutoEntryMode(
+              true,
+              start.value,
+              selectedDuration
+            );
+
+            if (playtimeSettings) {
+              playtimeSettings.hidden =
+                true;
+            }
+
+            if (autoEntryActions) {
+              autoEntryActions.hidden =
+                false;
+            }
+
+            return;
+          }
 
           clearTimeout(
             calcBtnFeedbackTimer
