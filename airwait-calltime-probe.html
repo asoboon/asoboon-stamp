@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Airウェイト 呼出時刻 読取診断</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root {
+  --bg:#0e1820; --panel:#172630; --panel2:#203541; --line:#38515e;
+  --ink:#f5f1e7; --muted:#aebcc4; --ok:#63d28f; --warn:#f5c04d; --bad:#f07878;
+  --blue:#66b8f0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:
+    radial-gradient(circle at 0 0,rgba(65,111,133,.24),transparent 35%),
+    linear-gradient(180deg,#0b151c,#101d25 55%,#0b141a);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+main{width:min(100%,900px);margin:0 auto;padding:18px 14px 40px}
+.hero{padding:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#1c303a,#14242c);box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.hero small{display:block;color:var(--blue);font-weight:900;letter-spacing:.08em}
+.hero h1{margin:5px 0 0;font-size:clamp(1.7rem,6vw,2.6rem);line-height:1.08}
+.hero p{margin:10px 0 0;color:var(--muted);font-size:.84rem;line-height:1.55;font-weight:700}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.badge{padding:6px 9px;border-radius:999px;background:#0e2029;border:1px solid #35505d;color:#cde1ea;font-size:.68rem;font-weight:900}
+.card{margin-top:12px;padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(23,38,48,.95);box-shadow:0 10px 25px rgba(0,0,0,.12)}
+.card h2{margin:0;font-size:1rem}
+.card .sub{margin-top:6px;color:var(--muted);font-size:.72rem;line-height:1.5}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{min-height:84px;display:grid;align-content:center;justify-items:center;padding:10px;border-radius:14px;background:#10212a;border:1px solid #2d4653;text-align:center}
+.stat small{color:#93a8b2;font-size:.62rem;font-weight:800}
+.stat strong{margin-top:5px;font-size:1.1rem}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .blue{color:var(--blue)}
+button{font:inherit}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn{min-height:52px;border:1px solid #47616d;border-radius:14px;color:#f4f6f7;background:#223843;font-weight:900;cursor:pointer}
+.btn.primary{border-color:#6fa5bd;background:linear-gradient(180deg,#2b667f,#214b60)}
+.btn:active{transform:translateY(1px)}
+.candidate{margin-top:9px;padding:12px;border:1px solid #3c5966;border-radius:14px;background:#0d1b22}
+.candidate.hit{border-color:#4e9a70;background:#10271d}
+.candidate h3{margin:0;font-size:.84rem}
+.kv{display:grid;grid-template-columns:145px minmax(0,1fr);gap:7px;padding:6px 0;border-bottom:1px solid rgba(103,132,145,.18);font-size:.69rem}
+.kv:last-child{border-bottom:0}
+.kv b{color:#9fc4d5;overflow-wrap:anywhere}
+.kv span{color:#e8edf0;overflow-wrap:anywhere}
+.raw{margin-top:9px;max-height:320px;overflow:auto;padding:10px;border-radius:12px;background:#081218;color:#cfe1e8;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+.logitem{margin-top:8px;padding:9px;border-radius:11px;background:#10212a;border:1px solid #2c4551}
+.logtop{display:flex;justify-content:space-between;gap:8px;font-size:.65rem;font-weight:900}
+.logurl{margin-top:5px;color:#bfd4de;font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all}
+.official{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.official .stat strong{font-size:1rem}
+.note{margin-top:10px;padding:10px;border-left:4px solid var(--warn);border-radius:9px;background:#241f12;color:#e9dab1;font-size:.69rem;line-height:1.5}
+footer{padding:16px 5px 0;color:#71858f;text-align:center;font-size:.62rem}
+#airwaitSource{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+@media(max-width:560px){
+  .status-grid{grid-template-columns:1fr}
+  .official{grid-template-columns:1fr 1fr}
+  .btnrow{grid-template-columns:1fr}
+  .kv{grid-template-columns:110px minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <small>READ-ONLY DIAGNOSTIC</small>
+    <h1>Airウェイト 呼出時刻 読取診断</h1>
+    <p>公式Webサイト連携スクリプトがブラウザ内で取得している通信を読み取り、個別の呼出日時に使える値が含まれているか確認します。Airウェイトへの書込み操作は行いません。</p>
+    <div class="badges">
+      <span class="badge">書込みAPI 不使用</span>
+      <span class="badge">asoboon.github.io 専用</span>
+      <span class="badge">fetch / XHR / JSONP候補を記録</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>診断状態</h2>
+    <div class="status-grid">
+      <div class="stat"><small>実行ドメイン</small><strong id="domainState">確認中</strong></div>
+      <div class="stat"><small>公式スクリプト</small><strong id="scriptState">未読込</strong></div>
+      <div class="stat"><small>呼出時刻候補</small><strong id="candidateState">探索中</strong></div>
+    </div>
+    <div class="btnrow">
+      <button id="reloadProbe" class="btn primary" type="button">診断をやり直す</button>
+      <button id="copyReport" class="btn" type="button">診断結果をコピー</button>
+    </div>
+    <div class="note">このページは <b>https://asoboon.github.io/...</b> に置いて開いてください。登録外ドメインやローカルでは、Airウェイト側のドメイン制限で正しい診断になりません。</div>
+  </section>
+
+  <section class="card">
+    <h2>公式Webサイト連携の表示値</h2>
+    <div class="official">
+      <div class="stat"><small>店舗名</small><strong id="showStore">--</strong></div>
+      <div class="stat"><small>待ち組数</small><strong id="showCount">--</strong></div>
+      <div class="stat"><small>待ち時間</small><strong id="showTime">--</strong></div>
+      <div class="stat"><small>呼出中 最大番号</small><strong id="showMax">--</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>呼出時刻に使えそうな候補</h2>
+    <div class="sub">通信レスポンス内から、call / calling / date / time / reserve / update に関係するフィールドを自動抽出します。</div>
+    <div id="candidateList">
+      <div class="candidate"><h3>まだ候補は見つかっていません</h3></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>捕捉した通信</h2>
+    <div class="sub">fetch / XMLHttpRequest / 動的SCRIPT・IFRAME・IMG / Resource Timing を記録します。</div>
+    <div id="networkList"></div>
+  </section>
+
+  <section class="card">
+    <h2>診断レポート</h2>
+    <pre id="report" class="raw">診断中…</pre>
+  </section>
+
+  <footer>ASOBooN / Airウェイト 呼出日時診断</footer>
+</main>
+
+<div id="airwaitSource" data-airwait="storeId:KR01205179">
+  <span id="awStore" data-airwait="storeName">--</span>
+  <span id="awCount" data-airwait="waitCount">--</span>
+  <span id="awTime" data-airwait="waitTime">--</span>
+  <span id="awMax" data-airwait="maxCallingNumber">--</span>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const KEYWORDS = [
+    "calldate","call_date","callingdate","calling_date","calltime","call_time",
+    "calledat","called_at","call","calling","date","time","reserve","update","status"
+  ];
+
+  const records = [];
+  const candidates = [];
+  const seenCandidate = new Set();
+  let officialScriptLoaded = false;
+  let reportTimer = 0;
+
+  const $ = id => document.getElementById(id);
+
+  function now() {
+    return new Date().toISOString();
+  }
+
+  function safeText(v, max=15000) {
+    try {
+      const s = typeof v === "string" ? v : JSON.stringify(v);
+      return String(s ?? "").slice(0,max);
+    } catch(e) {
+      return String(v ?? "").slice(0,max);
+    }
+  }
+
+  function record(type, data={}) {
+    records.push({at:now(),type,...data});
+    if(records.length > 250) records.shift();
+    scanAny(data, `${type}`);
+    scheduleRender();
+  }
+
+  function candidate(path, value, source) {
+    const key = `${source}|${path}|${safeText(value,500)}`;
+    if(seenCandidate.has(key)) return;
+    seenCandidate.add(key);
+    candidates.push({source,path,value:safeText(value,1000),at:now()});
+    if(candidates.length > 180) candidates.shift();
+  }
+
+  function scanAny(value, source, path="root", depth=0) {
+    if(depth > 7 || value == null) return;
+
+    if(typeof value === "string") {
+      const trimmed = value.trim();
+      if(trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+          scanAny(JSON.parse(trimmed), source, path, depth+1);
+        } catch(e) {}
+      }
+      const low = path.toLowerCase();
+      if(KEYWORDS.some(k => low.includes(k))) candidate(path, value, source);
+      return;
+    }
+
+    if(Array.isArray(value)) {
+      value.slice(0,150).forEach((v,i)=>scanAny(v,source,`${path}[${i}]`,depth+1));
+      return;
+    }
+
+    if(typeof value === "object") {
+      Object.entries(value).slice(0,250).forEach(([k,v])=>{
+        const p = `${path}.${k}`;
+        const low = k.toLowerCase();
+        if(KEYWORDS.some(x => low.includes(x))) candidate(p,v,source);
+        scanAny(v,source,p,depth+1);
+      });
+    }
+  }
+
+  function tryJson(text) {
+    try { return JSON.parse(text); } catch(e) { return null; }
+  }
+
+  // fetch を先に監視
+  if(window.fetch) {
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async function(input, init) {
+      const url = typeof input === "string" ? input : input?.url;
+      const method = String(init?.method || input?.method || "GET").toUpperCase();
+      const started = performance.now();
+      try {
+        const res = await nativeFetch(input, init);
+        const clone = res.clone();
+        let text = "";
+        try { text = await clone.text(); } catch(e) {}
+        const parsed = tryJson(text);
+        record("fetch",{
+          method,url,status:res.status,
+          durationMs:Math.round(performance.now()-started),
+          body: parsed ?? text
+        });
+        return res;
+      } catch(error) {
+        record("fetch-error",{method,url,error:String(error)});
+        throw error;
+      }
+    };
+  }
+
+  // XHR を先に監視
+  const nativeOpen = XMLHttpRequest.prototype.open;
+  const nativeSend = XMLHttpRequest.prototype.send;
+
+  XMLHttpRequest.prototype.open = function(method,url,...rest) {
+    this.__probeMethod = method;
+    this.__probeUrl = String(url);
+    return nativeOpen.call(this,method,url,...rest);
+  };
+
+  XMLHttpRequest.prototype.send = function(body) {
+    const started = performance.now();
+    this.addEventListener("loadend",()=>{
+      let text = "";
+      try { text = this.responseText || ""; } catch(e) {}
+      const parsed = tryJson(text);
+      record("xhr",{
+        method:String(this.__probeMethod||"GET").toUpperCase(),
+        url:this.__probeUrl||"",
+        status:this.status,
+        durationMs:Math.round(performance.now()-started),
+        requestBody:safeText(body,3000),
+        body:parsed ?? text
+      });
+    },{once:true});
+    return nativeSend.call(this,body);
+  };
+
+  // JSONP / 動的リソース候補を監視
+  const observer = new MutationObserver(mutations=>{
+    for(const mutation of mutations) {
+      for(const node of mutation.addedNodes) {
+        if(!(node instanceof Element)) continue;
+        const nodes = [node, ...node.querySelectorAll?.("script[src],iframe[src],img[src]") || []];
+        nodes.forEach(el=>{
+          const tag = el.tagName?.toLowerCase();
+          const src = el.src || el.getAttribute?.("src");
+          if(src) record("dom-resource",{tag,url:String(src)});
+        });
+      }
+    }
+  });
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+
+  function officialValues() {
+    return {
+      storeName:$("awStore")?.textContent?.trim(),
+      waitCount:$("awCount")?.textContent?.trim(),
+      waitTime:$("awTime")?.textContent?.trim(),
+      maxCallingNumber:$("awMax")?.textContent?.trim()
+    };
+  }
+
+  function renderOfficial() {
+    const v = officialValues();
+    $("showStore").textContent = v.storeName || "--";
+    $("showCount").textContent = v.waitCount || "--";
+    $("showTime").textContent = v.waitTime || "--";
+    $("showMax").textContent = v.maxCallingNumber || "--";
+  }
+
+  function isStrongCandidate(c) {
+    const p = c.path.toLowerCase();
+    return ["calldate","call_date","callingdate","calling_date","calltime","call_time","calledat","called_at"]
+      .some(k=>p.includes(k));
+  }
+
+  function renderCandidates() {
+    const root = $("candidateList");
+    if(!candidates.length) {
+      root.innerHTML = '<div class="candidate"><h3>まだ候補は見つかっていません</h3></div>';
+      $("candidateState").textContent = "未検出";
+      $("candidateState").className = "warn";
+      return;
+    }
+
+    const sorted = [...candidates].sort((a,b)=>
+      Number(isStrongCandidate(b))-Number(isStrongCandidate(a))
+    );
+
+    const strong = sorted.some(isStrongCandidate);
+    $("candidateState").textContent = strong ? "強い候補あり" : `${sorted.length}件検出`;
+    $("candidateState").className = strong ? "ok" : "blue";
+
+    root.innerHTML = sorted.slice(0,80).map(c=>`
+      <div class="candidate ${isStrongCandidate(c)?"hit":""}">
+        <h3>${isStrongCandidate(c)?"★ 呼出時刻の有力候補":"候補フィールド"}</h3>
+        <div class="kv"><b>source</b><span>${escapeHtml(c.source)}</span></div>
+        <div class="kv"><b>path</b><span>${escapeHtml(c.path)}</span></div>
+        <div class="kv"><b>value</b><span>${escapeHtml(c.value)}</span></div>
+      </div>
+    `).join("");
+  }
+
+  function renderNetwork() {
+    const list = records.slice(-80).reverse();
+    $("networkList").innerHTML = list.map(r=>{
+      const url = r.url || "";
+      const meta = [r.method,r.status,r.durationMs!=null?`${r.durationMs}ms`:""].filter(Boolean).join(" / ");
+      return `<div class="logitem">
+        <div class="logtop"><span>${escapeHtml(r.type)}</span><span>${escapeHtml(meta)}</span></div>
+        <div class="logurl">${escapeHtml(url || safeText(r.body,500))}</div>
+      </div>`;
+    }).join("") || '<div class="candidate"><h3>まだ通信を捕捉していません</h3></div>';
+  }
+
+  function resourceEntries() {
+    try {
+      return performance.getEntriesByType("resource")
+        .map(e=>({name:e.name,initiatorType:e.initiatorType,duration:Math.round(e.duration)}))
+        .filter(e=>/airwait|cl\.airwait|wclp|wcsp/i.test(e.name));
+    } catch(e) { return []; }
+  }
+
+  function buildReport() {
+    return {
+      generatedAt:now(),
+      location:location.href,
+      hostname:location.hostname,
+      registeredDomain:location.hostname === "asoboon.github.io",
+      officialScriptLoaded,
+      officialValues:officialValues(),
+      strongCandidates:candidates.filter(isStrongCandidate),
+      allCandidates:candidates,
+      network:records,
+      airwaitResources:resourceEntries(),
+      conclusionHint:
+        candidates.some(isStrongCandidate)
+          ? "呼出時刻に使える可能性の高いフィールドを検出"
+          : "callDate等の直接的な呼出時刻フィールドは未検出"
+    };
+  }
+
+  function renderReport() {
+    const onDomain = location.hostname === "asoboon.github.io";
+    $("domainState").textContent = onDomain ? "登録ドメイン" : "登録外";
+    $("domainState").className = onDomain ? "ok" : "bad";
+    $("scriptState").textContent = officialScriptLoaded ? "読込済み" : "読込中";
+    $("scriptState").className = officialScriptLoaded ? "ok" : "warn";
+
+    renderOfficial();
+    renderCandidates();
+    renderNetwork();
+
+    const resources = resourceEntries();
+    resources.forEach(r=>scanAny(r,"resource-timing"));
+
+    $("report").textContent = JSON.stringify(buildReport(),null,2);
+  }
+
+  function scheduleRender() {
+    clearTimeout(reportTimer);
+    reportTimer = setTimeout(renderReport,120);
+  }
+
+  function escapeHtml(v) {
+    return String(v ?? "").replace(/[&<>"']/g,m=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  async function loadOfficialScript() {
+    const script = document.createElement("script");
+    script.src = "https://airwait.jp/js/corporate/airwait.js";
+    script.setAttribute("data-airwait","key:lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI");
+    script.charset = "utf-8";
+    script.onload = () => {
+      officialScriptLoaded = true;
+      record("official-script",{status:"loaded",url:script.src});
+      renderReport();
+    };
+    script.onerror = () => {
+      record("official-script-error",{url:script.src});
+      renderReport();
+    };
+    document.body.appendChild(script);
+  }
+
+  $("copyReport").addEventListener("click", async()=>{
+    const text = JSON.stringify(buildReport(),null,2);
+    try {
+      await navigator.clipboard.writeText(text);
+      $("copyReport").textContent = "コピーしました ✓";
+      setTimeout(()=>$("copyReport").textContent="診断結果をコピー",1600);
+    } catch(e) {
+      const ta=document.createElement("textarea");
+      ta.value=text;document.body.appendChild(ta);ta.select();
+      document.execCommand("copy");ta.remove();
+    }
+  });
+
+  $("reloadProbe").addEventListener("click",()=>location.reload());
+
+  const sourceObserver = new MutationObserver(()=>{
+    renderOfficial();
+    record("official-dom-update",officialValues());
+  });
+  sourceObserver.observe($("airwaitSource"),{subtree:true,childList:true,characterData:true});
+
+  loadOfficialScript();
+  renderReport();
+
+  setInterval(renderReport,1000);
+  setTimeout(()=>{
+    resourceEntries().forEach(r=>record("resource-timing",r));
+    renderReport();
+  },8000);
+})();
+</script>
+</body>
+</html>
