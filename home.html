@@ -5156,7 +5156,7 @@
         <div class="journey-card" id="journeyCard">
           <div class="journey-labels">
             <span id="journeyStart">入場 --:--</span>
-            <strong id="journeyDuration">2時間30分</strong>
+            <strong id="journeyDuration">利用時間を選択</strong>
             <span id="journeyEnd">終了 --:--</span>
           </div>
 
@@ -5261,7 +5261,7 @@
             aria-label="利用時間を選択"
           >
             <button
-              class="duration-btn active"
+              class="duration-btn"
               type="button"
               data-duration="150"
             >
@@ -5293,8 +5293,8 @@
             id="calcBtn"
             type="button"
           >
-            <strong id="calcBtnLabel">この入場時刻で設定する</strong>
-            <small id="calcBtnSub">何時まで遊べるか表示</small>
+            <strong id="calcBtnLabel">利用時間を選んで設定する</strong>
+            <small id="calcBtnSub">2時間30分・3時間・時間制限なし</small>
           </button>
         </div>
 
@@ -5666,7 +5666,7 @@
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              大人600円、子ども900円です。0〜5か月のお子さまの料金には条件があります。
+              大人600円、子ども900円です。0〜5ヶ月までの子どもは追加料金無料です。
             </div>
           </details>
 
@@ -5781,7 +5781,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.2.6";
+      const MINIAPP_CALLSTATUS_BUILD="5.3.0";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -6228,12 +6228,44 @@ const callStatusLink =
           appConfig.boonRunUrl;
       }
 
+      function showAvailabilityFallback(message) {
+        availabilityFrame.hidden = true;
+        availabilityFallback.hidden = false;
+        const reserveUrl = appConfig.reservationUrl || "#";
+        availabilityFallback.innerHTML = `
+          <div class="availability-setup">
+            <strong>${message}</strong><br>
+            最新状況はWEB予約ページでも確認できます。
+          </div>
+          <a class="reservation-primary" href="${reserveUrl}" target="_blank" rel="noopener noreferrer">
+            <span><strong>WEB予約ページで確認する</strong><small>当日分の整理券</small></span>
+            <span>↗</span>
+          </a>`;
+      }
+
       if (appConfig.congestionWidgetUrl) {
+        let availabilityLoaded = false;
+
+        availabilityFrame.addEventListener("load", () => {
+          availabilityLoaded = true;
+          availabilityFrame.hidden = false;
+          availabilityFallback.hidden = true;
+        }, { once:true });
+
+        availabilityFrame.addEventListener("error", () => {
+          showAvailabilityFallback("本日の空き状況を読み込めませんでした。");
+        }, { once:true });
+
         availabilityFrame.src =
           appConfig.congestionWidgetUrl;
 
-        availabilityFrame.hidden = false;
-        availabilityFallback.hidden = true;
+        setTimeout(() => {
+          if (!availabilityLoaded) {
+            showAvailabilityFallback("本日の空き状況を読み込めませんでした。");
+          }
+        }, 8000);
+      } else {
+        showAvailabilityFallback("本日の空き状況を表示できません。");
       }
 
       const faq =
@@ -6320,7 +6352,7 @@ const callStatusLink =
       const ENTRY_TRANSFER_KEY =
         "asoboon-entry-transfer-v1";
 
-      let selectedDuration = 150;
+      let selectedDuration = null;
 
       let activePlaytimeDateKey =
         getLocalDateKey();
@@ -6368,12 +6400,14 @@ const callStatusLink =
       const MAX_ENTRY_MINUTES = 18 * 60;
 
       function getClosingMinutes(duration = selectedDuration) {
+        if (duration === null) return 18 * 60;
         return duration === 150
           ? 18 * 60
           : 17 * 60;
       }
 
       function closingTimeLabel(duration = selectedDuration) {
+        if (duration === null) return "18:00";
         return duration === 150
           ? "18:00"
           : "17:00";
@@ -6428,11 +6462,11 @@ const callStatusLink =
       function resetPlaytimeUi(
         now = new Date()
       ) {
-        selectedDuration = 150;
+        selectedDuration = null;
         start.value =
-          closestTimeOption(now);
+          closestTimeOption(now, null);
 
-        setDuration(150);
+        setDuration(null);
         updateStatus();
       }
 
@@ -6506,7 +6540,7 @@ const callStatusLink =
         selectedDuration =
           [0,150,180].includes(minutes)
             ? minutes
-            : 150;
+            : null;
 
         start.max =
           closingTimeLabel(selectedDuration);
@@ -6515,9 +6549,8 @@ const callStatusLink =
           button => {
             button.classList.toggle(
               "active",
-              Number(
-                button.dataset.duration
-              ) === selectedDuration
+              selectedDuration !== null &&
+              Number(button.dataset.duration) === selectedDuration
             );
           }
         );
@@ -6527,9 +6560,19 @@ const callStatusLink =
             "journeyDuration"
           )
           .textContent =
-            durationLabel(
-              selectedDuration
-            );
+            selectedDuration === null
+              ? "利用時間を選択"
+              : durationLabel(selectedDuration);
+
+        calcBtnLabel.textContent =
+          selectedDuration === null
+            ? "利用時間を選んで設定する"
+            : "この入場時刻で設定する";
+
+        calcBtnSub.textContent =
+          selectedDuration === null
+            ? "2時間30分・3時間・時間制限なし"
+            : "何時まで遊べるか表示";
 
         renderPlaytime(false);
       }
@@ -6700,13 +6743,6 @@ const callStatusLink =
         const now =
           new Date();
 
-        const {
-          entry,
-          end,
-          closing,
-          closingCapped
-        } = getSchedule();
-
         const main =
           document.getElementById(
             "timeResultMain"
@@ -6731,6 +6767,28 @@ const callStatusLink =
           document.getElementById(
             "journeyCar"
           );
+
+        if (selectedDuration === null) {
+          main.textContent = "利用時間を選択";
+          sub.textContent = "本日の利用時間を選んでください";
+          note.textContent = "";
+          document.getElementById("journeyStart").textContent =
+            isValidTimeValue(start.value) ? `入場 ${start.value}` : "入場 --:--";
+          document.getElementById("journeyDuration").textContent = "利用時間を選択";
+          document.getElementById("journeyEnd").textContent = "終了 --:--";
+          progress.style.width = "0%";
+          car.style.left = "0%";
+          if (save) notify("本日の利用時間を選択してください");
+          return false;
+        }
+
+        const {
+          entry,
+          end,
+          closing,
+          closingCapped
+        } = getSchedule();
+
 
         document
           .getElementById(
@@ -7062,6 +7120,7 @@ const callStatusLink =
             true
           );
         } else {
+          setDuration(null);
           renderPlaytime(
             false
           );
@@ -7138,7 +7197,7 @@ const callStatusLink =
                 Number(data.duration)
               )
                 ? Number(data.duration)
-                : 150;
+                : null;
 
             restored = true;
           } else if (data) {
@@ -7153,11 +7212,12 @@ const callStatusLink =
         }
 
         if (!restored) {
-          selectedDuration = 150;
+          selectedDuration = null;
 
           start.value =
             closestTimeOption(
-              new Date()
+              new Date(),
+              null
             );
         }
 
@@ -7441,6 +7501,11 @@ const callStatusLink =
       calcBtn.addEventListener(
         "click",
         () => {
+          if (selectedDuration === null) {
+            renderPlaytime(true);
+            return;
+          }
+
           renderPlaytime(true);
 
           if (playtimeAutoMode) {

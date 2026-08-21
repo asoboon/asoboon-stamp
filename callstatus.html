@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.2.6</title>
+<title>あなたの呼出状況｜アソブーン V5.3.0</title>
 <style>
 
 :root{
@@ -428,7 +428,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   </form>
   <div id="lookupError" class="error" hidden></div>
 </section>
-  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div id="personalMetrics" class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div id="forecastBox" class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
 <div id="callDeadline" class="call-deadline" hidden>
   <div class="call-deadline-head"><strong id="callDeadlineTitle">呼出後30分以内に受付へ</strong><span id="callDeadlineBadge" class="call-deadline-badge">入場可能</span></div>
   <div class="call-times"><div class="call-timebox"><small>呼出時刻</small><strong id="actualCallTime">--:--</strong></div><div class="call-timebox"><small>受付期限</small><strong id="actualDeadlineTime">--:--</strong></div></div>
@@ -466,7 +466,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.2.6";
+const CUSTOMER_BUILD="5.3.0";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -479,7 +479,7 @@ const ROUNDS=[
 {id:"w14",label:"14:00の回",start:"14:00",ranges:[[8401,8599],[9401,9599]],system:"平日"},
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
-const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0,activeDate:""};
+const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0,activeDate:"",dataSource:""};
 const CALLTIME_CFG=window.ASOBOON_CALLTIME_CONFIG||{};
 let callDeadlineTicker=0;
 let callTimeServerOffsetMs=0;
@@ -518,7 +518,9 @@ function updateEntryAction(row){
   if(!action)return;
   if(!row){action.hidden=true;return}
   const st=currentCustomerState(row);
-  action.hidden=!(st==="calling"||st==="processing"||st==="done");
+  // 呼出中の段階ではまだ入場時刻を開始しない。
+  // AirWait上で受付処理が進んだ後だけ「入場後」の操作を出す。
+  action.hidden=!(st==="processing"||st==="done");
 }
 if(CALLTIME_CFG.parkingUrl&&$("parkingLink"))$("parkingLink").href=CALLTIME_CFG.parkingUrl;
 const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
@@ -615,6 +617,20 @@ function ensureCustomerDay(){
 
 function calltimeConfigured(){return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?|$)/.test(String(CALLTIME_CFG.webAppUrl||""))}
 function jsonpCalltime(params,timeout=6500){return new Promise((resolve,reject)=>{if(!calltimeConfigured())return reject(Error("calltime backend not configured"));const cb=`__asoboon_calltime_${Date.now()}_${Math.random().toString(36).slice(2)}`,u=new URL(String(CALLTIME_CFG.webAppUrl));Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v??"")));u.searchParams.set("callback",cb);u.searchParams.set("_",Date.now());const s=document.createElement("script");let done=false;const finish=(err,val)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){}s.remove();err?reject(err):resolve(val)};window[cb]=v=>finish(null,v);s.src=u.toString();s.onerror=()=>finish(Error("calltime backend failed"));document.head.appendChild(s);const t=setTimeout(()=>finish(Error("calltime backend timeout")),timeout)})}
+
+async function sharedSnapshot(){
+  if(!calltimeConfigured())return null;
+  try{
+    const d=await jsonpCalltime({action:"getSnapshot",date:localDateForCalltime()},5500);
+    if(d?.ok&&d?.found&&Array.isArray(d.rows)){
+      return{rows:d.rows,source:"shared",ageMs:Number(d.ageMs||0)};
+    }
+  }catch(e){
+    console.warn("shared snapshot",e);
+  }
+  return null;
+}
+
 function clockFromEpoch(ms){const d=new Date(ms);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
 function correctedNow(){return Date.now()+Number(callTimeServerOffsetMs||0)}
 function trustedCall(callData){return ["high","confirmed_manual"].includes(String(callData?.reliability||""))||String(callData?.source||"")==="manual_reference"}
@@ -722,7 +738,7 @@ function rs(r){
   if(st==="calling")return["calling","呼出中"];
   if(st==="waiting")return["waiting","待ち"];
   return["waiting","受付"]
-}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
+}function qhtml(r,i,me){const[k,l]=rs(r),n=rawTicket(r)||"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
 async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`混雑状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"混雑状況取得失敗");return d?.innerDto?.stores?.[0]||null}
 async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`受付状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"受付状況取得失敗");return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
@@ -750,16 +766,21 @@ function findMineResult(input){
 
   return{kind:"notfound",row:null,candidates:[]};
 }
-function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;hideCallDeadline();return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
+function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;hideCallDeadline();return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rawTicket(state.myRow)||"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
 let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";
 const currentState=currentCustomerState(state.myRow);
+const terminalCancel=currentState==="cancel";
+$("personalMetrics").hidden=terminalCancel;
+$("forecastBox").hidden=terminalCancel;
+$("flowSection").hidden=terminalCancel;
+if(terminalCancel){hideCallDeadline();$("entryAction").hidden=true;}
 if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}
 else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}
 else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
 else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
 else if(currentState==="calling"){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}
 else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}
-else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}if(currentState!=="cancel")renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
   $("flowTitle").textContent=rd.label;
@@ -862,15 +883,31 @@ async function refresh(show=true){
 
   state.refreshPromise=(async()=>{
     try{
-      // お客様画面では受付一覧だけを取得。店舗名は固定表示にして、
-      // 300人規模の同時アクセス時にAirWaitへの不要な1リクエスト/人を削減する。
-      const rows=await allRows();
+      // 通常はスタッフ監視画面がGASへ共有したスナップショットを読む。
+      // 300人が同時アクセスしても各端末がAirWait一覧APIを直接たたかない構成。
+      let shared=await sharedSnapshot();
+      let rows=null;
+
+      if(shared&&shared.rows.length){
+        rows=shared.rows;
+        state.dataSource="shared";
+      }else{
+        // 監視画面/GASが一時停止している場合だけAirWaitへ直接フォールバック。
+        // 同時発火を避けるためランダム待機を入れる。
+        await sleep(show?Math.floor(Math.random()*2200):3500+Math.floor(Math.random()*6500));
+        rows=await allRows();
+        state.dataSource="direct";
+      }
+
       state.rows=rows;
       $("storeName").textContent="アソブーン";
       resolve();
       const d=new Date();
       $("message").classList.remove("error");
-      $("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      $("message").textContent=
+        state.dataSource==="shared"
+          ?`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`
+          :`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}（直接取得）`;
       return true;
     }catch(e){
       console.error(e);
@@ -909,7 +946,7 @@ async function lookupNumber(){
     // 一覧未取得時は初回照会。わずかなランダム遅延で
     // 一斉アクセス時のリクエスト集中を少し分散する。
     if(!state.rows.length && !state.refreshPromise){
-      await sleep(Math.floor(Math.random()*1200));
+      await sleep(Math.floor(Math.random()*2600));
     }
     if(!state.rows.length || state.loading){
       await refresh(false);
@@ -940,11 +977,13 @@ async function lookupNumber(){
 
 function scheduleAutoRefresh(){
   clearTimeout(state.autoRefreshTimer);
-  // 60〜75秒のランダム間隔にして、利用者全員の更新時刻が揃うのを避ける。
-  const delay=60000+Math.floor(Math.random()*15000);
+  // 75〜105秒で分散。通常は共有スナップショットのみ参照する。
+  const delay=75000+Math.floor(Math.random()*30000);
   state.autoRefreshTimer=setTimeout(async()=>{
     if(!ensureCustomerDay()){scheduleAutoRefresh();return}
-    if(document.visibilityState==="visible" && state.my)await refresh(false);
+    const st=currentCustomerState(state.myRow);
+    const shouldRefresh=st==="waiting"||st==="calling"||st==="hold"||!state.myRow;
+    if(document.visibilityState==="visible" && state.my && shouldRefresh)await refresh(false);
     scheduleAutoRefresh();
   },delay);
 }
