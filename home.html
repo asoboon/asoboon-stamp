@@ -4635,9 +4635,7 @@
         <a
           class="reservation-call-cta"
           id="reservationCallLink"
-          href="https://comaam.jp/airwaitapi/reserve.html"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="./callstatus.html"
         >
           <span>
             <strong>呼出状況を見る</strong>
@@ -4647,7 +4645,7 @@
         </a>
 
         <div class="reservation-critical">
-          <strong>「ご来店ください」になったら受付へ</strong>
+          <strong>「入場可能」になったら受付へ</strong>
           <span>呼出後30分以内</span>
         </div>
       </section>
@@ -4664,15 +4662,13 @@
         <h3>現在の呼出状況</h3>
 
         <p>
-          「ご来店ください」と表示されたら受付へお進みください。
+          呼出状況で「入場可能」と表示されたら受付へお進みください。
         </p>
 
         <a
           class="call-status-button"
           id="callStatusLink"
-          href="https://comaam.jp/airwaitapi/reserve.html"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="./callstatus.html"
         >
           <span>呼出状況ページを開く</span>
           <span>↗</span>
@@ -5643,7 +5639,7 @@
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              有効な整理券があれば入場枠は確保されています。ただし、呼び出しから30分を過ぎると自動キャンセルになります。呼出状況をご確認いただき、「ご来店ください」と表示されたら受付へお進みください。
+              有効な整理券があれば入場枠は確保されています。ただし、呼び出しから30分を過ぎると自動キャンセルになります。呼出状況をご確認いただき、呼出状況で「入場可能」と表示されたら受付へお進みください。
             </div>
           </details>
 
@@ -5764,7 +5760,7 @@
         "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
       callStatusUrl:
-        "https://comaam.jp/airwaitapi/reserve.html",
+        "./callstatus.html",
 
       stampRallyUrl:
         "https://miniapp.line.me/2009888671-57TOefc3?stamp=home",
@@ -5785,6 +5781,7 @@
 
   <script>
     (() => {
+      const MINIAPP_CALLSTATUS_BUILD="5.2.1";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5834,6 +5831,12 @@
       }
 
       function showView(name, update = true) {
+        if (name === "call") {
+          const target = new URL("./callstatus.html", location.href);
+          location.href = target.toString();
+          return;
+        }
+
         views.forEach(view => {
           view.classList.remove("active");
         });
