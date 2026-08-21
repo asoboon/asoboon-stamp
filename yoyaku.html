@@ -1,1 +1,672 @@
-.
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f2b46">
+
+  <title>ASOBooN｜WEB受付</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+      background:#f4ead1;
+      color:#2f291f;
+    }
+
+    .app{
+      width:min(100%,520px);
+      margin:auto;
+      padding:16px 14px 50px;
+    }
+
+    .header{
+      text-align:center;
+      padding:20px 12px;
+    }
+
+    .brand{
+      font-size:.8rem;
+      font-weight:900;
+      color:#6d6353;
+      letter-spacing:.08em;
+    }
+
+    h1{
+      margin:8px 0 4px;
+      font-size:1.7rem;
+      color:#0f2b46;
+    }
+
+    .target-label{
+      margin-top:18px;
+      color:#8c5428;
+      font-weight:900;
+      font-size:.85rem;
+    }
+
+    .target-date{
+      margin-top:4px;
+      font-size:1.7rem;
+      line-height:1.2;
+      font-weight:950;
+      color:#172f47;
+    }
+
+    .status{
+      margin:14px auto 0;
+      display:inline-block;
+      padding:7px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:900;
+      background:#def4e7;
+      color:#17633e;
+    }
+
+    .slots{
+      display:grid;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .slot{
+      background:#fffaf0;
+      border:2px solid #d9c59b;
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 7px 18px rgba(70,50,20,.1);
+    }
+
+    .slot-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .slot-name{
+      font-size:1.35rem;
+      font-weight:950;
+      color:#102b45;
+    }
+
+    .badge{
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:.7rem;
+      font-weight:950;
+      white-space:nowrap;
+    }
+
+    .open{
+      background:#dbf4e5;
+      color:#17613c;
+    }
+
+    .few{
+      background:#fff0cf;
+      color:#8a5800;
+    }
+
+    .closed{
+      background:#e7e7e7;
+      color:#686868;
+    }
+
+    .remaining{
+      margin-top:10px;
+      font-size:.85rem;
+      color:#675b48;
+    }
+
+    .remaining strong{
+      display:inline-block;
+      margin-right:3px;
+      font-size:1.45rem;
+      color:#2d261c;
+    }
+
+    .reserve-btn{
+      width:100%;
+      margin-top:13px;
+      border:0;
+      border-radius:13px;
+      padding:14px 12px;
+      background:#e77918;
+      color:#fff;
+      font-size:.95rem;
+      font-weight:950;
+      cursor:pointer;
+    }
+
+    .reserve-btn:disabled{
+      background:#aaa;
+      cursor:default;
+    }
+
+    .notice{
+      margin-top:18px;
+      padding:14px;
+      border-radius:14px;
+      background:#fff8e8;
+      border:1px solid #dbc79b;
+      font-size:.78rem;
+      line-height:1.7;
+      color:#625846;
+    }
+
+    .loading,
+    .error{
+      padding:24px 14px;
+      text-align:center;
+      border-radius:16px;
+      background:#fffaf0;
+      color:#766b59;
+    }
+
+    .error{
+      color:#a74232;
+    }
+
+    .update{
+      text-align:center;
+      margin-top:14px;
+      color:#8d806b;
+      font-size:.68rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div class="brand">ASOBooN WEB受付</div>
+
+    <div class="target-label" id="dayLabel">
+      ご入場分
+    </div>
+
+    <div class="target-date" id="targetDate">
+      --
+    </div>
+
+    <div class="status" id="mainStatus">
+      受付状況を確認しています
+    </div>
+  </header>
+
+  <main>
+    <div id="slots" class="slots">
+      <div class="loading">
+        空き状況を確認しています…
+      </div>
+    </div>
+
+    <div class="notice">
+      空いている時間を選んで受付してください。<br>
+      受付状況はAirウェイトの情報をもとに表示しています。
+    </div>
+
+    <div class="update" id="updated">
+      --
+    </div>
+  </main>
+
+</div>
+
+<script>
+
+const AIRWAIT_KEY =
+  'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI';
+
+const STORE_ID =
+  'KR01205179';
+
+const WAIT_TYPE_API =
+  'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
+
+const WAIT_INFO_API =
+  'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
+
+
+/* ==============================
+   入場対象日
+============================== */
+
+function setTargetDate(){
+
+  const now = new Date();
+
+  const target = new Date(now);
+
+  /*
+    19:00以降
+    → 翌日の入場分
+  */
+
+  if(now.getHours() >= 19){
+    target.setDate(target.getDate() + 1);
+  }
+
+  const isTomorrow =
+    target.getDate() !== now.getDate();
+
+  document.getElementById('dayLabel').textContent =
+    isTomorrow
+      ? '明日ご入場分'
+      : '本日ご入場分';
+
+  const weekdays =
+    ['日','月','火','水','木','金','土'];
+
+  document.getElementById('targetDate').textContent =
+    `${target.getMonth()+1}月${target.getDate()}日（${weekdays[target.getDay()]}）`;
+
+}
+
+
+/* ==============================
+   Airウェイト取得
+============================== */
+
+async function getWaitTypes(){
+
+  const url =
+    `${WAIT_TYPE_API}?key=${encodeURIComponent(AIRWAIT_KEY)}`;
+
+  const body =
+    new URLSearchParams({
+      storeId:STORE_ID
+    });
+
+  const response =
+    await fetch(url,{
+      method:'POST',
+      headers:{
+        'Content-Type':
+        'application/x-www-form-urlencoded'
+      },
+      body
+    });
+
+  return response.json();
+
+}
+
+
+async function getWaitInfo(){
+
+  const url =
+    `${WAIT_INFO_API}` +
+    `?key=${encodeURIComponent(AIRWAIT_KEY)}` +
+    `&storeId=${encodeURIComponent(STORE_ID)}`;
+
+  const response =
+    await fetch(url);
+
+  return response.json();
+
+}
+
+
+/* ==============================
+   表示
+============================== */
+
+function makeSlotCard(type, detail, store){
+
+  const remaining =
+    detail?.remainingNum;
+
+  const reserveUnit =
+    detail?.reserveUnit;
+
+  let unit = '';
+
+  if(reserveUnit === 'PERSON'){
+    unit = '名';
+  }
+
+  else if(reserveUnit === 'GROUP'){
+    unit = '組';
+  }
+
+  let statusText =
+    '受付中';
+
+  let statusClass =
+    'open';
+
+  let disabled =
+    false;
+
+
+  /*
+    店舗全体がオンライン受付不可
+  */
+
+  if(store.onlineRcptCode !== '00'){
+
+    statusText =
+      '受付時間外';
+
+    statusClass =
+      'closed';
+
+    disabled =
+      true;
+
+  }
+
+  /*
+    残数0
+  */
+
+  else if(
+    remaining !== null &&
+    Number(remaining) <= 0
+  ){
+
+    statusText =
+      '受付終了';
+
+    statusClass =
+      'closed';
+
+    disabled =
+      true;
+
+  }
+
+  /*
+    残り10以下
+  */
+
+  else if(
+    remaining !== null &&
+    Number(remaining) <= 10
+  ){
+
+    statusText =
+      '残りわずか';
+
+    statusClass =
+      'few';
+
+  }
+
+
+  let remainingHtml = '';
+
+  if(remaining !== null){
+
+    remainingHtml =
+      `<div class="remaining">
+        あと
+        <strong>${remaining}</strong>${unit}
+        予約できます
+      </div>`;
+
+  }
+
+  else{
+
+    remainingHtml =
+      `<div class="remaining">
+        現在受付できます
+      </div>`;
+
+  }
+
+
+  const button = disabled
+
+    ? `<button class="reserve-btn" disabled>
+        受付できません
+       </button>`
+
+    : `<button
+         class="reserve-btn"
+         onclick="reserve('${store.storeUrl}')">
+         この時間を予約する
+       </button>`;
+
+
+  return `
+    <section class="slot">
+
+      <div class="slot-top">
+
+        <div class="slot-name">
+          ${escapeHtml(type.waitTypeName)}
+        </div>
+
+        <span class="badge ${statusClass}">
+          ${statusText}
+        </span>
+
+      </div>
+
+      ${remainingHtml}
+
+      ${button}
+
+    </section>
+  `;
+
+}
+
+
+/* ==============================
+   読み込み
+============================== */
+
+async function load(){
+
+  try{
+
+    const [
+      typeData,
+      waitData
+    ] =
+    await Promise.all([
+      getWaitTypes(),
+      getWaitInfo()
+    ]);
+
+
+    const types =
+      typeData?.innerDto?.waitTypeList || [];
+
+    const store =
+      waitData?.innerDto?.stores?.[0];
+
+
+    if(!store){
+      throw new Error(
+        '店舗情報を取得できませんでした'
+      );
+    }
+
+
+    /*
+      アクティブ
+      ＋オンラインで使える枠のみ
+    */
+
+    const onlineTypes =
+      types
+        .filter(type =>
+          type.dispFlg === true &&
+          (
+            type.usageDispType === '01' ||
+            type.usageDispType === '03'
+          )
+        )
+        .sort(
+          (a,b) =>
+          Number(a.dispNo) -
+          Number(b.dispNo)
+        );
+
+
+    const details =
+      store.waitDetails || [];
+
+
+    const html =
+      onlineTypes.map(type => {
+
+        const detail =
+          details.find(
+            item =>
+              item.detailedWaitType ===
+              type.waitTypeName
+          );
+
+        return makeSlotCard(
+          type,
+          detail,
+          store
+        );
+
+      }).join('');
+
+
+    document.getElementById('slots')
+      .innerHTML =
+        html ||
+        `<div class="loading">
+           現在受付できる枠はありません。
+         </div>`;
+
+
+    /*
+      全体状態
+    */
+
+    const mainStatus =
+      document.getElementById(
+        'mainStatus'
+      );
+
+    if(store.onlineRcptCode === '00'){
+
+      mainStatus.textContent =
+        '● 現在受付中';
+
+      mainStatus.style.background =
+        '#def4e7';
+
+      mainStatus.style.color =
+        '#17633e';
+
+    }
+
+    else{
+
+      mainStatus.textContent =
+        '現在受付時間外です';
+
+      mainStatus.style.background =
+        '#eee';
+
+      mainStatus.style.color =
+        '#666';
+
+    }
+
+
+    document.getElementById(
+      'updated'
+    ).textContent =
+      '最終更新 ' +
+      new Date().toLocaleTimeString(
+        'ja-JP',
+        {
+          hour:'2-digit',
+          minute:'2-digit'
+        }
+      );
+
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+    document.getElementById(
+      'slots'
+    ).innerHTML =
+      `<div class="error">
+        受付状況を取得できませんでした。<br>
+        少し時間をおいて再度お試しください。
+      </div>`;
+
+    document.getElementById(
+      'mainStatus'
+    ).textContent =
+      '情報取得エラー';
+
+  }
+
+}
+
+
+/* ==============================
+   予約
+============================== */
+
+function reserve(url){
+
+  if(!url){
+    alert(
+      '予約ページを取得できませんでした'
+    );
+    return;
+  }
+
+  location.href = url;
+
+}
+
+
+/* ==============================
+   HTML安全化
+============================== */
+
+function escapeHtml(value){
+
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* ==============================
+   起動
+============================== */
+
+setTargetDate();
+load();
+
+/* 60秒ごとに更新 */
+setInterval(load,60000);
+
+</script>
+
+</body>
+</html>
