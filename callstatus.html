@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V4.7</title>
+<title>あなたの呼出状況｜アソブーン V5.1.1</title>
 <style>
 
 :root{
@@ -399,236 +399,8 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 }
 
 
-/* V4.7 呼出タイムリミット */
-.deadline{
-  position:relative;
-  margin:14px 0 16px;
-  padding:14px 14px 16px;
-  border:2px solid rgba(164,108,23,.34);
-  border-radius:22px;
-  background:
-    radial-gradient(circle at 18% 16%,rgba(255,252,240,.76),transparent 32%),
-    linear-gradient(180deg,rgba(255,247,223,.98),rgba(240,225,181,.98));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.62),
-    0 10px 22px rgba(76,53,18,.09);
-  overflow:hidden;
-}
-.deadline:before{
-  content:"";
-  position:absolute;
-  inset:8px;
-  border:1px dashed rgba(126,89,29,.18);
-  border-radius:16px;
-  pointer-events:none;
-}
-.deadline-head{
-  position:relative;
-  z-index:1;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-}
-.deadline-tag{
-  display:inline-flex;
-  align-items:center;
-  min-height:28px;
-  padding:0 10px;
-  border-radius:999px;
-  color:#fff7df;
-  background:linear-gradient(180deg,#a3481f,#84280f);
-  font-size:.68rem;
-  font-weight:1000;
-  letter-spacing:.08em;
-  box-shadow:0 4px 10px rgba(111,40,18,.18);
-}
-.deadline-head strong{
-  color:#5d3416;
-  font-size:.86rem;
-  line-height:1.2;
-  font-weight:1000;
-}
-.deadline-visual{
-  position:relative;
-  z-index:1;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 76px;
-  align-items:center;
-  gap:10px;
-}
-.fuse{
-  position:relative;
-  height:24px;
-}
-.fuse-track{
-  position:absolute;
-  left:0;
-  right:0;
-  top:50%;
-  height:8px;
-  transform:translateY(-50%);
-  border-radius:999px;
-  background:linear-gradient(90deg,#5f4623,#7d5c2e 42%,#93662f);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
-}
-.fuse-burn{
-  position:absolute;
-  left:0;
-  top:50%;
-  height:8px;
-  transform:translateY(-50%);
-  border-radius:999px;
-  background:linear-gradient(90deg,#ffe88c,#ffb634,#ff7c16,#d63f0a);
-  box-shadow:0 0 10px rgba(255,152,28,.4), 0 0 18px rgba(255,116,14,.22);
-}
-.fuse-spark{
-  position:absolute;
-  top:50%;
-  width:24px;
-  height:24px;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 50% 50%,#fffce7 0 20%,#ffd968 24%,#ff8f1f 54%,rgba(255,90,0,.1) 75%,rgba(255,90,0,0) 100%);
-  filter:drop-shadow(0 0 8px rgba(255,152,28,.55));
-}
-.fuse-spark:before,
-.fuse-spark:after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:50%;
-  background:
-    conic-gradient(from 0deg,#ffce52 0 16%,transparent 16% 26%,#fff7ba 26% 36%,transparent 36% 48%,#ff9d1d 48% 63%,transparent 63% 74%,#ffd45d 74% 86%,transparent 86% 100%);
-  transform:scale(1.28);
-  opacity:.9;
-}
-.fuse-spark:after{
-  transform:scale(1.7) rotate(18deg);
-  opacity:.5;
-}
-.bomb{
-  position:relative;
-  width:76px;
-  height:76px;
-  place-self:end;
-}
-.bomb-ball{
-  position:absolute;
-  right:2px;
-  bottom:0;
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 32% 30%,#7a6452 0 10%,#3d2f25 18%,#1e1917 55%,#120f0e 100%);
-  box-shadow:
-    inset 0 3px 8px rgba(255,255,255,.08),
-    inset 0 -8px 12px rgba(0,0,0,.25),
-    0 8px 18px rgba(38,24,10,.15);
-}
-.bomb-ball:before{
-  content:"";
-  position:absolute;
-  left:14px;
-  top:14px;
-  width:12px;
-  height:12px;
-  border-radius:50%;
-  background:rgba(255,255,255,.2);
-}
-.bomb-neck{
-  position:absolute;
-  right:38px;
-  top:3px;
-  width:22px;
-  height:18px;
-  border:5px solid #74521f;
-  border-bottom:none;
-  border-radius:14px 14px 0 0;
-  transform:rotate(-12deg);
-}
-.deadline-time{
-  position:relative;
-  z-index:1;
-  display:grid;
-  grid-template-columns:1fr auto;
-  align-items:end;
-  gap:10px;
-  margin-top:10px;
-}
-.deadline-time small{
-  color:#785826;
-  font-size:.72rem;
-  font-weight:900;
-}
-.deadline-time strong{
-  color:#6b1d0a;
-  font-size:clamp(1.5rem,7vw,2.48rem);
-  line-height:.95;
-  font-weight:1000;
-  letter-spacing:-.04em;
-  font-variant-numeric:tabular-nums;
-}
-.deadline-sub{
-  position:relative;
-  z-index:1;
-  margin-top:8px;
-  color:#664e2a;
-  font-size:.72rem;
-  line-height:1.45;
-  font-weight:850;
-}
-.deadline.warn .deadline-tag{
-  background:linear-gradient(180deg,#b85c16,#932e09);
-}
-.deadline.warn .deadline-time strong{
-  color:#b34f0d;
-}
-.deadline.warn .fuse-burn{
-  background:linear-gradient(90deg,#ffd95b,#ff981f,#f45d10,#cf240d);
-}
-.deadline.danger .deadline-tag{
-  background:linear-gradient(180deg,#ca3218,#8a0f10);
-}
-.deadline.danger .deadline-time strong{
-  color:#a11414;
-}
-.deadline.danger .fuse-burn{
-  background:linear-gradient(90deg,#ffbe3d,#ff7013,#d61b0d,#8e0d14);
-}
-.deadline.expired .deadline-tag{
-  background:linear-gradient(180deg,#6e2d1b,#4a160f);
-}
-.deadline.expired .deadline-time strong{
-  color:#6b1d0a;
-}
-.deadline.expired .deadline-sub{
-  color:#6b1d0a;
-}
-@media(max-width:480px){
-  .deadline{
-    padding:12px;
-  }
-  .deadline-visual{
-    grid-template-columns:minmax(0,1fr) 64px;
-  }
-  .bomb{
-    width:64px;
-    height:64px;
-  }
-  .bomb-ball{
-    width:56px;
-    height:56px;
-  }
-  .bomb-neck{
-    right:28px;
-    width:20px;
-    height:16px;
-  }
-}
+/* V5.1.1 実呼出時刻・安全導線 */
+.call-deadline{position:relative;margin:14px 0 12px;padding:16px;border:2px solid rgba(69,116,82,.34);border-radius:20px;background:radial-gradient(circle at 14% 12%,rgba(255,255,255,.55),transparent 32%),linear-gradient(180deg,#f3edd8,#e7d7b3);box-shadow:0 8px 18px rgba(70,48,17,.08);color:#3e3323}.call-deadline[hidden]{display:none!important}.call-deadline-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.call-deadline-head strong{font-size:1rem;font-weight:1000;color:#2f654b}.call-deadline-badge{padding:5px 9px;border-radius:999px;background:#2f654b;color:white;font-size:.65rem;font-weight:1000;letter-spacing:.06em}.call-times{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.call-timebox{min-height:78px;display:grid;align-content:center;justify-items:center;border:1px solid rgba(103,79,34,.22);border-radius:14px;background:rgba(255,250,235,.72)}.call-timebox small{color:#79643d;font-size:.68rem;font-weight:900}.call-timebox strong{margin-top:5px;color:#3d2f1e;font-size:1.55rem;font-weight:1000;font-variant-numeric:tabular-nums}.call-remaining{margin-top:10px;text-align:center}.call-remaining small{display:block;color:#765f39;font-size:.68rem;font-weight:900}.call-remaining strong{display:block;margin-top:3px;color:#2f654b;font-size:1.55rem;font-weight:1000}.call-gauge{position:relative;height:12px;margin-top:10px;border-radius:999px;overflow:hidden;background:#cdbf9e;box-shadow:inset 0 1px 2px rgba(63,45,15,.12)}.call-gauge>span{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#2f654b,#6f9874);transition:width .5s ease}.call-safe{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(47,101,75,.09);color:#315a45;font-size:.72rem;line-height:1.5;font-weight:900;text-align:center}.call-deadline.warn{border-color:rgba(177,126,42,.5)}.call-deadline.warn .call-deadline-head strong,.call-deadline.warn .call-remaining strong{color:#94691f}.call-deadline.warn .call-deadline-badge{background:#a67729}.call-deadline.warn .call-gauge>span{background:linear-gradient(90deg,#9d7a36,#d0a543)}.call-deadline.danger{border-color:rgba(169,72,51,.48)}.call-deadline.danger .call-deadline-head strong,.call-deadline.danger .call-remaining strong{color:#9a4635}.call-deadline.danger .call-deadline-badge{background:#a94833}.call-deadline.danger .call-gauge>span{background:linear-gradient(90deg,#a36a39,#b94f37)}.call-deadline.unknown .call-deadline-head strong{color:#725d38}.parking-cta{display:flex;align-items:center;justify-content:center;gap:9px;min-height:56px;margin-top:10px;padding:10px 14px;border:2px solid rgba(62,83,92,.32);border-radius:16px;text-decoration:none;color:#f8f3e5!important;background:linear-gradient(180deg,#274c5c,#1b3845);box-shadow:0 5px 0 rgba(28,39,43,.18);font-weight:1000}.parking-cta:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(28,39,43,.18)}.parking-cta small{display:block;font-size:.64rem;font-weight:800;color:#cfdae0}.parking-cta strong{font-size:.95rem}@media(max-width:450px){.call-timebox strong{font-size:1.35rem}}
 
 </style>
 </head>
@@ -657,28 +429,13 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <div id="lookupError" class="error" hidden></div>
 </section>
   <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
-
-<div id="callingDeadline" class="deadline" hidden>
-  <div class="deadline-head">
-    <span class="deadline-tag">TIME LIMIT</span>
-    <strong>呼出から30分で自動キャンセル</strong>
-  </div>
-  <div class="deadline-visual">
-    <div class="fuse">
-      <div class="fuse-track"></div>
-      <div id="fuseBurn" class="fuse-burn" style="width:0%"></div>
-      <div id="fuseSpark" class="fuse-spark" style="left:0%"></div>
-    </div>
-    <div class="bomb" aria-hidden="true">
-      <div class="bomb-neck"></div>
-      <div class="bomb-ball"></div>
-    </div>
-  </div>
-  <div class="deadline-time">
-    <small>キャンセルまで</small>
-    <strong id="deadlineClock">30:00</strong>
-  </div>
-  <div id="deadlineSub" class="deadline-sub">呼出されたら、30分以内に受付へお越しください。</div>
+<div id="callDeadline" class="call-deadline" hidden>
+  <div class="call-deadline-head"><strong id="callDeadlineTitle">呼出後30分以内に受付へ</strong><span id="callDeadlineBadge" class="call-deadline-badge">入場可能</span></div>
+  <div class="call-times"><div class="call-timebox"><small>呼出時刻</small><strong id="actualCallTime">--:--</strong></div><div class="call-timebox"><small>受付期限</small><strong id="actualDeadlineTime">--:--</strong></div></div>
+  <div class="call-remaining"><small>受付期限まで</small><strong id="actualRemaining">確認中</strong></div>
+  <div class="call-gauge" aria-hidden="true"><span id="callGaugeFill"></span></div>
+  <div id="callSafeText" class="call-safe">慌てず、安全に受付へお越しください。</div>
+  <a id="parkingLink" class="parking-cta" href="./home.html?mode=before&amp;view=parking"><span aria-hidden="true">🅿️</span><span><small>来場前に確認できます</small><strong>駐車場・アクセスを見る</strong></span></a>
 </div>
 <div id="entryAction" class="entry-action" hidden>
   <button id="enteredButton" class="entry-confirm-btn" type="button">
@@ -706,6 +463,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <div id="message" class="message">情報を読み込んでいます…</div>
   <footer class="footer">ASOBooN 呼出状況</footer>
 </main>
+<script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
@@ -720,89 +478,13 @@ const ROUNDS=[
 {id:"w14",label:"14:00の回",start:"14:00",ranges:[[8401,8599],[9401,9599]],system:"平日"},
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
-const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set()};
-const CALL_TIMER_KEY="asoboon-call-timers-v1";
-let callingDeadlineTicker=0;
+const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map()};
+const CALLTIME_CFG=window.ASOBOON_CALLTIME_CONFIG||{};
+let callDeadlineTicker=0;
+let callTimeServerOffsetMs=0;
 const ENTRY_TRANSFER_KEY="asoboon-entry-transfer-v1";
 // V4.2: 利用時間は「回」ではなく受付番号レンジで判定する。
 function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function loadCallTimers(){try{return JSON.parse(localStorage.getItem(CALL_TIMER_KEY)||"{}")||{}}catch(e){return {}}}
-function saveCallTimers(map){try{localStorage.setItem(CALL_TIMER_KEY,JSON.stringify(map))}catch(e){}}
-function timerId(r){return `${localDateKey()}_${r?.reserveId||rowNum(r)||r?.number||"unknown"}`}
-function syncCallTimers(){
-  const map=loadCallTimers();
-  state.rows.forEach(r=>{
-    if(calling(r)){
-      const key=timerId(r);
-      if(!map[key])map[key]=Date.now();
-    }
-  });
-  Object.keys(map).forEach(key=>{
-    if(!key.startsWith(localDateKey()))delete map[key];
-  });
-  saveCallTimers(map);
-}
-function callingDeadlineInfo(r){
-  if(!calling(r))return null;
-  const map=loadCallTimers();
-  const key=timerId(r);
-  const startedAt=Number(map[key]||Date.now());
-  const limit=30*60*1000;
-  const elapsed=Math.max(0,Date.now()-startedAt);
-  const remaining=Math.max(0,limit-elapsed);
-  const progress=Math.max(0,Math.min(1,elapsed/limit));
-  return {startedAt,elapsed,remaining,progress,expired:remaining<=0};
-}
-function mmss(ms){
-  const sec=Math.max(0,Math.ceil(ms/1000));
-  const m=Math.floor(sec/60),s=sec%60;
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-function stopCallingDeadlineTicker(){
-  if(callingDeadlineTicker){
-    clearInterval(callingDeadlineTicker);
-    callingDeadlineTicker=0;
-  }
-}
-function applyDeadlineVisual(box,info){
-  const percent=Math.round(info.progress*100);
-  $("fuseBurn").style.width=`${percent}%`;
-  $("fuseSpark").style.left=`${percent}%`;
-  $("deadlineClock").textContent=mmss(info.remaining);
-  box.className="deadline";
-  let sub="呼出されたら、30分以内に受付へお越しください。";
-  if(info.expired){
-    box.classList.add("expired");
-    sub="30分を過ぎています。受付でスタッフにご確認ください。";
-  }else if(info.remaining<=5*60*1000){
-    box.classList.add("danger");
-    sub="残りわずかです。お早めに受付へお越しください。";
-  }else if(info.remaining<=10*60*1000){
-    box.classList.add("warn");
-    sub="残り10分以内です。お急ぎください。";
-  }
-  $("deadlineSub").textContent=sub;
-}
-function renderCallingDeadline(r){
-  const box=$("callingDeadline");
-  const info=callingDeadlineInfo(r);
-  if(!box||!info){
-    if(box)box.hidden=true;
-    stopCallingDeadlineTicker();
-    return;
-  }
-  box.hidden=false;
-  applyDeadlineVisual(box,info);
-  stopCallingDeadlineTicker();
-  callingDeadlineTicker=setInterval(()=>{
-    const live=callingDeadlineInfo(state.myRow);
-    if(!live||!calling(state.myRow)){
-      renderCallingDeadline(null);
-      return;
-    }
-    applyDeadlineVisual(box,live);
-  },1000);
-}
 function localTimeText(d=new Date()){return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
 function playtimeDurationForNumber(number){
   const n=Number(number);
@@ -824,6 +506,7 @@ function updateEntryAction(row){
   const s=String(row.status);
   action.hidden=!(calling(row)||s==="4"||s==="2");
 }
+if(CALLTIME_CFG.parkingUrl&&$("parkingLink"))$("parkingLink").href=CALLTIME_CFG.parkingUrl;
 const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 function num(v){const d=String(v??"").replace(/\D/g,"").slice(0,4);if(!d)return null;const n=Number(d);return n>=1&&n<=9999?n:null}function rowNum(r){const m=String(r?.number??"").match(/(\d{1,4})$/);return m?Number(m[1]):null}function cmin(c){if(!c)return null;const[h,m]=c.split(":").map(Number);return h*60+m}function nowm(){const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60}function clock(v){const n=((Math.round(v)%1440)+1440)%1440;return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
 function std(rank,total){if(!rank)return 0;const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));if(r<=20)return r/20*5;if(r<=30)return 5+(r-20)/10*5;if(r<=40)return 10+(r-30)/10*5;if(r<=50)return 15+(r-40)/10*5;if(r<=60)return 20+(r-50)/10*5;return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5}
@@ -847,7 +530,22 @@ function visibleGroups(gs){
 function roundExpired(roundId){
   return hiddenRoundIds(groups()).has(roundId);
 }
-const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";function advanced(r){if(canceled(r))return false;const s=String(r.status);return calling(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function same(a,b){if(a===b)return true;if(a?.reserveId&&b?.reserveId)return String(a.reserveId)===String(b.reserveId);return false}
+const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";function advanced(r){if(canceled(r))return false;const s=String(r.status);return calling(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function rowIdentity(r){return `${String(r?.waitTypeId??"").trim()}|${String(r?.number??"").trim().toUpperCase()}`}function same(a,b){if(a===b)return true;return !!a&&!!b&&rowIdentity(a)===rowIdentity(b)}
+
+function localDateForCalltime(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function calltimeConfigured(){return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?|$)/.test(String(CALLTIME_CFG.webAppUrl||""))}
+function jsonpCalltime(params,timeout=6500){return new Promise((resolve,reject)=>{if(!calltimeConfigured())return reject(Error("calltime backend not configured"));const cb=`__asoboon_calltime_${Date.now()}_${Math.random().toString(36).slice(2)}`,u=new URL(String(CALLTIME_CFG.webAppUrl));Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v??"")));u.searchParams.set("callback",cb);u.searchParams.set("_",Date.now());const s=document.createElement("script");let done=false;const finish=(err,val)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){}s.remove();err?reject(err):resolve(val)};window[cb]=v=>finish(null,v);s.src=u.toString();s.onerror=()=>finish(Error("calltime backend failed"));document.head.appendChild(s);const t=setTimeout(()=>finish(Error("calltime backend timeout")),timeout)})}
+function clockFromEpoch(ms){const d=new Date(ms);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+function correctedNow(){return Date.now()+Number(callTimeServerOffsetMs||0)}
+function trustedCall(callData){return ["high","confirmed_manual"].includes(String(callData?.reliability||""))||String(callData?.source||"")==="manual_reference"}
+function stopCallDeadlineTicker(){if(callDeadlineTicker){clearInterval(callDeadlineTicker);callDeadlineTicker=0}}
+function resetCallingHeadline(){if(!state.myRow||!calling(state.myRow))return;$('statusTitle').textContent="入場可能";$('statusInstruction').textContent="スタッフに番号をお伝えください。";$('forecastMain').textContent="いま入場可能";$('forecastSub').textContent="受付でスタッフに受付番号をお伝えください。";updateEntryAction(state.myRow)}
+function applyCallDeadline(callData){const box=$('callDeadline');if(!box)return;const epoch=Number(callData?.callEpochMs);if(!Number.isFinite(epoch)||!trustedCall(callData)){showUnknownCallDeadline();return}const deadline=epoch+30*60*1000;const update=()=>{const remain=deadline-correctedNow(),ratio=Math.max(0,Math.min(1,remain/(30*60*1000)));$('actualCallTime').textContent=callData.callTime||clockFromEpoch(epoch);$('actualDeadlineTime').textContent=clockFromEpoch(deadline);$('callGaugeFill').style.width=`${Math.round(ratio*100)}%`;box.className="call-deadline";if(remain<=0){box.classList.add("danger");$('actualRemaining').textContent="30分を経過";$('callDeadlineTitle').textContent="受付期限を過ぎています";$('callDeadlineBadge').textContent="要確認";$('callSafeText').textContent="受付状況について、スタッフにご確認ください。";$('statusTitle').textContent="受付期限を過ぎています";$('statusInstruction').textContent="スタッフに受付状況をご確認ください。";$('forecastMain').textContent="受付状況をご確認ください";$('forecastSub').textContent="呼出から30分を経過しています。";$('entryAction').hidden=true}else{resetCallingHeadline();const mins=Math.max(1,Math.ceil(remain/60000));$('actualRemaining').textContent=`あと約${mins}分`;$('callDeadlineTitle').textContent="呼出後30分以内に受付へ";$('callDeadlineBadge').textContent="入場可能";$('callSafeText').textContent="慌てず、安全に受付へお越しください。";if(remain<=5*60*1000)box.classList.add("danger");else if(remain<=10*60*1000)box.classList.add("warn")}};box.hidden=false;update();stopCallDeadlineTicker();callDeadlineTicker=setInterval(update,10000)}
+function showUnknownCallDeadline(){const box=$('callDeadline');if(!box)return;stopCallDeadlineTicker();box.hidden=false;box.className="call-deadline unknown";$('actualCallTime').textContent="確認中";$('actualDeadlineTime').textContent="--:--";$('actualRemaining').textContent="呼出時刻を確認中";$('callGaugeFill').style.width="100%";$('callDeadlineTitle').textContent="呼出から30分以内に受付へ";$('callDeadlineBadge').textContent="入場可能";$('callSafeText').textContent="残り時間を推測表示せず、正確な記録を確認しています。慌てず安全にお越しください。"}
+function hideCallDeadline(){const box=$('callDeadline');if(box)box.hidden=true;stopCallDeadlineTicker()}
+function scheduleCalltimeRetry(row){const key=rowIdentity(row),n=Number(state.callTimeRetry.get(key)||0);if(n>=Number(CALLTIME_CFG.lookupRetryCount||12))return;state.callTimeRetry.set(key,n+1);setTimeout(()=>{if(state.myRow&&calling(state.myRow)&&rowIdentity(state.myRow)===key&&!state.callTimeCache.has(key))renderCallDeadline(state.myRow)},Number(CALLTIME_CFG.lookupRetryMs||5000))}
+async function renderCallDeadline(row){if(!calling(row)){hideCallDeadline();return}const key=rowIdentity(row),cached=state.callTimeCache.get(key);if(cached){applyCallDeadline(cached);return}showUnknownCallDeadline();if(state.callTimeLoading.has(key)){scheduleCalltimeRetry(row);return}state.callTimeLoading.add(key);try{const d=await jsonpCalltime({action:"getCall",date:localDateForCalltime(),recordKey:key,number:rowNum(row)??""});if(Number.isFinite(Number(d?.serverNowEpochMs)))callTimeServerOffsetMs=Number(d.serverNowEpochMs)-Date.now();if(d?.ok&&d?.found&&d.call){state.callTimeCache.set(key,d.call);state.callTimeRetry.delete(key);if(state.myRow&&rowIdentity(state.myRow)===key&&calling(state.myRow))applyCallDeadline(d.call)}else scheduleCalltimeRetry(row)}catch(e){console.warn("calltime",e);scheduleCalltimeRetry(row)}finally{state.callTimeLoading.delete(key)}}
+
 function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||calling(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
 function pace(rd,p){if(!rd.start||rd.noForecast)return["進行状況",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(!p.total)return["受付なし",""];return[`現在 ${Math.min(p.progressed,p.total)}組目まで進行`,""]}
 function rs(r){if(calling(r))return["calling","呼出中"];const s=String(r.status);if(s==="0")return["waiting","待ち"];if(s==="1")return["hold","保留"];if(s==="2")return["done","案内済"];if(s==="3")return["cancel","取消"];if(s==="4")return["processing","対応中"];return["waiting","受付"]}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
@@ -855,8 +553,8 @@ async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API
 async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`受付状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"受付状況取得失敗");return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
 function findMine(n){const a=state.rows.filter(r=>rowNum(r)===n);if(!a.length)return null;const pri=r=>calling(r)?0:String(r.status)==="0"?1:String(r.status)==="4"?2:String(r.status)==="1"?3:String(r.status)==="2"?4:String(r.status)==="3"?5:9;return [...a].sort((x,y)=>pri(x)-pri(y))[0]}
-function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;renderCallingDeadline(null);return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
-let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallingDeadline(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;hideCallDeadline();return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
   $("flowTitle").textContent=rd.label;
@@ -937,7 +635,7 @@ function resolve(){
   $("lookupError").hidden=true;
   renderMine();
 }
-async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="情報を更新しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;syncCallTimers();$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
+async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="情報を更新しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
 $("enteredButton").addEventListener("click",()=>{
   if(!state.myRow||!state.myRound)return;
 
