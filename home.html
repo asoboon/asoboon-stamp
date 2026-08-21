@@ -4112,6 +4112,51 @@
       }
     }
 
+  
+/* V2.5.1: 呼出状況ページ → 入場時刻自動連携 */
+.auto-entry-notice{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+  padding:13px 14px;
+  border:2px solid rgba(62,194,122,.44);
+  border-radius:18px;
+  color:#0a5937;
+  background:linear-gradient(180deg,#f3fff8,#dcf8e8);
+  box-shadow:0 9px 22px rgba(22,139,81,.10);
+}
+.auto-entry-notice-icon{
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  color:#fff;
+  background:#10925a;
+  font-size:1.35rem;
+  line-height:1;
+  font-weight:1000;
+  box-shadow:0 6px 14px rgba(16,146,90,.18);
+}
+.auto-entry-notice-copy{
+  display:grid;
+  gap:4px;
+}
+.auto-entry-notice-copy strong{
+  color:#075a36;
+  font-size:.92rem;
+  line-height:1.25;
+  font-weight:1000;
+}
+.auto-entry-notice-copy small{
+  color:#326b50;
+  font-size:.70rem;
+  line-height:1.45;
+  font-weight:850;
+}
+
   </style>
 </head>
 
@@ -4954,6 +4999,14 @@
       </div>
 
       <div class="playtime-console">
+        <div id="autoEntryNotice" class="auto-entry-notice" hidden role="status" aria-live="polite">
+          <span class="auto-entry-notice-icon">✓</span>
+          <span class="auto-entry-notice-copy">
+            <strong id="autoEntryNoticeTitle">入場時刻を自動登録しました</strong>
+            <small id="autoEntryNoticeText">呼出状況ページから入場時刻を引き継ぎました。</small>
+          </span>
+        </div>
+
         <div class="time-now-card" aria-live="polite">
           <div>
             <small>現在時刻</small>
@@ -5634,204 +5687,15 @@
       const drawer = document.getElementById("drawer");
       const toast = document.getElementById("toast");
 
-      const routeKeys = [
-        "mode",
-        "view",
-        "parking"
-      ];
-
-      const routeViewAliases = {
-        games: "stamp"
-      };
-
-      function decodeRouteValue(value) {
-        let current =
-          String(value || "").trim();
-
-        for (let index = 0; index < 2; index += 1) {
-          try {
-            const decoded =
-              decodeURIComponent(current);
-
-            if (decoded === current) {
-              break;
-            }
-
-            current = decoded;
-          } catch (error) {
-            break;
-          }
-        }
-
-        return current;
-      }
-
-      function copyRouteParams(source, target) {
-        routeKeys.forEach(key => {
-          if (source.has(key)) {
-            target.set(
-              key,
-              source.get(key)
-            );
-          }
-        });
-      }
-
-      function hasRouteParams(paramsToCheck) {
-        return routeKeys.some(key =>
-          paramsToCheck.has(key)
-        );
-      }
-
-      function parseLiffStateParams(rawState) {
-        const paramsFromState =
-          new URLSearchParams();
-
-        if (!rawState) {
-          return paramsFromState;
-        }
-
-        [
-          String(rawState),
-          decodeRouteValue(rawState)
-        ].forEach(candidate => {
-          const text =
-            candidate.trim();
-
-          if (!text) {
-            return;
-          }
-
-          const queryTexts = [];
-
-          try {
-            const parsedUrl =
-              new URL(text, location.origin);
-
-            if (parsedUrl.search) {
-              queryTexts.push(
-                parsedUrl.search.slice(1)
-              );
-            }
-
-            if (
-              parsedUrl.hash &&
-              parsedUrl.hash.includes("?")
-            ) {
-              queryTexts.push(
-                parsedUrl.hash
-                  .split("?")
-                  .pop()
-              );
-            }
-          } catch (error) {
-            // Fall through to plain query parsing.
-          }
-
-          if (text.startsWith("?")) {
-            queryTexts.push(text.slice(1));
-          } else if (text.startsWith("#")) {
-            queryTexts.push(
-              text
-                .slice(1)
-                .replace(/^\?/, "")
-            );
-          } else if (text.includes("?")) {
-            queryTexts.push(
-              text
-                .split("?")
-                .pop()
-                .split("#")
-                .shift()
-            );
-          } else if (text.includes("=")) {
-            queryTexts.push(text);
-          }
-
-          queryTexts.forEach(queryText => {
-            copyRouteParams(
-              new URLSearchParams(queryText),
-              paramsFromState
-            );
-          });
-        });
-
-        return paramsFromState;
-      }
-
-      function collectRouteParams(searchText = location.search) {
-        const collected =
-          new URLSearchParams(searchText);
-
-        const stateParams =
-          parseLiffStateParams(
-            collected.get("liff.state")
-          );
-
-        if (hasRouteParams(stateParams)) {
-          copyRouteParams(
-            stateParams,
-            collected
-          );
-        }
-
-        return collected;
-      }
-
-      function normalizeModeName(value) {
-        return value === "inside"
-          ? "inside"
-          : "before";
-      }
-
-      function normalizeViewName(value) {
-        const rawName =
-          (value || "home").toLowerCase();
-
-        const viewName =
-          routeViewAliases[rawName] ||
-          rawName;
-
-        if (viewName === "home") {
-          return "home";
-        }
-
-        return document.getElementById(
-          viewName + "View"
-        )
-          ? viewName
-          : "home";
-      }
-
-      function viewNameForUrl(viewName) {
-        return viewName === "stamp"
-          ? "games"
-          : viewName;
-      }
-
-      function routeFromParams(routeParams) {
-        return {
-          mode: normalizeModeName(
-            routeParams.get("mode")
-          ),
-
-          view: normalizeViewName(
-            routeParams.get("view")
-          )
-        };
-      }
-
-      const params =
-        collectRouteParams(location.search);
-
-      const initialRoute =
-        routeFromParams(params);
+      const params = new URLSearchParams(location.search);
 
       let mode =
-        initialRoute.mode;
+        params.get("mode") === "inside"
+          ? "inside"
+          : "before";
 
       const initialView =
-        initialRoute.view;
+        params.get("view") || "home";
 
       function notify(text) {
         toast.textContent = text;
@@ -5846,47 +5710,29 @@
 
       function setQuery(viewName) {
         const url = new URL(location.href);
-        const normalizedView =
-          normalizeViewName(viewName);
 
-        url.searchParams.delete("liff.state");
-        url.searchParams.delete("liff.source");
         url.searchParams.set("mode", mode);
 
-        if (
-          normalizedView &&
-          normalizedView !== "home"
-        ) {
-          url.searchParams.set(
-            "view",
-            viewNameForUrl(normalizedView)
-          );
+        if (viewName && viewName !== "home") {
+          url.searchParams.set("view", viewName);
         } else {
           url.searchParams.delete("view");
         }
 
         history.replaceState(
-          {
-            mode,
-            view: normalizedView
-          },
+          { view: viewName },
           "",
           url
         );
       }
 
       function showView(name, update = true) {
-        const normalizedName =
-          normalizeViewName(name);
-
         views.forEach(view => {
           view.classList.remove("active");
         });
 
         const target =
-          document.getElementById(
-            normalizedName + "View"
-          ) ||
+          document.getElementById(name + "View") ||
           home;
 
         target.classList.add("active");
@@ -5901,7 +5747,7 @@
           setQuery(
             target === home
               ? "home"
-              : normalizedName
+              : name
           );
         }
 
@@ -6344,6 +6190,9 @@ const callStatusLink =
 
       const PLAYTIME_STORAGE_KEY =
         "asoboon-adventure-time";
+
+      const ENTRY_TRANSFER_KEY =
+        "asoboon-entry-transfer-v1";
 
       let selectedDuration = 150;
 
@@ -6918,6 +6767,130 @@ const callStatusLink =
         }
       }
 
+      function applyEntryTransfer() {
+        const notice =
+          document.getElementById(
+            "autoEntryNotice"
+          );
+
+        const noticeTitle =
+          document.getElementById(
+            "autoEntryNoticeTitle"
+          );
+
+        const noticeText =
+          document.getElementById(
+            "autoEntryNoticeText"
+          );
+
+        let transfer = null;
+
+        try {
+          transfer =
+            JSON.parse(
+              localStorage.getItem(
+                ENTRY_TRANSFER_KEY
+              ) || "null"
+            );
+        } catch (error) {
+          localStorage.removeItem(
+            ENTRY_TRANSFER_KEY
+          );
+        }
+
+        const queryStart =
+          params.get("entryTime");
+
+        const queryDurationRaw =
+          params.get("entryDuration");
+
+        const queryDuration =
+          queryDurationRaw === null
+            ? null
+            : Number(queryDurationRaw);
+
+        const today =
+          getLocalDateKey();
+
+        const transferValid =
+          transfer &&
+          transfer.date === today &&
+          isValidTimeValue(
+            transfer.start
+          );
+
+        const fallbackValid =
+          isValidTimeValue(
+            queryStart
+          );
+
+        if (
+          !transferValid &&
+          !fallbackValid
+        ) {
+          return false;
+        }
+
+        const entryStart =
+          transferValid
+            ? String(
+                transfer.start
+              )
+            : String(
+                queryStart
+              );
+
+        const entryDuration =
+          transferValid
+            ? Number(
+                transfer.duration
+              )
+            : queryDuration;
+
+        start.value =
+          entryStart;
+
+        const hasKnownDuration =
+          [0,150,180].includes(
+            entryDuration
+          );
+
+        if (
+          hasKnownDuration
+        ) {
+          setDuration(
+            entryDuration
+          );
+
+          renderPlaytime(
+            true
+          );
+        } else {
+          renderPlaytime(
+            false
+          );
+        }
+
+        if (notice) {
+          notice.hidden =
+            false;
+
+          noticeTitle.textContent =
+            `${entryStart} 入場で登録しました`;
+
+          noticeText.textContent =
+            hasKnownDuration
+              ? `${durationLabel(entryDuration)}として「何時まであそべる？」に反映しています。`
+              : "入場時刻を引き継ぎました。本日の利用時間を選択して設定してください。";
+        }
+
+        localStorage.removeItem(
+          ENTRY_TRANSFER_KEY
+        );
+
+        return true;
+      }
+
       function restorePlaytime() {
         let restored = false;
 
@@ -7264,6 +7237,7 @@ const callStatusLink =
       }
 
       restorePlaytime();
+      applyEntryTransfer();
       updateCurrentClock();
       scheduleNextPlaytimeReset();
 
@@ -7303,21 +7277,21 @@ const callStatusLink =
         "popstate",
         () => {
           const currentParams =
-            collectRouteParams(
+            new URLSearchParams(
               location.search
             );
 
           mode =
-            normalizeModeName(
-              currentParams.get("mode")
-            );
+            currentParams.get("mode") ===
+            "inside"
+              ? "inside"
+              : "before";
 
           applyMode();
 
           showView(
-            normalizeViewName(
-              currentParams.get("view")
-            ),
+            currentParams.get("view") ||
+            "home",
             false
           );
         }
@@ -7343,8 +7317,6 @@ const callStatusLink =
         initialView,
         false
       );
-
-      setQuery(initialView);
     })();
   </script>
 </body>
