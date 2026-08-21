@@ -3,160 +3,630 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#fff8e8">
+<meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V4.4</title>
+<title>あなたの呼出状況｜アソブーン V4.7</title>
 <style>
-:root{--bg:#fff8e8;--ink:#17212a;--muted:#687781;--line:#e5e9eb;--orange:#f47d16;--blue:#167fc6;--green:#0c8a50;--amber:#d68a00;--red:#c93448;--shadow:0 14px 34px rgba(53,43,30,.10)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{color:var(--ink);background:radial-gradient(circle at 8% -4%,rgba(255,180,66,.27),transparent 29%),radial-gradient(circle at 100% 12%,rgba(22,127,198,.12),transparent 27%),var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
-.app{width:min(100%,760px);margin:auto;padding:max(14px,env(safe-area-inset-top)) 12px max(22px,env(safe-area-inset-bottom))}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.back{min-height:44px;padding:0 13px;border:1px solid #e3e6e8;border-radius:14px;background:#fff;color:var(--ink);font-weight:1000}.live{display:flex;align-items:center;gap:7px;padding:10px 11px;border-radius:999px;background:#eaf8f1;color:#10603e;font-size:.72rem;font-weight:1000}.dot{width:9px;height:9px;border-radius:50%;background:#1db46d;box-shadow:0 0 0 5px rgba(29,180,109,.11)}
-.hero{padding:17px 18px 16px;border-radius:24px;color:#fff;background:linear-gradient(135deg,#f47c16,#ffab30 62%,#ffc65a);box-shadow:0 14px 30px rgba(213,107,19,.20)}.hero small{font-size:.7rem;font-weight:1000;letter-spacing:.08em}.hero h1{margin:6px 0 0;font-size:clamp(1.8rem,7vw,2.55rem);line-height:1.05}.hero p{margin:8px 0 0;font-size:.82rem;line-height:1.5;font-weight:850}#storeName{margin-top:8px;font-size:.72rem;font-weight:900}
-.lookup{margin-top:13px;padding:16px;border:2px solid #ffc65d;border-radius:24px;background:linear-gradient(180deg,#fff,#fff7e8);box-shadow:var(--shadow)}.lookup-title{font-size:1.15rem;font-weight:1000}.lookup-copy{margin-top:5px;color:#766750;font-size:.72rem;line-height:1.45;font-weight:850}.form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;margin-top:13px}.num{min-width:0;min-height:64px;padding:0 14px;border:3px solid #e4b75d;border-radius:18px;background:#fff;text-align:center;font-size:1.7rem;font-weight:1000}.submit{min-height:64px;padding:0 20px;border:0;border-radius:18px;color:#fff;background:linear-gradient(180deg,#ff9b31,#ed7410);box-shadow:0 9px 20px rgba(210,103,16,.23);font-weight:1000}.error{margin-top:9px;color:#a3382e;font-size:.73rem;line-height:1.45;font-weight:1000}
-.personal{margin-top:14px;overflow:hidden;border:4px solid #82c8ee;border-radius:30px;background:#fff;box-shadow:0 20px 44px rgba(47,73,88,.14)}.personal.prestart{border-color:#a9b8c2}.personal.soon{border-color:#ffc84d}.personal.calling{border-color:#45c67f;box-shadow:0 20px 44px rgba(22,139,81,.18),0 0 0 5px rgba(69,198,127,.08)}.personal.hold{border-color:#e0aa43}.personal.cancel{border-color:#ef8995}.status{padding:20px 15px 21px;text-align:center;background:linear-gradient(180deg,#f5fcff,#eaf7ff)}.prestart .status{background:linear-gradient(180deg,#fbfcfd,#eef2f4)}.soon .status{background:linear-gradient(180deg,#fffdf5,#fff1bd)}.calling .status{background:linear-gradient(180deg,#f2fff8,#d6f8e5)}.cancel .status{background:linear-gradient(180deg,#fffafb,#ffe7eb)}.kicker{color:#668394;font-size:.7rem;font-weight:1000;letter-spacing:.1em}.mybox{margin:13px auto 0;padding:15px 10px 14px;border:3px solid rgba(255,169,48,.54);border-radius:23px;background:linear-gradient(180deg,#fffdf8,#fff0d0);box-shadow:0 11px 25px rgba(147,91,20,.11)}.mybox label{display:block;color:#7a592d;font-size:.72rem;font-weight:1000}.myvalue{display:flex;justify-content:center;align-items:baseline;gap:7px;margin-top:6px}.myvalue strong{color:#ec7b14;font-size:clamp(5.5rem,23vw,9.2rem);line-height:.82;font-weight:1000;letter-spacing:-.07em}.myvalue span{color:#80551f;font-size:clamp(1.3rem,5vw,2rem);font-weight:1000}.calling .mybox{border-color:#69d399;background:linear-gradient(180deg,#f9fffb,#dcf8e8)}.calling .myvalue strong{color:#0c8a50}.roundchip{display:inline-flex;margin-top:13px;padding:7px 13px;border:1px solid #c4e6f8;border-radius:999px;color:#245c7a;background:#e3f4fe;font-size:.72rem;font-weight:1000}.title{margin:12px auto 0;color:#0e70b3;font-size:clamp(2rem,8.5vw,3.4rem);line-height:1.06;font-weight:1000;letter-spacing:-.035em}.prestart .title{color:#53656f}.soon .title{color:#9b6300}.calling .title{color:#087b47;font-size:clamp(2.7rem,11vw,4.25rem)}.cancel .title{color:#b32e40}.instruction{max-width:560px;margin:11px auto 0;color:#344854;font-size:clamp(1rem,4vw,1.34rem);line-height:1.46;font-weight:1000}.calling .instruction{color:#0b5434;font-size:clamp(1.15rem,4.6vw,1.48rem)}.soon .instruction{color:#654400}
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 15px}.metric{min-height:112px;display:grid;align-content:center;justify-items:center;padding:12px;border:1px solid #e2e8eb;border-radius:19px;text-align:center;background:#fafcfd}.metric small{color:var(--muted);font-size:.69rem;font-weight:1000}.metric strong{margin-top:7px;font-size:clamp(1.65rem,7vw,2.5rem);line-height:1;font-weight:1000}.metric span{margin-top:5px;color:#74828a;font-size:.67rem;font-weight:850}.metric.primary{border:2px solid #ffd78b;background:#fff8e9}.metric.primary strong{color:#da7415}.forecast{margin:0 15px 16px;padding:16px;border:2px solid #c8e6f7;border-radius:19px;text-align:center;background:#f2faff}.forecast small{color:#567585;font-size:.68rem;font-weight:1000}.forecast strong{display:block;margin-top:5px;color:#176994;font-size:clamp(1.55rem,6vw,2.25rem);font-weight:1000}.forecast span{display:block;margin-top:6px;color:#55717f;font-size:.73rem;line-height:1.5;font-weight:850}.soon .forecast{border-color:#ffd56e;background:#fff6d5}.calling .forecast{border-color:#75d6a2;background:#ecfbf3}.calling .forecast strong{color:#087744}.foot{padding:0 15px 17px;color:#7a878e;text-align:center;font-size:.63rem;line-height:1.45;font-weight:800}
-.flow{margin-top:14px;padding:17px;border:2px solid #d3e7f2;border-radius:25px;background:#fff;box-shadow:var(--shadow)}.flowhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.flowhead small{display:block;color:#73838c;font-size:.64rem;font-weight:900}.flowhead h2{margin:3px 0 0;font-size:1.25rem}.pace{padding:7px 10px;border-radius:999px;color:#3b657b;background:#eaf6fc;font-size:.64rem;font-weight:1000}.pace.fast{color:#0d6841;background:#e5f8ee}.pace.slow{color:#845800;background:#fff1c9}.flowstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.flowstat{min-height:82px;display:grid;align-content:center;justify-items:center;padding:9px;border-radius:15px;text-align:center;background:#f7f9fa}.flowstat small{color:#748189;font-size:.62rem;font-weight:900}.flowstat strong{margin-top:5px;font-size:1.25rem;font-weight:1000}.timeline{margin-top:20px}.track{position:relative;height:14px;border-radius:999px;background:#e8edf0;box-shadow:inset 0 2px 4px rgba(0,0,0,.06)}.progress{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#56d196,#0d8b51)}.marker{position:absolute;top:50%;width:24px;height:24px;border:4px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 3px 10px rgba(0,0,0,.20)}.marker.progressmark{background:#0b8a50}.marker.you{background:#f47d16}.youlabel{position:absolute;top:-8px;transform:translate(-50%,-100%);padding:4px 7px;border-radius:999px;color:#fff;background:#f47d16;font-size:.57rem;font-weight:1000;white-space:nowrap}.ends{display:flex;justify-content:space-between;margin-top:9px;color:#74818a;font-size:.62rem;font-weight:900}.flownote{margin-top:12px;padding:10px 11px;border-left:4px solid #ffb23a;border-radius:10px;color:#624c2f;background:#fff7e6;font-size:.69rem;line-height:1.5;font-weight:850}
-.qhead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:16px 2px 8px}.qhead h2{margin:0;font-size:1.02rem}.qhead span{color:#7b878e;font-size:.62rem;font-weight:850}.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px}.q{position:relative;min-height:66px;display:grid;align-content:center;justify-items:center;padding:7px 5px;border:2px solid #dce5e9;border-radius:14px;background:#fff;text-align:center}.ord{position:absolute;top:5px;left:7px;color:#9ba5aa;font-size:.49rem;font-weight:1000}.qn{font-size:1.15rem;line-height:1;font-weight:1000}.qs{margin-top:5px;color:#75838b;font-size:.55rem;font-weight:1000}.q.waiting{border-color:#d2e7f2;background:#f9fdff}.q.calling{border-color:#4cc985;background:#e9fbf2}.q.calling .qn,.q.calling .qs{color:#087745}.q.done{opacity:.58;background:#f1f3f4}.q.hold{border-color:#e7b95d;background:#fff7df}.q.cancel{opacity:.42;background:#f4f4f4;text-decoration:line-through}.q.processing{border-color:#a9c1d0;background:#f2f7fa}.q.me{z-index:1;border:4px solid #f47d16!important;background:#fff3df!important;box-shadow:0 8px 18px rgba(215,110,19,.18)}.q.me .qn{color:#e8710b;font-size:1.33rem}.q.me:after{content:"あなた";position:absolute;right:4px;top:4px;padding:3px 5px;border-radius:999px;color:#fff;background:#f47d16;font-size:.46rem;font-weight:1000}
-.rounds{margin-top:15px}.rounds h2{margin:0 2px 9px;font-size:1rem}.rcard{margin-bottom:9px;overflow:hidden;border:1px solid #e0e6e8;border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(49,43,34,.05)}.rtoggle{width:100%;min-height:70px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 14px;border:0;color:var(--ink);text-align:left;background:#fff}.rtoggle strong{display:block;font-size:.95rem}.rtoggle small{display:block;margin-top:4px;color:#78858d;font-size:.63rem;font-weight:850}.arrow{color:#2877a6;font-size:1.55rem}.rbody{padding:0 12px 13px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.ctrl{min-height:49px;border:1px solid #d8e0e4;border-radius:15px;color:#334650;background:#fff;font-size:.73rem;font-weight:1000}.ctrl.primary{color:#fff;border-color:#263740;background:#263740}.message{margin-top:12px;padding:12px 13px;border-left:5px solid var(--orange);border-radius:13px;color:#5c4931;background:#fff;font-size:.7rem;line-height:1.5;font-weight:850}.message.error{color:#7d2e38;border-left-color:var(--red);background:#fff5f6}.footer{padding:17px 8px 5px;color:#89949a;text-align:center;font-size:.61rem;line-height:1.5;font-weight:750}
-@media(max-width:480px){.app{padding-left:10px;padding-right:10px}.form{grid-template-columns:1fr}.submit{width:100%}.flowstats{grid-template-columns:1fr 1fr}.flowstat:last-child{grid-column:1/-1}.queue{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.q{min-height:62px;padding-left:2px;padding-right:2px}.qn{font-size:1.02rem}.q.me .qn{font-size:1.16rem}}
 
-/* v4.1: 入場確定 → 「何時まであそべる？」自動連携 */
-.entry-action{
-  margin:0 15px 18px;
+:root{
+  --paper:#efe1bd;
+  --paper-light:#fff8e8;
+  --paper-deep:#dbc79b;
+  --ink:#2f291f;
+  --muted:#6d6353;
+  --navy:#0f2b46;
+  --navy-deep:#061a2b;
+  --forest:#173f32;
+  --forest-deep:#0a281f;
+  --leather:#8c5428;
+  --leather-deep:#5a3118;
+  --brass:#c79a42;
+  --brass-light:#edca75;
+  --brass-deep:#735019;
+  --danger:#a74232;
+  --cream:#fff5db;
+  --orange:#db7419;
+  --green:#1f7a55;
+  --shadow:0 18px 44px rgba(42,31,17,.24);
+  --soft-shadow:0 9px 22px rgba(42,31,17,.17);
+  --safe-top:max(10px,env(safe-area-inset-top));
+  --safe-bottom:max(16px,env(safe-area-inset-bottom));
 }
-.entry-confirm-btn{
-  width:100%;
-  min-height:92px;
-  display:grid;
-  align-content:center;
-  justify-items:center;
-  gap:5px;
-  padding:16px 18px;
-  border:3px solid #087b47;
-  border-radius:22px;
-  color:#fff;
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+html{scroll-behavior:smooth}
+body{
+  color:var(--ink);
   background:
-    linear-gradient(180deg,#22b96f 0%,#0b8b51 100%);
-  box-shadow:
-    0 14px 30px rgba(12,139,80,.24),
-    inset 0 2px 0 rgba(255,255,255,.22);
-  font-weight:1000;
+    radial-gradient(circle at 12% 3%,rgba(255,255,255,.72),transparent 20%),
+    radial-gradient(circle at 88% 12%,rgba(255,255,255,.45),transparent 19%),
+    repeating-linear-gradient(0deg,rgba(78,56,29,.025) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#eadcb8,#f8efd9 54%,#e6d4aa);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
 }
-.entry-confirm-btn strong{
-  font-size:clamp(1.45rem,6vw,2rem);
-  line-height:1.1;
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.32;
+  background:
+    radial-gradient(circle at 20% 23%,transparent 0 35px,rgba(87,63,32,.16) 36px 37px,transparent 38px),
+    radial-gradient(circle at 77% 64%,transparent 0 52px,rgba(87,63,32,.13) 53px 54px,transparent 55px),
+    linear-gradient(28deg,transparent 0 49%,rgba(105,78,38,.12) 49.5% 50.5%,transparent 51% 100%);
+  background-size:270px 270px,330px 330px,210px 210px;
 }
-.entry-confirm-btn span{
-  font-size:.73rem;
-  line-height:1.35;
-  opacity:.95;
-}
-.entry-confirm-btn:active{
-  transform:translateY(2px) scale(.992);
-}
-.entry-confirm-btn:disabled{
-  cursor:default;
-  opacity:.82;
-}
-.entry-action-note{
-  margin-top:7px;
-  color:#64747d;
-  text-align:center;
-  font-size:.62rem;
-  line-height:1.45;
-  font-weight:800;
-}
-.personal.calling .entry-confirm-btn{
-  min-height:104px;
-  box-shadow:
-    0 16px 34px rgba(12,139,80,.28),
-    0 0 0 5px rgba(69,198,127,.08),
-    inset 0 2px 0 rgba(255,255,255,.24);
-}
-@media(max-width:480px){
-  .entry-action{margin-left:12px;margin-right:12px}
-  .entry-confirm-btn{min-height:88px}
+button,input{font:inherit}
+button{-webkit-tap-highlight-color:transparent;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offset:3px}
+[hidden]{display:none!important}
+.app{
+  position:relative;
+  z-index:2;
+  width:min(100%,500px);
+  margin:auto;
+  padding:var(--safe-top) 12px calc(var(--safe-bottom) + 24px);
 }
 
-
-/* V4.3 UI-FIRST — 説明文より視線誘導 */
-.hero{
-  padding-bottom:14px!important;
+/* Top bar — same tactile language as HOME */
+.top{
+  position:sticky;
+  top:0;
+  z-index:40;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:8px 0 13px;
+  background:linear-gradient(180deg,rgba(239,225,189,.98),rgba(239,225,189,.78),transparent);
+  backdrop-filter:blur(13px);
 }
-.hero h1{
-  margin-bottom:0!important;
+.back{
+  min-width:48px;
+  min-height:46px;
+  border:2px solid #061723;
+  border-radius:14px;
+  background:linear-gradient(180deg,#31454d,#14262d);
+  color:#fff8e6;
+  padding:10px 12px;
+  font-weight:950;
+  box-shadow:var(--soft-shadow);
 }
-.lookup{
-  padding-top:15px!important;
+.mini-brand{
+  min-width:0;
+  padding:8px 11px;
+  border:2px solid rgba(91,63,27,.18);
+  border-radius:14px;
+  background:rgba(255,248,232,.94);
+  color:var(--navy);
+  box-shadow:var(--soft-shadow);
 }
-.lookup-head{
-  margin-bottom:0!important;
-}
-.lookup-title{
-  font-size:1.28rem!important;
-}
-.number-form{
-  margin-top:10px!important;
-}
-.queue-heading{
-  align-items:center!important;
-}
-.queue-heading h2{
-  font-size:1.08rem!important;
-}
-.flow-title small{
-  color:#4f7589!important;
-  font-size:.72rem!important;
-  letter-spacing:.06em;
-}
-.forecast-label{
-  font-size:.74rem!important;
-  letter-spacing:.04em;
-}
-
-
-/* V4.4 — 受付番号案内 / 先頭→自分の呼出グラフ */
-.lookup-guide{
-  margin-top:7px;
-  max-width:620px;
-  color:#715f43;
-  font-size:.76rem;
-  line-height:1.55;
-  font-weight:850;
-}
-.currentlabel{
-  position:absolute;
-  top:30px;
-  transform:translateX(-50%);
-  color:#087744;
-  font-size:.58rem;
-  line-height:1;
+.mini-brand strong{display:block;font-size:.78rem;line-height:1;font-weight:1000;letter-spacing:.04em}
+.mini-brand small{display:block;margin-top:3px;color:var(--muted);font-size:.57rem;line-height:1;font-weight:900;letter-spacing:.06em}
+.live{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:42px;
+  padding:0 10px;
+  border:2px solid rgba(93,69,29,.22);
+  border-radius:13px;
+  background:linear-gradient(180deg,#fff8e8,#ead9b5);
+  color:var(--forest);
+  box-shadow:0 5px 12px rgba(42,31,17,.12);
+  font-size:.61rem;
   font-weight:1000;
   white-space:nowrap;
 }
-.timeline{
-  padding-top:24px;
+.dot{width:8px;height:8px;border-radius:50%;background:#2a9a69;box-shadow:0 0 0 4px rgba(42,154,105,.12)}
+
+/* Page cap — ASOBooN's navy / brass / parchment identity */
+.hero{
+  position:relative;
+  overflow:hidden;
+  min-height:156px;
+  padding:17px 15px 31px;
+  border:3px solid rgba(105,73,29,.42);
+  border-radius:28px 28px 15px 15px;
+  color:#f8edcf;
+  background:
+    radial-gradient(circle at 82% 14%,rgba(224,188,99,.15),transparent 28%),
+    linear-gradient(155deg,var(--navy),var(--navy-deep));
+  box-shadow:var(--shadow);
 }
-.ends{
-  gap:18px;
-  align-items:flex-start;
+.hero:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.2;
+  background:
+    radial-gradient(circle at 77% 27%,transparent 0 34px,rgba(240,210,139,.42) 35px 36px,transparent 37px),
+    linear-gradient(30deg,transparent 0 48.5%,rgba(240,210,139,.28) 49% 50%,transparent 50.5% 100%);
+  background-size:180px 180px,145px 145px;
 }
-.ends span{
-  width:48%;
-  line-height:1.35;
+.hero:after{
+  content:"";
+  position:absolute;
+  left:-5%;right:-5%;bottom:-31px;height:53px;
+  border-radius:50% 50% 0 0/60% 60% 0 0;
+  background:var(--paper-light);
+  border-top:2px solid rgba(94,67,31,.25);
 }
-.ends span:last-child{
-  text-align:right;
-  color:#cf6a0d;
+.hero-emblem{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  align-items:center;
+  gap:11px;
+  width:calc(100% - 20px);
+  margin:3px auto 0;
+  padding:14px 15px 16px;
+  color:var(--navy);
+  background:
+    repeating-linear-gradient(0deg,rgba(88,63,30,.03) 0 1px,transparent 1px 4px),
+    linear-gradient(180deg,#fff7e3,#eadbb8);
+  clip-path:polygon(7% 0,93% 0,100% 20%,100% 100%,0 100%,0 20%);
+  filter:drop-shadow(0 8px 5px rgba(43,31,16,.24));
 }
-.youlabel{
-  top:-8px;
+.hero-route-icon{
+  display:grid;place-items:center;width:44px;height:44px;border-radius:50%;
+  color:#f9ebc2;background:linear-gradient(180deg,#234965,#0b2237);
+  border:3px solid var(--brass);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08),0 5px 0 rgba(72,49,17,.16);
+}
+.hero-route-icon svg{width:26px;height:26px;display:block}
+.hero small{display:block;color:#806b49;font-size:.59rem;font-weight:1000;letter-spacing:.12em}
+.hero h1{margin:3px 0 0;color:var(--navy);font-size:clamp(1.65rem,7vw,2.15rem);line-height:1.04;font-weight:1000;letter-spacing:.02em}
+#storeName{margin-top:5px;color:#705c3d;font-size:.66rem;font-weight:900}
+
+/* Number ticket */
+.lookup{
+  position:relative;
+  z-index:4;
+  margin:-6px 10px 0;
+  padding:16px 15px 15px;
+  border:3px solid #6d4d1e;
+  border-radius:18px;
+  background:
+    repeating-linear-gradient(0deg,rgba(85,58,22,.03) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f7e8c1,#e2c98e);
+  box-shadow:inset 0 0 0 2px rgba(255,247,218,.34),0 10px 19px rgba(52,36,15,.19);
+}
+.lookup:before,.lookup:after{content:"";position:absolute;top:12px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f)}
+.lookup:before{left:11px}.lookup:after{right:11px}
+.lookup-title{text-align:center;color:#412b16;font-size:1.05rem;font-weight:1000;letter-spacing:.03em}
+.lookup-guide{max-width:390px;margin:7px auto 0;color:#635033;text-align:center;font-size:.72rem;line-height:1.55;font-weight:850}
+.form{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:9px;margin-top:12px}
+.num{
+  min-width:0;min-height:62px;padding:0 12px;
+  border:3px solid #8a672b;border-radius:13px;
+  background:#fffaf0;color:#322716;text-align:center;
+  font-size:1.72rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 2px 6px rgba(76,52,18,.10);
+}
+.submit{
+  min-height:62px;padding:0 13px;border:2px solid #061723;border-radius:13px;
+  color:#fff8e6;background:linear-gradient(180deg,#254966,#0c2740);
+  box-shadow:0 7px 0 rgba(55,38,14,.20),0 10px 18px rgba(48,34,15,.12);
+  font-size:.9rem;font-weight:1000;
+}
+.submit:active,.back:active,.ctrl:active,.rtoggle:active,.entry-confirm-btn:active{transform:translateY(2px)}
+.error{margin-top:10px;padding:9px 11px;border-radius:10px;color:#7f2e25;background:rgba(167,66,50,.10);font-size:.72rem;line-height:1.45;font-weight:1000}
+
+/* Personal status — one ASOBooN instrument panel, state only changes accent */
+.personal{
+  --state:#24506f;--state-deep:#0b2940;--state-paper:#e8f0f4;
+  position:relative;overflow:hidden;margin-top:14px;
+  border:3px solid var(--brass);border-radius:24px;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.027) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,var(--paper-light),var(--paper) 75%,var(--paper-deep));
+  box-shadow:var(--shadow),inset 0 0 0 2px rgba(255,255,255,.22);
+}
+.personal.prestart{--state:#52636a;--state-deep:#26363c;--state-paper:#eef0ed}
+.personal.soon{--state:#a56e12;--state-deep:#64410a;--state-paper:#fff0bd}
+.personal.calling{--state:#2c7659;--state-deep:#0d3d2f;--state-paper:#dff2e8}
+.personal.hold{--state:#9a6c1f;--state-deep:#5b3c0c;--state-paper:#f7e4b8}
+.personal.cancel{--state:#a74232;--state-deep:#612119;--state-paper:#f5ddd7}
+.status{
+  position:relative;padding:17px 15px 20px;text-align:center;color:#fff7de;
+  background:
+    radial-gradient(circle at 50% -8%,rgba(234,198,106,.16),transparent 34%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.022) 0 1px,transparent 1px 44px),
+    linear-gradient(160deg,var(--state),var(--state-deep));
+  border-bottom:3px solid var(--brass-deep);
+}
+.status:after{content:"";position:absolute;left:12px;right:12px;bottom:6px;height:1px;background:linear-gradient(90deg,transparent,rgba(237,202,117,.55),transparent)}
+.kicker{display:none}
+.mybox{
+  position:relative;margin:0 auto;padding:13px 10px 12px;
+  border:3px solid #6b4b1a;border-radius:18px;
+  background:
+    repeating-linear-gradient(0deg,rgba(85,58,22,.035) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f7e6ba,#caa75e);
+  box-shadow:inset 0 0 0 2px rgba(255,249,223,.34),0 9px 18px rgba(0,0,0,.24);
+}
+.mybox:before,.mybox:after{content:"";position:absolute;top:10px;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f)}
+.mybox:before{left:10px}.mybox:after{right:10px}
+.mybox label{display:block;color:#66491f;font-size:.66rem;font-weight:1000;letter-spacing:.08em}
+.myvalue{display:flex;justify-content:center;align-items:baseline;gap:7px;margin-top:6px}
+.myvalue strong{color:#4a3015;font-size:clamp(5.2rem,22vw,7.8rem);line-height:.82;font-weight:1000;letter-spacing:-.07em;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 rgba(255,255,255,.35)}
+.myvalue span{color:#65451c;font-size:clamp(1.25rem,5vw,1.8rem);font-weight:1000}
+.personal.calling .myvalue strong{color:#0f6643}
+.roundchip{
+  display:inline-flex;align-items:center;justify-content:center;min-height:32px;margin-top:12px;padding:5px 12px;
+  border:1px solid rgba(237,202,117,.55);border-radius:999px;color:#fff2cf;background:rgba(5,17,24,.33);
+  font-size:.68rem;font-weight:1000;letter-spacing:.03em;
+}
+.title{margin:11px auto 0;color:#fff8e5;font-size:clamp(1.9rem,8vw,2.9rem);line-height:1.05;font-weight:1000;letter-spacing:-.03em;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+.personal.calling .title{font-size:clamp(2.5rem,10.6vw,3.7rem)}
+.instruction{max-width:410px;margin:10px auto 0;color:#f6e8c6;font-size:clamp(.94rem,3.8vw,1.17rem);line-height:1.45;font-weight:900}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:13px 13px 10px}
+.metric{
+  min-height:98px;display:grid;align-content:center;justify-items:center;padding:11px 8px;
+  border:2px solid rgba(109,77,30,.42);border-radius:16px;text-align:center;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.02) 0 1px,transparent 1px 4px),
+    linear-gradient(180deg,#fff9e9,#ecdbb5);
+  box-shadow:0 5px 12px rgba(49,34,14,.09);
+}
+.metric small{color:#735d3b;font-size:.63rem;font-weight:1000}
+.metric strong{margin-top:5px;color:var(--navy);font-size:clamp(1.72rem,7vw,2.25rem);line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.metric span{margin-top:4px;color:#77684f;font-size:.62rem;font-weight:850}
+.metric.primary{border-color:#b88634;background:linear-gradient(180deg,#fff5d7,#e5c980)}
+.metric.primary strong{color:#6a4517}
+.forecast{
+  position:relative;margin:0 13px 13px;padding:14px 13px 13px;
+  border:3px solid #6d4d1e;border-radius:17px;text-align:center;
+  background:
+    repeating-linear-gradient(0deg,rgba(86,58,23,.035) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f1dca6,#cba85d);
+  box-shadow:inset 0 0 0 2px rgba(255,249,223,.35),0 8px 17px rgba(55,36,14,.14);
+}
+.forecast small{display:block;color:#6f501e;font-size:.63rem;font-weight:1000;letter-spacing:.05em}
+.forecast strong{display:block;margin-top:4px;color:#4c2d15;font-size:clamp(1.8rem,7.5vw,2.45rem);line-height:1.05;font-weight:1000;font-variant-numeric:tabular-nums}
+.forecast span{display:block;margin-top:5px;color:#675132;font-size:.68rem;line-height:1.45;font-weight:850}
+.personal.calling .forecast{border-color:#486533;background:linear-gradient(180deg,#e8e1ab,#b7c97c)}
+.personal.calling .forecast strong{color:#16452f}
+.entry-action{margin:2px 13px 13px}
+.entry-confirm-btn{
+  width:100%;min-height:88px;display:grid;align-content:center;justify-items:center;gap:4px;padding:14px 17px;
+  border:3px solid #081d16;border-radius:17px;color:#fff4d5;
+  background:
+    radial-gradient(circle at 50% -20%,rgba(237,202,117,.18),transparent 42%),
+    linear-gradient(180deg,#2d6c55,#103b2e);
+  box-shadow:0 8px 0 rgba(60,41,15,.24),0 12px 22px rgba(33,25,12,.16),inset 0 1px 0 rgba(255,255,255,.12);
+  font-weight:1000;
+}
+.entry-confirm-btn strong{font-size:clamp(1.4rem,6vw,1.9rem);line-height:1.05}
+.entry-confirm-btn span{color:#ead6a5;font-size:.68rem;line-height:1.35}
+.entry-action-note{margin-top:8px;color:#695d48;text-align:center;font-size:.6rem;line-height:1.4;font-weight:800}
+.foot{padding:0 13px 14px;color:#766a55;text-align:center;font-size:.59rem;line-height:1.4;font-weight:800}
+
+/* Route card */
+.flow{
+  position:relative;margin-top:14px;padding:15px 13px 16px;
+  border:3px solid rgba(105,73,29,.42);border-radius:24px;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.027) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,var(--paper-light),var(--paper) 75%,var(--paper-deep));
+  box-shadow:var(--shadow);
+}
+.flow:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;border-radius:21px;background:linear-gradient(28deg,transparent 0 49%,rgba(105,78,38,.10) 49.5% 50.5%,transparent 51% 100%);background-size:135px 135px}
+.flow>*{position:relative;z-index:2}
+.flowhead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.flowhead small{display:block;color:#715d3c;font-size:.6rem;font-weight:1000;letter-spacing:.08em}
+.flowhead h2{margin:3px 0 0;color:var(--navy);font-size:1.18rem;line-height:1.12;font-weight:1000}
+.pace{flex:0 0 auto;max-width:49%;padding:7px 9px;border:2px solid #9f7b34;border-radius:999px;color:#473517;background:#f1d48d;text-align:center;font-size:.59rem;line-height:1.2;font-weight:1000}
+.flowstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.flowstat{min-height:75px;display:grid;align-content:center;justify-items:center;padding:8px 5px;border:1px solid rgba(100,72,31,.22);border-radius:13px;text-align:center;background:rgba(255,248,232,.72)}
+.flowstat small{color:#796b54;font-size:.56rem;line-height:1.2;font-weight:900}
+.flowstat strong{margin-top:5px;color:#3c3020;font-size:1.12rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.timeline{margin-top:20px;padding:20px 3px 0}
+.track{
+  position:relative;height:20px;border:3px solid #061723;border-radius:999px;
+  background:linear-gradient(180deg,#274458,#10283b);
+  box-shadow:inset 0 3px 5px rgba(0,0,0,.28),0 5px 0 rgba(67,47,17,.12);
+}
+.track:before{content:"";position:absolute;left:8px;right:8px;top:50%;z-index:2;height:2px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,rgba(244,216,142,.86) 0 12px,transparent 12px 21px);pointer-events:none}
+.progress{position:absolute;left:0;top:0;bottom:0;width:0;z-index:1;border-radius:999px;background:linear-gradient(90deg,#376d57,#62a47b);transition:width .35s ease}
+.marker{position:absolute;top:50%;z-index:4;width:25px;height:25px;border:4px solid #fff3cf;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 4px 8px rgba(40,27,10,.28)}
+.progressmark{background:#24694e}
+.you{background:#d97b1c;border-color:#fff0c8;box-shadow:0 0 0 4px rgba(218,123,28,.18),0 4px 8px rgba(40,27,10,.28)}
+.currentlabel,.youlabel{position:absolute;z-index:5;transform:translateX(-50%);padding:4px 7px;border-radius:999px;white-space:nowrap;font-size:.55rem;line-height:1;font-weight:1000}
+.currentlabel{top:28px;color:#f8edcf;background:var(--forest)}
+.youlabel{top:-10px;color:#fff8e8;background:#9b5417}
+.ends{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px;color:#5d503c;font-size:.59rem;line-height:1.42;font-weight:1000}
+.ends span{position:relative;padding-top:8px}
+.ends span:before{content:"";position:absolute;top:0;width:19px;height:3px;border-radius:999px;background:var(--brass)}
+.ends span:first-child:before{left:0}.ends span:last-child{text-align:right;color:#704617}.ends span:last-child:before{right:0;background:#d17a22}
+.flownote{margin-top:10px;color:#7b6d58;text-align:center;font-size:.58rem;line-height:1.4;font-weight:800}
+.qhead{display:flex;align-items:center;justify-content:space-between;margin-top:17px;padding-top:13px;border-top:1px dashed rgba(105,73,29,.34)}
+.qhead h2{margin:0;color:#413522;font-size:.92rem;font-weight:1000}
+.queue{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:9px}
+.q{position:relative;min-height:62px;display:grid;align-content:center;justify-items:center;padding:8px 3px 6px;border:2px solid rgba(94,67,30,.26);border-radius:10px;background:linear-gradient(180deg,#fff9e9,#ead7ad);box-shadow:0 3px 0 rgba(67,47,18,.08)}
+.ord{position:absolute;left:5px;top:4px;color:#97866a;font-size:.46rem;font-weight:1000}
+.qn{color:#4a3b25;font-size:1rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.qs{margin-top:5px;color:#7a6a50;font-size:.5rem;line-height:1;font-weight:1000}
+.q.calling{border-color:#2e7658;background:linear-gradient(180deg,#eaf5ec,#bad7c3)}.q.calling .qn,.q.calling .qs{color:#174832}
+.q.done{opacity:.55;background:linear-gradient(180deg,#eee8d9,#d8cfba)}
+.q.hold{border-color:#a77826;background:linear-gradient(180deg,#fff1bf,#e7c770)}
+.q.cancel{opacity:.42;text-decoration:line-through;filter:grayscale(.55)}
+.q.processing{border-color:#54758a;background:linear-gradient(180deg,#e9f0f2,#c8d8df)}
+.q.me{z-index:2;border:4px solid #d47a1e!important;background:linear-gradient(180deg,#fff0c2,#e7b95d)!important;box-shadow:0 0 0 3px rgba(212,122,30,.13),0 5px 11px rgba(84,52,13,.14)}
+.q.me:after{content:"あなた";position:absolute;right:3px;top:3px;padding:3px 5px;border-radius:999px;color:#fff8e8;background:#9e5618;font-size:.43rem;line-height:1;font-weight:1000}
+.q.me .qn{color:#673b13;font-size:1.1rem}
+
+/* Rounds — tactile, obviously tappable */
+.rounds{margin-top:14px}
+.rounds>h2{margin:0 2px 8px;color:#443721;font-size:.96rem;font-weight:1000}
+.rcard{margin-bottom:8px;overflow:hidden;border:2px solid rgba(91,63,27,.28);border-radius:16px;background:rgba(255,248,232,.88);box-shadow:0 6px 15px rgba(49,34,14,.08)}
+.rtoggle{width:100%;min-height:66px;display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;gap:8px;padding:11px 12px;border:0;color:var(--ink);text-align:left;background:linear-gradient(180deg,#fff9e9,#ead8b2)}
+.rtoggle>span:first-child{min-width:0}
+.rtoggle strong{display:block;color:var(--navy);font-size:.88rem;line-height:1.2;font-weight:1000}
+.rtoggle small{display:block;margin-top:4px;color:#776951;font-size:.57rem;line-height:1.25;font-weight:850}
+.arrow{display:grid;place-items:center;width:31px;height:38px;border:2px solid #10263b;border-radius:10px;color:#fff4d3;background:linear-gradient(180deg,#294b65,#0b263e);font-size:1.35rem;line-height:1;font-weight:900}
+.rbody{padding:0 10px 11px;background:linear-gradient(180deg,#f0dfba,#fff8e8)}
+.rbody .queue{margin-top:0;padding-top:9px}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ctrl{min-height:49px;border:2px solid rgba(78,53,21,.34);border-radius:13px;color:#4b3c27;background:linear-gradient(180deg,#fff8e7,#ddc698);font-size:.7rem;font-weight:1000;box-shadow:0 5px 0 rgba(62,43,17,.10)}
+.ctrl.primary{border-color:#061723;color:#fff7df;background:linear-gradient(180deg,#314e63,#102b42)}
+.ctrl:disabled{opacity:.58;cursor:default;transform:none}
+.message{margin-top:10px;padding:9px 11px;border-left:4px solid var(--brass);border-radius:10px;color:#6c5d46;background:rgba(255,248,232,.74);font-size:.61rem;line-height:1.45;font-weight:850}
+.message.error{border-left-color:var(--danger);color:#7d3027;background:rgba(255,240,235,.82)}
+.footer{padding:16px 6px 2px;color:#82745d;text-align:center;font-size:.56rem;font-weight:800;letter-spacing:.08em}
+
+@media(max-width:380px){
+  .app{padding-left:9px;padding-right:9px}
+  .top{grid-template-columns:auto minmax(0,1fr) auto;gap:6px}
+  .mini-brand{padding-left:9px;padding-right:9px}.mini-brand small{display:none}
+  .live{padding:0 8px;font-size:.56rem}
+  .form{grid-template-columns:minmax(0,1fr) 96px}
+  .submit{padding:0 9px}
+  .queue{gap:5px}
+  .q{min-height:59px}.qn{font-size:.94rem}
+  .flowstats{gap:5px}.flowstat{padding-left:3px;padding-right:3px}.flowstat small{font-size:.52rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+
+/* V4.7 呼出タイムリミット */
+.deadline{
+  position:relative;
+  margin:14px 0 16px;
+  padding:14px 14px 16px;
+  border:2px solid rgba(164,108,23,.34);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 18% 16%,rgba(255,252,240,.76),transparent 32%),
+    linear-gradient(180deg,rgba(255,247,223,.98),rgba(240,225,181,.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.62),
+    0 10px 22px rgba(76,53,18,.09);
+  overflow:hidden;
+}
+.deadline:before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border:1px dashed rgba(126,89,29,.18);
+  border-radius:16px;
+  pointer-events:none;
+}
+.deadline-head{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.deadline-tag{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  color:#fff7df;
+  background:linear-gradient(180deg,#a3481f,#84280f);
+  font-size:.68rem;
+  font-weight:1000;
+  letter-spacing:.08em;
+  box-shadow:0 4px 10px rgba(111,40,18,.18);
+}
+.deadline-head strong{
+  color:#5d3416;
+  font-size:.86rem;
+  line-height:1.2;
+  font-weight:1000;
+}
+.deadline-visual{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 76px;
+  align-items:center;
+  gap:10px;
+}
+.fuse{
+  position:relative;
+  height:24px;
+}
+.fuse-track{
+  position:absolute;
+  left:0;
+  right:0;
+  top:50%;
+  height:8px;
+  transform:translateY(-50%);
+  border-radius:999px;
+  background:linear-gradient(90deg,#5f4623,#7d5c2e 42%,#93662f);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.fuse-burn{
+  position:absolute;
+  left:0;
+  top:50%;
+  height:8px;
+  transform:translateY(-50%);
+  border-radius:999px;
+  background:linear-gradient(90deg,#ffe88c,#ffb634,#ff7c16,#d63f0a);
+  box-shadow:0 0 10px rgba(255,152,28,.4), 0 0 18px rgba(255,116,14,.22);
+}
+.fuse-spark{
+  position:absolute;
+  top:50%;
+  width:24px;
+  height:24px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,#fffce7 0 20%,#ffd968 24%,#ff8f1f 54%,rgba(255,90,0,.1) 75%,rgba(255,90,0,0) 100%);
+  filter:drop-shadow(0 0 8px rgba(255,152,28,.55));
+}
+.fuse-spark:before,
+.fuse-spark:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:
+    conic-gradient(from 0deg,#ffce52 0 16%,transparent 16% 26%,#fff7ba 26% 36%,transparent 36% 48%,#ff9d1d 48% 63%,transparent 63% 74%,#ffd45d 74% 86%,transparent 86% 100%);
+  transform:scale(1.28);
+  opacity:.9;
+}
+.fuse-spark:after{
+  transform:scale(1.7) rotate(18deg);
+  opacity:.5;
+}
+.bomb{
+  position:relative;
+  width:76px;
+  height:76px;
+  place-self:end;
+}
+.bomb-ball{
+  position:absolute;
+  right:2px;
+  bottom:0;
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 30%,#7a6452 0 10%,#3d2f25 18%,#1e1917 55%,#120f0e 100%);
+  box-shadow:
+    inset 0 3px 8px rgba(255,255,255,.08),
+    inset 0 -8px 12px rgba(0,0,0,.25),
+    0 8px 18px rgba(38,24,10,.15);
+}
+.bomb-ball:before{
+  content:"";
+  position:absolute;
+  left:14px;
+  top:14px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:rgba(255,255,255,.2);
+}
+.bomb-neck{
+  position:absolute;
+  right:38px;
+  top:3px;
+  width:22px;
+  height:18px;
+  border:5px solid #74521f;
+  border-bottom:none;
+  border-radius:14px 14px 0 0;
+  transform:rotate(-12deg);
+}
+.deadline-time{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:end;
+  gap:10px;
+  margin-top:10px;
+}
+.deadline-time small{
+  color:#785826;
+  font-size:.72rem;
+  font-weight:900;
+}
+.deadline-time strong{
+  color:#6b1d0a;
+  font-size:clamp(1.5rem,7vw,2.48rem);
+  line-height:.95;
+  font-weight:1000;
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+}
+.deadline-sub{
+  position:relative;
+  z-index:1;
+  margin-top:8px;
+  color:#664e2a;
+  font-size:.72rem;
+  line-height:1.45;
+  font-weight:850;
+}
+.deadline.warn .deadline-tag{
+  background:linear-gradient(180deg,#b85c16,#932e09);
+}
+.deadline.warn .deadline-time strong{
+  color:#b34f0d;
+}
+.deadline.warn .fuse-burn{
+  background:linear-gradient(90deg,#ffd95b,#ff981f,#f45d10,#cf240d);
+}
+.deadline.danger .deadline-tag{
+  background:linear-gradient(180deg,#ca3218,#8a0f10);
+}
+.deadline.danger .deadline-time strong{
+  color:#a11414;
+}
+.deadline.danger .fuse-burn{
+  background:linear-gradient(90deg,#ffbe3d,#ff7013,#d61b0d,#8e0d14);
+}
+.deadline.expired .deadline-tag{
+  background:linear-gradient(180deg,#6e2d1b,#4a160f);
+}
+.deadline.expired .deadline-time strong{
+  color:#6b1d0a;
+}
+.deadline.expired .deadline-sub{
+  color:#6b1d0a;
 }
 @media(max-width:480px){
-  .lookup-guide{
-    font-size:.72rem;
+  .deadline{
+    padding:12px;
   }
-  .ends{
-    font-size:.58rem;
+  .deadline-visual{
+    grid-template-columns:minmax(0,1fr) 64px;
+  }
+  .bomb{
+    width:64px;
+    height:64px;
+  }
+  .bomb-ball{
+    width:56px;
+    height:56px;
+  }
+  .bomb-neck{
+    right:28px;
+    width:20px;
+    height:16px;
   }
 }
 
@@ -164,27 +634,61 @@
 </head>
 <body>
 <main class="app">
-  <div class="top"><button id="backButton" class="back" type="button">← 戻る</button><div class="live"><span class="dot"></span>60秒ごとに自動更新</div></div>
-  <header class="hero"><small>ASOBooN / AIRウェイト</small><h1>あなたの呼出状況</h1><div id="storeName">アソブーン</div></header>
+  <div class="top" aria-label="画面操作">
+  <button id="backButton" class="back" type="button" aria-label="戻る">←</button>
+  <div class="mini-brand" aria-label="ASOBooN 呼出ナビ"><strong>ASOBooN</strong><small>呼出ナビ</small></div>
+  <div class="live"><span class="dot"></span>自動更新</div>
+</div>
+  <header class="hero">
+  <div class="hero-emblem">
+    <span class="hero-route-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64" role="img"><path fill="currentColor" d="M13 8h8v12h-8V8Zm30 36h8v12h-8V44ZM20 14h13c9 0 16 7 16 16v3h-7v-3c0-5-4-9-9-9H20v-7Zm22 19h7v3c0 9-7 16-16 16H21v-7h12c5 0 9-4 9-9v-3ZM9 15l8-8 8 8-4 4-4-4-4 4-4-4Zm30 34 8-8 8 8-4 4-4-4-4 4-4-4Z"/></svg>
+    </span>
+    <div><small>ENTRY ROUTE</small><h1>呼出状況</h1><div id="storeName">アソブーン</div></div>
+  </div>
+</header>
   <section class="lookup">
   <div class="lookup-title">受付番号</div>
-  <div class="lookup-guide">予約時のメールに記載された受付番号、または現地で発券された受付番号を入力してください。</div>
+  <div class="lookup-guide">予約時のメールに記載された発券番号、または現地で発券された受付番号を入力してください。</div>
   <form id="numberForm" class="form">
-    <input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="例：1004" aria-label="受付番号">
+    <input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="発券・受付番号" aria-label="受付番号">
     <button class="submit" type="submit">確認する</button>
   </form>
   <div id="lookupError" class="error" hidden></div>
 </section>
-  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="kicker">YOUR STATUS / あなたの状況</div><div class="mybox"><label>あなたの受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div><div class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div class="forecast"><small>呼出時間の目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+
+<div id="callingDeadline" class="deadline" hidden>
+  <div class="deadline-head">
+    <span class="deadline-tag">TIME LIMIT</span>
+    <strong>呼出から30分で自動キャンセル</strong>
+  </div>
+  <div class="deadline-visual">
+    <div class="fuse">
+      <div class="fuse-track"></div>
+      <div id="fuseBurn" class="fuse-burn" style="width:0%"></div>
+      <div id="fuseSpark" class="fuse-spark" style="left:0%"></div>
+    </div>
+    <div class="bomb" aria-hidden="true">
+      <div class="bomb-neck"></div>
+      <div class="bomb-ball"></div>
+    </div>
+  </div>
+  <div class="deadline-time">
+    <small>キャンセルまで</small>
+    <strong id="deadlineClock">30:00</strong>
+  </div>
+  <div id="deadlineSub" class="deadline-sub">呼出されたら、30分以内に受付へお越しください。</div>
+</div>
 <div id="entryAction" class="entry-action" hidden>
   <button id="enteredButton" class="entry-confirm-btn" type="button">
     <strong id="enteredButtonLabel">入場しました</strong>
-    <span id="enteredButtonSub">入場時刻を登録して「何時まであそべる？」へ</span>
+    <span id="enteredButtonSub">「何時まであそべる？」へ</span>
   </button>
-  <div class="entry-action-note">実際に入場したあとに押してください。時刻は次の画面で修正できます。</div>
+  <div class="entry-action-note">入場後にタップ</div>
 </div>
-<div class="foot">「入場可能」は実際に呼出中になった時だけ表示します。時刻はあくまで目安です。</div></section>
-  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>進行状況</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>有効受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>呼出・案内が進んだ組</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
+<div class="foot">呼出時刻は目安です。</div></section>
+  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>呼出ルート</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>この回の受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>現在</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
   <div class="track">
     <div id="timelineProgress" class="progress"></div>
     <div id="progressMarker" class="marker progressmark" style="left:0%"></div>
@@ -199,7 +703,7 @@
 </div><div class="flownote">当日の進行状況により前後します。</div><div class="qhead"><h2>この回の受付順</h2></div><div id="userRoundQueue" class="queue"></div></section>
   <section class="rounds"><h2>本日の各回</h2><div id="roundList"></div></section>
   <div class="controls"><button id="changeNumberButton" class="ctrl" type="button">番号を変更</button><button id="refreshButton" class="ctrl primary" type="button">最新に更新</button></div>
-  <div id="message" class="message">GitHub Pagesの公開URLでAirウェイトの最新情報を取得します。</div>
+  <div id="message" class="message">情報を読み込んでいます…</div>
   <footer class="footer">ASOBooN 呼出状況</footer>
 </main>
 <script>
@@ -217,9 +721,88 @@ const ROUNDS=[
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
 const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set()};
+const CALL_TIMER_KEY="asoboon-call-timers-v1";
+let callingDeadlineTicker=0;
 const ENTRY_TRANSFER_KEY="asoboon-entry-transfer-v1";
 // V4.2: 利用時間は「回」ではなく受付番号レンジで判定する。
 function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function loadCallTimers(){try{return JSON.parse(localStorage.getItem(CALL_TIMER_KEY)||"{}")||{}}catch(e){return {}}}
+function saveCallTimers(map){try{localStorage.setItem(CALL_TIMER_KEY,JSON.stringify(map))}catch(e){}}
+function timerId(r){return `${localDateKey()}_${r?.reserveId||rowNum(r)||r?.number||"unknown"}`}
+function syncCallTimers(){
+  const map=loadCallTimers();
+  state.rows.forEach(r=>{
+    if(calling(r)){
+      const key=timerId(r);
+      if(!map[key])map[key]=Date.now();
+    }
+  });
+  Object.keys(map).forEach(key=>{
+    if(!key.startsWith(localDateKey()))delete map[key];
+  });
+  saveCallTimers(map);
+}
+function callingDeadlineInfo(r){
+  if(!calling(r))return null;
+  const map=loadCallTimers();
+  const key=timerId(r);
+  const startedAt=Number(map[key]||Date.now());
+  const limit=30*60*1000;
+  const elapsed=Math.max(0,Date.now()-startedAt);
+  const remaining=Math.max(0,limit-elapsed);
+  const progress=Math.max(0,Math.min(1,elapsed/limit));
+  return {startedAt,elapsed,remaining,progress,expired:remaining<=0};
+}
+function mmss(ms){
+  const sec=Math.max(0,Math.ceil(ms/1000));
+  const m=Math.floor(sec/60),s=sec%60;
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+function stopCallingDeadlineTicker(){
+  if(callingDeadlineTicker){
+    clearInterval(callingDeadlineTicker);
+    callingDeadlineTicker=0;
+  }
+}
+function applyDeadlineVisual(box,info){
+  const percent=Math.round(info.progress*100);
+  $("fuseBurn").style.width=`${percent}%`;
+  $("fuseSpark").style.left=`${percent}%`;
+  $("deadlineClock").textContent=mmss(info.remaining);
+  box.className="deadline";
+  let sub="呼出されたら、30分以内に受付へお越しください。";
+  if(info.expired){
+    box.classList.add("expired");
+    sub="30分を過ぎています。受付でスタッフにご確認ください。";
+  }else if(info.remaining<=5*60*1000){
+    box.classList.add("danger");
+    sub="残りわずかです。お早めに受付へお越しください。";
+  }else if(info.remaining<=10*60*1000){
+    box.classList.add("warn");
+    sub="残り10分以内です。お急ぎください。";
+  }
+  $("deadlineSub").textContent=sub;
+}
+function renderCallingDeadline(r){
+  const box=$("callingDeadline");
+  const info=callingDeadlineInfo(r);
+  if(!box||!info){
+    if(box)box.hidden=true;
+    stopCallingDeadlineTicker();
+    return;
+  }
+  box.hidden=false;
+  applyDeadlineVisual(box,info);
+  stopCallingDeadlineTicker();
+  callingDeadlineTicker=setInterval(()=>{
+    const live=callingDeadlineInfo(state.myRow);
+    if(!live||!calling(state.myRow)){
+      renderCallingDeadline(null);
+      return;
+    }
+    applyDeadlineVisual(box,live);
+  },1000);
+}
 function localTimeText(d=new Date()){return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
 function playtimeDurationForNumber(number){
   const n=Number(number);
@@ -246,21 +829,39 @@ function num(v){const d=String(v??"").replace(/\D/g,"").slice(0,4);if(!d)return 
 function std(rank,total){if(!rank)return 0;const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));if(r<=20)return r/20*5;if(r<=30)return 5+(r-20)/10*5;if(r<=40)return 10+(r-30)/10*5;if(r<=50)return 15+(r-40)/10*5;if(r<=60)return 20+(r-50)/10*5;return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5}
 function roundByNum(n){return ROUNDS.find(x=>x.ranges.some(([a,b])=>n>=a&&n<=b))||null}function roundByName(name){const s=String(name||"");if(/オレンジ/.test(s))return ROUNDS.find(x=>x.id==="orange");if(/すぐ入場/.test(s))return ROUNDS.find(x=>x.id==="immediate");if(/12時半|12時50/.test(s))return ROUNDS.find(x=>x.id==="special1230");if(/13時半|13時45/.test(s))return ROUNDS.find(x=>x.id==="ws1330");if(/15時/.test(s))return ROUNDS.find(x=>x.id==="special15");if(/14時/.test(s))return ROUNDS.find(x=>x.id==="w14");if(/10時/.test(s)){if(/平日特定/.test(s))return ROUNDS.find(x=>x.id==="ws10");if(/WEB平日/.test(s)&&!/特定/.test(s))return ROUNDS.find(x=>x.id==="w10");return ROUNDS.find(x=>x.id==="special10")}return null}function roundOf(r){return roundByNum(rowNum(r))||roundByName(r?.waitTypeName)}
 function groups(){const m=new Map();state.rows.forEach((r,i)=>{const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};if(!m.has(rd.id))m.set(rd.id,{round:rd,rows:[]});m.get(rd.id).rows.push({...r,__i:i})});return [...m.values()].sort((a,b)=>(cmin(a.round.start)??9999)-(cmin(b.round.start)??9999))}
+function hiddenRoundIds(gs){
+  const scheduled=gs
+    .filter(g=>g.round&&g.round.start&&!g.round.noForecast)
+    .sort((a,b)=>cmin(a.round.start)-cmin(b.round.start));
+  const hidden=new Set(),now=nowm();
+  for(let i=0;i<scheduled.length-1;i++){
+    const cutoff=cmin(scheduled[i+1].round.start)-30;
+    if(now>=cutoff)hidden.add(scheduled[i].round.id);
+  }
+  return hidden;
+}
+function visibleGroups(gs){
+  const hidden=hiddenRoundIds(gs);
+  return gs.filter(g=>!hidden.has(g.round.id));
+}
+function roundExpired(roundId){
+  return hiddenRoundIds(groups()).has(roundId);
+}
 const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";function advanced(r){if(canceled(r))return false;const s=String(r.status);return calling(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function same(a,b){if(a===b)return true;if(a?.reserveId&&b?.reserveId)return String(a.reserveId)===String(b.reserveId);return false}
 function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||calling(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
-function pace(rd,p){if(!rd.start||rd.noForecast)return["時間予測なし",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(p.progressed<5)return["進行を計測中",""];const delta=(n-s)-std(p.progressed,p.total);if(delta<=-3)return["現在 やや早め","fast"];if(delta>=3)return["現在 ややゆっくり","slow"];return["現在 おおむね標準",""]}
+function pace(rd,p){if(!rd.start||rd.noForecast)return["進行状況",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(!p.total)return["受付なし",""];return[`現在 ${Math.min(p.progressed,p.total)}組目まで進行`,""]}
 function rs(r){if(calling(r))return["calling","呼出中"];const s=String(r.status);if(s==="0")return["waiting","待ち"];if(s==="1")return["hold","保留"];if(s==="2")return["done","案内済"];if(s==="3")return["cancel","取消"];if(s==="4")return["processing","対応中"];return["waiting","受付"]}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
 async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`混雑状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"混雑状況取得失敗");return d?.innerDto?.stores?.[0]||null}
 async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`受付状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"受付状況取得失敗");return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
 function findMine(n){const a=state.rows.filter(r=>rowNum(r)===n);if(!a.length)return null;const pri=r=>calling(r)?0:String(r.status)==="0"?1:String(r.status)==="4"?2:String(r.status)==="1"?3:String(r.status)==="2"?4:String(r.status)==="3"?5:9;return [...a].sort((x,y)=>pri(x)-pri(y))[0]}
-function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=`${state.myRound.label} / ${state.myRound.system||""}`;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
-let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=`${e.mode==="live"?"現在の実際の進行を反映":"標準進行から算出"}。当日の進行により前後します。`}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(groups())}
+function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;renderCallingDeadline(null);return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallingDeadline(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
-  $("flowTitle").textContent=`${rd.label} / ${rd.system||""}`;
+  $("flowTitle").textContent=rd.label;
   $("flowTotal").textContent=`${p.total}組`;
-  $("flowProgressed").textContent=`${p.progressed}組`;
+  $("flowProgressed").textContent=`${p.progressed}組目`;
   $("flowAhead").textContent=Number.isFinite(p.ahead)?`${p.ahead}組`:"—";
 
   const[pl,pc]=pace(rd,p);
@@ -295,9 +896,48 @@ function renderFlow(g,p,e){
 
   $("userRoundQueue").innerHTML=g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("");
 }
-function renderRounds(gs){const root=$("roundList");root.innerHTML="";gs.forEach(g=>{const eff=g.rows.filter(r=>!canceled(r)),prog=eff.filter(advanced).length,open=state.open.has(g.round.id)||g.round.id===state.myRound?.id,card=document.createElement("article"),btn=document.createElement("button"),body=document.createElement("div");card.className="rcard";btn.className="rtoggle";btn.type="button";btn.innerHTML=`<span><strong>${esc(g.round.label)} / ${esc(g.round.system||"")}</strong><small>登録 ${g.rows.length}件 / 有効 ${eff.length}件 / 進行 ${prog}組</small></span><span class="arrow">›</span>`;body.className="rbody";body.hidden=!open;body.innerHTML=`<div class="queue">${g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}</div>`;btn.addEventListener("click",()=>{body.hidden=!body.hidden;if(!body.hidden)state.open.add(g.round.id);else state.open.delete(g.round.id)});card.append(btn,body);root.append(card)});if(!gs.length)root.innerHTML='<div class="message">本日の受付データはまだありません。</div>'}
-function resolve(){if(!state.my){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=true;$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}const r=findMine(state.my);if(!r){state.myRow=state.myRound=null;updateEntryAction(null);$("lookupError").hidden=false;$("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";$("personalSection").hidden=$("flowSection").hidden=true;renderRounds(groups());return}state.myRow=r;state.myRound=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};state.open.add(state.myRound.id);$("lookupError").hidden=true;renderMine()}
-async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="Airウェイトの最新情報を取得しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最新情報を表示中：${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")} 更新`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="最新情報を取得できませんでした。GitHub Pagesの公開URLで開いているか確認して、もう一度更新してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
+function renderRounds(gs){const root=$("roundList");root.innerHTML="";gs.forEach(g=>{const eff=g.rows.filter(r=>!canceled(r)),prog=eff.filter(advanced).length,open=state.open.has(g.round.id)||g.round.id===state.myRound?.id,card=document.createElement("article"),btn=document.createElement("button"),body=document.createElement("div");card.className="rcard";btn.className="rtoggle";btn.type="button";btn.innerHTML=`<span><strong>${esc(g.round.label)}</strong><small>現在 ${prog}組目まで進行 / 全${eff.length}組</small></span><span class="arrow">›</span>`;body.className="rbody";body.hidden=!open;body.innerHTML=`<div class="queue">${g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}</div>`;btn.addEventListener("click",()=>{body.hidden=!body.hidden;if(!body.hidden)state.open.add(g.round.id);else state.open.delete(g.round.id)});card.append(btn,body);root.append(card)});if(!gs.length)root.innerHTML='<div class="message">本日の受付データはまだありません。</div>'}
+function resolve(){
+  if(!state.my){
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    $("lookupError").hidden=true;
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const r=findMine(state.my);
+
+  if(!r){
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};
+
+  if(roundExpired(rd.id)){
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="この回の呼出表示は終了しました。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  state.myRow=r;
+  state.myRound=rd;
+  state.open.add(state.myRound.id);
+  $("lookupError").hidden=true;
+  renderMine();
+}
+async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="情報を更新しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;syncCallTimers();$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
 $("enteredButton").addEventListener("click",()=>{
   if(!state.myRow||!state.myRound)return;
 
