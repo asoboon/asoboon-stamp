@@ -3,246 +3,414 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#e87919">
+<meta name="theme-color" content="#0f2b46">
 <title>ASOBooN｜WEB受付・予約</title>
 <style>
 :root{
-  --bg:#f4ead2;--panel:#fffaf0;--ink:#2f291f;--muted:#756a58;
-  --navy:#0f2b46;--orange:#e87919;--orange2:#f39a3e;--line:#d8c49a;
-  --green:#2b955e;--red:#b84538;--yellow:#bd7a10;
+  --bg:#f3e6c8;--paper:#fffaf0;--ink:#2d281f;--muted:#776b57;
+  --navy:#102e49;--orange:#e87518;--orange2:#f49b3f;--green:#248655;
+  --yellow:#a96b07;--red:#ae3f34;--line:#d6c097;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#ead8b1,#f8efda);color:var(--ink)}
-.app{width:min(100%,520px);margin:auto;padding:14px 13px 50px}
-.hero{border:3px solid #c46619;border-radius:22px;padding:17px;background:linear-gradient(145deg,#fff4df,#f4c88d);box-shadow:0 12px 28px rgba(70,44,15,.15)}
-.tag{display:inline-block;background:#e87919;color:#fff;border-radius:999px;padding:5px 9px;font-size:.68rem;font-weight:950}
-h1{margin:8px 0 5px;color:#7f3e0b;font-size:1.5rem}
-p{line-height:1.65}
-.small{font-size:.76rem;color:var(--muted);margin:0}
-.card{margin-top:13px;border:2px solid var(--line);border-radius:17px;background:var(--panel);padding:15px}
-.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eee1c5}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,#e7d3aa,#f8efdd);
+  -webkit-font-smoothing:antialiased;
+}
+.app{width:min(100%,520px);margin:auto;padding:14px 13px 46px}
+.hero,.card{
+  background:var(--paper);border:2px solid var(--line);border-radius:20px;
+  padding:16px;box-shadow:0 10px 24px rgba(75,51,19,.10)
+}
+.hero{background:linear-gradient(145deg,#fff9e9,#f1ddaf)}
+.tag{
+  display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--orange);
+  color:#fff;font-size:.67rem;font-weight:950
+}
+h1{margin:8px 0 4px;color:var(--navy);font-size:1.55rem}
+.lead{margin:0;color:var(--muted);font-size:.78rem;line-height:1.7}
+.card{margin-top:12px}
+.row{
+  display:flex;justify-content:space-between;gap:10px;padding:9px 0;
+  border-bottom:1px solid #eee0c4
+}
 .row:last-child{border-bottom:0}
-.row span{color:var(--muted);font-size:.76rem}
-.row strong{font-size:.84rem;text-align:right}
-.ok{color:#1e7c4c}.warn{color:#9c6200}.bad{color:#a52f2f}
-.counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.field{border:1px solid var(--line);border-radius:13px;padding:10px;background:#fff}
-.field label{display:block;font-size:.7rem;color:var(--muted);font-weight:900;margin-bottom:5px}
-.field input{width:100%;border:0;background:#f5f0e5;border-radius:9px;padding:10px;font-size:1.1rem;font-weight:950;text-align:center}
-.btn{width:100%;margin-top:13px;border:0;border-radius:13px;padding:14px 12px;font-weight:950;font-size:.95rem;cursor:pointer}
-.btn.primary{background:linear-gradient(180deg,var(--orange2),var(--orange));color:#fff;box-shadow:0 5px 0 #b5540e}
-.btn.secondary{background:#fff7e7;border:2px solid #bca573;color:var(--navy)}
-.btn:disabled{background:#aaa;box-shadow:none;color:#eee;cursor:not-allowed}
-.result{margin-top:14px;border-radius:15px;padding:14px;background:#eef8f2;border:2px solid #acd8bd}
-.result.error{background:#fff0ee;border-color:#e2aaa3}
-.num{font-size:2.7rem;font-weight:1000;color:var(--navy);text-align:center}
-.note{margin-top:14px;padding:12px;border-radius:13px;background:#fff3d8;border:1px solid #deb76a;color:#74521d;font-size:.72rem;line-height:1.65}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#15171a;color:#d9dee4;border-radius:12px;padding:10px;font:11px/1.5 ui-monospace,monospace}
+.row span{color:var(--muted);font-size:.73rem}
+.row strong{text-align:right;font-size:.8rem;overflow-wrap:anywhere}
+.ok{color:#1f7549}.warn{color:#93600c}.bad{color:#a4372d}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.field{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px}
+.field label{display:block;color:var(--muted);font-size:.68rem;font-weight:900;margin-bottom:5px}
+.field input{
+  width:100%;padding:10px;border:0;border-radius:9px;background:#f4efe5;
+  text-align:center;font-size:1.15rem;font-weight:950
+}
+.btn{
+  width:100%;border:0;border-radius:13px;padding:14px 12px;margin-top:13px;
+  font-weight:950;font-size:.94rem;cursor:pointer
+}
+.btn.primary{
+  color:#fff;background:linear-gradient(180deg,var(--orange2),var(--orange));
+  box-shadow:0 5px 0 #b4530e
+}
+.btn:disabled{background:#aaa;color:#eee;box-shadow:none;cursor:not-allowed}
+.message{margin-top:13px;border-radius:15px;padding:14px;font-size:.78rem;line-height:1.7}
+.message.info{background:#edf5ff;border:2px solid #b7d1eb;color:#315675}
+.message.success{background:#edf8f1;border:2px solid #abd5ba;color:#235f3c}
+.message.error{background:#fff0ee;border:2px solid #dfa8a1;color:#87332b}
+.message.permission{background:#fff3d7;border:2px solid #dfb768;color:#76521c}
+.number{font-size:3.3rem;font-weight:1000;color:var(--navy);text-align:center;line-height:1.1}
+.number small{font-size:1rem}
+details{margin-top:13px}
+summary{font-weight:900;color:#64543d;cursor:pointer}
+pre{
+  white-space:pre-wrap;overflow-wrap:anywhere;background:#17191c;color:#dce1e7;
+  border-radius:11px;padding:10px;font:11px/1.5 ui-monospace,SFMono-Regular,monospace
+}
 .hidden{display:none!important}
+.note{
+  margin-top:12px;border:1px solid var(--line);border-radius:13px;padding:12px;
+  background:#fff7e5;color:#705d3e;font-size:.71rem;line-height:1.65
+}
 </style>
 </head>
 <body>
 <div class="app">
   <section class="hero">
-    <span class="tag">外部受付API 実機テスト</span>
-    <h1>WEB受付・予約</h1>
-    <p class="small">
-      現在は動作確認のため、店頭専用の「オレンジパス」を使ってAirウェイト外部受付APIをテストします。
+    <span class="tag">外部受付API テスト専用</span>
+    <h1>外部受付API テスト</h1>
+    <p class="lead">
+      Airウェイトに作成した店頭専用の「テスト」枠を使って、
+      外部受付APIが正常に動くか確認します。
     </p>
   </section>
 
   <section class="card">
-    <div class="row"><span>枠名</span><strong id="name">確認中…</strong></div>
-    <div class="row"><span>waitTypeId</span><strong id="id">--</strong></div>
-    <div class="row"><span>表示状態</span><strong id="active">--</strong></div>
-    <div class="row"><span>用途</span><strong id="usage">--</strong></div>
-    <div class="row"><span>API権限</span><strong id="permission">未テスト</strong></div>
+    <div class="row"><span>対象枠</span><strong id="waitTypeName">確認中…</strong></div>
+    <div class="row"><span>waitTypeId</span><strong id="waitTypeId">--</strong></div>
+    <div class="row"><span>表示状態</span><strong id="displayState">--</strong></div>
+    <div class="row"><span>用途</span><strong id="usageState">--</strong></div>
+    <div class="row"><span>受付API</span><strong id="apiState">未テスト</strong></div>
   </section>
 
   <section class="card">
-    <strong>テスト受付人数</strong>
-    <div class="counts">
+    <strong>受付人数</strong>
+    <div class="grid">
       <div class="field">
-        <label>おとな</label>
+        <label for="adult">おとな</label>
         <input id="adult" type="number" min="1" max="20" value="1">
       </div>
       <div class="field">
-        <label>こども</label>
+        <label for="child">こども</label>
         <input id="child" type="number" min="0" max="20" value="0">
       </div>
     </div>
-    <button id="createBtn" class="btn primary" disabled>この内容で受付する</button>
+    <button id="reserveBtn" class="btn primary" disabled>テスト枠で実受付する</button>
   </section>
 
-  <div class="note">
-    ⚠️ このボタンは<strong>Airウェイトに本物の受付を1件作成</strong>します。
-    テスト後はAirウェイト側で呼出・取消を操作すると、呼出状況ページでその状態を確認できます。
+  <div id="message" class="message info">
+    Airウェイトからテスト枠の設定を確認しています。
   </div>
 
-  <section id="result" class="result hidden"></section>
+  <div class="note">
+    このページは<strong>開発テスト専用</strong>です。
+    名前が<strong>「テスト」</strong>の店頭専用枠だけを対象にします。
+    現在の3539はコード上で正常に判定し、API権限が開通した後は同じページから再実行できます。
+  </div>
 
-  <details style="margin-top:14px">
-    <summary style="font-weight:900;color:#5f5140">APIレスポンスを見る</summary>
+  <details>
+    <summary>APIレスポンス</summary>
     <pre id="raw">--</pre>
   </details>
 </div>
 
 <script>
-const CONFIG={
-  key:'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
-  storeId:'KR01205179'
-};
-const TYPE_API='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
-const CREATE_API='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create';
-const STORAGE_KEY='asoboon_current_reservation_v1';
+'use strict';
 
-let orange=null;
+const AIRWAIT = Object.freeze({
+  key: 'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
+  storeId: 'KR01205179',
+  targetWaitTypeName: 'テスト',
+  waitTypeUrl: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
+  createUrl: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create'
+});
 
-const $=id=>document.getElementById(id);
+const STORAGE_KEY = 'asoboon_current_reservation_v2';
+let testType = null;
 
-function esc(v){
-  return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-function normalizeBool(v){
-  return v===true || v===1 || v==='1' || String(v).toLowerCase()==='true';
-}
-function usageLabel(v){
-  return {'01':'オンライン＋現地','02':'現地のみ','03':'オンラインのみ'}[String(v)] || `不明 (${v})`;
-}
+const $ = id => document.getElementById(id);
+
 function resultCode(data){
   return String(data?.resultCode?.code ?? '');
 }
-async function post(url,data){
-  const u=`${url}?key=${encodeURIComponent(CONFIG.key)}`;
-  const res=await fetch(u,{
+function isSuccess(data){
+  return data?.success === true || resultCode(data) === '0000';
+}
+function isTrue(v){
+  return v === true || v === 1 || v === '1' || String(v).toLowerCase() === 'true';
+}
+function usageCode(v){
+  const s = String(v ?? '');
+  const map = {
+    '01':'ALL',
+    '02':'STORE',
+    '03':'ONLINE',
+    'KeyALL':'ALL',
+    'KeySTORE_RECEPTION_ONLY':'STORE',
+    'KeyONLINE_RECEPTION_ONLY':'ONLINE'
+  };
+  return map[s] || 'UNKNOWN';
+}
+function usageLabel(v){
+  const code = usageCode(v);
+  if(code === 'ALL') return 'オンライン＋現地';
+  if(code === 'STORE') return '現地のみ';
+  if(code === 'ONLINE') return 'オンラインのみ';
+  return `不明 (${String(v)})`;
+}
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+async function airwaitPost(url, body){
+  const response = await fetch(`${url}?key=${encodeURIComponent(AIRWAIT.key)}`, {
     method:'POST',
     headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-    body:new URLSearchParams(data)
+    body:new URLSearchParams(body)
   });
-  const text=await res.text();
-  try{return JSON.parse(text)}
-  catch{throw new Error(`JSON以外の応答: ${text.slice(0,160)}`)}
-}
-function saveReservation(dto){
-  const now=new Date();
-  const target=new Date(now);
-  const y=target.getFullYear(),m=String(target.getMonth()+1).padStart(2,'0'),d=String(target.getDate()).padStart(2,'0');
-  const expiry=new Date(y,Number(m)-1,Number(d),18,0,0,0);
-  if(now>=expiry) expiry.setDate(expiry.getDate()+1);
 
-  const value={
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`AirウェイトからJSON以外の応答が返りました（HTTP ${response.status}）`);
+  }
+
+  $('raw').textContent = JSON.stringify(data, null, 2);
+  return data;
+}
+function setMessage(kind, html){
+  const el = $('message');
+  el.className = `message ${kind}`;
+  el.innerHTML = html;
+}
+function dateParts(d){
+  return {
+    y:d.getFullYear(),
+    m:String(d.getMonth()+1).padStart(2,'0'),
+    day:String(d.getDate()).padStart(2,'0')
+  };
+}
+function buildReservationRecord(dto){
+  const now = new Date();
+
+  // このテスト受付は「その日の受付」として扱う。
+  // 18:00を過ぎた後に受付成功した場合のみ、次の18:00まで保持する。
+  let target = new Date(now);
+  target.setHours(0,0,0,0);
+
+  let expires = new Date(target);
+  expires.setHours(18,0,0,0);
+  if(now >= expires){
+    expires.setDate(expires.getDate()+1);
+  }
+
+  const p = dateParts(target);
+  return {
     reserveId:String(dto.reserveId),
     receiptNo:String(dto.receiptNo),
-    waitTypeId:String(orange.waitTypeId),
-    waitTypeName:String(orange.waitTypeName),
-    targetDate:`${y}-${m}-${d}`,
-    targetDateLabel:`${Number(m)}月${Number(d)}日`,
-    slotTime:'オレンジパス',
+    waitTypeId:String(testType.waitTypeId),
+    waitTypeName:testType?.waitTypeName || 'テスト',
+    targetDate:`${p.y}-${p.m}-${p.day}`,
     source:'orange-api-test',
-    lineNotify:false,
-    expiresAt:expiry.getTime(),
-    createdAt:Date.now()
+    createdAt:Date.now(),
+    expiresAt:expires.getTime(),
+    shortUrl:dto.shortUrl ?? null,
+    waitTime:dto.waitTime ?? null,
+    waitCount:dto.waitCount ?? null,
+    waitCountPerson:dto.waitCountPerson ?? null
   };
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(value));
+}
+function saveReservation(record){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 }
 
-async function loadOrange(){
+async function loadTestSlot(){
   try{
-    const data=await post(TYPE_API,{storeId:CONFIG.storeId});
-    $('raw').textContent=JSON.stringify(data,null,2);
-    if(resultCode(data)!=='0000' && data?.success!==true){
-      throw new Error(`${resultCode(data)} ${data?.resultCode?.defaultMessage||''}`);
+    const data = await airwaitPost(AIRWAIT.waitTypeUrl, {
+      storeId:AIRWAIT.storeId
+    });
+
+    if(!isSuccess(data)){
+      throw new Error(`${resultCode(data) || 'ERROR'} ${data?.resultCode?.defaultMessage || ''}`);
     }
-    const list=data?.innerDto?.waitTypeList || [];
-    orange=list.find(x=>String(x.waitTypeName||'').includes('オレンジパス'))
-      || list.find(x=>String(x.waitTypeName||'').includes('オレンジ'));
 
-    if(!orange) throw new Error('オレンジパスが待ち項目一覧に見つかりません');
+    const list = Array.isArray(data?.innerDto?.waitTypeList)
+      ? data.innerDto.waitTypeList
+      : [];
 
-    $('name').textContent=orange.waitTypeName;
-    $('id').textContent=orange.waitTypeId;
-    $('active').textContent=normalizeBool(orange.dispFlg)?'アクティブ':'非アクティブ';
-    $('active').className=normalizeBool(orange.dispFlg)?'ok':'warn';
-    $('usage').textContent=usageLabel(orange.usageDispType);
-    $('usage').className=String(orange.usageDispType)==='02'?'ok':'warn';
+    // まず完全一致「テスト」を優先。なければ名前に「テスト」を含む項目を探す。
+    const exact = list.filter(x =>
+      String(x.waitTypeName || '').trim() === AIRWAIT.targetWaitTypeName
+    );
+    const partial = list.filter(x =>
+      String(x.waitTypeName || '').includes(AIRWAIT.targetWaitTypeName)
+    );
 
-    $('createBtn').disabled=false;
-  }catch(e){
-    $('name').textContent='取得失敗';
-    $('id').textContent='--';
-    $('permission').textContent=String(e.message);
-    $('permission').className='bad';
-    $('raw').textContent=String(e.stack||e);
+    const candidates = exact.length ? exact : partial;
+
+    if(!candidates.length){
+      throw new Error('名前が「テスト」の待ち項目が見つかりません。');
+    }
+
+    // 店頭専用を最優先
+    testType = candidates.find(x => usageCode(x.usageDispType) === 'STORE')
+      || candidates[0];
+
+    $('waitTypeName').textContent = testType.waitTypeName;
+    $('waitTypeId').textContent = testType.waitTypeId;
+
+    $('displayState').textContent = isTrue(testType.dispFlg) ? 'アクティブ' : '非アクティブ';
+    $('displayState').className = isTrue(testType.dispFlg) ? 'ok' : 'warn';
+
+    $('usageState').textContent = usageLabel(testType.usageDispType);
+    $('usageState').className = usageCode(testType.usageDispType) === 'STORE' ? 'ok' : 'warn';
+
+    // 誤操作防止：名前に「テスト」を含み、店頭専用のときだけ実受付可能
+    const safeTarget =
+      String(testType.waitTypeName || '').includes(AIRWAIT.targetWaitTypeName) &&
+      usageCode(testType.usageDispType) === 'STORE';
+
+    $('reserveBtn').disabled = !safeTarget;
+
+    if(safeTarget){
+      setMessage(
+        'success',
+        `✅ <strong>${esc(testType.waitTypeName)}</strong> を検出しました。<br>` +
+        `waitTypeId：<strong>${esc(testType.waitTypeId)}</strong><br>` +
+        `この枠だけを使って外部受付APIをテストします。`
+      );
+    }else{
+      setMessage(
+        'error',
+        `安全確認に失敗しました。検出した「${esc(testType.waitTypeName)}」が店頭専用ではありません。`
+      );
+    }
+  }catch(err){
+    $('reserveBtn').disabled = true;
+    $('apiState').textContent = '確認失敗';
+    $('apiState').className = 'bad';
+    setMessage('error', `❌ ${esc(err.message)}`);
   }
 }
+async function createTestReservation(){
+  if(
+    !testType ||
+    !String(testType.waitTypeName || '').includes(AIRWAIT.targetWaitTypeName) ||
+    usageCode(testType.usageDispType) !== 'STORE'
+  ){
+    setMessage('error','安全確認が取れていないため受付を実行しません。');
+    return;
+  }
 
-$('createBtn').addEventListener('click',async()=>{
-  if(!orange) return;
-  const adult=Math.max(1,Number($('adult').value)||1);
-  const child=Math.max(0,Number($('child').value)||0);
+  const adult = Math.max(1, Math.floor(Number($('adult').value) || 1));
+  const child = Math.max(0, Math.floor(Number($('child').value) || 0));
 
-  if(!confirm(`${orange.waitTypeName}（${orange.waitTypeId}）へ ${adult+child}名で本物の受付を作成します。よろしいですか？`)) return;
+  if(adult > 20 || child > 20){
+    setMessage('error','人数を確認してください。');
+    return;
+  }
 
-  const btn=$('createBtn');
-  btn.disabled=true;
-  btn.textContent='受付中…';
+  const ok = confirm(
+    `${testType.waitTypeName}\n` +
+    `waitTypeId: ${testType.waitTypeId}\n` +
+    `おとな ${adult}名 / こども ${child}名\n\n` +
+    `Airウェイトに本物の受付を1件作成します。`
+  );
+  if(!ok) return;
+
+  const btn = $('reserveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Airウェイト受付中…';
+  $('apiState').textContent = '実行中';
+  $('apiState').className = 'warn';
 
   try{
-    const data=await post(CREATE_API,{
-      storeId:CONFIG.storeId,
-      waitTypeId:orange.waitTypeId,
+    const data = await airwaitPost(AIRWAIT.createUrl, {
+      storeId:AIRWAIT.storeId,
       numPerson:String(adult),
       numPersonChild:String(child),
+      waitTypeId:String(testType.waitTypeId),
       langType:'KeyJPN',
       autoPrintFlg:'false'
     });
 
-    $('raw').textContent=JSON.stringify(data,null,2);
-    const code=resultCode(data);
+    const code = resultCode(data);
 
-    if(code==='3539'){
-      $('permission').textContent='権限なし（3539）';
-      $('permission').className='bad';
-      throw new Error('外部受付APIの予約作成権限がありません（3539）');
-    }
-    if(code!=='0000' && data?.success!==true){
-      throw new Error(`${code||'ERROR'} ${data?.resultCode?.defaultMessage||'受付できませんでした'}`);
-    }
-
-    const dto=data?.innerDto;
-    if(!dto?.reserveId || dto?.receiptNo===undefined){
-      throw new Error('受付成功レスポンスに reserveId / receiptNo がありません');
+    if(code === '3539'){
+      $('apiState').textContent = '権限待ち（3539）';
+      $('apiState').className = 'warn';
+      setMessage(
+        'permission',
+        '🟠 <strong>コードはAirウェイトまで到達しています。</strong><br>' +
+        '現在は外部受付APIの「予約作成権限」が未開通です。<br>' +
+        'Airウェイト側で権限が有効になった後、<strong>このコードを変更せず同じボタンで再テストできます。</strong>'
+      );
+      return;
     }
 
-    $('permission').textContent='利用可能（0000）';
-    $('permission').className='ok';
+    const knownErrors = {
+      '3527':'本日の発券はできません。',
+      '3528':'本日の利用を停止しています。',
+      '3532':'受付人数が上限を超えています。',
+      '3537':'本日の受付は終了しています。',
+      '3557':'現在は受付時間外です。',
+      '3558':'テスト枠は現在受付時間外です。',
+      '3593':'受付可能な最小人数を下回っています。',
+      '1000':'入力内容にエラーがあります。'
+    };
 
-    saveReservation(dto);
+    if(!isSuccess(data)){
+      const msg = knownErrors[code] || 'システムエラーです。';
+      throw new Error(`${code || 'ERROR'}：${msg}`);
+    }
 
-    const result=$('result');
-    result.className='result';
-    result.innerHTML=`
-      <div style="text-align:center;font-weight:950">✅ Airウェイト受付成功</div>
-      <div class="num">${esc(dto.receiptNo)}<span style="font-size:1rem">番</span></div>
-      <div style="font-size:.76rem;line-height:1.7">
-        reserveId：${esc(dto.reserveId)}<br>
-        waitType：${esc(orange.waitTypeName)} / ${esc(orange.waitTypeId)}<br>
-        待ち組数：${esc(dto.waitCount ?? '--')}<br>
-        待ち時間：${esc(dto.waitTime ?? '--')}
-      </div>
-      <button class="btn secondary" onclick="location.href='yobidasi.html'">この番号の呼出状況を見る</button>
-    `;
-  }catch(e){
-    const result=$('result');
-    result.className='result error';
-    result.innerHTML=`<strong>受付テスト失敗</strong><br>${esc(e.message)}`;
+    const dto = data?.innerDto;
+    if(!dto || dto.reserveId == null || dto.receiptNo == null){
+      throw new Error('受付成功レスポンスに reserveId または receiptNo がありません。');
+    }
+
+    const record = buildReservationRecord(dto);
+    saveReservation(record);
+
+    $('apiState').textContent = '受付成功（0000）';
+    $('apiState').className = 'ok';
+
+    setMessage(
+      'success',
+      `✅ <strong>Airウェイトに実受付できました。</strong>` +
+      `<div class="number">${esc(dto.receiptNo)}<small>番</small></div>` +
+      `reserveId：${esc(dto.reserveId)}<br>` +
+      `待ち組数：${esc(dto.waitCount ?? '--')}<br>` +
+      `待ち時間：${esc(dto.waitTime ?? '--')}<br>` +
+      `<button class="btn primary" onclick="location.href='yobidasi.html'">呼出状況を見る</button>`
+    );
+  }catch(err){
+    $('apiState').textContent = '受付失敗';
+    $('apiState').className = 'bad';
+    setMessage('error', `❌ ${esc(err.message)}`);
   }finally{
-    btn.disabled=false;
-    btn.textContent='この内容で受付する';
+    btn.disabled = false;
+    btn.textContent = 'テスト枠で実受付する';
   }
-});
+}
 
-loadOrange();
+$('reserveBtn').addEventListener('click', createTestReservation);
+loadTestSlot();
 </script>
 </body>
 </html>
