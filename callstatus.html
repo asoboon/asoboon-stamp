@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.2.1</title>
+<title>あなたの呼出状況｜アソブーン V5.2.2</title>
 <style>
 
 :root{
@@ -424,7 +424,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <div class="lookup-guide">予約時のメールに記載された発券番号、または現地で発券された受付番号を入力してください。</div>
   <form id="numberForm" class="form">
     <input id="numberInput" class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="発券・受付番号" aria-label="受付番号">
-    <button class="submit" type="submit">確認する</button>
+    <button id="numberSubmit" class="submit" type="submit">確認する</button>
   </form>
   <div id="lookupError" class="error" hidden></div>
 </section>
@@ -466,7 +466,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.2.1";
+const CUSTOMER_BUILD="5.2.2";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -479,11 +479,24 @@ const ROUNDS=[
 {id:"w14",label:"14:00の回",start:"14:00",ranges:[[8401,8599],[9401,9599]],system:"平日"},
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
-const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map()};
+const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0};
 const CALLTIME_CFG=window.ASOBOON_CALLTIME_CONFIG||{};
 let callDeadlineTicker=0;
 let callTimeServerOffsetMs=0;
 const ENTRY_TRANSFER_KEY="asoboon-entry-transfer-v1";
+
+function safeStoreGet(key){try{return localStorage.getItem(key)}catch(e){console.warn("storage get failed",e);return null}}
+function safeStoreSet(key,val){try{localStorage.setItem(key,String(val));return true}catch(e){console.warn("storage set failed",e);return false}}
+function safeStoreRemove(key){try{localStorage.removeItem(key)}catch(e){console.warn("storage remove failed",e)}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function setLookupBusy(on){
+  const b=$("numberSubmit");
+  if(!b)return;
+  b.disabled=!!on;
+  b.textContent=on?"確認中…":"確認する";
+  b.setAttribute("aria-busy",on?"true":"false");
+}
+
 // V4.2: 利用時間は「回」ではなく受付番号レンジで判定する。
 function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function localTimeText(d=new Date()){return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
@@ -629,6 +642,7 @@ async function renderCallDeadline(row){
     console.warn("calltime",e);scheduleCalltimeRetry(row)
   }finally{state.callTimeLoading.delete(key)}
 }
+function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||calling(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
 function pace(rd,p){if(!rd.start||rd.noForecast)return["進行状況",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(!p.total)return["受付なし",""];return[`現在 ${Math.min(p.progressed,p.total)}組目まで進行`,""]}
 function rs(r){if(calling(r))return["calling","呼出中"];const s=String(r.status);if(s==="0")return["waiting","待ち"];if(s==="1")return["hold","保留"];if(s==="2")return["done","案内済"];if(s==="3")return["cancel","取消"];if(s==="4")return["processing","対応中"];return["waiting","受付"]}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
 async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`混雑状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"混雑状況取得失敗");return d?.innerDto?.stores?.[0]||null}
@@ -717,7 +731,98 @@ function resolve(){
   $("lookupError").hidden=true;
   renderMine();
 }
-async function refresh(show=true){if(state.loading)return;state.loading=true;$("refreshButton").disabled=true;if(show)$("message").textContent="情報を更新しています…";try{const[s,rows]=await Promise.all([waitInfo(),allRows()]);state.store=s;state.rows=rows;$("storeName").textContent=s?.storeName||"アソブーン";resolve();const d=new Date();$("message").classList.remove("error");$("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}catch(e){console.error(e);$("message").classList.add("error");$("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。"}finally{state.loading=false;$("refreshButton").disabled=false}}
+async function refresh(show=true){
+  if(state.refreshPromise)return state.refreshPromise;
+  state.loading=true;
+  $("refreshButton").disabled=true;
+  if(show)$("message").textContent="情報を更新しています…";
+
+  state.refreshPromise=(async()=>{
+    try{
+      // お客様画面では受付一覧だけを取得。店舗名は固定表示にして、
+      // 300人規模の同時アクセス時にAirWaitへの不要な1リクエスト/人を削減する。
+      const rows=await allRows();
+      state.rows=rows;
+      $("storeName").textContent="アソブーン";
+      resolve();
+      const d=new Date();
+      $("message").classList.remove("error");
+      $("message").textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      return true;
+    }catch(e){
+      console.error(e);
+      $("message").classList.add("error");
+      $("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。";
+      return false;
+    }finally{
+      state.loading=false;
+      state.refreshPromise=null;
+      $("refreshButton").disabled=false;
+    }
+  })();
+
+  return state.refreshPromise;
+}
+
+async function lookupNumber(){
+  const n=num($("numberInput").value);
+  if(!n){
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="受付番号を入力してください。";
+    return;
+  }
+
+  setLookupBusy(true);
+  $("lookupError").hidden=true;
+  $("message").classList.remove("error");
+  $("message").textContent="受付番号を確認しています…";
+
+  try{
+    state.my=n;
+    safeStoreSet(STORE_KEY,n);
+
+    // 一覧未取得時は初回照会。わずかなランダム遅延で
+    // 一斉アクセス時のリクエスト集中を少し分散する。
+    if(!state.rows.length && !state.refreshPromise){
+      await sleep(Math.floor(Math.random()*1200));
+    }
+    if(!state.rows.length || state.loading){
+      await refresh(false);
+    }
+
+    let mine=findMine(n);
+
+    // 初回一覧に見つからなかった場合だけ、最新状態をもう一度取得。
+    // 「確認する」を押したのに何も起きない状態を作らない。
+    if(!mine){
+      await refresh(false);
+      mine=findMine(n);
+    }
+
+    resolve();
+
+    if(mine){
+      $("personalSection").scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  }catch(e){
+    console.error("lookup failed",e);
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="受付状況を確認できませんでした。「最新に更新」を押してもう一度お試しください。";
+  }finally{
+    setLookupBusy(false);
+  }
+}
+
+function scheduleAutoRefresh(){
+  clearTimeout(state.autoRefreshTimer);
+  // 60〜75秒のランダム間隔にして、利用者全員の更新時刻が揃うのを避ける。
+  const delay=60000+Math.floor(Math.random()*15000);
+  state.autoRefreshTimer=setTimeout(async()=>{
+    if(document.visibilityState==="visible" && state.my)await refresh(false);
+    scheduleAutoRefresh();
+  },delay);
+}
+
 $("enteredButton").addEventListener("click",()=>{
   if(!state.myRow||!state.myRound)return;
 
@@ -761,7 +866,35 @@ $("enteredButton").addEventListener("click",()=>{
   window.setTimeout(()=>{location.href=url.toString()},450);
 });
 
-$("numberInput").addEventListener("input",e=>{const d=String(e.target.value).replace(/\D/g,"").slice(0,4);if(e.target.value!==d)e.target.value=d});$("numberForm").addEventListener("submit",e=>{e.preventDefault();const n=num($("numberInput").value);if(!n){$("lookupError").hidden=false;$("lookupError").textContent="受付番号を入力してください。";return}state.my=n;localStorage.setItem(STORE_KEY,n);resolve()});$("changeNumberButton").addEventListener("click",()=>{state.my=state.myRow=state.myRound=null;localStorage.removeItem(STORE_KEY);$("numberInput").value="";resolve();$("numberInput").focus();window.scrollTo({top:0,behavior:"smooth"})});$("refreshButton").addEventListener("click",()=>refresh(true));$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");const saved=num(localStorage.getItem(STORE_KEY));if(saved){state.my=saved;$("numberInput").value=saved}refresh(true);setInterval(()=>refresh(false),60000);
+$("numberInput").addEventListener("input",e=>{
+  const d=String(e.target.value).replace(/\D/g,"").slice(0,4);
+  if(e.target.value!==d)e.target.value=d;
+});
+$("numberForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  await lookupNumber();
+});
+$("changeNumberButton").addEventListener("click",()=>{
+  state.my=state.myRow=state.myRound=null;
+  safeStoreRemove(STORE_KEY);
+  $("numberInput").value="";
+  resolve();
+  $("numberInput").focus();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+$("refreshButton").addEventListener("click",()=>refresh(true));
+$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");
+
+const saved=num(safeStoreGet(STORE_KEY));
+if(saved){
+  state.my=saved;
+  $("numberInput").value=saved;
+  $("message").textContent="前回の受付番号を確認しています…";
+  setTimeout(()=>lookupNumber(),Math.floor(Math.random()*900));
+}else{
+  $("message").textContent="受付番号を入力して「確認する」を押してください。";
+}
+scheduleAutoRefresh();
 })();
 </script>
 </body></html>
