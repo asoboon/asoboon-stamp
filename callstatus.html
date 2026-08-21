@@ -5,337 +5,1174 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#fff8e8">
 <meta name="robots" content="noindex,nofollow">
-<title>呼出状況｜アソブーン</title>
-<meta name="description" content="アソブーンの現在の呼出状況と、ご自身の受付番号の呼出目安を確認できます。">
+<title>あなたの呼出状況｜アソブーン</title>
+<meta name="description" content="受付番号から、アソブーンでの現在の呼出状況・前の待ち組数・入場時間の目安を確認できます。">
+
 <style>
-:root{--bg:#fff8e8;--ink:#18212a;--muted:#687683;--orange:#ff8a22;--blue:#0e82d8;--green:#15945d;--red:#d92b3f;--line:#e7e9eb;--shadow:0 14px 36px rgba(49,43,34,.12)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{color:var(--ink);background:radial-gradient(circle at 8% -5%,rgba(255,179,68,.28),transparent 30%),radial-gradient(circle at 100% 15%,rgba(14,130,216,.13),transparent 28%),var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%}
-button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #111;outline-offset:3px}.app{width:min(100%,720px);margin:auto;padding:max(16px,env(safe-area-inset-top)) 16px max(22px,env(safe-area-inset-bottom))}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.back,.refresh{border:0;font-weight:1000}.back{min-height:44px;padding:0 13px;border-radius:14px;background:#fff;color:var(--ink);box-shadow:0 6px 16px rgba(50,43,34,.08)}
-.live{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;background:#e7f8ef;color:#0e603d;font-size:.76rem;font-weight:1000}.dot{width:9px;height:9px;border-radius:50%;background:#1cb66e;box-shadow:0 0 0 5px rgba(28,182,110,.11)}
-.hero{padding:22px 20px;border-radius:26px;color:#fff;background:linear-gradient(135deg,#ff8520,#ffad35 60%,#ffca60);box-shadow:0 16px 34px rgba(220,115,23,.22)}.hero small{font-weight:1000;letter-spacing:.08em}.hero h1{margin:7px 0 0;font-size:clamp(2rem,8vw,3rem);line-height:1.05}.hero p{margin:10px 0 0;font-size:.94rem;line-height:1.55;font-weight:850}#storeNameDisplay{margin-top:12px;font-size:.78rem;font-weight:900}
-.call{margin-top:16px;padding:24px 18px;border:2px solid #ccecff;border-radius:28px;text-align:center;background:linear-gradient(180deg,#fff,#f4fbff);box-shadow:var(--shadow)}.call-label{color:#487087;font-size:.84rem;font-weight:1000}.call-number{display:flex;align-items:baseline;justify-content:center;gap:7px;margin-top:10px}#callingNumber{color:var(--blue);font-size:clamp(4.5rem,20vw,7.5rem);line-height:.88;font-weight:1000;letter-spacing:-.06em;font-variant-numeric:tabular-nums}.call-unit{color:#215b7e;font-size:clamp(1.3rem,5vw,2rem);font-weight:1000}.call p{margin:10px 0 0;color:#344a58;font-size:.94rem;line-height:1.5;font-weight:850}
-.my-card{margin-top:14px;padding:20px;border:2px solid #ffdca1;border-radius:26px;background:linear-gradient(180deg,#fffdf7,#fff7e7);box-shadow:var(--shadow)}.my-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.my-head strong{font-size:1.22rem}.privacy{font-size:.64rem;color:#7e6c52;font-weight:850;background:#fff1d3;border-radius:999px;padding:6px 9px}.number-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;margin-top:14px}.number-input{width:100%;min-height:58px;border:2px solid #e6c27d;border-radius:16px;padding:0 16px;background:#fff;color:var(--ink);font-size:1.35rem;font-weight:1000;font-variant-numeric:tabular-nums}.number-submit{min-height:58px;border:0;border-radius:16px;padding:0 19px;color:#fff;background:linear-gradient(180deg,#ff9b2f,#f37d14);box-shadow:0 8px 18px rgba(210,102,15,.20);font-weight:1000}.my-hint{margin-top:9px;color:#826a48;font-size:.70rem;line-height:1.45;font-weight:800}
-.my-result{display:none;margin-top:16px;padding:18px;border-radius:22px;border:2px solid #dbe8ef;background:#fff}.my-result.show{display:block}.my-result.waiting{border-color:#b9e4ff;background:#f5fbff}.my-result.calling{border-color:#ffd36f;background:#fff9e6}.my-result.passed{border-color:#ffb8c0;background:#fff2f4}.my-result-kicker{color:#697a85;font-size:.69rem;font-weight:1000;letter-spacing:.06em}.my-status{margin-top:5px;font-size:clamp(1.55rem,6.4vw,2.45rem);line-height:1.14;font-weight:1000;letter-spacing:-.02em}.my-result.waiting .my-status{color:#0878bd}.my-result.calling .my-status{color:#9a6500}.my-result.passed .my-status{color:#b21f33}
-.my-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.my-metric{padding:12px 8px;border:1px solid #e6eaed;border-radius:15px;text-align:center;background:rgba(255,255,255,.8)}.my-metric small{display:block;color:#71808a;font-size:.62rem;font-weight:900}.my-metric b{display:block;margin-top:5px;font-size:1.13rem;font-weight:1000;font-variant-numeric:tabular-nums}.estimate{margin-top:13px;padding:14px;border-radius:16px;background:#eef8ff;color:#214d67}.estimate strong{display:block;font-size:1.03rem}.estimate span{display:block;margin-top:3px;font-size:.76rem;line-height:1.45;font-weight:800}.estimate.warn{background:#fff0f2;color:#7f2431}.method-note{margin-top:11px;color:#7d6c55;font-size:.66rem;line-height:1.5;font-weight:800}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.stat{min-height:150px;padding:18px 12px;border:1px solid var(--line);border-radius:22px;text-align:center;background:#fff;box-shadow:0 10px 26px rgba(49,43,34,.08)}.icon{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 9px;border-radius:14px;background:#eef8ff;font-size:1.25rem}.label{color:var(--muted);font-size:.73rem;font-weight:1000}.value{margin-top:8px;min-height:42px;font-size:clamp(1.6rem,7vw,2.35rem);line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}.caption{margin-top:7px;color:#7b8790;font-size:.67rem;line-height:1.35;font-weight:850}
-.panel{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.84)}.panel-row{display:flex;align-items:center;justify-content:space-between;gap:12px}#updatedAt{color:#687683;font-size:.72rem;font-weight:850}.refresh{min-height:44px;padding:0 15px;border-radius:14px;background:#21303a;color:#fff;box-shadow:0 7px 16px rgba(24,33,42,.16)}#loadMessage{margin-top:10px;color:#687683;font-size:.72rem;line-height:1.5;font-weight:800}#loadMessage.error{color:#a34b23;font-weight:1000}.guide{margin-top:14px;padding:17px 16px;border-left:5px solid var(--orange);border-radius:16px;background:#fff;box-shadow:0 8px 22px rgba(49,43,34,.07);color:#4e402e;font-size:.80rem;line-height:1.65;font-weight:850}.footer{padding:18px 8px 6px;color:#88939a;text-align:center;font-size:.65rem;line-height:1.5;font-weight:750}
-.airwait-source{position:fixed;left:-10000px;width:1px;height:1px;overflow:hidden;opacity:.001;pointer-events:none}.skeleton{color:#a7b2b9;animation:pulse 1.25s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}@media(max-width:480px){.app{padding-left:12px;padding-right:12px}.stats{gap:9px}.stat{padding-left:9px;padding-right:9px}.my-grid{grid-template-columns:1fr 1fr}.my-metric:last-child{grid-column:1/-1}}@media(max-width:360px){.number-form{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* v2.1: 受付番号は1〜4桁 */
-/* v2.2: 自分の状況を最優先表示 */
-
-/* v2.2: PERSONAL STATUS FIRST — 自分の状況を主役にする */
-.my-card{
-  margin-top:16px!important;
-  padding:22px!important;
-  border:3px solid #ffbd4a!important;
-  border-radius:30px!important;
+:root{
+  --bg:#fff8e8;
+  --paper:#fff;
+  --ink:#17212a;
+  --muted:#6c7881;
+  --orange:#f78318;
+  --orange2:#ffb342;
+  --blue:#137fce;
+  --blue-soft:#edf8ff;
+  --green:#108a52;
+  --green-soft:#e9f9f0;
+  --amber:#d88a00;
+  --amber-soft:#fff4d4;
+  --red:#c93749;
+  --red-soft:#ffedf0;
+  --gray:#596872;
+  --line:#e5e8ea;
+  --shadow:0 14px 34px rgba(52,43,31,.10);
+  --safe-top:max(15px,env(safe-area-inset-top));
+  --safe-bottom:max(22px,env(safe-area-inset-bottom));
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  color:var(--ink);
   background:
-    radial-gradient(circle at 100% 0%,rgba(255,196,86,.30),transparent 30%),
-    linear-gradient(180deg,#fffdf8,#fff4dc)!important;
-  box-shadow:
-    0 20px 44px rgba(156,92,18,.17),
-    0 0 0 4px rgba(255,185,60,.07)!important;
+    radial-gradient(circle at 8% -5%,rgba(255,179,66,.28),transparent 28%),
+    radial-gradient(circle at 100% 12%,rgba(19,127,206,.12),transparent 26%),
+    var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
 }
-.my-head strong{
-  font-size:clamp(1.55rem,6vw,2.15rem)!important;
-  line-height:1.1!important;
-  letter-spacing:-.02em!important;
+button,input{font:inherit}
+button{-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid #111;outline-offset:3px}
+[hidden]{display:none!important}
+
+.app{
+  width:min(100%,720px);
+  margin:0 auto;
+  padding:var(--safe-top) 14px var(--safe-bottom);
 }
-.privacy{
-  flex:0 0 auto;
-  font-size:.66rem!important;
-  background:#fff!important;
-  border:1px solid #f2d59e;
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+.back{
+  min-height:44px;
+  padding:0 13px;
+  border:1px solid rgba(23,33,42,.08);
+  border-radius:14px;
+  color:var(--ink);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 5px 14px rgba(49,43,34,.06);
+  font-weight:1000;
+  cursor:pointer;
+}
+.live-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  padding:0 11px;
+  border:1px solid #caead8;
+  border-radius:999px;
+  color:#10623f;
+  background:#e9f8f0;
+  font-size:.74rem;
+  font-weight:1000;
+}
+.live-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#1db46d;
+  box-shadow:0 0 0 5px rgba(29,180,109,.11);
+}
+
+.hero{
+  padding:17px 18px 16px;
+  border-radius:24px;
+  color:#fff;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.13),transparent 36%),
+    linear-gradient(135deg,#f47c16,#ffab30 62%,#ffc65a);
+  box-shadow:0 14px 30px rgba(213,107,19,.20);
+}
+.hero small{
+  display:block;
+  opacity:.95;
+  font-size:.72rem;
+  font-weight:1000;
+  letter-spacing:.08em;
+}
+.hero h1{
+  margin:6px 0 0;
+  font-size:clamp(1.85rem,7vw,2.55rem);
+  line-height:1.06;
+  letter-spacing:-.03em;
+}
+.hero p{
+  margin:8px 0 0;
+  font-size:.82rem;
+  line-height:1.5;
+  font-weight:850;
+}
+#storeName{
+  margin-top:8px;
+  font-size:.74rem;
+  font-weight:900;
+  opacity:.94;
+}
+
+/* Number input */
+.lookup{
+  margin-top:14px;
+  padding:18px;
+  border:2px solid #ffc55d;
+  border-radius:25px;
+  background:linear-gradient(180deg,#fff,#fff7e8);
+  box-shadow:var(--shadow);
+}
+.lookup-title{
+  font-size:1.22rem;
+  line-height:1.2;
+  font-weight:1000;
+}
+.lookup-copy{
+  margin-top:5px;
+  color:#79684f;
+  font-size:.74rem;
+  line-height:1.45;
+  font-weight:850;
 }
 .number-form{
-  margin-top:18px!important;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:9px;
+  margin-top:14px;
 }
 .number-input{
-  min-height:70px!important;
-  border-width:3px!important;
-  border-color:#e9b75b!important;
-  border-radius:19px!important;
-  font-size:1.75rem!important;
+  min-width:0;
+  min-height:64px;
+  padding:0 16px;
+  border:3px solid #e5b65b;
+  border-radius:18px;
+  color:#1c252b;
+  background:#fff;
   text-align:center;
+  font-size:1.65rem;
+  font-weight:1000;
+  font-variant-numeric:tabular-nums;
 }
 .number-submit{
-  min-height:70px!important;
-  border-radius:19px!important;
-  padding:0 22px!important;
-  font-size:1rem!important;
-  box-shadow:0 10px 22px rgba(210,102,15,.24)!important;
+  min-height:64px;
+  padding:0 21px;
+  border:0;
+  border-radius:18px;
+  color:#fff;
+  background:linear-gradient(180deg,#ff9a31,#ed7411);
+  box-shadow:0 9px 20px rgba(210,103,16,.23);
+  font-size:.94rem;
+  font-weight:1000;
+  cursor:pointer;
 }
-.my-hint{
-  margin-top:11px!important;
-  font-size:.76rem!important;
-}
-.my-hint strong{
-  color:#8d4f00;
-}
-
-.my-result{
-  margin-top:18px!important;
-  padding:24px 20px 22px!important;
-  border-width:3px!important;
-  border-radius:26px!important;
-  box-shadow:0 14px 32px rgba(35,56,68,.10);
-}
-.my-result.waiting{
-  border-color:#72c8f5!important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(93,194,245,.20),transparent 32%),
-    linear-gradient(180deg,#f8fdff,#eaf7ff)!important;
-}
-.my-result.calling{
-  border-color:#ffc84c!important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(255,204,78,.25),transparent 34%),
-    linear-gradient(180deg,#fffdf7,#fff4cf)!important;
-}
-.my-result.passed{
-  border-color:#ff8290!important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(255,93,111,.18),transparent 34%),
-    linear-gradient(180deg,#fffafa,#ffecef)!important;
-}
-.my-result-kicker{
-  text-align:center;
-  font-size:.76rem!important;
-  letter-spacing:.10em!important;
-}
-.my-status{
-  margin-top:10px!important;
-  text-align:center;
-  font-size:clamp(2.05rem,8.3vw,3.35rem)!important;
-  line-height:1.08!important;
+.lookup-error{
+  margin-top:10px;
+  color:#a63b2d;
+  font-size:.75rem;
+  line-height:1.45;
+  font-weight:1000;
 }
 
-.my-grid{
-  grid-template-columns:1fr 1fr!important;
-  gap:10px!important;
-  margin-top:20px!important;
+/* Duplicate candidate choice */
+.candidates{
+  margin-top:14px;
+  padding:16px;
+  border:2px solid #badff5;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:var(--shadow);
 }
-.my-metric{
-  min-height:106px;
+.candidates h2{
+  margin:0;
+  font-size:1rem;
+}
+.candidates p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.45;
+  font-weight:800;
+}
+.candidate-list{
+  display:grid;
+  gap:9px;
+  margin-top:12px;
+}
+.candidate-btn{
+  min-height:70px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border:2px solid #d9e9f2;
+  border-radius:17px;
+  color:var(--ink);
+  text-align:left;
+  background:#f9fdff;
+  cursor:pointer;
+}
+.candidate-btn strong{
+  display:block;
+  font-size:.95rem;
+}
+.candidate-btn small{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:.68rem;
+  font-weight:850;
+}
+.candidate-arrow{
+  color:var(--blue);
+  font-size:1.7rem;
+  font-weight:1000;
+}
+
+/* Personal status = dominant */
+.personal{
+  margin-top:14px;
+  overflow:hidden;
+  border:4px solid #a9d9f5;
+  border-radius:30px;
+  background:#fff;
+  box-shadow:0 20px 44px rgba(47,73,88,.14);
+}
+.personal.waiting{border-color:#84c9f1}
+.personal.soon{border-color:#ffc94f}
+.personal.calling{border-color:#47c881;box-shadow:0 20px 44px rgba(22,139,81,.18),0 0 0 5px rgba(71,200,129,.08)}
+.personal.hold{border-color:#e6aa3e}
+.personal.processing{border-color:#83a5bb}
+.personal.done{border-color:#9eaab1}
+.personal.cancel{border-color:#ef8995}
+
+.status-hero{
+  padding:24px 18px 22px;
+  text-align:center;
+  background:linear-gradient(180deg,#f5fcff,#eaf7ff);
+}
+.personal.soon .status-hero{background:linear-gradient(180deg,#fffdf5,#fff1bf)}
+.personal.calling .status-hero{background:linear-gradient(180deg,#f3fff9,#d7f8e6)}
+.personal.hold .status-hero{background:linear-gradient(180deg,#fffaf1,#ffedc9)}
+.personal.processing .status-hero{background:linear-gradient(180deg,#f8fbfd,#eaf1f5)}
+.personal.done .status-hero{background:linear-gradient(180deg,#fafbfb,#eef1f2)}
+.personal.cancel .status-hero{background:linear-gradient(180deg,#fffafb,#ffe7eb)}
+
+.status-kicker{
+  color:#5e7e91;
+  font-size:.72rem;
+  line-height:1.2;
+  font-weight:1000;
+  letter-spacing:.10em;
+}
+.status-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  margin-top:11px;
+  padding:6px 13px;
+  border-radius:999px;
+  color:#376176;
+  background:#dff3ff;
+  font-size:.72rem;
+  font-weight:1000;
+}
+.personal.soon .status-badge{color:#6d4700;background:#ffe79f}
+.personal.calling .status-badge{color:#075b36;background:#baf0d1}
+.personal.hold .status-badge{color:#704900;background:#ffe2a6}
+.personal.cancel .status-badge{color:#872d3a;background:#ffd1d8}
+
+.status-title{
+  margin:13px auto 0;
+  color:#0c70b3;
+  font-size:clamp(2.15rem,9vw,3.65rem);
+  line-height:1.06;
+  font-weight:1000;
+  letter-spacing:-.035em;
+}
+.personal.soon .status-title{color:#a56800}
+.personal.calling .status-title{
+  color:#087b47;
+  font-size:clamp(2.7rem,11vw,4.35rem);
+}
+.personal.hold .status-title{color:#a66c00}
+.personal.processing .status-title{color:#536f80}
+.personal.done .status-title{color:#65727a}
+.personal.cancel .status-title{color:#b32e40}
+
+.status-instruction{
+  max-width:550px;
+  margin:13px auto 0;
+  color:#344854;
+  font-size:clamp(1.02rem,4.1vw,1.35rem);
+  line-height:1.48;
+  font-weight:1000;
+}
+.personal.soon .status-instruction{color:#664500}
+.personal.calling .status-instruction{
+  color:#0b5434;
+  font-size:clamp(1.16rem,4.6vw,1.52rem);
+}
+.personal.cancel .status-instruction{color:#7b2b36}
+
+.identity{
+  padding:15px 16px 0;
+  background:#fff;
+}
+.identity-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.number-chip,.type-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  padding:7px 13px;
+  border-radius:999px;
+  font-size:.76rem;
+  line-height:1.15;
+  font-weight:1000;
+}
+.number-chip{color:#804900;background:#fff0cf;border:1px solid #ffd48b}
+.type-chip{color:#215e80;background:#eaf7ff;border:1px solid #c8e9fb}
+
+.metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:14px 16px 16px;
+  background:#fff;
+}
+.metric{
+  min-height:112px;
   display:grid;
   align-content:center;
   justify-items:center;
-  padding:14px 10px!important;
-  border:2px solid rgba(86,111,126,.12)!important;
-  border-radius:19px!important;
+  padding:12px;
+  border:1px solid #e4eaed;
+  border-radius:19px;
+  text-align:center;
+  background:#fafcfd;
 }
-.my-metric small{
-  font-size:.70rem!important;
+.metric small{
+  color:var(--muted);
+  font-size:.70rem;
+  line-height:1.3;
+  font-weight:1000;
 }
-.my-metric b{
-  margin-top:5px!important;
-  font-size:clamp(1.8rem,7vw,2.65rem)!important;
-  line-height:1!important;
+.metric strong{
+  margin-top:7px;
+  color:#1b303d;
+  font-size:clamp(1.65rem,7vw,2.45rem);
+  line-height:1;
+  font-weight:1000;
+  font-variant-numeric:tabular-nums;
 }
-.my-metric span{
+.metric span{
+  margin-top:5px;
+  color:#74828a;
+  font-size:.67rem;
+  font-weight:850;
+}
+.metric.primary{
+  border:2px solid #ffd88c;
+  background:#fff8e9;
+}
+.metric.primary strong{color:#db7416}
+
+.estimate{
+  margin:0 16px 18px;
+  padding:16px;
+  border:2px solid #c9e7f8;
+  border-radius:19px;
+  text-align:center;
+  background:#f1faff;
+}
+.estimate strong{
   display:block;
-  margin-top:3px;
-  color:#6d7c85;
-  font-size:.72rem;
+  color:#176994;
+  font-size:clamp(1.25rem,5.4vw,1.9rem);
+  line-height:1.25;
+  font-weight:1000;
+}
+.estimate span{
+  display:block;
+  margin-top:6px;
+  color:#557180;
+  font-size:.74rem;
+  line-height:1.5;
+  font-weight:850;
+}
+.personal.soon .estimate{border-color:#ffd56f;background:#fff6d6}
+.personal.soon .estimate strong{color:#8f5b00}
+.personal.calling .estimate{border-color:#75d6a2;background:#ecfbf3}
+.personal.calling .estimate strong{color:#087744}
+.status-foot{
+  padding:0 16px 18px;
+  color:#7b878e;
+  font-size:.64rem;
+  line-height:1.45;
+  text-align:center;
+  font-weight:800;
+}
+
+/* Current facility status is secondary */
+.overall{
+  margin-top:14px;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(255,255,255,.88);
+  box-shadow:0 8px 22px rgba(49,43,34,.07);
+}
+.overall-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.overall h2{
+  margin:0;
+  font-size:.95rem;
+}
+.updated{
+  color:#869199;
+  font-size:.65rem;
+  font-weight:850;
+}
+.overall-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:12px;
+}
+.overall-item{
+  min-height:92px;
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  padding:11px;
+  border-radius:16px;
+  text-align:center;
+  background:#f7f9fa;
+}
+.overall-item small{
+  color:var(--muted);
+  font-size:.67rem;
+  font-weight:900;
+}
+.overall-item strong{
+  margin-top:6px;
+  font-size:1.38rem;
   line-height:1;
   font-weight:1000;
 }
-.my-number-metric{
-  grid-column:1/-1!important;
-  min-height:150px!important;
-  border:3px solid rgba(255,153,35,.40)!important;
-  background:linear-gradient(180deg,#fff,#fff6e6)!important;
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:12px;
 }
-.my-number-metric small{
-  color:#8a642f!important;
-  font-size:.78rem!important;
+.secondary-btn{
+  min-height:48px;
+  border:1px solid #d7dfe3;
+  border-radius:15px;
+  color:#334550;
+  background:#fff;
+  font-size:.74rem;
+  font-weight:1000;
+  cursor:pointer;
 }
-.my-number-metric b{
-  color:#ef7d14!important;
-  font-size:clamp(4.3rem,18vw,6.7rem)!important;
-  letter-spacing:-.06em!important;
-}
-.my-number-metric span{
-  color:#8a642f!important;
-  font-size:1rem!important;
+.secondary-btn.refresh{
+  color:#fff;
+  border-color:#24343e;
+  background:#24343e;
 }
 
-.estimate{
-  margin-top:16px!important;
-  padding:18px 16px!important;
-  border:2px solid rgba(14,130,216,.16);
-  border-radius:20px!important;
+.message{
+  margin-top:12px;
+  padding:13px 14px;
+  border-left:5px solid var(--orange);
+  border-radius:13px;
+  color:#5d4a32;
+  background:#fff;
+  font-size:.72rem;
+  line-height:1.55;
+  font-weight:850;
+}
+.message.error{
+  color:#7e2f38;
+  border-left-color:var(--red);
+  background:#fff5f6;
+}
+.footer{
+  padding:18px 8px 6px;
+  color:#89949a;
   text-align:center;
+  font-size:.63rem;
+  line-height:1.5;
+  font-weight:750;
 }
-.estimate strong{
-  font-size:clamp(1.45rem,5.7vw,2.15rem)!important;
-  line-height:1.2!important;
+.loading{
+  animation:pulse 1.2s ease-in-out infinite;
 }
-.estimate span{
-  margin-top:7px!important;
-  font-size:.82rem!important;
-  line-height:1.55!important;
-}
-.my-result.calling .estimate{
-  color:#704700;
-  background:#fff0b8;
-  border-color:#ffd25b;
-}
-.my-result.passed .estimate{
-  color:#84293a;
-  background:#ffe0e5;
-  border-color:#ffb6c1;
-}
-.method-note{
-  margin-top:13px!important;
-  padding-top:12px;
-  border-top:1px solid rgba(94,108,116,.13);
-  font-size:.64rem!important;
-  opacity:.86;
-}
-
-/* 現在の全体状況は二次情報へ */
-.call{
-  margin-top:14px!important;
-  padding:18px 16px!important;
-  border-width:1px!important;
-  border-color:#d9eaf3!important;
-  border-radius:22px!important;
-  box-shadow:0 8px 22px rgba(49,43,34,.07)!important;
-}
-.call-label{
-  font-size:.74rem!important;
-}
-.call-number{
-  margin-top:6px!important;
-}
-#callingNumber{
-  font-size:clamp(3.0rem,13vw,4.8rem)!important;
-}
-.call-unit{
-  font-size:clamp(1rem,4vw,1.45rem)!important;
-}
-.call p{
-  margin-top:7px!important;
-  font-size:.78rem!important;
-}
-.stats{
-  margin-top:12px!important;
-}
-.stat{
-  min-height:126px!important;
-  padding:14px 10px!important;
-}
-.value{
-  font-size:clamp(1.45rem,6vw,2rem)!important;
-}
-
-/* 自分の状況が画面上部で見切れにくいようヘッダーも少し圧縮 */
-.hero{
-  padding:18px 18px!important;
-}
-.hero h1{
-  font-size:clamp(1.8rem,7vw,2.5rem)!important;
-}
-.hero p{
-  margin-top:7px!important;
-  font-size:.82rem!important;
-}
-#storeNameDisplay{
-  margin-top:8px!important;
-}
+@keyframes pulse{0%,100%{opacity:.38}50%{opacity:1}}
 
 @media(max-width:480px){
-  .my-card{
-    padding:18px 14px!important;
-  }
-  .my-head{
-    align-items:flex-start!important;
-  }
-  .my-head strong{
-    font-size:1.55rem!important;
-  }
-  .number-form{
-    grid-template-columns:1fr!important;
-  }
-  .number-submit{
-    width:100%;
-  }
-  .my-result{
-    padding:20px 13px 18px!important;
-  }
-  .my-number-metric{
-    min-height:138px!important;
-  }
+  .app{padding-left:11px;padding-right:11px}
+  .hero{border-radius:21px}
+  .lookup{padding:16px 13px}
+  .number-form{grid-template-columns:1fr}
+  .number-submit{width:100%}
+  .status-hero{padding-left:13px;padding-right:13px}
+  .metrics{padding-left:12px;padding-right:12px}
+  .metric{min-height:104px;padding-left:8px;padding-right:8px}
 }
-
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
+
 <body>
 <main class="app">
-  <div class="topbar"><button id="backButton" class="back" type="button">← 戻る</button><div class="live"><span class="dot"></span>現在の状況</div></div>
-  <section class="hero"><small>ASOBooN / AIRウェイト</small><h1>呼出状況</h1><p>現在の呼出番号と、ご自身の受付番号の呼出目安を確認できます。</p><div id="storeNameDisplay">アソブーン</div></section>
-  <section class="my-card" aria-labelledby="myTitle">
-    <div class="my-head"><strong id="myTitle">あなたの呼出状況</strong><span class="privacy">この端末だけに保存</span></div>
-    <form id="numberForm" class="number-form"><input id="myNumberInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="1〜4桁" aria-label="受付番号（1桁から4桁）"><button class="number-submit" type="submit">この番号を見る</button></form>
-    <div class="my-hint">受付番号を入力すると、<strong>あなたがあとどれくらいか</strong>を大きく表示します。</div>
-    <div id="myResult" class="my-result" aria-live="polite">
-      <div class="my-result-kicker">YOUR STATUS / あなたの状況</div><div id="myStatus" class="my-status">状況を確認中</div>
-      <div class="my-grid"><div class="my-metric my-number-metric"><small>あなたの受付番号</small><b id="myNumberDisplay">--</b><span>番</span></div><div class="my-metric"><small>現在の呼出</small><b id="currentNumberDisplay">--</b><span>番まで</span></div><div class="my-metric"><small>番号差</small><b id="numberGapDisplay">--</b><span>番</span></div></div>
-      <div id="estimateBox" class="estimate"><strong id="estimateMain">呼出時間を計算中</strong><span id="estimateSub">Airウェイトの待ち時間をもとに概算します。</span></div>
-      <div class="method-note">※受付番号だけではAirウェイト上の個別ステータス（待ち中・呼出中・保留・取消）を直接取得できません。この表示は「現在の最大呼出番号」「待ち組数」「待ち時間」を使った簡易目安です。番号の飛び・保留・取消などで前後する場合があります。</div>
+  <div class="topbar">
+    <button id="backButton" class="back" type="button">← 戻る</button>
+    <div class="live-pill"><span class="live-dot" aria-hidden="true"></span>自動更新</div>
+  </div>
+
+  <header class="hero">
+    <small>ASOBooN / AIRウェイト</small>
+    <h1>あなたの呼出状況</h1>
+    <p>受付番号を入力すると、同じ受付枠の中であなたの現在状況を確認します。</p>
+    <div id="storeName">アソブーン</div>
+  </header>
+
+  <section class="lookup" aria-labelledby="lookupTitle">
+    <div id="lookupTitle" class="lookup-title">受付番号を入力</div>
+    <div class="lookup-copy">受付番号は1〜4桁です。番号はこの端末内にだけ保存します。</div>
+    <form id="numberForm" class="number-form">
+      <input id="numberInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="1〜4桁" aria-label="受付番号">
+      <button class="number-submit" type="submit">状況を見る</button>
+    </form>
+    <div id="lookupError" class="lookup-error" hidden></div>
+  </section>
+
+  <section id="candidateSection" class="candidates" hidden>
+    <h2>同じ番号の受付が見つかりました</h2>
+    <p>該当する受付枠を選んでください。</p>
+    <div id="candidateList" class="candidate-list"></div>
+  </section>
+
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite">
+    <div class="status-hero">
+      <div class="status-kicker">YOUR STATUS / あなたの状況</div>
+      <div id="statusBadge" class="status-badge">確認中</div>
+      <div id="statusTitle" class="status-title">状況を確認中</div>
+      <div id="statusInstruction" class="status-instruction">最新情報を読み込んでいます。</div>
+    </div>
+
+    <div class="identity">
+      <div class="identity-row">
+        <span id="numberChip" class="number-chip">受付番号 --</span>
+        <span id="typeChip" class="type-chip">受付枠 --</span>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric primary">
+        <small>あなたの前</small>
+        <strong id="aheadCount">--</strong>
+        <span>組</span>
+      </div>
+      <div class="metric">
+        <small>入場時間の目安</small>
+        <strong id="etaClock">--:--</strong>
+        <span id="etaMinutes">現在時刻からの概算</span>
+      </div>
+    </div>
+
+    <div id="estimateBox" class="estimate">
+      <strong id="estimateMain">目安を計算中</strong>
+      <span id="estimateSub">同じ受付枠の待ち状況から概算します。</span>
+    </div>
+
+    <div class="status-foot">
+      入場時間は目安です。実際の呼出状況を優先してください。
     </div>
   </section>
 
-  <section class="call" aria-live="polite"><div class="call-label">現在の呼出状況</div><div class="call-number"><span id="callingNumber" class="skeleton">--</span><span class="call-unit">番まで</span></div><p>現在、この番号まで呼び出し中です。</p></section>
+  <section class="overall" aria-labelledby="overallTitle">
+    <div class="overall-head">
+      <h2 id="overallTitle">現在の施設状況</h2>
+      <div id="updatedAt" class="updated">読み込み中…</div>
+    </div>
 
+    <div class="overall-grid">
+      <div class="overall-item">
+        <small>現在の待ち組数</small>
+        <strong id="overallWaitCount" class="loading">--</strong>
+      </div>
+      <div class="overall-item">
+        <small>待ち時間の目安</small>
+        <strong id="overallWaitTime" class="loading">--</strong>
+      </div>
+    </div>
 
+    <div class="controls">
+      <button id="changeNumberButton" class="secondary-btn" type="button">番号を変更</button>
+      <button id="refreshButton" class="secondary-btn refresh" type="button">最新に更新</button>
+    </div>
+  </section>
 
-  <section class="stats" aria-label="現在の待ち状況"><article class="stat"><div class="icon">👥</div><div class="label">現在の待ち組数</div><div id="waitCountDisplay" class="value skeleton">--</div><div class="caption">現在お待ちいただいている組数</div></article><article class="stat"><div class="icon">🕒</div><div class="label">待ち時間の目安</div><div id="waitTimeDisplay" class="value skeleton">--</div><div class="caption">いま受付した場合の目安</div></article></section>
-  <section class="panel"><div class="panel-row"><div id="updatedAt">Airウェイトから読み込み中…</div><button id="refreshButton" class="refresh" type="button">更新する</button></div><div id="loadMessage">最新情報の取得まで数秒かかる場合があります。</div></section>
-  <aside class="guide"><strong>もっと正確な個別状況は番号券のQRから</strong><br>Airウェイトの番号券にあるQRコードや、オンライン受付完了画面・完了メールの「待ち状況を確認する」からは、その受付専用の待ち状況を確認できます。</aside>
-  <footer class="footer">ASOBooN 呼出状況ページ<br>AirウェイトのWebサイト連携データを表示しています。</footer>
+  <div id="message" class="message">
+    GitHub Pagesの公開URLでAirウェイトの最新情報を取得します。
+  </div>
 
-  <div class="airwait-source" aria-hidden="true" data-airwait="storeId:KR01205179"><span id="awStoreName" data-airwait="storeName">--</span><span id="awWaitCount" data-airwait="waitCount">--</span><span id="awWaitTime" data-airwait="waitTime">--</span><span id="awMaxCallingNumber" data-airwait="maxCallingNumber">--</span></div>
-  <script src="https://airwait.jp/js/corporate/airwait.js" data-airwait="key:lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI" charset="utf-8"></script>
-  <script>
-  (() => {
-    "use strict";
-    const $=id=>document.getElementById(id), STORAGE_KEY="asoboonReceptionNumber";
-    const src={storeName:$("awStoreName"),waitCount:$("awWaitCount"),waitTime:$("awWaitTime"),max:$("awMaxCallingNumber")};
-    const out={storeName:$("storeNameDisplay"),waitCount:$("waitCountDisplay"),waitTime:$("waitTimeDisplay"),max:$("callingNumber"),updated:$("updatedAt"),message:$("loadMessage")};
-    let received=false,last="",timer,currentData=null,myNumber=null;
-    const clean=v=>String(v??"").replace(/\s+/g," ").trim();
-    const firstNumber=v=>{const m=clean(v).match(/\d+(?:\.\d+)?/);return m?Number(m[0]):null};
-    const numberOnly=v=>{const n=firstNumber(v);return Number.isFinite(n)?String(Math.trunc(n)):"--"};
-    const withUnit=(v,unit,prefix="")=>{const s=clean(v);if(!s||s==="--"||s==="-")return "--";return /^\d+(?:\.\d+)?$/.test(s)?`${prefix}${s}${unit}`:s};
-    const clockAfter=minutes=>{const d=new Date(Date.now()+minutes*60000);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
-    const stamp=()=>{const d=new Date();out.updated.textContent=`最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`};
+  <footer class="footer">
+    ASOBooN 呼出状況ページ<br>
+    Airウェイト外部APIの情報をもとに表示しています。
+  </footer>
+</main>
 
-    function renderMyNumber(){
-      if(!myNumber)return;
-      const box=$("myResult");box.classList.add("show");$("myNumberDisplay").textContent=String(myNumber);
-      if(!currentData||currentData.max===null){box.className="my-result show";$("myStatus").textContent="Airウェイトの状況を取得中";$("currentNumberDisplay").textContent="--";$("numberGapDisplay").textContent="--";$("estimateMain").textContent="呼出時間を計算中";$("estimateSub").textContent="最新データが届くと自動で更新します。";return}
-      const max=currentData.max,gap=myNumber-max;$("currentNumberDisplay").textContent=String(max);$("numberGapDisplay").textContent=gap>0?`+${gap}`:String(gap);const est=$("estimateBox");est.classList.remove("warn");
-      if(gap===0){box.className="my-result show calling";$("myStatus").textContent="現在呼出中の可能性があります";$("estimateMain").textContent="受付へお進みください";$("estimateSub").textContent="現在の最大呼出番号と同じ番号です。";return}
-      if(gap<0){box.className="my-result show passed";est.classList.add("warn");$("myStatus").textContent="現在の呼出番号を過ぎています";$("estimateMain").textContent="受付状況をご確認ください";$("estimateSub").textContent="小さい番号でも未呼出の受付が残る場合があります。スタッフの案内もご確認ください。";return}
-      box.className="my-result show waiting";$("myStatus").textContent=`あと ${gap}番ほど`;
-      const wc=currentData.waitCount,wt=currentData.waitTime;
-      if(Number.isFinite(wc)&&wc>0&&Number.isFinite(wt)&&wt>=0){const position=Math.min(gap,wc),raw=wt*(position/wc),mins=wt===0?0:Math.max(1,Math.round(raw));if(mins===0){$("estimateMain").textContent="まもなく呼び出しの可能性";$("estimateSub").textContent="現在の待ち時間表示は0分です。"}else{$("estimateMain").textContent=`呼出まで 約${mins}分の目安`;$("estimateSub").textContent=`目安時刻 ${clockAfter(mins)}ごろ。現在の待ち時間・待ち組数から概算しています。`}}else{$("estimateMain").textContent="呼出時間は計算できません";$("estimateSub").textContent="待ち組数または待ち時間の値を取得できていません。"}
+<script>
+(() => {
+  "use strict";
+
+  const API_KEY = "lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI";
+  const STORE_ID = "KR01205179";
+  const RESERVATIONS_API = "https://cl.airwait.jp/WCLP/api/external/stateless/reservations";
+  const WAIT_INFO_API = "https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo";
+
+  // 「まもなく入場可能」に切り替える基準。
+  // 運用に合わせてここだけ変更できます。
+  const SOON_AHEAD_GROUPS = 3;
+  const SOON_ESTIMATE_MINUTES = 10;
+
+  const STORAGE_NUMBER = "asoboon_callstatus_number_v3";
+  const STORAGE_WAITTYPE = "asoboon_callstatus_waittype_v3";
+
+  const $ = id => document.getElementById(id);
+
+  const state = {
+    reservations: [],
+    waitStore: null,
+    myNumber: null,
+    selectedWaitTypeId: null,
+    selectedReservation: null,
+    loading: false,
+    refreshTimer: null
+  };
+
+  const statusLabel = {
+    "0": "待ち中",
+    "1": "保留中",
+    "2": "対応完了",
+    "3": "取消",
+    "4": "対応中"
+  };
+
+  function setMessage(text, isError=false) {
+    $("message").textContent = text;
+    $("message").classList.toggle("error", isError);
+  }
+
+  function cleanNumber(value) {
+    return String(value ?? "").replace(/\D/g, "").slice(0,4);
+  }
+
+  function reservationNumericNumber(value) {
+    const raw = String(value ?? "").trim();
+    const match = raw.match(/(\d{1,4})$/);
+    return match ? String(Number(match[1])) : "";
+  }
+
+  function normalizeInputNumber(value) {
+    const digits = cleanNumber(value);
+    if (!digits) return null;
+    const n = Number(digits);
+    return Number.isInteger(n) && n >= 1 && n <= 9999 ? n : null;
+  }
+
+  function parseMinutes(value) {
+    const m = String(value ?? "").match(/(\d+)/);
+    return m ? Number(m[1]) : null;
+  }
+
+  function clockAfter(minutes) {
+    if (!Number.isFinite(minutes)) return "--:--";
+    const d = new Date(Date.now() + minutes * 60000);
+    return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+
+  function stampNow() {
+    const d = new Date();
+    $("updatedAt").textContent =
+      `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")} 更新`;
+  }
+
+  function apiSuccess(data) {
+    const code = data?.resultCode?.code;
+    return data?.success === true || code === "0000";
+  }
+
+  async function fetchWaitInfo() {
+    const url = new URL(WAIT_INFO_API);
+    url.searchParams.set("key", API_KEY);
+    url.searchParams.set("storeId", STORE_ID);
+    url.searchParams.set("_", String(Date.now()));
+
+    const response = await fetch(url.toString(), {
+      method:"GET",
+      cache:"no-store",
+      credentials:"omit"
+    });
+
+    if (!response.ok) throw new Error(`混雑状況API HTTP ${response.status}`);
+    const data = await response.json();
+
+    if (!apiSuccess(data)) {
+      throw new Error(data?.resultCode?.defaultMessage || "混雑状況を取得できませんでした");
     }
 
-    function render(){const v={storeName:clean(src.storeName.textContent),waitCount:clean(src.waitCount.textContent),waitTime:clean(src.waitTime.textContent),max:clean(src.max.textContent)},sig=JSON.stringify(v),hasData=Object.values(v).some(x=>x&&x!=="--"&&x!=="-");if(!hasData)return;out.storeName.textContent=v.storeName&&v.storeName!=="--"?v.storeName:"アソブーン";out.max.textContent=numberOnly(v.max);out.waitCount.textContent=withUnit(v.waitCount,"組");out.waitTime.textContent=withUnit(v.waitTime,"分","約");[out.max,out.waitCount,out.waitTime].forEach(el=>el.classList.remove("skeleton"));currentData={max:firstNumber(v.max),waitCount:firstNumber(v.waitCount),waitTime:firstNumber(v.waitTime)};renderMyNumber();if(sig!==last){last=sig;received=true;stamp();out.message.textContent="表示はAirウェイトの最新データに応じて自動更新されます。";out.message.classList.remove("error");clearTimeout(timer)}}
+    const stores = data?.innerDto?.stores || [];
+    return stores.find(store => store.storeId === STORE_ID) || stores[0] || null;
+  }
 
-    $("numberForm").addEventListener("submit",event=>{event.preventDefault();const raw=$("myNumberInput").value.trim();if(!/^\d{1,4}$/.test(raw)){ $("myNumberInput").focus(); return; }const n=Number(raw);if(!Number.isInteger(n)||n<1||n>9999){$("myNumberInput").focus();return}myNumber=n;localStorage.setItem(STORAGE_KEY,String(n));renderMyNumber()});
-    const saved=Math.trunc(Number(localStorage.getItem(STORAGE_KEY)));if(Number.isFinite(saved)&&saved>=1&&saved<=9999){myNumber=saved;$("myNumberInput").value=String(saved);renderMyNumber()}
-    $("myNumberInput").addEventListener("input",event=>{const digits=event.target.value.replace(/\D/g,"").slice(0,4);if(event.target.value!==digits)event.target.value=digits;});
-    const observer=new MutationObserver(render);Object.values(src).forEach(el=>observer.observe(el,{childList:true,subtree:true,characterData:true}));
-    $("refreshButton").addEventListener("click",()=>location.reload());$("backButton").addEventListener("click",()=>{if(history.length>1)history.back();else location.href="./home.html?mode=before"});
-    timer=setTimeout(()=>{if(!received){out.updated.textContent="データを取得できませんでした";out.message.textContent="通信状況をご確認のうえ「更新する」を押してください。";out.message.classList.add("error")}},12000);render();
-  })();
-  </script>
-</main>
+  async function fetchReservationPage(start=1, limit=100) {
+    const url = `${RESERVATIONS_API}?key=${encodeURIComponent(API_KEY)}`;
+    const body = new URLSearchParams({
+      storeId: STORE_ID,
+      sortStatus: "0",
+      isDesc: "0",
+      start: String(start),
+      limit: String(limit)
+    });
+
+    const response = await fetch(url, {
+      method:"POST",
+      body,
+      cache:"no-store",
+      credentials:"omit"
+    });
+
+    if (!response.ok) throw new Error(`受付状況API HTTP ${response.status}`);
+    const data = await response.json();
+
+    if (!apiSuccess(data)) {
+      throw new Error(data?.resultCode?.defaultMessage || "受付状況を取得できませんでした");
+    }
+
+    return {
+      count: Number(data?.innerDto?.count || 0),
+      reservations: Array.isArray(data?.innerDto?.reservations) ? data.innerDto.reservations : []
+    };
+  }
+
+  async function fetchAllReservations() {
+    const first = await fetchReservationPage(1,100);
+    const all = [...first.reservations];
+    const total = first.count;
+
+    // 1回100件上限のためページング。念のため最大2000件まで。
+    let start = 101;
+    while (all.length < total && start <= 2000) {
+      const page = await fetchReservationPage(start,100);
+      if (!page.reservations.length) break;
+      all.push(...page.reservations);
+      start += page.reservations.length;
+    }
+    return all;
+  }
+
+  function getWaitDetail(reservation) {
+    const details = state.waitStore?.waitDetails || [];
+    return details.find(item =>
+      String(item.detailedWaitType || "") === String(reservation?.waitTypeName || "")
+    ) || null;
+  }
+
+  function estimateForReservation(reservation, ahead) {
+    const detail = getWaitDetail(reservation);
+    const count = Number(detail?.detailedWaitCount ?? state.waitStore?.waitCount ?? 0);
+    const waitTimeText = detail?.detailedWaitTime ?? state.waitStore?.waitTime ?? "";
+    const totalMinutes = parseMinutes(waitTimeText);
+
+    if (!Number.isFinite(totalMinutes) || !Number.isFinite(count) || count <= 0) {
+      return { minutes:null, clock:null, sourceText:"現在の待ち時間からは算出できません" };
+    }
+
+    if (ahead <= 0) {
+      return { minutes:0, clock:null, sourceText:"順番が近づいています" };
+    }
+
+    const perGroup = totalMinutes / Math.max(count,1);
+    const minutes = Math.max(1, Math.round(perGroup * ahead));
+
+    return {
+      minutes,
+      clock:clockAfter(minutes),
+      sourceText:`同じ受付枠の待ち時間から概算`
+    };
+  }
+
+  function findMatches(number) {
+    const target = String(number);
+    return state.reservations.filter(r => reservationNumericNumber(r.number) === target);
+  }
+
+  function activePriority(reservation) {
+    if (reservation.isCalling === "1") return 0;
+    if (reservation.status === "0") return 1;
+    if (reservation.status === "4") return 2;
+    if (reservation.status === "1") return 3;
+    if (reservation.status === "2") return 4;
+    if (reservation.status === "3") return 5;
+    return 9;
+  }
+
+  function sortMatches(matches) {
+    return [...matches].sort((a,b) => activePriority(a) - activePriority(b));
+  }
+
+  function calculateAhead(reservation) {
+    if (!reservation || reservation.status !== "0" || reservation.isCalling === "1") return null;
+
+    const sameTypeWaiting = state.reservations.filter(r =>
+      r.waitTypeId === reservation.waitTypeId &&
+      r.status === "0" &&
+      r.isCalling !== "1"
+    );
+
+    const index = sameTypeWaiting.indexOf(reservation);
+    return index >= 0 ? index : null;
+  }
+
+  function setPersonalMode(mode) {
+    const section = $("personalSection");
+    section.className = `personal ${mode}`;
+  }
+
+  function renderPersonal(reservation) {
+    state.selectedReservation = reservation;
+    state.selectedWaitTypeId = reservation.waitTypeId || null;
+
+    if (state.selectedWaitTypeId) {
+      localStorage.setItem(STORAGE_WAITTYPE, state.selectedWaitTypeId);
+    }
+
+    $("candidateSection").hidden = true;
+    $("personalSection").hidden = false;
+
+    $("numberChip").textContent = `受付番号 ${reservationNumericNumber(reservation.number) || reservation.number}`;
+    $("typeChip").textContent = reservation.waitTypeName ? `受付枠 ${reservation.waitTypeName}` : "受付枠";
+
+    const ahead = calculateAhead(reservation);
+    const estimate = Number.isFinite(ahead) ? estimateForReservation(reservation,ahead) : {minutes:null,clock:null};
+
+    $("aheadCount").textContent = Number.isFinite(ahead) ? String(ahead) : "—";
+    $("etaClock").textContent = estimate.clock || (estimate.minutes === 0 ? "まもなく" : "—");
+    $("etaMinutes").textContent =
+      Number.isFinite(estimate.minutes) && estimate.minutes > 0
+        ? `約${estimate.minutes}分後の概算`
+        : estimate.minutes === 0
+          ? "順番が近づいています"
+          : "状況により変わります";
+
+    const isCalling = reservation.isCalling === "1";
+    const status = String(reservation.status ?? "");
+
+    if (isCalling) {
+      setPersonalMode("calling");
+      $("statusBadge").textContent = "呼出中";
+      $("statusTitle").textContent = "入場可能";
+      $("statusInstruction").textContent = "スタッフに番号をお伝えください。";
+      $("estimateMain").textContent = "入場できます";
+      $("estimateSub").textContent = "受付でスタッフに受付番号をお伝えください。";
+      $("aheadCount").textContent = "0";
+      $("etaClock").textContent = "いま";
+      $("etaMinutes").textContent = "入場可能";
+      return;
+    }
+
+    if (status === "0") {
+      const soonByGroups = Number.isFinite(ahead) && ahead <= SOON_AHEAD_GROUPS;
+      const soonByTime = Number.isFinite(estimate.minutes) && estimate.minutes <= SOON_ESTIMATE_MINUTES;
+      const soon = soonByGroups || soonByTime;
+
+      if (soon) {
+        setPersonalMode("soon");
+        $("statusBadge").textContent = "順番が近づいています";
+        $("statusTitle").textContent = "まもなく入場可能";
+        $("statusInstruction").textContent = "待合室かお近くでお待ちください。";
+      } else {
+        setPersonalMode("waiting");
+        $("statusBadge").textContent = "待ち中";
+        $("statusTitle").textContent = "順番をお待ちください";
+        $("statusInstruction").textContent =
+          Number.isFinite(ahead)
+            ? `現在、あなたの前に${ahead}組お待ちです。`
+            : "現在、順番をお待ちいただいています。";
+      }
+
+      if (Number.isFinite(estimate.minutes) && estimate.minutes > 0) {
+        $("estimateMain").textContent = `入場まで 約${estimate.minutes}分の目安`;
+        $("estimateSub").textContent = `目安時刻 ${estimate.clock}ごろ。同じ受付枠の待ち状況から概算しています。`;
+      } else if (estimate.minutes === 0) {
+        $("estimateMain").textContent = "入場まで まもなく";
+        $("estimateSub").textContent = "呼出状況が変わるまで、待合室かお近くでお待ちください。";
+      } else {
+        $("estimateMain").textContent = "入場時間は状況により変わります";
+        $("estimateSub").textContent = "最新の呼出状況を確認してください。";
+      }
+      return;
+    }
+
+    if (status === "1") {
+      setPersonalMode("hold");
+      $("statusBadge").textContent = "保留中";
+      $("statusTitle").textContent = "受付番号を保留中です";
+      $("statusInstruction").textContent = "スタッフにご確認ください。";
+      $("estimateMain").textContent = "入場時間の目安は表示できません";
+      $("estimateSub").textContent = "保留中のため、スタッフへ受付番号をお伝えください。";
+      return;
+    }
+
+    if (status === "4") {
+      setPersonalMode("processing");
+      $("statusBadge").textContent = "対応中";
+      $("statusTitle").textContent = "受付中です";
+      $("statusInstruction").textContent = "スタッフの案内に従ってください。";
+      $("estimateMain").textContent = "現在ご案内中です";
+      $("estimateSub").textContent = "受付での案内を優先してください。";
+      return;
+    }
+
+    if (status === "2") {
+      setPersonalMode("done");
+      $("statusBadge").textContent = "対応完了";
+      $("statusTitle").textContent = "ご案内済みです";
+      $("statusInstruction").textContent = "受付状況をご確認ください。";
+      $("estimateMain").textContent = "この受付はご案内済みです";
+      $("estimateSub").textContent = "必要な場合はスタッフに受付番号をお伝えください。";
+      return;
+    }
+
+    if (status === "3") {
+      setPersonalMode("cancel");
+      $("statusBadge").textContent = "取消";
+      $("statusTitle").textContent = "受付はキャンセルされています";
+      $("statusInstruction").textContent = "必要な場合は、あらためて受付をお願いします。";
+      $("estimateMain").textContent = "この受付番号では入場できません";
+      $("estimateSub").textContent = "詳しくはスタッフにご確認ください。";
+      return;
+    }
+
+    setPersonalMode("processing");
+    $("statusBadge").textContent = statusLabel[status] || "確認中";
+    $("statusTitle").textContent = "受付状況をご確認ください";
+    $("statusInstruction").textContent = "スタッフの案内を優先してください。";
+  }
+
+  function renderCandidates(matches) {
+    const list = $("candidateList");
+    list.innerHTML = "";
+    $("candidateSection").hidden = false;
+    $("personalSection").hidden = true;
+
+    sortMatches(matches).forEach(reservation => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "candidate-btn";
+
+      const copy = document.createElement("span");
+      const title = document.createElement("strong");
+      const meta = document.createElement("small");
+      const arrow = document.createElement("span");
+
+      title.textContent = reservation.waitTypeName || "受付枠";
+      meta.textContent =
+        reservation.isCalling === "1"
+          ? "入場可能"
+          : statusLabel[String(reservation.status)] || "受付状況";
+      arrow.className = "candidate-arrow";
+      arrow.textContent = "›";
+
+      copy.appendChild(title);
+      copy.appendChild(meta);
+      button.appendChild(copy);
+      button.appendChild(arrow);
+
+      button.addEventListener("click", () => renderPersonal(reservation));
+      list.appendChild(button);
+    });
+  }
+
+  function resolveMyReservation() {
+    if (!state.myNumber) {
+      $("personalSection").hidden = true;
+      $("candidateSection").hidden = true;
+      return;
+    }
+
+    const matches = findMatches(state.myNumber);
+
+    if (!matches.length) {
+      $("personalSection").hidden = true;
+      $("candidateSection").hidden = true;
+      $("lookupError").hidden = false;
+      $("lookupError").textContent =
+        "この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";
+      return;
+    }
+
+    $("lookupError").hidden = true;
+
+    // 前回選んだ受付枠があれば優先。
+    if (state.selectedWaitTypeId) {
+      const remembered = matches.find(r => r.waitTypeId === state.selectedWaitTypeId);
+      if (remembered) {
+        renderPersonal(remembered);
+        return;
+      }
+    }
+
+    if (matches.length === 1) {
+      renderPersonal(matches[0]);
+      return;
+    }
+
+    renderCandidates(matches);
+  }
+
+  function renderOverall() {
+    const store = state.waitStore;
+    if (!store) return;
+
+    $("storeName").textContent = store.storeName || "アソブーン";
+    $("overallWaitCount").textContent =
+      store.waitCount !== null && store.waitCount !== undefined && store.waitCount !== ""
+        ? `${store.waitCount}組`
+        : "--";
+    $("overallWaitTime").textContent = store.waitTime || "--";
+
+    $("overallWaitCount").classList.remove("loading");
+    $("overallWaitTime").classList.remove("loading");
+  }
+
+  async function refreshData(showMessage=true) {
+    if (state.loading) return;
+    state.loading = true;
+    $("refreshButton").disabled = true;
+
+    if (showMessage) setMessage("Airウェイトの最新情報を取得しています…");
+
+    try {
+      const [waitStore,reservations] = await Promise.all([
+        fetchWaitInfo(),
+        fetchAllReservations()
+      ]);
+
+      state.waitStore = waitStore;
+      state.reservations = reservations;
+
+      renderOverall();
+      resolveMyReservation();
+      stampNow();
+
+      setMessage("最新の呼出状況を表示しています。60秒ごとに自動更新します。");
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        "最新情報を取得できませんでした。GitHub Pagesの公開URLで開いているか確認し、もう一度更新してください。",
+        true
+      );
+    } finally {
+      state.loading = false;
+      $("refreshButton").disabled = false;
+    }
+  }
+
+  $("numberInput").addEventListener("input", event => {
+    const digits = cleanNumber(event.target.value);
+    if (event.target.value !== digits) event.target.value = digits;
+  });
+
+  $("numberForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const number = normalizeInputNumber($("numberInput").value);
+
+    if (!number) {
+      $("lookupError").hidden = false;
+      $("lookupError").textContent = "1〜4桁の受付番号を入力してください。";
+      $("numberInput").focus();
+      return;
+    }
+
+    state.myNumber = number;
+    state.selectedWaitTypeId = null;
+
+    localStorage.setItem(STORAGE_NUMBER,String(number));
+    localStorage.removeItem(STORAGE_WAITTYPE);
+
+    $("lookupError").hidden = true;
+    resolveMyReservation();
+  });
+
+  $("changeNumberButton").addEventListener("click", () => {
+    state.myNumber = null;
+    state.selectedReservation = null;
+    state.selectedWaitTypeId = null;
+    localStorage.removeItem(STORAGE_NUMBER);
+    localStorage.removeItem(STORAGE_WAITTYPE);
+
+    $("numberInput").value = "";
+    $("personalSection").hidden = true;
+    $("candidateSection").hidden = true;
+    $("lookupError").hidden = true;
+    $("numberInput").focus();
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+
+  $("refreshButton").addEventListener("click", () => refreshData(true));
+
+  $("backButton").addEventListener("click", () => {
+    if (history.length > 1) history.back();
+    else location.href = "./home.html?mode=before";
+  });
+
+  const savedNumber = normalizeInputNumber(localStorage.getItem(STORAGE_NUMBER));
+  const savedWaitType = localStorage.getItem(STORAGE_WAITTYPE);
+
+  if (savedNumber) {
+    state.myNumber = savedNumber;
+    state.selectedWaitTypeId = savedWaitType || null;
+    $("numberInput").value = String(savedNumber);
+  }
+
+  refreshData(true);
+
+  state.refreshTimer = window.setInterval(() => {
+    refreshData(false);
+  },60000);
+})();
+</script>
 </body>
 </html>
