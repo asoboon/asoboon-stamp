@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>ASOBooN 呼出時刻モニター V5.2.2</title>
+<title>ASOBooN 呼出時刻モニター V5.2.4</title>
 <style>
 :root{--navy:#142a36;--navy2:#0b1a22;--brass:#c09a55;--green:#4d8a65;--red:#a74c3b;--ink:#f7f2e6;--muted:#adc0c8;--line:#38525e}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}body{background:radial-gradient(circle at 15% 0,rgba(72,126,150,.22),transparent 32%),linear-gradient(180deg,#09151c,#102631 58%,#09151c);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}main{width:min(100%,900px);margin:auto;padding:16px 13px 40px}.hero,.card{border:1px solid rgba(211,184,125,.32);border-radius:22px;background:linear-gradient(180deg,#183541,#10252e);box-shadow:0 14px 30px rgba(0,0,0,.18)}.hero{padding:18px}.hero small{color:#d7b76d;font-weight:1000;letter-spacing:.09em}.hero h1{margin:5px 0 0;font-size:clamp(1.65rem,6vw,2.6rem)}.hero p{margin:9px 0 0;color:#c2d1d7;font-size:.8rem;line-height:1.55;font-weight:750}.card{margin-top:11px;padding:14px}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.stat{min-height:84px;display:grid;align-content:center;justify-items:center;padding:9px;border:1px solid #33505c;border-radius:14px;background:#0b1e27;text-align:center}.stat small{color:#91aab4;font-size:.6rem;font-weight:900}.stat strong{margin-top:5px;font-size:1rem}.good{color:#68d897}.warn{color:#f0c15d}.bad{color:#ed7b72}.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}button,input{font:inherit}.btn{min-height:52px;border:1px solid #5a737d;border-radius:14px;color:white;background:#213d49;font-weight:1000;cursor:pointer}.btn.primary{background:linear-gradient(180deg,#4c7b61,#315e48);border-color:#82ab91}.btn.danger{background:linear-gradient(180deg,#8c4e3e,#673329)}.secretbox{margin-top:10px;padding:11px;border-radius:14px;background:#0a1b22;border:1px solid #334e59}.secretbox label{display:block;color:#d8bd7b;font-size:.68rem;font-weight:1000}.secretrow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px}.secretrow input{min-width:0;height:48px;border:1px solid #48636e;border-radius:12px;background:#06151b;color:#fff;padding:0 12px}.note{margin-top:10px;padding:10px;border-left:4px solid #d2a653;border-radius:9px;background:#282216;color:#e7d8b0;font-size:.69rem;line-height:1.5}.event{margin-top:8px;padding:11px;border:1px solid #456a53;border-radius:14px;background:#102a1e}.event strong{color:#73d99b}.pending{border-color:#80652f;background:#292314}.log{margin-top:9px;max-height:360px;overflow:auto;border-radius:13px;background:#06151b;border:1px solid #2e4852;padding:10px;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#d1e0e6;white-space:pre-wrap}.mini{margin-top:5px;color:#a9bcc5;font-size:.64rem;line-height:1.45}.watchsummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.watchbox{padding:12px;border-radius:14px;background:#0a1b22;border:1px solid #334e59;text-align:center}.watchbox small{display:block;color:#91aab4;font-size:.64rem;font-weight:900}.watchbox strong{display:block;margin-top:4px;font-size:1.15rem}.watchlist{margin-top:10px;display:grid;gap:7px}.watchrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 11px;border-radius:13px;background:#0b1e27;border:1px solid #33505c}.watchrow .num{font-weight:1000;color:#fff}.watchrow .type{font-size:.72rem;color:#b8c8cf;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.badge{padding:4px 8px;border-radius:999px;font-size:.65rem;font-weight:1000;white-space:nowrap}.badge.wait{background:#29313a;color:#d7e0e5;border:1px solid #4b5b66}.badge.call{background:#153724;color:#75db9e;border:1px solid #3b6c4e}@media(max-width:720px){.grid{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}}
@@ -51,7 +51,7 @@ const QUEUE_KEY="asoboon_calltime_pending_v2";
 const RUN_KEY="asoboon_calltime_monitor_should_run_v1";
 const CFG=window.ASOBOON_CALLTIME_CONFIG||{};
 const $=id=>document.getElementById(id);
-const state={running:false,timer:0,polling:false,wake:null,prev:new Map(),lastUpd:null,lastRowAt:0,lastFullAt:0,mustBaseline:false,rows:[],events:[],logs:[],backendOk:false,airwaitOk:false,lastHeartbeatAt:0,lastBackendCheckAt:0,startRetryTimer:0,starting:false};
+const state={running:false,timer:0,polling:false,wake:null,prev:new Map(),lastUpd:null,lastRowAt:0,lastFullAt:0,mustBaseline:false,rows:[],events:[],logs:[],backendOk:false,airwaitOk:false,lastHeartbeatAt:0,lastBackendCheckAt:0,startRetryTimer:0,starting:false,businessDate:"",lastPollTickAt:0};
 function log(s){state.logs.unshift(`${new Date().toLocaleTimeString("ja-JP",{hour12:false})} ${s}`);state.logs=state.logs.slice(0,120);render()}
 function apiOK(d){return d?.success===true||String(d?.resultCode?.code)==="0000"}
 function rawNumber(r){return String(r?.number??"").trim().toUpperCase()}
@@ -95,9 +95,73 @@ function makeEvent(row,clock,reliability){const callDateTime=normalizeDateTime(c
 async function postQueued(evt){if(!evt.secret||!configured())return false;try{await fetch(String(CFG.webAppUrl),{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(evt),cache:"no-store"});await new Promise(r=>setTimeout(r,500));const v=await jsonp({action:"getEvent",eventId:evt.eventId},7000);if(v?.ok&&v?.found){removeQueued(evt.eventId);state.events.unshift({number:evt.number,callTime:v.event?.callTime||evt.callDateTime.slice(11,16),reliability:v.event?.reliability||evt.reliability});state.events=state.events.slice(0,40);log(`✓ ${evt.number}番 呼出 ${v.event?.callTime||""} を共有保存`);return true}return false}catch(e){log(`保存再送待ち: ${evt.number}番 (${e.message})`);return false}}
 async function flushQueue(){const q=queue();for(const evt of q.slice(0,10)){if(!state.running&&document.hidden)break;await postQueued(evt)}}
 async function heartbeat(){if(!state.running||!configured()||!localStorage.getItem(SECRET_KEY))return;if(Date.now()-state.lastHeartbeatAt<30000)return;state.lastHeartbeatAt=Date.now();const body={action:"heartbeat",secret:localStorage.getItem(SECRET_KEY),origin:location.origin,monitorId:monitorId(),version:String(CFG.version||"")};try{await fetch(String(CFG.webAppUrl),{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body),cache:"no-store"})}catch(e){}}
-function baseline(rows,clock,reason){state.prev=new Map(rows.map(r=>{const x=lite(r);return[x.recordKey,x]}));state.rows=rows;state.lastUpd=String(clock?.lastUpdDate||"");state.lastRowAt=Date.now();state.lastFullAt=Date.now();state.mustBaseline=false;log(`基準状態更新: ${reason}`)}
-async function processRows(rows,clock,reason,reliability){const now=Date.now(),gap=state.lastRowAt?now-state.lastRowAt:0,cur=new Map(rows.map(r=>{const x=lite(r);return[x.recordKey,x]}));if(!state.prev.size||state.mustBaseline||gap>Number(CFG.maxTrustedGapMs||15000)){state.prev=cur;state.rows=rows;state.lastRowAt=now;state.lastFullAt=now;state.mustBaseline=false;if(gap>Number(CFG.maxTrustedGapMs||15000))log(`⚠ ${Math.round(gap/1000)}秒の監視空白。空白中の呼出時刻は推測せず未記録`);return}for(const [key,row] of cur){const before=state.prev.get(key);if(before&&before.isCalling!=="1"&&row.isCalling==="1"){if(!normalizeDateTime(clock?.currentDate)){log(`⚠ ${row.number}番 呼出検知。ただし信頼できる時刻なし`);continue}const evt=makeEvent(row,clock,reliability);enqueue(evt);log(`★ ${row.number}番 呼出開始 ${evt.callDateTime.slice(11)} (${reliability})`)}}state.prev=cur;state.rows=rows;state.lastRowAt=now;state.lastFullAt=now;flushQueue()}
-async function poll(){if(!state.running||state.polling)return;state.polling=true;try{
+function baseline(rows,clock,reason){
+  state.prev=new Map(rows.map(r=>{const x=lite(r);return[x.recordKey,x]}));
+  state.rows=rows;
+  state.lastUpd=String(clock?.lastUpdDate||"");
+  state.lastRowAt=Date.now();
+  state.lastFullAt=Date.now();
+  state.mustBaseline=false;
+  const d=dateOnly(clock?.currentDate);
+  if(d)state.businessDate=d;
+  log(`基準状態更新: ${reason}${d?` (${d})`:""}`)
+}
+async function processRows(rows,clock,reason,reliability){
+  const now=Date.now();
+  const curDate=dateOnly(clock?.currentDate);
+
+  // AirWaitの日付が変わったら、前日のisCalling状態を絶対に引き継がない。
+  // 新しい日の現在状態を基準化し、0→1の誤検知を防ぐ。
+  if(curDate && state.businessDate && curDate!==state.businessDate){
+    state.events=[];
+    baseline(rows,clock,`日付変更 ${state.businessDate} → ${curDate}`);
+    log("✓ 新しい営業日の監視基準へ自動リセットしました");
+    return;
+  }
+
+  const cur=new Map(rows.map(r=>{const x=lite(r);return[x.recordKey,x]}));
+
+  // 実際の監視空白は poll() 側で mustBaseline にする。
+  // full-poll間隔そのものを「監視空白」と誤判定しない。
+  if(!state.prev.size||state.mustBaseline){
+    state.prev=cur;
+    state.rows=rows;
+    state.lastRowAt=now;
+    state.lastFullAt=now;
+    state.mustBaseline=false;
+    if(curDate)state.businessDate=curDate;
+    return;
+  }
+
+  for(const [key,row] of cur){
+    const before=state.prev.get(key);
+    if(before&&before.isCalling!=="1"&&row.isCalling==="1"){
+      if(!normalizeDateTime(clock?.currentDate)){
+        log(`⚠ ${row.number}番 呼出検知。ただし信頼できる時刻なし`);
+        continue
+      }
+      const evt=makeEvent(row,clock,reliability);
+      enqueue(evt);
+      log(`★ ${row.number}番 呼出開始 ${evt.callDateTime.slice(11)} (${reliability})`)
+    }
+  }
+
+  state.prev=cur;
+  state.rows=rows;
+  state.lastRowAt=now;
+  state.lastFullAt=now;
+  if(curDate)state.businessDate=curDate;
+  flushQueue()
+}
+async function poll(){if(!state.running||state.polling)return;
+  const tickNow=Date.now();
+  const tickGap=state.lastPollTickAt?tickNow-state.lastPollTickAt:0;
+  state.lastPollTickAt=tickNow;
+  if(tickGap>Number(CFG.maxTrustedGapMs||15000)){
+    state.mustBaseline=true;
+    log(`⚠ ${Math.round(tickGap/1000)}秒の監視空白。復帰時は現在状態を基準化します`);
+  }
+  state.polling=true;try{
   if(Date.now()-state.lastBackendCheckAt>=Number(CFG.backendHealthCheckMs||30000)){
     state.lastBackendCheckAt=Date.now();
     backendHealth();
@@ -136,6 +200,7 @@ async function start(auto=false){
     // 再読込・復帰時は必ず現在状態を基準化する。
     // 停止中の呼出を「今呼んだ」と誤記録しない。
     baseline(rows,clock,auto?"自動復帰":"監視開始");
+    state.lastPollTickAt=Date.now();
     state.running=true;
     $('watchState').textContent="監視中";$('watchState').className="good";
     clearInterval(state.timer);
@@ -156,7 +221,7 @@ async function start(auto=false){
 function stop(){
   setShouldRun(false);
   clearStartRetry();
-  state.running=false;state.starting=false;
+  state.running=false;state.starting=false;state.lastPollTickAt=0;
   clearInterval(state.timer);state.timer=0;
   if(state.wake){state.wake.release().catch(()=>{});state.wake=null}
   $('watchState').textContent="停止中";$('watchState').className="";

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.2.2</title>
+<title>あなたの呼出状況｜アソブーン V5.2.4</title>
 <style>
 
 :root{
@@ -444,7 +444,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   </button>
   <div class="entry-action-note">入場後にタップ</div>
 </div>
-<div class="foot">呼出時間の目安は当日の進行状況により前後します。呼出後の受付期限は、記録できた初回呼出時刻を基準に表示します。</div></section>
+<div class="foot">まず現在の受付状況を確認し、現在も「呼出中」の場合だけ、記録された初回呼出時刻から受付期限を表示します。</div></section>
   <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>呼出ルート</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>この回の受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>現在</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あなたの前</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
   <div class="track">
     <div id="timelineProgress" class="progress"></div>
@@ -466,7 +466,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.2.2";
+const CUSTOMER_BUILD="5.2.4";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -479,7 +479,7 @@ const ROUNDS=[
 {id:"w14",label:"14:00の回",start:"14:00",ranges:[[8401,8599],[9401,9599]],system:"平日"},
 {id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
 ];
-const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0};
+const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0,activeDate:""};
 const CALLTIME_CFG=window.ASOBOON_CALLTIME_CONFIG||{};
 let callDeadlineTicker=0;
 let callTimeServerOffsetMs=0;
@@ -517,8 +517,8 @@ function updateEntryAction(row){
   const action=$("entryAction");
   if(!action)return;
   if(!row){action.hidden=true;return}
-  const s=String(row.status);
-  action.hidden=!(calling(row)||s==="4"||s==="2");
+  const st=currentCustomerState(row);
+  action.hidden=!(st==="calling"||st==="processing"||st==="done");
 }
 if(CALLTIME_CFG.parkingUrl&&$("parkingLink"))$("parkingLink").href=CALLTIME_CFG.parkingUrl;
 const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
@@ -544,9 +544,72 @@ function visibleGroups(gs){
 function roundExpired(roundId){
   return hiddenRoundIds(groups()).has(roundId);
 }
-const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";function advanced(r){if(canceled(r))return false;const s=String(r.status);return calling(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function rowIdentity(r){return `${String(r?.waitTypeId??"").trim()}|${String(r?.number??"").trim().toUpperCase()}`}function same(a,b){if(a===b)return true;return !!a&&!!b&&rowIdentity(a)===rowIdentity(b)}
+const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";
+function activeCustomerCall(r){
+  // AirWaitの現在状態を最優先。
+  // 初回呼出時刻の30分表示を許可するのは「現在も待ち状態(status=0)かつ呼出中」だけ。
+  // 取消・案内済・対応中・保留などへ状態が進んだ後は、isCallingが残っていてもタイマーを出さない。
+  return !!r && String(r.status)==="0" && calling(r);
+}
+function currentCustomerState(r){
+  const s=String(r?.status??"");
+  if(s==="3")return "cancel";
+  if(s==="2")return "done";
+  if(s==="4")return "processing";
+  if(s==="1")return "hold";
+  if(activeCustomerCall(r))return "calling";
+  if(s==="0")return "waiting";
+  return "unknown";
+}
+function advanced(r){if(canceled(r))return false;const s=String(r.status);return activeCustomerCall(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function rowIdentity(r){return `${String(r?.waitTypeId??"").trim()}|${String(r?.number??"").trim().toUpperCase()}`}function same(a,b){if(a===b)return true;return !!a&&!!b&&rowIdentity(a)===rowIdentity(b)}
 
 function localDateForCalltime(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+
+function saveTodayNumber(n){
+  return safeStoreSet(STORE_KEY,JSON.stringify({date:localDateForCalltime(),number:n}));
+}
+function loadTodayNumber(){
+  const raw=safeStoreGet(STORE_KEY);
+  if(!raw)return null;
+  try{
+    const x=JSON.parse(raw);
+    if(x&&x.date===localDateForCalltime()){
+      const n=num(x.number);
+      return n||null;
+    }
+  }catch(e){
+    // V5.2.2以前の「番号だけ保存」は日付を判定できないので安全側で破棄。
+  }
+  safeStoreRemove(STORE_KEY);
+  return null;
+}
+function resetCustomerDay(reason="日付変更"){
+  state.activeDate=localDateForCalltime();
+  state.my=state.myRow=state.myRound=null;
+  state.rows=[];
+  state.open.clear();
+  state.callTimeCache.clear();
+  state.callTimeLoading.clear();
+  state.callTimeRetry.clear();
+  safeStoreRemove(STORE_KEY);
+  hideCallDeadline();
+  $("numberInput").value="";
+  $("lookupError").hidden=true;
+  $("personalSection").hidden=true;
+  $("flowSection").hidden=true;
+  $("roundList").innerHTML='<div class="message">本日の受付番号を入力してください。</div>';
+  $("message").classList.remove("error");
+  $("message").textContent=reason==="日付変更"
+    ?"日付が変わりました。本日の受付番号を入力してください。"
+    :"受付番号を入力して「確認する」を押してください。";
+}
+function ensureCustomerDay(){
+  const today=localDateForCalltime();
+  if(!state.activeDate){state.activeDate=today;return true}
+  if(state.activeDate!==today){resetCustomerDay("日付変更");return false}
+  return true
+}
+
 function calltimeConfigured(){return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?|$)/.test(String(CALLTIME_CFG.webAppUrl||""))}
 function jsonpCalltime(params,timeout=6500){return new Promise((resolve,reject)=>{if(!calltimeConfigured())return reject(Error("calltime backend not configured"));const cb=`__asoboon_calltime_${Date.now()}_${Math.random().toString(36).slice(2)}`,u=new URL(String(CALLTIME_CFG.webAppUrl));Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v??"")));u.searchParams.set("callback",cb);u.searchParams.set("_",Date.now());const s=document.createElement("script");let done=false;const finish=(err,val)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){}s.remove();err?reject(err):resolve(val)};window[cb]=v=>finish(null,v);s.src=u.toString();s.onerror=()=>finish(Error("calltime backend failed"));document.head.appendChild(s);const t=setTimeout(()=>finish(Error("calltime backend timeout")),timeout)})}
 function clockFromEpoch(ms){const d=new Date(ms);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
@@ -615,14 +678,17 @@ function showUnavailableCallDeadline(){
 function hideCallDeadline(){const box=$('callDeadline');if(box)box.hidden=true;stopCallDeadlineTicker()}
 function scheduleCalltimeRetry(row){
   const key=rowIdentity(row),n=Number(state.callTimeRetry.get(key)||0),max=Number(CALLTIME_CFG.lookupRetryCount||12);
-  if(n>=max){if(state.myRow&&calling(state.myRow)&&rowIdentity(state.myRow)===key)showUnavailableCallDeadline();return}
+  if(n>=max){if(state.myRow&&activeCustomerCall(state.myRow)&&rowIdentity(state.myRow)===key)showUnavailableCallDeadline();return}
   state.callTimeRetry.set(key,n+1);
   setTimeout(()=>{
-    if(state.myRow&&calling(state.myRow)&&rowIdentity(state.myRow)===key&&!state.callTimeCache.has(key))renderCallDeadline(state.myRow)
+    if(state.myRow&&activeCustomerCall(state.myRow)&&rowIdentity(state.myRow)===key&&!state.callTimeCache.has(key))renderCallDeadline(state.myRow)
   },Number(CALLTIME_CFG.lookupRetryMs||5000))
 }
 async function renderCallDeadline(row){
-  if(!calling(row)){hideCallDeadline();return}
+  // 1) AirWaitの「現在の状態」を確認済みであることが前提。
+  // 2) 現在も呼出中の時だけGASから「最初の呼出時刻」を取得して30分を計算する。
+  // 取消・案内済・対応中・保留ならGAS照会自体を行わない。
+  if(!activeCustomerCall(row)){hideCallDeadline();return}
   const key=rowIdentity(row),cached=state.callTimeCache.get(key);
   if(cached){applyCallDeadline(cached);return}
   const retries=Number(state.callTimeRetry.get(key)||0),max=Number(CALLTIME_CFG.lookupRetryCount||12);
@@ -636,21 +702,52 @@ async function renderCallDeadline(row){
     if(d?.ok&&d?.found&&d.call&&trustedCall(d.call)){
       state.callTimeCache.set(key,d.call);
       state.callTimeRetry.delete(key);
-      if(state.myRow&&rowIdentity(state.myRow)===key&&calling(state.myRow))applyCallDeadline(d.call)
+      if(state.myRow&&rowIdentity(state.myRow)===key&&activeCustomerCall(state.myRow))applyCallDeadline(d.call)
     }else scheduleCalltimeRetry(row)
   }catch(e){
     console.warn("calltime",e);scheduleCalltimeRetry(row)
   }finally{state.callTimeLoading.delete(key)}
 }
-function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||calling(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
+function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||activeCustomerCall(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
 function pace(rd,p){if(!rd.start||rd.noForecast)return["進行状況",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(!p.total)return["受付なし",""];return[`現在 ${Math.min(p.progressed,p.total)}組目まで進行`,""]}
-function rs(r){if(calling(r))return["calling","呼出中"];const s=String(r.status);if(s==="0")return["waiting","待ち"];if(s==="1")return["hold","保留"];if(s==="2")return["done","案内済"];if(s==="3")return["cancel","取消"];if(s==="4")return["processing","対応中"];return["waiting","受付"]}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
+function rs(r){
+  const st=currentCustomerState(r);
+  if(st==="cancel")return["cancel","取消"];
+  if(st==="done")return["done","案内済"];
+  if(st==="processing")return["processing","対応中"];
+  if(st==="hold")return["hold","保留"];
+  if(st==="calling")return["calling","呼出中"];
+  if(st==="waiting")return["waiting","待ち"];
+  return["waiting","受付"]
+}function qhtml(r,i,me){const[k,l]=rs(r),n=rowNum(r)??r.number??"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
 async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`混雑状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"混雑状況取得失敗");return d?.innerDto?.stores?.[0]||null}
 async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`受付状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"受付状況取得失敗");return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
-function findMine(n){const a=state.rows.filter(r=>rowNum(r)===n);if(!a.length)return null;const pri=r=>calling(r)?0:String(r.status)==="0"?1:String(r.status)==="4"?2:String(r.status)==="1"?3:String(r.status)==="2"?4:String(r.status)==="3"?5:9;return [...a].sort((x,y)=>pri(x)-pri(y))[0]}
+function findMine(n){
+  const a=state.rows.filter(r=>rowNum(r)===n);
+  if(!a.length)return null;
+  const pri=r=>{
+    const st=currentCustomerState(r);
+    if(st==="calling")return 0;
+    if(st==="waiting")return 1;
+    if(st==="processing")return 2;
+    if(st==="hold")return 3;
+    if(st==="done")return 4;
+    if(st==="cancel")return 5;
+    return 9;
+  };
+  return [...a].sort((x,y)=>pri(x)-pri(y))[0]
+}
 function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;hideCallDeadline();return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rowNum(state.myRow)??state.myRow.number??"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
-let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";if(calling(state.myRow)){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}else if(s==="1"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}else if(s==="4"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}else if(s==="2"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}else if(s==="3"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}else if(s==="0"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(calling(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";
+const currentState=currentCustomerState(state.myRow);
+if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}
+else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}
+else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
+else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
+else if(currentState==="calling"){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}
+else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}
+else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室かお近くでお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
   $("flowTitle").textContent=rd.label;
@@ -680,7 +777,7 @@ function renderFlow(g,p,e){
     ?`先頭から入場開始 ${rd.start}`
     :"先頭から入場開始";
 
-  if(calling(state.myRow)){
+  if(activeCustomerCall(state.myRow)){
     $("timelineEnd").textContent=`${myNumber}番 呼び出し中`;
   }else if(e?.clock){
     $("timelineEnd").textContent=`${myNumber}番 呼び出し ${e.clock}ごろ`;
@@ -732,6 +829,7 @@ function resolve(){
   renderMine();
 }
 async function refresh(show=true){
+  if(!ensureCustomerDay())return false;
   if(state.refreshPromise)return state.refreshPromise;
   state.loading=true;
   $("refreshButton").disabled=true;
@@ -765,6 +863,7 @@ async function refresh(show=true){
 }
 
 async function lookupNumber(){
+  ensureCustomerDay();
   const n=num($("numberInput").value);
   if(!n){
     $("lookupError").hidden=false;
@@ -779,7 +878,7 @@ async function lookupNumber(){
 
   try{
     state.my=n;
-    safeStoreSet(STORE_KEY,n);
+    saveTodayNumber(n);
 
     // 一覧未取得時は初回照会。わずかなランダム遅延で
     // 一斉アクセス時のリクエスト集中を少し分散する。
@@ -818,6 +917,7 @@ function scheduleAutoRefresh(){
   // 60〜75秒のランダム間隔にして、利用者全員の更新時刻が揃うのを避ける。
   const delay=60000+Math.floor(Math.random()*15000);
   state.autoRefreshTimer=setTimeout(async()=>{
+    if(!ensureCustomerDay()){scheduleAutoRefresh();return}
     if(document.visibilityState==="visible" && state.my)await refresh(false);
     scheduleAutoRefresh();
   },delay);
@@ -885,7 +985,8 @@ $("changeNumberButton").addEventListener("click",()=>{
 $("refreshButton").addEventListener("click",()=>refresh(true));
 $("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");
 
-const saved=num(safeStoreGet(STORE_KEY));
+state.activeDate=localDateForCalltime();
+const saved=loadTodayNumber();
 if(saved){
   state.my=saved;
   $("numberInput").value=saved;
