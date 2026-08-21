@@ -1,672 +1,248 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0f2b46">
-
-  <title>ASOBooN｜WEB受付</title>
-
-  <style>
-    *{
-      box-sizing:border-box;
-    }
-
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
-      background:#f4ead1;
-      color:#2f291f;
-    }
-
-    .app{
-      width:min(100%,520px);
-      margin:auto;
-      padding:16px 14px 50px;
-    }
-
-    .header{
-      text-align:center;
-      padding:20px 12px;
-    }
-
-    .brand{
-      font-size:.8rem;
-      font-weight:900;
-      color:#6d6353;
-      letter-spacing:.08em;
-    }
-
-    h1{
-      margin:8px 0 4px;
-      font-size:1.7rem;
-      color:#0f2b46;
-    }
-
-    .target-label{
-      margin-top:18px;
-      color:#8c5428;
-      font-weight:900;
-      font-size:.85rem;
-    }
-
-    .target-date{
-      margin-top:4px;
-      font-size:1.7rem;
-      line-height:1.2;
-      font-weight:950;
-      color:#172f47;
-    }
-
-    .status{
-      margin:14px auto 0;
-      display:inline-block;
-      padding:7px 14px;
-      border-radius:999px;
-      font-size:.8rem;
-      font-weight:900;
-      background:#def4e7;
-      color:#17633e;
-    }
-
-    .slots{
-      display:grid;
-      gap:12px;
-      margin-top:18px;
-    }
-
-    .slot{
-      background:#fffaf0;
-      border:2px solid #d9c59b;
-      border-radius:18px;
-      padding:16px;
-      box-shadow:0 7px 18px rgba(70,50,20,.1);
-    }
-
-    .slot-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-    }
-
-    .slot-name{
-      font-size:1.35rem;
-      font-weight:950;
-      color:#102b45;
-    }
-
-    .badge{
-      padding:5px 9px;
-      border-radius:999px;
-      font-size:.7rem;
-      font-weight:950;
-      white-space:nowrap;
-    }
-
-    .open{
-      background:#dbf4e5;
-      color:#17613c;
-    }
-
-    .few{
-      background:#fff0cf;
-      color:#8a5800;
-    }
-
-    .closed{
-      background:#e7e7e7;
-      color:#686868;
-    }
-
-    .remaining{
-      margin-top:10px;
-      font-size:.85rem;
-      color:#675b48;
-    }
-
-    .remaining strong{
-      display:inline-block;
-      margin-right:3px;
-      font-size:1.45rem;
-      color:#2d261c;
-    }
-
-    .reserve-btn{
-      width:100%;
-      margin-top:13px;
-      border:0;
-      border-radius:13px;
-      padding:14px 12px;
-      background:#e77918;
-      color:#fff;
-      font-size:.95rem;
-      font-weight:950;
-      cursor:pointer;
-    }
-
-    .reserve-btn:disabled{
-      background:#aaa;
-      cursor:default;
-    }
-
-    .notice{
-      margin-top:18px;
-      padding:14px;
-      border-radius:14px;
-      background:#fff8e8;
-      border:1px solid #dbc79b;
-      font-size:.78rem;
-      line-height:1.7;
-      color:#625846;
-    }
-
-    .loading,
-    .error{
-      padding:24px 14px;
-      text-align:center;
-      border-radius:16px;
-      background:#fffaf0;
-      color:#766b59;
-    }
-
-    .error{
-      color:#a74232;
-    }
-
-    .update{
-      text-align:center;
-      margin-top:14px;
-      color:#8d806b;
-      font-size:.68rem;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e87919">
+<title>ASOBooN｜WEB受付・予約</title>
+<style>
+:root{
+  --bg:#f4ead2;--panel:#fffaf0;--ink:#2f291f;--muted:#756a58;
+  --navy:#0f2b46;--orange:#e87919;--orange2:#f39a3e;--line:#d8c49a;
+  --green:#2b955e;--red:#b84538;--yellow:#bd7a10;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#ead8b1,#f8efda);color:var(--ink)}
+.app{width:min(100%,520px);margin:auto;padding:14px 13px 50px}
+.hero{border:3px solid #c46619;border-radius:22px;padding:17px;background:linear-gradient(145deg,#fff4df,#f4c88d);box-shadow:0 12px 28px rgba(70,44,15,.15)}
+.tag{display:inline-block;background:#e87919;color:#fff;border-radius:999px;padding:5px 9px;font-size:.68rem;font-weight:950}
+h1{margin:8px 0 5px;color:#7f3e0b;font-size:1.5rem}
+p{line-height:1.65}
+.small{font-size:.76rem;color:var(--muted);margin:0}
+.card{margin-top:13px;border:2px solid var(--line);border-radius:17px;background:var(--panel);padding:15px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eee1c5}
+.row:last-child{border-bottom:0}
+.row span{color:var(--muted);font-size:.76rem}
+.row strong{font-size:.84rem;text-align:right}
+.ok{color:#1e7c4c}.warn{color:#9c6200}.bad{color:#a52f2f}
+.counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.field{border:1px solid var(--line);border-radius:13px;padding:10px;background:#fff}
+.field label{display:block;font-size:.7rem;color:var(--muted);font-weight:900;margin-bottom:5px}
+.field input{width:100%;border:0;background:#f5f0e5;border-radius:9px;padding:10px;font-size:1.1rem;font-weight:950;text-align:center}
+.btn{width:100%;margin-top:13px;border:0;border-radius:13px;padding:14px 12px;font-weight:950;font-size:.95rem;cursor:pointer}
+.btn.primary{background:linear-gradient(180deg,var(--orange2),var(--orange));color:#fff;box-shadow:0 5px 0 #b5540e}
+.btn.secondary{background:#fff7e7;border:2px solid #bca573;color:var(--navy)}
+.btn:disabled{background:#aaa;box-shadow:none;color:#eee;cursor:not-allowed}
+.result{margin-top:14px;border-radius:15px;padding:14px;background:#eef8f2;border:2px solid #acd8bd}
+.result.error{background:#fff0ee;border-color:#e2aaa3}
+.num{font-size:2.7rem;font-weight:1000;color:var(--navy);text-align:center}
+.note{margin-top:14px;padding:12px;border-radius:13px;background:#fff3d8;border:1px solid #deb76a;color:#74521d;font-size:.72rem;line-height:1.65}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#15171a;color:#d9dee4;border-radius:12px;padding:10px;font:11px/1.5 ui-monospace,monospace}
+.hidden{display:none!important}
+</style>
 </head>
-
 <body>
-
 <div class="app">
+  <section class="hero">
+    <span class="tag">外部受付API 実機テスト</span>
+    <h1>WEB受付・予約</h1>
+    <p class="small">
+      現在は動作確認のため、店頭専用の「オレンジパス」を使ってAirウェイト外部受付APIをテストします。
+    </p>
+  </section>
 
-  <header class="header">
-    <div class="brand">ASOBooN WEB受付</div>
+  <section class="card">
+    <div class="row"><span>枠名</span><strong id="name">確認中…</strong></div>
+    <div class="row"><span>waitTypeId</span><strong id="id">--</strong></div>
+    <div class="row"><span>表示状態</span><strong id="active">--</strong></div>
+    <div class="row"><span>用途</span><strong id="usage">--</strong></div>
+    <div class="row"><span>API権限</span><strong id="permission">未テスト</strong></div>
+  </section>
 
-    <div class="target-label" id="dayLabel">
-      ご入場分
-    </div>
-
-    <div class="target-date" id="targetDate">
-      --
-    </div>
-
-    <div class="status" id="mainStatus">
-      受付状況を確認しています
-    </div>
-  </header>
-
-  <main>
-    <div id="slots" class="slots">
-      <div class="loading">
-        空き状況を確認しています…
+  <section class="card">
+    <strong>テスト受付人数</strong>
+    <div class="counts">
+      <div class="field">
+        <label>おとな</label>
+        <input id="adult" type="number" min="1" max="20" value="1">
+      </div>
+      <div class="field">
+        <label>こども</label>
+        <input id="child" type="number" min="0" max="20" value="0">
       </div>
     </div>
+    <button id="createBtn" class="btn primary" disabled>この内容で受付する</button>
+  </section>
 
-    <div class="notice">
-      空いている時間を選んで受付してください。<br>
-      受付状況はAirウェイトの情報をもとに表示しています。
-    </div>
+  <div class="note">
+    ⚠️ このボタンは<strong>Airウェイトに本物の受付を1件作成</strong>します。
+    テスト後はAirウェイト側で呼出・取消を操作すると、呼出状況ページでその状態を確認できます。
+  </div>
 
-    <div class="update" id="updated">
-      --
-    </div>
-  </main>
+  <section id="result" class="result hidden"></section>
 
+  <details style="margin-top:14px">
+    <summary style="font-weight:900;color:#5f5140">APIレスポンスを見る</summary>
+    <pre id="raw">--</pre>
+  </details>
 </div>
 
 <script>
+const CONFIG={
+  key:'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
+  storeId:'KR01205179'
+};
+const TYPE_API='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
+const CREATE_API='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create';
+const STORAGE_KEY='asoboon_current_reservation_v1';
 
-const AIRWAIT_KEY =
-  'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI';
+let orange=null;
 
-const STORE_ID =
-  'KR01205179';
+const $=id=>document.getElementById(id);
 
-const WAIT_TYPE_API =
-  'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function normalizeBool(v){
+  return v===true || v===1 || v==='1' || String(v).toLowerCase()==='true';
+}
+function usageLabel(v){
+  return {'01':'オンライン＋現地','02':'現地のみ','03':'オンラインのみ'}[String(v)] || `不明 (${v})`;
+}
+function resultCode(data){
+  return String(data?.resultCode?.code ?? '');
+}
+async function post(url,data){
+  const u=`${url}?key=${encodeURIComponent(CONFIG.key)}`;
+  const res=await fetch(u,{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+    body:new URLSearchParams(data)
+  });
+  const text=await res.text();
+  try{return JSON.parse(text)}
+  catch{throw new Error(`JSON以外の応答: ${text.slice(0,160)}`)}
+}
+function saveReservation(dto){
+  const now=new Date();
+  const target=new Date(now);
+  const y=target.getFullYear(),m=String(target.getMonth()+1).padStart(2,'0'),d=String(target.getDate()).padStart(2,'0');
+  const expiry=new Date(y,Number(m)-1,Number(d),18,0,0,0);
+  if(now>=expiry) expiry.setDate(expiry.getDate()+1);
 
-const WAIT_INFO_API =
-  'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
-
-
-/* ==============================
-   入場対象日
-============================== */
-
-function setTargetDate(){
-
-  const now = new Date();
-
-  const target = new Date(now);
-
-  /*
-    19:00以降
-    → 翌日の入場分
-  */
-
-  if(now.getHours() >= 19){
-    target.setDate(target.getDate() + 1);
-  }
-
-  const isTomorrow =
-    target.getDate() !== now.getDate();
-
-  document.getElementById('dayLabel').textContent =
-    isTomorrow
-      ? '明日ご入場分'
-      : '本日ご入場分';
-
-  const weekdays =
-    ['日','月','火','水','木','金','土'];
-
-  document.getElementById('targetDate').textContent =
-    `${target.getMonth()+1}月${target.getDate()}日（${weekdays[target.getDay()]}）`;
-
+  const value={
+    reserveId:String(dto.reserveId),
+    receiptNo:String(dto.receiptNo),
+    waitTypeId:String(orange.waitTypeId),
+    waitTypeName:String(orange.waitTypeName),
+    targetDate:`${y}-${m}-${d}`,
+    targetDateLabel:`${Number(m)}月${Number(d)}日`,
+    slotTime:'オレンジパス',
+    source:'orange-api-test',
+    lineNotify:false,
+    expiresAt:expiry.getTime(),
+    createdAt:Date.now()
+  };
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(value));
 }
 
+async function loadOrange(){
+  try{
+    const data=await post(TYPE_API,{storeId:CONFIG.storeId});
+    $('raw').textContent=JSON.stringify(data,null,2);
+    if(resultCode(data)!=='0000' && data?.success!==true){
+      throw new Error(`${resultCode(data)} ${data?.resultCode?.defaultMessage||''}`);
+    }
+    const list=data?.innerDto?.waitTypeList || [];
+    orange=list.find(x=>String(x.waitTypeName||'').includes('オレンジパス'))
+      || list.find(x=>String(x.waitTypeName||'').includes('オレンジ'));
 
-/* ==============================
-   Airウェイト取得
-============================== */
+    if(!orange) throw new Error('オレンジパスが待ち項目一覧に見つかりません');
 
-async function getWaitTypes(){
+    $('name').textContent=orange.waitTypeName;
+    $('id').textContent=orange.waitTypeId;
+    $('active').textContent=normalizeBool(orange.dispFlg)?'アクティブ':'非アクティブ';
+    $('active').className=normalizeBool(orange.dispFlg)?'ok':'warn';
+    $('usage').textContent=usageLabel(orange.usageDispType);
+    $('usage').className=String(orange.usageDispType)==='02'?'ok':'warn';
 
-  const url =
-    `${WAIT_TYPE_API}?key=${encodeURIComponent(AIRWAIT_KEY)}`;
-
-  const body =
-    new URLSearchParams({
-      storeId:STORE_ID
-    });
-
-  const response =
-    await fetch(url,{
-      method:'POST',
-      headers:{
-        'Content-Type':
-        'application/x-www-form-urlencoded'
-      },
-      body
-    });
-
-  return response.json();
-
+    $('createBtn').disabled=false;
+  }catch(e){
+    $('name').textContent='取得失敗';
+    $('id').textContent='--';
+    $('permission').textContent=String(e.message);
+    $('permission').className='bad';
+    $('raw').textContent=String(e.stack||e);
+  }
 }
 
+$('createBtn').addEventListener('click',async()=>{
+  if(!orange) return;
+  const adult=Math.max(1,Number($('adult').value)||1);
+  const child=Math.max(0,Number($('child').value)||0);
 
-async function getWaitInfo(){
+  if(!confirm(`${orange.waitTypeName}（${orange.waitTypeId}）へ ${adult+child}名で本物の受付を作成します。よろしいですか？`)) return;
 
-  const url =
-    `${WAIT_INFO_API}` +
-    `?key=${encodeURIComponent(AIRWAIT_KEY)}` +
-    `&storeId=${encodeURIComponent(STORE_ID)}`;
-
-  const response =
-    await fetch(url);
-
-  return response.json();
-
-}
-
-
-/* ==============================
-   表示
-============================== */
-
-function makeSlotCard(type, detail, store){
-
-  const remaining =
-    detail?.remainingNum;
-
-  const reserveUnit =
-    detail?.reserveUnit;
-
-  let unit = '';
-
-  if(reserveUnit === 'PERSON'){
-    unit = '名';
-  }
-
-  else if(reserveUnit === 'GROUP'){
-    unit = '組';
-  }
-
-  let statusText =
-    '受付中';
-
-  let statusClass =
-    'open';
-
-  let disabled =
-    false;
-
-
-  /*
-    店舗全体がオンライン受付不可
-  */
-
-  if(store.onlineRcptCode !== '00'){
-
-    statusText =
-      '受付時間外';
-
-    statusClass =
-      'closed';
-
-    disabled =
-      true;
-
-  }
-
-  /*
-    残数0
-  */
-
-  else if(
-    remaining !== null &&
-    Number(remaining) <= 0
-  ){
-
-    statusText =
-      '受付終了';
-
-    statusClass =
-      'closed';
-
-    disabled =
-      true;
-
-  }
-
-  /*
-    残り10以下
-  */
-
-  else if(
-    remaining !== null &&
-    Number(remaining) <= 10
-  ){
-
-    statusText =
-      '残りわずか';
-
-    statusClass =
-      'few';
-
-  }
-
-
-  let remainingHtml = '';
-
-  if(remaining !== null){
-
-    remainingHtml =
-      `<div class="remaining">
-        あと
-        <strong>${remaining}</strong>${unit}
-        予約できます
-      </div>`;
-
-  }
-
-  else{
-
-    remainingHtml =
-      `<div class="remaining">
-        現在受付できます
-      </div>`;
-
-  }
-
-
-  const button = disabled
-
-    ? `<button class="reserve-btn" disabled>
-        受付できません
-       </button>`
-
-    : `<button
-         class="reserve-btn"
-         onclick="reserve('${store.storeUrl}')">
-         この時間を予約する
-       </button>`;
-
-
-  return `
-    <section class="slot">
-
-      <div class="slot-top">
-
-        <div class="slot-name">
-          ${escapeHtml(type.waitTypeName)}
-        </div>
-
-        <span class="badge ${statusClass}">
-          ${statusText}
-        </span>
-
-      </div>
-
-      ${remainingHtml}
-
-      ${button}
-
-    </section>
-  `;
-
-}
-
-
-/* ==============================
-   読み込み
-============================== */
-
-async function load(){
+  const btn=$('createBtn');
+  btn.disabled=true;
+  btn.textContent='受付中…';
 
   try{
+    const data=await post(CREATE_API,{
+      storeId:CONFIG.storeId,
+      waitTypeId:orange.waitTypeId,
+      numPerson:String(adult),
+      numPersonChild:String(child),
+      langType:'KeyJPN',
+      autoPrintFlg:'false'
+    });
 
-    const [
-      typeData,
-      waitData
-    ] =
-    await Promise.all([
-      getWaitTypes(),
-      getWaitInfo()
-    ]);
+    $('raw').textContent=JSON.stringify(data,null,2);
+    const code=resultCode(data);
 
-
-    const types =
-      typeData?.innerDto?.waitTypeList || [];
-
-    const store =
-      waitData?.innerDto?.stores?.[0];
-
-
-    if(!store){
-      throw new Error(
-        '店舗情報を取得できませんでした'
-      );
+    if(code==='3539'){
+      $('permission').textContent='権限なし（3539）';
+      $('permission').className='bad';
+      throw new Error('外部受付APIの予約作成権限がありません（3539）');
+    }
+    if(code!=='0000' && data?.success!==true){
+      throw new Error(`${code||'ERROR'} ${data?.resultCode?.defaultMessage||'受付できませんでした'}`);
     }
 
-
-    /*
-      アクティブ
-      ＋オンラインで使える枠のみ
-    */
-
-    const onlineTypes =
-      types
-        .filter(type =>
-          type.dispFlg === true &&
-          (
-            type.usageDispType === '01' ||
-            type.usageDispType === '03'
-          )
-        )
-        .sort(
-          (a,b) =>
-          Number(a.dispNo) -
-          Number(b.dispNo)
-        );
-
-
-    const details =
-      store.waitDetails || [];
-
-
-    const html =
-      onlineTypes.map(type => {
-
-        const detail =
-          details.find(
-            item =>
-              item.detailedWaitType ===
-              type.waitTypeName
-          );
-
-        return makeSlotCard(
-          type,
-          detail,
-          store
-        );
-
-      }).join('');
-
-
-    document.getElementById('slots')
-      .innerHTML =
-        html ||
-        `<div class="loading">
-           現在受付できる枠はありません。
-         </div>`;
-
-
-    /*
-      全体状態
-    */
-
-    const mainStatus =
-      document.getElementById(
-        'mainStatus'
-      );
-
-    if(store.onlineRcptCode === '00'){
-
-      mainStatus.textContent =
-        '● 現在受付中';
-
-      mainStatus.style.background =
-        '#def4e7';
-
-      mainStatus.style.color =
-        '#17633e';
-
+    const dto=data?.innerDto;
+    if(!dto?.reserveId || dto?.receiptNo===undefined){
+      throw new Error('受付成功レスポンスに reserveId / receiptNo がありません');
     }
 
-    else{
+    $('permission').textContent='利用可能（0000）';
+    $('permission').className='ok';
 
-      mainStatus.textContent =
-        '現在受付時間外です';
+    saveReservation(dto);
 
-      mainStatus.style.background =
-        '#eee';
-
-      mainStatus.style.color =
-        '#666';
-
-    }
-
-
-    document.getElementById(
-      'updated'
-    ).textContent =
-      '最終更新 ' +
-      new Date().toLocaleTimeString(
-        'ja-JP',
-        {
-          hour:'2-digit',
-          minute:'2-digit'
-        }
-      );
-
-
+    const result=$('result');
+    result.className='result';
+    result.innerHTML=`
+      <div style="text-align:center;font-weight:950">✅ Airウェイト受付成功</div>
+      <div class="num">${esc(dto.receiptNo)}<span style="font-size:1rem">番</span></div>
+      <div style="font-size:.76rem;line-height:1.7">
+        reserveId：${esc(dto.reserveId)}<br>
+        waitType：${esc(orange.waitTypeName)} / ${esc(orange.waitTypeId)}<br>
+        待ち組数：${esc(dto.waitCount ?? '--')}<br>
+        待ち時間：${esc(dto.waitTime ?? '--')}
+      </div>
+      <button class="btn secondary" onclick="location.href='yobidasi.html'">この番号の呼出状況を見る</button>
+    `;
+  }catch(e){
+    const result=$('result');
+    result.className='result error';
+    result.innerHTML=`<strong>受付テスト失敗</strong><br>${esc(e.message)}`;
+  }finally{
+    btn.disabled=false;
+    btn.textContent='この内容で受付する';
   }
+});
 
-  catch(error){
-
-    console.error(error);
-
-    document.getElementById(
-      'slots'
-    ).innerHTML =
-      `<div class="error">
-        受付状況を取得できませんでした。<br>
-        少し時間をおいて再度お試しください。
-      </div>`;
-
-    document.getElementById(
-      'mainStatus'
-    ).textContent =
-      '情報取得エラー';
-
-  }
-
-}
-
-
-/* ==============================
-   予約
-============================== */
-
-function reserve(url){
-
-  if(!url){
-    alert(
-      '予約ページを取得できませんでした'
-    );
-    return;
-  }
-
-  location.href = url;
-
-}
-
-
-/* ==============================
-   HTML安全化
-============================== */
-
-function escapeHtml(value){
-
-  return String(value ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'","&#039;");
-
-}
-
-
-/* ==============================
-   起動
-============================== */
-
-setTargetDate();
-load();
-
-/* 60秒ごとに更新 */
-setInterval(load,60000);
-
+loadOrange();
 </script>
-
 </body>
 </html>
