@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.3.4</title>
+<title>あなたの呼出状況｜アソブーン V5.3.5</title>
 <style>
 
 :root{
@@ -265,6 +265,21 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   color:#5d5648;font-size:.76rem;line-height:1.55;font-weight:850;
 }
 
+.calling-notice{
+  margin:12px 13px 0;padding:13px 14px;
+  border:2px solid rgba(166,103,21,.42);border-radius:15px;
+  background:linear-gradient(180deg,#fff8e4,#f3e3b8);
+  text-align:left;
+}
+.calling-notice[hidden]{display:none}
+.calling-notice strong{
+  display:block;color:#6f430e;font-size:.96rem;line-height:1.4;font-weight:1000;
+}
+.calling-notice span{
+  display:block;margin-top:5px;color:#684f2f;font-size:.76rem;line-height:1.5;font-weight:900;
+}
+
+
 
 /* Personal status — one ASOBooN instrument panel, state only changes accent */
 .personal{
@@ -488,7 +503,11 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div>
 <div id="waitingGuide" class="waiting-guide" hidden>
   <div class="waiting-guide-main">待合室でお待ちください。</div>
-  <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで受付前に置いてください。</div>
+  <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで、受付番号の場所に置いてください。</div>
+</div>
+<div id="callingNotice" class="calling-notice" hidden>
+  <strong>呼出から30分以内に受付へお越しください。</strong>
+  <span>30分を過ぎると受付はキャンセルになります。</span>
 </div>
 <div id="personalMetrics" class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div id="forecastBox" class="forecast"><small>入場可能になる目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
 <div id="callDeadline" class="call-deadline" hidden>
@@ -501,10 +520,9 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 </div>
 <div id="entryAction" class="entry-action" hidden>
   <button id="enteredButton" class="entry-confirm-btn" type="button">
-    <strong id="enteredButtonLabel">入場しました</strong>
-    <span id="enteredButtonSub">「何時まであそべる？」へ</span>
+    <strong id="enteredButtonLabel">何時まであそべる？を設定する</strong>
+    <span id="enteredButtonSub">入場後の利用時間を確認</span>
   </button>
-  <div class="entry-action-note">入場後にタップ</div>
 </div>
 <div class="foot">まず現在の受付状況を確認し、現在も「呼出中」の場合だけ、記録された初回呼出時刻から受付期限を表示します。</div></section>
   <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>呼出ルート</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>この回の受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>ここまで進行</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あと</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
@@ -528,7 +546,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.3.4";
+const CUSTOMER_BUILD="5.3.5";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -614,9 +632,11 @@ function updateEntryAction(row){
   if(!action)return;
   if(!row){action.hidden=true;return}
   const st=currentCustomerState(row);
-  // 呼出中の段階ではまだ入場時刻を開始しない。
-  // AirWait上で受付処理が進んだ後だけ「入場後」の操作を出す。
-  action.hidden=!(st==="processing"||st==="done");
+  action.hidden=!(st==="calling"||st==="processing"||st==="done");
+  if(!action.hidden){
+    $("enteredButtonLabel").textContent="何時まであそべる？を設定する";
+    $("enteredButtonSub").textContent="入場後の利用時間を確認";
+  }
 }
 if(CALLTIME_CFG.parkingUrl&&$("parkingLink"))$("parkingLink").href=CALLTIME_CFG.parkingUrl;
 const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
@@ -755,7 +775,13 @@ async function prefetchSharedRows(){
 
 function clockFromEpoch(ms){const d=new Date(ms);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
 function correctedNow(){return Date.now()+Number(callTimeServerOffsetMs||0)}
-function trustedCall(callData){return ["high","confirmed_manual"].includes(String(callData?.reliability||""))||String(callData?.source||"")==="manual_reference"}
+function trustedCall(callData){
+  const reliability=String(callData?.reliability||"");
+  const source=String(callData?.source||"");
+  return ["high","confirmed_manual"].includes(reliability)
+    || source==="manual_reference"
+    || source==="monitor_transition";
+}
 function callWindowMs(){return Math.max(1,Number(CALLTIME_CFG.callWindowMinutes||30))*60*1000}
 function stopCallDeadlineTicker(){if(callDeadlineTicker){clearInterval(callDeadlineTicker);callDeadlineTicker=0}}
 function resetCallingHeadline(){if(!state.myRow||!calling(state.myRow))return;$('statusTitle').textContent="入場可能";$('statusInstruction').textContent="スタッフに番号をお伝えください。";$('forecastMain').textContent="いま入場可能";$('forecastSub').textContent="受付でスタッフに受付番号をお伝えください。";updateEntryAction(state.myRow)}
@@ -785,9 +811,9 @@ function applyCallDeadline(callData){
       resetCallingHeadline();
       const mins=Math.max(1,Math.ceil(remain/60000));
       $('actualRemaining').textContent=`あと${mins}分`;
-      $('callDeadlineTitle').textContent="初回呼出から30分以内に受付へ";
+      $('callDeadlineTitle').textContent="呼出から30分以内に受付へ";
       $('callDeadlineBadge').textContent="入場可能";
-      $('callSafeText').textContent="慌てず、安全に受付へお越しください。";
+      $('callSafeText').textContent="30分を過ぎると受付はキャンセルになります。";
       if(remain<=5*60*1000)box.classList.add("danger");
       else if(remain<=10*60*1000)box.classList.add("warn");
     }
@@ -795,26 +821,10 @@ function applyCallDeadline(callData){
   box.hidden=false;update();stopCallDeadlineTicker();callDeadlineTicker=setInterval(update,10000)
 }
 function showUnknownCallDeadline(){
-  const box=$('callDeadline');if(!box)return;
-  stopCallDeadlineTicker();box.hidden=false;box.className="call-deadline unknown";
-  $('actualCallTime').textContent="確認中";
-  $('actualDeadlineTime').textContent="--:--";
-  $('actualRemaining').textContent="時刻を確認しています";
-  $('callGaugeFill').style.width="0%";
-  $('callDeadlineTitle').textContent="初回呼出時刻を確認中";
-  $('callDeadlineBadge').textContent="確認中";
-  $('callSafeText').textContent="残り時間は推測せず、記録された初回呼出時刻を確認しています。慌てず安全にお越しください。"
+  hideCallDeadline();
 }
 function showUnavailableCallDeadline(){
-  const box=$('callDeadline');if(!box)return;
-  stopCallDeadlineTicker();box.hidden=false;box.className="call-deadline unavailable";
-  $('actualCallTime').textContent="確認できません";
-  $('actualDeadlineTime').textContent="--:--";
-  $('actualRemaining').textContent="残り時間は表示できません";
-  $('callGaugeFill').style.width="0%";
-  $('callDeadlineTitle').textContent="呼出時刻を確認できません";
-  $('callDeadlineBadge').textContent="時刻不明";
-  $('callSafeText').textContent="不確かな時刻は表示していません。スタッフに受付番号をお伝えください。"
+  hideCallDeadline();
 }
 function hideCallDeadline(){const box=$('callDeadline');if(box)box.hidden=true;stopCallDeadlineTicker()}
 function scheduleCalltimeRetry(row){
@@ -838,7 +848,7 @@ async function renderCallDeadline(row){
   if(state.callTimeLoading.has(key)){scheduleCalltimeRetry(row);return}
   state.callTimeLoading.add(key);
   try{
-    const d=await jsonpCalltime({action:"getCall",date:localDateForCalltime(),recordKey:key,number:rowNum(row)??""});
+    const d=await jsonpCalltime({action:"getCall",date:localDateForCalltime(),recordKey:key,number:rawTicket(row)||""});
     if(Number.isFinite(Number(d?.serverNowEpochMs)))callTimeServerOffsetMs=Number(d.serverNowEpochMs)-Date.now();
     if(d?.ok&&d?.found&&d.call&&trustedCall(d.call)){
       state.callTimeCache.set(key,d.call);
@@ -892,17 +902,19 @@ function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidd
 let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";
 const currentState=currentCustomerState(state.myRow);
 const terminalCancel=currentState==="cancel";
-$("personalMetrics").hidden=terminalCancel;
-$("forecastBox").hidden=terminalCancel;
-$("flowSection").hidden=terminalCancel;
+const admissionNow=currentState==="calling";
+$("personalMetrics").hidden=terminalCancel||admissionNow;
+$("forecastBox").hidden=terminalCancel||admissionNow;
+$("flowSection").hidden=terminalCancel||admissionNow;
+$("callingNotice").hidden=!admissionNow;
 if(terminalCancel){hideCallDeadline();$("entryAction").hidden=true;}
 if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}
 else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}
 else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
 else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
-else if(currentState==="calling"){mode="calling";title="入場可能";ins="スタッフに番号をお伝えください。"}
+else if(currentState==="calling"){mode="calling";title="入場可能";ins="受付へお越しください。"}
 else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}
-else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室でお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;$("waitingGuide").hidden=currentState!=="waiting";updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}if(currentState!=="cancel")renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室でお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;$("waitingGuide").hidden=currentState!=="waiting";updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}if(currentState!=="cancel"&&currentState!=="calling")renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
   $("flowTitle").textContent=rd.label;
@@ -1122,46 +1134,10 @@ function scheduleAutoRefresh(){
 }
 
 $("enteredButton").addEventListener("click",()=>{
-  if(!state.myRow||!state.myRound)return;
-
-  const now=new Date();
-  const start=localTimeText(now);
-  const entryNumber=rowNum(state.myRow)??state.myRow.number??null;
-  const duration=playtimeDurationForNumber(entryNumber);
-  const payload={
-    start,
-    duration,
-    date:localDateKey(now),
-    number:entryNumber,
-    roundId:state.myRound.id,
-    roundLabel:state.myRound.label,
-    system:state.myRound.system||"",
-    createdAt:now.toISOString()
-  };
-
-  try{
-    localStorage.setItem(ENTRY_TRANSFER_KEY,JSON.stringify(payload));
-  }catch(error){
-    console.warn("entry transfer storage failed",error);
-  }
-
-  const label=$("enteredButtonLabel");
-  const sub=$("enteredButtonSub");
-  const btn=$("enteredButton");
-  btn.disabled=true;
-  label.textContent=`${start} 入場で登録 ✓`;
-  sub.textContent=duration===null
-    ?"利用時間は次の画面で選択してください"
-    :`${duration===180?"3時間":"2時間30分"}で自動登録して移動します`;
-
   const url=new URL("./home.html",location.href);
   url.searchParams.set("mode","inside");
   url.searchParams.set("view","playtime");
-  url.searchParams.set("entry","auto");
-  url.searchParams.set("entryTime",start);
-  if(duration!==null)url.searchParams.set("entryDuration",String(duration));
-
-  window.setTimeout(()=>{location.href=url.toString()},450);
+  location.href=url.toString();
 });
 
 $("numberInput").addEventListener("input",e=>{
@@ -1195,4 +1171,6 @@ if(saved){
 scheduleAutoRefresh();
 })();
 </script>
+
+<style>#callDeadline .parking-cta{display:none!important}</style>
 </body></html>
