@@ -510,9 +510,12 @@
 
     .ticket-title{
       display:block;
-      font-size:.92rem;
+      font-size:clamp(.78rem,3.8vw,.92rem);
       font-weight:950;
-      line-height:1.25;
+      line-height:1.2;
+      word-break:keep-all;
+      overflow-wrap:normal;
+      white-space:nowrap;
     }
 
     .ticket-sub{display:none}
@@ -531,11 +534,15 @@
 
     .route-guide h3{
       width:max-content;
+      max-width:calc(100% - 12px);
       margin:-23px auto 10px;
       padding:4px 14px;
       background:var(--paper-light);
       border:1px solid rgba(110,77,31,.2);
       font-size:.75rem;
+      line-height:1.2;
+      white-space:nowrap;
+      word-break:keep-all;
     }
 
     .route-row{
@@ -3130,6 +3137,22 @@
     }
 
     @media(max-width:360px){
+      .ticket{
+        padding-left:7px;
+        padding-right:7px;
+      }
+
+      .ticket-title{
+        font-size:.78rem;
+        letter-spacing:-.02em;
+      }
+
+      .route-guide h3{
+        padding-left:10px;
+        padding-right:10px;
+        font-size:.72rem;
+      }
+
       .compact-mode-switch{
         max-width:206px;
       }
@@ -3286,6 +3309,9 @@
       margin:0;
       color:#17483c;
       font-size:1.05rem;
+      line-height:1.2;
+      white-space:nowrap;
+      word-break:keep-all;
     }
 
     .reservation-route-focus{
@@ -3301,6 +3327,9 @@
       background:linear-gradient(180deg,#244f43,#14372f);
       border:1px solid rgba(224,195,126,.32);
       font-size:.72rem;
+      line-height:1.25;
+      word-break:keep-all;
+      overflow-wrap:normal;
     }
 
     .reservation-route-focus .reservation-route-step b{
@@ -4635,7 +4664,7 @@
         <a
           class="reservation-call-cta"
           id="reservationCallLink"
-          href="./callstatus.html"
+          href="./callstatus.html?v=564"
         >
           <span>
             <strong>呼出状況を見る</strong>
@@ -4668,7 +4697,7 @@
         <a
           class="call-status-button"
           id="callStatusLink"
-          href="./callstatus.html"
+          href="./callstatus.html?v=564"
         >
           <span>呼出状況ページを開く</span>
           <span>↗</span>
@@ -5719,7 +5748,7 @@
         "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
       callStatusUrl:
-        "./callstatus.html",
+        "./callstatus.html?v=564",
 
       stampRallyUrl:
         "https://miniapp.line.me/2009888671-57TOefc3?stamp=home",
@@ -5740,7 +5769,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.6.2";
+      const MINIAPP_CALLSTATUS_BUILD="5.6.4";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5800,7 +5829,10 @@
         }
 
         if (name === "call") {
-          const target = new URL("./callstatus.html", location.href);
+          const callUrl =
+            window.ASOBOON_CONFIG?.callStatusUrl ||
+            "./callstatus.html?v=564";
+          const target = new URL(callUrl, location.href);
           location.href = target.toString();
           return;
         }
