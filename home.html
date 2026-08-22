@@ -3137,6 +3137,64 @@
     }
 
     @media(max-width:360px){
+      .reservation-critical{
+      display:block;
+      width:100%;
+      box-sizing:border-box;
+      margin-top:10px;
+      padding:12px 13px;
+      border:1px solid rgba(184,77,56,.28);
+      border-left:5px solid #b84d38;
+      border-radius:13px;
+      color:#6e3025;
+      background:#fff0e9;
+      overflow:hidden;
+    }
+
+    .reservation-critical > *{
+      position:static!important;
+      inset:auto!important;
+      float:none!important;
+      clear:both!important;
+      width:auto!important;
+      max-width:100%!important;
+      height:auto!important;
+      min-height:0!important;
+      margin-left:0!important;
+      margin-right:0!important;
+      transform:none!important;
+      white-space:normal!important;
+      overflow-wrap:anywhere!important;
+      word-break:normal!important;
+    }
+
+    .reservation-critical-title{
+      display:block;
+      margin:0 0 7px!important;
+      color:#733428;
+      font-size:clamp(.78rem,3.5vw,.88rem);
+      font-weight:1000;
+      line-height:1.35;
+    }
+
+    .reservation-critical-main{
+      display:block;
+      margin:0 0 6px!important;
+      color:#8f3626;
+      font-size:clamp(.74rem,3.25vw,.84rem);
+      font-weight:1000;
+      line-height:1.45;
+    }
+
+    .reservation-critical-note{
+      display:block;
+      margin:0!important;
+      color:#7a4338;
+      font-size:clamp(.64rem,2.9vw,.72rem);
+      font-weight:800;
+      line-height:1.5;
+    }
+
       .ticket{
         padding-left:7px;
         padding-right:7px;
@@ -3375,12 +3433,10 @@
     }
 
     .reservation-critical{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      display:grid;
+      gap:7px;
       margin-top:10px;
-      padding:10px 11px;
+      padding:11px 12px 12px;
       border-radius:13px;
       color:#6e3025;
       background:#fff0e9;
@@ -3388,19 +3444,37 @@
     }
 
     .reservation-critical strong{
-      font-size:.74rem;
+      display:block;
+      min-width:0;
+      font-size:.78rem;
       line-height:1.35;
     }
 
-    .reservation-critical span{
-      flex:0 0 auto;
-      padding:5px 7px;
-      border-radius:999px;
+    .reservation-critical-main{
+      display:block;
+      min-width:0;
+      padding:7px 9px;
+      border-radius:10px;
       color:#fff8ef;
       background:#a84431;
-      font-size:.62rem;
+      font-size:.68rem;
       font-weight:1000;
-      white-space:nowrap;
+      line-height:1.4;
+      white-space:normal;
+      word-break:normal;
+      overflow-wrap:break-word;
+    }
+
+    .reservation-critical-note{
+      display:block;
+      min-width:0;
+      color:#7a4338;
+      font-size:.62rem;
+      font-weight:850;
+      line-height:1.45;
+      white-space:normal;
+      word-break:normal;
+      overflow-wrap:break-word;
     }
 
   
@@ -4664,7 +4738,7 @@
         <a
           class="reservation-call-cta"
           id="reservationCallLink"
-          href="./callstatus.html?v=564"
+          href="./callstatus.html?v=566"
         >
           <span>
             <strong>呼出状況を見る</strong>
@@ -4674,8 +4748,9 @@
         </a>
 
         <div class="reservation-critical">
-          <strong>「入場可能」になったら受付へ</strong>
-          <span>呼出後30分以内に受付へお越しください。ただし、各回の最終入場時刻を過ぎて入場することはできません。 呼出後30分を過ぎると自動キャンセルになります。</span>
+          <p class="reservation-critical-title">「入場可能」と表示されたら受付へ</p>
+          <p class="reservation-critical-main">呼出後30分以内に受付へお越しください。</p>
+          <p class="reservation-critical-note">ただし、各回の最終入場時刻を過ぎて入場することはできません。呼出後30分を過ぎると自動キャンセルになります。</p>
         </div>
       </section>
     </section>
@@ -4697,7 +4772,7 @@
         <a
           class="call-status-button"
           id="callStatusLink"
-          href="./callstatus.html?v=564"
+          href="./callstatus.html?v=566"
         >
           <span>呼出状況ページを開く</span>
           <span>↗</span>
@@ -5748,7 +5823,7 @@
         "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
       callStatusUrl:
-        "./callstatus.html?v=564",
+        "./callstatus.html?v=566",
 
       stampRallyUrl:
         "https://miniapp.line.me/2009888671-57TOefc3?stamp=home",
@@ -5769,7 +5844,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.6.4";
+      const MINIAPP_CALLSTATUS_BUILD="5.6.6";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5831,7 +5906,7 @@
         if (name === "call") {
           const callUrl =
             window.ASOBOON_CONFIG?.callStatusUrl ||
-            "./callstatus.html?v=564";
+            "./callstatus.html?v=566";
           const target = new URL(callUrl, location.href);
           location.href = target.toString();
           return;
