@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.3.5</title>
+<title>あなたの呼出状況｜アソブーン V5.3.6</title>
 <style>
 
 :root{
@@ -546,7 +546,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.3.5";
+const CUSTOMER_BUILD="5.3.6";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -903,18 +903,47 @@ let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.
 const currentState=currentCustomerState(state.myRow);
 const terminalCancel=currentState==="cancel";
 const admissionNow=currentState==="calling";
-$("personalMetrics").hidden=terminalCancel||admissionNow;
-$("forecastBox").hidden=terminalCancel||admissionNow;
-$("flowSection").hidden=terminalCancel||admissionNow;
+const admissionFinished=currentState==="processing"||currentState==="done";
+
+// 待ち情報は「まだ待っている人」にだけ見せる。
+// 呼出中・受付中・ご案内済み・取消になった後は、
+// 「あなたの前」「呼出順」「入場可能になる目安」「呼出ルート」をすべて隠す。
+const hideWaitingInfo=terminalCancel||admissionNow||admissionFinished;
+$("personalMetrics").hidden=hideWaitingInfo;
+$("forecastBox").hidden=hideWaitingInfo;
+$("flowSection").hidden=hideWaitingInfo;
 $("callingNotice").hidden=!admissionNow;
-if(terminalCancel){hideCallDeadline();$("entryAction").hidden=true;}
+
+if(terminalCancel){
+  hideCallDeadline();
+  $("entryAction").hidden=true;
+}
 if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}
-else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="受付状況をご確認ください。"}
+else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="「何時まであそべる？」から利用時間を設定できます。"}
 else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
 else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
 else if(currentState==="calling"){mode="calling";title="入場可能";ins="受付へお越しください。"}
 else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}
-else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室でお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;$("waitingGuide").hidden=currentState!=="waiting";updateEntryAction(state.myRow);renderCallDeadline(state.myRow);if(activeCustomerCall(state.myRow)){ $("forecastMain").textContent="いま入場可能";$("forecastSub").textContent="受付でスタッフに受付番号をお伝えください。"}else if(e?.clock){$("forecastMain").textContent=`${e.clock}ごろ`;$("forecastSub").textContent=e.mode==="live"?"現在の進行から計算した目安です。":"呼出開始後、進行に合わせて更新します。"}else{$("forecastMain").textContent=state.myRound.noForecast?"時間予測の対象外":"目安を計算中";$("forecastSub").textContent="実際の呼出状況を確認しています。"}if(currentState!=="cancel"&&currentState!=="calling")renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室でお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;$("waitingGuide").hidden=currentState!=="waiting";updateEntryAction(state.myRow);renderCallDeadline(state.myRow);
+if(["waiting","hold"].includes(currentState)){
+  if(e?.clock){
+    $("forecastMain").textContent=`${e.clock}ごろ`;
+    $("forecastSub").textContent=e.mode==="live"
+      ?"現在の進行から計算した目安です。"
+      :"呼出開始後、進行に合わせて更新します。";
+  }else{
+    $("forecastMain").textContent=state.myRound.noForecast
+      ?"時間予測の対象外"
+      :"目安を計算中";
+    $("forecastSub").textContent="実際の呼出状況を確認しています。";
+  }
+}else if(currentState==="calling"){
+  $("forecastMain").textContent="いま入場可能";
+  $("forecastSub").textContent="";
+}else{
+  $("forecastMain").textContent="";
+  $("forecastSub").textContent="";
+}if(!["cancel","calling","processing","done"].includes(currentState))renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
 function renderFlow(g,p,e){
   const rd=g.round;
   $("flowTitle").textContent=rd.label;
