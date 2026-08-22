@@ -5035,7 +5035,7 @@
         >
           <iframe
             title="ASOBooN公式Instagram 投稿サムネイル"
-            src="https://www.instagram.com/asoboon425/embed"
+            data-src="https://www.instagram.com/asoboon425/embed"
             loading="lazy"
             scrolling="no"
             referrerpolicy="no-referrer-when-downgrade"
@@ -5740,7 +5740,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.5.2";
+      const MINIAPP_CALLSTATUS_BUILD="5.6.0";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5805,6 +5805,10 @@
           return;
         }
 
+        // 初期表示では外部通信を増やさない。
+        // 必要な画面を開いた時だけ重い埋め込みを読み込む。
+        ensureDeferredViewAssets(name);
+
         views.forEach(view => {
           view.classList.remove("active");
         });
@@ -5831,7 +5835,7 @@
 
         scrollTo({
           top: 0,
-          behavior: "smooth"
+          behavior: update ? "smooth" : "auto"
         });
       }
 
@@ -6211,7 +6215,18 @@ const callStatusLink =
           </a>`;
       }
 
-      if (appConfig.congestionWidgetUrl) {
+      let availabilityStarted = false;
+      let instagramStarted = false;
+
+      function ensureAvailabilityLoaded() {
+        if (availabilityStarted) return;
+        availabilityStarted = true;
+
+        if (!appConfig.congestionWidgetUrl) {
+          showAvailabilityFallback("本日の空き状況を表示できません。");
+          return;
+        }
+
         let availabilityLoaded = false;
 
         availabilityFrame.addEventListener("load", () => {
@@ -6224,16 +6239,36 @@ const callStatusLink =
           showAvailabilityFallback("本日の空き状況を読み込めませんでした。");
         }, { once:true });
 
-        availabilityFrame.src =
-          appConfig.congestionWidgetUrl;
+        availabilityFrame.src = appConfig.congestionWidgetUrl;
 
         setTimeout(() => {
           if (!availabilityLoaded) {
             showAvailabilityFallback("本日の空き状況を読み込めませんでした。");
           }
         }, 8000);
-      } else {
-        showAvailabilityFallback("本日の空き状況を表示できません。");
+      }
+
+      function ensureInstagramLoaded() {
+        if (instagramStarted) return;
+        instagramStarted = true;
+
+        const frame = document.querySelector(
+          '#eventsView iframe[data-src]'
+        );
+
+        if (frame && !frame.src) {
+          frame.src = frame.dataset.src;
+        }
+      }
+
+      function ensureDeferredViewAssets(name) {
+        if (name === "reservation") {
+          ensureAvailabilityLoaded();
+        }
+
+        if (name === "events") {
+          ensureInstagramLoaded();
+        }
       }
 
       const faq =
