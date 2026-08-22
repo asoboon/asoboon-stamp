@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Airウェイト 待ち項目確認</title>
+  <style>
+    :root{
+      --navy:#102F4B;
+      --orange:#E87919;
+      --paper:#FFF8E8;
+      --line:#DED2BA;
+      --green:#287A4F;
+      --red:#B5483E;
+      --text:#2D281F;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;
+      background:#f6f3ec;
+      color:var(--text);
+    }
+    .wrap{
+      width:min(920px,calc(100% - 24px));
+      margin:24px auto 60px;
+    }
+    .card{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+    }
+    h1{font-size:24px;margin:0 0 8px;color:var(--navy)}
+    .sub{margin:0 0 18px;color:#6f6659;line-height:1.6}
+    button{
+      width:100%;
+      border:0;
+      border-radius:12px;
+      padding:14px 16px;
+      font-size:16px;
+      font-weight:700;
+      background:var(--orange);
+      color:white;
+      cursor:pointer;
+    }
+    button:disabled{opacity:.55}
+    .status{
+      margin:16px 0 0;
+      padding:12px 14px;
+      border-radius:12px;
+      background:var(--paper);
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .ok{color:var(--green)}
+    .bad{color:var(--red)}
+    .grid{
+      display:grid;
+      gap:12px;
+      margin-top:18px;
+    }
+    .item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+    }
+    .item.test{
+      border:2px solid var(--orange);
+      background:#fffaf2;
+    }
+    .name{
+      font-size:18px;
+      font-weight:800;
+      color:var(--navy);
+      margin-bottom:8px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:8px;
+      padding:4px 0;
+    }
+    .label{color:#766d61}
+    code{
+      background:#f2eee5;
+      padding:2px 6px;
+      border-radius:6px;
+      font-size:14px;
+    }
+    pre{
+      margin-top:18px;
+      padding:14px;
+      overflow:auto;
+      border-radius:12px;
+      background:#111827;
+      color:#e5e7eb;
+      font-size:12px;
+      line-height:1.5;
+      max-height:360px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Airウェイト 待ち項目確認</h1>
+      <p class="sub">
+        Airウェイトに登録されている待ち項目を取得します。<br>
+        名前に「テスト」が入っている項目はオレンジ枠で強調します。
+      </p>
+
+      <button id="loadBtn">待ち項目を取得する</button>
+
+      <div id="status" class="status">未取得</div>
+      <div id="list" class="grid"></div>
+
+      <pre id="raw" hidden></pre>
+    </section>
+  </main>
+
+<script>
+const AIRWAIT = {
+  apiKey: 'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
+  storeId: 'KR01205179',
+  waitTypeUrl: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get'
+};
+
+const $ = id => document.getElementById(id);
+
+function esc(v){
+  return String(v ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function boolLabel(v){
+  const s = String(v).toLowerCase();
+  return (v === true || v === 1 || s === '1' || s === 'true')
+    ? 'アクティブ'
+    : '非アクティブ';
+}
+
+function usageLabel(v){
+  const s = String(v ?? '');
+  const map = {
+    '01':'オンライン＋現地',
+    '02':'現地のみ',
+    '03':'オンラインのみ',
+    'KeyALL':'オンライン＋現地',
+    'KeySTORE_RECEPTION_ONLY':'現地のみ',
+    'KeyONLINE_RECEPTION_ONLY':'オンラインのみ'
+  };
+  return map[s] || `不明 (${s})`;
+}
+
+async function postForm(url, payload){
+  const body = new URLSearchParams(payload);
+
+  const res = await fetch(`${url}?key=${encodeURIComponent(AIRWAIT.apiKey)}`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
+    },
+    body
+  });
+
+  const text = await res.text();
+
+  if(!res.ok){
+    throw new Error(`HTTP ${res.status}\n${text.slice(0,500)}`);
+  }
+
+  try{
+    return JSON.parse(text);
+  }catch{
+    throw new Error(`JSONとして読めませんでした。\n${text.slice(0,500)}`);
+  }
+}
+
+async function loadWaitTypes(){
+  $('loadBtn').disabled = true;
+  $('status').className = 'status';
+  $('status').textContent = '取得中…';
+  $('list').innerHTML = '';
+  $('raw').hidden = true;
+
+  try{
+    const data = await postForm(AIRWAIT.waitTypeUrl, {
+      storeId: AIRWAIT.storeId
+    });
+
+    $('raw').textContent = JSON.stringify(data,null,2);
+
+    const code = String(data?.resultCode?.code ?? '');
+    if(code !== '0000' || data?.success !== true){
+      throw new Error(
+        `${code || 'ERROR'}：${data?.resultCode?.defaultMessage || '取得失敗'}`
+      );
+    }
+
+    const list = Array.isArray(data?.innerDto?.waitTypeList)
+      ? data.innerDto.waitTypeList
+      : [];
+
+    const tests = list.filter(x =>
+      String(x.waitTypeName || '').includes('テスト')
+    );
+
+    $('status').className = 'status ok';
+    $('status').innerHTML =
+      `✅ ${list.length}件取得しました。` +
+      `<br><strong>「テスト」を含む項目：${tests.length}件</strong>`;
+
+    $('list').innerHTML = list.map(x => {
+      const isTest = String(x.waitTypeName || '').includes('テスト');
+      return `
+        <article class="item ${isTest ? 'test' : ''}">
+          <div class="name">${esc(x.waitTypeName)}</div>
+          <div class="row">
+            <div class="label">waitTypeId</div>
+            <div><code>${esc(x.waitTypeId)}</code></div>
+          </div>
+          <div class="row">
+            <div class="label">表示状態</div>
+            <div>${esc(boolLabel(x.dispFlg))}</div>
+          </div>
+          <div class="row">
+            <div class="label">用途</div>
+            <div>${esc(usageLabel(x.usageDispType))}</div>
+          </div>
+          <div class="row">
+            <div class="label">usageDispType</div>
+            <div><code>${esc(x.usageDispType)}</code></div>
+          </div>
+          <div class="row">
+            <div class="label">表示順</div>
+            <div>${esc(x.dispNo)}</div>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    $('raw').hidden = false;
+  }catch(err){
+    $('status').className = 'status bad';
+    $('status').textContent = `❌ ${err.message}`;
+  }finally{
+    $('loadBtn').disabled = false;
+  }
+}
+
+$('loadBtn').addEventListener('click', loadWaitTypes);
+</script>
+</body>
+</html>
