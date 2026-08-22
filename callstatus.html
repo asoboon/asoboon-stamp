@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.5.1</title>
+<title>あなたの呼出状況｜アソブーン V5.5.2</title>
 <style>
 
 :root{
@@ -546,7 +546,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.5.1";
+const CUSTOMER_BUILD="5.5.2";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",entryDeadline:"12:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -829,8 +829,8 @@ function updateCallingNotice(row=state.myRow){
   const cutoff=roundEntryDeadlineClock(rd);
   main.textContent="呼出から30分以内に受付へお越しください。";
   sub.textContent=cutoff
-    ?`${rd?.label||"この回"}は${cutoff}までに入場が必要です。早い方が受付期限です。`
-    :"30分を過ぎると受付はキャンセルになります。";
+    ?`${rd?.label||"この回"}は${cutoff}までに入場が必要です。早い方が受付期限です。呼出後30分を過ぎると自動キャンセルになります。`
+    :"呼出後30分を過ぎると自動キャンセルになります。";
 }
 
 function stopCallDeadlineTicker(){if(callDeadlineTicker){clearInterval(callDeadlineTicker);callDeadlineTicker=0}}
@@ -877,8 +877,8 @@ function applyCallDeadline(callData){
         :"呼出から30分以内に受付へ";
       $('callDeadlineBadge').textContent="入場可能";
       $('callSafeText').textContent=rule.roundWins&&rule.cutoff
-        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。`
-        :"30分を過ぎると受付はキャンセルになります。";
+        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。呼出後30分を過ぎると自動キャンセルになります。`
+        :"呼出後30分を過ぎると自動キャンセルになります。";
 
       if(remain<=5*60*1000)box.classList.add("danger");
       else if(remain<=10*60*1000)box.classList.add("warn");
@@ -1094,16 +1094,6 @@ function resolve(){
   const r=hit.row;
   setLookupMode(true,rawTicket(r)||state.my,false);
   const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};
-
-  if(roundExpired(rd.id)){
-    state.myRow=state.myRound=null;
-    updateEntryAction(null);
-    $("lookupError").hidden=false;
-    $("lookupError").textContent="この回の呼出表示は終了しました。";
-    $("personalSection").hidden=$("flowSection").hidden=true;
-    renderRounds(visibleGroups(groups()));
-    return;
-  }
 
   state.myRow=r;
   state.myRound=rd;
