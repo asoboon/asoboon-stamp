@@ -4432,20 +4432,20 @@
           <button
             class="ticket"
             data-before-view="events"
-            data-inside-view="map"
+            data-inside-view="events"
           >
             <span class="ticket-number">4</span>
             <svg class="ticket-icon">
               <use
                 data-before-use="#i-flag"
-                data-inside-use="#i-map"
+                data-inside-use="#i-flag"
                 href="#i-flag"
               ></use>
             </svg>
             <span
               class="ticket-title"
               data-before-label="イベント情報"
-              data-inside-label="エリアマップ"
+              data-inside-label="イベント情報"
             >
               イベント情報
             </span>
@@ -4646,7 +4646,7 @@
 
         <div class="reservation-critical">
           <strong>「入場可能」になったら受付へ</strong>
-          <span>呼出後30分以内</span>
+          <span>呼出後30分以内に受付へお越しください。ただし、各回の最終入場時刻を過ぎて入場することはできません。</span>
         </div>
       </section>
     </section>
@@ -4679,7 +4679,7 @@
         <h3>時間に遅れそうな場合</h3>
 
         <p>
-          呼出後30分を過ぎるとキャンセルになります。
+          呼出後30分以内に受付へお越しください。ただし、各回の最終入場時刻を過ぎて入場することはできません。
           受付番号を保留できる場合がありますので、事前にお電話ください。
         </p>
 
@@ -5495,23 +5495,6 @@
       </div>
     </section>
 
-    <section class="view" id="mapView">
-      <div class="page-head">
-        <small>EXPLORE THE AREA</small>
-        <h2>エリアマップ</h2>
-        <p>
-          館内をもっと分かりやすく楽しめるマップを準備しています。
-        </p>
-      </div>
-
-      <div class="stack">
-        <div class="paper safe">
-          <h3>🗺️ 現在準備中です</h3>
-          <p>公開まで、もうしばらくお待ちください。</p>
-        </div>
-      </div>
-    </section>
-
     <section class="view" id="stampView">
       <div class="page-head play-contents-head">
         <small>PLAY CONTENTS</small>
@@ -5639,7 +5622,7 @@
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              有効な整理券があれば入場枠は確保されています。ただし、呼び出しから30分を過ぎると自動キャンセルになります。呼出状況をご確認いただき、呼出状況で「入場可能」と表示されたら受付へお進みください。
+              有効な整理券があれば入場枠は確保されています。呼出後30分以内に受付へお越しください。ただし、各回の最終入場時刻を過ぎて入場することはできません。 呼出状況をご確認いただき、「入場可能」と表示されたら受付へお進みください。
             </div>
           </details>
 
@@ -5648,7 +5631,7 @@
 
             <div class="answer">
               <span class="staff-label">スタッフの回答</span><br>
-              呼出後30分を過ぎるとキャンセルになります。受付番号を保留できる場合がありますので、事前にお電話ください。
+              呼出後30分以内に受付へお越しください。ただし、各回の最終入場時刻を過ぎて入場することはできません。 受付番号を保留できる場合がありますので、事前にお電話ください。
             </div>
           </details>
 
@@ -5723,30 +5706,6 @@
         >
           Instagram <span>↗</span>
         </a>
-
-        <a
-          class="drawer-link"
-          href="#"
-          data-placeholder
-        >
-          YouTube <span>準備中</span>
-        </a>
-
-        <a
-          class="drawer-link"
-          href="#"
-          data-placeholder
-        >
-          TikTok <span>準備中</span>
-        </a>
-
-        <a
-          class="drawer-link"
-          href="#"
-          data-placeholder
-        >
-          X <span>準備中</span>
-        </a>
       </div>
     </aside>
   </div>
@@ -5781,7 +5740,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.4.1";
+      const MINIAPP_CALLSTATUS_BUILD="5.5.1";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5831,6 +5790,15 @@
       }
 
       function showView(name, update = true) {
+        // 旧リンク・外部リンク互換: games は現在の「あそびコンテンツ」へ統一。
+        if (name === "games") {
+          name = "stamp";
+        }
+
+        if (name === "map") {
+          name = "events";
+        }
+
         if (name === "call") {
           const target = new URL("./callstatus.html", location.href);
           location.href = target.toString();

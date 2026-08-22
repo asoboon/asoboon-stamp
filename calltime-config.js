@@ -1,5 +1,5 @@
 window.ASOBOON_CALLTIME_CONFIG = Object.freeze({
-  version: "5.4.1",
+  version: "5.5.1",
   // Apps Scriptのウェブアプリをデプロイ後、/exec URLに置換
   webAppUrl: "https://script.google.com/macros/s/AKfycbxkI54t2MdxrF-y7JQ-FhwUL4xsHvxWyxfZrQmn5Uu4JzKXhgm0QT8W7sVXpXzkpOKwWA/exec",
   parkingUrl: "./home.html?mode=before&view=parking",
