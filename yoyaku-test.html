@@ -4,84 +4,169 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="theme-color" content="#0f2b46">
-<title>ASOBooN｜事前予約 TEST</title>
+<title>ASOBooN｜テスト事前予約</title>
 <style>
-:root{--paper:#fff8e8;--paper2:#efe1bd;--ink:#2f291f;--muted:#716654;--navy:#0f2b46;--navy2:#061a2b;--orange:#e87518;--orange2:#f6a246;--green:#287a4f;--red:#ad4439;--line:#d7c49d;--gold:#c79a42;--shadow:0 16px 38px rgba(49,36,18,.18)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink)}
+:root{
+  --paper:#fff8e8;--ink:#2f291f;--muted:#716654;
+  --navy:#0f2b46;--navy2:#061a2b;--orange:#e87518;--orange2:#f6a246;
+  --green:#287a4f;--red:#ad4439;--line:#d7c49d;--gold:#c79a42;
+  --shadow:0 16px 38px rgba(49,36,18,.18)
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink)}
 body{background:radial-gradient(circle at 10% 0%,rgba(255,255,255,.8),transparent 24%),linear-gradient(180deg,#e6d2a8,#f8efdc 55%,#ead8b4);-webkit-font-smoothing:antialiased}
 button,input{font:inherit}button{-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
 .app{width:min(100%,520px);margin:auto;padding:max(12px,env(safe-area-inset-top)) 12px calc(34px + env(safe-area-inset-bottom))}
 .hero{overflow:hidden;position:relative;padding:18px 16px;border:2px solid rgba(99,69,27,.35);border-radius:24px;background:linear-gradient(155deg,var(--navy),var(--navy2));color:#fff7df;box-shadow:var(--shadow)}
 .hero:after{content:"";position:absolute;right:-35px;top:-45px;width:150px;height:150px;border-radius:50%;border:22px solid rgba(231,184,78,.12);box-shadow:0 0 0 18px rgba(255,255,255,.025)}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:#d48a26;color:#fff;font-size:.66rem;font-weight:950;letter-spacing:.08em}.hero h1{position:relative;margin:9px 0 5px;font-size:1.65rem;line-height:1.1}.hero p{position:relative;margin:0;color:#d8cfbb;font-size:.78rem;line-height:1.65}.connection{position:relative;display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.69rem;font-weight:900}.dot{width:8px;height:8px;border-radius:50%;background:#d6b266}.connection.ok .dot{background:#6ce2a0;box-shadow:0 0 9px rgba(108,226,160,.65)}.connection.bad .dot{background:#ff7b6c}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:#d48a26;color:#fff;font-size:.66rem;font-weight:950;letter-spacing:.08em}
+.hero h1{position:relative;margin:9px 0 5px;font-size:1.65rem;line-height:1.1}
+.hero p{position:relative;margin:0;color:#d8cfbb;font-size:.78rem;line-height:1.65}
+.connection{position:relative;display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.69rem;font-weight:900}
+.dot{width:8px;height:8px;border-radius:50%;background:#d6b266}
+.connection.ok .dot{background:#6ce2a0;box-shadow:0 0 9px rgba(108,226,160,.65)}
+.connection.bad .dot{background:#ff7b6c}
 .card{margin-top:12px;padding:16px;border:2px solid var(--line);border-radius:20px;background:rgba(255,250,240,.97);box-shadow:var(--shadow)}
-.title{display:flex;align-items:center;gap:10px;margin-bottom:12px}.num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-size:.8rem;font-weight:950}.title h2{margin:0;color:var(--navy);font-size:1.03rem}.title small{display:block;margin-top:2px;color:var(--muted);font-size:.68rem;font-weight:700}
-.setup{border-color:#d8a65a;background:#fff4d9}.setup input,.phone{width:100%;border:2px solid #d8c49b;border-radius:13px;background:#fff;padding:12px 13px;font-size:16px;outline:none}.setup input:focus,.phone:focus{border-color:var(--orange)}
-.btn{width:100%;border:0;border-radius:14px;padding:14px 12px;font-weight:950;cursor:pointer}.btn.primary{color:#fff;background:linear-gradient(180deg,var(--orange2),var(--orange));box-shadow:0 5px 0 #ad530f}.btn.secondary{color:#fff;background:linear-gradient(180deg,#304c61,#102e49);box-shadow:0 4px 0 #071827}.btn:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}.setup .btn{margin-top:9px}
-.notice{margin-top:10px;padding:10px 11px;border-radius:12px;background:#fff9e9;color:#6a5737;font-size:.7rem;line-height:1.6}.error{background:#fff0ee;color:#8b352d;border:1px solid #e0aaa3}.successnote{background:#edf8f1;color:#245f3d;border:1px solid #afd7bc}
-.date-strip{display:flex;gap:8px;overflow:auto;padding:2px 1px 7px;scroll-snap-type:x mandatory}.date-btn{min-width:78px;scroll-snap-align:start;border:2px solid #d7c49d;border-radius:14px;background:#fffdf7;padding:9px 8px;color:var(--navy);font-weight:900;text-align:center}.date-btn span{display:block;font-size:1.05rem}.date-btn small{display:block;margin-top:2px;color:var(--muted);font-size:.64rem}.date-btn.active{border-color:var(--orange);background:#fff0d8;box-shadow:inset 0 0 0 1px #f3bb73}.date-btn.sat span{color:#2d69a8}.date-btn.sun span{color:#b4473c}
-.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:7px}.time-btn{border:2px solid #d7c49d;border-radius:14px;background:#fff;padding:12px 9px;text-align:left}.time-btn strong{display:block;color:var(--navy);font-size:1.05rem}.time-btn span{display:block;margin-top:3px;color:var(--muted);font-size:.66rem}.time-btn.active{border-color:var(--orange);background:#fff0d8}.empty{padding:16px 10px;text-align:center;color:var(--muted);font-size:.76rem}
-.people{display:grid;gap:10px}.person{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px;border:1px solid #dfcfad;border-radius:15px;background:#fff}.person strong{display:block;color:var(--navy)}.person small{display:block;margin-top:2px;color:var(--muted);font-size:.66rem}.stepper{display:flex;align-items:center;gap:10px}.stepper button{width:36px;height:36px;border:0;border-radius:50%;background:#173b58;color:#fff;font-size:1.25rem;font-weight:900}.stepper output{min-width:24px;text-align:center;font-size:1.15rem;font-weight:950}
-.price{margin-top:11px;overflow:hidden;border:2px solid #d4b168;border-radius:16px;background:#fff7df}.price-head{padding:8px 11px;background:#dfb65e;color:#533710;font-size:.7rem;font-weight:950}.price-row{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid #ead8b1;font-size:.77rem}.price-total{display:flex;justify-content:space-between;align-items:end;padding:11px;color:var(--navy);font-weight:950}.price-total strong{font-size:1.55rem}.price-note{padding:0 11px 10px;color:var(--muted);font-size:.66rem;line-height:1.55}
-.phone-label{display:block;margin-bottom:6px;color:var(--navy);font-size:.77rem;font-weight:900}.waiver-box{max-height:230px;overflow:auto;padding:12px;border:1px solid #d9c9a8;border-radius:13px;background:#fffdf8;white-space:pre-wrap;font-size:.72rem;line-height:1.75}.agree{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px;border:2px solid #d7c49d;border-radius:14px;background:#fff}.agree input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color:var(--orange)}.agree strong{display:block;font-size:.78rem;line-height:1.55}.agree small{display:block;margin-top:3px;color:var(--muted);font-size:.65rem;line-height:1.5}
-.summary-mini{margin:12px 0;padding:12px;border-radius:14px;background:#f4ead3}.summary-mini .line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:.75rem}.summary-mini .line span{color:var(--muted)}
-.submit{margin-top:12px}.footer{margin-top:14px;text-align:center;color:#756a58;font-size:.64rem;line-height:1.6}.footer button{border:0;background:none;color:#7e5b25;text-decoration:underline;font-size:inherit}
-.complete{text-align:center}.checkmark{display:grid;place-items:center;width:72px;height:72px;margin:2px auto 10px;border-radius:50%;background:#daf1e3;color:var(--green);font-size:2rem;font-weight:950}.complete h2{margin:0;color:var(--navy)}.reserve-no{margin:13px 0;padding:12px;border-radius:14px;background:#102e49;color:#fff;font-size:1.15rem;font-weight:950;letter-spacing:.04em}.complete p{color:var(--muted);font-size:.76rem;line-height:1.65}
-.modal{position:fixed;z-index:100;inset:0;display:grid;place-items:end center;padding:12px;background:rgba(5,15,24,.55);backdrop-filter:blur(5px)}.modal-card{width:min(100%,520px);border-radius:22px 22px 16px 16px;background:#fff8e8;padding:17px;border:2px solid #d5bd8d;box-shadow:0 -10px 45px rgba(0,0,0,.3)}.modal-card h3{margin:0 0 10px;color:var(--navy)}.modal-actions{display:grid;grid-template-columns:1fr 1.3fr;gap:9px;margin-top:12px}.modal-actions button{border:0;border-radius:13px;padding:13px;font-weight:950}.cancel-btn{background:#e6dfd1;color:#4e4639}.confirm-btn{background:var(--orange);color:#fff}.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:380px){.time-grid{grid-template-columns:1fr}.card{padding:14px}}
+.title{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-size:.8rem;font-weight:950}
+.title h2{margin:0;color:var(--navy);font-size:1.03rem}
+.title small{display:block;margin-top:2px;color:var(--muted);font-size:.68rem;font-weight:700}
+.setup{border-color:#d8a65a;background:#fff4d9}
+.setup input,.phone{width:100%;border:2px solid #d8c49b;border-radius:13px;background:#fff;padding:12px 13px;font-size:16px;outline:none}
+.setup input:focus,.phone:focus{border-color:var(--orange)}
+.btn{width:100%;border:0;border-radius:14px;padding:14px 12px;font-weight:950;cursor:pointer}
+.btn.primary{color:#fff;background:linear-gradient(180deg,var(--orange2),var(--orange));box-shadow:0 5px 0 #ad530f}
+.btn.secondary{color:#fff;background:linear-gradient(180deg,#304c61,#102e49);box-shadow:0 4px 0 #071827}
+.btn.ghost{color:var(--navy);background:#efe7d7;border:1px solid #d4c5a8}
+.btn:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}
+.setup .btn{margin-top:9px}
+.notice{margin-top:10px;padding:10px 11px;border-radius:12px;background:#fff9e9;color:#6a5737;font-size:.7rem;line-height:1.6}
+.error{background:#fff0ee;color:#8b352d;border:1px solid #e0aaa3}
+.successnote{background:#edf8f1;color:#245f3d;border:1px solid #afd7bc}
+.test-lock{display:flex;gap:9px;align-items:center;margin-top:10px;padding:10px 11px;border:1px solid #d4b168;border-radius:12px;background:#fff2cd;color:#684716;font-size:.72rem;font-weight:900}
+.date-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.date-btn{position:relative;border:2px solid #d7c49d;border-radius:16px;background:#fffdf7;padding:12px 10px;color:var(--navy);font-weight:900;text-align:left}
+.date-btn strong{display:block;font-size:1.08rem}
+.date-btn small{display:block;margin-top:4px;color:var(--muted);font-size:.68rem}
+.date-btn .remain{display:inline-block;margin-top:7px;padding:4px 7px;border-radius:999px;background:#edf7f0;color:#246a43;font-size:.65rem}
+.date-btn.active{border-color:var(--orange);background:#fff0d8;box-shadow:inset 0 0 0 1px #f3bb73}
+.date-btn:disabled{opacity:.62;background:#eee8dd;color:#746b5c}
+.date-btn:disabled .remain{background:#e7e0d4;color:#786f62}
+.date-btn.sat strong{color:#2d69a8}.date-btn.sun strong{color:#b4473c}
+.empty{grid-column:1/-1;padding:16px 10px;text-align:center;color:var(--muted);font-size:.76rem}
+.people{display:grid;gap:10px}
+.person{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px;border:1px solid #dfcfad;border-radius:15px;background:#fff}
+.person strong{display:block;color:var(--navy)}
+.person small{display:block;margin-top:2px;color:var(--muted);font-size:.66rem}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:36px;height:36px;border:0;border-radius:50%;background:#173b58;color:#fff;font-size:1.25rem;font-weight:900}
+.stepper output{min-width:24px;text-align:center;font-size:1.15rem;font-weight:950}
+.price{margin-top:11px;overflow:hidden;border:2px solid #d4b168;border-radius:16px;background:#fff7df}
+.price-head{padding:8px 11px;background:#dfb65e;color:#533710;font-size:.7rem;font-weight:950}
+.price-row{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid #ead8b1;font-size:.77rem}
+.price-total{display:flex;justify-content:space-between;align-items:end;padding:11px;color:var(--navy);font-weight:950}
+.price-total strong{font-size:1.55rem}
+.price-note{padding:0 11px 10px;color:var(--muted);font-size:.66rem;line-height:1.55}
+.phone-label{display:block;margin-bottom:6px;color:var(--navy);font-size:.77rem;font-weight:900}
+.waiver-box{max-height:250px;overflow:auto;padding:12px;border:1px solid #d9c9a8;border-radius:13px;background:#fffdf8;white-space:pre-wrap;font-size:.72rem;line-height:1.75}
+.agree{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px;border:2px solid #d7c49d;border-radius:14px;background:#fff}
+.agree input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color:var(--orange)}
+.agree strong{display:block;font-size:.78rem;line-height:1.55}
+.agree small{display:block;margin-top:3px;color:var(--muted);font-size:.65rem;line-height:1.5}
+.summary-mini{margin:12px 0;padding:12px;border-radius:14px;background:#f4ead3}
+.summary-mini .line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:.75rem}
+.summary-mini .line span{color:var(--muted)}
+.submit{margin-top:12px}
+.footer{margin-top:14px;text-align:center;color:#756a58;font-size:.64rem;line-height:1.6}
+.footer button{border:0;background:none;color:#7e5b25;text-decoration:underline;font-size:inherit}
+.complete{text-align:center}
+.checkmark{display:grid;place-items:center;width:72px;height:72px;margin:2px auto 10px;border-radius:50%;background:#daf1e3;color:var(--green);font-size:2rem;font-weight:950}
+.complete h2{margin:0;color:var(--navy)}
+.reserve-no{margin:13px 0;padding:12px;border-radius:14px;background:#102e49;color:#fff;font-size:1.15rem;font-weight:950;letter-spacing:.04em;overflow-wrap:anywhere}
+.complete p{color:var(--muted);font-size:.76rem;line-height:1.65}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.modal{position:fixed;z-index:100;inset:0;display:grid;place-items:end center;padding:12px;background:rgba(5,15,24,.55);backdrop-filter:blur(5px)}
+.modal-card{width:min(100%,520px);border-radius:22px 22px 16px 16px;background:#fff8e8;padding:17px;border:2px solid #d5bd8d;box-shadow:0 -10px 45px rgba(0,0,0,.3)}
+.modal-card h3{margin:0 0 10px;color:var(--navy)}
+.modal-actions{display:grid;grid-template-columns:1fr 1.3fr;gap:9px;margin-top:12px}
+.modal-actions button{border:0;border-radius:13px;padding:13px;font-weight:950}
+.cancel-btn{background:#e6dfd1;color:#4e4639}
+.confirm-btn{background:var(--orange);color:#fff}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:380px){.date-grid{grid-template-columns:1fr}.card{padding:14px}.actions{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main class="app">
   <header class="hero">
     <span class="badge">TEST / 事前予約</span>
-    <h1>ASOBooN 事前予約</h1>
-    <p>空いている日付と時間を選んで予約。予約内容はGoogleスプレッドシートの予約台帳へ保存します。</p>
-    <div id="conn" class="connection"><span class="dot"></span><span id="connText">予約台帳を確認中</span></div>
+    <h1>ASOBooN テスト予約</h1>
+    <p>日付・人数・料金を確認して予約。内容はGoogleスプレッドシートの専用テスト台帳へ保存します。</p>
+    <div id="conn" class="connection bad"><span class="dot"></span><span id="connText">予約台帳 未接続</span></div>
+    <div class="test-lock">🔒 Airウェイト接続先は「テスト」waitTypeId 0042 のみ</div>
   </header>
 
   <section id="setup" class="card setup" hidden>
-    <div class="title"><span class="num">⚙</span><div><h2>テスト接続設定</h2><small>最初の1回だけ</small></div></div>
+    <div class="title"><span class="num">⚙</span><div><h2>予約台帳へ接続</h2><small>最初の1回だけ</small></div></div>
     <label class="phone-label" for="gasUrl">GAS WebアプリURL（/exec）</label>
     <input id="gasUrl" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec">
     <button id="connectBtn" class="btn secondary">予約台帳に接続する</button>
-    <div id="setupMsg" class="notice">Apps Scriptを「ウェブアプリ」としてデプロイしたURLを貼り付けます。接続できればこの設定欄は消えます。</div>
+    <div id="setupMsg" class="notice">GASをウェブアプリとしてデプロイし、最後が /exec のURLを貼り付けます。</div>
   </section>
 
   <div id="booking" hidden>
     <section class="card">
-      <div class="title"><span class="num">1</span><div><h2>日付・時間</h2><small>予約できる枠だけ表示</small></div></div>
-      <div id="dates" class="date-strip"></div>
-      <div id="times" class="time-grid"></div>
-      <div class="notice">毎日19:00に、7日後の予約枠を順次開放するテスト仕様です。</div>
+      <div class="title"><span class="num">1</span><div><h2>来場日</h2><small>明日〜7日先 / 1日2組限定</small></div></div>
+      <div id="dates" class="date-grid"></div>
+      <div class="notice">時間帯は選びません。このテストは日付ごとに2組だけです。7日後の枠は毎日19:00に開きます。</div>
     </section>
 
     <section class="card">
       <div class="title"><span class="num">2</span><div><h2>人数</h2><small>合計10名まで</small></div></div>
       <div class="people">
-        <div class="person"><div><strong>おとな</strong><small>1名 600円 / 必ず1名以上</small></div><div class="stepper"><button type="button" data-act="adultMinus">−</button><output id="adultOut">1</output><button type="button" data-act="adultPlus">＋</button></div></div>
-        <div class="person"><div><strong>こども</strong><small>1名 900円 / おとな1名につき3名まで</small></div><div class="stepper"><button type="button" data-act="childMinus">−</button><output id="childOut">0</output><button type="button" data-act="childPlus">＋</button></div></div>
+        <div class="person">
+          <div><strong>おとな</strong><small><span id="adultUnit">600</span>円 / 必ず1名以上</small></div>
+          <div class="stepper"><button type="button" data-act="adultMinus">−</button><output id="adultOut">1</output><button type="button" data-act="adultPlus">＋</button></div>
+        </div>
+        <div class="person">
+          <div><strong>こども（6ヶ月〜小6）</strong><small><span id="childUnit">900</span>円 / おとな1名につき子ども合計3名まで</small></div>
+          <div class="stepper"><button type="button" data-act="childMinus">−</button><output id="childOut">0</output><button type="button" data-act="childPlus">＋</button></div>
+        </div>
+        <div class="person">
+          <div><strong>0〜5ヶ月</strong><small>追加料金無料 / 子どもの人数には含みます</small></div>
+          <div class="stepper"><button type="button" data-act="infantMinus">−</button><output id="infantOut">0</output><button type="button" data-act="infantPlus">＋</button></div>
+        </div>
       </div>
+
       <div class="price">
         <div class="price-head">料金の目安</div>
-        <div class="price-row"><span>おとな 600円 × <b id="adultPriceCount">1</b>名</span><strong id="adultPrice">600円</strong></div>
-        <div class="price-row"><span>こども 900円 × <b id="childPriceCount">0</b>名</span><strong id="childPrice">0円</strong></div>
+        <div class="price-row"><span>おとな × <b id="adultPriceCount">1</b>名</span><strong id="adultPrice">600円</strong></div>
+        <div class="price-row"><span>こども × <b id="childPriceCount">0</b>名</span><strong id="childPrice">0円</strong></div>
+        <div class="price-row"><span>0〜5ヶ月 × <b id="infantPriceCount">0</b>名</span><strong>0円</strong></div>
         <div class="price-total"><span>合計</span><strong id="totalPrice">600円</strong></div>
-        <div class="price-note">0〜5ヶ月までのお子さまは追加料金無料です。テスト画面では料金は目安表示で、支払いは発生しません。</div>
+        <div class="price-note">この画面では料金の目安を表示します。テスト予約のため、このページ上で決済は行いません。</div>
       </div>
     </section>
 
     <section class="card">
-      <div class="title"><span class="num">3</span><div><h2>連絡先</h2><small>予約確認・復旧に使用</small></div></div>
+      <div class="title"><span class="num">3</span><div><h2>連絡先</h2><small>予約確認・本人照合に使用</small></div></div>
       <label class="phone-label" for="phone">電話番号 <b>必須</b></label>
       <input id="phone" class="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="090-1234-5678" maxlength="14">
-      <div class="notice">電話番号はハイフンありでもOK。予約台帳では照合用に保存されます。</div>
+      <div class="notice">ハイフンありでもOKです。予約台帳には数字だけで保存します。</div>
     </section>
 
     <section class="card">
-      <div class="title"><span class="num">4</span><div><h2>受付人数・免責事項</h2><small>同意チェック必須</small></div></div>
+      <div class="title"><span class="num">4</span><div><h2>受付人数・免責事項</h2><small>同意必須</small></div></div>
       <div id="waiver" class="waiver-box">読み込み中…</div>
-      <label class="agree"><input id="agree" type="checkbox"><span><strong>上記の「受付人数について」「免責事項について」を確認し、内容に同意します。</strong><small>チェックがない場合は予約できません。</small></span></label>
+      <label class="agree">
+        <input id="agree" type="checkbox">
+        <span>
+          <strong>上記の受付人数について・免責事項について確認し、内容に同意します。</strong>
+          <small>チェックがない場合は予約できません。</small>
+        </span>
+      </label>
+
       <div id="miniSummary" class="summary-mini"></div>
       <button id="reserveBtn" class="btn primary submit" disabled>内容を確認して予約する</button>
       <div id="formMsg" class="notice" hidden></div>
@@ -91,59 +176,441 @@ button,input{font:inherit}button{-webkit-tap-highlight-color:transparent}[hidden
   <section id="complete" class="card complete" hidden>
     <div class="checkmark">✓</div>
     <h2>予約できました</h2>
-    <p>予約内容はスプレッドシートに保存されました。</p>
+    <p>予約内容を「テスト予約台帳」へ保存しました。</p>
     <div id="reserveNo" class="reserve-no">--</div>
     <div id="completeSummary" class="summary-mini"></div>
-    <p>当日は公式LINEからこの予約を開き、現地で「チェックイン」します。チェックイン時にAirウェイトのテスト枠 <b>0042</b> へ受付する流れにします。</p>
-    <button id="anotherBtn" class="btn secondary">もう1件テスト予約する</button>
+    <p>当日はこの予約を確認してチェックインします。チェックインした瞬間だけAirウェイト「テスト」0042へ受付されます。</p>
+    <div class="actions">
+      <button id="copyBtn" class="btn ghost" type="button">予約番号をコピー</button>
+      <button id="anotherBtn" class="btn secondary" type="button">もう1件予約</button>
+    </div>
   </section>
 
-  <div class="footer">予約テストページ / ASOBooN<br><button id="changeConnection" type="button">GAS接続設定を変更</button></div>
+  <div class="footer">
+    ASOBooN テスト予約 v6<br>
+    <button id="changeConnection" type="button">GAS接続設定を変更</button>
+  </div>
 </main>
 
 <div id="modal" class="modal" hidden>
   <div class="modal-card">
     <h3>この内容で予約しますか？</h3>
     <div id="modalSummary" class="summary-mini"></div>
-    <div class="modal-actions"><button id="backBtn" class="cancel-btn">戻る</button><button id="confirmBtn" class="confirm-btn">予約を確定する</button></div>
+    <div class="modal-actions">
+      <button id="backBtn" class="cancel-btn">戻る</button>
+      <button id="confirmBtn" class="confirm-btn">予約を確定する</button>
+    </div>
   </div>
 </div>
 
 <script>
 'use strict';
-const CFG={adultPrice:600,childPrice:900,maxTotal:10,childPerAdult:3,gasKey:'asoboon_reservation_gas_url_v1',resKey:'asoboon_pre_reservation_v1'};
-const FALLBACK_WAIVER=`【受付人数について】\n当館のご利用には、お子様３名様につき、おとなの方は最低１名様の付添いが必要となります。（例：お子様４名様→おとな２名様の付添いが必要）また、１受付の最大人数は合計１０名様までとなります。\n\n【免責事項について】\nご利用にあたり、お客様ご自身に関する以下の項目について、当施設では責任を負いかねます。受付時のご了承をお願いしております。\n\n・施設内でのケガ、事故\n・お荷物の紛失、盗難\n・お客様同士のトラブル\n・施設内での衣服の汚れ\n・施設ご利用後の感染症罹患`;
-const S={gas:'',slots:[],waiver:{version:'2026-08-22-v1',text:FALLBACK_WAIVER},date:'',slot:null,adults:1,children:0,phone:'',agree:false,submitting:false};
-const $=id=>document.getElementById(id);const yen=n=>Number(n||0).toLocaleString('ja-JP')+'円';
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function normPhone(v){return String(v||'').replace(/\D/g,'')}
-function formatDate(ymd){const d=new Date(ymd+'T00:00:00+09:00');return new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',weekday:'short'}).format(d)}
-function weekdayClass(ymd){const d=new Date(ymd+'T00:00:00+09:00').getDay();return d===0?'sun':d===6?'sat':''}
-function gasFromQuery(){const v=new URLSearchParams(location.search).get('gas');if(v&&/^https:\/\/script\.google\.com\//.test(v)){localStorage.setItem(CFG.gasKey,v);return v}return localStorage.getItem(CFG.gasKey)||''}
-async function apiGet(action){const r=await fetch(S.gas+'?action='+encodeURIComponent(action)+'&_='+Date.now(),{cache:'no-store',redirect:'follow'});const t=await r.text();let j;try{j=JSON.parse(t)}catch{throw new Error('GASからJSON以外の応答が返りました')}if(!r.ok)throw new Error('HTTP '+r.status);return j}
-async function apiPost(body){const r=await fetch(S.gas,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'});const t=await r.text();let j;try{j=JSON.parse(t)}catch{throw new Error('GASからJSON以外の応答が返りました')}if(!r.ok)throw new Error('HTTP '+r.status);return j}
-function setConn(kind,text){$('conn').className='connection '+kind;$('connText').textContent=text}
-async function connect(url){S.gas=String(url||'').trim();if(!/^https:\/\/script\.google\.com\//.test(S.gas))throw new Error('GASの /exec URL を入力してください');setConn('','予約台帳に接続中…');const h=await apiGet('health');if(!h||h.ok!==true)throw new Error(h?.message||'予約台帳へ接続できません');const s=await apiGet('slots');if(!s||s.ok!==true)throw new Error(s?.message||'予約枠を取得できません');localStorage.setItem(CFG.gasKey,S.gas);S.slots=Array.isArray(s.data?.slots)?s.data.slots:[];S.waiver=s.data?.waiver||S.waiver;if(!S.waiver.text)S.waiver.text=FALLBACK_WAIVER;$('waiver').textContent=S.waiver.text;$('setup').hidden=true;$('booking').hidden=false;setConn('ok','予約台帳 接続済み');renderDates();updateUI()}
-function renderDates(){const dates=[...new Set(S.slots.map(x=>x.visitDate))].sort();$('dates').innerHTML=dates.length?dates.map(d=>`<button type="button" class="date-btn ${weekdayClass(d)} ${S.date===d?'active':''}" data-date="${esc(d)}"><span>${esc(formatDate(d))}</span><small>${S.slots.filter(x=>x.visitDate===d).length}枠</small></button>`).join(''):'<div class="empty">現在予約できる日程がありません</div>';if(!S.date&&dates[0])S.date=dates[0];renderTimes()}
-function renderTimes(){const list=S.slots.filter(x=>x.visitDate===S.date);if(S.slot&&!list.some(x=>x.slotId===S.slot.slotId))S.slot=null;$('times').innerHTML=list.length?list.map(x=>`<button type="button" class="time-btn ${S.slot?.slotId===x.slotId?'active':''}" data-slot="${esc(x.slotId)}"><strong>${esc(x.startTime||'時間未設定')}</strong><span>${esc(x.label||'予約枠')} / ${x.remainingGroups!=null?'残り'+x.remainingGroups+'組':x.remaining!=null?'残り'+x.remaining+'名':'予約可'}</span></button>`).join(''):'<div class="empty">この日は予約枠がありません</div>';updateUI()}
-function canReserve(){const p=normPhone(S.phone);return !!S.slot&&S.adults>=1&&S.children<=S.adults*CFG.childPerAdult&&(S.adults+S.children)<=CFG.maxTotal&&/^\d{10,11}$/.test(p)&&S.agree&&!S.submitting}
-function updateUI(){if(S.children>S.adults*CFG.childPerAdult)S.children=S.adults*CFG.childPerAdult;if(S.adults+S.children>CFG.maxTotal)S.children=Math.max(0,CFG.maxTotal-S.adults);$('adultOut').value=$('adultOut').textContent=S.adults;$('childOut').value=$('childOut').textContent=S.children;$('adultPriceCount').textContent=S.adults;$('childPriceCount').textContent=S.children;$('adultPrice').textContent=yen(S.adults*CFG.adultPrice);$('childPrice').textContent=yen(S.children*CFG.childPrice);$('totalPrice').textContent=yen(S.adults*CFG.adultPrice+S.children*CFG.childPrice);$('reserveBtn').disabled=!canReserve();$('miniSummary').innerHTML=summaryHtml()}
-function summaryHtml(){const total=S.adults*CFG.adultPrice+S.children*CFG.childPrice;return `<div class="line"><span>日時</span><strong>${S.slot?esc(formatDate(S.slot.visitDate)+' '+S.slot.startTime):'未選択'}</strong></div><div class="line"><span>人数</span><strong>おとな${S.adults} / こども${S.children}</strong></div><div class="line"><span>料金目安</span><strong>${yen(total)}</strong></div><div class="line"><span>電話番号</span><strong>${S.phone?esc(S.phone):'未入力'}</strong></div>`}
-function people(action){if(action==='adultPlus'&&S.adults+S.children<CFG.maxTotal)S.adults++;if(action==='adultMinus'&&S.adults>1){const next=S.adults-1;if(S.children<=next*CFG.childPerAdult)S.adults=next}if(action==='childPlus'&&S.adults+S.children<CFG.maxTotal&&S.children<S.adults*CFG.childPerAdult)S.children++;if(action==='childMinus'&&S.children>0)S.children--;updateUI()}
-function showMsg(text,bad=false){const e=$('formMsg');e.hidden=false;e.className='notice '+(bad?'error':'successnote');e.textContent=text}
-async function submitReservation(){if(!canReserve())return;S.submitting=true;$('confirmBtn').disabled=true;$('confirmBtn').innerHTML='<span class="spinner"></span>保存中';try{const r=await apiPost({action:'reserve',slotId:S.slot.slotId,adults:S.adults,children:S.children,phone:normPhone(S.phone),waiverAccepted:true,waiverVersion:S.waiver.version});if(!r||r.ok!==true)throw new Error(r?.message||'予約できませんでした');const saved={...r.reservation,slot:S.slot,price:S.adults*CFG.adultPrice+S.children*CFG.childPrice,savedAt:Date.now()};localStorage.setItem(CFG.resKey,JSON.stringify(saved));$('modal').hidden=true;$('booking').hidden=true;$('complete').hidden=false;$('reserveNo').textContent=r.reservation?.reservationId||'予約完了';$('completeSummary').innerHTML=summaryHtml();setConn('ok','予約台帳へ保存済み');window.scrollTo({top:0,behavior:'smooth'})}catch(e){$('modal').hidden=true;showMsg(e.message,true);window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}finally{S.submitting=false;$('confirmBtn').disabled=false;$('confirmBtn').textContent='予約を確定する';updateUI()}}
-$('connectBtn').addEventListener('click',async()=>{const b=$('connectBtn');b.disabled=true;$('setupMsg').className='notice';$('setupMsg').textContent='接続しています…';try{await connect($('gasUrl').value);$('setupMsg').textContent='接続できました'}catch(e){setConn('bad','予約台帳 未接続');$('setupMsg').className='notice error';$('setupMsg').textContent='❌ '+e.message}finally{b.disabled=false}})
-$('dates').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(!b)return;S.date=b.dataset.date;S.slot=null;renderDates()})
-$('times').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;S.slot=S.slots.find(x=>x.slotId===b.dataset.slot)||null;renderTimes()})
-document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)people(b.dataset.act)})
-$('phone').addEventListener('input',e=>{S.phone=e.target.value;updateUI()})
-$('agree').addEventListener('change',e=>{S.agree=e.target.checked;updateUI()})
-$('reserveBtn').addEventListener('click',()=>{if(!canReserve())return;$('modalSummary').innerHTML=summaryHtml();$('modal').hidden=false})
-$('backBtn').addEventListener('click',()=>{$('modal').hidden=true})
-$('confirmBtn').addEventListener('click',submitReservation)
-$('anotherBtn').addEventListener('click',()=>{S.slot=null;S.adults=1;S.children=0;S.phone='';S.agree=false;$('phone').value='';$('agree').checked=false;$('complete').hidden=true;$('booking').hidden=false;connect(S.gas).catch(e=>showMsg(e.message,true));window.scrollTo({top:0,behavior:'smooth'})})
-$('changeConnection').addEventListener('click',()=>{$('setup').hidden=false;$('gasUrl').value=S.gas||'';window.scrollTo({top:0,behavior:'smooth'})})
-(async function init(){S.gas=gasFromQuery();if(!S.gas){setConn('bad','予約台帳 未接続');$('setup').hidden=false;$('booking').hidden=true;return}$('gasUrl').value=S.gas;try{await connect(S.gas)}catch(e){setConn('bad','予約台帳 接続エラー');$('setup').hidden=false;$('booking').hidden=true;$('setupMsg').className='notice error';$('setupMsg').textContent='❌ '+e.message}})();
+
+const CFG={
+  apiVersion:'2026-08-22-test-v6',
+  adultPrice:600,
+  childPrice:900,
+  maxTotal:10,
+  childPerAdult:3,
+  gasKey:'asoboon_reservation_gas_url_v6',
+  resKey:'asoboon_pre_reservation_test_v6'
+};
+
+const FALLBACK_WAIVER=`【受付人数について】
+当館のご利用には、お子様３名様につき、おとなの方は最低１名様の付添いが必要となります。（例：お子様４名様→おとな２名様の付添いが必要）また、１受付の最大人数は合計１０名様までとなります。
+
+【免責事項について】
+ご利用にあたり、お客様ご自身に関する以下の項目について、当施設では責任を負いかねます。受付時のご了承をお願いしております。
+
+・施設内でのケガ、事故
+・お荷物の紛失、盗難
+・お客様同士のトラブル
+・施設内での衣服の汚れ
+・施設ご利用後の感染症罹患`;
+
+const S={
+  gas:'',
+  slots:[],
+  waiver:{version:'2026-08-22-v1',text:FALLBACK_WAIVER},
+  slot:null,
+  adults:1,
+  paidChildren:0,
+  infants:0,
+  phone:'',
+  agree:false,
+  submitting:false,
+  lastReservation:null
+};
+
+const $=id=>document.getElementById(id);
+const yen=n=>Number(n||0).toLocaleString('ja-JP')+'円';
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,m=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function normPhone(v){
+  return String(v||'').replace(/\D/g,'');
+}
+
+function formatDate(ymd){
+  const d=new Date(ymd+'T00:00:00+09:00');
+  return new Intl.DateTimeFormat('ja-JP',{
+    month:'numeric',
+    day:'numeric',
+    weekday:'short'
+  }).format(d);
+}
+
+function weekdayClass(ymd){
+  const d=new Date(ymd+'T00:00:00+09:00').getDay();
+  return d===0?'sun':d===6?'sat':'';
+}
+
+function gasFromStorage(){
+  const query=new URLSearchParams(location.search).get('gas');
+
+  if(query&&/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(query)){
+    localStorage.setItem(CFG.gasKey,query);
+    return query;
+  }
+
+  return localStorage.getItem(CFG.gasKey)||'';
+}
+
+function setConn(kind,text){
+  $('conn').className='connection '+kind;
+  $('connText').textContent=text;
+}
+
+function api(body,timeoutMs=18000){
+  return new Promise((resolve,reject)=>{
+    if(!S.gas){
+      reject(new Error('GASが未接続です'));
+      return;
+    }
+
+    const requestId='req_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const frameName='gas_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+
+    const iframe=document.createElement('iframe');
+    iframe.name=frameName;
+    iframe.hidden=true;
+
+    const form=document.createElement('form');
+    form.method='POST';
+    form.action=S.gas;
+    form.target=frameName;
+    form.hidden=true;
+
+    const payload=document.createElement('input');
+    payload.type='hidden';
+    payload.name='payload';
+    payload.value=JSON.stringify(body);
+
+    const req=document.createElement('input');
+    req.type='hidden';
+    req.name='requestId';
+    req.value=requestId;
+
+    form.append(payload,req);
+    document.body.append(iframe,form);
+
+    let done=false;
+
+    const cleanup=()=>{
+      if(done)return;
+      done=true;
+      clearTimeout(timer);
+      window.removeEventListener('message',onMessage);
+      setTimeout(()=>{
+        iframe.remove();
+        form.remove();
+      },0);
+    };
+
+    const onMessage=(event)=>{
+      const msg=event.data;
+      if(!msg||msg.source!=='ASOBOON_GAS_BRIDGE_V1'||msg.requestId!==requestId)return;
+      cleanup();
+      resolve(msg.data);
+    };
+
+    window.addEventListener('message',onMessage);
+
+    const timer=setTimeout(()=>{
+      cleanup();
+      reject(new Error('予約台帳からの応答がありません。GASのデプロイ設定を確認してください。'));
+    },timeoutMs);
+
+    form.submit();
+  });
+}
+
+async function connect(url){
+  S.gas=String(url||'').trim();
+
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(S.gas)){
+    throw new Error('最後が /exec のGAS WebアプリURLを入力してください');
+  }
+
+  setConn('','予約台帳に接続中…');
+
+  const health=await api({action:'health'});
+  if(!health||health.ok!==true)throw new Error(health?.message||'予約台帳へ接続できません');
+
+  const h=health.data||{};
+  if(h.mode!=='TEST_ONLY')throw new Error('このGASはテスト専用モードではありません');
+  if(String(h.apiVersion)!==CFG.apiVersion)throw new Error('GASのバージョンが違います。v6へ更新してください');
+  if(String(h.airwaitWaitTypeId)!=='0042')throw new Error('Airウェイト接続先が0042ではありません');
+
+  const slots=await api({action:'slots'});
+  if(!slots||slots.ok!==true)throw new Error(slots?.message||'予約枠を取得できません');
+  if(slots.data?.mode!=='TEST_ONLY'||String(slots.data?.waitTypeId)!=='0042')throw new Error('テスト0042専用APIではありません');
+
+  localStorage.setItem(CFG.gasKey,S.gas);
+
+  S.slots=Array.isArray(slots.data?.slots)?slots.data.slots:[];
+  S.waiver=slots.data?.waiver||S.waiver;
+  if(!S.waiver.text)S.waiver.text=FALLBACK_WAIVER;
+
+  CFG.adultPrice=Number(slots.data?.pricing?.adult||600);
+  CFG.childPrice=Number(slots.data?.pricing?.child||900);
+  CFG.maxTotal=Number(slots.data?.rules?.maxTotalPeople||10);
+  CFG.childPerAdult=Number(slots.data?.rules?.childPerAdult||3);
+
+  $('adultUnit').textContent=CFG.adultPrice.toLocaleString('ja-JP');
+  $('childUnit').textContent=CFG.childPrice.toLocaleString('ja-JP');
+  $('waiver').textContent=S.waiver.text;
+
+  $('setup').hidden=true;
+  $('booking').hidden=false;
+  setConn('ok','予約台帳 接続済み / テスト0042');
+  renderDates();
+  updateUI();
+}
+
+function slotStateLabel(x){
+  if(x.stopped)return '受付停止';
+  if(!x.isOpen)return x.openLabel+'から';
+  if(Number(x.remainingGroups||0)<=0)return '満席';
+  return '残り '+Number(x.remainingGroups||0)+'組';
+}
+
+function renderDates(){
+  $('dates').innerHTML=S.slots.length
+    ? S.slots.map(x=>`
+      <button
+        type="button"
+        class="date-btn ${weekdayClass(x.visitDate)} ${S.slot?.slotId===x.slotId?'active':''}"
+        data-slot="${esc(x.slotId)}"
+        ${x.bookable?'':'disabled'}>
+        <strong>${esc(formatDate(x.visitDate))}</strong>
+        <small>テスト予約 / 1日2組</small>
+        <span class="remain">${esc(slotStateLabel(x))}</span>
+      </button>
+    `).join('')
+    : '<div class="empty">予約できる日付がありません</div>';
+
+  updateUI();
+}
+
+function totalChildren(){return S.paidChildren+S.infants;}
+function totalPeople(){return S.adults+totalChildren();}
+function estimatedPrice(){return S.adults*CFG.adultPrice+S.paidChildren*CFG.childPrice;}
+
+function canReserve(){
+  const phone=normPhone(S.phone);
+  return !!S.slot&&S.slot.bookable===true&&S.adults>=1&&totalChildren()<=S.adults*CFG.childPerAdult&&totalPeople()<=CFG.maxTotal&&/^\d{10,11}$/.test(phone)&&S.agree&&!S.submitting;
+}
+
+function updateUI(){
+  $('adultOut').value=$('adultOut').textContent=S.adults;
+  $('childOut').value=$('childOut').textContent=S.paidChildren;
+  $('infantOut').value=$('infantOut').textContent=S.infants;
+  $('adultPriceCount').textContent=S.adults;
+  $('childPriceCount').textContent=S.paidChildren;
+  $('infantPriceCount').textContent=S.infants;
+  $('adultPrice').textContent=yen(S.adults*CFG.adultPrice);
+  $('childPrice').textContent=yen(S.paidChildren*CFG.childPrice);
+  $('totalPrice').textContent=yen(estimatedPrice());
+  $('reserveBtn').disabled=!canReserve();
+  $('miniSummary').innerHTML=summaryHtml();
+}
+
+function summaryHtml(){
+  return `
+    <div class="line"><span>来場日</span><strong>${S.slot?esc(formatDate(S.slot.visitDate)):'未選択'}</strong></div>
+    <div class="line"><span>予約枠</span><strong>テスト / 1日2組</strong></div>
+    <div class="line"><span>おとな</span><strong>${S.adults}名</strong></div>
+    <div class="line"><span>こども</span><strong>${S.paidChildren}名 ＋ 0〜5ヶ月 ${S.infants}名</strong></div>
+    <div class="line"><span>合計人数</span><strong>${totalPeople()}名</strong></div>
+    <div class="line"><span>料金目安</span><strong>${yen(estimatedPrice())}</strong></div>
+    <div class="line"><span>電話番号</span><strong>${S.phone?esc(S.phone):'未入力'}</strong></div>
+    <div class="line"><span>当日受付</span><strong>Airウェイト テスト0042</strong></div>
+  `;
+}
+
+function canAddChild(){return totalPeople()<CFG.maxTotal&&totalChildren()<S.adults*CFG.childPerAdult;}
+
+function people(action){
+  if(action==='adultPlus'&&totalPeople()<CFG.maxTotal)S.adults++;
+  if(action==='adultMinus'&&S.adults>1){
+    const next=S.adults-1;
+    if(totalChildren()<=next*CFG.childPerAdult&&next+totalChildren()<=CFG.maxTotal)S.adults=next;
+  }
+  if(action==='childPlus'&&canAddChild())S.paidChildren++;
+  if(action==='childMinus'&&S.paidChildren>0)S.paidChildren--;
+  if(action==='infantPlus'&&canAddChild())S.infants++;
+  if(action==='infantMinus'&&S.infants>0)S.infants--;
+  updateUI();
+}
+
+function showMsg(text,bad=false){
+  const el=$('formMsg');
+  el.hidden=false;
+  el.className='notice '+(bad?'error':'successnote');
+  el.textContent=text;
+}
+
+async function reloadSlots(){
+  const result=await api({action:'slots'});
+  if(!result||result.ok!==true)return;
+  S.slots=Array.isArray(result.data?.slots)?result.data.slots:[];
+  if(S.slot)S.slot=S.slots.find(x=>x.slotId===S.slot.slotId)||null;
+  renderDates();
+}
+
+async function submitReservation(){
+  if(!canReserve())return;
+  S.submitting=true;
+  $('confirmBtn').disabled=true;
+  $('confirmBtn').innerHTML='<span class="spinner"></span>保存中';
+
+  try{
+    const result=await api({
+      action:'reserve',
+      slotId:S.slot.slotId,
+      adults:S.adults,
+      children:totalChildren(),
+      infants:S.infants,
+      phone:normPhone(S.phone),
+      waiverAccepted:true,
+      waiverVersion:S.waiver.version
+    },25000);
+
+    if(!result||result.ok!==true)throw new Error(result?.message||'予約できませんでした');
+
+    S.lastReservation=result.reservation;
+    localStorage.setItem(CFG.resKey,JSON.stringify({...result.reservation,savedAt:Date.now()}));
+
+    $('modal').hidden=true;
+    $('booking').hidden=true;
+    $('complete').hidden=false;
+    $('reserveNo').textContent=result.reservation.reservationId;
+    $('completeSummary').innerHTML=`
+      <div class="line"><span>来場日</span><strong>${esc(formatDate(result.reservation.visitDate))}</strong></div>
+      <div class="line"><span>人数</span><strong>おとな${result.reservation.adults} / こども${result.reservation.children}</strong></div>
+      <div class="line"><span>うち0〜5ヶ月</span><strong>${result.reservation.infants}名</strong></div>
+      <div class="line"><span>料金目安</span><strong>${yen(result.reservation.estimatedPrice)}</strong></div>
+      <div class="line"><span>電話番号</span><strong>${esc(result.reservation.phoneMasked)}</strong></div>
+    `;
+    setConn('ok','予約台帳へ保存済み / テスト0042');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){
+    $('modal').hidden=true;
+    showMsg(err.message,true);
+    try{await reloadSlots()}catch(_){}
+  }finally{
+    S.submitting=false;
+    $('confirmBtn').disabled=false;
+    $('confirmBtn').textContent='予約を確定する';
+    updateUI();
+  }
+}
+
+$('connectBtn').addEventListener('click',async()=>{
+  const button=$('connectBtn');
+  button.disabled=true;
+  $('setupMsg').className='notice';
+  $('setupMsg').textContent='予約台帳へ接続しています…';
+  try{
+    await connect($('gasUrl').value);
+    $('setupMsg').textContent='接続できました';
+  }catch(err){
+    setConn('bad','予約台帳 未接続');
+    $('setup').hidden=false;
+    $('booking').hidden=true;
+    $('setupMsg').className='notice error';
+    $('setupMsg').textContent='❌ '+err.message;
+  }finally{
+    button.disabled=false;
+  }
+});
+
+$('dates').addEventListener('click',event=>{
+  const button=event.target.closest('[data-slot]');
+  if(!button||button.disabled)return;
+  S.slot=S.slots.find(x=>x.slotId===button.dataset.slot)||null;
+  renderDates();
+});
+
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-act]');
+  if(button)people(button.dataset.act);
+});
+
+$('phone').addEventListener('input',event=>{S.phone=event.target.value;updateUI();});
+$('agree').addEventListener('change',event=>{S.agree=event.target.checked;updateUI();});
+$('reserveBtn').addEventListener('click',()=>{if(canReserve()){$('modalSummary').innerHTML=summaryHtml();$('modal').hidden=false;}});
+$('backBtn').addEventListener('click',()=>{$('modal').hidden=true;});
+$('confirmBtn').addEventListener('click',submitReservation);
+
+$('copyBtn').addEventListener('click',async()=>{
+  const id=S.lastReservation?.reservationId||$('reserveNo').textContent;
+  try{
+    await navigator.clipboard.writeText(id);
+    $('copyBtn').textContent='コピーしました';
+    setTimeout(()=>$('copyBtn').textContent='予約番号をコピー',1500);
+  }catch(_){alert(id);}
+});
+
+$('anotherBtn').addEventListener('click',async()=>{
+  S.slot=null;S.adults=1;S.paidChildren=0;S.infants=0;S.phone='';S.agree=false;S.lastReservation=null;
+  $('phone').value='';$('agree').checked=false;$('complete').hidden=true;$('booking').hidden=false;$('formMsg').hidden=true;
+  try{await reloadSlots()}catch(err){showMsg(err.message,true);}
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+$('changeConnection').addEventListener('click',()=>{
+  $('setup').hidden=false;
+  $('gasUrl').value=S.gas||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+(async function init(){
+  S.gas=gasFromStorage();
+  if(!S.gas){
+    setConn('bad','予約台帳 未接続');
+    $('setup').hidden=false;
+    $('booking').hidden=true;
+    return;
+  }
+
+  $('gasUrl').value=S.gas;
+  setConn('','予約台帳を確認中…');
+  try{
+    await connect(S.gas);
+  }catch(err){
+    setConn('bad','予約台帳 接続エラー');
+    $('setup').hidden=false;
+    $('booking').hidden=true;
+    $('setupMsg').className='notice error';
+    $('setupMsg').textContent='❌ '+err.message;
+  }
+})();
 </script>
 </body>
 </html>
