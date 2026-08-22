@@ -4799,7 +4799,7 @@
         <a
           class="reservation-call-cta"
           id="reservationCallLink"
-          href="./callstatus.html?v=568"
+          href="./callstatus.html?v=569"
         >
           <span>
             <strong>呼出状況を見る</strong>
@@ -4833,7 +4833,7 @@
         <a
           class="call-status-button"
           id="callStatusLink"
-          href="./callstatus.html?v=568"
+          href="./callstatus.html?v=569"
         >
           <span>呼出状況ページを開く</span>
           <span>↗</span>
@@ -5755,7 +5755,7 @@
           <a
             class="action"
             id="stampRallyLink"
-            href="https://asoboon.github.io/asoboon-stamp-rally/"
+            href="./index.html?stamp=home&v=569"
           >
             スタンプラリーをはじめる <span>→</span>
           </a>
@@ -5899,10 +5899,10 @@
         "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
       callStatusUrl:
-        "./callstatus.html?v=568",
+        "./callstatus.html?v=569",
 
       stampRallyUrl:
-        "https://asoboon.github.io/asoboon-stamp-rally/",
+        "./index.html?stamp=home&v=569",
 
       omikujiUrl:
         "./omikuji.html",
@@ -5920,7 +5920,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.6.8";
+      const MINIAPP_CALLSTATUS_BUILD="5.6.9";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5982,7 +5982,7 @@
         if (name === "call") {
           const callUrl =
             window.ASOBOON_CONFIG?.callStatusUrl ||
-            "./callstatus.html?v=568";
+            "./callstatus.html?v=569";
           const target = new URL(callUrl, location.href);
           location.href = target.toString();
           return;
