@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.6.0</title>
+<title>あなたの呼出状況｜アソブーン V5.6.1</title>
 <style>
 
 :root{
@@ -546,7 +546,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.6.0";
+const CUSTOMER_BUILD="5.6.1";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",entryDeadline:"12:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -1105,6 +1105,53 @@ function renderRounds(gs){
     root.innerHTML='<div class="message">本日の受付データはまだありません。</div>';
   }
 }
+
+function resolve(){
+  if(!state.my){
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    $("lookupError").hidden=true;
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const hit=findMineResult(state.my);
+
+  if(hit.kind==="ambiguous"){
+    setLookupMode(false);
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    hideCallDeadline();
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="同じ数字の受付が複数見つかったため、安全のため状態を表示していません。受付票・予約メールに英字（F / T など）が付いている場合は、その英字を含めた番号を入力してください。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  if(hit.kind!=="row"||!hit.row){
+    setLookupMode(false);
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    hideCallDeadline();
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const r=hit.row;
+  setLookupMode(true,rawTicket(r)||state.my,false);
+  const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};
+
+  state.myRow=r;
+  state.myRound=rd;
+  $("lookupError").hidden=true;
+  renderMine();
+}
+
 async function refresh(show=true,allowDirect=true,maxSharedAgeMs=22000,fastDirect=false){
   if(!ensureCustomerDay())return false;
   if(state.refreshPromise)return state.refreshPromise;
