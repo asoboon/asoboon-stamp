@@ -1047,6 +1047,67 @@
       background:#eef8ed;
     }
 
+    .stamp-guide{
+      display:grid;
+      gap:10px;
+    }
+
+    .stamp-guide-lead{
+      margin:0!important;
+      color:#304039!important;
+      font-weight:900;
+      line-height:1.55!important;
+    }
+
+    .stamp-hints{
+      display:grid;
+      gap:7px;
+      margin:0!important;
+      padding:0!important;
+      list-style:none;
+      counter-reset:stamp-hint;
+    }
+
+    .stamp-hints li{
+      display:grid;
+      grid-template-columns:29px minmax(0,1fr);
+      align-items:center;
+      gap:9px;
+      min-width:0;
+      margin:0;
+      padding:8px 10px;
+      border:1px solid rgba(92,73,42,.16);
+      border-radius:11px;
+      background:rgba(255,255,255,.55);
+      color:#293a31!important;
+      font-size:.78rem!important;
+      font-weight:850;
+      line-height:1.35!important;
+      counter-increment:stamp-hint;
+    }
+
+    .stamp-hints li::before{
+      display:grid;
+      place-items:center;
+      width:27px;
+      height:27px;
+      border-radius:50%;
+      color:#fff8e7;
+      background:#315f50;
+      font-size:.69rem;
+      font-weight:1000;
+      content:counter(stamp-hint);
+    }
+
+    .stamp-guide-challenge{
+      margin:0!important;
+      color:#7b5522!important;
+      font-size:.76rem!important;
+      font-weight:950;
+      line-height:1.4!important;
+      text-align:center;
+    }
+
     .action{
       display:flex;
       justify-content:space-between;
@@ -4738,7 +4799,7 @@
         <a
           class="reservation-call-cta"
           id="reservationCallLink"
-          href="./callstatus.html?v=566"
+          href="./callstatus.html?v=568"
         >
           <span>
             <strong>呼出状況を見る</strong>
@@ -4772,7 +4833,7 @@
         <a
           class="call-status-button"
           id="callStatusLink"
-          href="./callstatus.html?v=566"
+          href="./callstatus.html?v=568"
         >
           <span>呼出状況ページを開く</span>
           <span>↗</span>
@@ -5672,16 +5733,31 @@
           </a>
         </div>
 
-        <div class="paper">
+        <div class="paper stamp-guide">
           <h3>🏁 館内スタンプラリー</h3>
-          <p>館内を巡ってスタンプを集めよう！</p>
+
+          <p class="stamp-guide-lead">
+            館内に4か所のチェックポイントがあるよ！<br>
+            ヒントをたよりに探して、見つけたらスマホをかざそう。
+          </p>
+
+          <ul class="stamp-hints" aria-label="スタンプラリーのヒント">
+            <li>サーキットの外の壁</li>
+            <li>デッキの2階</li>
+            <li>フォレストのテント</li>
+            <li>スカイの遊具</li>
+          </ul>
+
+          <p class="stamp-guide-challenge">
+            4つ全部見つけられるかな？
+          </p>
 
           <a
             class="action"
             id="stampRallyLink"
-            href="https://miniapp.line.me/2009888671-57TOefc3?stamp=home"
+            href="https://asoboon.github.io/asoboon-stamp-rally/"
           >
-            スタンプラリーを開く <span>→</span>
+            スタンプラリーをはじめる <span>→</span>
           </a>
         </div>
 
@@ -5823,10 +5899,10 @@
         "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
 
       callStatusUrl:
-        "./callstatus.html?v=566",
+        "./callstatus.html?v=568",
 
       stampRallyUrl:
-        "https://miniapp.line.me/2009888671-57TOefc3?stamp=home",
+        "https://asoboon.github.io/asoboon-stamp-rally/",
 
       omikujiUrl:
         "./omikuji.html",
@@ -5844,7 +5920,7 @@
 
   <script>
     (() => {
-      const MINIAPP_CALLSTATUS_BUILD="5.6.6";
+      const MINIAPP_CALLSTATUS_BUILD="5.6.8";
       const views = [
         ...document.querySelectorAll(".view")
       ];
@@ -5906,7 +5982,7 @@
         if (name === "call") {
           const callUrl =
             window.ASOBOON_CONFIG?.callStatusUrl ||
-            "./callstatus.html?v=566";
+            "./callstatus.html?v=568";
           const target = new URL(callUrl, location.href);
           location.href = target.toString();
           return;
@@ -6290,6 +6366,16 @@ const callStatusLink =
       if (appConfig.stampRallyUrl) {
         stampRallyLink.href =
           appConfig.stampRallyUrl;
+
+        stampRallyLink.addEventListener(
+          "click",
+          event => {
+            event.preventDefault();
+            window.location.assign(
+              appConfig.stampRallyUrl
+            );
+          }
+        );
       }
 
       if (appConfig.omikujiUrl) {
