@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.3.6</title>
+<title>あなたの呼出状況｜アソブーン V5.3.7</title>
 <style>
 
 :root{
@@ -503,7 +503,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div>
 <div id="waitingGuide" class="waiting-guide" hidden>
   <div class="waiting-guide-main">待合室でお待ちください。</div>
-  <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで、受付番号の場所に置いてください。</div>
+  <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで、受付前においてください。</div>
 </div>
 <div id="callingNotice" class="calling-notice" hidden>
   <strong>呼出から30分以内に受付へお越しください。</strong>
@@ -546,7 +546,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.3.6";
+const CUSTOMER_BUILD="5.3.7";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
 {id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
@@ -1040,7 +1040,7 @@ function resolve(){
   $("lookupError").hidden=true;
   renderMine();
 }
-async function refresh(show=true){
+async function refresh(show=true,allowDirect=true){
   if(!ensureCustomerDay())return false;
   if(state.refreshPromise)return state.refreshPromise;
   state.loading=true;
@@ -1057,13 +1057,16 @@ async function refresh(show=true){
       if(shared&&shared.rows.length){
         rows=shared.rows;
         state.dataSource="shared";
-      }else{
-        // 監視画面/GASが一時停止している場合だけAirWaitへ直接フォールバック。
-        // 同時発火を避けるためランダム待機を入れる。
+      }else if(allowDirect){
+        // 初回確認・手動更新だけ、共有データが無い場合にAirWaitへ直接フォールバック。
         await sleep(250+Math.floor(Math.random()*500));
         rows=await allRows();
         state.dataSource="direct";
       }
+
+      // 15秒の自動更新では共有スナップショットのみを参照。
+      // 共有データが無い時に多数端末がAirWaitへ一斉直アクセスするのを防ぐ。
+      if(!rows)return false;
 
       state.rows=rows;
       state.rowsLoadedAt=Date.now();
@@ -1151,13 +1154,15 @@ async function lookupNumber(){
 
 function scheduleAutoRefresh(){
   clearTimeout(state.autoRefreshTimer);
-  // 75〜105秒で分散。通常は共有スナップショットのみ参照する。
-  const delay=75000+Math.floor(Math.random()*30000);
+  const delay=15000;
   state.autoRefreshTimer=setTimeout(async()=>{
     if(!ensureCustomerDay()){scheduleAutoRefresh();return}
     const st=currentCustomerState(state.myRow);
     const shouldRefresh=st==="waiting"||st==="calling"||st==="hold"||!state.myRow;
-    if(document.visibilityState==="visible" && state.my && shouldRefresh)await refresh(false);
+    if(document.visibilityState==="visible" && state.my && shouldRefresh){
+      // 自動更新は共有スナップショットのみ。AirWait直取得はしない。
+      await refresh(false,false);
+    }
     scheduleAutoRefresh();
   },delay);
 }
