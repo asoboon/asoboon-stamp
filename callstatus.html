@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow">
-<title>あなたの呼出状況｜アソブーン V5.3.9</title>
+<title>あなたの呼出状況｜アソブーン V5.4.1</title>
 <style>
 
 :root{
@@ -506,8 +506,8 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
   <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで、受付前においてください。</div>
 </div>
 <div id="callingNotice" class="calling-notice" hidden>
-  <strong>呼出から30分以内に受付へお越しください。</strong>
-  <span>30分を過ぎると受付はキャンセルになります。</span>
+  <strong id="callingNoticeMain">呼出から30分以内に受付へお越しください。</strong>
+  <span id="callingNoticeSub">30分を過ぎると受付はキャンセルになります。</span>
 </div>
 <div id="personalMetrics" class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div id="forecastBox" class="forecast"><small>入場可能になる目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
 <div id="callDeadline" class="call-deadline" hidden>
@@ -524,7 +524,7 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
     <span id="enteredButtonSub">入場後の利用時間を確認</span>
   </button>
 </div>
-<div class="foot">まず現在の受付状況を確認し、現在も「呼出中」の場合だけ、記録された初回呼出時刻から受付期限を表示します。</div></section>
+<div class="foot">現在も「呼出中」の場合、初回呼出から30分後と、この回の最終入場時刻のうち早い方を受付期限として表示します。</div></section>
   <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>呼出ルート</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>この回の受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>ここまで進行</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あと</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
   <div class="track">
     <div id="timelineProgress" class="progress"></div>
@@ -546,11 +546,11 @@ button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offse
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const CUSTOMER_BUILD="5.3.9";
+const CUSTOMER_BUILD="5.4.1";
 const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
 const ROUNDS=[
-{id:"special10",label:"10:00の回",start:"10:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
-{id:"special1230",label:"12:30の回",start:"12:30",ranges:[[1201,1399],[2201,2399]],system:"土休日特定日"},
+{id:"special10",label:"10:00の回",start:"10:00",entryDeadline:"12:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
+{id:"special1230",label:"12:30の回",start:"12:30",entryDeadline:"14:30",ranges:[[1201,1399],[2201,2399]],system:"土休日特定日"},
 {id:"special15",label:"15:00の回",start:"15:00",ranges:[[1501,1699],[2501,2699]],system:"土休日特定日"},
 {id:"ws10",label:"10:00の回",start:"10:00",ranges:[[1,199],[201,399]],system:"平日特定日"},
 {id:"ws1330",label:"13:30の回",start:"13:30",ranges:[[401,599],[601,799]],system:"平日特定日"},
@@ -783,42 +783,112 @@ function trustedCall(callData){
     || source==="monitor_transition";
 }
 function callWindowMs(){return Math.max(1,Number(CALLTIME_CFG.callWindowMinutes||30))*60*1000}
+
+function roundEntryDeadlineClock(round=state.myRound){
+  return String(round?.entryDeadline||"").trim();
+}
+function jstEpochForDateClock(dateText,clockText){
+  const dm=String(dateText||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const tm=String(clockText||"").match(/^(\d{1,2}):(\d{2})$/);
+  if(!dm||!tm)return null;
+  const y=Number(dm[1]),mo=Number(dm[2]),d=Number(dm[3]),h=Number(tm[1]),mi=Number(tm[2]);
+  if(!Number.isFinite(y+mo+d+h+mi))return null;
+  // Asia/Tokyo = UTC+09:00
+  return Date.UTC(y,mo-1,d,h-9,mi,0,0);
+}
+function roundEntryDeadlineEpoch(callData,row=state.myRow){
+  const rd=roundOf(row)||state.myRound;
+  const cutoff=roundEntryDeadlineClock(rd);
+  if(!cutoff)return null;
+  const dateText=String(
+    callData?.date||
+    callData?.callDateTime||
+    localDateForCalltime()
+  ).slice(0,10);
+  return jstEpochForDateClock(dateText,cutoff);
+}
+function effectiveEntryDeadline(callData,row=state.myRow){
+  const epoch=Number(callData?.callEpochMs);
+  if(!Number.isFinite(epoch))return null;
+  const byCall=epoch+callWindowMs();
+  const byRound=roundEntryDeadlineEpoch(callData,row);
+  const hasRound=Number.isFinite(byRound);
+  const deadline=hasRound?Math.min(byCall,byRound):byCall;
+  return{
+    deadline,
+    byCall,
+    byRound:hasRound?byRound:null,
+    roundWins:hasRound&&byRound<byCall,
+    cutoff:roundEntryDeadlineClock(roundOf(row)||state.myRound)
+  };
+}
+function updateCallingNotice(row=state.myRow){
+  const main=$("callingNoticeMain"),sub=$("callingNoticeSub");
+  if(!main||!sub)return;
+  const rd=roundOf(row)||state.myRound;
+  const cutoff=roundEntryDeadlineClock(rd);
+  main.textContent="呼出から30分以内に受付へお越しください。";
+  sub.textContent=cutoff
+    ?`${rd?.label||"この回"}は${cutoff}までに入場が必要です。早い方が受付期限です。`
+    :"30分を過ぎると受付はキャンセルになります。";
+}
+
 function stopCallDeadlineTicker(){if(callDeadlineTicker){clearInterval(callDeadlineTicker);callDeadlineTicker=0}}
 function resetCallingHeadline(){if(!state.myRow||!calling(state.myRow))return;$('statusTitle').textContent="入場可能";$('statusInstruction').textContent="スタッフに番号をお伝えください。";$('forecastMain').textContent="いま入場可能";$('forecastSub').textContent="受付でスタッフに受付番号をお伝えください。";updateEntryAction(state.myRow)}
 function applyCallDeadline(callData){
   const box=$('callDeadline');if(!box)return;
   const epoch=Number(callData?.callEpochMs);
   if(!Number.isFinite(epoch)||!trustedCall(callData)){showUnavailableCallDeadline();return}
-  const windowMs=callWindowMs(),deadline=epoch+windowMs;
+
+  const rule=effectiveEntryDeadline(callData,state.myRow);
+  if(!rule){showUnavailableCallDeadline();return}
+
+  const deadline=rule.deadline;
+  const effectiveWindowMs=Math.max(1,deadline-epoch);
+
   const update=()=>{
-    const remain=deadline-correctedNow(),ratio=Math.max(0,Math.min(1,remain/windowMs));
+    const remain=deadline-correctedNow();
+    const ratio=Math.max(0,Math.min(1,remain/effectiveWindowMs));
+
     $('actualCallTime').textContent=callData.callTime||clockFromEpoch(epoch);
     $('actualDeadlineTime').textContent=clockFromEpoch(deadline);
     $('callGaugeFill').style.width=`${Math.round(ratio*100)}%`;
     box.className="call-deadline";
+
     if(remain<=0){
       box.classList.add("danger");
       $('actualRemaining').textContent="受付期限を経過";
       $('callDeadlineTitle').textContent="受付期限を過ぎています";
       $('callDeadlineBadge').textContent="要確認";
-      $('callSafeText').textContent="受付状況について、スタッフに受付番号をお伝えください。";
+      $('callSafeText').textContent=rule.roundWins&&rule.cutoff
+        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。`
+        :"受付状況について、スタッフに受付番号をお伝えください。";
       $('statusTitle').textContent="受付期限を過ぎています";
       $('statusInstruction').textContent="スタッフに受付状況をご確認ください。";
-      $('forecastMain').textContent="受付状況をご確認ください";
-      $('forecastSub').textContent="初回呼出から30分を経過しています。";
+      $('forecastMain').textContent="";
+      $('forecastSub').textContent="";
       $('entryAction').hidden=true;
     }else{
       resetCallingHeadline();
       const mins=Math.max(1,Math.ceil(remain/60000));
       $('actualRemaining').textContent=`あと${mins}分`;
-      $('callDeadlineTitle').textContent="呼出から30分以内に受付へ";
+      $('callDeadlineTitle').textContent=rule.roundWins&&rule.cutoff
+        ?`受付期限は${rule.cutoff}まで`
+        :"呼出から30分以内に受付へ";
       $('callDeadlineBadge').textContent="入場可能";
-      $('callSafeText').textContent="30分を過ぎると受付はキャンセルになります。";
+      $('callSafeText').textContent=rule.roundWins&&rule.cutoff
+        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。`
+        :"30分を過ぎると受付はキャンセルになります。";
+
       if(remain<=5*60*1000)box.classList.add("danger");
       else if(remain<=10*60*1000)box.classList.add("warn");
     }
   };
-  box.hidden=false;update();stopCallDeadlineTicker();callDeadlineTicker=setInterval(update,10000)
+
+  box.hidden=false;
+  update();
+  stopCallDeadlineTicker();
+  callDeadlineTicker=setInterval(update,10000);
 }
 function showUnknownCallDeadline(){
   hideCallDeadline();
@@ -913,12 +983,13 @@ $("personalMetrics").hidden=hideWaitingInfo;
 $("forecastBox").hidden=hideWaitingInfo;
 $("flowSection").hidden=hideWaitingInfo;
 $("callingNotice").hidden=!admissionNow;
+if(admissionNow)updateCallingNotice(state.myRow);
 
 if(terminalCancel){
   hideCallDeadline();
   $("entryAction").hidden=true;
 }
-if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="必要な場合は、あらためて受付をお願いします。"}
+if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="受付が再開された場合は自動で表示が切り替わります。"}
 else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="「何時まであそべる？」から利用時間を設定できます。"}
 else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
 else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
@@ -1165,6 +1236,7 @@ function scheduleAutoRefresh(){
       st==="hold"||
       st==="calling"||
       st==="processing"||
+      st==="cancel"||
       !state.myRow;
 
     if(document.visibilityState==="visible" && state.my && activeState){
@@ -1174,7 +1246,7 @@ function scheduleAutoRefresh(){
       await refresh(false,true,22000);
     }
 
-    // done / cancel は最終状態なので更新停止。
+    // done は最終状態として更新停止。cancel は復活運用があるため15秒更新を継続。
     scheduleAutoRefresh();
   },delay);
 }
@@ -1201,14 +1273,14 @@ $("backButton").addEventListener("click",()=>history.length>1?history.back():loc
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState!=="visible"||!state.my)return;
   const st=currentCustomerState(state.myRow);
-  if(!["done","cancel"].includes(st)){
+  if(st!=="done"){
     refresh(false,true,22000);
   }
 });
 window.addEventListener("focus",()=>{
   if(!state.my)return;
   const st=currentCustomerState(state.myRow);
-  if(!["done","cancel"].includes(st)){
+  if(st!=="done"){
     refresh(false,true,22000);
   }
 });
