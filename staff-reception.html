@@ -21,26 +21,132 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
   const receptionUrl=new URL('./yoyaku-test.html?from=miniapp-secret',location.href);
   const CURRENT_KEY='asoboon_current_reservation_v2';
   const CALLSTATUS_KEY='asoboon_callstatus_number_v4';
+  const NOTICE_KEY='asoboon_reception_notice_v1';
   const CALLSTATUS_URL='./callstatus.html?v=569';
+  const API_KEY='lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI';
+  const STORE_ID='KR01205179';
+  const RESERVATIONS_API='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
   let observer=null;
   let syncing=false;
+  let statusChecking=false;
+  let lastStatusCheck=0;
 
   function localDateKey(date=new Date()){
     return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   }
 
-  function syncCallStatusNumber(){
+  function getCurrentRecord(){
     try{
       const raw=localStorage.getItem(CURRENT_KEY);
-      if(!raw)return;
+      if(!raw)return null;
       const record=JSON.parse(raw);
-      const number=String(record?.receiptNo||'').trim();
+      if(!record||!record.receiptNo||!record.waitTypeId)return null;
+      return record;
+    }catch(error){
+      return null;
+    }
+  }
+
+  function clearReceptionLocks(){
+    try{localStorage.removeItem(CURRENT_KEY);}catch(error){}
+    try{localStorage.removeItem(CALLSTATUS_KEY);}catch(error){}
+  }
+
+  function syncCallStatusNumber(){
+    try{
+      const record=getCurrentRecord();
+      if(!record)return;
+      const number=String(record.receiptNo||'').trim();
       if(!number)return;
       const next=JSON.stringify({date:localDateKey(),number});
       if(localStorage.getItem(CALLSTATUS_KEY)!==next){
         localStorage.setItem(CALLSTATUS_KEY,next);
       }
     }catch(error){}
+  }
+
+  function ticketNumber(row){
+    return String(row?.number??row?.receiptNo??row?.receptionNo??'').trim();
+  }
+
+  function isSameReservation(row,record){
+    if(!row||!record)return false;
+    const reserveIdMatch=record.reserveId&&row.reserveId&&String(record.reserveId)===String(row.reserveId);
+    const ticketMatch=String(row.waitTypeId??'')===String(record.waitTypeId??'')&&ticketNumber(row)===String(record.receiptNo??'').trim();
+    return Boolean(reserveIdMatch||ticketMatch);
+  }
+
+  function isCancelled(row){
+    if(!row)return false;
+    const status=String(row.status??'');
+    return status==='3'||Boolean(
+      row.cancelDate||
+      row.cancelDateTime||
+      row.cancelDatetime||
+      row.cancelAt||
+      row.canceledAt||
+      row.cancelledAt
+    );
+  }
+
+  async function reservationPage(start=1){
+    const response=await fetch(`${RESERVATIONS_API}?key=${encodeURIComponent(API_KEY)}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+      body:new URLSearchParams({
+        storeId:STORE_ID,
+        sortStatus:'0',
+        isDesc:'0',
+        start:String(start),
+        limit:'100'
+      }),
+      cache:'no-store',
+      credentials:'omit'
+    });
+    if(!response.ok)throw new Error(`受付状況API HTTP ${response.status}`);
+    const data=await response.json();
+    const rows=Array.isArray(data?.innerDto?.reservations)?data.innerDto.reservations:[];
+    return {rows,count:Number(data?.innerDto?.count||rows.length)};
+  }
+
+  async function findReservationRow(record){
+    let start=1;
+    let scanned=0;
+    for(let pageNo=0;pageNo<30;pageNo++){
+      const page=await reservationPage(start);
+      const found=page.rows.find(row=>isSameReservation(row,record));
+      if(found)return found;
+      scanned+=page.rows.length;
+      if(!page.rows.length||scanned>=page.count)break;
+      start+=page.rows.length;
+    }
+    return null;
+  }
+
+  async function reconcileReservationStatus(force=false){
+    const record=getCurrentRecord();
+    if(!record||statusChecking)return;
+    const now=Date.now();
+    if(!force&&now-lastStatusCheck<12000)return;
+    lastStatusCheck=now;
+    statusChecking=true;
+    try{
+      const row=await findReservationRow(record);
+      if(row&&isCancelled(row)){
+        clearReceptionLocks();
+        try{sessionStorage.setItem(NOTICE_KEY,'cancelled');}catch(error){}
+        const next=new URL(receptionUrl.href);
+        next.searchParams.set('_',String(Date.now()));
+        frame.src=next.href;
+        return;
+      }
+      syncCallStatusNumber();
+    }catch(error){
+      // 通信エラー時は重複受付を防ぐためロックを維持する。
+      console.warn('reservation status check failed',error);
+    }finally{
+      statusChecking=false;
+    }
   }
 
   function yen(value){
@@ -114,6 +220,27 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
       airwaitTicket.setAttribute('aria-hidden','true');
       airwaitTicket.removeAttribute('target');
     }
+
+    // お客様が端末ロックだけ消して重複受付できないようにする。
+    const clearLocal=doc.getElementById('clearLocal');
+    if(clearLocal){
+      const tech=clearLocal.closest('.tech');
+      if(tech)tech.style.setProperty('display','none','important');
+      clearLocal.disabled=true;
+      clearLocal.setAttribute('aria-hidden','true');
+    }
+  }
+
+  function showCancellationNotice(doc){
+    try{
+      if(sessionStorage.getItem(NOTICE_KEY)!=='cancelled')return;
+      const msg=doc.getElementById('locationMsg');
+      if(msg){
+        msg.className='msg ok';
+        msg.innerHTML='✅ 前の受付はキャンセル済みです。<br>新しい受付を行えます。';
+        sessionStorage.removeItem(NOTICE_KEY);
+      }
+    }catch(error){}
   }
 
   function patchChild(){
@@ -123,6 +250,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
       syncing=true;
       patchLinks(doc);
       patchPriceAndRules(doc);
+      showCancellationNotice(doc);
       syncCallStatusNumber();
       syncing=false;
     }catch(error){syncing=false;}
@@ -130,6 +258,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
 
   frame.addEventListener('load',()=>{
     patchChild();
+    reconcileReservationStatus(true);
     try{
       const doc=frame.contentDocument;
       observer?.disconnect();
@@ -143,10 +272,18 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
   });
 
   frame.src=receptionUrl.href;
+
   setInterval(()=>{
     syncCallStatusNumber();
     patchChild();
-  },700);
+    reconcileReservationStatus(false);
+  },1000);
+
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)reconcileReservationStatus(true);
+  });
+
+  window.addEventListener('pageshow',()=>reconcileReservationStatus(true));
 })();
 </script>
 </body>
