@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f2b46">
+<meta name="robots" content="noindex,nofollow">
+<title>あなたの呼出状況｜アソブーン V5.6.9</title>
+<style>
+
+:root{
+  --paper:#efe1bd;
+  --paper-light:#fff8e8;
+  --paper-deep:#dbc79b;
+  --ink:#2f291f;
+  --muted:#6d6353;
+  --navy:#0f2b46;
+  --navy-deep:#061a2b;
+  --forest:#173f32;
+  --forest-deep:#0a281f;
+  --leather:#8c5428;
+  --leather-deep:#5a3118;
+  --brass:#c79a42;
+  --brass-light:#edca75;
+  --brass-deep:#735019;
+  --danger:#a74232;
+  --cream:#fff5db;
+  --orange:#db7419;
+  --green:#1f7a55;
+  --shadow:0 18px 44px rgba(42,31,17,.24);
+  --soft-shadow:0 9px 22px rgba(42,31,17,.17);
+  --safe-top:max(10px,env(safe-area-inset-top));
+  --safe-bottom:max(16px,env(safe-area-inset-bottom));
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+html{scroll-behavior:smooth}
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 3%,rgba(255,255,255,.72),transparent 20%),
+    radial-gradient(circle at 88% 12%,rgba(255,255,255,.45),transparent 19%),
+    repeating-linear-gradient(0deg,rgba(78,56,29,.025) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#eadcb8,#f8efd9 54%,#e6d4aa);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.32;
+  background:
+    radial-gradient(circle at 20% 23%,transparent 0 35px,rgba(87,63,32,.16) 36px 37px,transparent 38px),
+    radial-gradient(circle at 77% 64%,transparent 0 52px,rgba(87,63,32,.13) 53px 54px,transparent 55px),
+    linear-gradient(28deg,transparent 0 49%,rgba(105,78,38,.12) 49.5% 50.5%,transparent 51% 100%);
+  background-size:270px 270px,330px 330px,210px 210px;
+}
+button,input{font:inherit}
+button{-webkit-tap-highlight-color:transparent;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:4px solid #f7c95a;outline-offset:3px}
+[hidden]{display:none!important}
+.app{
+  position:relative;
+  z-index:2;
+  width:min(100%,500px);
+  margin:auto;
+  padding:var(--safe-top) 12px calc(var(--safe-bottom) + 24px);
+}
+
+/* Top bar — same tactile language as HOME */
+.top{
+  position:sticky;
+  top:0;
+  z-index:40;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:8px 0 13px;
+  background:linear-gradient(180deg,rgba(239,225,189,.98),rgba(239,225,189,.78),transparent);
+  backdrop-filter:blur(13px);
+}
+.back{
+  min-width:48px;
+  min-height:46px;
+  border:2px solid #061723;
+  border-radius:14px;
+  background:linear-gradient(180deg,#31454d,#14262d);
+  color:#fff8e6;
+  padding:10px 12px;
+  font-weight:950;
+  box-shadow:var(--soft-shadow);
+}
+.mini-brand{
+  min-width:0;
+  padding:8px 11px;
+  border:2px solid rgba(91,63,27,.18);
+  border-radius:14px;
+  background:rgba(255,248,232,.94);
+  color:var(--navy);
+  box-shadow:var(--soft-shadow);
+}
+.mini-brand strong{display:block;font-size:.78rem;line-height:1;font-weight:1000;letter-spacing:.04em}
+.mini-brand small{display:block;margin-top:3px;color:var(--muted);font-size:.57rem;line-height:1;font-weight:900;letter-spacing:.06em}
+.live{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:42px;
+  padding:0 10px;
+  border:2px solid rgba(93,69,29,.22);
+  border-radius:13px;
+  background:linear-gradient(180deg,#fff8e8,#ead9b5);
+  color:var(--forest);
+  box-shadow:0 5px 12px rgba(42,31,17,.12);
+  font-size:.61rem;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#2a9a69;box-shadow:0 0 0 4px rgba(42,154,105,.12)}
+
+/* Page cap — ASOBooN's navy / brass / parchment identity */
+.hero{
+  position:relative;
+  overflow:hidden;
+  min-height:156px;
+  padding:17px 15px 31px;
+  border:3px solid rgba(105,73,29,.42);
+  border-radius:28px 28px 15px 15px;
+  color:#f8edcf;
+  background:
+    radial-gradient(circle at 82% 14%,rgba(224,188,99,.15),transparent 28%),
+    linear-gradient(155deg,var(--navy),var(--navy-deep));
+  box-shadow:var(--shadow);
+}
+.hero:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.2;
+  background:
+    radial-gradient(circle at 77% 27%,transparent 0 34px,rgba(240,210,139,.42) 35px 36px,transparent 37px),
+    linear-gradient(30deg,transparent 0 48.5%,rgba(240,210,139,.28) 49% 50%,transparent 50.5% 100%);
+  background-size:180px 180px,145px 145px;
+}
+.hero:after{
+  content:"";
+  position:absolute;
+  left:-5%;right:-5%;bottom:-31px;height:53px;
+  border-radius:50% 50% 0 0/60% 60% 0 0;
+  background:var(--paper-light);
+  border-top:2px solid rgba(94,67,31,.25);
+}
+.hero-emblem{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  align-items:center;
+  gap:11px;
+  width:calc(100% - 20px);
+  margin:3px auto 0;
+  padding:14px 15px 16px;
+  color:var(--navy);
+  background:
+    repeating-linear-gradient(0deg,rgba(88,63,30,.03) 0 1px,transparent 1px 4px),
+    linear-gradient(180deg,#fff7e3,#eadbb8);
+  clip-path:polygon(7% 0,93% 0,100% 20%,100% 100%,0 100%,0 20%);
+  filter:drop-shadow(0 8px 5px rgba(43,31,16,.24));
+}
+.hero-route-icon{
+  display:grid;place-items:center;width:44px;height:44px;border-radius:50%;
+  color:#f9ebc2;background:linear-gradient(180deg,#234965,#0b2237);
+  border:3px solid var(--brass);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08),0 5px 0 rgba(72,49,17,.16);
+}
+.hero-route-icon svg{width:26px;height:26px;display:block}
+.hero small{display:block;color:#806b49;font-size:.59rem;font-weight:1000;letter-spacing:.12em}
+.hero h1{margin:3px 0 0;color:var(--navy);font-size:clamp(1.65rem,7vw,2.15rem);line-height:1.04;font-weight:1000;letter-spacing:.02em}
+#storeName{margin-top:5px;color:#705c3d;font-size:.66rem;font-weight:900}
+
+/* Number ticket */
+.lookup{
+  position:relative;
+  z-index:4;
+  margin:-6px 10px 0;
+  padding:16px 15px 15px;
+  border:3px solid #6d4d1e;
+  border-radius:18px;
+  background:
+    repeating-linear-gradient(0deg,rgba(85,58,22,.03) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f7e8c1,#e2c98e);
+  box-shadow:inset 0 0 0 2px rgba(255,247,218,.34),0 10px 19px rgba(52,36,15,.19);
+}
+.lookup:before,.lookup:after{content:"";position:absolute;top:12px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f)}
+.lookup:before{left:11px}.lookup:after{right:11px}
+.lookup-title{text-align:center;color:#412b16;font-size:1.05rem;font-weight:1000;letter-spacing:.03em}
+.lookup-guide{max-width:390px;margin:7px auto 0;color:#635033;text-align:center;font-size:.72rem;line-height:1.55;font-weight:850}
+.form{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:9px;margin-top:12px}
+.num{
+  min-width:0;min-height:62px;padding:0 12px;
+  border:3px solid #8a672b;border-radius:13px;
+  background:#fffaf0;color:#322716;text-align:center;
+  font-size:1.72rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 2px 6px rgba(76,52,18,.10);
+}
+.submit{
+  min-height:62px;padding:0 13px;border:2px solid #061723;border-radius:13px;
+  color:#fff8e6;background:linear-gradient(180deg,#254966,#0c2740);
+  box-shadow:0 7px 0 rgba(55,38,14,.20),0 10px 18px rgba(48,34,15,.12);
+  font-size:.9rem;font-weight:1000;
+}
+.submit:active,.back:active,.ctrl:active,.rtoggle:active,.entry-confirm-btn:active{transform:translateY(2px)}
+.error{margin-top:10px;padding:9px 11px;border-radius:10px;color:#7f2e25;background:rgba(167,66,50,.10);font-size:.72rem;line-height:1.45;font-weight:1000}
+
+.lookup-keyword{
+  display:inline-block;
+  padding:1px 5px 2px;
+  border-radius:6px;
+  color:#3d260f;
+  background:rgba(255,249,220,.72);
+  box-shadow:inset 0 -2px 0 rgba(145,93,22,.20);
+  font-size:1.08em;
+  font-weight:1000;
+}
+.lookup-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:12px 10px 0;padding:10px 11px 10px 14px;
+  border:2px solid rgba(109,77,30,.50);border-radius:14px;
+  background:linear-gradient(180deg,#fff8e7,#ead8b1);
+  box-shadow:0 6px 14px rgba(52,36,15,.10);
+}
+.lookup-summary[hidden]{display:none}
+.lookup-summary small{display:block;color:#796747;font-size:.58rem;font-weight:900}
+.lookup-summary strong{display:block;margin-top:2px;color:#17354c;font-size:1.22rem;line-height:1;font-weight:1000;letter-spacing:.02em}
+.lookup-summary button{
+  min-height:38px;padding:0 12px;border:2px solid rgba(78,53,21,.38);border-radius:10px;
+  color:#4b3c27;background:#fff8e7;font-size:.66rem;font-weight:1000;
+}
+.lookup-summary{flex-wrap:wrap}
+.lookup-pending-text{flex:0 0 100%;margin-top:2px;padding-top:8px;border-top:1px solid rgba(78,53,21,.14);color:#586b73;font-size:.68rem;line-height:1.4;font-weight:900}
+.lookup-pending-text[hidden]{display:none}
+.lookup-pending-text::after{content:"・・・";display:inline-block;margin-left:4px;animation:lookupPulse 1.1s ease-in-out infinite}
+@keyframes lookupPulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+.waiting-guide{
+  margin:12px 13px 0;padding:13px 14px;
+  border:2px solid rgba(45,83,105,.34);border-radius:15px;
+  background:linear-gradient(180deg,#f5fbfd,#e6f0f3);
+  text-align:left;
+}
+.waiting-guide[hidden]{display:none}
+.waiting-guide-main{
+  color:#173a50;font-size:1rem;line-height:1.35;font-weight:1000;
+}
+.waiting-guide-main:before{content:"●";margin-right:7px;color:#2f6b84;font-size:.72em;vertical-align:.08em}
+.waiting-guide-sub{
+  margin-top:8px;padding-top:8px;border-top:1px solid rgba(45,83,105,.18);
+  color:#5d5648;font-size:.76rem;line-height:1.55;font-weight:850;
+}
+
+.calling-notice{
+  margin:12px 13px 0;padding:13px 14px;
+  border:2px solid rgba(166,103,21,.42);border-radius:15px;
+  background:linear-gradient(180deg,#fff8e4,#f3e3b8);
+  text-align:left;
+}
+.calling-notice[hidden]{display:none}
+.calling-notice strong{
+  display:block;color:#6f430e;font-size:.96rem;line-height:1.4;font-weight:1000;
+}
+.calling-notice span{
+  display:block;margin-top:5px;color:#684f2f;font-size:.76rem;line-height:1.5;font-weight:900;
+}
+
+
+
+/* Personal status — one ASOBooN instrument panel, state only changes accent */
+.personal{
+  --state:#24506f;--state-deep:#0b2940;--state-paper:#e8f0f4;
+  position:relative;overflow:hidden;margin-top:14px;
+  border:3px solid var(--brass);border-radius:24px;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.027) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,var(--paper-light),var(--paper) 75%,var(--paper-deep));
+  box-shadow:var(--shadow),inset 0 0 0 2px rgba(255,255,255,.22);
+}
+.personal.prestart{--state:#52636a;--state-deep:#26363c;--state-paper:#eef0ed}
+.personal.soon{--state:#a56e12;--state-deep:#64410a;--state-paper:#fff0bd}
+.personal.calling{--state:#2c7659;--state-deep:#0d3d2f;--state-paper:#dff2e8}
+.personal.hold{--state:#9a6c1f;--state-deep:#5b3c0c;--state-paper:#f7e4b8}
+.personal.cancel{--state:#a74232;--state-deep:#612119;--state-paper:#f5ddd7}
+.status{
+  position:relative;padding:17px 15px 20px;text-align:center;color:#fff7de;
+  background:
+    radial-gradient(circle at 50% -8%,rgba(234,198,106,.16),transparent 34%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.022) 0 1px,transparent 1px 44px),
+    linear-gradient(160deg,var(--state),var(--state-deep));
+  border-bottom:3px solid var(--brass-deep);
+}
+.status:after{content:"";position:absolute;left:12px;right:12px;bottom:6px;height:1px;background:linear-gradient(90deg,transparent,rgba(237,202,117,.55),transparent)}
+.kicker{display:none}
+.mybox{
+  position:relative;margin:0 auto;padding:13px 10px 12px;
+  border:3px solid #6b4b1a;border-radius:18px;
+  background:
+    repeating-linear-gradient(0deg,rgba(85,58,22,.035) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f7e6ba,#caa75e);
+  box-shadow:inset 0 0 0 2px rgba(255,249,223,.34),0 9px 18px rgba(0,0,0,.24);
+}
+.mybox:before,.mybox:after{content:"";position:absolute;top:10px;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff4c9,#8c662b 65%,#46300f)}
+.mybox:before{left:10px}.mybox:after{right:10px}
+.mybox label{display:block;color:#66491f;font-size:.66rem;font-weight:1000;letter-spacing:.08em}
+.myvalue{display:flex;justify-content:center;align-items:baseline;gap:7px;margin-top:6px}
+.myvalue strong{color:#4a3015;font-size:clamp(5.2rem,22vw,7.8rem);line-height:.82;font-weight:1000;letter-spacing:-.07em;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 rgba(255,255,255,.35)}
+.myvalue span{color:#65451c;font-size:clamp(1.25rem,5vw,1.8rem);font-weight:1000}
+.personal.calling .myvalue strong{color:#0f6643}
+.roundchip{
+  display:inline-flex;align-items:center;justify-content:center;min-height:32px;margin-top:12px;padding:5px 12px;
+  border:1px solid rgba(237,202,117,.55);border-radius:999px;color:#fff2cf;background:rgba(5,17,24,.33);
+  font-size:.68rem;font-weight:1000;letter-spacing:.03em;
+}
+.title{margin:11px auto 0;color:#fff8e5;font-size:clamp(1.9rem,8vw,2.9rem);line-height:1.05;font-weight:1000;letter-spacing:-.03em;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+.personal.calling .title{font-size:clamp(2.5rem,10.6vw,3.7rem)}
+.instruction{max-width:410px;margin:10px auto 0;color:#f6e8c6;font-size:clamp(.94rem,3.8vw,1.17rem);line-height:1.45;font-weight:900}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:13px 13px 10px}
+.metric{
+  min-height:98px;display:grid;align-content:center;justify-items:center;padding:11px 8px;
+  border:2px solid rgba(109,77,30,.42);border-radius:16px;text-align:center;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.02) 0 1px,transparent 1px 4px),
+    linear-gradient(180deg,#fff9e9,#ecdbb5);
+  box-shadow:0 5px 12px rgba(49,34,14,.09);
+}
+.metric small{color:#735d3b;font-size:.63rem;font-weight:1000}
+.metric strong{margin-top:5px;color:var(--navy);font-size:clamp(1.72rem,7vw,2.25rem);line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.metric span{margin-top:4px;color:#77684f;font-size:.62rem;font-weight:850}
+.metric.primary{border-color:#b88634;background:linear-gradient(180deg,#fff5d7,#e5c980)}
+.metric.primary strong{color:#6a4517}
+.forecast{
+  position:relative;margin:0 13px 13px;padding:14px 13px 13px;
+  border:3px solid #6d4d1e;border-radius:17px;text-align:center;
+  background:
+    repeating-linear-gradient(0deg,rgba(86,58,23,.035) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,#f1dca6,#cba85d);
+  box-shadow:inset 0 0 0 2px rgba(255,249,223,.35),0 8px 17px rgba(55,36,14,.14);
+}
+.forecast small{display:block;color:#6f501e;font-size:.63rem;font-weight:1000;letter-spacing:.05em}
+.forecast strong{display:block;margin-top:4px;color:#4c2d15;font-size:clamp(1.8rem,7.5vw,2.45rem);line-height:1.05;font-weight:1000;font-variant-numeric:tabular-nums}
+.forecast span{display:block;margin-top:5px;color:#675132;font-size:.68rem;line-height:1.45;font-weight:850}
+.personal.calling .forecast{border-color:#486533;background:linear-gradient(180deg,#e8e1ab,#b7c97c)}
+.personal.calling .forecast strong{color:#16452f}
+.entry-action{margin:2px 13px 13px}
+.entry-confirm-btn{
+  width:100%;min-height:88px;display:grid;align-content:center;justify-items:center;gap:4px;padding:14px 17px;
+  border:3px solid #081d16;border-radius:17px;color:#fff4d5;
+  background:
+    radial-gradient(circle at 50% -20%,rgba(237,202,117,.18),transparent 42%),
+    linear-gradient(180deg,#2d6c55,#103b2e);
+  box-shadow:0 8px 0 rgba(60,41,15,.24),0 12px 22px rgba(33,25,12,.16),inset 0 1px 0 rgba(255,255,255,.12);
+  font-weight:1000;
+}
+.entry-confirm-btn strong{font-size:clamp(1.4rem,6vw,1.9rem);line-height:1.05}
+.entry-confirm-btn span{color:#ead6a5;font-size:.68rem;line-height:1.35}
+.entry-action-note{margin-top:8px;color:#695d48;text-align:center;font-size:.6rem;line-height:1.4;font-weight:800}
+.foot{padding:0 13px 14px;color:#766a55;text-align:center;font-size:.59rem;line-height:1.4;font-weight:800}
+
+/* Route card */
+.flow{
+  position:relative;margin-top:14px;padding:15px 13px 16px;
+  border:3px solid rgba(105,73,29,.42);border-radius:24px;
+  background:
+    repeating-linear-gradient(0deg,rgba(90,62,27,.027) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,var(--paper-light),var(--paper) 75%,var(--paper-deep));
+  box-shadow:var(--shadow);
+}
+.flow:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;border-radius:21px;background:linear-gradient(28deg,transparent 0 49%,rgba(105,78,38,.10) 49.5% 50.5%,transparent 51% 100%);background-size:135px 135px}
+.flow>*{position:relative;z-index:2}
+.flowhead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.flowhead small{display:block;color:#715d3c;font-size:.6rem;font-weight:1000;letter-spacing:.08em}
+.flowhead h2{margin:3px 0 0;color:var(--navy);font-size:1.18rem;line-height:1.12;font-weight:1000}
+.pace{flex:0 0 auto;max-width:49%;padding:7px 9px;border:2px solid #9f7b34;border-radius:999px;color:#473517;background:#f1d48d;text-align:center;font-size:.59rem;line-height:1.2;font-weight:1000}
+.flowstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.flowstat{min-height:75px;display:grid;align-content:center;justify-items:center;padding:8px 5px;border:1px solid rgba(100,72,31,.22);border-radius:13px;text-align:center;background:rgba(255,248,232,.72)}
+.flowstat small{color:#796b54;font-size:.56rem;line-height:1.2;font-weight:900}
+.flowstat strong{margin-top:5px;color:#3c3020;font-size:1.12rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.timeline{margin-top:20px;padding:20px 3px 0}
+.track{
+  position:relative;height:20px;border:3px solid #061723;border-radius:999px;
+  background:linear-gradient(180deg,#274458,#10283b);
+  box-shadow:inset 0 3px 5px rgba(0,0,0,.28),0 5px 0 rgba(67,47,17,.12);
+}
+.track:before{content:"";position:absolute;left:8px;right:8px;top:50%;z-index:2;height:2px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,rgba(244,216,142,.86) 0 12px,transparent 12px 21px);pointer-events:none}
+.progress{position:absolute;left:0;top:0;bottom:0;width:0;z-index:1;border-radius:999px;background:linear-gradient(90deg,#376d57,#62a47b);transition:width .35s ease}
+.marker{position:absolute;top:50%;z-index:4;width:25px;height:25px;border:4px solid #fff3cf;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 4px 8px rgba(40,27,10,.28)}
+.progressmark{background:#24694e}
+.you{background:#d97b1c;border-color:#fff0c8;box-shadow:0 0 0 4px rgba(218,123,28,.18),0 4px 8px rgba(40,27,10,.28)}
+.currentlabel,.youlabel{position:absolute;z-index:5;transform:translateX(-50%);padding:4px 7px;border-radius:999px;white-space:nowrap;font-size:.55rem;line-height:1;font-weight:1000}
+.currentlabel{top:28px;color:#f8edcf;background:var(--forest)}
+.youlabel{top:-10px;color:#fff8e8;background:#9b5417}
+.ends{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px;color:#5d503c;font-size:.59rem;line-height:1.42;font-weight:1000}
+.ends span{position:relative;padding-top:8px}
+.ends span:before{content:"";position:absolute;top:0;width:19px;height:3px;border-radius:999px;background:var(--brass)}
+.ends span:first-child:before{left:0}.ends span:last-child{text-align:right;color:#704617}.ends span:last-child:before{right:0;background:#d17a22}
+.flownote{margin-top:10px;color:#7b6d58;text-align:center;font-size:.58rem;line-height:1.4;font-weight:800}
+.qhead{display:flex;align-items:center;justify-content:space-between;margin-top:17px;padding-top:13px;border-top:1px dashed rgba(105,73,29,.34)}
+.qhead h2{margin:0;color:#413522;font-size:.92rem;font-weight:1000}
+.queue{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:9px}
+.q{position:relative;min-height:62px;display:grid;align-content:center;justify-items:center;padding:8px 3px 6px;border:2px solid rgba(94,67,30,.26);border-radius:10px;background:linear-gradient(180deg,#fff9e9,#ead7ad);box-shadow:0 3px 0 rgba(67,47,18,.08)}
+.ord{position:absolute;left:5px;top:4px;color:#97866a;font-size:.46rem;font-weight:1000}
+.qn{color:#4a3b25;font-size:1rem;line-height:1;font-weight:1000;font-variant-numeric:tabular-nums}
+.qs{margin-top:5px;color:#7a6a50;font-size:.5rem;line-height:1;font-weight:1000}
+.q.calling{border-color:#2e7658;background:linear-gradient(180deg,#eaf5ec,#bad7c3)}.q.calling .qn,.q.calling .qs{color:#174832}
+.q.done{opacity:.55;background:linear-gradient(180deg,#eee8d9,#d8cfba)}
+.q.hold{border-color:#a77826;background:linear-gradient(180deg,#fff1bf,#e7c770)}
+.q.cancel{opacity:.42;text-decoration:line-through;filter:grayscale(.55)}
+.q.processing{border-color:#54758a;background:linear-gradient(180deg,#e9f0f2,#c8d8df)}
+.q.me{z-index:2;border:4px solid #d47a1e!important;background:linear-gradient(180deg,#fff0c2,#e7b95d)!important;box-shadow:0 0 0 3px rgba(212,122,30,.13),0 5px 11px rgba(84,52,13,.14)}
+.q.me:after{content:"あなた";position:absolute;right:3px;top:3px;padding:3px 5px;border-radius:999px;color:#fff8e8;background:#9e5618;font-size:.43rem;line-height:1;font-weight:1000}
+.q.me .qn{color:#673b13;font-size:1.1rem}
+
+/* Rounds — tactile, obviously tappable */
+.rounds{margin-top:14px}
+.rounds>h2{margin:0 2px 8px;color:#443721;font-size:.96rem;font-weight:1000}
+.rcard{margin-bottom:8px;overflow:hidden;border:2px solid rgba(91,63,27,.28);border-radius:16px;background:rgba(255,248,232,.88);box-shadow:0 6px 15px rgba(49,34,14,.08)}
+.rtoggle{width:100%;min-height:66px;display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;gap:8px;padding:11px 12px;border:0;color:var(--ink);text-align:left;background:linear-gradient(180deg,#fff9e9,#ead8b2)}
+.rtoggle>span:first-child{min-width:0}
+.rtoggle strong{display:block;color:var(--navy);font-size:.88rem;line-height:1.2;font-weight:1000}
+.rtoggle small{display:block;margin-top:4px;color:#776951;font-size:.57rem;line-height:1.25;font-weight:850}
+.arrow{display:grid;place-items:center;width:31px;height:38px;border:2px solid #10263b;border-radius:10px;color:#fff4d3;background:linear-gradient(180deg,#294b65,#0b263e);font-size:1.35rem;line-height:1;font-weight:900}
+.rbody{padding:0 10px 11px;background:linear-gradient(180deg,#f0dfba,#fff8e8)}
+.rbody .queue{margin-top:0;padding-top:9px}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ctrl{min-height:49px;border:2px solid rgba(78,53,21,.34);border-radius:13px;color:#4b3c27;background:linear-gradient(180deg,#fff8e7,#ddc698);font-size:.7rem;font-weight:1000;box-shadow:0 5px 0 rgba(62,43,17,.10)}
+.ctrl.primary{border-color:#061723;color:#fff7df;background:linear-gradient(180deg,#314e63,#102b42)}
+.ctrl:disabled{opacity:.58;cursor:default;transform:none}
+.message{margin-top:10px;padding:9px 11px;border-left:4px solid var(--brass);border-radius:10px;color:#6c5d46;background:rgba(255,248,232,.74);font-size:.61rem;line-height:1.45;font-weight:850}
+.message.error{border-left-color:var(--danger);color:#7d3027;background:rgba(255,240,235,.82)}
+.footer{padding:16px 6px 2px;color:#82745d;text-align:center;font-size:.56rem;font-weight:800;letter-spacing:.08em}
+
+@media(max-width:380px){
+  .app{padding-left:9px;padding-right:9px}
+  .top{grid-template-columns:auto minmax(0,1fr) auto;gap:6px}
+  .mini-brand{padding-left:9px;padding-right:9px}.mini-brand small{display:none}
+  .live{padding:0 8px;font-size:.56rem}
+  .form{grid-template-columns:minmax(0,1fr) 96px}
+  .submit{padding:0 9px}
+  .queue{gap:5px}
+  .q{min-height:59px}.qn{font-size:.94rem}
+  .flowstats{gap:5px}.flowstat{padding-left:3px;padding-right:3px}.flowstat small{font-size:.52rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+
+/* V5.1.1 実呼出時刻・安全導線 */
+.call-deadline{position:relative;margin:14px 0 12px;padding:16px;border:2px solid rgba(69,116,82,.34);border-radius:20px;background:radial-gradient(circle at 14% 12%,rgba(255,255,255,.55),transparent 32%),linear-gradient(180deg,#f3edd8,#e7d7b3);box-shadow:0 8px 18px rgba(70,48,17,.08);color:#3e3323}.call-deadline[hidden]{display:none!important}.call-deadline-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.call-deadline-head strong{font-size:1rem;font-weight:1000;color:#2f654b}.call-deadline-badge{padding:5px 9px;border-radius:999px;background:#2f654b;color:white;font-size:.65rem;font-weight:1000;letter-spacing:.06em}.call-times{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.call-timebox{min-height:78px;display:grid;align-content:center;justify-items:center;border:1px solid rgba(103,79,34,.22);border-radius:14px;background:rgba(255,250,235,.72)}.call-timebox small{color:#79643d;font-size:.68rem;font-weight:900}.call-timebox strong{margin-top:5px;color:#3d2f1e;font-size:1.55rem;font-weight:1000;font-variant-numeric:tabular-nums}.call-remaining{margin-top:10px;text-align:center}.call-remaining small{display:block;color:#765f39;font-size:.68rem;font-weight:900}.call-remaining strong{display:block;margin-top:3px;color:#2f654b;font-size:1.55rem;font-weight:1000}.call-gauge{position:relative;height:12px;margin-top:10px;border-radius:999px;overflow:hidden;background:#cdbf9e;box-shadow:inset 0 1px 2px rgba(63,45,15,.12)}.call-gauge>span{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#2f654b,#6f9874);transition:width .5s ease}.call-safe{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(47,101,75,.09);color:#315a45;font-size:.72rem;line-height:1.5;font-weight:900;text-align:center}.call-deadline.warn{border-color:rgba(177,126,42,.5)}.call-deadline.warn .call-deadline-head strong,.call-deadline.warn .call-remaining strong{color:#94691f}.call-deadline.warn .call-deadline-badge{background:#a67729}.call-deadline.warn .call-gauge>span{background:linear-gradient(90deg,#9d7a36,#d0a543)}.call-deadline.danger{border-color:rgba(169,72,51,.48)}.call-deadline.danger .call-deadline-head strong,.call-deadline.danger .call-remaining strong{color:#9a4635}.call-deadline.danger .call-deadline-badge{background:#a94833}.call-deadline.danger .call-gauge>span{background:linear-gradient(90deg,#a36a39,#b94f37)}.call-deadline.unknown .call-deadline-head strong{color:#725d38}.call-deadline.unavailable{border-color:rgba(93,83,65,.28);background:linear-gradient(180deg,#eee8d8,#e3dac6)}.call-deadline.unavailable .call-deadline-head strong,.call-deadline.unavailable .call-remaining strong{color:#5e574a}.call-deadline.unavailable .call-deadline-badge{background:#6b665c}.call-deadline.unavailable .call-gauge>span{background:#aaa18f}.parking-cta{display:flex;align-items:center;justify-content:center;gap:9px;min-height:56px;margin-top:10px;padding:10px 14px;border:2px solid rgba(62,83,92,.32);border-radius:16px;text-decoration:none;color:#f8f3e5!important;background:linear-gradient(180deg,#274c5c,#1b3845);box-shadow:0 5px 0 rgba(28,39,43,.18);font-weight:1000}.parking-cta:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(28,39,43,.18)}.parking-cta small{display:block;font-size:.64rem;font-weight:800;color:#cfdae0}.parking-cta strong{font-size:.95rem}@media(max-width:450px){.call-timebox strong{font-size:1.35rem}}
+
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top" aria-label="画面操作">
+  <button id="backButton" class="back" type="button" aria-label="戻る">←</button>
+  <div class="mini-brand" aria-label="ASOBooN 呼出ナビ"><strong>ASOBooN</strong><small>呼出ナビ</small></div>
+  <div class="live"><span class="dot"></span>自動更新</div>
+</div>
+  <header class="hero">
+  <div class="hero-emblem">
+    <span class="hero-route-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64" role="img"><path fill="currentColor" d="M13 8h8v12h-8V8Zm30 36h8v12h-8V44ZM20 14h13c9 0 16 7 16 16v3h-7v-3c0-5-4-9-9-9H20v-7Zm22 19h7v3c0 9-7 16-16 16H21v-7h12c5 0 9-4 9-9v-3ZM9 15l8-8 8 8-4 4-4-4-4 4-4-4Zm30 34 8-8 8 8-4 4-4-4-4 4-4-4Z"/></svg>
+    </span>
+    <div><small>ENTRY ROUTE</small><h1>呼出状況</h1><div id="storeName">アソブーン</div></div>
+  </div>
+</header>
+  <section id="lookupSection" class="lookup">
+  <div class="lookup-title">受付番号</div>
+  <div class="lookup-guide">予約時のメールに記載された <strong class="lookup-keyword">発券番号</strong>、または現地で発券された <strong class="lookup-keyword">受付番号</strong> を入力してください。</div>
+  <form id="numberForm" class="form">
+    <input id="numberInput" class="num" type="text" inputmode="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="発券・受付番号" aria-label="受付番号">
+    <button id="numberSubmit" class="submit" type="submit">確認する</button>
+  </form>
+  <div id="lookupError" class="error" hidden></div>
+</section>
+
+<section id="lookupSummary" class="lookup-summary" hidden aria-live="polite">
+  <div>
+    <small id="lookupSummaryLabel">確認中の受付番号</small>
+    <strong id="lookupSummaryNumber">--</strong>
+  </div>
+  <button id="summaryChangeButton" type="button">番号を変更</button>
+  <div id="lookupPendingText" class="lookup-pending-text" hidden>受付状況を確認しています…</div>
+</section>
+
+  <section id="personalSection" class="personal waiting" hidden aria-live="polite"><div class="status"><div class="mybox"><label>受付番号</label><div class="myvalue"><strong id="bigNumber">--</strong><span>番</span></div></div><div id="roundChip" class="roundchip">--の回</div><div id="statusTitle" class="title">状況を確認中</div><div id="statusInstruction" class="instruction">最新情報を読み込んでいます。</div></div>
+<div id="waitingGuide" class="waiting-guide" hidden>
+  <div class="waiting-guide-main">待合室でお待ちください。</div>
+  <div class="waiting-guide-sub">ベビーカーは小さく折り畳んで、受付前においてください。</div>
+</div>
+<div id="callingNotice" class="calling-notice" hidden>
+  <strong id="callingNoticeMain">呼出から30分以内に受付へお越しください。</strong>
+  <span id="callingNoticeSub">30分を過ぎると受付はキャンセルになります。</span>
+</div>
+<div id="personalMetrics" class="metrics"><div class="metric primary"><small>あなたの前</small><strong id="aheadCount">--</strong><span>組</span></div><div class="metric"><small>呼出順</small><strong id="queueRank">--</strong><span id="queueTotal">全--組中</span></div></div><div id="forecastBox" class="forecast"><small>入場可能になる目安</small><strong id="forecastMain">--:--ごろ</strong><span id="forecastSub">当日の進行状況により前後します。</span></div>
+<div id="callDeadline" class="call-deadline" hidden>
+  <div class="call-deadline-head"><strong id="callDeadlineTitle">呼出後30分以内に受付へ</strong><span id="callDeadlineBadge" class="call-deadline-badge">入場可能</span></div>
+  <div class="call-times"><div class="call-timebox"><small>呼出時刻</small><strong id="actualCallTime">--:--</strong></div><div class="call-timebox"><small>受付期限</small><strong id="actualDeadlineTime">--:--</strong></div></div>
+  <div class="call-remaining"><small>受付期限まで</small><strong id="actualRemaining">確認中</strong></div>
+  <div class="call-gauge" aria-hidden="true"><span id="callGaugeFill"></span></div>
+  <div id="callSafeText" class="call-safe">慌てず、安全に受付へお越しください。</div>
+  <a id="parkingLink" class="parking-cta" href="./home.html?mode=before&amp;view=parking"><span aria-hidden="true">🅿️</span><span><small>現在地からの来場ルート確認に</small><strong>駐車場・アクセスを見る</strong></span></a>
+</div>
+<div id="entryAction" class="entry-action" hidden>
+  <button id="enteredButton" class="entry-confirm-btn" type="button">
+    <strong id="enteredButtonLabel">何時まであそべる？を設定する</strong>
+    <span id="enteredButtonSub">入場後の利用時間を確認</span>
+  </button>
+</div>
+<div class="foot">現在も「呼出中」の場合、初回呼出から30分後と、この回の最終入場時刻のうち早い方を受付期限として表示します。</div></section>
+  <section id="flowSection" class="flow" hidden><div class="flowhead"><div><small>呼出ルート</small><h2 id="flowTitle">--の回</h2></div><div id="paceBadge" class="pace">進行を計測中</div></div><div class="flowstats"><div class="flowstat"><small>この回の受付</small><strong id="flowTotal">--組</strong></div><div class="flowstat"><small>ここまで進行</small><strong id="flowProgressed">--組</strong></div><div class="flowstat"><small>あと</small><strong id="flowAhead">--組</strong></div></div><div class="timeline">
+  <div class="track">
+    <div id="timelineProgress" class="progress"></div>
+    <div id="progressMarker" class="marker progressmark" style="left:0%"></div>
+    <div id="progressMarkerLabel" class="currentlabel" style="left:0%">いまここ</div>
+    <div id="youMarker" class="marker you" style="left:100%"></div>
+    <div id="youMarkerLabel" class="youlabel" style="left:100%">入場可能の目安</div>
+  </div>
+  <div class="ends">
+    <span id="timelineStart">呼出開始 --:--</span>
+    <span id="timelineEnd">入場可能になる目安 --:--</span>
+  </div>
+</div><div class="flownote"><strong>緑＝いまここ</strong> ／ <strong>オレンジ＝入場可能の目安</strong><br>当日の進行状況により前後します。</div><div class="qhead"><h2>この回の受付順</h2></div><div id="userRoundQueue" class="queue"></div></section>
+  <section class="rounds"><h2>本日の各回</h2><div id="roundList"></div></section>
+  <div class="controls"><button id="changeNumberButton" class="ctrl" type="button">番号を変更</button><button id="refreshButton" class="ctrl primary" type="button">最新に更新</button></div>
+  <div id="message" class="message">情報を読み込んでいます…</div>
+  <footer class="footer">ASOBooN 呼出状況</footer>
+</main>
+<script src="./calltime-config.js?v=569"></script>
+<script>
+(()=>{"use strict";
+const CUSTOMER_BUILD="5.6.9";
+const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",STORE_ID="KR01205179",RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations",WAIT_API="https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo",STORE_KEY="asoboon_callstatus_number_v4";
+const ROUNDS=[
+{id:"special10",label:"10:00の回",start:"10:00",entryDeadline:"12:00",ranges:[[1001,1199],[2001,2199]],system:"土休日特定日"},
+{id:"special1230",label:"12:30の回",start:"12:30",entryDeadline:"14:30",ranges:[[1201,1399],[2201,2399]],system:"土休日特定日"},
+{id:"special15",label:"15:00の回",start:"15:00",ranges:[[1501,1699],[2501,2699]],system:"土休日特定日"},
+{id:"ws10",label:"10:00の回",start:"10:00",entryDeadline:"13:00",ranges:[[1,199],[201,399]],system:"平日特定日"},
+{id:"ws1330",label:"13:30の回",start:"13:30",ranges:[[401,599],[601,799]],system:"平日特定日"},
+{id:"orange",label:"オレンジパス",start:null,ranges:[[901,999]],system:"オレンジパス",noForecast:true},
+{id:"w10",label:"10:00の回",start:"10:00",ranges:[[8001,8199]],system:"平日"},
+{id:"w14",label:"14:00の回",start:"14:00",ranges:[[8401,8599],[9401,9599]],system:"平日"},
+{id:"immediate",label:"すぐ入場受付",start:null,ranges:[[9001,9200]],system:"平日",noForecast:true}
+];
+const $=id=>document.getElementById(id),state={rows:[],store:null,my:null,myRow:null,myRound:null,loading:false,open:new Set(),callTimeCache:new Map(),callTimeLoading:new Set(),callTimeRetry:new Map(),refreshPromise:null,autoRefreshTimer:0,activeDate:"",dataSource:"",prefetchPromise:null,prefetchSharedStale:false,prefetchCheckedAt:0,rowsLoadedAt:0};
+const CALLTIME_CFG=window.ASOBOON_CALLTIME_CONFIG||{};
+let callDeadlineTicker=0;
+let callTimeServerOffsetMs=0;
+const ENTRY_TRANSFER_KEY="asoboon-entry-transfer-v1";
+
+function safeStoreGet(key){try{return localStorage.getItem(key)}catch(e){console.warn("storage get failed",e);return null}}
+function safeStoreSet(key,val){try{localStorage.setItem(key,String(val));return true}catch(e){console.warn("storage set failed",e);return false}}
+function safeStoreRemove(key){try{localStorage.removeItem(key)}catch(e){console.warn("storage remove failed",e)}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function setLookupBusy(on){
+  const b=$("numberSubmit");
+  if(!b)return;
+  b.disabled=!!on;
+  b.textContent=on?"確認しています…":"確認する";
+  b.setAttribute("aria-busy",on?"true":"false");
+}
+
+function setLookupMode(confirmed,token="",pending=false){
+  const lookup=$("lookupSection");
+  const summary=$("lookupSummary");
+  if(!lookup||!summary)return;
+  lookup.hidden=!!confirmed;
+  summary.hidden=!confirmed;
+  if(confirmed){
+    $("lookupSummaryNumber").textContent=ticketToken(token)||"--";
+    $("lookupSummaryLabel").textContent=pending?"受付番号を確認中":"確認中の受付番号";
+    $("lookupPendingText").hidden=!pending;
+  }else{
+    $("lookupPendingText").hidden=true;
+    $("lookupSummaryLabel").textContent="確認中の受付番号";
+  }
+}
+function openNumberEditor(){
+  state.my=state.myRow=state.myRound=null;
+  safeStoreRemove(STORE_KEY);
+  setLookupMode(false);
+  hideCallDeadline();
+  $("numberInput").value="";
+  $("lookupError").hidden=true;
+  $("personalSection").hidden=true;
+  $("flowSection").hidden=true;
+  $("waitingGuide").hidden=true;
+  setLookupMode(false);
+  resolve();
+  setTimeout(()=>{
+    $("numberInput").focus();
+    $("lookupSection").scrollIntoView({behavior:"smooth",block:"start"});
+  },30);
+}
+
+
+// V4.2: 利用時間は「回」ではなく受付番号レンジで判定する。
+function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function localTimeText(d=new Date()){return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+function playtimeDurationForNumber(number){
+  const n=Number(number);
+  if(!Number.isInteger(n))return null;
+
+  // 正本ルール
+  // 1〜799       → 3時間
+  // 1001〜2699   → 2時間30分
+  if(n>=1 && n<=799)return 180;
+  if(n>=1001 && n<=2699)return 150;
+
+  // それ以外は自動判定せず、次画面で手動選択
+  return null;
+}
+function updateEntryAction(row){
+  const action=$("entryAction");
+  if(!action)return;
+  if(!row){action.hidden=true;return}
+  const st=currentCustomerState(row);
+  action.hidden=!(st==="calling"||st==="processing"||st==="done");
+  if(!action.hidden){
+    $("enteredButtonLabel").textContent="何時まであそべる？を設定する";
+    $("enteredButtonSub").textContent="入場後の利用時間を確認";
+  }
+}
+if(CALLTIME_CFG.parkingUrl&&$("parkingLink"))$("parkingLink").href=CALLTIME_CFG.parkingUrl;
+const ok=d=>d?.success===true||d?.resultCode?.code==="0000";const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+function num(v){const d=String(v??"").replace(/\D/g,"").slice(0,4);if(!d)return null;const n=Number(d);return n>=1&&n<=9999?n:null}
+function ticketToken(v){return String(v??"").toUpperCase().replace(/[\s\-ー]/g,"").replace(/[^A-Z0-9]/g,"").slice(0,8)}
+function rawTicket(r){return ticketToken(r?.number??"")}
+function rowNum(r){const m=rawTicket(r).match(/(\d{1,4})$/);return m?Number(m[1]):null}function cmin(c){if(!c)return null;const[h,m]=c.split(":").map(Number);return h*60+m}function nowm(){const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60}function clock(v){const n=((Math.round(v)%1440)+1440)%1440;return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
+function std(rank,total){if(!rank)return 0;const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));if(r<=20)return r/20*5;if(r<=30)return 5+(r-20)/10*5;if(r<=40)return 10+(r-30)/10*5;if(r<=50)return 15+(r-40)/10*5;if(r<=60)return 20+(r-50)/10*5;return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5}
+function roundByNum(n){return ROUNDS.find(x=>x.ranges.some(([a,b])=>n>=a&&n<=b))||null}function roundByName(name){const s=String(name||"");if(/オレンジ/.test(s))return ROUNDS.find(x=>x.id==="orange");if(/すぐ入場/.test(s))return ROUNDS.find(x=>x.id==="immediate");if(/12時半|12時50/.test(s))return ROUNDS.find(x=>x.id==="special1230");if(/13時半|13時45/.test(s))return ROUNDS.find(x=>x.id==="ws1330");if(/15時/.test(s))return ROUNDS.find(x=>x.id==="special15");if(/14時/.test(s))return ROUNDS.find(x=>x.id==="w14");if(/10時/.test(s)){if(/平日特定/.test(s))return ROUNDS.find(x=>x.id==="ws10");if(/WEB平日/.test(s)&&!/特定/.test(s))return ROUNDS.find(x=>x.id==="w10");return ROUNDS.find(x=>x.id==="special10")}return null}function roundOf(r){return roundByNum(rowNum(r))||roundByName(r?.waitTypeName)}
+function groups(){const m=new Map();state.rows.forEach((r,i)=>{const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};if(!m.has(rd.id))m.set(rd.id,{round:rd,rows:[]});m.get(rd.id).rows.push({...r,__i:i})});return [...m.values()].sort((a,b)=>(cmin(a.round.start)??9999)-(cmin(b.round.start)??9999))}
+function hiddenRoundIds(gs){
+  const scheduled=gs
+    .filter(g=>g.round&&g.round.start&&!g.round.noForecast)
+    .sort((a,b)=>cmin(a.round.start)-cmin(b.round.start));
+  const hidden=new Set(),now=nowm();
+  for(let i=0;i<scheduled.length-1;i++){
+    const cutoff=cmin(scheduled[i+1].round.start)-30;
+    if(now>=cutoff)hidden.add(scheduled[i].round.id);
+  }
+  return hidden;
+}
+function visibleGroups(gs){
+  const hidden=hiddenRoundIds(gs);
+  return gs.filter(g=>!hidden.has(g.round.id));
+}
+function roundExpired(roundId){
+  return hiddenRoundIds(groups()).has(roundId);
+}
+const canceled=r=>String(r.status)==="3",calling=r=>String(r.isCalling)==="1";
+function activeCustomerCall(r){
+  // AirWaitの現在状態を最優先。
+  // 初回呼出時刻の30分表示を許可するのは「現在も待ち状態(status=0)かつ呼出中」だけ。
+  // 取消・案内済・対応中・保留などへ状態が進んだ後は、isCallingが残っていてもタイマーを出さない。
+  return !!r && String(r.status)==="0" && calling(r);
+}
+function currentCustomerState(r){
+  const s=String(r?.status??"");
+  if(s==="3")return "cancel";
+  if(s==="2")return "done";
+  if(s==="4")return "processing";
+  if(s==="1")return "hold";
+  if(activeCustomerCall(r))return "calling";
+  if(s==="0")return "waiting";
+  return "unknown";
+}
+function advanced(r){if(canceled(r))return false;const s=String(r.status);return activeCustomerCall(r)||s==="1"||s==="2"||s==="4"}function blocking(r){if(canceled(r))return false;const s=String(r.status);return s==="0"||s==="4"}function pos(rows,user){const eff=rows.filter(r=>!canceled(r)),idx=eff.findIndex(r=>same(r,user));return{eff,rank:idx>=0?idx+1:null,ahead:idx>=0?eff.slice(0,idx).filter(blocking).length:null,progressed:eff.filter(advanced).length,total:eff.length}}function rowIdentity(r){return `${String(r?.waitTypeId??"").trim()}|${String(r?.number??"").trim().toUpperCase()}`}function same(a,b){if(a===b)return true;return !!a&&!!b&&rowIdentity(a)===rowIdentity(b)}
+
+function localDateForCalltime(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+
+function saveTodayNumber(token){
+  return safeStoreSet(STORE_KEY,JSON.stringify({date:localDateForCalltime(),number:ticketToken(token)}));
+}
+function loadTodayNumber(){
+  const raw=safeStoreGet(STORE_KEY);
+  if(!raw)return null;
+  try{
+    const x=JSON.parse(raw);
+    if(x&&x.date===localDateForCalltime()){
+      const token=ticketToken(x.number);
+      return token||null;
+    }
+  }catch(e){
+    // 旧版の保存形式は安全側で破棄。
+  }
+  safeStoreRemove(STORE_KEY);
+  return null;
+}
+function resetCustomerDay(reason="日付変更"){
+  state.activeDate=localDateForCalltime();
+  state.my=state.myRow=state.myRound=null;
+  state.rows=[];
+  state.open.clear();
+  state.callTimeCache.clear();
+  state.callTimeLoading.clear();
+  state.callTimeRetry.clear();
+  safeStoreRemove(STORE_KEY);
+  hideCallDeadline();
+  $("numberInput").value="";
+  $("lookupError").hidden=true;
+  $("personalSection").hidden=true;
+  $("flowSection").hidden=true;
+  $("roundList").innerHTML='<div class="message">本日の受付番号を入力してください。</div>';
+  $("message").classList.remove("error");
+  $("message").textContent=reason==="日付変更"
+    ?"日付が変わりました。本日の受付番号を入力してください。"
+    :"受付番号を入力して「確認する」を押してください。";
+}
+function ensureCustomerDay(){
+  const today=localDateForCalltime();
+  if(!state.activeDate){state.activeDate=today;return true}
+  if(state.activeDate!==today){resetCustomerDay("日付変更");return false}
+  return true
+}
+
+function calltimeConfigured(){return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?|$)/.test(String(CALLTIME_CFG.webAppUrl||""))}
+function jsonpCalltime(params,timeout=6500){return new Promise((resolve,reject)=>{if(!calltimeConfigured())return reject(Error("calltime backend not configured"));const cb=`__asoboon_calltime_${Date.now()}_${Math.random().toString(36).slice(2)}`,u=new URL(String(CALLTIME_CFG.webAppUrl));Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v??"")));u.searchParams.set("callback",cb);u.searchParams.set("_",Date.now());const s=document.createElement("script");let done=false;const finish=(err,val)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){}s.remove();err?reject(err):resolve(val)};window[cb]=v=>finish(null,v);s.src=u.toString();s.onerror=()=>finish(Error("calltime backend failed"));document.head.appendChild(s);const t=setTimeout(()=>finish(Error("calltime backend timeout")),timeout)})}
+
+async function sharedSnapshot(){
+  if(!calltimeConfigured())return null;
+  try{
+    const d=await jsonpCalltime({action:"getSnapshot",date:localDateForCalltime()},1800);
+    if(d?.ok&&d?.found&&Array.isArray(d.rows)){
+      return{rows:d.rows,source:"shared",ageMs:Number(d.ageMs||0)};
+    }
+  }catch(e){
+    console.warn("shared snapshot",e);
+  }
+  return null;
+}
+
+async function prefetchSharedRows(){
+  if(state.rows.length && Date.now()-state.rowsLoadedAt<20000)return true;
+  if(state.prefetchPromise)return state.prefetchPromise;
+
+  state.prefetchPromise=(async()=>{
+    try{
+      const shared=await sharedSnapshot();
+      if(shared&&shared.rows.length&&Number(shared.ageMs||0)<=22000){
+        state.rows=shared.rows;
+        state.dataSource="shared";
+        state.rowsLoadedAt=Date.now();
+        state.prefetchSharedStale=false;
+        $("storeName").textContent="アソブーン";
+        return true;
+      }
+
+      // stale / empty / unavailable のどれでも、直後の明示操作では
+      // 同じGASをもう一度待たずAirWait直確認へ進む。
+      state.prefetchSharedStale=true;
+      state.prefetchCheckedAt=Date.now();
+      return false;
+    }catch(e){
+      console.warn("prefetch shared rows",e);
+      return false;
+    }finally{
+      state.prefetchPromise=null;
+    }
+  })();
+
+  return state.prefetchPromise;
+}
+
+function clockFromEpoch(ms){const d=new Date(ms);return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+function correctedNow(){return Date.now()+Number(callTimeServerOffsetMs||0)}
+function trustedCall(callData){
+  const reliability=String(callData?.reliability||"");
+  const source=String(callData?.source||"");
+  return ["high","confirmed_manual"].includes(reliability)
+    || source==="manual_reference"
+    || source==="monitor_transition";
+}
+function callWindowMs(){return Math.max(1,Number(CALLTIME_CFG.callWindowMinutes||30))*60*1000}
+
+function roundEntryDeadlineClock(round=state.myRound){
+  return String(round?.entryDeadline||"").trim();
+}
+function jstEpochForDateClock(dateText,clockText){
+  const dm=String(dateText||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const tm=String(clockText||"").match(/^(\d{1,2}):(\d{2})$/);
+  if(!dm||!tm)return null;
+  const y=Number(dm[1]),mo=Number(dm[2]),d=Number(dm[3]),h=Number(tm[1]),mi=Number(tm[2]);
+  if(!Number.isFinite(y+mo+d+h+mi))return null;
+  // Asia/Tokyo = UTC+09:00
+  return Date.UTC(y,mo-1,d,h-9,mi,0,0);
+}
+function roundEntryDeadlineEpoch(callData,row=state.myRow){
+  const rd=roundOf(row)||state.myRound;
+  const cutoff=roundEntryDeadlineClock(rd);
+  if(!cutoff)return null;
+  const dateText=String(
+    callData?.date||
+    callData?.callDateTime||
+    localDateForCalltime()
+  ).slice(0,10);
+  return jstEpochForDateClock(dateText,cutoff);
+}
+function effectiveEntryDeadline(callData,row=state.myRow){
+  const epoch=Number(callData?.callEpochMs);
+  if(!Number.isFinite(epoch))return null;
+  const byCall=epoch+callWindowMs();
+  const byRound=roundEntryDeadlineEpoch(callData,row);
+  const hasRound=Number.isFinite(byRound);
+  const deadline=hasRound?Math.min(byCall,byRound):byCall;
+  return{
+    deadline,
+    byCall,
+    byRound:hasRound?byRound:null,
+    roundWins:hasRound&&byRound<byCall,
+    cutoff:roundEntryDeadlineClock(roundOf(row)||state.myRound)
+  };
+}
+function updateCallingNotice(row=state.myRow){
+  const main=$("callingNoticeMain"),sub=$("callingNoticeSub");
+  if(!main||!sub)return;
+  const rd=roundOf(row)||state.myRound;
+  const cutoff=roundEntryDeadlineClock(rd);
+  main.textContent="呼出から30分以内に受付へお越しください。";
+  sub.textContent=cutoff
+    ?`${rd?.label||"この回"}は${cutoff}までに入場が必要です。早い方が受付期限です。呼出後30分を過ぎると自動キャンセルになります。`
+    :"呼出後30分を過ぎると自動キャンセルになります。";
+}
+
+function stopCallDeadlineTicker(){if(callDeadlineTicker){clearInterval(callDeadlineTicker);callDeadlineTicker=0}}
+function resetCallingHeadline(){if(!state.myRow||!calling(state.myRow))return;$('statusTitle').textContent="入場可能";$('statusInstruction').textContent="スタッフに番号をお伝えください。";$('forecastMain').textContent="いま入場可能";$('forecastSub').textContent="受付でスタッフに受付番号をお伝えください。";updateEntryAction(state.myRow)}
+function applyCallDeadline(callData){
+  const box=$('callDeadline');if(!box)return;
+  const epoch=Number(callData?.callEpochMs);
+  if(!Number.isFinite(epoch)||!trustedCall(callData)){showUnavailableCallDeadline();return}
+
+  const rule=effectiveEntryDeadline(callData,state.myRow);
+  if(!rule){showUnavailableCallDeadline();return}
+
+  const deadline=rule.deadline;
+  const effectiveWindowMs=Math.max(1,deadline-epoch);
+
+  const update=()=>{
+    const remain=deadline-correctedNow();
+    const ratio=Math.max(0,Math.min(1,remain/effectiveWindowMs));
+
+    $('actualCallTime').textContent=callData.callTime||clockFromEpoch(epoch);
+    $('actualDeadlineTime').textContent=clockFromEpoch(deadline);
+    $('callGaugeFill').style.width=`${Math.round(ratio*100)}%`;
+    box.className="call-deadline";
+
+    if(remain<=0){
+      box.classList.add("danger");
+      $('actualRemaining').textContent="受付期限を経過";
+      $('callDeadlineTitle').textContent="受付期限を過ぎています";
+      $('callDeadlineBadge').textContent="要確認";
+      $('callSafeText').textContent=rule.roundWins&&rule.cutoff
+        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。`
+        :"受付状況について、スタッフに受付番号をお伝えください。";
+      $('statusTitle').textContent="受付期限を過ぎています";
+      $('statusInstruction').textContent="スタッフに受付状況をご確認ください。";
+      $('forecastMain').textContent="";
+      $('forecastSub').textContent="";
+      $('entryAction').hidden=true;
+    }else{
+      resetCallingHeadline();
+      const mins=Math.max(1,Math.ceil(remain/60000));
+      $('actualRemaining').textContent=`あと${mins}分`;
+      $('callDeadlineTitle').textContent=rule.roundWins&&rule.cutoff
+        ?`受付期限は${rule.cutoff}まで`
+        :"呼出から30分以内に受付へ";
+      $('callDeadlineBadge').textContent="入場可能";
+      $('callSafeText').textContent=rule.roundWins&&rule.cutoff
+        ?`${state.myRound?.label||"この回"}は${rule.cutoff}までに入場が必要です。呼出後30分を過ぎると自動キャンセルになります。`
+        :"呼出後30分を過ぎると自動キャンセルになります。";
+
+      if(remain<=5*60*1000)box.classList.add("danger");
+      else if(remain<=10*60*1000)box.classList.add("warn");
+    }
+  };
+
+  box.hidden=false;
+  update();
+  stopCallDeadlineTicker();
+  callDeadlineTicker=setInterval(update,10000);
+}
+function showUnknownCallDeadline(){
+  hideCallDeadline();
+}
+function showUnavailableCallDeadline(){
+  hideCallDeadline();
+}
+function hideCallDeadline(){const box=$('callDeadline');if(box)box.hidden=true;stopCallDeadlineTicker()}
+function scheduleCalltimeRetry(row){
+  const key=rowIdentity(row),n=Number(state.callTimeRetry.get(key)||0),max=Number(CALLTIME_CFG.lookupRetryCount||12);
+  if(n>=max){if(state.myRow&&activeCustomerCall(state.myRow)&&rowIdentity(state.myRow)===key)showUnavailableCallDeadline();return}
+  state.callTimeRetry.set(key,n+1);
+  setTimeout(()=>{
+    if(state.myRow&&activeCustomerCall(state.myRow)&&rowIdentity(state.myRow)===key&&!state.callTimeCache.has(key))renderCallDeadline(state.myRow)
+  },Number(CALLTIME_CFG.lookupRetryMs||5000))
+}
+async function renderCallDeadline(row){
+  // 1) AirWaitの「現在の状態」を確認済みであることが前提。
+  // 2) 現在も呼出中の時だけGASから「最初の呼出時刻」を取得して30分を計算する。
+  // 取消・案内済・対応中・保留ならGAS照会自体を行わない。
+  if(!activeCustomerCall(row)){hideCallDeadline();return}
+  const key=rowIdentity(row),cached=state.callTimeCache.get(key);
+  if(cached){applyCallDeadline(cached);return}
+  const retries=Number(state.callTimeRetry.get(key)||0),max=Number(CALLTIME_CFG.lookupRetryCount||12);
+  if(retries>=max){showUnavailableCallDeadline();return}
+  showUnknownCallDeadline();
+  if(state.callTimeLoading.has(key)){scheduleCalltimeRetry(row);return}
+  state.callTimeLoading.add(key);
+  try{
+    const d=await jsonpCalltime({action:"getCall",date:localDateForCalltime(),recordKey:key,number:rawTicket(row)||""});
+    if(Number.isFinite(Number(d?.serverNowEpochMs)))callTimeServerOffsetMs=Number(d.serverNowEpochMs)-Date.now();
+    if(d?.ok&&d?.found&&d.call&&trustedCall(d.call)){
+      state.callTimeCache.set(key,d.call);
+      state.callTimeRetry.delete(key);
+      if(state.myRow&&rowIdentity(state.myRow)===key&&activeCustomerCall(state.myRow))applyCallDeadline(d.call)
+    }else scheduleCalltimeRetry(row)
+  }catch(e){
+    console.warn("calltime",e);scheduleCalltimeRetry(row)
+  }finally{state.callTimeLoading.delete(key)}
+}
+function estimate(rd,p,r){if(rd.noForecast||!rd.start||!p.rank||activeCustomerCall(r)||String(r.status)!=="0")return null;const start=cmin(rd.start),now=nowm(),u=std(p.rank,p.total),base=start+u;if(now<start)return{clock:clock(base),minutes:Math.max(0,Math.round(base-now)),mode:"pre"};if(p.progressed>0&&p.progressed<p.rank){const rem=Math.max(0,u-std(p.progressed,p.total));return{clock:clock(now+rem),minutes:Math.max(1,Math.round(rem)),mode:"live"}}if(p.progressed>=p.rank)return null;const pred=Math.max(base,now+1);return{clock:clock(pred),minutes:Math.max(1,Math.round(pred-now)),mode:"std"}}
+function pace(rd,p){if(!rd.start||rd.noForecast)return["進行状況",""];const n=nowm(),s=cmin(rd.start);if(n<s)return["呼出開始前",""];if(!p.total)return["受付なし",""];return[`ここまで ${Math.min(p.progressed,p.total)}組進行`,""]}
+function rs(r){
+  const st=currentCustomerState(r);
+  if(st==="cancel")return["cancel","取消"];
+  if(st==="done")return["done","案内済"];
+  if(st==="processing")return["processing","対応中"];
+  if(st==="hold")return["hold","保留"];
+  if(st==="calling")return["calling","呼出中"];
+  if(st==="waiting")return["waiting","待ち"];
+  return["waiting","受付"]
+}function qhtml(r,i,me){const[k,l]=rs(r),n=rawTicket(r)||"--",mine=me&&same(r,me);return `<div class="q ${k}${mine?" me":""}"><span class="ord">${i+1}</span><strong class="qn">${esc(n)}</strong><span class="qs">${esc(l)}</span></div>`}
+async function waitInfo(){const u=new URL(WAIT_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`混雑状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"混雑状況取得失敗");return d?.innerDto?.stores?.[0]||null}
+async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});if(!r.ok)throw Error(`受付状況API HTTP ${r.status}`);const d=await r.json();if(!ok(d))throw Error(d?.resultCode?.defaultMessage||"受付状況取得失敗");return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
+async function allRows(){const f=await page(1),a=[...f.rows];let s=101;while(a.length<f.count&&s<=3000){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
+function findMineResult(input){
+  const token=ticketToken(input);
+  if(!token)return{kind:"notfound",row:null,candidates:[]};
+
+  // 英字を含む番号は完全一致だけ。
+  if(/[A-Z]/.test(token)){
+    const exact=state.rows.filter(r=>rawTicket(r)===token);
+    if(exact.length===1)return{kind:"row",row:exact[0],candidates:exact};
+    if(exact.length>1)return{kind:"ambiguous",row:null,candidates:exact};
+    return{kind:"notfound",row:null,candidates:[]};
+  }
+
+  // 数字だけの入力は安全側。
+  // plain 616 / F616 / T616 のすべてを候補に含め、
+  // 候補が1件だけの時しか採用しない。
+  if(/^\d{1,4}$/.test(token)){
+    const n=Number(token);
+    const candidates=state.rows.filter(r=>rowNum(r)===n);
+    if(candidates.length===1)return{kind:"row",row:candidates[0],candidates};
+    if(candidates.length>1)return{kind:"ambiguous",row:null,candidates};
+  }
+
+  return{kind:"notfound",row:null,candidates:[]};
+}
+function renderMine(){if(!state.myRow||!state.myRound){$("personalSection").hidden=$("flowSection").hidden=true;hideCallDeadline();return}const g=groups().find(x=>x.round.id===state.myRound.id);if(!g)return;const p=pos(g.rows,state.myRow),e=estimate(state.myRound,p,state.myRow),start=cmin(state.myRound.start),now=nowm(),s=String(state.myRow.status);$("personalSection").hidden=$("flowSection").hidden=false;$("bigNumber").textContent=rawTicket(state.myRow)||"--";$("roundChip").textContent=state.myRound.label;$("aheadCount").textContent=Number.isFinite(p.ahead)?p.ahead:"—";$("queueRank").textContent=p.rank||"—";$("queueTotal").textContent=`全${p.total}組中`;
+let mode="waiting",title="順番をお待ちください",ins=Number.isFinite(p.ahead)?`現在、あなたの前に${p.ahead}組お待ちです。`:"現在、順番をお待ちいただいています。";
+const currentState=currentCustomerState(state.myRow);
+const terminalCancel=currentState==="cancel";
+const admissionNow=currentState==="calling";
+const admissionFinished=currentState==="processing"||currentState==="done";
+
+// 待ち情報は「まだ待っている人」にだけ見せる。
+// 呼出中・受付中・ご案内済み・取消になった後は、
+// 「あなたの前」「呼出順」「入場可能になる目安」「呼出ルート」をすべて隠す。
+const hideWaitingInfo=terminalCancel||admissionNow||admissionFinished;
+$("personalMetrics").hidden=hideWaitingInfo;
+$("forecastBox").hidden=hideWaitingInfo;
+$("flowSection").hidden=hideWaitingInfo;
+$("callingNotice").hidden=!admissionNow;
+if(admissionNow)updateCallingNotice(state.myRow);
+
+if(terminalCancel){
+  hideCallDeadline();
+  $("entryAction").hidden=true;
+}
+if(currentState==="cancel"){mode="cancel";title="受付はキャンセルされています";ins="受付が再開された場合は自動で表示が切り替わります。"}
+else if(currentState==="done"){mode="waiting";title="ご案内済みです";ins="「何時まであそべる？」から利用時間を設定できます。"}
+else if(currentState==="processing"){mode="waiting";title="受付中です";ins="スタッフの案内に従ってください。"}
+else if(currentState==="hold"){mode="hold";title="受付番号を保留中です";ins="スタッフにご確認ください。"}
+else if(currentState==="calling"){mode="calling";title="入場可能";ins="受付へお越しください。"}
+else if(start!=null&&now<start){mode="prestart";title="呼出開始前です";ins=`呼出開始は${state.myRound.start}です。開始までお待ちください。`}
+else if(currentState==="waiting"&&e&&Number.isFinite(e.minutes)&&(e.minutes<=5||(Number.isFinite(p.ahead)&&p.ahead<=10))){mode="soon";title="順番が近づいています";ins="待合室でお待ちください。"}$("personalSection").className=`personal ${mode}`;$("statusTitle").textContent=title;$("statusInstruction").textContent=ins;$("waitingGuide").hidden=currentState!=="waiting";updateEntryAction(state.myRow);renderCallDeadline(state.myRow);
+if(["waiting","hold"].includes(currentState)){
+  if(e?.clock){
+    $("forecastMain").textContent=`${e.clock}ごろ`;
+    $("forecastSub").textContent=e.mode==="live"
+      ?"現在の進行から計算した目安です。"
+      :"呼出開始後、進行に合わせて更新します。";
+  }else{
+    $("forecastMain").textContent=state.myRound.noForecast
+      ?"時間予測の対象外"
+      :"目安を計算中";
+    $("forecastSub").textContent="実際の呼出状況を確認しています。";
+  }
+}else if(currentState==="calling"){
+  $("forecastMain").textContent="いま入場可能";
+  $("forecastSub").textContent="";
+}else{
+  $("forecastMain").textContent="";
+  $("forecastSub").textContent="";
+}if(!["cancel","calling","processing","done"].includes(currentState))renderFlow(g,p,e);renderRounds(visibleGroups(groups()))}
+function renderFlow(g,p,e){
+  const rd=g.round;
+  $("flowTitle").textContent=rd.label;
+  $("flowTotal").textContent=`${p.total}組`;
+  $("flowProgressed").textContent=`${p.progressed}組目`;
+  $("flowAhead").textContent=Number.isFinite(p.ahead)?`${p.ahead}組`:"—";
+
+  const[pl,pc]=pace(rd,p);
+  $("paceBadge").textContent=pl;
+  $("paceBadge").className=`pace ${pc}`;
+
+  // このグラフは「回全体」ではなく、
+  // 左端＝先頭から入場開始、右端＝このお客様の番号呼び出し。
+  // その区間の中で現在どこまで進んだかだけを表示する。
+  const progressToMe=p.rank
+    ?Math.min(100,Math.max(0,(p.progressed/p.rank)*100))
+    :0;
+
+  $("timelineProgress").style.width=`${progressToMe}%`;
+  $("progressMarker").style.left=`${progressToMe}%`;
+  $("progressMarkerLabel").style.left=`${progressToMe}%`;
+  $("youMarker").style.left="100%";
+  $("youMarkerLabel").style.left="100%";
+
+  const myNumber=rowNum(state.myRow)??state.myRow?.number??"あなた";
+  $("timelineStart").textContent=rd.start
+    ?`呼出開始 ${rd.start}`
+    :"呼出開始";
+
+  if(activeCustomerCall(state.myRow)){
+    $("timelineEnd").textContent=`${myNumber}番 入場可能`;
+  }else if(e?.clock){
+    $("timelineEnd").textContent=`入場可能になる目安 ${e.clock}ごろ`;
+  }else{
+    $("timelineEnd").textContent=`入場可能になる目安`;
+  }
+
+  $("userRoundQueue").innerHTML=g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("");
+}
+function renderRounds(gs){
+  const root=$("roundList");
+  root.innerHTML="";
+
+  gs.forEach(g=>{
+    const eff=g.rows.filter(r=>!canceled(r));
+    const prog=eff.filter(advanced).length;
+    const open=state.open.has(g.round.id);
+    const card=document.createElement("article");
+    const btn=document.createElement("button");
+    const body=document.createElement("div");
+
+    card.className="rcard";
+    btn.className="rtoggle";
+    btn.type="button";
+    btn.innerHTML=`<span><strong>${esc(g.round.label)}</strong><small>${prog}組進行 / 全${eff.length}組</small></span><span class="arrow">›</span>`;
+
+    body.className="rbody";
+    body.hidden=!open;
+
+    const fillBody=()=>{
+      if(body.dataset.ready==="1")return;
+      body.innerHTML=`<div class="queue">${g.rows.map((r,i)=>qhtml(r,i,state.myRow)).join("")}</div>`;
+      body.dataset.ready="1";
+    };
+
+    if(open)fillBody();
+
+    btn.addEventListener("click",()=>{
+      body.hidden=!body.hidden;
+
+      if(!body.hidden){
+        state.open.add(g.round.id);
+        fillBody();
+      }else{
+        state.open.delete(g.round.id);
+      }
+    });
+
+    card.append(btn,body);
+    root.append(card);
+  });
+
+  if(!gs.length){
+    root.innerHTML='<div class="message">本日の受付データはまだありません。</div>';
+  }
+}
+
+function resolve(){
+  if(!state.my){
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    $("lookupError").hidden=true;
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const hit=findMineResult(state.my);
+
+  if(hit.kind==="ambiguous"){
+    setLookupMode(false);
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    hideCallDeadline();
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="同じ数字の受付が複数見つかったため、安全のため状態を表示していません。受付票・予約メールに英字（F / T など）が付いている場合は、その英字を含めた番号を入力してください。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  if(hit.kind!=="row"||!hit.row){
+    setLookupMode(false);
+    state.myRow=state.myRound=null;
+    updateEntryAction(null);
+    hideCallDeadline();
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="この受付番号を本日の受付から確認できませんでした。番号をご確認ください。";
+    $("personalSection").hidden=$("flowSection").hidden=true;
+    renderRounds(visibleGroups(groups()));
+    return;
+  }
+
+  const r=hit.row;
+  setLookupMode(true,rawTicket(r)||state.my,false);
+  const rd=roundOf(r)||{id:"other",label:"その他の受付",start:null,system:"その他",noForecast:true};
+
+  state.myRow=r;
+  state.myRound=rd;
+  $("lookupError").hidden=true;
+  renderMine();
+}
+
+async function refresh(show=true,allowDirect=true,maxSharedAgeMs=22000,fastDirect=false){
+  if(!ensureCustomerDay())return false;
+  if(state.refreshPromise)return state.refreshPromise;
+  state.loading=true;
+  $("refreshButton").disabled=true;
+  if(show)$("message").textContent="情報を更新しています…";
+
+  state.refreshPromise=(async()=>{
+    try{
+      // 通常はスタッフ監視画面がGASへ共有したスナップショットを読む。
+      // 300人が同時アクセスしても各端末がAirWait一覧APIを直接たたかない構成。
+      const skipShared =
+        fastDirect &&
+        state.prefetchSharedStale &&
+        Date.now()-Number(state.prefetchCheckedAt||0)<5000;
+
+      let shared=skipShared ? null : await sharedSnapshot();
+      let rows=null;
+
+      if(shared&&shared.rows.length&&Number(shared.ageMs||0)<=maxSharedAgeMs){
+        rows=shared.rows;
+        state.dataSource="shared";
+        state.prefetchSharedStale=false;
+      }else if(allowDirect){
+        // 初回確認・手動更新だけ、共有データが無い場合にAirWaitへ直接フォールバック。
+        await sleep(fastDirect ? 40+Math.floor(Math.random()*80) : 250+Math.floor(Math.random()*500));
+        rows=await allRows();
+        state.dataSource="direct";
+      }
+
+      // allowDirect=false の更新では共有スナップショットだけを参照する。
+      // 待機中の多数端末がAirWaitへ一斉アクセスしないための保護。
+      if(!rows)return false;
+
+      state.rows=rows;
+      state.rowsLoadedAt=Date.now();
+      $("storeName").textContent="アソブーン";
+      resolve();
+      const d=new Date();
+      $("message").classList.remove("error");
+      $("message").textContent=
+        state.dataSource==="shared"
+          ?`自動更新中・最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`
+          :`自動更新中・最終更新 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}（直接確認）`;
+      return true;
+    }catch(e){
+      console.error(e);
+      $("message").classList.add("error");
+      $("message").textContent="情報を取得できませんでした。通信状況を確認して、もう一度「最新に更新」を押してください。";
+      return false;
+    }finally{
+      state.loading=false;
+      state.refreshPromise=null;
+      $("refreshButton").disabled=false;
+    }
+  })();
+
+  return state.refreshPromise;
+}
+
+async function lookupNumber(){
+  ensureCustomerDay();
+  const token=ticketToken($("numberInput").value);
+  if(!token){
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="受付番号を入力してください。";
+    return;
+  }
+
+  $("numberInput").value=token;
+  setLookupMode(true,token,true);
+  setLookupBusy(true);
+  $("lookupError").hidden=true;
+  $("message").classList.remove("error");
+  $("message").textContent="受付状況を確認しています…";
+
+  try{
+    state.my=token;
+    saveTodayNumber(token);
+
+    // ページを開いた時点で共有スナップショットを先読みしているため、
+    // 通常はここで待たずに即判定できる。
+    if(!state.rows.length){
+      const prefetched=await prefetchSharedRows();
+      if(!prefetched && !state.rows.length){
+        await refresh(false,true,22000,true);
+      }
+    }
+
+    let hit=findMineResult(token);
+
+    // 本当に見つからない時だけ1回再取得。
+    // 複数候補は「曖昧」として止め、勝手に別受付を選ばない。
+    if(hit.kind==="notfound"&&Date.now()-state.rowsLoadedAt>12000){
+      await refresh(false,true,22000,true);
+      hit=findMineResult(token);
+    }
+
+    resolve();
+
+    if(hit.kind==="row"){
+      $("personalSection").scrollIntoView({behavior:"smooth",block:"start"});
+
+      // 先読みデータが少し古い場合だけ、表示を止めず裏で最新化。
+      if(Date.now()-state.rowsLoadedAt>12000){
+        refresh(false).catch(()=>{});
+      }
+    }
+  }catch(e){
+    console.error("lookup failed",e);
+    setLookupMode(false);
+    $("lookupError").hidden=false;
+    $("lookupError").textContent="受付状況を確認できませんでした。「最新に更新」を押してもう一度お試しください。";
+  }finally{
+    setLookupBusy(false);
+  }
+}
+
+function scheduleAutoRefresh(){
+  clearTimeout(state.autoRefreshTimer);
+  const delay=15000;
+
+  state.autoRefreshTimer=setTimeout(async()=>{
+    if(!ensureCustomerDay()){scheduleAutoRefresh();return}
+
+    const st=currentCustomerState(state.myRow);
+    const activeState =
+      st==="waiting"||
+      st==="hold"||
+      st==="calling"||
+      st==="processing"||
+      st==="cancel"||
+      !state.myRow;
+
+    if(document.visibilityState==="visible" && state.my && activeState){
+      // 待機中は共有スナップショットのみ：大人数でもAirWaitを保護。
+      // 呼出後・受付中・取消中は、共有が古い時だけ直接確認して追従性を優先。
+      const allowDirect = st==="calling"||st==="processing"||st==="cancel";
+      await refresh(false,allowDirect,22000,false);
+    }
+
+    // done は最終状態として更新停止。cancel は復活運用があるため継続。
+    scheduleAutoRefresh();
+  },delay);
+}
+
+$("enteredButton").addEventListener("click",()=>{
+  const url=new URL("./home.html",location.href);
+  url.searchParams.set("mode","inside");
+  url.searchParams.set("view","playtime");
+  location.href=url.toString();
+});
+
+$("numberInput").addEventListener("input",e=>{
+  const token=ticketToken(e.target.value);
+  if(e.target.value!==token)e.target.value=token;
+});
+$("numberForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  await lookupNumber();
+});
+$("changeNumberButton").addEventListener("click",openNumberEditor);
+$("summaryChangeButton").addEventListener("click",openNumberEditor);
+$("refreshButton").addEventListener("click",()=>refresh(true,true,22000,true));
+$("backButton").addEventListener("click",()=>history.length>1?history.back():location.href="./home.html?mode=before");
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible"||!state.my)return;
+  const st=currentCustomerState(state.myRow);
+  if(st!=="done"){
+    refresh(false,true,22000);
+  }
+});
+window.addEventListener("focus",()=>{
+  if(!state.my)return;
+  const st=currentCustomerState(state.myRow);
+  if(st!=="done"){
+    refresh(false,true,22000);
+  }
+});
+
+state.activeDate=localDateForCalltime();
+
+// 入力前から最新状況を先読み。
+// ユーザーが番号を入力している間にGAS共有スナップショットを準備する。
+prefetchSharedRows();
+
+const saved=loadTodayNumber();
+if(saved){
+  state.my=saved;
+  $("numberInput").value=saved;
+  $("message").textContent="前回の受付番号を確認しています…";
+  requestAnimationFrame(()=>lookupNumber());
+}else{
+  $("message").textContent="受付番号を入力して「確認する」を押してください。";
+}
+scheduleAutoRefresh();
+})();
+</script>
+
+<style>#callDeadline .parking-cta{display:none!important}</style>
+</body></html>
