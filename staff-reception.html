@@ -36,7 +36,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
       const record=JSON.parse(raw);
       const number=String(record?.receiptNo||'').trim();
       if(!number)return;
-      localStorage.setItem(CALLSTATUS_KEY,JSON.stringify({date:localDateKey(),number}));
+      const next=JSON.stringify({date:localDateKey(),number});
+      if(localStorage.getItem(CALLSTATUS_KEY)!==next){
+        localStorage.setItem(CALLSTATUS_KEY,next);
+      }
     }catch(error){}
   }
 
@@ -54,9 +57,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
     const total=adults+children;
     const chargeableChildren=older+(older===0&&infants>0?1:0);
     const price=adults*600+chargeableChildren*900;
+    const priceText=yen(price);
 
     const priceOut=doc.getElementById('totalPrice');
-    if(priceOut)priceOut.textContent=yen(price);
+    if(priceOut&&priceOut.textContent!==priceText)priceOut.textContent=priceText;
 
     ['summary','modalSummary'].forEach(id=>{
       const root=doc.getElementById(id);
@@ -65,7 +69,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
         const label=line.querySelector('span')?.textContent||'';
         if(label.includes('料金の目安')){
           const strong=line.querySelector('strong');
-          if(strong)strong.textContent=yen(price);
+          if(strong&&strong.textContent!==priceText)strong.textContent=priceText;
         }
       });
     });
@@ -83,7 +87,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
 
     const infantRow=[...doc.querySelectorAll('.person')].find(row=>row.querySelector('strong')?.textContent.includes('0〜5ヶ月'));
     const infantSmall=infantRow?.querySelector('small');
-    if(infantSmall)infantSmall.textContent='追加のお子さまの場合のみ追加料金なし / 人数には含まれます';
+    const infantText='追加のお子さまの場合のみ追加料金なし / 人数には含まれます';
+    if(infantSmall&&infantSmall.textContent!==infantText)infantSmall.textContent=infantText;
 
     const childPlus=doc.querySelector('[data-act="childPlus"]');
     const infantPlus=doc.querySelector('[data-act="infantPlus"]');
@@ -104,7 +109,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
 
     const airwaitTicket=doc.getElementById('airwaitShortUrl');
     if(airwaitTicket){
-      airwaitTicket.hidden=true;
+      if(!airwaitTicket.hidden)airwaitTicket.hidden=true;
       airwaitTicket.style.setProperty('display','none','important');
       airwaitTicket.setAttribute('aria-hidden','true');
       airwaitTicket.removeAttribute('target');
@@ -114,8 +119,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
   function patchChild(){
     try{
       const doc=frame.contentDocument;
-      if(!doc||!doc.body)return;
-      if(syncing)return;
+      if(!doc||!doc.body||syncing)return;
       syncing=true;
       patchLinks(doc);
       patchPriceAndRules(doc);
