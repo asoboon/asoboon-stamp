@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0f2b46">
+<title>ASOBooN｜本日の受付</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
+#receptionFrame{display:block;width:100%;height:100%;border:0;background:#efe1bd}
+</style>
+</head>
+<body>
+<iframe id="receptionFrame" title="ASOBooN 本日の受付" allow="geolocation"></iframe>
+<script>
+(()=>{
+  'use strict';
+
+  const frame=document.getElementById('receptionFrame');
+  const receptionUrl=new URL('./yoyaku-test.html?from=miniapp-secret',location.href);
+  const CURRENT_KEY='asoboon_current_reservation_v2';
+  const CALLSTATUS_KEY='asoboon_callstatus_number_v4';
+  const CALLSTATUS_URL='./callstatus.html?v=569';
+  let observer=null;
+  let syncing=false;
+
+  function localDateKey(date=new Date()){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }
+
+  function syncCallStatusNumber(){
+    try{
+      const raw=localStorage.getItem(CURRENT_KEY);
+      if(!raw)return;
+      const record=JSON.parse(raw);
+      const number=String(record?.receiptNo||'').trim();
+      if(!number)return;
+      localStorage.setItem(CALLSTATUS_KEY,JSON.stringify({date:localDateKey(),number}));
+    }catch(error){}
+  }
+
+  function yen(value){
+    return `${Number(value||0).toLocaleString('ja-JP')}円`;
+  }
+
+  function patchPriceAndRules(doc){
+    const adults=Number(doc.getElementById('adultOut')?.textContent||0);
+    const older=Number(doc.getElementById('childOut')?.textContent||0);
+    const infants=Number(doc.getElementById('infantOut')?.textContent||0);
+    if(!Number.isFinite(adults)||!Number.isFinite(older)||!Number.isFinite(infants))return;
+
+    const children=older+infants;
+    const total=adults+children;
+    const chargeableChildren=older+(older===0&&infants>0?1:0);
+    const price=adults*600+chargeableChildren*900;
+
+    const priceOut=doc.getElementById('totalPrice');
+    if(priceOut)priceOut.textContent=yen(price);
+
+    ['summary','modalSummary'].forEach(id=>{
+      const root=doc.getElementById(id);
+      if(!root)return;
+      root.querySelectorAll('.line').forEach(line=>{
+        const label=line.querySelector('span')?.textContent||'';
+        if(label.includes('料金の目安')){
+          const strong=line.querySelector('strong');
+          if(strong)strong.textContent=yen(price);
+        }
+      });
+    });
+
+    const peopleCard=doc.getElementById('peopleCard');
+    if(peopleCard&&!doc.getElementById('asoboonRuleNote')){
+      const priceBox=peopleCard.querySelector('.price');
+      const note=doc.createElement('div');
+      note.id='asoboonRuleNote';
+      note.className='msg info';
+      note.innerHTML='👨‍👩‍👧 <strong>おとな1名につき、お子さま3名まで</strong><br>1回の受付は合計10名までです。0〜5ヶ月のお子さまは、追加のお子さまとして入る場合のみ追加料金がかかりません。';
+      if(priceBox)peopleCard.insertBefore(note,priceBox);
+      else peopleCard.appendChild(note);
+    }
+
+    const infantRow=[...doc.querySelectorAll('.person')].find(row=>row.querySelector('strong')?.textContent.includes('0〜5ヶ月'));
+    const infantSmall=infantRow?.querySelector('small');
+    if(infantSmall)infantSmall.textContent='追加のお子さまの場合のみ追加料金なし / 人数には含まれます';
+
+    const childPlus=doc.querySelector('[data-act="childPlus"]');
+    const infantPlus=doc.querySelector('[data-act="infantPlus"]');
+    const adultPlus=doc.querySelector('[data-act="adultPlus"]');
+    const adultMinus=doc.querySelector('[data-act="adultMinus"]');
+    const canAddChild=total<10&&children<adults*3;
+    if(childPlus)childPlus.disabled=!canAddChild;
+    if(infantPlus)infantPlus.disabled=!canAddChild;
+    if(adultPlus)adultPlus.disabled=total>=10;
+    if(adultMinus)adultMinus.disabled=adults<=1||children>(adults-1)*3;
+  }
+
+  function patchLinks(doc){
+    doc.querySelectorAll('a[href="yobidashi.html"],a[href="./yobidashi.html"]').forEach(link=>{
+      link.setAttribute('href',CALLSTATUS_URL);
+      link.removeAttribute('target');
+    });
+
+    const airwaitTicket=doc.getElementById('airwaitShortUrl');
+    if(airwaitTicket){
+      airwaitTicket.hidden=true;
+      airwaitTicket.style.setProperty('display','none','important');
+      airwaitTicket.setAttribute('aria-hidden','true');
+      airwaitTicket.removeAttribute('target');
+    }
+  }
+
+  function patchChild(){
+    try{
+      const doc=frame.contentDocument;
+      if(!doc||!doc.body)return;
+      if(syncing)return;
+      syncing=true;
+      patchLinks(doc);
+      patchPriceAndRules(doc);
+      syncCallStatusNumber();
+      syncing=false;
+    }catch(error){syncing=false;}
+  }
+
+  frame.addEventListener('load',()=>{
+    patchChild();
+    try{
+      const doc=frame.contentDocument;
+      observer?.disconnect();
+      observer=new MutationObserver(()=>patchChild());
+      observer.observe(doc.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','href']});
+      doc.addEventListener('click',event=>{
+        const link=event.target.closest('a[href*="callstatus.html"]');
+        if(link)syncCallStatusNumber();
+      },true);
+    }catch(error){}
+  });
+
+  frame.src=receptionUrl.href;
+  setInterval(()=>{
+    syncCallStatusNumber();
+    patchChild();
+  },700);
+})();
+</script>
+</body>
+</html>
