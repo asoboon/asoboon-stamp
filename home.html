@@ -18,6 +18,7 @@
     (() => {
       const frame = document.getElementById('miniappCore');
       const coreBase = new URL('./home-core.html', location.href);
+      const receptionTarget = new URL('./staff-reception.html', location.href);
       const secretTarget = new URL('./staff-reception.html?from=miniapp-secret', location.href);
       let tapTimes = [];
       let lastSynced = '';
@@ -56,6 +57,79 @@
         }catch(error){}
       }
 
+      function applyUnifiedReception(){
+        try{
+          const win = frame.contentWindow;
+          const doc = frame.contentDocument;
+          if(!doc || !win) return;
+
+          if(win.ASOBOON_CONFIG){
+            win.ASOBOON_CONFIG.reservationUrl = receptionTarget.href;
+          }
+
+          const subtitle = doc.getElementById('subtitle');
+          if(subtitle && subtitle.textContent.includes('予約・アクセス')){
+            subtitle.textContent = '🧳 来場前モード｜受付・アクセスを確認';
+          }
+
+          const ticketLabel = doc.querySelector('[data-before-label="当日予約・入場"]');
+          if(ticketLabel){
+            ticketLabel.dataset.beforeLabel = '当日受付・入場';
+            if(!doc.body.classList.contains('inside')) ticketLabel.textContent = '当日受付・入場';
+          }
+
+          doc.querySelectorAll('.route-guide h3').forEach(el => {
+            if(el.textContent.trim() === '当日予約から入場まで') el.textContent = '当日受付から入場まで';
+          });
+          doc.querySelectorAll('.route-label').forEach(el => {
+            if(el.textContent.trim() === 'WEB予約') el.textContent = '当日受付';
+          });
+
+          const reservationView = doc.getElementById('reservationView');
+          if(reservationView){
+            const h2 = reservationView.querySelector('.reservation-page-head h2');
+            if(h2) h2.textContent = '当日受付';
+          }
+
+          const quick = doc.getElementById('reservationQuickLink');
+          if(quick){
+            quick.href = receptionTarget.href;
+            quick.removeAttribute('target');
+            quick.removeAttribute('rel');
+            const time = quick.querySelector('.reservation-quick-time');
+            const strong = quick.querySelector('.reservation-quick-copy strong');
+            const small = quick.querySelector('.reservation-quick-copy small');
+            const arrow = quick.querySelector('.reservation-quick-arrow');
+            if(time) time.textContent = '施設500m以内';
+            if(strong) strong.textContent = 'ミニアプリで受付する';
+            if(small) small.textContent = 'ASOBooNの近くに着いたら受付';
+            if(arrow) arrow.textContent = '→';
+          }
+
+          const oldStart = reservationView && reservationView.querySelector('.reservation-start-section');
+          if(oldStart) oldStart.hidden = true;
+
+          doc.querySelectorAll('a[href*="airwait.jp/WCSP/storeDetail"]').forEach(link => {
+            link.href = receptionTarget.href;
+            link.removeAttribute('target');
+            link.removeAttribute('rel');
+          });
+
+          const fallback = doc.getElementById('availabilityFallback');
+          if(fallback){
+            fallback.querySelectorAll('a').forEach(link => {
+              link.href = receptionTarget.href;
+              link.removeAttribute('target');
+              link.removeAttribute('rel');
+              const strong = link.querySelector('strong');
+              const small = link.querySelector('small');
+              if(strong) strong.textContent = '受付画面を開く';
+              if(small) small.textContent = 'ミニアプリ内で受付';
+            });
+          }
+        }catch(error){}
+      }
+
       function promoteChildNavigation(){
         try{
           const childUrl = new URL(frame.contentWindow.location.href);
@@ -64,6 +138,7 @@
 
           if(childUrl.pathname === corePath){
             bindSecretCommand();
+            applyUnifiedReception();
             const desired = location.pathname + childUrl.search + childUrl.hash;
             if(desired !== lastSynced){
               lastSynced = desired;
@@ -78,12 +153,16 @@
 
       frame.addEventListener('load', () => {
         bindSecretCommand();
+        applyUnifiedReception();
         promoteChildNavigation();
       });
 
       frame.src = coreUrlFromParent().href;
 
-      setInterval(promoteChildNavigation, 450);
+      setInterval(() => {
+        applyUnifiedReception();
+        promoteChildNavigation();
+      }, 450);
 
       window.addEventListener('popstate', () => {
         try{
