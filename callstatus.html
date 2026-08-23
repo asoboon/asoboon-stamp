@@ -20,7 +20,7 @@ body.has-cancel #statusFrame{height:calc(100% - 90px)}
 <body>
 <iframe id="statusFrame" title="ASOBooN 呼出状況"></iframe>
 <div id="cancelBar" class="cancelbar" hidden>
-  <div class="cancelcopy"><strong>受付を取り消しますか？</strong><small>受付中のみキャンセルできます</small></div>
+  <div class="cancelcopy"><strong>受付を取り消しますか？</strong><small>このミニアプリから受付した番号だけキャンセルできます</small></div>
   <button id="cancelOpen" class="cancelbtn" type="button">受付をキャンセル</button>
 </div>
 <div id="toast" class="toast" hidden>キャンセルの反映を確認しています…</div>
@@ -39,7 +39,7 @@ body.has-cancel #statusFrame{height:calc(100% - 90px)}
   <div class="donecard">
     <div class="check">✓</div>
     <h2>キャンセルしました</h2>
-    <p>この端末の受付番号も解除しました。必要であれば新しく受付できます。</p>
+    <p>ミニアプリで受付した番号を解除しました。必要であれば新しく受付できます。</p>
     <a class="homebtn" href="./home.html">ミニアプリへ戻る</a>
   </div>
 </div>
@@ -57,19 +57,72 @@ let activeRecord=null;
 
 function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function readRecord(){try{const x=JSON.parse(localStorage.getItem(CURRENT_KEY)||'null');return x&&x.receiptNo&&x.waitTypeId?x:null}catch(e){return null}}
-function syncNumber(r){if(!r)return;try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number:String(r.receiptNo)}))}catch(e){}}
-function clearAll(){try{localStorage.removeItem(CURRENT_KEY);localStorage.removeItem(CALL_KEY);localStorage.removeItem(PENDING_KEY)}catch(e){};activeRecord=null;document.body.classList.remove('has-cancel');document.getElementById('cancelBar').hidden=true}
+function readCallNumber(){
+  try{
+    const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');
+    if(!x||x.date!==localDate())return '';
+    return String(x.number||'').trim();
+  }catch(e){return ''}
+}
+function isMiniappReception(r){return !!r&&String(r.source||'')==='asoboon-onsite-live'&&!!r.shortUrl}
+function isViewingMiniappReception(r){return isMiniappReception(r)&&readCallNumber()===String(r.receiptNo).trim()}
+function syncNumberIfEmpty(r){
+  if(!r||readCallNumber())return;
+  try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number:String(r.receiptNo)}))}catch(e){}
+}
+function clearOwnedReception(r,{showDone=false}={}){
+  const ownedNumber=String(r?.receiptNo||'').trim();
+  const shownNumber=readCallNumber();
+  try{
+    localStorage.removeItem(CURRENT_KEY);
+    localStorage.removeItem(PENDING_KEY);
+    if(ownedNumber&&shownNumber===ownedNumber)localStorage.removeItem(CALL_KEY);
+  }catch(e){}
+  activeRecord=null;
+  document.body.classList.remove('has-cancel');
+  document.getElementById('cancelBar').hidden=true;
+  document.getElementById('toast').hidden=true;
+  if(showDone)document.getElementById('doneView').hidden=false;
+}
 function setCancelVisible(on){document.getElementById('cancelBar').hidden=!on;document.body.classList.toggle('has-cancel',!!on)}
 function isSuccess(d){return d?.success===true||String(d?.resultCode?.code||'')==='0000'}
 async function page(r,start){const res=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams({storeId:STORE_ID,waitTypeId:String(r.waitTypeId),sortStatus:'0',isDesc:'0',start:String(start),limit:'100'}),cache:'no-store',credentials:'omit'});const d=await res.json();if(!isSuccess(d))throw new Error(d?.resultCode?.defaultMessage||'受付状況を確認できません');return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
 async function findTarget(r){let start=1,rows=[];while(start<=1000){const p=await page(r,start);rows.push(...p.rows);const hit=rows.find(x=>String(x.waitTypeId)===String(r.waitTypeId)&&String(x.number)===String(r.receiptNo));if(hit)return hit;if(rows.length>=p.count||!p.rows.length)break;start+=p.rows.length}return null}
-function cancelledComplete(){clearAll();document.getElementById('toast').hidden=true;document.getElementById('doneView').hidden=false}
-async function refreshState(){if(checking)return;const r=readRecord();activeRecord=r;if(!r){setCancelVisible(false);return}syncNumber(r);checking=true;try{const row=await findTarget(r);if(!row){setCancelVisible(false);return}const st=String(row.status);if(st==='3'){cancelledComplete();return}if(st==='0'||st==='1'){setCancelVisible(!!r.shortUrl)}else{setCancelVisible(false)}}catch(e){setCancelVisible(false)}finally{checking=false}}
+async function refreshState(){
+  if(checking)return;
+  const r=readRecord();activeRecord=r;
+  if(!r){setCancelVisible(false);return}
+  syncNumberIfEmpty(r);
+  const viewingOwned=isViewingMiniappReception(r);
+  checking=true;
+  try{
+    const row=await findTarget(r);
+    if(!row){setCancelVisible(false);return}
+    const st=String(row.status);
+    if(st==='3'){
+      clearOwnedReception(r,{showDone:viewingOwned});
+      return;
+    }
+    if((st==='0'||st==='1')&&viewingOwned){setCancelVisible(true)}else{setCancelVisible(false)}
+  }catch(e){setCancelVisible(false)}finally{checking=false}
+}
 
 frame.src=`./callstatus-core.html?v=569&wrap=1`;
-document.getElementById('cancelOpen').addEventListener('click',()=>{activeRecord=readRecord();if(!activeRecord?.shortUrl)return;document.getElementById('cancelModal').hidden=false});
+document.getElementById('cancelOpen').addEventListener('click',()=>{
+  activeRecord=readRecord();
+  if(!isViewingMiniappReception(activeRecord))return;
+  document.getElementById('cancelModal').hidden=false;
+});
 document.getElementById('cancelBack').addEventListener('click',()=>{document.getElementById('cancelModal').hidden=true});
-document.getElementById('cancelGo').addEventListener('click',()=>{const r=readRecord();if(!r?.shortUrl)return;document.getElementById('cancelModal').hidden=true;try{localStorage.setItem(PENDING_KEY,String(Date.now()))}catch(e){}document.getElementById('toast').hidden=false;const w=window.open(String(r.shortUrl),'_blank','noopener');if(!w){location.href=String(r.shortUrl)}});
+document.getElementById('cancelGo').addEventListener('click',()=>{
+  const r=readRecord();
+  if(!isViewingMiniappReception(r))return;
+  document.getElementById('cancelModal').hidden=true;
+  try{localStorage.setItem(PENDING_KEY,String(Date.now()))}catch(e){}
+  document.getElementById('toast').hidden=false;
+  const w=window.open(String(r.shortUrl),'_blank','noopener');
+  if(!w){location.href=String(r.shortUrl)}
+});
 window.addEventListener('focus',refreshState);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshState()});
 setInterval(refreshState,10000);refreshState();
 })();
