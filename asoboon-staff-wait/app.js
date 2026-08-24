@@ -106,7 +106,7 @@
     } else {
       el.connectionBadge.textContent = "未設定";
       el.connectionBadge.className = "badge badge-demo";
-      el.notice.textContent = "現在はダミー番号を一切表示しません。API設定後、Airウェイトの実受付番号だけを表示します。";
+      el.notice.textContent = "ダミー番号や番号帯からの生成は一切しません。APIが返した実受付番号だけを表示します。";
       el.notice.hidden = false;
     }
   }

@@ -40,18 +40,20 @@
     return data?.success === true || resultCode(data) === "0000";
   }
 
-  function numericTicket(value) {
-    const m = String(value ?? "").match(/(\d+)$/);
-    return m ? Number(m[1]) : NaN;
+  function normalizeName(v) {
+    return String(v ?? "")
+      .normalize("NFKC")
+      .replace(/[\s\u3000]/g, "")
+      .trim();
   }
 
-  function slotForNumber(number, ranges) {
-    const n = numericTicket(number);
-    if (!Number.isFinite(n)) return "";
-    for (const [slot, list] of Object.entries(ranges || {})) {
-      if ((list || []).some(([min, max]) => n >= Number(min) && n <= Number(max))) return slot;
+  function buildNameMap(config) {
+    const map = new Map();
+    const src = config.slotWaitTypeNames || {};
+    for (const [slot, names] of Object.entries(src)) {
+      for (const name of names || []) map.set(normalizeName(name), slot);
     }
-    return "";
+    return map;
   }
 
   function statusFor(row) {
@@ -67,6 +69,7 @@
 
   function create(config) {
     let credentials = loadCredentials();
+    const waitTypeNameToSlot = buildNameMap(config);
 
     async function fetchPage(start) {
       if (!credentials) {
@@ -76,8 +79,10 @@
       }
 
       const params = new URLSearchParams({
-        sortStatus: "0",     // 受付時間
-        isDesc: "0",        // 古い受付から
+        // API仕様: 0=受付時間、isDesc=0=昇順。
+        // WEB・店頭の別に関係なく、Airウェイトが持つ本当の受付順を維持する。
+        sortStatus: "0",
+        isDesc: "0",
         start: String(start),
         limit: "100"
       });
@@ -133,28 +138,34 @@
 
       async fetchReservations() {
         const rows = await fetchAll();
-        return rows.map((row, index) => ({
-          id: `airwait-${index}-${String(row.number ?? "")}`,
-          number: String(row.number ?? "—"),
-          numericNumber: numericTicket(row.number),
-          slot: slotForNumber(row.number, config.slotRanges),
-          status: statusFor(row),
-          waitTypeId: row.waitTypeId ?? "",
-          waitTypeName: row.waitTypeName ?? "",
-          isCalling: String(row.isCalling ?? "0"),
-          orderIndex: index
-        })).filter(x => x.slot);
+        return rows.map((row, index) => {
+          const waitTypeName = String(row?.waitTypeName ?? "");
+          const slot = waitTypeNameToSlot.get(normalizeName(waitTypeName)) || "";
+          return {
+            // number は Airウェイトの実レスポンスをそのまま保持する。
+            // 数値化・桁追加・番号帯による変換は一切しない。
+            id: `${String(row?.waitTypeId ?? "")}|${String(row?.number ?? "")}|${index}`,
+            number: String(row?.number ?? ""),
+            slot,
+            status: statusFor(row),
+            waitTypeId: String(row?.waitTypeId ?? ""),
+            waitTypeName,
+            isCalling: String(row?.isCalling ?? "0"),
+            orderIndex: index
+          };
+        }).filter(x => x.slot && x.number !== "");
       },
 
-      // この一覧APIは reserveId/version を返さないため、既存受付への更新操作は安全に実行できない。
+      // reservations API は reserveId/version を返さない。
+      // 別の正式な取得手段を確認できるまで書込みは行わない。
       async callReservation() {
-        throw new Error("この受付一覧APIだけでは予約IDを取得できないため、呼出操作はまだ接続できません");
+        throw new Error("呼出に必要なreserveIdの取得方法を確認中です");
       },
       async holdReservation() {
-        throw new Error("保留には予約IDとversionが必要です。現在の一覧APIからは取得できません");
+        throw new Error("保留に必要なreserveId/versionの取得方法を確認中です");
       },
       async guideReservation() {
-        throw new Error("案内には予約IDとversionが必要です。現在の一覧APIからは取得できません");
+        throw new Error("案内に必要なreserveId/versionの取得方法を確認中です");
       }
     };
   }
