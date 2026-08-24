@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>ASOBooN 予約管理 仮組</title>
+<style>
+:root{--navy:#0f2b46;--paper:#f7eedb;--card:#fffaf0;--line:#d8c49b;--green:#28764f;--red:#a74232;--gold:#d4aa56;--muted:#716754}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#2f291f;background:linear-gradient(180deg,#e8d7b2,#f7eedb)}
+body{padding:max(10px,env(safe-area-inset-top)) 12px calc(28px + env(safe-area-inset-bottom))}.app{width:min(100%,720px);margin:auto}.hero{padding:17px;border:3px solid var(--gold);border-radius:22px;background:linear-gradient(155deg,var(--navy),#061a2b);color:#fff8df}.hero h1{margin:5px 0;font-size:1.4rem}.hero p{margin:0;color:#ddd4c0;font-size:.72rem;line-height:1.55}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#b67d29;font-size:.62rem;font-weight:950}.card{margin-top:12px;padding:14px;border:2px solid var(--line);border-radius:18px;background:rgba(255,250,240,.98);box-shadow:0 8px 20px rgba(50,37,19,.1)}.card h2{margin:0 0 9px;color:var(--navy);font-size:1rem}.sub{font-size:.66rem;color:var(--muted);line-height:1.45}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.field{display:grid;gap:4px}.field label{font-size:.64rem;color:var(--muted);font-weight:850}.field input,.field select{width:100%;min-height:43px;border:1px solid #cdbb98;border-radius:11px;background:#fffef8;padding:8px;font:inherit}.btn{min-height:46px;border:0;border-radius:12px;font-weight:950}.primary{background:#173b58;color:#fff}.gold{background:linear-gradient(180deg,#f3d27d,#c58d34);color:#30220f}.danger{background:#f7dcd7;color:#8a3029;border:1px solid #d9a29a}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.days{display:grid;gap:8px}.day{padding:11px;border:1px solid #ddcbaa;border-radius:14px;background:#fffef8}.dayhead{display:flex;justify-content:space-between;gap:8px;align-items:center}.dayhead strong{color:var(--navy);font-size:.82rem}.tag{padding:3px 7px;border-radius:999px;font-size:.56rem;font-weight:950}.open{background:#dff3e6;color:#206441}.closed{background:#f8deda;color:#87352d}.daygrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}.mini{display:grid;gap:3px}.mini label{font-size:.55rem;color:#776b58}.mini input,.mini select{width:100%;min-height:38px;border:1px solid #d7c7aa;border-radius:9px;background:#fff;padding:6px;font-size:.68rem}.saveone{margin-top:8px;width:100%;min-height:38px;border:0;border-radius:9px;background:#eef5ef;color:#245f3d;font-weight:900}.summary{margin-top:9px;padding:10px;border-radius:11px;background:#f3ead7;font-size:.68rem;line-height:1.5}.footer{margin-top:15px;text-align:center;font-size:.6rem}.footer a{color:#5d4b2d}@media(max-width:520px){.grid,.actions{grid-template-columns:1fr}.daygrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="hero"><span class="badge">PROTOTYPE / 管理画面</span><h1>予約枠 管理</h1><p>休館日、団体利用、盆・正月などの特別営業を日付ごと・期間まとめて設定する仮組です。</p></header>
+
+<section class="card">
+<h2>基本設定</h2>
+<div class="grid">
+  <div class="field"><label>通常日の販売上限（人数）</label><input id="defaultCapacity" type="number" min="0" step="1"></div>
+  <div class="field"><label>予約開放時刻</label><input value="7日前 19:00" disabled></div>
+</div>
+<button id="saveDefault" class="btn primary" style="width:100%;margin-top:9px">基本設定を保存</button>
+</section>
+
+<section class="card">
+<h2>期間まとめて設定</h2>
+<div class="sub">盆・正月・連休・団体利用などをまとめて変更できます。空欄項目は既存設定を維持します。</div>
+<div class="grid" style="margin-top:9px">
+  <div class="field"><label>開始日</label><input id="from" type="date"></div>
+  <div class="field"><label>終了日</label><input id="to" type="date"></div>
+  <div class="field"><label>営業状態</label><select id="bulkStatus"><option value="">変更しない</option><option value="open">営業</option><option value="closed">休館</option></select></div>
+  <div class="field"><label>販売上限（人数）</label><input id="bulkCapacity" type="number" min="0" placeholder="変更しない"></div>
+  <div class="field"><label>団体・貸切確保（人数）</label><input id="bulkGroupHold" type="number" min="0" placeholder="変更しない"></div>
+  <div class="field"><label>メモ</label><input id="bulkNote" placeholder="例：お盆特別営業"></div>
+</div>
+<div class="actions"><button id="applyBulk" class="btn gold">期間設定を反映</button><button id="resetAll" class="btn danger">仮設定を初期化</button></div>
+</section>
+
+<section class="card">
+<h2>今後60日</h2>
+<div id="days" class="days"></div>
+</section>
+
+<div class="footer"><a href="./reservation-prototype.html">お客様側の仮予約画面を見る</a></div>
+</main>
+<script>
+(()=>{'use strict';
+const CONFIG_KEY='asoboon_reservation_proto_config_v1';
+const RES_KEY='asoboon_reservation_proto_reservations_v1';
+const DEFAULT={defaultCapacity:500,days:{}};
+const $=id=>document.getElementById(id);const pad=n=>String(n).padStart(2,'0');const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const jp=d=>`${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）`;
+function load(){try{return {...DEFAULT,...JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}}catch{return structuredClone(DEFAULT)}}function save(c){localStorage.setItem(CONFIG_KEY,JSON.stringify(c))}function reservations(){try{return JSON.parse(localStorage.getItem(RES_KEY)||'[]')}catch{return[]}}function booked(key){return reservations().filter(r=>r.visitDate===key&&r.status==='RESERVED').reduce((s,r)=>s+Number(r.total||0),0)}
+function effective(key,cfg){const base=Number(cfg.days?.[key]?.capacity??cfg.defaultCapacity??0),hold=Number(cfg.days?.[key]?.groupHold||0);return Math.max(0,base-hold)}
+function render(){const cfg=load();$('defaultCapacity').value=cfg.defaultCapacity;const wrap=$('days');wrap.innerHTML='';const today=new Date();today.setHours(0,0,0,0);for(let i=0;i<60;i++){const d=new Date(today);d.setDate(d.getDate()+i);const key=ymd(d),x={closed:false,capacity:'',groupHold:0,note:'',...(cfg.days?.[key]||{})},isClosed=!!x.closed,used=booked(key),sell=effective(key,cfg),left=Math.max(0,sell-used);const el=document.createElement('div');el.className='day';el.innerHTML=`<div class="dayhead"><strong>${jp(d)} <span style="color:#8b7c64">${key}</span></strong><span class="tag ${isClosed?'closed':'open'}">${isClosed?'休館':'営業'}</span></div><div class="daygrid"><div class="mini"><label>状態</label><select data-f="status"><option value="open" ${!isClosed?'selected':''}>営業</option><option value="closed" ${isClosed?'selected':''}>休館</option></select></div><div class="mini"><label>販売上限</label><input data-f="capacity" type="number" min="0" value="${x.capacity===''?'':x.capacity}" placeholder="通常 ${cfg.defaultCapacity}"></div><div class="mini"><label>団体確保</label><input data-f="groupHold" type="number" min="0" value="${Number(x.groupHold||0)}"></div><div class="mini"><label>メモ</label><input data-f="note" value="${String(x.note||'').replaceAll('&','&amp;').replaceAll('"','&quot;')}"></div></div><div class="summary">販売可能 ${sell}人 / 仮予約済み ${used}人 / 残り ${left}人</div><button class="saveone">この日を保存</button>`;el.querySelector('.saveone').addEventListener('click',()=>{const next=load(),get=f=>el.querySelector(`[data-f="${f}"]`).value;next.days=next.days||{};next.days[key]={closed:get('status')==='closed',capacity:get('capacity')===''?'':Number(get('capacity')),groupHold:Number(get('groupHold')||0),note:get('note').trim()};save(next);render()});wrap.appendChild(el)}}
+$('saveDefault').addEventListener('click',()=>{const c=load();c.defaultCapacity=Math.max(0,Number($('defaultCapacity').value||0));save(c);render()});
+$('applyBulk').addEventListener('click',()=>{const f=$('from').value,t=$('to').value;if(!f||!t||f>t)return alert('開始日と終了日を確認してください。');const c=load();c.days=c.days||{};let cur=new Date(f+'T00:00:00'),end=new Date(t+'T00:00:00');while(cur<=end){const key=ymd(cur),old={closed:false,capacity:'',groupHold:0,note:'',...(c.days[key]||{})},st=$('bulkStatus').value,cap=$('bulkCapacity').value,hold=$('bulkGroupHold').value,note=$('bulkNote').value.trim();if(st)old.closed=st==='closed';if(cap!=='')old.capacity=Number(cap);if(hold!=='')old.groupHold=Number(hold);if(note)old.note=note;c.days[key]=old;cur.setDate(cur.getDate()+1)}save(c);render()});
+$('resetAll').addEventListener('click',()=>{if(!confirm('仮の枠設定をすべて初期化しますか？\n仮予約データは消しません。'))return;save(structuredClone(DEFAULT));render()});
+render();
+})();
+</script>
+</body></html>
