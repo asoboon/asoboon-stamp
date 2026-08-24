@@ -273,3 +273,28 @@ h2 { font-size: 24px; letter-spacing: -.02em; }
   .action-btn { min-width: 0; padding: 0 6px; font-size: 13px; }
   .list-heading { align-items: flex-end; }
 }
+
+.notice {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid #e4c56a;
+  background: #fff7d9;
+  border-radius: 12px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+.action-note { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.settings-help { margin-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.field-label { display: grid; gap: 6px; margin-top: 14px; font-size: 13px; font-weight: 850; }
+.field-input { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; background: #fff; font-size: 16px; }
+.or { text-align: center; margin: 12px 0 -2px; color: var(--muted); font-size: 12px; }
+.secondary-wide { width: 100%; min-height: 48px; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-weight: 800; }
+.row-actions.one-col { grid-template-columns: repeat(3, minmax(62px, 1fr)); }
+.status-cancelled { background: #f5e2e2; }
+.status-processing { background: #e7eefb; }
+@media (max-width: 680px) {
+  .app-header { align-items: flex-start; }
+  .header-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .reservation-row { grid-template-columns: 1fr; }
+  .row-actions.one-col { grid-template-columns: repeat(3, 1fr); }
+}

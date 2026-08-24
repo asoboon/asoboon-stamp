@@ -1,25 +1,14 @@
-/**
- * ASOBooN STAFF WAIT 設定
- *
- * IMPORTANT:
- * - GitHub Pages は公開Webです。秘密鍵・パスワード・管理者トークンをここへ書かないでください。
- * - 現在は demo モードで、そのままUIを試せます。
- * - Airウェイトの書き込みAPI仕様が確認できたら mode を "live" にして adapter 設定を追加します。
- */
+/** ASOBooN STAFF WAIT v0.2 */
 window.ASOBOON_STAFF_CONFIG = {
-  mode: "demo", // "demo" | "live"
+  mode: "live",
   slots: ["10:00", "12:30", "15:00"],
   defaultSlot: "10:00",
-  refreshMs: 12000,
-
-  // live モード用。URL/認証方法はAPI仕様書確認後に確定してください。
-  adapter: {
-    reservationsEndpoint: "",
-    actions: {
-      call: "",
-      hold: "",
-      guide: "",
-      updatePeople: ""
-    }
+  refreshMs: 10000,
+  reservationsEndpoint: "https://cl.airwait.jp/WCLP/api/external/stateless/reservations",
+  // 土休日特定日：Airウェイト「受付番号の範囲」正本
+  slotRanges: {
+    "10:00": [[1001, 1199], [2001, 2199]],
+    "12:30": [[1201, 1399], [2201, 2399]],
+    "15:00": [[1501, 1699], [2501, 2699]]
   }
 };

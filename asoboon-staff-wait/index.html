@@ -15,43 +15,35 @@
         <h1>呼出管理</h1>
       </div>
       <div class="header-actions">
-        <span id="connectionBadge" class="badge badge-demo">DEMO</span>
+        <span id="connectionBadge" class="badge badge-demo">未設定</span>
+        <button id="settingsBtn" class="icon-btn" type="button">API設定</button>
         <button id="refreshBtn" class="icon-btn" type="button" aria-label="更新">更新</button>
       </div>
     </header>
+
+    <div id="notice" class="notice" hidden></div>
 
     <nav id="slotTabs" class="slot-tabs" aria-label="入場枠"></nav>
 
     <main>
       <section class="summary-grid" aria-label="状況">
-        <article class="summary-card">
-          <span>待機</span>
-          <strong id="waitingCount">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>呼出中</span>
-          <strong id="callingCount">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>保留</span>
-          <strong id="holdCount">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>案内済</span>
-          <strong id="guidedCount">0</strong>
-        </article>
+        <article class="summary-card"><span>待機</span><strong id="waitingCount">0</strong></article>
+        <article class="summary-card"><span>呼出中</span><strong id="callingCount">0</strong></article>
+        <article class="summary-card"><span>保留</span><strong id="holdCount">0</strong></article>
+        <article class="summary-card"><span>案内済</span><strong id="guidedCount">0</strong></article>
       </section>
 
       <section id="nextCard" class="next-card" aria-live="polite">
         <div class="next-card-top">
           <div>
-            <p class="section-kicker">次に呼ぶ</p>
+            <p class="section-kicker">予約順で次</p>
             <h2 id="nextNumber">—</h2>
           </div>
-          <div id="nextPeople" class="people-pill">—</div>
+          <div id="nextStatus" class="people-pill">—</div>
         </div>
-        <p id="nextMeta" class="muted">待機中の受付はありません</p>
+        <p id="nextMeta" class="muted">受付情報を読み込んでいます</p>
         <button id="callNextBtn" class="primary-call" type="button" disabled>🔔 呼び出す</button>
+        <p class="action-note">※ 受付番号はAirウェイト実データ。呼出・保留・案内の書込みは予約ID取得方法の確認後に接続します。</p>
       </section>
 
       <section class="list-section">
@@ -67,37 +59,23 @@
     </main>
   </div>
 
-  <div id="peopleModal" class="modal-backdrop" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="peopleModalTitle">
+  <div id="settingsModal" class="modal-backdrop" hidden>
+    <form id="settingsForm" class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
       <div class="modal-header">
         <div>
-          <p class="section-kicker">人数変更</p>
-          <h2 id="peopleModalTitle">—</h2>
+          <p class="section-kicker">初回のみ</p>
+          <h2 id="settingsTitle">AirウェイトAPI設定</h2>
         </div>
-        <button id="closeModalBtn" class="icon-btn" type="button">閉じる</button>
+        <button id="closeSettingsBtn" class="icon-btn" type="button">閉じる</button>
       </div>
-
-      <div class="counter-grid">
-        <div class="counter-row">
-          <span>大人</span>
-          <div class="counter-control">
-            <button type="button" data-counter="adult" data-delta="-1">−</button>
-            <strong id="adultCount">0</strong>
-            <button type="button" data-counter="adult" data-delta="1">＋</button>
-          </div>
-        </div>
-        <div class="counter-row">
-          <span>子ども</span>
-          <div class="counter-control">
-            <button type="button" data-counter="child" data-delta="-1">−</button>
-            <strong id="childCount">0</strong>
-            <button type="button" data-counter="child" data-delta="1">＋</button>
-          </div>
-        </div>
-      </div>
-
-      <button id="savePeopleBtn" class="primary-call" type="button">変更を保存</button>
-    </div>
+      <p class="settings-help">GitHubにはAPIキーを保存しません。この端末のブラウザ内だけに保存します。</p>
+      <label class="field-label">APIキー<input id="apiKeyInput" class="field-input" type="password" autocomplete="off" required /></label>
+      <label class="field-label">店舗ID（KR〜）<input id="storeIdInput" class="field-input" type="text" autocomplete="off" /></label>
+      <div class="or">または</div>
+      <label class="field-label">店舗NO（AKR〜）<input id="storeNoInput" class="field-input" type="text" autocomplete="off" /></label>
+      <button class="primary-call" type="submit">保存して実データを取得</button>
+      <button id="clearSettingsBtn" class="secondary-wide" type="button">この端末のAPI設定を削除</button>
+    </form>
   </div>
 
   <div id="toast" class="toast" hidden></div>

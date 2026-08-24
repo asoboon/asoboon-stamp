@@ -1,73 +1,25 @@
-# ASOBooN STAFF WAIT
+# ASOBooN STAFF WAIT v0.2 — LIVE受付番号版
 
-スタッフ専用の呼出管理画面プロトタイプです。LINEミニアプリとは別URLで使用する前提です。
+## 修正点
+v0.1の 101 / 201 / 301... はDEMOデータでした。v0.2ではダミー受付番号を完全撤去し、Airウェイト `external/stateless/reservations` の `number` をそのまま表示します。
 
-## 今回入っているもの
+## 対象枠（2026-08-21 Airウェイト設定画面を正本）
+- 10:00: 1001–1199 / 2001–2199
+- 12:30: 1201–1399 / 2201–2399
+- 15:00: 1501–1699 / 2501–2699
 
-- 10:00 / 12:30 / 15:00 の3タブ
-- 各タブ内を予約日時の古い順で表示
-- 「次に呼ぶ」を自動表示
-- 呼出 / 保留 / 案内
-- 大人 / 子どもの人数変更
-- 待機 / 呼出中 / 保留 / 案内済の件数表示
-- 全画面リロードなしの軽量UI
-- スマホ / iPad / PC対応
-- DEMOモードでは全操作をそのまま試せる
+APIの `sortStatus=0, isDesc=0` を使い、受付時間の古い順で取得します。WEBと店頭の番号帯を数値順に再ソートしないため、同じ回の中で本当の受付順を維持します。
 
-## GitHub Pagesへ置く
+## 初回設定
+GitHub Pages公開後、画面右上の「API設定」からAPIキーと店舗ID（または店舗NO）を登録します。値はGitHubファイルには書かれず、その端末のlocalStorageだけに保存されます。
 
-例：リポジトリ内に `staff-wait` フォルダを作り、このフォルダ内のファイルをすべて入れます。
+## 現時点の書込み操作
+添付API仕様書では以下を確認済みです。
+- 呼出: `/reserve/call` — `reserveId` が必須
+- 保留/案内: `/reserve/update` — `reserveId` と `version` が必須
 
-```
-main/
-└─ staff-wait/
-   ├─ index.html
-   ├─ styles.css
-   ├─ config.js
-   ├─ airwait-adapter.js
-   └─ app.js
-```
+一方、受付一覧 `/reservations` のレスポンスには `number / waitTypeId / waitTypeName / status / isCalling / counter...` はありますが、`reserveId` と `version` はありません。
+そのため、既存受付を受付番号から安全に呼出・保留・案内するには、`reserveId/version` を取得できる正式手段の確認が必要です。v0.2では誤更新防止のため書込みボタンを無効化しています。
 
-公開URL例：
-
-```
-https://asoboon.github.io/<repository-name>/staff-wait/
-```
-
-## 現在の状態
-
-`config.js` は `mode: "demo"` です。
-
-そのままGitHub Pagesへ上げればUIと操作感を確認できます。デモ操作の状態は同じブラウザの localStorage に保存されます。
-
-## Airウェイト本番接続について
-
-現時点で確認できているのは、GitHub Pagesの `asoboon.github.io` がAirウェイトAPI利用ドメインとして追加済みであることと、待ち情報・予約情報の取得系APIが存在することです。
-
-ただし、この画面から使いたい以下の「書き込み操作」の外部API仕様は、今回確認できていません。
-
-- 呼出
-- 保留
-- 案内
-- 人数変更
-
-そのため、`airwait-adapter.js` では本番URLを推測せず、アダプタ差し替え方式にしています。API仕様書で正式なエンドポイント・HTTPメソッド・リクエスト形式が確認できたら、その部分だけ接続します。
-
-## セキュリティ上の注意
-
-GitHub Pagesは公開Webです。
-
-**API秘密鍵、管理者トークン、AirIDのパスワードなどを `config.js` やJavaScriptへ書かないでください。**
-
-本番で呼出・保留・案内・人数変更を実行する場合、Airウェイト側の正式仕様に沿った認証方式を使うか、必要ならスタッフ認証付きの中継APIを用意してください。URLを知っている人だけ使える、という方式は認証にはなりません。
-
-## 変更しやすい項目
-
-`config.js`
-
-```js
-slots: ["10:00", "12:30", "15:00"]
-refreshMs: 12000
-```
-
-平日特定日など別構成が必要になれば、ここを変更するだけでタブを変えられます。
+## アップロード先
+既存リポジトリ `asoboon/asoboon-stamp` の `asoboon-staff-wait/` を、このフォルダの内容で置き換えてください。

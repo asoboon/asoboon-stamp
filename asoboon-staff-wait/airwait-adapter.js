@@ -1,165 +1,163 @@
 (function () {
   "use strict";
 
-  const DEMO_KEY = "asoboon_staff_wait_demo_v1";
+  const CRED_KEY = "asoboon_staff_airwait_credentials_v1";
 
-  function nowIso() {
-    return new Date().toISOString();
-  }
-
-  function makeDemoData() {
-    const defs = [
-      ["10:00", 101, 12],
-      ["12:30", 201, 10],
-      ["15:00", 301, 9]
-    ];
-    const data = [];
-    defs.forEach(([slot, start, count], slotIndex) => {
-      for (let i = 0; i < count; i += 1) {
-        data.push({
-          id: `${slot.replace(":", "")}-${start + i}`,
-          number: start + i,
-          slot,
-          adult: 1 + ((i + slotIndex) % 2),
-          child: 1 + ((i * 2 + slotIndex) % 3),
-          status: i === 0 && slotIndex === 0 ? "calling" : "waiting",
-          reservedAt: new Date(Date.now() - (count - i) * 62000 - slotIndex * 10000).toISOString(),
-          updatedAt: nowIso()
-        });
-      }
-    });
-    return data;
-  }
-
-  function loadDemo() {
+  function loadCredentials() {
     try {
-      const raw = localStorage.getItem(DEMO_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (_) {}
-    const created = makeDemoData();
-    saveDemo(created);
-    return created;
+      const raw = localStorage.getItem(CRED_KEY);
+      if (!raw) return null;
+      const v = JSON.parse(raw);
+      if (!v || !v.apiKey || (!v.storeId && !v.storeNo)) return null;
+      return v;
+    } catch (_) {
+      return null;
+    }
   }
 
-  function saveDemo(data) {
-    try { localStorage.setItem(DEMO_KEY, JSON.stringify(data)); } catch (_) {}
-  }
-
-  function sortReservations(list) {
-    return [...list].sort((a, b) => {
-      const ta = Date.parse(a.reservedAt || "") || 0;
-      const tb = Date.parse(b.reservedAt || "") || 0;
-      if (ta !== tb) return ta - tb;
-      return Number(a.number || 0) - Number(b.number || 0);
-    });
-  }
-
-  function createDemoAdapter() {
-    let data = loadDemo();
-
-    const mutate = async (id, patch) => {
-      const target = data.find(x => String(x.id) === String(id));
-      if (!target) throw new Error("受付データが見つかりません");
-      Object.assign(target, patch, { updatedAt: nowIso() });
-      saveDemo(data);
-      return { ...target };
+  function saveCredentials(v) {
+    const clean = {
+      apiKey: String(v.apiKey || "").trim(),
+      storeId: String(v.storeId || "").trim(),
+      storeNo: String(v.storeNo || "").trim()
     };
-
-    return {
-      kind: "demo",
-      async fetchReservations() {
-        return sortReservations(data);
-      },
-      async callReservation(id) {
-        return mutate(id, { status: "calling" });
-      },
-      async holdReservation(id) {
-        return mutate(id, { status: "hold" });
-      },
-      async guideReservation(id) {
-        return mutate(id, { status: "guided" });
-      },
-      async updatePeople(id, adult, child) {
-        return mutate(id, { adult, child });
-      },
-      async resetDemo() {
-        data = makeDemoData();
-        saveDemo(data);
-        return sortReservations(data);
-      }
-    };
+    if (!clean.apiKey) throw new Error("APIキーを入力してください");
+    if (!clean.storeId && !clean.storeNo) throw new Error("店舗ID または 店舗NOを入力してください");
+    if (clean.storeId && clean.storeNo) throw new Error("店舗IDと店舗NOはどちらか一方だけ入力してください");
+    localStorage.setItem(CRED_KEY, JSON.stringify(clean));
+    return clean;
   }
 
-  function createLiveAdapter(config) {
-    const adapterConfig = config.adapter || {};
-    const actions = adapterConfig.actions || {};
+  function clearCredentials() {
+    localStorage.removeItem(CRED_KEY);
+  }
 
-    async function request(url, options) {
-      if (!url) {
-        throw new Error("本番APIのURLが未設定です。API仕様確認後に config.js を設定してください。");
+  function resultCode(data) {
+    return String(data?.resultCode?.code ?? "");
+  }
+
+  function isSuccess(data) {
+    return data?.success === true || resultCode(data) === "0000";
+  }
+
+  function numericTicket(value) {
+    const m = String(value ?? "").match(/(\d+)$/);
+    return m ? Number(m[1]) : NaN;
+  }
+
+  function slotForNumber(number, ranges) {
+    const n = numericTicket(number);
+    if (!Number.isFinite(n)) return "";
+    for (const [slot, list] of Object.entries(ranges || {})) {
+      if ((list || []).some(([min, max]) => n >= Number(min) && n <= Number(max))) return slot;
+    }
+    return "";
+  }
+
+  function statusFor(row) {
+    const s = String(row?.status ?? "");
+    if (s === "0" && String(row?.isCalling ?? "0") === "1") return "calling";
+    if (s === "0") return "waiting";
+    if (s === "1") return "hold";
+    if (s === "2") return "guided";
+    if (s === "3") return "cancelled";
+    if (s === "4") return "processing";
+    return "unknown";
+  }
+
+  function create(config) {
+    let credentials = loadCredentials();
+
+    async function fetchPage(start) {
+      if (!credentials) {
+        const err = new Error("API設定が必要です");
+        err.code = "NO_CREDENTIALS";
+        throw err;
       }
+
+      const params = new URLSearchParams({
+        sortStatus: "0",     // 受付時間
+        isDesc: "0",        // 古い受付から
+        start: String(start),
+        limit: "100"
+      });
+      if (credentials.storeId) params.set("storeId", credentials.storeId);
+      if (credentials.storeNo) params.set("storeNo", credentials.storeNo);
+
+      const url = `${config.reservationsEndpoint}?key=${encodeURIComponent(credentials.apiKey)}`;
       const res = await fetch(url, {
-        cache: "no-store",
-        credentials: "omit",
-        ...options
-      });
-      if (!res.ok) throw new Error(`APIエラー ${res.status}`);
-      const type = res.headers.get("content-type") || "";
-      return type.includes("application/json") ? res.json() : res.text();
-    }
-
-    /**
-     * 重要:
-     * AirウェイトAPIの実データ形状・書き込みエンドポイントは、
-     * 仕様書確認後にこの normalizeReservations / actionRequest へ合わせてください。
-     * 推測で本番APIを叩かないため、現時点では明示的に未設定としています。
-     */
-    function normalizeReservations(payload) {
-      const raw = Array.isArray(payload) ? payload : (payload && payload.reservations) || [];
-      return sortReservations(raw.map((item, index) => ({
-        id: item.id ?? item.reservationId ?? item.number ?? index,
-        number: item.number ?? item.ticketNumber ?? item.receptionNumber ?? "—",
-        slot: item.slot ?? item.entryTime ?? item.category ?? "",
-        adult: Number(item.adult ?? item.adults ?? 0),
-        child: Number(item.child ?? item.children ?? 0),
-        status: item.status ?? "waiting",
-        reservedAt: item.reservedAt ?? item.createdAt ?? item.receptionAt ?? "",
-        updatedAt: item.updatedAt ?? ""
-      })));
-    }
-
-    async function actionRequest(url, body) {
-      return request(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+        body: params,
+        cache: "no-store",
+        credentials: "omit"
       });
+
+      let data;
+      try { data = await res.json(); }
+      catch (_) { throw new Error(`AirウェイトからJSON以外の応答（HTTP ${res.status}）`); }
+
+      if (!res.ok || !isSuccess(data)) {
+        const msg = data?.resultCode?.defaultMessage || `HTTP ${res.status}`;
+        throw new Error(`Airウェイト取得エラー：${resultCode(data) || "ERROR"} ${msg}`);
+      }
+
+      return {
+        count: Number(data?.innerDto?.count || 0),
+        rows: Array.isArray(data?.innerDto?.reservations) ? data.innerDto.reservations : []
+      };
+    }
+
+    async function fetchAll() {
+      let start = 1;
+      let total = 0;
+      const rows = [];
+      do {
+        const page = await fetchPage(start);
+        total = page.count;
+        rows.push(...page.rows);
+        start += page.rows.length;
+        if (!page.rows.length) break;
+      } while (rows.length < total && rows.length < 5000);
+      return rows;
     }
 
     return {
       kind: "live",
+      hasCredentials() { return !!credentials; },
+      getCredentials() {
+        return credentials ? { storeId: credentials.storeId || "", storeNo: credentials.storeNo || "", apiKey: "" } : null;
+      },
+      setCredentials(v) { credentials = saveCredentials(v); },
+      clearCredentials() { clearCredentials(); credentials = null; },
+
       async fetchReservations() {
-        const payload = await request(adapterConfig.reservationsEndpoint, { method: "GET" });
-        return normalizeReservations(payload);
+        const rows = await fetchAll();
+        return rows.map((row, index) => ({
+          id: `airwait-${index}-${String(row.number ?? "")}`,
+          number: String(row.number ?? "—"),
+          numericNumber: numericTicket(row.number),
+          slot: slotForNumber(row.number, config.slotRanges),
+          status: statusFor(row),
+          waitTypeId: row.waitTypeId ?? "",
+          waitTypeName: row.waitTypeName ?? "",
+          isCalling: String(row.isCalling ?? "0"),
+          orderIndex: index
+        })).filter(x => x.slot);
       },
-      async callReservation(id) {
-        return actionRequest(actions.call, { id });
+
+      // この一覧APIは reserveId/version を返さないため、既存受付への更新操作は安全に実行できない。
+      async callReservation() {
+        throw new Error("この受付一覧APIだけでは予約IDを取得できないため、呼出操作はまだ接続できません");
       },
-      async holdReservation(id) {
-        return actionRequest(actions.hold, { id });
+      async holdReservation() {
+        throw new Error("保留には予約IDとversionが必要です。現在の一覧APIからは取得できません");
       },
-      async guideReservation(id) {
-        return actionRequest(actions.guide, { id });
-      },
-      async updatePeople(id, adult, child) {
-        return actionRequest(actions.updatePeople, { id, adult, child });
+      async guideReservation() {
+        throw new Error("案内には予約IDとversionが必要です。現在の一覧APIからは取得できません");
       }
     };
   }
 
-  window.ASOBoonAirWait = {
-    create(config) {
-      return config.mode === "live" ? createLiveAdapter(config) : createDemoAdapter();
-    }
-  };
+  window.ASOBoonAirWait = { create };
 })();

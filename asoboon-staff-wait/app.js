@@ -3,68 +3,38 @@
 
   const config = window.ASOBOON_STAFF_CONFIG || {};
   const adapter = window.ASOBoonAirWait.create(config);
-  const slots = Array.isArray(config.slots) && config.slots.length ? config.slots : ["10:00", "12:30", "15:00"];
+  const slots = config.slots || ["10:00", "12:30", "15:00"];
 
   const state = {
     slot: slots.includes(config.defaultSlot) ? config.defaultSlot : slots[0],
     reservations: [],
-    busyIds: new Set(),
-    editingId: null,
-    editingAdult: 0,
-    editingChild: 0,
     toastTimer: null,
-    refreshTimer: null
+    refreshTimer: null,
+    loading: false
   };
 
+  const $ = id => document.getElementById(id);
   const el = {
-    slotTabs: document.getElementById("slotTabs"),
-    waitingCount: document.getElementById("waitingCount"),
-    callingCount: document.getElementById("callingCount"),
-    holdCount: document.getElementById("holdCount"),
-    guidedCount: document.getElementById("guidedCount"),
-    nextNumber: document.getElementById("nextNumber"),
-    nextPeople: document.getElementById("nextPeople"),
-    nextMeta: document.getElementById("nextMeta"),
-    callNextBtn: document.getElementById("callNextBtn"),
-    listTitle: document.getElementById("listTitle"),
-    reservationList: document.getElementById("reservationList"),
-    lastUpdated: document.getElementById("lastUpdated"),
-    refreshBtn: document.getElementById("refreshBtn"),
-    connectionBadge: document.getElementById("connectionBadge"),
-    modal: document.getElementById("peopleModal"),
-    modalTitle: document.getElementById("peopleModalTitle"),
-    adultCount: document.getElementById("adultCount"),
-    childCount: document.getElementById("childCount"),
-    closeModalBtn: document.getElementById("closeModalBtn"),
-    savePeopleBtn: document.getElementById("savePeopleBtn"),
-    toast: document.getElementById("toast")
+    slotTabs: $("slotTabs"), waitingCount: $("waitingCount"), callingCount: $("callingCount"), holdCount: $("holdCount"), guidedCount: $("guidedCount"),
+    nextNumber: $("nextNumber"), nextStatus: $("nextStatus"), nextMeta: $("nextMeta"), callNextBtn: $("callNextBtn"),
+    listTitle: $("listTitle"), reservationList: $("reservationList"), lastUpdated: $("lastUpdated"), refreshBtn: $("refreshBtn"),
+    connectionBadge: $("connectionBadge"), notice: $("notice"), settingsBtn: $("settingsBtn"), settingsModal: $("settingsModal"),
+    settingsForm: $("settingsForm"), closeSettingsBtn: $("closeSettingsBtn"), clearSettingsBtn: $("clearSettingsBtn"),
+    apiKeyInput: $("apiKeyInput"), storeIdInput: $("storeIdInput"), storeNoInput: $("storeNoInput"), toast: $("toast")
   };
 
   const statusLabel = {
-    waiting: "待機",
-    calling: "呼出中",
-    hold: "保留",
-    guided: "案内済"
+    waiting: "待機", calling: "呼出中", hold: "保留", guided: "案内済", processing: "対応中", cancelled: "取消", unknown: "不明"
   };
 
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  function esc(v) {
+    return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   }
 
+  // APIが受付時間の昇順で返すため、ここでは番号順に並べ替えない。
+  // WEB枠と店頭枠を混ぜた「本当の受付順」を守る。
   function currentList() {
-    return state.reservations
-      .filter(x => String(x.slot) === String(state.slot))
-      .sort((a, b) => {
-        const ta = Date.parse(a.reservedAt || "") || 0;
-        const tb = Date.parse(b.reservedAt || "") || 0;
-        if (ta !== tb) return ta - tb;
-        return Number(a.number || 0) - Number(b.number || 0);
-      });
+    return state.reservations.filter(x => x.slot === state.slot).sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
   function nextWaiting() {
@@ -72,219 +42,149 @@
   }
 
   function renderTabs() {
-    el.slotTabs.innerHTML = slots.map(slot => `
-      <button class="slot-tab ${slot === state.slot ? "active" : ""}" type="button" data-slot="${escapeHtml(slot)}">
-        ${escapeHtml(slot)}
-      </button>
-    `).join("");
+    el.slotTabs.innerHTML = slots.map(slot => `<button class="slot-tab ${slot === state.slot ? "active" : ""}" type="button" data-slot="${esc(slot)}">${esc(slot)}</button>`).join("");
   }
 
   function renderSummary(list) {
-    const count = status => list.filter(x => x.status === status).length;
-    el.waitingCount.textContent = count("waiting");
-    el.callingCount.textContent = count("calling");
-    el.holdCount.textContent = count("hold");
-    el.guidedCount.textContent = count("guided");
+    const c = s => list.filter(x => x.status === s).length;
+    el.waitingCount.textContent = c("waiting");
+    el.callingCount.textContent = c("calling");
+    el.holdCount.textContent = c("hold");
+    el.guidedCount.textContent = c("guided");
   }
 
   function renderNext() {
-    const next = nextWaiting();
-    if (!next) {
+    const row = nextWaiting();
+    if (!row) {
       el.nextNumber.textContent = "—";
-      el.nextPeople.textContent = "—";
-      el.nextMeta.textContent = "待機中の受付はありません";
+      el.nextStatus.textContent = "—";
+      el.nextMeta.textContent = adapter.hasCredentials() ? "この枠に待機中の受付はありません" : "API設定後に実データを表示します";
       el.callNextBtn.disabled = true;
       return;
     }
-    el.nextNumber.textContent = `No.${next.number}`;
-    el.nextPeople.textContent = `大${next.adult} / 子${next.child}`;
-    el.nextMeta.textContent = `予約順の先頭・${state.slot}枠`;
-    el.callNextBtn.disabled = state.busyIds.has(String(next.id));
-    el.callNextBtn.dataset.id = String(next.id);
-  }
-
-  function actionButton(action, label, id, primary) {
-    return `<button class="action-btn ${primary ? "primary" : ""}" type="button" data-action="${action}" data-id="${escapeHtml(id)}">${label}</button>`;
+    el.nextNumber.textContent = `No.${row.number}`;
+    el.nextStatus.textContent = statusLabel[row.status] || row.status;
+    el.nextMeta.textContent = `${state.slot}枠・Airウェイト受付時間順の先頭`;
+    // reserveIdが一覧APIから取得できるまでは誤操作防止で無効化。
+    el.callNextBtn.disabled = true;
   }
 
   function renderList(list) {
     el.listTitle.textContent = `${state.slot}枠`;
+    if (!adapter.hasCredentials()) {
+      el.reservationList.innerHTML = `<div class="empty-state">「API設定」から、この端末にAirウェイトの設定を登録してください。</div>`;
+      return;
+    }
     if (!list.length) {
       el.reservationList.innerHTML = `<div class="empty-state">この時間枠の受付はありません</div>`;
       return;
     }
-
-    el.reservationList.innerHTML = list.map(item => {
-      const busy = state.busyIds.has(String(item.id));
-      return `
-        <article class="reservation-row ${busy ? "busy" : ""}" data-row-id="${escapeHtml(item.id)}">
-          <div class="row-main">
-            <div class="row-top">
-              <span class="res-number">No.${escapeHtml(item.number)}</span>
-              <span class="status-chip status-${escapeHtml(item.status)}">${escapeHtml(statusLabel[item.status] || item.status)}</span>
-              <span class="people-pill">大${escapeHtml(item.adult)} / 子${escapeHtml(item.child)}</span>
-            </div>
-            <p class="row-meta">予約順 ${list.indexOf(item) + 1}番目</p>
+    el.reservationList.innerHTML = list.map((item, i) => `
+      <article class="reservation-row">
+        <div class="row-main">
+          <div class="row-top">
+            <span class="res-number">No.${esc(item.number)}</span>
+            <span class="status-chip status-${esc(item.status)}">${esc(statusLabel[item.status] || item.status)}</span>
           </div>
-          <div class="row-actions">
-            ${actionButton("call", "呼出", item.id, item.status === "waiting")}
-            ${actionButton("hold", "保留", item.id, false)}
-            ${actionButton("guide", "案内", item.id, false)}
-            ${actionButton("people", "人数", item.id, false)}
-          </div>
-        </article>
-      `;
-    }).join("");
+          <p class="row-meta">受付順 ${i + 1}番目${item.waitTypeName ? ` ・ ${esc(item.waitTypeName)}` : ""}</p>
+        </div>
+        <div class="row-actions one-col">
+          <button class="action-btn" type="button" disabled>呼出</button>
+          <button class="action-btn" type="button" disabled>保留</button>
+          <button class="action-btn" type="button" disabled>案内</button>
+        </div>
+      </article>`).join("");
   }
 
   function render() {
     const list = currentList();
-    renderTabs();
-    renderSummary(list);
-    renderNext();
-    renderList(list);
-    el.connectionBadge.textContent = adapter.kind === "live" ? "LIVE" : "DEMO";
-    el.connectionBadge.className = `badge ${adapter.kind === "live" ? "badge-live" : "badge-demo"}`;
+    renderTabs(); renderSummary(list); renderNext(); renderList(list);
+    if (adapter.hasCredentials()) {
+      el.connectionBadge.textContent = "LIVE";
+      el.connectionBadge.className = "badge badge-live";
+      el.notice.hidden = true;
+    } else {
+      el.connectionBadge.textContent = "未設定";
+      el.connectionBadge.className = "badge badge-demo";
+      el.notice.textContent = "現在はダミー番号を一切表示しません。API設定後、Airウェイトの実受付番号だけを表示します。";
+      el.notice.hidden = false;
+    }
   }
 
-  function showToast(message, isError) {
+  function toast(msg, error = false) {
     clearTimeout(state.toastTimer);
-    el.toast.textContent = message;
-    el.toast.className = `toast ${isError ? "error" : ""}`;
+    el.toast.textContent = msg;
+    el.toast.className = `toast ${error ? "error" : ""}`;
     el.toast.hidden = false;
-    state.toastTimer = setTimeout(() => { el.toast.hidden = true; }, isError ? 3800 : 1800);
+    state.toastTimer = setTimeout(() => { el.toast.hidden = true; }, error ? 4500 : 2200);
   }
 
-  function patchLocal(id, patch) {
-    const item = state.reservations.find(x => String(x.id) === String(id));
-    if (item) Object.assign(item, patch);
-  }
-
-  async function refresh(silent) {
+  async function refresh(silent = false) {
+    if (state.loading) return;
+    if (!adapter.hasCredentials()) { render(); openSettings(true); return; }
+    state.loading = true;
+    el.refreshBtn.disabled = true;
     try {
-      const data = await adapter.fetchReservations();
-      state.reservations = Array.isArray(data) ? data : [];
+      const rows = await adapter.fetchReservations();
+      state.reservations = rows;
       el.lastUpdated.textContent = `更新 ${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
       render();
-    } catch (err) {
+    } catch (e) {
       el.connectionBadge.textContent = "ERROR";
       el.connectionBadge.className = "badge badge-error";
-      if (!silent) showToast(err.message || "更新に失敗しました", true);
-    }
-  }
-
-  async function runAction(id, type) {
-    const item = state.reservations.find(x => String(x.id) === String(id));
-    if (!item || state.busyIds.has(String(id))) return;
-
-    const previous = { ...item };
-    const optimisticStatus = type === "call" ? "calling" : type === "hold" ? "hold" : type === "guide" ? "guided" : null;
-    if (optimisticStatus) patchLocal(id, { status: optimisticStatus });
-    state.busyIds.add(String(id));
-    render();
-
-    try {
-      if (type === "call") await adapter.callReservation(id);
-      if (type === "hold") await adapter.holdReservation(id);
-      if (type === "guide") await adapter.guideReservation(id);
-      showToast(type === "call" ? `No.${item.number} を呼び出しました` : type === "hold" ? `No.${item.number} を保留にしました` : `No.${item.number} を案内済みにしました`);
-      if (adapter.kind === "live") await refresh(true);
-    } catch (err) {
-      Object.assign(item, previous);
-      showToast(err.message || "操作に失敗しました", true);
+      el.notice.textContent = e.message || "Airウェイトの取得に失敗しました";
+      el.notice.hidden = false;
+      if (!silent) toast(e.message || "取得に失敗しました", true);
     } finally {
-      state.busyIds.delete(String(id));
-      render();
+      state.loading = false;
+      el.refreshBtn.disabled = false;
     }
   }
 
-  function openPeopleModal(id) {
-    const item = state.reservations.find(x => String(x.id) === String(id));
-    if (!item) return;
-    state.editingId = String(id);
-    state.editingAdult = Number(item.adult || 0);
-    state.editingChild = Number(item.child || 0);
-    el.modalTitle.textContent = `No.${item.number}`;
-    renderCounters();
-    el.modal.hidden = false;
+  function openSettings(first = false) {
+    const c = adapter.getCredentials();
+    el.apiKeyInput.value = "";
+    el.storeIdInput.value = c?.storeId || "";
+    el.storeNoInput.value = c?.storeNo || "";
+    el.settingsModal.hidden = false;
+    if (!first) setTimeout(() => el.apiKeyInput.focus(), 30);
   }
-
-  function closePeopleModal() {
-    el.modal.hidden = true;
-    state.editingId = null;
-  }
-
-  function renderCounters() {
-    el.adultCount.textContent = state.editingAdult;
-    el.childCount.textContent = state.editingChild;
-  }
-
-  async function savePeople() {
-    const id = state.editingId;
-    if (!id) return;
-    const item = state.reservations.find(x => String(x.id) === String(id));
-    if (!item) return;
-    const previous = { adult: item.adult, child: item.child };
-    patchLocal(id, { adult: state.editingAdult, child: state.editingChild });
-    closePeopleModal();
-    render();
-    try {
-      await adapter.updatePeople(id, state.editingAdult, state.editingChild);
-      showToast(`No.${item.number} の人数を変更しました`);
-      if (adapter.kind === "live") await refresh(true);
-    } catch (err) {
-      patchLocal(id, previous);
-      render();
-      showToast(err.message || "人数変更に失敗しました", true);
-    }
-  }
+  function closeSettings() { if (adapter.hasCredentials()) el.settingsModal.hidden = true; }
 
   el.slotTabs.addEventListener("click", e => {
-    const btn = e.target.closest("[data-slot]");
-    if (!btn) return;
-    state.slot = btn.dataset.slot;
+    const b = e.target.closest("[data-slot]");
+    if (!b) return;
+    state.slot = b.dataset.slot;
     render();
   });
-
-  el.callNextBtn.addEventListener("click", () => {
-    const id = el.callNextBtn.dataset.id;
-    if (id) runAction(id, "call");
-  });
-
-  el.reservationList.addEventListener("click", e => {
-    const btn = e.target.closest("[data-action]");
-    if (!btn) return;
-    const { action, id } = btn.dataset;
-    if (action === "people") openPeopleModal(id);
-    else runAction(id, action);
-  });
-
   el.refreshBtn.addEventListener("click", () => refresh(false));
-  el.closeModalBtn.addEventListener("click", closePeopleModal);
-  el.modal.addEventListener("click", e => { if (e.target === el.modal) closePeopleModal(); });
-  el.savePeopleBtn.addEventListener("click", savePeople);
-
-  document.querySelectorAll("[data-counter]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const delta = Number(btn.dataset.delta || 0);
-      if (btn.dataset.counter === "adult") state.editingAdult = Math.max(0, state.editingAdult + delta);
-      if (btn.dataset.counter === "child") state.editingChild = Math.max(0, state.editingChild + delta);
-      renderCounters();
-    });
+  el.settingsBtn.addEventListener("click", () => openSettings(false));
+  el.closeSettingsBtn.addEventListener("click", closeSettings);
+  el.settingsModal.addEventListener("click", e => { if (e.target === el.settingsModal) closeSettings(); });
+  el.settingsForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      adapter.setCredentials({ apiKey: el.apiKeyInput.value, storeId: el.storeIdInput.value, storeNo: el.storeNoInput.value });
+      el.settingsModal.hidden = true;
+      toast("API設定を保存しました");
+      await refresh(false);
+    } catch (err) { toast(err.message || "設定を保存できません", true); }
   });
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) refresh(true);
+  el.clearSettingsBtn.addEventListener("click", () => {
+    if (!confirm("この端末に保存したAirウェイトAPI設定を削除しますか？")) return;
+    adapter.clearCredentials();
+    state.reservations = [];
+    el.settingsModal.hidden = true;
+    render();
+    toast("API設定を削除しました");
   });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && adapter.hasCredentials()) refresh(true); });
 
   async function start() {
-    renderTabs();
-    await refresh(false);
-    const ms = Math.max(5000, Number(config.refreshMs || 12000));
-    state.refreshTimer = setInterval(() => {
-      if (!document.hidden && adapter.kind === "live") refresh(true);
-    }, ms);
+    render();
+    if (adapter.hasCredentials()) await refresh(false);
+    else openSettings(true);
+    state.refreshTimer = setInterval(() => { if (!document.hidden && adapter.hasCredentials()) refresh(true); }, Math.max(5000, Number(config.refreshMs || 10000)));
   }
-
   start();
 })();
