@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>ASOBooN 予約システム仮組</title>
+<style>
+:root{--navy:#0f2b46;--paper:#f7eedb;--card:#fffaf0;--line:#d8c49b;--green:#28764f;--red:#a74232;--gold:#d4aa56;--muted:#716754}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#2f291f;background:linear-gradient(180deg,#e8d7b2,#f7eedb)}
+body{padding:max(10px,env(safe-area-inset-top)) 12px calc(28px + env(safe-area-inset-bottom))}.app{width:min(100%,560px);margin:auto}.hero{padding:18px;border:3px solid var(--gold);border-radius:24px;background:linear-gradient(155deg,var(--navy),#061a2b);color:#fff8df;box-shadow:0 12px 30px rgba(39,29,16,.2)}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#b67d29;font-size:.65rem;font-weight:950}.hero h1{margin:9px 0 5px;font-size:1.55rem}.hero p{margin:0;color:#ddd4c0;font-size:.75rem;line-height:1.6}.notice{margin-top:12px;padding:11px 12px;border-radius:14px;background:#fff4cf;border:1px solid #e0c56b;color:#614d1c;font-size:.7rem;line-height:1.55;font-weight:800}.card{margin-top:12px;padding:15px;border-radius:19px;background:rgba(255,250,240,.98);border:2px solid var(--line);box-shadow:0 10px 24px rgba(50,37,19,.12)}.card h2{margin:0 0 9px;color:var(--navy);font-size:1.02rem}.sub{color:var(--muted);font-size:.68rem;line-height:1.5}.dates{display:grid;gap:8px}.date{width:100%;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px;border:2px solid #dac79f;border-radius:14px;background:#fffef8;text-align:left}.date strong{display:block;color:var(--navy);font-size:.92rem}.date small{display:block;margin-top:3px;color:var(--muted);font-size:.64rem;line-height:1.4}.date .right{text-align:right}.pill{display:inline-block;padding:4px 7px;border-radius:999px;font-size:.6rem;font-weight:950}.open{background:#dff3e6;color:#206441}.wait{background:#fff0c8;color:#7f5a12}.closed{background:#f8deda;color:#87352d}.date:disabled{opacity:.58}.date.active{border-color:#e87518;background:#fff0d8}.formrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #eadabd}.formrow:last-child{border-bottom:0}.stepper{display:flex;align-items:center;gap:8px}.stepper button{width:36px;height:36px;border:0;border-radius:50%;background:#173b58;color:white;font-size:1.15rem;font-weight:950}.stepper output{min-width:24px;text-align:center;font-weight:1000}.summary{margin-top:10px;padding:11px;border-radius:13px;background:#f3ead7;font-size:.72rem;line-height:1.55}.btn{width:100%;min-height:52px;margin-top:11px;border:0;border-radius:14px;font-weight:950}.primary{color:white;background:linear-gradient(180deg,#f5a34d,#e87518);box-shadow:0 5px 0 #ad530f}.primary:disabled{opacity:.45;box-shadow:none}.secondary{color:white;background:linear-gradient(180deg,#315069,#102e49)}.success{display:none;margin-top:12px;padding:16px;border:3px solid #80b795;border-radius:19px;background:#e7f6ec;text-align:center}.success.show{display:block}.success .id{margin:8px 0;color:var(--navy);font-size:1.35rem;font-weight:1000;letter-spacing:.05em}.status{margin-top:8px;font-size:.68rem;color:#4a6456;line-height:1.55}.footer{margin-top:15px;text-align:center;font-size:.6rem;color:#766b59}.footer a{color:#5d4b2d}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <span class="badge">PROTOTYPE / 本番予約ではありません</span>
+    <h1>ASOBooN 予約</h1>
+    <p>毎日19:00に7日先の予約日を開放する仮組です。休館日・団体利用・特別営業日の設定は管理画面から変更できます。</p>
+  </header>
+
+  <div class="notice">⚠️ このページは動作確認用です。予約データはこの端末のブラウザ内だけに保存され、Airウェイトには送信しません。</div>
+
+  <section class="card">
+    <h2>1. 利用日を選ぶ</h2>
+    <div class="sub">明日〜7日先を表示。7日先は、その日の7日前19:00になると選べます。</div>
+    <div id="dates" class="dates" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card" id="peopleCard">
+    <h2>2. 人数</h2>
+    <div class="formrow"><div><strong>おとな</strong><div class="sub">1名以上</div></div><div class="stepper"><button data-k="adults" data-d="-1">−</button><output id="adults">1</output><button data-k="adults" data-d="1">＋</button></div></div>
+    <div class="formrow"><div><strong>子ども</strong><div class="sub">0〜小学6年生</div></div><div class="stepper"><button data-k="children" data-d="-1">−</button><output id="children">1</output><button data-k="children" data-d="1">＋</button></div></div>
+    <div id="summary" class="summary"></div>
+    <button id="reserveBtn" class="btn primary" disabled>この内容で仮予約する</button>
+  </section>
+
+  <section id="success" class="success">
+    <strong>仮予約を保存しました</strong>
+    <div id="resId" class="id"></div>
+    <div id="resText" class="status"></div>
+    <button id="againBtn" class="btn secondary">別の日を確認する</button>
+  </section>
+
+  <div class="footer"><a href="./reservation-admin-prototype.html">管理設定の仮画面を開く</a></div>
+</main>
+<script>
+(()=>{'use strict';
+const CONFIG_KEY='asoboon_reservation_proto_config_v1';
+const RES_KEY='asoboon_reservation_proto_reservations_v1';
+const DEFAULT_CONFIG={defaultCapacity:500,days:{}};
+const state={date:null,adults:1,children:1};
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const jp=d=>`${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）`;
+const loadConfig=()=>{try{return {...DEFAULT_CONFIG,...JSON.parse(localStorage.getItem(CONFIG_KEY)||'{}')}}catch{return structuredClone(DEFAULT_CONFIG)}};
+const loadReservations=()=>{try{return JSON.parse(localStorage.getItem(RES_KEY)||'[]')}catch{return[]}};
+const saveReservations=x=>localStorage.setItem(RES_KEY,JSON.stringify(x));
+function openingAt(date){const d=new Date(date);d.setDate(d.getDate()-7);d.setHours(19,0,0,0);return d}
+function dayConfig(key){const c=loadConfig();return {capacity:Number(c.defaultCapacity||0),closed:false,groupHold:0,note:'',...(c.days?.[key]||{})}}
+function bookedPeople(key){return loadReservations().filter(r=>r.visitDate===key&&r.status==='RESERVED').reduce((s,r)=>s+Number(r.total||0),0)}
+function remaining(key){const d=dayConfig(key);return Math.max(0,Number(d.capacity||0)-Number(d.groupHold||0)-bookedPeople(key))}
+function renderDates(){const now=new Date(),wrap=$('dates');wrap.innerHTML='';for(let i=1;i<=7;i++){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()+i);const key=ymd(d),cfg=dayConfig(key),open=now>=openingAt(d),left=remaining(key),sold=left<=0;const b=document.createElement('button');b.className='date'+(state.date===key?' active':'');b.type='button';b.disabled=!open||cfg.closed||sold;b.innerHTML=`<span><strong>${jp(d)}</strong><small>${cfg.note||'通常営業'}</small></span><span class="right"><span class="pill ${cfg.closed?'closed':open?'open':'wait'}">${cfg.closed?'休館':open?(sold?'満員':'予約可'):'まだ'}</span><small>${open&&!cfg.closed?`残り ${left}人`:`${pad(openingAt(d).getMonth()+1)}/${pad(openingAt(d).getDate())} 19:00開放`}</small></span>`;b.addEventListener('click',()=>{state.date=key;renderDates();renderSummary()});wrap.appendChild(b)}}
+function renderSummary(){const total=state.adults+state.children;const valid=state.adults>=1&&state.children<=state.adults*3&&total<=10;const left=state.date?remaining(state.date):0;$('adults').textContent=state.adults;$('children').textContent=state.children;$('summary').innerHTML=`利用日：<strong>${state.date||'未選択'}</strong><br>合計：<strong>${total}名</strong>${state.children>state.adults*3?'<br><span style="color:#a74232">大人1名につき子ども3名までです。</span>':''}${total>10?'<br><span style="color:#a74232">1予約10名までです。</span>':''}${state.date&&left<total?'<br><span style="color:#a74232">残り人数が足りません。</span>':''}`;$('reserveBtn').disabled=!(state.date&&valid&&left>=total)}
+document.querySelectorAll('.stepper button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k,d=Number(b.dataset.d);state[k]=Math.max(k==='adults'?1:0,state[k]+d);renderSummary()}));
+$('reserveBtn').addEventListener('click',()=>{const total=state.adults+state.children;if(!state.date||remaining(state.date)<total)return alert('残り枠を確認してください。');const id='ASB-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();const token=crypto.getRandomValues(new Uint32Array(4)).join('-');const rows=loadReservations();rows.push({id,token,visitDate:state.date,adults:state.adults,children:state.children,total,status:'RESERVED',createdAt:new Date().toISOString()});saveReservations(rows);$('resId').textContent=id;$('resText').textContent=`${state.date} / ${total}名。\n本番ではこの予約IDと本人認証をサーバーで検証してからチェックインを許可します。`;$('success').classList.add('show');renderDates();renderSummary();window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})});
+$('againBtn').addEventListener('click',()=>{state.date=null;$('success').classList.remove('show');renderDates();renderSummary();window.scrollTo({top:0,behavior:'smooth'})});
+renderDates();renderSummary();
+})();
+</script>
+</body></html>
