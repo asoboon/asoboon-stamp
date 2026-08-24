@@ -3,10 +3,10 @@
 
   const config = window.ASOBOON_STAFF_CONFIG || {};
   const adapter = window.ASOBoonAirWait.create(config);
-  const slots = config.slots || ["10:00", "12:30", "15:00"];
 
   const state = {
-    slot: slots.includes(config.defaultSlot) ? config.defaultSlot : slots[0],
+    slotKey: "",
+    slots: [],
     reservations: [],
     toastTimer: null,
     refreshTimer: null,
@@ -31,10 +31,12 @@
     return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   }
 
-  // APIが受付時間の昇順で返すため、ここでは番号順に並べ替えない。
-  // WEB枠と店頭枠を混ぜた「本当の受付順」を守る。
+  function currentSlot() {
+    return state.slots.find(x => x.key === state.slotKey) || state.slots[0] || null;
+  }
+
   function currentList() {
-    return state.reservations.filter(x => x.slot === state.slot).sort((a, b) => a.orderIndex - b.orderIndex);
+    return state.reservations.filter(x => x.slotKey === state.slotKey).sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
   function nextWaiting() {
@@ -42,7 +44,14 @@
   }
 
   function renderTabs() {
-    el.slotTabs.innerHTML = slots.map(slot => `<button class="slot-tab ${slot === state.slot ? "active" : ""}" type="button" data-slot="${esc(slot)}">${esc(slot)}</button>`).join("");
+    if (!state.slots.length) {
+      el.slotTabs.innerHTML = `<div class="empty-tabs">現在ONの入場枠がありません</div>`;
+      return;
+    }
+    el.slotTabs.innerHTML = state.slots.map(slot => {
+      const count = state.reservations.filter(x => x.slotKey === slot.key && ["waiting", "calling", "hold", "processing"].includes(x.status)).length;
+      return `<button class="slot-tab ${slot.key === state.slotKey ? "active" : ""}" type="button" data-slot="${esc(slot.key)}"><span>${esc(slot.label)}</span><small>${count}組</small></button>`;
+    }).join("");
   }
 
   function renderSummary(list) {
@@ -54,29 +63,41 @@
   }
 
   function renderNext() {
+    const slot = currentSlot();
     const row = nextWaiting();
+    if (!slot) {
+      el.nextNumber.textContent = "—";
+      el.nextStatus.textContent = "—";
+      el.nextMeta.textContent = adapter.hasCredentials() ? "現在ONの入場枠がありません" : "API設定後に実データを表示します";
+      el.callNextBtn.disabled = true;
+      return;
+    }
     if (!row) {
       el.nextNumber.textContent = "—";
       el.nextStatus.textContent = "—";
-      el.nextMeta.textContent = adapter.hasCredentials() ? "この枠に待機中の受付はありません" : "API設定後に実データを表示します";
+      el.nextMeta.textContent = `${slot.label}枠に待機中の受付はありません`;
       el.callNextBtn.disabled = true;
       return;
     }
     el.nextNumber.textContent = `No.${row.number}`;
     el.nextStatus.textContent = statusLabel[row.status] || row.status;
-    el.nextMeta.textContent = `${state.slot}枠・Airウェイト受付時間順の先頭`;
-    // reserveIdが一覧APIから取得できるまでは誤操作防止で無効化。
+    el.nextMeta.textContent = `${slot.label}枠・Airウェイト受付時間順の先頭`;
     el.callNextBtn.disabled = true;
   }
 
   function renderList(list) {
-    el.listTitle.textContent = `${state.slot}枠`;
+    const slot = currentSlot();
+    el.listTitle.textContent = slot ? `${slot.label}枠` : "入場枠";
     if (!adapter.hasCredentials()) {
       el.reservationList.innerHTML = `<div class="empty-state">「API設定」から、この端末にAirウェイトの設定を登録してください。</div>`;
       return;
     }
+    if (!slot) {
+      el.reservationList.innerHTML = `<div class="empty-state">AirウェイトでONになっている時間指定の入場枠がありません。</div>`;
+      return;
+    }
     if (!list.length) {
-      el.reservationList.innerHTML = `<div class="empty-state">この時間枠の受付はありません</div>`;
+      el.reservationList.innerHTML = `<div class="empty-state">この入場枠の受付はありません</div>`;
       return;
     }
     el.reservationList.innerHTML = list.map((item, i) => `
@@ -97,6 +118,7 @@
   }
 
   function render() {
+    if (state.slots.length && !state.slots.some(x => x.key === state.slotKey)) state.slotKey = state.slots[0].key;
     const list = currentList();
     renderTabs(); renderSummary(list); renderNext(); renderList(list);
     if (adapter.hasCredentials()) {
@@ -106,7 +128,7 @@
     } else {
       el.connectionBadge.textContent = "未設定";
       el.connectionBadge.className = "badge badge-demo";
-      el.notice.textContent = "ダミー番号や番号帯からの生成は一切しません。APIが返した実受付番号だけを表示します。";
+      el.notice.textContent = "Airウェイトで現在ONの入場枠を自動取得します。固定の時間枠は使用しません。";
       el.notice.hidden = false;
     }
   }
@@ -125,8 +147,10 @@
     state.loading = true;
     el.refreshBtn.disabled = true;
     try {
-      const rows = await adapter.fetchReservations();
-      state.reservations = rows;
+      const data = await adapter.fetchDashboard();
+      state.slots = data.slots || [];
+      state.reservations = data.reservations || [];
+      if (!state.slotKey || !state.slots.some(x => x.key === state.slotKey)) state.slotKey = state.slots[0]?.key || "";
       el.lastUpdated.textContent = `更新 ${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
       render();
     } catch (e) {
@@ -154,7 +178,7 @@
   el.slotTabs.addEventListener("click", e => {
     const b = e.target.closest("[data-slot]");
     if (!b) return;
-    state.slot = b.dataset.slot;
+    state.slotKey = b.dataset.slot;
     render();
   });
   el.refreshBtn.addEventListener("click", () => refresh(false));
@@ -173,7 +197,9 @@
   el.clearSettingsBtn.addEventListener("click", () => {
     if (!confirm("この端末に保存したAirウェイトAPI設定を削除しますか？")) return;
     adapter.clearCredentials();
+    state.slots = [];
     state.reservations = [];
+    state.slotKey = "";
     el.settingsModal.hidden = true;
     render();
     toast("API設定を削除しました");

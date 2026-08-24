@@ -1,30 +1,34 @@
-/** ASOBooN STAFF WAIT v0.3
- * 受付番号帯では分類しない。
- * Airウェイト reservations[].number をそのまま表示し、
- * waitTypeName で 10:00 / 12:30 / 15:00 にまとめる。
+/**
+ * ASOBooN STAFF WAIT v0.4
+ *
+ * 入場枠は固定しない。
+ * Airウェイト「外部向け待ち項目取得API」の dispFlg=true を正本にして、
+ * その日に有効な入場回を自動生成する。
  */
 window.ASOBOON_STAFF_CONFIG = {
   mode: "live",
-  version: "0.3",
-  slots: ["10:00", "12:30", "15:00"],
-  defaultSlot: "10:00",
+  version: "0.4",
   refreshMs: 10000,
+
+  waitTypesEndpoint: "https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get",
   reservationsEndpoint: "https://cl.airwait.jp/WCLP/api/external/stateless/reservations",
 
-  // 2026-08-21 に共有された Airウェイト「待ち項目・待ち時間」画面の名称を正本にする。
-  // 数字の範囲ではなく、待ち項目名で各入場回へまとめる。
-  slotWaitTypeNames: {
-    "10:00": [
-      "10時25分頃入場【土休日特定日】",
-      "10時ご入場枠【WEB整理券】"
-    ],
-    "12:30": [
-      "12時50分頃入場【土休日特定日】",
-      "12時半ご入場枠【WEB整理券】"
-    ],
-    "15:00": [
-      "15時15分頃入場時間【土休日特定日】",
-      "15時ご入場枠【WEB整理券】"
-    ]
-  }
+  /**
+   * 入場回として扱う待ち項目の判定。
+   * - 時刻を含む有効項目は対象
+   * - 「すぐ入場」のように時刻がない入場受付も対象
+   * - オレンジパス、ご待機者専用などは時間枠タブから除外
+   */
+  includeUntimedNamePatterns: ["すぐ入場"],
+  excludeNamePatterns: ["オレンジパス", "ご待機者専用"],
+
+  /**
+   * 店頭枠の時刻がWEB枠より後ろに設定されている場合、同じ回として束ねる最大差。
+   * 例:
+   * 10:00 WEB + 10:15 店頭 -> 10:00
+   * 13:30 WEB + 13:45 店頭 -> 13:30
+   * 12:30 WEB + 12:50 店頭 -> 12:30
+   * 10:00 WEB + 10:25 店頭 -> 10:00
+   */
+  mergeStoreAfterWebMinutes: 30
 };

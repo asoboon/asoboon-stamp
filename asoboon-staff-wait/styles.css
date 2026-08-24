@@ -298,3 +298,25 @@ h2 { font-size: 24px; letter-spacing: -.02em; }
   .reservation-row { grid-template-columns: 1fr; }
   .row-actions.one-col { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* v0.4: active slots are dynamic (2枠 / 3枠 / それ以上に対応) */
+.slot-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+.slot-tab {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+}
+.slot-tab span { font: inherit; }
+.slot-tab small { font-size: 11px; font-weight: 800; opacity: .72; }
+.slot-tab.active small { opacity: .9; }
+.empty-tabs {
+  grid-column: 1 / -1;
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 800;
+}

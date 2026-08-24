@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
-  <title>ASOBooN STAFF WAIT v0.3</title>
+  <title>ASOBooN STAFF WAIT v0.4</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -23,7 +23,7 @@
 
     <div id="notice" class="notice" hidden></div>
 
-    <nav id="slotTabs" class="slot-tabs" aria-label="入場枠"></nav>
+    <nav id="slotTabs" class="slot-tabs" aria-label="本日有効な入場枠"></nav>
 
     <main>
       <section class="summary-grid" aria-label="状況">
@@ -43,14 +43,14 @@
         </div>
         <p id="nextMeta" class="muted">受付情報を読み込んでいます</p>
         <button id="callNextBtn" class="primary-call" type="button" disabled>🔔 呼び出す</button>
-        <p class="action-note">※ 受付番号はAirウェイトAPIの値をそのまま表示。番号帯による生成・変換はしません。</p>
+        <p class="action-note">※ 入場枠はAirウェイトで現在ONの待ち項目から自動取得します。受付番号はAPI実値をそのまま表示します。</p>
       </section>
 
       <section class="list-section">
         <div class="list-heading">
           <div>
             <p class="section-kicker">受付一覧</p>
-            <h2 id="listTitle">10:00枠</h2>
+            <h2 id="listTitle">入場枠</h2>
           </div>
           <p id="lastUpdated" class="muted small">未更新</p>
         </div>
@@ -68,11 +68,10 @@
         </div>
         <button id="closeSettingsBtn" class="icon-btn" type="button">閉じる</button>
       </div>
-      <p class="settings-help">GitHubにはAPIキーを保存しません。この端末のブラウザ内だけに保存します。</p>
+      <p class="settings-help">GitHubにはAPIキーを保存しません。この端末のブラウザ内だけに保存します。<br><strong>本日ONの枠を自動取得するため、店舗ID（KR〜）が必要です。</strong></p>
       <label class="field-label">APIキー<input id="apiKeyInput" class="field-input" type="password" autocomplete="off" required /></label>
-      <label class="field-label">店舗ID（KR〜）<input id="storeIdInput" class="field-input" type="text" autocomplete="off" /></label>
-      <div class="or">または</div>
-      <label class="field-label">店舗NO（AKR〜）<input id="storeNoInput" class="field-input" type="text" autocomplete="off" /></label>
+      <label class="field-label">店舗ID（KR〜）<input id="storeIdInput" class="field-input" type="text" autocomplete="off" required /></label>
+      <input id="storeNoInput" type="hidden" />
       <button class="primary-call" type="submit">保存して実データを取得</button>
       <button id="clearSettingsBtn" class="secondary-wide" type="button">この端末のAPI設定を削除</button>
     </form>
