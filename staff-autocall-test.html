@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>ASOBooN STAFF｜自動呼出テスト</title>
+<style>
+:root{--bg:#0a1720;--panel:#112b36;--panel2:#0d222c;--line:#36505c;--ink:#f6f2e8;--muted:#a9bcc5;--green:#5fd48a;--orange:#f0b14d;--red:#ef7b70;--blue:#6fc2f4}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#08131a,#102833 58%,#08131a);color:var(--ink)}body{padding:14px 12px 40px}button,input{font:inherit}.app{width:min(100%,920px);margin:auto}.hero,.card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,#173743,#102832);box-shadow:0 14px 32px rgba(0,0,0,.18)}.hero{padding:18px}.hero small{color:#d7b76d;font-weight:1000;letter-spacing:.08em}.hero h1{margin:5px 0 0;font-size:clamp(1.6rem,5vw,2.5rem)}.hero p{margin:8px 0 0;color:#bfd0d7;font-size:.78rem;line-height:1.55;font-weight:700}.card{margin-top:11px;padding:14px}.card h2{margin:0;font-size:1rem}.sub{margin-top:5px;color:var(--muted);font-size:.68rem;line-height:1.5}.cfg{display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px;margin-top:10px}.cfg input{min-width:0;height:48px;border:1px solid #48636e;border-radius:12px;background:#06151b;color:#fff;padding:0 11px}.btn{min-height:48px;border:1px solid #5a737d;border-radius:12px;color:#fff;background:#213d49;font-weight:1000;cursor:pointer;padding:0 14px}.btn.primary{background:linear-gradient(180deg,#4c7b61,#315e48);border-color:#82ab91}.btn.call{background:linear-gradient(180deg,#d89232,#9b5b13);border-color:#e0ae63}.btn.danger{background:linear-gradient(180deg,#8c4e3e,#673329)}.btn:disabled{opacity:.4;cursor:not-allowed}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.stat{padding:10px;border-radius:13px;background:#091d26;border:1px solid #2f4a55;text-align:center}.stat small{display:block;color:#91aab4;font-size:.61rem;font-weight:900}.stat strong{display:block;margin-top:5px;font-size:1.15rem}.ok{color:var(--green)}.warn{color:var(--orange)}.bad{color:var(--red)}.blue{color:var(--blue)}.slot{margin-top:10px;border:1px solid #36515d;border-radius:15px;overflow:hidden;background:#0a2029}.slothead{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 12px;background:#12303b}.slothead strong{font-size:.82rem}.slothead span{color:#9fb7c1;font-size:.63rem}.rows{display:grid}.row{display:grid;grid-template-columns:90px minmax(0,1fr) 100px 125px;gap:8px;align-items:center;padding:10px 11px;border-top:1px solid rgba(73,101,113,.35)}.num{font-size:1.05rem;font-weight:1000}.meta{min-width:0;color:#b9cad1;font-size:.67rem;line-height:1.45}.badge{justify-self:start;padding:4px 8px;border-radius:999px;font-size:.61rem;font-weight:1000}.waiting{background:#26313a;color:#d7e0e5}.calling{background:#153724;color:#75db9e}.unknown{background:#3a2f18;color:#e9c56e}.log{margin-top:9px;max-height:260px;overflow:auto;border-radius:12px;background:#06151b;border:1px solid #2e4852;padding:10px;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#d1e0e6;white-space:pre-wrap}.notice{margin-top:9px;padding:10px;border-left:4px solid #d2a653;border-radius:9px;background:#282216;color:#e7d8b0;font-size:.68rem;line-height:1.5}.autoBox{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin-top:10px;padding:11px;border:1px solid #425d68;border-radius:13px;background:#0a1c24}.autoState{font-weight:1000}.autoSub{margin-top:3px;color:#9fb4bd;font-size:.64rem}.empty{padding:13px;color:#9eb2bb;font-size:.72rem}@media(max-width:700px){.cfg{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.row{grid-template-columns:72px minmax(0,1fr);}.row .badge,.row .action{grid-column:2}.btn{width:100%}.autoBox{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <small>STAFF / AUTOCALL PROOF</small>
+    <h1>自動呼出 テスト</h1>
+    <p>Airウェイトの標準自動呼出はOFFのまま。このページから reserve/call を実行できるかを確認します。アクティブな受付枠は全部表示します。</p>
+  </header>
+
+  <section class="card">
+    <h2>接続設定</h2>
+    <div class="sub">予約テストページと同じ端末なら設定・reserveIdを共有できます。APIキーは端末内のみ保存します。</div>
+    <div class="cfg"><input id="apiKey" type="password" placeholder="APIキー"><input id="storeId" type="text" placeholder="店舗ID"><button id="saveBtn" class="btn primary" type="button">保存・更新</button></div>
+    <div class="stats">
+      <div class="stat"><small>Airウェイト</small><strong id="airState">未接続</strong></div>
+      <div class="stat"><small>アクティブ枠</small><strong id="slotCount">--</strong></div>
+      <div class="stat"><small>受付件数</small><strong id="rowCount">--</strong></div>
+      <div class="stat"><small>呼出可能ID</small><strong id="knownCount">0</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>自動呼出テスト</h2>
+    <div class="sub">初期状態は必ずOFF。ONにすると、同じ端末で作った「reserveIdが分かる未呼出受付」だけを自動で1件呼びます。</div>
+    <div class="autoBox"><div><div class="autoState" id="autoState">AUTO OFF</div><div class="autoSub">本番の連続呼出ロジックは、1件テスト成功後に追加します。</div></div><button id="autoOn" class="btn call" type="button">AUTOテスト ON</button><button id="autoOff" class="btn danger" type="button">停止</button></div>
+    <div class="notice">⚠️ AUTO ONは実際にAirウェイトへ呼出を送ります。テスト受付がある時だけ使ってください。ページ再読込ではAUTOは必ずOFFに戻ります。</div>
+  </section>
+
+  <section class="card">
+    <h2>アクティブ枠・現在受付</h2>
+    <div class="sub">Airウェイトで dispFlg=true の待ち項目を全部出します。reserveIdが分かる受付だけ呼出ボタンが有効になります。</div>
+    <div id="list"><div class="empty">設定を保存すると取得します。</div></div>
+  </section>
+
+  <section class="card"><h2>ログ</h2><div id="log" class="log">待機中</div></section>
+</main>
+<script>
+(()=>{'use strict';
+const CFG_KEY='asoboon_autocall_airwait_cfg_v1';
+const REC_KEY='asoboon_autocall_test_reservation_v1';
+const WAIT_URL='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
+const RES_URL='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
+const CALL_URL_V='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/call';
+const CALL_URL='https://cl.airwait.jp/WCLP/api/external/stateless/reserve/call';
+const $=id=>document.getElementById(id);
+const S={key:'',storeId:'',slots:[],rows:[],auto:false,busy:false,timer:0,logs:[]};
+function apiOK(d){return d?.success===true||String(d?.resultCode?.code)==='0000'}
+function log(s){S.logs.unshift(`${new Date().toLocaleTimeString('ja-JP',{hour12:false})} ${s}`);S.logs=S.logs.slice(0,100);$('log').textContent=S.logs.join('\n')}
+function loadCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'{}')}catch{return{}}}
+function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify({key:S.key,storeId:S.storeId}))}
+function testRec(){try{return JSON.parse(localStorage.getItem(REC_KEY)||'null')}catch{return null}}
+async function post(url,params){const r=await fetch(`${url}?key=${encodeURIComponent(S.key)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams(params),cache:'no-store',credentials:'omit'});let d;try{d=await r.json()}catch{throw new Error(`JSON取得失敗 HTTP ${r.status}`)}if(!r.ok||!apiOK(d))throw new Error(d?.resultCode?.defaultMessage||`HTTP ${r.status}`);return d}
+async function loadWaitTypes(){const d=await post(WAIT_URL,{storeId:S.storeId});const raw=d?.innerDto?.waitTypes||d?.innerDto?.waitTypeList||d?.innerDto||[];const arr=Array.isArray(raw)?raw:(Array.isArray(raw?.waitTypes)?raw.waitTypes:[]);return arr.filter(x=>x&&x.dispFlg===true)}
+async function loadResPage(start){const d=await post(RES_URL,{storeId:S.storeId,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'});return{count:Number(d?.innerDto?.count||0),rows:Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[]}}
+async function loadAllRows(){const f=await loadResPage(1),a=[...f.rows];let s=101,guard=0;while(a.length<f.count&&guard++<20){const p=await loadResPage(s);if(!p.rows.length)break;a.push(...p.rows);s+=100}return a}
+function rowKey(r){return `${String(r?.waitTypeId??'')}|${String(r?.number??'').trim().toUpperCase()}`}
+function knownReserveId(r){const t=testRec();if(!t)return'';return String(t.waitTypeId)===String(r.waitTypeId)&&String(t.receiptNo).trim().toUpperCase()===String(r.number).trim().toUpperCase()?String(t.reserveId||''):''}
+async function refresh(){if(!S.key||!S.storeId)return;try{$('airState').textContent='取得中';$('airState').className='warn';const [slots,rows]=await Promise.all([loadWaitTypes(),loadAllRows()]);S.slots=slots;S.rows=rows;$('airState').textContent='接続OK';$('airState').className='ok';$('slotCount').textContent=`${slots.length}枠`;$('rowCount').textContent=`${rows.length}件`;$('knownCount').textContent=String(rows.filter(r=>knownReserveId(r)).length);render();log(`更新OK: active=${slots.length}, rows=${rows.length}`)}catch(e){$('airState').textContent='エラー';$('airState').className='bad';log(`更新失敗: ${e.message}`)}}
+function statusOf(r){if(String(r?.isCalling)==='1')return['呼出中','calling'];return['未呼出','waiting']}
+function render(){const wrap=$('list');wrap.innerHTML='';if(!S.slots.length){wrap.innerHTML='<div class="empty">アクティブな受付枠はありません。</div>';return}const slotMap=new Map(S.slots.map(x=>[String(x.waitTypeId),x]));S.slots.forEach(slot=>{const rows=S.rows.filter(r=>String(r.waitTypeId)===String(slot.waitTypeId));const sec=document.createElement('section');sec.className='slot';const head=document.createElement('div');head.className='slothead';head.innerHTML=`<strong>${esc(String(slot.waitTypeName||'名称なし'))}</strong><span>${rows.length}件 / waitTypeId ${esc(String(slot.waitTypeId||''))}</span>`;sec.appendChild(head);const body=document.createElement('div');body.className='rows';if(!rows.length){body.innerHTML='<div class="empty">現在の受付はありません。</div>'}else rows.forEach(r=>{const id=knownReserveId(r);const [st,cls]=statusOf(r);const row=document.createElement('div');row.className='row';row.innerHTML=`<div class="num">${esc(String(r.number??'--'))}</div><div class="meta">${esc(String(r.waitTypeName||slot.waitTypeName||''))}<br>${id?'reserveId連携済み':'reserveId未取得'}</div><span class="badge ${cls}">${st}</span><div class="action"></div>`;const act=row.querySelector('.action');const b=document.createElement('button');b.className='btn call';b.type='button';b.textContent=id?(String(r.isCalling)==='1'?'呼出済み':'🔔 呼出テスト'):'IDなし';b.disabled=!id||String(r.isCalling)==='1'||S.busy;b.addEventListener('click',()=>manualCall(r,id));act.appendChild(b);body.appendChild(row)});sec.appendChild(body);wrap.appendChild(sec)});const unknown=S.rows.filter(r=>!slotMap.has(String(r.waitTypeId)));if(unknown.length){const sec=document.createElement('section');sec.className='slot';sec.innerHTML=`<div class="slothead"><strong>非アクティブ枠の受付</strong><span>${unknown.length}件</span></div><div class="empty">現在のwait/type/getでは非アクティブのため、詳細表示を省略しています。</div>`;wrap.appendChild(sec)}}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function callReserve(reserveId){let lastErr=null;for(const u of [CALL_URL_V,CALL_URL]){try{return await post(u,{storeId:S.storeId,reserveId:String(reserveId),callingMethodType:'KeyNORMAL'})}catch(e){lastErr=e;log(`呼出API試行失敗: ${u.includes('20160600')?'versioned':'plain'} / ${e.message}`)}}throw lastErr||new Error('呼出API失敗')}
+async function manualCall(r,id){if(!id)return;if(!confirm(`受付番号 ${r.number} を実際に呼び出します。よろしいですか？`))return;await executeCall(r,id,'手動')}
+async function executeCall(r,id,source){if(S.busy)return;S.busy=true;render();try{log(`${source}呼出開始: No.${r.number}`);const d=await callReserve(id);const callDate=d?.innerDto?.callDate||'';log(`${source}呼出成功: No.${r.number}${callDate?` / ${callDate}`:''}`);await new Promise(x=>setTimeout(x,900));await refresh()}catch(e){log(`${source}呼出失敗: No.${r.number} / ${e.message}`)}finally{S.busy=false;render()}}
+async function autoTick(){if(!S.auto||S.busy)return;const target=S.rows.find(r=>knownReserveId(r)&&String(r.isCalling)!=='1');if(!target)return;const id=knownReserveId(target);await executeCall(target,id,'AUTO');S.auto=false;updateAuto();log('AUTOテストは1件呼出後、自動でOFFにしました')}
+function updateAuto(){$('autoState').textContent=S.auto?'AUTO ON（1件だけ）':'AUTO OFF';$('autoState').className='autoState '+(S.auto?'ok':'');}
+$('saveBtn').addEventListener('click',()=>{S.key=$('apiKey').value.trim();S.storeId=$('storeId').value.trim();if(!S.key||!S.storeId)return log('APIキーと店舗IDを入力してください');saveCfg();refresh()});
+$('autoOn').addEventListener('click',()=>{const known=S.rows.filter(r=>knownReserveId(r)&&String(r.isCalling)!=='1');if(!known.length)return alert('reserveId連携済みの未呼出テスト受付がありません。同じ端末で予約テストを1件作ってください。');if(!confirm(`AUTOテストをONにします。未呼出のテスト受付1件を実際に呼び出します。\n対象候補: ${known[0].number}番\nよろしいですか？`))return;S.auto=true;updateAuto();autoTick()});
+$('autoOff').addEventListener('click',()=>{S.auto=false;updateAuto();log('AUTO停止')});
+const c=loadCfg();S.key=String(c.key||'');S.storeId=String(c.storeId||'');$('apiKey').value=S.key;$('storeId').value=S.storeId;updateAuto();if(S.key&&S.storeId)refresh();S.timer=setInterval(()=>{if(S.key&&S.storeId)refresh().then(()=>autoTick())},5000);
+window.addEventListener('beforeunload',()=>clearInterval(S.timer));
+})();
+</script>
+</body></html>

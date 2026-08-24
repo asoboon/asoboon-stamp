@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>ASOBooN｜自動呼出 予約テスト</title>
+<style>
+:root{--navy:#0f2b46;--navy2:#071b2d;--paper:#f8efde;--card:#fffaf1;--line:#d8c49b;--orange:#e87518;--orange2:#f6a246;--green:#27784f;--red:#a74232;--muted:#746957}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#30291f;background:linear-gradient(180deg,#e8d7b2,#f8efde)}body{padding:12px 12px 40px}button,input{font:inherit}.app{width:min(100%,560px);margin:auto}.hero{padding:18px;border-radius:24px;border:3px solid #c79a42;background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff8df}.hero small{font-weight:950;color:#f0ca77}.hero h1{margin:7px 0 5px;font-size:1.55rem}.hero p{margin:0;color:#ddd4c0;font-size:.76rem;line-height:1.55}.card{margin-top:12px;padding:15px;border:2px solid var(--line);border-radius:19px;background:var(--card);box-shadow:0 10px 26px rgba(50,37,19,.12)}.card h2{margin:0 0 9px;color:var(--navy);font-size:1rem}.sub{color:var(--muted);font-size:.68rem;line-height:1.5}.cfg{display:grid;gap:8px;margin-top:10px}.cfg label{font-size:.66rem;font-weight:900;color:#6b5d48}.cfg input{width:100%;min-height:46px;margin-top:4px;padding:0 11px;border:1px solid #cdb98f;border-radius:12px;background:#fff}.btn{width:100%;min-height:50px;margin-top:10px;border:0;border-radius:13px;font-weight:950;cursor:pointer}.primary{color:#fff;background:linear-gradient(180deg,var(--orange2),var(--orange));box-shadow:0 4px 0 #ac530f}.secondary{color:#fff;background:linear-gradient(180deg,#315069,#102e49)}.btn:disabled{opacity:.45;box-shadow:none}.msg{margin-top:10px;padding:10px 11px;border-radius:12px;background:#edf5ff;color:#315a78;font-size:.7rem;line-height:1.5}.msg.ok{background:#e8f6ed;color:#245f3d}.msg.bad{background:#fff0ed;color:#85362e}.slots{display:grid;gap:8px}.slot{width:100%;padding:12px;border:2px solid #d8c59f;border-radius:14px;background:#fffef8;text-align:left}.slot strong{display:block;color:var(--navy);font-size:.88rem}.slot small{display:block;margin-top:4px;color:var(--muted);font-size:.64rem}.slot.active{border-color:var(--orange);background:#fff0d8}.people{display:grid;grid-template-columns:1fr 1fr;gap:9px}.person{padding:12px;border:1px solid #dfcfad;border-radius:14px;background:#fff}.person strong{display:block;color:var(--navy);font-size:.78rem}.stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}.stepper button{width:38px;height:38px;border:0;border-radius:50%;background:#173b58;color:#fff;font-size:1.15rem;font-weight:950}.stepper output{min-width:26px;text-align:center;font-size:1.2rem;font-weight:1000}.success{margin-top:12px;padding:16px;border:3px solid #7fb28e;border-radius:18px;background:#e9f7ed;text-align:center}.ticket{margin:8px 0;color:var(--navy);font-size:2.7rem;font-weight:1000}.mono{font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;background:#f2ead9;padding:9px;border-radius:10px;text-align:left}.warn{margin-top:10px;padding:10px;border-left:4px solid #d29a31;border-radius:9px;background:#fff5d8;color:#694e18;font-size:.67rem;line-height:1.5}@media(max-width:420px){.people{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <small>AUTOCALL PROOF / TEST</small>
+    <h1>予約 → 呼出 テスト</h1>
+    <p>Airウェイトで現在アクティブな待ち項目をすべて表示します。ここで作った受付は、同じ端末のスタッフテスト画面から呼出できます。</p>
+  </header>
+
+  <section class="card">
+    <h2>1. Airウェイト接続</h2>
+    <div class="sub">APIキーはGitHubへ保存しません。この端末のブラウザ内だけに保存します。</div>
+    <div class="cfg">
+      <label>APIキー<input id="apiKey" type="password" autocomplete="off" placeholder="Airウェイト APIキー"></label>
+      <label>店舗ID<input id="storeId" type="text" autocomplete="off" placeholder="KRxxxxxxxx"></label>
+    </div>
+    <button id="saveCfg" class="btn secondary" type="button">設定を保存して枠を取得</button>
+    <div id="cfgMsg" class="msg">未接続です。</div>
+  </section>
+
+  <section class="card">
+    <h2>2. アクティブな受付枠</h2>
+    <div class="sub">日別判定はまだ入れません。Airウェイトで <b>dispFlg=true</b> の項目を全部表示します。</div>
+    <div id="slots" class="slots" style="margin-top:10px"><div class="msg">設定後に取得します。</div></div>
+  </section>
+
+  <section class="card">
+    <h2>3. 人数</h2>
+    <div class="people">
+      <div class="person"><strong>おとな</strong><div class="stepper"><button data-k="adult" data-d="-1">−</button><output id="adult">1</output><button data-k="adult" data-d="1">＋</button></div></div>
+      <div class="person"><strong>子ども</strong><div class="stepper"><button data-k="child" data-d="-1">−</button><output id="child">1</output><button data-k="child" data-d="1">＋</button></div></div>
+    </div>
+    <button id="createBtn" class="btn primary" type="button" disabled>この枠で本物の受付を作る</button>
+    <div id="createMsg" class="msg">受付枠を選択してください。</div>
+    <div class="warn">⚠️ このボタンはAirウェイトに本物の受付を1件作ります。テスト用の人数・枠で実行してください。</div>
+  </section>
+
+  <section id="success" class="success" hidden>
+    <strong>受付を作成しました</strong>
+    <div class="ticket"><span id="receiptNo">--</span><small>番</small></div>
+    <div id="successText" class="sub"></div>
+    <div class="mono" id="debug"></div>
+    <a class="btn secondary" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="./staff-autocall-test.html">スタッフ呼出テストを開く</a>
+  </section>
+</main>
+<script>
+(()=>{'use strict';
+const CFG_KEY='asoboon_autocall_airwait_cfg_v1';
+const REC_KEY='asoboon_autocall_test_reservation_v1';
+const WAIT_URL='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get';
+const CREATE_URL='https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create';
+const $=id=>document.getElementById(id);
+const S={key:'',storeId:'',slots:[],selected:null,adult:1,child:1};
+function apiOK(d){return d?.success===true||String(d?.resultCode?.code)==='0000'}
+function msg(id,text,kind=''){const e=$(id);e.className='msg'+(kind?' '+kind:'');e.textContent=text}
+function loadCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'{}')}catch{return{}}}
+function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify({key:S.key,storeId:S.storeId}))}
+async function post(url,params){const r=await fetch(`${url}?key=${encodeURIComponent(S.key)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams(params),cache:'no-store',credentials:'omit'});const d=await r.json();if(!r.ok||!apiOK(d))throw new Error(d?.resultCode?.defaultMessage||`HTTP ${r.status}`);return d}
+async function loadSlots(){
+  if(!S.key||!S.storeId)return;
+  msg('cfgMsg','受付枠を取得しています…');
+  try{
+    const d=await post(WAIT_URL,{storeId:S.storeId});
+    const raw=d?.innerDto?.waitTypes||d?.innerDto?.waitTypeList||d?.innerDto||[];
+    const arr=Array.isArray(raw)?raw:(Array.isArray(raw?.waitTypes)?raw.waitTypes:[]);
+    S.slots=arr.filter(x=>x&&x.dispFlg===true);
+    S.selected=null;
+    renderSlots();
+    msg('cfgMsg',`接続OK：アクティブ ${S.slots.length}枠`,'ok');
+  }catch(e){msg('cfgMsg',`取得失敗：${e.message}`,'bad');$('slots').innerHTML='<div class="msg bad">受付枠を取得できませんでした。</div>'}
+}
+function renderSlots(){const wrap=$('slots');wrap.innerHTML='';if(!S.slots.length){wrap.innerHTML='<div class="msg">アクティブな受付枠はありません。</div>';update();return}S.slots.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='slot'+(S.selected&&String(S.selected.waitTypeId)===String(x.waitTypeId)?' active':'');b.innerHTML=`<strong>${escapeHtml(String(x.waitTypeName||'名称なし'))}</strong><small>waitTypeId: ${escapeHtml(String(x.waitTypeId||''))} / usageDispType: ${escapeHtml(String(x.usageDispType||''))}</small>`;b.addEventListener('click',()=>{S.selected=x;renderSlots();update()});wrap.appendChild(b)});update()}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function update(){
+  $('adult').textContent=S.adult;$('child').textContent=S.child;
+  const total=S.adult+S.child;
+  const ok=!!S.selected&&S.adult>=1&&S.child<=S.adult*3&&total<=10;
+  $('createBtn').disabled=!ok;
+  if(!S.selected)msg('createMsg','受付枠を選択してください。');
+  else if(S.child>S.adult*3)msg('createMsg','大人1名につき子ども3名までです。','bad');
+  else if(total>10)msg('createMsg','合計10名までです。','bad');
+  else msg('createMsg',`${S.selected.waitTypeName} / 合計${total}名で受付できます。`,'ok');
+}
+async function create(){
+  if(!S.selected)return;
+  const btn=$('createBtn');btn.disabled=true;msg('createMsg','Airウェイトへ受付を作成しています…');
+  try{
+    const d=await post(CREATE_URL,{storeId:S.storeId,numPerson:String(S.adult),numPersonChild:String(S.child),waitTypeId:String(S.selected.waitTypeId),langType:'KeyJPN',autoPrintFlg:'false'});
+    const dto=d?.innerDto||{};
+    if(dto.reserveId==null||dto.receiptNo==null)throw new Error('reserveId / 受付番号を取得できませんでした');
+    const rec={reserveId:String(dto.reserveId),receiptNo:String(dto.receiptNo),waitTypeId:String(S.selected.waitTypeId),waitTypeName:String(S.selected.waitTypeName||''),createdAt:new Date().toISOString()};
+    localStorage.setItem(REC_KEY,JSON.stringify(rec));
+    $('receiptNo').textContent=rec.receiptNo;
+    $('successText').textContent=`${rec.waitTypeName} / reserveIdをこの端末内に保存しました。`;
+    $('debug').textContent=`receiptNo=${rec.receiptNo}\nwaitTypeId=${rec.waitTypeId}\nreserveId=保存済み（画面には非表示）`;
+    $('success').hidden=false;msg('createMsg','受付作成OK。下のスタッフテストへ進んでください。','ok');
+  }catch(e){msg('createMsg',`受付作成失敗：${e.message}`,'bad')}
+  finally{update()}
+}
+$('saveCfg').addEventListener('click',()=>{S.key=$('apiKey').value.trim();S.storeId=$('storeId').value.trim();if(!S.key||!S.storeId)return msg('cfgMsg','APIキーと店舗IDを入力してください。','bad');saveCfg();loadSlots()});
+document.querySelectorAll('.stepper button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k,d=Number(b.dataset.d);S[k]=Math.max(k==='adult'?1:0,S[k]+d);update()}));
+$('createBtn').addEventListener('click',()=>{if(confirm('Airウェイトに本物の受付を1件作成します。よろしいですか？'))create()});
+const c=loadCfg();S.key=String(c.key||'');S.storeId=String(c.storeId||'');$('apiKey').value=S.key;$('storeId').value=S.storeId;update();if(S.key&&S.storeId)loadSlots();
+})();
+</script>
+</body></html>
