@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>ASOBooN STAFF WAIT</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">ASOBooN STAFF</p>
+        <h1>呼出管理</h1>
+      </div>
+      <div class="header-actions">
+        <span id="connectionBadge" class="badge badge-demo">DEMO</span>
+        <button id="refreshBtn" class="icon-btn" type="button" aria-label="更新">更新</button>
+      </div>
+    </header>
+
+    <nav id="slotTabs" class="slot-tabs" aria-label="入場枠"></nav>
+
+    <main>
+      <section class="summary-grid" aria-label="状況">
+        <article class="summary-card">
+          <span>待機</span>
+          <strong id="waitingCount">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>呼出中</span>
+          <strong id="callingCount">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>保留</span>
+          <strong id="holdCount">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>案内済</span>
+          <strong id="guidedCount">0</strong>
+        </article>
+      </section>
+
+      <section id="nextCard" class="next-card" aria-live="polite">
+        <div class="next-card-top">
+          <div>
+            <p class="section-kicker">次に呼ぶ</p>
+            <h2 id="nextNumber">—</h2>
+          </div>
+          <div id="nextPeople" class="people-pill">—</div>
+        </div>
+        <p id="nextMeta" class="muted">待機中の受付はありません</p>
+        <button id="callNextBtn" class="primary-call" type="button" disabled>🔔 呼び出す</button>
+      </section>
+
+      <section class="list-section">
+        <div class="list-heading">
+          <div>
+            <p class="section-kicker">受付一覧</p>
+            <h2 id="listTitle">10:00枠</h2>
+          </div>
+          <p id="lastUpdated" class="muted small">未更新</p>
+        </div>
+        <div id="reservationList" class="reservation-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="peopleModal" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="peopleModalTitle">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">人数変更</p>
+          <h2 id="peopleModalTitle">—</h2>
+        </div>
+        <button id="closeModalBtn" class="icon-btn" type="button">閉じる</button>
+      </div>
+
+      <div class="counter-grid">
+        <div class="counter-row">
+          <span>大人</span>
+          <div class="counter-control">
+            <button type="button" data-counter="adult" data-delta="-1">−</button>
+            <strong id="adultCount">0</strong>
+            <button type="button" data-counter="adult" data-delta="1">＋</button>
+          </div>
+        </div>
+        <div class="counter-row">
+          <span>子ども</span>
+          <div class="counter-control">
+            <button type="button" data-counter="child" data-delta="-1">−</button>
+            <strong id="childCount">0</strong>
+            <button type="button" data-counter="child" data-delta="1">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <button id="savePeopleBtn" class="primary-call" type="button">変更を保存</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="./config.js"></script>
+  <script src="./airwait-adapter.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
