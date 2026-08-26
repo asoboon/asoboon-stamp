@@ -42,7 +42,7 @@ h1{position:relative;z-index:1;margin:9px 0 4px;font-size:1.78rem;line-height:1.
 .footer{margin-top:13px;text-align:center;color:#8b7c64;font-size:.59rem;line-height:1.5}
 @media(max-width:380px){.current-actions,.next-actions,.quick{grid-template-columns:1fr}.card{padding:14px}}
 </style>
-<script src="./autocall-config.js?v=5"></script>
+<script src="./autocall-config.js?v=9"></script>
 </head>
 <body>
 <main class="app">
@@ -159,7 +159,7 @@ const isTrue=v=>v===true||v===1||v==='1'||String(v).toLowerCase()==='true';
 const norm=v=>String(v??'').normalize('NFKC').replace(/\s+/g,'').trim();
 function resultCode(d){return String(d?.resultCode?.code??'')}
 function success(d){return d?.success===true||resultCode(d)==='0000'}
-function configured(){return C.airwaitApiKey&&!String(C.airwaitApiKey).includes('PASTE_')&&C.airwaitStoreId}
+function configured(){const k=String(C.airwaitApiKey||'');return !!(k&&!k.includes('PASTE_')&&!k.includes('ここに')&&C.airwaitStoreId)}
 function ledgerConfigured(){return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(String(C.ledgerWebAppUrl||''))}
 function jstParts(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date());return Object.fromEntries(p.map(x=>[x.type,x.value]))}
 function ymdAdd(y,m,d,days){const x=new Date(Date.UTC(Number(y),Number(m)-1,Number(d)+days));return `${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,'0')}-${String(x.getUTCDate()).padStart(2,'0')}`}
@@ -185,8 +185,81 @@ function capacityText(){if(!S.slot)return '';const r=remainingFor(S.slot);if(!r.
 function summaryHtml(){const r=S.slot?remainingFor(S.slot):null;return `<div class="line"><span>受付日</span><strong>${S.dayMode==='tomorrow'?'明日':'本日'} ${dateJa(S.operationalDay)}</strong></div><div class="line"><span>入場する回</span><strong>${S.slot?esc(S.slot.waitTypeName):'未選択'}</strong></div><div class="line"><span>人数</span><strong>おとな${S.adults} / こども${S.paidChildren} / 0〜5ヶ月${S.infants}</strong></div><div class="line"><span>合計</span><strong>${totalPeople()}名</strong></div><div class="line total"><span>料金の目安</span><strong>${yen(totalPrice())}</strong></div>`}
 function updateUi(){resolveDay();$('adultOut').textContent=S.adults;$('childOut').textContent=S.paidChildren;$('infantOut').textContent=S.infants;$('totalPeople').textContent=totalPeople()+'名';$('totalPrice').textContent=yen(totalPrice());$('summary').innerHTML=summaryHtml();$('reviewBtn').disabled=!canSubmit();const n=$('capacityNote');n.textContent=capacityText();n.className='capacity-note'+(!capacityOk()?' bad':'');document.querySelectorAll('[data-act]').forEach(b=>{const a=b.dataset.act;if(a==='adultMinus')b.disabled=S.adults<=1||totalChildren()>(S.adults-1)*Number(C.childrenPerAdult??3);if(a==='childMinus')b.disabled=S.paidChildren<=0;if(a==='infantMinus')b.disabled=S.infants<=0;if(['adultPlus','childPlus','infantPlus'].includes(a)){const r=S.slot?remainingFor(S.slot):{known:false};b.disabled=totalPeople()>=Number(C.maxTotalPeople??10)||(r.known&&r.unit==='PERSON'&&totalPeople()>=r.value)||(a!=='adultPlus'&&!canAddChild())}})}
 function friendlyError(d){const code=resultCode(d);const map={'3527':'本日の発券上限に達しています。','3528':'本日の受付は停止しています。','3532':'この人数では受付できません。人数をご確認ください。','3537':'本日の受付は終了しています。','3539':'現在この受付を利用できません。スタッフへお声がけください。','3557':'現在は受付時間外です。','3558':'選択した回は現在受付時間外です。別の回をご確認ください。','3593':'受付人数がこの回の条件に合いません。'};return map[code]||d?.resultCode?.defaultMessage||'受付できませんでした。'}
-function postLedger(rec){if(!ledgerConfigured())return Promise.resolve();const p=new URLSearchParams({action:'recordReservation',reserveId:rec.reserveId,receiptNo:rec.receiptNo,waitTypeId:rec.waitTypeId,waitTypeName:rec.waitTypeName,operationalDay:rec.operationalDay,adults:String(rec.adults),paidChildren:String(rec.paidChildren),infants:String(rec.infants),totalPeople:String(rec.totalPeople),source:'asoboon-reception-v0.3'});return fetch(C.ledgerWebAppUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p}).catch(()=>{})}
-async function createReception(){if(!canSubmit())return;S.submitting=true;const btn=$('modalConfirm');btn.disabled=true;btn.innerHTML='<span class="loading"></span>残り人数を確認中…';try{await loadWaitInfo().catch(()=>null);renderSlots();updateUi();if(!capacityOk())throw new Error(capacityText());btn.innerHTML='<span class="loading"></span>受付中…';const d=await airwaitPost(AIRWAIT.createUrl,{storeId:C.airwaitStoreId,numPerson:String(S.adults),numPersonChild:String(totalChildren()),waitTypeId:String(S.slot.waitTypeId),langType:'KeyJPN',autoPrintFlg:'false'});if(!success(d))throw new Error(friendlyError(d));const dto=d?.innerDto||{};if(dto.reserveId==null||dto.receiptNo==null)throw new Error('受付番号を取得できませんでした。');const rec={reserveId:String(dto.reserveId),receiptNo:String(dto.receiptNo),waitTypeId:String(S.slot.waitTypeId),waitTypeName:String(S.slot.waitTypeName||'入場受付'),operationalDay:S.operationalDay,adults:S.adults,paidChildren:S.paidChildren,infants:S.infants,totalPeople:totalPeople(),createdAt:Date.now(),shortUrl:dto.shortUrl??null};localStorage.setItem(STORAGE_KEY,JSON.stringify(rec));await postLedger(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;$('receiptNo').textContent=rec.receiptNo;$('successSummary').innerHTML=`<div class="line"><span>受付日</span><strong>${S.dayMode==='tomorrow'?'明日':'本日'} ${dateJa(rec.operationalDay)}</strong></div><div class="line"><span>入場する回</span><strong>${esc(rec.waitTypeName)}</strong></div><div class="line"><span>受付人数</span><strong>${rec.totalPeople}名</strong></div>`;$('successCard').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>loadSlotsAndInfo({quiet:true}),700)}catch(e){$('confirmModal').hidden=true;$('receptionMsg').hidden=false;$('receptionMsg').className='msg bad';$('receptionMsg').textContent=String(e.message||e)}finally{S.submitting=false;btn.disabled=false;btn.textContent='受付を確定する';updateUi()}}
+function postLedger(rec){
+  if(!ledgerConfigured())return Promise.resolve(false);
+  const p=new URLSearchParams({
+    action:'recordReservation',
+    reserveId:rec.reserveId,
+    receiptNo:rec.receiptNo,
+    waitTypeId:rec.waitTypeId,
+    waitTypeName:rec.waitTypeName,
+    operationalDay:rec.operationalDay,
+    adults:String(rec.adults),
+    paidChildren:String(rec.paidChildren),
+    infants:String(rec.infants),
+    totalPeople:String(rec.totalPeople),
+    source:'asoboon-reception-v0.9'
+  });
+  return fetch(C.ledgerWebAppUrl,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:p,
+    cache:'no-store'
+  }).then(()=>true).catch(()=>false)
+}
+function ledgerJsonp(params,timeoutMs=8000){
+  return new Promise((resolve,reject)=>{
+    if(!ledgerConfigured())return reject(new Error('ledger not configured'));
+    const cb='__aso_ledger_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const u=new URL(C.ledgerWebAppUrl);
+    Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,String(v??'')));
+    u.searchParams.set('callback',cb);
+    const s=document.createElement('script');
+    let settled=false;
+    const done=(err,data)=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      try{delete window[cb]}catch{}
+      s.remove();
+      err?reject(err):resolve(data)
+    };
+    const timer=setTimeout(()=>done(new Error('ledger timeout')),timeoutMs);
+    window[cb]=d=>done(null,d);
+    s.onerror=()=>done(new Error('ledger read failed'));
+    s.src=u.toString();
+    document.head.appendChild(s)
+  })
+}
+async function ledgerExists(reserveId){
+  try{
+    const d=await ledgerJsonp({action:'exists',reserveId},7000);
+    return d?.ok===true&&d?.found===true
+  }catch{
+    return false
+  }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function ensureLedger(rec,attempts=4){
+  if(!ledgerConfigured()||!rec?.reserveId)return false;
+  for(let i=0;i<attempts;i++){
+    await postLedger(rec);
+    await sleep(500+i*350);
+    if(await ledgerExists(rec.reserveId))return true
+  }
+  return false
+}
+async function repairCurrentLedger(){
+  const rec=validCurrent();
+  if(!rec?.reserveId||rec.ledgerSynced===true)return;
+  const ok=await ensureLedger(rec,3);
+  if(ok){
+    rec.ledgerSynced=true;
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(rec))
+  }
+}
+async function createReception(){if(!canSubmit())return;S.submitting=true;const btn=$('modalConfirm');btn.disabled=true;btn.innerHTML='<span class="loading"></span>残り人数を確認中…';try{await loadWaitInfo().catch(()=>null);renderSlots();updateUi();if(!capacityOk())throw new Error(capacityText());btn.innerHTML='<span class="loading"></span>受付中…';const d=await airwaitPost(AIRWAIT.createUrl,{storeId:C.airwaitStoreId,numPerson:String(S.adults),numPersonChild:String(totalChildren()),waitTypeId:String(S.slot.waitTypeId),langType:'KeyJPN',autoPrintFlg:'false'});if(!success(d))throw new Error(friendlyError(d));const dto=d?.innerDto||{};if(dto.reserveId==null||dto.receiptNo==null)throw new Error('受付番号を取得できませんでした。');const rec={reserveId:String(dto.reserveId),receiptNo:String(dto.receiptNo),waitTypeId:String(S.slot.waitTypeId),waitTypeName:String(S.slot.waitTypeName||'入場受付'),operationalDay:S.operationalDay,adults:S.adults,paidChildren:S.paidChildren,infants:S.infants,totalPeople:totalPeople(),createdAt:Date.now(),shortUrl:dto.shortUrl??null,ledgerSynced:false};localStorage.setItem(STORAGE_KEY,JSON.stringify(rec));rec.ledgerSynced=await ensureLedger(rec,4);localStorage.setItem(STORAGE_KEY,JSON.stringify(rec));$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;$('receiptNo').textContent=rec.receiptNo;$('successSummary').innerHTML=`<div class="line"><span>受付日</span><strong>${S.dayMode==='tomorrow'?'明日':'本日'} ${dateJa(rec.operationalDay)}</strong></div><div class="line"><span>入場する回</span><strong>${esc(rec.waitTypeName)}</strong></div><div class="line"><span>受付人数</span><strong>${rec.totalPeople}名</strong></div>`;$('successCard').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>loadSlotsAndInfo({quiet:true}),700)}catch(e){$('confirmModal').hidden=true;$('receptionMsg').hidden=false;$('receptionMsg').className='msg bad';$('receptionMsg').textContent=String(e.message||e)}finally{S.submitting=false;btn.disabled=false;btn.textContent='受付を確定する';updateUi()}}
 function validCurrent(){try{const r=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(!r||!r.receiptNo||!r.waitTypeId)return null;if(r.operationalDay!==S.operationalDay)return null;if(String(r.waitTypeId)==='0042'||String(r.source||'').includes('test'))return null;return r}catch{return null}}
 function renderCurrent(){const r=validCurrent();if(!r)return false;$('currentCard').hidden=false;$('receptionFlow').hidden=true;$('closedCard').hidden=true;$('currentNo').textContent=r.receiptNo;$('currentSub').textContent=`${r.waitTypeName||'入場受付'} / ${r.totalPeople||''}名で受付済みです。重複受付は必要ありません。`;return true}
 $('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();$('peopleCard').hidden=!S.slot;$('waiverCard').hidden=!S.slot;updateUi();if(S.slot)setTimeout(()=>$('peopleCard').scrollIntoView({behavior:'smooth',block:'start'}),100)});
@@ -195,7 +268,7 @@ $('agree').addEventListener('change',e=>{S.agree=e.target.checked;updateUi()});
 $('reviewBtn').addEventListener('click',()=>{if(!canSubmit())return;$('modalSummary').innerHTML=summaryHtml();$('confirmModal').hidden=false});
 $('modalBack').addEventListener('click',()=>{$('confirmModal').hidden=true});
 $('modalConfirm').addEventListener('click',createReception);
-resolveDay();if(!renderCurrent()&&!S.closed)loadSlotsAndInfo();updateUi();S.refreshTimer=setInterval(()=>{resolveDay();if(!validCurrent()&&!S.closed)loadSlotsAndInfo({quiet:true})},Math.max(10000,Number(C.customerRefreshMs||15000)));
+resolveDay();const existing=validCurrent();if(existing){renderCurrent();repairCurrentLedger()}else if(!S.closed){loadSlotsAndInfo()}updateUi();S.refreshTimer=setInterval(()=>{resolveDay();const current=validCurrent();if(current){repairCurrentLedger()}else if(!S.closed){loadSlotsAndInfo({quiet:true})}},Math.max(10000,Number(C.customerRefreshMs||15000)));
 })();
 </script>
 </body>

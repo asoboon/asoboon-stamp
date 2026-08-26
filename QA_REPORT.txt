@@ -1,0 +1,20 @@
+ASOBooN v0.9 QA REPORT
+=======================
+
+継続AUTO状態をGASに保存: OK
+18:00以降は呼出のみ休止 / AUTO ON保持: OK
+翌日の各回開始時刻から自動再開: OK
+AUTO OFFを明示するまで状態保持: OK
+AirWAIT / GAS最新状態未取得時はAUTO禁止: OK
+オフライン / Safariバックグラウンド時はAUTO禁止: OK
+保留をAUTO対象外: OK
+個別呼出を呼出中10組へ反映する設計: OK
+先頭reserveId未連携時の追越し防止: OK
+お客様免責事項原文維持: OK
+既知STAFF_KEY混入チェック: OK
+JavaScript構文チェック: OK
+GAS構文チェック: OK
+
+未実施:
+AirWAIT reserve/call の実書込みテスト
+（実受付を変更するため、最終確認は少数件の実機テストで実施）

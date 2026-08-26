@@ -1,0 +1,102 @@
+ASOBooN 継続AUTO v0.9 導入手順
+================================
+
+今回の変更
+----------
+AUTO ON/OFFをスタッフiPadのlocalStorageではなく
+GAS Script Propertiesに保存します。
+
+一度AUTO ON:
+  ↓
+10:00枠 → 自動
+12:30枠 → 自動
+15:00枠 → 自動
+18:00 → 呼出だけ休止
+AUTO ON状態は保持
+  ↓
+翌日
+各回の開始時刻 → 自動再開
+  ↓
+何日でも繰り返す
+  ↓
+スタッフがAUTO OFF
+ここで初めて継続停止
+
+重要
+----
+iPad/Safariが完全に終了している間は
+ブラウザ実行型のためAirWAIT呼出API自体は動きません。
+
+ただしAUTO ON状態はGASに残ります。
+ページを再度開けばON状態を復元し、その時刻の条件に従って再開します。
+
+================================
+1. GASを先に更新
+================================
+
+「ASOBooN AirWAIT 台帳」
+→ 拡張機能
+→ Apps Script
+→ Code.gs 全文を、このZIPの Code.gs に置換
+→ 保存
+
+setup() を1回実行。
+
+既存の reservations / events はそのまま使います。
+setupを再実行してもAUTO状態は勝手にONにはなりません。
+初回AUTO状態はOFFです。
+
+その後:
+デプロイ
+→ デプロイを管理
+→ 現在のWebアプリを編集
+→ 新しいバージョン
+→ デプロイ
+
+既存の /exec URLを維持してください。
+
+ブラウザで /exec を開き、
+version 0.6.0 が返ればGAS更新完了です。
+
+================================
+2. GitHubへ上書き
+================================
+
+asoboon/asoboon-stamp
+main
+ルート直下
+
+・autocall-config.js
+・yoyaku-autocall-test.html
+・staff-autocall-test.html
+
+autocall-config.js のAirWAIT APIキーだけ
+現在利用中のものを設定してください。
+
+GAS URLは既存URLのままです。
+
+================================
+3. 最初の1回
+================================
+
+スタッフiPadで staff-autocall-test.html を開く
+
+STAFF_KEYを保存
+↓
+「AUTO ON」
+↓
+GASへON状態が保存される
+↓
+以後はこちらで「AUTO OFF」を押すまで保持
+
+18:00を過ぎてもAUTO OFFにはなりません。
+画面は「AUTO ON・営業時間外」となり、
+翌日の受付枠開始時刻まで待機します。
+
+================================
+4. 本番前
+================================
+
+以前STAFF_KEYをチャット等へ貼っている場合は、
+本番前に Apps Script で rotateStaffKey() を1回実行し、
+新しいキーをスタッフiPadにだけ保存してください。

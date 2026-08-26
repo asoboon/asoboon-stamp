@@ -1,0 +1,36 @@
+ASOBooN 継続AUTO v0.9 最終確認
+================================
+
+GAS
+[ ] /exec health が version 0.6.0
+[ ] setup後も reservations / events が存在
+[ ] AUTO初期値 OFF
+[ ] AUTO ON → ページ再読込してもON
+[ ] 18:30 dailyCleanup後もAUTO ONのまま
+[ ] AUTO OFF → ページ再読込してもOFF
+
+AUTO動作
+[ ] 開始時刻前は呼ばない
+[ ] 開始時刻に最大10組まで呼ぶ
+[ ] 呼出中が9組になれば次の1組を補充
+[ ] 保留は自動対象外
+[ ] 公式AirWAITアプリの個別呼出も10組に含む
+[ ] 先頭reserveId未連携なら後ろを追い越さない
+[ ] AirWAIT取得失敗なら呼ばない
+[ ] GAS取得失敗なら呼ばない
+[ ] Safariバックグラウンド中は呼ばない
+[ ] オフライン中は呼ばない
+[ ] 18:00以降は呼ばない
+[ ] 18:00以降もAUTO表示はON
+[ ] 翌日の各回開始時刻に自動再開
+[ ] AUTO OFF後は翌日も動かない
+
+お客様受付
+[ ] reserve/create成功
+[ ] reserveIdがreservationsへ保存
+[ ] 保存失敗時に自動再送
+[ ] 免責事項原文維持
+
+注意:
+実AirWAITへのreserve/callは実データを書き換えるため、
+最後は少数件の実機テストで確認してください。
