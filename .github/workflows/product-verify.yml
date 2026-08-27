@@ -26,4 +26,7 @@ jobs:
             exit 1
           fi
       - name: JavaScript syntax check
-        run: node --check product/secure-airwait-client.js
+        run: |
+          node --check product/secure-airwait-client.js
+          node --check product/customer/app.js
+          node --check product/staff/app.js
