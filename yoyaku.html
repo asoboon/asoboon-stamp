@@ -32,7 +32,7 @@ async function page(waitTypeId,start){const response=await fetch(`${API}?key=${e
 async function cancelled(r){let start=1,scanned=0;const target=receiptKey(r.receiptNo);for(let i=0;i<30;i++){const p=await page(r.waitTypeId,start);if(p.rows.some(x=>String(x?.status??'')==='3'&&String(x?.waitTypeId??'')===String(r.waitTypeId)&&receiptKey(x?.number)===target))return true;scanned+=p.rows.length;if(!p.rows.length||p.rows.length<100||(p.count&&scanned>=p.count))break;start+=p.rows.length}return false}
 function showNotice(){NOTICE.hidden=false;clearTimeout(showNotice.t);showNotice.t=setTimeout(()=>NOTICE.hidden=true,6000)}
 async function reconcile(force=false){const r=current();if(!r||checking)return false;const now=Date.now();if(!force&&now-lastCheck<10000)return false;lastCheck=now;checking=true;try{if(await cancelled(r)){localStorage.removeItem(STORAGE_KEY);try{localStorage.removeItem('asoboon_callstatus_number_v4')}catch{}showNotice();FRAME.src=`${ENGINE}&_=${Date.now()}`;return true}}catch(e){console.warn('reservation cancellation check failed',e)}finally{checking=false}return false}
-FRAME.addEventListener('load',()=>reconcile(true));
+FRAME.addEventListener('load',()=>{try{const u=new URL(FRAME.contentWindow.location.href);const enginePath=new URL(ENGINE,location.href).pathname;if(u.origin===location.origin&&u.pathname!==enginePath){top.location.href=u.href;return}}catch{}reconcile(true)});
 (async()=>{await reconcile(true);if(!FRAME.getAttribute('src'))FRAME.src=ENGINE;FRAME.hidden=false})();
 setInterval(()=>reconcile(false),12000);
 window.addEventListener('online',()=>reconcile(true));
