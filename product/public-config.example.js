@@ -1,6 +1,7 @@
 /* Public settings only. Never put API keys or staff secrets in this file. */
 window.QUEUE_PRODUCT_CONFIG = Object.freeze({
   productVersion: '1.0.0',
+  demoMode: false,
   brandName: 'YOUR FACILITY',
   backendUrl: 'https://script.google.com/macros/s/REPLACE_ME/exec',
   homeUrl: './',
