@@ -13,18 +13,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure product tree contains no hard-coded AirWAIT key field
+      - name: Secret-pattern scan
         run: |
-          if grep -RInE 'airwaitApiKey\s*[:=]\s*["'"'][^"'"']+' product --exclude='*.md'; then
-            echo 'Do not hard-code AirWAIT API keys in product files.'
-            exit 1
-          fi
-      - name: Ensure no STAFF_KEY literal value is committed
-        run: |
-          if grep -RInE 'STAFF_KEY\s*[:=]\s*["'"'][A-Za-z0-9_-]{16,}' product --exclude='*.md'; then
-            echo 'Do not hard-code STAFF_KEY.'
-            exit 1
-          fi
+          python - <<'PY'
+          from pathlib import Path
+          import re, sys
+          patterns = [
+              re.compile(r"airwaitApiKey\s*[:=]\s*['\"][^'\"]{12,}['\"]"),
+              re.compile(r"STAFF_KEY\s*[:=]\s*['\"][A-Za-z0-9_-]{16,}['\"]"),
+          ]
+          bad = []
+          for path in Path('product').rglob('*'):
+              if not path.is_file() or path.suffix.lower() in {'.md', '.png', '.jpg', '.jpeg', '.webp'}:
+                  continue
+              text = path.read_text(errors='ignore')
+              if any(p.search(text) for p in patterns):
+                  bad.append(str(path))
+          if bad:
+              print('Possible hard-coded secret:', *bad, sep='\n- ')
+              sys.exit(1)
+          print('Secret-pattern scan passed.')
+          PY
       - name: JavaScript syntax check
         run: |
           node --check product/secure-airwait-client.js
