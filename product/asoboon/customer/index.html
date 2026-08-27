@@ -31,7 +31,7 @@
   <div id="currentStatusNote" class="sync-note">最新状態を確認しています。</div>
   <div class="current-actions"><a id="statusLinkCurrent" class="btn secondary" href="../../../yobidashi.html">🔔 呼出状況を見る</a><a id="homeLinkCurrent" class="btn soft" href="../../../home.html">🏠 HOMEへ戻る</a></div>
 </section>
-<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2>ただいま受付準備中です</h2><p>18:00〜18:59は受付を休止しています。<br><strong>19:00から翌日の受付</strong>を開始します。</p></section>
+<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2 id="closedTitle">ただいま受付準備中です</h2><p id="closedText">18:00〜18:59は受付を休止しています。</p></section>
 <div id="flow">
 <section id="slotCard" class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2><small>現地受付枠だけを表示します</small></div></div><div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div><button id="reloadSlots" class="btn light" type="button">↻ 受付枠を再読み込み</button></section>
 <section id="peopleCard" class="card" hidden><button id="backSlots" class="btn light top" type="button">← 入場する回を選び直す</button><div class="step-head"><span class="step-no">2</span><div><h2>ご利用人数</h2><small id="peopleRule">人数条件を確認中</small></div></div><div class="people">
