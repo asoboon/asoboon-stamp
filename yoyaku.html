@@ -3,103 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
-<meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>ASOBooN｜現地受付テスト</title>
-<style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
-#receptionFrame{display:block;width:100%;height:100%;border:0;background:#efe1bd}
-#onsiteBadge{position:fixed;z-index:60;left:12px;right:12px;top:max(10px,env(safe-area-inset-top));max-width:496px;margin:auto;padding:9px 12px;border-radius:13px;background:#0f2b46;color:#fff5db;border:2px solid #c79a42;text-align:center;font:950 .75rem/1.3 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 8px 22px rgba(15,43,70,.2);pointer-events:none}
-#cancelNotice{position:fixed;z-index:70;left:12px;right:12px;top:max(62px,calc(env(safe-area-inset-top) + 52px));max-width:496px;margin:auto;padding:13px 14px;border:2px solid #84b996;border-radius:15px;background:#edf8f1;color:#205f3b;box-shadow:0 10px 28px rgba(30,80,48,.18);font:900 .78rem/1.55 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
-</style>
-<script src="./autocall-config.js?v=10"></script>
+<title>ASOBooN｜受付</title>
 </head>
 <body>
-<div id="onsiteBadge">📍 現地受付｜テスト中</div>
-<div id="cancelNotice" hidden>✅ 前の受付はキャンセル済みです。新しい現地受付を行えます。</div>
-<iframe id="receptionFrame" title="ASOBooN 現地受付" hidden></iframe>
 <script>
 (()=>{
-'use strict';
-const AIRWAIT_URL='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
-const qs=new URLSearchParams(location.search);
-if(qs.get('from')!=='miniapp-secret'){
-  location.replace(AIRWAIT_URL);
-  return;
-}
-const C=window.ASOBOON_RECEPTION_CONFIG||{};
-const FRAME=document.getElementById('receptionFrame');
-const NOTICE=document.getElementById('cancelNotice');
-const ENGINE='./yoyaku-engine-v10.html?v=10';
-const STORAGE_KEY='asoboon_current_reservation_v3';
-const API='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
-let checking=false,lastCheck=0;
-const receiptKey=v=>String(v??'').normalize('NFKC').replace(/\D/g,'').replace(/^0+(?=\d)/,'');
-function current(){try{const r=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return r&&r.receiptNo&&r.waitTypeId?r:null}catch{return null}}
-async function page(waitTypeId,start){
-  const response=await fetch(`${API}?key=${encodeURIComponent(C.airwaitApiKey||'')}`,{
-    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-    body:new URLSearchParams({storeId:C.airwaitStoreId||'',waitTypeId:String(waitTypeId),status:'3',sortStatus:'0',isDesc:'1',start:String(start),limit:'100'}),
-    cache:'no-store',credentials:'omit'
-  });
-  if(!response.ok)throw new Error(`HTTP ${response.status}`);
-  const d=await response.json();
-  if(!(d?.success===true||String(d?.resultCode?.code??'')==='0000'))throw new Error('cancel status unavailable');
-  return {rows:Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[],count:Number(d?.innerDto?.count||0)};
-}
-async function cancelled(r){
-  let start=1,scanned=0;const target=receiptKey(r.receiptNo);
-  for(let i=0;i<30;i++){
-    const p=await page(r.waitTypeId,start);
-    if(p.rows.some(x=>String(x?.status??'')==='3'&&String(x?.waitTypeId??'')===String(r.waitTypeId)&&receiptKey(x?.number)===target))return true;
-    scanned+=p.rows.length;
-    if(!p.rows.length||p.rows.length<100||(p.count&&scanned>=p.count))break;
-    start+=p.rows.length;
+  const q=new URLSearchParams(location.search);
+  if(q.get('from')==='miniapp-secret'){
+    location.replace('./onsite-reception-v11.html?from=miniapp-secret');
+    return;
   }
-  return false;
-}
-function showNotice(){NOTICE.hidden=false;clearTimeout(showNotice.t);showNotice.t=setTimeout(()=>NOTICE.hidden=true,6000)}
-function patchOnsiteUi(){
-  try{
-    const doc=FRAME.contentDocument;
-    if(!doc)return;
-    const kicker=doc.querySelector('.kicker');
-    if(kicker)kicker.textContent='📍 ASOBooN 現地受付';
-    const h1=doc.getElementById('heroTitle');
-    if(h1)h1.textContent='現地受付｜入場する回を選ぶ';
-    const p=doc.querySelector('.hero p');
-    if(p)p.textContent='現地での受付専用です。入場する回を選び、人数を入力してください。';
-  }catch{}
-}
-async function reconcile(force=false){
-  const r=current();if(!r||checking)return false;
-  const now=Date.now();if(!force&&now-lastCheck<10000)return false;
-  lastCheck=now;checking=true;
-  try{
-    if(await cancelled(r)){
-      localStorage.removeItem(STORAGE_KEY);
-      try{localStorage.removeItem('asoboon_callstatus_number_v4')}catch{}
-      showNotice();
-      FRAME.src=`${ENGINE}&_=${Date.now()}`;
-      return true;
-    }
-  }catch(e){console.warn('reservation cancellation check failed',e)}finally{checking=false}
-  return false;
-}
-FRAME.addEventListener('load',()=>{
-  patchOnsiteUi();
-  reconcile(true);
-  try{
-    const doc=FRAME.contentDocument;
-    const obs=new MutationObserver(patchOnsiteUi);
-    obs.observe(doc.documentElement,{subtree:true,childList:true,characterData:true});
-  }catch{}
-});
-(async()=>{await reconcile(true);if(!FRAME.getAttribute('src'))FRAME.src=ENGINE;FRAME.hidden=false})();
-setInterval(()=>{patchOnsiteUi();reconcile(false)},12000);
-window.addEventListener('online',()=>reconcile(true));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)reconcile(true)});
-window.addEventListener('pageshow',()=>reconcile(true));
+  location.replace('https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
 })();
 </script>
 </body>
