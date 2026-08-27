@@ -1,6 +1,6 @@
 /* ASOBooN Model public configuration. Never put API keys or staff secrets here. */
 window.QUEUE_PRODUCT_CONFIG = Object.freeze({
-  productVersion: 'ASOBooN-1.0.0-rc1',
+  productVersion: 'ASOBooN-1.0.0-rc2',
   demoMode: new URLSearchParams(location.search).get('demo') === '1',
   brandName: 'ASOBooN',
   backendUrl: 'https://script.google.com/macros/s/REPLACE_WITH_ASOBOON_BACKEND/exec',
@@ -19,8 +19,14 @@ window.QUEUE_PRODUCT_CONFIG = Object.freeze({
   priceAdult: 600,
   priceChild: 900,
   waiverText: 'ASOBooNの利用ルールとスタッフの案内に従ってご利用ください。安全のため、保護者の方はお子さまから目を離さないようお願いいたします。',
+
+  // お客様の現地受付ではWEB/テスト系を表示しない。
   blockedWaitTypeIds: ['0042'],
   blockedNamePatterns: ['WEB','テスト','ご待機者専用','待機者専用'],
+
+  // スタッフ監視/AUTOではWEBを含める。除外するのは運用対象外だけ。
+  operationBlockedNamePatterns: ['テスト','ご待機者専用','待機者専用'],
+
   staffRefreshMs: 10000,
   serverAuto: true,
   autoCallingPool: 10,
