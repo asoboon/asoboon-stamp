@@ -1,9 +1,9 @@
 /** ASOBooN Model backend — 00_Config.gs */
 /**
- * ASOBooN Reception Model Backend 1.0.0-rc1
+ * ASOBooN Reception Model Backend 1.0.0-rc2
  * Secrets must live in Apps Script Script Properties only.
  */
-const ASB_VERSION = '1.0.0-rc1';
+const ASB_VERSION = '1.0.0-rc2';
 const ASB_TZ = 'Asia/Tokyo';
 
 const ASB_PROP = Object.freeze({
@@ -12,6 +12,8 @@ const ASB_PROP = Object.freeze({
   STORE_ID: 'AIRWAIT_STORE_ID',
   STAFF_KEY: 'STAFF_KEY',
   CALL_ENABLED: 'AIRWAIT_CALL_ENABLED',
+  EXTERNAL_CALL_READY: 'AIRWAIT_EXTERNAL_RESERVE_ID_READY',
+  NEXT_DAY_READY: 'AIRWAIT_NEXT_DAY_RECEPTION_READY',
   CALL_URL: 'AIRWAIT_CALL_API_URL',
   CALL_METHOD: 'AIRWAIT_CALLING_METHOD',
   COUNTER_ID: 'AIRWAIT_COUNTER_ID',
@@ -19,8 +21,10 @@ const ASB_PROP = Object.freeze({
   AUTO_UPDATED_AT: 'AUTO_UPDATED_AT',
   AUTO_POOL: 'AUTO_POOL',
   AUTO_STOP_TIME: 'AUTO_STOP_TIME',
+  AUTO_PENDING_MS: 'AUTO_PENDING_GRACE_MS',
   SLOT_OVERRIDES: 'SLOT_OVERRIDES_JSON',
   BLOCKED_PATTERNS: 'BLOCKED_NAME_PATTERNS_JSON',
+  OP_BLOCKED_PATTERNS: 'OPERATION_BLOCKED_NAME_PATTERNS_JSON',
   BLOCKED_IDS: 'BLOCKED_WAIT_TYPE_IDS_JSON'
 });
 
@@ -53,13 +57,19 @@ function setupASOBooNModel() {
   props.setProperty(ASB_PROP.SHEET_ID, ss.getId());
   if (!props.getProperty(ASB_PROP.STAFF_KEY)) props.setProperty(ASB_PROP.STAFF_KEY, asbRandomKey_());
   if (props.getProperty(ASB_PROP.CALL_ENABLED) == null) props.setProperty(ASB_PROP.CALL_ENABLED, '0');
+  if (props.getProperty(ASB_PROP.EXTERNAL_CALL_READY) == null) props.setProperty(ASB_PROP.EXTERNAL_CALL_READY, '0');
+  if (props.getProperty(ASB_PROP.NEXT_DAY_READY) == null) props.setProperty(ASB_PROP.NEXT_DAY_READY, '0');
   if (props.getProperty(ASB_PROP.AUTO_ENABLED) == null) props.setProperty(ASB_PROP.AUTO_ENABLED, '0');
   if (!props.getProperty(ASB_PROP.AUTO_UPDATED_AT)) props.setProperty(ASB_PROP.AUTO_UPDATED_AT, new Date().toISOString());
   if (!props.getProperty(ASB_PROP.AUTO_POOL)) props.setProperty(ASB_PROP.AUTO_POOL, '10');
   if (!props.getProperty(ASB_PROP.AUTO_STOP_TIME)) props.setProperty(ASB_PROP.AUTO_STOP_TIME, '18:00');
+  if (!props.getProperty(ASB_PROP.AUTO_PENDING_MS)) props.setProperty(ASB_PROP.AUTO_PENDING_MS, '120000');
   if (!props.getProperty(ASB_PROP.CALL_METHOD)) props.setProperty(ASB_PROP.CALL_METHOD, 'KeyNORMAL');
   if (!props.getProperty(ASB_PROP.BLOCKED_PATTERNS)) {
     props.setProperty(ASB_PROP.BLOCKED_PATTERNS, JSON.stringify(['WEB','テスト','ご待機者専用','待機者専用']));
+  }
+  if (!props.getProperty(ASB_PROP.OP_BLOCKED_PATTERNS)) {
+    props.setProperty(ASB_PROP.OP_BLOCKED_PATTERNS, JSON.stringify(['テスト','ご待機者専用','待機者専用']));
   }
   if (!props.getProperty(ASB_PROP.SLOT_OVERRIDES)) props.setProperty(ASB_PROP.SLOT_OVERRIDES, '{}');
   if (!props.getProperty(ASB_PROP.BLOCKED_IDS)) props.setProperty(ASB_PROP.BLOCKED_IDS, JSON.stringify(['0042']));
@@ -82,6 +92,8 @@ function checkASOBooNModel() {
     version: ASB_VERSION,
     missing,
     callEnabled: asbBoolProp_(ASB_PROP.CALL_ENABLED, false),
+    externalCallReady: asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false),
+    nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false),
     autoEnabled: asbBoolProp_(ASB_PROP.AUTO_ENABLED, false),
     triggerInstalled: asbAutoTriggerInstalled_(),
     callMethod: props.getProperty(ASB_PROP.CALL_METHOD) || 'KeyNORMAL',
@@ -116,7 +128,7 @@ function doGet(e) {
     let out;
     if (action === 'health') out = asbHealth_();
     else if (action === 'publicConfig') out = asbPublicConfig_();
-    else if (action === 'waitTypes') out = asbPublicWaitTypes_();
+    else if (action === 'waitTypes') out = asbOperationalWaitTypes_();
     else if (action === 'waitInfo') out = asbWaitInfo_();
     else if (action === 'mutationStatus') out = asbMutationStatus_(p);
     else if (action === 'reservationStatus') out = asbReservationStatus_(p);
@@ -166,6 +178,8 @@ function asbHealth_() {
     now: new Date().toISOString(),
     serverAuto: true,
     callEnabled: asbBoolProp_(ASB_PROP.CALL_ENABLED, false),
+    externalCallReady: asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false),
+    nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false),
     triggerInstalled: asbAutoTriggerInstalled_()
   };
 }
@@ -177,6 +191,7 @@ function asbPublicConfig_() {
     brandName: 'ASOBooN',
     maxTotalPeople: 10,
     childrenPerAdult: 3,
-    serverAuto: true
+    serverAuto: true,
+    nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false)
   };
 }
