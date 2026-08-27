@@ -25,5 +25,5 @@ window.QUEUE_PRODUCT_CONFIG = Object.freeze({
   serverAuto: true,
   autoCallingPool: 10,
   autoStopTime: '18:00',
-  slotStartOverrides: {}
+  slotStartOverrides: new URLSearchParams(location.search).get('demo') === '1' ? {D101:'00:00',D102:'23:59'} : {}
 });
