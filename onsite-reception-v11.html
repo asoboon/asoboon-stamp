@@ -43,6 +43,7 @@ const fail=message=>{document.body.innerHTML='<div class="error"><strong>現地�
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
 })();
+})();
 </script>
 </body>
 </html>
