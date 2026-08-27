@@ -1,0 +1,14 @@
+(()=>{
+'use strict';
+const C=window.ASOBOON_RECEPTION_CONFIG||{};
+const STORAGE_KEY='asoboon_current_reservation_v3';
+const API='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
+let busy=false,lastCheck=0;
+const receiptKey=v=>String(v??'').normalize('NFKC').replace(/\D/g,'').replace(/^0+(?=\d)/,'');
+function current(){try{const r=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return r&&r.receiptNo&&r.waitTypeId?r:null}catch{return null}}
+async function page(waitTypeId,start){const r=await fetch(`${API}?key=${encodeURIComponent(C.airwaitApiKey||'')}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams({storeId:C.airwaitStoreId||'',waitTypeId:String(waitTypeId),status:'3',sortStatus:'0',isDesc:'1',start:String(start),limit:'100'}),cache:'no-store',credentials:'omit'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const d=await r.json();if(!(d?.success===true||String(d?.resultCode?.code??'')==='0000'))throw new Error('cancel read failed');return {rows:Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[],count:Number(d?.innerDto?.count||0)}}
+async function cancelled(rec){let start=1,seen=0;const target=receiptKey(rec.receiptNo);for(let i=0;i<30;i++){const p=await page(rec.waitTypeId,start);if(p.rows.some(x=>String(x?.status??'')==='3'&&String(x?.waitTypeId??'')===String(rec.waitTypeId)&&receiptKey(x?.number)===target))return true;seen+=p.rows.length;if(!p.rows.length||p.rows.length<100||(p.count&&seen>=p.count))break;start+=p.rows.length}return false}
+function showCancelledNotice(){if(new URLSearchParams(location.search).get('cancelled')!=='1')return;const apply=()=>{const el=document.getElementById('receptionMsg');if(!el)return false;el.hidden=false;el.className='msg ok';el.textContent='前の受付はキャンセル済みです。新しい現地受付を行えます。';return true};if(!apply()){let n=0;const t=setInterval(()=>{if(apply()||++n>20)clearInterval(t)},250)}}
+async function check(force=false){const rec=current();if(!rec||busy)return;const now=Date.now();if(!force&&now-lastCheck<10000)return;lastCheck=now;busy=true;try{if(await cancelled(rec)){localStorage.removeItem(STORAGE_KEY);try{localStorage.removeItem('asoboon_callstatus_number_v4')}catch{}location.replace(`${location.pathname}?from=miniapp-secret&cancelled=1&_=${Date.now()}`)}}catch(e){console.warn('onsite cancellation check failed',e)}finally{busy=false}}
+showCancelledNotice();setInterval(()=>check(false),12000);window.addEventListener('online',()=>check(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)check(true)});window.addEventListener('pageshow',()=>check(true));setTimeout(()=>check(true),1000);
+})();
