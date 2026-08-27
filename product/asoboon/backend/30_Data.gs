@@ -98,6 +98,21 @@ function asbEvent_(type, reserveId, receiptNo, waitTypeId, message) {
   sh.appendRow([new Date().toISOString(), type, reserveId || '', receiptNo || '', waitTypeId || '', message || '']);
 }
 
+function asbClaimMutation_(requestId, action, scope) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const sh = asbSheet_(ASB_SHEET.MUT, ASB_MUT_HEADERS);
+    if (asbFindMutationRow_(requestId) > 0) return false;
+    const now = new Date().toISOString();
+    const target = Math.max(2, sh.getLastRow() + 1);
+    asbEnsureRows_(sh, target);
+    sh.getRange(target, 1, 1, ASB_MUT_HEADERS.length).setValues([[now, now, requestId, action, scope, 'RECEIVED', '', '', '']]);
+    SpreadsheetApp.flush();
+    return true;
+  } finally { lock.releaseLock(); }
+}
+
 function asbSaveMutation_(m) {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
