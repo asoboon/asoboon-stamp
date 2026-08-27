@@ -15,13 +15,91 @@
     (()=>{
       const frame=document.getElementById('miniappCore');
       const coreBase=new URL('./home-core.html',location.href);
+      const airwaitReservationUrl='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
+      const secretTarget=new URL('./staff-reception.html?from=miniapp-secret',location.href);
+      let tapTimes=[];
       let lastSynced='';
-      function coreUrlFromParent(){const url=new URL(coreBase.href);url.search=location.search;url.hash=location.hash;return url}
-      function patchCustomerLinks(){try{const win=frame.contentWindow,doc=frame.contentDocument;const clean='./yoyaku.html?v=11';if(win.ASOBOON_CONFIG)win.ASOBOON_CONFIG.reservationUrl=clean;doc?.querySelectorAll('a[href*="yoyaku-autocall-test"],a[href*="yoyaku-test"]').forEach(a=>a.setAttribute('href',clean));const quick=doc?.getElementById('reservationQuickLink');if(quick)quick.setAttribute('href',clean)}catch{}}
-      function promoteChildNavigation(){try{const childUrl=new URL(frame.contentWindow.location.href);if(childUrl.origin!==location.origin)return;if(childUrl.pathname===coreBase.pathname){patchCustomerLinks();const desired=location.pathname+childUrl.search+childUrl.hash;if(desired!==lastSynced){lastSynced=desired;history.replaceState(history.state,'',desired)}return}if(/\/(?:yoyaku-autocall-test|yoyaku-test)\.html$/.test(childUrl.pathname)){top.location.href=new URL('./yoyaku.html?v=11',location.href).href;return}top.location.href=childUrl.href}catch{}}
-      frame.addEventListener('load',promoteChildNavigation);
+
+      function coreUrlFromParent(){
+        const url=new URL(coreBase.href);
+        url.search=location.search;
+        url.hash=location.hash;
+        return url;
+      }
+
+      function patchReservationLinks(){
+        try{
+          const win=frame.contentWindow;
+          const doc=frame.contentDocument;
+          if(win.ASOBOON_CONFIG) win.ASOBOON_CONFIG.reservationUrl=airwaitReservationUrl;
+
+          const quick=doc?.getElementById('reservationQuickLink');
+          if(quick){
+            quick.setAttribute('href',airwaitReservationUrl);
+            quick.setAttribute('target','_top');
+          }
+
+          doc?.querySelectorAll('a').forEach(a=>{
+            const href=String(a.getAttribute('href')||'');
+            if(href.includes('yoyaku-autocall-test')||href.includes('yoyaku-test')||href.includes('yoyaku.html')||href.includes('airwait.jp/WCSP/storeDetail')){
+              a.setAttribute('href',airwaitReservationUrl);
+              a.setAttribute('target','_top');
+            }
+          });
+        }catch{}
+      }
+
+      function bindSecretCommand(){
+        try{
+          const doc=frame.contentDocument;
+          const target=doc&&doc.querySelector('.title-badge');
+          if(!target||target.dataset.asoboonSecretBound==='1') return;
+          target.dataset.asoboonSecretBound='1';
+          target.style.touchAction='manipulation';
+          target.style.userSelect='none';
+          target.style.webkitUserSelect='none';
+          target.addEventListener('click',()=>{
+            const now=Date.now();
+            tapTimes=tapTimes.filter(t=>now-t<4000);
+            tapTimes.push(now);
+            if(tapTimes.length>=7){
+              tapTimes=[];
+              try{if(navigator.vibrate)navigator.vibrate([35,30,70])}catch{}
+              top.location.href=secretTarget.href;
+            }
+          },{passive:true});
+        }catch{}
+      }
+
+      function promoteChildNavigation(){
+        try{
+          const childUrl=new URL(frame.contentWindow.location.href);
+          if(childUrl.origin!==location.origin) return;
+          if(childUrl.pathname===coreBase.pathname){
+            patchReservationLinks();
+            bindSecretCommand();
+            const desired=location.pathname+childUrl.search+childUrl.hash;
+            if(desired!==lastSynced){
+              lastSynced=desired;
+              history.replaceState(history.state,'',desired);
+            }
+            return;
+          }
+          top.location.href=childUrl.href;
+        }catch{}
+      }
+
+      frame.addEventListener('load',()=>{
+        patchReservationLinks();
+        bindSecretCommand();
+        promoteChildNavigation();
+      });
       frame.src=coreUrlFromParent().href;
-      setInterval(promoteChildNavigation,450);
+      setInterval(()=>{
+        patchReservationLinks();
+        bindSecretCommand();
+        promoteChildNavigation();
+      },450);
       window.addEventListener('popstate',()=>{try{frame.contentWindow.location.replace(coreUrlFromParent().href)}catch{}});
     })();
   </script>
