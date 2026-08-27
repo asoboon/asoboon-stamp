@@ -36,7 +36,13 @@ jobs:
           PY
       - name: JavaScript syntax check
         run: |
-          node --check product/secure-airwait-client.js
-          node --check product/customer/app.js
-          node --check product/staff/app.js
-          node --check product/staff/hardening.js
+          set -e
+          while IFS= read -r -d '' file; do
+            echo "checking $file"
+            node --check "$file"
+          done < <(find product -type f -name '*.js' -print0)
+      - name: Apps Script syntax check
+        run: |
+          set -e
+          find product -type f -name '*.gs' -print0 | sort -z | xargs -0 cat > /tmp/product-apps-script.js
+          node --check /tmp/product-apps-script.js
