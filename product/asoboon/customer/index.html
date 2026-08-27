@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#0f2b46">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>ASOBooN｜現地受付</title>
+<link rel="stylesheet" href="../../customer/style.css">
+<style>
+.quick{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.quick a{display:flex;align-items:center;justify-content:center;gap:7px;min-height:43px;border-radius:13px;text-decoration:none;font-size:.75rem;font-weight:950}.quick .status-link{background:#f3d27d;color:#30220f;border:2px solid #fff3c9}.quick .home-link{background:rgba(255,255,255,.1);color:#fff6dd;border:2px solid rgba(255,244,211,.55)}.current-actions,.success-actions{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;margin-top:11px}.sync-note{margin-top:10px;font-size:.7rem;line-height:1.55;color:#4f6558}.asb-tag{display:inline-flex;margin-top:8px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.62rem;font-weight:900;color:#eadfc7}
+@media(max-width:380px){.quick,.current-actions,.success-actions{grid-template-columns:1fr}}
+</style>
+<script src="../config.js"></script>
+<script src="../../secure-airwait-client.js"></script>
+</head>
+<body>
+<main class="app">
+<header class="hero">
+  <span class="kicker">📍 ASOBooN 現地受付</span>
+  <h1 id="heroTitle">入場する回を選んで受付</h1>
+  <p>回を選ぶ → 人数を入れる → 内容を確認。3ステップで受付できます。</p>
+  <div class="daybar"><strong id="dayTitle">受付日を確認中…</strong><small id="daySub">最新の受付状況を読み込んでいます</small></div>
+  <div class="quick"><a id="statusLinkTop" class="status-link" href="../../../yobidashi.html">🔔 呼出状況を見る</a><a id="homeLinkTop" class="home-link" href="../../../home.html">🏠 ミニアプリHOME</a></div>
+  <span class="asb-tag">WEB予約枠はこの画面には表示されません</span>
+</header>
+<section id="currentCard" class="current" hidden>
+  <div class="current-title">✅ この端末は受付済みです</div>
+  <div class="ticket-no"><span id="currentNo">--</span><small>番</small></div>
+  <div id="currentSub" class="current-sub"></div>
+  <div id="currentStatusNote" class="sync-note">最新状態を確認しています。</div>
+  <div class="current-actions"><a id="statusLinkCurrent" class="btn secondary" href="../../../yobidashi.html">🔔 呼出状況を見る</a><a id="homeLinkCurrent" class="btn soft" href="../../../home.html">🏠 HOMEへ戻る</a></div>
+</section>
+<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2>ただいま受付準備中です</h2><p>18:00〜18:59は受付を休止しています。<br><strong>19:00から翌日の受付</strong>を開始します。</p></section>
+<div id="flow">
+<section id="slotCard" class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2><small>現地受付枠だけを表示します</small></div></div><div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div><button id="reloadSlots" class="btn light" type="button">↻ 受付枠を再読み込み</button></section>
+<section id="peopleCard" class="card" hidden><button id="backSlots" class="btn light top" type="button">← 入場する回を選び直す</button><div class="step-head"><span class="step-no">2</span><div><h2>ご利用人数</h2><small id="peopleRule">人数条件を確認中</small></div></div><div class="people">
+<div class="person"><div><strong>おとな</strong><small id="adultPrice"></small></div><div class="stepper"><button data-act="adultMinus">−</button><output id="adultOut">1</output><button data-act="adultPlus">＋</button></div></div>
+<div class="person"><div><strong>子ども</strong><small id="childPrice"></small></div><div class="stepper"><button data-act="childMinus">−</button><output id="childOut">0</output><button data-act="childPlus">＋</button></div></div>
+<div class="person"><div><strong>0〜5か月までの子ども</strong><small>追加料金無料</small></div><div class="stepper"><button data-act="infantMinus">−</button><output id="infantOut">0</output><button data-act="infantPlus">＋</button></div></div>
+</div><div id="capacityNote" class="capacity-note"></div><div class="price"><div class="line"><span>おとな</span><strong id="adultLine"></strong></div><div class="line"><span>子ども</span><strong id="childLine"></strong></div><div class="line total"><span>合計</span><strong id="totalLine"></strong></div></div></section>
+<section id="waiverCard" class="card" hidden><div class="step-head"><span class="step-no">3</span><div><h2>内容を確認</h2><small>確認後、受付を確定します</small></div></div><div id="waiver" class="waiver"></div><label class="agree"><input id="agree" type="checkbox"><span><strong>上記の内容を確認し、同意します</strong><small>同意後に受付を確定できます。</small></span></label><div id="receptionMsg" class="msg" hidden></div><button id="reviewBtn" class="btn primary" disabled>受付内容を確認する</button></section>
+</div>
+<section id="successCard" class="success" hidden><div class="check">✓</div><h2>受付が完了しました</h2><div class="ticket-no"><span id="receiptNo">--</span><small>番</small></div><div id="successSummary" class="summary"></div><p class="success-note">この受付番号をそのままお使いください。重複して受付する必要はありません。</p><div class="success-actions"><a id="statusLinkSuccess" class="btn secondary" href="../../../yobidashi.html">🔔 呼出状況を見る</a><a id="homeLinkSuccess" class="btn soft" href="../../../home.html">🏠 HOMEへ戻る</a></div></section>
+<footer class="footer">ASOBooN Reception Model</footer>
+</main>
+<div id="confirmModal" class="modal" hidden><div class="modal-card"><h3>この内容で受付しますか？</h3><div id="modalSummary" class="summary"></div><div class="modal-actions"><button id="modalBack" class="btn light">戻る</button><button id="modalConfirm" class="btn primary">受付を確定する</button></div></div></div>
+<script src="./app.js"></script>
+</body></html>
