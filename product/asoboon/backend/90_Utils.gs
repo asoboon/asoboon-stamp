@@ -62,7 +62,25 @@ function asbRequestId_(v) { const s = String(v || '').trim(); return /^[A-Za-z0-
 
 function asbReserveId_(v) { const s = String(v == null ? '' : v).normalize('NFKC').replace(/\D/g, ''); return s && s.length <= 12 ? s.padStart(12, '0') : ''; }
 
-function asbReceiptKey_(v) { return String(v == null ? '' : v).normalize('NFKC').replace(/\D/g, '').replace(/^0+(?=\d)/, ''); }
+/**
+ * AirWAITの呼出番号は、時間指定予約=T、割り込み登録=F の接頭辞を持つ場合がある。
+ * 接頭辞を落とすと T208 と 208 を誤って同一予約として扱うため、必ず保持する。
+ */
+function asbReceiptKey_(v) {
+  const s = String(v == null ? '' : v).normalize('NFKC').toUpperCase().replace(/\s+/g, '');
+  const m = s.match(/^([FT]?)(\d+)$/);
+  if (!m) return s;
+  const digits = m[2].replace(/^0+(?=\d)/, '') || '0';
+  return m[1] + digits;
+}
+
+function asbRegistrationKind_(v) {
+  const key = asbReceiptKey_(v);
+  if (/^T\d+$/.test(key)) return 'TIME';
+  if (/^F\d+$/.test(key)) return 'INTERRUPT';
+  if (/^\d+$/.test(key)) return 'NORMAL';
+  return 'OTHER';
+}
 
 function asbErrorCode_(err) { const s = String(err && err.message || err); if (/認証/.test(s)) return 'AUTH'; if (/AirWAIT/.test(s)) return 'AIRWAIT'; if (/受付時間外/.test(s)) return 'CLOSED'; return 'VALIDATION'; }
 
