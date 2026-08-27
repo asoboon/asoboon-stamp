@@ -11,8 +11,26 @@ window.QUEUE_PRODUCT_CONFIG = Object.freeze({
   requestTimeoutMs: 10000,
   mutationPollMs: 650,
   mutationMaxPolls: 12,
+
+  // Reception schedule
+  receptionCloseHour: 18,
+  nextDayOpenHour: 19,
+
+  // Public UI / backend-authoritative validation hints
   maxTotalPeople: 10,
   childrenPerAdult: 3,
   priceAdult: 600,
-  priceChild: 900
+  priceChild: 900,
+  waiverText: '施設の利用ルール・スタッフの案内に従ってご利用ください。安全のため、保護者の方はお子さまから目を離さないようお願いいたします。',
+
+  // Wait-type filtering
+  blockedWaitTypeIds: [],
+  blockedNamePatterns: ['テスト','ご待機者専用','待機者専用'],
+
+  // Staff operations
+  staffRefreshMs: 10000,
+  autoCallingPool: 10,
+  autoCallGapMs: 1200,
+  autoStopTime: '18:00',
+  slotStartOverrides: {}
 });
