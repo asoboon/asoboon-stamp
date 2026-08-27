@@ -11,12 +11,14 @@ function asbStaffSnapshot_() {
     callEnabled: asbBoolProp_(ASB_PROP.CALL_ENABLED, false),
     externalCallReady: asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false),
     nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false),
+    admissionPolicyReady: asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false),
+    admissionGroups: asbJsonProp_(ASB_PROP.ADMISSION_GROUPS, {}),
     triggerInstalled: asbAutoTriggerInstalled_(),
     autoEngine: 'server',
     autoPool: asbIntProp_(ASB_PROP.AUTO_POOL, 10),
     autoStopTime: asbPropOptional_(ASB_PROP.AUTO_STOP_TIME) || '18:00',
     pendingGraceMs: asbIntProp_(ASB_PROP.AUTO_PENDING_MS, 120000),
-    poolScope: 'admission-time',
+    poolScope: 'explicit-admission-group',
     callConfig: {
       method: asbPropOptional_(ASB_PROP.CALL_METHOD) || 'KeyNORMAL',
       counterConfigured: Boolean(asbPropOptional_(ASB_PROP.COUNTER_ID)),
@@ -33,12 +35,19 @@ function asbSetAuto_(p) {
   if (enabled && !asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false)) {
     throw new Error('WEB・時間指定予約のreserveId取得方法が未確認のためAUTOをONにできません。');
   }
+  if (enabled && !asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false)) {
+    throw new Error('WEB・現地の入場回グループ/優先順が未確認のためAUTOをONにできません。');
+  }
+  if (enabled) {
+    const slots = asbOperationalWaitTypes_().waitTypeList;
+    asbAdmissionGroups_(slots); // 設定不整合ならここで拒否
+  }
   if (enabled && !asbAutoTriggerInstalled_()) installASOBooNAutoTrigger();
   const props = PropertiesService.getScriptProperties();
   const now = new Date().toISOString();
   props.setProperty(ASB_PROP.AUTO_ENABLED, enabled ? '1' : '0');
   props.setProperty(ASB_PROP.AUTO_UPDATED_AT, now);
-  asbEvent_(enabled ? 'AUTO_ON' : 'AUTO_OFF', '', '', '', 'server auto / mixed WEB+onsite pool');
+  asbEvent_(enabled ? 'AUTO_ON' : 'AUTO_OFF', '', '', '', 'server auto / explicit admission groups');
   return { enabled, updatedAt: now, triggerInstalled: asbAutoTriggerInstalled_() };
 }
 
@@ -55,33 +64,43 @@ function runASOBooNAutoCycle() {
       asbSafetyStop_('WEB・時間指定予約のreserveId取得方法が未確認です。');
       return { ok: false, stopped: 'external-id-disabled' };
     }
+    if (!asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false)) {
+      asbSafetyStop_('WEB・現地の入場回グループ/優先順が未確認です。');
+      return { ok: false, stopped: 'admission-policy-disabled' };
+    }
     if (asbAfterStopTime_()) return { ok: true, skipped: 'after-stop-time' };
 
     const day = asbToday_();
     const slots = asbOperationalWaitTypes_().waitTypeList;
-    const groups = asbAdmissionGroups_(slots);
+    let groups;
+    try {
+      groups = asbAdmissionGroups_(slots);
+    } catch (err) {
+      asbSafetyStop_(`入場回設定エラー: ${String(err && err.message || err).slice(0, 300)}`);
+      return { ok: false, stopped: 'admission-group-error', error: String(err && err.message || err) };
+    }
     const ledger = asbGetReservations_(day);
     const pool = asbIntProp_(ASB_PROP.AUTO_POOL, 10);
     let called = 0;
 
     for (const group of groups) {
-      if (!group.start || !asbSlotStarted_(group.start)) continue;
+      if (!asbSlotStarted_(group.start)) continue;
       let guard = 0;
-
       while (guard++ < pool) {
-        // 毎回再取得して、スタッフの手動呼出やAirWAIT側の状態変化を取り込む。
+        // 呼出の直前ごとに再取得。スタッフ手動呼出とAirWAIT側の状態変化を反映する。
         const entries = asbFetchAdmissionEntries_(group);
         group.slots.forEach(slot => {
           const rows = entries.filter(x => String(x.slot.waitTypeId) === String(slot.waitTypeId)).map(x => x.row);
           asbSyncLedgerFromAirwait_(ledger, slot.waitTypeId, rows);
         });
 
-        const callingCount = asbEffectiveCallingCount_(entries, ledger, group);
-        if (callingCount >= pool) break;
+        if (asbEffectiveCallingCount_(entries, ledger, group) >= pool) break;
 
+        // ADMISSION_GROUPS_JSON のwaitTypeId配列順が優先順。
+        // 各waitType内はAirWAITの受付時間昇順をそのまま守る。
         const waiting = entries
           .filter(x => String(x.row.status) === '0' && String(x.row.isCalling) !== '1')
-          .sort((a, b) => asbQueuePriority_(a) - asbQueuePriority_(b) || a.slotOrder - b.slotOrder || a.rowOrder - b.rowOrder);
+          .sort((a, b) => a.slotOrder - b.slotOrder || a.rowOrder - b.rowOrder);
         if (!waiting.length) break;
 
         const candidate = waiting[0];
@@ -119,11 +138,7 @@ function asbCallReservation_(reserveId, receiptNo, waitTypeId) {
   const props = PropertiesService.getScriptProperties();
   const method = props.getProperty(ASB_PROP.CALL_METHOD) || 'KeyNORMAL';
   const url = props.getProperty(ASB_PROP.CALL_URL) || ASB_API.callDefault;
-  const body = {
-    storeId: asbProp_(ASB_PROP.STORE_ID),
-    reserveId: asbReserveId_(reserveId),
-    callingMethodType: method
-  };
+  const body = { storeId: asbProp_(ASB_PROP.STORE_ID), reserveId: asbReserveId_(reserveId), callingMethodType: method };
   const counter = props.getProperty(ASB_PROP.COUNTER_ID) || '';
   if (counter) body.counterId = counter;
   const d = asbAirPost_(url, body);
@@ -140,19 +155,11 @@ function asbSafetyStop_(message) {
 }
 
 function asbFetchAllReservations_(waitTypeId, extra, maxRows) {
-  const limitTotal = Math.max(100, Number(maxRows) || 3000);
-  const all = [];
+  const limitTotal = Math.max(100, Number(maxRows) || 3000), all = [];
   let start = 1;
   for (let page = 0; page < 40 && all.length < limitTotal; page++) {
-    const body = Object.assign({
-      storeId: asbProp_(ASB_PROP.STORE_ID),
-      waitTypeId: String(waitTypeId),
-      start: String(start),
-      limit: '100'
-    }, extra || {});
-    const d = asbAirPost_(ASB_API.reservations, body);
-    const inner = d.innerDto || {};
-    const rows = Array.isArray(inner.reservations) ? inner.reservations : [];
+    const body = Object.assign({ storeId: asbProp_(ASB_PROP.STORE_ID), waitTypeId: String(waitTypeId), start: String(start), limit: '100' }, extra || {});
+    const d = asbAirPost_(ASB_API.reservations, body), inner = d.innerDto || {}, rows = Array.isArray(inner.reservations) ? inner.reservations : [];
     all.push.apply(all, rows);
     const count = Number(inner.count || 0);
     if (!rows.length || rows.length < 100 || (count && all.length >= count)) break;
@@ -161,19 +168,37 @@ function asbFetchAllReservations_(waitTypeId, extra, maxRows) {
   return all.slice(0, limitTotal);
 }
 
-/** 同じ開始時刻のWEB枠と現地枠を1つの入場回として束ねる。 */
+/**
+ * ADMISSION_GROUPS_JSON 例:
+ * {"10:15":["WEB_WAITTYPE_ID","ONSITE_WAITTYPE_ID"],"13:45":["WEB2","ONSITE2"]}
+ * 配列順がその入場回の優先順。未設定/不正IDはAUTOを安全停止する。
+ */
 function asbAdmissionGroups_(slots) {
-  const map = new Map();
-  (slots || []).forEach(slot => {
-    const start = asbSlotStart_(slot);
-    if (!start) {
-      asbEvent_('AUTO_SLOT_TIME_UNKNOWN', '', '', String(slot.waitTypeId || ''), String(slot.waitTypeName || ''));
-      return;
-    }
-    if (!map.has(start)) map.set(start, { key: start, start, slots: [] });
-    map.get(start).slots.push(slot);
+  if (!asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false)) throw new Error('ADMISSION_GROUP_POLICY_READY is false');
+  const cfg = asbJsonProp_(ASB_PROP.ADMISSION_GROUPS, {});
+  const keys = Object.keys(cfg || {});
+  if (!keys.length) throw new Error('ADMISSION_GROUPS_JSON is empty');
+  const byId = new Map((slots || []).map(s => [String(s.waitTypeId || ''), s]));
+  const used = new Set(), groups = [];
+
+  keys.forEach(rawStart => {
+    const m = String(rawStart).match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    if (!m) throw new Error(`invalid admission start: ${rawStart}`);
+    const start = `${String(Number(m[1])).padStart(2, '0')}:${m[2]}`;
+    const ids = cfg[rawStart];
+    if (!Array.isArray(ids) || !ids.length) throw new Error(`empty admission group: ${rawStart}`);
+    const groupSlots = ids.map(v => {
+      const id = String(v);
+      if (used.has(id)) throw new Error(`waitTypeId duplicated across groups: ${id}`);
+      const slot = byId.get(id);
+      if (!slot) throw new Error(`configured waitTypeId not found: ${id}`);
+      used.add(id);
+      return slot;
+    });
+    groups.push({ key: start, start, slots: groupSlots });
   });
-  return Array.from(map.values()).sort((a, b) => a.start.localeCompare(b.start));
+
+  return groups.sort((a, b) => a.start.localeCompare(b.start));
 }
 
 function asbFetchAdmissionEntries_(group) {
@@ -185,18 +210,10 @@ function asbFetchAdmissionEntries_(group) {
   return entries;
 }
 
-/** 時間指定/WEBを開始時刻に取りこぼさないため、同一入場回では外部時間指定を先に評価する。 */
-function asbQueuePriority_(entry) {
-  const kind = asbRegistrationKind_(entry && entry.row && entry.row.number);
-  const name = String(entry && entry.slot && entry.slot.waitTypeName || '');
-  if (kind === 'TIME' || /WEB/i.test(name)) return 0;
-  if (kind === 'INTERRUPT') return 1;
-  return 2;
-}
-
 function asbResolveCallTarget_(ledger, row, slot) {
   // 現時点ではASOBooN台帳にreserveIdがある予約のみ解決可能。
-  // WEB/時間指定のreserveId取得方法がAirWAITから回答されたら、この関数だけ拡張する。
+  // WEB/時間指定のreserveId取得方法がAirWAITから回答されたら、この関数を拡張し、
+  // 実予約で照合成功後に AIRWAIT_EXTERNAL_RESERVE_ID_READY=1 とする。
   return asbLinkLedger_(ledger, row, slot && slot.waitTypeId);
 }
 
@@ -207,13 +224,11 @@ function asbEffectiveCallingCount_(entries, ledger, group) {
     const rec = asbLinkLedger_(ledger, x.row, x.slot.waitTypeId);
     if (rec && rec.reserveId) actualIds.add(String(rec.reserveId));
   });
-
   const groupIds = new Set((group.slots || []).map(x => String(x.waitTypeId)));
   const recentPending = (ledger || []).filter(rec => {
     if (!groupIds.has(String(rec.waitTypeId))) return false;
     if (actualIds.has(String(rec.reserveId))) return false;
-    if (String(rec.airwaitStatus || '0') !== '0') return false;
-    if (String(rec.isCalling) !== '1') return false;
+    if (String(rec.airwaitStatus || '0') !== '0' || String(rec.isCalling) !== '1') return false;
     return asbIsRecentCall_(rec.calledAt);
   }).length;
   return actual.length + recentPending;
@@ -232,9 +247,7 @@ function asbSyncLedgerFromAirwait_(ledger, waitTypeId, rows) {
     if (!rec) return;
     const status = String(row.status == null ? '' : row.status);
     let isCalling = String(row.isCalling) === '1' ? '1' : '0';
-    // 呼出API成功直後にAirWAIT一覧の反映が遅れていても、待ち中なら一定時間は呼出中として保持する。
     if (status === '0' && isCalling === '0' && String(rec.isCalling) === '1' && asbIsRecentCall_(rec.calledAt)) isCalling = '1';
-    // 対応中は呼出プールから外す。
     if (status === '4') isCalling = '0';
     const patch = { airwaitStatus: status, isCalling };
     asbUpdateReservation_(rec.reserveId, patch);
@@ -243,8 +256,7 @@ function asbSyncLedgerFromAirwait_(ledger, waitTypeId, rows) {
 }
 
 function asbLinkLedger_(ledger, airRow, waitTypeId) {
-  const number = asbReceiptKey_(airRow && airRow.number);
-  const typeId = String(waitTypeId || airRow && airRow.waitTypeId || '');
+  const number = asbReceiptKey_(airRow && airRow.number), typeId = String(waitTypeId || airRow && airRow.waitTypeId || '');
   const exact = ledger.find(x => String(x.waitTypeId) === typeId && asbReceiptKey_(x.receiptNo) === number);
   if (exact) return exact;
   const hits = ledger.filter(x => asbReceiptKey_(x.receiptNo) === number);
@@ -252,8 +264,7 @@ function asbLinkLedger_(ledger, airRow, waitTypeId) {
 }
 
 function asbSlotStart_(slot) {
-  const overrides = asbJsonProp_(ASB_PROP.SLOT_OVERRIDES, {});
-  const id = String(slot.waitTypeId || '');
+  const overrides = asbJsonProp_(ASB_PROP.SLOT_OVERRIDES, {}), id = String(slot.waitTypeId || '');
   if (overrides[id] && /^\d{1,2}:\d{2}$/.test(String(overrides[id]))) return String(overrides[id]);
   const s = String(slot.waitTypeName || '').normalize('NFKC');
   let m = s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*[:：]\s*([0-5]\d)/);
@@ -266,22 +277,17 @@ function asbSlotStart_(slot) {
 }
 
 function asbSlotStarted_(hhmm) {
-  const [h, m] = String(hhmm).split(':').map(Number);
-  const now = asbJstParts_();
-  return Number(now.hour) * 60 + Number(now.minute) >= h * 60 + m;
+  const parts = String(hhmm).split(':').map(Number), now = asbJstParts_();
+  return Number(now.hour) * 60 + Number(now.minute) >= parts[0] * 60 + parts[1];
 }
 
 function asbAfterStopTime_() {
-  const stop = asbPropOptional_(ASB_PROP.AUTO_STOP_TIME) || '18:00';
-  const [h, m] = stop.split(':').map(Number);
-  const now = asbJstParts_();
-  return Number(now.hour) * 60 + Number(now.minute) >= h * 60 + m;
+  const stop = asbPropOptional_(ASB_PROP.AUTO_STOP_TIME) || '18:00', parts = stop.split(':').map(Number), now = asbJstParts_();
+  return Number(now.hour) * 60 + Number(now.minute) >= parts[0] * 60 + parts[1];
 }
 
 function asbExpectedReceptionDay_() {
-  const p = asbJstParts_();
-  const h = Number(p.hour);
-  const base = `${p.year}-${p.month}-${p.day}`;
+  const p = asbJstParts_(), h = Number(p.hour), base = `${p.year}-${p.month}-${p.day}`;
   if (h >= 18 && h < 19) return { open: false, day: base, isTomorrow: false };
   if (h >= 19) return { open: true, day: asbAddDays_(base, 1), isTomorrow: true };
   return { open: true, day: base, isTomorrow: false };
