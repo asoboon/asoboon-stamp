@@ -1,0 +1,29 @@
+name: product-verify
+on:
+  push:
+    paths:
+      - 'product/**'
+      - '.github/workflows/product-verify.yml'
+  pull_request:
+    paths:
+      - 'product/**'
+      - '.github/workflows/product-verify.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure product tree contains no hard-coded AirWAIT key field
+        run: |
+          if grep -RInE 'airwaitApiKey\s*[:=]\s*["'"'][^"'"']+' product --exclude='*.md'; then
+            echo 'Do not hard-code AirWAIT API keys in product files.'
+            exit 1
+          fi
+      - name: Ensure no STAFF_KEY literal value is committed
+        run: |
+          if grep -RInE 'STAFF_KEY\s*[:=]\s*["'"'][A-Za-z0-9_-]{16,}' product --exclude='*.md'; then
+            echo 'Do not hard-code STAFF_KEY.'
+            exit 1
+          fi
+      - name: JavaScript syntax check
+        run: node --check product/secure-airwait-client.js
