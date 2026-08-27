@@ -1,8 +1,21 @@
 /** ASOBooN Model backend — 10_Airwait.gs */
-function asbPublicWaitTypes_() {
+function asbRawWaitTypes_() {
   const d = asbAirPost_(ASB_API.waitTypes, { storeId: asbProp_(ASB_PROP.STORE_ID) });
-  const raw = Array.isArray(d && d.innerDto && d.innerDto.waitTypeList) ? d.innerDto.waitTypeList : [];
-  const list = raw.filter(asbDisplayed_).filter(x => !asbBlockedWaitType_(x));
+  return Array.isArray(d && d.innerDto && d.innerDto.waitTypeList) ? d.innerDto.waitTypeList : [];
+}
+
+/**
+ * スタッフ監視/AUTO用。WEB・時間指定で使う待ち項目も含める。
+ * dispFlg=falseでも実予約が存在し得るため、運用対象では表示フラグを条件にしない。
+ */
+function asbOperationalWaitTypes_() {
+  const list = asbRawWaitTypes_().filter(x => !asbOperationalBlockedWaitType_(x));
+  return { ok: true, version: ASB_VERSION, waitTypeList: list };
+}
+
+/** お客様の現地受付作成に使用してよい待ち項目だけ。 */
+function asbCustomerWaitTypes_() {
+  const list = asbRawWaitTypes_().filter(asbDisplayed_).filter(x => !asbCustomerBlockedWaitType_(x));
   return { ok: true, version: ASB_VERSION, waitTypeList: list };
 }
 
@@ -38,13 +51,21 @@ function asbCreateReservation_(p) {
 
   const expectedDay = asbExpectedReceptionDay_();
   if (!expectedDay.open) throw new Error('現在は受付時間外です。');
+  if (expectedDay.isTomorrow && !asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false)) {
+    throw new Error('翌日受付のAirWAIT営業日切替仕様が未確認のため受付できません。');
+  }
   const operationalDay = asbNormalizeDay_(p.operationalDay);
   if (operationalDay !== expectedDay.day) throw new Error('受付日が現在の受付時間帯と一致しません。');
 
   const waitTypeId = asbText_(p.waitTypeId, 50);
-  const publicTypes = asbPublicWaitTypes_().waitTypeList;
-  const slot = publicTypes.find(x => String(x.waitTypeId) === waitTypeId);
+  const customerTypes = asbCustomerWaitTypes_().waitTypeList;
+  const slot = customerTypes.find(x => String(x.waitTypeId) === waitTypeId);
   if (!slot) throw new Error('この受付枠は現地受付の対象外です。');
+
+  // 売り切れ状態だけは確定直前にサーバーでも再確認する。
+  // remainingNum は「残り受付可能数」なので、単位を人数と決めつけず 0 のみ確実に拒否する。
+  const remaining = asbRemainingForSlot_(slot);
+  if (remaining.known && remaining.value <= 0) throw new Error('この回は受付上限に達しました。別の回をお選びください。');
 
   const d = asbAirPost_(ASB_API.create, {
     storeId: asbProp_(ASB_PROP.STORE_ID),
@@ -87,22 +108,36 @@ function asbCreateReservation_(p) {
   };
 }
 
+/**
+ * 顧客端末の状態照会。
+ * 呼出番号一覧APIには reserveId / 受付日がないため、過去日の同番号取消を
+ * 今日の取消と誤認しないよう「取消一覧の番号一致だけ」では取消確定しない。
+ */
 function asbReservationStatus_(p) {
   const reserveId = asbReserveId_(p.reserveId);
   const token = asbText_(p.statusToken, 200);
   if (!reserveId || !token) return { ok: false, error: 'invalid reservation status request' };
   let row = asbFindReservation_(reserveId);
   if (!row || row.statusToken !== token) return { ok: false, error: 'not found' };
-  if (String(row.airwaitStatus || '') !== '3' && row.waitTypeId && row.receiptNo) {
+
+  let statusKnown = false;
+  if (row.waitTypeId && row.receiptNo) {
     try {
-      const cancelled = asbFetchAllReservations_(row.waitTypeId, { status: '3', sortStatus: '0', isDesc: '1' }, 500);
-      const hit = cancelled.some(x => asbReceiptKey_(x && x.number) === asbReceiptKey_(row.receiptNo));
+      const active = asbFetchAllReservations_(row.waitTypeId, { isEnabledStatus: '1', sortStatus: '0', isDesc: '0' }, 500);
+      const key = asbReceiptKey_(row.receiptNo);
+      const hit = active.find(x => asbReceiptKey_(x && x.number) === key);
       if (hit) {
-        asbUpdateReservation_(reserveId, { airwaitStatus: '3', isCalling: '0', cancelledAt: new Date().toISOString() });
-        row = asbFindReservation_(reserveId) || row;
+        statusKnown = true;
+        const patch = {
+          airwaitStatus: String(hit.status == null ? '' : hit.status),
+          isCalling: String(hit.isCalling) === '1' ? '1' : '0'
+        };
+        asbUpdateReservation_(reserveId, patch);
+        Object.assign(row, patch);
       }
     } catch (_) {}
   }
+
   return {
     ok: true,
     reserveId,
@@ -113,8 +148,24 @@ function asbReservationStatus_(p) {
     totalPeople: row.totalPeople,
     airwaitStatus: String(row.airwaitStatus || '0'),
     isCalling: String(row.isCalling || '0'),
+    statusKnown,
     cancelled: String(row.airwaitStatus || '') === '3' || Boolean(row.cancelledAt)
   };
+}
+
+function asbRemainingForSlot_(slot) {
+  try {
+    const info = asbWaitInfo_();
+    const stores = Array.isArray(info && info.innerDto && info.innerDto.stores) ? info.innerDto.stores : [];
+    const details = stores.length && Array.isArray(stores[0].waitDetails) ? stores[0].waitDetails : [];
+    const target = asbNormName_(slot && slot.waitTypeName);
+    const hit = details.find(x => asbNormName_(x && x.detailedWaitType) === target);
+    if (!hit || hit.remainingNum == null) return { known: false, value: null };
+    const n = Number(hit.remainingNum);
+    return Number.isFinite(n) ? { known: true, value: n } : { known: false, value: null };
+  } catch (_) {
+    return { known: false, value: null };
+  }
 }
 
 function asbDisplayed_(x) {
@@ -122,12 +173,24 @@ function asbDisplayed_(x) {
   return v === true || v === 1 || v === '1' || String(v).toLowerCase() === 'true';
 }
 
-function asbBlockedWaitType_(x) {
+function asbCustomerBlockedWaitType_(x) {
   const id = String(x && x.waitTypeId || '');
   const name = String(x && x.waitTypeName || '').normalize('NFKC');
   const blockedIds = asbJsonProp_(ASB_PROP.BLOCKED_IDS, ['0042']).map(String);
   const patterns = asbJsonProp_(ASB_PROP.BLOCKED_PATTERNS, ['WEB','テスト','ご待機者専用','待機者専用']);
   return blockedIds.includes(id) || patterns.some(p => name.toLowerCase().includes(String(p).normalize('NFKC').toLowerCase()));
+}
+
+function asbOperationalBlockedWaitType_(x) {
+  const id = String(x && x.waitTypeId || '');
+  const name = String(x && x.waitTypeName || '').normalize('NFKC');
+  const blockedIds = asbJsonProp_(ASB_PROP.BLOCKED_IDS, ['0042']).map(String);
+  const patterns = asbJsonProp_(ASB_PROP.OP_BLOCKED_PATTERNS, ['テスト','ご待機者専用','待機者専用']);
+  return blockedIds.includes(id) || patterns.some(p => name.toLowerCase().includes(String(p).normalize('NFKC').toLowerCase()));
+}
+
+function asbNormName_(v) {
+  return String(v == null ? '' : v).normalize('NFKC').replace(/\s+/g, '').toLowerCase();
 }
 
 function asbAirPost_(url, body) { return asbAirRequest_(url, 'post', body); }
