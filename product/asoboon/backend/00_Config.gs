@@ -20,7 +20,8 @@ const ASB_PROP = Object.freeze({
   AUTO_POOL: 'AUTO_POOL',
   AUTO_STOP_TIME: 'AUTO_STOP_TIME',
   SLOT_OVERRIDES: 'SLOT_OVERRIDES_JSON',
-  BLOCKED_PATTERNS: 'BLOCKED_NAME_PATTERNS_JSON'
+  BLOCKED_PATTERNS: 'BLOCKED_NAME_PATTERNS_JSON',
+  BLOCKED_IDS: 'BLOCKED_WAIT_TYPE_IDS_JSON'
 });
 
 const ASB_SHEET = Object.freeze({
@@ -61,6 +62,7 @@ function setupASOBooNModel() {
     props.setProperty(ASB_PROP.BLOCKED_PATTERNS, JSON.stringify(['WEB','テスト','ご待機者専用','待機者専用']));
   }
   if (!props.getProperty(ASB_PROP.SLOT_OVERRIDES)) props.setProperty(ASB_PROP.SLOT_OVERRIDES, '{}');
+  if (!props.getProperty(ASB_PROP.BLOCKED_IDS)) props.setProperty(ASB_PROP.BLOCKED_IDS, JSON.stringify(['0042']));
 
   ss.setSpreadsheetTimeZone(ASB_TZ);
   const res = asbEnsureSheet_(ss, ASB_SHEET.RES, ASB_RES_HEADERS);
@@ -137,10 +139,7 @@ function doPost(e) {
 
   try {
     if (scope === 'staff') asbRequireStaff_(p.staffKey);
-    const existing = asbGetMutation_(requestId);
-    if (existing) return asbJson_({ ok: true, duplicate: true, requestId });
-
-    asbSaveMutation_({ requestId, action, scope, status: 'RECEIVED', result: null, errorCode: '', errorMessage: '' });
+    if (!asbClaimMutation_(requestId, action, scope)) return asbJson_({ ok: true, duplicate: true, requestId });
     let result;
     if (action === 'createReservation') result = asbCreateReservation_(p);
     else if (action === 'setAutoEnabled') result = asbSetAuto_(p);
