@@ -39,3 +39,4 @@ jobs:
           node --check product/secure-airwait-client.js
           node --check product/customer/app.js
           node --check product/staff/app.js
+          node --check product/staff/hardening.js
