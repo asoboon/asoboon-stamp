@@ -1,7 +1,19 @@
 /** ASOBooN Model backend — 10_Airwait.gs */
-function asbRawWaitTypes_() {
+const ASB_CACHE_KEY_WAIT_TYPES = 'asb:wait-types:rc2';
+const ASB_CACHE_KEY_WAIT_INFO = 'asb:wait-info:rc2';
+
+function asbRawWaitTypes_(fresh) {
+  const cache = CacheService.getScriptCache();
+  if (!fresh) {
+    const cached = cache.get(ASB_CACHE_KEY_WAIT_TYPES);
+    if (cached) {
+      try { return JSON.parse(cached); } catch (_) {}
+    }
+  }
   const d = asbAirPost_(ASB_API.waitTypes, { storeId: asbProp_(ASB_PROP.STORE_ID) });
-  return Array.isArray(d && d.innerDto && d.innerDto.waitTypeList) ? d.innerDto.waitTypeList : [];
+  const list = Array.isArray(d && d.innerDto && d.innerDto.waitTypeList) ? d.innerDto.waitTypeList : [];
+  try { cache.put(ASB_CACHE_KEY_WAIT_TYPES, JSON.stringify(list), 60); } catch (_) {}
+  return list;
 }
 
 /**
@@ -9,19 +21,32 @@ function asbRawWaitTypes_() {
  * dispFlg=falseでも実予約が存在し得るため、運用対象では表示フラグを条件にしない。
  */
 function asbOperationalWaitTypes_() {
-  const list = asbRawWaitTypes_().filter(x => !asbOperationalBlockedWaitType_(x));
+  const list = asbRawWaitTypes_(false).filter(x => !asbOperationalBlockedWaitType_(x));
   return { ok: true, version: ASB_VERSION, waitTypeList: list };
 }
 
 /** お客様の現地受付作成に使用してよい待ち項目だけ。 */
 function asbCustomerWaitTypes_() {
-  const list = asbRawWaitTypes_().filter(asbDisplayed_).filter(x => !asbCustomerBlockedWaitType_(x));
+  const list = asbRawWaitTypes_(false).filter(asbDisplayed_).filter(x => !asbCustomerBlockedWaitType_(x));
   return { ok: true, version: ASB_VERSION, waitTypeList: list };
 }
 
-function asbWaitInfo_() {
+function asbWaitInfo_(fresh) {
+  const cache = CacheService.getScriptCache();
+  if (!fresh) {
+    const cached = cache.get(ASB_CACHE_KEY_WAIT_INFO);
+    if (cached) {
+      try { return { ok: true, version: ASB_VERSION, innerDto: JSON.parse(cached), cached: true }; } catch (_) {}
+    }
+  }
   const d = asbAirGet_(ASB_API.waitInfo, { storeId: asbProp_(ASB_PROP.STORE_ID) });
-  return { ok: true, version: ASB_VERSION, innerDto: d.innerDto || {} };
+  const inner = d.innerDto || {};
+  try { cache.put(ASB_CACHE_KEY_WAIT_INFO, JSON.stringify(inner), 10); } catch (_) {}
+  return { ok: true, version: ASB_VERSION, innerDto: inner, cached: false };
+}
+
+function asbInvalidatePublicCache_() {
+  try { CacheService.getScriptCache().remove(ASB_CACHE_KEY_WAIT_INFO); } catch (_) {}
 }
 
 function asbReservations_(p) {
@@ -62,9 +87,9 @@ function asbCreateReservation_(p) {
   const slot = customerTypes.find(x => String(x.waitTypeId) === waitTypeId);
   if (!slot) throw new Error('この受付枠は現地受付の対象外です。');
 
-  // 売り切れ状態だけは確定直前にサーバーでも再確認する。
+  // 受付確定直前はキャッシュを使わずAirWAITから最新値を取得する。
   // remainingNum は「残り受付可能数」なので、単位を人数と決めつけず 0 のみ確実に拒否する。
-  const remaining = asbRemainingForSlot_(slot);
+  const remaining = asbRemainingForSlot_(slot, true);
   if (remaining.known && remaining.value <= 0) throw new Error('この回は受付上限に達しました。別の回をお選びください。');
 
   const d = asbAirPost_(ASB_API.create, {
@@ -95,6 +120,7 @@ function asbCreateReservation_(p) {
     statusToken
   };
   asbUpsertReservation_(rec);
+  asbInvalidatePublicCache_();
   asbEvent_('RESERVATION_CREATED', reserveId, receiptNo, waitTypeId, `${total} people`);
   return {
     reserveId,
@@ -153,9 +179,9 @@ function asbReservationStatus_(p) {
   };
 }
 
-function asbRemainingForSlot_(slot) {
+function asbRemainingForSlot_(slot, fresh) {
   try {
-    const info = asbWaitInfo_();
+    const info = asbWaitInfo_(fresh === true);
     const stores = Array.isArray(info && info.innerDto && info.innerDto.stores) ? info.innerDto.stores : [];
     const details = stores.length && Array.isArray(stores[0].waitDetails) ? stores[0].waitDetails : [];
     const target = asbNormName_(slot && slot.waitTypeName);
