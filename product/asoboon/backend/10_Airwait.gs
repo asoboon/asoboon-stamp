@@ -123,9 +123,11 @@ function asbDisplayed_(x) {
 }
 
 function asbBlockedWaitType_(x) {
+  const id = String(x && x.waitTypeId || '');
   const name = String(x && x.waitTypeName || '').normalize('NFKC');
+  const blockedIds = asbJsonProp_(ASB_PROP.BLOCKED_IDS, ['0042']).map(String);
   const patterns = asbJsonProp_(ASB_PROP.BLOCKED_PATTERNS, ['WEB','テスト','ご待機者専用','待機者専用']);
-  return patterns.some(p => name.toLowerCase().includes(String(p).normalize('NFKC').toLowerCase()));
+  return blockedIds.includes(id) || patterns.some(p => name.toLowerCase().includes(String(p).normalize('NFKC').toLowerCase()));
 }
 
 function asbAirPost_(url, body) { return asbAirRequest_(url, 'post', body); }
