@@ -14,6 +14,8 @@ const ASB_PROP = Object.freeze({
   CALL_ENABLED: 'AIRWAIT_CALL_ENABLED',
   EXTERNAL_CALL_READY: 'AIRWAIT_EXTERNAL_RESERVE_ID_READY',
   NEXT_DAY_READY: 'AIRWAIT_NEXT_DAY_RECEPTION_READY',
+  ADMISSION_POLICY_READY: 'ADMISSION_GROUP_POLICY_READY',
+  ADMISSION_GROUPS: 'ADMISSION_GROUPS_JSON',
   CALL_URL: 'AIRWAIT_CALL_API_URL',
   CALL_METHOD: 'AIRWAIT_CALLING_METHOD',
   COUNTER_ID: 'AIRWAIT_COUNTER_ID',
@@ -28,17 +30,8 @@ const ASB_PROP = Object.freeze({
   BLOCKED_IDS: 'BLOCKED_WAIT_TYPE_IDS_JSON'
 });
 
-const ASB_SHEET = Object.freeze({
-  RES: 'reservations',
-  EVENTS: 'events',
-  MUT: 'mutations'
-});
-
-const ASB_RES_HEADERS = [
-  'createdAt','updatedAt','operationalDay','reserveId','receiptNo','waitTypeId',
-  'waitTypeName','adults','paidChildren','infants','totalPeople','source',
-  'airwaitStatus','isCalling','calledAt','cancelledAt','statusToken'
-];
+const ASB_SHEET = Object.freeze({ RES: 'reservations', EVENTS: 'events', MUT: 'mutations' });
+const ASB_RES_HEADERS = ['createdAt','updatedAt','operationalDay','reserveId','receiptNo','waitTypeId','waitTypeName','adults','paidChildren','infants','totalPeople','source','airwaitStatus','isCalling','calledAt','cancelledAt','statusToken'];
 const ASB_EVENT_HEADERS = ['at','type','reserveId','receiptNo','waitTypeId','message'];
 const ASB_MUT_HEADERS = ['createdAt','updatedAt','requestId','action','scope','status','resultJson','errorCode','errorMessage'];
 
@@ -59,18 +52,16 @@ function setupASOBooNModel() {
   if (props.getProperty(ASB_PROP.CALL_ENABLED) == null) props.setProperty(ASB_PROP.CALL_ENABLED, '0');
   if (props.getProperty(ASB_PROP.EXTERNAL_CALL_READY) == null) props.setProperty(ASB_PROP.EXTERNAL_CALL_READY, '0');
   if (props.getProperty(ASB_PROP.NEXT_DAY_READY) == null) props.setProperty(ASB_PROP.NEXT_DAY_READY, '0');
+  if (props.getProperty(ASB_PROP.ADMISSION_POLICY_READY) == null) props.setProperty(ASB_PROP.ADMISSION_POLICY_READY, '0');
+  if (!props.getProperty(ASB_PROP.ADMISSION_GROUPS)) props.setProperty(ASB_PROP.ADMISSION_GROUPS, '{}');
   if (props.getProperty(ASB_PROP.AUTO_ENABLED) == null) props.setProperty(ASB_PROP.AUTO_ENABLED, '0');
   if (!props.getProperty(ASB_PROP.AUTO_UPDATED_AT)) props.setProperty(ASB_PROP.AUTO_UPDATED_AT, new Date().toISOString());
   if (!props.getProperty(ASB_PROP.AUTO_POOL)) props.setProperty(ASB_PROP.AUTO_POOL, '10');
   if (!props.getProperty(ASB_PROP.AUTO_STOP_TIME)) props.setProperty(ASB_PROP.AUTO_STOP_TIME, '18:00');
   if (!props.getProperty(ASB_PROP.AUTO_PENDING_MS)) props.setProperty(ASB_PROP.AUTO_PENDING_MS, '120000');
   if (!props.getProperty(ASB_PROP.CALL_METHOD)) props.setProperty(ASB_PROP.CALL_METHOD, 'KeyNORMAL');
-  if (!props.getProperty(ASB_PROP.BLOCKED_PATTERNS)) {
-    props.setProperty(ASB_PROP.BLOCKED_PATTERNS, JSON.stringify(['WEB','テスト','ご待機者専用','待機者専用']));
-  }
-  if (!props.getProperty(ASB_PROP.OP_BLOCKED_PATTERNS)) {
-    props.setProperty(ASB_PROP.OP_BLOCKED_PATTERNS, JSON.stringify(['テスト','ご待機者専用','待機者専用']));
-  }
+  if (!props.getProperty(ASB_PROP.BLOCKED_PATTERNS)) props.setProperty(ASB_PROP.BLOCKED_PATTERNS, JSON.stringify(['WEB','テスト','ご待機者専用','待機者専用']));
+  if (!props.getProperty(ASB_PROP.OP_BLOCKED_PATTERNS)) props.setProperty(ASB_PROP.OP_BLOCKED_PATTERNS, JSON.stringify(['テスト','ご待機者専用','待機者専用']));
   if (!props.getProperty(ASB_PROP.SLOT_OVERRIDES)) props.setProperty(ASB_PROP.SLOT_OVERRIDES, '{}');
   if (!props.getProperty(ASB_PROP.BLOCKED_IDS)) props.setProperty(ASB_PROP.BLOCKED_IDS, JSON.stringify(['0042']));
 
@@ -94,6 +85,8 @@ function checkASOBooNModel() {
     callEnabled: asbBoolProp_(ASB_PROP.CALL_ENABLED, false),
     externalCallReady: asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false),
     nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false),
+    admissionPolicyReady: asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false),
+    admissionGroupsConfigured: Object.keys(asbJsonProp_(ASB_PROP.ADMISSION_GROUPS, {})).length > 0,
     autoEnabled: asbBoolProp_(ASB_PROP.AUTO_ENABLED, false),
     triggerInstalled: asbAutoTriggerInstalled_(),
     callMethod: props.getProperty(ASB_PROP.CALL_METHOD) || 'KeyNORMAL',
@@ -115,9 +108,7 @@ function installASOBooNAutoTrigger() {
 }
 
 function removeASOBooNAutoTrigger() {
-  ScriptApp.getProjectTriggers().forEach(t => {
-    if (t.getHandlerFunction() === 'runASOBooNAutoCycle') ScriptApp.deleteTrigger(t);
-  });
+  ScriptApp.getProjectTriggers().forEach(t => { if (t.getHandlerFunction() === 'runASOBooNAutoCycle') ScriptApp.deleteTrigger(t); });
   return { ok: true, installed: false };
 }
 
@@ -129,7 +120,7 @@ function doGet(e) {
     if (action === 'health') out = asbHealth_();
     else if (action === 'publicConfig') out = asbPublicConfig_();
     else if (action === 'waitTypes') out = asbOperationalWaitTypes_();
-    else if (action === 'waitInfo') out = asbWaitInfo_();
+    else if (action === 'waitInfo') out = asbWaitInfo_(false);
     else if (action === 'mutationStatus') out = asbMutationStatus_(p);
     else if (action === 'reservationStatus') out = asbReservationStatus_(p);
     else if (action === 'staffSnapshot') { asbRequireStaff_(p.staffKey); out = asbStaffSnapshot_(); }
@@ -142,13 +133,10 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  const p = asbParsePost_(e);
-  const action = String(p.action || '');
-  const requestId = asbRequestId_(p.requestId);
+  const p = asbParsePost_(e), action = String(p.action || ''), requestId = asbRequestId_(p.requestId);
   if (!requestId) return asbJson_({ ok: false, error: 'invalid requestId' });
   const staffActions = new Set(['setAutoEnabled','syncStatuses','event']);
   const scope = staffActions.has(action) ? 'staff' : 'public';
-
   try {
     if (scope === 'staff') asbRequireStaff_(p.staffKey);
     if (!asbClaimMutation_(requestId, action, scope)) return asbJson_({ ok: true, duplicate: true, requestId });
@@ -158,40 +146,26 @@ function doPost(e) {
     else if (action === 'syncStatuses') result = asbSyncStatusesAction_(p);
     else if (action === 'event') result = asbEventAction_(p);
     else throw new Error('unknown action');
-
     asbSaveMutation_({ requestId, action, scope, status: 'DONE', result, errorCode: '', errorMessage: '' });
     return asbJson_({ ok: true, requestId });
   } catch (err) {
     const code = asbErrorCode_(err);
-    try {
-      asbSaveMutation_({ requestId, action, scope, status: 'ERROR', result: null, errorCode: code, errorMessage: String(err && err.message || err).slice(0, 500) });
-    } catch (_) {}
+    try { asbSaveMutation_({ requestId, action, scope, status: 'ERROR', result: null, errorCode: code, errorMessage: String(err && err.message || err).slice(0, 500) }); } catch (_) {}
     return asbJson_({ ok: false, requestId, errorCode: code });
   }
 }
 
 function asbHealth_() {
   return {
-    ok: true,
-    version: ASB_VERSION,
-    service: 'asoboon-reception-model',
-    now: new Date().toISOString(),
-    serverAuto: true,
+    ok: true, version: ASB_VERSION, service: 'asoboon-reception-model', now: new Date().toISOString(), serverAuto: true,
     callEnabled: asbBoolProp_(ASB_PROP.CALL_ENABLED, false),
     externalCallReady: asbBoolProp_(ASB_PROP.EXTERNAL_CALL_READY, false),
     nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false),
+    admissionPolicyReady: asbBoolProp_(ASB_PROP.ADMISSION_POLICY_READY, false),
     triggerInstalled: asbAutoTriggerInstalled_()
   };
 }
 
 function asbPublicConfig_() {
-  return {
-    ok: true,
-    version: ASB_VERSION,
-    brandName: 'ASOBooN',
-    maxTotalPeople: 10,
-    childrenPerAdult: 3,
-    serverAuto: true,
-    nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false)
-  };
+  return { ok: true, version: ASB_VERSION, brandName: 'ASOBooN', maxTotalPeople: 10, childrenPerAdult: 3, serverAuto: true, nextDayReady: asbBoolProp_(ASB_PROP.NEXT_DAY_READY, false) };
 }
