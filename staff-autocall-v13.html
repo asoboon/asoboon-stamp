@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#08151d">
+<title>ASOBooN STAFF｜継続AUTO v13</title>
+<style>html,body{margin:0;min-height:100%;background:#08151d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.boot{padding:30px 16px;text-align:center;font-weight:900}.bad{max-width:520px;margin:20px auto;padding:16px;border:1px solid #8b4b42;border-radius:14px;background:#3c211d;color:#ffd6cf}</style>
+</head>
+<body><div id="boot" class="boot">AUTO呼出 v13 を読み込んでいます…</div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./staff-autocall-v12.html?v=128',{cache:'no-store'});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    let html=await r.text();
+    html=html.replace('./autocall-config.js?v=12','./autocall-config-v13.js?v=130');
+    html=html.replace('ASOBooN STAFF｜継続AUTO v12.4','ASOBooN STAFF｜継続AUTO v13.0');
+    html=html.replace('継続AUTO 自動呼出 v12.4','継続AUTO 自動呼出 v13.0');
+    html=html.replace('v12.4 起動しました。','v13.0 起動しました。');
+    html=html.replace(
+      '<script src="./staff-call-v12-4-patch.js?v=124"></'+'script>\n<script src="./staff-autocall-v12-3.js?v=123"></'+'script>',
+      '<script src="./staff-call-v13-patch.js?v=130"></'+'script>\n<script src="./staff-adaptive-refresh-v13.js?v=130"></'+'script>\n<script src="./staff-autocall-v12-3.js?v=123"></'+'script>'
+    );
+    document.open();document.write(html);document.close();
+  }catch(error){
+    document.body.innerHTML=`<div class="bad"><strong>AUTO呼出を読み込めませんでした。</strong><br><br>${String(error?.message||error)}<br><br>ページを再読み込みしてください。</div>`;
+  }
+})();
+</script>
+</body></html>
