@@ -8,133 +8,38 @@
 <title>あなたの呼出状況｜ASOBooN</title>
 <style>
 :root{--paper:#efe1bd;--cream:#fff8e8;--navy:#0f2b46;--red:#a74232;--red2:#fff0ed;--line:#d8c49b;--shadow:0 12px 30px rgba(42,31,17,.22)}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
-#statusFrame{display:block;width:100%;height:100%;border:0;background:var(--paper)}
-body.has-cancel #statusFrame{height:calc(100% - 90px)}
-.cancelbar{position:fixed;z-index:20;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;min-height:90px;padding:12px max(12px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:linear-gradient(180deg,rgba(255,248,232,.98),#efe1bd);border-top:2px solid var(--line);box-shadow:0 -8px 24px rgba(42,31,17,.14)}
-.cancelbar[hidden]{display:none}.cancelcopy{min-width:0;flex:1}.cancelcopy strong{display:block;color:var(--navy);font-size:.82rem}.cancelcopy small{display:block;margin-top:3px;color:#6d6353;font-size:.62rem;line-height:1.4}.cancelbtn{flex:0 0 auto;min-height:48px;border:2px solid #c78d84;border-radius:13px;padding:10px 14px;background:var(--red2);color:#8b3028;font-weight:950}
-.modal{position:fixed;z-index:50;inset:0;display:grid;place-items:end center;padding:12px;background:rgba(5,15,24,.58);backdrop-filter:blur(5px)}.modal[hidden]{display:none}.sheet{width:min(100%,500px);padding:18px;border-radius:22px 22px 15px 15px;background:var(--cream);border:2px solid var(--line);box-shadow:var(--shadow)}.sheet h2{margin:0;color:var(--navy);font-size:1.18rem}.sheet p{margin:8px 0 0;color:#6d6353;font-size:.74rem;line-height:1.65}.warn{margin-top:11px;padding:11px;border-radius:12px;background:var(--red2);color:#7f3028;font-size:.7rem;line-height:1.55;font-weight:850}.actions{display:grid;grid-template-columns:1fr 1.35fr;gap:8px;margin-top:13px}.btn{min-height:50px;border-radius:13px;font-weight:950}.back{border:1px solid #cdbb98;background:#f5ead4;color:#3f382d}.go{border:2px solid #8e332b;background:linear-gradient(180deg,#c95749,#9b352c);color:#fff}.done{position:fixed;z-index:80;inset:0;display:grid;place-items:center;padding:20px;background:linear-gradient(180deg,#e8f5ec,#f7edd8)}.done[hidden]{display:none}.donecard{width:min(100%,430px);padding:24px 18px;border:3px solid #79ad8b;border-radius:24px;background:#fffaf0;text-align:center;box-shadow:var(--shadow)}.check{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 10px;border-radius:50%;background:#d9efdf;color:#27784f;font-size:2rem;font-weight:1000}.done h2{margin:0;color:var(--navy)}.done p{margin:8px 0 0;color:#506258;font-size:.76rem;line-height:1.6}.homebtn{display:block;margin-top:15px;padding:13px;border-radius:13px;background:var(--navy);color:#fff;text-decoration:none;font-weight:950}
-.toast{position:fixed;z-index:35;left:50%;bottom:104px;transform:translateX(-50%);width:min(calc(100% - 30px),430px);padding:10px 12px;border-radius:12px;background:#173f32;color:#fff8e8;text-align:center;font-size:.7rem;font-weight:850;box-shadow:var(--shadow)}.toast[hidden]{display:none}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}#statusFrame{display:block;width:100%;height:100%;border:0;background:var(--paper)}body.has-cancel #statusFrame{height:calc(100% - 90px)}
+.cancelbar{position:fixed;z-index:20;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;min-height:90px;padding:12px max(12px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:linear-gradient(180deg,rgba(255,248,232,.98),#efe1bd);border-top:2px solid var(--line);box-shadow:0 -8px 24px rgba(42,31,17,.14)}.cancelbar[hidden]{display:none}.cancelcopy{min-width:0;flex:1}.cancelcopy strong{display:block;color:var(--navy);font-size:.82rem}.cancelcopy small{display:block;margin-top:3px;color:#6d6353;font-size:.62rem;line-height:1.4}.cancelbtn{flex:0 0 auto;min-height:48px;border:2px solid #c78d84;border-radius:13px;padding:10px 14px;background:var(--red2);color:#8b3028;font-weight:950}.done{position:fixed;z-index:80;inset:0;display:grid;place-items:center;padding:20px;background:linear-gradient(180deg,#e8f5ec,#f7edd8)}.done[hidden]{display:none}.donecard{width:min(100%,430px);padding:24px 18px;border:3px solid #79ad8b;border-radius:24px;background:#fffaf0;text-align:center;box-shadow:var(--shadow)}.check{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 10px;border-radius:50%;background:#d9efdf;color:#27784f;font-size:2rem;font-weight:1000}.done h2{margin:0;color:var(--navy)}.done p{margin:8px 0 0;color:#506258;font-size:.76rem;line-height:1.6}.homebtn{display:block;margin-top:15px;padding:13px;border-radius:13px;background:var(--navy);color:#fff;text-decoration:none;font-weight:950}
 </style>
 </head>
 <body>
 <iframe id="statusFrame" title="ASOBooN 呼出状況"></iframe>
-<div id="cancelBar" class="cancelbar" hidden>
-  <div class="cancelcopy"><strong>受付を取り消しますか？</strong><small>このミニアプリから受付した番号だけキャンセルできます</small></div>
-  <button id="cancelOpen" class="cancelbtn" type="button">受付をキャンセル</button>
-</div>
-<div id="toast" class="toast" hidden>キャンセルの反映を確認しています…</div>
-<div id="cancelModal" class="modal" hidden>
-  <div class="sheet">
-    <h2>受付をキャンセルしますか？</h2>
-    <p>キャンセルすると現在の順番は失われ、元に戻せません。</p>
-    <div class="warn">次にAirウェイトの正式な取消画面が開きます。そこで「順番待ちをキャンセルする」→「取り消しをする」で完了です。</div>
-    <div class="actions">
-      <button id="cancelBack" class="btn back" type="button">やめる</button>
-      <button id="cancelGo" class="btn go" type="button">取消画面へ進む</button>
-    </div>
-  </div>
-</div>
-<div id="doneView" class="done" hidden>
-  <div class="donecard">
-    <div class="check">✓</div>
-    <h2>キャンセルしました</h2>
-    <p>ミニアプリで受付した番号を解除しました。必要であれば新しく受付できます。</p>
-    <a class="homebtn" href="./home.html">ミニアプリへ戻る</a>
-  </div>
-</div>
+<div id="cancelBar" class="cancelbar" hidden><div class="cancelcopy"><strong>この受付をキャンセルしますか？</strong><small>取消は元に戻せません。本人確認をしてから手続きします。</small></div><button id="cancelOpen" class="cancelbtn" type="button">キャンセル</button></div>
+<div id="doneView" class="done" hidden><div class="donecard"><div class="check">✓</div><h2>受付を削除しました</h2><p>Airウェイトでキャンセル済みになった受付番号を、この端末のミニアプリからも削除しました。</p><a class="homebtn" href="./home.html">ミニアプリへ戻る</a></div></div>
 <script>
 (()=>{'use strict';
 const frame=document.getElementById('statusFrame');
-const CURRENT_KEY='asoboon_current_reservation_v2';
-const RC3_KEY='asoboon_reservation_rc3_current_v1';
+const KEYS=['asoboon_current_reservation_v3','asoboon_current_reservation_v2','asoboon_reservation_rc3_current_v1'];
 const CALL_KEY='asoboon_callstatus_number_v4';
-const PENDING_KEY='asoboon_cancel_pending_v1';
 const API_KEY='lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI';
 const STORE_ID='KR01205179';
 const RES_API='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 let checking=false;
-let activeRecord=null;
-
+function unwrap(x){if(!x||typeof x!=='object')return null;const r=x.reservation&&typeof x.reservation==='object'?x.reservation:x;return {...x,...r}}
+function parseKey(k){try{return unwrap(JSON.parse(localStorage.getItem(k)||'null'))}catch{return null}}
 function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function parseRecord(key){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&x.receiptNo&&x.waitTypeId?x:null}catch(e){return null}}
-function readRecord(){return parseRecord(CURRENT_KEY)||parseRecord(RC3_KEY)}
-function readCallNumber(){
-  try{
-    const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');
-    if(!x||x.date!==localDate())return '';
-    return String(x.number||'').trim();
-  }catch(e){return ''}
-}
-function isMiniappReception(r){
-  const source=String(r?.source||'');
-  return !!r&&['asoboon-onsite-live','asoboon-hidden-reservation-rc3'].includes(source)&&!!r.shortUrl;
-}
-function isViewingMiniappReception(r){return isMiniappReception(r)&&readCallNumber()===String(r.receiptNo).trim()}
-function syncNumberIfEmpty(r){
-  if(!r||readCallNumber())return;
-  try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number:String(r.receiptNo)}))}catch(e){}
-}
-function clearOwnedReception(r,{showDone=false}={}){
-  const ownedNumber=String(r?.receiptNo||'').trim();
-  const shownNumber=readCallNumber();
-  try{
-    localStorage.removeItem(CURRENT_KEY);
-    localStorage.removeItem(RC3_KEY);
-    localStorage.removeItem(PENDING_KEY);
-    if(ownedNumber&&shownNumber===ownedNumber)localStorage.removeItem(CALL_KEY);
-  }catch(e){}
-  activeRecord=null;
-  document.body.classList.remove('has-cancel');
-  document.getElementById('cancelBar').hidden=true;
-  document.getElementById('toast').hidden=true;
-  if(showDone)document.getElementById('doneView').hidden=false;
-}
-function setCancelVisible(on){document.getElementById('cancelBar').hidden=!on;document.body.classList.toggle('has-cancel',!!on)}
-function isSuccess(d){return d?.success===true||String(d?.resultCode?.code||'')==='0000'}
-async function page(r,start){const res=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams({storeId:STORE_ID,waitTypeId:String(r.waitTypeId),sortStatus:'0',isDesc:'0',start:String(start),limit:'100'}),cache:'no-store',credentials:'omit'});const d=await res.json();if(!isSuccess(d))throw new Error(d?.resultCode?.defaultMessage||'受付状況を確認できません');return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
-async function findTarget(r){let start=1,rows=[];while(start<=1000){const p=await page(r,start);rows.push(...p.rows);const hit=rows.find(x=>String(x.waitTypeId)===String(r.waitTypeId)&&String(x.number)===String(r.receiptNo));if(hit)return hit;if(rows.length>=p.count||!p.rows.length)break;start+=p.rows.length}return null}
-async function refreshState(){
-  if(checking)return;
-  const r=readRecord();activeRecord=r;
-  if(!r){setCancelVisible(false);return}
-  syncNumberIfEmpty(r);
-  const viewingOwned=isViewingMiniappReception(r);
-  checking=true;
-  try{
-    const row=await findTarget(r);
-    if(!row){setCancelVisible(false);return}
-    const st=String(row.status);
-    if(st==='3'){
-      clearOwnedReception(r,{showDone:viewingOwned});
-      return;
-    }
-    if((st==='0'||st==='1')&&viewingOwned){setCancelVisible(true)}else{setCancelVisible(false)}
-  }catch(e){setCancelVisible(false)}finally{checking=false}
-}
-
-// iframeを開く前に、テストページRC3を含む現在の予約番号を呼出状況へ同期する。
-const initialRecord=readRecord();
-if(initialRecord)syncNumberIfEmpty(initialRecord);
-frame.src=`./callstatus-core.html?v=570&wrap=1`;
-
-document.getElementById('cancelOpen').addEventListener('click',()=>{
-  activeRecord=readRecord();
-  if(!isViewingMiniappReception(activeRecord))return;
-  document.getElementById('cancelModal').hidden=false;
-});
-document.getElementById('cancelBack').addEventListener('click',()=>{document.getElementById('cancelModal').hidden=true});
-document.getElementById('cancelGo').addEventListener('click',()=>{
-  const r=readRecord();
-  if(!isViewingMiniappReception(r))return;
-  document.getElementById('cancelModal').hidden=true;
-  try{localStorage.setItem(PENDING_KEY,String(Date.now()))}catch(e){}
-  document.getElementById('toast').hidden=false;
-  const w=window.open(String(r.shortUrl),'_blank','noopener');
-  if(!w){location.href=String(r.shortUrl)}
-});
-window.addEventListener('focus',refreshState);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshState()});
-setInterval(refreshState,10000);refreshState();
+function readCall(){try{const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');if(!x||x.date!==localDate())return '';return String(x.number||'').trim()}catch{return ''}}
+function readOwned(){for(const k of KEYS){const r=parseKey(k);if(r?.receiptNo)return {...r,_key:k}}return null}
+function syncOwnedNumber(){const r=readOwned();if(!r||readCall())return;try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number:String(r.receiptNo)}))}catch{}}
+function clearNumber(number){const n=String(number||'').trim();for(const k of KEYS){try{const r=parseKey(k);if(r&&String(r.receiptNo||'').trim()===n)localStorage.removeItem(k)}catch{}}try{const c=readCall();if(c===n)localStorage.removeItem(CALL_KEY)}catch{}document.body.classList.remove('has-cancel');document.getElementById('cancelBar').hidden=true;document.getElementById('doneView').hidden=false}
+function setCancel(on){document.getElementById('cancelBar').hidden=!on;document.body.classList.toggle('has-cancel',!!on)}
+function ok(d){return d?.success===true||String(d?.resultCode?.code||'')==='0000'}
+async function page(start){const res=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams({storeId:STORE_ID,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'}),cache:'no-store',credentials:'omit'});const d=await res.json();if(!res.ok||!ok(d))throw Error('Airウェイトを確認できません');return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
+async function findNumber(number){const owned=readOwned();let start=1,total=Infinity,guard=0;while(start<=total&&guard++<20){const p=await page(start);total=p.count||p.rows.length;const hits=p.rows.filter(x=>String(x.number||'').trim()===number);const exact=owned?hits.find(x=>!owned.waitTypeId||String(x.waitTypeId||'')===String(owned.waitTypeId)):hits[0];if(exact)return exact;if(!p.rows.length||start+p.rows.length>total)break;start+=p.rows.length}return null}
+async function refreshState(){if(checking)return;const number=readCall();if(!number){setCancel(false);return}checking=true;try{const row=await findNumber(number);if(row&&String(row.status)==='3'){clearNumber(number);return}const st=String(row?.status??'');setCancel(st==='0'||st==='1'||st==='4'||!row)}catch{setCancel(true)}finally{checking=false}}
+syncOwnedNumber();frame.src='./callstatus-core.html?v=571&wrap=1';
+document.getElementById('cancelOpen').addEventListener('click',()=>{const n=readCall();location.href=`./cancel.html${n?`?number=${encodeURIComponent(n)}`:''}`});
+window.addEventListener('focus',refreshState);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshState()});setInterval(refreshState,6000);refreshState();
 })();
 </script>
 </body>
