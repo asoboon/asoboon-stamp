@@ -49,10 +49,8 @@ async function reconcileBeforeRender(){
   try{
     const row=await findReservation(rec.receiptNo);
     const status=row?String(row.status):'';
-    // 0=待ち中 / 1=保留 / 4=対応中 のときだけ「受付済み」を維持。
     if(['0','1','4'].includes(status))return;
     if(status==='3')rememberCancelled(rec);
-    // 2=案内済み、3=取消、または現在一覧に存在しない受付は新規受付を妨げない。
     clearLocal(rec);
   }catch(error){console.warn('onsite preflight status check failed',error)}
 }
@@ -65,7 +63,7 @@ async function reconcileBeforeRender(){
     let html=await response.text();
     html=html.replace('<h1 id="heroTitle">入場する回を選んで受付</h1>','<h1 id="heroTitle">入場する回を選ぶ</h1>');
     html=html.replace('<p>回を選ぶ → 人数を入れる → 内容を確認。3ステップで受付できます。</p>','');
-    html=html.replace("function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||'');return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}","function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||''),nameNorm=name.normalize('NFKC');if(/WEB/i.test(nameNorm))return true;return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}");
+    html=html.replace("function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||'');return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}","function isBlocked(x){const id=String(x.waitTypeId||'');const name=String(x.waitTypeName||''),nameNorm=name.normalize('NFKC');if(/WEB/i.test(nameNorm))return true;if(/テスト/.test(nameNorm))return false;if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}");
     html=html.replace("S.closed=h>=Number(C.receptionCloseHour??18)&&h<Number(C.nextDayOpenHour??19);S.dayMode=h>=Number(C.nextDayOpenHour??19)?'tomorrow':'today';S.operationalDay=S.dayMode==='tomorrow'?ymdAdd(p.year,p.month,p.day,1):base;","S.closed=h>=18;S.dayMode=h>=18?'tomorrow':'today';S.operationalDay=h>=18?ymdAdd(p.year,p.month,p.day,1):base;");
     html=html.replace("S.dayMode==='tomorrow'?'19:00から翌日の受付を行っています':'受付状況は自動で更新されます'","S.dayMode==='tomorrow'?'':' '");
     html=html.replace('<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2>ただいま受付準備中です</h2><p>次の入場受付は <strong>19:00から</strong> 開始します。<br>19:00以降は、翌日の受付をこの画面から行えます。</p></section>','<section id="closedCard" class="closed" hidden><div class="clock">🌙</div><h2>本日の現地受付は終了しました</h2><p>次回は9:30からご利用いただけます。</p></section>');
