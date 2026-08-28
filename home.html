@@ -219,6 +219,7 @@
         }
 
         calendarSyncing=true;
+        lastCalendarFetch=Date.now();
         try{
           const state=await calendar.getCurrent({force});
           calendarState=state;
