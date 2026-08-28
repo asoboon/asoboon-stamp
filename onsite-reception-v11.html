@@ -30,29 +30,21 @@ const fail=message=>{document.body.innerHTML='<div class="error"><strong>入場�
     html=html.replace('<span class="kicker">🎫 ASOBooN 入場受付</span>','<span class="kicker">🎫 ASOBooN 入場受付</span>');
     html=html.replace('<h1 id="heroTitle">入場する回を選んで受付</h1>','<h1 id="heroTitle">入場する回を選ぶ</h1>');
     html=html.replace('<p>回を選ぶ → 人数を入れる → 内容を確認。3ステップで受付できます。</p>','');
-
     html=html.replace("function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||'');return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}","function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||''),nameNorm=name.normalize('NFKC');if(/WEB/i.test(nameNorm))return true;return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}");
-
     html=html.replace("S.closed=h>=Number(C.receptionCloseHour??18)&&h<Number(C.nextDayOpenHour??19);S.dayMode=h>=Number(C.nextDayOpenHour??19)?'tomorrow':'today';S.operationalDay=S.dayMode==='tomorrow'?ymdAdd(p.year,p.month,p.day,1):base;","S.closed=h>=18;S.dayMode=h>=18?'tomorrow':'today';S.operationalDay=h>=18?ymdAdd(p.year,p.month,p.day,1):base;");
     html=html.replace("S.dayMode==='tomorrow'?'19:00から翌日の受付を行っています':'受付状況は自動で更新されます'","S.dayMode==='tomorrow'?'':' '");
     html=html.replace('<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2>ただいま受付準備中です</h2><p>次の入場受付は <strong>19:00から</strong> 開始します。<br>19:00以降は、翌日の受付をこの画面から行えます。</p></section>','<section id="closedCard" class="closed" hidden><div class="clock">🌙</div><h2>本日の現地受付は終了しました</h2><p>次回は9:30からご利用いただけます。</p></section>');
-
     html=html.replace('<section class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2>','<section id="slotCard" class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2>');
     html=html.replace('<div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div></section>','<div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div><button class="btn light" type="button" onclick="location.reload()">↻ 再読み込み</button></section>');
     html=html.replace('<section id="peopleCard" class="card" hidden>\n  <div class="step-head">','<section id="peopleCard" class="card" hidden>\n  <button id="backToSlots" class="btn light" type="button" style="margin-top:0;margin-bottom:11px">← 回を選び直す</button>\n  <div class="step-head">');
     const oldClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();$('peopleCard').hidden=!S.slot;$('waiverCard').hidden=!S.slot;updateUi();if(S.slot)setTimeout(()=>$('peopleCard').scrollIntoView({behavior:'smooth',block:'start'}),100)});";
     const newClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b||b.disabled)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();if(S.slot){$('slotCard').hidden=true;$('peopleCard').hidden=false;$('waiverCard').hidden=false;updateUi();window.scrollTo({top:0,behavior:'smooth'})}});$('backToSlots').addEventListener('click',()=>{$('slotCard').hidden=false;$('peopleCard').hidden=true;$('waiverCard').hidden=true;setTimeout(()=>$('slotCard').scrollIntoView({behavior:'smooth',block:'start'}),50)});";
     html=html.replace(oldClick,newClick);
-
-    // AirWAITが受付番号を返した時点で完了画面を出す。台帳同期は後処理にする。
     html=html.replace("persist(rec);rec.ledgerSynced=await ensureLedger(rec,4);persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;","persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;setTimeout(()=>{ensureLedger(rec,2).then(ok=>{rec.ledgerSynced=ok;persist(rec);setSyncMessage(rec,'successSyncMsg')}).catch(()=>{})},0);");
-
     html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
-
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
     html=html.replace(configTag,tag('./reservation-policy-rc3.js?v=20260828-rc3.1')+tag('./onsite-runtime-v12.js?v=14')+configTag);
-
-    html=html.replace('</body>',tag('./onsite-test-v14.js?v=14')+tag('./onsite-cancel-v11.js?v=14')+'</body>');
+    html=html.replace('</body>',tag('./onsite-test-v14.js?v=14')+tag('./onsite-cancel-v11.js?v=15')+'</body>');
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
 })();
