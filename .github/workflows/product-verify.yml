@@ -3,10 +3,18 @@ on:
   push:
     paths:
       - 'product/**'
+      - 'reservation-policy-rc3.js'
+      - 'yoyaku-reservation-rc3.js'
+      - 'yoyaku-reservation-rc3.html'
+      - 'yoyaku-test.html'
       - '.github/workflows/product-verify.yml'
   pull_request:
     paths:
       - 'product/**'
+      - 'reservation-policy-rc3.js'
+      - 'yoyaku-reservation-rc3.js'
+      - 'yoyaku-reservation-rc3.html'
+      - 'yoyaku-test.html'
       - '.github/workflows/product-verify.yml'
 jobs:
   verify:
@@ -41,6 +49,8 @@ jobs:
             echo "checking $file"
             node --check "$file"
           done < <(find product -type f -name '*.js' -print0)
+          node --check reservation-policy-rc3.js
+          node --check yoyaku-reservation-rc3.js
       - name: Apps Script syntax check
         run: |
           set -e
