@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="theme-color" content="#0f2b46">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>ASOBooN｜入場予約 RC3</title>
+<title>ASOBooN｜現地受付 RC3</title>
 <link rel="stylesheet" href="./product/customer/style.css">
 <style>
 .test-ribbon{position:fixed;z-index:999;top:7px;right:7px;padding:5px 8px;border-radius:999px;background:#7a2c21;color:#fff;font-size:.55rem;font-weight:950;letter-spacing:.06em;box-shadow:0 3px 10px rgba(0,0,0,.2)}
 .quick-one{position:relative;z-index:1;margin-top:12px}.quick-one a{display:flex;align-items:center;justify-content:center;min-height:43px;border-radius:13px;text-decoration:none;font-size:.75rem;font-weight:950;background:rgba(255,255,255,.1);color:#fff6dd;border:2px solid rgba(255,244,211,.55)}
 .current-token,.save-note,.unknown-meta{margin-top:9px;font-size:.7rem;line-height:1.55;color:#4f6558}.unknown{margin-top:12px;padding:18px 15px;border-radius:21px;background:#fff5da;border:3px solid #d6aa54;box-shadow:0 16px 38px rgba(49,36,18,.17)}.unknown h2{margin:0;color:#6b4a0a;font-size:1.12rem}.unknown p{font-size:.74rem;line-height:1.7;color:#715c37}.unknown .btn{margin-top:12px}.support-note{margin-top:10px;padding:10px 11px;border-radius:12px;background:#eef3f7;color:#425a6c;font-size:.65rem;line-height:1.6}
+.onsite-banner{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;margin-top:12px;padding:11px 12px;border-radius:15px;background:#fff4d4;color:#3a2a12;border:2px solid #f2d06e}.onsite-banner strong{font-size:.84rem;color:#8a4d08}.onsite-banner span{font-size:.72rem;line-height:1.45;font-weight:900}.onsite-banner b{font-size:1rem;color:#9b4b0b}
+.geo-gate{border-color:#8db1c7;background:linear-gradient(180deg,#f7fbff,#edf6fb)}.geo-gate .step-no{background:#2b607c}.geo-lead{margin:0;color:#3f5f72;font-size:.74rem;line-height:1.7;font-weight:780}.geo-mini{margin-top:8px;color:#6d7f8a;font-size:.64rem;line-height:1.6}.geo-gate .btn{margin-top:12px}
 </style>
 <script src="./autocall-config.js"></script>
 <script src="./reservation-policy-rc3.js"></script>
@@ -19,15 +21,24 @@
 <div class="test-ribbon">HIDDEN RC3 TEST</div>
 <main class="app">
 <header class="hero">
-  <span class="kicker">🎫 ASOBooN 入場予約</span>
-  <h1 id="heroTitle">入場する回を選んで予約</h1>
-  <p>場所に関係なく、ミニアプリから入場予約できます。</p>
-  <div class="daybar"><strong id="dayTitle">予約日を確認中…</strong><small id="daySub">最新の空き状況を読み込んでいます</small></div>
+  <span class="kicker">📍 ASOBooN 現地受付</span>
+  <h1 id="heroTitle">現地で入場受付</h1>
+  <p>WEB受付との比較検証用です。現地受付はASOBooN周辺でのみ利用できます。</p>
+  <div class="onsite-banner"><strong>受付時間</strong><span><b>9:30〜</b><br>ASOBooNから半径500m以内</span></div>
+  <div class="daybar"><strong id="dayTitle">受付日を確認中…</strong><small id="daySub">最新の空き状況を読み込んでいます</small></div>
   <div class="quick-one"><a href="./home.html">🏠 ミニアプリHOME</a></div>
 </header>
 
+<section id="geoGate" class="card geo-gate">
+  <div class="step-head"><span class="step-no">📍</span><div><h2>現在地を確認</h2><small>現地受付は半径500m以内限定です</small></div></div>
+  <p class="geo-lead">9:30以降、ASOBooNから半径500m以内にいることを確認すると受付へ進めます。</p>
+  <button id="geoCheck" class="btn secondary" type="button">現在地を確認する</button>
+  <div id="geoStatus" class="msg info">現在地を確認してください。</div>
+  <div class="geo-mini">※ GPSの測位誤差が大きい場合は、少し待ってから再確認をお願いすることがあります。</div>
+</section>
+
 <section id="currentCard" class="current" hidden>
-  <div class="current-title">✅ この端末は予約済みです</div>
+  <div class="current-title">✅ この端末は受付済みです</div>
   <div class="ticket-no"><span id="currentNo">--</span><small>番</small></div>
   <div id="currentSub" class="current-sub"></div>
   <div id="currentToken" class="current-token"></div>
@@ -35,23 +46,23 @@
 </section>
 
 <section id="closedCard" class="closed" hidden>
-  <div class="clock">🕖</div>
-  <h2 id="closedTitle">ただいま予約準備中です</h2>
-  <p id="closedText">19:00から翌日の入場予約を開始します。</p>
+  <div class="clock">🕤</div>
+  <h2 id="closedTitle">現地受付は9:30からです</h2>
+  <p id="closedText">9:30以降、ASOBooNから半径500m以内で現地受付を利用できます。</p>
 </section>
 
 <section id="unknownCard" class="unknown" hidden>
-  <h2>⚠️ 予約結果を確認しています</h2>
-  <p id="unknownText">AirWAITへの送信後に通信結果を確認できませんでした。重複予約を防ぐため、同じ予約を再送しないでください。</p>
+  <h2>⚠️ 受付結果を確認しています</h2>
+  <p id="unknownText">AirWAITへの送信後に通信結果を確認できませんでした。重複受付を防ぐため、同じ受付を再送しないでください。</p>
   <div id="unknownMeta" class="unknown-meta"></div>
-  <div class="support-note">AirWAIT管理画面で予約が作成されていないことをスタッフが確認した場合のみ、下のボタンから再受付できます。</div>
+  <div class="support-note">AirWAIT管理画面で受付が作成されていないことをスタッフが確認した場合のみ、下のボタンから再受付できます。</div>
   <button id="clearUnknown" class="btn light" type="button">AirWAIT未登録を確認して再受付する</button>
 </section>
 
-<div id="flow">
+<div id="flow" hidden>
 <section id="slotCard" class="card">
-  <div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2><small>その日の対象枠だけを表示します</small></div></div>
-  <div id="slotList" class="slot-list"><div class="msg info">予約枠を読み込んでいます…</div></div>
+  <div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2><small>その日の現地受付対象枠だけを表示します</small></div></div>
+  <div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div>
   <button id="reloadSlots" class="btn light" type="button">↻ 空き状況を再読み込み</button>
 </section>
 
@@ -72,17 +83,17 @@
 </section>
 
 <section id="waiverCard" class="card" hidden>
-  <div class="step-head"><span class="step-no">3</span><div><h2>内容を確認</h2><small>確認後、AirWAITへ予約します</small></div></div>
+  <div class="step-head"><span class="step-no">3</span><div><h2>内容を確認</h2><small>確認後、AirWAITへ受付します</small></div></div>
   <div id="waiver" class="waiver"></div>
-  <label class="agree"><input id="agree" type="checkbox"><span><strong>上記の内容を確認し、同意します</strong><small>同意後に予約を確定できます。</small></span></label>
+  <label class="agree"><input id="agree" type="checkbox"><span><strong>上記の内容を確認し、同意します</strong><small>同意後に受付を確定できます。</small></span></label>
   <div id="receptionMsg" class="msg" hidden></div>
-  <button id="reviewBtn" class="btn primary" type="button" disabled>予約内容を確認する</button>
+  <button id="reviewBtn" class="btn primary" type="button" disabled>受付内容を確認する</button>
 </section>
 </div>
 
 <section id="successCard" class="success" hidden>
   <div class="check">✓</div>
-  <h2>入場予約が完了しました</h2>
+  <h2>現地受付が完了しました</h2>
   <div class="ticket-no"><span id="receiptNo">--</span><small>番</small></div>
   <div id="successSummary" class="summary"></div>
   <p class="success-note">この受付番号を当日そのままお使いください。</p>
@@ -90,17 +101,18 @@
   <a class="btn soft" href="./home.html">🏠 HOMEへ戻る</a>
 </section>
 
-<footer class="footer">ASOBooN Reservation RC3 / hidden test</footer>
+<footer class="footer">ASOBooN On-site Reception RC3 / hidden test / 9:30〜 / 500m</footer>
 </main>
 
 <div id="confirmModal" class="modal" hidden>
   <div class="modal-card">
-    <h3>この内容で予約しますか？</h3>
+    <h3>この内容で現地受付しますか？</h3>
     <div id="modalSummary" class="summary"></div>
-    <div class="modal-actions"><button id="modalBack" class="btn light" type="button">戻る</button><button id="modalConfirm" class="btn primary" type="button">予約を確定する</button></div>
+    <div class="modal-actions"><button id="modalBack" class="btn light" type="button">戻る</button><button id="modalConfirm" class="btn primary" type="button">受付を確定する</button></div>
   </div>
 </div>
 <script src="./yoyaku-reservation-rc3.js"></script>
 <script src="./yoyaku-reservation-rc3-patch.js"></script>
+<script src="./yoyaku-location-gate-rc3.js"></script>
 </body>
 </html>
