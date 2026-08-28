@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ASOBooN 冒険基地ナビ｜公式LINEミニアプリ</title>
   <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}#miniappCore{display:block;width:100%;height:100%;border:0;background:#efe1bd}</style>
-  <script src="./asoboon-calendar.js?v=20260828-1"></script>
+  <script src="./asoboon-calendar.js?v=20260828-3"></script>
 </head>
 <body>
   <iframe id="miniappCore" title="ASOBooN 冒険基地ナビ"></iframe>
@@ -39,18 +39,12 @@
           const win=frame.contentWindow;
           const doc=frame.contentDocument;
           if(win.ASOBOON_CONFIG) win.ASOBOON_CONFIG.reservationUrl=airwaitReservationUrl;
-
           const quick=doc?.getElementById('reservationQuickLink');
-          if(quick){
-            quick.setAttribute('href',airwaitReservationUrl);
-            quick.setAttribute('target','_top');
-          }
-
+          if(quick){quick.setAttribute('href',airwaitReservationUrl);quick.setAttribute('target','_top')}
           doc?.querySelectorAll('a').forEach(a=>{
             const href=String(a.getAttribute('href')||'');
             if(href.includes('yoyaku-autocall-test')||href.includes('yoyaku-test')||href.includes('yoyaku.html')||href.includes('airwait.jp/WCSP/storeDetail')){
-              a.setAttribute('href',airwaitReservationUrl);
-              a.setAttribute('target','_top');
+              a.setAttribute('href',airwaitReservationUrl);a.setAttribute('target','_top');
             }
           });
         }catch{}
@@ -61,232 +55,130 @@
           const doc=frame.contentDocument;
           const target=doc&&doc.querySelector('.title-badge');
           if(!target||target.dataset.asoboonSecretBound==='1') return;
-          target.dataset.asoboonSecretBound='1';
-          target.style.touchAction='manipulation';
-          target.style.userSelect='none';
-          target.style.webkitUserSelect='none';
+          target.dataset.asoboonSecretBound='1';target.style.touchAction='manipulation';target.style.userSelect='none';target.style.webkitUserSelect='none';
           target.addEventListener('click',()=>{
-            const now=Date.now();
-            tapTimes=tapTimes.filter(t=>now-t<4000);
-            tapTimes.push(now);
-            if(tapTimes.length>=7){
-              tapTimes=[];
-              try{if(navigator.vibrate)navigator.vibrate([35,30,70])}catch{}
-              top.location.href=secretTarget.href;
-            }
+            const now=Date.now();tapTimes=tapTimes.filter(t=>now-t<4000);tapTimes.push(now);
+            if(tapTimes.length>=7){tapTimes=[];try{if(navigator.vibrate)navigator.vibrate([35,30,70])}catch{}top.location.href=secretTarget.href}
           },{passive:true});
         }catch{}
       }
 
-      function currentOperationalDay(){
-        try{
-          return window.ASOBOON_CALENDAR?.getOperationalDate?.()||'';
-        }catch{
-          return '';
-        }
-      }
-
-      function currentCalendarDay(){
-        try{
-          return window.ASOBOON_CALENDAR?.getCalendarDate?.()||'';
-        }catch{
-          return '';
-        }
-      }
+      function currentOperationalDay(){try{return window.ASOBOON_CALENDAR?.getOperationalDate?.()||''}catch{return ''}}
+      function currentCalendarDay(){try{return window.ASOBOON_CALENDAR?.getCalendarDate?.()||''}catch{return ''}}
 
       function clearStalePlaytimeIfNeeded(){
-        const operationalDay=currentOperationalDay();
-        if(!operationalDay) return false;
-
+        const operationalDay=currentOperationalDay();if(!operationalDay)return false;
         let shouldReload=false;
         const previous=localStorage.getItem(OPERATIONAL_DAY_KEY)||'';
-        if(previous&&previous!==operationalDay){
-          localStorage.removeItem(PLAYTIME_STORAGE_KEY);
-          shouldReload=true;
-        }
-
+        if(previous&&previous!==operationalDay){localStorage.removeItem(PLAYTIME_STORAGE_KEY);shouldReload=true}
         try{
           const saved=JSON.parse(localStorage.getItem(PLAYTIME_STORAGE_KEY)||'null');
-          if(saved&&saved.date&&String(saved.date)!==operationalDay){
-            localStorage.removeItem(PLAYTIME_STORAGE_KEY);
-            shouldReload=true;
-          }
-        }catch{
-          localStorage.removeItem(PLAYTIME_STORAGE_KEY);
-        }
-
-        localStorage.setItem(OPERATIONAL_DAY_KEY,operationalDay);
-        return shouldReload;
+          if(saved&&saved.date&&String(saved.date)!==operationalDay){localStorage.removeItem(PLAYTIME_STORAGE_KEY);shouldReload=true}
+        }catch{localStorage.removeItem(PLAYTIME_STORAGE_KEY)}
+        localStorage.setItem(OPERATIONAL_DAY_KEY,operationalDay);return shouldReload;
       }
 
       function ensureCalendarBadge(doc){
-        let badge=doc.getElementById('asoboonCalendarPlaytime');
-        if(badge) return badge;
-        const durationSwitch=doc.querySelector('.duration-switch');
-        if(!durationSwitch) return null;
-        badge=doc.createElement('div');
-        badge.id='asoboonCalendarPlaytime';
-        badge.setAttribute('role','status');
-        badge.style.cssText=[
-          'margin:0 0 10px',
-          'padding:11px 12px',
-          'border-radius:13px',
-          'border:2px solid rgba(239,210,127,.45)',
-          'background:linear-gradient(180deg,#263a34,#172923)',
-          'color:#fff7dd',
-          'box-shadow:0 4px 0 rgba(0,0,0,.16)',
-          'font-size:.72rem',
-          'line-height:1.5',
-          'font-weight:850'
-        ].join(';');
-        durationSwitch.parentNode.insertBefore(badge,durationSwitch);
-        return badge;
+        let badge=doc.getElementById('asoboonCalendarPlaytime');if(badge)return badge;
+        const durationSwitch=doc.querySelector('.duration-switch');if(!durationSwitch)return null;
+        badge=doc.createElement('div');badge.id='asoboonCalendarPlaytime';badge.setAttribute('role','status');
+        badge.style.cssText=['margin:0 0 10px','padding:11px 12px','border-radius:13px','border:2px solid rgba(239,210,127,.45)','background:linear-gradient(180deg,#263a34,#172923)','color:#fff7dd','box-shadow:0 4px 0 rgba(0,0,0,.16)','font-size:.72rem','line-height:1.5','font-weight:850'].join(';');
+        durationSwitch.parentNode.insertBefore(badge,durationSwitch);return badge;
       }
 
       function showManualDurationFallback(doc,message){
-        const durationSwitch=doc.querySelector('.duration-switch');
-        if(durationSwitch) durationSwitch.style.display='';
+        const durationSwitch=doc.querySelector('.duration-switch');if(durationSwitch)durationSwitch.style.display='';
         const badge=ensureCalendarBadge(doc);
-        if(badge){
-          badge.style.borderColor='rgba(196,137,67,.5)';
-          badge.style.background='linear-gradient(180deg,#5b4934,#403121)';
-          badge.innerHTML=`<strong style="display:block;font-size:.78rem">営業日情報を確認できません</strong><span>${message||'利用時間を選択してください。'}</span>`;
-        }
-        const calc=doc.getElementById('calcBtn');
-        if(calc) calc.disabled=false;
+        if(badge){badge.style.borderColor='rgba(196,137,67,.5)';badge.style.background='linear-gradient(180deg,#5b4934,#403121)';badge.innerHTML=`<strong style="display:block;font-size:.78rem">営業日情報を確認できません</strong><span>${message||'利用時間を選択してください。'}</span>`}
+        const calc=doc.getElementById('calcBtn');if(calc)calc.disabled=false;
+      }
+
+      function parseClockMinutes(value){
+        const m=String(value||'').match(/^(\d{1,2}):(\d{2})$/);if(!m)return null;
+        const h=Number(m[1]),min=Number(m[2]);return h>=0&&h<24&&min>=0&&min<60?h*60+min:null;
+      }
+      function clock(minutes){const n=Math.max(0,Math.min(1439,Math.round(minutes)));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+      function remainingLabel(minutes){
+        const n=Math.max(0,Math.ceil(minutes));const h=Math.floor(n/60),m=n%60;
+        if(h&&m)return `あと ${h}時間${m}分`;if(h)return `あと ${h}時間`;return `あと ${m}分`;
+      }
+
+      function applyOperationalPlaytimeResult(){
+        try{
+          if(!calendarState||calendarState.isClosed)return;
+          const doc=frame.contentDocument;if(!doc)return;
+          const start=doc.getElementById('startTime');const main=doc.getElementById('timeResultMain');const sub=doc.getElementById('timeResultSub');const note=doc.getElementById('timeResultNote');
+          const journeyEnd=doc.getElementById('journeyEnd');const journeyDuration=doc.getElementById('journeyDuration');
+          if(!start||!main||!sub||!note)return;
+          const startMin=parseClockMinutes(start.value);const closeMin=parseClockMinutes(calendarState.closingTime);const duration=Number(calendarState.duration);
+          if(startMin===null||closeMin===null||!Number.isFinite(duration)||duration<0)return;
+          const endMin=duration===0?closeMin:Math.min(startMin+duration,closeMin);
+          const endText=clock(endMin);
+          if(journeyEnd)journeyEnd.textContent=`終了 ${endText}`;
+          if(journeyDuration)journeyDuration.textContent=calendarState.durationLabel||'';
+          const now=new Date();const nowMin=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
+          if(duration===0){
+            main.textContent='時間制限なし';sub.textContent=`${endText}まで遊べます`;note.textContent=`運用設定の閉館時刻 ${calendarState.closingTime} を反映しています`;
+          }else if(nowMin>=endMin){
+            main.textContent='ご利用時間は終了しました';sub.textContent=`終了時刻 ${endText}`;note.textContent=`本日の運用設定（${calendarState.durationLabel}・${calendarState.closingTime}閉館）を反映`;
+          }else if(nowMin<startMin){
+            main.textContent=`${endText}まで遊べます`;sub.textContent=`利用時間 ${calendarState.durationLabel}`;note.textContent=`本日の運用設定（${calendarState.closingTime}閉館）を反映しています`;
+          }else{
+            main.textContent=remainingLabel(endMin-nowMin);sub.textContent=`${endText}まで遊べます`;note.textContent=`本日の運用設定（${calendarState.durationLabel}・${calendarState.closingTime}閉館）を反映`;
+          }
+        }catch{}
       }
 
       function applyCalendarPlaytime(){
         try{
-          const doc=frame.contentDocument;
-          const win=frame.contentWindow;
-          if(!doc||!win) return;
-
-          if(calendarError&&!calendarState){
-            showManualDurationFallback(doc,'一時的に手動選択へ切り替えています。');
-            return;
-          }
-          if(!calendarState) return;
-
+          const doc=frame.contentDocument;const win=frame.contentWindow;if(!doc||!win)return;
+          if(calendarError&&!calendarState){showManualDurationFallback(doc,'一時的に手動選択へ切り替えています。');return}
+          if(!calendarState)return;
           win.ASOBOON_BUSINESS_DAY=calendarState;
-          const durationSwitch=doc.querySelector('.duration-switch');
-          if(durationSwitch) durationSwitch.style.display='none';
-          const badge=ensureCalendarBadge(doc);
-          const calc=doc.getElementById('calcBtn');
-          const afterCutoff=currentOperationalDay()!==currentCalendarDay();
-
+          const durationSwitch=doc.querySelector('.duration-switch');if(durationSwitch)durationSwitch.style.display='none';
+          const badge=ensureCalendarBadge(doc);const calc=doc.getElementById('calcBtn');const afterCutoff=currentOperationalDay()!==currentCalendarDay();
           if(calendarState.isClosed){
-            if(badge){
-              badge.style.borderColor='rgba(197,105,83,.55)';
-              badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';
-              badge.innerHTML=`<strong style="display:block;font-size:.82rem">${afterCutoff?'明日は':'本日は'}休館日です</strong><span>営業日カレンダーから自動判定しています。</span>`;
-            }
-            if(calc) calc.disabled=true;
-            const journey=doc.getElementById('journeyDuration');
-            if(journey) journey.textContent='休館日';
-            return;
+            if(badge){badge.style.borderColor='rgba(197,105,83,.55)';badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';badge.innerHTML=`<strong style="display:block;font-size:.82rem">${afterCutoff?'明日は':'本日は'}休館日です</strong><span>運用設定から自動判定しています。</span>`}
+            if(calc)calc.disabled=true;const journey=doc.getElementById('journeyDuration');if(journey)journey.textContent='休館日';return;
           }
-
           if(afterCutoff){
-            if(badge){
-              badge.style.borderColor='rgba(239,210,127,.45)';
-              badge.style.background='linear-gradient(180deg,#263a34,#172923)';
-              badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日の営業は終了しました</strong><span>明日は「${calendarState.businessType}」｜${calendarState.durationLabel}${calendarState.closingTime?`・${calendarState.closingTime}閉館`:''}</span>`;
-            }
-            if(calc) calc.disabled=true;
-            return;
+            if(badge){badge.style.borderColor='rgba(239,210,127,.45)';badge.style.background='linear-gradient(180deg,#263a34,#172923)';badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日の営業は終了しました</strong><span>明日は「${calendarState.businessType}」｜${calendarState.durationLabel}${calendarState.closingTime?`・${calendarState.closingTime}閉館`:''}</span>`}
+            if(calc)calc.disabled=true;return;
           }
-
-          if(badge){
-            badge.style.borderColor='rgba(239,210,127,.45)';
-            badge.style.background='linear-gradient(180deg,#263a34,#172923)';
-            badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日は「${calendarState.businessType}」</strong><span>利用時間 ${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}（自動設定）</span>`;
-          }
-
-          const target=doc.querySelector(`.duration-btn[data-duration="${calendarState.duration}"]`);
-          if(target&&!target.classList.contains('active')) target.click();
-          if(calc) calc.disabled=false;
+          if(badge){badge.style.borderColor='rgba(239,210,127,.45)';badge.style.background='linear-gradient(180deg,#263a34,#172923)';badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日は「${calendarState.businessType}」</strong><span>利用時間 ${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}（運用設定）</span>`}
+          const target=doc.querySelector(`.duration-btn[data-duration="${calendarState.duration}"]`);if(target&&!target.classList.contains('active'))target.click();
+          if(calc)calc.disabled=false;applyOperationalPlaytimeResult();
         }catch{}
       }
 
       async function syncCalendar(force=false){
-        if(calendarSyncing) return;
-        const calendar=window.ASOBOON_CALENDAR;
-        if(!calendar?.getCurrent){
-          calendarError='営業日カレンダーの読込設定がありません';
-          applyCalendarPlaytime();
-          return;
-        }
-
-        calendarSyncing=true;
-        lastCalendarFetch=Date.now();
+        if(calendarSyncing)return;const calendar=window.ASOBOON_CALENDAR;
+        if(!calendar?.getCurrent){calendarError='営業日カレンダーの読込設定がありません';applyCalendarPlaytime();return}
+        calendarSyncing=true;lastCalendarFetch=Date.now();
         try{
-          const state=await calendar.getCurrent({force});
-          calendarState=state;
-          calendarError='';
-          lastCalendarFetch=Date.now();
+          const state=await calendar.getCurrent({force});calendarState=state;calendarError='';lastCalendarFetch=Date.now();
           const reload=clearStalePlaytimeIfNeeded();
-          if(reload){
-            try{
-              const childUrl=new URL(frame.contentWindow.location.href);
-              if(childUrl.origin===location.origin&&childUrl.pathname===coreBase.pathname){
-                frame.contentWindow.location.reload();
-                return;
-              }
-            }catch{}
-          }
+          if(reload){try{const childUrl=new URL(frame.contentWindow.location.href);if(childUrl.origin===location.origin&&childUrl.pathname===coreBase.pathname){frame.contentWindow.location.reload();return}}catch{}}
           applyCalendarPlaytime();
-        }catch(error){
-          calendarError=String(error?.message||error||'営業日カレンダーに接続できません');
-          applyCalendarPlaytime();
-        }finally{
-          calendarSyncing=false;
-        }
+        }catch(error){calendarError=String(error?.message||error||'営業日カレンダーに接続できません');applyCalendarPlaytime()}
+        finally{calendarSyncing=false}
       }
 
       function promoteChildNavigation(){
         try{
-          const childUrl=new URL(frame.contentWindow.location.href);
-          if(childUrl.origin!==location.origin) return;
-          if(childUrl.pathname===coreBase.pathname){
-            patchReservationLinks();
-            bindSecretCommand();
-            applyCalendarPlaytime();
-            const desired=location.pathname+childUrl.search+childUrl.hash;
-            if(desired!==lastSynced){
-              lastSynced=desired;
-              history.replaceState(history.state,'',desired);
-            }
-            return;
-          }
+          const childUrl=new URL(frame.contentWindow.location.href);if(childUrl.origin!==location.origin)return;
+          if(childUrl.pathname===coreBase.pathname){patchReservationLinks();bindSecretCommand();applyCalendarPlaytime();const desired=location.pathname+childUrl.search+childUrl.hash;if(desired!==lastSynced){lastSynced=desired;history.replaceState(history.state,'',desired)}return}
           top.location.href=childUrl.href;
         }catch{}
       }
 
-      frame.addEventListener('load',()=>{
-        patchReservationLinks();
-        bindSecretCommand();
-        promoteChildNavigation();
-        syncCalendar(true);
-      });
+      frame.addEventListener('load',()=>{patchReservationLinks();bindSecretCommand();promoteChildNavigation();syncCalendar(true)});
       frame.src=coreUrlFromParent().href;
-
       setInterval(()=>{
-        patchReservationLinks();
-        bindSecretCommand();
-        promoteChildNavigation();
-        applyCalendarPlaytime();
-
-        const opDay=currentOperationalDay();
-        const stored=localStorage.getItem(OPERATIONAL_DAY_KEY)||'';
-        if(opDay&&stored&&opDay!==stored){
-          clearStalePlaytimeIfNeeded();
-          syncCalendar(true);
-        }else if(Date.now()-lastCalendarFetch>60*1000){
-          syncCalendar(true);
-        }
+        patchReservationLinks();bindSecretCommand();promoteChildNavigation();applyCalendarPlaytime();applyOperationalPlaytimeResult();
+        const opDay=currentOperationalDay();const stored=localStorage.getItem(OPERATIONAL_DAY_KEY)||'';
+        if(opDay&&stored&&opDay!==stored){clearStalePlaytimeIfNeeded();syncCalendar(true)}else if(Date.now()-lastCalendarFetch>60*1000){syncCalendar(true)}
       },450);
-
       window.addEventListener('focus',()=>syncCalendar(true));
       document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncCalendar(true)});
       window.addEventListener('online',()=>syncCalendar(true));
