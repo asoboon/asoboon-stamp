@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="theme-color" content="#0f2b46">
-<title>ASOBooN｜現地受付テスト</title>
+<title>ASOBooN｜入場予約テストページ</title>
 <style>html,body{margin:0;min-height:100%;background:#efe1bd;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.loading{padding:28px 18px;text-align:center;color:#0f2b46;font-weight:900}.error{max-width:480px;margin:20px auto;padding:18px;border:2px solid #d7a59e;border-radius:16px;background:#fff0ed;color:#85362e}.error button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#0f2b46;color:#fff;font-weight:900}</style>
 </head>
 <body>
-<div id="boot" class="loading">現地受付を読み込んでいます…</div>
+<div id="boot" class="loading">テストページを読み込んでいます…</div>
 <script>
 (()=>{
 'use strict';
@@ -17,7 +17,7 @@ const AIRWAIT='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
 const q=new URLSearchParams(location.search);
 if(q.get('from')!=='miniapp-secret'){location.replace(AIRWAIT);return;}
 const tag=src=>'<scr'+'ipt src="'+src+'"></scr'+'ipt>';
-const fail=message=>{document.body.innerHTML='<div class="error"><strong>現地受付を読み込めませんでした。</strong><br><br>'+String(message||'通信状態を確認してください。')+'<button type="button" onclick="location.reload()">↻ もう一度読み込む</button></div>'};
+const fail=message=>{document.body.innerHTML='<div class="error"><strong>テストページを読み込めませんでした。</strong><br><br>'+String(message||'通信状態を確認してください。')+'<button type="button" onclick="location.reload()">↻ もう一度読み込む</button></div>'};
 (async()=>{
   try{
     const controller=new AbortController();
@@ -26,21 +26,36 @@ const fail=message=>{document.body.innerHTML='<div class="error"><strong>現地�
     try{response=await fetch('./yoyaku-engine-v10.html?v=10',{cache:'no-store',signal:controller.signal})}finally{clearTimeout(timer)}
     if(!response.ok)throw new Error('受付画面を取得できませんでした。');
     let html=await response.text();
-    html=html.replace('<title>ASOBooN｜入場受付</title>','<title>ASOBooN｜現地受付テスト</title>');
-    html=html.replace('<span class="kicker">🎫 ASOBooN 入場受付</span>','<span class="kicker">📍 ASOBooN 現地受付｜テスト中</span>');
-    html=html.replace('<h1 id="heroTitle">入場する回を選んで受付</h1>','<h1 id="heroTitle">現地受付｜入場する回を選ぶ</h1>');
-    html=html.replace('<p>回を選ぶ → 人数を入れる → 内容を確認。3ステップで受付できます。</p>','<p>現地受付専用のテスト画面です。回を選ぶ → 人数を入れる → 内容を確認。</p>');
+    html=html.replace('<title>ASOBooN｜入場受付</title>','<title>ASOBooN｜入場予約テストページ</title>');
+    html=html.replace('<span class="kicker">🎫 ASOBooN 入場受付</span>','<span class="kicker">🧪 ASOBooN 入場予約｜テストページ</span>');
+    html=html.replace('<h1 id="heroTitle">入場する回を選んで受付</h1>','<h1 id="heroTitle">入場予約テスト</h1>');
+    html=html.replace('<p>回を選ぶ → 人数を入れる → 内容を確認。3ステップで受付できます。</p>','<p>ミニアプリ内のテストページです。現地受付は9:30以降・ASOBooN半径500m以内で利用できます。</p>');
+
+    // テストページではWEB待ち項目を除外し、現地受付項目だけを表示する。
     html=html.replace("function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||'');return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}","function isBlocked(x){const id=String(x.waitTypeId||'');if((C.blockedWaitTypeIds||[]).map(String).includes(id))return true;const name=String(x.waitTypeName||''),nameNorm=name.normalize('NFKC');if(/WEB/i.test(nameNorm))return true;return (C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))}");
+
+    // ASOBooNの営業日は18:00で翌日に切り替える。現地受付は18:00で終了。
+    html=html.replace("S.closed=h>=Number(C.receptionCloseHour??18)&&h<Number(C.nextDayOpenHour??19);S.dayMode=h>=Number(C.nextDayOpenHour??19)?'tomorrow':'today';S.operationalDay=S.dayMode==='tomorrow'?ymdAdd(p.year,p.month,p.day,1):base;","S.closed=h>=18;S.dayMode=h>=18?'tomorrow':'today';S.operationalDay=h>=18?ymdAdd(p.year,p.month,p.day,1):base;");
+    html=html.replace("S.dayMode==='tomorrow'?'19:00から翌日の受付を行っています':'受付状況は自動で更新されます'","S.dayMode==='tomorrow'?'営業日は18:00に翌日へ切り替わりました':'受付状況は自動で更新されます'");
+    html=html.replace('<section id="closedCard" class="closed" hidden><div class="clock">🕖</div><h2>ただいま受付準備中です</h2><p>次の入場受付は <strong>19:00から</strong> 開始します。<br>19:00以降は、翌日の受付をこの画面から行えます。</p></section>','<section id="closedCard" class="closed" hidden><div class="clock">🌙</div><h2>本日の現地受付は終了しました</h2><p>営業日は18:00に翌日へ切り替わります。<br>現地受付は翌日9:30以降、ASOBooN半径500m以内でご利用ください。</p></section>');
+
+    // 1画面ずつ進むUI。
     html=html.replace('<section class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2>','<section id="slotCard" class="card"><div class="step-head"><span class="step-no">1</span><div><h2>入場する回を選ぶ</h2>');
     html=html.replace('<div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div></section>','<div id="slotList" class="slot-list"><div class="msg info">受付枠を読み込んでいます…</div></div><button class="btn light" type="button" onclick="location.reload()">↻ 受付枠を再読み込み</button></section>');
     html=html.replace('<section id="peopleCard" class="card" hidden>\n  <div class="step-head">','<section id="peopleCard" class="card" hidden>\n  <button id="backToSlots" class="btn light" type="button" style="margin-top:0;margin-bottom:11px">← 入場する回を選び直す</button>\n  <div class="step-head">');
     const oldClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();$('peopleCard').hidden=!S.slot;$('waiverCard').hidden=!S.slot;updateUi();if(S.slot)setTimeout(()=>$('peopleCard').scrollIntoView({behavior:'smooth',block:'start'}),100)});";
-    const newClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();if(S.slot){$('slotCard').hidden=true;$('peopleCard').hidden=false;$('waiverCard').hidden=false;updateUi();window.scrollTo({top:0,behavior:'smooth'})}});$('backToSlots').addEventListener('click',()=>{$('slotCard').hidden=false;$('peopleCard').hidden=true;$('waiverCard').hidden=true;setTimeout(()=>$('slotCard').scrollIntoView({behavior:'smooth',block:'start'}),50)});";
+    const newClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b||b.disabled)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();if(S.slot){$('slotCard').hidden=true;$('peopleCard').hidden=false;$('waiverCard').hidden=false;updateUi();window.scrollTo({top:0,behavior:'smooth'})}});$('backToSlots').addEventListener('click',()=>{$('slotCard').hidden=false;$('peopleCard').hidden=true;$('waiverCard').hidden=true;setTimeout(()=>$('slotCard').scrollIntoView({behavior:'smooth',block:'start'}),50)});";
     html=html.replace(oldClick,newClick);
-    html=html.replace("$('heroTitle').textContent=S.dayMode==='tomorrow'?'明日の入場受付':'本日の入場受付';","$('heroTitle').textContent=S.dayMode==='tomorrow'?'現地受付｜明日の入場受付':'現地受付｜本日の入場受付';");
+
+    // 呼出状況は現行ページへ統一。
+    html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
+
+    // 位置情報ハードゲートを予約エンジンより先に読み込む。
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
-    html=html.replace(configTag,tag('./onsite-runtime-v11.js?v=11')+configTag);
-    html=html.replace('</body>',tag('./onsite-cancel-v11.js?v=11')+'</body>');
+    html=html.replace(configTag,tag('./onsite-runtime-v12.js?v=12')+configTag);
+
+    // UI補強・番号同期・キャンセル監視。
+    html=html.replace('</body>',tag('./onsite-test-v12.js?v=12')+tag('./onsite-cancel-v11.js?v=12')+'</body>');
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
 })();
