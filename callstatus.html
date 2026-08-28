@@ -47,6 +47,7 @@ body.has-cancel #statusFrame{height:calc(100% - 90px)}
 (()=>{'use strict';
 const frame=document.getElementById('statusFrame');
 const CURRENT_KEY='asoboon_current_reservation_v2';
+const RC3_KEY='asoboon_reservation_rc3_current_v1';
 const CALL_KEY='asoboon_callstatus_number_v4';
 const PENDING_KEY='asoboon_cancel_pending_v1';
 const API_KEY='lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI';
@@ -56,7 +57,8 @@ let checking=false;
 let activeRecord=null;
 
 function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function readRecord(){try{const x=JSON.parse(localStorage.getItem(CURRENT_KEY)||'null');return x&&x.receiptNo&&x.waitTypeId?x:null}catch(e){return null}}
+function parseRecord(key){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&x.receiptNo&&x.waitTypeId?x:null}catch(e){return null}}
+function readRecord(){return parseRecord(CURRENT_KEY)||parseRecord(RC3_KEY)}
 function readCallNumber(){
   try{
     const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');
@@ -64,7 +66,10 @@ function readCallNumber(){
     return String(x.number||'').trim();
   }catch(e){return ''}
 }
-function isMiniappReception(r){return !!r&&String(r.source||'')==='asoboon-onsite-live'&&!!r.shortUrl}
+function isMiniappReception(r){
+  const source=String(r?.source||'');
+  return !!r&&['asoboon-onsite-live','asoboon-hidden-reservation-rc3'].includes(source)&&!!r.shortUrl;
+}
 function isViewingMiniappReception(r){return isMiniappReception(r)&&readCallNumber()===String(r.receiptNo).trim()}
 function syncNumberIfEmpty(r){
   if(!r||readCallNumber())return;
@@ -75,6 +80,7 @@ function clearOwnedReception(r,{showDone=false}={}){
   const shownNumber=readCallNumber();
   try{
     localStorage.removeItem(CURRENT_KEY);
+    localStorage.removeItem(RC3_KEY);
     localStorage.removeItem(PENDING_KEY);
     if(ownedNumber&&shownNumber===ownedNumber)localStorage.removeItem(CALL_KEY);
   }catch(e){}
@@ -107,7 +113,11 @@ async function refreshState(){
   }catch(e){setCancelVisible(false)}finally{checking=false}
 }
 
-frame.src=`./callstatus-core.html?v=569&wrap=1`;
+// iframeを開く前に、テストページRC3を含む現在の予約番号を呼出状況へ同期する。
+const initialRecord=readRecord();
+if(initialRecord)syncNumberIfEmpty(initialRecord);
+frame.src=`./callstatus-core.html?v=570&wrap=1`;
+
 document.getElementById('cancelOpen').addEventListener('click',()=>{
   activeRecord=readRecord();
   if(!isViewingMiniappReception(activeRecord))return;
