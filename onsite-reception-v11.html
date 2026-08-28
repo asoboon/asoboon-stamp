@@ -44,6 +44,9 @@ const fail=message=>{document.body.innerHTML='<div class="error"><strong>入場�
     const newClick="$('slotList').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b||b.disabled)return;S.slot=S.slots.find(x=>String(x.waitTypeId)===String(b.dataset.slot))||null;renderSlots();if(S.slot){$('slotCard').hidden=true;$('peopleCard').hidden=false;$('waiverCard').hidden=false;updateUi();window.scrollTo({top:0,behavior:'smooth'})}});$('backToSlots').addEventListener('click',()=>{$('slotCard').hidden=false;$('peopleCard').hidden=true;$('waiverCard').hidden=true;setTimeout(()=>$('slotCard').scrollIntoView({behavior:'smooth',block:'start'}),50)});";
     html=html.replace(oldClick,newClick);
 
+    // AirWAITが受付番号を返した時点で完了画面を出す。台帳同期は後処理にする。
+    html=html.replace("persist(rec);rec.ledgerSynced=await ensureLedger(rec,4);persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;","persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;setTimeout(()=>{ensureLedger(rec,2).then(ok=>{rec.ledgerSynced=ok;persist(rec);setSyncMessage(rec,'successSyncMsg')}).catch(()=>{})},0);");
+
     html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
 
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
