@@ -6,184 +6,92 @@
   <meta name="theme-color" content="#02070d">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>ASOBooN EXIT CONTROL｜場内タブレット</title>
-  <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070d}
-    #tabletCore{display:block;width:100%;height:100%;border:0;background:#02070d}
-  </style>
-  <script src="./asoboon-calendar.js?v=20260828-2"></script>
+  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070d}#tabletCore{display:block;width:100%;height:100%;border:0;background:#02070d}</style>
+  <script src="./asoboon-calendar.js?v=20260828-3"></script>
 </head>
 <body>
   <iframe id="tabletCore" title="ASOBooN 現地タブレット案内" allow="fullscreen" allowfullscreen></iframe>
   <script>
     (()=>{
       'use strict';
-
       const frame=document.getElementById('tabletCore');
       const coreBase=new URL('./jounaisetumei-core.html',location.href);
-      let calendarState=null;
-      let calendarError='';
-      let calendarSyncing=false;
-      let lastCalendarFetch=0;
-      let lastAppliedMode=null;
+      let calendarState=null,calendarError='',calendarSyncing=false,lastCalendarFetch=0,lastAppliedMode=null;
 
-      function coreUrlFromParent(){
-        const url=new URL(coreBase.href);
-        url.search=location.search;
-        url.hash=location.hash;
-        return url;
-      }
-
+      function coreUrlFromParent(){const url=new URL(coreBase.href);url.search=location.search;url.hash=location.hash;return url}
       function ensureAutoBadge(doc){
-        let badge=doc.getElementById('asoboonTabletAutoMode');
-        if(badge) return badge;
-        const staff=doc.querySelector('.staff-mode');
-        if(!staff?.parentNode) return null;
-        badge=doc.createElement('div');
-        badge.id='asoboonTabletAutoMode';
-        badge.setAttribute('role','status');
-        badge.style.cssText=[
-          'display:flex',
-          'align-items:center',
-          'gap:7px',
-          'min-height:34px',
-          'padding:7px 10px',
-          'border:1px solid rgba(101,239,176,.38)',
-          'color:#dffff0',
-          'background:linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))',
-          'box-shadow:0 8px 20px rgba(0,0,0,.20)',
-          'font-size:.63rem',
-          'line-height:1.25',
-          'font-weight:950',
-          'letter-spacing:.04em',
-          'white-space:nowrap'
-        ].join(';');
-        staff.parentNode.insertBefore(badge,staff);
-        return badge;
+        let badge=doc.getElementById('asoboonTabletAutoMode');if(badge)return badge;
+        const staff=doc.querySelector('.staff-mode');if(!staff?.parentNode)return null;
+        badge=doc.createElement('div');badge.id='asoboonTabletAutoMode';badge.setAttribute('role','status');
+        badge.style.cssText=['display:flex','align-items:center','gap:7px','min-height:34px','padding:7px 10px','border:1px solid rgba(101,239,176,.38)','color:#dffff0','background:linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))','box-shadow:0 8px 20px rgba(0,0,0,.20)','font-size:.63rem','line-height:1.25','font-weight:950','letter-spacing:.04em','white-space:nowrap'].join(';');
+        staff.parentNode.insertBefore(badge,staff);return badge;
       }
-
       function setManualFallback(doc,message){
-        const staff=doc.querySelector('.staff-mode');
-        if(staff) staff.style.display='';
-        const badge=ensureAutoBadge(doc);
-        if(badge){
-          badge.style.borderColor='rgba(255,209,93,.44)';
-          badge.style.color='#fff2bf';
-          badge.style.background='linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))';
-          badge.textContent=`AUTO取得失敗｜${message||'2.5h / 3hを手動で選択してください'}`;
-        }
+        const staff=doc.querySelector('.staff-mode');if(staff)staff.style.display='';
+        const badge=ensureAutoBadge(doc);if(badge){badge.style.borderColor='rgba(255,209,93,.44)';badge.style.color='#fff2bf';badge.style.background='linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))';badge.textContent=`AUTO取得失敗｜${message||'2.5h / 3hを手動で選択してください'}`}
       }
-
       function clickMode(doc,duration){
-        if(lastAppliedMode===duration) return;
+        if(lastAppliedMode===duration)return;
         const button=doc.querySelector(`.staff-mode button[data-mode="${duration}"]`);
-        if(button){
-          button.click();
-          lastAppliedMode=duration;
+        if(button){button.click();lastAppliedMode=duration}
+      }
+      function parseClock(value){const m=String(value||'').match(/^(\d{1,2}):(\d{2})$/);if(!m)return null;const h=Number(m[1]),mi=Number(m[2]);return h>=0&&h<24&&mi>=0&&mi<60?h*60+mi:null}
+      function clock(minutes){const n=Math.max(0,Math.min(1439,Math.round(minutes)));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+
+      function applyOperationalTimeDisplay(doc,state){
+        if(!state||state.isClosed)return;
+        const duration=Number(state.duration),close=parseClock(state.closingTime);
+        if(!Number.isFinite(duration)||duration<=0||close===null)return;
+        const planLabel=doc.getElementById('planLabel'),entryTime=doc.getElementById('entryTime'),statusMessage=doc.getElementById('statusMessage'),statusNote=doc.getElementById('statusNote');
+        if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
+        const now=new Date(),minute=now.getHours()*60+now.getMinutes();
+        planLabel.textContent=state.durationLabel||`${duration}分利用`;
+        if(minute<10*60){
+          entryTime.textContent='--:--';statusMessage.textContent='まだ退場時間を迎えた方はいません';statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館（運用設定）`;return;
         }
+        if(minute>=close){
+          entryTime.textContent=clock(close-duration);statusMessage.textContent='本日の営業は終了しました';statusNote.textContent=`運用設定の閉館時刻 ${state.closingTime} を反映しています。`;return;
+        }
+        entryTime.textContent=clock(minute-duration);statusMessage.textContent='今、退場時間の目安です';statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館（運用設定）`;
       }
 
       function applySpecialDisplay(doc,state){
-        const planLabel=doc.getElementById('planLabel');
-        const entryTime=doc.getElementById('entryTime');
-        const statusMessage=doc.getElementById('statusMessage');
-        const statusNote=doc.getElementById('statusNote');
-        if(!planLabel||!entryTime||!statusMessage||!statusNote) return;
-
-        if(state.isClosed){
-          planLabel.textContent='休館日';
-          entryTime.textContent='CLOSE';
-          statusMessage.textContent='本日は休館日です';
-          statusNote.textContent='ミニアプリ運用設定から自動判定しています。';
-          return;
-        }
-
-        if(Number(state.duration)===0){
-          planLabel.textContent='時間制限なし';
-          entryTime.textContent='∞';
-          statusMessage.textContent='本日は時間制限なしでご利用いただけます';
-          statusNote.textContent=`営業時間は${state.closingTime||'17:00'}までです。`;
-        }
+        const planLabel=doc.getElementById('planLabel'),entryTime=doc.getElementById('entryTime'),statusMessage=doc.getElementById('statusMessage'),statusNote=doc.getElementById('statusNote');
+        if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
+        if(state.isClosed){planLabel.textContent='休館日';entryTime.textContent='CLOSE';statusMessage.textContent='本日は休館日です';statusNote.textContent='ミニアプリ運用設定から自動判定しています。';return}
+        if(Number(state.duration)===0){planLabel.textContent='時間制限なし';entryTime.textContent='∞';statusMessage.textContent='本日は時間制限なしでご利用いただけます';statusNote.textContent=`営業時間は${state.closingTime||'--:--'}までです（運用設定）。`}
       }
 
       function applyCalendarMode(){
         try{
-          const doc=frame.contentDocument;
-          if(!doc) return;
-
-          if(calendarError&&!calendarState){
-            setManualFallback(doc,'運用設定を確認できません');
-            return;
-          }
-          if(!calendarState) return;
-
-          const staff=doc.querySelector('.staff-mode');
-          const badge=ensureAutoBadge(doc);
-          const duration=Number(calendarState.duration);
-
+          const doc=frame.contentDocument,win=frame.contentWindow;if(!doc||!win)return;
+          if(calendarError&&!calendarState){setManualFallback(doc,'運用設定を確認できません');return}
+          if(!calendarState)return;
+          win.ASOBOON_BUSINESS_DAY=calendarState;
+          const staff=doc.querySelector('.staff-mode'),badge=ensureAutoBadge(doc),duration=Number(calendarState.duration);
           if(duration===150||duration===180){
-            clickMode(doc,duration);
-            if(staff) staff.style.display='none';
-            if(badge){
-              badge.style.borderColor='rgba(101,239,176,.38)';
-              badge.style.color='#dffff0';
-              badge.style.background='linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))';
-              badge.textContent=`AUTO｜本日は${calendarState.durationLabel}`;
-            }
-            return;
+            clickMode(doc,duration);if(staff)staff.style.display='none';
+            if(badge){badge.style.borderColor='rgba(101,239,176,.38)';badge.style.color='#dffff0';badge.style.background='linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))';badge.textContent=`AUTO｜${calendarState.businessType}｜${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}`}
+            applyOperationalTimeDisplay(doc,calendarState);return;
           }
-
-          lastAppliedMode=null;
-          if(staff) staff.style.display='none';
-          if(badge){
-            badge.style.borderColor=calendarState.isClosed?'rgba(255,77,95,.42)':'rgba(104,234,255,.34)';
-            badge.style.color=calendarState.isClosed?'#ffe5e9':'#dffaff';
-            badge.style.background=calendarState.isClosed
-              ?'linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))'
-              :'linear-gradient(180deg,rgba(104,234,255,.10),rgba(4,14,18,.82))';
-            badge.textContent=calendarState.isClosed?'AUTO｜本日は休館日':'AUTO｜本日は時間制限なし';
-          }
+          lastAppliedMode=null;if(staff)staff.style.display='none';
+          if(badge){badge.style.borderColor=calendarState.isClosed?'rgba(255,77,95,.42)':'rgba(104,234,255,.34)';badge.style.color=calendarState.isClosed?'#ffe5e9':'#dffaff';badge.style.background=calendarState.isClosed?'linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))':'linear-gradient(180deg,rgba(104,234,255,.10),rgba(4,14,18,.82))';badge.textContent=calendarState.isClosed?'AUTO｜本日は休館日':`AUTO｜${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}`}
           applySpecialDisplay(doc,calendarState);
         }catch{}
       }
 
       async function syncCalendar(force=false){
-        if(calendarSyncing) return;
-        const calendar=window.ASOBOON_CALENDAR;
-        if(!calendar?.getCurrent){
-          calendarError='営業日カレンダーの読込設定がありません';
-          applyCalendarMode();
-          return;
-        }
-
-        calendarSyncing=true;
-        lastCalendarFetch=Date.now();
-        try{
-          calendarState=await calendar.getCurrent({force});
-          calendarError='';
-          lastCalendarFetch=Date.now();
-          lastAppliedMode=null;
-          applyCalendarMode();
-        }catch(error){
-          calendarError=String(error?.message||error||'営業日カレンダーに接続できません');
-          applyCalendarMode();
-        }finally{
-          calendarSyncing=false;
-        }
+        if(calendarSyncing)return;const calendar=window.ASOBOON_CALENDAR;
+        if(!calendar?.getCurrent){calendarError='営業日カレンダーの読込設定がありません';applyCalendarMode();return}
+        calendarSyncing=true;lastCalendarFetch=Date.now();
+        try{calendarState=await calendar.getCurrent({force});calendarError='';lastCalendarFetch=Date.now();lastAppliedMode=null;applyCalendarMode()}
+        catch(error){calendarError=String(error?.message||error||'営業日カレンダーに接続できません');applyCalendarMode()}
+        finally{calendarSyncing=false}
       }
 
-      frame.addEventListener('load',()=>{
-        lastAppliedMode=null;
-        applyCalendarMode();
-        syncCalendar(true);
-      });
-
+      frame.addEventListener('load',()=>{lastAppliedMode=null;applyCalendarMode();syncCalendar(true)});
       frame.src=coreUrlFromParent().href;
-
-      setInterval(()=>{
-        applyCalendarMode();
-        if(Date.now()-lastCalendarFetch>60*1000) syncCalendar(true);
-      },450);
-
+      setInterval(()=>{applyCalendarMode();if(Date.now()-lastCalendarFetch>60*1000)syncCalendar(true)},450);
       window.addEventListener('focus',()=>syncCalendar(true));
       document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncCalendar(true)});
       window.addEventListener('online',()=>syncCalendar(true));
