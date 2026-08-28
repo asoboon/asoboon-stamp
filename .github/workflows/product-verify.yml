@@ -5,6 +5,7 @@ on:
       - 'product/**'
       - 'reservation-policy-rc3.js'
       - 'yoyaku-reservation-rc3.js'
+      - 'yoyaku-reservation-rc3-patch.js'
       - 'yoyaku-reservation-rc3.html'
       - 'yoyaku-test.html'
       - '.github/workflows/product-verify.yml'
@@ -13,6 +14,7 @@ on:
       - 'product/**'
       - 'reservation-policy-rc3.js'
       - 'yoyaku-reservation-rc3.js'
+      - 'yoyaku-reservation-rc3-patch.js'
       - 'yoyaku-reservation-rc3.html'
       - 'yoyaku-test.html'
       - '.github/workflows/product-verify.yml'
@@ -51,6 +53,7 @@ jobs:
           done < <(find product -type f -name '*.js' -print0)
           node --check reservation-policy-rc3.js
           node --check yoyaku-reservation-rc3.js
+          node --check yoyaku-reservation-rc3-patch.js
       - name: Apps Script syntax check
         run: |
           set -e
