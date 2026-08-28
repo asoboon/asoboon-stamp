@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#0f2b46">
 <title>ASOBooN｜入場受付</title>
 <style>html,body{margin:0;min-height:100%;background:#efe1bd;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.loading{padding:28px 18px;text-align:center;color:#0f2b46;font-weight:900}.error{max-width:480px;margin:20px auto;padding:18px;border:2px solid #d7a59e;border-radius:16px;background:#fff0ed;color:#85362e}.error button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:#0f2b46;color:#fff;font-weight:900}</style>
+<script src="./autocall-config.js?v=10"></script>
 </head>
 <body>
 <div id="boot" class="loading">入場受付を読み込んでいます…</div>
@@ -14,15 +15,49 @@
 (()=>{
 'use strict';
 const AIRWAIT='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
+const LOCAL_KEY='asoboon_current_reservation_v3';
+const CALL_KEY='asoboon_callstatus_number_v4';
+const NOTICE_KEY='asoboon_cancel_notice_v1';
+const API='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const q=new URLSearchParams(location.search);
 if(q.get('from')!=='miniapp-secret'){location.replace(AIRWAIT);return;}
 const tag=src=>'<scr'+'ipt src="'+src+'"></scr'+'ipt>';
 const fail=message=>{document.body.innerHTML='<div class="error"><strong>入場受付を読み込めませんでした。</strong><br><br>'+String(message||'通信状態を確認してください。')+'<button type="button" onclick="location.reload()">↻ もう一度読み込む</button></div>'};
+const receiptKey=v=>String(v??'').normalize('NFKC').replace(/\D/g,'').replace(/^0+(?=\d)/,'');
+function readLocal(){try{const r=JSON.parse(localStorage.getItem(LOCAL_KEY)||'null');return r&&r.receiptNo&&r.waitTypeId?r:null}catch{return null}}
+function clearLocal(rec){try{localStorage.removeItem(LOCAL_KEY)}catch{}try{const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');if(!x||receiptKey(x.number)===receiptKey(rec?.receiptNo))localStorage.removeItem(CALL_KEY)}catch{try{localStorage.removeItem(CALL_KEY)}catch{}}}
+function rememberCancelled(rec){try{localStorage.setItem(NOTICE_KEY,JSON.stringify({receiptNo:String(rec.receiptNo),waitTypeName:String(rec.waitTypeName||'現地受付'),cancelledAt:Date.now()}))}catch{}}
+function apiOk(d){return d?.success===true||String(d?.resultCode?.code??'')==='0000'}
+async function pageFor(rec,start,kind){
+  const C=window.ASOBOON_RECEPTION_CONFIG||{};
+  const body={storeId:C.airwaitStoreId||'',waitTypeId:String(rec.waitTypeId),sortStatus:'0',isDesc:'1',start:String(start),limit:'100'};
+  if(kind==='active')body.isEnabledStatus='1';else body.status='3';
+  const res=await fetch(`${API}?key=${encodeURIComponent(C.airwaitApiKey||'')}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:new URLSearchParams(body),cache:'no-store',credentials:'omit'});
+  if(!res.ok)throw new Error(`AirWAIT HTTP ${res.status}`);const d=await res.json();if(!apiOk(d))throw new Error(d?.resultCode?.defaultMessage||'AirWAIT status error');
+  return{rows:Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[],count:Number(d?.innerDto?.count||0)};
+}
+async function contains(rec,kind){
+  const target=receiptKey(rec.receiptNo);let start=1,seen=0;
+  for(let i=0;i<30;i++){
+    const p=await pageFor(rec,start,kind);
+    if(p.rows.some(x=>String(x?.waitTypeId??'')===String(rec.waitTypeId)&&receiptKey(x?.number)===target))return true;
+    seen+=p.rows.length;if(!p.rows.length||p.rows.length<100||(p.count&&seen>=p.count))break;start+=p.rows.length;
+  }
+  return false;
+}
+async function reconcileBeforeRender(){
+  const rec=readLocal();if(!rec)return;
+  try{
+    if(await contains(rec,'active'))return;
+    let cancelled=false;try{cancelled=await contains(rec,'cancel')}catch{}
+    if(cancelled)rememberCancelled(rec);
+    clearLocal(rec);
+  }catch(error){console.warn('onsite preflight status check failed',error)}
+}
 (async()=>{
   try{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),8000);
-    let response;
+    await reconcileBeforeRender();
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),8000);let response;
     try{response=await fetch('./yoyaku-engine-v10.html?v=10',{cache:'no-store',signal:controller.signal})}finally{clearTimeout(timer)}
     if(!response.ok)throw new Error('受付画面を取得できませんでした。');
     let html=await response.text();
@@ -44,7 +79,7 @@ const fail=message=>{document.body.innerHTML='<div class="error"><strong>入場�
     html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
     html=html.replace(configTag,tag('./reservation-policy-rc3.js?v=20260828-rc3.1')+tag('./onsite-runtime-v12.js?v=14')+configTag);
-    html=html.replace('</body>',tag('./onsite-test-v14.js?v=14')+tag('./onsite-cancel-v11.js?v=17')+'</body>');
+    html=html.replace('</body>',tag('./onsite-test-v14.js?v=14')+tag('./onsite-cancel-v11.js?v=18')+'</body>');
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
 })();
