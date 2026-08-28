@@ -3,8 +3,12 @@
  * このファイルにAPIキー等の秘密情報を入れないこと。
  */
 window.ASOBOON_RESERVATION_POLICY = Object.freeze({
-  version: '2026-08-28-rc3',
+  version: '2026-08-28-rc3.1',
   timezone: 'Asia/Tokyo',
+
+  // ASOBooN営業日は毎日18:00 JSTで翌日に切り替える。
+  // 18:00〜18:59は翌営業日の準備時間、19:00から翌日予約の解禁判定へ進む。
+  businessDayCutoffHour: 18,
 
   // まずは現行検証で確認できている平日特定日をRC3標準にする。
   // 本番切替前に、実際の運用カレンダーに合わせて exceptions を埋める。
