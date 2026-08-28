@@ -28,6 +28,9 @@ function fromMinutes(v){
   const n=Math.max(0,Math.min(1439,Math.round(v)));
   return `${pad(Math.floor(n/60))}:${pad(n%60)}`;
 }
+function hasTestSlot(){
+  return [...document.querySelectorAll('.slotname')].some(el=>/テスト/.test(String(el.textContent||'').normalize('NFKC')));
+}
 function extractStarts(){
   const out=new Set();
   const nodes=[...document.querySelectorAll('.scheduleline,.slotname')];
@@ -41,16 +44,14 @@ function extractStarts(){
 }
 function dynamicWindows(){
   const starts=extractStarts();
-  if(!starts.length) return FALLBACK.map(x=>({start:String(x.start),end:String(x.end),source:'fallback'}));
+  if(!starts.length)return FALLBACK.map(x=>({start:String(x.start),end:String(x.end),source:'fallback'}));
   return starts.map((start,index)=>{
     const s=toMinutes(start);
     const duration=index===0?FIRST_MIN:OTHER_MIN;
     return {start,end:fromMinutes(s+duration),source:'slot'};
   });
 }
-function currentMinute(date=new Date()){
-  return date.getHours()*60+date.getMinutes()+date.getSeconds()/60;
-}
+function currentMinute(date=new Date()){return date.getHours()*60+date.getMinutes()+date.getSeconds()/60}
 function currentWindow(date=new Date()){
   const now=currentMinute(date);
   return dynamicWindows().find(w=>{
@@ -59,65 +60,62 @@ function currentWindow(date=new Date()){
   })||null;
 }
 function getRefreshMs(date=new Date()){
+  if(hasTestSlot())return FAST;
   return currentWindow(date)?FAST:NORMAL;
 }
 function nextBoundaryMs(date=new Date()){
-  const now=currentMinute(date);
-  let best=Infinity;
-  for(const w of dynamicWindows()){
-    for(const t of [toMinutes(w.start),toMinutes(w.end)]){
-      if(t!==null&&t>now) best=Math.min(best,(t-now)*60000);
-    }
-  }
+  const now=currentMinute(date);let best=Infinity;
+  for(const w of dynamicWindows())for(const t of [toMinutes(w.start),toMinutes(w.end)])if(t!==null&&t>now)best=Math.min(best,(t-now)*60000);
   return best;
 }
 function nextDelay(date=new Date()){
-  const base=getRefreshMs(date);
-  const boundary=nextBoundaryMs(date);
+  if(hasTestSlot())return FAST;
+  const base=getRefreshMs(date),boundary=nextBoundaryMs(date);
   return Number.isFinite(boundary)?Math.max(1000,Math.min(base,boundary+80)):base;
 }
 function ensureBadge(){
-  let el=document.getElementById('adaptiveRefreshStatus');
-  if(el)return el;
-  const scheduler=document.querySelector('.scheduler');
-  if(!scheduler)return null;
-  el=document.createElement('div');
-  el.id='adaptiveRefreshStatus';
+  let el=document.getElementById('adaptiveRefreshStatus');if(el)return el;
+  const scheduler=document.querySelector('.scheduler');if(!scheduler)return null;
+  el=document.createElement('div');el.id='adaptiveRefreshStatus';
   el.style.cssText='margin-top:9px;padding:8px 10px;border-radius:10px;background:#0b2731;border:1px solid #36515d;color:#bfe4f1;font-size:.66rem;font-weight:900;line-height:1.5';
-  scheduler.appendChild(el);
-  return el;
+  scheduler.appendChild(el);return el;
 }
 function updateBadge(){
   const el=ensureBadge();if(!el)return;
-  const win=currentWindow();
-  const mode=win?'fast':'normal';
-  const next=win?`${win.start}〜${win.end}`:'通常時間帯';
-  el.textContent=win?`⚡ 監視 10秒｜集中呼出 ${next}`:`◷ 監視 30秒｜${next}`;
+  const test=hasTestSlot(),win=currentWindow();
+  const mode=test?'test':win?'fast':'normal';
+  if(test){
+    el.textContent='🧪 TEST監視 10秒｜テスト枠アクティブ';
+    el.style.borderColor='#b88835';el.style.background='#332814';el.style.color='#ffe6a4';
+  }else{
+    const next=win?`${win.start}〜${win.end}`:'通常時間帯';
+    el.textContent=win?`⚡ 監視 10秒｜集中呼出 ${next}`:`◷ 監視 30秒｜${next}`;
+    el.style.borderColor='#36515d';el.style.background='#0b2731';el.style.color='#bfe4f1';
+  }
   if(mode!==lastMode){
     lastMode=mode;
     const log=document.getElementById('log');
-    if(log)log.textContent=`[${new Date().toLocaleTimeString('ja-JP')}] 監視周期を${win?'10秒（集中）':'30秒（通常）'}へ切替\n`+log.textContent;
+    const label=test?'10秒（TEST）':win?'10秒（集中）':'30秒（通常）';
+    if(log)log.textContent=`[${new Date().toLocaleTimeString('ja-JP')}] 監視周期を${label}へ切替\n`+log.textContent;
   }
 }
 
 window.setInterval=function(callback,delay,...args){
-  const ms=Number(delay);
-  const source=typeof callback==='function'?String(callback):'';
+  const ms=Number(delay),source=typeof callback==='function'?String(callback):'';
   const looksLikeCore=!intercepted&&ms===LEGACY&&source.includes('refresh(false)');
-  if(!looksLikeCore) return nativeSetInterval(callback,delay,...args);
-
+  if(!looksLikeCore)return nativeSetInterval(callback,delay,...args);
   intercepted=true;
   const token={__asoboonAdaptive:true,id:null,cancelled:false};
   const run=async()=>{
     if(token.cancelled)return;
     try{await callback(...args)}catch(error){console.error('adaptive refresh failed',error)}
     if(token.cancelled)return;
-    updateBadge();
-    token.id=nativeSetTimeout(run,nextDelay());
+    updateBadge();token.id=nativeSetTimeout(run,nextDelay());
   };
-  token.id=nativeSetTimeout(run,nextDelay());
+  // 初回のAirWAIT取得後にテスト枠をすぐ認識できるよう最初だけ短く再確認する。
+  token.id=nativeSetTimeout(run,Math.min(3000,nextDelay()));
   updateBadge();
-  console.info('ASOBooN adaptive refresh enabled', {fast:FAST,normal:NORMAL});
+  console.info('ASOBooN adaptive refresh enabled',{fast:FAST,normal:NORMAL,testFast:true});
   return token;
 };
 window.clearInterval=function(id){
@@ -127,7 +125,7 @@ window.clearInterval=function(id){
 
 nativeSetInterval(updateBadge,1000);
 window.ASOBOON_AUTO_RUNTIME=Object.freeze({
-  version:'13.0-adaptive',fastMs:FAST,normalMs:NORMAL,
-  getRefreshMs,getWindows:dynamicWindows,getCurrentWindow:currentWindow
+  version:'13.2-adaptive-test',fastMs:FAST,normalMs:NORMAL,
+  getRefreshMs,getWindows:dynamicWindows,getCurrentWindow:currentWindow,hasTestSlot
 });
 })();
