@@ -22,11 +22,19 @@ function clearActive(rec){
 function rememberCancelled(rec){
   try{localStorage.setItem(NOTICE_KEY,JSON.stringify({receiptNo:String(rec.receiptNo),waitTypeName:String(rec.waitTypeName||'現地受付'),cancelledAt:Date.now()}))}catch{}
 }
-async function page(waitTypeId,start){
+async function pageCancelled(waitTypeId,start){
   const r=await fetch(`${API}?key=${encodeURIComponent(C.airwaitApiKey||'')}`,{
     method:'POST',
     headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-    body:new URLSearchParams({storeId:C.airwaitStoreId||'',waitTypeId:String(waitTypeId||''),sortStatus:'0',isDesc:'1',start:String(start),limit:'100'}),
+    body:new URLSearchParams({
+      storeId:C.airwaitStoreId||'',
+      waitTypeId:String(waitTypeId||''),
+      status:'3',
+      sortStatus:'0',
+      isDesc:'1',
+      start:String(start),
+      limit:'100'
+    }),
     cache:'no-store',credentials:'omit'
   });
   if(!r.ok)throw new Error(`HTTP ${r.status}`);
@@ -34,18 +42,18 @@ async function page(waitTypeId,start){
   if(!(d?.success===true||String(d?.resultCode?.code??'')==='0000'))throw new Error('reservation read failed');
   return {rows:Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[],count:Number(d?.innerDto?.count||0)};
 }
-async function find(rec){
+async function isCancelled(rec){
   let start=1,seen=0;
   const target=receiptKey(rec?.receiptNo);
   for(let i=0;i<30;i++){
-    const p=await page(rec?.waitTypeId,start);
-    const hit=p.rows.find(x=>String(x?.waitTypeId??'')===String(rec?.waitTypeId??'')&&receiptKey(x?.number)===target);
-    if(hit)return hit;
+    const p=await pageCancelled(rec?.waitTypeId,start);
+    const hit=p.rows.find(x=>String(x?.status??'')==='3'&&String(x?.waitTypeId??'')===String(rec?.waitTypeId??'')&&receiptKey(x?.number)===target);
+    if(hit)return true;
     seen+=p.rows.length;
     if(!p.rows.length||p.rows.length<100||(p.count&&seen>=p.count))break;
     start+=p.rows.length;
   }
-  return null;
+  return false;
 }
 function showNotice(){
   const rec=notice();
@@ -110,8 +118,7 @@ async function checkCurrent(force=false){
   if(!force&&now-lastCheck<5000)return;
   lastCheck=now;busy=true;
   try{
-    const row=await find(rec);
-    if(row&&String(row.status)==='3'){
+    if(await isCancelled(rec)){
       rememberCancelled(rec);
       clearActive(rec);
       const u=new URL(location.href);
