@@ -41,7 +41,7 @@ window.fetch=async function(input,init={}){
     throw err;
   }
   const isAirWait=/airwait\.jp|cl\.airwait\.jp/i.test(url);
-  const attempts=isAirWait?2:1;
+  const attempts=isCreate?1:(isAirWait?2:1);
   let lastError;
   for(let attempt=1;attempt<=attempts;attempt++){
     const controller=new AbortController();
@@ -50,7 +50,7 @@ window.fetch=async function(input,init={}){
     try{
       if(init.signal){if(init.signal.aborted)controller.abort();else{abortForward=()=>controller.abort();init.signal.addEventListener('abort',abortForward,{once:true})}}
       return await nativeFetch(input,{...init,signal:controller.signal});
-    }catch(error){lastError=error;if(attempt<attempts&&!isCreate)await new Promise(r=>setTimeout(r,700));else if(attempt<attempts&&error?.code!=='ASOBOON_LOCATION_REQUIRED')await new Promise(r=>setTimeout(r,700));}
+    }catch(error){lastError=error;if(attempt<attempts)await new Promise(r=>setTimeout(r,700));}
     finally{clearTimeout(timer);if(init.signal&&abortForward)init.signal.removeEventListener('abort',abortForward)}
   }
   throw lastError||new Error('通信に失敗しました');
