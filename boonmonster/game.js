@@ -1,10 +1,10 @@
 (()=>{
 'use strict';
-const VERSION='BOON MONSTER PLAYABLE PROTOTYPE v0.3';
-const BUILD='2026-08-29-hidden-game-vertical-slice';
+const VERSION='BOON MONSTER PLAYABLE PROTOTYPE v0.3.1';
+const BUILD='2026-08-29-hidden-game-hotfix-1';
 const STORAGE_KEY='boon_monster_playable_prototype_v0_3';
 const THRESHOLD={baby:5,animal:6,category:7};
-const ATLAS_PATH='./assets/baby-expressions.png';
+const ATLAS_PATH='./assets/baby-expressions.png?v=20260829-1335';
 const BABIES={
   'BM-BABY-MOF':{name:'もふーん',row:0,options:[['風の砂地','wind','BM-FEN-ANIMAL'],['草原','field','BM-RAB-ANIMAL']]},
   'BM-BABY-FLO':{name:'ふろーん',row:1,options:[['森','forest','BM-SAP-ANIMAL'],['水辺','water','BM-OTR-ANIMAL']]},
@@ -16,6 +16,13 @@ const CATEGORIES={
 };
 const EXPRS=['normal','blink','smile','surprised','sad','sleep','evolution_ready'];
 const $=s=>document.querySelector(s);
+const REQUIRED_IDS=['build','fuelVal','fuelBar','conditionVal','conditionBar','moodVal','moodBar','growthVal','growthBar','stageLabel','specId','monsterStage','monsterCanvas','lockedFallback','monsterMotion','aura','particles','monsterName','maturityHint','message','playBtn','careBtn','dexBtn','newBtn','loadBtn','saveState','sheetBackdrop','sheet','sheetKicker','sheetTitle','sheetClose','sheetBody'];
+const missing=REQUIRED_IDS.filter(id=>!document.getElementById(id));
+if(missing.length){
+  console.error('BOON MONSTER boot aborted: missing DOM ids',missing);
+  if(window.__boonShowBootError)window.__boonShowBootError('画面データの新旧が混在しています。再読込してください。');
+  return;
+}
 const clamp=v=>Math.max(0,Math.min(100,v));
 const speciesCode=spec=>spec.split('-')[1];
 const categoryCode=spec=>spec.split('-')[2];
@@ -25,7 +32,8 @@ function labelFor(spec){
   if(BABIES[spec]) return BABIES[spec].name;
   const sp=ANIMALS[speciesCode(spec)]||speciesCode(spec);
   if(spec.includes('ANIMAL')) return sp;
-  const cat=CATEGORIES[categoryCode(spec)]?.name||categoryCode(spec);
+  const category=CATEGORIES[categoryCode(spec)];
+  const cat=category?category.name:categoryCode(spec);
   if(spec.endsWith('CATEGORY')) return `${sp}・${cat}`;
   if(spec.endsWith('-L')) return `${sp}・${cat} LIGHT`;
   if(spec.endsWith('-D')) return `${sp}・${cat} DARK`;
@@ -34,15 +42,23 @@ function labelFor(spec){
 function fresh(baby='BM-BABY-MOF'){
   return {version:VERSION,build:BUILD,activePet:baby,currentSpecId:baby,stage:'baby',maturity:0,turn:0,babyDirectionScores:{},categoryDirectionScores:{},lastDirection:null,rankDirectionState:null,evolutionHistory:[],discoveredDex:[baby],fuel:72,condition:84,mood:78,saveVersion:3,lastMessage:'今日はなにしよう？'};
 }
-function load(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return x&&x.currentSpecId?{...fresh(x.currentSpecId),...x}:fresh()}catch{return fresh()}}
+function load(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return x&&x.currentSpecId?Object.assign(fresh(x.currentSpecId),x):fresh()}catch(e){console.warn('BOON MONSTER storage read unavailable',e);return fresh()}}
 let G=load(),expression='normal';
 const canvas=$('#monsterCanvas'),ctx=canvas.getContext('2d'),fallback=$('#lockedFallback'),motion=$('#monsterMotion'),aura=$('#aura'),particles=$('#particles');
+if(!ctx){
+  console.error('BOON MONSTER canvas 2D context unavailable');
+  if(window.__boonShowBootError)window.__boonShowBootError('この端末でキャラクター表示を初期化できませんでした。');
+  return;
+}
 ctx.imageSmoothingEnabled=false;
 const atlas=new Image();let atlasReady=false;
 atlas.onload=()=>{atlasReady=true;renderVisual()};
-atlas.onerror=()=>console.error('BOON MONSTER baby atlas load error',ATLAS_PATH);
+atlas.onerror=()=>{console.error('BOON MONSTER baby atlas load error',ATLAS_PATH);fallback.hidden=false;fallback.innerHTML='<span>BABY</span><b>'+labelFor(G.currentSpecId)+'</b><small>'+G.currentSpecId+'</small><em>IMAGE LOAD RETRY</em>'};
 atlas.src=ATLAS_PATH;
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(G));$('#saveState').textContent='SAVED'}
+function save(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(G));$('#saveState').textContent='SAVED'}
+  catch(e){console.warn('BOON MONSTER storage write unavailable',e);$('#saveState').textContent='MEMORY ONLY'}
+}
 function register(spec){if(!G.discoveredDex.includes(spec))G.discoveredDex.push(spec)}
 function currentBaby(){return BABIES[G.currentSpecId]||null}
 function renderBabySprite(expr='normal'){
@@ -52,22 +68,24 @@ function renderBabySprite(expr='normal'){
 function renderVisual(){
   motion.className='monster-motion';aura.classList.toggle('on',G.stage==='final');particles.classList.toggle('on',G.stage==='final');
   if(G.stage==='baby'&&renderBabySprite(expression))return;
+  if(G.stage==='baby'&&!atlasReady){canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>BABY</span><b>${labelFor(G.currentSpecId)}</b><small>${G.currentSpecId}</small><em>IMAGE LOADING</em>`;return}
   canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>${G.stage==='animal'?'DNA':G.stage==='category'?'CAT':G.currentSpecId.endsWith('-L')?'LIGHT':'DARK'}</span><b>${labelFor(G.currentSpecId)}</b><small>${G.currentSpecId}</small><em>LOCKED PIXEL ASSET 同期待ち</em>`;
   fallback.className=`locked-fallback ${G.currentSpecId.endsWith('-L')?'light':''} ${G.currentSpecId.endsWith('-D')?'dark':''}`;
 }
 function progressText(){if(G.stage==='final')return'最終進化 COMPLETE';return`${stageLabel(G.stage)} ${G.maturity} / ${THRESHOLD[G.stage]}`}
 function render(){
-  $('#build').textContent=`BOON MONSTER TEST v0.3 · ${BUILD}`;$('#specId').textContent=G.currentSpecId;$('#stageLabel').textContent=stageLabel(G.stage);$('#monsterName').textContent=labelFor(G.currentSpecId);$('#maturityHint').textContent=progressText();$('#message').textContent=G.lastMessage;
+  $('#build').textContent=`BOON MONSTER TEST v0.3.1 · ${BUILD}`;$('#specId').textContent=G.currentSpecId;$('#stageLabel').textContent=stageLabel(G.stage);$('#monsterName').textContent=labelFor(G.currentSpecId);$('#maturityHint').textContent=progressText();$('#message').textContent=G.lastMessage;
   for(const k of ['fuel','condition','mood']){$(`#${k}Val`).textContent=Math.round(G[k]);$(`#${k}Bar`).style.width=clamp(G[k])+'%'}
   const max=THRESHOLD[G.stage]||1;$('#growthBar').style.width=(G.stage==='final'?100:Math.min(100,G.maturity/max*100))+'%';$('#growthVal').textContent=G.stage==='final'?'DONE':`${G.maturity}/${max}`;renderVisual();save();
 }
-function commitEvolution(next){const from=G.currentSpecId;G.currentSpecId=next;G.activePet=next;G.stage=stageFromSpec(next);G.maturity=0;G.turn=0;G.lastDirection=null;G.evolutionHistory.push({from,to:next,at:new Date().toISOString()});register(next);G.lastMessage=`${labelFor(next)}へ進化した！`;render();openEvolution()}
+function commitEvolution(next){const from=G.currentSpecId;G.currentSpecId=next;G.activePet=next;G.stage=stageFromSpec(next);G.maturity=0;G.turn=0;G.lastDirection=null;G.evolutionHistory.push({from:from,to:next,at:new Date().toISOString()});register(next);G.lastMessage=`${labelFor(next)}へ進化した！`;render();openEvolution()}
 function topDirection(scores,options){let best=-1,candidates=[];for(const o of options){const key=o[1],v=scores[key]||0;if(v>best){best=v;candidates=[o]}else if(v===best)candidates.push(o)}if(candidates.length===1)return candidates[0];return candidates.find(o=>o[1]===G.lastDirection)||candidates[0]}
 function growth(kind,key,label){
   G.turn++;G.maturity++;G.lastDirection=key;G.fuel=clamp(G.fuel-4);G.mood=clamp(G.mood+2);G.lastMessage=`${label}を体験した！`;
-  if(kind==='baby')G.babyDirectionScores[key]=(G.babyDirectionScores[key]||0)+1;if(kind==='category')G.categoryDirectionScores[key]=(G.categoryDirectionScores[key]||0)+1;
+  if(kind==='baby')G.babyDirectionScores[key]=(G.babyDirectionScores[key]||0)+1;
+  if(kind==='category')G.categoryDirectionScores[key]=(G.categoryDirectionScores[key]||0)+1;
   if(G.stage==='baby'&&G.maturity>=THRESHOLD.baby){const route=topDirection(G.babyDirectionScores,BABIES[G.currentSpecId].options);return commitEvolution(route[2])}
-  if(G.stage==='animal'&&G.maturity>=THRESHOLD.animal){const ranked=Object.entries(G.categoryDirectionScores).sort((a,b)=>b[1]-a[1]);let code=ranked[0]?.[0]||'SPD';const top=ranked[0]?.[1]||0;const ties=ranked.filter(x=>x[1]===top).map(x=>x[0]);if(ties.length>1&&ties.includes(G.lastDirection))code=G.lastDirection;return commitEvolution(`BM-${speciesCode(G.currentSpecId)}-${code}-CATEGORY`)}
+  if(G.stage==='animal'&&G.maturity>=THRESHOLD.animal){const ranked=Object.entries(G.categoryDirectionScores).sort((a,b)=>b[1]-a[1]);let code=ranked.length?ranked[0][0]:'SPD';const top=ranked.length?ranked[0][1]:0;const ties=ranked.filter(x=>x[1]===top).map(x=>x[0]);if(ties.length>1&&ties.includes(G.lastDirection))code=G.lastDirection;return commitEvolution(`BM-${speciesCode(G.currentSpecId)}-${code}-CATEGORY`)}
   render();closeSheet();
 }
 function chooseRank(rank){if(G.stage!=='category')return;G.rankDirectionState=rank;const base=G.currentSpecId.replace('-CATEGORY','');commitEvolution(`${base}-${rank==='LIGHT'?'L':'D'}`)}
@@ -88,6 +106,7 @@ function openNewGame(){openSheet('NEW GAME','START BABY');const body=$('#sheetBo
 function openEvolution(){openSheet('EVOLUTION','NEW STAGE UNLOCKED');const body=$('#sheetBody'),d=document.createElement('div');d.className='evolution-card';d.innerHTML=`<strong>${labelFor(G.currentSpecId)}</strong><span>${stageLabel(G.stage)}</span><small>${G.currentSpecId}</small>`;body.append(d);body.append(card(G.stage==='final'?'ENDINGへ':'育成を続ける',G.stage==='final'?'図鑑に登録済み':'次の段階へ','→',()=>{closeSheet();G.lastMessage=G.stage==='final'?'最終進化 COMPLETE':'次の育成を始めよう！';render()}))}
 function tapMonster(){if(G.stage!=='baby'){G.lastMessage=`${labelFor(G.currentSpecId)}がこちらを見ている`;render();return}expression='surprised';G.lastMessage='こっちを見た！';render();setTimeout(()=>{expression='smile';renderVisual()},220);setTimeout(()=>{expression='normal';renderVisual()},650)}
 function loadGame(){G=load();G.lastMessage='保存データを読み込みました';render()}
-window.BoonMonsterPrototype={version:VERSION,build:BUILD,getState:()=>JSON.parse(JSON.stringify(G)),newGame:spec=>{G=fresh(spec&&BABIES[spec]?spec:'BM-BABY-MOF');render()},openPlay,openDex,save,load:loadGame};
-$('#monsterStage').onclick=tapMonster;$('#playBtn').onclick=openPlay;$('#careBtn').onclick=openCare;$('#dexBtn').onclick=openDex;$('#newBtn').onclick=openNewGame;$('#loadBtn').onclick=loadGame;$('#sheetClose').onclick=closeSheet;$('#sheetBackdrop').onclick=closeSheet;render();
+window.BoonMonsterPrototype={version:VERSION,build:BUILD,getState:()=>JSON.parse(JSON.stringify(G)),newGame:spec=>{G=fresh(spec&&BABIES[spec]?spec:'BM-BABY-MOF');render()},openPlay:openPlay,openDex:openDex,save:save,load:loadGame};
+$('#monsterStage').onclick=tapMonster;$('#playBtn').onclick=openPlay;$('#careBtn').onclick=openCare;$('#dexBtn').onclick=openDex;$('#newBtn').onclick=openNewGame;$('#loadBtn').onclick=loadGame;$('#sheetClose').onclick=closeSheet;$('#sheetBackdrop').onclick=closeSheet;
+render();
 })();
