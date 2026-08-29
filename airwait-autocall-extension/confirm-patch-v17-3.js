@@ -6,6 +6,7 @@ const AUTO_KEY='asoboon_aw_auto_enabled_v172';
 const TEST_NAME='テスト入場不可';
 const PANEL_ID='asoboon-airwait-auto-v17';
 const POLL_MS=120;
+const BUILD='17.3.0';
 
 const norm=v=>String(v??'').normalize('NFKC').replace(/\s+/g,' ').trim();
 function visible(el){
@@ -17,6 +18,12 @@ function visible(el){
 }
 function label(el){return norm(el?.innerText||el?.textContent||el?.value||'')}
 function inPanel(el){return !!(el instanceof Element&&el.closest(`#${PANEL_ID}`))}
+function syncPanelVersion(){
+  const panel=document.getElementById(PANEL_ID);
+  if(!panel)return;
+  const head=panel.firstElementChild;
+  if(head)head.textContent=`ASOBooN / AIRWAIT AUTO v${BUILD}`;
+}
 
 async function autoEnabled(){
   try{
@@ -48,6 +55,7 @@ function findSafeOkButton(){
 
 let clicking=false;
 async function tick(){
+  syncPanelVersion();
   if(clicking)return;
   if(!(await autoEnabled()))return;
   const hit=findSafeOkButton();
