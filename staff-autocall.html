@@ -5,45 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="theme-color" content="#08151d">
-<title>ASOBooN STAFF｜自動呼出 v16.0</title>
+<title>ASOBooN STAFF｜自動呼出 v17</title>
 <style>
-:root{--line:#35515d;--ink:#f7f3e8;--muted:#a9bdc5;--green:#6cdd99;--orange:#f0bd59;--red:#f08378}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#071219,#102832 55%,#071219);color:var(--ink)}body{padding:14px 10px 46px}.app{width:min(100%,940px);margin:auto}.hero,.card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#173743,#102832);box-shadow:0 12px 28px rgba(0,0,0,.18)}.hero{padding:17px}.hero small{color:#e1c374;font-weight:950;letter-spacing:.08em}.hero h1{margin:5px 0 0;font-size:clamp(1.45rem,5vw,2.15rem)}.hero p{margin:7px 0 0;color:#bed0d7;font-size:.78rem;line-height:1.6;font-weight:700}.statusbar{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:12px}.status{padding:9px 7px;border-radius:12px;background:#091d26;border:1px solid #2f4a55;text-align:center}.status small{display:block;color:#91aab4;font-size:.55rem;font-weight:900}.status strong{display:block;margin-top:4px;font-size:.84rem;word-break:break-word}.ok{color:var(--green)}.warn{color:var(--orange)}.bad{color:var(--red)}.card{margin-top:11px;padding:14px}.card h2{margin:0;font-size:1rem}.sub,.tiny{margin-top:6px;color:var(--muted);font-size:.69rem;line-height:1.55}.notice{margin-top:10px;padding:10px 11px;border-radius:11px;border-left:4px solid #d2a653;background:#2d2617;color:#eadbb2;font-size:.69rem;line-height:1.55;font-weight:800}.notice.green{border-left-color:#4e9b6b;background:#102b1d;color:#bfe9cd}.actions{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;margin-top:11px}.btn{min-height:49px;border:1px solid #5a737d;border-radius:12px;color:#fff;background:#213d49;font-weight:1000;padding:0 14px;cursor:pointer}.btn.on{background:#315e48}.btn.off{background:#6e3028}.btn.ghost{background:#172b34;color:#c7d5da}.slot{margin-top:11px;border:1px solid #36515d;border-radius:16px;overflow:hidden;background:#0a2029}.slot.test{border-color:#a67e32}.slothead{padding:12px;background:#12303b}.slot.test .slothead{background:#302714}.slottop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.slotname{font-size:1rem;font-weight:1000}.slotname small{color:#8faab4}.badge{padding:5px 8px;border-radius:999px;background:#203540;color:#c0d2d9;font-size:.62rem;font-weight:1000;white-space:nowrap}.badge.running{background:#173d29;color:#79dda0}.badge.wait{background:#473817;color:#f2cf70}.badge.stop{background:#4b211f;color:#f49a8f}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}.metric{padding:8px 6px;border-radius:10px;background:#0a222c;text-align:center;border:1px solid #304b56}.metric small{display:block;color:#90a9b3;font-size:.54rem}.metric strong{display:block;margin-top:3px;font-size:.92rem}.schedule{margin-top:9px;padding-top:9px;border-top:1px solid #36515d;color:#b9cad1;font-size:.67rem}.rows{display:grid}.row{display:grid;grid-template-columns:90px minmax(0,1fr) 88px;gap:8px;align-items:center;padding:10px 11px;border-top:1px solid rgba(73,101,113,.35)}.num{font-size:1.06rem;font-weight:1000}.meta{color:#b9cad1;font-size:.65rem;word-break:break-word}.state{justify-self:start;padding:4px 8px;border-radius:999px;font-size:.59rem;font-weight:1000;background:#26313a}.state.calling{background:#153724;color:#75db9e}.state.hold{background:#473817;color:#f2cf70}.state.serving{background:#19344b;color:#8ac5ee}.empty{padding:13px;color:#9eb2bb;font-size:.72rem}.log{margin-top:9px;max-height:330px;overflow:auto;border-radius:12px;background:#06151b;border:1px solid #2e4852;padding:10px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#d1e0e6;white-space:pre-wrap}@media(max-width:760px){.statusbar{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:1fr 1fr}.actions{grid-template-columns:1fr 1fr}.actions .refresh,.actions .reset{grid-column:auto}.row{grid-template-columns:72px minmax(0,1fr)}.row .state{grid-column:2}.slottop{flex-direction:column}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#071219,#102832 58%,#071219);color:#f7f3e8}body{padding:18px 12px}.wrap{width:min(100%,760px);margin:auto}.hero,.card{border:1px solid #35515d;border-radius:20px;background:linear-gradient(180deg,#173743,#102832);box-shadow:0 14px 32px rgba(0,0,0,.2)}.hero{padding:20px}.hero small{color:#e1c374;font-weight:950;letter-spacing:.08em}.hero h1{margin:6px 0 0;font-size:clamp(1.6rem,6vw,2.35rem)}.hero p{margin:9px 0 0;color:#bed0d7;line-height:1.7;font-size:.82rem;font-weight:750}.card{margin-top:12px;padding:17px}.card h2{margin:0;font-size:1.05rem}.ok{margin-top:10px;padding:12px;border-left:4px solid #65c88a;border-radius:12px;background:#102b1d;color:#c7efd5;font-weight:850;font-size:.8rem;line-height:1.65}.warn{margin-top:10px;padding:12px;border-left:4px solid #d2a653;border-radius:12px;background:#2d2617;color:#eadbb2;font-weight:800;font-size:.76rem;line-height:1.65}.steps{margin:11px 0 0;padding-left:1.35rem;color:#d8e4e8;font-size:.8rem;line-height:1.9}.mono{margin-top:10px;padding:10px;border-radius:11px;background:#071820;border:1px solid #2d4853;color:#bfe1ee;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.tiny{margin-top:10px;color:#8faab4;font-size:.68rem;line-height:1.6}
 </style>
-<script src="./autocall-config-v13.js?v=160"></script>
 </head>
 <body>
-<main class="app">
-<header class="hero">
-  <small>ASOBooN STAFF / AIRWAIT NATIVE</small>
-  <h1>自動呼出 v16.0</h1>
-  <p>GAS・Cloudflare・共有台帳なし。GitHub PagesからAirWAIT APIだけを監視し、AirWAIT自身の受付データから呼出方式を自動解決します。</p>
-  <div class="statusbar">
-    <div class="status"><small>AUTO</small><strong id="autoTop">--</strong></div>
-    <div class="status"><small>AirWAIT</small><strong id="airTop">--</strong></div>
-    <div class="status"><small>変更検知API</small><strong id="changeTop">--</strong></div>
-    <div class="status"><small>監視周期</small><strong id="pollTop">--</strong></div>
-    <div class="status"><small>呼出方式</small><strong id="strategyTop">探索中</strong></div>
-    <div class="status"><small>最終更新</small><strong id="updatedTop">--:--</strong></div>
-  </div>
-</header>
-<section class="card">
-  <h2>自動呼出</h2>
-  <div id="modeNotice" class="notice">起動中…</div>
-  <div class="actions">
-    <button id="onBtn" class="btn on" type="button">▶ AUTO ON</button>
-    <button id="offBtn" class="btn off" type="button">■ AUTO OFF</button>
-    <button id="refreshBtn" class="btn refresh" type="button">↻ 今すぐ更新</button>
-    <button id="resetStrategyBtn" class="btn ghost reset" type="button">↺ 呼出方式を再探索</button>
-  </div>
-  <div class="tiny">🧪 0042「テスト入場不可」は8:00〜18:00・10秒監視。呼出は通常呼出 <strong>callingMethodType=00</strong>。呼出API成功後もAirWAIT一覧で <strong>isCalling=1</strong> を再確認してから成功扱いにします。</div>
-</section>
-<section class="card">
-  <h2>受付状況</h2>
-  <div class="sub">先頭を追い越しません。AirWAIT内部IDが行に含まれる場合はそれを使用し、無い場合はAirWAITの呼出番号を使える公式入力形式をテスト枠で自動確定して以後固定します。</div>
-  <div id="slots"><div class="empty">読み込んでいます…</div></div>
-</section>
-<section class="card"><h2>動作ログ</h2><div id="log" class="log">v16.0 起動しました。</div></section>
+<main class="wrap">
+  <section class="hero">
+    <small>ASOBooN STAFF / AIRWAIT OPERATOR</small>
+    <h1>自動呼出 v17</h1>
+    <p>GAS・Cloudflare・共有台帳を使わず、AirWAIT管理画面そのものを自動運転する方式へ移行しました。</p>
+  </section>
+  <section class="card">
+    <h2>現在の正本</h2>
+    <div class="ok">✓ 自動呼出はAirWAIT管理画面上の「ASOBooN AirWAIT AUTO Operator v17」が担当します。<br>このページから呼出APIは実行しません。</div>
+    <div class="warn">旧v16の「方式探索」は廃止しました。reserveIdを外部共有する必要はありません。</div>
+  </section>
+  <section class="card">
+    <h2>MacBookでの起動</h2>
+    <ol class="steps">
+      <li>Chromeに ASOBooN AirWAIT AUTO Operator v17 を読み込みます。</li>
+      <li>AirWAITの管理画面を開きます。</li>
+      <li>0042「テスト入場不可」の受付一覧を表示します。</li>
+      <li>右下の操作パネルで「▶ AUTO ON」を押します。</li>
+    </ol>
+    <div class="mono">0042 / 08:00–18:00 / 呼出中 最大10組 / 先頭から順番 / 呼出反映NG時は自動停止</div>
+    <div class="tiny">v17.0.0 TEST SAFE。取消・保留・再呼出・完了ボタンは自動操作しません。</div>
+  </section>
 </main>
-<script src="./staff-autocall-v16.js?v=160"></script>
 </body>
 </html>
