@@ -21,11 +21,9 @@
 - カテゴリ：LIGHT / DARK正式判定未確定のため試作ボタンで最終進化
 
 ## アセット状態
-既存の幼体21表情atlasはそのまま使用しています。
+既存の幼体21表情atlasはreaction専用としてそのまま使用しています。通常表示は、`data/pixel_lock_registry.json` の `Spec ID -> File Key -> runtime path -> SHA256` 解決を優先し、117件のPIXEL LOCK PNGを表示します。
 
-現時点のGitHub `boonmonster/assets/` には幼体atlasしかなく、ANIMAL / CATEGORY / FINALの117 PIXEL LOCK画像群は未同期です。そのため進化後は、ゲームロジックのテストを止めないための明示的な `LOCKED PIXEL ASSET 同期待ち` 表示を使用します。
-
-この表示は正式GAME ASSETではありません。117 PIXEL LOCK自体の変更・再生成は行いません。
+lock画像の読み込みに失敗した場合は `ASSET ERROR` とSpec IDを表示します。placeholderへフォールバックしません。117 PIXEL LOCK画像自体の変更・再生成は行いません。
 
 ## 公開テストパス
 `/boonmonster/` を固定公開パスとして維持します。ミニアプリ側の隠しゲームリンク変更は不要です。

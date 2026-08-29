@@ -14,8 +14,10 @@
   },
   "existing_runtime_asset": "./assets/baby-expressions.png",
   "existing_runtime_asset_count": 21,
-  "locked_117_assets_in_github": false,
-  "evolved_visual_fallback": "LOCKED PIXEL ASSET 同期待ち",
+  "locked_117_assets_in_github": true,
+  "locked_asset_registry": "./data/pixel_lock_registry.json",
+  "locked_asset_registry_count": 117,
+  "evolved_visual_fallback": "ASSET ERROR + Spec ID",
   "canon_lock_modified": false,
   "boonrun_modified": false,
   "boonjump_modified": false

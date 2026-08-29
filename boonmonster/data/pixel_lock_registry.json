@@ -1,0 +1,1177 @@
+{
+  "registryVersion": "2026-08-29",
+  "lockStatus": "PIXEL_LOCK",
+  "assetCount": 117,
+  "assets": [
+    {
+      "specId": "BM-BABY-MOF",
+      "fileKey": "BM-BABY-MOF__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-BABY-MOF__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "5ce2cc71a7f5af60538c882934ead11d64030ce38ea3aa793f026d870ff9008e",
+      "width": 96,
+      "height": 96,
+      "stage": "baby",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-BABY-FLO",
+      "fileKey": "BM-BABY-FLO__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-BABY-FLO__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "d2a80161d646fc89cff5a9e437709c0bb81f03b45b847b0883cceddf8d12192a",
+      "width": 96,
+      "height": 96,
+      "stage": "baby",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-BABY-GIG",
+      "fileKey": "BM-BABY-GIG__PIXEL_MASTER_CANDIDATE__v02-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-BABY-GIG__PIXEL_MASTER_CANDIDATE__v02-reviewfix.png",
+      "sha256": "be8c91e7693cfcd9e77049cf42e4086ec8658987891b09a3d039dfe49ea0d0e0",
+      "width": 96,
+      "height": 96,
+      "stage": "baby",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-ANIMAL",
+      "fileKey": "BM-FEN-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "5746478ac533a99306ba5888c900a8b44490d15edc0bbb958a46c0bd46bce752",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-ANIMAL",
+      "fileKey": "BM-SAP-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "ece9809b843e418fa3bf772bd5dd85ec6f5c3dd8110acc8e9c4f1cc860d2371f",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-ANIMAL",
+      "fileKey": "BM-RAB-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "99fe27d1d9eeb52b79d59202f0573f7dc5c5102a9b4a36a85c85df2b63e21dc7",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-ANIMAL",
+      "fileKey": "BM-OTR-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "fab5edaad8e7fe53284befdfd3176b5d993928eacf71412d547fc18c0c3cd2bf",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-ANIMAL",
+      "fileKey": "BM-LIZ-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "d365d607b4aa0ba51289f1c2007f271f29652d196dbaaedd9d13958463547348",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-ANIMAL",
+      "fileKey": "BM-EAG-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-ANIMAL__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "9735ff13da4cf669b6027d8ac3366129d49dfaee9ca1042b126765bb8b0c172f",
+      "width": 96,
+      "height": 96,
+      "stage": "animal",
+      "sourceLockManifest": "REMAINING_9_PIXEL_MASTER_2026-08-28/99_REPORTS/remaining_9_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-SPD-CATEGORY",
+      "fileKey": "BM-FEN-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "99d21278f06e3201be21034cc3ffd3295a1ec179bed9df0c5a7fbd4827033e04",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-STR-CATEGORY",
+      "fileKey": "BM-FEN-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "215df4f479ad63c8b7bf7026125e3a9000c8d5323b90730ab3fdfbbfaf22c17f",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-LUX-CATEGORY",
+      "fileKey": "BM-FEN-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "651fe3ca92c87e1d571a0e238eb8c890f1c627458268d8d801b9e6408971f73e",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-CLS-CATEGORY",
+      "fileKey": "BM-FEN-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "050d361ec03e67bb37ff4d1a88c145c0bc342ac070490bbc605916747e4ad3ca",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-ARM-CATEGORY",
+      "fileKey": "BM-FEN-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "1313b4e8d357afce15a1c5d15f6ac8838fdff1217d3c268db7ce00484d9898a0",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-AGI-CATEGORY",
+      "fileKey": "BM-FEN-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "be65074d10c09e91f5341e6c62f82ae41a5871104ff718a0be4dea58c5a847cd",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-SPD-CATEGORY",
+      "fileKey": "BM-RAB-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "bb88056ce4e77e7e546fb710ec1da4f18551924f8d1f4065bdf22c27b913568e",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-STR-CATEGORY",
+      "fileKey": "BM-RAB-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "7ae9fc79a0d8a87ab7f4cfbee068f90e56493800658b70dc11e03d0bf9a7bacf",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-LUX-CATEGORY",
+      "fileKey": "BM-RAB-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "4b789ec2af8c526f1298e85f55e75b1c2f288c8589dc5357105495de33184bf4",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-CLS-CATEGORY",
+      "fileKey": "BM-RAB-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "06209660d653c7bc86933957a17788e737aa66e30476d7014f0372d0aafe8255",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-ARM-CATEGORY",
+      "fileKey": "BM-RAB-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "89c9dd732a70738e795cffa6f4613157bb2fa62ed93eac940b62755cfee42e13",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-AGI-CATEGORY",
+      "fileKey": "BM-RAB-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "2b46c511edae6b3fd855c3febaf2633bb271fa66c13173ef4e1efbb335490ed4",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-SPD-CATEGORY",
+      "fileKey": "BM-SAP-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "sha256": "fe64a6109bcb995626873e582f580bb163736f8250e39ab198a3addc1285fad3",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-STR-CATEGORY",
+      "fileKey": "BM-SAP-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "sha256": "4b56991825b77bb51ea3fccda7748b9f80c8c86722dafee91c1b4525a33faa0b",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-LUX-CATEGORY",
+      "fileKey": "BM-SAP-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "fb735742625069dfd9a53927eae7c878f73878ed5fced3530318e9cdec5d3756",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-CLS-CATEGORY",
+      "fileKey": "BM-SAP-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "13ea8c0a0865aa2b087a7e1d3e0ce9491da08e04e564f35795c1c3fe1d8b0599",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-ARM-CATEGORY",
+      "fileKey": "BM-SAP-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v05-reviewfix.png",
+      "sha256": "6467b63d5e358da5ec97aa7cc7fb281146f788d641baf38d01d90783f27b0612",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-AGI-CATEGORY",
+      "fileKey": "BM-SAP-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "3c963c87bc4c2087a25a3b0c98d24bd79a44fcf9962f24f4996078dafb08009f",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-SPD-CATEGORY",
+      "fileKey": "BM-OTR-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "02e1e23ff3cd0a2c6c9f6a26354579aa7a83ccb070b9cf4849a4c6d61d800c13",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-STR-CATEGORY",
+      "fileKey": "BM-OTR-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "dc6dbbb554784a8db391f95482b236829e1d95d998e64bade528115416443ebc",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-LUX-CATEGORY",
+      "fileKey": "BM-OTR-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "bd7d37a19b49abcca233390432acbb6d256c680f32cc4139e12341eab92525f2",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-CLS-CATEGORY",
+      "fileKey": "BM-OTR-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "0feb15434b8c10afe4110513eb51860d64f848888e018e4d5aa842c356c725f1",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-ARM-CATEGORY",
+      "fileKey": "BM-OTR-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "2a23bee4a81386043ed3415882e5b994fc133db4612b40b5cc953c022704669c",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-AGI-CATEGORY",
+      "fileKey": "BM-OTR-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "38002413f1ac82e104a674f89a1f67b9b6629fd67c3ce6f4b0a06590701c3020",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-SPD-CATEGORY",
+      "fileKey": "BM-LIZ-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "e18bf1d1b774bc5798cbec10ae548e64bd41a611ecf4a876b2d387eab8076c71",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-STR-CATEGORY",
+      "fileKey": "BM-LIZ-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "sha256": "6bdaab9fedd1c7b557afaee2fd7ca6d7dc12360846fee85d4855c4978f114a79",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-LUX-CATEGORY",
+      "fileKey": "BM-LIZ-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "1b73da870a87225f8cee9440b06380c233ce21540fc30342d1d2db5dc07f955b",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-CLS-CATEGORY",
+      "fileKey": "BM-LIZ-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "cc1522e1f5e2660ecd117502ec0239df013350c5f2c242950cdd42615b4951f6",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-ARM-CATEGORY",
+      "fileKey": "BM-LIZ-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "sha256": "f945bf27494a9b40c9b792794be4e17e2f3f2445b6061956135f34079f195d67",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-AGI-CATEGORY",
+      "fileKey": "BM-LIZ-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v04-reviewfix.png",
+      "sha256": "663a99ce21dbee92ea05b54bc2555f7971fcb1494bd32f68e5e42b6ab550b532",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-SPD-CATEGORY",
+      "fileKey": "BM-EAG-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-SPD-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "7996418db449cc2208350fcba82292cb8cd76223c33984c8ed9c7c4014d63382",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-STR-CATEGORY",
+      "fileKey": "BM-EAG-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-STR-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "8bcbe27206b3abce5b8fe531c04d45b8ef28a52df1dc3cbaee8979a0927e73d7",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-LUX-CATEGORY",
+      "fileKey": "BM-EAG-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-LUX-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "6369d7cbc5ff5746da0cf8d46a8f035821deb378b9b261e7092ff6643f22c860",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-CLS-CATEGORY",
+      "fileKey": "BM-EAG-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-CLS-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "07dab5dc2b8f34ccf204a75c0675f00fbfc69842de0ce948670d90a99d45b6d8",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-ARM-CATEGORY",
+      "fileKey": "BM-EAG-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-ARM-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "2bc5a3284f13a4ee2068c20159fe61fb6900dda365d20162f7def0a40a806753",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-AGI-CATEGORY",
+      "fileKey": "BM-EAG-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-AGI-CATEGORY__PIXEL_MASTER_CANDIDATE__v01.png",
+      "sha256": "6931969cdaae55755866c2661869fde3d2851a453a21f15d31e58181b3ae1468",
+      "width": 96,
+      "height": 96,
+      "stage": "category",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/category_36_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-SPD-L",
+      "fileKey": "BM-FEN-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "9184b8254bf6c650e0395b5b47b21603ab29232632441924a826ed92820e127e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-SPD-D",
+      "fileKey": "BM-FEN-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "1910f085942e17aacfa534c28a49da8d4bffaedda211d57c315e7db9dd93e9ea",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-STR-L",
+      "fileKey": "BM-FEN-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "bb7db297ea52caf27fa083c96a8260565475d613290046d5948f6cddeeb52a5c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-STR-D",
+      "fileKey": "BM-FEN-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "d41796bc6ab2627ee506996983f61cc4c1b3eac7ffda1a2b21e5725881ed68c9",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-LUX-L",
+      "fileKey": "BM-FEN-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "e35c77dfd944a67f9486b625099a6bb0d78069bc51c4d381813364b1f97595ea",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-LUX-D",
+      "fileKey": "BM-FEN-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "bc7e23d4260cf8d445fe66e5075c336b6c706aa9edee4916b474372bb7bec5a5",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-CLS-L",
+      "fileKey": "BM-FEN-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "6ed990ace8b1d5da8bcea9a873d8039e58697161f2a5209b37ea702936f2b8b8",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-CLS-D",
+      "fileKey": "BM-FEN-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "cd29bb5ec6ee2aa127dae9a28b97771d365ed01336ab1f30638663e4c9f84672",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-ARM-L",
+      "fileKey": "BM-FEN-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "da9213b963603f59bb322f20cbcc07b5827de7f1a102b9b0e11e2d9c427a2f9c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-ARM-D",
+      "fileKey": "BM-FEN-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "7f7e147b9435008b513dbb098c465b16f24d460a5dcb43816183017ba128ad33",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-AGI-L",
+      "fileKey": "BM-FEN-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "e6eb49fc8eb90b9c994b15f969cae13d3601e71d1a7f36202f00cdd43cc1449e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-FEN-AGI-D",
+      "fileKey": "BM-FEN-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-FEN-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "217f4679f77b7d16902db299b1976790fc3af33b0883d73e40a63c824b083d5e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-SPD-L",
+      "fileKey": "BM-RAB-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "064ed58889e9ec09b0891a96ce2165df3288e44cf885fcc6264e22fc6b9f969c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-SPD-D",
+      "fileKey": "BM-RAB-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "760243347386834ad13285b91c2469cd3d0ae28c4a04d14dc4b509bb3f2981c0",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-STR-L",
+      "fileKey": "BM-RAB-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "8c85e9b676ff4b8a5392df8be11a16202af84a806ea58f8cea265df0696f5e3e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-STR-D",
+      "fileKey": "BM-RAB-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "4ff00bf21c77a02745d032676e88d872be493099a4e0d721b12609cb1e3f4870",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-LUX-L",
+      "fileKey": "BM-RAB-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "a32ce17903e1beab36a2f48d64644a9be31ba33abf95ac47df3c99d9fbde65b0",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-LUX-D",
+      "fileKey": "BM-RAB-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "904fad13afebd5502ef8345d18ad7dffdf21b0bc4f58d83e34cca3a73583bbfa",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-CLS-L",
+      "fileKey": "BM-RAB-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "9ad83cbcc0fe63be23a7b9a94b1c083d81a50ad55120975961f2aececf63f1f1",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-CLS-D",
+      "fileKey": "BM-RAB-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "5274b31cad331c52561bf884406009b8d050f00cb13e52014d1c1f69bb92ac02",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-ARM-L",
+      "fileKey": "BM-RAB-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "5185a0b435e02a694b59cfc5eab747207488570b2220e6180d61280f8b3abf2a",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-ARM-D",
+      "fileKey": "BM-RAB-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "196fce04ccadc0dad59c5d66a4c3d5531dbc6b339aaf2eb79016820933f0b1e1",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-AGI-L",
+      "fileKey": "BM-RAB-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "348dd20230257c492afcfa58050dc777320f85ae3e061aee0fce78abf3f7f6c4",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-RAB-AGI-D",
+      "fileKey": "BM-RAB-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-RAB-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "dee00654dfdc008658ee6e248b4858303db55765fafe1b2fc032ce55a55ec65e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-SPD-L",
+      "fileKey": "BM-SAP-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "5ed33702efa14123d18f75adc74117d4bf26ce18390dbaecad949c0e2000e842",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-SPD-D",
+      "fileKey": "BM-SAP-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "a20fe6f19bc236b07af85caa31b72bb40eb96e39b23e9adf55560a41e55ae811",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-STR-L",
+      "fileKey": "BM-SAP-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "d517dcbd21e62fc48c81776f20cde79ac581565e1b3b8dc20368baf43c81a1d7",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-STR-D",
+      "fileKey": "BM-SAP-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "f9b4f0e870d3dcb0e0f6de6aa0c4f52f708a306eff41312715a373fb1f994dee",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-LUX-L",
+      "fileKey": "BM-SAP-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "b6f40b4db372c142ad2fd39f8e453a2bc3e1607bd0b5a964e6377a0b4999478c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-LUX-D",
+      "fileKey": "BM-SAP-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "738a55cabda5c212081cd400c399bcd8a6027fc671ced2f363ffeb2f905de380",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-CLS-L",
+      "fileKey": "BM-SAP-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "73e5941ba170ff1ef8e06580b43b078d6862d01d3a22eab4e609c4e52f498867",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-CLS-D",
+      "fileKey": "BM-SAP-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "af77cf444ffb243421643183b87e56e81264c72fb1b888a30b11451a69ffb0b6",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-ARM-L",
+      "fileKey": "BM-SAP-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "35092cb9a066d21c13d882191e705a21b4e385c0dc7b3d7037179aedff4d5eea",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-ARM-D",
+      "fileKey": "BM-SAP-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "46c552a8e4f670e6dccd2c1e29445da6261e8f2db8c01f49d086439a7d71191a",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-AGI-L",
+      "fileKey": "BM-SAP-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "2dba1eb3ebbb509d8375f00bd94810839f5695919a5f8deab0f3fd5de598fc9c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-SAP-AGI-D",
+      "fileKey": "BM-SAP-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-SAP-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "15714916038caa76b60b8b1b7fe534314acf64f0657b40b2ec68c0a9acb84677",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-SPD-L",
+      "fileKey": "BM-OTR-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "a502c1dee090c4cb1b66f8df354e56f2a4482114c312c3a40249510f2304df74",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-SPD-D",
+      "fileKey": "BM-OTR-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "7d13d1ca8d92765a70ceb154d04b30e2aaf18ae8a8e802bafec0619419f3574d",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-STR-L",
+      "fileKey": "BM-OTR-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "e3fd5e1181ada00dbba6294d9e81b7d4d665245b5157483ae013413cc21fa0c2",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-STR-D",
+      "fileKey": "BM-OTR-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "fad2ab7d01b40baea53d846d73f3c8e1851e58979387b1feb8ab275d8801d257",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-LUX-L",
+      "fileKey": "BM-OTR-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "52f93662087cb14fda0ba4ed927942490638878741ec59e9172f72af0cc1288e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-LUX-D",
+      "fileKey": "BM-OTR-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "83ef0b5c3f461b992a50f1fbf2897676836e7b5e97ec25d7d7f97d0e7012484a",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-CLS-L",
+      "fileKey": "BM-OTR-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "39b8256d9988ff6fed6ca024cb84f161e92626c0fae6126a40da66ec275e0137",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-CLS-D",
+      "fileKey": "BM-OTR-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "21570f56bb172c3d3d37290f14c0f67581cfe3cb961f8d9fd9ce85fa893ac540",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-ARM-L",
+      "fileKey": "BM-OTR-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "bfd83999770f919181587ea621a30d9cbdb3b657306c4d95fea36e37b758fe86",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-ARM-D",
+      "fileKey": "BM-OTR-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "9c433ffb0eae4254c59dd1ac383bed91490f25716dcf7940208dddc7f0f3af03",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-AGI-L",
+      "fileKey": "BM-OTR-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "766cefaf813ab32558d7da5fa02462b7a5895a1da432dc7149439782938dac3f",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-OTR-AGI-D",
+      "fileKey": "BM-OTR-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-OTR-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "4cffe3a28246a9cf0ea4f85c805d4aa7e6dda33f562e585a03cdc1271303f054",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-SPD-L",
+      "fileKey": "BM-LIZ-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "c597fde41366428355a30658b5b4e1c7223dbab8ba111ea9f3e4e17329120eb7",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-SPD-D",
+      "fileKey": "BM-LIZ-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "6d809044ec7343580b37b1ad226242f256fa34896ca72db3c5665a87e9675ff9",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-STR-L",
+      "fileKey": "BM-LIZ-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "430debff29f9cf1df3d8c358fab879e1bd8aee350a0b322426ec4c691dfb6a1b",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-STR-D",
+      "fileKey": "BM-LIZ-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "48ded5059337ff269c586ef1fe2c1b145888cb0c46e62ec3d26e5226982cf31d",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-LUX-L",
+      "fileKey": "BM-LIZ-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "b152a57fcd37d9c0a73f497dfb446df18b70acfe9d8bd40f5d6135f737376918",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-LUX-D",
+      "fileKey": "BM-LIZ-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "f64e4afb09b4bccb12c5f97c47246a08e6d21d00b94e1e8bb5ee9d032ce1ad84",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-CLS-L",
+      "fileKey": "BM-LIZ-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "c32335929284aff0b9db6ac191ebf0b0cc2a15dd335f43748681b440423575e2",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-CLS-D",
+      "fileKey": "BM-LIZ-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "cc54dc99ab72db8121804e6228de6c9318bee47cfeecc7dbef854cf087b1d566",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-ARM-L",
+      "fileKey": "BM-LIZ-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "e051d0e495293f73223dbcd54167306f5d897428fa1152a0193cf31d3082bb19",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-ARM-D",
+      "fileKey": "BM-LIZ-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "d271fc5c877b287b9745fa5baea045796abff834396bcaf5dc7f40e5a70a7584",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-AGI-L",
+      "fileKey": "BM-LIZ-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "195df5179db1eed4594b91de6ced54cc7331905995549c3ee5c4d2ebcab22f53",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-LIZ-AGI-D",
+      "fileKey": "BM-LIZ-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-LIZ-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "db972e1addd8817a1331842a295b0d3e6ed0c1151e2268b82fee3dac19fdd26c",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-SPD-L",
+      "fileKey": "BM-EAG-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-SPD-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "cc1ea0d8af75f09e4984c42528b893c010be07a344248075e5e936623934bb99",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-SPD-D",
+      "fileKey": "BM-EAG-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-SPD-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "9f78679d397b5fbe50c9b773b47d22eadcf83ddf2b09dcb29171cab404b3756e",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-STR-L",
+      "fileKey": "BM-EAG-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-STR-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "f073db52ee088a2689fb08c96261ea2c3f48bba1a6127d3f87aa41ae5b7cc57f",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-STR-D",
+      "fileKey": "BM-EAG-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-STR-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "9501a52b5b71835646c1576c9278f83df283219a4de6827c59f5b22da213c327",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-LUX-L",
+      "fileKey": "BM-EAG-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-LUX-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "abd3083759e7886cd7ffd52b86de369e584e65c08c4c63f2fc4ceace43dfe934",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-LUX-D",
+      "fileKey": "BM-EAG-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-LUX-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "f1c7e6a97475479a27aac0aba2ae692d120a353b6eb75ef4757e5f068fb63c61",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-CLS-L",
+      "fileKey": "BM-EAG-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-CLS-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "6e7ffeae6786404d99d0107505b04c271ceaf25703e11eca5a968f3ad131f3be",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-CLS-D",
+      "fileKey": "BM-EAG-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-CLS-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "93ad40e70e190e7e7e973d2724def501c1d69b878dc68c92272addca4d7e0f87",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-ARM-L",
+      "fileKey": "BM-EAG-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-ARM-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "17638453e3269f036001e09dbfed30d5f67b6246a2fde68419f041d8a5c160c8",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-ARM-D",
+      "fileKey": "BM-EAG-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-ARM-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "a78e4760e224ad2841e0db8403ea6155748817693c29d6fb7c6521103328f3e4",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-AGI-L",
+      "fileKey": "BM-EAG-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-AGI-L__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "f698fc5966fd57240aadc4df9c55fbf340c60a64c032f21e6a68e6711bf74902",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    },
+    {
+      "specId": "BM-EAG-AGI-D",
+      "fileKey": "BM-EAG-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "runtimePath": "./assets/pixel-lock/BM-EAG-AGI-D__PIXEL_MASTER_CANDIDATE__v02.png",
+      "sha256": "628aaec2dfc170558cf6f25c38f03153cb86a53291a90b988243c803126f96fd",
+      "width": 96,
+      "height": 96,
+      "stage": "final",
+      "sourceLockManifest": "CATEGORY_PIXEL_MASTER_REDESIGN_2026-08-27/99_REPORTS/final_72_PIXEL_LOCK_manifest.json"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ const BUILD='2026-08-29-hidden-game-hotfix-1';
 const STORAGE_KEY='boon_monster_playable_prototype_v0_3';
 const THRESHOLD={baby:5,animal:6,category:7};
 const ATLAS_PATH='./assets/baby-expressions.png?v=20260829-1335';
+const LOCK_REGISTRY_PATH='./data/pixel_lock_registry.json?v=20260829-1';
 const BABIES={
   'BM-BABY-MOF':{name:'もふーん',row:0,options:[['風の砂地','wind','BM-FEN-ANIMAL'],['草原','field','BM-RAB-ANIMAL']]},
   'BM-BABY-FLO':{name:'ふろーん',row:1,options:[['森','forest','BM-SAP-ANIMAL'],['水辺','water','BM-OTR-ANIMAL']]},
@@ -52,9 +53,26 @@ if(!ctx){
 }
 ctx.imageSmoothingEnabled=false;
 const atlas=new Image();let atlasReady=false;
+const lockedSprite=new Image();let lockedRegistry=new Map(),lockedSpec='',lockedReady=false,lockedRegistryReady=false;
 atlas.onload=()=>{atlasReady=true;renderVisual()};
 atlas.onerror=()=>{console.error('BOON MONSTER baby atlas load error',ATLAS_PATH);fallback.hidden=false;fallback.innerHTML='<span>BABY</span><b>'+labelFor(G.currentSpecId)+'</b><small>'+G.currentSpecId+'</small><em>IMAGE LOAD RETRY</em>'};
 atlas.src=ATLAS_PATH;
+lockedSprite.onload=()=>{lockedReady=true;renderVisual()};
+lockedSprite.onerror=()=>{lockedReady=false;console.error('BOON MONSTER locked asset load error',lockedSpec);fallback.hidden=false;fallback.innerHTML='<span>ASSET ERROR</span><b>'+G.currentSpecId+'</b><small>LOCKED PIXEL ASSET</small><em>IMAGE LOAD FAILED</em>'};
+async function loadLockedRegistry(){
+  try{
+    const response=await fetch(LOCK_REGISTRY_PATH,{cache:'no-store'});
+    if(!response.ok)throw new Error(`registry HTTP ${response.status}`);
+    const payload=await response.json();
+    if(payload.assetCount!==117||!Array.isArray(payload.assets))throw new Error('registry count mismatch');
+    lockedRegistry=new Map(payload.assets.map(item=>[item.specId,item]));
+    lockedRegistryReady=true;renderVisual();
+  }catch(error){
+    console.error('BOON MONSTER locked asset registry load error',error);
+    fallback.hidden=false;fallback.innerHTML='<span>ASSET ERROR</span><b>'+G.currentSpecId+'</b><small>117 PIXEL LOCK REGISTRY</small><em>REGISTRY LOAD FAILED</em>';
+  }
+}
+loadLockedRegistry();
 function save(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(G));$('#saveState').textContent='SAVED'}
   catch(e){console.warn('BOON MONSTER storage write unavailable',e);$('#saveState').textContent='MEMORY ONLY'}
@@ -67,10 +85,12 @@ function renderBabySprite(expr='normal'){
 }
 function renderVisual(){
   motion.className='monster-motion';aura.classList.toggle('on',G.stage==='final');particles.classList.toggle('on',G.stage==='final');
-  if(G.stage==='baby'&&renderBabySprite(expression))return;
-  if(G.stage==='baby'&&!atlasReady){canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>BABY</span><b>${labelFor(G.currentSpecId)}</b><small>${G.currentSpecId}</small><em>IMAGE LOADING</em>`;return}
-  canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>${G.stage==='animal'?'DNA':G.stage==='category'?'CAT':G.currentSpecId.endsWith('-L')?'LIGHT':'DARK'}</span><b>${labelFor(G.currentSpecId)}</b><small>${G.currentSpecId}</small><em>LOCKED PIXEL ASSET 同期待ち</em>`;
-  fallback.className=`locked-fallback ${G.currentSpecId.endsWith('-L')?'light':''} ${G.currentSpecId.endsWith('-D')?'dark':''}`;
+  const asset=lockedRegistry.get(G.currentSpecId);
+  if(!lockedRegistryReady){canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>ASSET LOADING</span><b>${G.currentSpecId}</b><small>117 PIXEL LOCK REGISTRY</small>`;return}
+  if(!asset){canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>ASSET ERROR</span><b>${G.currentSpecId}</b><small>SPEC ID NOT FOUND</small>`;return}
+  if(lockedSpec!==G.currentSpecId){lockedSpec=G.currentSpecId;lockedReady=false;lockedSprite.src=asset.runtimePath;canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>ASSET LOADING</span><b>${G.currentSpecId}</b><small>${asset.fileKey}</small>`;return}
+  if(!lockedReady){canvas.hidden=true;fallback.hidden=false;fallback.innerHTML=`<span>ASSET LOADING</span><b>${G.currentSpecId}</b><small>${asset.fileKey}</small>`;return}
+  ctx.clearRect(0,0,96,96);ctx.drawImage(lockedSprite,0,0,96,96);canvas.hidden=false;fallback.hidden=true;canvas.dataset.specId=G.currentSpecId;
 }
 function progressText(){if(G.stage==='final')return'最終進化 COMPLETE';return`${stageLabel(G.stage)} ${G.maturity} / ${THRESHOLD[G.stage]}`}
 function render(){
@@ -104,7 +124,7 @@ function care(kind){if(kind==='pet'){G.mood=clamp(G.mood+10);G.lastMessage='う�
 function openDex(){openSheet('図鑑',`DISCOVERED ${G.discoveredDex.length}`);const body=$('#sheetBody'),grid=document.createElement('div');grid.className='dex-grid';for(const spec of G.discoveredDex){const d=document.createElement('div');d.className='dex-item';d.innerHTML=`<span>${stageLabel(stageFromSpec(spec))}</span><b>${labelFor(spec)}</b><small>${spec}</small>`;grid.append(d)}body.append(grid);const hist=document.createElement('div');hist.className='history';hist.textContent=G.evolutionHistory.length?'進化履歴: '+G.evolutionHistory.map(x=>`${x.from} → ${x.to}`).join(' / '):'まだ進化していません';body.append(hist);body.append(card('NEW GAME','幼体を選び直して最初からテスト','↻',openNewGame))}
 function openNewGame(){openSheet('NEW GAME','START BABY');const body=$('#sheetBody');for(const[spec,b]of Object.entries(BABIES))body.append(card(b.name,spec,'🥚',()=>{G=fresh(spec);expression='normal';closeSheet();render()}))}
 function openEvolution(){openSheet('EVOLUTION','NEW STAGE UNLOCKED');const body=$('#sheetBody'),d=document.createElement('div');d.className='evolution-card';d.innerHTML=`<strong>${labelFor(G.currentSpecId)}</strong><span>${stageLabel(G.stage)}</span><small>${G.currentSpecId}</small>`;body.append(d);body.append(card(G.stage==='final'?'ENDINGへ':'育成を続ける',G.stage==='final'?'図鑑に登録済み':'次の段階へ','→',()=>{closeSheet();G.lastMessage=G.stage==='final'?'最終進化 COMPLETE':'次の育成を始めよう！';render()}))}
-function tapMonster(){if(G.stage!=='baby'){G.lastMessage=`${labelFor(G.currentSpecId)}がこちらを見ている`;render();return}expression='surprised';G.lastMessage='こっちを見た！';render();setTimeout(()=>{expression='smile';renderVisual()},220);setTimeout(()=>{expression='normal';renderVisual()},650)}
+function tapMonster(){if(G.stage!=='baby'){G.lastMessage=`${labelFor(G.currentSpecId)}がこちらを見ている`;render();return}expression='surprised';G.lastMessage='こっちを見た！';if(atlasReady)renderBabySprite(expression);else render();setTimeout(()=>{expression='smile';if(atlasReady)renderBabySprite(expression)},220);setTimeout(()=>{expression='normal';renderVisual()},650)}
 function loadGame(){G=load();G.lastMessage='保存データを読み込みました';render()}
 window.BoonMonsterPrototype={version:VERSION,build:BUILD,getState:()=>JSON.parse(JSON.stringify(G)),newGame:spec=>{G=fresh(spec&&BABIES[spec]?spec:'BM-BABY-MOF');render()},openPlay:openPlay,openDex:openDex,save:save,load:loadGame};
 $('#monsterStage').onclick=tapMonster;$('#playBtn').onclick=openPlay;$('#careBtn').onclick=openCare;$('#dexBtn').onclick=openDex;$('#newBtn').onclick=openNewGame;$('#loadBtn').onclick=loadGame;$('#sheetClose').onclick=closeSheet;$('#sheetBackdrop').onclick=closeSheet;
