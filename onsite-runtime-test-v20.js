@@ -94,6 +94,21 @@ function queueAutoBridge(payload){
   setTimeout(()=>{postAutoBridge(payload)},2200);
 }
 
+function backfillCurrentReservation(){
+  try{
+    const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
+    if(!rec?.receiptNo||!rec?.reserveId||!rec?.waitTypeId)return;
+    queueAutoBridge({
+      receiptNo:String(rec.receiptNo),
+      reserveId:String(rec.reserveId),
+      waitTypeId:String(rec.waitTypeId),
+      waitTypeName:String(rec.waitTypeName||''),
+      operationalDay:String(rec.operationalDay||todayJst())
+    });
+    console.info('[AUTO v21] current reservation backfill queued',rec.receiptNo,rec.waitTypeId);
+  }catch(error){console.warn('[AUTO v21] current reservation backfill failed',error)}
+}
+
 async function bridgeCreateResponse(response,body){
   try{
     if(!response?.ok)return;
@@ -158,7 +173,9 @@ window.fetch=async function(input,init={}){
 };
 
 rememberCurrentReservation();
+backfillCurrentReservation();
 retryPendingBridge();
+setTimeout(backfillCurrentReservation,1200);
 setInterval(rememberCurrentReservation,700);
 setInterval(retryPendingBridge,15000);
 })();
