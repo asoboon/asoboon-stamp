@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="theme-color" content="#08151d">
-<title>ASOBooN STAFF｜継続AUTO v13.5</title>
+<title>ASOBooN STAFF｜継続AUTO v14.0</title>
 <style>html,body{margin:0;min-height:100%;background:#08151d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.boot{padding:30px 16px;text-align:center;font-weight:900}.bad{max-width:520px;margin:20px auto;padding:16px;border:1px solid #8b4b42;border-radius:14px;background:#3c211d;color:#ffd6cf}</style>
 </head>
-<body><div id="boot" class="boot">AUTO呼出 v13.5 を読み込んでいます…</div>
+<body><div id="boot" class="boot">AUTO呼出 v14.0 を読み込んでいます…</div>
 <script>
 (async()=>{
   try{
@@ -21,44 +21,80 @@
     let html=await shellRes.text();
     let core=await coreRes.text();
 
+    const required=[
+      "const s=String(slot.waitTypeName??'').normalize('NFKC');",
+      "if(/WEB/i.test(nameNorm))return false;return !(C.blockedWaitTypeIds||[]).map(String).includes(id)&&!(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))",
+      "if(now>=stopMin())return{active:false,label:'営業時間外',start:st};",
+      "return S.autoEnabled===true&&now<stopMin()&&now>=minOf(st.hour,st.minute)",
+      "function linked(r){",
+      "async function loadLedger(){",
+      "async function setAuto(v){"
+    ];
+    if(required.some(x=>!core.includes(x)))throw new Error('v14パッチ対象を確認できませんでした');
+
+    // -----------------------------------------------------
+    // AirWAIT DIRECT MODE
+    // 共有台帳 / STAFF_KEY をAUTO起動条件から外す。
+    // AUTO ON/OFF はこのブラウザのlocalStorageに保持する。
+    // -----------------------------------------------------
+    core=core.replace(/function staffKey\(\)\{[\s\S]*?\}\nfunction authUi/,"function staffKey(){return 'AIRWAIT_DIRECT'}\nfunction authUi");
+    core=core.replace(/async function loadLedger\(\)\{[\s\S]*?\}\nfunction buildLinks/,"async function loadLedger(){S.ledgerAll=[];S.ledger=[];S.autoEnabled=localStorage.getItem('asoboon_auto_enabled_v14')==='1';S.autoFresh=true;const el=$('ledgerDiag');if(el)el.textContent='AirWAIT直接呼出 / 共有台帳なし';return{ok:true,autoEnabled:S.autoEnabled}}\nfunction buildLinks");
+    core=core.replace(/async function setAuto\(v\)\{[\s\S]*?\}\nasync function refresh/,"async function setAuto(v){localStorage.setItem('asoboon_auto_enabled_v14',v?'1':'0');S.autoEnabled=!!v;S.autoFresh=true;log(`AUTOを${v?'ON':'OFF'}に変更（この端末に保存）`);return true}\nasync function refresh");
+
+    // 正式テスト枠 = 9600「テスト入場不可」だけ。
+    // 08:00〜18:00 の間のみAUTO対象。
     const startMarker="const s=String(slot.waitTypeName??'').normalize('NFKC');";
-    const filterMarker="if(/WEB/i.test(nameNorm))return false;return !(C.blockedWaitTypeIds||[]).map(String).includes(id)&&!(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))";
-    const runMarker="if(now>=stopMin())return{active:false,label:'営業時間外',start:st};";
-    const rowsMarker="return S.autoEnabled===true&&now<stopMin()&&now>=minOf(st.hour,st.minute)";
-    const linkedMarker="function linked(r){const k=`${String(r.waitTypeId)}|${digits(r.number)}`;if(S.linked.has(k))return S.linked.get(k);const n=digits(r.number),hits=S.ledger.filter(x=>digits(x.receiptNo)===n);return hits.length===1?hits[0]:null}";
-    const warnMarker="if(run.active&&first&&!rec)warn=`<div class=\"slotwarn\">⚠️ 先頭 ${esc(first.number)}番 はID未連携。追い越さず待機します。</div>`;const linkedCount=ws.filter(r=>linked(r)).length;";
-    const fillMarker="const rec=linked(first);if(!rec?.reserveId){log(`${slot.waitTypeName}: 先頭 ${first.number}番 がID未連携のため待機`);break}await callOne(first,rec,`AUTO ${slot.waitTypeName} ${c}→${c+1}/${target}`);";
-    if(!core.includes(startMarker)||!core.includes(filterMarker)||!core.includes(runMarker)||!core.includes(rowsMarker)||!core.includes(linkedMarker)||!core.includes(warnMarker)||!core.includes(fillMarker))throw new Error('v13.5パッチ対象を確認できませんでした');
-
-    // 正式なテスト枠は waitTypeId=9600「テスト入場不可」のみ。
-    // 毎日08:00〜18:00だけAUTO呼出対象。
     core=core.replace(startMarker,startMarker+"if(String(slot.waitTypeId)==='9600')return{hour:8,minute:0,text:'08:00'};");
-    core=core.replace(filterMarker,"if(/WEB/i.test(nameNorm))return false;if(id==='9600')return true;return !(C.blockedWaitTypeIds||[]).map(String).includes(id)&&!(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))");
-    core=core.replace(runMarker,"const isTest=String(slot.waitTypeId)==='9600';if((isTest&&now>=1080)||(!isTest&&now>=stopMin()))return{active:false,label:'営業時間外',start:st};");
-    core=core.replace(rowsMarker,"const isTest=String(x.waitTypeId)==='9600';return S.autoEnabled===true&&now<(isTest?1080:stopMin())&&now>=minOf(st.hour,st.minute)");
+    core=core.replace(
+      "if(/WEB/i.test(nameNorm))return false;return !(C.blockedWaitTypeIds||[]).map(String).includes(id)&&!(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))",
+      "if(/WEB/i.test(nameNorm))return false;if(id==='9600')return true;return !(C.blockedWaitTypeIds||[]).map(String).includes(id)&&!(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)))"
+    );
+    core=core.replace(
+      "if(now>=stopMin())return{active:false,label:'営業時間外',start:st};",
+      "const isTest=String(slot.waitTypeId)==='9600';if((isTest&&now>=1080)||(!isTest&&now>=stopMin()))return{active:false,label:'営業時間外',start:st};"
+    );
+    core=core.replace(
+      "return S.autoEnabled===true&&now<stopMin()&&now>=minOf(st.hour,st.minute)",
+      "const isTest=String(x.waitTypeId)==='9600';return S.autoEnabled===true&&now<(isTest?1080:stopMin())&&now>=minOf(st.hour,st.minute)"
+    );
 
-    // AirWAIT一覧にreserveIdがある場合はそれを正本として直接呼出。
-    // 9600では共有台帳のID連携を必須条件にしない。台帳は従来どおりフォールバック/ログ用途。
-    core=core.replace(linkedMarker,linkedMarker+"\nfunction directCallRecord(r){const direct=String(r?.reserveId??'').trim();if(direct)return{reserveId:direct,__source:'airwait'};return linked(r)}");
-    core=core.replace(warnMarker,"if(run.active&&first&&!directCallRecord(first))warn=`<div class=\"slotwarn\">⚠️ 先頭 ${esc(first.number)}番 はAirWAITからreserveIdを取得できず、台帳にもIDがありません。</div>`;const linkedCount=ws.filter(r=>directCallRecord(r)).length;");
-    core=core.replace(fillMarker,"const rec=directCallRecord(first);if(!rec?.reserveId){log(`${slot.waitTypeName}: 先頭 ${first.number}番 のreserveIdをAirWAIT/台帳どちらからも取得できないため待機`);break}if(rec.__source==='airwait')log(`${slot.waitTypeName}: ${first.number}番 はAirWAITのreserveIdを直接使用`);await callOne(first,rec,`AUTO ${slot.waitTypeName} ${c}→${c+1}/${target}`);");
+    // AirWAIT予約一覧が返すreserveIdを直接使用。
+    // 台帳照合はフォールバックにも使わない。
+    core=core.replace(
+      /function linked\(r\)\{[\s\S]*?\}\nfunction activeRows/,
+      "function linked(r){const reserveId=String(r?.reserveId??'').trim();return reserveId?{reserveId,__source:'airwait'}:null}\nfunction activeRows"
+    );
+    core=core.replaceAll('ID未連携','呼出IDなし');
+    core=core.replaceAll('ID連携済み','呼出ID取得済み');
+    core=core.replaceAll('ID連携','呼出ID');
 
+    // 旧本体はKeyNORMALを作るが、直前パッチで公式値00へ強制する。
     const coreUrl=URL.createObjectURL(new Blob([core],{type:'text/javascript'}));
 
-    html=html.replace('./autocall-config.js?v=12','./autocall-config-v13.js?v=135');
-    html=html.replace('ASOBooN STAFF｜継続AUTO v12.4','ASOBooN STAFF｜継続AUTO v13.5');
-    html=html.replace('継続AUTO 自動呼出 v12.4','継続AUTO 自動呼出 v13.5');
-    html=html.replace('v12.4 起動しました。','v13.5 起動しました。');
+    html=html.replace('./autocall-config.js?v=12','./autocall-config-v13.js?v=140');
+    html=html.replace('ASOBooN STAFF｜継続AUTO v12.4','ASOBooN STAFF｜継続AUTO v14.0');
+    html=html.replace('継続AUTO 自動呼出 v12.4','継続AUTO 自動呼出 v14.0');
+    html=html.replace('v12.4 起動しました。','v14.0 起動しました。');
+    html=html.replace('AirWAITと共有台帳を照合し、各受付枠の開始時刻から最大10組を自動呼出します。共有台帳の日付型はブラウザ側で正規化して照合します。','AirWAITへ直接接続し、各受付枠の開始時刻から最大10組を通常呼出します。共有台帳・STAFF_KEYは使用しません。');
+    html=html.replace('<small>共有台帳</small>','<small>呼出ID</small>');
+    html=html.replace('<section class="card"><h2>スタッフ認証</h2>','<section class="card"><h2>接続方式</h2>');
+    html=html.replace('✓ この端末は認証済み','✓ AirWAIT直接接続');
+    html=html.replace('<button id="changeKey">認証をやり直す</button>','<button id="changeKey" hidden>認証をやり直す</button>');
+    html=html.replace('✓ AUTO ONはGAS側に保持。18:00以降は呼出のみ休止し、翌営業日は各回開始時刻から再開します。','✓ AUTO ON/OFFはこの端末に保存。ページを開いている間、AirWAITを直接監視して呼び出します。');
+    html=html.replace('⚠️ iPadがスリープ・ページ終了・通信断の間はブラウザAUTOは動きません。','⚠️ Mac/iPadがスリープ・ページ終了・通信断の間はAUTOは動きません。ページを開いたままにしてください。');
+    html=html.replace('現地受付枠だけを表示します。WEB予約枠はAUTO対象外です。先頭がID未連携なら追い越さず停止します。','現地受付枠だけを表示します。WEB予約枠はAUTO対象外です。AirWAITの受付順をそのまま使います。');
+
     html=html.replace(
       '<script src="./staff-call-v12-4-patch.js?v=124"></'+'script>\n<script src="./staff-autocall-v12-3.js?v=123"></'+'script>',
-      '<script src="./staff-call-v13-patch.js?v=135"></'+'script>\n'+
-      '<script src="./staff-call-diagnostic-v13.js?v=135"></'+'script>\n'+
-      '<script src="./staff-adaptive-refresh-v13.js?v=135"></'+'script>\n'+
+      '<script src="./staff-call-v13-patch.js?v=140"></'+'script>\n'+
+      '<script src="./staff-call-diagnostic-v13.js?v=140"></'+'script>\n'+
+      '<script src="./staff-adaptive-refresh-v13.js?v=140"></'+'script>\n'+
       `<script src="${coreUrl}"></`+'script>\n'+
-      '<script src="./staff-safe-wait-v13.js?v=135"></'+'script>\n'+
+      '<script src="./staff-safe-wait-v13.js?v=140"></'+'script>\n'+
       '<script src="./staff-ops-ui-v12-7.js?v=127"></'+'script>\n'+
-      '<script src="./staff-test-ui-v13.js?v=135"></'+'script>'
+      '<script src="./staff-test-ui-v13.js?v=140"></'+'script>'
     );
+
     document.open();document.write(html);document.close();
   }catch(error){
     document.body.innerHTML=`<div class="bad"><strong>AUTO呼出を読み込めませんでした。</strong><br><br>${String(error?.message||error)}<br><br>ページを再読み込みしてください。</div>`;
