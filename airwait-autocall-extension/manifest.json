@@ -1,25 +1,10 @@
 {
   "manifest_version": 3,
   "name": "ASOBooN AirWAIT AUTO Operator",
-  "version": "17.0.0",
-  "description": "ASOBooNのAirWAIT管理画面でテスト枠0042の通常呼出を自動運転します。外部DBは使用しません。",
+  "version": "17.1.0",
+  "description": "ASOBooN AirWAIT operation helper v17.1",
   "permissions": ["storage"],
-  "host_permissions": [
-    "https://airwait.jp/*",
-    "https://*.airwait.jp/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "https://airwait.jp/*",
-        "https://*.airwait.jp/*"
-      ],
-      "js": ["content.js"],
-      "run_at": "document_idle",
-      "all_frames": true
-    }
-  ],
-  "action": {
-    "default_title": "ASOBooN AirWAIT AUTO"
-  }
+  "host_permissions": ["https://airwait.jp/*", "https://*.airwait.jp/*"],
+  "content_scripts": [{"matches": ["https://airwait.jp/*", "https://*.airwait.jp/*"], "js": ["content.js"], "run_at": "document_idle", "all_frames": true}],
+  "action": {"default_title": "ASOBooN AirWAIT AUTO"}
 }
