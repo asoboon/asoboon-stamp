@@ -22,5 +22,12 @@
 - 表示サイズ 192×192
 - actual animal evolution は未実装
 
+## Playable Prototype 受入記録
+2026-08-29に、BABY → ANIMAL → CATEGORY → LIGHT/DARK FINAL → DEX → SAVE/LOAD の縦切りプロトタイプが最終E2Eを通過しました。
+
+記録: [`playable-prototype-2026-08-28/`](./playable-prototype-2026-08-28/)
+
+既存の `/boonmonster/` 公開テストゲームは維持し、この受入済み縦切りを次の統合基準として扱います。
+
 ## GitHub Pages
 `/boonmonster/` を固定公開パスとして使用します。
