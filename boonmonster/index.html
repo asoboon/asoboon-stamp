@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#253241">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonmonster-build" content="2026-08-29-hidden-game-vertical-slice">
-  <title>BOON MONSTER｜Playable Prototype v0.3</title>
-  <link rel="stylesheet" href="./styles.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="boonmonster-build" content="2026-08-29-hidden-game-hotfix-1">
+  <title>BOON MONSTER｜Playable Prototype v0.3.1</title>
+  <link rel="stylesheet" href="./styles.css?v=20260829-1335">
 </head>
 <body>
   <main class="app" id="app">
     <section class="status-zone">
-      <div class="build" id="build">BOON MONSTER TEST v0.3</div>
+      <div class="build" id="build">BOON MONSTER TEST v0.3.1</div>
       <div class="status-grid">
         <div class="status-line"><div><span>FUEL</span><b id="fuelVal">72</b></div><div class="bar"><i id="fuelBar"></i></div></div>
         <div class="status-line"><div><span>CONDITION</span><b id="conditionVal">84</b></div><div class="bar"><i id="conditionBar"></i></div></div>
@@ -50,6 +53,27 @@
       <div id="sheetBody" class="sheet-body"></div>
     </section>
   </main>
-  <script src="./game.js"></script>
+  <script>
+    (function(){
+      var HOTFIX='20260829-1335';
+      function showBootError(message){
+        if(document.getElementById('boonBootError'))return;
+        var box=document.createElement('div');
+        box.id='boonBootError';
+        box.style.cssText='position:fixed;z-index:99999;left:12px;right:12px;bottom:18px;max-width:406px;margin:auto;padding:14px;border-radius:16px;background:#253241;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 12px 36px #0006;text-align:center;font-size:12px;line-height:1.6';
+        box.innerHTML='<b style="display:block;font-size:14px;margin-bottom:5px">BOON MONSTERを更新してください</b><span>'+message+'</span><button id="boonReload" style="display:block;width:100%;margin-top:10px;padding:11px;border:0;border-radius:12px;background:#78dfbd;color:#17232d;font-weight:800">再読込</button>';
+        document.body.appendChild(box);
+        document.getElementById('boonReload').onclick=function(){location.replace(location.pathname+'?v='+HOTFIX+'&t='+Date.now())};
+      }
+      window.__boonShowBootError=showBootError;
+      window.addEventListener('error',function(e){
+        if(!window.BoonMonsterPrototype){showBootError('ゲームプログラムの起動に失敗しました。新しい版を読み込み直します。')}
+      });
+      setTimeout(function(){
+        if(!window.BoonMonsterPrototype)showBootError('古いキャッシュが残っている可能性があります。');
+      },1800);
+    })();
+  </script>
+  <script src="./game.js?v=20260829-1335"></script>
 </body>
 </html>
