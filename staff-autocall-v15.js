@@ -6,21 +6,23 @@ const API={
   reservations:'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',
   call:'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/call'
 };
-const TEST_ID='9600',AUTO_KEY='asoboon_auto_enabled_v15';
+const TEST_ID='9600',TEST_NAME='テスト入場不可',AUTO_KEY='asoboon_auto_enabled_v15';
 const TARGET=Math.max(1,Number(C.autoCallingPool||10));
 const GAP=Math.max(700,Number(C.autoCallGapMs||1200));
 const FAST=Math.max(5000,Number(C.staffFastRefreshMs||10000));
 const NORMAL=Math.max(FAST,Number(C.staffNormalRefreshMs||30000));
 const $=id=>document.getElementById(id);
-const S={auto:localStorage.getItem(AUTO_KEY)==='1',slots:[],rows:new Map(),busy:false,timer:null};
+const S={auto:localStorage.getItem(AUTO_KEY)==='1',slots:[],rows:new Map(),busy:false,timer:null,testDiag:''};
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const log=m=>{const el=$('log');if(el)el.textContent=`[${new Date().toLocaleTimeString('ja-JP')}] ${m}\n`+el.textContent};
 function success(d){return d?.success===true||String(d?.resultCode?.code??'')==='0000'}
+function normId(v){return String(v??'').normalize('NFKC').trim().replace(/^0+(?=\d)/,'')}
+function isTest(slot){return normId(slot?.waitTypeId)===TEST_ID||String(slot?.waitTypeName??'').normalize('NFKC').trim()===TEST_NAME}
 function jst(){return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]))}
 function nowMin(){const p=jst();return Number(p.hour)*60+Number(p.minute)+Number(p.second)/60}
 function parseHHMM(v){const m=String(v??'').normalize('NFKC').match(/^([01]?\d|2[0-3]):([0-5]\d)$/);return m?Number(m[1])*60+Number(m[2]):null}
 function parseStart(slot){
-  if(String(slot?.waitTypeId)==TEST_ID)return 8*60;
+  if(isTest(slot))return 8*60;
   const ov=C.slotStartOverrides?.[String(slot?.waitTypeId)];if(ov){const n=parseHHMM(ov);if(n!==null)return n}
   const s=String(slot?.waitTypeName??'').normalize('NFKC');
   let m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*[:：]\s*([0-5]\d)/);if(m)return Number(m[1])*60+Number(m[2]);
@@ -29,18 +31,9 @@ function parseStart(slot){
   m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*時/);return m?Number(m[1])*60:null;
 }
 function hhmm(n){if(n===null||!Number.isFinite(n))return'未判定';return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(Math.floor(n%60)).padStart(2,'0')}`}
-function isTest(slot){return String(slot?.waitTypeId)==TEST_ID}
 function activeWindow(slot){const n=nowMin(),start=parseStart(slot);return start!==null&&n>=start&&n<18*60}
-function testVisible(){return S.slots.some(isTest)}
-function pollMs(){return testVisible()&&nowMin()>=8*60&&nowMin()<18*60?FAST:NORMAL}
-function stateLabel(slot){
-  const start=parseStart(slot),n=nowMin();
-  if(start===null)return['時刻未判定','stop'];
-  if(n<start)return[`${hhmm(start)} 開始待ち`,'wait'];
-  if(n>=18*60)return['18:00 終了','stop'];
-  if(!S.auto)return['AUTO OFF','stop'];
-  return['自動運転中','running'];
-}
+function pollMs(){return nowMin()>=8*60&&nowMin()<18*60?FAST:NORMAL}
+function stateLabel(slot){const start=parseStart(slot),n=nowMin();if(start===null)return['時刻未判定','stop'];if(n<start)return[`${hhmm(start)} 開始待ち`,'wait'];if(n>=18*60)return['18:00 終了','stop'];if(!S.auto)return['AUTO OFF','stop'];return['自動運転中','running']}
 async function request(url,params,{keyQuery=false,keyBody=false}={}){
   const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),8000);
   try{
@@ -53,12 +46,16 @@ async function request(url,params,{keyQuery=false,keyBody=false}={}){
 async function loadTypes(){
   const d=await request(API.waitType,{storeId:C.airwaitStoreId},{keyBody:true});
   if(!success(d))throw new Error(d?.resultCode?.defaultMessage||'受付枠取得失敗');
-  const list=Array.isArray(d?.innerDto?.waitTypeList)?d.innerDto.waitTypeList:[];
+  const raw=Array.isArray(d?.innerDto?.waitTypeList)?d.innerDto.waitTypeList:[];
+  const returnedTest=raw.find(isTest)||null;
+  const diag=returnedTest?`9600取得済み / dispFlg=${String(returnedTest?.dispFlg??'--')}`:'9600は待ち項目一覧に未返却 → 固定枠として直接監視';
+  if(S.testDiag!==diag){S.testDiag=diag;log(`🧪 ${diag}`)}
+  const list=returnedTest?raw:[{waitTypeId:TEST_ID,waitTypeName:TEST_NAME,dispFlg:'1',__forcedTest:true},...raw];
   S.slots=list.filter(x=>{
+    if(isTest(x))return true;
     const disp=x?.dispFlg;if(!(disp===true||disp===1||disp==='1'||String(disp).toLowerCase()==='true'))return false;
     const id=String(x?.waitTypeId??''),name=String(x?.waitTypeName??''),norm=name.normalize('NFKC');
     if(/WEB/i.test(norm))return false;
-    if(id===TEST_ID)return true;
     if((C.blockedWaitTypeIds||[]).map(String).includes(id))return false;
     return !(C.blockedNamePatterns||[]).some(p=>name.includes(String(p)));
   }).sort((a,b)=>(parseStart(a)??9999)-(parseStart(b)??9999));
