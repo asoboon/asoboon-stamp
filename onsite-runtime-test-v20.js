@@ -12,6 +12,8 @@ const CURRENT_RESERVATION_KEY='asoboon_current_reservation_v3';
 const RESERVE_MAP_KEY='asoboon_reserve_map_v1';
 const AUTO_V20_GAS_URL='https://script.google.com/macros/s/AKfycbzWxUtJp15E6mCNaHwHiwe0i54pkHHE0C_pJ8LbdDRmbnEu5hOAjr1hUHVoRFQBYGXftA/exec';
 const AUTO_BRIDGE_PENDING_KEY='asoboon_auto_v20_bridge_pending_v1';
+const AUTO_BRIDGE_SENT_KEY='asoboon_auto_v20_bridge_sent_v1';
+const bridgeInFlight=new Set();
 const G={verified:false,verifiedAt:0,distance:null,accuracy:null,checking:false,lastError:''};
 window.ASOBOON_ONSITE_TEST_IDS=window.ASOBOON_ONSITE_TEST_IDS||new Set();
 
@@ -64,49 +66,69 @@ function rememberCurrentReservation(){
   }catch{}
 }
 
+function readSentMap(){try{return JSON.parse(localStorage.getItem(AUTO_BRIDGE_SENT_KEY)||'{}')||{}}catch{return{}}}
+function bridgeKey(payload){return String(payload?.reserveId||'')}
+function isBridgeSent(payload){const k=bridgeKey(payload);if(!k)return false;const m=readSentMap();return !!m[k]}
+function markBridgeSent(payload){
+  try{
+    const k=bridgeKey(payload);if(!k)return;
+    const m=readSentMap();m[k]=Date.now();
+    const cutoff=Date.now()-7*86400000;
+    Object.keys(m).forEach(x=>{if(Number(m[x]||0)<cutoff)delete m[x]});
+    localStorage.setItem(AUTO_BRIDGE_SENT_KEY,JSON.stringify(m));
+  }catch{}
+}
 function savePendingBridge(payload){try{localStorage.setItem(AUTO_BRIDGE_PENDING_KEY,JSON.stringify({...payload,queuedAt:Date.now()}))}catch{}}
 function clearPendingBridge(payload){try{const x=JSON.parse(localStorage.getItem(AUTO_BRIDGE_PENDING_KEY)||'null');if(x&&String(x.reserveId||'')===String(payload.reserveId||''))localStorage.removeItem(AUTO_BRIDGE_PENDING_KEY)}catch{}}
 
 async function postAutoBridge(payload){
+  const key=bridgeKey(payload);
+  if(!key||isBridgeSent(payload)||bridgeInFlight.has(key))return true;
+  bridgeInFlight.add(key);
   const body=new URLSearchParams({
     receiptNo:String(payload.receiptNo||''),
     reserveId:String(payload.reserveId||''),
     waitTypeId:String(payload.waitTypeId||''),
     waitTypeName:String(payload.waitTypeName||''),
     operationalDay:String(payload.operationalDay||todayJst()),
-    source:'onsite-runtime-auto-v21'
+    source:'onsite-runtime-auto-v21.1'
   });
   try{
     await nativeFetch(AUTO_V20_GAS_URL,{method:'POST',mode:'no-cors',credentials:'omit',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,cache:'no-store',keepalive:true});
+    markBridgeSent(payload);
     clearPendingBridge(payload);
-    console.info('[AUTO v21] reserveId bridge sent',payload.receiptNo,payload.waitTypeId);
+    console.info('[AUTO v21.1] reserveId bridge sent once',payload.receiptNo,payload.waitTypeId);
     return true;
   }catch(error){
-    console.warn('[AUTO v21] reserveId bridge failed',error);
+    console.warn('[AUTO v21.1] reserveId bridge failed; pending retained',error);
     return false;
+  }finally{
+    bridgeInFlight.delete(key);
   }
 }
 
 function queueAutoBridge(payload){
   if(!payload?.receiptNo||!/^\d{12}$/.test(String(payload.reserveId||''))||!payload?.waitTypeId)return;
+  if(isBridgeSent(payload))return;
   savePendingBridge(payload);
-  setTimeout(()=>{postAutoBridge(payload)},0);
-  setTimeout(()=>{postAutoBridge(payload)},2200);
+  void postAutoBridge(payload);
 }
 
 function backfillCurrentReservation(){
   try{
     const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
     if(!rec?.receiptNo||!rec?.reserveId||!rec?.waitTypeId)return;
-    queueAutoBridge({
+    const payload={
       receiptNo:String(rec.receiptNo),
       reserveId:String(rec.reserveId),
       waitTypeId:String(rec.waitTypeId),
       waitTypeName:String(rec.waitTypeName||''),
       operationalDay:String(rec.operationalDay||todayJst())
-    });
-    console.info('[AUTO v21] current reservation backfill queued',rec.receiptNo,rec.waitTypeId);
-  }catch(error){console.warn('[AUTO v21] current reservation backfill failed',error)}
+    };
+    if(isBridgeSent(payload))return;
+    queueAutoBridge(payload);
+    console.info('[AUTO v21.1] current reservation backfill queued',rec.receiptNo,rec.waitTypeId);
+  }catch(error){console.warn('[AUTO v21.1] current reservation backfill failed',error)}
 }
 
 async function bridgeCreateResponse(response,body){
@@ -125,15 +147,16 @@ async function bridgeCreateResponse(response,body){
       waitTypeName:waitTypeId==='0042'?'テスト入場不可':'',
       operationalDay:todayJst()
     });
-  }catch(error){console.warn('[AUTO v21] create response parse failed',error)}
+  }catch(error){console.warn('[AUTO v21.1] create response parse failed',error)}
 }
 
 function retryPendingBridge(){
   try{
     const p=JSON.parse(localStorage.getItem(AUTO_BRIDGE_PENDING_KEY)||'null');
     if(!p?.reserveId||!p?.receiptNo||!p?.waitTypeId)return;
+    if(isBridgeSent(p)){clearPendingBridge(p);return}
     if(Date.now()-Number(p.queuedAt||0)>24*60*60*1000){localStorage.removeItem(AUTO_BRIDGE_PENDING_KEY);return}
-    postAutoBridge(p);
+    void postAutoBridge(p);
   }catch{}
 }
 
@@ -175,7 +198,6 @@ window.fetch=async function(input,init={}){
 rememberCurrentReservation();
 backfillCurrentReservation();
 retryPendingBridge();
-setTimeout(backfillCurrentReservation,1200);
 setInterval(rememberCurrentReservation,700);
 setInterval(retryPendingBridge,15000);
 })();
