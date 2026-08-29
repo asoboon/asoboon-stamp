@@ -114,23 +114,6 @@ function queueAutoBridge(payload){
   void postAutoBridge(payload);
 }
 
-function backfillCurrentReservation(){
-  try{
-    const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
-    if(!rec?.receiptNo||!rec?.reserveId||!rec?.waitTypeId)return;
-    const payload={
-      receiptNo:String(rec.receiptNo),
-      reserveId:String(rec.reserveId),
-      waitTypeId:String(rec.waitTypeId),
-      waitTypeName:String(rec.waitTypeName||''),
-      operationalDay:String(rec.operationalDay||todayJst())
-    };
-    if(isBridgeSent(payload))return;
-    queueAutoBridge(payload);
-    console.info('[AUTO v21.1] current reservation backfill queued',rec.receiptNo,rec.waitTypeId);
-  }catch(error){console.warn('[AUTO v21.1] current reservation backfill failed',error)}
-}
-
 async function bridgeCreateResponse(response,body){
   try{
     if(!response?.ok)return;
@@ -196,7 +179,6 @@ window.fetch=async function(input,init={}){
 };
 
 rememberCurrentReservation();
-backfillCurrentReservation();
 retryPendingBridge();
 setInterval(rememberCurrentReservation,700);
 setInterval(retryPendingBridge,15000);
