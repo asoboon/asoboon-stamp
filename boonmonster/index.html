@@ -5,46 +5,48 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#253241">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="boonmonster-build" content="2026-08-16-growth-loop-v021-pages-patch">
-  <title>BOON MONSTER｜育成ループ v0.2</title>
+  <meta name="boonmonster-build" content="2026-08-29-hidden-game-vertical-slice">
+  <title>BOON MONSTER｜Playable Prototype v0.3</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <main class="app" id="app">
     <section class="status-zone">
-      <div class="build">BOON MONSTER HOME v0.2</div>
-      <div class="status-line"><div><span>FUEL</span><b id="fuelVal">72</b></div><div class="bar"><i id="fuelBar"></i></div></div>
-      <div class="status-line"><div><span>CONDITION</span><b id="conditionVal">84</b></div><div class="bar"><i id="conditionBar"></i></div></div>
-      <div class="status-line"><div><span>MOOD</span><b id="moodVal">78</b></div><div class="bar"><i id="moodBar"></i></div></div>
+      <div class="build" id="build">BOON MONSTER TEST v0.3</div>
+      <div class="status-grid">
+        <div class="status-line"><div><span>FUEL</span><b id="fuelVal">72</b></div><div class="bar"><i id="fuelBar"></i></div></div>
+        <div class="status-line"><div><span>CONDITION</span><b id="conditionVal">84</b></div><div class="bar"><i id="conditionBar"></i></div></div>
+        <div class="status-line"><div><span>MOOD</span><b id="moodVal">78</b></div><div class="bar"><i id="moodBar"></i></div></div>
+      </div>
+      <div class="growth-status"><span>GROWTH</span><b id="growthVal">0/5</b><div class="bar growth"><i id="growthBar"></i></div></div>
     </section>
 
     <section class="room-zone">
-      <div class="pet-meta"><span class="stage">幼体</span><span id="specId">BM-BABY-MOF</span></div>
+      <div class="pet-meta"><span class="stage" id="stageLabel">幼体</span><span id="specId">BM-BABY-MOF</span></div>
       <button id="monsterStage" class="monster-stage" aria-label="モンスターに触れる">
         <div id="aura" class="aura"></div>
         <div id="particles" class="particles" aria-hidden="true"></div>
         <div id="monsterMotion" class="monster-motion">
-          <canvas id="monsterCanvas" width="96" height="96" aria-label="もふーん"></canvas>
+          <canvas id="monsterCanvas" width="96" height="96" aria-label="BOON MONSTER"></canvas>
+          <div id="lockedFallback" class="locked-fallback" hidden></div>
         </div>
       </button>
-      <div class="identity"><strong id="monsterName">もふーん</strong><span id="maturityHint">のんびりしている</span></div>
+      <div class="identity"><strong id="monsterName">もふーん</strong><span id="maturityHint">幼体 0 / 5</span></div>
       <div class="message" id="message">今日はなにしよう？</div>
+      <div class="prototype-badge">HIDDEN GAME · VERTICAL SLICE TEST</div>
     </section>
 
-    <nav class="main-nav" id="mainNav" aria-label="メインメニュー">
-      <button id="outingBtn"><span>🛞</span><b>おでかけ</b></button>
-      <button id="careBtn" class="active"><span>🫶</span><b>おせわ</b></button>
-      <button id="garageBtn"><span>🔩</span><b>ガレージ</b></button>
+    <nav class="main-nav" aria-label="メインメニュー">
+      <button id="playBtn" class="active"><span>🏁</span><b>育てる</b></button>
+      <button id="careBtn"><span>🫶</span><b>おせわ</b></button>
+      <button id="dexBtn"><span>📖</span><b>図鑑</b></button>
     </nav>
 
-    <section class="action-dock" id="actionDock" hidden aria-live="polite">
-      <div class="dock-head"><strong id="dockTitle">おせわ</strong><button id="dockClose" aria-label="メニューへ戻る">戻る</button></div>
-      <div class="dock-actions" id="dockActions"></div>
-    </section>
+    <div class="utility"><button id="newBtn">NEW</button><button id="loadBtn">LOAD</button><span id="saveState">SAVED</span></div>
 
     <div id="sheetBackdrop" class="backdrop" hidden></div>
     <section id="sheet" class="sheet" aria-live="polite" hidden>
-      <div class="sheet-head"><div><small id="sheetKicker">BOON MONSTER</small><h2 id="sheetTitle">おでかけ</h2></div><button id="sheetClose" aria-label="閉じる">×</button></div>
+      <div class="sheet-head"><div><small id="sheetKicker">BOON MONSTER</small><h2 id="sheetTitle">体験を選ぶ</h2></div><button id="sheetClose" aria-label="閉じる">×</button></div>
       <div id="sheetBody" class="sheet-body"></div>
     </section>
   </main>
