@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+
 const nativeFetch=window.fetch.bind(window);
 const CENTER={lat:35.84895,lng:139.74345};
 const RADIUS_M=500;
@@ -9,34 +10,14 @@ const NORMAL_OPEN_MINUTES=9*60+30;
 const CLOSE_MINUTES=18*60;
 const CURRENT_RESERVATION_KEY='asoboon_current_reservation_v3';
 const RESERVE_MAP_KEY='asoboon_reserve_map_v1';
+const AUTO_V20_GAS_URL='https://script.google.com/macros/s/AKfycbzWxUtJp15E6mCNaHwHiwe0i54pkHHE0C_pJ8LbdDRmbnEu5hOAjr1hUHVoRFQBYGXftA/exec';
+const AUTO_BRIDGE_PENDING_KEY='asoboon_auto_v20_bridge_pending_v1';
 const G={verified:false,verifiedAt:0,distance:null,accuracy:null,checking:false,lastError:''};
 window.ASOBOON_ONSITE_TEST_IDS=window.ASOBOON_ONSITE_TEST_IDS||new Set();
 
 function receiptKey(v){return String(v??'').normalize('NFKC').replace(/\D/g,'').replace(/^0+(?=\d)/,'')}
-function rememberCurrentReservation(){
-  try{
-    const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
-    if(!rec?.receiptNo||!rec?.reserveId)return;
-    const key=receiptKey(rec.receiptNo);if(!key)return;
-    const map=JSON.parse(localStorage.getItem(RESERVE_MAP_KEY)||'{}')||{};
-    map[key]={
-      reserveId:String(rec.reserveId),
-      receiptNo:String(rec.receiptNo),
-      waitTypeId:String(rec.waitTypeId||''),
-      waitTypeName:String(rec.waitTypeName||''),
-      operationalDay:String(rec.operationalDay||''),
-      savedAt:Date.now()
-    };
-    const keys=Object.keys(map);
-    if(keys.length>500){
-      keys.sort((a,b)=>Number(map[a]?.savedAt||0)-Number(map[b]?.savedAt||0))
-        .slice(0,keys.length-500).forEach(k=>delete map[k]);
-    }
-    localStorage.setItem(RESERVE_MAP_KEY,JSON.stringify(map));
-  }catch{}
-}
-
 function jstParts(){return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]))}
+function todayJst(){const p=jstParts();return`${p.year}-${p.month}-${p.day}`}
 function nowMinutes(){const p=jstParts();return Number(p.hour)*60+Number(p.minute)}
 function openNow(){const m=nowMinutes();return m>=TEST_OPEN_MINUTES&&m<CLOSE_MINUTES}
 function normalOpenNow(){const m=nowMinutes();return m>=NORMAL_OPEN_MINUTES&&m<CLOSE_MINUTES}
@@ -60,6 +41,7 @@ function verify(){
     G.lastError=`ASOBooNから約${Math.round(dist)}mです。現地受付は半径500m以内限定です。`;resolve(false);
   },e=>{G.checking=false;G.verified=false;G.verifiedAt=0;G.lastError=errorText(e);resolve(false)},{enableHighAccuracy:true,timeout:12000,maximumAge:10000}));
 }
+
 function bodyWaitTypeId(body){
   try{
     if(body instanceof URLSearchParams)return String(body.get('waitTypeId')||'');
@@ -68,6 +50,78 @@ function bodyWaitTypeId(body){
   }catch{}
   return '';
 }
+
+function rememberCurrentReservation(){
+  try{
+    const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
+    if(!rec?.receiptNo||!rec?.reserveId)return;
+    const key=receiptKey(rec.receiptNo);if(!key)return;
+    const map=JSON.parse(localStorage.getItem(RESERVE_MAP_KEY)||'{}')||{};
+    map[key]={reserveId:String(rec.reserveId),receiptNo:String(rec.receiptNo),waitTypeId:String(rec.waitTypeId||''),waitTypeName:String(rec.waitTypeName||''),operationalDay:String(rec.operationalDay||''),savedAt:Date.now()};
+    const keys=Object.keys(map);
+    if(keys.length>500){keys.sort((a,b)=>Number(map[a]?.savedAt||0)-Number(map[b]?.savedAt||0)).slice(0,keys.length-500).forEach(k=>delete map[k])}
+    localStorage.setItem(RESERVE_MAP_KEY,JSON.stringify(map));
+  }catch{}
+}
+
+function savePendingBridge(payload){try{localStorage.setItem(AUTO_BRIDGE_PENDING_KEY,JSON.stringify({...payload,queuedAt:Date.now()}))}catch{}}
+function clearPendingBridge(payload){try{const x=JSON.parse(localStorage.getItem(AUTO_BRIDGE_PENDING_KEY)||'null');if(x&&String(x.reserveId||'')===String(payload.reserveId||''))localStorage.removeItem(AUTO_BRIDGE_PENDING_KEY)}catch{}}
+
+async function postAutoBridge(payload){
+  const body=new URLSearchParams({
+    receiptNo:String(payload.receiptNo||''),
+    reserveId:String(payload.reserveId||''),
+    waitTypeId:String(payload.waitTypeId||''),
+    waitTypeName:String(payload.waitTypeName||''),
+    operationalDay:String(payload.operationalDay||todayJst()),
+    source:'onsite-runtime-auto-v21'
+  });
+  try{
+    await nativeFetch(AUTO_V20_GAS_URL,{method:'POST',mode:'no-cors',credentials:'omit',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,cache:'no-store',keepalive:true});
+    clearPendingBridge(payload);
+    console.info('[AUTO v21] reserveId bridge sent',payload.receiptNo,payload.waitTypeId);
+    return true;
+  }catch(error){
+    console.warn('[AUTO v21] reserveId bridge failed',error);
+    return false;
+  }
+}
+
+function queueAutoBridge(payload){
+  if(!payload?.receiptNo||!/^\d{12}$/.test(String(payload.reserveId||''))||!payload?.waitTypeId)return;
+  savePendingBridge(payload);
+  setTimeout(()=>{postAutoBridge(payload)},0);
+  setTimeout(()=>{postAutoBridge(payload)},2200);
+}
+
+async function bridgeCreateResponse(response,body){
+  try{
+    if(!response?.ok)return;
+    const d=await response.json();
+    const ok=d?.success===true||String(d?.resultCode?.code??'')==='0000';
+    const dto=d?.innerDto||{};
+    if(!ok||dto.reserveId==null||dto.receiptNo==null)return;
+    const waitTypeId=bodyWaitTypeId(body);
+    if(!waitTypeId)return;
+    queueAutoBridge({
+      receiptNo:String(dto.receiptNo),
+      reserveId:String(dto.reserveId),
+      waitTypeId,
+      waitTypeName:waitTypeId==='0042'?'テスト入場不可':'',
+      operationalDay:todayJst()
+    });
+  }catch(error){console.warn('[AUTO v21] create response parse failed',error)}
+}
+
+function retryPendingBridge(){
+  try{
+    const p=JSON.parse(localStorage.getItem(AUTO_BRIDGE_PENDING_KEY)||'null');
+    if(!p?.reserveId||!p?.receiptNo||!p?.waitTypeId)return;
+    if(Date.now()-Number(p.queuedAt||0)>24*60*60*1000){localStorage.removeItem(AUTO_BRIDGE_PENDING_KEY);return}
+    postAutoBridge(p);
+  }catch{}
+}
+
 window.ASOBOON_ONSITE_GATE={CENTER,RADIUS_M,VERIFY_MAX_AGE_MS,state:G,verify,valid,openNow,normalOpenNow,testOpenMinutes:TEST_OPEN_MINUTES,normalOpenMinutes:NORMAL_OPEN_MINUTES};
 
 window.fetch=async function(input,init={}){
@@ -92,7 +146,10 @@ window.fetch=async function(input,init={}){
     try{
       if(init.signal){if(init.signal.aborted)controller.abort();else{abortForward=()=>controller.abort();init.signal.addEventListener('abort',abortForward,{once:true})}}
       const response=await nativeFetch(input,{...init,signal:controller.signal});
-      if(isCreate)setTimeout(rememberCurrentReservation,100);
+      if(isCreate){
+        try{void bridgeCreateResponse(response.clone(),init.body)}catch{}
+        setTimeout(rememberCurrentReservation,100);
+      }
       return response;
     }catch(error){lastError=error;if(attempt<attempts)await new Promise(r=>setTimeout(r,700))}
     finally{clearTimeout(timer);if(init.signal&&abortForward)init.signal.removeEventListener('abort',abortForward)}
@@ -101,5 +158,7 @@ window.fetch=async function(input,init={}){
 };
 
 rememberCurrentReservation();
+retryPendingBridge();
 setInterval(rememberCurrentReservation,700);
+setInterval(retryPendingBridge,15000);
 })();
