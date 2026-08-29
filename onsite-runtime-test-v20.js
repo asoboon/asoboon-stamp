@@ -7,8 +7,34 @@ const VERIFY_MAX_AGE_MS=2*60*1000;
 const TEST_OPEN_MINUTES=8*60;
 const NORMAL_OPEN_MINUTES=9*60+30;
 const CLOSE_MINUTES=18*60;
+const CURRENT_RESERVATION_KEY='asoboon_current_reservation_v3';
+const RESERVE_MAP_KEY='asoboon_reserve_map_v1';
 const G={verified:false,verifiedAt:0,distance:null,accuracy:null,checking:false,lastError:''};
 window.ASOBOON_ONSITE_TEST_IDS=window.ASOBOON_ONSITE_TEST_IDS||new Set();
+
+function receiptKey(v){return String(v??'').normalize('NFKC').replace(/\D/g,'').replace(/^0+(?=\d)/,'')}
+function rememberCurrentReservation(){
+  try{
+    const rec=JSON.parse(localStorage.getItem(CURRENT_RESERVATION_KEY)||'null');
+    if(!rec?.receiptNo||!rec?.reserveId)return;
+    const key=receiptKey(rec.receiptNo);if(!key)return;
+    const map=JSON.parse(localStorage.getItem(RESERVE_MAP_KEY)||'{}')||{};
+    map[key]={
+      reserveId:String(rec.reserveId),
+      receiptNo:String(rec.receiptNo),
+      waitTypeId:String(rec.waitTypeId||''),
+      waitTypeName:String(rec.waitTypeName||''),
+      operationalDay:String(rec.operationalDay||''),
+      savedAt:Date.now()
+    };
+    const keys=Object.keys(map);
+    if(keys.length>500){
+      keys.sort((a,b)=>Number(map[a]?.savedAt||0)-Number(map[b]?.savedAt||0))
+        .slice(0,keys.length-500).forEach(k=>delete map[k]);
+    }
+    localStorage.setItem(RESERVE_MAP_KEY,JSON.stringify(map));
+  }catch{}
+}
 
 function jstParts(){return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]))}
 function nowMinutes(){const p=jstParts();return Number(p.hour)*60+Number(p.minute)}
@@ -25,7 +51,7 @@ function verify(){
   G.checking=true;G.lastError='';
   return new Promise(resolve=>navigator.geolocation.getCurrentPosition(pos=>{
     G.checking=false;
-    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.max(0,Number(pos.coords.accuracy)||0),dist=distanceM(lat,lng,CENTER.lat,CENTER.lng);
+    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.max(0,Number(pos.coords.accuracy)||0),dist=distanceM(lat,lng,CENTER.lat,CENTER.lon);
     G.distance=dist;G.accuracy=acc;
     if(dist<=RADIUS_M&&acc<=200){G.verified=true;G.verifiedAt=Date.now();G.lastError='';resolve(true);return}
     G.verified=false;G.verifiedAt=0;
@@ -65,10 +91,15 @@ window.fetch=async function(input,init={}){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);let abortForward;
     try{
       if(init.signal){if(init.signal.aborted)controller.abort();else{abortForward=()=>controller.abort();init.signal.addEventListener('abort',abortForward,{once:true})}}
-      return await nativeFetch(input,{...init,signal:controller.signal});
+      const response=await nativeFetch(input,{...init,signal:controller.signal});
+      if(isCreate)setTimeout(rememberCurrentReservation,100);
+      return response;
     }catch(error){lastError=error;if(attempt<attempts)await new Promise(r=>setTimeout(r,700))}
     finally{clearTimeout(timer);if(init.signal&&abortForward)init.signal.removeEventListener('abort',abortForward)}
   }
   throw lastError||new Error('通信に失敗しました');
 };
+
+rememberCurrentReservation();
+setInterval(rememberCurrentReservation,700);
 })();
