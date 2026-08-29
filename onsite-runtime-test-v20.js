@@ -51,7 +51,7 @@ function verify(){
   G.checking=true;G.lastError='';
   return new Promise(resolve=>navigator.geolocation.getCurrentPosition(pos=>{
     G.checking=false;
-    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.max(0,Number(pos.coords.accuracy)||0),dist=distanceM(lat,lng,CENTER.lat,CENTER.lon);
+    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.max(0,Number(pos.coords.accuracy)||0),dist=distanceM(lat,lng,CENTER.lat,CENTER.lng);
     G.distance=dist;G.accuracy=acc;
     if(dist<=RADIUS_M&&acc<=200){G.verified=true;G.verifiedAt=Date.now();G.lastError='';resolve(true);return}
     G.verified=false;G.verifiedAt=0;
