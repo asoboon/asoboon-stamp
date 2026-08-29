@@ -1,13 +1,22 @@
 {
-  "build": "2026-08-16-growth-loop-v021-pages-patch",
-  "status": "PASS",
-  "asset_count": 21,
-  "runtime_asset_strategy": "ART LOCK 21 images packed without redraw into existing 672x288 atlas; Canvas crops one 96x96 cell and renders at 192x192",
-  "atlas_path": "./assets/baby-expressions.png",
-  "care_ui": "inline action dock; monster remains visible",
-  "garage_ui": "inline action dock; monster remains visible",
-  "outing_ui": "bottom sheet allowed",
-  "sprite_canvas": [96, 96],
-  "display_px": [192, 192],
-  "anchor": [48, 80]
+  "build": "2026-08-29-hidden-game-vertical-slice",
+  "status": "DEPLOYED_FOR_MINIAPP_TEST",
+  "test_surface": "/boonmonster/",
+  "miniapp_link_change_required": false,
+  "flow": ["NEW_GAME", "BABY", "ANIMAL", "CATEGORY", "FINAL_LIGHT_OR_DARK", "DEX", "SAVE_LOAD"],
+  "baby_threshold": 5,
+  "animal_threshold": 6,
+  "light_dark_rule": "PROTOTYPE_DEBUG_ONLY",
+  "current_lineage": {
+    "BM-BABY-MOF": ["BM-FEN-ANIMAL", "BM-RAB-ANIMAL"],
+    "BM-BABY-FLO": ["BM-SAP-ANIMAL", "BM-OTR-ANIMAL"],
+    "BM-BABY-GIG": ["BM-LIZ-ANIMAL", "BM-EAG-ANIMAL"]
+  },
+  "existing_runtime_asset": "./assets/baby-expressions.png",
+  "existing_runtime_asset_count": 21,
+  "locked_117_assets_in_github": false,
+  "evolved_visual_fallback": "LOCKED PIXEL ASSET 同期待ち",
+  "canon_lock_modified": false,
+  "boonrun_modified": false,
+  "boonjump_modified": false
 }
