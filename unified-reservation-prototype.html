@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0f2b46">
+<title>ASOBooN｜予約一本化構想 DEMO</title>
+<style>
+:root{--navy:#0f2b46;--orange:#f59b35;--cream:#f5ead0;--paper:#fffdf7;--ink:#17324a;--muted:#6d7e8d;--green:#2e8b57;--red:#b74b3d;--line:#d8cdb6;--shadow:0 14px 40px rgba(35,50,65,.14)}*{box-sizing:border-box}html{background:#e7d7b3}body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:linear-gradient(180deg,#0f2b46 0 176px,#efe1bd 176px 100%);min-height:100vh}.app{max-width:520px;margin:0 auto;min-height:100vh;padding:env(safe-area-inset-top) 14px calc(28px + env(safe-area-inset-bottom))}.top{padding:18px 6px 24px;color:#fff}.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{font-weight:1000;letter-spacing:.04em;font-size:22px}.demo{padding:6px 9px;border-radius:999px;background:#ffdfae;color:#693d08;font-size:11px;font-weight:1000}.top h1{font-size:29px;line-height:1.16;margin:23px 0 8px;letter-spacing:-.02em}.top p{margin:0;color:#d8e3eb;font-size:14px;line-height:1.65}.card{background:var(--paper);border:1px solid rgba(115,97,65,.15);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}.status{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;font-weight:1000;color:#7b6b50;letter-spacing:.08em}.today{font-size:22px;font-weight:1000;margin:4px 0}.mode-pill{padding:8px 11px;border-radius:13px;background:#edf3f7;color:var(--navy);font-size:12px;font-weight:1000;white-space:nowrap}.notice{margin-top:12px;padding:11px 12px;border-radius:14px;background:#fff3df;color:#75490e;font-size:12px;font-weight:800;line-height:1.55}.section-title{font-size:18px;font-weight:1000;margin:2px 0 5px}.section-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:13px}.slots{display:grid;gap:10px}.slot{width:100%;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;text-align:left;border:2px solid #e5ddcb;background:#fff;border-radius:18px;padding:15px 16px;color:var(--ink);cursor:pointer;transition:.15s}.slot:active{transform:scale(.985)}.slot.selected{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,155,53,.13)}.slot-time{font-weight:1000;font-size:20px}.slot-note{font-size:11px;color:var(--muted);margin-top:3px}.slot-badge{font-size:11px;font-weight:1000;padding:7px 9px;border-radius:999px;background:#eef6ef;color:#25653e}.slot-badge.full{background:#f7e5e2;color:#9b4035}.people{display:grid;grid-template-columns:1fr 1fr;gap:10px}.counter{border:1px solid #e4dcc9;border-radius:17px;padding:13px}.counter label{font-size:12px;font-weight:900}.counter-row{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;margin-top:10px}.counter button{height:38px;border:0;border-radius:12px;background:#eef1f3;color:var(--navy);font-size:22px;font-weight:1000}.counter output{text-align:center;font-weight:1000;font-size:21px}.rule{margin-top:12px;padding:10px 12px;border-radius:14px;background:#eef5f8;font-size:11px;color:#426174;line-height:1.55}.btn{width:100%;border:0;border-radius:16px;padding:15px 16px;font-size:15px;font-weight:1000;cursor:pointer}.primary{background:var(--orange);color:#44280a;box-shadow:0 8px 18px rgba(245,155,53,.28)}.primary:disabled{opacity:.4;box-shadow:none}.secondary{background:#edf1f3;color:var(--navy)}.hidden{display:none!important}.confirm-grid{display:grid;gap:9px;margin:14px 0}.confirm-row{display:flex;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:1px dashed #ddd3c1;font-size:13px}.confirm-row strong{text-align:right}.success{text-align:center;padding:9px 2px 3px}.success-icon{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#e8f5eb;color:var(--green);font-size:30px;font-weight:1000}.receipt{margin:14px auto;padding:14px;border-radius:17px;background:var(--navy);color:white}.receipt small{display:block;color:#bcd0de;font-size:11px}.receipt strong{display:block;font-size:34px;letter-spacing:.08em;margin-top:3px}.flow{display:grid;grid-template-columns:1fr 22px 1fr 22px 1fr;align-items:center;margin:15px 0}.flow-step{font-size:10px;text-align:center;font-weight:900;color:#536779}.flow-step b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;margin:0 auto 5px;background:#eaf0f4;color:var(--navy);font-size:15px}.flow-step.active b{background:var(--orange);color:#4d2e0b}.arrow{text-align:center;color:#9ba7ae}.callbox{padding:13px;border-radius:16px;background:#fff5e7;border:1px solid #f0d3a5;text-align:left}.callbox strong{font-size:13px}.callbox p{margin:5px 0 0;font-size:11px;color:#775b38;line-height:1.6}.presenter{margin-top:20px;border:1px dashed rgba(15,43,70,.28);background:rgba(255,255,255,.48);border-radius:18px;padding:13px}.presenter summary{cursor:pointer;font-size:12px;font-weight:1000;color:var(--navy)}.presenter p{font-size:11px;color:#657783;line-height:1.55}.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.modes button{border:1px solid #c9c1b0;background:#fff;border-radius:11px;padding:9px 5px;font-size:10px;font-weight:900;color:var(--ink)}.modes button.active{background:var(--navy);color:#fff;border-color:var(--navy)}.compare{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.compare>div{border-radius:13px;padding:10px;background:#fff}.compare h3{margin:0 0 5px;font-size:11px}.compare p{margin:0;font-size:10px;line-height:1.5;color:#667985}.before h3{color:#a55443}.after h3{color:#2f7950}.foot{text-align:center;color:#7f735d;font-size:10px;padding:7px 0 0}.tag{display:inline-block;padding:3px 6px;border-radius:7px;background:#f0eadc;margin:2px;font-weight:800;color:#675b48}@media(max-width:360px){.top h1{font-size:25px}.slot-time{font-size:18px}.card{padding:15px}.people{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">ASOBooN</div><div class="demo">一本化構想 DEMO</div></div>
+    <h1>入場予約は、<br>ミニアプリひとつで。</h1>
+    <p>WEB整理券と現地受付を分けず、来場者は同じ画面・同じ流れで予約します。</p>
+  </header>
+
+  <section id="step1">
+    <div class="card">
+      <div class="status">
+        <div><div class="eyebrow">TODAY</div><div class="today" id="dateLabel">8月30日（日）</div></div>
+        <div class="mode-pill" id="modeLabel">土日祝日</div>
+      </div>
+      <div class="notice">📱 予約・受付は公式LINEのミニアプリから。来場場所や端末による受付方法の違いをなくします。</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" id="slotTitle">入場する時間を選ぶ</div>
+      <div class="section-sub" id="slotSub">空いている回から選択してください。受付窓口・WEBの区別はありません。</div>
+      <div class="slots" id="slots"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">人数を入力</div>
+      <div class="section-sub">1回の操作でご家族分をまとめて受付します。</div>
+      <div class="people">
+        <div class="counter"><label>おとな</label><div class="counter-row"><button data-kind="adult" data-delta="-1">−</button><output id="adultOut">1</output><button data-kind="adult" data-delta="1">＋</button></div></div>
+        <div class="counter"><label>こども</label><div class="counter-row"><button data-kind="child" data-delta="-1">−</button><output id="childOut">1</output><button data-kind="child" data-delta="1">＋</button></div></div>
+      </div>
+      <div class="rule">保護者1名につき子ども3名まで。このDEMOでは実際の予約は作成されません。</div>
+      <button class="btn primary" id="toConfirm" style="margin-top:14px" disabled>内容を確認する</button>
+    </div>
+  </section>
+
+  <section id="step2" class="hidden">
+    <div class="card">
+      <div class="section-title">この内容で受付します</div>
+      <div class="section-sub">一本化後は、予約経路を意識する必要がありません。</div>
+      <div class="confirm-grid">
+        <div class="confirm-row"><span>営業区分</span><strong id="cMode"></strong></div>
+        <div class="confirm-row"><span>入場</span><strong id="cSlot"></strong></div>
+        <div class="confirm-row"><span>人数</span><strong id="cPeople"></strong></div>
+        <div class="confirm-row"><span>受付経路</span><strong>ASOBooN ミニアプリ</strong></div>
+      </div>
+      <button class="btn primary" id="complete">受付を確定する</button>
+      <button class="btn secondary" id="back" style="margin-top:8px">戻る</button>
+    </div>
+  </section>
+
+  <section id="step3" class="hidden">
+    <div class="card success">
+      <div class="success-icon">✓</div>
+      <div class="section-title">受付が完了しました</div>
+      <div class="section-sub">このままミニアプリで呼出状況を確認できます。</div>
+      <div class="receipt"><small>受付番号</small><strong id="receiptNo">125</strong></div>
+      <div class="flow">
+        <div class="flow-step active"><b>1</b>予約</div><div class="arrow">›</div>
+        <div class="flow-step active"><b>2</b>待つ</div><div class="arrow">›</div>
+        <div class="flow-step"><b>3</b>入場</div>
+      </div>
+      <div class="callbox"><strong>🔔 呼出は自動でLINEミニアプリへ</strong><p>順番が近づいたら受付番号でご案内。WEB整理券・現地受付それぞれの確認画面を行き来する必要はありません。</p></div>
+      <button class="btn primary" id="restart" style="margin-top:14px">別の営業日でDEMOを見る</button>
+    </div>
+  </section>
+
+  <details class="presenter" open>
+    <summary>プレゼン用コントロール</summary>
+    <p>営業日を切り替えると、一本化後にお客様へ見せる選択肢だけが変わります。AirWAITの「WEB用／現地用」という内部都合は画面に出しません。</p>
+    <div class="modes" id="modes">
+      <button data-mode="weekday">平日</button>
+      <button data-mode="special">平日特定日</button>
+      <button data-mode="holiday" class="active">土日祝日</button>
+    </div>
+    <div class="compare">
+      <div class="before"><h3>現在</h3><p><span class="tag">WEB枠</span><span class="tag">現地枠</span><br>同じ入場回でも受付経路ごとにAirWAIT枠が分かれる。</p></div>
+      <div class="after"><h3>一本化後</h3><p><span class="tag">ミニアプリ</span><br>利用者には入場方法だけを提示。受付経路による枠分けを廃止。</p></div>
+    </div>
+  </details>
+  <div class="foot">PROTOTYPE / 実予約・AirWAIT送信なし</div>
+</main>
+<script>
+(()=>{
+'use strict';
+const scenarios={
+ holiday:{label:'土日祝日',date:'8月30日（日）',title:'入場する時間を選ぶ',sub:'3つの入場回から選択してください。受付窓口・WEBの区別はありません。',slots:[['10:00','午前の回','残りわずか'],['12:30','お昼の回','受付中'],['15:00','午後の回','受付中']]},
+ special:{label:'平日特定日',date:'9月3日（木）',title:'入場する時間を選ぶ',sub:'3時間制の日です。ご希望の入場回を選択してください。',slots:[['10:00','午前の回','受付中'],['13:30','午後の回','受付中']]},
+ weekday:{label:'平日',date:'9月2日（水）',title:'本日の入場受付',sub:'時間制限のない平日は、来場前に一度受付するだけ。時間枠を選ぶ必要はありません。',slots:[['本日入場','10:00〜17:00','受付中']]}
+};
+let mode='holiday',selected=null,adult=1,child=1;
+const $=id=>document.getElementById(id);
+function render(){
+ const s=scenarios[mode];$('dateLabel').textContent=s.date;$('modeLabel').textContent=s.label;$('slotTitle').textContent=s.title;$('slotSub').textContent=s.sub;
+ $('slots').innerHTML=s.slots.map((x,i)=>`<button class="slot ${selected===i?'selected':''}" data-slot="${i}"><div><div class="slot-time">${x[0]}</div><div class="slot-note">${x[1]}</div></div><div class="slot-badge ${x[2]==='残りわずか'?'full':''}">${x[2]}</div></button>`).join('');
+ $('adultOut').textContent=adult;$('childOut').textContent=child;$('toConfirm').disabled=selected===null;
+ [...document.querySelectorAll('#modes button')].forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+}
+$('slots').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;selected=Number(b.dataset.slot);render()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-delta]');if(!b)return;const d=Number(b.dataset.delta),kind=b.dataset.kind;if(kind==='adult')adult=Math.max(1,Math.min(4,adult+d));else child=Math.max(0,Math.min(adult*3,child+d));if(child>adult*3)child=adult*3;render()});
+$('modes').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;selected=null;$('step1').classList.remove('hidden');$('step2').classList.add('hidden');$('step3').classList.add('hidden');render();scrollTo({top:0,behavior:'smooth'})});
+$('toConfirm').onclick=()=>{const s=scenarios[mode],x=s.slots[selected];$('cMode').textContent=s.label;$('cSlot').textContent=x[0]+(x[1]?`（${x[1]}）`:'');$('cPeople').textContent=`おとな${adult}名・こども${child}名`;$('step1').classList.add('hidden');$('step2').classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})};
+$('back').onclick=()=>{$('step2').classList.add('hidden');$('step1').classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})};
+$('complete').onclick=()=>{$('receiptNo').textContent=String(120+Math.floor(Math.random()*80));$('step2').classList.add('hidden');$('step3').classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})};
+$('restart').onclick=()=>{selected=null;$('step3').classList.add('hidden');$('step1').classList.remove('hidden');render();scrollTo({top:0,behavior:'smooth'})};
+render();
+})();
+</script>
+</body>
+</html>
