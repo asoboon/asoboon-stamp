@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "family": "ASOBooN NEO MACHINE",
+  "principle": "Machine identity and physical art are shared. NEO BOONJUMP and NEO BOONRUN gameplay are independent.",
+  "assetRoot": "../assets/neo-machines/",
+  "physicalFormat": "GAME ASSET v2: body.png + wheel.png + layout.json; procedural shadow; no baked dynamic VFX",
+  "normalMachineCount": 12,
+  "secretSeparate": true,
+  "machines": [
+    {"machineId":"sport","assetKey":"nitro_sports","nameJa":"ニトロスポーツ","category":"SPEED","seriesTier":"COMMON","previewIndex":0},
+    {"machineId":"ssr","assetKey":"cosmic_phantom","nameJa":"コズミック・ファントム","category":"SPEED","seriesTier":"RARE","previewIndex":1},
+    {"machineId":"wagon","assetKey":"smart_wagon","nameJa":"スマートワゴン","category":"LUXURY","seriesTier":"COMMON","previewIndex":2},
+    {"machineId":"princess","assetKey":"princess_starliner","nameJa":"プリンセス・スターライナー","category":"LUXURY","seriesTier":"RARE","previewIndex":3},
+    {"machineId":"bike","assetKey":"power_bike","nameJa":"パワーバイク","category":"STREET","seriesTier":"COMMON","previewIndex":4},
+    {"machineId":null,"assetKey":"blaze_custom","nameJa":"ブレイズ・カスタム","category":"STREET","seriesTier":"RARE","previewIndex":5,"idStatus":"PENDING_LOCK"},
+    {"machineId":null,"assetKey":"rock_buster_4x4","nameJa":"ロックバスター4×4","category":"ARMORED","seriesTier":"COMMON","previewIndex":6,"idStatus":"PENDING_LOCK"},
+    {"machineId":"valkyrie","assetKey":"highway_valkyrie","nameJa":"ハイウェイ・ヴァルキリー","category":"ARMORED","seriesTier":"RARE","previewIndex":7},
+    {"machineId":"boon","assetKey":"boon_heritage","nameJa":"ブーン・ヘリテージ","category":"CLASSIC","seriesTier":"COMMON","previewIndex":8},
+    {"machineId":null,"assetKey":"frost_roadster","nameJa":"フロスト・ロードスター","category":"CLASSIC","seriesTier":"RARE","previewIndex":9,"idStatus":"PENDING_LOCK"},
+    {"machineId":null,"assetKey":"moss_gear_wrecker","nameJa":"モスギア・レッカー","category":"AGING","seriesTier":"COMMON","previewIndex":10,"idStatus":"PENDING_LOCK"},
+    {"machineId":"buggy","assetKey":"lucky_buggy","nameJa":"ラッキー・バギー","category":"AGING","seriesTier":"RARE","previewIndex":11}
+  ],
+  "existingIdsLocked": ["boon","wagon","buggy","bike","sport","ssr","princess","valkyrie","secret"],
+  "notes": [
+    "assetKey is not a save/ranking machineId.",
+    "ssr remains the established ID for コズミック・ファントム.",
+    "SECRET remains outside the normal 12-machine set."
+  ]
+}
