@@ -10,6 +10,17 @@ let state=Object.assign({selected:'boon',progress:{}},load());
 if(!byKey[state.selected])state.selected='boon';
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}};
 const screens=[...document.querySelectorAll('.screen')];
+const [
+  homeArt,homeName,homeMeta,machineGrid,selectBtn,playBtn,retryBtn,
+  gameName,gameMiniArt,judges,phaseLabel,phaseHint,target,marker,tapBtn,
+  flightName,flightArt,liveDistance,resultName,resultDistance,resultPrecision,
+  resultLevel,resultGrowth
+]=[
+  'homeArt','homeName','homeMeta','machineGrid','selectBtn','playBtn','retryBtn',
+  'gameName','gameMiniArt','judges','phaseLabel','phaseHint','target','marker','tapBtn',
+  'flightName','flightArt','liveDistance','resultName','resultDistance','resultPrecision',
+  'resultLevel','resultGrowth'
+].map(id=>document.getElementById(id));
 const show=id=>{screens.forEach(s=>s.classList.toggle('active',s.id===id));scrollTo(0,0)};
 const art=m=>{const c=m.art%4,r=Math.floor(m.art/4);return `<div class="art" style="--col:${c};--row:${r}"></div>`};
 const meta=m=>`<span class="pill">${m.category}</span><span class="pill ${m.tier==='RARE'?'rare':''}">${m.tier}</span><span class="pill">${m.feel}</span>`;
@@ -19,6 +30,7 @@ function renderHome(){const m=byKey[state.selected];homeArt.innerHTML=art(m);hom
 function renderGrid(){machineGrid.innerHTML=MACHINES.map(m=>`<button class="card ${m.key===state.selected?'selected':''}" data-key="${m.key}"><span class="tag">${m.category} · ${m.tier}</span>${art(m)}<b>${m.name}</b><small>${m.feel}</small></button>`).join('');machineGrid.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>{state.selected=b.dataset.key;save();renderHome();renderGrid();show('home')})}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
 selectBtn.onclick=()=>{renderGrid();show('select')};playBtn.onclick=()=>startGame();retryBtn.onclick=()=>startGame();
+
 let phase=0,vals=[],raf=0,startAt=0,pos=.1,locked=false;
 function grade(p){if(p>=.95)return'SUPER';if(p>=.85)return'CRITICAL';if(p>=.70)return'GREAT';if(p>=.50)return'GOOD';return'MISS'}
 function drawJudges(){judges.innerHTML=PHASES.map((p,i)=>`<div class="judge"><small>${p}</small><strong>${vals[i]?grade(vals[i]):'---'}</strong></div>`).join('')}
