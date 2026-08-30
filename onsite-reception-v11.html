@@ -77,7 +77,7 @@ async function reconcileBeforeRender(){
     html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
     html=html.replace(configTag,tag('./reservation-policy-rc3.js?v=20260830-business-calendar-1')+tag('./onsite-runtime-test-v20.js?v=22')+configTag);
-    html=html.replace('</body>',tag('./onsite-test-v14.js?v=15')+tag('./onsite-cancel-v11.js?v=19')+'</body>');
+    html=html.replace('</body>',tag('./onsite-test-v14.js?v=16')+tag('./onsite-cancel-v11.js?v=19')+'</body>');
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
 })();
