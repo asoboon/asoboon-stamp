@@ -1,62 +1,165 @@
-/* ASOBooN hidden reservation RC3 — day/slot policy.
- * AirWAIT側は待ち項目を有効のまま維持し、ミニアプリ側で利用日に応じて表示/受付を絞る。
- * このファイルにAPIキー等の秘密情報を入れないこと。
+/* ASOBooN reservation policy — business-day aware slot filter.
+ * AirWAIT側では待ち項目を有効のまま維持し、受付画面側で営業日カレンダーに応じて表示/受付を絞る。
+ * APIキー等の秘密情報はここに置かない。
  */
-window.ASOBOON_RESERVATION_POLICY = Object.freeze({
-  version: '2026-08-28-rc3.1',
-  timezone: 'Asia/Tokyo',
+(()=>{
+'use strict';
 
-  // ASOBooN営業日は毎日18:00 JSTで翌日に切り替える。
-  // 18:00〜18:59は翌営業日の準備時間、19:00から翌日予約の解禁判定へ進む。
-  businessDayCutoffHour: 18,
+const TIME_ZONE='Asia/Tokyo';
+const CALENDAR_API='https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
+const CACHE_MS=60*1000;
+let cached=null,cachedAt=0,inflight=null,jsonpSeq=0;
 
-  // まずは現行検証で確認できている平日特定日をRC3標準にする。
-  // 本番切替前に、実際の運用カレンダーに合わせて exceptions を埋める。
-  modes: Object.freeze({
-    weekdaySpecial: Object.freeze({
-      label: '平日特定日',
-      includeNamePatterns: ['平日特定日'],
-      includeTimes: ['10:15', '13:45']
-    }),
-    twoHalfHour: Object.freeze({
-      label: '2時間30分日',
-      includeNamePatterns: ['土日祝', '2.5', '2時間30分'],
-      includeTimes: ['10:00', '12:30', '15:00']
-    }),
-    closed: Object.freeze({
-      label: '休館日',
-      includeNamePatterns: [],
-      includeTimes: []
-    })
+const MODES=Object.freeze({
+  '平日':Object.freeze({
+    label:'平日',
+    includeNamePatterns:Object.freeze(['平日']),
+    excludeNamePatterns:Object.freeze(['平日特定']),
+    includeTimes:Object.freeze([])
   }),
-
-  // 曜日ベースの安全な初期値。
-  // 月曜=2.5h、火曜=休館、土日=2.5h。
-  // 水〜金は平日特定日の現行検証枠を使う。
-  defaultModeByWeekday: Object.freeze({
-    0: 'twoHalfHour',
-    1: 'twoHalfHour',
-    2: 'closed',
-    3: 'weekdaySpecial',
-    4: 'weekdaySpecial',
-    5: 'weekdaySpecial',
-    6: 'twoHalfHour'
+  '平日特定日':Object.freeze({
+    label:'平日特定日',
+    includeNamePatterns:Object.freeze(['平日特定']),
+    excludeNamePatterns:Object.freeze([]),
+    includeTimes:Object.freeze(['10:00','13:30'])
   }),
-
-  // 日別変更はここだけで行う。
-  // 例: '2026-09-21': { mode: 'twoHalfHour' }
-  // mode の代わりに waitTypeIds: ['0001','0002'] を指定すればIDで完全固定できる。
-  exceptions: Object.freeze({
-    '2026-08-28': Object.freeze({ mode: 'weekdaySpecial' })
+  '土日祝日':Object.freeze({
+    label:'土日祝日',
+    includeNamePatterns:Object.freeze(['土日祝','土休日','2.5','2時間30分']),
+    excludeNamePatterns:Object.freeze([]),
+    includeTimes:Object.freeze(['10:00','12:30','15:00'])
   }),
-
-  // AirWAIT上には存在していても、予約画面には絶対に出さない。
-  blockedWaitTypeIds: Object.freeze(['0042']),
-  blockedNamePatterns: Object.freeze(['テスト', 'ご待機者専用', '待機者専用', 'WEB']),
-
-  // 前日19:00予約はMUST。ただしreserve/createに日付指定がないため、
-  // AirWAITの正式な翌日登録方法が確認できるまでは誤予約防止のためfalse。
-  // 確認後、このフラグと実装方式を同時に切り替える。
-  nextDayReservationVerified: false,
-  nextDayOpenHour: 19
+  '休館':Object.freeze({
+    label:'休館',
+    includeNamePatterns:Object.freeze([]),
+    excludeNamePatterns:Object.freeze([]),
+    includeTimes:Object.freeze([])
+  })
 });
+
+const BLOCKED_IDS=Object.freeze(['0042']);
+const BLOCKED_NAMES=Object.freeze(['テスト','ご待機者専用','待機者専用','WEB']);
+
+function norm(v){return String(v??'').normalize('NFKC').trim()}
+function compact(v){return norm(v).replace(/\s+/g,'')}
+function extractTime(value){
+  const s=norm(value);
+  let m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*[:：]\s*([0-5]\d)/);
+  if(m)return `${String(Number(m[1])).padStart(2,'0')}:${m[2]}`;
+  m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*時\s*([0-5]?\d)\s*分/);
+  if(m)return `${String(Number(m[1])).padStart(2,'0')}:${String(Number(m[2])).padStart(2,'0')}`;
+  m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*時\s*半/);
+  if(m)return `${String(Number(m[1])).padStart(2,'0')}:30`;
+  m=s.match(/(?:^|[^\d])([01]?\d|2[0-3])\s*時/);
+  return m?`${String(Number(m[1])).padStart(2,'0')}:00`:'';
+}
+
+function objects(payload){
+  const out=[];
+  const add=v=>{if(v&&typeof v==='object'&&!Array.isArray(v)&&!out.includes(v))out.push(v)};
+  add(payload);
+  const keys=['day','calendar','current','data','result','row','businessDay','operation','operational','settings','setting','config','today','business','schedule'];
+  keys.forEach(k=>add(payload?.[k]));
+  for(const parent of [...out])keys.forEach(k=>add(parent?.[k]));
+  return out;
+}
+function valueFrom(payload,keys){
+  for(const obj of objects(payload))for(const key of keys){
+    const v=obj?.[key];
+    if(v!==undefined&&v!==null&&String(v).trim()!=='')return v;
+  }
+  return undefined;
+}
+function normalizeBusinessType(payload){
+  const raw=valueFrom(payload,['businessType','businessDayType','type','category','営業区分','営業日区分']);
+  const s=norm(raw);
+  if(MODES[s])return s;
+  if(/休館|休業|closed/i.test(s))return '休館';
+  if(/平日特定/.test(s))return '平日特定日';
+  if(/土日|祝|2\.5|2時間30分/.test(s))return '土日祝日';
+  if(/平日/.test(s))return '平日';
+  throw new Error('営業区分を取得できませんでした');
+}
+function normalizeDay(payload){
+  const businessType=normalizeBusinessType(payload);
+  const operationalDate=String(valueFrom(payload,['operationalDate','businessDate','targetDate','運用日','営業日'])||'').trim();
+  return Object.freeze({ok:true,businessType,operationalDate,isClosed:businessType==='休館',mode:MODES[businessType],raw:payload});
+}
+
+async function fetchJson(){
+  const u=new URL(CALENDAR_API);u.searchParams.set('action','current');u.searchParams.set('_',String(Date.now()));
+  const r=await fetch(u.toString(),{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow'});
+  if(!r.ok)throw new Error(`営業日API HTTP ${r.status}`);
+  return r.json();
+}
+function fetchJsonp(){
+  return new Promise((resolve,reject)=>{
+    const cb=`__asoboonReservationPolicy_${Date.now()}_${++jsonpSeq}`;
+    const s=document.createElement('script');
+    const timer=setTimeout(()=>done(new Error('営業日API timeout')),8000);
+    function done(error,value){clearTimeout(timer);try{delete window[cb]}catch{window[cb]=undefined}s.remove();error?reject(error):resolve(value)}
+    window[cb]=value=>done(null,value);
+    s.onerror=()=>done(new Error('営業日APIを読み込めませんでした'));
+    const u=new URL(CALENDAR_API);u.searchParams.set('action','current');u.searchParams.set('callback',cb);u.searchParams.set('_',String(Date.now()));
+    s.src=u.toString();s.async=true;document.head.appendChild(s);
+  });
+}
+async function requestCurrent(){
+  try{return await fetchJson()}catch(fetchError){
+    try{return await fetchJsonp()}catch(jsonpError){
+      const e=new Error('営業日カレンダーに接続できませんでした');e.cause={fetchError,jsonpError};throw e;
+    }
+  }
+}
+async function getCurrentDay(options={}){
+  const force=Boolean(options.force);
+  if(!force&&cached&&Date.now()-cachedAt<CACHE_MS)return cached;
+  if(inflight&&!force)return inflight;
+  inflight=(async()=>{const d=normalizeDay(await requestCurrent());cached=d;cachedAt=Date.now();return d})();
+  try{return await inflight}finally{inflight=null}
+}
+
+function isBlocked(slot){
+  const id=String(slot?.waitTypeId??'');
+  const name=norm(slot?.waitTypeName??slot?.name??'');
+  if(BLOCKED_IDS.includes(id))return true;
+  return BLOCKED_NAMES.some(p=>name.includes(p));
+}
+function isAllowedSlot(slot,businessType){
+  const type=norm(businessType);
+  const mode=MODES[type];
+  if(!mode||type==='休館'||isBlocked(slot))return false;
+  const name=norm(slot?.waitTypeName??slot?.name??'');
+  const nameCompact=compact(name);
+  if(!name)return false;
+  if(mode.excludeNamePatterns.some(p=>nameCompact.includes(compact(p))))return false;
+  if(!mode.includeNamePatterns.some(p=>nameCompact.includes(compact(p))))return false;
+  if(mode.includeTimes.length){
+    const time=extractTime(name);
+    if(!time||!mode.includeTimes.includes(time))return false;
+  }
+  return true;
+}
+function allowedReason(slot,businessType){
+  if(isAllowedSlot(slot,businessType))return 'OK';
+  if(isBlocked(slot))return 'BLOCKED';
+  if(norm(businessType)==='休館')return 'CLOSED';
+  return 'BUSINESS_TYPE_MISMATCH';
+}
+
+window.ASOBOON_RESERVATION_POLICY=Object.freeze({
+  version:'2026-08-30-business-calendar-1',
+  timezone:TIME_ZONE,
+  calendarApiUrl:CALENDAR_API,
+  modes:MODES,
+  blockedWaitTypeIds:BLOCKED_IDS,
+  blockedNamePatterns:BLOCKED_NAMES,
+  businessDayCutoffHour:18,
+  nextDayOpenHour:19,
+  nextDayReservationVerified:false,
+  extractTime,
+  getCurrentDay,
+  isAllowedSlot,
+  allowedReason
+});
+})();
