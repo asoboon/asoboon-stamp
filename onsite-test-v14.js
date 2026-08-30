@@ -11,7 +11,7 @@ const businessDay={ready:false,loading:false,data:null,error:''};
 const setText=(el,v)=>{if(el&&el.textContent!==String(v))el.textContent=String(v)};
 const setHidden=(el,v)=>{if(el&&el.hidden!==!!v)el.hidden=!!v};
 const setClass=(el,v)=>{if(el&&el.className!==v)el.className=v};
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function jstParts(){return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]))}
 function todayKey(){const p=jstParts();return `${p.year}-${p.month}-${p.day}`}
 function todayLabel(){const p=jstParts();const w={Sun:'日',Mon:'月',Tue:'火',Wed:'水',Thu:'木',Fri:'金',Sat:'土'}[p.weekday]||p.weekday||'';return `${Number(p.month)}/${Number(p.day)}（${w}）`}
@@ -45,7 +45,8 @@ function ensurePolicyNotice(){
   return n
 }
 function setPolicyNotice(text,kind=''){
-  const n=ensurePolicyNotice();if(!n)return;n.hidden=!text;n.className='policy-notice'+(kind?' '+kind:'');if(text)setText(n,text)
+  const n=ensurePolicyNotice();if(!n)return;
+  setHidden(n,!text);setClass(n,'policy-notice'+(kind?' '+kind:''));if(text)setText(n,text)
 }
 async function refreshBusinessDay(force=false){
   if(businessDay.loading)return;
@@ -81,25 +82,17 @@ function renderSummary(){
   const kicker=document.querySelector('.kicker');if(kicker)setText(kicker,'🎫 ASOBooN 入場受付');
 }
 
+function markPolicyBlocked(b){setHidden(b,true);if(!b.disabled){b.disabled=true;b.dataset.policyDisabled='1'}b.dataset.policyAllowed='0'}
 function applySlotPolicy(){
   const list=$('slotList');if(!list)return;
   const buttons=[...list.querySelectorAll('button.slot[data-slot]')];
-  if(businessDay.error){
-    buttons.forEach(b=>{b.hidden=true;if(!b.disabled){b.disabled=true;b.dataset.policyDisabled='1'}b.dataset.policyAllowed='0'});
-    setPolicyNotice('営業日カレンダーを確認できないため、安全のため受付を停止しています。スタッフへお声がけください。','bad');return;
-  }
-  if(!businessDay.ready||!businessDay.data){
-    buttons.forEach(b=>{b.hidden=true;if(!b.disabled){b.disabled=true;b.dataset.policyDisabled='1'}b.dataset.policyAllowed='0'});
-    setPolicyNotice('本日の営業区分を確認しています…');return;
-  }
+  if(businessDay.error){buttons.forEach(markPolicyBlocked);setPolicyNotice('営業日カレンダーを確認できないため、安全のため受付を停止しています。スタッフへお声がけください。','bad');return}
+  if(!businessDay.ready||!businessDay.data){buttons.forEach(markPolicyBlocked);setPolicyNotice('本日の営業区分を確認しています…');return}
   const type=String(businessDay.data.businessType||'');
-  if(businessDay.data.isClosed||type==='休館'){
-    buttons.forEach(b=>{b.hidden=true;if(!b.disabled){b.disabled=true;b.dataset.policyDisabled='1'}b.dataset.policyAllowed='0'});
-    setPolicyNotice('本日は休館日のため、入場受付はできません。','bad');return;
-  }
+  if(businessDay.data.isClosed||type==='休館'){buttons.forEach(markPolicyBlocked);setPolicyNotice('本日は休館日のため、入場受付はできません。','bad');return}
   let allowed=0;
   buttons.forEach(b=>{
-    const ok=policyAllowed(b);b.dataset.policyAllowed=ok?'1':'0';b.hidden=!ok;
+    const ok=policyAllowed(b);b.dataset.policyAllowed=ok?'1':'0';setHidden(b,!ok);
     if(!ok){if(!b.disabled){b.disabled=true;b.dataset.policyDisabled='1'}}
     else{allowed++;if(b.dataset.policyDisabled==='1'){b.disabled=false;b.dataset.policyDisabled='0'}}
   });
@@ -177,7 +170,7 @@ function interceptSlot(e){
   ackSlot=id
 }
 function interceptConfirm(e){
-  const selected=document.querySelector('#slotList button.slot.active[data-slot]')||document.querySelector(`#slotList button.slot[data-slot="${CSS.escape(String(ackSlot||''))}"]`);
+  const selected=document.querySelector('#slotList button.slot.active[data-slot]')||[...document.querySelectorAll('#slotList button.slot[data-slot]')].find(b=>String(b.dataset.slot||'')===String(ackSlot||''));
   if(!businessDay.ready||businessDay.error||!selected||!policyAllowed(selected)){
     e.preventDefault();e.stopImmediatePropagation();revealPolicyError(businessDay.error?'営業日情報を確認できないため、受付を確定できません。':'本日の営業区分に対応しない枠は受付できません。回を選び直してください。');return;
   }
