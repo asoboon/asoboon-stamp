@@ -76,7 +76,7 @@ async function reconcileBeforeRender(){
     html=html.replace("persist(rec);rec.ledgerSynced=await ensureLedger(rec,4);persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;","persist(rec);$('confirmModal').hidden=true;$('receptionFlow').hidden=true;$('successCard').hidden=false;setTimeout(()=>{ensureLedger(rec,2).then(ok=>{rec.ledgerSynced=ok;persist(rec);setSyncMessage(rec,'successSyncMsg')}).catch(()=>{})},0);");
     html=html.replaceAll('href="yobidashi.html"','href="./callstatus.html"');
     const configTag='<scr'+'ipt src="./autocall-config.js?v=10"></scr'+'ipt>';
-    html=html.replace(configTag,tag('./asoboon-calendar.js?v=20260828-3')+tag('./reservation-policy-rc3.js?v=20260830-business-calendar-2')+tag('./onsite-runtime-test-v20.js?v=22')+configTag);
+    html=html.replace(configTag,tag('./asoboon-calendar.js?v=20260828-3')+tag('./reservation-policy-rc3.js?v=20260831-production-waittype-master-1')+tag('./onsite-runtime-test-v20.js?v=22')+configTag);
     html=html.replace('</body>',tag('./onsite-test-v14.js?v=16')+tag('./onsite-cancel-v11.js?v=19')+'</body>');
     document.open();document.write(html);document.close();
   }catch(error){fail(error?.name==='AbortError'?'読み込みに時間がかかっています。':error?.message)}
