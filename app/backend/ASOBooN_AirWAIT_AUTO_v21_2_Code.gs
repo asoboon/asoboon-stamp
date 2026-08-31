@@ -1,5 +1,5 @@
 /**
- * ASOBooN AirWAIT AUTO v21.2
+ * ASOBooN AirWAIT AUTO v21.2.1
  * AirWAIT担当部署回答準拠 / 安全初期化版
  *
  * 【AirWAIT APIルール】
@@ -9,10 +9,10 @@
  *
  * 指定時刻到達時の初期呼出は各枠1日1回の単発処理。
  * lastUpdate失敗時は他のAirWAIT APIへ進まない。
- * 営業区分は共通「営業日カレンダー」APIだけを正本にする。
+ * 営業区分は共通「営業カレンダー」APIだけを正本にし、低頻度キャッシュする。
  */
 const A21=Object.freeze({
-  VERSION:'21.2.0',TZ:'Asia/Tokyo',ORIGIN:'https://asoboon.github.io',STORE_ID:'KR01205179',
+  VERSION:'21.2.1',TZ:'Asia/Tokyo',ORIGIN:'https://asoboon.github.io',STORE_ID:'KR01205179',
   KEY_PROP:'AIRWAIT_API_KEY',SS_PROP:'AUTO21_SPREADSHEET_ID',
   CONTROL:'CONTROL',MAP:'RESERVE_MAP',LOG:'CALL_LOG',
   CALENDAR:'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec',
@@ -36,7 +36,7 @@ function setupAutoV21(){
   resetRuntime_();
   removeTriggers_();
   ScriptApp.newTrigger('autoWorkerV21').timeBased().everyMinutes(1).create();
-  console.log('AUTO v21.2 setup complete: '+ss.getName()+' / '+ss.getId());
+  console.log('AUTO v21.2.1 setup complete: '+ss.getName()+' / '+ss.getId());
   console.log('安全初期化完了: autoEnabled=FALSE / testMode=TRUE');
 }
 
@@ -126,11 +126,24 @@ function call_(rid,method){
 
 function businessDay_(now,ctl){
   if(bool_(ctl.testMode))return{businessType:'TEST',isClosed:false,operationalDate:jstDate_(now),closingTime:'18:00'};
-  const u=String(ctl.calendarApiUrl||A21.CALENDAR)+'?action=current&date='+encodeURIComponent(jstDate_(now));
-  const r=UrlFetchApp.fetch(u,{method:'get',muteHttpExceptions:true,followRedirects:true});if(r.getResponseCode()<200||r.getResponseCode()>=300)throw new Error('営業日カレンダー HTTP '+r.getResponseCode());
-  const d=parse_(r.getContentText(),'calendar');if(!d||d.ok!==true)throw new Error(String(d&&d.message||'営業日カレンダーを取得できません。'));
+  const date=jstDate_(now),apiUrl=String(ctl.calendarApiUrl||A21.CALENDAR),ttlMin=Math.max(60,Math.min(1440,Number(ctl.calendarCacheMinutes||360)||360));
+  const props=PropertiesService.getScriptProperties(),cacheKey='AUTO21_CALENDAR_'+date;
+  try{
+    const cached=JSON.parse(props.getProperty(cacheKey)||'null');
+    if(cached&&cached.apiUrl===apiUrl&&Date.now()-Number(cached.savedAt||0)<ttlMin*60000){
+      const day=cached.day,type=String(day&&day.businessType||'');
+      if(day&&Object.prototype.hasOwnProperty.call(A21.PROD,type))return day;
+    }
+  }catch(_){}
+
+  const u=apiUrl+'?action=current&date='+encodeURIComponent(date);
+  const r=UrlFetchApp.fetch(u,{method:'get',muteHttpExceptions:true,followRedirects:true});if(r.getResponseCode()<200||r.getResponseCode()>=300)throw new Error('営業カレンダー HTTP '+r.getResponseCode());
+  const d=parse_(r.getContentText(),'calendar');if(!d||d.ok!==true)throw new Error(String(d&&d.message||'営業カレンダーを取得できません。'));
   const type=String(d.businessType||'').trim();if(!Object.prototype.hasOwnProperty.call(A21.PROD,type))throw new Error('未対応の営業区分: '+type);
-  return{businessType:type,isClosed:Boolean(d.isClosed)||type==='休館',operationalDate:String(d.operationalDate||jstDate_(now)),closingTime:String(d.closingTime||(type==='土日祝日'?'18:00':'17:00'))};
+  const day={businessType:type,isClosed:Boolean(d.isClosed)||type==='休館',operationalDate:String(d.operationalDate||date),closingTime:String(d.closingTime||(type==='土日祝日'?'18:00':'17:00'))};
+  props.setProperty(cacheKey,JSON.stringify({savedAt:Date.now(),apiUrl:apiUrl,day:day}));
+  props.getKeys().filter(k=>/^AUTO21_CALENDAR_/.test(k)&&k!==cacheKey).forEach(k=>props.deleteProperty(k));
+  return day;
 }
 function withinHours_(day,ctl,now){const open=bool_(ctl.testMode)?clock_('08:00'):clock_('09:30'),close=clock_(day.closingTime||'18:00'),m=jstMinutes_(now);return m>=open&&m<close}
 function activeIds_(type,ctl){return bool_(ctl.testMode)?[String(ctl.testWaitTypeId||'0042')]:(A21.PROD[type]||[]).slice()}
@@ -151,7 +164,7 @@ function doPost(e){try{const p=Object.assign({},e&&e.parameter||{}),rid=normRid_
 function doGet(e){const a=String(e&&e.parameter&&e.parameter.action||'health');if(a==='health')return out_({ok:true,service:'ASOBooN AirWAIT AUTO',version:A21.VERSION,periodicAirwaitApi:'lastUpdate-only'});if(a==='status')try{const c=control_(book_());return out_({ok:true,version:A21.VERSION,autoEnabled:bool_(c.autoEnabled),testMode:bool_(c.testMode),targetCalling:Number(c.targetCalling||10)})}catch(err){return out_({ok:false,error:String(err.message||err)})}return out_({ok:false,error:'UNKNOWN_ACTION'})}
 
 function book_(){const id=PropertiesService.getScriptProperties().getProperty(A21.SS_PROP);if(!id)throw new Error('AUTO管理スプレッドシート未登録。先に setupAutoV21 を実行してください。');return SpreadsheetApp.openById(id)}
-function ensureControl_(ss){let sh=ss.getSheetByName(A21.CONTROL);if(!sh)sh=ss.insertSheet(A21.CONTROL);const defs=[['systemVersion',A21.VERSION],['autoEnabled','FALSE'],['targetCalling','10'],['testMode','TRUE'],['testWaitTypeId','0042'],['callingMethodType','00'],['calendarApiUrl',A21.CALENDAR],['slotScheduleJson',JSON.stringify(A21.SCHEDULE)]],have={};if(sh.getLastRow())sh.getRange(1,1,sh.getLastRow(),2).getDisplayValues().forEach(r=>{const k=String(r[0]||'').trim();if(k)have[k]=1});const add=defs.filter(r=>!have[r[0]]);if(add.length)sh.getRange(sh.getLastRow()+1,1,add.length,2).setValues(add);return sh}
+function ensureControl_(ss){let sh=ss.getSheetByName(A21.CONTROL);if(!sh)sh=ss.insertSheet(A21.CONTROL);const defs=[['systemVersion',A21.VERSION],['autoEnabled','FALSE'],['targetCalling','10'],['testMode','TRUE'],['testWaitTypeId','0042'],['callingMethodType','00'],['calendarApiUrl',A21.CALENDAR],['calendarCacheMinutes','360'],['slotScheduleJson',JSON.stringify(A21.SCHEDULE)]],have={};if(sh.getLastRow())sh.getRange(1,1,sh.getLastRow(),2).getDisplayValues().forEach(r=>{const k=String(r[0]||'').trim();if(k)have[k]=1});const add=defs.filter(r=>!have[r[0]]);if(add.length)sh.getRange(sh.getLastRow()+1,1,add.length,2).setValues(add);return sh}
 function setControl_(ss,k,v){const sh=ensureControl_(ss),last=sh.getLastRow();if(last){const keys=sh.getRange(1,1,last,1).getDisplayValues().flat();const i=keys.findIndex(x=>String(x).trim()===k);if(i>=0){sh.getRange(i+1,2).setValue(v);return}}sh.appendRow([k,v])}
 function ensureMap_(ss){let sh=ss.getSheetByName(A21.MAP);if(!sh)sh=ss.insertSheet(A21.MAP);const h=['receivedAt','receiptNo','reserveId','waitTypeId','waitTypeName','operationalDay','source','adults','paidChildren','infants','totalPeople','updatedAt'];if(!sh.getLastRow())sh.getRange(1,1,1,h.length).setValues([h]);sh.getRange('B:D').setNumberFormat('@');return sh}
 function ensureLog_(ss){let sh=ss.getSheetByName(A21.LOG);if(!sh)sh=ss.insertSheet(A21.LOG);const h=['at','event','waitTypeId','receiptNo','reserveId','detail'];if(!sh.getLastRow())sh.getRange(1,1,1,h.length).setValues([h]);sh.getRange('C:E').setNumberFormat('@');return sh}
