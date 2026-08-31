@@ -32,15 +32,15 @@
     <p>現場確認・API診断・テストページへの隠し入口です。通常のお客さま向けHOMEには表示されません。</p>
   </header>
   <section><div class="section-title">通常運用</div><div class="grid">
-    <a href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>ミニアプリ HOME</strong><small>通常画面へ戻る</small></span></a>
-    <a href="./callstatus.html"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>お客さま向け呼出表示</small></span></a>
+    <a href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>ミニアプリ HOME</strong><small>本番画面へ戻る</small></span></a>
+    <a href="./callstatus.html"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>本番のお客さま向け呼出表示</small></span></a>
     <a href="./jounaisetumei.html"><span class="icon">📟</span><span class="copy"><strong>現地タブレット案内</strong><small>館内説明ページ</small></span></a>
   </div></section>
 
-  <section><div class="section-title">新本番版 / 作り直しテスト</div><div class="grid">
-    <a class="rebuild" href="./app/"><span class="icon">🧭</span><span class="copy"><strong>新ミニアプリ 全体テスト</strong><small>現行デザイン踏襲 / 営業カレンダー共通基盤版</small></span></a>
-    <a class="rebuild" href="./app/reserve.html"><span class="icon">🎫</span><span class="copy"><strong>新 入場受付テスト</strong><small>営業区分 → 対象waitTypeId → 人数・料金 → AirWAIT受付</small></span></a>
-    <a class="check" href="./app/diagnostics/business-day.html"><span class="icon">✅</span><span class="copy"><strong>営業区分 4種類チェック</strong><small>平日 / 平日特定日 / 土日祝日 / 休館を一括確認</small></span></a>
+  <section><div class="section-title">本番運用 / 診断</div><div class="grid">
+    <a class="rebuild" href="./home.html"><span class="icon">🧭</span><span class="copy"><strong>本番ミニアプリ</strong><small>現行デザイン / 営業カレンダー共通基盤</small></span></a>
+    <a class="rebuild" href="./app/reserve.html"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>営業区分 → 対象waitTypeId → 人数・料金 → AirWAIT受付</small></span></a>
+    <a class="check" href="./app/diagnostics/business-day.html"><span class="icon">✅</span><span class="copy"><strong>営業カレンダー 4区分チェック</strong><small>平日 / 平日特定日 / 土日祝日 / 休館を一括確認</small></span></a>
   </div></section>
 
   <section><div class="section-title">予約運用 / プレゼン</div><div class="grid">
@@ -51,7 +51,7 @@
 
   <section><div class="section-title">受付 / Airウェイト</div><div class="grid">
     <a class="cancel" href="./cancel-admin.html"><span class="icon">🚫</span><span class="copy"><strong>キャンセル反映確認</strong><small>取消状態の確認・端末保存番号の削除</small></span></a>
-    <a class="warn" href="./onsite-reception-v11.html?from=miniapp-secret&v=20"><span class="icon">🧪</span><span class="copy"><strong>現地受付テスト</strong><small>8:00〜テスト枠 / 9:30〜通常枠</small></span></a>
+    <a class="warn" href="./onsite-reception-v11.html?from=miniapp-secret&v=20"><span class="icon">🧪</span><span class="copy"><strong>旧 現地受付テスト</strong><small>旧版確認専用 / 本番受付には使用しない</small></span></a>
     <a class="warn" href="./yobidashi.html"><span class="icon">🔔</span><span class="copy"><strong>呼出テスト</strong><small>受付番号から状態確認</small></span></a>
     <a class="dev" href="./airwait-call-monitor.html"><span class="icon">📡</span><span class="copy"><strong>呼出監視</strong><small>Airウェイト呼出時刻モニター</small></span></a>
     <a class="dev" href="./airwait-calltime-probe.html"><span class="icon">🔬</span><span class="copy"><strong>API診断</strong><small>呼出時刻・API応答の確認</small></span></a>
