@@ -22,37 +22,21 @@
     <a class="btn home" href="./">🏠 ミニアプリへ戻る</a>
   </div>
 </div>
-<script src="./core/business-day.js?v=20260831-1"></script>
+<script src="./core/business-day.js?v=20260831-2"></script>
 <script src="./core/reservation-store.js?v=20260831-1"></script>
 <script>
 (()=>{
 'use strict';
-const frame=document.getElementById('statusFrame');
-const empty=document.getElementById('empty');
-const title=document.getElementById('emptyTitle');
-const text=document.getElementById('emptyText');
-const B=window.ASOBOON_BUSINESS_DAY;
-const STORE=window.ASOBOON_RESERVATION_STORE;
-
+const frame=document.getElementById('statusFrame'),empty=document.getElementById('empty'),title=document.getElementById('emptyTitle'),text=document.getElementById('emptyText'),B=window.ASOBOON_BUSINESS_DAY,STORE=window.ASOBOON_RESERVATION_STORE;
 async function boot(){
   try{
     const day=await B.getCurrent();
     const rec=STORE.readForDate(day.operationalDate);
     if(!rec){empty.hidden=false;return}
     const url=STORE.safeAirwaitUrl(rec.shortUrl);
-    if(!url){
-      title.textContent=`受付番号 ${rec.receiptNo}番`;
-      text.textContent='呼出状況ページを取得できませんでした。受付番号をスタッフへお伝えください。';
-      empty.hidden=false;
-      return;
-    }
-    frame.hidden=false;
-    frame.src=url;
-  }catch(e){
-    title.textContent='呼出状況を確認できません';
-    text.textContent='通信状態をご確認のうえ、もう一度お試しください。';
-    empty.hidden=false;
-  }
+    if(!url){title.textContent=`受付番号 ${rec.receiptNo}番`;text.textContent='呼出状況ページを取得できませんでした。受付番号をスタッフへお伝えください。';empty.hidden=false;return}
+    frame.hidden=false;frame.src=url;
+  }catch(e){title.textContent='呼出状況を確認できません';text.textContent='通信状態をご確認のうえ、もう一度お試しください。';empty.hidden=false}
 }
 boot();
 })();
