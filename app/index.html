@@ -8,203 +8,137 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>ASOBooN 冒険基地ナビ｜公式LINEミニアプリ</title>
-  <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
-    #miniappCore{display:block;width:100%;height:100%;border:0;background:#efe1bd}
-  </style>
-  <script src="./core/business-day.js?v=20260831-1"></script>
+  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}#miniappCore{display:block;width:100%;height:100%;border:0;background:#efe1bd}</style>
+  <script src="./core/app-config.js?v=20260831-1"></script>
+  <script src="./core/business-day.js?v=20260831-2"></script>
+  <script src="./core/geofence.js?v=20260831-2"></script>
 </head>
 <body>
   <iframe id="miniappCore" title="ASOBooN 冒険基地ナビ"></iframe>
-
   <script>
   (()=>{
     'use strict';
-
     const frame=document.getElementById('miniappCore');
     const coreBase=new URL('../home-core.html',location.href);
     const reservationUrl=new URL('./reserve.html',location.href).href;
     const callStatusUrl=new URL('./callstatus.html',location.href).href;
+    const webReservationUrl='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
     const secretTarget=new URL('../admin.html',location.href).href;
     const PLAYTIME_KEY='asoboon-adventure-time';
-    const BUSINESS_CACHE_KEY='asoboon_v2_business_day_v1';
+    let tapTimes=[],businessDay=null,businessError='',syncing=false;
 
-    let tapTimes=[];
-    let businessDay=null;
-    let businessError='';
-    let syncing=false;
+    function childUrl(){const u=new URL(coreBase.href);u.search=location.search;u.hash=location.hash;return u.href}
 
-    function childUrl(){
-      const u=new URL(coreBase.href);
-      u.search=location.search;
-      u.hash=location.hash;
-      return u.href;
+    function ensureReservationMethodStyles(doc){
+      if(doc.getElementById('asoboonV2ReservationMethodStyle'))return;
+      const style=doc.createElement('style');style.id='asoboonV2ReservationMethodStyle';
+      style.textContent=`
+        #reservationQuickLink{display:none!important}
+        .reservation-start-section>h3{font-size:.92rem!important;margin-bottom:10px!important}
+        .reservation-start-card{position:relative;cursor:pointer;touch-action:manipulation;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+        .reservation-start-card::after{content:'›';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:1.55rem;font-weight:1000;color:#8b652c}
+        .reservation-start-card strong{padding-right:19px}
+        .reservation-start-card:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(80,57,27,.08)}
+        .reservation-start-card.web{border-color:rgba(28,112,160,.30);background:linear-gradient(180deg,#f6fcff,#e3f3fb)}
+        .reservation-start-card.local{border-color:rgba(128,80,37,.30);background:linear-gradient(180deg,#fffaf0,#f0e0c4)}
+        .asoboon-location-message{grid-column:1/-1;margin-top:2px;padding:10px 11px;border-radius:12px;font-size:.68rem;line-height:1.5;font-weight:850;background:#edf7fb;color:#315869;border:1px solid #b7d8e6}
+        .asoboon-location-message.bad{background:#fff0e9;color:#753326;border-color:#dca99c}
+        .asoboon-location-message.ok{background:#eef8ed;color:#315a3b;border-color:#acd0b5}
+      `;
+      doc.head.appendChild(style);
+    }
+
+    function setLocationMessage(doc,text,type=''){
+      let el=doc.getElementById('asoboonV2LocationMessage');
+      const grid=doc.querySelector('.reservation-start-grid');
+      if(!grid)return;
+      if(!el){el=doc.createElement('div');el.id='asoboonV2LocationMessage';grid.appendChild(el)}
+      el.className='asoboon-location-message'+(type?` ${type}`:'');el.textContent=text;
+    }
+
+    function patchReservationMethods(){
+      try{
+        const doc=frame.contentDocument;if(!doc)return;
+        ensureReservationMethodStyles(doc);
+        const quick=doc.getElementById('reservationQuickLink');if(quick)quick.style.display='none';
+        const section=doc.querySelector('.reservation-start-section');
+        const title=section?.querySelector('h3');if(title)title.textContent='受付方法を選ぶ';
+        const web=doc.querySelector('.reservation-start-card.web');
+        const local=doc.querySelector('.reservation-start-card.local');
+        if(web&&!web.dataset.asoboonV2Bound){
+          web.dataset.asoboonV2Bound='1';web.setAttribute('role','link');web.setAttribute('tabindex','0');web.setAttribute('aria-label','WEB受付を開く');
+          web.querySelector('span').textContent='WEB受付';web.querySelector('strong').textContent='7:00〜';
+          const go=()=>top.location.href=webReservationUrl;
+          web.addEventListener('click',go);web.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+        }
+        if(local&&!local.dataset.asoboonV2Bound){
+          local.dataset.asoboonV2Bound='1';local.setAttribute('role','button');local.setAttribute('tabindex','0');local.setAttribute('aria-label','現在地を確認して現地受付を開く');
+          local.querySelector('span').textContent='現地受付';local.querySelector('strong').textContent='9:30〜';
+          const go=async()=>{
+            if(local.dataset.checking==='1')return;
+            local.dataset.checking='1';setLocationMessage(doc,'現在地を確認しています…');
+            const GEO=window.ASOBOON_GEOFENCE;
+            const ok=GEO&&await GEO.verify();
+            local.dataset.checking='0';
+            if(ok){setLocationMessage(doc,`✓ 現在地を確認しました（ASOBooNから約${Math.round(GEO.state.distanceM||0)}m）`,'ok');setTimeout(()=>{top.location.href=reservationUrl},250)}
+            else setLocationMessage(doc,GEO?.state?.error||'現在地を確認できませんでした。','bad');
+          };
+          local.addEventListener('click',go);local.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+        }
+      }catch{}
     }
 
     function patchNavigation(){
       try{
-        const win=frame.contentWindow;
-        const doc=frame.contentDocument;
-        if(!doc||!win)return;
-
-        if(win.ASOBOON_CONFIG){
-          win.ASOBOON_CONFIG.reservationUrl=reservationUrl;
-          win.ASOBOON_CONFIG.callStatusUrl=callStatusUrl;
-        }
-
-        const reserve=doc.getElementById('reservationQuickLink');
-        if(reserve){reserve.href=reservationUrl;reserve.target='_top'}
-
-        const call=doc.getElementById('callStatusLink');
-        if(call){call.href=callStatusUrl;call.target='_top'}
-
-        const reservationCall=doc.getElementById('reservationCallLink');
-        if(reservationCall){reservationCall.href=callStatusUrl;reservationCall.target='_top'}
-
-        doc.querySelectorAll('a').forEach(a=>{
-          const href=String(a.getAttribute('href')||'');
-          if(/yoyaku|airwait\.jp\/WCSP\/storeDetail/i.test(href)){
-            a.href=reservationUrl;
-            a.target='_top';
-          }
-          if(/callstatus\.html/i.test(href)){
-            a.href=callStatusUrl;
-            a.target='_top';
-          }
-        });
+        const win=frame.contentWindow,doc=frame.contentDocument;if(!doc||!win)return;
+        if(win.ASOBOON_CONFIG){win.ASOBOON_CONFIG.reservationUrl=reservationUrl;win.ASOBOON_CONFIG.callStatusUrl=callStatusUrl}
+        const call=doc.getElementById('callStatusLink');if(call){call.href=callStatusUrl;call.target='_top'}
+        const reservationCall=doc.getElementById('reservationCallLink');if(reservationCall){reservationCall.href=callStatusUrl;reservationCall.target='_top'}
+        doc.querySelectorAll('a').forEach(a=>{const href=String(a.getAttribute('href')||'');if(/callstatus\.html/i.test(href)){a.href=callStatusUrl;a.target='_top'}});
+        patchReservationMethods();
       }catch{}
     }
 
     function bindSecret(){
-      try{
-        const target=frame.contentDocument?.querySelector('.title-badge');
-        if(!target||target.dataset.asoboonV2Secret==='1')return;
-        target.dataset.asoboonV2Secret='1';
-        target.addEventListener('click',()=>{
-          const now=Date.now();
-          tapTimes=tapTimes.filter(t=>now-t<4000);
-          tapTimes.push(now);
-          if(tapTimes.length>=7){
-            tapTimes=[];
-            top.location.href=secretTarget;
-          }
-        },{passive:true});
-      }catch{}
+      try{const target=frame.contentDocument?.querySelector('.title-badge');if(!target||target.dataset.asoboonV2Secret==='1')return;target.dataset.asoboonV2Secret='1';target.addEventListener('click',()=>{const now=Date.now();tapTimes=tapTimes.filter(t=>now-t<4000);tapTimes.push(now);if(tapTimes.length>=7){tapTimes=[];top.location.href=secretTarget}},{passive:true})}catch{}
     }
 
     function ensureBusinessBadge(doc){
-      let badge=doc.getElementById('asoboonV2BusinessBadge');
-      if(badge)return badge;
-      const durationSwitch=doc.querySelector('.duration-switch');
-      if(!durationSwitch)return null;
-      badge=doc.createElement('div');
-      badge.id='asoboonV2BusinessBadge';
-      badge.setAttribute('role','status');
-      badge.style.cssText=[
-        'margin:0 0 10px',
-        'padding:11px 12px',
-        'border-radius:13px',
-        'border:2px solid rgba(239,210,127,.45)',
-        'background:linear-gradient(180deg,#263a34,#172923)',
-        'color:#fff7dd',
-        'box-shadow:0 4px 0 rgba(0,0,0,.16)',
-        'font-size:.72rem',
-        'line-height:1.5',
-        'font-weight:850'
-      ].join(';');
-      durationSwitch.parentNode.insertBefore(badge,durationSwitch);
-      return badge;
+      let badge=doc.getElementById('asoboonV2BusinessBadge');if(badge)return badge;
+      const durationSwitch=doc.querySelector('.duration-switch');if(!durationSwitch)return null;
+      badge=doc.createElement('div');badge.id='asoboonV2BusinessBadge';badge.setAttribute('role','status');
+      badge.style.cssText=['margin:0 0 10px','padding:11px 12px','border-radius:13px','border:2px solid rgba(239,210,127,.45)','background:linear-gradient(180deg,#263a34,#172923)','color:#fff7dd','box-shadow:0 4px 0 rgba(0,0,0,.16)','font-size:.72rem','line-height:1.5','font-weight:850'].join(';');
+      durationSwitch.parentNode.insertBefore(badge,durationSwitch);return badge;
     }
 
     function applyBusinessDay(){
       try{
-        const doc=frame.contentDocument;
-        const win=frame.contentWindow;
-        if(!doc||!win)return;
-
-        const durationSwitch=doc.querySelector('.duration-switch');
-        const badge=ensureBusinessBadge(doc);
-        const calc=doc.getElementById('calcBtn');
-
-        if(businessError&&!businessDay){
-          if(durationSwitch)durationSwitch.style.display='none';
-          if(calc)calc.disabled=true;
-          if(badge){
-            badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';
-            badge.style.borderColor='rgba(197,105,83,.55)';
-            badge.innerHTML='<strong style="display:block;font-size:.82rem">営業日情報を確認できません</strong><span>安全のため利用時間の自動設定を停止しています。</span>';
-          }
-          return;
-        }
-
+        const doc=frame.contentDocument,win=frame.contentWindow;if(!doc||!win)return;
+        const durationSwitch=doc.querySelector('.duration-switch'),badge=ensureBusinessBadge(doc),calc=doc.getElementById('calcBtn');
+        if(businessError&&!businessDay){if(durationSwitch)durationSwitch.style.display='none';if(calc)calc.disabled=true;if(badge){badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';badge.style.borderColor='rgba(197,105,83,.55)';badge.innerHTML='<strong style="display:block;font-size:.82rem">営業カレンダーを確認できません</strong><span>安全のため利用時間の自動設定を停止しています。</span>'}return}
         if(!businessDay)return;
-
-        win.ASOBOON_BUSINESS_DAY=businessDay;
-        if(durationSwitch)durationSwitch.style.display='none';
-
-        if(businessDay.isClosed){
-          localStorage.removeItem(PLAYTIME_KEY);
-          if(calc)calc.disabled=true;
-          if(badge){
-            badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';
-            badge.style.borderColor='rgba(197,105,83,.55)';
-            badge.innerHTML='<strong style="display:block;font-size:.82rem">本日は休館日です</strong><span>営業日カレンダーから自動判定しています。</span>';
-          }
-          return;
-        }
-
-        if(badge){
-          badge.style.background='linear-gradient(180deg,#263a34,#172923)';
-          badge.style.borderColor='rgba(239,210,127,.45)';
-          badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日は「${businessDay.businessType}」</strong><span>利用時間 ${businessDay.durationLabel}${businessDay.closingTime?`｜${businessDay.closingTime}閉館`:''}</span>`;
-        }
-
-        const target=doc.querySelector(`.duration-btn[data-duration="${businessDay.durationMinutes}"]`);
-        if(target&&!target.classList.contains('active'))target.click();
-        if(calc)calc.disabled=false;
+        win.ASOBOON_BUSINESS_DAY=businessDay;if(durationSwitch)durationSwitch.style.display='none';
+        if(businessDay.isClosed){localStorage.removeItem(PLAYTIME_KEY);if(calc)calc.disabled=true;if(badge){badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';badge.style.borderColor='rgba(197,105,83,.55)';badge.innerHTML='<strong style="display:block;font-size:.82rem">本日は休館日です</strong><span>営業カレンダーから自動判定しています。</span>'}return}
+        if(badge){badge.style.background='linear-gradient(180deg,#263a34,#172923)';badge.style.borderColor='rgba(239,210,127,.45)';badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日は「${businessDay.businessType}」</strong><span>利用時間 ${businessDay.durationLabel}${businessDay.closingTime?`｜${businessDay.closingTime}閉館`:''}</span>`}
+        const target=doc.querySelector(`.duration-btn[data-duration="${businessDay.durationMinutes}"]`);if(target&&!target.classList.contains('active'))target.click();if(calc)calc.disabled=false;
       }catch{}
     }
 
     async function syncBusinessDay(force=false){
-      if(syncing)return;
-      syncing=true;
-      try{
-        const B=window.ASOBOON_BUSINESS_DAY;
-        if(!B?.getCurrent)throw new Error('営業日エンジンを読み込めませんでした');
-        businessDay=await B.getCurrent({force});
-        businessError='';
-        applyBusinessDay();
-      }catch(e){
-        businessDay=null;
-        businessError=String(e?.message||e);
-        applyBusinessDay();
-      }finally{
-        syncing=false;
-      }
+      if(syncing)return;syncing=true;
+      try{const B=window.ASOBOON_BUSINESS_DAY;if(!B?.getCurrent)throw new Error('営業カレンダーを読み込めませんでした');businessDay=await B.getCurrent({force});businessError='';applyBusinessDay()}
+      catch(e){businessDay=null;businessError=String(e?.message||e);applyBusinessDay()}
+      finally{syncing=false}
     }
 
-    frame.addEventListener('load',()=>{
-      patchNavigation();
-      bindSecret();
-      applyBusinessDay();
-      syncBusinessDay(true);
-    });
-
+    frame.addEventListener('load',()=>{patchNavigation();bindSecret();applyBusinessDay();syncBusinessDay(false)});
     frame.src=childUrl();
-
-    setInterval(()=>{
-      patchNavigation();
-      bindSecret();
-      applyBusinessDay();
-    },700);
-
-    setInterval(()=>syncBusinessDay(true),60*1000);
-    window.addEventListener('focus',()=>syncBusinessDay(true));
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncBusinessDay(true)});
-    window.addEventListener('online',()=>syncBusinessDay(true));
-
-    // 新旧キャッシュを混ぜないため、新版側キャッシュだけを利用する。
-    try{localStorage.getItem(BUSINESS_CACHE_KEY)}catch{}
+    setInterval(()=>{patchNavigation();bindSecret();applyBusinessDay()},700);
+    // 営業カレンダーは低頻度更新。10分ごとに状態だけ確認し、同日のAPI通信は長時間キャッシュで抑制。
+    setInterval(()=>syncBusinessDay(false),10*60*1000);
+    window.addEventListener('focus',()=>syncBusinessDay(false));
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncBusinessDay(false)});
+    window.addEventListener('online',()=>syncBusinessDay(false));
   })();
   </script>
 </body>
