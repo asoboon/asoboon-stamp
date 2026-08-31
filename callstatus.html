@@ -10,6 +10,9 @@ const frame=document.getElementById('statusFrame');
 const CURRENT_KEY='asoboon_app_v2_current_reservation';
 const KEYS=[CURRENT_KEY,'asoboon_current_reservation_v3','asoboon_current_reservation_v2','asoboon_reservation_rc3_current_v1'];
 const CALL_KEY='asoboon_callstatus_number_v4';
+const RES_API_RE=/^https:\/\/cl\.airwait\.jp\/WCLP\/api\/external\/stateless\/reservations(?:\?|$)/i;
+let initialDirectUntil=Date.now()+15000;
+let manualDirectUntil=0;
 function unwrap(x){if(!x||typeof x!=='object')return null;const r=x.reservation&&typeof x.reservation==='object'?x.reservation:x;return {...x,...r}}
 function parseKey(k){try{return unwrap(JSON.parse(localStorage.getItem(k)||'null'))}catch{return null}}
 function airwaitUrl(v){try{const u=new URL(String(v||''));return u.protocol==='https:'&&/(^|\.)airwait\.jp$/i.test(u.hostname)?u.href:''}catch{return''}}
@@ -20,9 +23,33 @@ function readCancelable(){for(const k of KEYS){const r=parseKey(k);if(!r?.receip
 function syncOwnedNumber(){if(readCall())return;const r=readCurrentReservation();if(!r)return;const number=String(r.receiptNo||'').trim();if(!number)return;try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number}))}catch{}}
 function setCancel(on){document.getElementById('cancelBar').hidden=!on;document.body.classList.toggle('has-cancel',!!on)}
 function syncLocalState(){syncOwnedNumber();setCancel(!!readCancelable())}
+function allowManualDirect(){manualDirectUntil=Date.now()+12000}
+function requestUrl(input){try{return typeof input==='string'?input:String(input?.url||input||'')}catch{return''}}
+function hardenCoreNetwork(){
+  try{
+    const w=frame.contentWindow,doc=frame.contentDocument;
+    if(!w||!doc||w.__ASOBOON_AIRWAIT_PERIODIC_GUARD__)return;
+    const nativeFetch=w.fetch.bind(w);
+    w.__ASOBOON_AIRWAIT_PERIODIC_GUARD__=true;
+    w.fetch=(input,init)=>{
+      const url=requestUrl(input);
+      if(RES_API_RE.test(url)&&Date.now()>initialDirectUntil&&Date.now()>manualDirectUntil){
+        return Promise.reject(new Error('AirWAIT受付一覧の定期直接取得は停止しています。'));
+      }
+      return nativeFetch(input,init);
+    };
+    doc.addEventListener('click',e=>{
+      if(e.target.closest?.('#refreshButton,#numberSubmit'))allowManualDirect();
+    },true);
+    doc.addEventListener('submit',e=>{
+      if(e.target?.id==='numberForm')allowManualDirect();
+    },true);
+  }catch(e){console.warn('callstatus network guard',e)}
+}
 
 syncLocalState();
-frame.src='./callstatus-core.html?v=574&wrap=1';
+frame.addEventListener('load',()=>{hardenCoreNetwork();syncLocalState()});
+frame.src='./callstatus-core.html?v=575&wrap=1';
 document.getElementById('cancelOpen').addEventListener('click',()=>{if(!readCancelable())return;location.href='./cancel.html'});
 window.addEventListener('focus',syncLocalState);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncLocalState()});
