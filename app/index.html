@@ -1,2 +1,211 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#0f2b46"><title>ASOBooN ミニアプリ</title><link rel="stylesheet" href="./app.css"></head><body><main class="app"><section class="hero"><span class="kicker">🚙 ASOBooN</span><h1>ASOBooN ミニアプリ</h1><p>営業日カレンダーを共通基盤にして、今日の営業区分・利用時間・受付を同じ情報で動かします。</p><div class="day"><div><small id="dateLabel">営業日を確認中…</small><strong id="businessType">読み込み中</strong></div><div id="duration" class="day-use">—</div></div></section><section id="calendarError" class="card" hidden><h2>営業日情報を確認できません</h2><p id="calendarErrorText"></p><button id="retry" class="btn secondary" type="button">もう一度確認する</button></section><section id="closedCard" class="card" hidden><h2>🌙 本日は休館日です</h2><p>営業日カレンダーで「休館」と設定されています。入場受付は利用できません。</p></section><div class="grid"><a id="reserveLink" class="navcard" href="./reserve.html"><strong>🎫 入場受付</strong><small>本日の営業区分に対応する現地受付枠だけを表示します。</small></a><a class="navcard" href="./callstatus.html"><strong>🔔 呼出状況</strong><small>この端末で受付した番号を確認します。</small></a></div><section class="card"><h2>共通営業日基盤</h2><p>営業区分は「平日 / 平日特定日 / 土日祝日 / 休館」の4種類だけ。曜日からの推測はしません。</p><a class="btn light" href="./diagnostics/business-day.html">🧪 4区分チェック</a></section><div class="footer">NEW APP / PRODUCTION BUILD FOUNDATION</div></main><script src="./core/business-day.js?v=20260831-1"></script><script>(()=>{'use strict';const $=id=>document.getElementById(id);function fmtDate(s){const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${Number(m[2])}月${Number(m[3])}日`:s}async function load(force=false){$('calendarError').hidden=true;try{const d=await window.ASOBOON_BUSINESS_DAY.getCurrent({force});$('dateLabel').textContent=`${fmtDate(d.operationalDate)} の営業`; $('businessType').textContent=d.businessType;$('duration').textContent=d.isClosed?'休館日':d.durationLabel;$('closedCard').hidden=!d.isClosed;$('reserveLink').style.display=d.isClosed?'none':'block'}catch(e){$('calendarError').hidden=false;$('calendarErrorText').textContent=String(e?.message||e);$('businessType').textContent='確認エラー';$('duration').textContent='受付停止';$('reserveLink').style.display='none'}}$('retry').addEventListener('click',()=>load(true));load()})();</script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+  <meta name="theme-color" content="#10283f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>ASOBooN 冒険基地ナビ｜公式LINEミニアプリ</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
+    #miniappCore{display:block;width:100%;height:100%;border:0;background:#efe1bd}
+  </style>
+  <script src="./core/business-day.js?v=20260831-1"></script>
+</head>
+<body>
+  <iframe id="miniappCore" title="ASOBooN 冒険基地ナビ"></iframe>
+
+  <script>
+  (()=>{
+    'use strict';
+
+    const frame=document.getElementById('miniappCore');
+    const coreBase=new URL('../home-core.html',location.href);
+    const reservationUrl=new URL('./reserve.html',location.href).href;
+    const callStatusUrl=new URL('./callstatus.html',location.href).href;
+    const secretTarget=new URL('../admin.html',location.href).href;
+    const PLAYTIME_KEY='asoboon-adventure-time';
+    const BUSINESS_CACHE_KEY='asoboon_v2_business_day_v1';
+
+    let tapTimes=[];
+    let businessDay=null;
+    let businessError='';
+    let syncing=false;
+
+    function childUrl(){
+      const u=new URL(coreBase.href);
+      u.search=location.search;
+      u.hash=location.hash;
+      return u.href;
+    }
+
+    function patchNavigation(){
+      try{
+        const win=frame.contentWindow;
+        const doc=frame.contentDocument;
+        if(!doc||!win)return;
+
+        if(win.ASOBOON_CONFIG){
+          win.ASOBOON_CONFIG.reservationUrl=reservationUrl;
+          win.ASOBOON_CONFIG.callStatusUrl=callStatusUrl;
+        }
+
+        const reserve=doc.getElementById('reservationQuickLink');
+        if(reserve){reserve.href=reservationUrl;reserve.target='_top'}
+
+        const call=doc.getElementById('callStatusLink');
+        if(call){call.href=callStatusUrl;call.target='_top'}
+
+        const reservationCall=doc.getElementById('reservationCallLink');
+        if(reservationCall){reservationCall.href=callStatusUrl;reservationCall.target='_top'}
+
+        doc.querySelectorAll('a').forEach(a=>{
+          const href=String(a.getAttribute('href')||'');
+          if(/yoyaku|airwait\.jp\/WCSP\/storeDetail/i.test(href)){
+            a.href=reservationUrl;
+            a.target='_top';
+          }
+          if(/callstatus\.html/i.test(href)){
+            a.href=callStatusUrl;
+            a.target='_top';
+          }
+        });
+      }catch{}
+    }
+
+    function bindSecret(){
+      try{
+        const target=frame.contentDocument?.querySelector('.title-badge');
+        if(!target||target.dataset.asoboonV2Secret==='1')return;
+        target.dataset.asoboonV2Secret='1';
+        target.addEventListener('click',()=>{
+          const now=Date.now();
+          tapTimes=tapTimes.filter(t=>now-t<4000);
+          tapTimes.push(now);
+          if(tapTimes.length>=7){
+            tapTimes=[];
+            top.location.href=secretTarget;
+          }
+        },{passive:true});
+      }catch{}
+    }
+
+    function ensureBusinessBadge(doc){
+      let badge=doc.getElementById('asoboonV2BusinessBadge');
+      if(badge)return badge;
+      const durationSwitch=doc.querySelector('.duration-switch');
+      if(!durationSwitch)return null;
+      badge=doc.createElement('div');
+      badge.id='asoboonV2BusinessBadge';
+      badge.setAttribute('role','status');
+      badge.style.cssText=[
+        'margin:0 0 10px',
+        'padding:11px 12px',
+        'border-radius:13px',
+        'border:2px solid rgba(239,210,127,.45)',
+        'background:linear-gradient(180deg,#263a34,#172923)',
+        'color:#fff7dd',
+        'box-shadow:0 4px 0 rgba(0,0,0,.16)',
+        'font-size:.72rem',
+        'line-height:1.5',
+        'font-weight:850'
+      ].join(';');
+      durationSwitch.parentNode.insertBefore(badge,durationSwitch);
+      return badge;
+    }
+
+    function applyBusinessDay(){
+      try{
+        const doc=frame.contentDocument;
+        const win=frame.contentWindow;
+        if(!doc||!win)return;
+
+        const durationSwitch=doc.querySelector('.duration-switch');
+        const badge=ensureBusinessBadge(doc);
+        const calc=doc.getElementById('calcBtn');
+
+        if(businessError&&!businessDay){
+          if(durationSwitch)durationSwitch.style.display='none';
+          if(calc)calc.disabled=true;
+          if(badge){
+            badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';
+            badge.style.borderColor='rgba(197,105,83,.55)';
+            badge.innerHTML='<strong style="display:block;font-size:.82rem">営業日情報を確認できません</strong><span>安全のため利用時間の自動設定を停止しています。</span>';
+          }
+          return;
+        }
+
+        if(!businessDay)return;
+
+        win.ASOBOON_BUSINESS_DAY=businessDay;
+        if(durationSwitch)durationSwitch.style.display='none';
+
+        if(businessDay.isClosed){
+          localStorage.removeItem(PLAYTIME_KEY);
+          if(calc)calc.disabled=true;
+          if(badge){
+            badge.style.background='linear-gradient(180deg,#6a3b31,#43251f)';
+            badge.style.borderColor='rgba(197,105,83,.55)';
+            badge.innerHTML='<strong style="display:block;font-size:.82rem">本日は休館日です</strong><span>営業日カレンダーから自動判定しています。</span>';
+          }
+          return;
+        }
+
+        if(badge){
+          badge.style.background='linear-gradient(180deg,#263a34,#172923)';
+          badge.style.borderColor='rgba(239,210,127,.45)';
+          badge.innerHTML=`<strong style="display:block;font-size:.82rem">本日は「${businessDay.businessType}」</strong><span>利用時間 ${businessDay.durationLabel}${businessDay.closingTime?`｜${businessDay.closingTime}閉館`:''}</span>`;
+        }
+
+        const target=doc.querySelector(`.duration-btn[data-duration="${businessDay.durationMinutes}"]`);
+        if(target&&!target.classList.contains('active'))target.click();
+        if(calc)calc.disabled=false;
+      }catch{}
+    }
+
+    async function syncBusinessDay(force=false){
+      if(syncing)return;
+      syncing=true;
+      try{
+        const B=window.ASOBOON_BUSINESS_DAY;
+        if(!B?.getCurrent)throw new Error('営業日エンジンを読み込めませんでした');
+        businessDay=await B.getCurrent({force});
+        businessError='';
+        applyBusinessDay();
+      }catch(e){
+        businessDay=null;
+        businessError=String(e?.message||e);
+        applyBusinessDay();
+      }finally{
+        syncing=false;
+      }
+    }
+
+    frame.addEventListener('load',()=>{
+      patchNavigation();
+      bindSecret();
+      applyBusinessDay();
+      syncBusinessDay(true);
+    });
+
+    frame.src=childUrl();
+
+    setInterval(()=>{
+      patchNavigation();
+      bindSecret();
+      applyBusinessDay();
+    },700);
+
+    setInterval(()=>syncBusinessDay(true),60*1000);
+    window.addEventListener('focus',()=>syncBusinessDay(true));
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncBusinessDay(true)});
+    window.addEventListener('online',()=>syncBusinessDay(true));
+
+    // 新旧キャッシュを混ぜないため、新版側キャッシュだけを利用する。
+    try{localStorage.getItem(BUSINESS_CACHE_KEY)}catch{}
+  })();
+  </script>
+</body>
+</html>
