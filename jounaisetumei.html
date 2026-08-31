@@ -6,416 +6,391 @@
   <meta name="theme-color" content="#02070d">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>ASOBooN EXIT CONTROL｜場内タブレット</title>
-  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070d}#tabletCore{display:block;width:100%;height:100%;border:0;background:#02070d}</style>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070d}
+    #tabletCore{display:block;width:100%;height:100%;border:0;background:#02070d}
+  </style>
   <script src="./asoboon-calendar.js?v=20260828-3"></script>
 </head>
 <body>
   <iframe id="tabletCore" title="ASOBooN 現地タブレット案内" allow="fullscreen" allowfullscreen></iframe>
+
   <script>
-    (()=>{
-      'use strict';
+  (()=>{
+    'use strict';
 
-      const frame=document.getElementById('tabletCore');
-      const coreBase=new URL('./jounaisetumei-core.html',location.href);
-      const STORAGE_KEY='asoboon.jounaisetumei.manualOverride.v1';
-      const MANUAL_MODES=Object.freeze({
-        unlimited:Object.freeze({source:'manual',businessType:'平日',isClosed:false,duration:0,durationLabel:'時間制限なし',closingTime:'17:00'}),
-        '180':Object.freeze({source:'manual',businessType:'平日特定日',isClosed:false,duration:180,durationLabel:'3時間',closingTime:'17:00'}),
-        '150':Object.freeze({source:'manual',businessType:'土日祝日',isClosed:false,duration:150,durationLabel:'2時間30分',closingTime:'18:00'}),
-        closed:Object.freeze({source:'manual',businessType:'休館',isClosed:true,duration:null,durationLabel:'休館日',closingTime:null})
-      });
+    const frame=document.getElementById('tabletCore');
+    const coreBase=new URL('./jounaisetumei-core.html',location.href);
+    const STORAGE_KEY='asoboon.jounaisetumei.manualOverride.v2';
 
-      let calendarState=null;
-      let calendarError='';
-      let calendarSyncing=false;
-      let lastCalendarFetch=0;
-      let lastAppliedMode=null;
-      let manualMode='auto';
-      let manualDate='';
-      let suppressManualCapture=false;
+    const MANUAL_MODES=Object.freeze({
+      unlimited:Object.freeze({source:'manual',businessType:'平日',isClosed:false,duration:0,durationLabel:'時間制限なし',closingTime:'17:00'}),
+      '180':Object.freeze({source:'manual',businessType:'平日特定日',isClosed:false,duration:180,durationLabel:'3時間',closingTime:'17:00'}),
+      '150':Object.freeze({source:'manual',businessType:'土日祝日',isClosed:false,duration:150,durationLabel:'2時間30分',closingTime:'18:00'}),
+      closed:Object.freeze({source:'manual',businessType:'休館',isClosed:true,duration:null,durationLabel:'休館日',closingTime:null})
+    });
 
-      function coreUrlFromParent(){
-        const url=new URL(coreBase.href);
-        url.search=location.search;
-        url.hash=location.hash;
-        return url;
-      }
+    let calendarState=null;
+    let calendarError='';
+    let calendarSyncing=false;
+    let lastCalendarFetch=0;
+    let lastAppliedMode=null;
+    let manualMode='auto';
+    let manualDate='';
+    let suppressManualCapture=false;
 
-      function jstParts(date=new Date()){
-        return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
-          timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
-          hour:'2-digit',minute:'2-digit',hourCycle:'h23'
-        }).formatToParts(date).map(x=>[x.type,x.value]));
-      }
+    function coreUrlFromParent(){
+      const url=new URL(coreBase.href);
+      url.search=location.search;
+      url.hash=location.hash;
+      return url;
+    }
 
-      function jstDate(date=new Date()){
-        const p=jstParts(date);
-        return `${p.year}-${p.month}-${p.day}`;
-      }
+    function jstParts(date=new Date()){
+      return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+        timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
+        hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+      }).formatToParts(date).map(x=>[x.type,x.value]));
+    }
 
-      function jstMinutes(date=new Date()){
-        const p=jstParts(date);
-        return Number(p.hour)*60+Number(p.minute);
-      }
+    function jstDate(date=new Date()){
+      const p=jstParts(date);
+      return `${p.year}-${p.month}-${p.day}`;
+    }
 
-      function loadManualOverride(){
-        try{
-          const raw=localStorage.getItem(STORAGE_KEY);
-          if(!raw){manualMode='auto';manualDate='';return}
-          const saved=JSON.parse(raw);
-          if(!saved||saved.date!==jstDate()||!MANUAL_MODES[saved.mode]){
-            localStorage.removeItem(STORAGE_KEY);
-            manualMode='auto';manualDate='';return;
-          }
+    function loadManualOverride(){
+      try{
+        const raw=localStorage.getItem(STORAGE_KEY);
+        if(!raw)return;
+        const saved=JSON.parse(raw);
+        if(saved?.date===jstDate()&&MANUAL_MODES[saved.mode]){
           manualMode=saved.mode;
           manualDate=saved.date;
-        }catch{
-          manualMode='auto';manualDate='';
+        }else{
+          localStorage.removeItem(STORAGE_KEY);
         }
+      }catch{}
+    }
+
+    function ensureManualStillToday(){
+      if(manualMode==='auto'||manualDate===jstDate())return;
+      try{localStorage.removeItem(STORAGE_KEY)}catch{}
+      manualMode='auto';
+      manualDate='';
+      lastAppliedMode=null;
+      calendarState=null;
+      calendarError='';
+      lastCalendarFetch=0;
+    }
+
+    function setManualMode(mode,options={}){
+      if(mode!=='auto'&&!MANUAL_MODES[mode])return;
+      manualMode=mode;
+      manualDate=mode==='auto'?'':jstDate();
+      lastAppliedMode=options.alreadyApplied&&/^(150|180)$/.test(String(mode))?Number(mode):null;
+      try{
+        if(mode==='auto')localStorage.removeItem(STORAGE_KEY);
+        else localStorage.setItem(STORAGE_KEY,JSON.stringify({date:manualDate,mode}));
+      }catch{}
+      applyCurrentState();
+      if(mode==='auto')syncCalendar(true);
+    }
+
+    function ensureStyles(doc){
+      if(doc.getElementById('asoboonCalendarWrapperStyle'))return;
+      const style=doc.createElement('style');
+      style.id='asoboonCalendarWrapperStyle';
+      style.textContent=`
+        #asoboonTabletAutoMode{display:flex;align-items:center;min-height:34px;padding:7px 10px;border:1px solid rgba(101,239,176,.38);color:#dffff0;background:linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82));box-shadow:0 8px 20px rgba(0,0,0,.20);font-size:.63rem;line-height:1.25;font-weight:950;letter-spacing:.04em;white-space:nowrap}
+        .staff-mode.asoboon-extended-staff{display:grid!important;min-width:0!important;max-width:285px!important;padding:4px 6px 5px!important}
+        .staff-mode.asoboon-extended-staff>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:3px!important;max-width:250px!important}
+        .staff-mode.asoboon-extended-staff button{min-width:31px!important;padding:3px 5px!important}
+        .staff-mode.asoboon-extended-staff button[data-wrapper-mode="auto"]{min-width:42px!important}
+        .staff-mode.asoboon-extended-staff button[data-wrapper-mode="unlimited"]{min-width:39px!important}
+        .staff-mode.asoboon-extended-staff button[data-wrapper-mode="closed"]{min-width:39px!important}
+        .staff-mode.asoboon-extended-staff button.active:not(.asoboon-manual-active){color:#7894a4!important;border-color:rgba(104,234,255,.14)!important;background:rgba(255,255,255,.01)!important;box-shadow:none!important;transform:none!important}
+        .staff-mode.asoboon-extended-staff button.asoboon-manual-active{color:#061018!important;border-color:#ffd15d!important;background:linear-gradient(180deg,#fff7d8,#ffd15d)!important;box-shadow:0 0 8px rgba(255,209,93,.32)!important}
+        #asoboonClosingTime{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin:9px auto 1px;padding:7px 18px;border:2px solid rgba(255,209,93,.58);border-radius:999px;color:#fff7d8;background:rgba(255,209,93,.10);box-shadow:0 0 18px rgba(255,209,93,.10);font-size:clamp(.88rem,1.7dvh,1.15rem);line-height:1;font-weight:1000;letter-spacing:.04em}
+        #asoboonSpecialOverlay{position:absolute;inset:0;z-index:30;display:none;place-items:center;padding:20px;border-radius:inherit;background:radial-gradient(circle at 50% 42%,rgba(255,209,93,.14),transparent 33%),linear-gradient(180deg,rgba(7,19,31,.995),rgba(2,7,12,.995));text-align:center}
+        #asoboonSpecialOverlay.show{display:grid!important}
+        #asoboonSpecialOverlay .special-wrap{display:grid;justify-items:center;gap:10px;width:min(100%,620px)}
+        #asoboonSpecialOverlay .special-kicker{color:#fff2bf;font-size:clamp(.78rem,1.5dvh,1rem);font-weight:1000;letter-spacing:.08em}
+        #asoboonSpecialOverlay .special-symbol{color:#fff;font-size:clamp(6.6rem,19dvh,10.5rem);line-height:.82;font-weight:1000;text-shadow:0 0 30px rgba(255,209,93,.20)}
+        #asoboonSpecialOverlay .special-message{color:#071018;background:linear-gradient(180deg,#fff8de,#ffd66e);border:2px solid rgba(255,209,93,.60);border-radius:18px;padding:12px 18px;font-size:clamp(1.05rem,2.1dvh,1.45rem);font-weight:1000;line-height:1.38;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+        #asoboonSpecialOverlay .special-close{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:8px 22px;border:3px solid rgba(255,209,93,.68);border-radius:999px;color:#fff7d8;background:rgba(255,209,93,.12);font-size:clamp(1rem,2dvh,1.35rem);line-height:1;font-weight:1000;letter-spacing:.04em}
+        #asoboonSpecialOverlay[data-kind="closed"]{background:radial-gradient(circle at 50% 42%,rgba(255,77,95,.13),transparent 33%),linear-gradient(180deg,rgba(27,7,11,.995),rgba(5,3,6,.995))}
+        #asoboonSpecialOverlay[data-kind="closed"] .special-message,#asoboonSpecialOverlay[data-kind="error"] .special-message{color:#fff;background:rgba(255,77,95,.13);border-color:rgba(255,77,95,.58)}
+        #asoboonSpecialOverlay[data-kind="closed"] .special-close,#asoboonSpecialOverlay[data-kind="error"] .special-close{border-color:rgba(255,77,95,.58);color:#ffe6ea;background:rgba(255,77,95,.10)}
+        @media(max-width:620px){#asoboonTabletAutoMode{display:none!important}.staff-mode.asoboon-extended-staff{max-width:165px!important}.staff-mode.asoboon-extended-staff>div{max-width:155px!important}}
+      `;
+      doc.head.appendChild(style);
+    }
+
+    function ensureBadge(doc){
+      let badge=doc.getElementById('asoboonTabletAutoMode');
+      if(badge)return badge;
+      const staff=doc.querySelector('.staff-mode');
+      if(!staff?.parentNode)return null;
+      badge=doc.createElement('div');
+      badge.id='asoboonTabletAutoMode';
+      badge.setAttribute('role','status');
+      staff.parentNode.insertBefore(badge,staff);
+      return badge;
+    }
+
+    function setBadge(badge,type,text){
+      if(!badge)return;
+      const styles={
+        auto:['rgba(101,239,176,.38)','#dffff0','linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))'],
+        manual:['rgba(255,209,93,.44)','#fff2bf','linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))'],
+        error:['rgba(255,77,95,.46)','#ffe3e7','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))'],
+        closed:['rgba(255,77,95,.42)','#ffe5e9','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))']
+      }[type]||[];
+      badge.style.borderColor=styles[0]||'';
+      badge.style.color=styles[1]||'';
+      badge.style.background=styles[2]||'';
+      badge.textContent=text;
+    }
+
+    function ensureClosingTime(doc){
+      let el=doc.getElementById('asoboonClosingTime');
+      if(el)return el;
+      const stageContent=doc.querySelector('#timeView .stage-content');
+      if(!stageContent)return null;
+      el=doc.createElement('div');
+      el.id='asoboonClosingTime';
+      el.setAttribute('role','status');
+      const statusMessage=doc.getElementById('statusMessage');
+      if(statusMessage?.parentNode===stageContent)stageContent.insertBefore(el,statusMessage);
+      else stageContent.appendChild(el);
+      return el;
+    }
+
+    function showClosingTime(doc,state){
+      const el=ensureClosingTime(doc);
+      if(!el)return;
+      el.style.display='inline-flex';
+      el.textContent=state?.closingTime?`閉館 ${state.closingTime}`:'閉館時刻を確認してください';
+    }
+
+    function hideClosingTime(doc){
+      const el=doc.getElementById('asoboonClosingTime');
+      if(el)el.style.display='none';
+    }
+
+    function ensureSpecialOverlay(doc){
+      let overlay=doc.getElementById('asoboonSpecialOverlay');
+      if(overlay)return overlay;
+      const stage=doc.querySelector('#timeView .stage');
+      if(!stage)return null;
+      overlay=doc.createElement('div');
+      overlay.id='asoboonSpecialOverlay';
+      overlay.setAttribute('role','status');
+      overlay.setAttribute('aria-live','polite');
+      overlay.innerHTML=`<div class="special-wrap"><div class="special-kicker"></div><div class="special-symbol"></div><div class="special-message"></div><div class="special-close"></div></div>`;
+      stage.appendChild(overlay);
+      return overlay;
+    }
+
+    function hideSpecialOverlay(doc){
+      const overlay=ensureSpecialOverlay(doc);
+      overlay?.classList.remove('show');
+    }
+
+    function showSpecialOverlay(doc,kind,state=null){
+      const overlay=ensureSpecialOverlay(doc);
+      if(!overlay)return;
+      const kicker=overlay.querySelector('.special-kicker');
+      const symbol=overlay.querySelector('.special-symbol');
+      const message=overlay.querySelector('.special-message');
+      const close=overlay.querySelector('.special-close');
+      overlay.dataset.kind=kind;
+      if(kind==='unlimited'){
+        kicker.textContent='本日のご利用時間';
+        symbol.textContent='∞';
+        message.textContent='本日は時間制限なくご利用いただけます';
+        close.textContent=`閉館 ${state?.closingTime||'17:00'}`;
+      }else if(kind==='closed'){
+        kicker.textContent='本日の営業';
+        symbol.textContent='CLOSE';
+        message.textContent='本日は休館日です';
+        close.textContent='営業カレンダーをご確認ください';
+      }else{
+        kicker.textContent='営業情報エラー';
+        symbol.textContent='—';
+        message.textContent='本日の利用時間を確認できませんでした';
+        close.textContent='スタッフにご確認ください';
+      }
+      overlay.classList.add('show');
+      hideClosingTime(doc);
+    }
+
+    function addWrapperButton(doc,holder,mode,label,aria){
+      let button=holder.querySelector(`button[data-wrapper-mode="${mode}"]`);
+      if(button)return button;
+      button=doc.createElement('button');
+      button.type='button';
+      button.dataset.wrapperMode=mode;
+      button.textContent=label;
+      button.setAttribute('aria-label',aria);
+      button.addEventListener('click',()=>setManualMode(mode));
+      return button;
+    }
+
+    function ensureStaffControls(doc){
+      const staff=doc.querySelector('.staff-mode');
+      const holder=staff?.querySelector(':scope > div');
+      if(!staff||!holder)return;
+      ensureStyles(doc);
+      staff.classList.add('asoboon-extended-staff');
+      const label=staff.querySelector(':scope > span');
+      if(label)label.textContent='STAFF MODE';
+
+      const auto=addWrapperButton(doc,holder,'auto','AUTO','営業カレンダー自動判定');
+      const free=addWrapperButton(doc,holder,'unlimited','FREE','時間制限なし');
+      const close=addWrapperButton(doc,holder,'closed','CLOSE','休館');
+      const mode150=doc.getElementById('mode150');
+      const mode180=doc.getElementById('mode180');
+
+      if(mode180&&!mode180.dataset.manualCaptureBound){
+        mode180.dataset.manualCaptureBound='1';
+        mode180.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('180',{alreadyApplied:true})});
+      }
+      if(mode150&&!mode150.dataset.manualCaptureBound){
+        mode150.dataset.manualCaptureBound='1';
+        mode150.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('150',{alreadyApplied:true})});
       }
 
-      function ensureManualStillToday(){
-        if(manualMode==='auto')return;
-        if(manualDate===jstDate())return;
-        try{localStorage.removeItem(STORAGE_KEY)}catch{}
-        manualMode='auto';
-        manualDate='';
-        lastAppliedMode=null;
-        calendarState=null;
-        calendarError='';
-        lastCalendarFetch=0;
-      }
+      [auto,free,mode180,mode150,close].filter(Boolean).forEach(btn=>holder.appendChild(btn));
+      updateStaffSelection(doc);
+    }
 
-      function setManualMode(mode,options={}){
-        if(mode!=='auto'&&!MANUAL_MODES[mode])return;
-        manualMode=mode;
-        manualDate=mode==='auto'?'':jstDate();
-        lastAppliedMode=options.alreadyApplied&&/^(150|180)$/.test(String(mode))?Number(mode):null;
-        try{
-          if(mode==='auto')localStorage.removeItem(STORAGE_KEY);
-          else localStorage.setItem(STORAGE_KEY,JSON.stringify({date:manualDate,mode}));
-        }catch{}
-        applyCalendarMode();
-        if(mode==='auto')syncCalendar(true);
-      }
-
-      function ensureInjectedStyle(doc){
-        if(doc.getElementById('asoboonTabletCalendarStyle'))return;
-        const style=doc.createElement('style');
-        style.id='asoboonTabletCalendarStyle';
-        style.textContent=`
-          #asoboonTabletAutoMode{flex:0 0 auto}
-          .staff-mode.asoboon-extended-staff{display:grid!important;min-width:0!important;max-width:285px!important;padding:4px 6px 5px!important}
-          .staff-mode.asoboon-extended-staff>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:3px!important;max-width:250px!important}
-          .staff-mode.asoboon-extended-staff button{min-width:31px!important;padding:3px 5px!important}
-          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="auto"]{min-width:42px!important}
-          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="unlimited"]{min-width:39px!important}
-          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="closed"]{min-width:39px!important}
-          .staff-mode.asoboon-extended-staff button.active:not(.asoboon-manual-active){color:#7894a4!important;border-color:rgba(104,234,255,.14)!important;background:rgba(255,255,255,.01)!important;box-shadow:none!important;transform:none!important}
-          .staff-mode.asoboon-extended-staff button.asoboon-manual-active{color:#061018!important;border-color:#ffd15d!important;background:linear-gradient(180deg,#fff7d8,#ffd15d)!important;box-shadow:0 0 8px rgba(255,209,93,.32)!important}
-          #asoboonClosingTime{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin:9px auto 1px;padding:7px 18px;border:2px solid rgba(255,209,93,.58);border-radius:999px;color:#fff7d8;background:rgba(255,209,93,.10);box-shadow:0 0 18px rgba(255,209,93,.10);font-size:clamp(.88rem,1.7dvh,1.15rem);line-height:1;font-weight:1000;letter-spacing:.04em}
-          #asoboonClosingTime[data-state="error"]{border-color:rgba(255,77,95,.52);color:#ffe3e7;background:rgba(255,77,95,.09)}
-          #asoboonClosingTime[data-state="closed"]{border-color:rgba(255,77,95,.52);color:#ffe3e7;background:rgba(255,77,95,.09)}
-          @media(max-width:620px){#asoboonTabletAutoMode{display:none!important}.staff-mode.asoboon-extended-staff{max-width:165px!important}.staff-mode.asoboon-extended-staff>div{max-width:155px!important}}
-        `;
-        doc.head.appendChild(style);
-      }
-
-      function ensureAutoBadge(doc){
-        let badge=doc.getElementById('asoboonTabletAutoMode');
-        if(badge)return badge;
-        const staff=doc.querySelector('.staff-mode');
-        if(!staff?.parentNode)return null;
-        badge=doc.createElement('div');
-        badge.id='asoboonTabletAutoMode';
-        badge.setAttribute('role','status');
-        badge.style.cssText=['display:flex','align-items:center','gap:7px','min-height:34px','padding:7px 10px','border:1px solid rgba(101,239,176,.38)','color:#dffff0','background:linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))','box-shadow:0 8px 20px rgba(0,0,0,.20)','font-size:.63rem','line-height:1.25','font-weight:950','letter-spacing:.04em','white-space:nowrap'].join(';');
-        staff.parentNode.insertBefore(badge,staff);
-        return badge;
-      }
-
-      function ensureClosingTime(doc){
-        let el=doc.getElementById('asoboonClosingTime');
-        if(el)return el;
-        const stageContent=doc.querySelector('#timeView .stage-content')||doc.querySelector('.stage-content');
-        if(!stageContent)return null;
-        el=doc.createElement('div');
-        el.id='asoboonClosingTime';
-        el.setAttribute('role','status');
-        const statusMessage=doc.getElementById('statusMessage');
-        if(statusMessage?.parentNode===stageContent)stageContent.insertBefore(el,statusMessage);
-        else stageContent.appendChild(el);
-        return el;
-      }
-
-      function addWrapperButton(doc,holder,mode,label,aria){
-        let button=holder.querySelector(`button[data-wrapper-mode="${mode}"]`);
-        if(button)return button;
-        button=doc.createElement('button');
-        button.type='button';
-        button.dataset.wrapperMode=mode;
-        button.textContent=label;
-        button.setAttribute('aria-label',aria);
-        button.addEventListener('click',()=>setManualMode(mode));
-        return button;
-      }
-
-      function ensureStaffControls(doc){
-        const staff=doc.querySelector('.staff-mode');
-        const holder=staff?.querySelector(':scope > div');
-        if(!staff||!holder)return;
-        ensureInjectedStyle(doc);
-        staff.classList.add('asoboon-extended-staff');
-        const label=staff.querySelector(':scope > span');
-        if(label)label.textContent='STAFF MODE';
-
-        const auto=addWrapperButton(doc,holder,'auto','AUTO','営業カレンダー自動判定');
-        const unlimited=addWrapperButton(doc,holder,'unlimited','FREE','時間制限なし');
-        const closed=addWrapperButton(doc,holder,'closed','CLOSE','休館');
-        const mode150=doc.getElementById('mode150');
-        const mode180=doc.getElementById('mode180');
-
-        if(mode180&&!mode180.dataset.manualCaptureBound){
-          mode180.dataset.manualCaptureBound='1';
-          mode180.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('180',{alreadyApplied:true})});
-        }
-        if(mode150&&!mode150.dataset.manualCaptureBound){
-          mode150.dataset.manualCaptureBound='1';
-          mode150.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('150',{alreadyApplied:true})});
-        }
-
-        [auto,unlimited,mode180,mode150,closed].filter(Boolean).forEach(btn=>holder.appendChild(btn));
-        updateStaffSelection(doc);
-      }
-
-      function updateStaffSelection(doc){
-        const staff=doc.querySelector('.staff-mode');
-        if(!staff)return;
-        staff.style.display='';
-        staff.querySelectorAll('button').forEach(button=>{
-          let selected=false;
-          if(button.dataset.wrapperMode)selected=button.dataset.wrapperMode===manualMode;
-          else if(button.dataset.mode==='180')selected=manualMode==='180';
-          else if(button.dataset.mode==='150')selected=manualMode==='150';
-          button.classList.toggle('asoboon-manual-active',selected);
-          if(button.dataset.wrapperMode)button.setAttribute('aria-pressed',String(selected));
-        });
-      }
-
-      function clickMode(doc,duration){
-        if(lastAppliedMode===duration)return;
-        const button=doc.querySelector(`.staff-mode button[data-mode="${duration}"]`);
-        if(!button)return;
-        suppressManualCapture=true;
-        try{
-          button.click();
-          const toast=doc.getElementById('toast');
-          if(toast)toast.classList.remove('show');
-        }finally{suppressManualCapture=false}
-        lastAppliedMode=duration;
-      }
-
-      function parseClock(value){
-        const m=String(value||'').match(/^(\d{1,2}):(\d{2})$/);
-        if(!m)return null;
-        const h=Number(m[1]),mi=Number(m[2]);
-        return h>=0&&h<24&&mi>=0&&mi<60?h*60+mi:null;
-      }
-
-      function clock(minutes){
-        const n=Math.max(0,Math.min(1439,Math.round(minutes)));
-        return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
-      }
-
-      function setBadge(badge,type,text){
-        if(!badge)return;
-        const styles={
-          auto:['rgba(101,239,176,.38)','#dffff0','linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))'],
-          manual:['rgba(255,209,93,.44)','#fff2bf','linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))'],
-          error:['rgba(255,77,95,.46)','#ffe3e7','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))'],
-          closed:['rgba(255,77,95,.42)','#ffe5e9','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))']
-        }[type]||[];
-        badge.style.borderColor=styles[0]||'';
-        badge.style.color=styles[1]||'';
-        badge.style.background=styles[2]||'';
-        badge.textContent=text;
-      }
-
-      function showClosingTime(doc,state){
-        const el=ensureClosingTime(doc);
-        if(!el)return;
-        if(state==='error'){
-          el.dataset.state='error';
-          el.textContent='営業情報を確認できません';
-          return;
-        }
-        if(state?.isClosed){
-          el.dataset.state='closed';
-          el.textContent='本日は休館日です';
-          return;
-        }
-        el.dataset.state='open';
-        el.textContent=state?.closingTime?`閉館 ${state.closingTime}`:'閉館時刻を確認してください';
-      }
-
-      function applyOperationalTimeDisplay(doc,state){
-        if(!state||state.isClosed)return;
-        const duration=Number(state.duration),close=parseClock(state.closingTime);
-        if(!Number.isFinite(duration)||duration<=0||close===null)return;
-        const planLabel=doc.getElementById('planLabel');
-        const entryTime=doc.getElementById('entryTime');
-        const statusMessage=doc.getElementById('statusMessage');
-        const statusNote=doc.getElementById('statusNote');
-        if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
-        const minute=jstMinutes();
-        planLabel.textContent=state.durationLabel||`${duration}分利用`;
-        showClosingTime(doc,state);
-        if(minute<10*60){
-          entryTime.textContent='--:--';
-          statusMessage.textContent='まだ退場時間を迎えた方はいません';
-          statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館`;
-          return;
-        }
-        if(minute>=close){
-          entryTime.textContent=clock(close-duration);
-          statusMessage.textContent='本日の営業は終了しました';
-          statusNote.textContent=`閉館時刻 ${state.closingTime} を反映しています。`;
-          return;
-        }
-        entryTime.textContent=clock(minute-duration);
-        statusMessage.textContent='今、退場時間の目安です';
-        statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館`;
-      }
-
-      function applySpecialDisplay(doc,state){
-        const planLabel=doc.getElementById('planLabel');
-        const entryTime=doc.getElementById('entryTime');
-        const statusMessage=doc.getElementById('statusMessage');
-        const statusNote=doc.getElementById('statusNote');
-        if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
-        showClosingTime(doc,state);
-        if(state.isClosed){
-          planLabel.textContent='本日の営業';
-          entryTime.textContent='CLOSE';
-          statusMessage.textContent='本日は休館日です';
-          statusNote.textContent=manualMode==='auto'?'営業カレンダーから自動判定しています。':'スタッフ設定で休館表示にしています。';
-          return;
-        }
-        if(Number(state.duration)===0){
-          planLabel.textContent='本日のご利用時間';
-          entryTime.textContent='∞';
-          statusMessage.textContent='本日は時間制限なくご利用いただけます';
-          statusNote.textContent=`閉館 ${state.closingTime||'--:--'}までご利用いただけます。`;
-        }
-      }
-
-      function applyErrorDisplay(doc,message){
-        const planLabel=doc.getElementById('planLabel');
-        const entryTime=doc.getElementById('entryTime');
-        const statusMessage=doc.getElementById('statusMessage');
-        const statusNote=doc.getElementById('statusNote');
-        if(planLabel)planLabel.textContent='本日のご利用時間';
-        if(entryTime)entryTime.textContent='--:--';
-        if(statusMessage)statusMessage.textContent='本日の利用時間を確認できませんでした';
-        if(statusNote)statusNote.textContent='スタッフにご確認ください';
-        showClosingTime(doc,'error');
-        const badge=ensureAutoBadge(doc);
-        setBadge(badge,'error',`AUTO取得失敗｜${message||'スタッフにご確認ください'}`);
-        updateStaffSelection(doc);
-      }
-
-      function activeState(){
-        ensureManualStillToday();
-        if(manualMode!=='auto')return MANUAL_MODES[manualMode]||null;
-        return calendarState;
-      }
-
-      function applyCalendarMode(){
-        try{
-          const doc=frame.contentDocument;
-          const win=frame.contentWindow;
-          if(!doc||!win)return;
-          ensureStaffControls(doc);
-          const badge=ensureAutoBadge(doc);
-          updateStaffSelection(doc);
-
-          if(manualMode==='auto'&&calendarError){
-            applyErrorDisplay(doc,'運用設定を確認できません');
-            return;
-          }
-
-          const state=activeState();
-          if(!state){
-            if(manualMode==='auto')applyErrorDisplay(doc,'運用設定を確認中です');
-            return;
-          }
-
-          win.ASOBOON_BUSINESS_DAY=state;
-          const duration=Number(state.duration);
-          const prefix=manualMode==='auto'?'AUTO':'MANUAL';
-          const badgeType=manualMode==='auto'?(state.isClosed?'closed':'auto'):'manual';
-          const badgeText=state.isClosed?`${prefix}｜本日は休館日`:`${prefix}｜${state.durationLabel}${state.closingTime?`｜${state.closingTime}閉館`:''}`;
-          setBadge(badge,badgeType,badgeText);
-
-          if(duration===150||duration===180){
-            clickMode(doc,duration);
-            applyOperationalTimeDisplay(doc,state);
-            return;
-          }
-
-          lastAppliedMode=null;
-          applySpecialDisplay(doc,state);
-        }catch{}
-      }
-
-      async function syncCalendar(force=false){
-        if(manualMode!=='auto')return;
-        if(calendarSyncing)return;
-        const calendar=window.ASOBOON_CALENDAR;
-        if(!calendar?.getCurrent){
-          calendarState=null;
-          calendarError='営業日カレンダーの読込設定がありません';
-          applyCalendarMode();
-          return;
-        }
-        calendarSyncing=true;
-        lastCalendarFetch=Date.now();
-        try{
-          const nextState=await calendar.getCurrent({force});
-          const nextDuration=Number(nextState?.duration);
-          if(nextDuration!==lastAppliedMode)lastAppliedMode=null;
-          calendarState=nextState;
-          calendarError='';
-          lastCalendarFetch=Date.now();
-          applyCalendarMode();
-        }catch(error){
-          calendarState=null;
-          calendarError=String(error?.message||error||'営業日カレンダーに接続できません');
-          applyCalendarMode();
-        }finally{
-          calendarSyncing=false;
-        }
-      }
-
-      loadManualOverride();
-      frame.addEventListener('load',()=>{
-        lastAppliedMode=null;
-        ensureStaffControls(frame.contentDocument);
-        applyCalendarMode();
-        if(manualMode==='auto')syncCalendar(true);
+    function updateStaffSelection(doc){
+      const staff=doc.querySelector('.staff-mode');
+      if(!staff)return;
+      staff.style.display='';
+      staff.querySelectorAll('button').forEach(button=>{
+        let selected=false;
+        if(button.dataset.wrapperMode)selected=button.dataset.wrapperMode===manualMode;
+        else if(button.dataset.mode==='180')selected=manualMode==='180';
+        else if(button.dataset.mode==='150')selected=manualMode==='150';
+        button.classList.toggle('asoboon-manual-active',selected);
+        if(button.dataset.wrapperMode)button.setAttribute('aria-pressed',String(selected));
       });
-      frame.src=coreUrlFromParent().href;
+    }
 
-      setInterval(()=>{
+    function clickMode(doc,duration){
+      if(lastAppliedMode===duration)return;
+      const button=doc.querySelector(`.staff-mode button[data-mode="${duration}"]`);
+      if(!button)return;
+      suppressManualCapture=true;
+      try{
+        button.click();
+        const toast=doc.getElementById('toast');
+        if(toast)toast.classList.remove('show');
+      }finally{
+        suppressManualCapture=false;
+      }
+      lastAppliedMode=duration;
+    }
+
+    function applyTimedState(doc,state){
+      const duration=Number(state.duration);
+      if(duration!==150&&duration!==180)return false;
+      hideSpecialOverlay(doc);
+      clickMode(doc,duration);
+      showClosingTime(doc,state);
+      return true;
+    }
+
+    function applyCurrentState(){
+      try{
         ensureManualStillToday();
-        applyCalendarMode();
-        if(manualMode==='auto'&&Date.now()-lastCalendarFetch>60*1000)syncCalendar(true);
-      },500);
+        const doc=frame.contentDocument;
+        const win=frame.contentWindow;
+        if(!doc||!win)return;
+        ensureStyles(doc);
+        ensureStaffControls(doc);
+        ensureBadge(doc);
+        ensureSpecialOverlay(doc);
+        updateStaffSelection(doc);
 
-      window.addEventListener('focus',()=>{if(manualMode==='auto')syncCalendar(true)});
-      document.addEventListener('visibilitychange',()=>{if(!document.hidden&&manualMode==='auto')syncCalendar(true)});
-      window.addEventListener('online',()=>{if(manualMode==='auto')syncCalendar(true)});
-    })();
+        if(manualMode!=='auto'){
+          const state=MANUAL_MODES[manualMode];
+          win.ASOBOON_BUSINESS_DAY=state;
+          const badge=ensureBadge(doc);
+          setBadge(badge,state.isClosed?'closed':'manual',`MANUAL｜${state.durationLabel}${state.closingTime?`｜${state.closingTime}閉館`:''}`);
+          if(applyTimedState(doc,state))return;
+          lastAppliedMode=null;
+          if(state.isClosed)showSpecialOverlay(doc,'closed',state);
+          else showSpecialOverlay(doc,'unlimited',state);
+          return;
+        }
+
+        if(calendarError||!calendarState){
+          const badge=ensureBadge(doc);
+          setBadge(badge,'error','AUTO取得失敗｜スタッフ確認');
+          lastAppliedMode=null;
+          showSpecialOverlay(doc,'error');
+          return;
+        }
+
+        win.ASOBOON_BUSINESS_DAY=calendarState;
+        const badge=ensureBadge(doc);
+        setBadge(badge,calendarState.isClosed?'closed':'auto',calendarState.isClosed?'AUTO｜本日は休館日':`AUTO｜${calendarState.businessType}｜${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}`);
+
+        if(applyTimedState(doc,calendarState))return;
+        lastAppliedMode=null;
+        if(calendarState.isClosed)showSpecialOverlay(doc,'closed',calendarState);
+        else if(Number(calendarState.duration)===0)showSpecialOverlay(doc,'unlimited',calendarState);
+        else showSpecialOverlay(doc,'error');
+      }catch{}
+    }
+
+    async function syncCalendar(force=false){
+      if(calendarSyncing||manualMode!=='auto')return;
+      const calendar=window.ASOBOON_CALENDAR;
+      if(!calendar?.getCurrent){
+        calendarState=null;
+        calendarError='営業日カレンダーの読込設定がありません';
+        applyCurrentState();
+        return;
+      }
+      calendarSyncing=true;
+      lastCalendarFetch=Date.now();
+      try{
+        calendarState=await calendar.getCurrent({force});
+        calendarError='';
+        lastCalendarFetch=Date.now();
+        lastAppliedMode=null;
+      }catch(error){
+        calendarState=null;
+        calendarError=String(error?.message||error||'営業日カレンダーに接続できません');
+      }finally{
+        calendarSyncing=false;
+        applyCurrentState();
+      }
+    }
+
+    loadManualOverride();
+
+    frame.addEventListener('load',()=>{
+      lastAppliedMode=null;
+      applyCurrentState();
+      if(manualMode==='auto')syncCalendar(true);
+    });
+
+    frame.src=coreUrlFromParent().href;
+
+    setInterval(()=>{
+      applyCurrentState();
+      if(manualMode==='auto'&&Date.now()-lastCalendarFetch>60*1000)syncCalendar(true);
+    },500);
+
+    window.addEventListener('focus',()=>{if(manualMode==='auto')syncCalendar(true)});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&manualMode==='auto')syncCalendar(true)});
+    window.addEventListener('online',()=>{if(manualMode==='auto')syncCalendar(true)});
+  })();
   </script>
 </body>
 </html>
