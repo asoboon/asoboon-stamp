@@ -5,20 +5,25 @@
 <style>:root{--paper:#efe1bd;--navy:#0f2b46;--red2:#fff0ed;--line:#d8c49b;--shadow:0 12px 30px rgba(42,31,17,.22)}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}#statusFrame{display:block;width:100%;height:100%;border:0;background:var(--paper)}body.has-cancel #statusFrame{height:calc(100% - 90px)}.cancelbar{position:fixed;z-index:20;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;min-height:90px;padding:12px max(12px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:linear-gradient(180deg,rgba(255,248,232,.98),#efe1bd);border-top:2px solid var(--line);box-shadow:0 -8px 24px rgba(42,31,17,.14)}.cancelbar[hidden]{display:none}.cancelcopy{min-width:0;flex:1}.cancelcopy strong{display:block;color:var(--navy);font-size:.82rem}.cancelcopy small{display:block;margin-top:3px;color:#6d6353;font-size:.62rem;line-height:1.4}.cancelbtn{flex:0 0 auto;min-height:48px;border:2px solid #c78d84;border-radius:13px;padding:10px 14px;background:var(--red2);color:#8b3028;font-weight:950}.done{position:fixed;z-index:80;inset:0;display:grid;place-items:center;padding:20px;background:linear-gradient(180deg,#e8f5ec,#f7edd8)}.done[hidden]{display:none}.donecard{width:min(100%,430px);padding:24px 18px;border:3px solid #79ad8b;border-radius:24px;background:#fffaf0;text-align:center;box-shadow:var(--shadow)}.check{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 10px;border-radius:50%;background:#d9efdf;color:#27784f;font-size:2rem;font-weight:1000}.done h2{margin:0;color:var(--navy)}.done p{margin:8px 0 0;color:#506258;font-size:.76rem;line-height:1.6}.homebtn{display:block;margin-top:15px;padding:13px;border-radius:13px;background:var(--navy);color:#fff;text-decoration:none;font-weight:950}</style>
 </head><body><iframe id="statusFrame" title="ASOBooN 呼出状況"></iframe><div id="cancelBar" class="cancelbar" hidden><div class="cancelcopy"><strong>ミニアプリの予約を消す</strong><small>端末の番号を解除したあと、Airウェイトの正式キャンセルへ進みます。</small></div><button id="cancelOpen" class="cancelbtn" type="button">キャンセル</button></div><div id="doneView" class="done" hidden><div class="donecard"><div class="check">✓</div><h2>受付を削除しました</h2><p>Airウェイトでキャンセル済みになった受付番号を、この端末のミニアプリからも削除しました。</p><a class="homebtn" href="./home.html">ミニアプリへ戻る</a></div></div>
 <script>
-(()=>{'use strict';const frame=document.getElementById('statusFrame'),KEYS=['asoboon_app_v2_current_reservation','asoboon_current_reservation_v3','asoboon_current_reservation_v2','asoboon_reservation_rc3_current_v1'],CALL_KEY='asoboon_callstatus_number_v4';
+(()=>{'use strict';
+const frame=document.getElementById('statusFrame');
+const CURRENT_KEY='asoboon_app_v2_current_reservation';
+const KEYS=[CURRENT_KEY,'asoboon_current_reservation_v3','asoboon_current_reservation_v2','asoboon_reservation_rc3_current_v1'];
+const CALL_KEY='asoboon_callstatus_number_v4';
 function unwrap(x){if(!x||typeof x!=='object')return null;const r=x.reservation&&typeof x.reservation==='object'?x.reservation:x;return {...x,...r}}
 function parseKey(k){try{return unwrap(JSON.parse(localStorage.getItem(k)||'null'))}catch{return null}}
 function airwaitUrl(v){try{const u=new URL(String(v||''));return u.protocol==='https:'&&/(^|\.)airwait\.jp$/i.test(u.hostname)?u.href:''}catch{return''}}
 function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function readCall(){try{const x=JSON.parse(localStorage.getItem(CALL_KEY)||'null');if(!x||x.date!==localDate())return '';return String(x.number||'').trim()}catch{return''}}
-function readOwned(){for(const k of KEYS){const r=parseKey(k);if(r?.receiptNo&&airwaitUrl(r.shortUrl))return {...r,_key:k}}return null}
-function syncOwnedNumber(){const r=readOwned();if(!r)return null;const number=String(r.receiptNo||'').trim();if(number&&readCall()!==number){try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number}))}catch{}}return r}
+function readCurrentReservation(){const r=parseKey(CURRENT_KEY);if(!r?.receiptNo)return null;if(r.operationalDate&&String(r.operationalDate)!==localDate())return null;return {...r,_key:CURRENT_KEY}}
+function readCancelable(){for(const k of KEYS){const r=parseKey(k);if(!r?.receiptNo||!airwaitUrl(r.shortUrl))continue;if(r.operationalDate&&String(r.operationalDate)!==localDate())continue;return {...r,_key:k}}return null}
+function syncOwnedNumber(){if(readCall())return;const r=readCurrentReservation();if(!r)return;const number=String(r.receiptNo||'').trim();if(!number)return;try{localStorage.setItem(CALL_KEY,JSON.stringify({date:localDate(),number}))}catch{}}
 function setCancel(on){document.getElementById('cancelBar').hidden=!on;document.body.classList.toggle('has-cancel',!!on)}
-function syncLocalState(){const owned=syncOwnedNumber();setCancel(!!owned);return owned}
+function syncLocalState(){syncOwnedNumber();setCancel(!!readCancelable())}
 
 syncLocalState();
-frame.src='./callstatus-core.html?v=573&wrap=1';
-document.getElementById('cancelOpen').addEventListener('click',()=>{if(!readOwned())return;location.href='./cancel.html'});
+frame.src='./callstatus-core.html?v=574&wrap=1';
+document.getElementById('cancelOpen').addEventListener('click',()=>{if(!readCancelable())return;location.href='./cancel.html'});
 window.addEventListener('focus',syncLocalState);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncLocalState()});
 })();
