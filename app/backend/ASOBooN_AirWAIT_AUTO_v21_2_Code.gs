@@ -1,5 +1,5 @@
 /**
- * ASOBooN AirWAIT AUTO v21.2.1
+ * ASOBooN AirWAIT AUTO v21.2.2
  * AirWAIT担当部署回答準拠 / 安全初期化版
  *
  * 【AirWAIT APIルール】
@@ -8,11 +8,12 @@
  * 呼出中件数が減った時だけ: 予約呼出API
  *
  * 指定時刻到達時の初期呼出は各枠1日1回の単発処理。
+ * 初期取得に失敗しても1分トリガーでは自動再試行しない。
  * lastUpdate失敗時は他のAirWAIT APIへ進まない。
  * 営業区分は共通「営業カレンダー」APIだけを正本にし、低頻度キャッシュする。
  */
 const A21=Object.freeze({
-  VERSION:'21.2.1',TZ:'Asia/Tokyo',ORIGIN:'https://asoboon.github.io',STORE_ID:'KR01205179',
+  VERSION:'21.2.2',TZ:'Asia/Tokyo',ORIGIN:'https://asoboon.github.io',STORE_ID:'KR01205179',
   KEY_PROP:'AIRWAIT_API_KEY',SS_PROP:'AUTO21_SPREADSHEET_ID',
   CONTROL:'CONTROL',MAP:'RESERVE_MAP',LOG:'CALL_LOG',
   CALENDAR:'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec',
@@ -29,14 +30,13 @@ function setupAutoV21(){
   const props=PropertiesService.getScriptProperties();
   props.setProperty(A21.SS_PROP,ss.getId());
   ensureControl_(ss);ensureMap_(ss);ensureLog_(ss);
-  // 既存CONTROLがTRUEでも必ず安全側に戻す。
   setControl_(ss,'systemVersion',A21.VERSION);
   setControl_(ss,'autoEnabled','FALSE');
   setControl_(ss,'testMode','TRUE');
   resetRuntime_();
   removeTriggers_();
   ScriptApp.newTrigger('autoWorkerV21').timeBased().everyMinutes(1).create();
-  console.log('AUTO v21.2.1 setup complete: '+ss.getName()+' / '+ss.getId());
+  console.log('AUTO v21.2.2 setup complete: '+ss.getName()+' / '+ss.getId());
   console.log('安全初期化完了: autoEnabled=FALSE / testMode=TRUE');
 }
 
@@ -48,16 +48,13 @@ function autoWorkerV21(){
     if(!withinHours_(day,ctl,now))return;
     const ids=activeIds_(day.businessType,ctl),sched=schedule_(ctl),due=ids.filter(id=>started_(id,sched,now));if(!due.length)return;
 
-    // 指定時刻到達に伴う1枠1日1回の単発初期呼出。
     initialStarts_(ss,due,ctl,now);
 
-    // ★ 毎回定期実行するAirWAIT APIは最終更新日時取得だけ。
     let marker;try{marker=lastUpdate_()}catch(e){log_(ss,'LAST_UPDATE_ERROR','','','',String(e.message||e));return}
     const props=PropertiesService.getScriptProperties(),prev=props.getProperty('AUTO21_LAST_UPDATE')||'';
     if(!prev){props.setProperty('AUTO21_LAST_UPDATE',marker);return}
     if(marker===prev)return;
 
-    // ★ 更新があった時だけ呼出番号取得API。
     let rows;try{rows=allReservations_()}catch(e){log_(ss,'RESERVATIONS_ERROR','','','',String(e.message||e));return}
     due.forEach(id=>updatedSlot_(ss,rows,id,ctl,now));
     props.setProperty('AUTO21_LAST_UPDATE',marker);
@@ -65,14 +62,35 @@ function autoWorkerV21(){
 }
 
 function initialStarts_(ss,due,ctl,now){
-  const p=PropertiesService.getScriptProperties(),date=jstDate_(now),need=due.filter(id=>p.getProperty(key_('START',date,id))!=='1');
+  const p=PropertiesService.getScriptProperties(),date=jstDate_(now);
+  const need=due.filter(id=>p.getProperty(key_('START',date,id))!=='1'&&p.getProperty(key_('START_ATTEMPT',date,id))!=='1');
   if(!need.length)return;
-  let rows;try{rows=allReservations_()}catch(e){log_(ss,'INITIAL_RESERVATIONS_ERROR','','','',String(e.message||e));return}
+
+  // 定期トリガーから受付一覧APIを繰り返さないため、取得前に「試行済み」を立てる。
+  need.forEach(id=>p.setProperty(key_('START_ATTEMPT',date,id),'1'));
+
+  let rows;
+  try{rows=allReservations_()}
+  catch(e){
+    need.forEach(id=>log_(ss,'INITIAL_RESERVATIONS_ERROR',id,'','',String(e.message||e)+' / 自動再試行なし'));
+    return;
+  }
+
   need.forEach(id=>{
     const r=fill_(ss,forType_(rows,id),id,ctl,'INITIAL_AT_START');
-    p.setProperty(key_('START',date,id),'1');p.setProperty(key_('COUNT',date,id),String(r.after));
+    p.setProperty(key_('START',date,id),'1');
+    p.setProperty(key_('COUNT',date,id),String(r.after));
     if(r.called>0||r.after>0)p.setProperty(key_('PRIMED',date,id),'1');
   });
+}
+
+function retryInitialSlotV21(waitTypeId){
+  const id=String(waitTypeId||'').trim();
+  if(!/^\d{4}$/.test(id))throw new Error('waitTypeId は4桁で指定してください。');
+  const p=PropertiesService.getScriptProperties(),date=jstDate_(new Date());
+  p.deleteProperty(key_('START_ATTEMPT',date,id));
+  p.deleteProperty(key_('START',date,id));
+  console.log('初回呼出の再試行を許可しました: '+date+' / '+id+'。次のautoWorkerV21で1回だけ再試行します。');
 }
 
 function updatedSlot_(ss,rows,id,ctl,now){
@@ -80,11 +98,9 @@ function updatedSlot_(ss,rows,id,ctl,now){
   const current=calling_(list).length,waiting=waiting_(list),countKey=key_('COUNT',date,id),primeKey=key_('PRIMED',date,id);
   const prevRaw=p.getProperty(countKey),prev=prevRaw===null?null:Number(prevRaw);let primed=p.getProperty(primeKey)==='1',after=current;
 
-  // 開始時に待ちが0だった場合、開始後最初の受付を初期呼出として扱う。
   if(!primed&&current===0&&waiting.length){const r=fill_(ss,list,id,ctl,'INITIAL_AFTER_START');after=r.after;if(r.called>0||after>0)p.setProperty(primeKey,'1');p.setProperty(countKey,String(after));return}
   if(prev===null){p.setProperty(countKey,String(current));return}
 
-  // ★ 呼出中件数の減少時だけ予約呼出APIへ。
   if(current<prev){const r=fill_(ss,list,id,ctl,'REPLENISH_AFTER_DECREASE');after=r.after;if(after===0&&waiting_(list).length===0)p.deleteProperty(primeKey)}
   p.setProperty(countKey,String(after));
 }
@@ -159,7 +175,6 @@ function receiptNum_(r){const n=Number(receipt_(r));return Number.isFinite(n)?n:
 function reserveId_(r){for(const v of [r&&r.reserveId,r&&r.reserveID,r&&r.reservationId,r&&r.reservationID]){const x=normRid_(v);if(x)return x}return''}
 function normRid_(v){const d=String(v==null?'':v).normalize('NFKC').replace(/\D/g,'');return!d||d.length>12?'':d.padStart(12,'0')}
 
-// 新ミニアプリから reserveId / receiptNo を受け取るブリッジ。
 function doPost(e){try{const p=Object.assign({},e&&e.parameter||{}),rid=normRid_(p.reserveId),no=String(p.receiptNo||'').normalize('NFKC').replace(/\D/g,''),id=String(p.waitTypeId||'').trim();if(!rid||!no||!/^\d{4}$/.test(id))return out_({ok:false,error:'VALIDATION_ERROR'});upsertMap_(book_(),{receivedAt:new Date(),receiptNo:no,reserveId:rid,waitTypeId:id,waitTypeName:String(p.waitTypeName||''),operationalDay:String(p.operationalDay||''),source:String(p.source||''),adults:String(p.adults||''),paidChildren:String(p.paidChildren||''),infants:String(p.infants||''),totalPeople:String(p.totalPeople||'')});return out_({ok:true})}catch(err){return out_({ok:false,error:String(err.message||err)})}}
 function doGet(e){const a=String(e&&e.parameter&&e.parameter.action||'health');if(a==='health')return out_({ok:true,service:'ASOBooN AirWAIT AUTO',version:A21.VERSION,periodicAirwaitApi:'lastUpdate-only'});if(a==='status')try{const c=control_(book_());return out_({ok:true,version:A21.VERSION,autoEnabled:bool_(c.autoEnabled),testMode:bool_(c.testMode),targetCalling:Number(c.targetCalling||10)})}catch(err){return out_({ok:false,error:String(err.message||err)})}return out_({ok:false,error:'UNKNOWN_ACTION'})}
 
