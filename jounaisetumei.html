@@ -14,87 +14,401 @@
   <script>
     (()=>{
       'use strict';
+
       const frame=document.getElementById('tabletCore');
       const coreBase=new URL('./jounaisetumei-core.html',location.href);
-      let calendarState=null,calendarError='',calendarSyncing=false,lastCalendarFetch=0,lastAppliedMode=null;
+      const STORAGE_KEY='asoboon.jounaisetumei.manualOverride.v1';
+      const MANUAL_MODES=Object.freeze({
+        unlimited:Object.freeze({source:'manual',businessType:'平日',isClosed:false,duration:0,durationLabel:'時間制限なし',closingTime:'17:00'}),
+        '180':Object.freeze({source:'manual',businessType:'平日特定日',isClosed:false,duration:180,durationLabel:'3時間',closingTime:'17:00'}),
+        '150':Object.freeze({source:'manual',businessType:'土日祝日',isClosed:false,duration:150,durationLabel:'2時間30分',closingTime:'18:00'}),
+        closed:Object.freeze({source:'manual',businessType:'休館',isClosed:true,duration:null,durationLabel:'休館日',closingTime:null})
+      });
 
-      function coreUrlFromParent(){const url=new URL(coreBase.href);url.search=location.search;url.hash=location.hash;return url}
+      let calendarState=null;
+      let calendarError='';
+      let calendarSyncing=false;
+      let lastCalendarFetch=0;
+      let lastAppliedMode=null;
+      let manualMode='auto';
+      let manualDate='';
+      let suppressManualCapture=false;
+
+      function coreUrlFromParent(){
+        const url=new URL(coreBase.href);
+        url.search=location.search;
+        url.hash=location.hash;
+        return url;
+      }
+
+      function jstParts(date=new Date()){
+        return Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+          timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
+          hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+        }).formatToParts(date).map(x=>[x.type,x.value]));
+      }
+
+      function jstDate(date=new Date()){
+        const p=jstParts(date);
+        return `${p.year}-${p.month}-${p.day}`;
+      }
+
+      function jstMinutes(date=new Date()){
+        const p=jstParts(date);
+        return Number(p.hour)*60+Number(p.minute);
+      }
+
+      function loadManualOverride(){
+        try{
+          const raw=localStorage.getItem(STORAGE_KEY);
+          if(!raw){manualMode='auto';manualDate='';return}
+          const saved=JSON.parse(raw);
+          if(!saved||saved.date!==jstDate()||!MANUAL_MODES[saved.mode]){
+            localStorage.removeItem(STORAGE_KEY);
+            manualMode='auto';manualDate='';return;
+          }
+          manualMode=saved.mode;
+          manualDate=saved.date;
+        }catch{
+          manualMode='auto';manualDate='';
+        }
+      }
+
+      function ensureManualStillToday(){
+        if(manualMode==='auto')return;
+        if(manualDate===jstDate())return;
+        try{localStorage.removeItem(STORAGE_KEY)}catch{}
+        manualMode='auto';
+        manualDate='';
+        lastAppliedMode=null;
+        calendarState=null;
+        calendarError='';
+        lastCalendarFetch=0;
+      }
+
+      function setManualMode(mode,options={}){
+        if(mode!=='auto'&&!MANUAL_MODES[mode])return;
+        manualMode=mode;
+        manualDate=mode==='auto'?'':jstDate();
+        lastAppliedMode=options.alreadyApplied&&/^(150|180)$/.test(String(mode))?Number(mode):null;
+        try{
+          if(mode==='auto')localStorage.removeItem(STORAGE_KEY);
+          else localStorage.setItem(STORAGE_KEY,JSON.stringify({date:manualDate,mode}));
+        }catch{}
+        applyCalendarMode();
+        if(mode==='auto')syncCalendar(true);
+      }
+
+      function ensureInjectedStyle(doc){
+        if(doc.getElementById('asoboonTabletCalendarStyle'))return;
+        const style=doc.createElement('style');
+        style.id='asoboonTabletCalendarStyle';
+        style.textContent=`
+          #asoboonTabletAutoMode{flex:0 0 auto}
+          .staff-mode.asoboon-extended-staff{display:grid!important;min-width:0!important;max-width:285px!important;padding:4px 6px 5px!important}
+          .staff-mode.asoboon-extended-staff>div{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:3px!important;max-width:250px!important}
+          .staff-mode.asoboon-extended-staff button{min-width:31px!important;padding:3px 5px!important}
+          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="auto"]{min-width:42px!important}
+          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="unlimited"]{min-width:39px!important}
+          .staff-mode.asoboon-extended-staff button[data-wrapper-mode="closed"]{min-width:39px!important}
+          .staff-mode.asoboon-extended-staff button.active:not(.asoboon-manual-active){color:#7894a4!important;border-color:rgba(104,234,255,.14)!important;background:rgba(255,255,255,.01)!important;box-shadow:none!important;transform:none!important}
+          .staff-mode.asoboon-extended-staff button.asoboon-manual-active{color:#061018!important;border-color:#ffd15d!important;background:linear-gradient(180deg,#fff7d8,#ffd15d)!important;box-shadow:0 0 8px rgba(255,209,93,.32)!important}
+          #asoboonClosingTime{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin:9px auto 1px;padding:7px 18px;border:2px solid rgba(255,209,93,.58);border-radius:999px;color:#fff7d8;background:rgba(255,209,93,.10);box-shadow:0 0 18px rgba(255,209,93,.10);font-size:clamp(.88rem,1.7dvh,1.15rem);line-height:1;font-weight:1000;letter-spacing:.04em}
+          #asoboonClosingTime[data-state="error"]{border-color:rgba(255,77,95,.52);color:#ffe3e7;background:rgba(255,77,95,.09)}
+          #asoboonClosingTime[data-state="closed"]{border-color:rgba(255,77,95,.52);color:#ffe3e7;background:rgba(255,77,95,.09)}
+          @media(max-width:620px){#asoboonTabletAutoMode{display:none!important}.staff-mode.asoboon-extended-staff{max-width:165px!important}.staff-mode.asoboon-extended-staff>div{max-width:155px!important}}
+        `;
+        doc.head.appendChild(style);
+      }
+
       function ensureAutoBadge(doc){
-        let badge=doc.getElementById('asoboonTabletAutoMode');if(badge)return badge;
-        const staff=doc.querySelector('.staff-mode');if(!staff?.parentNode)return null;
-        badge=doc.createElement('div');badge.id='asoboonTabletAutoMode';badge.setAttribute('role','status');
+        let badge=doc.getElementById('asoboonTabletAutoMode');
+        if(badge)return badge;
+        const staff=doc.querySelector('.staff-mode');
+        if(!staff?.parentNode)return null;
+        badge=doc.createElement('div');
+        badge.id='asoboonTabletAutoMode';
+        badge.setAttribute('role','status');
         badge.style.cssText=['display:flex','align-items:center','gap:7px','min-height:34px','padding:7px 10px','border:1px solid rgba(101,239,176,.38)','color:#dffff0','background:linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))','box-shadow:0 8px 20px rgba(0,0,0,.20)','font-size:.63rem','line-height:1.25','font-weight:950','letter-spacing:.04em','white-space:nowrap'].join(';');
-        staff.parentNode.insertBefore(badge,staff);return badge;
+        staff.parentNode.insertBefore(badge,staff);
+        return badge;
       }
-      function setManualFallback(doc,message){
-        const staff=doc.querySelector('.staff-mode');if(staff)staff.style.display='';
-        const badge=ensureAutoBadge(doc);if(badge){badge.style.borderColor='rgba(255,209,93,.44)';badge.style.color='#fff2bf';badge.style.background='linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))';badge.textContent=`AUTO取得失敗｜${message||'2.5h / 3hを手動で選択してください'}`}
+
+      function ensureClosingTime(doc){
+        let el=doc.getElementById('asoboonClosingTime');
+        if(el)return el;
+        const stageContent=doc.querySelector('#timeView .stage-content')||doc.querySelector('.stage-content');
+        if(!stageContent)return null;
+        el=doc.createElement('div');
+        el.id='asoboonClosingTime';
+        el.setAttribute('role','status');
+        const statusMessage=doc.getElementById('statusMessage');
+        if(statusMessage?.parentNode===stageContent)stageContent.insertBefore(el,statusMessage);
+        else stageContent.appendChild(el);
+        return el;
       }
+
+      function addWrapperButton(doc,holder,mode,label,aria){
+        let button=holder.querySelector(`button[data-wrapper-mode="${mode}"]`);
+        if(button)return button;
+        button=doc.createElement('button');
+        button.type='button';
+        button.dataset.wrapperMode=mode;
+        button.textContent=label;
+        button.setAttribute('aria-label',aria);
+        button.addEventListener('click',()=>setManualMode(mode));
+        return button;
+      }
+
+      function ensureStaffControls(doc){
+        const staff=doc.querySelector('.staff-mode');
+        const holder=staff?.querySelector(':scope > div');
+        if(!staff||!holder)return;
+        ensureInjectedStyle(doc);
+        staff.classList.add('asoboon-extended-staff');
+        const label=staff.querySelector(':scope > span');
+        if(label)label.textContent='STAFF MODE';
+
+        const auto=addWrapperButton(doc,holder,'auto','AUTO','営業カレンダー自動判定');
+        const unlimited=addWrapperButton(doc,holder,'unlimited','FREE','時間制限なし');
+        const closed=addWrapperButton(doc,holder,'closed','CLOSE','休館');
+        const mode150=doc.getElementById('mode150');
+        const mode180=doc.getElementById('mode180');
+
+        if(mode180&&!mode180.dataset.manualCaptureBound){
+          mode180.dataset.manualCaptureBound='1';
+          mode180.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('180',{alreadyApplied:true})});
+        }
+        if(mode150&&!mode150.dataset.manualCaptureBound){
+          mode150.dataset.manualCaptureBound='1';
+          mode150.addEventListener('click',()=>{if(!suppressManualCapture)setManualMode('150',{alreadyApplied:true})});
+        }
+
+        [auto,unlimited,mode180,mode150,closed].filter(Boolean).forEach(btn=>holder.appendChild(btn));
+        updateStaffSelection(doc);
+      }
+
+      function updateStaffSelection(doc){
+        const staff=doc.querySelector('.staff-mode');
+        if(!staff)return;
+        staff.style.display='';
+        staff.querySelectorAll('button').forEach(button=>{
+          let selected=false;
+          if(button.dataset.wrapperMode)selected=button.dataset.wrapperMode===manualMode;
+          else if(button.dataset.mode==='180')selected=manualMode==='180';
+          else if(button.dataset.mode==='150')selected=manualMode==='150';
+          button.classList.toggle('asoboon-manual-active',selected);
+          if(button.dataset.wrapperMode)button.setAttribute('aria-pressed',String(selected));
+        });
+      }
+
       function clickMode(doc,duration){
         if(lastAppliedMode===duration)return;
         const button=doc.querySelector(`.staff-mode button[data-mode="${duration}"]`);
-        if(button){button.click();lastAppliedMode=duration}
+        if(!button)return;
+        suppressManualCapture=true;
+        try{button.click()}finally{suppressManualCapture=false}
+        lastAppliedMode=duration;
       }
-      function parseClock(value){const m=String(value||'').match(/^(\d{1,2}):(\d{2})$/);if(!m)return null;const h=Number(m[1]),mi=Number(m[2]);return h>=0&&h<24&&mi>=0&&mi<60?h*60+mi:null}
-      function clock(minutes){const n=Math.max(0,Math.min(1439,Math.round(minutes)));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+
+      function parseClock(value){
+        const m=String(value||'').match(/^(\d{1,2}):(\d{2})$/);
+        if(!m)return null;
+        const h=Number(m[1]),mi=Number(m[2]);
+        return h>=0&&h<24&&mi>=0&&mi<60?h*60+mi:null;
+      }
+
+      function clock(minutes){
+        const n=Math.max(0,Math.min(1439,Math.round(minutes)));
+        return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+      }
+
+      function setBadge(badge,type,text){
+        if(!badge)return;
+        const styles={
+          auto:['rgba(101,239,176,.38)','#dffff0','linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))'],
+          manual:['rgba(255,209,93,.44)','#fff2bf','linear-gradient(180deg,rgba(255,209,93,.12),rgba(31,24,8,.82))'],
+          error:['rgba(255,77,95,.46)','#ffe3e7','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))'],
+          closed:['rgba(255,77,95,.42)','#ffe5e9','linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))']
+        }[type]||[];
+        badge.style.borderColor=styles[0]||'';
+        badge.style.color=styles[1]||'';
+        badge.style.background=styles[2]||'';
+        badge.textContent=text;
+      }
+
+      function showClosingTime(doc,state){
+        const el=ensureClosingTime(doc);
+        if(!el)return;
+        if(state==='error'){
+          el.dataset.state='error';
+          el.textContent='営業情報を確認できません';
+          return;
+        }
+        if(state?.isClosed){
+          el.dataset.state='closed';
+          el.textContent='本日は休館日です';
+          return;
+        }
+        el.dataset.state='open';
+        el.textContent=state?.closingTime?`閉館 ${state.closingTime}`:'閉館時刻を確認してください';
+      }
 
       function applyOperationalTimeDisplay(doc,state){
         if(!state||state.isClosed)return;
         const duration=Number(state.duration),close=parseClock(state.closingTime);
         if(!Number.isFinite(duration)||duration<=0||close===null)return;
-        const planLabel=doc.getElementById('planLabel'),entryTime=doc.getElementById('entryTime'),statusMessage=doc.getElementById('statusMessage'),statusNote=doc.getElementById('statusNote');
+        const planLabel=doc.getElementById('planLabel');
+        const entryTime=doc.getElementById('entryTime');
+        const statusMessage=doc.getElementById('statusMessage');
+        const statusNote=doc.getElementById('statusNote');
         if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
-        const now=new Date(),minute=now.getHours()*60+now.getMinutes();
+        const minute=jstMinutes();
         planLabel.textContent=state.durationLabel||`${duration}分利用`;
+        showClosingTime(doc,state);
         if(minute<10*60){
-          entryTime.textContent='--:--';statusMessage.textContent='まだ退場時間を迎えた方はいません';statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館（運用設定）`;return;
+          entryTime.textContent='--:--';
+          statusMessage.textContent='まだ退場時間を迎えた方はいません';
+          statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館`;
+          return;
         }
         if(minute>=close){
-          entryTime.textContent=clock(close-duration);statusMessage.textContent='本日の営業は終了しました';statusNote.textContent=`運用設定の閉館時刻 ${state.closingTime} を反映しています。`;return;
+          entryTime.textContent=clock(close-duration);
+          statusMessage.textContent='本日の営業は終了しました';
+          statusNote.textContent=`閉館時刻 ${state.closingTime} を反映しています。`;
+          return;
         }
-        entryTime.textContent=clock(minute-duration);statusMessage.textContent='今、退場時間の目安です';statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館（運用設定）`;
+        entryTime.textContent=clock(minute-duration);
+        statusMessage.textContent='今、退場時間の目安です';
+        statusNote.textContent=`本日は${state.durationLabel}・${state.closingTime}閉館`;
       }
 
       function applySpecialDisplay(doc,state){
-        const planLabel=doc.getElementById('planLabel'),entryTime=doc.getElementById('entryTime'),statusMessage=doc.getElementById('statusMessage'),statusNote=doc.getElementById('statusNote');
+        const planLabel=doc.getElementById('planLabel');
+        const entryTime=doc.getElementById('entryTime');
+        const statusMessage=doc.getElementById('statusMessage');
+        const statusNote=doc.getElementById('statusNote');
         if(!planLabel||!entryTime||!statusMessage||!statusNote)return;
-        if(state.isClosed){planLabel.textContent='休館日';entryTime.textContent='CLOSE';statusMessage.textContent='本日は休館日です';statusNote.textContent='ミニアプリ運用設定から自動判定しています。';return}
-        if(Number(state.duration)===0){planLabel.textContent='時間制限なし';entryTime.textContent='∞';statusMessage.textContent='本日は時間制限なしでご利用いただけます';statusNote.textContent=`営業時間は${state.closingTime||'--:--'}までです（運用設定）。`}
+        showClosingTime(doc,state);
+        if(state.isClosed){
+          planLabel.textContent='本日の営業';
+          entryTime.textContent='CLOSE';
+          statusMessage.textContent='本日は休館日です';
+          statusNote.textContent=manualMode==='auto'?'営業カレンダーから自動判定しています。':'スタッフ設定で休館表示にしています。';
+          return;
+        }
+        if(Number(state.duration)===0){
+          planLabel.textContent='本日のご利用時間';
+          entryTime.textContent='∞';
+          statusMessage.textContent='本日は時間制限なくご利用いただけます';
+          statusNote.textContent=`閉館 ${state.closingTime||'--:--'}までご利用いただけます。`;
+        }
+      }
+
+      function applyErrorDisplay(doc,message){
+        const planLabel=doc.getElementById('planLabel');
+        const entryTime=doc.getElementById('entryTime');
+        const statusMessage=doc.getElementById('statusMessage');
+        const statusNote=doc.getElementById('statusNote');
+        if(planLabel)planLabel.textContent='本日のご利用時間';
+        if(entryTime)entryTime.textContent='--:--';
+        if(statusMessage)statusMessage.textContent='本日の利用時間を確認できませんでした';
+        if(statusNote)statusNote.textContent='スタッフにご確認ください';
+        showClosingTime(doc,'error');
+        const badge=ensureAutoBadge(doc);
+        setBadge(badge,'error',`AUTO取得失敗｜${message||'スタッフにご確認ください'}`);
+        updateStaffSelection(doc);
+      }
+
+      function activeState(){
+        ensureManualStillToday();
+        if(manualMode!=='auto')return MANUAL_MODES[manualMode]||null;
+        return calendarState;
       }
 
       function applyCalendarMode(){
         try{
-          const doc=frame.contentDocument,win=frame.contentWindow;if(!doc||!win)return;
-          if(calendarError&&!calendarState){setManualFallback(doc,'運用設定を確認できません');return}
-          if(!calendarState)return;
-          win.ASOBOON_BUSINESS_DAY=calendarState;
-          const staff=doc.querySelector('.staff-mode'),badge=ensureAutoBadge(doc),duration=Number(calendarState.duration);
-          if(duration===150||duration===180){
-            clickMode(doc,duration);if(staff)staff.style.display='none';
-            if(badge){badge.style.borderColor='rgba(101,239,176,.38)';badge.style.color='#dffff0';badge.style.background='linear-gradient(180deg,rgba(101,239,176,.10),rgba(4,14,18,.82))';badge.textContent=`AUTO｜${calendarState.businessType}｜${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}`}
-            applyOperationalTimeDisplay(doc,calendarState);return;
+          const doc=frame.contentDocument;
+          const win=frame.contentWindow;
+          if(!doc||!win)return;
+          ensureStaffControls(doc);
+          const badge=ensureAutoBadge(doc);
+          updateStaffSelection(doc);
+
+          if(manualMode==='auto'&&calendarError){
+            applyErrorDisplay(doc,'運用設定を確認できません');
+            return;
           }
-          lastAppliedMode=null;if(staff)staff.style.display='none';
-          if(badge){badge.style.borderColor=calendarState.isClosed?'rgba(255,77,95,.42)':'rgba(104,234,255,.34)';badge.style.color=calendarState.isClosed?'#ffe5e9':'#dffaff';badge.style.background=calendarState.isClosed?'linear-gradient(180deg,rgba(255,77,95,.12),rgba(31,7,11,.82))':'linear-gradient(180deg,rgba(104,234,255,.10),rgba(4,14,18,.82))';badge.textContent=calendarState.isClosed?'AUTO｜本日は休館日':`AUTO｜${calendarState.durationLabel}${calendarState.closingTime?`｜${calendarState.closingTime}閉館`:''}`}
-          applySpecialDisplay(doc,calendarState);
+
+          const state=activeState();
+          if(!state){
+            if(manualMode==='auto')applyErrorDisplay(doc,'運用設定を確認中です');
+            return;
+          }
+
+          win.ASOBOON_BUSINESS_DAY=state;
+          const duration=Number(state.duration);
+          const prefix=manualMode==='auto'?'AUTO':'MANUAL';
+          const badgeType=manualMode==='auto'?(state.isClosed?'closed':'auto'):'manual';
+          const badgeText=state.isClosed?`${prefix}｜本日は休館日`:`${prefix}｜${state.durationLabel}${state.closingTime?`｜${state.closingTime}閉館`:''}`;
+          setBadge(badge,badgeType,badgeText);
+
+          if(duration===150||duration===180){
+            clickMode(doc,duration);
+            applyOperationalTimeDisplay(doc,state);
+            return;
+          }
+
+          lastAppliedMode=null;
+          applySpecialDisplay(doc,state);
         }catch{}
       }
 
       async function syncCalendar(force=false){
-        if(calendarSyncing)return;const calendar=window.ASOBOON_CALENDAR;
-        if(!calendar?.getCurrent){calendarError='営業日カレンダーの読込設定がありません';applyCalendarMode();return}
-        calendarSyncing=true;lastCalendarFetch=Date.now();
-        try{calendarState=await calendar.getCurrent({force});calendarError='';lastCalendarFetch=Date.now();lastAppliedMode=null;applyCalendarMode()}
-        catch(error){calendarError=String(error?.message||error||'営業日カレンダーに接続できません');applyCalendarMode()}
-        finally{calendarSyncing=false}
+        if(manualMode!=='auto')return;
+        if(calendarSyncing)return;
+        const calendar=window.ASOBOON_CALENDAR;
+        if(!calendar?.getCurrent){
+          calendarState=null;
+          calendarError='営業日カレンダーの読込設定がありません';
+          applyCalendarMode();
+          return;
+        }
+        calendarSyncing=true;
+        lastCalendarFetch=Date.now();
+        try{
+          calendarState=await calendar.getCurrent({force});
+          calendarError='';
+          lastCalendarFetch=Date.now();
+          lastAppliedMode=null;
+          applyCalendarMode();
+        }catch(error){
+          calendarState=null;
+          calendarError=String(error?.message||error||'営業日カレンダーに接続できません');
+          applyCalendarMode();
+        }finally{
+          calendarSyncing=false;
+        }
       }
 
-      frame.addEventListener('load',()=>{lastAppliedMode=null;applyCalendarMode();syncCalendar(true)});
+      loadManualOverride();
+      frame.addEventListener('load',()=>{
+        lastAppliedMode=null;
+        ensureStaffControls(frame.contentDocument);
+        applyCalendarMode();
+        if(manualMode==='auto')syncCalendar(true);
+      });
       frame.src=coreUrlFromParent().href;
-      setInterval(()=>{applyCalendarMode();if(Date.now()-lastCalendarFetch>60*1000)syncCalendar(true)},450);
-      window.addEventListener('focus',()=>syncCalendar(true));
-      document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncCalendar(true)});
-      window.addEventListener('online',()=>syncCalendar(true));
+
+      setInterval(()=>{
+        ensureManualStillToday();
+        applyCalendarMode();
+        if(manualMode==='auto'&&Date.now()-lastCalendarFetch>60*1000)syncCalendar(true);
+      },500);
+
+      window.addEventListener('focus',()=>{if(manualMode==='auto')syncCalendar(true)});
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden&&manualMode==='auto')syncCalendar(true)});
+      window.addEventListener('online',()=>{if(manualMode==='auto')syncCalendar(true)});
     })();
   </script>
 </body>
