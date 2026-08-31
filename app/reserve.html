@@ -137,7 +137,7 @@
 
 <script src="../autocall-config.js?v=10"></script>
 <script src="./core/app-config.js?v=20260831-1"></script>
-<script src="./core/business-day.js?v=20260831-2"></script>
+<script src="./core/business-day.js?v=20260831-3"></script>
 <script src="./core/airwait-client.js?v=20260831-1"></script>
 <script src="./core/reservation-store.js?v=20260831-1"></script>
 <script src="./core/geofence.js?v=20260831-2"></script>
@@ -167,10 +167,7 @@ function renderSlots(){if(!S.slots.length){$('slotList').innerHTML='<div class="
 function renderPeople(){const ok=validPeople();$('adultOut').textContent=S.adults;$('childOut').textContent=S.child;$('infantOut').textContent=S.infant;$('totalPeople').textContent=totalPeople()+'名';$('totalPrice').textContent=yen(totalPrice());$('peopleMsg').className='msg '+(ok?'ok':'bad');$('peopleMsg').textContent=ok?'この人数で受付できます。':`保護者1名につき子ども3名まで、合計${CFG.limits.maxTotalPeople}名までです。`;$('review').disabled=!(ok&&S.slot&&S.agree&&!S.submitting);document.querySelectorAll('[data-kind]').forEach(b=>{const k=b.dataset.kind,d=Number(b.dataset.d);if(d<0){if(k==='adult')b.disabled=S.adults<=1||totalChildren()>(S.adults-1)*CFG.limits.childrenPerAdult;if(k==='child')b.disabled=S.child<=0;if(k==='infant')b.disabled=S.infant<=0}else{b.disabled=totalPeople()>=CFG.limits.maxTotalPeople||(k!=='adult'&&totalChildren()>=S.adults*CFG.limits.childrenPerAdult)}})}
 function summary(){return `<div class="line"><span>入場する回</span><strong>${esc(S.slot?.label||'未選択')}</strong></div><div class="line"><span>人数</span><strong>おとな${S.adults} / こども${S.child} / 0〜5ヶ月${S.infant}</strong></div><div class="line"><span>合計</span><strong>${totalPeople()}名</strong></div><div class="line total"><span>料金の目安</span><strong>${yen(totalPrice())}</strong></div>`}
 async function loadSlots(){const rules=CFG.slotsFor(S.day.businessType);if(!rules.length){fatal('ただいま受付できる回がありません。');return}try{const [types,info]=await Promise.all([A.getWaitTypes(),A.getWaitInfo().catch(()=>null)]);S.waitInfo=info;S.slots=rules.map(rule=>{const actual=types.find(x=>String(x.waitTypeId||'')===rule.waitTypeId);return actual?{...rule,actual}:null}).filter(Boolean);renderSlots();if(S.slots.length!==rules.length){$('slotList').insertAdjacentHTML('beforeend','<div class="msg bad">一部の受付枠を確認できませんでした。表示中の回からお選びください。</div>')}}catch(e){fatal('受付状況を確認できませんでした。もう一度お試しください。')}}
-async function openVerifiedFlow(){
-  $('geoCard').hidden=true;$('flow').hidden=false;
-  await loadSlots();
-}
+async function openVerifiedFlow(){$('geoCard').hidden=true;$('flow').hidden=false;await loadSlots()}
 async function verifyGeo(){const b=$('geoBtn');b.disabled=true;b.textContent='確認中…';const ok=await GEO.verify();b.disabled=false;if(ok){$('geoMsg').className='msg ok';$('geoMsg').textContent=`✓ 現在地確認済み（ASOBooNから約${Math.round(GEO.state.distanceM)}m）`;$('geoBtn').textContent='✓ 現在地確認済み';await openVerifiedFlow()}else{$('geoMsg').className='msg bad';$('geoMsg').textContent=GEO.state.error||'現在地を確認できませんでした。';$('geoBtn').textContent='もう一度確認する'}}
 async function boot(force=false){$('fatal').hidden=true;$('closed').hidden=true;$('existing').hidden=true;$('geoCard').hidden=true;$('flow').hidden=true;try{S.day=await B.getCurrent({force});renderDay();const existing=STORE.readForDate(S.day.operationalDate);if(existing){renderExisting(existing);return}if(S.day.isClosed){$('closedText').textContent='本日は休館日です。';$('closed').hidden=false;return}if(!withinHours()){$('closedText').textContent=`現地受付は ${CFG.normalReceptionOpen}〜${S.day.closingTime} です。`;$('closed').hidden=false;return}$('slotIntro').textContent=`${S.day.durationLabel}${S.day.closingTime?`・${S.day.closingTime}閉館`:''}`;if(GEO.valid()){await openVerifiedFlow();return}$('geoCard').hidden=false}catch(e){fatal('営業カレンダーを確認できないため、現在受付を停止しています。時間をおいてもう一度お試しください。')}}
 
