@@ -207,7 +207,11 @@
         const button=doc.querySelector(`.staff-mode button[data-mode="${duration}"]`);
         if(!button)return;
         suppressManualCapture=true;
-        try{button.click()}finally{suppressManualCapture=false}
+        try{
+          button.click();
+          const toast=doc.getElementById('toast');
+          if(toast)toast.classList.remove('show');
+        }finally{suppressManualCapture=false}
         lastAppliedMode=duration;
       }
 
@@ -377,10 +381,12 @@
         calendarSyncing=true;
         lastCalendarFetch=Date.now();
         try{
-          calendarState=await calendar.getCurrent({force});
+          const nextState=await calendar.getCurrent({force});
+          const nextDuration=Number(nextState?.duration);
+          if(nextDuration!==lastAppliedMode)lastAppliedMode=null;
+          calendarState=nextState;
           calendarError='';
           lastCalendarFetch=Date.now();
-          lastAppliedMode=null;
           applyCalendarMode();
         }catch(error){
           calendarState=null;
