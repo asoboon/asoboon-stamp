@@ -39,7 +39,7 @@
 
   <section><div class="section-title">本番運用 / 診断</div><div class="grid">
     <a class="rebuild" href="./home.html"><span class="icon">🧭</span><span class="copy"><strong>本番ミニアプリ</strong><small>現行デザイン / 営業カレンダー共通基盤</small></span></a>
-    <a id="staffLiveReserve" class="rebuild" href="./app/reserve.html"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>営業区分 → 対象waitTypeId → 人数・料金 → AirWAIT受付</small></span></a>
+    <a id="staffLiveReserve" class="rebuild" href="./app/admin.html?v=20260905-4"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>営業区分 → 対象waitTypeId → 人数・料金 → AirWAIT受付</small></span></a>
     <a class="check" href="./app/diagnostics/business-day.html"><span class="icon">✅</span><span class="copy"><strong>営業カレンダー 4区分チェック</strong><small>平日 / 平日特定日 / 土日祝日 / 休館を一括確認</small></span></a>
   </div></section>
 
@@ -72,14 +72,10 @@
   const KEY='asoboon_staff_live_reserve_access';
   const link=document.getElementById('staffLiveReserve');
   if(!link)return;
-  const grant=()=>{
-    try{sessionStorage.setItem(KEY,String(Date.now()))}catch{}
-  };
+  const grant=()=>{try{sessionStorage.setItem(KEY,String(Date.now()))}catch{}};
   link.addEventListener('pointerdown',grant,{passive:true});
   link.addEventListener('click',grant);
-  link.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' ')grant();
-  });
+  link.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')grant()});
 })();
 </script>
 </body>
