@@ -1,82 +1,66 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#10283f">
-  <title>ASOBooN 管理メニュー</title>
-  <style>
-    :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:#2c241d;background:#f2e6c8}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100dvh;background:radial-gradient(circle at 12% 0,rgba(255,255,255,.75),transparent 24%),linear-gradient(180deg,#f7ecd1,#ead7ac)}
-    main{width:min(100%,620px);margin:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 34px)}
-    header{padding:18px;border:2px solid #80602c;border-radius:22px;background:linear-gradient(180deg,#173754,#0a2238);color:#fff5dc;box-shadow:0 12px 28px rgba(42,31,17,.2)}
-    .eyebrow{font-size:11px;font-weight:900;letter-spacing:.12em;color:#e4c66f}
-    h1{margin:5px 0 7px;font-size:25px}p{margin:0;color:#d9e1df;font-size:13px;line-height:1.6}
-    section{margin-top:17px}.section-title{margin:0 0 8px 4px;font-size:12px;font-weight:950;color:#665431;letter-spacing:.04em}
-    .grid{display:grid;gap:9px}
-    a{display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 14px;border:2px solid rgba(112,80,34,.22);border-radius:17px;background:rgba(255,250,238,.96);color:#2d291f;text-decoration:none;box-shadow:0 6px 14px rgba(54,38,15,.08);-webkit-tap-highlight-color:transparent}
-    a:active{transform:scale(.988)}
-    .icon{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;background:#efe0b8;font-size:21px}
-    .warn .icon{background:#f8d9cc}.dev .icon{background:#dfe8ef}.cancel .icon{background:#f5d3cf}.present .icon{background:#e0eadf}.future .icon{background:#dfe8f2}.production .icon{background:#ffe2b9}.neo .icon{background:#d8edf7}.rebuild .icon{background:#d9f2e4}.check .icon{background:#e7e4f7}
-    .copy{min-width:0;flex:1}strong{display:block;font-size:15px}small{display:block;margin-top:2px;color:#7a6e5e;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    footer{margin-top:22px;text-align:center;color:#786a54;font-size:10px;font-weight:800}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#10283f">
+<title>ASOBooN 管理メニュー</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:#2c241d;background:#f2e6c8}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 12% 0,rgba(255,255,255,.75),transparent 24%),linear-gradient(180deg,#f7ecd1,#ead7ac)}
+main{width:min(100%,620px);margin:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 34px)}
+header{padding:18px;border:2px solid #80602c;border-radius:22px;background:linear-gradient(180deg,#173754,#0a2238);color:#fff5dc;box-shadow:0 12px 28px rgba(42,31,17,.2)}
+.eyebrow{font-size:11px;font-weight:900;letter-spacing:.12em;color:#e4c66f}h1{margin:5px 0 7px;font-size:25px}header p{margin:0;color:#d9e1df;font-size:13px;line-height:1.6}
+section{margin-top:17px}.section-title{margin:0 0 8px 4px;font-size:12px;font-weight:950;color:#665431;letter-spacing:.04em}.grid{display:grid;gap:9px}
+a{display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 14px;border:2px solid rgba(112,80,34,.22);border-radius:17px;background:rgba(255,250,238,.96);color:#2d291f;text-decoration:none;box-shadow:0 6px 14px rgba(54,38,15,.08);-webkit-tap-highlight-color:transparent}a:active{transform:scale(.988)}
+.icon{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;background:#efe0b8;font-size:21px}.copy{min-width:0;flex:1}.copy strong{display:block;font-size:15px}.copy small{display:block;margin-top:2px;color:#7a6e5e;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.test-home{border:3px solid #7741aa;background:linear-gradient(180deg,#fbf6ff,#eadcff);box-shadow:0 8px 18px rgba(91,44,130,.18)}.test-home .icon{background:#d8bdf1}.test-home strong{color:#52237b}.test-home small{color:#74598a}.warn .icon{background:#f8d9cc}.dev .icon{background:#dfe8ef}.cancel .icon{background:#f5d3cf}.present .icon{background:#e0eadf}.future .icon{background:#dfe8f2}.production .icon{background:#ffe2b9}.neo .icon{background:#d8edf7}.check .icon{background:#e7e4f7}
+.notice{margin-top:10px;padding:10px 12px;border-radius:13px;background:#eee2f8;border:1px solid #c9a8e2;color:#583775;font-size:11px;line-height:1.55;font-weight:850}
+footer{margin-top:22px;text-align:center;color:#786a54;font-size:10px;font-weight:800}
+</style>
 </head>
 <body>
 <main>
-  <header>
-    <div class="eyebrow">ASOBooN STAFF / DEVELOPMENT</div>
-    <h1>管理メニュー</h1>
-    <p>現場確認・API診断・テストページへの隠し入口です。通常のお客さま向けHOMEには表示されません。</p>
-  </header>
-  <section><div class="section-title">通常運用</div><div class="grid">
-    <a href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>ミニアプリ HOME</strong><small>本番画面へ戻る</small></span></a>
-    <a href="./callstatus.html"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>本番のお客さま向け呼出表示</small></span></a>
-    <a href="./jounaisetumei.html"><span class="icon">📟</span><span class="copy"><strong>現地タブレット案内</strong><small>館内説明ページ</small></span></a>
-  </div></section>
+<header><div class="eyebrow">ASOBooN STAFF / DEVELOPMENT</div><h1>管理メニュー</h1><p>現場確認・API診断・テストページへの隠し入口です。通常のお客さま向けHOMEには表示されません。</p></header>
 
-  <section><div class="section-title">本番運用 / 診断</div><div class="grid">
-    <a class="rebuild" href="./home.html"><span class="icon">🧭</span><span class="copy"><strong>本番ミニアプリ</strong><small>現行デザイン / 営業カレンダー共通基盤</small></span></a>
-    <a id="staffLiveReserve" class="rebuild" href="./app/admin.html?v=20260905-4"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>営業区分 → 対象waitTypeId → 人数・料金 → AirWAIT受付</small></span></a>
-    <a class="check" href="./app/diagnostics/business-day.html"><span class="icon">✅</span><span class="copy"><strong>営業カレンダー 4区分チェック</strong><small>平日 / 平日特定日 / 土日祝日 / 休館を一括確認</small></span></a>
-  </div></section>
+<section><div class="section-title">スタッフ検証</div><div class="grid">
+  <a class="test-home" href="./staff-test-home.html?v=20260905-1"><span class="icon">🟣</span><span class="copy"><strong>スタッフ検証HOME</strong><small>紫色の専用HOME / 本番Airウェイト現地受付はこちら</small></span></a>
+</div><div class="notice">現地受付テストの入口はここだけです。旧「本番 現地受付」直リンクと橋渡し処理は廃止しました。</div></section>
 
-  <section><div class="section-title">予約運用 / プレゼン</div><div class="grid">
-    <a class="present" href="./staff-reservation-presentation.html"><span class="icon">🗂️</span><span class="copy"><strong>予約運用プレゼン</strong><small>テスト → 本番 → 一本化 / 読み上げ文・想定まとめ</small></span></a>
-    <a class="production" href="./production-reservation-prototype.html"><span class="icon">🚀</span><span class="copy"><strong>本番バージョン DEMO</strong><small>既存WEBを残し、現地枠だけミニアプリ化</small></span></a>
-    <a class="future" href="./unified-reservation-prototype.html"><span class="icon">✨</span><span class="copy"><strong>一本化バージョン DEMO</strong><small>予約入口を公式LINEミニアプリだけに統一する構想</small></span></a>
-  </div></section>
+<section><div class="section-title">通常運用</div><div class="grid">
+  <a href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>ミニアプリ HOME</strong><small>本番のお客さま画面へ戻る</small></span></a>
+  <a href="./callstatus.html"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>本番のお客さま向け呼出表示</small></span></a>
+  <a href="./jounaisetumei.html"><span class="icon">📟</span><span class="copy"><strong>現地タブレット案内</strong><small>館内説明ページ</small></span></a>
+</div></section>
 
-  <section><div class="section-title">受付 / Airウェイト</div><div class="grid">
-    <a class="cancel" href="./cancel-admin.html"><span class="icon">🚫</span><span class="copy"><strong>キャンセル反映確認</strong><small>取消状態の確認・端末保存番号の削除</small></span></a>
-    <a class="warn" href="./onsite-reception-v11.html?from=miniapp-secret&v=20"><span class="icon">🧪</span><span class="copy"><strong>旧 現地受付テスト</strong><small>旧版確認専用 / 本番受付には使用しない</small></span></a>
-    <a class="warn" href="./yobidashi.html"><span class="icon">🔔</span><span class="copy"><strong>呼出テスト</strong><small>受付番号から状態確認</small></span></a>
-    <a class="dev" href="./airwait-call-monitor.html"><span class="icon">📡</span><span class="copy"><strong>呼出監視</strong><small>Airウェイト呼出時刻モニター</small></span></a>
-    <a class="dev" href="./airwait-calltime-probe.html"><span class="icon">🔬</span><span class="copy"><strong>API診断</strong><small>呼出時刻・API応答の確認</small></span></a>
-    <a class="dev" href="./reservation-admin-prototype.html"><span class="icon">🛠️</span><span class="copy"><strong>予約管理プロトタイプ</strong><small>開発・検証用</small></span></a>
-  </div></section>
-  <section><div class="section-title">ゲーム / 試作</div><div class="grid">
-    <a href="./boonjump/"><span class="icon">🚗</span><span class="copy"><strong>ブーンジャンプ</strong><small>現行ゲーム</small></span></a>
-    <a href="./boonrun/"><span class="icon">🏁</span><span class="copy"><strong>ブーンRUN</strong><small>現行ゲーム</small></span></a>
-    <a class="neo" href="./neo-boonjump/"><span class="icon">🛫</span><span class="copy"><strong>NEO ブーンジャンプ</strong><small>STAFF / COMMON MACHINE FOUNDATION確認</small></span></a>
-    <a class="neo" href="./neo-boonrun/"><span class="icon">🏎️</span><span class="copy"><strong>NEO ブーンRUN</strong><small>STAFF / COMMON MACHINE FOUNDATION確認</small></span></a>
-    <a class="dev" href="./boonmonster/"><span class="icon">👾</span><span class="copy"><strong>ブーンモンスター</strong><small>プロトタイプ / 開発確認</small></span></a>
-  </div></section>
-  <footer>Hidden entry: HOME ASOBooN logo × 7 taps · 2026-08-31</footer>
+<section><div class="section-title">診断</div><div class="grid">
+  <a class="check" href="./app/diagnostics/business-day.html"><span class="icon">✅</span><span class="copy"><strong>営業カレンダー 4区分チェック</strong><small>平日 / 平日特定日 / 土日祝日 / 休館を一括確認</small></span></a>
+  <a class="dev" href="./airwait-calltime-probe.html"><span class="icon">🔬</span><span class="copy"><strong>Airウェイト API診断</strong><small>呼出時刻・API応答の確認</small></span></a>
+  <a class="dev" href="./airwait-call-monitor.html"><span class="icon">📡</span><span class="copy"><strong>呼出監視</strong><small>Airウェイト呼出時刻モニター</small></span></a>
+</div></section>
+
+<section><div class="section-title">予約運用 / プレゼン</div><div class="grid">
+  <a class="present" href="./staff-reservation-presentation.html"><span class="icon">🗂️</span><span class="copy"><strong>予約運用プレゼン</strong><small>テスト → 本番 → 一本化 / 読み上げ文・想定まとめ</small></span></a>
+  <a class="production" href="./production-reservation-prototype.html"><span class="icon">🚀</span><span class="copy"><strong>本番バージョン DEMO</strong><small>既存WEBを残し、現地枠だけミニアプリ化</small></span></a>
+  <a class="future" href="./unified-reservation-prototype.html"><span class="icon">✨</span><span class="copy"><strong>一本化バージョン DEMO</strong><small>予約入口を公式LINEミニアプリだけに統一する構想</small></span></a>
+</div></section>
+
+<section><div class="section-title">受付 / 旧検証</div><div class="grid">
+  <a class="cancel" href="./cancel-admin.html"><span class="icon">🚫</span><span class="copy"><strong>キャンセル反映確認</strong><small>取消状態の確認・端末保存番号の削除</small></span></a>
+  <a class="warn" href="./onsite-reception-v11.html?from=miniapp-secret&v=20"><span class="icon">🧪</span><span class="copy"><strong>旧 現地受付テスト</strong><small>旧版確認専用 / 新規検証は紫HOMEを使用</small></span></a>
+  <a class="warn" href="./yobidashi.html"><span class="icon">🔔</span><span class="copy"><strong>呼出テスト</strong><small>受付番号から状態確認</small></span></a>
+  <a class="dev" href="./reservation-admin-prototype.html"><span class="icon">🛠️</span><span class="copy"><strong>予約管理プロトタイプ</strong><small>開発・検証用</small></span></a>
+</div></section>
+
+<section><div class="section-title">ゲーム / 試作</div><div class="grid">
+  <a href="./boonjump/"><span class="icon">🚗</span><span class="copy"><strong>ブーンジャンプ</strong><small>現行ゲーム</small></span></a>
+  <a href="./boonrun/"><span class="icon">🏁</span><span class="copy"><strong>ブーンRUN</strong><small>現行ゲーム</small></span></a>
+  <a class="neo" href="./neo-boonjump/"><span class="icon">🛫</span><span class="copy"><strong>NEO ブーンジャンプ</strong><small>STAFF / COMMON MACHINE FOUNDATION確認</small></span></a>
+  <a class="neo" href="./neo-boonrun/"><span class="icon">🏎️</span><span class="copy"><strong>NEO ブーンRUN</strong><small>STAFF / COMMON MACHINE FOUNDATION確認</small></span></a>
+  <a class="dev" href="./boonmonster/"><span class="icon">👾</span><span class="copy"><strong>ブーンモンスター</strong><small>プロトタイプ / 開発確認</small></span></a>
+</div></section>
+<footer>Hidden entry: HOME ASOBooN logo × 7 taps · rebuilt 2026-09-05</footer>
 </main>
-<script>
-(()=>{
-  'use strict';
-  const KEY='asoboon_staff_live_reserve_access';
-  const link=document.getElementById('staffLiveReserve');
-  if(!link)return;
-  const grant=()=>{try{sessionStorage.setItem(KEY,String(Date.now()))}catch{}};
-  link.addEventListener('pointerdown',grant,{passive:true});
-  link.addEventListener('click',grant);
-  link.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')grant()});
-})();
-</script>
 </body>
 </html>
