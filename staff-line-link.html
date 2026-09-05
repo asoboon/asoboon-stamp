@@ -13,8 +13,8 @@
 <body>
 <main class="app">
 <section class="head"><small>ASOBooN STAFF TEST / MANDATORY LINE LINK v6</small><h1>LINE呼出通知を自動登録</h1></section>
-<section class="card"><h2>受付番号とLINEを紐付けます</h2><div id="status" class="msg info">LINEミニアプリを初期化しています…</div><div id="summary" class="summary"></div><button id="retry" class="btn primary" type="button" hidden>LINE通知登録を再試行</button><a class="btn secondary" href="./staff-test-home.html?v=20260905-6">← 紫のスタッフ検証HOMEへ戻る</a></section>
-<div class="support">LINE呼出通知の紐付けが成功するまで通常フローは完了しません。成功後は呼出状況へ自動で進みます。</div>
+<section class="card"><h2>受付番号とLINEを紐付けます</h2><div id="status" class="msg info">LINE通知サーバーを確認しています…</div><div id="summary" class="summary"></div><button id="retry" class="btn primary" type="button" hidden>LINE通知登録を再試行</button><a class="btn secondary" href="./staff-test-home.html?v=20260905-6">← 紫のスタッフ検証HOMEへ戻る</a></section>
+<div class="support">LINE呼出通知の紐付けが成功するまで通常フローは完了しません。成功後は接続確認LINEを送り、呼出状況へ自動で進みます。</div>
 </main>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="./app/core/app-config.js?v=20260905-1"></script>
@@ -28,11 +28,17 @@ function setStatus(t,c='info'){$('status').className='msg '+c;$('status').textCo
 function readPayload(){const p=new URLSearchParams(location.search),clean=v=>String(v||'').trim(),digits=v=>clean(v).replace(/\D/g,'');const x={receiptNo:digits(p.get('receiptNo')),reserveId:digits(p.get('reserveId')),waitTypeId:digits(p.get('waitTypeId')),waitTypeName:clean(p.get('waitTypeName')),operationalDay:clean(p.get('day')),adults:digits(p.get('adults')),paidChildren:digits(p.get('paidChildren')),infants:digits(p.get('infants')),totalPeople:digits(p.get('totalPeople'))};if(!x.receiptNo||!x.reserveId||!/^\d{4}$/.test(x.waitTypeId))throw new Error('受付情報が不足しています。紫の現地受付から開き直してください。');return x}
 function renderSummary(x){$('summary').innerHTML=`<div class="line"><span>受付番号</span><strong>${x.receiptNo}番</strong></div><div class="line"><span>waitTypeId</span><strong>${x.waitTypeId}</strong></div><div class="line"><span>受付日</span><strong>${x.operationalDay||'--'}</strong></div>`}
 function goCallStatus(){if(!payload)return;const u=new URL('./staff-callstatus.html',location.href);u.searchParams.set('number',payload.receiptNo);if(payload.operationalDay)u.searchParams.set('date',payload.operationalDay);u.searchParams.set('line','linked');location.replace(u.href)}
+function bridgeHealth(timeout=6500){return new Promise((resolve,reject)=>{const base=String(CFG?.autoBridgeUrl||'');if(!base)return reject(new Error('LINE通知サーバーURLがありません。'));const cb='__asoboon_health_'+Date.now()+'_'+Math.random().toString(36).slice(2),u=new URL(base),s=document.createElement('script');let done=false,t;const end=(err,v)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch{}s.remove();err?reject(err):resolve(v)};window[cb]=v=>end(null,v);u.searchParams.set('action','health');u.searchParams.set('callback',cb);u.searchParams.set('_',Date.now());s.src=u.href;s.onerror=()=>end(new Error('LINE通知サーバーへ接続できません。'));document.head.appendChild(s);t=setTimeout(()=>end(new Error('LINE通知サーバーの応答がありません。')),timeout)})}
 async function register(){
   if(busy)return;busy=true;$('retry').hidden=true;
   try{
-    if(!window.liff||!CFG?.liffId||!BRIDGE?.queue)throw new Error('LINE連携モジュールを読み込めませんでした。');
     payload=readPayload();renderSummary(payload);
+    if(!window.liff||!CFG?.liffId||!BRIDGE?.queue)throw new Error('LINE連携モジュールを読み込めませんでした。');
+    setStatus('LINE通知サーバー v21.4 を確認しています…','info');
+    const health=await bridgeHealth();
+    if(!health?.ok)throw new Error('LINE通知サーバーが正常ではありません。');
+    if(!/^21\.4\./.test(String(health.version||'')))throw new Error(`LINE通知サーバーが旧版です（現在 ${health.version||'不明'}）。GAS v21.4 をデプロイしてください。`);
+    if(health.lineTokenConfigured!==true)throw new Error('GASにLINE_CHANNEL_ACCESS_TOKENが設定されていません。');
     if(BRIDGE.clearLinked)BRIDGE.clearLinked(payload.reserveId);
     setStatus('LINEミニアプリを初期化しています…','info');
     await liff.init({liffId:CFG.liffId});
@@ -42,10 +48,10 @@ async function register(){
     setStatus('受付番号とLINEアカウントを必須紐付けしています…','info');
     const result=await BRIDGE.queue({...payload,lineAccessToken:token,requireLineLink:true,source:'asoboon-staff-line-link-v6'});
     if(result?.ok&&result?.lineLinked===true){
-      setStatus('✓ LINE呼出通知の登録完了。呼出状況へ移動します…','ok');
-      setTimeout(goCallStatus,800);return;
+      setStatus(result?.testPushSent===true?'✓ LINE呼出通知登録完了。接続確認LINEを送信しました。呼出状況へ移動します…':'✓ LINE呼出通知登録完了。呼出状況へ移動します…','ok');
+      setTimeout(goCallStatus,1200);return;
     }
-    if(result?.lineIdentityLinked===true){throw new Error('LINEユーザーは識別できましたが、ASOBooN公式LINEから通知可能な状態ではありません。公式LINEの友だち追加・ブロック解除・Messaging API設定をご確認ください。')}
+    if(result?.lineIdentityLinked===true)throw new Error('LINEユーザーは識別できましたが、ASOBooN公式LINEから通知可能な状態ではありません。公式LINEの友だち追加・ブロック解除・Messaging API設定をご確認ください。');
     throw new Error(result?.lineError||result?.error||'LINE通知台帳への登録を確認できませんでした。');
   }catch(e){console.error(e);setStatus(String(e?.message||e),'bad');$('retry').hidden=false}
   finally{busy=false}
