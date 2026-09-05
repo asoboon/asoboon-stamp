@@ -26,44 +26,27 @@ a.card:active{transform:translateY(2px)}
 .icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#eadcf8;font-size:23px}
 .copy{min-width:0}.copy strong{display:block;font-size:15px}.copy small{display:block;margin-top:3px;color:#776982;font-size:11px;line-height:1.45}
 .arrow{color:#7448a0;font-size:24px;font-weight:900}
-.primary{border-color:#7137aa!important;background:linear-gradient(180deg,#fff,#f1e5ff)!important}
-.primary .icon{background:#ddc4f6}
-.danger{border-color:#b54a37!important;background:linear-gradient(180deg,#fff8f5,#ffebe5)!important}
-.danger .icon{background:#ffd4c9}
-.status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
-.status div{padding:10px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(90,57,120,.17);font-size:11px;color:#665672;line-height:1.45;font-weight:800}
-.status strong{display:block;color:#49286a;font-size:12px;margin-bottom:2px}
+.primary{border-color:#7137aa!important;background:linear-gradient(180deg,#fff,#f1e5ff)!important}.primary .icon{background:#ddc4f6}
+.danger{border-color:#b54a37!important;background:linear-gradient(180deg,#fff8f5,#ffebe5)!important}.danger .icon{background:#ffd4c9}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.status div{padding:10px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(90,57,120,.17);font-size:11px;color:#665672;line-height:1.45;font-weight:800}.status strong{display:block;color:#49286a;font-size:12px;margin-bottom:2px}
 footer{margin-top:22px;text-align:center;color:#6d5b79;font-size:10px;font-weight:850}
 </style>
 </head>
 <body>
 <main>
-<header>
-  <div class="eyebrow">ASOBooN STAFF TEST ENVIRONMENT</div>
-  <h1>スタッフ検証HOME</h1>
-  <p>お客さま向けHOMEとは切り離した検証専用画面です。紫色が目印です。</p>
-</header>
+<header><div class="eyebrow">ASOBooN STAFF TEST ENVIRONMENT</div><h1>スタッフ検証HOME</h1><p>お客さま向けHOMEとは切り離した検証専用画面です。紫色が目印です。</p></header>
 <div class="live"><strong>⚠ 本番Airウェイトを使用します</strong>「本番 現地受付」で確定すると、実際のAirウェイトへ受付データが登録されます。</div>
-<div class="status">
-  <div><strong>お客さま側</strong>現地受付へのリンクなし</div>
-  <div><strong>スタッフ側</strong>この検証HOMEから実受付</div>
-</div>
-<section>
-  <div class="section-title">受付テスト</div>
-  <div class="grid">
-    <a class="card primary" href="./staff-live-reserve.html?v=20260905-1"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>営業区分・待ち項目・人数を確認してAirウェイトへ実登録</small></span><span class="arrow">›</span></a>
-    <a class="card" href="./callstatus.html"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>お客さま側と同じ呼出表示を確認</small></span><span class="arrow">›</span></a>
-    <a class="card" href="./airwait-calltime-probe.html"><span class="icon">🔬</span><span class="copy"><strong>Airウェイト API診断</strong><small>呼出時刻・API応答を確認</small></span><span class="arrow">›</span></a>
-  </div>
-</section>
-<section>
-  <div class="section-title">戻る</div>
-  <div class="grid">
-    <a class="card" href="./admin.html"><span class="icon">🛠️</span><span class="copy"><strong>管理メニューへ戻る</strong><small>スタッフ用の隠し管理画面</small></span><span class="arrow">›</span></a>
-    <a class="card danger" href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>お客さま向けHOMEへ戻る</strong><small>通常の本番ミニアプリへ戻ります</small></span><span class="arrow">›</span></a>
-  </div>
-</section>
-<footer>STAFF TEST HOME · purple theme · live AirWAIT</footer>
+<div class="status"><div><strong>お客さま側</strong>現地受付へのリンクなし</div><div><strong>スタッフ側</strong>この検証HOMEから実受付</div></div>
+<section><div class="section-title">受付テスト</div><div class="grid">
+<a class="card primary" href="./staff-live-reserve.html?v=20260905-2"><span class="icon">🎫</span><span class="copy"><strong>本番 現地受付</strong><small>受付番号保存・呼出状況・LINE通知連携まで確認</small></span><span class="arrow">›</span></a>
+<a class="card" href="./callstatus.html?v=20260905-2"><span class="icon">📣</span><span class="copy"><strong>呼出状況</strong><small>この端末に保存された受付番号の状態を確認</small></span><span class="arrow">›</span></a>
+<a class="card" href="./airwait-calltime-probe.html"><span class="icon">🔬</span><span class="copy"><strong>Airウェイト API診断</strong><small>呼出時刻・API応答を確認</small></span><span class="arrow">›</span></a>
+</div></section>
+<section><div class="section-title">戻る</div><div class="grid">
+<a class="card" href="./admin.html"><span class="icon">🛠️</span><span class="copy"><strong>管理メニューへ戻る</strong><small>スタッフ用の隠し管理画面</small></span><span class="arrow">›</span></a>
+<a class="card danger" href="./home.html"><span class="icon">🏠</span><span class="copy"><strong>お客さま向けHOMEへ戻る</strong><small>通常の本番ミニアプリへ戻ります</small></span><span class="arrow">›</span></a>
+</div></section>
+<footer>STAFF TEST HOME · purple theme · live AirWAIT · v2</footer>
 </main>
 </body>
 </html>
