@@ -71,7 +71,7 @@
           title.textContent='WEB受付';
           let note=doc.getElementById('asoboonCustomerWebNotice');
           if(!note){
-            note=document.createElement('p');
+            note=doc.createElement('p');
             note.id='asoboonCustomerWebNotice';
             note.className='asoboon-web-notice';
             note.textContent='当日の整理券はWEB受付をご利用ください。';
@@ -185,7 +185,7 @@
       if(badge)return badge;
       const durationSwitch=doc.querySelector('.duration-switch');
       if(!durationSwitch)return null;
-      badge=document.createElement('div');
+      badge=doc.createElement('div');
       badge.id='asoboonV2BusinessBadge';
       badge.setAttribute('role','status');
       badge.style.cssText=['margin:0 0 10px','padding:11px 12px','border-radius:13px','border:2px solid rgba(239,210,127,.45)','background:linear-gradient(180deg,#263a34,#172923)','color:#fff7dd','box-shadow:0 4px 0 rgba(0,0,0,.16)','font-size:.72rem','line-height:1.5','font-weight:850'].join(';');
