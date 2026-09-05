@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#6a35a8">
 <title>ASOBooN｜スタッフ本番現地受付</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:#261f2d;background:#efe8f8;--purple:#6a35a8;--purple2:#3e1c70;--paper:#fffaf2;--ink:#2e2734;--muted:#766c7d;--ok:#2f7048;--bad:#9b3e32;--gold:#d6a83f}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:#261f2d;background:#efe8f8;--purple:#6a35a8;--purple2:#3e1c70;--muted:#766c7d}
 *{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 15% 0,rgba(255,255,255,.9),transparent 26%),linear-gradient(180deg,#e9dcf8,#f8f2ff 52%,#e1cdf3)}button,input{font:inherit}
 .app{width:min(100%,560px);margin:auto;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 36px)}
 .hero{padding:18px 16px;border-radius:23px;background:linear-gradient(145deg,var(--purple),var(--purple2));color:#fff;border:3px solid #d8b8ff;box-shadow:0 12px 28px rgba(65,30,104,.25)}
@@ -17,7 +17,7 @@
 .people{display:grid;gap:8px;margin-top:10px}.person{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-radius:13px;background:#fff;border:1px solid #ddd0e6}.person strong{display:block;font-size:13px}.person small{display:block;margin-top:2px;color:#7d7183;font-size:9px}.stepper{display:flex;align-items:center;gap:7px}.stepper button{width:34px;height:34px;border:0;border-radius:10px;background:#6a35a8;color:#fff;font-size:20px;font-weight:900}.stepper button:disabled{opacity:.3}.stepper output{min-width:24px;text-align:center;font-weight:1000}
 .summary{margin-top:10px;padding:10px;border-radius:13px;background:#f7f0fc;border:1px solid #ded0e9}.line{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#64576d}.line+.line{margin-top:5px}.line strong{color:#33243e}.total{padding-top:7px;margin-top:7px!important;border-top:1px solid #ddcfe7;font-size:13px}
 .agree{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px;border-radius:12px;background:#fff8e2;color:#5d4d1e;font-size:11px;line-height:1.5;font-weight:850}.agree input{margin-top:2px}
-.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:49px;margin-top:10px;padding:10px 12px;border:0;border-radius:13px;text-decoration:none;text-align:center;font-weight:1000}.primary{background:linear-gradient(180deg,#8b55c1,#5a2b8d);color:#fff;box-shadow:0 5px 0 #3c1b61}.primary:disabled{opacity:.42;box-shadow:none}.secondary{background:#fff;color:#4a2c61;border:2px solid #8a65a5}.danger-btn{background:linear-gradient(180deg,#b84b39,#8a3025);color:#fff;box-shadow:0 5px 0 #64231b}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:49px;margin-top:10px;padding:10px 12px;border:0;border-radius:13px;text-decoration:none;text-align:center;font-weight:1000;cursor:pointer}.primary{background:linear-gradient(180deg,#8b55c1,#5a2b8d);color:#fff;box-shadow:0 5px 0 #3c1b61}.primary:disabled{opacity:.42;box-shadow:none}.secondary{background:#fff;color:#4a2c61;border:2px solid #8a65a5}.danger-btn{background:linear-gradient(180deg,#b84b39,#8a3025);color:#fff;box-shadow:0 5px 0 #64231b}
 .result-no{font-size:52px;line-height:1;text-align:center;color:#5d2f92;font-weight:1000;margin:12px 0 4px}.center{text-align:center}.support{margin-top:14px;text-align:center;color:#6f6179;font-size:10px;line-height:1.5}.hidden{display:none!important}
 </style>
 </head>
@@ -32,8 +32,9 @@
 
 <section id="diagnosticCard" class="card">
   <h2>① 接続確認</h2>
-  <p>営業カレンダーとAirウェイトの待ち項目を確認します。</p>
+  <p>営業カレンダー・Airウェイト・LINE連携を確認します。</p>
   <div id="diagnosticMsg" class="msg info">確認中です…</div>
+  <div id="lineReadyMsg" class="msg info">LINE連携を確認中です…</div>
   <button id="reloadBtn" class="btn secondary" type="button">↻ 再読み込み</button>
 </section>
 
@@ -66,19 +67,23 @@
   <h2 class="center">✅ Airウェイト受付完了</h2>
   <div class="result-no"><span id="receiptNo">--</span><small style="font-size:16px">番</small></div>
   <div id="successMsg" class="msg ok"></div>
+  <div id="lineNotifyStatus" class="msg info">LINE呼出通知を登録しています…</div>
   <div id="successSummary" class="summary"></div>
-  <a class="btn secondary" href="./callstatus.html">🔔 呼出状況を見る</a>
+  <button id="callStatusBtn" class="btn secondary" type="button">🔔 この番号の呼出状況を見る</button>
   <button id="newBtn" class="btn primary" type="button">＋ もう1件テストする</button>
 </section>
 
 <a class="btn secondary" href="./staff-test-home.html">← 紫のスタッフ検証HOMEへ戻る</a>
-<div class="support">このページにはHOMEへ自動で戻す処理はありません。受付可否の最終判定はAirウェイトのAPI応答を使用します。</div>
+<div class="support">受付成功時に受付番号をこの端末へ保存し、呼出状況とLINE通知台帳へ連携します。</div>
 </main>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="./autocall-config.js?v=10"></script>
 <script src="./app/core/app-config.js?v=20260905-1"></script>
 <script src="./app/core/business-day.js?v=20260831-3"></script>
 <script src="./app/core/airwait-client.js?v=20260905-2"></script>
+<script src="./app/core/reservation-store.js?v=20260905-2"></script>
+<script src="./app/core/auto-bridge.js?v=20260905-2"></script>
 <script>
 (()=>{
 'use strict';
@@ -86,7 +91,10 @@ const $=id=>document.getElementById(id);
 const CFG=window.ASOBOON_APP_CONFIG;
 const B=window.ASOBOON_BUSINESS_DAY;
 const A=window.ASOBOON_AIRWAIT;
+const STORE=window.ASOBOON_RESERVATION_STORE;
+const BRIDGE=window.ASOBOON_AUTO_BRIDGE;
 const S={day:null,types:[],info:null,slots:[],slot:null,adult:1,child:0,infant:0,agree:false,submitting:false};
+let lineInitPromise=null;
 const norm=v=>String(v??'').normalize('NFKC').replace(/\s+/g,'').trim();
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const yen=n=>Number(n||0).toLocaleString('ja-JP')+'円';
@@ -96,9 +104,46 @@ const totalPrice=()=>S.adult*CFG.prices.adult+S.child*CFG.prices.child;
 const validPeople=()=>S.adult>=1&&totalPeople()<=CFG.limits.maxTotalPeople&&totalChildren()<=S.adult*CFG.limits.childrenPerAdult;
 function errText(e){const code=String(e?.code||'').trim();const msg=String(e?.message||'').trim()||'処理できませんでした。';return code&&code!=='UNKNOWN'?`AirWAIT ${code}：${msg}`:msg}
 function setDiag(text,type='info'){$('diagnosticMsg').className='msg '+type;$('diagnosticMsg').textContent=text}
+function setLineReady(text,type='info'){$('lineReadyMsg').className='msg '+type;$('lineReadyMsg').textContent=text}
+function setLineNotify(text,type='info'){$('lineNotifyStatus').className='msg '+type;$('lineNotifyStatus').textContent=text}
 function fmtDate(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${Number(m[2])}月${Number(m[3])}日`:String(v||'')}
 function waitDetail(type){const list=Array.isArray(S.info?.waitDetails)?S.info.waitDetails:[];return list.find(x=>norm(x.detailedWaitType)===norm(type?.waitTypeName))||null}
 function onlineCodeText(code){return({'00':'オンライン受付中','01':'オンライン受付未許可/未使用','02':'店舗サービス停止中','03':'営業時間外','04':'当日受付前','05':'オンライン受付時間外'})[String(code||'')]||`状態 ${code||'不明'}`}
+async function initLine(){
+  if(lineInitPromise)return lineInitPromise;
+  lineInitPromise=(async()=>{
+    try{
+      if(!window.liff||!CFG?.liffId){setLineReady('LINE SDKを利用できません。','warning');return false}
+      await liff.init({liffId:CFG.liffId});
+      const loggedIn=Boolean(liff.isLoggedIn());
+      if(loggedIn)setLineReady('✓ LINE連携準備OK。受付後に呼出通知を登録します。','ok');
+      else setLineReady('LINEログイン情報を取得できません。この受付ではLINE通知を紐付けできません。','warning');
+      return loggedIn;
+    }catch(e){console.warn('LIFF init',e);setLineReady('LINE連携を初期化できませんでした。呼出状況は利用できます。','warning');return false}
+  })();
+  return lineInitPromise;
+}
+async function getLineAccessToken(){const ready=await initLine();if(!ready)return'';try{return String(liff.getAccessToken()||'')}catch{return''}}
+async function registerLineNotification(rec){
+  if(!BRIDGE?.queue){setLineNotify('LINE通知連携モジュールを読み込めませんでした。','bad');return}
+  setLineNotify('LINE呼出通知を登録しています…','info');
+  try{
+    const result=await BRIDGE.queue({
+      receiptNo:rec.receiptNo,
+      reserveId:rec.reserveId,
+      waitTypeId:rec.waitTypeId,
+      waitTypeName:rec.waitTypeName,
+      operationalDay:rec.operationalDate,
+      adults:rec.adults,
+      paidChildren:rec.paidChildren,
+      infants:rec.infants,
+      totalPeople:rec.totalPeople
+    });
+    if(result?.ok&&result?.lineLinked){setLineNotify('✓ LINE通知 登録済み。呼出時にASOBooN公式LINEへ通知します。','ok');return}
+    if(result?.ok){setLineNotify('受付情報は通知台帳へ登録済みですが、LINEユーザーとの紐付けを確認できませんでした。','warning');return}
+    setLineNotify(`LINE通知を登録できませんでした（${result?.error||'未確認'}）。呼出状況をご確認ください。`,'bad');
+  }catch(e){console.error(e);setLineNotify('LINE通知の登録でエラーが発生しました。呼出状況をご確認ください。','bad')}
+}
 function renderPeople(){
   $('adultOut').textContent=S.adult;$('childOut').textContent=S.child;$('infantOut').textContent=S.infant;
   $('selectedSlot').textContent=S.slot?.label||'未選択';$('totalPeople').textContent=totalPeople()+'名';$('totalPrice').textContent=yen(totalPrice());
@@ -110,9 +155,10 @@ function renderSlots(){
   $('slotList').innerHTML=S.slots.map(s=>{const d=waitDetail(s.actual);const remaining=d?.remainingNum;const usage=s.actual?.usageDispType||'';return `<button class="slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" type="button" data-slot="${esc(s.waitTypeId)}"><strong>${esc(s.label)}</strong><small>${esc(s.actual.waitTypeName)} / waitTypeId ${esc(s.waitTypeId)}</small><div class="meta"><span>${remaining==null?'残数情報なし':`残り ${Math.max(0,Number(remaining))}${String(d?.reserveUnit||'')==='PERSON'?'名':'組'}`}</span><span>用途 ${esc(usage||'--')}</span></div></button>`}).join('');
 }
 async function boot(){
-  $('slotCard').classList.add('hidden');$('peopleCard').classList.add('hidden');$('successCard').classList.add('hidden');S.slot=null;S.agree=false;$('agree').checked=false;setDiag('営業カレンダーとAirウェイトを確認中です…','info');
+  $('slotCard').classList.add('hidden');$('peopleCard').classList.add('hidden');$('successCard').classList.add('hidden');$('diagnosticCard').classList.remove('hidden');S.slot=null;S.agree=false;$('agree').checked=false;setDiag('営業カレンダーとAirウェイトを確認中です…','info');
+  void initLine();
   try{
-    if(!CFG||!B||!A)throw new Error('共通モジュールを読み込めませんでした。');
+    if(!CFG||!B||!A||!STORE)throw new Error('共通モジュールを読み込めませんでした。');
     const [day,types,info]=await Promise.all([B.getCurrent({force:true}),A.getWaitTypes(),A.getWaitInfo().catch(()=>null)]);
     S.day=day;S.types=types;S.info=info;
     $('dateLabel').textContent=fmtDate(day.operationalDate)+' の営業';$('businessType').textContent=day.businessType;$('duration').textContent=day.isClosed?'休館':day.durationLabel;
@@ -133,6 +179,7 @@ document.addEventListener('click',e=>{
 $('agree').addEventListener('change',e=>{S.agree=e.target.checked;renderPeople()});
 $('reloadBtn').addEventListener('click',boot);
 $('newBtn').addEventListener('click',()=>{S.adult=1;S.child=0;S.infant=0;S.agree=false;boot()});
+$('callStatusBtn').addEventListener('click',()=>{location.href=new URL('./callstatus.html?v=20260905-2',location.href).href});
 $('submitBtn').addEventListener('click',async()=>{
   if($('submitBtn').disabled||S.submitting||!S.slot)return;
   const msg=`実際のAirウェイトへ受付を作成します。\n\n${S.slot.label}\nおとな ${S.adult}名 / こども ${S.child}名 / 0〜5ヶ月 ${S.infant}名\n合計 ${totalPeople()}名\n\n本番受付を実行しますか？`;
@@ -140,13 +187,29 @@ $('submitBtn').addEventListener('click',async()=>{
   S.submitting=true;renderPeople();$('submitBtn').textContent='Airウェイトへ登録中…';
   try{
     const result=await A.createReservation({adults:S.adult,paidChildren:S.child,infants:S.infant,waitTypeId:S.slot.waitTypeId});
-    $('receiptNo').textContent=result.receiptNo;
-    $('successMsg').textContent=`reserveId ${result.reserveId} / 実際のAirウェイトへ登録済みです。`;
+    const rec=STORE.save({
+      ...result,
+      operationalDate:S.day.operationalDate,
+      businessType:S.day.businessType,
+      waitTypeId:S.slot.waitTypeId,
+      waitTypeLabel:S.slot.label,
+      waitTypeName:S.slot.actual?.waitTypeName||S.slot.label,
+      adults:S.adult,
+      paidChildren:S.child,
+      infants:S.infant,
+      totalPeople:totalPeople(),
+      totalPrice:totalPrice(),
+      source:'asoboon-staff-live-v2'
+    });
+    $('receiptNo').textContent=rec.receiptNo;
+    $('successMsg').textContent=`受付番号 ${rec.receiptNo} をこの端末へ保存しました。呼出状況ページで自動表示されます。`;
     $('successSummary').innerHTML=`<div class="line"><span>回</span><strong>${esc(S.slot.label)}</strong></div><div class="line"><span>待ち項目</span><strong>${esc(S.slot.actual.waitTypeName)} (${esc(S.slot.waitTypeId)})</strong></div><div class="line"><span>人数</span><strong>大人${S.adult} / 子ども${S.child} / 0〜5ヶ月${S.infant}</strong></div><div class="line total"><span>合計</span><strong>${totalPeople()}名</strong></div>`;
     $('slotCard').classList.add('hidden');$('peopleCard').classList.add('hidden');$('diagnosticCard').classList.add('hidden');$('successCard').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});
+    void registerLineNotification(rec);
   }catch(e){console.error(e);alert(`本番Airウェイトへ登録できませんでした。\n\n${errText(e)}`);setDiag(`受付作成エラー：${errText(e)}`,'bad');$('diagnosticCard').classList.remove('hidden')}
   finally{S.submitting=false;$('submitBtn').textContent='本番受付を確定する';renderPeople()}
 });
+if(BRIDGE?.setLineTokenProvider)BRIDGE.setLineTokenProvider(getLineAccessToken);
 renderPeople();boot();
 })();
 </script>
