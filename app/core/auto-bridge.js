@@ -13,6 +13,7 @@ function makeRequestId(){try{if(crypto?.randomUUID)return'b_'+crypto.randomUUID(
 function readLinked(){try{return JSON.parse(localStorage.getItem(C().autoBridgeSentKey)||'{}')||{}}catch{return{}}}
 function isLinked(p){const id=normalizeReserveId(p?.reserveId);return !!(id&&readLinked()[id])}
 function markLinked(p){try{const id=normalizeReserveId(p?.reserveId);if(!id)return;const m=readLinked();m[id]=Date.now();const cutoff=Date.now()-7*86400000;Object.keys(m).forEach(k=>{if(Number(m[k]||0)<cutoff)delete m[k]});localStorage.setItem(C().autoBridgeSentKey,JSON.stringify(m))}catch{}}
+function clearLinked(reserveId){try{const id=normalizeReserveId(reserveId);if(!id)return;const m=readLinked();delete m[id];localStorage.setItem(C().autoBridgeSentKey,JSON.stringify(m))}catch{}}
 function safePayload(p){const x={...p};delete x.lineAccessToken;delete x.idToken;return x}
 function savePending(p){try{localStorage.setItem(C().autoBridgePendingKey,JSON.stringify({...safePayload(p),queuedAt:Date.now()}))}catch{}}
 function clearPending(p){try{const x=JSON.parse(localStorage.getItem(C().autoBridgePendingKey)||'null');if(x&&normalizeReserveId(x.reserveId)===normalizeReserveId(p.reserveId))localStorage.removeItem(C().autoBridgePendingKey)}catch{}}
@@ -25,10 +26,11 @@ async function send(payload){
   const url=String(C().autoBridgeUrl||'');
   const reserveId=normalizeReserveId(payload?.reserveId);
   if(!validBridgeUrl(url)||!reserveId||!payload?.receiptNo||!payload?.waitTypeId)return{ok:false,error:'VALIDATION_ERROR'};
+  const requireLine=payload?.requireLineLink===true;
   if(isLinked(payload))return{ok:true,stored:true,lineLinked:true,alreadyLinked:true};
   if(inflight.has(reserveId))return{ok:false,error:'INFLIGHT'};
   inflight.add(reserveId);
-  const p={...safePayload(payload),reserveId,source:C().autoBridgeSource||'asoboon-app-v2',bridgeRequestId:String(payload?.bridgeRequestId||makeRequestId())};
+  const p={...safePayload(payload),reserveId,source:String(payload?.source||C().autoBridgeSource||'asoboon-app-v2'),bridgeRequestId:String(payload?.bridgeRequestId||makeRequestId())};
   savePending(p);
   try{
     const token=await lineTokenFor(payload);
@@ -37,8 +39,8 @@ async function send(payload){
     await fetch(url,{method:'POST',mode:'no-cors',credentials:'omit',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams(Object.fromEntries(Object.entries(post).map(([k,v])=>[k,String(v??'')]))),cache:'no-store',keepalive:true});
     const status=await confirmStatus(p.bridgeRequestId);
     if(status?.ok&&status?.stored){
-      if(status?.lineLinked===true){markLinked(p);clearPending(p)}
-      else if(!token){/* LINE未紐付け。後で専用LIFFページから再送するため完了扱いにしない */}
+      if(status?.lineLinked===true){markLinked(p);clearPending(p);return status}
+      if(requireLine||token){clearLinked(reserveId);return{...status,ok:false,error:status?.lineError||'LINE_NOT_LINKED'}}
       return status;
     }
     return{ok:false,stored:false,error:'BRIDGE_NOT_CONFIRMED',requestId:p.bridgeRequestId};
@@ -48,5 +50,5 @@ async function send(payload){
 function queue(payload){return send(payload)}
 async function retryPending(){try{const p=JSON.parse(localStorage.getItem(C().autoBridgePendingKey)||'null');if(!p?.reserveId||Date.now()-Number(p.queuedAt||0)>24*60*60*1000){if(p)localStorage.removeItem(C().autoBridgePendingKey);return null}if(isLinked(p)){clearPending(p);return{ok:true,alreadyLinked:true,lineLinked:true}}if(!lineTokenProvider)return{ok:false,error:'LINE_CONTEXT_REQUIRED'};return await send(p)}catch{return null}}
 window.addEventListener('online',()=>{if(lineTokenProvider)void retryPending()});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&lineTokenProvider)void retryPending()});
-window.ASOBOON_AUTO_BRIDGE=Object.freeze({normalizeReserveId,send,queue,retryPending,setLineTokenProvider,isLinked});
+window.ASOBOON_AUTO_BRIDGE=Object.freeze({normalizeReserveId,send,queue,retryPending,setLineTokenProvider,isLinked,clearLinked});
 })();
