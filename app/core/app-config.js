@@ -1,7 +1,7 @@
 /* ASOBooN 新ミニアプリ 共通設定 */
 (()=>{
 'use strict';
-const VERSION='2026-08-31.1';
+const VERSION='2026-09-05.1';
 const SLOT_RULES=Object.freeze({
   '平日':Object.freeze([
     Object.freeze({waitTypeId:'0023',label:'すぐ入場',detail:'受付後、順番にご案内します',callStart:'09:30'}),
@@ -27,6 +27,9 @@ const CONFIG=Object.freeze({
   prices:Object.freeze({adult:600,child:900,infant:0}),
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   slotRules:SLOT_RULES,
+  liffId:'2009888671-57TOefc3',
+  lineLoginChannelId:'2009888671',
+  callStatusLiffUrl:'https://miniapp.line.me/2009888671-57TOefc3/callstatus.html',
   autoBridgeUrl:'https://script.google.com/macros/s/AKfycbzWxUtJp15E6mCNaHwHiwe0i54pkHHE0C_pJ8LbdDRmbnEu5hOAjr1hUHVoRFQBYGXftA/exec',
   autoBridgeSource:'asoboon-app-v2',
   currentReservationKey:'asoboon_app_v2_current_reservation',
