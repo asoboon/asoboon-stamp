@@ -8,54 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ASOBooN PURPLE｜Developing LINE Test</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(180deg,#e6d4f7,#fbf7ff 52%,#e0c9f1);color:#2c2333}.app{width:min(100%,520px);margin:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 30px)}.head{padding:20px 16px;border:3px solid #d6b7f5;border-radius:23px;background:linear-gradient(145deg,#7137ae,#37135f);color:#fff;box-shadow:0 12px 28px rgba(60,23,102,.23)}.head small{display:block;color:#ead8ff;font-size:10px;font-weight:950;letter-spacing:.1em}.head h1{margin:6px 0 0;font-size:23px}.head p{margin:7px 0 0;color:#eee2f8;font-size:11px;line-height:1.55;font-weight:800}.card{margin-top:12px;padding:15px;border:2px solid rgba(91,52,118,.2);border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(61,34,78,.09)}.msg{padding:11px 12px;border-radius:12px;background:#f0e7f9;color:#583b71;font-size:12px;line-height:1.65;font-weight:850}.ok{background:#e8f6ed;color:#285d3d}.bad{background:#fff0eb;color:#7f3028}.warn{background:#fff7d9;color:#6e5615}.steps{display:grid;gap:7px;margin-top:10px}.step{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:11px;background:#f2e9fb;color:#5b3a73;font-size:11px;font-weight:900}.step b{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:50%;background:#6a35a8;color:#fff}.step.done{background:#e8f6ed;color:#285d3d}.step.done b{background:#2e7a52}.meta{margin-top:10px;padding:10px;border-radius:12px;background:#f7f0fc;font-size:11px;line-height:1.6}.meta div+div{margin-top:5px}.meta span{color:#786982}.meta strong{color:#3c2850}.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:10px;border:0;border-radius:12px;background:linear-gradient(180deg,#8b55c1,#5b2c8f);color:#fff;font-weight:1000}.btn.secondary{background:#fff;color:#5b2c8c;border:2px solid #8a66a4}.btn:disabled{opacity:.45}.support{margin-top:13px;text-align:center;color:#6f6179;font-size:10px;line-height:1.5}
-</style>
+<title>ASOBooN PURPLE｜LIFF Smoke Test</title>
+<style>html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:#eadcf7;color:#351653}.wrap{max-width:520px;margin:auto;padding:28px 16px}.box{padding:22px 18px;border:3px solid #8d58c3;border-radius:22px;background:#fff;box-shadow:0 10px 28px rgba(70,30,105,.16)}.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#6a35a8;color:#fff;font-size:11px;font-weight:900}.ok{margin:18px 0 6px;font-size:26px;font-weight:1000}.txt{font-size:14px;line-height:1.7;font-weight:750}.small{margin-top:14px;color:#765b8a;font-size:11px;line-height:1.6}</style>
 </head>
-<body><main class="app">
-<section class="head"><small>ASOBooN PURPLE / DEVELOPING</small><h1>LINEサービスメッセージ実験</h1><p>本番LIFFとは完全に別のDeveloping内部チャネルで検証します。</p></section>
-<section class="card">
-<div id="status" class="msg">Developing LIFFを初期化しています…</div>
-<div class="steps">
-  <div id="s1" class="step"><b>1</b>Developing LIFFとして起動</div>
-  <div id="s2" class="step"><b>2</b>LINEアプリ内の認証を確認</div>
-  <div id="s3" class="step"><b>3</b>LIFFアクセストークンを取得</div>
-</div>
-<div class="meta">
-  <div><span>環境：</span><strong>Developing</strong></div>
-  <div><span>LIFF ID：</span><strong>2009884611-bDgDzGrN</strong></div>
-  <div><span>現在の受付：</span><strong id="receipt">未取得</strong></div>
-  <div><span>次工程：</span><strong id="next">LIFF接続確認</strong></div>
-</div>
-<button id="check" class="btn" type="button">もう一度確認する</button>
-<a class="btn secondary" href="./purple-callstatus.html?v=20260906-7">← 紫呼出状況へ戻る</a>
-</section>
-<div class="support">アクセストークンそのものは画面表示・保存しません。チャネルシークレットも公開コードには保存しません。</div>
-</main>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-(()=>{'use strict';
-const DEV_LIFF_ID='2009884611-bDgDzGrN';
-const RES_KEY='asoboon_purple_current_reservation_v1';
-const status=document.getElementById('status'),btn=document.getElementById('check'),receipt=document.getElementById('receipt'),next=document.getElementById('next');
-const done=id=>document.getElementById(id).classList.add('done');
-const reset=()=>['s1','s2','s3'].forEach(id=>document.getElementById(id).classList.remove('done'));
-function set(t,c=''){status.className='msg '+c;status.textContent=t}
-function readReservation(){try{return JSON.parse(localStorage.getItem(RES_KEY)||'null')}catch{return null}}
-const rec=readReservation();if(rec?.receiptNo)receipt.textContent=String(rec.receiptNo)+'番';
-async function check(){btn.disabled=true;reset();try{
-  set('Developing LIFFを初期化しています…');
-  if(!window.liff)throw new Error('LIFF SDKを読み込めませんでした。');
-  await liff.init({liffId:DEV_LIFF_ID});done('s1');
-  if(!liff.isInClient())throw new Error('このURLをLINEアプリ内のDeveloping LIFF URLから開いてください。');
-  if(!liff.isLoggedIn())throw new Error('Developing LINEミニアプリのログイン状態を確認できません。');done('s2');
-  const token=String(liff.getAccessToken()||'');
-  if(!token)throw new Error('LIFFアクセストークンを取得できませんでした。');done('s3');
-  next.textContent='サービス通知トークン発行API';
-  set('✓ 成功！ Developing専用LIFFで認証できました。本番HOMEを経由せず、サービスメッセージ実験へ進めます。','ok');
-}catch(e){console.error(e);next.textContent='ここで原因を確認';set(String(e?.message||e),'bad')}finally{btn.disabled=false}}
-btn.onclick=check;check();
-})();
-</script>
-</body></html>
+<body><main class="wrap"><section class="box"><span class="badge">🟣 DEVELOPING SMOKE TEST</span><div class="ok">この画面が出れば成功</div><div class="txt">LINE Developers の Developing LIFF から、GitHub Pages の紫エンドポイントまで到達できています。</div><div class="small">このページは LIFF SDK・外部JavaScript・API通信を一切使っていません。表示できれば次に LIFF 初期化だけを追加して検証します。</div></section></main></body></html>
