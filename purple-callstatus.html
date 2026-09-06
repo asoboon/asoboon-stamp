@@ -4,23 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<meta name="theme-color" content="#0f2b46">
+<meta name="theme-color" content="#6a35a8">
 <title>ASOBooN｜紫 呼出状況</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efe1bd}
-#frame{display:block;width:100%;height:100%;border:0;background:#efe1bd}
-#purpleBadge{position:fixed;z-index:2147483647;right:10px;top:max(8px,env(safe-area-inset-top));padding:5px 9px;border:2px solid #fff;border-radius:999px;background:#6a35a8;color:#fff;font:900 10px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 4px 14px rgba(62,28,100,.28);pointer-events:none;letter-spacing:.06em}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
+#frame{display:block;width:100%;height:100%;border:0;background:#e8dcf6}
+#purpleBadge{position:fixed;z-index:2147483647;right:10px;top:max(8px,env(safe-area-inset-top));padding:7px 12px;border:2px solid #fff;border-radius:999px;background:linear-gradient(180deg,#925dcc,#6a35a8);color:#fff;font:1000 11px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 6px 18px rgba(62,28,100,.34);pointer-events:none;letter-spacing:.08em}
 </style>
 </head>
 <body>
-<div id="purpleBadge">🟣 PURPLE</div>
+<div id="purpleBadge">🟣 PURPLE CALL</div>
 <iframe id="frame" title="ASOBooN 紫 呼出状況"></iframe>
 <script>
 (()=>{'use strict';
 const PURPLE_KEY='asoboon_purple_callstatus_number_v1';
 const PROD_KEY='asoboon_callstatus_number_v4';
-const PURPLE_TIME='./purple-timeguide.html?v=20260906-1';
-const PURPLE_HOME='./staff-test-home.html?v=20260906-1';
+const PURPLE_TIME='./purple-timeguide.html?v=20260906-2';
+const PURPLE_HOME='./staff-test-home.html?v=20260906-2';
 const frame=document.getElementById('frame');
 const params=new URLSearchParams(location.search);
 const pad=v=>String(v).padStart(2,'0');
@@ -28,17 +28,19 @@ const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMo
 const digits=v=>String(v||'').replace(/\D/g,'').slice(0,8);
 function readPurple(){try{const x=JSON.parse(localStorage.getItem(PURPLE_KEY)||'null');return x&&x.date===localDate()?x:null}catch{return null}}
 function savePurple(number,date=localDate()){number=digits(number);if(!number)return;try{localStorage.setItem(PURPLE_KEY,JSON.stringify({date,number}))}catch{}}
-const queryNumber=digits(params.get('number'));
-if(queryNumber)savePurple(queryNumber,String(params.get('date')||localDate()));
-const purple=readPurple();
-let original=null,hadOriginal=false;
+const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNumber,String(params.get('date')||localDate()));
+const purple=readPurple();let original=null,hadOriginal=false;
 try{original=localStorage.getItem(PROD_KEY);hadOriginal=original!==null;if(purple)localStorage.setItem(PROD_KEY,JSON.stringify(purple));else localStorage.removeItem(PROD_KEY)}catch{}
 function restoreProd(){try{if(hadOriginal)localStorage.setItem(PROD_KEY,original);else localStorage.removeItem(PROD_KEY)}catch{}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_STORAGE__=true}catch(e){console.warn('purple storage patch',e)}}
+function applyPurpleTheme(){try{const doc=frame.contentDocument;if(!doc||doc.getElementById('purpleCallTheme'))return;const s=doc.createElement('style');s.id='purpleCallTheme';s.textContent=`
+:root{--paper:#eee4f8!important;--paper-light:#fcf8ff!important;--paper-deep:#dcc8ef!important;--navy:#5a2d84!important;--navy-deep:#351653!important;--forest:#63368d!important;--forest-deep:#3a1d58!important;--brass:#a274c7!important;--brass-light:#d7b8ef!important;--brass-deep:#714397!important;--orange:#8e58b6!important;--green:#6c3a96!important}
+body{background:linear-gradient(180deg,#e9def6,#f8f4fc 55%,#decbed)!important}.top{background:linear-gradient(180deg,rgba(238,228,248,.98),rgba(238,228,248,.80),transparent)!important}.back,.submit,.ctrl.primary,.entry-confirm-btn{background:linear-gradient(180deg,#925dcc,#6a35a8)!important;border-color:#4d246d!important;color:#fff!important}.mini-brand,.live,.lookup,.lookup-summary,.waiting-guide,.rounds,.controls,.message{border-color:rgba(106,53,168,.28)!important}.hero{background:radial-gradient(circle at 82% 14%,rgba(224,188,255,.16),transparent 28%),linear-gradient(155deg,#633596,#351653)!important;border-color:#a274c7!important}.hero-emblem{background:linear-gradient(180deg,#fffaff,#eadcf7)!important}.hero h1{color:#512778!important}.hero-route-icon{background:linear-gradient(180deg,#8c58b8,#5b2d87)!important;border-color:#d7b8ef!important}.lookup{background:linear-gradient(180deg,#f8efff,#e4d4f2)!important}.lookup-title,.waiting-guide-main,.rounds h2{color:#512778!important}.personal{border-color:#8f61b2!important}.status{background:linear-gradient(180deg,#f8f0ff,#e8d7f4)!important}.roundchip,.pace,.call-deadline-badge{background:#74439d!important;color:#fff!important}.metric.primary,.forecast,.call-deadline,.entry-action{border-color:rgba(106,53,168,.28)!important;background:linear-gradient(180deg,#fbf7ff,#eee4f8)!important}.rcard{border-color:rgba(106,53,168,.25)!important}.rtoggle{background:linear-gradient(180deg,#fbf7ff,#eee4f8)!important;color:#512778!important}.q.me{border-color:#8c58b8!important;background:#f3e9fb!important}.footer{color:#765b8a!important}
+`;doc.head.appendChild(s)}catch(e){console.warn('purple call theme',e)}}
 function durationForNumber(v){const n=Number(digits(v));if(n>=1&&n<=799)return 180;if(n>=1001&&n<=2699)return 150;return null}
-function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;const entered=doc.getElementById('enteredButton');if(entered&&!entered.dataset.purpleBound){entered.dataset.purpleBound='1';entered.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const x=readPurple();const u=new URL(PURPLE_TIME,location.href);const mins=durationForNumber(x?.number);if(mins!=null)u.searchParams.set('minutes',String(mins));top.location.href=u.href},true)}const back=doc.getElementById('backButton');if(back&&!back.dataset.purpleBound){back.dataset.purpleBound='1';back.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();top.location.href=new URL(PURPLE_HOME,location.href).href},true)}const parking=doc.getElementById('parkingLink');if(parking){parking.href=new URL(PURPLE_HOME+'&mode=before&view=parking',location.href).href;parking.target='_top'}}catch(e){console.warn('purple nav patch',e)}}
-frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();patchNavigation();setInterval(patchNavigation,800)});
-frame.src='./callstatus-core.html?v=575&wrap=1&purple=1';
+function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;applyPurpleTheme();const entered=doc.getElementById('enteredButton');if(entered&&!entered.dataset.purpleBound){entered.dataset.purpleBound='1';entered.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const x=readPurple();const u=new URL(PURPLE_TIME,location.href);const mins=durationForNumber(x?.number);if(mins!=null)u.searchParams.set('minutes',String(mins));top.location.href=u.href},true)}const back=doc.getElementById('backButton');if(back&&!back.dataset.purpleBound){back.dataset.purpleBound='1';back.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();top.location.href=new URL(PURPLE_HOME,location.href).href},true)}const parking=doc.getElementById('parkingLink');if(parking){parking.href=new URL(PURPLE_HOME+'&mode=before&view=parking',location.href).href;parking.target='_top'}}catch(e){console.warn('purple nav patch',e)}}
+frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();applyPurpleTheme();patchNavigation();setInterval(patchNavigation,800)});
+frame.src='./callstatus-core.html?v=575&wrap=1&purple=2';
 window.addEventListener('pagehide',restoreProd,{once:true});
 })();
 </script>
