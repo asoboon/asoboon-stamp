@@ -1,5 +1,5 @@
 /**
- * ASOBooN PURPLE Service Message backend v1.0.0
+ * ASOBooN PURPLE Service Message backend v1.0.1
  * Purple-only / standalone Apps Script Web App.
  * Never place Channel Secret or AirWAIT API key in GitHub/client JS.
  *
@@ -12,7 +12,7 @@
  *   PURPLE_SERVICE_TEMPLATE_PARAMS_JSON (JSON object; supports {{receiptNo}}, {{waitTypeName}}, {{callstatusUrl}})
  */
 const PSM1=Object.freeze({
-  VERSION:'1.0.0',
+  VERSION:'1.0.1',
   TZ:'Asia/Tokyo',
   SPREADSHEET_ID:'1dsQcmLMNxVb-uaR16zbqhqjeenoNg5VqMMWa3-1pj8Y',
   CHANNEL_ID_DEFAULT:'2011467470',
@@ -94,16 +94,18 @@ function issuePurpleServiceToken_(p){
   if(!receiptNo||!reserveId||!/^\d{4}$/.test(waitTypeId))throw new Error('VALIDATION_ERROR');
   if(liffAccessToken.length<20)throw new Error('LIFF_ACCESS_TOKEN_REQUIRED');
 
-  const tokenHash=sha256HexPsm_(liffAccessToken);
+  // One reservation action gets one service-notification-token lifecycle.
+  // A retry must reuse the stored token, not mint another one with a refreshed LIFF access token.
   const existing=findPsmMap_(receiptNo,reserveId);
-  if(existing&&existing.liffTokenHash===tokenHash&&existing.notificationToken){
-    if(sendFirst&&String(existing.status)!=='FIRST_MESSAGE_SENT'){
+  if(existing&&existing.notificationToken){
+    if(sendFirst&&String(existing.status)!=='FIRST_MESSAGE_SENT'&&String(existing.status)!=='CALL_MESSAGE_SENT'&&Number(existing.remainingCount||0)>0){
       const sent=sendServiceForRecord_(existing,{receiptNo,reserveId,waitTypeId,waitTypeName,businessDate,source});
       return publicPsmResult_(sent,true);
     }
     return publicPsmResult_(existing,true);
   }
 
+  const tokenHash=sha256HexPsm_(liffAccessToken);
   const channelToken=statelessChannelTokenPsm_();
   const r=UrlFetchApp.fetch(PSM1.NOTIFIER_TOKEN,{method:'post',contentType:'application/json; charset=UTF-8',headers:{Authorization:'Bearer '+channelToken},payload:JSON.stringify({liffAccessToken:liffAccessToken}),muteHttpExceptions:true,followRedirects:true});
   const code=r.getResponseCode();
@@ -235,7 +237,21 @@ function airwaitLastUpdatePsm_(){
   const r=UrlFetchApp.fetch(u,{method:'get',headers:{Origin:PSM1.ORIGIN},muteHttpExceptions:true,followRedirects:true});
   if(r.getResponseCode()<200||r.getResponseCode()>=300)throw new Error('AIRWAIT_LAST_HTTP_'+r.getResponseCode());
   const d=parseJsonPsm_(r.getContentText(),'airwait last');if(!airwaitOkPsm_(d))throw new Error('AIRWAIT_LAST_ERROR');
-  const x=d&&d.innerDto||d&&d.dto||d;const marker=String(x&&(x.lastUpdDate||x.lastUpdateDate||x.updatedAt||x.updateDate)||'');if(!marker)throw new Error('AIRWAIT_LAST_MARKER_EMPTY');return marker;
+  const marker=findMarkerPsm_(d);if(!marker)throw new Error('AIRWAIT_LAST_MARKER_EMPTY');return marker;
+}
+
+function findMarkerPsm_(payload){
+  const names=['lastUpdDate','lastUpdate','lastUpdateDate','lastUpdatedAt','updateDate','updatedAt','lastUpdDateStateless'];
+  const seen=[];
+  function walk(v,depth){
+    if(!v||typeof v!=='object'||depth>5||seen.indexOf(v)>=0)return'';
+    seen.push(v);
+    for(const k of names)if(v[k]!=null&&String(v[k]).trim())return String(v[k]).trim();
+    for(const k of Object.keys(v))if(/last.*upd|update.*date|updated/i.test(k)&&v[k]!=null&&typeof v[k]!=='object'&&String(v[k]).trim())return String(v[k]).trim();
+    for(const k of Object.keys(v)){const x=walk(v[k],depth+1);if(x)return x}
+    return'';
+  }
+  return walk(payload,0);
 }
 
 function airwaitReservationsPsm_(){
@@ -279,5 +295,5 @@ function parseJsonPsm_(text,label){try{return JSON.parse(String(text||''))}catch
 function safeApiTextPsm_(text){const s=String(text||'').replace(/[\r\n\t]+/g,' ').replace(/"(access_token|notificationToken|liffAccessToken|client_secret)"\s*:\s*"[^"]*"/gi,'"$1":"[REDACTED]"');return s.slice(0,300)}
 function safePsmError_(e){return String(e&&e.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500)}
 function sha256HexPsm_(text){return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(text),Utilities.Charset.UTF_8).map(b=>('0'+((b+256)%256).toString(16)).slice(-2)).join('')}
-function psmOut_(data,callback){const json=JSON.stringify(data);if(callback&&/^[A-Za-z_$][0-9A-Za-z_$\.]{0,80}$/.test(callback))return ContentService.createTextOutput(callback+'('+json+');').setMimeType(ContentService.MimeType.JAVASCRIPT);return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON)}
+function psmOut_(data,callback){const json=JSON.stringify(data),cb=String(callback||'');if(cb&&/^[A-Za-z_$][0-9A-Za-z_$]{0,80}$/.test(cb))return ContentService.createTextOutput(cb+'('+json+');').setMimeType(ContentService.MimeType.JAVASCRIPT);return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON)}
 function removePsmTriggers_(){ScriptApp.getProjectTriggers().forEach(t=>{if(t.getHandlerFunction&&t.getHandlerFunction()==='purpleServiceWorkerV1')ScriptApp.deleteTrigger(t)})}
