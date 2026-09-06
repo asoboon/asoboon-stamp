@@ -15,7 +15,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
 </head>
 <body>
 <div id="purpleBadge">🟣 PURPLE CALL</div>
-<div id="lineBindBar" hidden><strong>🔔 DevelopingでLINE通知をテスト</strong><span>今の受付番号を使い、紫専用LINEミニアプリでサービスメッセージを検証します。</span><button id="lineBindButton" type="button">Developing LINE通知テストを開く</button></div>
+<div id="lineBindBar" hidden><strong>🔔 DevelopingでLINE通知をテスト</strong><span>今の受付番号を使い、紫専用LINEミニアプリでサービスメッセージ通知を登録します。</span><button id="lineBindButton" type="button">LINE呼出通知の登録テスト</button></div>
 <iframe id="frame" title="ASOBooN 紫 呼出状況"></iframe>
 <script>
 (()=>{'use strict';
@@ -28,7 +28,7 @@ const LINK_KEY_V2='asoboon_purple_line_link_result_v2';
 const PROD_KEY='asoboon_callstatus_number_v4';
 const DEV_LIFF_URL='https://miniapp.line.me/2011467470-Gk5C3lWf/';
 const PURPLE_TIME='./purple-timeguide.html?v=20260906-2';
-const PURPLE_HOME='./staff-test-home.html?v=20260906-4';
+const PURPLE_HOME='./staff-test-home.html?v=20260906-5';
 const frame=document.getElementById('frame');
 const lineBindBar=document.getElementById('lineBindBar');
 const lineBindButton=document.getElementById('lineBindButton');
@@ -38,16 +38,17 @@ const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMo
 const digits=v=>String(v||'').replace(/\D/g,'').slice(0,12);
 const reserveKey=v=>{const d=digits(v);return d?d.padStart(12,'0'):''};
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
-function readPurple(){const x=readJson(PURPLE_KEY);return x&&x.date===localDate()?x:null}
 function readReservation(){const x=readJson(RES_KEY);return x&&x.receiptNo?x:null}
-function savePurple(number,date=localDate()){number=digits(number);if(!number)return;try{localStorage.setItem(PURPLE_KEY,JSON.stringify({date,number}))}catch{}}
-const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNumber,String(params.get('date')||localDate()));
+function expectedDate(){return String(params.get('date')||readReservation()?.operationalDate||localDate()).slice(0,10)}
+function readPurple(){const x=readJson(PURPLE_KEY);return x&&String(x.date)===expectedDate()?x:null}
+function savePurple(number,date=expectedDate()){number=digits(number);date=String(date||'').slice(0,10);if(!number||!/^\d{4}-\d{2}-\d{2}$/.test(date))return;try{localStorage.setItem(PURPLE_KEY,JSON.stringify({date,number}))}catch{}}
+const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNumber,String(params.get('date')||expectedDate()));
 const purple=readPurple();let original=null,hadOriginal=false;
 try{original=localStorage.getItem(PROD_KEY);hadOriginal=original!==null;if(purple)localStorage.setItem(PROD_KEY,JSON.stringify(purple));else localStorage.removeItem(PROD_KEY)}catch{}
 function restoreProd(){try{if(hadOriginal)localStorage.setItem(PROD_KEY,original);else localStorage.removeItem(PROD_KEY)}catch{}}
 function linkedFor(rec){if(!rec)return false;const service=readJson(SERVICE_KEY);if(service&&['TOKEN_READY','FIRST_MESSAGE_SENT','CALL_MESSAGE_SENT'].includes(String(service.status||''))&&String(service.receiptNo)===String(rec.receiptNo)&&reserveKey(service.reserveId)===reserveKey(rec.reserveId))return true;for(const k of [LINK_KEY_V4,LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&reserveKey(x.reserveId)===reserveKey(rec.reserveId))return true}return false}
-function lineUrl(rec){const u=new URL(DEV_LIFF_URL);[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('source','purple-callstatus');return u.href}
-function updateLineBindBar(){const rec=readReservation(),num=readPurple()?.number;const same=rec&&num&&String(rec.receiptNo)===String(num);lineBindBar.hidden=!(same&&!linkedFor(rec));if(!lineBindBar.hidden)lineBindButton.onclick=()=>{location.href=lineUrl(rec)}}
+function lineUrl(rec){const u=new URL(DEV_LIFF_URL);u.searchParams.set('view','register');[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('source','purple-callstatus');return u.href}
+function updateLineBindBar(){const rec=readReservation(),num=readPurple()?.number;const same=rec&&num&&String(rec.receiptNo)===String(num)&&String(rec.operationalDate||'')===expectedDate();lineBindBar.hidden=!(same&&!linkedFor(rec));if(!lineBindBar.hidden)lineBindButton.onclick=()=>{location.href=lineUrl(rec)}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_STORAGE__=true}catch(e){console.warn('purple storage patch',e)}}
 function applyPurpleTheme(){try{const doc=frame.contentDocument;if(!doc||doc.getElementById('purpleCallTheme'))return;const s=doc.createElement('style');s.id='purpleCallTheme';s.textContent=`
 :root{--paper:#eee4f8!important;--paper-light:#fcf8ff!important;--paper-deep:#dcc8ef!important;--navy:#5a2d84!important;--navy-deep:#351653!important;--forest:#63368d!important;--forest-deep:#3a1d58!important;--brass:#a274c7!important;--brass-light:#d7b8ef!important;--brass-deep:#714397!important;--orange:#8e58b6!important;--green:#6c3a96!important}
@@ -56,7 +57,7 @@ body{background:linear-gradient(180deg,#e9def6,#f8f4fc 55%,#decbed)!important}.t
 function durationForNumber(v){const n=Number(digits(v));if(n>=1&&n<=799)return 180;if(n>=1001&&n<=2699)return 150;return null}
 function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;applyPurpleTheme();const entered=doc.getElementById('enteredButton');if(entered&&!entered.dataset.purpleBound){entered.dataset.purpleBound='1';entered.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const x=readPurple();const u=new URL(PURPLE_TIME,location.href);const mins=durationForNumber(x?.number);if(mins!=null)u.searchParams.set('minutes',String(mins));top.location.href=u.href},true)}const back=doc.getElementById('backButton');if(back&&!back.dataset.purpleBound){back.dataset.purpleBound='1';back.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();top.location.href=new URL(PURPLE_HOME,location.href).href},true)}const parking=doc.getElementById('parkingLink');if(parking){parking.href=new URL(PURPLE_HOME+'&mode=before&view=parking',location.href).href;parking.target='_top'}}catch(e){console.warn('purple nav patch',e)}}
 frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();applyPurpleTheme();patchNavigation();updateLineBindBar();setInterval(()=>{patchNavigation();updateLineBindBar()},800)});
-frame.src='./callstatus-core.html?v=575&wrap=1&purple=7';
+frame.src='./callstatus-core.html?v=575&wrap=1&purple=8';
 window.addEventListener('focus',updateLineBindBar);
 window.addEventListener('pagehide',restoreProd,{once:true});
 updateLineBindBar();
