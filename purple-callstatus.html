@@ -15,15 +15,17 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
 </head>
 <body>
 <div id="purpleBadge">🟣 PURPLE CALL</div>
-<div id="lineBindBar" hidden><strong>🔔 この受付はLINE通知が未確認です</strong><span>今の受付番号を使ってLINE通知だけ登録できます。新しいAirウェイト受付は作りません。</span><button id="lineBindButton" type="button">この受付にLINE通知を登録</button></div>
+<div id="lineBindBar" hidden><strong>🔔 DevelopingでLINE通知をテスト</strong><span>今の受付番号を使い、紫専用LINEミニアプリでサービスメッセージを検証します。</span><button id="lineBindButton" type="button">Developing LINE通知テストを開く</button></div>
 <iframe id="frame" title="ASOBooN 紫 呼出状況"></iframe>
 <script>
 (()=>{'use strict';
 const PURPLE_KEY='asoboon_purple_callstatus_number_v1';
 const RES_KEY='asoboon_purple_current_reservation_v1';
+const LINK_KEY_V4='asoboon_purple_line_link_result_v4';
 const LINK_KEY_V3='asoboon_purple_line_link_result_v3';
 const LINK_KEY_V2='asoboon_purple_line_link_result_v2';
 const PROD_KEY='asoboon_callstatus_number_v4';
+const DEV_LIFF_URL='https://miniapp.line.me/2009884611-bDgDzGrN/';
 const PURPLE_TIME='./purple-timeguide.html?v=20260906-2';
 const PURPLE_HOME='./staff-test-home.html?v=20260906-4';
 const frame=document.getElementById('frame');
@@ -41,8 +43,8 @@ const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNu
 const purple=readPurple();let original=null,hadOriginal=false;
 try{original=localStorage.getItem(PROD_KEY);hadOriginal=original!==null;if(purple)localStorage.setItem(PROD_KEY,JSON.stringify(purple));else localStorage.removeItem(PROD_KEY)}catch{}
 function restoreProd(){try{if(hadOriginal)localStorage.setItem(PROD_KEY,original);else localStorage.removeItem(PROD_KEY)}catch{}}
-function linkedFor(rec){if(!rec)return false;for(const k of [LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&String(x.reserveId)===String(rec.reserveId))return true}return false}
-function lineUrl(rec){const u=new URL('./purple-line-link-v3.html',location.href);[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('mandatory','1');u.searchParams.set('_v','20260906-4');return u.href}
+function linkedFor(rec){if(!rec)return false;for(const k of [LINK_KEY_V4,LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&String(x.reserveId)===String(rec.reserveId))return true}return false}
+function lineUrl(rec){const u=new URL(DEV_LIFF_URL);[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('source','purple-callstatus');return u.href}
 function updateLineBindBar(){const rec=readReservation(),num=readPurple()?.number;const same=rec&&num&&String(rec.receiptNo)===String(num);lineBindBar.hidden=!(same&&!linkedFor(rec));if(!lineBindBar.hidden)lineBindButton.onclick=()=>{location.href=lineUrl(rec)}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_STORAGE__=true}catch(e){console.warn('purple storage patch',e)}}
 function applyPurpleTheme(){try{const doc=frame.contentDocument;if(!doc||doc.getElementById('purpleCallTheme'))return;const s=doc.createElement('style');s.id='purpleCallTheme';s.textContent=`
@@ -52,7 +54,7 @@ body{background:linear-gradient(180deg,#e9def6,#f8f4fc 55%,#decbed)!important}.t
 function durationForNumber(v){const n=Number(digits(v));if(n>=1&&n<=799)return 180;if(n>=1001&&n<=2699)return 150;return null}
 function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;applyPurpleTheme();const entered=doc.getElementById('enteredButton');if(entered&&!entered.dataset.purpleBound){entered.dataset.purpleBound='1';entered.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const x=readPurple();const u=new URL(PURPLE_TIME,location.href);const mins=durationForNumber(x?.number);if(mins!=null)u.searchParams.set('minutes',String(mins));top.location.href=u.href},true)}const back=doc.getElementById('backButton');if(back&&!back.dataset.purpleBound){back.dataset.purpleBound='1';back.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();top.location.href=new URL(PURPLE_HOME,location.href).href},true)}const parking=doc.getElementById('parkingLink');if(parking){parking.href=new URL(PURPLE_HOME+'&mode=before&view=parking',location.href).href;parking.target='_top'}}catch(e){console.warn('purple nav patch',e)}}
 frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();applyPurpleTheme();patchNavigation();updateLineBindBar();setInterval(()=>{patchNavigation();updateLineBindBar()},800)});
-frame.src='./callstatus-core.html?v=575&wrap=1&purple=4';
+frame.src='./callstatus-core.html?v=575&wrap=1&purple=7';
 window.addEventListener('focus',updateLineBindBar);
 window.addEventListener('pagehide',restoreProd,{once:true});
 updateLineBindBar();
