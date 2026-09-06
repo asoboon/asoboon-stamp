@@ -3,7 +3,7 @@
  * NEVER put Channel Secret, AirWAIT API key, access tokens, or notification tokens here.
  */
 window.ASOBOON_PURPLE_SERVICE_CONFIG=Object.freeze({
-  version:'1.0.0',
+  version:'1.0.1',
   liffId:'2011467470-Gk5C3lWf',
   liffUrl:'https://miniapp.line.me/2011467470-Gk5C3lWf',
   backendUrl:'',
