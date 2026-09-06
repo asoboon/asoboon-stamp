@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#6a35a8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>ASOBooN PURPLE｜LIFF Diagnostic</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#351653;background:#eadcf7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#eadcf7,#f8f3fc)}
+.wrap{max-width:620px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom))}
+.card{background:#fff;border:3px solid #8d58c3;border-radius:22px;padding:18px;box-shadow:0 12px 30px rgba(70,30,105,.16)}
+.badge{display:inline-flex;padding:7px 10px;border-radius:999px;background:#6a35a8;color:#fff;font-size:11px;font-weight:900;letter-spacing:.04em}
+h1{font-size:23px;margin:14px 0 4px}.lead{margin:0 0 16px;color:#765b8a;font-size:12px;line-height:1.6;font-weight:700}
+.summary{padding:12px 14px;border-radius:14px;background:#f5ecfc;border:1px solid #d8bfea;font-size:13px;font-weight:900;line-height:1.55}
+.summary.ok{background:#eef9f0;border-color:#b9dfbf;color:#245d2e}.summary.ng{background:#fff0f0;border-color:#e8baba;color:#8a2727}.summary.wait{color:#5a2d84}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:14px}.row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px;padding:9px 10px;border-radius:10px;background:#faf7fc;border:1px solid #eadcf4}.k{font-size:11px;color:#7b6490;font-weight:800}.v{font-size:12px;font-weight:900;word-break:break-word}.yes{color:#237133}.no{color:#a23434}.muted{color:#7a6a87}
+.err{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#fff0f0;border:1px solid #e8baba;color:#842828;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word}.err.show{display:block}
+.actions{display:flex;gap:8px;margin-top:14px}.actions button{flex:1;min-height:44px;border:0;border-radius:12px;font-weight:900;font-size:12px}.copy{background:#6a35a8;color:#fff}.reload{background:#eee4f8;color:#512778}
+.note{margin-top:14px;font-size:10px;line-height:1.65;color:#7c6a8c}.version{margin-top:12px;text-align:right;font-size:9px;color:#9a86aa}
+@media(max-width:440px){.row{grid-template-columns:118px minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<main class="wrap"><section class="card">
+<span class="badge">🟣 PURPLE / DEVELOPING</span>
+<h1>LIFF 自己診断</h1>
+<p class="lead">表示 → SDK読込 → LIFF初期化 → LINEコンテキストを段階確認します。アクセストークンやシークレットの値は表示・保存しません。</p>
+<div id="summary" class="summary wait">① HTML到達成功。LIFF SDKを読み込んでいます…</div>
+<div id="grid" class="grid"></div>
+<div id="error" class="err"></div>
+<div class="actions"><button id="copy" class="copy" type="button">診断結果をコピー</button><button id="reload" class="reload" type="button">再診断</button></div>
+<div class="note">安全設計：LIFFアクセストークンは「存在する / しない」だけを判定します。トークン本文・Channel Secret・Cookie・localStorageの中身は診断結果に含めません。</div>
+<div class="version">PURPLE LIFF DIAGNOSTIC v1.0.0 / 2026-09-06</div>
+</section></main>
+<script>
+(()=>{'use strict';
+const DEV_LIFF_ID='2011467470-Gk5C3lWf';
+const SDK_URL='https://static.line-scdn.net/liff/edge/2/sdk.js';
+const SDK_TIMEOUT_MS=12000;
+const rows=[];
+const grid=document.getElementById('grid'),summary=document.getElementById('summary'),errorBox=document.getElementById('error');
+const clean=v=>String(v==null?'':v).replace(/[\r\n\t]+/g,' ').slice(0,500);
+const safeError=e=>{const code=clean(e&&e.code||'');const message=clean(e&&e.message||e||'Unknown error');return (code?code+': ':'')+message};
+const redactKey=k=>/(token|secret|authorization|cookie|password|credential)/i.test(String(k));
+function add(k,v,cls=''){rows.push({k, v:clean(v), cls});render()}
+function render(){grid.innerHTML=rows.map(r=>`<div class="row"><div class="k">${esc(r.k)}</div><div class="v ${esc(r.cls)}">${esc(r.v||'—')}</div></div>`).join('')}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setSummary(text,state){summary.textContent=text;summary.className='summary '+state}
+function showError(e){errorBox.textContent=safeError(e);errorBox.classList.add('show')}
+function safeParams(search){try{const p=new URLSearchParams(search||'');const out=[];for(const [k,v] of p.entries())out.push(redactKey(k)?k+'=[REDACTED]':k+'='+clean(v));return out.join('&')||'なし'}catch{return '解析失敗'}}
+function loadSdk(){return new Promise((resolve,reject)=>{if(window.liff)return resolve();let done=false;const s=document.createElement('script');const timer=setTimeout(()=>{if(done)return;done=true;reject(new Error('LIFF_SDK_TIMEOUT_'+SDK_TIMEOUT_MS+'ms'))},SDK_TIMEOUT_MS);s.src=SDK_URL;s.async=true;s.onload=()=>{if(done)return;done=true;clearTimeout(timer);window.liff?resolve():reject(new Error('LIFF_SDK_GLOBAL_MISSING'))};s.onerror=()=>{if(done)return;done=true;clearTimeout(timer);reject(new Error('LIFF_SDK_LOAD_FAILED'))};document.head.appendChild(s)})}
+async function run(){
+  add('HTML到達','成功','yes');
+  add('診断 LIFF ID',DEV_LIFF_ID);
+  add('現在のOrigin',location.origin);
+  add('現在のPath',location.pathname);
+  add('Query',safeParams(location.search));
+  add('User Agent',navigator.userAgent);
+  try{
+    await loadSdk();
+    add('LIFF SDK読込','成功','yes');
+    if(typeof liff.getVersion==='function')add('LIFF SDK version',liff.getVersion());
+  }catch(e){
+    add('LIFF SDK読込','失敗','no');setSummary('② LIFF SDKの読み込みで停止しました。','ng');showError(e);return;
+  }
+  try{
+    await liff.init({liffId:DEV_LIFF_ID});
+    add('liff.init','成功','yes');
+  }catch(e){
+    add('liff.init','失敗','no');setSummary('③ LIFF初期化で停止しました。エラー詳細を確認できます。','ng');showError(e);return;
+  }
+  try{add('LINE内で起動',liff.isInClient()?'はい':'いいえ',liff.isInClient()?'yes':'muted')}catch(e){add('LINE内で起動','取得失敗','no')}
+  try{add('ログイン状態',liff.isLoggedIn()?'ログイン済み':'未ログイン',liff.isLoggedIn()?'yes':'no')}catch(e){add('ログイン状態','取得失敗','no')}
+  try{add('LIFF access token',liff.getAccessToken()?'取得可能（値は非表示）':'なし',liff.getAccessToken()?'yes':'no')}catch(e){add('LIFF access token','取得失敗','no')}
+  try{if(typeof liff.getOS==='function')add('OS',liff.getOS())}catch(e){}
+  try{if(typeof liff.getLineVersion==='function')add('LINE version',liff.getLineVersion()||'取得不可')}catch(e){}
+  try{const c=liff.getContext&&liff.getContext();add('Context type',c&&c.type||'なし');add('LIFF view type',c&&c.viewType||'なし')}catch(e){add('Context','取得失敗','no')}
+  try{const state=new URLSearchParams(location.search).get('liff.state');add('liff.state',state?safeParams(state.startsWith('?')?state:'?'+state):'なし')}catch(e){add('liff.state','解析失敗','no')}
+  const logged=(()=>{try{return liff.isLoggedIn()}catch{return false}})();
+  if(logged)setSummary('✅ LIFF初期化・ログイン・安全なアクセストークン確認まで成功しました。','ok');
+  else setSummary('⚠️ LIFF初期化は成功しましたが、未ログインです。自動ログインは行っていません。','wait');
+}
+function report(){return ['ASOBooN PURPLE LIFF DIAGNOSTIC v1.0.0','time='+new Date().toISOString(),...rows.map(r=>r.k+'='+r.v),errorBox.classList.contains('show')?'error='+errorBox.textContent:'error=none'].join('\n')}
+document.getElementById('copy').addEventListener('click',async()=>{const text=report();try{await navigator.clipboard.writeText(text);document.getElementById('copy').textContent='コピーしました ✓';setTimeout(()=>document.getElementById('copy').textContent='診断結果をコピー',1600)}catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}});
+document.getElementById('reload').addEventListener('click',()=>location.reload());
+run();
+})();
+</script>
+</body>
+</html>
