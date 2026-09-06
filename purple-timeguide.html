@@ -4,29 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<meta name="theme-color" content="#123c35">
+<meta name="theme-color" content="#6a35a8">
 <title>ASOBooN｜紫 何時まであそべる？</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8d7ae}
-#frame{display:block;width:100%;height:100%;border:0;background:#e8d7ae}
-#purpleBadge{position:fixed;z-index:2147483647;right:10px;top:max(8px,env(safe-area-inset-top));padding:5px 9px;border:2px solid #fff;border-radius:999px;background:#6a35a8;color:#fff;font:900 10px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 4px 14px rgba(62,28,100,.28);pointer-events:none;letter-spacing:.06em}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
+#frame{display:block;width:100%;height:100%;border:0;background:#e8dcf6}
+#purpleBadge{position:fixed;z-index:2147483647;right:10px;top:max(8px,env(safe-area-inset-top));padding:7px 12px;border:2px solid #fff;border-radius:999px;background:linear-gradient(180deg,#925dcc,#6a35a8);color:#fff;font:1000 11px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 6px 18px rgba(62,28,100,.34);pointer-events:none;letter-spacing:.08em}
 </style>
 </head>
 <body>
-<div id="purpleBadge">🟣 PURPLE</div>
+<div id="purpleBadge">🟣 PURPLE TIME</div>
 <iframe id="frame" title="ASOBooN 紫 何時まであそべる？"></iframe>
 <script>
 (()=>{'use strict';
 const PURPLE_KEY='asoboon_purple_adventure_time_v1';
 const PROD_KEY='asoboon-adventure-time';
-const PURPLE_HOME='./staff-test-home.html?v=20260906-1&mode=inside';
+const PURPLE_HOME='./staff-test-home.html?v=20260906-2&mode=inside';
 const frame=document.getElementById('frame');
 const params=new URLSearchParams(location.search);
 const pad=v=>String(v).padStart(2,'0');
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
 function readPurple(){try{const x=JSON.parse(localStorage.getItem(PURPLE_KEY)||'null');return x&&x.date===today()?x:null}catch{return null}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_TIME_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_TIME_STORAGE__=true}catch(e){console.warn('purple time storage patch',e)}}
-function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;const home=doc.querySelector('.home-link');if(home){home.href=new URL(PURPLE_HOME,location.href).href;home.target='_top';home.textContent='⌂ 紫ホーム'}}catch(e){console.warn('purple time nav patch',e)}}
+function applyPurpleTheme(){try{const doc=frame.contentDocument;if(!doc||doc.getElementById('purpleTimeTheme'))return;const s=doc.createElement('style');s.id='purpleTimeTheme';s.textContent=`
+:root{--paper:#fcf8ff!important;--paper-deep:#dcc8ef!important;--forest:#63368d!important;--forest-deep:#3a1d58!important;--gold:#a274c7!important;--gold-light:#d7b8ef!important;--blue:#7b45aa!important}
+body{background:linear-gradient(180deg,#e9def6,#f8f4fc 58%,#decbed)!important}.brand{color:#512778!important;border-color:rgba(106,53,168,.24)!important;background:#fbf7ff!important}.home-link,.now-btn,.save-btn{background:linear-gradient(180deg,#925dcc,#6a35a8)!important;border-color:#4d246d!important;color:#fff!important}.shell{border-color:rgba(106,53,168,.42)!important;background:linear-gradient(180deg,#fcf8ff,#e5d4f3)!important}.hero{background:radial-gradient(circle at 82% 12%,rgba(241,209,255,.18),transparent 27%),linear-gradient(155deg,#633596,#351653)!important}.hero small{color:#e3cbf5!important}.hours-strip,.form-card,.current-card,.rule-note{border-color:rgba(106,53,168,.24)!important;background:linear-gradient(180deg,#fffaff,#f0e7f8)!important}.hours-item{background:#eee2f7!important}.hours-item strong,.field-head strong,.current-card time{color:#542b77!important}.result-card{border-color:#70439a!important;background:linear-gradient(180deg,#ead9f7,#caa8e4)!important}.result-kicker{background:#74439d!important}.leave-time{color:#4b246c!important}.duration-grid{background:#43265e!important}.duration-btn{background:#614075!important}.duration-btn.active{border-color:#fff!important;background:linear-gradient(180deg,#d7b8ef,#9a66c2)!important;color:#3d2058!important}.adjust-btn{border-color:#74439d!important;background:linear-gradient(180deg,#e6d2f5,#b98cd6)!important;color:#3c2054!important}.time-input{border-color:#70439a!important}.rule-note{border-left-color:#8f5bb6!important;color:#614276!important}
+`;doc.head.appendChild(s)}catch(e){console.warn('purple time theme',e)}}
+function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;applyPurpleTheme();const home=doc.querySelector('.home-link');if(home){home.href=new URL(PURPLE_HOME,location.href).href;home.target='_top';home.textContent='⌂ 紫ホーム'}}catch(e){console.warn('purple time nav patch',e)}}
 const saved=readPurple();
 const u=new URL('./timeguide.html',location.href);
 const queryMinutes=Number(params.get('minutes'));
@@ -35,10 +39,8 @@ const now=new Date();
 const nowText=`${pad(Math.max(10,Math.min(17,now.getHours())))}:${pad(now.getMinutes())}`;
 const mins=[0,150,180].includes(queryMinutes)?queryMinutes:(saved&&[0,150,180].includes(Number(saved.duration))?Number(saved.duration):150);
 const entry=/^\d{2}:\d{2}$/.test(queryEntry)?queryEntry:(saved&&/^\d{2}:\d{2}$/.test(String(saved.start||''))?String(saved.start):nowText);
-u.searchParams.set('minutes',String(mins));
-u.searchParams.set('entry',entry);
-u.searchParams.set('purple','1');
-frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);patchNavigation();setInterval(patchNavigation,900)});
+u.searchParams.set('minutes',String(mins));u.searchParams.set('entry',entry);u.searchParams.set('purple','2');
+frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);applyPurpleTheme();patchNavigation();setInterval(patchNavigation,900)});
 frame.src=u.href;
 })();
 </script>
