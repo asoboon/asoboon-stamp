@@ -21,6 +21,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
 (()=>{'use strict';
 const PURPLE_KEY='asoboon_purple_callstatus_number_v1';
 const RES_KEY='asoboon_purple_current_reservation_v1';
+const SERVICE_KEY='asoboon_purple_service_message_v1';
 const LINK_KEY_V4='asoboon_purple_line_link_result_v4';
 const LINK_KEY_V3='asoboon_purple_line_link_result_v3';
 const LINK_KEY_V2='asoboon_purple_line_link_result_v2';
@@ -35,6 +36,7 @@ const params=new URLSearchParams(location.search);
 const pad=v=>String(v).padStart(2,'0');
 const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
 const digits=v=>String(v||'').replace(/\D/g,'').slice(0,12);
+const reserveKey=v=>{const d=digits(v);return d?d.padStart(12,'0'):''};
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function readPurple(){const x=readJson(PURPLE_KEY);return x&&x.date===localDate()?x:null}
 function readReservation(){const x=readJson(RES_KEY);return x&&x.receiptNo?x:null}
@@ -43,7 +45,7 @@ const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNu
 const purple=readPurple();let original=null,hadOriginal=false;
 try{original=localStorage.getItem(PROD_KEY);hadOriginal=original!==null;if(purple)localStorage.setItem(PROD_KEY,JSON.stringify(purple));else localStorage.removeItem(PROD_KEY)}catch{}
 function restoreProd(){try{if(hadOriginal)localStorage.setItem(PROD_KEY,original);else localStorage.removeItem(PROD_KEY)}catch{}}
-function linkedFor(rec){if(!rec)return false;for(const k of [LINK_KEY_V4,LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&String(x.reserveId)===String(rec.reserveId))return true}return false}
+function linkedFor(rec){if(!rec)return false;const service=readJson(SERVICE_KEY);if(service&&['TOKEN_READY','FIRST_MESSAGE_SENT','CALL_MESSAGE_SENT'].includes(String(service.status||''))&&String(service.receiptNo)===String(rec.receiptNo)&&reserveKey(service.reserveId)===reserveKey(rec.reserveId))return true;for(const k of [LINK_KEY_V4,LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&reserveKey(x.reserveId)===reserveKey(rec.reserveId))return true}return false}
 function lineUrl(rec){const u=new URL(DEV_LIFF_URL);[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('source','purple-callstatus');return u.href}
 function updateLineBindBar(){const rec=readReservation(),num=readPurple()?.number;const same=rec&&num&&String(rec.receiptNo)===String(num);lineBindBar.hidden=!(same&&!linkedFor(rec));if(!lineBindBar.hidden)lineBindButton.onclick=()=>{location.href=lineUrl(rec)}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_STORAGE__=true}catch(e){console.warn('purple storage patch',e)}}
