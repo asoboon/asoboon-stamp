@@ -33,7 +33,7 @@ const lineBindBar=document.getElementById('lineBindBar');
 const lineBindButton=document.getElementById('lineBindButton');
 const params=new URLSearchParams(location.search);
 const pad=v=>String(v).padStart(2,'0');
-const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1,'0')}-${pad(d.getDate(),'0')}`};
+const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
 const digits=v=>String(v||'').replace(/\D/g,'').slice(0,12);
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function readPurple(){const x=readJson(PURPLE_KEY);return x&&x.date===localDate()?x:null}
