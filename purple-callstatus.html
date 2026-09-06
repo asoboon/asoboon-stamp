@@ -10,28 +10,40 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8dcf6}
 #frame{display:block;width:100%;height:100%;border:0;background:#e8dcf6}
 #purpleBadge{position:fixed;z-index:2147483647;right:10px;top:max(8px,env(safe-area-inset-top));padding:7px 12px;border:2px solid #fff;border-radius:999px;background:linear-gradient(180deg,#925dcc,#6a35a8);color:#fff;font:1000 11px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 6px 18px rgba(62,28,100,.34);pointer-events:none;letter-spacing:.08em}
+#lineBindBar{position:fixed;z-index:2147483646;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:520px;margin:auto;padding:10px;border:2px solid #fff;border-radius:16px;background:linear-gradient(145deg,#6a35a8,#3f1c65);color:#fff;box-shadow:0 10px 28px rgba(50,20,82,.35);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}#lineBindBar[hidden]{display:none!important}#lineBindBar strong{display:block;font-size:13px}#lineBindBar span{display:block;margin-top:3px;font-size:10px;line-height:1.45;color:#efe3fa;font-weight:800}#lineBindButton{width:100%;min-height:42px;margin-top:8px;border:0;border-radius:11px;background:#fff;color:#5b2c8c;font:1000 12px/1 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;box-shadow:0 4px 0 rgba(40,16,66,.24)}
 </style>
 </head>
 <body>
 <div id="purpleBadge">🟣 PURPLE CALL</div>
+<div id="lineBindBar" hidden><strong>🔔 この受付はLINE通知が未確認です</strong><span>今の受付番号を使ってLINE通知だけ登録できます。新しいAirウェイト受付は作りません。</span><button id="lineBindButton" type="button">この受付にLINE通知を登録</button></div>
 <iframe id="frame" title="ASOBooN 紫 呼出状況"></iframe>
 <script>
 (()=>{'use strict';
 const PURPLE_KEY='asoboon_purple_callstatus_number_v1';
+const RES_KEY='asoboon_purple_current_reservation_v1';
+const LINK_KEY_V3='asoboon_purple_line_link_result_v3';
+const LINK_KEY_V2='asoboon_purple_line_link_result_v2';
 const PROD_KEY='asoboon_callstatus_number_v4';
 const PURPLE_TIME='./purple-timeguide.html?v=20260906-2';
-const PURPLE_HOME='./staff-test-home.html?v=20260906-2';
+const PURPLE_HOME='./staff-test-home.html?v=20260906-4';
 const frame=document.getElementById('frame');
+const lineBindBar=document.getElementById('lineBindBar');
+const lineBindButton=document.getElementById('lineBindButton');
 const params=new URLSearchParams(location.search);
 const pad=v=>String(v).padStart(2,'0');
 const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
-const digits=v=>String(v||'').replace(/\D/g,'').slice(0,8);
-function readPurple(){try{const x=JSON.parse(localStorage.getItem(PURPLE_KEY)||'null');return x&&x.date===localDate()?x:null}catch{return null}}
+const digits=v=>String(v||'').replace(/\D/g,'').slice(0,12);
+function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
+function readPurple(){const x=readJson(PURPLE_KEY);return x&&x.date===localDate()?x:null}
+function readReservation(){const x=readJson(RES_KEY);return x&&x.receiptNo?x:null}
 function savePurple(number,date=localDate()){number=digits(number);if(!number)return;try{localStorage.setItem(PURPLE_KEY,JSON.stringify({date,number}))}catch{}}
 const queryNumber=digits(params.get('number'));if(queryNumber)savePurple(queryNumber,String(params.get('date')||localDate()));
 const purple=readPurple();let original=null,hadOriginal=false;
 try{original=localStorage.getItem(PROD_KEY);hadOriginal=original!==null;if(purple)localStorage.setItem(PROD_KEY,JSON.stringify(purple));else localStorage.removeItem(PROD_KEY)}catch{}
 function restoreProd(){try{if(hadOriginal)localStorage.setItem(PROD_KEY,original);else localStorage.removeItem(PROD_KEY)}catch{}}
+function linkedFor(rec){if(!rec)return false;for(const k of [LINK_KEY_V3,LINK_KEY_V2]){const x=readJson(k);if(x&&x.lineLinked===true&&x.testPushSent===true&&String(x.receiptNo)===String(rec.receiptNo)&&String(x.reserveId)===String(rec.reserveId))return true}return false}
+function lineUrl(rec){const u=new URL('./purple-line-link-v3.html',location.href);[['receiptNo',rec.receiptNo],['reserveId',rec.reserveId],['waitTypeId',rec.waitTypeId],['waitTypeName',rec.waitTypeName],['day',rec.operationalDate],['adults',rec.adults],['paidChildren',rec.paidChildren],['infants',rec.infants],['totalPeople',rec.totalPeople]].forEach(([k,v])=>u.searchParams.set(k,String(v??'')));u.searchParams.set('mandatory','1');u.searchParams.set('_v','20260906-4');return u.href}
+function updateLineBindBar(){const rec=readReservation(),num=readPurple()?.number;const same=rec&&num&&String(rec.receiptNo)===String(num);lineBindBar.hidden=!(same&&!linkedFor(rec));if(!lineBindBar.hidden)lineBindButton.onclick=()=>{location.href=lineUrl(rec)}}
 function patchStorage(w){try{if(w.__ASOBOON_PURPLE_STORAGE__)return;const proto=w.Storage&&w.Storage.prototype;if(!proto)return;const get=proto.getItem,set=proto.setItem,remove=proto.removeItem;proto.getItem=function(k){return get.call(this,k===PROD_KEY?PURPLE_KEY:k)};proto.setItem=function(k,v){return set.call(this,k===PROD_KEY?PURPLE_KEY:k,v)};proto.removeItem=function(k){return remove.call(this,k===PROD_KEY?PURPLE_KEY:k)};w.__ASOBOON_PURPLE_STORAGE__=true}catch(e){console.warn('purple storage patch',e)}}
 function applyPurpleTheme(){try{const doc=frame.contentDocument;if(!doc||doc.getElementById('purpleCallTheme'))return;const s=doc.createElement('style');s.id='purpleCallTheme';s.textContent=`
 :root{--paper:#eee4f8!important;--paper-light:#fcf8ff!important;--paper-deep:#dcc8ef!important;--navy:#5a2d84!important;--navy-deep:#351653!important;--forest:#63368d!important;--forest-deep:#3a1d58!important;--brass:#a274c7!important;--brass-light:#d7b8ef!important;--brass-deep:#714397!important;--orange:#8e58b6!important;--green:#6c3a96!important}
@@ -39,9 +51,11 @@ body{background:linear-gradient(180deg,#e9def6,#f8f4fc 55%,#decbed)!important}.t
 `;doc.head.appendChild(s)}catch(e){console.warn('purple call theme',e)}}
 function durationForNumber(v){const n=Number(digits(v));if(n>=1&&n<=799)return 180;if(n>=1001&&n<=2699)return 150;return null}
 function patchNavigation(){try{const doc=frame.contentDocument;if(!doc)return;applyPurpleTheme();const entered=doc.getElementById('enteredButton');if(entered&&!entered.dataset.purpleBound){entered.dataset.purpleBound='1';entered.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const x=readPurple();const u=new URL(PURPLE_TIME,location.href);const mins=durationForNumber(x?.number);if(mins!=null)u.searchParams.set('minutes',String(mins));top.location.href=u.href},true)}const back=doc.getElementById('backButton');if(back&&!back.dataset.purpleBound){back.dataset.purpleBound='1';back.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();top.location.href=new URL(PURPLE_HOME,location.href).href},true)}const parking=doc.getElementById('parkingLink');if(parking){parking.href=new URL(PURPLE_HOME+'&mode=before&view=parking',location.href).href;parking.target='_top'}}catch(e){console.warn('purple nav patch',e)}}
-frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();applyPurpleTheme();patchNavigation();setInterval(patchNavigation,800)});
-frame.src='./callstatus-core.html?v=575&wrap=1&purple=2';
+frame.addEventListener('load',()=>{patchStorage(frame.contentWindow);restoreProd();applyPurpleTheme();patchNavigation();updateLineBindBar();setInterval(()=>{patchNavigation();updateLineBindBar()},800)});
+frame.src='./callstatus-core.html?v=575&wrap=1&purple=4';
+window.addEventListener('focus',updateLineBindBar);
 window.addEventListener('pagehide',restoreProd,{once:true});
+updateLineBindBar();
 })();
 </script>
 </body>
