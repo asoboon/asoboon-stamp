@@ -1,0 +1,127 @@
+name: purple-verify
+on:
+  push:
+    paths:
+      - 'purple-*.html'
+      - 'purple-*.js'
+      - 'staff-test-home.html'
+      - 'admin.html'
+      - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
+      - '.github/workflows/purple-verify.yml'
+  pull_request:
+    paths:
+      - 'purple-*.html'
+      - 'purple-*.js'
+      - 'staff-test-home.html'
+      - 'admin.html'
+      - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
+      - '.github/workflows/purple-verify.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Purple isolation rules
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          purple = [p for p in Path('.').glob('purple-*') if p.is_file()]
+          purple += [Path('staff-test-home.html')]
+          errors = []
+
+          forbidden = {
+              'production call-status storage': 'asoboon_callstatus_number_v4',
+              'production time-guide storage': 'asoboon-adventure-time',
+              'legacy production LIFF id': '2009888671-57TOefc3',
+          }
+          for p in purple:
+              text = p.read_text(errors='ignore')
+              for label, token in forbidden.items():
+                  if token in text:
+                      errors.append(f'{p}: contains {label}: {token}')
+              if re.search(r'airwaitApiKey\s*[:=]', text, re.I):
+                  errors.append(f'{p}: browser-side AirWAIT API key field is forbidden')
+              if re.search(r'\blYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI\b', text):
+                  errors.append(f'{p}: known AirWAIT API key literal is forbidden')
+
+          call = Path('purple-callstatus.html').read_text(errors='ignore')
+          time = Path('purple-timeguide.html').read_text(errors='ignore')
+          home = Path('staff-test-home.html').read_text(errors='ignore')
+          config = Path('purple-service-config.js').read_text(errors='ignore')
+          backend = Path('app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs').read_text(errors='ignore')
+
+          if 'callstatus-core.html' in call:
+              errors.append('purple-callstatus.html must not wrap production callstatus-core.html')
+          if "new URL('./timeguide.html'" in time or 'src=\"./timeguide.html' in time:
+              errors.append('purple-timeguide.html must not wrap production timeguide.html')
+          if 'asoboon_purple_callstatus_number_v2' not in call:
+              errors.append('purple call-status v2 storage key missing')
+          if 'asoboon_purple_adventure_time_v2' not in time:
+              errors.append('purple time-guide v2 storage key missing')
+          if 'purple-reserve-v5.html' not in home:
+              errors.append('staff-test-home.html must route reservations to purple-reserve-v5.html')
+          if 'purple-callstatus.html?v=20260907-1' not in home:
+              errors.append('staff-test-home.html call-status route is not the v3 purple route')
+          if "backendConfigKey:BACKEND_KEY" not in config or "backendVersionPrefix:'2.0.'" not in config:
+              errors.append('purple-service-config.js is not on gateway v2 runtime configuration')
+          if 'AIRWAIT_API_KEY' not in backend or 'PURPLE_LINE_MINIAPP_CHANNEL_SECRET' not in backend:
+              errors.append('gateway v2 required Script Property names are missing')
+          if re.search(r'AIRWAIT_API_KEY\s*[:=]\s*[\'\"][A-Za-z0-9_-]{16,}', backend):
+              errors.append('gateway v2 contains a hard-coded AirWAIT key')
+
+          for name in ['purple-reserve.html','purple-reserve-v2.html','purple-reserve-v3.html','purple-reserve-v4.html']:
+              t = Path(name).read_text(errors='ignore')
+              if 'purple-reserve-v5.html' not in t:
+                  errors.append(f'{name}: stale entry point does not redirect to v5')
+              if 'purple-line-link' in t or 'createReservation({' in t:
+                  errors.append(f'{name}: stale executable reservation/LINE flow remains')
+
+          if errors:
+              print('PURPLE VERIFY FAILED')
+              for e in errors:
+                  print('-', e)
+              sys.exit(1)
+          print('Purple isolation rules passed.')
+          PY
+
+      - name: Client JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile, sys
+          files = [
+            'purple-service-config.js',
+            'purple-reserve-v5.html',
+            'purple-callstatus.html',
+            'purple-timeguide.html',
+            'purple-service-register.html',
+            'purple-service-setup.html',
+            'staff-test-home.html',
+          ]
+          failed=[]
+          for name in files:
+              text=Path(name).read_text(errors='ignore')
+              scripts=[]
+              if name.endswith('.js'):
+                  scripts=[text]
+              else:
+                  scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', text, flags=re.I)
+              for i,code in enumerate(scripts):
+                  with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False) as f:
+                      f.write(code)
+                      tmp=f.name
+                  r=subprocess.run(['node','--check',tmp],capture_output=True,text=True)
+                  if r.returncode:
+                      failed.append(f'{name} script#{i+1}: {r.stderr.strip()}')
+          if failed:
+              print('\n'.join(failed))
+              sys.exit(1)
+          print('Purple client JavaScript syntax passed.')
+          PY
+
+      - name: Apps Script syntax
+        run: node --check app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs
