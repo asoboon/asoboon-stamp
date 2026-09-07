@@ -7,6 +7,7 @@ on:
       - 'staff-test-home.html'
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
+      - 'app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs'
       - '.github/workflows/purple-verify.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'staff-test-home.html'
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
+      - 'app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs'
       - '.github/workflows/purple-verify.yml'
   workflow_dispatch:
 
@@ -53,6 +55,8 @@ jobs:
           home = Path('staff-test-home.html').read_text(errors='ignore')
           config = Path('purple-service-config.js').read_text(errors='ignore')
           backend = Path('app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs').read_text(errors='ignore')
+          marker_patch = Path('app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs').read_text(errors='ignore')
+          setup = Path('purple-service-setup.html').read_text(errors='ignore')
           line_link = Path('purple-line-link.html').read_text(errors='ignore')
           reserve = Path('purple-reserve-v5.html').read_text(errors='ignore')
 
@@ -64,9 +68,7 @@ jobs:
               errors.append('purple call-status v2 storage key missing')
           if 'asoboon_purple_adventure_time_v2' not in time:
               errors.append('purple time-guide v2 storage key missing')
-          if 'purple-reserve-v5.html' not in home:
-              errors.append('staff-test-home.html must route reservations through purple-reserve-v5.html')
-          if 'method=web' not in home:
+          if 'purple-reserve-v5.html' not in home or 'method=web' not in home:
               errors.append('purple HOME WEB reservation must pass through purple-reserve-v5 method=web')
           if 'purple-callstatus.html' not in home:
               errors.append('purple HOME call-status route is missing')
@@ -78,15 +80,10 @@ jobs:
               errors.append('purple-line-link.html must redirect to purple-service-register.html')
 
           required_backend = [
-              'getLastUpdDateStateless',
-              'PURPLE_V2_LAST_MARKER',
-              'TOKEN_ISSUE_PENDING',
-              'TOKEN_ISSUE_AMBIGUOUS',
-              'liffTokenHash',
-              'CALL_SEND_AMBIGUOUS',
+              'getLastUpdDateStateless', 'TOKEN_ISSUE_PENDING', 'TOKEN_ISSUE_AMBIGUOUS',
+              'liffTokenHash', 'CALL_SEND_AMBIGUOUS',
               'AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW',
-              'paidChildren < 0',
-              'infants < 0',
+              'paidChildren < 0', 'infants < 0'
           ]
           for token in required_backend:
               if token not in backend:
@@ -95,6 +92,16 @@ jobs:
               errors.append('gateway required Script Property names are missing')
           if re.search(r'AIRWAIT_API_KEY\s*[:=]\s*[\'\"][A-Za-z0-9_-]{16,}', backend):
               errors.append('gateway contains a hard-coded AirWAIT key')
+
+          if 'PG21_WORKER_MARKER_PROP' not in marker_patch or 'PURPLE_V21_WORKER_LAST_MARKER' not in marker_patch:
+              errors.append('notification worker must have its own AirWAIT update marker')
+          if "h === 'purpleGatewayWorkerV2' || h === 'purpleGatewayWorkerV21'" not in marker_patch:
+              errors.append('v2.1 setup must remove the old shared-marker worker trigger')
+          if "newTrigger('purpleGatewayWorkerV21')" not in marker_patch:
+              errors.append('v2.1 setup must install the marker-isolated worker')
+          if 'setupPurpleGatewayV21()' not in setup:
+              errors.append('staff setup page must instruct setupPurpleGatewayV21()')
+
           if 'PURPLE_BACKEND_RESULT_UNKNOWN' not in reserve or 'lockAmbiguous' not in reserve:
               errors.append('reservation UI must fail closed on ambiguous create result')
 
@@ -119,14 +126,9 @@ jobs:
           from pathlib import Path
           import re, subprocess, tempfile, sys
           files = [
-            'purple-service-config.js',
-            'purple-reserve-v5.html',
-            'purple-callstatus.html',
-            'purple-timeguide.html',
-            'purple-service-register.html',
-            'purple-service-setup.html',
-            'purple-line-link.html',
-            'staff-test-home.html',
+            'purple-service-config.js', 'purple-reserve-v5.html', 'purple-callstatus.html',
+            'purple-timeguide.html', 'purple-service-register.html', 'purple-service-setup.html',
+            'purple-line-link.html', 'staff-test-home.html'
           ]
           failed=[]
           for name in files:
@@ -134,18 +136,16 @@ jobs:
               scripts=[text] if name.endswith('.js') else re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', text, flags=re.I)
               for i,code in enumerate(scripts):
                   with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False) as f:
-                      f.write(code)
-                      tmp=f.name
+                      f.write(code); tmp=f.name
                   r=subprocess.run(['node','--check',tmp],capture_output=True,text=True)
                   if r.returncode:
                       failed.append(f'{name} script#{i+1}: {r.stderr.strip()}')
           if failed:
-              print('\n'.join(failed))
-              sys.exit(1)
+              print('\n'.join(failed)); sys.exit(1)
           print('Purple client JavaScript syntax passed.')
           PY
 
       - name: Apps Script syntax
         run: |
-          cp app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs /tmp/purple-gateway-v2.js
-          node --check /tmp/purple-gateway-v2.js
+          cat app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs > /tmp/purple-gateway-v21.js
+          node --check /tmp/purple-gateway-v21.js
