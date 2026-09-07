@@ -1,13 +1,17 @@
 /**
- * ASOBooN PURPLE Gateway v2.1 marker isolation patch.
+ * ASOBooN PURPLE Gateway v2.1 marker/date isolation patch.
  *
  * Why this exists:
  * - purple call-status polls `snapshot` frequently.
  * - the notification worker polls once per minute.
  * - if both share one last-update marker, the UI can consume an AirWAIT change before
  *   the worker sees it, causing a missed LINE notification.
+ * - the browser's calendar date changes at midnight, while ASOBooN's operational date
+ *   changes at 18:00. During the 18:00-23:59 test window, a browser may still submit the
+ *   calendar date even though the Gateway/AirWAIT is already on the next operational day.
  *
- * This patch gives the notification worker its own marker and trigger.
+ * This patch gives the notification worker its own marker and safely canonicalizes only
+ * the current JST calendar date to the current operational date during the cutoff window.
  * Deploy together with ASOBooN_PURPLE_GATEWAY_V2_Code.gs and run
  * setupPurpleGatewayV21() instead of setupPurpleGatewayV2().
  */
@@ -24,7 +28,7 @@ function setupPurpleGatewayV21() {
     if (h === 'purpleGatewayWorkerV2' || h === 'purpleGatewayWorkerV21') ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('purpleGatewayWorkerV21').timeBased().everyMinutes(1).create();
-  pg2Log_('INFO','SETUP_V21','','','', 'READY', 'separate worker marker enabled');
+  pg2Log_('INFO','SETUP_V21','','','', 'READY', 'separate worker marker + operational-date normalization enabled');
   return pg2Health_();
 }
 
@@ -128,3 +132,51 @@ function purpleGatewayWorkerV21() {
     try { lock.releaseLock(); } catch (_) {}
   }
 }
+
+/**
+ * Canonicalize a browser-supplied date without accepting arbitrary stale/future dates.
+ * Before 18:00 JST: calendar date === operational date, so no conversion occurs.
+ * From 18:00 JST: only today's calendar date is allowed to roll to tomorrow's operational date.
+ */
+function pg21CanonicalBusinessDate_(value) {
+  const submitted = pg2Date_(value);
+  const now = new Date();
+  const calendarDate = pg2JstDate_(now);
+  const operationalDate = pg2OperationalDate_(now);
+  if (!submitted) return operationalDate;
+  if (submitted === operationalDate) return operationalDate;
+  if (calendarDate !== operationalDate && submitted === calendarDate) return operationalDate;
+  return submitted;
+}
+
+// Keep the existing hardened v2.1 handlers, but normalize the browser's after-hours date
+// before they validate or search the purple map/call ledger.
+var PG21_ORIGINAL_ISSUE_SERVICE_TOKEN_ = pg2IssueServiceToken_;
+pg2IssueServiceToken_ = function(p) {
+  const x = Object.assign({}, p || {});
+  const canonical = pg21CanonicalBusinessDate_(x.businessDate || x.day || x.operationalDay);
+  x.businessDate = canonical;
+  x.day = canonical;
+  x.operationalDay = canonical;
+  return PG21_ORIGINAL_ISSUE_SERVICE_TOKEN_(x);
+};
+
+var PG21_ORIGINAL_RESERVATION_STATUS_ = pg2ReservationStatus_;
+pg2ReservationStatus_ = function(p) {
+  const x = Object.assign({}, p || {});
+  const canonical = pg21CanonicalBusinessDate_(x.businessDate || x.day || x.date);
+  x.businessDate = canonical;
+  x.day = canonical;
+  x.date = canonical;
+  return PG21_ORIGINAL_RESERVATION_STATUS_(x);
+};
+
+var PG21_ORIGINAL_CALL_INFO_ = pg2CallInfo_;
+pg2CallInfo_ = function(p) {
+  const x = Object.assign({}, p || {});
+  const canonical = pg21CanonicalBusinessDate_(x.businessDate || x.day || x.date);
+  x.businessDate = canonical;
+  x.day = canonical;
+  x.date = canonical;
+  return PG21_ORIGINAL_CALL_INFO_(x);
+};
