@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Purple isolation rules
+      - name: Purple isolation and safety rules
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -53,6 +53,8 @@ jobs:
           home = Path('staff-test-home.html').read_text(errors='ignore')
           config = Path('purple-service-config.js').read_text(errors='ignore')
           backend = Path('app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs').read_text(errors='ignore')
+          line_link = Path('purple-line-link.html').read_text(errors='ignore')
+          reserve = Path('purple-reserve-v5.html').read_text(errors='ignore')
 
           if 'callstatus-core.html' in call:
               errors.append('purple-callstatus.html must not wrap production callstatus-core.html')
@@ -63,15 +65,38 @@ jobs:
           if 'asoboon_purple_adventure_time_v2' not in time:
               errors.append('purple time-guide v2 storage key missing')
           if 'purple-reserve-v5.html' not in home:
-              errors.append('staff-test-home.html must route reservations to purple-reserve-v5.html')
-          if 'purple-callstatus.html?v=20260907-1' not in home:
-              errors.append('staff-test-home.html call-status route is not the v3 purple route')
-          if "backendConfigKey:BACKEND_KEY" not in config or "backendVersionPrefix:'2.0.'" not in config:
-              errors.append('purple-service-config.js is not on gateway v2 runtime configuration')
+              errors.append('staff-test-home.html must route reservations through purple-reserve-v5.html')
+          if 'method=web' not in home:
+              errors.append('purple HOME WEB reservation must pass through purple-reserve-v5 method=web')
+          if 'purple-callstatus.html' not in home:
+              errors.append('purple HOME call-status route is missing')
+          if "backendConfigKey:BACKEND_KEY" not in config or "backendVersionPrefix:'2.1.'" not in config:
+              errors.append('purple-service-config.js must require hardened gateway v2.1')
+          if 'auto-bridge.js' in line_link or 'autoBindingApiUrl' in line_link or 'BRIDGE.queue' in line_link:
+              errors.append('purple-line-link.html still contains executable legacy LINE auto-bridge flow')
+          if 'purple-service-register.html' not in line_link:
+              errors.append('purple-line-link.html must redirect to purple-service-register.html')
+
+          required_backend = [
+              'getLastUpdDateStateless',
+              'PURPLE_V2_LAST_MARKER',
+              'TOKEN_ISSUE_PENDING',
+              'TOKEN_ISSUE_AMBIGUOUS',
+              'liffTokenHash',
+              'CALL_SEND_AMBIGUOUS',
+              'AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW',
+              'paidChildren < 0',
+              'infants < 0',
+          ]
+          for token in required_backend:
+              if token not in backend:
+                  errors.append(f'gateway v2.1 safety token missing: {token}')
           if 'AIRWAIT_API_KEY' not in backend or 'PURPLE_LINE_MINIAPP_CHANNEL_SECRET' not in backend:
-              errors.append('gateway v2 required Script Property names are missing')
+              errors.append('gateway required Script Property names are missing')
           if re.search(r'AIRWAIT_API_KEY\s*[:=]\s*[\'\"][A-Za-z0-9_-]{16,}', backend):
-              errors.append('gateway v2 contains a hard-coded AirWAIT key')
+              errors.append('gateway contains a hard-coded AirWAIT key')
+          if 'PURPLE_BACKEND_RESULT_UNKNOWN' not in reserve or 'lockAmbiguous' not in reserve:
+              errors.append('reservation UI must fail closed on ambiguous create result')
 
           for name in ['purple-reserve.html','purple-reserve-v2.html','purple-reserve-v3.html','purple-reserve-v4.html']:
               t = Path(name).read_text(errors='ignore')
@@ -85,7 +110,7 @@ jobs:
               for e in errors:
                   print('-', e)
               sys.exit(1)
-          print('Purple isolation rules passed.')
+          print('Purple isolation and safety rules passed.')
           PY
 
       - name: Client JavaScript syntax
@@ -100,15 +125,13 @@ jobs:
             'purple-timeguide.html',
             'purple-service-register.html',
             'purple-service-setup.html',
+            'purple-line-link.html',
             'staff-test-home.html',
           ]
           failed=[]
           for name in files:
               text=Path(name).read_text(errors='ignore')
-              if name.endswith('.js'):
-                  scripts=[text]
-              else:
-                  scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', text, flags=re.I)
+              scripts=[text] if name.endswith('.js') else re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', text, flags=re.I)
               for i,code in enumerate(scripts):
                   with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False) as f:
                       f.write(code)
