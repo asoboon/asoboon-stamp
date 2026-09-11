@@ -57,14 +57,18 @@ export default {
       try {
         await prepareReservationNotification(env, createPayload);
       } catch (e) {
+        // AirWAIT has not been called at this point. Even if LINE token issuance
+        // was ambiguous, the reception itself is definitely NOT ambiguous.
         return json(request, {
           ok:false,
           stored:false,
           notificationRequired:true,
           notificationReady:false,
-          ambiguous:Boolean(e?.ambiguous),
-          error:'LINE_NOTIFICATION_NOT_READY',
-          errorCode:safeError(e),
+          ambiguous:false,
+          notificationAmbiguous:Boolean(e?.ambiguous),
+          error:'LINE呼出通知を準備できないため、受付は作成されていません。もう一度お試しください。',
+          errorCode:'LINE_NOTIFICATION_NOT_READY',
+          notificationError:safeError(e),
         }, Number(e?.status || 503));
       }
     }
