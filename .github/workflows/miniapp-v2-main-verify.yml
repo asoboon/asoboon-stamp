@@ -22,6 +22,8 @@ jobs:
         run: |
           set -euo pipefail
           node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
+          node --check miniapp-v2/backend/develop-service-message.js
+          node --check miniapp-v2/backend/develop-worker.mjs
       - name: Lock infant pricing rule
         run: |
           set -euo pipefail
@@ -81,3 +83,34 @@ jobs:
             grep -F '"CREATE_ENABLED": "0"' .github/workflows/deploy-miniapp-v2-develop-gateway.yml
             echo 'Developing create is safely disabled on both client and gateway deployment gates.'
           fi
+      - name: Lock mandatory LINE notification fail-close
+        run: |
+          set -euo pipefail
+          grep -F 'serviceMessageMandatoryBeforeCreate:true' miniapp-v2/backend/develop-service-message.js
+          grep -F "body.baseCreateEnabled = body.createEnabled === true" miniapp-v2/backend/develop-worker.mjs
+          grep -F "body.createEnabled = body.baseCreateEnabled && notificationReady" miniapp-v2/backend/develop-worker.mjs
+          grep -F "body.createBlockedReason = 'LINE_NOTIFICATION_NOT_READY'" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'prepareReservationNotification(env, createPayload)' miniapp-v2/backend/develop-worker.mjs
+      - name: Lock call status as a first-class Developing route
+        run: |
+          set -euo pipefail
+          grep -F "if(view==='callstatus')return callstatusPage()" miniapp-v2/shared/app.js
+          grep -F "callstatusModule()?.mount?." miniapp-v2/shared/app.js
+          grep -F "callstatusModule()?.watchReception?." miniapp-v2/shared/app.js
+          grep -F "render:pageHtml" miniapp-v2/shared/callstatus.js
+          grep -F "mount:mountCallstatus" miniapp-v2/shared/callstatus.js
+          grep -F "watchReception" miniapp-v2/shared/callstatus.js
+          ! grep -Fq 'observer.observe(document.documentElement' miniapp-v2/shared/callstatus.js
+          grep -F "CACHE_KEY='asoboon_v2_current_reservation_develop_v1'" miniapp-v2/shared/callstatus.js
+          grep -F "CALL_KEY='asoboon_v2_callstatus_develop_v1'" miniapp-v2/shared/callstatus.js
+      - name: Lock call status script order before router
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          const call=html.indexOf('../shared/callstatus.js');
+          const app=html.indexOf('../shared/app.js');
+          if(call<0||app<0||call>app) throw new Error('callstatus.js must load before app.js');
+          if(!html.includes('v=20260911-9')) throw new Error('Developing cache version not bumped');
+          NODE
