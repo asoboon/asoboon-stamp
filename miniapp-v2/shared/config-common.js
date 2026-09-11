@@ -17,7 +17,7 @@ const ROUTES=Object.freeze({
 });
 const CONFIG=Object.freeze({
   appName:'ASOBooN',
-  version:'2.0.0-devhome',
+  version:'2.0.1-newhome',
   timeZone:'Asia/Tokyo',
   routes:ROUTES,
   prices:Object.freeze({adult:600,child:900,infant:0}),
