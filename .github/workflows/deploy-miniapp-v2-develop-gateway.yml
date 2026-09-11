@@ -105,19 +105,11 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4 deploy --config /tmp/wrangler-v2-develop.jsonc
 
-      - name: Install AirWAIT key as Worker secret when available
+      - name: Remind that AirWAIT secret stays Cloudflare-only
         if: steps.credentials.outputs.available == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
         run: |
-          set -euo pipefail
-          if [ -n "${AIRWAIT_API_KEY:-}" ]; then
-            printf '%s' "$AIRWAIT_API_KEY" | npx --yes wrangler@4 secret put AIRWAIT_API_KEY --config /tmp/wrangler-v2-develop.jsonc
-            echo "AIRWAIT_API_KEY installed as Worker secret."
-          else
-            echo "::warning::AIRWAIT_API_KEY GitHub secret is not configured. Worker is deployed, but AirWAIT waitTypes will remain unavailable until the Cloudflare Worker secret is added."
-          fi
+          echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
+          echo "Add it only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
 
       - name: Health check
         if: steps.credentials.outputs.available == 'true'
