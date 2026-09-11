@@ -90,7 +90,7 @@ jobs:
           DB_ID: ${{ steps.d1.outputs.database_id }}
         run: |
           set -euo pipefail
-          cat > /tmp/wrangler-v2-develop.jsonc <<EOF
+          cat > ./wrangler-v2-develop.tmp.jsonc <<EOF
           {
             "name": "$WORKER_NAME",
             "main": "miniapp-v2/backend/develop-gateway.js",
@@ -115,7 +115,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@4 deploy --config /tmp/wrangler-v2-develop.jsonc
+          npx --yes wrangler@4 deploy --config ./wrangler-v2-develop.tmp.jsonc
 
       - name: Remind that AirWAIT secret stays Cloudflare-only
         if: steps.credentials.outputs.available == 'true'
