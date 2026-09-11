@@ -24,7 +24,7 @@ jobs:
           ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
           ! grep -R -n -F 'cl.airwait.jp' miniapp-v2
-          ! grep -R -n -E 'corWclpKeyCd[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+' miniapp-v2
+          ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/shared
       - name: Block old HOME dependencies
         run: |
           set -euo pipefail
