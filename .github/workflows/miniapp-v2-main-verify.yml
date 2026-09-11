@@ -65,11 +65,19 @@ jobs:
           grep -F "channelId:'2009884611'" miniapp-v2/develop/env.js
           grep -F "liffId:'2009884611-bDgDzGrN'" miniapp-v2/develop/env.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/'" miniapp-v2/develop/env.js
-      - name: Confirm safe create gate
+      - name: Confirm controlled create gate pairing
         run: |
           set -euo pipefail
-          grep -F 'receptionCreate:false' miniapp-v2/develop/env.js
           grep -F 'createRequiresVerifiedLiff' miniapp-v2/shared/reception.js
           grep -F '受付結果を確認しています。新しい受付は行わないでください。' miniapp-v2/shared/reception.js
           grep -F "CHANNEL_ID: '2009884611'" miniapp-v2/backend/develop-gateway.js
           grep -F "CREATE_ENABLED || '0'" miniapp-v2/backend/develop-gateway.js
+
+          if grep -Fq 'receptionCreate:true' miniapp-v2/develop/env.js; then
+            grep -F '"CREATE_ENABLED": "1"' .github/workflows/deploy-miniapp-v2-develop-gateway.yml
+            echo 'Developing create test is intentionally enabled on both client and gateway deployment gates.'
+          else
+            grep -F 'receptionCreate:false' miniapp-v2/develop/env.js
+            grep -F '"CREATE_ENABLED": "0"' .github/workflows/deploy-miniapp-v2-develop-gateway.yml
+            echo 'Developing create is safely disabled on both client and gateway deployment gates.'
+          fi
