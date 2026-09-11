@@ -1,0 +1,98 @@
+name: miniapp-v2-verify
+on:
+  push:
+    branches: ['fix/purple-prod-freeze-v1']
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/miniapp-v2-verify.yml'
+  pull_request:
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/miniapp-v2-verify.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Isolation and secret safety
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          root = Path('miniapp-v2')
+          errors = []
+          files = [p for p in root.rglob('*') if p.is_file()]
+
+          forbidden_literals = {
+            'legacy LIFF': '2009888671-57TOefc3',
+            'purple LIFF': '2011467470-Gk5C3lWf',
+            'production root home dependency': '../home.html',
+            'production root callstatus dependency': '../callstatus.html',
+          }
+
+          for p in files:
+            text = p.read_text(errors='ignore')
+            for label, token in forbidden_literals.items():
+              if token in text:
+                errors.append(f'{p}: contains forbidden {label}: {token}')
+
+            if re.search(r'https://(?:cl\.)?airwait\.jp', text, re.I):
+              errors.append(f'{p}: direct AirWAIT URL is forbidden in miniapp-v2 client')
+            if re.search(r'airwaitApiKey\s*[:=]', text, re.I):
+              errors.append(f'{p}: browser-side AirWAIT API key field is forbidden')
+            if re.search(r'(?:CHANNEL_SECRET|channelSecret)\s*[:=]\s*[\'\"][^\'\"]+', text):
+              errors.append(f'{p}: possible Channel Secret literal')
+            if re.search(r'notificationToken\s*[:=]\s*[\'\"][^\'\"]+', text):
+              errors.append(f'{p}: possible service notification token literal')
+
+          required = {
+            'miniapp-v2/develop/env.js': ['2009884611-bDgDzGrN', "environment:'develop'"],
+            'miniapp-v2/review/env.js': ['2009884612-hhM4k4GP', "environment:'review'"],
+            'miniapp-v2/published/env.js': ['2009884613-ELc6kolf', "environment:'published'"],
+            'miniapp-v2/shared/app.js': ['same-app router', 'data-view'],
+          }
+          for name, tokens in required.items():
+            p = Path(name)
+            if not p.exists():
+              errors.append(f'missing required file: {name}')
+              continue
+            text = p.read_text(errors='ignore')
+            for token in tokens:
+              if token not in text:
+                errors.append(f'{name}: missing required token: {token}')
+
+          if errors:
+            print('MINIAPP V2 VERIFY FAILED')
+            for e in errors: print('-', e)
+            sys.exit(1)
+          print('MINIAPP V2 isolation and secret safety passed.')
+          PY
+
+      - name: JavaScript syntax
+        run: |
+          node --check miniapp-v2/shared/config-common.js
+          node --check miniapp-v2/shared/app.js
+          node --check miniapp-v2/develop/env.js
+          node --check miniapp-v2/review/env.js
+          node --check miniapp-v2/published/env.js
+
+      - name: HTML invariant checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          errors=[]
+          for env in ['develop','review','published']:
+            p=Path(f'miniapp-v2/{env}/index.html')
+            text=p.read_text(errors='ignore') if p.exists() else ''
+            for token in ['../shared/app.css','../shared/config-common.js','./env.js','../shared/app.js']:
+              if token not in text: errors.append(f'{p}: missing {token}')
+            if 'miniapp.line.me/' in text:
+              errors.append(f'{p}: LIFF URL must come from env.js, not index.html')
+          if errors:
+            print('\n'.join(errors)); sys.exit(1)
+          print('MINIAPP V2 HTML invariants passed.')
+          PY
