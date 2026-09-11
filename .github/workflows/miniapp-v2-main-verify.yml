@@ -34,7 +34,11 @@ jobs:
             [{adult:1,child:0,infant:1}, 1500],
             [{adult:1,child:0,infant:2}, 1500],
             [{adult:1,child:0,infant:3}, 1500],
-            [{adult:1,child:1,infant:2}, 2400]
+            [{adult:1,child:1,infant:0}, 1500],
+            [{adult:1,child:1,infant:1}, 1500],
+            [{adult:1,child:1,infant:2}, 1500],
+            [{adult:1,child:2,infant:1}, 2400],
+            [{adult:2,child:0,infant:1}, 2100]
           ];
           for (const [input, expected] of cases) {
             const actual = price(input);
