@@ -6,6 +6,8 @@ on:
     paths:
       - 'miniapp-v2/backend/develop-gateway.js'
       - 'miniapp-v2/backend/prepare-develop-test-runtime.mjs'
+      - 'miniapp-v2/backend/develop-worker.mjs'
+      - 'miniapp-v2/backend/develop-service-message.js'
       - '.github/workflows/deploy-miniapp-v2-develop-gateway.yml'
 
 permissions:
@@ -91,6 +93,8 @@ jobs:
           set -euo pipefail
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node --input-type=module --check < develop-gateway.runtime.mjs
+          node --check miniapp-v2/backend/develop-service-message.js
+          node --check miniapp-v2/backend/develop-worker.mjs
 
       - name: Build temporary Wrangler config
         if: steps.credentials.outputs.available == 'true'
@@ -101,9 +105,13 @@ jobs:
           cat > ./wrangler-v2-develop.tmp.jsonc <<EOF
           {
             "name": "$WORKER_NAME",
-            "main": "./develop-gateway.runtime.mjs",
+            "main": "./miniapp-v2/backend/develop-worker.mjs",
             "compatibility_date": "2026-09-11",
             "workers_dev": true,
+            "keep_vars": true,
+            "triggers": {
+              "crons": ["* * * * *"]
+            },
             "vars": {
               "CREATE_ENABLED": "1"
             },
@@ -117,7 +125,7 @@ jobs:
           }
           EOF
 
-      - name: Deploy Developing gateway with controlled create enabled
+      - name: Deploy Developing gateway with call notification worker
         if: steps.credentials.outputs.available == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -125,11 +133,13 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4 deploy --config ./wrangler-v2-develop.tmp.jsonc
 
-      - name: Remind that AirWAIT secret stays Cloudflare-only
+      - name: Remind that service secrets stay Cloudflare-only
         if: steps.credentials.outputs.available == 'true'
         run: |
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
-          echo "It must exist only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
+          echo "LINE_MINIAPP_CHANNEL_SECRET is intentionally NOT read from GitHub."
+          echo "SERVICE_MESSAGE_TEMPLATE_NAME and SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON may also be stored as Worker secrets."
+          echo "No LINE secret, LIFF access token, or notification token is committed to GitHub."
 
       - name: Health check and assert Developing test gate
         if: steps.credentials.outputs.available == 'true'
@@ -142,10 +152,17 @@ jobs:
             if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
-                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042" || x.callstatusEnabled!==true) process.exit(1);
+                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042" || x.callstatusEnabled!==true || x.serviceMessageEnabled!==true || x.serviceMessageCronEnabled!==true) process.exit(1);
               });
             '; then
               echo "$RESPONSE"
+              printf '%s' "$RESPONSE" | node -e '
+                let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+                  const x=JSON.parse(s);
+                  if(x.serviceMessageChannelSecretConfigured!==true) console.log("::warning::Developing LINE_MINIAPP_CHANNEL_SECRET is not configured yet.");
+                  if(x.serviceMessageTemplateConfigured!==true) console.log("::warning::Developing SERVICE_MESSAGE_TEMPLATE_NAME is not configured yet.");
+                });
+              '
               break
             fi
             if [ "$i" = "5" ]; then exit 1; fi
@@ -172,11 +189,11 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with CREATE_ENABLED=1, local test slot 0042, and call-status support."
+            echo "Official Developing gateway deployed with CREATE_ENABLED=1, local test slot 0042, call-status support, and 1-minute LINE Service Message call watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
 
 # Official Developing only. Review/Published are intentionally untouched.
 # AirWAIT 0042 is a temporary Developing-only local test slot exception.
-# AirWAIT secret remains Cloudflare-only.
+# AirWAIT + LINE service-message secrets remain Cloudflare-only.
