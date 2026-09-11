@@ -20,7 +20,7 @@ window.ASOBOON_V2_ENV=Object.freeze({
     reception:true,
     receptionCreate:true,
     callstatus:true,
-    serviceMessage:false,
+    serviceMessage:true,
     timeguide:true,
     firstGuide:true,
     entryGuide:true,
