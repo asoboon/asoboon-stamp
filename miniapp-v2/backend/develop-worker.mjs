@@ -30,6 +30,10 @@ export default {
       let body;
       try { body = await base.clone().json(); }
       catch { return base; }
+
+      // Keep the underlying AirWAIT create capability separate from the effective
+      // browser-facing gate. Developing may create only when LINE call delivery is ready.
+      const baseCreateEnabled = body?.createEnabled === true;
       try { Object.assign(body, await serviceHealth(env)); }
       catch (e) {
         Object.assign(body, {
@@ -39,6 +43,16 @@ export default {
           serviceMessageCronEnabled:true,
           serviceMessageHealthError:safeError(e),
         });
+      }
+      body.baseCreateEnabled = baseCreateEnabled;
+      if (body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true) {
+        body.createEnabled = false;
+        body.createBlockedReason = body.serviceMessageHealthError
+          ? 'LINE_NOTIFICATION_HEALTH_UNAVAILABLE'
+          : 'LINE_NOTIFICATION_NOT_READY';
+      } else {
+        body.createEnabled = baseCreateEnabled;
+        body.createBlockedReason = baseCreateEnabled ? '' : 'BASE_CREATE_GATE_DISABLED';
       }
       return new Response(JSON.stringify(body), { status:base.status, headers:base.headers });
     }
