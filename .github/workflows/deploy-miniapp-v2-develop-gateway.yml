@@ -92,7 +92,6 @@ jobs:
           set -euo pipefail
           cat > /tmp/wrangler-v2-develop.jsonc <<EOF
           {
-            "$schema": "node_modules/wrangler/config-schema.json",
             "name": "$WORKER_NAME",
             "main": "miniapp-v2/backend/develop-gateway.js",
             "compatibility_date": "2026-09-11",
