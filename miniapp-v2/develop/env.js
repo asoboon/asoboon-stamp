@@ -11,6 +11,11 @@ window.ASOBOON_V2_ENV=Object.freeze({
   endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/',
   backendUrl:'https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/',
   backendEnvironment:'official-develop',
+  developTestWaitType:Object.freeze({
+    waitTypeId:'0042',
+    label:'入場不可テスト',
+    detail:'Developing専用 / AirWAIT現地受付枠'
+  }),
   featureFlags:Object.freeze({
     reception:true,
     receptionCreate:true,
