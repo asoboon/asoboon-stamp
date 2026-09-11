@@ -159,6 +159,9 @@ jobs:
                 process.exit(1);
               }
               console.log(`AirWAIT waitTypes read-only check passed: ${x.waitTypes.length} types`);
+              for(const w of x.waitTypes){
+                console.log(`WAIT_TYPE id=${w.waitTypeId} name=${JSON.stringify(w.waitTypeName)} disp=${w.dispFlg} usage=${w.usageDispType}`);
+              }
             });
           '
 
