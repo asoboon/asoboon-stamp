@@ -22,6 +22,25 @@ jobs:
         run: |
           set -euo pipefail
           node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
+      - name: Lock infant pricing rule
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          global.window = {};
+          require('./miniapp-v2/shared/app-rules.js');
+          const price = window.ASOBOON_V2_RULES.priceFor;
+          const cases = [
+            [{adult:1,child:0,infant:0}, 600],
+            [{adult:1,child:0,infant:1}, 1500],
+            [{adult:1,child:0,infant:2}, 1500],
+            [{adult:1,child:0,infant:3}, 1500],
+            [{adult:1,child:1,infant:2}, 2400]
+          ];
+          for (const [input, expected] of cases) {
+            const actual = price(input);
+            if (actual !== expected) throw new Error(`price mismatch ${JSON.stringify(input)} => ${actual}, expected ${expected}`);
+          }
+          NODE
       - name: Block legacy and Purple LIFF dependencies
         run: |
           set -euo pipefail
