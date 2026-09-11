@@ -5,7 +5,7 @@ const E=window.ASOBOON_V2_ENV||{};
 const F=E.featureFlags||{};
 const root=document.getElementById('app');
 const state={mode:'before',view:'home',liffReady:false,inClient:false,displayName:'',bootError:'',booting:true};
-const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const q=()=>new URLSearchParams(location.search);
 const receptionModule=()=>window.ASOBOON_V2_RECEPTION;
 const callstatusModule=()=>window.ASOBOON_V2_CALLSTATUS;
