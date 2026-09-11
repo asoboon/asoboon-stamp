@@ -17,10 +17,10 @@ const ROUTES=Object.freeze({
 });
 const CONFIG=Object.freeze({
   appName:'ASOBooN',
-  version:'2.0.2-liff-init',
+  version:'2.1.0-reception-ui',
   timeZone:'Asia/Tokyo',
   routes:ROUTES,
-  prices:Object.freeze({adult:600,child:900,infant:0}),
+  prices:Object.freeze({adult:600,child:900,infantFirst:900,infantAdditional:0}),
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   labels:Object.freeze({
     before:'来場前',inside:'館内',
