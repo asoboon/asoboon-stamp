@@ -121,7 +121,7 @@ jobs:
         if: steps.credentials.outputs.available == 'true'
         run: |
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
-          echo "Add it only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
+          echo "It must exist only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
 
       - name: Health check
         if: steps.credentials.outputs.available == 'true'
@@ -132,11 +132,29 @@ jobs:
               -H 'Origin: https://asoboon.github.io' \
               "$WORKER_URL/?action=health"; then
               echo
-              exit 0
+              break
             fi
+            if [ "$i" = "5" ]; then exit 1; fi
             sleep 3
           done
-          exit 1
+
+      - name: Verify AirWAIT wait types read-only
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=waitTypes")"
+          printf '%s' "$RESPONSE" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              if(x.ok!==true || !Array.isArray(x.waitTypes) || x.waitTypes.length===0){
+                console.error("AirWAIT waitTypes verification failed");
+                process.exit(1);
+              }
+              console.log(`AirWAIT waitTypes read-only check passed: ${x.waitTypes.length} types`);
+            });
+          '
 
       - name: Deployment status
         if: always()
