@@ -12,7 +12,8 @@ window.ASOBOON_V2_ENV=Object.freeze({
   backendUrl:'',
   backendEnvironment:'official-develop',
   featureFlags:Object.freeze({
-    reception:false,
+    reception:true,
+    receptionCreate:false,
     callstatus:false,
     serviceMessage:false,
     timeguide:true,
