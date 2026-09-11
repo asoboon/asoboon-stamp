@@ -9,7 +9,7 @@ window.ASOBOON_V2_ENV=Object.freeze({
   liffId:'2009884611-bDgDzGrN',
   liffUrl:'https://miniapp.line.me/2009884611-bDgDzGrN',
   endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/',
-  backendUrl:'',
+  backendUrl:'https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/',
   backendEnvironment:'official-develop',
   featureFlags:Object.freeze({
     reception:true,
