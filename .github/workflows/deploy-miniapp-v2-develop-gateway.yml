@@ -134,3 +134,5 @@ jobs:
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
+
+# trigger: CLOUDFLARE_API_TOKEN added for safe Developing bootstrap
