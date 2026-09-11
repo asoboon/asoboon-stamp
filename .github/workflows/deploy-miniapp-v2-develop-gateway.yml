@@ -142,7 +142,7 @@ jobs:
             if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
-                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042") process.exit(1);
+                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042" || x.callstatusEnabled!==true) process.exit(1);
               });
             '; then
               echo "$RESPONSE"
@@ -172,7 +172,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with CREATE_ENABLED=1 and local test slot 0042 exception."
+            echo "Official Developing gateway deployed with CREATE_ENABLED=1, local test slot 0042, and call-status support."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
