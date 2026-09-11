@@ -18,6 +18,7 @@ jobs:
       WORKER_NAME: asoboon-miniapp-v2-develop-gateway
       DB_NAME: asoboon-miniapp-v2-develop-db
       WORKER_URL: https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev
+      DEVELOP_TEST_WAIT_TYPE_ID: '0042'
     steps:
       - uses: actions/checkout@v4
 
@@ -84,6 +85,60 @@ jobs:
           echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
           echo "Dedicated D1 ready: $DB_NAME"
 
+      - name: Prepare Developing-only AirWAIT local test slot runtime
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp miniapp-v2/backend/develop-gateway.js ./develop-gateway.runtime.mjs
+          python <<'PY'
+          from pathlib import Path
+          p=Path('develop-gateway.runtime.mjs')
+          s=p.read_text()
+          def rep(old,new):
+              global s
+              if s.count(old)!=1:
+                  raise SystemExit(f'expected one runtime patch match: {old[:100]!r}, got {s.count(old)}')
+              s=s.replace(old,new,1)
+          rep("  VERSION: '1.0.dev1',", "  VERSION: '1.1.dev-test-slot',")
+          rep("  ONSITE_OPEN_MIN: 9 * 60 + 30,", "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',")
+          rep("    createEnabled: String(env.CREATE_ENABLED || '0') === '1',", "    createEnabled: String(env.CREATE_ENABLED || '0') === '1',\n    developTestWaitTypeId: CFG.DEVELOP_TEST_WAIT_TYPE_ID,")
+          rep("function enforceReceptionHours(day, mode) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);", "function enforceReceptionHours(day, mode, waitTypeId) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);")
+          old="""function validateWaitType(waitTypes, day, mode, waitTypeId) {
+  const allowed = SLOT_RULES[day.businessType] || [];
+  if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
+  const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
+  if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  const usage = String(w.usageDispType || '');
+  if (usage) {
+    const allowedUsage = mode === 'web' ? ['01', '03'] : ['01', '02'];
+    if (!allowedUsage.includes(usage)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  }
+  return w;
+}"""
+          new="""function isStoreReceptionUsage(usage) {
+  const u = String(usage || '');
+  return !u || ['01', '02', 'KeyALL', 'KeySTORE_RECEPTION_ONLY'].includes(u);
+}
+
+function validateWaitType(waitTypes, day, mode, waitTypeId) {
+  const isDevelopTest = waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID;
+  const allowed = SLOT_RULES[day.businessType] || [];
+  if (!isDevelopTest && !allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
+  const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
+  if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  if (!isDevelopTest && w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  if (!isStoreReceptionUsage(w.usageDispType)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  return w;
+}"""
+          rep(old,new)
+          rep("  enforceReceptionHours(day, mode);", "  enforceReceptionHours(day, mode, waitTypeId);")
+          p.write_text(s)
+          PY
+          node --input-type=module --check < ./develop-gateway.runtime.mjs
+          grep -F "DEVELOP_TEST_WAIT_TYPE_ID: '0042'" ./develop-gateway.runtime.mjs
+          grep -F "KeySTORE_RECEPTION_ONLY" ./develop-gateway.runtime.mjs
+
       - name: Build temporary Wrangler config
         if: steps.credentials.outputs.available == 'true'
         env:
@@ -93,7 +148,7 @@ jobs:
           cat > ./wrangler-v2-develop.tmp.jsonc <<EOF
           {
             "name": "$WORKER_NAME",
-            "main": "miniapp-v2/backend/develop-gateway.js",
+            "main": "./develop-gateway.runtime.mjs",
             "compatibility_date": "2026-09-11",
             "workers_dev": true,
             "vars": {
@@ -123,7 +178,7 @@ jobs:
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
           echo "It must exist only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
 
-      - name: Health check and assert Developing create gate
+      - name: Health check and assert Developing create/test gates
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -134,7 +189,7 @@ jobs:
             if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
-                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true) process.exit(1);
+                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042") process.exit(1);
               });
             '; then
               echo "$RESPONSE"
@@ -144,7 +199,7 @@ jobs:
             sleep 3
           done
 
-      - name: Verify AirWAIT wait types read-only
+      - name: Verify AirWAIT wait types and local test slot read-only
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -155,13 +210,13 @@ jobs:
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
               const x=JSON.parse(s);
               if(x.ok!==true || !Array.isArray(x.waitTypes) || x.waitTypes.length===0){
-                console.error("AirWAIT waitTypes verification failed");
-                process.exit(1);
+                console.error("AirWAIT waitTypes verification failed"); process.exit(1);
               }
-              console.log(`AirWAIT waitTypes read-only check passed: ${x.waitTypes.length} types`);
-              for(const w of x.waitTypes){
-                console.log(`WAIT_TYPE id=${w.waitTypeId} name=${JSON.stringify(w.waitTypeName)} disp=${w.dispFlg} usage=${w.usageDispType}`);
+              const test=x.waitTypes.find(w=>String(w.waitTypeId)==="0042");
+              if(!test || String(test.waitTypeName)!=="入場不可テスト" || !["02","KeySTORE_RECEPTION_ONLY"].includes(String(test.usageDispType||""))){
+                console.error("AirWAIT Developing local test slot 0042 verification failed", test); process.exit(1);
               }
+              console.log(`AirWAIT local test slot ready: id=${test.waitTypeId} name=${JSON.stringify(test.waitTypeName)} disp=${test.dispFlg} usage=${test.usageDispType}`);
             });
           '
 
@@ -169,10 +224,11 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployment path executed with CREATE_ENABLED=1 for controlled test only."
+            echo "Official Developing gateway deployed with CREATE_ENABLED=1 and local test slot 0042 runtime exception."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
 
 # Official Developing only. Review/Published are intentionally untouched.
+# AirWAIT 0042 is a temporary Developing-only in-store test slot exception.
 # Cloudflare D1 bootstrap uses the REST API; AirWAIT secret remains Cloudflare-only.
