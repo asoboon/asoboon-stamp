@@ -47,6 +47,32 @@ jobs:
             if (actual !== expected) throw new Error(`price mismatch ${JSON.stringify(input)} => ${actual}, expected ${expected}`);
           }
           NODE
+      - name: Lock play-time guide calculations
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          global.window={ASOBOON_V2_BUSINESS_DAY:{}};
+          require('./miniapp-v2/shared/timeguide.js');
+          const calc=window.ASOBOON_V2_TIMEGUIDE.calculate;
+          const day=(businessType,durationMinutes,durationLabel,closingTime,isClosed=false)=>({ok:true,businessType,durationMinutes,durationLabel,closingTime,isClosed});
+          const cases=[
+            [day('平日',0,'時間制限なし','17:00'),'10:00','17:00',false],
+            [day('平日特定日',180,'3時間','17:00'),'13:30','16:30',false],
+            [day('平日特定日',180,'3時間','17:00'),'16:00','17:00',true],
+            [day('土日祝日',150,'2時間30分','18:00'),'10:00','12:30',false],
+            [day('土日祝日',150,'2時間30分','18:00'),'15:00','17:30',false],
+            [day('土日祝日',150,'2時間30分','18:00'),'16:00','18:00',true]
+          ];
+          for(const [d,entry,end,limited] of cases){
+            const r=calc(d,entry);
+            if(!r.ok||r.endTime!==end||Boolean(r.limitedByClose)!==limited)throw new Error(`${d.businessType} ${entry} => ${JSON.stringify(r)}, expected ${end}`);
+          }
+          if(calc(day('平日',0,'時間制限なし','17:00'),'09:59').ok)throw new Error('before-opening entry must be rejected');
+          if(calc(day('休館',null,'休館日',null,true),'10:00').ok)throw new Error('closed day must be rejected');
+          NODE
+          ! grep -Fq '.getDay(' miniapp-v2/shared/timeguide.js
+          grep -F 'D.getCurrent({force})' miniapp-v2/shared/timeguide.js
+          grep -F 'Math.min(entry+duration,close)' miniapp-v2/shared/timeguide.js
       - name: Block legacy and Purple LIFF dependencies
         run: |
           set -euo pipefail
@@ -104,14 +130,25 @@ jobs:
           ! grep -Fq 'observer.observe(document.documentElement' miniapp-v2/shared/callstatus.js
           grep -F "CACHE_KEY='asoboon_v2_current_reservation_develop_v1'" miniapp-v2/shared/callstatus.js
           grep -F "CALL_KEY='asoboon_v2_callstatus_develop_v1'" miniapp-v2/shared/callstatus.js
-      - name: Lock call status script order before router
+      - name: Lock play-time guide as a first-class Developing route
+        run: |
+          set -euo pipefail
+          grep -F "if(view==='timeguide')return timePage()" miniapp-v2/shared/app.js
+          grep -F "timeguideModule()?.mount?." miniapp-v2/shared/app.js
+          grep -F 'window.ASOBOON_V2_TIMEGUIDE=Object.freeze' miniapp-v2/shared/timeguide.js
+          grep -F "OPENING_TIME='10:00'" miniapp-v2/shared/timeguide.js
+          grep -F 'day.closingTime' miniapp-v2/shared/timeguide.js
+          grep -F 'day.durationMinutes' miniapp-v2/shared/timeguide.js
+      - name: Lock Developing module script order before router
         run: |
           set -euo pipefail
           node <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
           const call=html.indexOf('../shared/callstatus.js');
+          const time=html.indexOf('../shared/timeguide.js');
           const app=html.indexOf('../shared/app.js');
-          if(call<0||app<0||call>app) throw new Error('callstatus.js must load before app.js');
-          if(!html.includes('v=20260911-9')) throw new Error('Developing cache version not bumped');
+          if(call<0||time<0||app<0||call>app||time>app) throw new Error('Developing feature modules must load before app.js');
+          if(!html.includes('../shared/timeguide.css')) throw new Error('timeguide.css must be loaded');
+          if(!html.includes('v=20260911-10')) throw new Error('Developing cache version not bumped');
           NODE
