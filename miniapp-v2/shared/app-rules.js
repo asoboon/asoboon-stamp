@@ -16,17 +16,24 @@ const SLOT_RULES=Object.freeze({
   ]),
   '休館':Object.freeze([])
 });
+const PRICES=Object.freeze({adult:600,child:900,infantFirst:900,infantAdditional:0});
+function count(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.floor(n)):0}
+function priceFor({adult=0,child=0,infant=0}={}){
+  const a=count(adult),c=count(child),i=count(infant);
+  const chargedInfants=Math.min(i,1); // 0〜5か月は1人目だけ有料。2人目以降は必ず0円。
+  return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirst;
+}
 const RULES=Object.freeze({
-  version:'1.0.0',
+  version:'1.0.1',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:18,
   onsiteOpen:'09:30',
-  prices:Object.freeze({adult:600,child:900,infantFirst:900,infantAdditional:0}),
+  prices:PRICES,
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   slotRules:SLOT_RULES,
   geofence:Object.freeze({lat:35.84895,lng:139.74345,radiusM:500,maxAccuracyM:200,maxAgeMs:2*60*1000}),
   slotsFor(type){return SLOT_RULES[String(type||'').trim()]||Object.freeze([])},
-  priceFor({adult=0,child=0,infant=0}={}){return Math.max(0,+adult||0)*600+Math.max(0,+child||0)*900+(Math.max(0,+infant||0)>0?900:0)}
+  priceFor
 });
 window.ASOBOON_V2_RULES=RULES;
 })();
