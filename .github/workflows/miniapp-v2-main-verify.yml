@@ -1,0 +1,43 @@
+name: miniapp-v2-main-verify
+on:
+  push:
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/miniapp-v2-main-verify.yml'
+  pull_request:
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/miniapp-v2-main-verify.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript syntax
+        run: |
+          set -euo pipefail
+          find miniapp-v2 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Block legacy and Purple LIFF dependencies
+        run: |
+          set -euo pipefail
+          ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2
+          ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
+          ! grep -R -n -F 'cl.airwait.jp' miniapp-v2
+          ! grep -R -n -E 'corWclpKeyCd[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+' miniapp-v2
+      - name: Block old HOME dependencies
+        run: |
+          set -euo pipefail
+          ! grep -R -n -E '(\.\./)+home\.html|/home\.html|home-core\.html|callstatus-core\.html' miniapp-v2
+      - name: Confirm Developing identity is isolated
+        run: |
+          set -euo pipefail
+          grep -F "channelId:'2009884611'" miniapp-v2/develop/env.js
+          grep -F "liffId:'2009884611-bDgDzGrN'" miniapp-v2/develop/env.js
+          grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/'" miniapp-v2/develop/env.js
+      - name: Confirm safe create gate
+        run: |
+          set -euo pipefail
+          grep -F 'receptionCreate:false' miniapp-v2/develop/env.js
+          grep -F 'createRequiresVerifiedLiff' miniapp-v2/shared/reception.js
+          grep -F '受付結果を確認しています。新しい受付は行わないでください。' miniapp-v2/shared/reception.js
