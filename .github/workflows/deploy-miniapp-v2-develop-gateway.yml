@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# Never let an older Developing deployment finish after a newer one.
+concurrency:
+  group: miniapp-v2-develop-gateway
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -52,7 +57,6 @@ jobs:
           set -euo pipefail
           API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database"
           AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-
           LIST_JSON="$(curl --fail-with-body --silent --show-error -H "$AUTH" "$API?per_page=100")"
           DB_ID="$(printf '%s' "$LIST_JSON" | node -e '
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
@@ -63,14 +67,10 @@ jobs:
               process.stdout.write(r ? String(r.uuid||"") : "");
             });
           ')"
-
           if [ -z "$DB_ID" ]; then
             CREATE_JSON="$(curl --fail-with-body --silent --show-error \
-              -X POST \
-              -H "$AUTH" \
-              -H 'Content-Type: application/json' \
-              --data "{\"name\":\"${DB_NAME}\"}" \
-              "$API")"
+              -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+              --data "{\"name\":\"${DB_NAME}\"}" "$API")"
             DB_ID="$(printf '%s' "$CREATE_JSON" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
@@ -79,7 +79,6 @@ jobs:
               });
             ')"
           fi
-
           if [ -z "$DB_ID" ]; then
             echo "Could not resolve D1 database id" >&2
             exit 1
@@ -109,12 +108,8 @@ jobs:
             "compatibility_date": "2026-09-11",
             "workers_dev": true,
             "keep_vars": true,
-            "triggers": {
-              "crons": ["* * * * *"]
-            },
-            "vars": {
-              "CREATE_ENABLED": "1"
-            },
+            "triggers": { "crons": ["* * * * *"] },
+            "vars": { "CREATE_ENABLED": "1" },
             "d1_databases": [
               {
                 "binding": "DB",
@@ -138,21 +133,32 @@ jobs:
         run: |
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
           echo "LINE_MINIAPP_CHANNEL_SECRET is intentionally NOT read from GitHub."
-          echo "SERVICE_MESSAGE_TEMPLATE_NAME and SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON may also be stored as Worker secrets."
+          echo "SERVICE_MESSAGE_TEMPLATE_NAME and SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON stay outside source control."
           echo "No LINE secret, LIFF access token, or notification token is committed to GitHub."
 
-      - name: Health check and assert Developing test gate
+      - name: Health check and assert exact Developing notification build
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             RESPONSE="$(curl --fail --silent --show-error \
               -H 'Origin: https://asoboon.github.io' \
-              "$WORKER_URL/?action=health" || true)"
+              "$WORKER_URL/?action=health&_=${GITHUB_SHA}-${i}" || true)"
             if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
-                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true || x.developTestWaitTypeId!=="0042" || x.callstatusEnabled!==true || x.serviceMessageEnabled!==true || x.serviceMessageCronEnabled!==true) process.exit(1);
+                if(
+                  x.ok!==true ||
+                  x.environment!=="official-develop" ||
+                  x.createEnabled!==true ||
+                  x.airwaitKeyConfigured!==true ||
+                  x.developTestWaitTypeId!=="0042" ||
+                  x.callstatusEnabled!==true ||
+                  x.serviceMessageEnabled!==true ||
+                  x.serviceMessageVersion!=="2.0.dev2" ||
+                  x.serviceMessageMandatoryBeforeCreate!==true ||
+                  x.serviceMessageCronEnabled!==true
+                ) process.exit(1);
               });
             '; then
               echo "$RESPONSE"
@@ -161,11 +167,17 @@ jobs:
                   const x=JSON.parse(s);
                   if(x.serviceMessageChannelSecretConfigured!==true) console.log("::warning::Developing LINE_MINIAPP_CHANNEL_SECRET is not configured yet.");
                   if(x.serviceMessageTemplateConfigured!==true) console.log("::warning::Developing SERVICE_MESSAGE_TEMPLATE_NAME is not configured yet.");
+                  if(x.serviceMessageTemplateParamsConfigured!==true) console.log("::warning::Developing SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON is not configured or invalid.");
+                  if(x.serviceMessageReady!==true) console.log("::warning::LINE Service Message is NOT ready; Developing reservation creation is intentionally blocked before AirWAIT create.");
                 });
               '
               break
             fi
-            if [ "$i" = "5" ]; then exit 1; fi
+            if [ "$i" = "10" ]; then
+              echo "Expected serviceMessageVersion=2.0.dev2 did not become live." >&2
+              echo "$RESPONSE" >&2
+              exit 1
+            fi
             sleep 3
           done
 
@@ -175,7 +187,7 @@ jobs:
           set -euo pipefail
           RESPONSE="$(curl --fail-with-body --silent --show-error \
             -H 'Origin: https://asoboon.github.io' \
-            "$WORKER_URL/?action=waitTypes")"
+            "$WORKER_URL/?action=waitTypes&_=${GITHUB_SHA}")"
           printf '%s' "$RESPONSE" | node -e '
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
               const x=JSON.parse(s);
@@ -189,7 +201,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with CREATE_ENABLED=1, local test slot 0042, call-status support, and 1-minute LINE Service Message call watcher."
+            echo "Official Developing gateway deployed with local test slot 0042, exact notification build verification, mandatory pre-create LINE gate, and 1-minute call watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
