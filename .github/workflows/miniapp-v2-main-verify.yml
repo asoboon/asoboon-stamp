@@ -14,16 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: JavaScript syntax
+      - name: Browser JavaScript syntax
         run: |
           set -euo pipefail
-          find miniapp-v2 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          find miniapp-v2/develop miniapp-v2/shared -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Worker module syntax
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
       - name: Block legacy and Purple LIFF dependencies
         run: |
           set -euo pipefail
           ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
-          ! grep -R -n -F 'cl.airwait.jp' miniapp-v2
+      - name: Block browser-side AirWAIT access and key header
+        run: |
+          set -euo pipefail
+          ! grep -R -n -F 'cl.airwait.jp' miniapp-v2/develop miniapp-v2/shared
           ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/shared
       - name: Block old HOME dependencies
         run: |
@@ -41,3 +48,5 @@ jobs:
           grep -F 'receptionCreate:false' miniapp-v2/develop/env.js
           grep -F 'createRequiresVerifiedLiff' miniapp-v2/shared/reception.js
           grep -F '受付結果を確認しています。新しい受付は行わないでください。' miniapp-v2/shared/reception.js
+          grep -F "CHANNEL_ID: '2009884611'" miniapp-v2/backend/develop-gateway.js
+          grep -F "CREATE_ENABLED || '0'" miniapp-v2/backend/develop-gateway.js
