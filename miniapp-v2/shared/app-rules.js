@@ -16,15 +16,19 @@ const SLOT_RULES=Object.freeze({
   ]),
   '休館':Object.freeze([])
 });
-const PRICES=Object.freeze({adult:600,child:900,infantFirst:900,infantAdditional:0});
+const PRICES=Object.freeze({adult:600,child:900,infantFirstWhenNoPaidChild:900,infantAdditional:0});
 function count(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.floor(n)):0}
 function priceFor({adult=0,child=0,infant=0}={}){
   const a=count(adult),c=count(child),i=count(infant);
-  const chargedInfants=Math.min(i,1); // 0〜5か月は1人目だけ有料。2人目以降は必ず0円。
-  return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirst;
+  /* 0〜5か月は「お子さま2人目以降」に当たれば無料。
+   * 6か月以上の有料こどもが1人以上いる場合、0〜5か月は全員無料。
+   * 0〜5か月だけの場合は、最初の1人のみ900円、2人目以降は無料。
+   */
+  const chargedInfants=(i>0&&c===0)?1:0;
+  return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirstWhenNoPaidChild;
 }
 const RULES=Object.freeze({
-  version:'1.0.1',
+  version:'1.0.2',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:18,
   onsiteOpen:'09:30',
