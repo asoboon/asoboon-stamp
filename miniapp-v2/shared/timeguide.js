@@ -1,6 +1,6 @@
 /* ASOBooN LINE MINI App v2 / Developing play-time guide */
 (()=>{'use strict';
-const VERSION='1.0.0';
+const VERSION='1.0.1';
 const D=window.ASOBOON_V2_BUSINESS_DAY||{};
 const OPENING_TIME='10:00';
 let generation=0;
@@ -41,8 +41,10 @@ function calculation(day,entryValue){
   if(!Number.isFinite(close))return{ok:false,message:'閉館時刻を確認できません。'};
   if(entry<open)return{ok:false,message:`入場時刻は${OPENING_TIME}以降を選択してください。`};
   if(entry>=close)return{ok:false,message:`閉館時刻（${day.closingTime}）より前の入場時刻を選択してください。`};
-  const duration=Number(day.durationMinutes||0);
-  const unlimited=!Number.isFinite(duration)||duration<=0;
+  if(day.durationMinutes===null||day.durationMinutes===undefined||day.durationMinutes==='')return{ok:false,message:'利用時間を確認できません。'};
+  const duration=Number(day.durationMinutes);
+  if(!Number.isFinite(duration)||duration<0)return{ok:false,message:'利用時間の設定が不正です。'};
+  const unlimited=duration===0;
   const end=unlimited?close:Math.min(entry+duration,close);
   return {ok:true,entry,close,duration,unlimited,end,endTime:formatClock(end),limitedByClose:!unlimited&&entry+duration>close};
 }
