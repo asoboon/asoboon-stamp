@@ -1,0 +1,144 @@
+name: deploy-miniapp-v2-develop-gateway
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'miniapp-v2/backend/develop-gateway.js'
+      - '.github/workflows/deploy-miniapp-v2-develop-gateway.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 7bb41607cf8c1585e9cf166d1609f8c1
+      WORKER_NAME: asoboon-miniapp-v2-develop-gateway
+      DB_NAME: asoboon-miniapp-v2-develop-db
+      WORKER_URL: https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Cloudflare deployment credentials
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN is not configured. Deployment was safely skipped."
+          fi
+
+      - name: Set up Node
+        if: steps.credentials.outputs.available == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Ensure dedicated Developing D1 database
+        if: steps.credentials.outputs.available == 'true'
+        id: d1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          LIST_JSON="$(npx --yes wrangler@4 d1 list --json)"
+          DB_ID="$(printf '%s' "$LIST_JSON" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const a=JSON.parse(s); const rows=Array.isArray(a)?a:(a.result||a.databases||[]);
+              const r=rows.find(x=>x && x.name===process.env.DB_NAME);
+              process.stdout.write(r ? String(r.uuid||r.database_id||r.id||"") : "");
+            });
+          ')"
+          if [ -z "$DB_ID" ]; then
+            CREATE_JSON="$(npx --yes wrangler@4 d1 create "$DB_NAME" --json)"
+            DB_ID="$(printf '%s' "$CREATE_JSON" | node -e '
+              let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const x=JSON.parse(s); const r=x.result||x;
+                process.stdout.write(String(r.uuid||r.database_id||r.id||""));
+              });
+            ')"
+          fi
+          if [ -z "$DB_ID" ]; then
+            echo "Could not resolve D1 database id" >&2
+            exit 1
+          fi
+          echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
+          echo "Dedicated D1 ready: $DB_NAME"
+
+      - name: Build temporary Wrangler config
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          DB_ID: ${{ steps.d1.outputs.database_id }}
+        run: |
+          set -euo pipefail
+          cat > /tmp/wrangler-v2-develop.jsonc <<EOF
+          {
+            "$schema": "node_modules/wrangler/config-schema.json",
+            "name": "$WORKER_NAME",
+            "main": "miniapp-v2/backend/develop-gateway.js",
+            "compatibility_date": "2026-09-11",
+            "workers_dev": true,
+            "vars": {
+              "CREATE_ENABLED": "0"
+            },
+            "d1_databases": [
+              {
+                "binding": "DB",
+                "database_name": "$DB_NAME",
+                "database_id": "$DB_ID"
+              }
+            ]
+          }
+          EOF
+
+      - name: Deploy gateway with create disabled
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4 deploy --config /tmp/wrangler-v2-develop.jsonc
+
+      - name: Install AirWAIT key as Worker secret when available
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${AIRWAIT_API_KEY:-}" ]; then
+            printf '%s' "$AIRWAIT_API_KEY" | npx --yes wrangler@4 secret put AIRWAIT_API_KEY --config /tmp/wrangler-v2-develop.jsonc
+            echo "AIRWAIT_API_KEY installed as Worker secret."
+          else
+            echo "::warning::AIRWAIT_API_KEY GitHub secret is not configured. Worker is deployed, but AirWAIT waitTypes will remain unavailable until the Cloudflare Worker secret is added."
+          fi
+
+      - name: Health check
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5; do
+            if curl --fail --silent --show-error \
+              -H 'Origin: https://asoboon.github.io' \
+              "$WORKER_URL/?action=health"; then
+              echo
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
+
+      - name: Deployment status
+        if: always()
+        run: |
+          if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
+            echo "Cloudflare deployment path executed with CREATE_ENABLED=0."
+          else
+            echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
+          fi
