@@ -47,23 +47,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LIST_JSON="$(npx --yes wrangler@4 d1 list --json)"
+          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          LIST_JSON="$(curl --fail-with-body --silent --show-error -H "$AUTH" "$API?per_page=100")"
           DB_ID="$(printf '%s' "$LIST_JSON" | node -e '
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const a=JSON.parse(s); const rows=Array.isArray(a)?a:(a.result||a.databases||[]);
-              const r=rows.find(x=>x && x.name===process.env.DB_NAME);
-              process.stdout.write(r ? String(r.uuid||r.database_id||r.id||"") : "");
+              const x=JSON.parse(s);
+              if(x.success!==true) process.exit(2);
+              const rows=Array.isArray(x.result)?x.result:[];
+              const r=rows.find(v=>v && v.name===process.env.DB_NAME);
+              process.stdout.write(r ? String(r.uuid||"") : "");
             });
           ')"
+
           if [ -z "$DB_ID" ]; then
-            CREATE_JSON="$(npx --yes wrangler@4 d1 create "$DB_NAME" --json)"
+            CREATE_JSON="$(curl --fail-with-body --silent --show-error \
+              -X POST \
+              -H "$AUTH" \
+              -H 'Content-Type: application/json' \
+              --data "{\"name\":\"${DB_NAME}\"}" \
+              "$API")"
             DB_ID="$(printf '%s' "$CREATE_JSON" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-                const x=JSON.parse(s); const r=x.result||x;
-                process.stdout.write(String(r.uuid||r.database_id||r.id||""));
+                const x=JSON.parse(s);
+                if(x.success!==true) process.exit(2);
+                process.stdout.write(String(x.result?.uuid||""));
               });
             ')"
           fi
+
           if [ -z "$DB_ID" ]; then
             echo "Could not resolve D1 database id" >&2
             exit 1
@@ -135,4 +148,4 @@ jobs:
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
 
-# trigger: CLOUDFLARE_API_TOKEN added for safe Developing bootstrap
+# Cloudflare D1 bootstrap uses the REST API; AirWAIT secret remains Cloudflare-only.
