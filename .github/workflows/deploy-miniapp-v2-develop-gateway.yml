@@ -147,20 +147,18 @@ jobs:
             if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
               let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
                 const x=JSON.parse(s);
-                const hasEffectiveGate=Object.prototype.hasOwnProperty.call(x,"baseCreateEnabled");
-                const baseCreateReady=hasEffectiveGate ? x.baseCreateEnabled===true : x.createEnabled===true;
                 if(
                   x.ok!==true ||
                   x.environment!=="official-develop" ||
-                  !baseCreateReady ||
+                  x.baseCreateEnabled!==true ||
+                  x.createEnabled!==(x.serviceMessageReady===true) ||
                   x.airwaitKeyConfigured!==true ||
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
                   x.serviceMessageVersion!=="2.0.dev2" ||
                   x.serviceMessageMandatoryBeforeCreate!==true ||
-                  x.serviceMessageCronEnabled!==true ||
-                  (hasEffectiveGate && x.createEnabled!==(x.serviceMessageReady===true))
+                  x.serviceMessageCronEnabled!==true
                 ) process.exit(1);
               });
             '; then
@@ -177,7 +175,7 @@ jobs:
               break
             fi
             if [ "$i" = "10" ]; then
-              echo "Expected serviceMessageVersion=2.0.dev2 / fail-closed create gate did not become live." >&2
+              echo "Expected serviceMessageVersion=2.0.dev2 / live fail-closed create gate did not become ready." >&2
               echo "$RESPONSE" >&2
               exit 1
             fi
