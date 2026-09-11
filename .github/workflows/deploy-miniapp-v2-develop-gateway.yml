@@ -97,7 +97,7 @@ jobs:
             "compatibility_date": "2026-09-11",
             "workers_dev": true,
             "vars": {
-              "CREATE_ENABLED": "0"
+              "CREATE_ENABLED": "1"
             },
             "d1_databases": [
               {
@@ -109,7 +109,7 @@ jobs:
           }
           EOF
 
-      - name: Deploy gateway with create disabled
+      - name: Deploy Developing gateway with controlled create enabled
         if: steps.credentials.outputs.available == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -123,15 +123,21 @@ jobs:
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
           echo "It must exist only as the Cloudflare Worker Secret named AIRWAIT_API_KEY."
 
-      - name: Health check
+      - name: Health check and assert Developing create gate
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
           for i in 1 2 3 4 5; do
-            if curl --fail --silent --show-error \
+            RESPONSE="$(curl --fail --silent --show-error \
               -H 'Origin: https://asoboon.github.io' \
-              "$WORKER_URL/?action=health"; then
-              echo
+              "$WORKER_URL/?action=health" || true)"
+            if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
+              let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const x=JSON.parse(s);
+                if(x.ok!==true || x.environment!=="official-develop" || x.createEnabled!==true || x.airwaitKeyConfigured!==true) process.exit(1);
+              });
+            '; then
+              echo "$RESPONSE"
               break
             fi
             if [ "$i" = "5" ]; then exit 1; fi
@@ -160,9 +166,10 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Cloudflare deployment path executed with CREATE_ENABLED=0."
+            echo "Official Developing gateway deployment path executed with CREATE_ENABLED=1 for controlled test only."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
 
+# Official Developing only. Review/Published are intentionally untouched.
 # Cloudflare D1 bootstrap uses the REST API; AirWAIT secret remains Cloudflare-only.
