@@ -86,10 +86,11 @@ jobs:
       - name: Lock mandatory LINE notification fail-close
         run: |
           set -euo pipefail
-          grep -F 'serviceMessageMandatoryBeforeCreate:true' miniapp-v2/backend/develop-service-message.js
-          grep -F "body.baseCreateEnabled = body.createEnabled === true" miniapp-v2/backend/develop-worker.mjs
-          grep -F "body.createEnabled = body.baseCreateEnabled && notificationReady" miniapp-v2/backend/develop-worker.mjs
-          grep -F "body.createBlockedReason = 'LINE_NOTIFICATION_NOT_READY'" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'serviceMessageMandatoryBeforeCreate: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'const baseCreateEnabled = body?.createEnabled === true;' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'body.createEnabled = false;' miniapp-v2/backend/develop-worker.mjs
+          grep -F "'LINE_NOTIFICATION_NOT_READY'" miniapp-v2/backend/develop-worker.mjs
           grep -F 'prepareReservationNotification(env, createPayload)' miniapp-v2/backend/develop-worker.mjs
       - name: Lock call status as a first-class Developing route
         run: |
@@ -97,9 +98,9 @@ jobs:
           grep -F "if(view==='callstatus')return callstatusPage()" miniapp-v2/shared/app.js
           grep -F "callstatusModule()?.mount?." miniapp-v2/shared/app.js
           grep -F "callstatusModule()?.watchReception?." miniapp-v2/shared/app.js
-          grep -F "render:pageHtml" miniapp-v2/shared/callstatus.js
-          grep -F "mount:mountCallstatus" miniapp-v2/shared/callstatus.js
-          grep -F "watchReception" miniapp-v2/shared/callstatus.js
+          grep -F 'render:pageHtml' miniapp-v2/shared/callstatus.js
+          grep -F 'mount:mountCallstatus' miniapp-v2/shared/callstatus.js
+          grep -F 'watchReception' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'observer.observe(document.documentElement' miniapp-v2/shared/callstatus.js
           grep -F "CACHE_KEY='asoboon_v2_current_reservation_develop_v1'" miniapp-v2/shared/callstatus.js
           grep -F "CALL_KEY='asoboon_v2_callstatus_develop_v1'" miniapp-v2/shared/callstatus.js
