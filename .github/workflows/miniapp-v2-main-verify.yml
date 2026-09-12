@@ -118,6 +118,15 @@ jobs:
           grep -F 'body.createEnabled = false;' miniapp-v2/backend/develop-worker.mjs
           grep -F "'LINE_NOTIFICATION_NOT_READY'" miniapp-v2/backend/develop-worker.mjs
           grep -F 'prepareReservationNotification(env, createPayload)' miniapp-v2/backend/develop-worker.mjs
+      - name: Lock reception reads independently
+        run: |
+          set -euo pipefail
+          grep -F 'Promise.allSettled([lineTask,dayTask,gatewayTask])' miniapp-v2/shared/reception.js
+          grep -F "S.slots=buildSlots(S.waitTypes)" miniapp-v2/shared/reception.js
+          grep -F "S.day&&typeof R.slotsFor" miniapp-v2/shared/reception.js
+          grep -F '営業区分</small><strong>取得できません' miniapp-v2/shared/reception.js
+          grep -F '「入場不可テスト」は表示確認できますが、受付確定は安全のため停止しています。' miniapp-v2/shared/reception.js
+          grep -F "S.day&&S.agree" miniapp-v2/shared/reception.js
       - name: Lock call status as a first-class Developing route
         run: |
           set -euo pipefail
@@ -150,5 +159,7 @@ jobs:
           const app=html.indexOf('../shared/app.js');
           if(call<0||time<0||app<0||call>app||time>app) throw new Error('Developing feature modules must load before app.js');
           if(!html.includes('../shared/timeguide.css')) throw new Error('timeguide.css must be loaded');
-          if(!html.includes('v=20260911-10')) throw new Error('Developing cache version not bumped');
+          const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
+          if(versions.length<8) throw new Error('Developing assets must carry cache versions');
+          if(new Set(versions).size!==1) throw new Error('Developing asset cache versions must be consistent');
           NODE
