@@ -13,6 +13,8 @@ import {
 } from './develop-service-message.js';
 
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
+const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
+const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -94,12 +96,34 @@ export default {
       }
     }
 
-    const base = await gateway.fetch(request, env, ctx);
+    let base = await gateway.fetch(request, env, ctx);
     if (!createPayload) return base;
 
     let body;
     try { body = await base.clone().json(); }
     catch { return base; }
+
+    // Developing-only recovery for repeated E2E tests.
+    // The base gateway intentionally keeps one confirmed claim per LINE user/day.
+    // If that one claim is the dedicated 0042 test slot and AirWAIT explicitly says
+    // it is canceled (status=3), release only that exact claim and retry the SAME
+    // requestId. This avoids returning an old canceled ticket as alreadyExists while
+    // preserving production-slot behavior and notification-token idempotency.
+    if (
+      base.ok &&
+      body?.ok === true &&
+      body?.stored === true &&
+      body?.alreadyExists === true &&
+      String(createPayload.waitTypeId || '') === DEVELOP_TEST_WAIT_TYPE_ID &&
+      String(body.waitTypeId || '') === DEVELOP_TEST_WAIT_TYPE_ID &&
+      await releaseCanceledDevelopTestClaim(env, createPayload, body)
+    ) {
+      const retryRequest = rebuildCreateRequest(request, createPayload);
+      base = await gateway.fetch(retryRequest, env, ctx);
+      try { body = await base.clone().json(); }
+      catch { return base; }
+    }
+
     if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
 
     try {
@@ -119,6 +143,107 @@ export default {
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
   },
 };
+
+async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
+  if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
+  try {
+    const rows = await fetchDevelopTestReservations(env);
+    const own = rows.find(r => sameTicket(r.number, existing.receiptNo));
+    if (!own || String(own.status || '') !== '3') return false;
+
+    const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
+      FROM v2_user_day_claims
+      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'
+      LIMIT 1`)
+      .bind(
+        String(existing.businessDate || createPayload.operationalDate || ''),
+        String(existing.reserveId || ''),
+        String(existing.receiptNo || ''),
+        DEVELOP_TEST_WAIT_TYPE_ID,
+      ).first();
+    if (!claim?.user_hash || !claim?.request_id) return false;
+
+    const del = await env.DB.prepare(`DELETE FROM v2_user_day_claims
+      WHERE user_hash=? AND business_date=? AND request_id=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
+      .bind(
+        String(claim.user_hash),
+        String(claim.business_date),
+        String(claim.request_id),
+        String(claim.reserve_id),
+        String(claim.receipt_no),
+        DEVELOP_TEST_WAIT_TYPE_ID,
+      ).run();
+    if (Number(del?.meta?.changes || 0) !== 1) return false;
+
+    // The first base pass only rediscovered the canceled ticket; neutralize that
+    // no-op attempt before the real create retry.
+    await env.DB.prepare(`UPDATE v2_user_attempts
+      SET attempt_count=CASE WHEN attempt_count>0 THEN attempt_count-1 ELSE 0 END,updated_at=?
+      WHERE user_hash=? AND business_date=?`)
+      .bind(Date.now(), String(claim.user_hash), String(claim.business_date)).run();
+
+    // The same requestId was just finalized with alreadyExists. Remove only that
+    // current request result so the base gateway can own and execute it once more.
+    await env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?')
+      .bind(String(createPayload.requestId || '')).run();
+
+    return true;
+  } catch (e) {
+    console.warn('DEVELOP_TEST_CANCELED_CLAIM_RELEASE_FAILED', safeError(e));
+    return false;
+  }
+}
+
+async function fetchDevelopTestReservations(env) {
+  const rows = [];
+  let start = 1;
+  for (let page = 0; page < 20; page += 1) {
+    const r = await fetch(AIR_RESERVATIONS, {
+      method:'POST',
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+        corWclpKeyCd:env.AIRWAIT_API_KEY,
+      },
+      body:new URLSearchParams({
+        storeId:'KR01205179',
+        waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID,
+        sortStatus:'0',
+        isDesc:'0',
+        start:String(start),
+        limit:'100',
+      }),
+      cache:'no-store',
+    });
+    let d=null;try{d=await r.json()}catch{}
+    if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') return [];
+    const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
+    rows.push(...part.map(x=>({number:String(x?.number||''),status:String(x?.status||'')})));
+    const total = Number(d?.innerDto?.count || part.length || 0);
+    if (!part.length || rows.length >= total) break;
+    start += part.length;
+  }
+  return rows;
+}
+
+function sameTicket(number, receiptNo) {
+  const key=v=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
+  const a=key(number),b=key(receiptNo);
+  if(!a||!b)return false;
+  if(a===b)return true;
+  const ad=a.replace(/\D/g,''),bd=b.replace(/\D/g,'');
+  return /^[FT]/.test(a)&&ad&&bd&&ad===bd;
+}
+
+function rebuildCreateRequest(original, payload) {
+  const headers = new Headers(original.headers);
+  headers.set('Content-Type','application/x-www-form-urlencoded;charset=UTF-8');
+  return new Request(original.url, {
+    method:'POST',
+    headers,
+    body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')])),
+  });
+}
 
 function withDevelopingServiceDefaults(env) {
   return {
