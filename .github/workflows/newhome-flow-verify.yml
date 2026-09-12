@@ -24,6 +24,8 @@ jobs:
           node --check miniapp-v2/backend/develop-worker.mjs
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          node miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          node --input-type=module --check < develop-gateway.runtime.mjs
 
       - name: Reception must terminate or fail closed
         run: |
@@ -37,6 +39,15 @@ jobs:
           grep -F "CTX.go('callstatus',{replace:true})" miniapp-v2/shared/reception.js
           ! grep -Fq "SUBMIT_WATCHDOG_MS=38000" miniapp-v2/shared/reception.js
 
+      - name: Reception operation id must survive ambiguous retries
+        run: |
+          set -euo pipefail
+          grep -F "PENDING_KEY='asoboon_v2_pending_reception_develop_v1'" miniapp-v2/shared/reception.js
+          grep -F 'requestIdFor(body)' miniapp-v2/shared/reception.js
+          grep -F 'pendingFingerprint(body)' miniapp-v2/shared/reception.js
+          grep -F 'notificationAmbiguous' miniapp-v2/shared/reception.js
+          grep -F 'AirWAITへの受付送信は行っていません。' miniapp-v2/shared/reception.js
+
       - name: Call status must not hang
         run: |
           set -euo pipefail
@@ -44,13 +55,15 @@ jobs:
           grep -F "signal:ctrl.signal" miniapp-v2/shared/callstatus.js
           grep -F "呼出状況の確認がタイムアウトしました。" miniapp-v2/shared/callstatus.js
 
-      - name: Call status must shed background load
+      - name: Call status must shed background load and herd bursts
         run: |
           set -euo pipefail
-          grep -F "const POLL_FAR_MS=60000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_MID_MS=20000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_NEAR_MS=10000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_FAR_MS=180000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_MID_MS=60000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_NEAR_MS=15000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_JITTER=0.10;" miniapp-v2/shared/callstatus.js
           grep -F "document.visibilityState!=='visible'" miniapp-v2/shared/callstatus.js
+          grep -F "jitter(nextPollMs)" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=5" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=20" miniapp-v2/shared/callstatus.js
 
@@ -61,6 +74,17 @@ jobs:
           grep -F "BUSINESS_DAY_CACHE_MS = 60 * 1000" miniapp-v2/backend/develop-worker.mjs
           grep -F "businessDayInflight" miniapp-v2/backend/develop-worker.mjs
           grep -F "action === 'businessDay'" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'getBusinessDayCachedForCreate(env, serverDate)' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+
+      - name: AirWAIT read pressure must be bounded
+        run: |
+          set -euo pipefail
+          grep -F 'CALLSTATUS_AIRWAIT_CACHE_MS = 5 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'CALLSTATUS_AIRWAIT_TIMEOUT_MS = 8 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'callstatusAirwaitInflight' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'const wt = await getWaitTypes(env);' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          ! grep -Fq 'const wt = await getWaitTypes(env, { force: true });' develop-gateway.runtime.mjs
 
       - name: Developing 0042 recycle is isolated
         run: |
@@ -70,28 +94,55 @@ jobs:
           grep -F "isEnabledStatus:'1'" miniapp-v2/backend/develop-worker.mjs
           ! grep -Fq "UPDATE v2_user_attempts" miniapp-v2/backend/develop-worker.mjs
 
-      - name: Receipt normalization is consistent
+      - name: Stale create must fail ambiguous instead of reopening create
+        run: |
+          set -euo pipefail
+          grep -F "STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'STALE_CREATE_INFLIGHT_REQUIRES_MANUAL_REVIEW' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+
+      - name: Receipt identity must preserve AirWAIT F and T prefixes
         run: |
           set -euo pipefail
           node <<'NODE'
-          const fs=require('fs');
-          const files=[
-            'miniapp-v2/backend/develop-worker.mjs',
-            'miniapp-v2/backend/prepare-develop-test-runtime.mjs',
-            'miniapp-v2/backend/develop-service-message.js',
-          ];
-          for(const file of files){
-            const s=fs.readFileSync(file,'utf8');
-            if(!s.includes("replace(/^0+(?=")) throw new Error(`${file}: leading-zero normalization missing`);
-          }
-          const key=v=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
-          const digits=v=>{const k=key(v);if(!/^[FT]?\d+$/.test(k))return'';return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');};
-          const same=(a,b)=>{const x=key(a),y=key(b);if(!x||!y)return false;if(x===y)return true;const xd=digits(x),yd=digits(y);return Boolean(xd&&yd&&xd===yd);};
-          const equivalent=[['F000123','123'],['T000123','123'],['000123','123'],['Ｆ０００１２３','123']];
+          const identity=v=>{
+            const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
+            const m=k.match(/^([FT]?)(\d+)$/);
+            return m?m[1]+m[2].replace(/^0+(?=\d)/,''):'';
+          };
+          const same=(a,b)=>{const x=identity(a),y=identity(b);return Boolean(x&&y&&x===y)};
+          const equivalent=[['F000123','F123'],['T000123','T123'],['000123','123'],['Ｆ０００１２３','F123']];
           for(const [a,b] of equivalent) if(!same(a,b)) throw new Error(`must match ${a} ${b}`);
-          const different=[['F000123','124'],['F123','T124'],['ABC123','123'],['','123']];
+          const different=[['F123','T123'],['F123','123'],['T123','123'],['F123','124'],['ABC123','123'],['','123']];
           for(const [a,b] of different) if(same(a,b)) throw new Error(`must not match ${a} ${b}`);
           NODE
+          grep -F 'function ticketIdentity' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'function ticketIdentity' miniapp-v2/backend/develop-service-message.js
+          grep -F 'function ticketIdentity' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          ! grep -Fq "return Boolean(ad&&bd&&ad===bd)" miniapp-v2/backend/develop-worker.mjs
+
+      - name: LINE token issuance must be one per LIFF access token
+        run: |
+          set -euo pipefail
+          grep -F 'v2_service_liff_token_usage' miniapp-v2/backend/develop-service-message.js
+          grep -F 'LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP' miniapp-v2/backend/develop-service-message.js
+          grep -F 'const tokenHash = await sha256Hex(liffAccessToken);' miniapp-v2/backend/develop-service-message.js
+          grep -F "status='BOUND'" miniapp-v2/backend/develop-service-message.js
+          grep -F 'channelTokenCache' miniapp-v2/backend/develop-service-message.js
+
+      - name: Service notification scan must not starve after 200 rows
+        run: |
+          set -euo pipefail
+          grep -F 'CRON_SCAN_LIMIT: 1200' miniapp-v2/backend/develop-service-message.js
+          grep -F 'LIMIT ${SM.CRON_SCAN_LIMIT}' miniapp-v2/backend/develop-service-message.js
+          ! grep -Fq 'ORDER BY created_at ASC LIMIT 200' miniapp-v2/backend/develop-service-message.js
+
+      - name: Call status session recovery must not resurrect yesterday
+        run: |
+          set -euo pipefail
+          grep -F 'CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'const targetDate = requestedDate || operationalDate();' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'idx_v2_reservation_sessions_expires' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          ! grep -Fq 'Date.now() - CFG.CALLSTATUS_SESSION_TTL_MS' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
       - name: Developing cache version is consistent
         run: |
@@ -102,5 +153,5 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260912-06') throw new Error(`unexpected cache version ${versions[0]}`);
+          if(versions[0]!=='20260912-07') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
