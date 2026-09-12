@@ -37,6 +37,10 @@ replaceOnce(
   "function enforceReceptionHours(day, mode) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);",
   "function enforceReceptionHours(day, mode, waitTypeId) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);"
 );
+replaceOnce(
+  "  await incrementAttempt(env, hash, serverDate);",
+  "  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) await incrementAttempt(env, hash, serverDate);"
+);
 
 replaceOnce(
 `function validateWaitType(waitTypes, day, mode, waitTypeId) {
@@ -85,7 +89,7 @@ function ticketKey(value) {
 }
 
 function ticketDigits(value) {
-  return ticketKey(value).replace(/\\D/g, '');
+  return ticketKey(value).replace(/\\D/g, '').replace(/^0+(?=\\d)/, '');
 }
 
 function sameTicket(number, receiptNo) {
@@ -93,7 +97,7 @@ function sameTicket(number, receiptNo) {
   if (!a || !b) return false;
   if (a === b) return true;
   const ad = ticketDigits(a), bd = ticketDigits(b);
-  return /^[A-Z]/.test(a) && ad && bd && ad === bd;
+  return ad && bd && ad === bd;
 }
 
 function reservationState(row) {
