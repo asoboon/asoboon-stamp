@@ -4,10 +4,11 @@ const E=window.ASOBOON_V2_ENV||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
-const POLL_NEAR_MS=10000;
-const POLL_MID_MS=20000;
-const POLL_FAR_MS=60000;
-const POLL_ERROR_MS=30000;
+const POLL_NEAR_MS=15000;
+const POLL_MID_MS=60000;
+const POLL_FAR_MS=180000;
+const POLL_ERROR_MS=60000;
+const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -21,7 +22,8 @@ function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollT
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 function unmount(){stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
-function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=10000)return'約10秒ごと';if(ms<=20000)return'約20秒ごと';return'約60秒ごと'}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
+function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
 <div id="csTop" class="cs-top"><span class="cs-live-dot"></span><strong>受付情報を確認しています</strong><small>AirWAITの最新状況を自動で確認します。</small></div>
@@ -31,7 +33,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>待ち人数に応じて約10〜60秒で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
+<div class="cs-note"><strong>自動更新：</strong>待ち人数に応じて約15秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div></section>`}
 
 function stateMeta(state,ahead){
@@ -63,7 +65,7 @@ function delayForStatus(d){
 function scheduleNext(gen=generation){
   if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
   if(gen!==generation||!$('csState')||document.visibilityState!=='visible'||!nextPollMs)return;
-  pollTimer=setTimeout(()=>{pollTimer=0;void refreshStatus()},nextPollMs);
+  pollTimer=setTimeout(()=>{pollTimer=0;void refreshStatus()},jitter(nextPollMs));
 }
 
 function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=true;el.textContent='';return}el.hidden=false;el.textContent=String(text)}
@@ -225,7 +227,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.5.0-adaptive-poll',
+  version:'1.6.0-adaptive-jitter',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
