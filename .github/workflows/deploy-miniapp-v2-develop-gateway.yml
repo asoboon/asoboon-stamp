@@ -13,7 +13,6 @@ on:
 permissions:
   contents: read
 
-# Never let an older Developing deployment finish after a newer one.
 concurrency:
   group: miniapp-v2-develop-gateway
   cancel-in-progress: true
@@ -112,7 +111,7 @@ jobs:
             "vars": {
               "CREATE_ENABLED": "1",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
-              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{receiptNo}\",\"btn1_url\":\"{callstatusUrl}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=guide\"}"
+              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}"
             },
             "d1_databases": [
               {
@@ -123,6 +122,14 @@ jobs:
             ]
           }
           EOF
+          node -e '
+            const fs=require("fs");
+            const s=fs.readFileSync("./wrangler-v2-develop.tmp.jsonc","utf8");
+            if(!s.includes("yourturn_s_w_ja")) process.exit(1);
+            if(!s.includes("{{receiptNo}}") || !s.includes("{{callstatusUrl}}")) process.exit(1);
+            if(!s.includes("?view=entry")) process.exit(1);
+            if(s.includes("?view=guide")) process.exit(1);
+          '
 
       - name: Deploy Developing gateway with call notification worker
         if: steps.credentials.outputs.available == 'true'
@@ -160,7 +167,7 @@ jobs:
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.0.dev2" ||
+                  x.serviceMessageVersion!=="2.0.dev3" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
@@ -175,7 +182,7 @@ jobs:
               break
             fi
             if [ "$i" = "10" ]; then
-              echo "Developing LINE notification is not fully ready; reservation gate must stay closed." >&2
+              echo "Developing LINE notification is not fully ready or the new Worker version is not live." >&2
               echo "$RESPONSE" >&2
               exit 1
             fi
