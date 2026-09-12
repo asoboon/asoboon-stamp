@@ -109,7 +109,11 @@ jobs:
             "workers_dev": true,
             "keep_vars": true,
             "triggers": { "crons": ["* * * * *"] },
-            "vars": { "CREATE_ENABLED": "1" },
+            "vars": {
+              "CREATE_ENABLED": "1",
+              "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
+              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{receiptNo}\",\"btn1_url\":\"{callstatusUrl}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=guide\"}"
+            },
             "d1_databases": [
               {
                 "binding": "DB",
@@ -128,15 +132,15 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4 deploy --config ./wrangler-v2-develop.tmp.jsonc
 
-      - name: Remind that service secrets stay Cloudflare-only
+      - name: Confirm secret handling
         if: steps.credentials.outputs.available == 'true'
         run: |
           echo "AIRWAIT_API_KEY is intentionally NOT read from GitHub."
           echo "LINE_MINIAPP_CHANNEL_SECRET is intentionally NOT read from GitHub."
-          echo "SERVICE_MESSAGE_TEMPLATE_NAME and SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON stay outside source control."
+          echo "LINE template name/params are non-secret Developing deployment defaults."
           echo "No LINE secret, LIFF access token, or notification token is committed to GitHub."
 
-      - name: Health check and assert exact Developing notification build
+      - name: Health check and require Developing notification readiness
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -151,31 +155,27 @@ jobs:
                   x.ok!==true ||
                   x.environment!=="official-develop" ||
                   x.baseCreateEnabled!==true ||
-                  x.createEnabled!==(x.serviceMessageReady===true) ||
+                  x.createEnabled!==true ||
                   x.airwaitKeyConfigured!==true ||
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
                   x.serviceMessageVersion!=="2.0.dev2" ||
+                  x.serviceMessageChannelSecretConfigured!==true ||
+                  x.serviceMessageTemplateConfigured!==true ||
+                  x.serviceMessageTemplateParamsConfigured!==true ||
+                  x.serviceMessageReady!==true ||
                   x.serviceMessageMandatoryBeforeCreate!==true ||
                   x.serviceMessageCronEnabled!==true
                 ) process.exit(1);
               });
             '; then
               echo "$RESPONSE"
-              printf '%s' "$RESPONSE" | node -e '
-                let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-                  const x=JSON.parse(s);
-                  if(x.serviceMessageChannelSecretConfigured!==true) console.log("::warning::Developing LINE_MINIAPP_CHANNEL_SECRET is not configured yet.");
-                  if(x.serviceMessageTemplateConfigured!==true) console.log("::warning::Developing SERVICE_MESSAGE_TEMPLATE_NAME is not configured yet.");
-                  if(x.serviceMessageTemplateParamsConfigured!==true) console.log("::warning::Developing SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON is not configured or invalid.");
-                  if(x.serviceMessageReady!==true) console.log("::warning::LINE Service Message is NOT ready; Developing reservation UI is fail-closed before AirWAIT create.");
-                });
-              '
+              echo "Developing LINE call notification is READY; reservation create gate is open."
               break
             fi
             if [ "$i" = "10" ]; then
-              echo "Expected serviceMessageVersion=2.0.dev2 / live fail-closed create gate did not become ready." >&2
+              echo "Developing LINE notification is not fully ready; reservation gate must stay closed." >&2
               echo "$RESPONSE" >&2
               exit 1
             fi
@@ -202,11 +202,11 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with local test slot 0042, exact notification build verification, fail-closed LINE notification gate, and 1-minute call watcher."
+            echo "Official Developing gateway deployed with local test slot 0042, required LINE notification readiness, and 1-minute call watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
 
 # Official Developing only. Review/Published are intentionally untouched.
 # AirWAIT 0042 is a temporary Developing-only local test slot exception.
-# AirWAIT + LINE service-message secrets remain Cloudflare-only.
+# AirWAIT + LINE secrets remain Cloudflare-only.
