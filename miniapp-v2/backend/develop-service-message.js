@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.0.dev2',
+  VERSION: '2.0.dev3',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -35,10 +35,6 @@ export async function serviceHealth(env) {
   };
 }
 
-/**
- * Create/reuse the service notification token BEFORE AirWAIT create.
- * A requestId is idempotent: an ambiguous issuance is never automatically reissued.
- */
 export async function prepareReservationNotification(env, p) {
   await ensureServiceSchema(env);
   assertServiceConfig(env);
@@ -125,7 +121,6 @@ export async function prepareReservationNotification(env, p) {
   return publicClaim(ready, false);
 }
 
-/** Bind the prepared token to the confirmed AirWAIT ticket. */
 export async function finalizeReservationNotification(env, p, result) {
   await ensureServiceSchema(env);
   const requestId = normalizeRequestId(p?.requestId);
@@ -371,8 +366,8 @@ function publicClaim(row,reused){return{ok:true,ready:true,reused:Boolean(reused
 function publicRow(row){return{ok:true,found:true,version:SM.VERSION,businessDate:String(row.business_date||''),receiptNo:String(row.receipt_no||''),reserveId:String(row.reserve_id||''),waitTypeId:String(row.wait_type_id||''),status:String(row.status||''),error:String(row.last_error||''),lastHttpStatus:Number(row.last_http_status||0),remainingCount:Number(row.remaining_count||0),expiresAt:Number(row.expires_at||0),notifiedAt:Number(row.notified_at||0),nextRetryAt:Number(row.next_retry_at||0)};}
 function jstDate(epoch=Date.now()){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:SM.TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));return`${p.year}-${p.month}-${p.day}`;}
 function ticketKey(v){return String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');}
-function ticketDigits(v){return ticketKey(v).replace(/\D/g,'');}
-function sameTicket(a,b){const x=ticketKey(a),y=ticketKey(b);if(!x||!y)return false;if(x===y)return true;const xd=ticketDigits(x),yd=ticketDigits(y);return /^[A-Z]/.test(x)&&xd&&yd&&xd===yd;}
+function ticketDigits(v){const k=ticketKey(v);if(!/^[FT]?\d+$/.test(k))return'';return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');}
+function sameTicket(a,b){const x=ticketKey(a),y=ticketKey(b);if(!x||!y)return false;if(x===y)return true;const xd=ticketDigits(x),yd=ticketDigits(y);return Boolean(xd&&yd&&xd===yd);}
 function normalizeWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:'';}
 function normalizeReceipt(v){const m=String(v??'').normalize('NFKC').trim().toUpperCase().match(/^[FT]?(\d{1,12})$/);return m?m[1].replace(/^0+(?=\d)/,''):'';}
 function normalizeReserveId(v){const s=String(v??'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):'';}
