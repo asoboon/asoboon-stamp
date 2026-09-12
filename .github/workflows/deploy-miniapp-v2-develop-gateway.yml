@@ -167,7 +167,7 @@ jobs:
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.0.dev3" ||
+                  x.serviceMessageVersion!=="2.1.dev4" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
