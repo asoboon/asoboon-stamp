@@ -1,0 +1,40 @@
+name: develop-hardening-once
+
+on:
+  push:
+    paths:
+      - '.github/scripts/develop-hardening-20260912.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply Developing hardening patch
+        run: |
+          set -euo pipefail
+          python .github/scripts/develop-hardening-20260912.py
+          node --check miniapp-v2/backend/develop-service-message.js
+          node --check miniapp-v2/backend/develop-worker.mjs
+          node --check miniapp-v2/shared/callstatus.js
+          node miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          node --input-type=module --check < develop-gateway.runtime.mjs
+
+      - name: Commit patch
+        run: |
+          set -euo pipefail
+          git config user.name 'asoboon'
+          git config user.email 'asoboon425@gmail.com'
+          git add miniapp-v2/backend/develop-service-message.js miniapp-v2/backend/develop-worker.mjs miniapp-v2/backend/prepare-develop-test-runtime.mjs miniapp-v2/shared/callstatus.js .github/workflows/deploy-miniapp-v2-develop-gateway.yml .github/workflows/newhome-flow-verify.yml
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'harden: close notification and ticket race gaps'
+          git push origin HEAD:main
