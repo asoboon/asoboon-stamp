@@ -5,10 +5,12 @@ const R=window.ASOBOON_V2_RULES||{};
 const D=window.ASOBOON_V2_BUSINESS_DAY||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
+const PENDING_KEY='asoboon_v2_pending_reception_develop_v1';
 const POST_TIMEOUT_MS=12000;
 const GET_TIMEOUT_MS=5000;
 const POLL_DEADLINE_MS=22000;
 const SUBMIT_WATCHDOG_MS=60000;
+const PENDING_TTL_MS=24*60*60*1000;
 const S={
   mode:'web',day:null,waitTypes:null,slots:[],slot:null,
   adult:1,child:0,infant:0,agree:false,location:null,
@@ -47,7 +49,11 @@ function render(){return `<section class="page-card"><div class="page-head orang
 
 function status(text,kind=''){const el=$('recStatus');if(!el)return;el.className='rec-status'+(kind?' '+kind:'');el.textContent=text}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
-function requestId(){try{return'v2_'+crypto.randomUUID()}catch{return'v2_'+Date.now()+'_'+Math.random().toString(36).slice(2)}}
+function newRequestId(){try{return'v2_'+crypto.randomUUID()}catch{return'v2_'+Date.now()+'_'+Math.random().toString(36).slice(2)}}
+function readPending(){try{const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'null');if(!p||!p.requestId||Date.now()-Number(p.createdAt||0)>PENDING_TTL_MS){localStorage.removeItem(PENDING_KEY);return null}return p}catch{return null}}
+function pendingFingerprint(body){return [body.operationalDate,body.mode,body.waitTypeId,body.adults,body.paidChildren,body.infants].map(v=>String(v??'')).join('|')}
+function requestIdFor(body){const fingerprint=pendingFingerprint(body),old=readPending();if(old?.fingerprint===fingerprint)return String(old.requestId);const requestId=newRequestId();try{localStorage.setItem(PENDING_KEY,JSON.stringify({requestId,fingerprint,createdAt:Date.now()}))}catch{}return requestId}
+function clearPending(requestId=''){try{const p=readPending();if(!requestId||!p||String(p.requestId)===String(requestId))localStorage.removeItem(PENDING_KEY)}catch{}}
 async function withTimeout(promise,ms,message){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})])}finally{clearTimeout(timer)}}
 
 async function fetchWithTimeout(url,options={},ms=GET_TIMEOUT_MS,message='通信がタイムアウトしました。'){
@@ -76,21 +82,21 @@ async function pollRequest(id){
     await sleep(waits[Math.min(i,waits.length-1)]);i+=1;
     try{
       const r=await gatewayGet('requestStatus',{requestId:id});
-      if(r&&r.found)return r;
+      if(r&&r.found)return{...r,_requestId:id};
     }catch{}
   }
   const e=Error('受付結果を確認できません。AirWAIT側で成立している可能性があるため、新しい受付は行わないでください。');
-  e.ambiguous=true;
+  e.ambiguous=true;e.requestId=id;
   throw e;
 }
 
 async function post(action,body){
-  const id=requestId(),payload={action,requestId:id,...body};
+  const id=action==='createReservation'?requestIdFor(body):newRequestId(),payload={action,requestId:id,...body};
   const options={method:'POST',mode:'cors',credentials:'omit',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))};
   try{
     const r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS,'受付送信の応答がタイムアウトしました。結果を確認します。');
     let d=null;try{d=await r.json()}catch{}
-    if(d&&r.status!==202)return d;
+    if(d&&r.status!==202)return{...d,_requestId:id};
     return await pollRequest(id);
   }catch{
     return await pollRequest(id);
@@ -106,8 +112,8 @@ function lineState(){return typeof CTX?.lineState==='function'?CTX.lineState():{
 async function waitForLine(){let st=lineState();if(st.booting||!st.liffReady){await Promise.race([new Promise(resolve=>window.addEventListener('asoboon:v2-liff-ready',resolve,{once:true})),sleep(6000)]);st=lineState()}if(!st.liffReady)throw Error('LINE接続を確認できません。いったん閉じて開き直してください。');if(!st.inClient)throw Error('LINEミニアプリ内から開いてください。');if(!window.liff||!liff.isLoggedIn())throw Error('LINEログインを確認できません。')}
 function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!=='develop'||!t.waitTypeId)return null;return{waitTypeId:String(t.waitTypeId),label:String(t.label||'入場不可テスト'),detail:String(t.detail||'Developing専用テスト枠'),developTest:true}}
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
-function allowedUsage(actual){const usage=String(actual?.usageDispType||'');return !usage||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(usage)}
-function buildSlots(waitTypes){const configured=[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType):[])],test=developTestRule();if(test)configured.push(test);return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(rule.developTest){if(!actual||!allowedUsage(actual))return null;return{...rule,actual}}if(actual&&(actual.dispFlg===false||!allowedUsage(actual)))return null;return{...rule,actual}}).filter(Boolean)}
+function usageAllowed(actual,mode,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);if(!u||u==='01'||u==='KeyALL')return true;if(mode==='web')return u==='03'||u==='KeyONLINE_RECEPTION_ONLY';return u==='02'||u==='KeySTORE_RECEPTION_ONLY'}
+function buildSlots(waitTypes){const configured=[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType):[])],test=developTestRule();if(test)configured.push(test);return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(rule.developTest){if(!actual||!usageAllowed(actual,S.mode,{developTest:true}))return null;return{...rule,actual}}if(actual&&(actual.dispFlg===false||!usageAllowed(actual,S.mode)))return null;return{...rule,actual}}).filter(Boolean)}
 function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
 function locationOk(){return S.mode!=='onsite'||Boolean(S.location?.ok)}
 
@@ -170,6 +176,7 @@ async function boot(){
 
 function saveConfirmed(rec){try{localStorage.setItem(CACHE_KEY,JSON.stringify({...rec,cachedAt:Date.now()}));localStorage.setItem(CALL_KEY,JSON.stringify({businessDate:rec.businessDate,receiptNo:String(rec.receiptNo),cachedAt:Date.now()}))}catch{}}
 function lockAmbiguous(){S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>受付結果を確認しています。新しい受付は行わないでください。</strong><br>AirWAIT側だけ受付が成立している可能性があります。自動再送は停止しました。</div>'}status('受付結果が不明なため、安全のため再受付をロックしました。','bad');renderForm()}
+function lockNotificationAmbiguous(requestId){clearPending(requestId);S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>LINE呼出通知の準備結果を確認できませんでした。</strong><br>AirWAITへの受付送信は行っていません。ミニアプリをいったん完全に閉じて、開き直してから受付してください。</div>'}status('LINE通知の準備結果が不明です。再送せず、ミニアプリを開き直してください。','bad');renderForm()}
 
 async function submit(){
   if($('recSubmit')?.disabled||S.busy||S.locked||!S.slot||!S.day||!S.canCreate)return;
@@ -187,8 +194,10 @@ async function submit(){
     status('AirWAITへ受付を送信しています…','warn');
     const r=await post('createReservation',{mode:S.mode,adults:S.adult,paidChildren:S.child,infants:S.infant,waitTypeId:S.slot.waitTypeId,operationalDate:S.day.operationalDate,liffAccessToken:token,latitude:loc.lat||'',longitude:loc.lng||'',accuracy:loc.accuracy||'',locationTimestamp:loc.timestamp||''});
     if(seq!==S.submitSeq||S.locked)return;
+    if(r?.notificationAmbiguous){lockNotificationAmbiguous(r?._requestId);return}
     if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous();return}
-    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate))throw Error(String(r?.error||'受付結果が不正です。'));
+    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);throw Error(String(r?.error||'受付結果が不正です。'))}
+    clearPending(r?._requestId);
     const rec={reserveId:r.reserveId,receiptNo:r.receiptNo,shortUrl:String(r.shortUrl||''),businessDate:S.day.operationalDate,businessType:S.day.businessType,mode:S.mode,waitTypeId:S.slot.waitTypeId,waitTypeLabel:S.slot.label,adults:S.adult,paidChildren:S.child,infants:S.infant,totalPeople:total(),totalPrice:price(),source:'asoboon-miniapp-v2-develop'};
     saveConfirmed(rec);
     const result=$('recResult');if(result){result.hidden=false;result.innerHTML=`<div class="rec-result"><strong>${esc(rec.receiptNo)}</strong><span>受付番号 / 受付が完了しました</span></div>`}
@@ -205,5 +214,5 @@ async function submit(){
 
 function setMode(mode){S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
 function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
-window.ASOBOON_V2_RECEPTION=Object.freeze({version:'1.4.2-bounded-submit',render,mount});
+window.ASOBOON_V2_RECEPTION=Object.freeze({version:'1.5.0-persistent-operation',render,mount});
 })();
