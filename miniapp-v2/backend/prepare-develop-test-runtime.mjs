@@ -12,14 +12,22 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.2.dev-callstatus',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.3.dev-loadguard',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
-  "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  CALLSTATUS_SESSION_TTL_MS: 36 * 60 * 60 * 1000,"
+  "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  CALLSTATUS_SESSION_TTL_MS: 36 * 60 * 60 * 1000,\n  BUSINESS_DAY_CACHE_MS: 60 * 1000,\n  RESERVATION_SNAPSHOT_CACHE_MS: 5 * 1000,\n  RESERVATION_SNAPSHOT_STALE_MS: 30 * 1000,"
 );
 replaceOnce(
   "  AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',",
   "  AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',\n  AIR_RESERVATIONS: 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',"
+);
+replaceOnce(
+  "      await ensureSchema(env);",
+  "      await ensureSchemaOnce(env);"
+);
+replaceOnce(
+  "        if (action === 'waitTypes') return out(request, await getWaitTypes(env));",
+  "        if (action === 'waitTypes') return out(request, await getWaitTypesShared(env));"
 );
 replaceOnce(
   "    createEnabled: String(env.CREATE_ENABLED || '0') === '1',",
@@ -34,12 +42,68 @@ replaceOnce(
   "    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_reservation_sessions (\n      token_hash TEXT PRIMARY KEY,\n      user_hash TEXT NOT NULL,\n      business_date TEXT NOT NULL,\n      reserve_id TEXT NOT NULL,\n      receipt_no TEXT NOT NULL,\n      wait_type_id TEXT NOT NULL,\n      created_at INTEGER NOT NULL,\n      expires_at INTEGER NOT NULL\n    )`),\n    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_reservation_sessions_user\n      ON v2_reservation_sessions(user_hash,business_date,expires_at)`),\n    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at INTEGER NOT NULL\n    )`),"
 );
 replaceOnce(
+  "async function ensureSchema(env) {",
+  `let runtimeSchemaReadyPromise = null;
+async function ensureSchemaOnce(env) {
+  if (!runtimeSchemaReadyPromise) {
+    runtimeSchemaReadyPromise = ensureSchema(env).catch(e => {
+      runtimeSchemaReadyPromise = null;
+      throw e;
+    });
+  }
+  return runtimeSchemaReadyPromise;
+}
+
+async function ensureSchema(env) {`
+);
+replaceOnce(
+  "async function getBusinessDay(date) {",
+  `const runtimeBusinessDayCache = new Map();
+const runtimeBusinessDayInflight = new Map();
+async function getBusinessDayCached(date) {
+  const now = Date.now();
+  const cached = runtimeBusinessDayCache.get(date);
+  if (cached && now - cached.savedAt < CFG.BUSINESS_DAY_CACHE_MS) return cached.value;
+  if (runtimeBusinessDayInflight.has(date)) return runtimeBusinessDayInflight.get(date);
+  const job = getBusinessDay(date).then(value => {
+    runtimeBusinessDayCache.set(date, { savedAt: Date.now(), value });
+    return value;
+  });
+  runtimeBusinessDayInflight.set(date, job);
+  try { return await job; }
+  finally { runtimeBusinessDayInflight.delete(date); }
+}
+
+async function getBusinessDay(date) {`
+);
+replaceOnce(
+  "async function getWaitTypes(env, { force = false } = {}) {",
+  `let runtimeWaitTypesInflight = null;
+async function getWaitTypesShared(env) {
+  if (runtimeWaitTypesInflight) return runtimeWaitTypesInflight;
+  const job = getWaitTypes(env);
+  runtimeWaitTypesInflight = job;
+  try { return await job; }
+  finally { if (runtimeWaitTypesInflight === job) runtimeWaitTypesInflight = null; }
+}
+
+async function getWaitTypes(env, { force = false } = {}) {`
+);
+replaceOnce(
   "function enforceReceptionHours(day, mode) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);",
   "function enforceReceptionHours(day, mode, waitTypeId) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);"
 );
 replaceOnce(
   "  await incrementAttempt(env, hash, serverDate);",
   "  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) await incrementAttempt(env, hash, serverDate);"
+);
+replaceOnce(
+  "  const day = await getBusinessDay(serverDate);",
+  "  const day = await getBusinessDayCached(serverDate);"
+);
+replaceOnce(
+  "  const wt = await getWaitTypes(env, { force: true });",
+  "  const wt = await getWaitTypesShared(env);"
 );
 
 replaceOnce(
@@ -148,7 +212,14 @@ async function recoverReservationSession(env, p) {
   };
 }
 
-async function fetchAirwaitReservations(env, waitTypeId) {
+const runtimeReservationSnapshotInflight = new Map();
+function parseReservationSnapshot(row) {
+  if (!row?.value) return null;
+  try { const v = JSON.parse(String(row.value)); return Array.isArray(v) ? v : null; }
+  catch { return null; }
+}
+
+async function fetchAirwaitReservationsFresh(env, waitTypeId) {
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const rows = [];
   let start = 1;
@@ -187,6 +258,32 @@ async function fetchAirwaitReservations(env, waitTypeId) {
     start += part.length;
   }
   return rows;
+}
+
+async function fetchAirwaitReservations(env, waitTypeId) {
+  const key = 'reservation_snapshot:' + String(waitTypeId || 'all');
+  const now = Date.now();
+  const cachedRow = await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1').bind(key).first();
+  const cachedRows = parseReservationSnapshot(cachedRow);
+  const age = cachedRow ? now - Number(cachedRow.updated_at || 0) : Infinity;
+  if (cachedRows && age < CFG.RESERVATION_SNAPSHOT_CACHE_MS) return cachedRows;
+  if (runtimeReservationSnapshotInflight.has(key)) return runtimeReservationSnapshotInflight.get(key);
+
+  const job = (async () => {
+    try {
+      const rows = await fetchAirwaitReservationsFresh(env, waitTypeId);
+      await env.DB.prepare(`INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at`)
+        .bind(key, JSON.stringify(rows), Date.now()).run();
+      return rows;
+    } catch (e) {
+      if (cachedRows && age < CFG.RESERVATION_SNAPSHOT_STALE_MS) return cachedRows;
+      throw e;
+    }
+  })();
+  runtimeReservationSnapshotInflight.set(key, job);
+  try { return await job; }
+  finally { if (runtimeReservationSnapshotInflight.get(key) === job) runtimeReservationSnapshotInflight.delete(key); }
 }
 
 async function reservationStatus(env, p) {
@@ -243,4 +340,4 @@ async function reservationStatus(env, p) {
 replaceOnce('function validateLocation(p) {', callstatusRuntime + 'function validateLocation(p) {');
 
 writeFileSync(outputPath, s, 'utf8');
-console.log(`Prepared ${outputPath} with Developing-only AirWAIT test slot 0042 and secure call-status support.`);
+console.log(`Prepared ${outputPath} with Developing-only AirWAIT test slot 0042, load guards, and secure call-status support.`);
