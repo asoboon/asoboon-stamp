@@ -22,13 +22,13 @@ const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
 
 export default {
   async fetch(request, env, ctx) {
-    const serviceEnv = withDevelopingServiceDefaults(env);
+    env = withDevelopingServiceDefaults(env);
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
 
     if (request.method === 'GET' && action === 'serviceMessageStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
-      try { return json(request, await serviceStatus(serviceEnv, Object.fromEntries(url.searchParams.entries()))); }
+      try { return json(request, await serviceStatus(env, Object.fromEntries(url.searchParams.entries()))); }
       catch (e) { return json(request, { ok:false, found:false, error:safeError(e) }, Number(e?.status || 500)); }
     }
 
@@ -41,7 +41,7 @@ export default {
       // Keep the underlying AirWAIT create capability separate from the effective
       // browser-facing gate. Developing may create only when LINE call delivery is ready.
       const baseCreateEnabled = body?.createEnabled === true;
-      try { Object.assign(body, await serviceHealth(serviceEnv)); }
+      try { Object.assign(body, await serviceHealth(env)); }
       catch (e) {
         Object.assign(body, {
           serviceMessageEnabled:true,
@@ -76,7 +76,7 @@ export default {
     // later produce the required LINE call notification.
     if (createPayload && originAllowed(request)) {
       try {
-        await prepareReservationNotification(serviceEnv, createPayload);
+        await prepareReservationNotification(env, createPayload);
       } catch (e) {
         // AirWAIT has not been called at this point. Even if LINE token issuance
         // was ambiguous, the reception itself is definitely NOT ambiguous.
@@ -103,7 +103,7 @@ export default {
     if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
 
     try {
-      body.serviceMessage = await finalizeReservationNotification(serviceEnv, createPayload, body);
+      body.serviceMessage = await finalizeReservationNotification(env, createPayload, body);
       body.notificationReady = body.serviceMessage?.ready === true;
     } catch (e) {
       // The token was already prepared before AirWAIT create. A failed bind is
@@ -115,8 +115,8 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    const serviceEnv = withDevelopingServiceDefaults(env);
-    ctx.waitUntil(runServiceMessageWorker(serviceEnv).catch(e => console.error('service-message-worker', safeError(e))));
+    env = withDevelopingServiceDefaults(env);
+    ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
   },
 };
 
