@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.0.dev3',
+  VERSION: '2.1.dev4',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -15,7 +15,13 @@ const SM = Object.freeze({
   CALLSTATUS_URL: 'https://miniapp.line.me/2009884611-bDgDzGrN?view=callstatus',
   PENDING_STALE_MS: 2 * 60 * 1000,
   RETRY_DELAY_MS: 60 * 1000,
+  EXTERNAL_TIMEOUT_MS: 8 * 1000,
+  CRON_SCAN_LIMIT: 1200,
 });
+
+let schemaReady = null;
+let channelTokenCache = { token:'', expiresAt:0 };
+let channelTokenInflight = null;
 
 export async function serviceHealth(env) {
   await ensureServiceSchema(env);
@@ -46,6 +52,22 @@ export async function prepareReservationNotification(env, p) {
   if (!requestId || !businessDate || !waitTypeId) throw apiError('SERVICE_PREPARE_DATA_INVALID', 400);
   if (liffAccessToken.length < 20) throw apiError('LIFF_ACCESS_TOKEN_REQUIRED_FOR_NOTIFICATION', 401);
 
+  const tokenHash = await sha256Hex(liffAccessToken);
+  const usage = await env.DB.prepare('SELECT request_id,status FROM v2_service_liff_token_usage WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
+  if (usage && String(usage.request_id || '') !== requestId) {
+    throw apiError('LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP', 409, true);
+  }
+  if (!usage) {
+    const now = Date.now();
+    const claimed = await env.DB.prepare(`INSERT OR IGNORE INTO v2_service_liff_token_usage
+      (token_hash,request_id,status,created_at,updated_at) VALUES(?,?,'CLAIMED',?,?)`)
+      .bind(tokenHash, requestId, now, now).run();
+    if (Number(claimed?.meta?.changes || 0) !== 1) {
+      const raced = await env.DB.prepare('SELECT request_id,status FROM v2_service_liff_token_usage WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
+      if (!raced || String(raced.request_id || '') !== requestId) throw apiError('LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP', 409, true);
+    }
+  }
+
   const existing = await getTokenClaim(env, requestId);
   if (existing) {
     if (String(existing.status) === 'TOKEN_READY' && existing.notification_token) return publicClaim(existing, true);
@@ -70,16 +92,17 @@ export async function prepareReservationNotification(env, p) {
     channelToken = await issueChannelToken(env);
   } catch (e) {
     await setClaimError(env, requestId, 'CHANNEL_TOKEN_ERROR', e);
+    await releaseLiffUsage(env, tokenHash, requestId);
     throw e;
   }
 
   let response;
   try {
-    response = await fetch(SM.NOTIFIER_TOKEN, {
+    response = await fetchWithTimeout(SM.NOTIFIER_TOKEN, {
       method: 'POST',
       headers: { Authorization: `Bearer ${channelToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ liffAccessToken }),
-    });
+    }, SM.EXTERNAL_TIMEOUT_MS);
   } catch (e) {
     const err = apiError(`NOTIFIER_TOKEN_NETWORK ${safeError(e)}`, 503, true);
     await setClaimError(env, requestId, 'TOKEN_ISSUE_AMBIGUOUS', err);
@@ -91,6 +114,7 @@ export async function prepareReservationNotification(env, p) {
     const ambiguous = response.status >= 500;
     const err = apiError(`NOTIFIER_TOKEN_HTTP_${response.status} ${safeApiText(text)}`, response.status, ambiguous);
     await setClaimError(env, requestId, ambiguous ? 'TOKEN_ISSUE_AMBIGUOUS' : 'TOKEN_ISSUE_ERROR', err);
+    if (!ambiguous) await releaseLiffUsage(env, tokenHash, requestId);
     throw err;
   }
 
@@ -111,10 +135,14 @@ export async function prepareReservationNotification(env, p) {
     throw err;
   }
 
-  await env.DB.prepare(`UPDATE v2_service_token_claims SET
-    status='TOKEN_READY',last_error='',last_http_status=200,notification_token=?,expires_at=?,remaining_count=?,session_id=?,updated_at=?
-    WHERE request_id=? AND status='TOKEN_ISSUE_PENDING'`)
-    .bind(notificationToken, now + expiresIn * 1000, remainingCount, String(data?.sessionId || ''), Date.now(), requestId).run();
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE v2_service_token_claims SET
+      status='TOKEN_READY',last_error='',last_http_status=200,notification_token=?,expires_at=?,remaining_count=?,session_id=?,updated_at=?
+      WHERE request_id=? AND status='TOKEN_ISSUE_PENDING'`)
+      .bind(notificationToken, now + expiresIn * 1000, remainingCount, String(data?.sessionId || ''), Date.now(), requestId),
+    env.DB.prepare("UPDATE v2_service_liff_token_usage SET status='TOKEN_READY',updated_at=? WHERE token_hash=? AND request_id=?")
+      .bind(Date.now(), tokenHash, requestId),
+  ]);
 
   const ready = await getTokenClaim(env, requestId);
   if (!ready?.notification_token) throw apiError('SERVICE_TOKEN_STORE_FAILED', 503, true);
@@ -163,7 +191,7 @@ export async function runServiceMessageWorker(env) {
     WHERE business_date=? AND notified_at=0 AND notification_token<>''
       AND status IN ('TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING')
       AND (next_retry_at=0 OR next_retry_at<=?)
-    ORDER BY created_at ASC LIMIT 200`).bind(jstDate(now), now).all();
+    ORDER BY created_at ASC LIMIT ${SM.CRON_SCAN_LIMIT}`).bind(jstDate(now), now).all();
   const pending = Array.isArray(rowsResult?.results) ? rowsResult.results : [];
   if (!pending.length) return { ok:true, checked:0, sent:0, reconciled:true, version:SM.VERSION };
   assertServiceConfig(env);
@@ -190,7 +218,7 @@ async function reconcileConfirmedClaims(env) {
     FROM v2_service_token_claims c
     JOIN v2_user_day_claims u ON u.request_id=c.request_id AND u.business_date=c.business_date
     WHERE c.status='TOKEN_READY' AND c.notification_token<>'' AND u.state='CONFIRMED'
-      AND u.receipt_no<>'' AND u.reserve_id<>'' LIMIT 100`).all();
+      AND u.receipt_no<>'' AND u.reserve_id<>'' LIMIT 1000`).all();
   for (const claim of (Array.isArray(r?.results) ? r.results : [])) {
     const receiptNo = normalizeReceipt(claim.receipt_no);
     const reserveId = normalizeReserveId(claim.reserve_id);
@@ -216,7 +244,10 @@ async function bindClaimToReservation(env, claim, x) {
       updated_at=excluded.updated_at`)
     .bind(x.businessDate,x.receiptNo,x.reserveId,x.waitTypeId,x.requestId,String(claim.notification_token),
       Number(claim.expires_at||0),Number(claim.remaining_count||0),String(claim.session_id||''),now,now).run();
-  await env.DB.prepare('DELETE FROM v2_service_token_claims WHERE request_id=?').bind(x.requestId).run();
+  await env.DB.batch([
+    env.DB.prepare("UPDATE v2_service_liff_token_usage SET status='BOUND',updated_at=? WHERE request_id=?").bind(now, x.requestId),
+    env.DB.prepare('DELETE FROM v2_service_token_claims WHERE request_id=?').bind(x.requestId),
+  ]);
 }
 
 async function sendCallMessage(env, rec, airwaitRow) {
@@ -250,11 +281,11 @@ async function sendCallMessage(env, rec, airwaitRow) {
 
   let response;
   try {
-    response = await fetch(SM.NOTIFIER_SEND, {
+    response = await fetchWithTimeout(SM.NOTIFIER_SEND, {
       method:'POST',
       headers:{ Authorization:`Bearer ${channelToken}`,'Content-Type':'application/json',Accept:'application/json' },
       body:JSON.stringify({ templateName:normalizeTemplateName(env.SERVICE_MESSAGE_TEMPLATE_NAME), params, notificationToken:String(rec.notification_token) }),
-    });
+    }, SM.EXTERNAL_TIMEOUT_MS);
   } catch (e) {
     await setRowError(env, rec, 'CALL_SEND_AMBIGUOUS', `NOTIFIER_SEND_NETWORK ${safeError(e)}`, 0);
     return { sent:false, ambiguous:true };
@@ -291,24 +322,34 @@ async function sendCallMessage(env, rec, airwaitRow) {
 async function issueChannelToken(env) {
   const secret = String(env.LINE_MINIAPP_CHANNEL_SECRET || '').trim();
   if (!secret) throw apiError('LINE_MINIAPP_CHANNEL_SECRET_NOT_CONFIGURED', 503);
-  const response = await fetch(SM.LINE_OAUTH, {
-    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},
-    body:new URLSearchParams({grant_type:'client_credentials',client_id:SM.CHANNEL_ID,client_secret:secret}),
-  });
-  const text = await response.text();
-  if (!response.ok) throw apiError(`CHANNEL_TOKEN_HTTP_${response.status} ${safeApiText(text)}`, response.status, response.status>=500);
-  let data; try { data=JSON.parse(text); } catch { throw apiError('CHANNEL_TOKEN_INVALID_JSON',502,true); }
-  if (!data?.access_token) throw apiError('CHANNEL_ACCESS_TOKEN_EMPTY',502);
-  return String(data.access_token);
+  const now = Date.now();
+  if (channelTokenCache.token && channelTokenCache.expiresAt > now + 30_000) return channelTokenCache.token;
+  if (channelTokenInflight) return await channelTokenInflight;
+  channelTokenInflight = (async () => {
+    const response = await fetchWithTimeout(SM.LINE_OAUTH, {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},
+      body:new URLSearchParams({grant_type:'client_credentials',client_id:SM.CHANNEL_ID,client_secret:secret}),
+    }, SM.EXTERNAL_TIMEOUT_MS);
+    const text = await response.text();
+    if (!response.ok) throw apiError(`CHANNEL_TOKEN_HTTP_${response.status} ${safeApiText(text)}`, response.status, response.status>=500);
+    let data; try { data=JSON.parse(text); } catch { throw apiError('CHANNEL_TOKEN_INVALID_JSON',502,true); }
+    if (!data?.access_token) throw apiError('CHANNEL_ACCESS_TOKEN_EMPTY',502);
+    const token = String(data.access_token);
+    const expiresIn = Math.max(60, Number(data.expires_in || 900));
+    channelTokenCache = { token, expiresAt:Date.now()+expiresIn*1000 };
+    return token;
+  })();
+  try { return await channelTokenInflight; }
+  finally { channelTokenInflight = null; }
 }
 
 async function fetchAirwaitReservations(env, waitTypeId) {
   const out=[]; let start=1;
   for (let page=0; page<20; page+=1) {
-    const response=await fetch(SM.AIR_RESERVATIONS,{
+    const response=await fetchWithTimeout(SM.AIR_RESERVATIONS,{
       method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',corWclpKeyCd:env.AIRWAIT_API_KEY},
       body:new URLSearchParams({storeId:SM.STORE_ID,waitTypeId,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'}),
-    });
+    }, SM.EXTERNAL_TIMEOUT_MS);
     const text=await response.text(); let data;
     try { data=JSON.parse(text); } catch { throw apiError('AIRWAIT_RESERVATIONS_INVALID_JSON',502,response.status>=500); }
     if(!response.ok||data?.success!==true||data?.resultCode?.code!=='0000') throw apiError(`AIRWAIT_RESERVATIONS_FAILED_${response.status}`,502);
@@ -323,7 +364,8 @@ async function fetchAirwaitReservations(env, waitTypeId) {
 
 async function ensureServiceSchema(env) {
   if(!env.DB) throw apiError('DB_NOT_CONFIGURED',503);
-  await env.DB.batch([
+  if (schemaReady) return await schemaReady;
+  schemaReady = env.DB.batch([
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_service_token_claims (
       request_id TEXT PRIMARY KEY,business_date TEXT NOT NULL,wait_type_id TEXT NOT NULL,status TEXT NOT NULL,
       last_error TEXT NOT NULL DEFAULT '',last_http_status INTEGER NOT NULL DEFAULT 0,notification_token TEXT NOT NULL DEFAULT '',
@@ -334,14 +376,19 @@ async function ensureServiceSchema(env) {
       status TEXT NOT NULL,last_error TEXT NOT NULL DEFAULT '',last_http_status INTEGER NOT NULL DEFAULT 0,notification_token TEXT NOT NULL DEFAULT '',
       expires_at INTEGER NOT NULL DEFAULT 0,remaining_count INTEGER NOT NULL DEFAULT 0,session_id TEXT NOT NULL DEFAULT '',notified_at INTEGER NOT NULL DEFAULT 0,
       next_retry_at INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,PRIMARY KEY(business_date,reserve_id))`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_service_liff_token_usage (
+      token_hash TEXT PRIMARY KEY,request_id TEXT NOT NULL,status TEXT NOT NULL,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_receipt ON v2_service_messages(business_date,receipt_no)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_pending ON v2_service_messages(business_date,status,notified_at,next_retry_at)'),
-  ]);
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_liff_usage_request ON v2_service_liff_token_usage(request_id)'),
+  ]).catch(e=>{schemaReady=null;throw e});
+  return await schemaReady;
 }
 
 async function getTokenClaim(env, requestId){return await env.DB.prepare('SELECT * FROM v2_service_token_claims WHERE request_id=? LIMIT 1').bind(requestId).first();}
 async function setClaimError(env,requestId,status,e){await env.DB.prepare('UPDATE v2_service_token_claims SET status=?,last_error=?,last_http_status=?,updated_at=? WHERE request_id=?').bind(status,safeError(e),Number(e?.status||0),Date.now(),requestId).run();}
 async function setRowError(env,rec,status,message,httpStatus=0,nextRetryAt=0){await env.DB.prepare('UPDATE v2_service_messages SET status=?,last_error=?,last_http_status=?,next_retry_at=?,updated_at=? WHERE business_date=? AND reserve_id=?').bind(status,String(message||'').slice(0,500),Number(httpStatus||0),Number(nextRetryAt||0),Date.now(),rec.business_date,rec.reserve_id).run();}
+async function releaseLiffUsage(env,tokenHash,requestId){await env.DB.prepare("DELETE FROM v2_service_liff_token_usage WHERE token_hash=? AND request_id=? AND status='CLAIMED'").bind(tokenHash,requestId).run();}
 
 function assertServiceConfig(env){
   if(!String(env.LINE_MINIAPP_CHANNEL_SECRET||'').trim()) throw apiError('LINE_MINIAPP_CHANNEL_SECRET_NOT_CONFIGURED',503);
@@ -365,14 +412,15 @@ function normalizeTemplateName(v){let s=String(v||'').trim();if(!s)return'';if(!
 function publicClaim(row,reused){return{ok:true,ready:true,reused:Boolean(reused),status:'TOKEN_READY',remainingCount:Number(row.remaining_count||0),version:SM.VERSION};}
 function publicRow(row){return{ok:true,found:true,version:SM.VERSION,businessDate:String(row.business_date||''),receiptNo:String(row.receipt_no||''),reserveId:String(row.reserve_id||''),waitTypeId:String(row.wait_type_id||''),status:String(row.status||''),error:String(row.last_error||''),lastHttpStatus:Number(row.last_http_status||0),remainingCount:Number(row.remaining_count||0),expiresAt:Number(row.expires_at||0),notifiedAt:Number(row.notified_at||0),nextRetryAt:Number(row.next_retry_at||0)};}
 function jstDate(epoch=Date.now()){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:SM.TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));return`${p.year}-${p.month}-${p.day}`;}
-function ticketKey(v){return String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');}
-function ticketDigits(v){const k=ticketKey(v);if(!/^[FT]?\d+$/.test(k))return'';return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');}
-function sameTicket(a,b){const x=ticketKey(a),y=ticketKey(b);if(!x||!y)return false;if(x===y)return true;const xd=ticketDigits(x),yd=ticketDigits(y);return Boolean(xd&&yd&&xd===yd);}
+function ticketIdentity(v){const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');const m=k.match(/^([FT]?)(\d+)$/);return m?m[1]+m[2].replace(/^0+(?=\d)/,''):'';}
+function sameTicket(a,b){const x=ticketIdentity(a),y=ticketIdentity(b);return Boolean(x&&y&&x===y);}
 function normalizeWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:'';}
-function normalizeReceipt(v){const m=String(v??'').normalize('NFKC').trim().toUpperCase().match(/^[FT]?(\d{1,12})$/);return m?m[1].replace(/^0+(?=\d)/,''):'';}
+function normalizeReceipt(v){return ticketIdentity(v);}
 function normalizeReserveId(v){const s=String(v??'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):'';}
 function normalizeRequestId(v){const s=String(v||'').trim();return /^[A-Za-z0-9_-]{8,120}$/.test(s)?s:'';}
 function normalizeDate(v){const s=String(v||'').trim().replace(/\//g,'-'),m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return'';const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d,12));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()+1!==mo||dt.getUTCDate()!==d)return'';return`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+async function sha256Hex(text){const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(text||'')));return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function fetchWithTimeout(url,options={},ms=SM.EXTERNAL_TIMEOUT_MS){const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),ms);try{return await fetch(url,{...options,signal:ctrl.signal})}catch(e){if(e?.name==='AbortError')throw apiError('EXTERNAL_REQUEST_TIMEOUT',504,true);throw e}finally{clearTimeout(timer)}}
 function safeApiText(text){return String(text||'').replace(/[\r\n\t]+/g,' ').replace(/"(?:access_token|notificationToken|liffAccessToken|client_secret)"\s*:\s*"[^"]*"/gi,'"[REDACTED]"').slice(0,300);}
 function safeError(e){return String(e?.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500);}
 function apiError(message,status=500,ambiguous=false){const e=new Error(String(message||'UNKNOWN_ERROR'));e.status=status;e.ambiguous=Boolean(ambiguous);return e;}
