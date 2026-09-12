@@ -3,7 +3,7 @@ name: develop-hardening-once
 on:
   push:
     paths:
-      - '.github/scripts/develop-hardening-20260912.py'
+      - '.github/scripts/develop-hardening-20260912-v2.py'
 
 permissions:
   contents: write
@@ -19,7 +19,7 @@ jobs:
       - name: Apply Developing hardening patch
         run: |
           set -euo pipefail
-          python .github/scripts/develop-hardening-20260912.py
+          python .github/scripts/develop-hardening-20260912-v2.py
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
           node --check miniapp-v2/shared/callstatus.js
