@@ -4,13 +4,15 @@ const E=window.ASOBOON_V2_ENV||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
+const POLL_RECONCILE_MS=6000;
+const POLL_RECONCILE_MAX=3;
 const POLL_NEAR_MS=15000;
 const POLL_MID_MS=60000;
 const POLL_FAR_MS=180000;
 const POLL_ERROR_MS=60000;
 const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
-let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS;
+let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -22,7 +24,7 @@ function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollT
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 function unmount(){stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
-function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
@@ -33,7 +35,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>待ち人数に応じて約15秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
+<div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約15秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div></section>`}
 
 function stateMeta(state,ahead){
@@ -49,7 +51,7 @@ function stateMeta(state,ahead){
 }
 
 function delayForStatus(d){
-  if(!d?.found)return POLL_MID_MS;
+  if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
   if(['calling','done','canceled'].includes(state))return 0;
   if(['hold','processing'].includes(state))return POLL_MID_MS;
@@ -74,20 +76,26 @@ function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 function applyStatus(d){
   if(!d||!$('csState'))return;
-  nextPollMs=delayForStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
   if($('csReceipt'))$('csReceipt').textContent=receipt;
   if($('csWaitType'))$('csWaitType').textContent=String(d.waitTypeName||cached.waitTypeName||cached.waitTypeLabel||'受付枠');
   if(!d.found){
+    notFoundStreak+=1;
+    nextPollMs=notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS;
     const box=$('csState');if(box)box.className='cs-state loading';
-    if($('csTitle'))$('csTitle').textContent='AirWAITで受付情報を確認中';
-    if($('csMessage'))$('csMessage').textContent='受付は保存されています。反映に少し時間がかかる場合があります。';
     if($('csQueue'))$('csQueue').hidden=true;
     if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
-    const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent=`混雑を避けながら${pollLabel(nextPollMs)}に確認します。`}
+    const reconciling=notFoundStreak<=POLL_RECONCILE_MAX;
+    if($('csTitle'))$('csTitle').textContent=reconciling?'AirWAITへ受付を反映中':'受付情報をまだ確認できません';
+    if($('csMessage'))$('csMessage').textContent=reconciling?`受付番号は保存済みです。約6秒後に再確認します（${notFoundStreak}/${POLL_RECONCILE_MAX}）。`:'受付番号は保存済みです。「今すぐ更新」を押しても変わらない場合はスタッフへ受付番号をお伝えください。';
+    setError(reconciling?'':'AirWAIT側の受付反映を確認できていません。新しい受付を作り直さないでください。');
+    const top=$('csTop');if(top){top.className=reconciling?'cs-top ok':'cs-top warn';top.querySelector('strong').textContent=reconciling?'AirWAITと照合中':'再確認が必要です';top.querySelector('small').textContent=reconciling?'受付直後の反映待ちを自動で再確認しています。':`次回は${pollLabel(nextPollMs)}に確認します。`}
     return;
   }
+  notFoundStreak=0;
+  setError('');
+  nextPollMs=delayForStatus(d);
   const ahead=Number.isFinite(Number(d.aheadCount))?Number(d.aheadCount):null;
   const m=stateMeta(d.state,ahead),box=$('csState');
   if(box)box.className='cs-state '+m.cls;
@@ -187,6 +195,7 @@ function mountCallstatus(){
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;
+  notFoundStreak=0;
   const gen=generation;
   const cached=cachedReservation();
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
@@ -227,7 +236,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.6.0-adaptive-jitter',
+  version:'1.6.1-post-create-reconcile',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
