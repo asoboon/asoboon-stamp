@@ -20,6 +20,7 @@ jobs:
           set -euo pipefail
           node --check miniapp-v2/shared/reception.js
           node --check miniapp-v2/shared/callstatus.js
+          node --check miniapp-v2/shared/business-day.js
           node --check miniapp-v2/backend/develop-worker.mjs
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/prepare-develop-test-runtime.mjs
@@ -42,6 +43,24 @@ jobs:
           grep -F "const REQUEST_TIMEOUT_MS=10000;" miniapp-v2/shared/callstatus.js
           grep -F "signal:ctrl.signal" miniapp-v2/shared/callstatus.js
           grep -F "呼出状況の確認がタイムアウトしました。" miniapp-v2/shared/callstatus.js
+
+      - name: Call status must shed background load
+        run: |
+          set -euo pipefail
+          grep -F "const POLL_FAR_MS=60000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_MID_MS=20000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_NEAR_MS=10000;" miniapp-v2/shared/callstatus.js
+          grep -F "document.visibilityState!=='visible'" miniapp-v2/shared/callstatus.js
+          grep -F "ahead<=5" miniapp-v2/shared/callstatus.js
+          grep -F "ahead<=20" miniapp-v2/shared/callstatus.js
+
+      - name: Business calendar must collapse stampedes
+        run: |
+          set -euo pipefail
+          grep -F "action','businessDay'" miniapp-v2/shared/business-day.js
+          grep -F "BUSINESS_DAY_CACHE_MS = 60 * 1000" miniapp-v2/backend/develop-worker.mjs
+          grep -F "businessDayInflight" miniapp-v2/backend/develop-worker.mjs
+          grep -F "action === 'businessDay'" miniapp-v2/backend/develop-worker.mjs
 
       - name: Developing 0042 recycle is isolated
         run: |
@@ -83,5 +102,5 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260912-05') throw new Error(`unexpected cache version ${versions[0]}`);
+          if(versions[0]!=='20260912-06') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
