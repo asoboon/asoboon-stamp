@@ -100,25 +100,29 @@ jobs:
           grep -F "STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000" miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'STALE_CREATE_INFLIGHT_REQUIRES_MANUAL_REVIEW' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
-      - name: Receipt identity must preserve AirWAIT F and T prefixes
+      - name: Receipt matching tolerates omitted AirWAIT prefix without crossing F and T
         run: |
           set -euo pipefail
           node <<'NODE'
-          const identity=v=>{
+          const parts=v=>{
             const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
             const m=k.match(/^([FT]?)(\d+)$/);
-            return m?m[1]+m[2].replace(/^0+(?=\d)/,''):'';
+            return m?{prefix:m[1],digits:m[2].replace(/^0+(?=\d)/,'')}:null;
           };
-          const same=(a,b)=>{const x=identity(a),y=identity(b);return Boolean(x&&y&&x===y)};
-          const equivalent=[['F000123','F123'],['T000123','T123'],['000123','123'],['Ｆ０００１２３','F123']];
+          const same=(a,b)=>{
+            const x=parts(a),y=parts(b);
+            if(!x||!y||!x.digits||!y.digits||x.digits!==y.digits)return false;
+            if(x.prefix&&y.prefix&&x.prefix!==y.prefix)return false;
+            return true;
+          };
+          const equivalent=[['F000123','F123'],['T000123','T123'],['F000123','123'],['T000123','123'],['000123','123'],['Ｆ０００１２３','123']];
           for(const [a,b] of equivalent) if(!same(a,b)) throw new Error(`must match ${a} ${b}`);
-          const different=[['F123','T123'],['F123','123'],['T123','123'],['F123','124'],['ABC123','123'],['','123']];
+          const different=[['F123','T123'],['F123','124'],['T123','F124'],['ABC123','123'],['','123']];
           for(const [a,b] of different) if(same(a,b)) throw new Error(`must not match ${a} ${b}`);
           NODE
-          grep -F 'function ticketIdentity' miniapp-v2/backend/develop-worker.mjs
-          grep -F 'function ticketIdentity' miniapp-v2/backend/develop-service-message.js
-          grep -F 'function ticketIdentity' miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          ! grep -Fq "return Boolean(ad&&bd&&ad===bd)" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'function ticketParts' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'function ticketParts' miniapp-v2/backend/develop-service-message.js
+          grep -F 'function ticketParts' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
       - name: LINE token issuance must be one per LIFF access token
         run: |
