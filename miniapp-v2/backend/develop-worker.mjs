@@ -17,6 +17,7 @@ const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const BUSINESS_DAY_CACHE_MS = 60 * 1000;
+const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
 const businessDayCache = new Map();
 const businessDayInflight = new Map();
@@ -154,7 +155,12 @@ async function getBusinessDayProxy(value) {
     u.searchParams.set('action','current');
     u.searchParams.set('date',date);
     u.searchParams.set('_',String(Date.now()));
-    const r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store'});
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+    let r;
+    try { r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store',signal:ctrl.signal}); }
+    catch(e){ if(e?.name==='AbortError') throw apiError('BUSINESS_CALENDAR_TIMEOUT',504); throw e; }
+    finally { clearTimeout(timer); }
     let d=null;try{d=await r.json()}catch{}
     if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE',503);
     const returned = normalizeDate(d.operationalDate || d.calendarDate || date);
@@ -212,8 +218,10 @@ async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
       ).run();
     if (Number(del?.meta?.changes || 0) !== 1) return false;
 
-    await env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?')
-      .bind(String(createPayload.requestId || '')).run();
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?').bind(String(createPayload.requestId || '')),
+      env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?').bind(String(claim.request_id || '')),
+    ]);
 
     return true;
   } catch (e) {
@@ -235,16 +243,23 @@ async function fetchDevelopTestReservations(env, filters={}) {
       limit:'100',
       ...filters,
     };
-    const r = await fetch(AIR_RESERVATIONS, {
-      method:'POST',
-      headers:{
-        Accept:'application/json',
-        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
-        corWclpKeyCd:env.AIRWAIT_API_KEY,
-      },
-      body:new URLSearchParams(params),
-      cache:'no-store',
-    });
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+    let r;
+    try {
+      r = await fetch(AIR_RESERVATIONS, {
+        method:'POST',
+        headers:{
+          Accept:'application/json',
+          'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+          corWclpKeyCd:env.AIRWAIT_API_KEY,
+        },
+        body:new URLSearchParams(params),
+        cache:'no-store',
+        signal:ctrl.signal,
+      });
+    } catch(e){ if(e?.name==='AbortError') return []; throw e; }
+    finally { clearTimeout(timer); }
     let d=null;try{d=await r.json()}catch{}
     if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') return [];
     const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
@@ -256,18 +271,14 @@ async function fetchDevelopTestReservations(env, filters={}) {
   return rows;
 }
 
+function ticketIdentity(value) {
+  const k=String(value||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
+  const m=k.match(/^([FT]?)(\d+)$/);
+  return m ? m[1]+m[2].replace(/^0+(?=\d)/,'') : '';
+}
 function sameTicket(number, receiptNo) {
-  const key=v=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
-  const digits=v=>{
-    const k=key(v);
-    if(!/^[FT]?\d+$/.test(k))return'';
-    return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');
-  };
-  const a=key(number),b=key(receiptNo);
-  if(!a||!b)return false;
-  if(a===b)return true;
-  const ad=digits(a),bd=digits(b);
-  return Boolean(ad&&bd&&ad===bd);
+  const a=ticketIdentity(number),b=ticketIdentity(receiptNo);
+  return Boolean(a&&b&&a===b);
 }
 
 function rebuildCreateRequest(original, payload) {
