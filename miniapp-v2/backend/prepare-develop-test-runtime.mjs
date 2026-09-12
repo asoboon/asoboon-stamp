@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.3.dev-hardening',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.4.dev-hardening',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -104,7 +104,54 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
 }`
 );
 
+replaceOnce(
+  "function normalizeReceipt(v) { const m = String(v ?? '').normalize('NFKC').trim().toUpperCase().match(/^[FT]?(\\d{1,12})$/); return m ? m[1].replace(/^0+(?=\\d)/,'') : ''; }",
+  "function normalizeReceipt(v) { const k=String(v??'').normalize('NFKC').trim().toUpperCase(); const m=k.match(/^([FT]?)(\\d{1,12})$/); return m ? m[1]+m[2].replace(/^0+(?=\\d)/,'') : ''; }"
+);
+replaceOnce(
+  "  const vr = await fetch(verifyUrl, { headers: { Accept: 'application/json' } });",
+  "  const vr = await fetchWithHardTimeout(verifyUrl, { headers: { Accept: 'application/json' } }, 8000, 'LINE_VERIFY_TIMEOUT');"
+);
+replaceOnce(
+  "  const pr = await fetch(CFG.LINE_PROFILE, {",
+  "  const pr = await fetchWithHardTimeout(CFG.LINE_PROFILE, {"
+);
+replaceOnce(
+  "    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },\n  });\n  const profile = await safeJson(pr, 'LINE_PROFILE');",
+  "    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },\n  }, 8000, 'LINE_PROFILE_TIMEOUT');\n  const profile = await safeJson(pr, 'LINE_PROFILE');"
+);
+replaceOnce(
+  "  const r = await fetch(u, { headers: { Accept: 'application/json' }, cache: 'no-store' });",
+  "  const r = await fetchWithHardTimeout(u, { headers: { Accept: 'application/json' }, cache: 'no-store' }, 8000, 'BUSINESS_CALENDAR_TIMEOUT');"
+);
+replaceOnce(
+  "  const r = await fetch(CFG.AIR_WAIT_TYPES, {",
+  "  const r = await fetchWithHardTimeout(CFG.AIR_WAIT_TYPES, {"
+);
+replaceOnce(
+  "    body: new URLSearchParams({ storeId: CFG.STORE_ID }),\n  });\n  const d = await safeJson(r, 'AIRWAIT_WAIT_TYPES');",
+  "    body: new URLSearchParams({ storeId: CFG.STORE_ID }),\n  }, 8000, 'AIRWAIT_WAIT_TYPES_TIMEOUT');\n  const d = await safeJson(r, 'AIRWAIT_WAIT_TYPES');"
+);
+replaceOnce(
+  "    res = await fetch(CFG.AIR_CREATE, {",
+  "    res = await fetchWithHardTimeout(CFG.AIR_CREATE, {"
+);
+replaceOnce(
+  "        autoPrintFlg: 'false',\n      }),\n    });",
+  "        autoPrintFlg: 'false',\n      }),\n    }, 10000, 'AIRWAIT_CREATE_TIMEOUT', true);"
+);
+
 const hardeningRuntime = String.raw`
+async function fetchWithHardTimeout(url, options={}, ms=8000, label='EXTERNAL_TIMEOUT', ambiguous=false) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...options, signal:ctrl.signal }); }
+  catch (e) {
+    if (e?.name === 'AbortError') throw apiError(label, 504, ambiguous);
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+
 const createBusinessDayCache = new Map();
 const createBusinessDayInflight = new Map();
 const CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000;
