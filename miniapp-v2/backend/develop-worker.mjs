@@ -10,6 +10,7 @@ import {
   finalizeReservationNotification,
   serviceStatus,
   runServiceMessageWorker,
+  sendObservedCallNotification,
 } from './develop-service-message.js';
 
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
@@ -113,7 +114,9 @@ export default {
 
     let base = await gateway.fetch(request, env, ctx);
     if (reservationStatusPayload) {
-      return await reconcileReservationStatus(request, env, base, reservationStatusPayload);
+      const statusResponse = await reconcileReservationStatus(request, env, base, reservationStatusPayload);
+      queueObservedCallNotification(env, statusResponse, ctx);
+      return statusResponse;
     }
     if (!createPayload) return base;
 
@@ -153,6 +156,18 @@ export default {
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
   },
 };
+
+function queueObservedCallNotification(env, response, ctx) {
+  const job = (async () => {
+    let body;
+    try { body = await response.clone().json(); } catch { return; }
+    if (!(body?.ok === true && body?.found === true && String(body?.status || '') === '0' && body?.isCalling === true)) return;
+    await sendObservedCallNotification(env, body);
+  })();
+  const guarded = job.catch(e => console.warn('CALLSTATUS_IMMEDIATE_NOTIFY_FAILED', safeError(e)));
+  if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(guarded);
+  else void guarded;
+}
 
 async function getBusinessDayProxy(value) {
   const date = normalizeDate(value);
@@ -206,18 +221,15 @@ async function reconcileReservationStatus(request, env, base, payload) {
 
   try {
     const rows = await fetchAllReservationsForReconcile(env);
-    const matches = rows.filter(r => sameTicket(r.number, body.receiptNo));
-    const activeMatches = matches.filter(r => ['0','1','4'].includes(String(r.status || '')));
-    const candidate = activeMatches.length === 1
-      ? activeMatches[0]
-      : (activeMatches.length === 0 && matches.length === 1 ? matches[0] : null);
+    const match = selectTicketMatch(rows, body.receiptNo);
+    const candidate = match.row;
 
     if (!candidate) {
       return new Response(JSON.stringify({
         ...body,
         reconcileTried:true,
-        reconcileAmbiguous:activeMatches.length > 1 || matches.length > 1,
-        reconcileCandidateCount:matches.length,
+        reconcileAmbiguous:match.ambiguous,
+        reconcileCandidateCount:match.count,
       }), { status:base.status, headers:base.headers });
     }
 
@@ -227,6 +239,13 @@ async function reconcileReservationStatus(request, env, base, payload) {
         const tokenHash = await sha256Hex(String(payload.sessionToken).trim());
         await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
           .bind(candidateWaitTypeId, tokenHash).run();
+        try {
+          await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
+            WHERE business_date=? AND receipt_no=? AND notified_at=0`)
+            .bind(candidateWaitTypeId, Date.now(), String(body.businessDate || ''), String(body.receiptNo || '')).run();
+        } catch (e) {
+          console.warn('CALLSTATUS_RECONCILE_SERVICE_WAITTYPE_FAILED', safeError(e));
+        }
       } catch (e) {
         console.warn('CALLSTATUS_RECONCILE_SESSION_UPDATE_FAILED', safeError(e));
       }
@@ -435,6 +454,16 @@ function sameTicket(number, receiptNo) {
   if(!a||!b||!a.digits||!b.digits||a.digits!==b.digits)return false;
   if(a.prefix&&b.prefix&&a.prefix!==b.prefix)return false;
   return true;
+}
+function selectTicketMatch(rows, receiptNo) {
+  const list=Array.isArray(rows)?rows:[];
+  const target=ticketIdentity(receiptNo);
+  const exact=target?list.filter(r=>ticketIdentity(r?.number)===target):[];
+  if(exact.length===1)return{row:exact[0],ambiguous:false,count:1,mode:'exact'};
+  if(exact.length>1)return{row:null,ambiguous:true,count:exact.length,mode:'exact'};
+  const loose=list.filter(r=>sameTicket(r?.number,receiptNo));
+  if(loose.length===1)return{row:loose[0],ambiguous:false,count:1,mode:'compatible'};
+  return{row:null,ambiguous:loose.length>1,count:loose.length,mode:'compatible'};
 }
 
 async function sha256Hex(value) {

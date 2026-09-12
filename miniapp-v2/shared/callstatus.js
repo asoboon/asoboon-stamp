@@ -6,6 +6,7 @@ const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
+const POLL_FRONT_MS=5000;
 const POLL_NEAR_MS=15000;
 const POLL_MID_MS=60000;
 const POLL_FAR_MS=180000;
@@ -24,7 +25,7 @@ function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollT
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 function unmount(){stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
-function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
@@ -35,7 +36,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約15秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
+<div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約5秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div></section>`}
 
 function stateMeta(state,ahead){
@@ -57,6 +58,7 @@ function delayForStatus(d){
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
     const ahead=Number(d.aheadCount);
+    if(Number.isFinite(ahead)&&ahead<=1)return POLL_FRONT_MS;
     if(Number.isFinite(ahead)&&ahead<=5)return POLL_NEAR_MS;
     if(Number.isFinite(ahead)&&ahead<=20)return POLL_MID_MS;
     return POLL_FAR_MS;
@@ -236,7 +238,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.6.1-post-create-reconcile',
+  version:'1.6.2-frontline-observe',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,

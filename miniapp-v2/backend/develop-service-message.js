@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.1.dev4',
+  VERSION: '2.2.dev5',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -38,6 +38,8 @@ export async function serviceHealth(env) {
     serviceMessageReady: secretReady && templateReady && paramsReady,
     serviceMessageMandatoryBeforeCreate: true,
     serviceMessageCronEnabled: true,
+    serviceMessageImmediateObservationEnabled: true,
+    serviceMessageReusableUnboundToken: true,
   };
 }
 
@@ -53,8 +55,10 @@ export async function prepareReservationNotification(env, p) {
   if (liffAccessToken.length < 20) throw apiError('LIFF_ACCESS_TOKEN_REQUIRED_FOR_NOTIFICATION', 401);
 
   const tokenHash = await sha256Hex(liffAccessToken);
-  const usage = await env.DB.prepare('SELECT request_id,status FROM v2_service_liff_token_usage WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
+  const usage = await env.DB.prepare('SELECT request_id,status,created_at,updated_at FROM v2_service_liff_token_usage WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
   if (usage && String(usage.request_id || '') !== requestId) {
+    const adopted = await adoptReusableNotificationClaim(env, tokenHash, usage, requestId, businessDate, waitTypeId);
+    if (adopted) return publicClaim(adopted, true);
     throw apiError('LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP', 409, true);
   }
   if (!usage) {
@@ -177,6 +181,46 @@ export async function serviceStatus(env, params) {
   return publicRow(row);
 }
 
+export async function sendObservedCallNotification(env, observation) {
+  await ensureServiceSchema(env);
+  const businessDate = normalizeDate(observation?.businessDate);
+  const receiptNo = normalizeReceipt(observation?.receiptNo);
+  const observedWaitType = normalizeWaitType(observation?.waitTypeId);
+  const calling = observation?.isCalling === true || String(observation?.isCalling || '') === '1';
+  if (!businessDate || !receiptNo || String(observation?.status || '') !== '0' || !calling) {
+    return { ok:true, sent:false, reason:'NOT_CALLING', version:SM.VERSION };
+  }
+
+  let rec = await env.DB.prepare(`SELECT * FROM v2_service_messages
+    WHERE business_date=? AND receipt_no=? AND notified_at=0
+    ORDER BY updated_at DESC LIMIT 1`).bind(businessDate, receiptNo).first();
+
+  if (!rec) {
+    const pendingResult = await env.DB.prepare(`SELECT * FROM v2_service_messages
+      WHERE business_date=? AND notified_at=0 AND notification_token<>''
+      ORDER BY updated_at DESC LIMIT 500`).bind(businessDate).all();
+    const candidates = (Array.isArray(pendingResult?.results) ? pendingResult.results : []).map(x => ({ ...x, number:x.receipt_no }));
+    rec = selectTicketMatch(candidates, receiptNo).row;
+  }
+  if (!rec) return { ok:true, sent:false, reason:'SERVICE_ROW_NOT_FOUND', version:SM.VERSION };
+
+  if (observedWaitType && String(rec.wait_type_id || '') !== observedWaitType) {
+    await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
+      WHERE business_date=? AND reserve_id=? AND notified_at=0`)
+      .bind(observedWaitType, Date.now(), rec.business_date, rec.reserve_id).run();
+    rec = { ...rec, wait_type_id:observedWaitType };
+  }
+
+  const result = await sendCallMessage(env, rec, {
+    number:receiptNo,
+    waitTypeId:observedWaitType || String(rec.wait_type_id || ''),
+    waitTypeName:String(observation?.waitTypeName || ''),
+    status:'0',
+    isCalling:'1',
+  });
+  return { ok:true, ...result, version:SM.VERSION };
+}
+
 export async function runServiceMessageWorker(env) {
   await ensureServiceSchema(env);
   await reconcileConfirmedClaims(env);
@@ -203,11 +247,27 @@ export async function runServiceMessageWorker(env) {
     if (wt && !byWaitType.has(wt)) byWaitType.set(wt, await fetchAirwaitReservations(env, wt));
   }
 
+  let allRows = null;
   let sent = 0;
-  for (const rec of pending) {
-    const own = (byWaitType.get(String(rec.wait_type_id)) || []).find(r => sameTicket(r.number, rec.receipt_no));
-    if (!own || String(own.status || '') !== '0' || String(own.isCalling || '0') !== '1') continue;
-    const result = await sendCallMessage(env, rec, own);
+  for (let rec of pending) {
+    let match = selectTicketMatch(byWaitType.get(String(rec.wait_type_id)) || [], rec.receipt_no);
+    if (!match.row && !match.ambiguous) {
+      if (!allRows) allRows = await fetchAirwaitReservations(env, '');
+      match = selectTicketMatch(allRows, rec.receipt_no);
+      const correctedWaitType = normalizeWaitType(match.row?.waitTypeId);
+      if (correctedWaitType && correctedWaitType !== String(rec.wait_type_id || '')) {
+        await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
+          WHERE business_date=? AND reserve_id=? AND notified_at=0`)
+          .bind(correctedWaitType, Date.now(), rec.business_date, rec.reserve_id).run();
+        rec = { ...rec, wait_type_id:correctedWaitType };
+      }
+    }
+
+    const own = match.row;
+    const retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY';
+    const callingNow = Boolean(own && String(own.status || '') === '0' && String(own.isCalling || '0') === '1');
+    if (!callingNow && !retryEvidence) continue;
+    const result = await sendCallMessage(env, rec, own || { waitTypeName:'' });
     if (result.sent) sent += 1;
   }
   return { ok:true, checked:pending.length, sent, reconciled:true, version:SM.VERSION };
@@ -346,9 +406,11 @@ async function issueChannelToken(env) {
 async function fetchAirwaitReservations(env, waitTypeId) {
   const out=[]; let start=1;
   for (let page=0; page<20; page+=1) {
+    const params={storeId:SM.STORE_ID,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'};
+    if (normalizeWaitType(waitTypeId)) params.waitTypeId=normalizeWaitType(waitTypeId);
     const response=await fetchWithTimeout(SM.AIR_RESERVATIONS,{
       method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',corWclpKeyCd:env.AIRWAIT_API_KEY},
-      body:new URLSearchParams({storeId:SM.STORE_ID,waitTypeId,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'}),
+      body:new URLSearchParams(params),
     }, SM.EXTERNAL_TIMEOUT_MS);
     const text=await response.text(); let data;
     try { data=JSON.parse(text); } catch { throw apiError('AIRWAIT_RESERVATIONS_INVALID_JSON',502,response.status>=500); }
@@ -385,6 +447,34 @@ async function ensureServiceSchema(env) {
   return await schemaReady;
 }
 
+async function adoptReusableNotificationClaim(env, tokenHash, usage, newRequestId, businessDate, waitTypeId) {
+  if (String(usage?.status || '') !== 'TOKEN_READY') return null;
+  const oldRequestId = normalizeRequestId(usage?.request_id);
+  if (!oldRequestId || oldRequestId === newRequestId) return null;
+  const oldClaim = await getTokenClaim(env, oldRequestId);
+  if (!oldClaim || String(oldClaim.status || '') !== 'TOKEN_READY' || !String(oldClaim.notification_token || '')) return null;
+  if (Number(oldClaim.expires_at || 0) <= Date.now() + 30_000 || Number(oldClaim.remaining_count || 0) <= 0) return null;
+
+  const now = Date.now();
+  const moved = await env.DB.prepare(`UPDATE v2_service_token_claims SET
+    request_id=?,business_date=?,wait_type_id=?,updated_at=?
+    WHERE request_id=? AND status='TOKEN_READY' AND notification_token<>''`)
+    .bind(newRequestId, businessDate, waitTypeId, now, oldRequestId).run();
+  if (Number(moved?.meta?.changes || 0) !== 1) return null;
+
+  const usageMoved = await env.DB.prepare(`UPDATE v2_service_liff_token_usage SET
+    request_id=?,status='TOKEN_READY',updated_at=?
+    WHERE token_hash=? AND request_id=? AND status='TOKEN_READY'`)
+    .bind(newRequestId, now, tokenHash, oldRequestId).run();
+  if (Number(usageMoved?.meta?.changes || 0) !== 1) {
+    await env.DB.prepare(`UPDATE v2_service_token_claims SET request_id=?,updated_at=?
+      WHERE request_id=? AND status='TOKEN_READY'`)
+      .bind(oldRequestId, Date.now(), newRequestId).run();
+    return null;
+  }
+  return await getTokenClaim(env, newRequestId);
+}
+
 async function getTokenClaim(env, requestId){return await env.DB.prepare('SELECT * FROM v2_service_token_claims WHERE request_id=? LIMIT 1').bind(requestId).first();}
 async function setClaimError(env,requestId,status,e){await env.DB.prepare('UPDATE v2_service_token_claims SET status=?,last_error=?,last_http_status=?,updated_at=? WHERE request_id=?').bind(status,safeError(e),Number(e?.status||0),Date.now(),requestId).run();}
 async function setRowError(env,rec,status,message,httpStatus=0,nextRetryAt=0){await env.DB.prepare('UPDATE v2_service_messages SET status=?,last_error=?,last_http_status=?,next_retry_at=?,updated_at=? WHERE business_date=? AND reserve_id=?').bind(status,String(message||'').slice(0,500),Number(httpStatus||0),Number(nextRetryAt||0),Date.now(),rec.business_date,rec.reserve_id).run();}
@@ -415,6 +505,7 @@ function jstDate(epoch=Date.now()){const p=Object.fromEntries(new Intl.DateTimeF
 function ticketParts(v){const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');const m=k.match(/^([FT]?)(\d+)$/);return m?{prefix:m[1],digits:m[2].replace(/^0+(?=\d)/,'')}:null;}
 function ticketIdentity(v){const p=ticketParts(v);return p?p.prefix+p.digits:'';}
 function sameTicket(a,b){const x=ticketParts(a),y=ticketParts(b);if(!x||!y||!x.digits||!y.digits||x.digits!==y.digits)return false;if(x.prefix&&y.prefix&&x.prefix!==y.prefix)return false;return true;}
+function selectTicketMatch(rows,receiptNo){const list=Array.isArray(rows)?rows:[];const target=ticketIdentity(receiptNo);const exact=target?list.filter(r=>ticketIdentity(r?.number)===target):[];if(exact.length===1)return{row:exact[0],ambiguous:false,count:1,mode:'exact'};if(exact.length>1)return{row:null,ambiguous:true,count:exact.length,mode:'exact'};const loose=list.filter(r=>sameTicket(r?.number,receiptNo));if(loose.length===1)return{row:loose[0],ambiguous:false,count:1,mode:'compatible'};return{row:null,ambiguous:loose.length>1,count:loose.length,mode:'compatible'};}
 function normalizeWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:'';}
 function normalizeReceipt(v){return ticketIdentity(v);}
 function normalizeReserveId(v){const s=String(v??'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):'';}

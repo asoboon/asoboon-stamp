@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.4.dev-hardening',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.5.dev-correctness',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -33,6 +33,15 @@ replaceOnce(
   "    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at INTEGER NOT NULL\n    )`),",
   "    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_reservation_sessions (\n      token_hash TEXT PRIMARY KEY,\n      user_hash TEXT NOT NULL,\n      business_date TEXT NOT NULL,\n      reserve_id TEXT NOT NULL,\n      receipt_no TEXT NOT NULL,\n      wait_type_id TEXT NOT NULL,\n      created_at INTEGER NOT NULL,\n      expires_at INTEGER NOT NULL\n    )`),\n    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_reservation_sessions_user\n      ON v2_reservation_sessions(user_hash,business_date,expires_at)`),\n    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_reservation_sessions_expires\n      ON v2_reservation_sessions(expires_at)`),\n    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at INTEGER NOT NULL\n    )`),"
 );
+replaceOnce(
+  "async function ensureSchema(env) {\n  await env.DB.batch([",
+  "let gatewaySchemaReady = null;\nasync function ensureSchema(env) {\n  if (gatewaySchemaReady) return await gatewaySchemaReady;\n  gatewaySchemaReady = env.DB.batch(["
+);
+replaceOnce(
+  "  ]);\n}\n\nasync function health(env) {",
+  "  ]).catch(e => { gatewaySchemaReady = null; throw e; });\n  return await gatewaySchemaReady;\n}\n\nasync function health(env) {"
+);
+
 replaceOnce(
   "function enforceReceptionHours(day, mode) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);",
   "function enforceReceptionHours(day, mode, waitTypeId) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);"
@@ -221,6 +230,17 @@ function sameTicket(number, receiptNo) {
   return true;
 }
 
+function selectTicketMatch(rows, receiptNo) {
+  const list = Array.isArray(rows) ? rows : [];
+  const target = ticketIdentity(receiptNo);
+  const exact = target ? list.filter(r => ticketIdentity(r?.number) === target) : [];
+  if (exact.length === 1) return { row:exact[0], ambiguous:false, count:1, mode:'exact' };
+  if (exact.length > 1) return { row:null, ambiguous:true, count:exact.length, mode:'exact' };
+  const loose = list.filter(r => sameTicket(r?.number, receiptNo));
+  if (loose.length === 1) return { row:loose[0], ambiguous:false, count:1, mode:'compatible' };
+  return { row:null, ambiguous:loose.length > 1, count:loose.length, mode:'compatible' };
+}
+
 function reservationState(row) {
   const status = String(row?.status || '');
   const isCalling = String(row?.isCalling || '') === '1';
@@ -238,7 +258,7 @@ async function recoverReservationSession(env, p) {
   const hash = await userHash(line.userId);
   const requestedDate = normalizeDate(p.businessDate);
   const targetDate = requestedDate || operationalDate();
-  const row = await env.DB.prepare("SELECT business_date,reserve_id,receipt_no,wait_type_id,updated_at FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND state='CONFIRMED' AND receipt_no<>'' AND reserve_id<>'' LIMIT 1")
+  const row = await env.DB.prepare("SELECT business_date,reserve_id,receipt_no,wait_type_id,updated_at FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND state='CONFIRMED' AND receipt_no<>'' AND reserve_id<>'' ORDER BY updated_at DESC LIMIT 1")
     .bind(hash, targetDate).first();
   if (!row) return { ok: true, found: false, version: CFG.VERSION };
 
@@ -338,8 +358,8 @@ async function reservationStatus(env, p) {
   if (!session || Number(session.expires_at || 0) <= now) throw apiError('CALLSTATUS_SESSION_EXPIRED', 401);
 
   const rows = await fetchAirwaitReservations(env, String(session.wait_type_id || ''));
-  const ownIndex = rows.findIndex(r => sameTicket(r.number, session.receipt_no));
-  const own = ownIndex >= 0 ? rows[ownIndex] : null;
+  const ownMatch = selectTicketMatch(rows, session.receipt_no);
+  const own = ownMatch.row;
   if (!own) {
     return {
       ok: true,
@@ -353,7 +373,8 @@ async function reservationStatus(env, p) {
   }
 
   const active = rows.filter(r => ['0', '1', '4'].includes(String(r.status || '')));
-  const activeIndex = active.findIndex(r => sameTicket(r.number, session.receipt_no));
+  const ownIdentity = ticketIdentity(own.number);
+  const activeIndex = active.findIndex(r => ticketIdentity(r.number) === ownIdentity);
   const aheadCount = activeIndex >= 0
     ? active.slice(0, activeIndex).filter(r => ['0', '4'].includes(String(r.status || ''))).length
     : null;
