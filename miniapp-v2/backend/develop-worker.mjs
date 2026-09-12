@@ -15,6 +15,11 @@ import {
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
 const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
+const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
+const BUSINESS_DAY_CACHE_MS = 60 * 1000;
+const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
+const businessDayCache = new Map();
+const businessDayInflight = new Map();
 const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -27,6 +32,12 @@ export default {
     env = withDevelopingServiceDefaults(env);
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
+
+    if (request.method === 'GET' && action === 'businessDay') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try { return json(request, await getBusinessDayProxy(url.searchParams.get('date'))); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
 
     if (request.method === 'GET' && action === 'serviceMessageStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
@@ -129,6 +140,43 @@ export default {
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
   },
 };
+
+async function getBusinessDayProxy(value) {
+  const date = normalizeDate(value);
+  if (!date) throw apiError('BUSINESS_DATE_INVALID', 400);
+  const now = Date.now();
+  const cached = businessDayCache.get(date);
+  if (cached && now - cached.savedAt < BUSINESS_DAY_CACHE_MS) return { ...cached.value, cached:true };
+  if (businessDayInflight.has(date)) return businessDayInflight.get(date);
+
+  const job = (async () => {
+    const u = new URL(BUSINESS_CALENDAR_API);
+    u.searchParams.set('action','current');
+    u.searchParams.set('date',date);
+    u.searchParams.set('_',String(Date.now()));
+    const r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store'});
+    let d=null;try{d=await r.json()}catch{}
+    if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE',503);
+    const returned = normalizeDate(d.operationalDate || d.calendarDate || date);
+    const businessType = String(d.businessType || '').normalize('NFKC').trim();
+    if (returned !== date || !VALID_BUSINESS_TYPES.has(businessType)) throw apiError('BUSINESS_CALENDAR_INVALID',503);
+    const valueOut = {
+      ok:true,
+      source:'develop-worker-cache',
+      operationalDate:date,
+      calendarDate:date,
+      businessType,
+      note:String(d.note||''),
+      weekday:String(d.weekday||''),
+      cached:false,
+    };
+    businessDayCache.set(date,{savedAt:Date.now(),value:valueOut});
+    return valueOut;
+  })();
+  businessDayInflight.set(date,job);
+  try { return await job; }
+  finally { if (businessDayInflight.get(date) === job) businessDayInflight.delete(date); }
+}
 
 async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
@@ -246,6 +294,13 @@ async function readBody(request) {
   if (ct.includes('application/json')) return await request.json();
   return Object.fromEntries(new URLSearchParams(await request.text()));
 }
+function normalizeDate(v){
+  const s=String(v||'').trim().replace(/\//g,'-'),m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!m)return'';
+  const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d,12));
+  if(dt.getUTCFullYear()!==y||dt.getUTCMonth()+1!==mo||dt.getUTCDate()!==d)return'';
+  return`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
 function originAllowed(request) { return String(request.headers.get('Origin') || '') === ALLOWED_ORIGIN; }
 function corsHeaders(request) {
   const h = {
@@ -261,3 +316,4 @@ function corsHeaders(request) {
 }
 function json(request,payload,status=200){return new Response(JSON.stringify(payload),{status,headers:corsHeaders(request)});}
 function safeError(e){return String(e?.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500);}
+function apiError(message,status=500){const e=new Error(String(message||'UNKNOWN_ERROR'));e.status=status;return e;}
