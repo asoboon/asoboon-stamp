@@ -4,9 +4,12 @@ const E=window.ASOBOON_V2_ENV||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
-const POLL_MS=10000;
+const POLL_NEAR_MS=10000;
+const POLL_MID_MS=20000;
+const POLL_FAR_MS=60000;
+const POLL_ERROR_MS=30000;
 const REQUEST_TIMEOUT_MS=10000;
-let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='';
+let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -18,6 +21,7 @@ function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollT
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 function unmount(){stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=10000)return'約10秒ごと';if(ms<=20000)return'約20秒ごと';return'約60秒ごと'}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
 <div id="csTop" class="cs-top"><span class="cs-live-dot"></span><strong>受付情報を確認しています</strong><small>AirWAITの最新状況を自動で確認します。</small></div>
@@ -27,7 +31,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>約10秒ごとに確認します。画面を閉じても、同じLINEアカウントで再度開けば本日の受付を復元できます。</div>
+<div class="cs-note"><strong>自動更新：</strong>待ち人数に応じて約10〜60秒で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div></section>`}
 
 function stateMeta(state,ahead){
@@ -42,12 +46,33 @@ function stateMeta(state,ahead){
   }
 }
 
+function delayForStatus(d){
+  if(!d?.found)return POLL_MID_MS;
+  const state=String(d.state||'');
+  if(['calling','done','canceled'].includes(state))return 0;
+  if(['hold','processing'].includes(state))return POLL_MID_MS;
+  if(state==='waiting'){
+    const ahead=Number(d.aheadCount);
+    if(Number.isFinite(ahead)&&ahead<=5)return POLL_NEAR_MS;
+    if(Number.isFinite(ahead)&&ahead<=20)return POLL_MID_MS;
+    return POLL_FAR_MS;
+  }
+  return POLL_ERROR_MS;
+}
+
+function scheduleNext(gen=generation){
+  if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
+  if(gen!==generation||!$('csState')||document.visibilityState!=='visible'||!nextPollMs)return;
+  pollTimer=setTimeout(()=>{pollTimer=0;void refreshStatus()},nextPollMs);
+}
+
 function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=true;el.textContent='';return}el.hidden=false;el.textContent=String(text)}
 function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textContent=busy?'確認中…':'↻ 今すぐ更新'}}
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 function applyStatus(d){
   if(!d||!$('csState'))return;
+  nextPollMs=delayForStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
   if($('csReceipt'))$('csReceipt').textContent=receipt;
@@ -58,6 +83,7 @@ function applyStatus(d){
     if($('csMessage'))$('csMessage').textContent='受付は保存されています。反映に少し時間がかかる場合があります。';
     if($('csQueue'))$('csQueue').hidden=true;
     if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
+    const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent=`混雑を避けながら${pollLabel(nextPollMs)}に確認します。`}
     return;
   }
   const ahead=Number.isFinite(Number(d.aheadCount))?Number(d.aheadCount):null;
@@ -70,7 +96,7 @@ function applyStatus(d){
   if($('csQueue'))$('csQueue').hidden=!showQueue;
   if(showQueue){if($('csAhead'))$('csAhead').textContent=ahead??'—';if($('csRank'))$('csRank').textContent=d.queueRank??'—';if($('csTotal'))$('csTotal').textContent=` / ${d.activeCount??'—'}組中`}
   if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
-  const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent='最新状況を約10秒ごとに自動更新しています。'}
+  const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent=nextPollMs?`待ち状況に応じて${pollLabel(nextPollMs)}に自動更新します。`:'この受付は自動更新を終了しました。'}
 }
 
 async function gatewayPost(action,body={}){
@@ -130,6 +156,7 @@ async function refreshStatus({manual=false}={}){
     let session=await ensureSession();
     if(gen!==generation||!$('csState'))return;
     if(!session){
+      nextPollMs=POLL_MID_MS;
       const cached=cachedReservation();
       if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
       if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
@@ -147,16 +174,17 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
-    if(gen===generation&&$('csState')){clearTimeout(pollTimer);pollTimer=setTimeout(()=>refreshStatus(),POLL_MS)}
+    if(gen===generation&&$('csState'))scheduleNext(gen);
   }
 }
 
 function mountCallstatus(){
   stopPolling();
   stopReceptionWatch();
+  nextPollMs=POLL_FAR_MS;
   const gen=generation;
   const cached=cachedReservation();
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
@@ -192,9 +220,12 @@ function watchReception({go}={}){
   setTimeout(check,500);
 }
 
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('csState'))void refreshStatus({manual:true})});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){if(pollTimer){clearTimeout(pollTimer);pollTimer=0};return}
+  if($('csState'))void refreshStatus({manual:true});
+});
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.4.0-bounded-gateway',
+  version:'1.5.0-adaptive-poll',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
