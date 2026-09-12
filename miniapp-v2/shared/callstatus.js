@@ -104,7 +104,10 @@ async function recoverSession(){
 
 async function ensureSession(){
   const s=readJSON(SESSION_KEY);
-  if(s?.sessionToken&&Number(s.expiresAt||0)>Date.now()+30000)return s;
+  const cached=cachedReservation();
+  const receiptMatches=!cached?.receiptNo||String(s?.receiptNo||'')===String(cached.receiptNo||'');
+  const dateMatches=!cached?.businessDate||String(s?.businessDate||'')===String(cached.businessDate||'');
+  if(s?.sessionToken&&Number(s.expiresAt||0)>Date.now()+30000&&receiptMatches&&dateMatches)return s;
   removeKey(SESSION_KEY);
   return await recoverSession();
 }
@@ -160,23 +163,29 @@ function watchReception({go}={}){
   const check=()=>{
     const result=box.querySelector?.('.rec-result');
     if(box.hidden||!result||!/受付が完了しました/.test(String(result.textContent||'')))return;
-    const receipt=String(cachedReservation()?.receiptNo||'');
+    const cached=cachedReservation();
+    const domReceipt=String(result.querySelector?.('strong')?.textContent||'').trim();
+    const receipt=domReceipt||String(cached?.receiptNo||'');
     if(!receipt||receptionReceipt===receipt||receptionTimer)return;
+    removeKey(SESSION_KEY);
+    writeJSON(CALL_KEY,{businessDate:String(cached?.businessDate||''),receiptNo:receipt,waitTypeId:String(cached?.waitTypeId||''),cachedAt:Date.now()});
     receptionReceipt=receipt;
     receptionTimer=setTimeout(()=>{
       receptionTimer=0;
       stopReceptionWatch();
       go('callstatus',{replace:true});
-    },850);
+    },350);
   };
   receptionObserver=new MutationObserver(check);
   receptionObserver.observe(box,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   check();
+  setTimeout(check,100);
+  setTimeout(check,500);
 }
 
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('csState'))void refreshStatus({manual:true})});
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.2.0-develop',
+  version:'1.3.0-new-reception-session',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
