@@ -167,13 +167,15 @@ jobs:
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.1.dev4" ||
+                  x.serviceMessageVersion!=="2.2.dev5" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
                   x.serviceMessageReady!==true ||
                   x.serviceMessageMandatoryBeforeCreate!==true ||
-                  x.serviceMessageCronEnabled!==true
+                  x.serviceMessageCronEnabled!==true ||
+                  x.serviceMessageImmediateObservationEnabled!==true ||
+                  x.serviceMessageReusableUnboundToken!==true
                 ) process.exit(1);
               });
             '; then
@@ -209,7 +211,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with local test slot 0042, required LINE notification readiness, and 1-minute call watcher."
+            echo "Official Developing gateway deployed with local test slot 0042, immediate call observation, reusable unbound notification tokens, and 1-minute backup watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
