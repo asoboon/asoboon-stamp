@@ -18,9 +18,12 @@ const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/rese
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const BUSINESS_DAY_CACHE_MS = 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
+const RECONCILE_CACHE_MS = 5 * 1000;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
 const businessDayCache = new Map();
 const businessDayInflight = new Map();
+let reconcileAllCache = { savedAt:0, rows:[] };
+let reconcileAllInflight = null;
 const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -77,11 +80,17 @@ export default {
     }
 
     let createPayload = null;
+    let reservationStatusPayload = null;
     if (request.method === 'POST') {
       try {
-        createPayload = await readBody(request.clone());
-        if (String(createPayload?.action || '') !== 'createReservation') createPayload = null;
-      } catch { createPayload = null; }
+        const postPayload = await readBody(request.clone());
+        const postAction = String(postPayload?.action || '');
+        if (postAction === 'createReservation') createPayload = postPayload;
+        if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
+      } catch {
+        createPayload = null;
+        reservationStatusPayload = null;
+      }
     }
 
     if (createPayload && originAllowed(request)) {
@@ -103,6 +112,9 @@ export default {
     }
 
     let base = await gateway.fetch(request, env, ctx);
+    if (reservationStatusPayload) {
+      return await reconcileReservationStatus(request, env, base, reservationStatusPayload);
+    }
     if (!createPayload) return base;
 
     let body;
@@ -182,6 +194,144 @@ async function getBusinessDayProxy(value) {
   businessDayInflight.set(date,job);
   try { return await job; }
   finally { if (businessDayInflight.get(date) === job) businessDayInflight.delete(date); }
+}
+
+async function reconcileReservationStatus(request, env, base, payload) {
+  let body;
+  try { body = await base.clone().json(); }
+  catch { return base; }
+
+  if (!(base.ok && body?.ok === true && body?.found === false && body?.receiptNo)) return base;
+  if (!env?.AIRWAIT_API_KEY) return base;
+
+  try {
+    const rows = await fetchAllReservationsForReconcile(env);
+    const matches = rows.filter(r => sameTicket(r.number, body.receiptNo));
+    const activeMatches = matches.filter(r => ['0','1','4'].includes(String(r.status || '')));
+    const candidate = activeMatches.length === 1
+      ? activeMatches[0]
+      : (activeMatches.length === 0 && matches.length === 1 ? matches[0] : null);
+
+    if (!candidate) {
+      return new Response(JSON.stringify({
+        ...body,
+        reconcileTried:true,
+        reconcileAmbiguous:activeMatches.length > 1 || matches.length > 1,
+        reconcileCandidateCount:matches.length,
+      }), { status:base.status, headers:base.headers });
+    }
+
+    const candidateWaitTypeId = String(candidate.waitTypeId || '');
+    if (env.DB && candidateWaitTypeId && String(payload?.sessionToken || '').trim().length >= 32) {
+      try {
+        const tokenHash = await sha256Hex(String(payload.sessionToken).trim());
+        await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
+          .bind(candidateWaitTypeId, tokenHash).run();
+      } catch (e) {
+        console.warn('CALLSTATUS_RECONCILE_SESSION_UPDATE_FAILED', safeError(e));
+      }
+    }
+
+    const queueRows = rows.filter(r => String(r.waitTypeId || '') === candidateWaitTypeId);
+    const active = queueRows.filter(r => ['0','1','4'].includes(String(r.status || '')));
+    const activeIndex = active.findIndex(r => sameTicket(r.number, body.receiptNo));
+    const aheadCount = activeIndex >= 0
+      ? active.slice(0, activeIndex).filter(r => ['0','4'].includes(String(r.status || ''))).length
+      : null;
+
+    return new Response(JSON.stringify({
+      ...body,
+      found:true,
+      waitTypeId:candidateWaitTypeId || String(body.waitTypeId || ''),
+      waitTypeName:String(candidate.waitTypeName || ''),
+      status:String(candidate.status || ''),
+      isCalling:String(candidate.isCalling || '0') === '1',
+      state:reservationState(candidate),
+      aheadCount,
+      queueRank:activeIndex >= 0 ? activeIndex + 1 : null,
+      activeCount:active.length,
+      checkedAt:Date.now(),
+      reconcileTried:true,
+      reconciledBy:'all-wait-types-fallback',
+    }), { status:base.status, headers:base.headers });
+  } catch (e) {
+    console.warn('CALLSTATUS_RECONCILE_FAILED', safeError(e));
+    return base;
+  }
+}
+
+async function fetchAllReservationsForReconcile(env) {
+  const now = Date.now();
+  if (reconcileAllCache.rows.length && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
+    return reconcileAllCache.rows;
+  }
+  if (reconcileAllInflight) return await reconcileAllInflight;
+
+  const job = (async () => {
+    const rows = [];
+    let start = 1;
+    for (let page = 0; page < 20; page += 1) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+      let r;
+      try {
+        r = await fetch(AIR_RESERVATIONS, {
+          method:'POST',
+          headers:{
+            Accept:'application/json',
+            'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+            corWclpKeyCd:env.AIRWAIT_API_KEY,
+          },
+          body:new URLSearchParams({
+            storeId:'KR01205179',
+            sortStatus:'0',
+            isDesc:'0',
+            start:String(start),
+            limit:'100',
+          }),
+          cache:'no-store',
+          signal:ctrl.signal,
+        });
+      } catch (e) {
+        if (e?.name === 'AbortError') throw apiError('AIRWAIT_RECONCILE_TIMEOUT', 504);
+        throw e;
+      } finally { clearTimeout(timer); }
+
+      let d=null;try{d=await r.json()}catch{}
+      if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') {
+        throw apiError('AIRWAIT_RECONCILE_FAILED', 502);
+      }
+      const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
+      rows.push(...part.map(x=>({
+        number:String(x?.number || ''),
+        waitTypeId:String(x?.waitTypeId || ''),
+        waitTypeName:String(x?.waitTypeName || ''),
+        status:String(x?.status || ''),
+        isCalling:String(x?.isCalling || '0'),
+      })));
+      const total = Number(d?.innerDto?.count || part.length || 0);
+      if (!part.length || rows.length >= total) break;
+      start += part.length;
+    }
+    reconcileAllCache = { savedAt:Date.now(), rows };
+    return rows;
+  })();
+
+  reconcileAllInflight = job;
+  try { return await job; }
+  finally { if (reconcileAllInflight === job) reconcileAllInflight = null; }
+}
+
+function reservationState(row) {
+  const status = String(row?.status || '');
+  const isCalling = String(row?.isCalling || '') === '1';
+  if (status === '3') return 'canceled';
+  if (status === '2') return 'done';
+  if (status === '4') return 'processing';
+  if (status === '1') return 'hold';
+  if (status === '0' && isCalling) return 'calling';
+  if (status === '0') return 'waiting';
+  return 'unknown';
 }
 
 async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
@@ -285,6 +435,12 @@ function sameTicket(number, receiptNo) {
   if(!a||!b||!a.digits||!b.digits||a.digits!==b.digits)return false;
   if(a.prefix&&b.prefix&&a.prefix!==b.prefix)return false;
   return true;
+}
+
+async function sha256Hex(value) {
+  const b = new TextEncoder().encode(String(value || ''));
+  const h = await crypto.subtle.digest('SHA-256', b);
+  return Array.from(new Uint8Array(h), x=>x.toString(16).padStart(2,'0')).join('');
 }
 
 function rebuildCreateRequest(original, payload) {
