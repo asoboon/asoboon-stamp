@@ -1,0 +1,71 @@
+name: newhome-flow-verify
+on:
+  push:
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/newhome-flow-verify.yml'
+  pull_request:
+    paths:
+      - 'miniapp-v2/**'
+      - '.github/workflows/newhome-flow-verify.yml'
+
+jobs:
+  verify-newhome-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax
+        run: |
+          set -euo pipefail
+          node --check miniapp-v2/shared/reception.js
+          node --check miniapp-v2/shared/callstatus.js
+          node --check miniapp-v2/backend/develop-worker.mjs
+          node --check miniapp-v2/backend/develop-service-message.js
+          node --check miniapp-v2/backend/prepare-develop-test-runtime.mjs
+
+      - name: Reception must terminate or fail closed
+        run: |
+          set -euo pipefail
+          grep -F "const POST_TIMEOUT_MS=12000;" miniapp-v2/shared/reception.js
+          grep -F "const GET_TIMEOUT_MS=5000;" miniapp-v2/shared/reception.js
+          grep -F "const POLL_DEADLINE_MS=22000;" miniapp-v2/shared/reception.js
+          grep -F "const SUBMIT_WATCHDOG_MS=60000;" miniapp-v2/shared/reception.js
+          grep -F "const ctrl=new AbortController();" miniapp-v2/shared/reception.js
+          grep -F "lockAmbiguous()" miniapp-v2/shared/reception.js
+          grep -F "CTX.go('callstatus',{replace:true})" miniapp-v2/shared/reception.js
+          ! grep -Fq "SUBMIT_WATCHDOG_MS=38000" miniapp-v2/shared/reception.js
+
+      - name: Call status must not hang
+        run: |
+          set -euo pipefail
+          grep -F "const REQUEST_TIMEOUT_MS=10000;" miniapp-v2/shared/callstatus.js
+          grep -F "signal:ctrl.signal" miniapp-v2/shared/callstatus.js
+          grep -F "呼出状況の確認がタイムアウトしました。" miniapp-v2/shared/callstatus.js
+
+      - name: Developing 0042 recycle is isolated
+        run: |
+          set -euo pipefail
+          grep -F "if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) await incrementAttempt(env, hash, serverDate);" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "status:'3'" miniapp-v2/backend/develop-worker.mjs
+          grep -F "isEnabledStatus:'1'" miniapp-v2/backend/develop-worker.mjs
+          ! grep -Fq "UPDATE v2_user_attempts" miniapp-v2/backend/develop-worker.mjs
+
+      - name: Receipt normalization is consistent
+        run: |
+          set -euo pipefail
+          grep -F "replace(/^0+(?=\\d)/,'')" miniapp-v2/backend/develop-worker.mjs
+          grep -F "replace(/^0+(?=\\d)/, '');" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "replace(/^0+(?=\\d)/,'');" miniapp-v2/backend/develop-service-message.js
+
+      - name: Developing cache version is consistent
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
+          if(versions.length<8) throw new Error('missing cache versions');
+          if(new Set(versions).size!==1) throw new Error('cache versions differ');
+          if(versions[0]!=='20260912-05') throw new Error(`unexpected cache version ${versions[0]}`);
+          NODE
