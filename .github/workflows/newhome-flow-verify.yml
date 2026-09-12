@@ -67,6 +67,15 @@ jobs:
           grep -F "ahead<=5" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=20" miniapp-v2/shared/callstatus.js
 
+      - name: Call status must reconcile immediately after reception
+        run: |
+          set -euo pipefail
+          grep -F "const POLL_RECONCILE_MS=6000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_RECONCILE_MAX=3;" miniapp-v2/shared/callstatus.js
+          grep -F "notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS" miniapp-v2/shared/callstatus.js
+          grep -F "新しい受付を作り直さないでください。" miniapp-v2/shared/callstatus.js
+          grep -F "version:'1.6.1-post-create-reconcile'" miniapp-v2/shared/callstatus.js
+
       - name: Business calendar must collapse stampedes
         run: |
           set -euo pipefail
@@ -157,5 +166,5 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260912-07') throw new Error(`unexpected cache version ${versions[0]}`);
+          if(versions[0]!=='20260912-08') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
