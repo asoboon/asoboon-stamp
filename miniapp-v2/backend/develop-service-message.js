@@ -412,8 +412,9 @@ function normalizeTemplateName(v){let s=String(v||'').trim();if(!s)return'';if(!
 function publicClaim(row,reused){return{ok:true,ready:true,reused:Boolean(reused),status:'TOKEN_READY',remainingCount:Number(row.remaining_count||0),version:SM.VERSION};}
 function publicRow(row){return{ok:true,found:true,version:SM.VERSION,businessDate:String(row.business_date||''),receiptNo:String(row.receipt_no||''),reserveId:String(row.reserve_id||''),waitTypeId:String(row.wait_type_id||''),status:String(row.status||''),error:String(row.last_error||''),lastHttpStatus:Number(row.last_http_status||0),remainingCount:Number(row.remaining_count||0),expiresAt:Number(row.expires_at||0),notifiedAt:Number(row.notified_at||0),nextRetryAt:Number(row.next_retry_at||0)};}
 function jstDate(epoch=Date.now()){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:SM.TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));return`${p.year}-${p.month}-${p.day}`;}
-function ticketIdentity(v){const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');const m=k.match(/^([FT]?)(\d+)$/);return m?m[1]+m[2].replace(/^0+(?=\d)/,''):'';}
-function sameTicket(a,b){const x=ticketIdentity(a),y=ticketIdentity(b);return Boolean(x&&y&&x===y);}
+function ticketParts(v){const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');const m=k.match(/^([FT]?)(\d+)$/);return m?{prefix:m[1],digits:m[2].replace(/^0+(?=\d)/,'')}:null;}
+function ticketIdentity(v){const p=ticketParts(v);return p?p.prefix+p.digits:'';}
+function sameTicket(a,b){const x=ticketParts(a),y=ticketParts(b);if(!x||!y||!x.digits||!y.digits||x.digits!==y.digits)return false;if(x.prefix&&y.prefix&&x.prefix!==y.prefix)return false;return true;}
 function normalizeWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:'';}
 function normalizeReceipt(v){return ticketIdentity(v);}
 function normalizeReserveId(v){const s=String(v??'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):'';}
