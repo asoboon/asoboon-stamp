@@ -271,14 +271,20 @@ async function fetchDevelopTestReservations(env, filters={}) {
   return rows;
 }
 
-function ticketIdentity(value) {
+function ticketParts(value) {
   const k=String(value||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
   const m=k.match(/^([FT]?)(\d+)$/);
-  return m ? m[1]+m[2].replace(/^0+(?=\d)/,'') : '';
+  return m ? {prefix:m[1],digits:m[2].replace(/^0+(?=\d)/,'')} : null;
+}
+function ticketIdentity(value) {
+  const p=ticketParts(value);
+  return p ? p.prefix+p.digits : '';
 }
 function sameTicket(number, receiptNo) {
-  const a=ticketIdentity(number),b=ticketIdentity(receiptNo);
-  return Boolean(a&&b&&a===b);
+  const a=ticketParts(number),b=ticketParts(receiptNo);
+  if(!a||!b||!a.digits||!b.digits||a.digits!==b.digits)return false;
+  if(a.prefix&&b.prefix&&a.prefix!==b.prefix)return false;
+  return true;
 }
 
 function rebuildCreateRequest(original, payload) {
