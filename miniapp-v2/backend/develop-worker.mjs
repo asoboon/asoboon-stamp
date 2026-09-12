@@ -40,8 +40,6 @@ export default {
       try { body = await base.clone().json(); }
       catch { return base; }
 
-      // Keep the underlying AirWAIT create capability separate from the effective
-      // browser-facing gate. Developing may create only when LINE call delivery is ready.
       const baseCreateEnabled = body?.createEnabled === true;
       try { Object.assign(body, await serviceHealth(env)); }
       catch (e) {
@@ -74,14 +72,10 @@ export default {
       } catch { createPayload = null; }
     }
 
-    // Mandatory notification gate: never create an AirWAIT reception that cannot
-    // later produce the required LINE call notification.
     if (createPayload && originAllowed(request)) {
       try {
         await prepareReservationNotification(env, createPayload);
       } catch (e) {
-        // AirWAIT has not been called at this point. Even if LINE token issuance
-        // was ambiguous, the reception itself is definitely NOT ambiguous.
         return json(request, {
           ok:false,
           stored:false,
@@ -103,12 +97,6 @@ export default {
     try { body = await base.clone().json(); }
     catch { return base; }
 
-    // Developing-only recovery for repeated E2E tests.
-    // The base gateway intentionally keeps one confirmed claim per LINE user/day.
-    // If that one claim is the dedicated 0042 test slot and AirWAIT explicitly says
-    // it is canceled (status=3), release only that exact claim and retry the SAME
-    // requestId. This avoids returning an old canceled ticket as alreadyExists while
-    // preserving production-slot behavior and notification-token idempotency.
     if (
       base.ok &&
       body?.ok === true &&
@@ -130,8 +118,6 @@ export default {
       body.serviceMessage = await finalizeReservationNotification(env, createPayload, body);
       body.notificationReady = body.serviceMessage?.ready === true;
     } catch (e) {
-      // The token was already prepared before AirWAIT create. A failed bind is
-      // reconciled by the scheduled worker from the confirmed gateway claim.
       body.serviceMessage = { ok:false, ready:false, status:'FINALIZE_PENDING', error:safeError(e) };
       body.notificationReady = false;
     }
@@ -147,9 +133,15 @@ export default {
 async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
   try {
-    const rows = await fetchDevelopTestReservations(env);
-    const own = rows.find(r => sameTicket(r.number, existing.receiptNo));
-    if (!own || String(own.status || '') !== '3') return false;
+    // Fail closed: if the same ticket is still active, never release the D1 claim.
+    const activeRows = await fetchDevelopTestReservations(env, { isEnabledStatus:'1' });
+    if (activeRows.some(r => sameTicket(r.number, existing.receiptNo))) return false;
+
+    // AirWAIT spec: status=3 is explicit cancellation. Query it directly instead
+    // of relying on an unfiltered list so a canceled E2E ticket can be recognized.
+    const canceledRows = await fetchDevelopTestReservations(env, { status:'3' });
+    const own = canceledRows.find(r => sameTicket(r.number, existing.receiptNo));
+    if (!own) return false;
 
     const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
       FROM v2_user_day_claims
@@ -175,15 +167,11 @@ async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
       ).run();
     if (Number(del?.meta?.changes || 0) !== 1) return false;
 
-    // The first base pass only rediscovered the canceled ticket; neutralize that
-    // no-op attempt before the real create retry.
     await env.DB.prepare(`UPDATE v2_user_attempts
       SET attempt_count=CASE WHEN attempt_count>0 THEN attempt_count-1 ELSE 0 END,updated_at=?
       WHERE user_hash=? AND business_date=?`)
       .bind(Date.now(), String(claim.user_hash), String(claim.business_date)).run();
 
-    // The same requestId was just finalized with alreadyExists. Remove only that
-    // current request result so the base gateway can own and execute it once more.
     await env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?')
       .bind(String(createPayload.requestId || '')).run();
 
@@ -194,10 +182,19 @@ async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
   }
 }
 
-async function fetchDevelopTestReservations(env) {
+async function fetchDevelopTestReservations(env, filters={}) {
   const rows = [];
   let start = 1;
   for (let page = 0; page < 20; page += 1) {
+    const params = {
+      storeId:'KR01205179',
+      waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID,
+      sortStatus:'0',
+      isDesc:'1',
+      start:String(start),
+      limit:'100',
+      ...filters,
+    };
     const r = await fetch(AIR_RESERVATIONS, {
       method:'POST',
       headers:{
@@ -205,14 +202,7 @@ async function fetchDevelopTestReservations(env) {
         'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
         corWclpKeyCd:env.AIRWAIT_API_KEY,
       },
-      body:new URLSearchParams({
-        storeId:'KR01205179',
-        waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID,
-        sortStatus:'0',
-        isDesc:'0',
-        start:String(start),
-        limit:'100',
-      }),
+      body:new URLSearchParams(params),
       cache:'no-store',
     });
     let d=null;try{d=await r.json()}catch{}
@@ -228,11 +218,16 @@ async function fetchDevelopTestReservations(env) {
 
 function sameTicket(number, receiptNo) {
   const key=v=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
+  const digits=v=>{
+    const k=key(v);
+    if(!/^[FT]?\d+$/.test(k))return'';
+    return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');
+  };
   const a=key(number),b=key(receiptNo);
   if(!a||!b)return false;
   if(a===b)return true;
-  const ad=a.replace(/\D/g,''),bd=b.replace(/\D/g,'');
-  return /^[FT]/.test(a)&&ad&&bd&&ad===bd;
+  const ad=digits(a),bd=digits(b);
+  return Boolean(ad&&bd&&ad===bd);
 }
 
 function rebuildCreateRequest(original, payload) {
