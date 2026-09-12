@@ -8,7 +8,7 @@ const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const POST_TIMEOUT_MS=12000;
 const GET_TIMEOUT_MS=5000;
 const POLL_DEADLINE_MS=22000;
-const SUBMIT_WATCHDOG_MS=38000;
+const SUBMIT_WATCHDOG_MS=60000;
 const S={
   mode:'web',day:null,waitTypes:null,slots:[],slot:null,
   adult:1,child:0,infant:0,agree:false,location:null,
@@ -16,7 +16,7 @@ const S={
 };
 let CTX=null;
 const $=id=>document.getElementById(id);
-const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const total=()=>S.adult+S.child+S.infant;
 const kids=()=>S.child+S.infant;
@@ -205,5 +205,5 @@ async function submit(){
 
 function setMode(mode){S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
 function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
-window.ASOBOON_V2_RECEPTION=Object.freeze({version:'1.4.0-bounded-submit',render,mount});
+window.ASOBOON_V2_RECEPTION=Object.freeze({version:'1.4.1-bounded-submit',render,mount});
 })();
