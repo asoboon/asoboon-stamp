@@ -202,16 +202,23 @@ function randomOpaqueToken() {
   return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function ticketIdentity(value) {
+function ticketParts(value) {
   const k = String(value || '').normalize('NFKC').toUpperCase().replace(/[\\s\\-ー]/g, '');
   const m = k.match(/^([FT]?)(\\d+)$/);
-  if (!m) return '';
-  return m[1] + m[2].replace(/^0+(?=\\d)/, '');
+  if (!m) return null;
+  return { prefix:m[1], digits:m[2].replace(/^0+(?=\\d)/, '') };
+}
+
+function ticketIdentity(value) {
+  const p = ticketParts(value);
+  return p ? p.prefix + p.digits : '';
 }
 
 function sameTicket(number, receiptNo) {
-  const a = ticketIdentity(number), b = ticketIdentity(receiptNo);
-  return Boolean(a && b && a === b);
+  const a = ticketParts(number), b = ticketParts(receiptNo);
+  if (!a || !b || !a.digits || !b.digits || a.digits !== b.digits) return false;
+  if (a.prefix && b.prefix && a.prefix !== b.prefix) return false;
+  return true;
 }
 
 function reservationState(row) {
