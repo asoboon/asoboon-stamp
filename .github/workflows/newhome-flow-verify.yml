@@ -60,10 +60,12 @@ jobs:
           set -euo pipefail
           grep -F "const POLL_FAR_MS=180000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_MID_MS=60000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_FRONT_MS=5000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_NEAR_MS=15000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_JITTER=0.10;" miniapp-v2/shared/callstatus.js
           grep -F "document.visibilityState!=='visible'" miniapp-v2/shared/callstatus.js
           grep -F "jitter(nextPollMs)" miniapp-v2/shared/callstatus.js
+          grep -F "ahead<=1" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=5" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=20" miniapp-v2/shared/callstatus.js
 
@@ -74,7 +76,7 @@ jobs:
           grep -F "const POLL_RECONCILE_MAX=3;" miniapp-v2/shared/callstatus.js
           grep -F "notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS" miniapp-v2/shared/callstatus.js
           grep -F "新しい受付を作り直さないでください。" miniapp-v2/shared/callstatus.js
-          grep -F "version:'1.6.1-post-create-reconcile'" miniapp-v2/shared/callstatus.js
+          grep -F "version:'1.6.2-frontline-observe'" miniapp-v2/shared/callstatus.js
 
       - name: Business calendar must collapse stampedes
         run: |
@@ -133,6 +135,22 @@ jobs:
           grep -F 'function ticketParts' miniapp-v2/backend/develop-service-message.js
           grep -F 'function ticketParts' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
+      - name: Receipt selection must prefer exact identity and fail ambiguous compatible matches
+        run: |
+          set -euo pipefail
+          grep -F 'function selectTicketMatch' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'function selectTicketMatch' miniapp-v2/backend/develop-service-message.js
+          grep -F 'function selectTicketMatch' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          node <<'NODE'
+          const parts=v=>{const k=String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');const m=k.match(/^([FT]?)(\d+)$/);return m?{prefix:m[1],digits:m[2].replace(/^0+(?=\d)/,'')}:null};
+          const id=v=>{const p=parts(v);return p?p.prefix+p.digits:''};
+          const same=(a,b)=>{const x=parts(a),y=parts(b);if(!x||!y||x.digits!==y.digits)return false;if(x.prefix&&y.prefix&&x.prefix!==y.prefix)return false;return true};
+          const pick=(rows,target)=>{const exact=rows.filter(r=>id(r.number)===id(target));if(exact.length===1)return exact[0];if(exact.length>1)return null;const loose=rows.filter(r=>same(r.number,target));return loose.length===1?loose[0]:null};
+          if(pick([{number:'F123'},{number:'T123'}],'123')!==null) throw new Error('prefixless ambiguous receipt must not auto-select');
+          if(pick([{number:'F123'},{number:'T123'}],'F123')?.number!=='F123') throw new Error('exact prefix must win');
+          if(pick([{number:'F123'}],'123')?.number!=='F123') throw new Error('single compatible prefix may reconcile');
+          NODE
+
       - name: LINE token issuance must be one per LIFF access token
         run: |
           set -euo pipefail
@@ -141,6 +159,26 @@ jobs:
           grep -F 'const tokenHash = await sha256Hex(liffAccessToken);' miniapp-v2/backend/develop-service-message.js
           grep -F "status='BOUND'" miniapp-v2/backend/develop-service-message.js
           grep -F 'channelTokenCache' miniapp-v2/backend/develop-service-message.js
+
+      - name: LINE notification must survive corrected retries and call-state transitions
+        run: |
+          set -euo pipefail
+          grep -F "VERSION: '2.2.dev5'" miniapp-v2/backend/develop-service-message.js
+          grep -F 'adoptReusableNotificationClaim' miniapp-v2/backend/develop-service-message.js
+          grep -F 'serviceMessageReusableUnboundToken: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-service-message.js
+          grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'queueObservedCallNotification' miniapp-v2/backend/develop-worker.mjs
+          grep -F "retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY'" miniapp-v2/backend/develop-service-message.js
+          grep -F 'serviceMessageImmediateObservationEnabled: true' miniapp-v2/backend/develop-service-message.js
+
+      - name: Gateway schema initialization must be memoized per isolate
+        run: |
+          set -euo pipefail
+          grep -F 'let gatewaySchemaReady = null;' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          node miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'let gatewaySchemaReady = null;' develop-gateway.runtime.mjs
+          grep -F 'if (gatewaySchemaReady) return await gatewaySchemaReady;' develop-gateway.runtime.mjs
 
       - name: Service notification scan must not starve after 200 rows
         run: |
@@ -155,6 +193,7 @@ jobs:
           grep -F 'CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'const targetDate = requestedDate || operationalDate();' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'idx_v2_reservation_sessions_expires' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "ORDER BY updated_at DESC LIMIT 1" miniapp-v2/backend/prepare-develop-test-runtime.mjs
           ! grep -Fq 'Date.now() - CFG.CALLSTATUS_SESSION_TTL_MS' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
       - name: Developing cache version is consistent
@@ -166,5 +205,5 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260912-08') throw new Error(`unexpected cache version ${versions[0]}`);
+          if(versions[0]!=='20260912-09') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
