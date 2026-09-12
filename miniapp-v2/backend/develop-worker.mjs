@@ -133,12 +133,9 @@ export default {
 async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
   try {
-    // Fail closed: if the same ticket is still active, never release the D1 claim.
     const activeRows = await fetchDevelopTestReservations(env, { isEnabledStatus:'1' });
     if (activeRows.some(r => sameTicket(r.number, existing.receiptNo))) return false;
 
-    // AirWAIT spec: status=3 is explicit cancellation. Query it directly instead
-    // of relying on an unfiltered list so a canceled E2E ticket can be recognized.
     const canceledRows = await fetchDevelopTestReservations(env, { status:'3' });
     const own = canceledRows.find(r => sameTicket(r.number, existing.receiptNo));
     if (!own) return false;
@@ -236,12 +233,12 @@ function rebuildCreateRequest(original, payload) {
 }
 
 function withDevelopingServiceDefaults(env) {
+  // Developing owns this contract. Stale non-secret dashboard/workflow vars must
+  // never override the verified template name, placeholders, or in-app routes.
   return {
     ...env,
-    SERVICE_MESSAGE_TEMPLATE_NAME:
-      String(env?.SERVICE_MESSAGE_TEMPLATE_NAME || '').trim() || DEVELOPING_SERVICE_TEMPLATE_NAME,
-    SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON:
-      String(env?.SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON || '').trim() || DEVELOPING_SERVICE_TEMPLATE_PARAMS,
+    SERVICE_MESSAGE_TEMPLATE_NAME: DEVELOPING_SERVICE_TEMPLATE_NAME,
+    SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON: DEVELOPING_SERVICE_TEMPLATE_PARAMS,
   };
 }
 async function readBody(request) {
