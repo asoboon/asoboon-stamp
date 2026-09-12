@@ -5,6 +5,7 @@ const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
 const POLL_MS=10000;
+const REQUEST_TIMEOUT_MS=10000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
@@ -75,7 +76,15 @@ function applyStatus(d){
 async function gatewayPost(action,body={}){
   if(!backendReady())throw Error('呼出状況Gatewayが設定されていません。');
   const payload={action,...body};
-  const r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))});
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),REQUEST_TIMEOUT_MS);
+  let r;
+  try{
+    r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))});
+  }catch(e){
+    if(e?.name==='AbortError')throw Error('呼出状況の確認がタイムアウトしました。');
+    throw e;
+  }finally{clearTimeout(timer)}
   let d=null;try{d=await r.json()}catch{}
   if(!r.ok)throw Error(String(d?.error||`Gateway HTTP ${r.status}`));
   return d||{};
@@ -185,7 +194,7 @@ function watchReception({go}={}){
 
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('csState'))void refreshStatus({manual:true})});
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.3.0-new-reception-session',
+  version:'1.4.0-bounded-gateway',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
