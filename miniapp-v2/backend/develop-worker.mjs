@@ -167,11 +167,6 @@ async function releaseCanceledDevelopTestClaim(env, createPayload, existing) {
       ).run();
     if (Number(del?.meta?.changes || 0) !== 1) return false;
 
-    await env.DB.prepare(`UPDATE v2_user_attempts
-      SET attempt_count=CASE WHEN attempt_count>0 THEN attempt_count-1 ELSE 0 END,updated_at=?
-      WHERE user_hash=? AND business_date=?`)
-      .bind(Date.now(), String(claim.user_hash), String(claim.business_date)).run();
-
     await env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?')
       .bind(String(createPayload.requestId || '')).run();
 
