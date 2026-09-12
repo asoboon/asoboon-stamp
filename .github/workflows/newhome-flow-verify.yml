@@ -54,9 +54,25 @@ jobs:
       - name: Receipt normalization is consistent
         run: |
           set -euo pipefail
-          grep -F "replace(/^0+(?=\\d)/,'')" miniapp-v2/backend/develop-worker.mjs
-          grep -F "replace(/^0+(?=\\d)/, '');" miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "replace(/^0+(?=\\d)/,'');" miniapp-v2/backend/develop-service-message.js
+          node <<'NODE'
+          const fs=require('fs');
+          const files=[
+            'miniapp-v2/backend/develop-worker.mjs',
+            'miniapp-v2/backend/prepare-develop-test-runtime.mjs',
+            'miniapp-v2/backend/develop-service-message.js',
+          ];
+          for(const file of files){
+            const s=fs.readFileSync(file,'utf8');
+            if(!s.includes("replace(/^0+(?=")) throw new Error(`${file}: leading-zero normalization missing`);
+          }
+          const key=v=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
+          const digits=v=>{const k=key(v);if(!/^[FT]?\d+$/.test(k))return'';return k.replace(/^[FT]/,'').replace(/^0+(?=\d)/,'');};
+          const same=(a,b)=>{const x=key(a),y=key(b);if(!x||!y)return false;if(x===y)return true;const xd=digits(x),yd=digits(y);return Boolean(xd&&yd&&xd===yd);};
+          const equivalent=[['F000123','123'],['T000123','123'],['000123','123'],['Ｆ０００１２３','123']];
+          for(const [a,b] of equivalent) if(!same(a,b)) throw new Error(`must match ${a} ${b}`);
+          const different=[['F000123','124'],['F123','T124'],['ABC123','123'],['','123']];
+          for(const [a,b] of different) if(same(a,b)) throw new Error(`must not match ${a} ${b}`);
+          NODE
 
       - name: Developing cache version is consistent
         run: |
