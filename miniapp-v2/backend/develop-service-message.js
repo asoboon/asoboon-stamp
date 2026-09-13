@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.2.dev5',
+  VERSION: '2.3.dev6',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -39,6 +39,7 @@ export async function serviceHealth(env) {
     serviceMessageMandatoryBeforeCreate: true,
     serviceMessageCronEnabled: true,
     serviceMessageImmediateObservationEnabled: true,
+    serviceMessageTerminalRescueEnabled: true,
     serviceMessageReusableUnboundToken: true,
   };
 }
@@ -186,9 +187,8 @@ export async function sendObservedCallNotification(env, observation) {
   const businessDate = normalizeDate(observation?.businessDate);
   const receiptNo = normalizeReceipt(observation?.receiptNo);
   const observedWaitType = normalizeWaitType(observation?.waitTypeId);
-  const calling = observation?.isCalling === true || String(observation?.isCalling || '') === '1';
-  if (!businessDate || !receiptNo || String(observation?.status || '') !== '0' || !calling) {
-    return { ok:true, sent:false, reason:'NOT_CALLING', version:SM.VERSION };
+  if (!businessDate || !receiptNo || !isNotificationEligibleAirwait(observation)) {
+    return { ok:true, sent:false, reason:'NOT_NOTIFICATION_ELIGIBLE', version:SM.VERSION };
   }
 
   let rec = await env.DB.prepare(`SELECT * FROM v2_service_messages
@@ -215,8 +215,8 @@ export async function sendObservedCallNotification(env, observation) {
     number:receiptNo,
     waitTypeId:observedWaitType || String(rec.wait_type_id || ''),
     waitTypeName:String(observation?.waitTypeName || ''),
-    status:'0',
-    isCalling:'1',
+    status:String(observation?.status || ''),
+    isCalling:String(observation?.isCalling === true ? '1' : observation?.isCalling || '0'),
   });
   return { ok:true, ...result, version:SM.VERSION };
 }
@@ -265,8 +265,8 @@ export async function runServiceMessageWorker(env) {
 
     const own = match.row;
     const retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY';
-    const callingNow = Boolean(own && String(own.status || '') === '0' && String(own.isCalling || '0') === '1');
-    if (!callingNow && !retryEvidence) continue;
+    const notificationEligible = Boolean(own && isNotificationEligibleAirwait(own));
+    if (!notificationEligible && !retryEvidence) continue;
     const result = await sendCallMessage(env, rec, own || { waitTypeName:'' });
     if (result.sent) sent += 1;
   }
@@ -317,10 +317,12 @@ async function sendCallMessage(env, rec, airwaitRow) {
     return { sent:false };
   }
 
+  const claimNow = Date.now();
   const claimed = await env.DB.prepare(`UPDATE v2_service_messages SET status='CALL_SEND_PENDING',last_error='',last_http_status=0,updated_at=?
     WHERE business_date=? AND reserve_id=? AND notified_at=0
-      AND status IN ('TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING')`)
-    .bind(Date.now(), rec.business_date, rec.reserve_id).run();
+      AND status IN ('TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING')
+      AND (next_retry_at=0 OR next_retry_at<=?)`)
+    .bind(claimNow, rec.business_date, rec.reserve_id, claimNow).run();
   if (Number(claimed?.meta?.changes || 0) !== 1) return { sent:false };
 
   let channelToken;
@@ -479,6 +481,12 @@ async function getTokenClaim(env, requestId){return await env.DB.prepare('SELECT
 async function setClaimError(env,requestId,status,e){await env.DB.prepare('UPDATE v2_service_token_claims SET status=?,last_error=?,last_http_status=?,updated_at=? WHERE request_id=?').bind(status,safeError(e),Number(e?.status||0),Date.now(),requestId).run();}
 async function setRowError(env,rec,status,message,httpStatus=0,nextRetryAt=0){await env.DB.prepare('UPDATE v2_service_messages SET status=?,last_error=?,last_http_status=?,next_retry_at=?,updated_at=? WHERE business_date=? AND reserve_id=?').bind(status,String(message||'').slice(0,500),Number(httpStatus||0),Number(nextRetryAt||0),Date.now(),rec.business_date,rec.reserve_id).run();}
 async function releaseLiffUsage(env,tokenHash,requestId){await env.DB.prepare("DELETE FROM v2_service_liff_token_usage WHERE token_hash=? AND request_id=? AND status='CLAIMED'").bind(tokenHash,requestId).run();}
+
+function isNotificationEligibleAirwait(row){
+  const status=String(row?.status||'');
+  const calling=row?.isCalling===true||String(row?.isCalling||'0')==='1';
+  return (status==='0'&&calling)||status==='2'||status==='4';
+}
 
 function assertServiceConfig(env){
   if(!String(env.LINE_MINIAPP_CHANNEL_SECRET||'').trim()) throw apiError('LINE_MINIAPP_CHANNEL_SECRET_NOT_CONFIGURED',503);

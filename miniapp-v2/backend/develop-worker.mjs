@@ -161,7 +161,7 @@ function queueObservedCallNotification(env, response, ctx) {
   const job = (async () => {
     let body;
     try { body = await response.clone().json(); } catch { return; }
-    if (!(body?.ok === true && body?.found === true && String(body?.status || '') === '0' && body?.isCalling === true)) return;
+    if (!(body?.ok === true && body?.found === true)) return;
     await sendObservedCallNotification(env, body);
   })();
   const guarded = job.catch(e => console.warn('CALLSTATUS_IMMEDIATE_NOTIFY_FAILED', safeError(e)));
