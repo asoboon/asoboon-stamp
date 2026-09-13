@@ -167,7 +167,7 @@ jobs:
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.2.dev5" ||
+                  x.serviceMessageVersion!=="2.3.dev6" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
@@ -175,12 +175,13 @@ jobs:
                   x.serviceMessageMandatoryBeforeCreate!==true ||
                   x.serviceMessageCronEnabled!==true ||
                   x.serviceMessageImmediateObservationEnabled!==true ||
+                  x.serviceMessageTerminalRescueEnabled!==true ||
                   x.serviceMessageReusableUnboundToken!==true
                 ) process.exit(1);
               });
             '; then
               echo "$RESPONSE"
-              echo "Developing LINE call notification is READY; reservation create gate is open."
+              echo "Developing LINE call/guidance notification rescue is READY; reservation create gate is open."
               break
             fi
             if [ "$i" = "10" ]; then
@@ -211,7 +212,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with local test slot 0042, immediate call observation, reusable unbound notification tokens, and 1-minute backup watcher."
+            echo "Official Developing gateway deployed with local test slot 0042, immediate call observation, direct-guidance rescue, reusable unbound notification tokens, and 1-minute backup watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
