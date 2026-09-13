@@ -48,6 +48,13 @@ jobs:
           grep -F 'notificationAmbiguous' miniapp-v2/shared/reception.js
           grep -F 'AirWAITへの受付送信は行っていません。' miniapp-v2/shared/reception.js
 
+      - name: Reception POST fallback must not restart polling
+        run: |
+          set -euo pipefail
+          grep -F 'let r;' miniapp-v2/shared/reception.js
+          grep -F "r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS" miniapp-v2/shared/reception.js
+          ! grep -Fq "return await pollRequest(id);\n  }catch{\n    return await pollRequest(id);" miniapp-v2/shared/reception.js
+
       - name: Call status must not hang
         run: |
           set -euo pipefail
@@ -97,12 +104,15 @@ jobs:
           grep -F 'const wt = await getWaitTypes(env);' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           ! grep -Fq 'const wt = await getWaitTypes(env, { force: true });' develop-gateway.runtime.mjs
 
-      - name: Developing 0042 recycle is isolated
+      - name: Sequential same-day reception only recycles terminal previous claim
         run: |
           set -euo pipefail
+          grep -F 'releaseTerminalPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
+          grep -F "if (!own || !['2','3'].includes(String(own.status || ''))) return false;" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'DELETE FROM v2_user_day_claims' miniapp-v2/backend/develop-worker.mjs
+          grep -F "DELETE FROM v2_request_results WHERE request_id=?" miniapp-v2/backend/develop-worker.mjs
+          ! grep -Fq 'releaseCanceledDevelopTestClaim' miniapp-v2/backend/develop-worker.mjs
           grep -F "if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) await incrementAttempt(env, hash, serverDate);" miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "status:'3'" miniapp-v2/backend/develop-worker.mjs
-          grep -F "isEnabledStatus:'1'" miniapp-v2/backend/develop-worker.mjs
           ! grep -Fq "UPDATE v2_user_attempts" miniapp-v2/backend/develop-worker.mjs
 
       - name: Stale create must fail ambiguous instead of reopening create
@@ -159,11 +169,14 @@ jobs:
           grep -F 'const tokenHash = await sha256Hex(liffAccessToken);' miniapp-v2/backend/develop-service-message.js
           grep -F "status='BOUND'" miniapp-v2/backend/develop-service-message.js
           grep -F 'channelTokenCache' miniapp-v2/backend/develop-service-message.js
+          grep -F "const definitiveBound = String(usage.status || '') === 'BOUND';" miniapp-v2/backend/develop-service-message.js
+          grep -F "serviceMessageFreshActionReopenRequired: true" miniapp-v2/backend/develop-service-message.js
+          grep -F '同じ日にもう一度受付できます。新しい受付のLINE通知を準備するため' miniapp-v2/backend/develop-worker.mjs
 
       - name: LINE notification must survive retries and terminal-state rescue
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.3.dev6'" miniapp-v2/backend/develop-service-message.js
+          grep -F "VERSION: '2.4.dev7'" miniapp-v2/backend/develop-service-message.js
           grep -F 'adoptReusableNotificationClaim' miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageReusableUnboundToken: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-service-message.js
@@ -220,5 +233,5 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260912-09') throw new Error(`unexpected cache version ${versions[0]}`);
+          if(versions[0]!=='20260913-01') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
