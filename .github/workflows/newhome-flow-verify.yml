@@ -160,10 +160,10 @@ jobs:
           grep -F "status='BOUND'" miniapp-v2/backend/develop-service-message.js
           grep -F 'channelTokenCache' miniapp-v2/backend/develop-service-message.js
 
-      - name: LINE notification must survive corrected retries and call-state transitions
+      - name: LINE notification must survive retries and terminal-state rescue
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.2.dev5'" miniapp-v2/backend/develop-service-message.js
+          grep -F "VERSION: '2.3.dev6'" miniapp-v2/backend/develop-service-message.js
           grep -F 'adoptReusableNotificationClaim' miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageReusableUnboundToken: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-service-message.js
@@ -171,6 +171,21 @@ jobs:
           grep -F 'queueObservedCallNotification' miniapp-v2/backend/develop-worker.mjs
           grep -F "retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY'" miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageImmediateObservationEnabled: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'serviceMessageTerminalRescueEnabled: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'function isNotificationEligibleAirwait' miniapp-v2/backend/develop-service-message.js
+          grep -F "return (status==='0'&&calling)||status==='2'||status==='4';" miniapp-v2/backend/develop-service-message.js
+          grep -F "reason:'NOT_NOTIFICATION_ELIGIBLE'" miniapp-v2/backend/develop-service-message.js
+          grep -F 'notificationEligible = Boolean(own && isNotificationEligibleAirwait(own))' miniapp-v2/backend/develop-service-message.js
+          grep -F 'AND (next_retry_at=0 OR next_retry_at<=?)' miniapp-v2/backend/develop-service-message.js
+          grep -F "if (!(body?.ok === true && body?.found === true)) return;" miniapp-v2/backend/develop-worker.mjs
+          ! grep -Fq "String(body?.status || '') === '0' && body?.isCalling === true" miniapp-v2/backend/develop-worker.mjs
+          node <<'NODE'
+          const eligible=(row)=>{const status=String(row?.status||'');const calling=row?.isCalling===true||String(row?.isCalling||'0')==='1';return (status==='0'&&calling)||status==='2'||status==='4'};
+          const yes=[{status:'0',isCalling:'1'},{status:'0',isCalling:true},{status:'2',isCalling:'0'},{status:'4',isCalling:'0'}];
+          const no=[{status:'0',isCalling:'0'},{status:'1',isCalling:'0'},{status:'1',isCalling:'1'},{status:'3',isCalling:'0'},{status:'3',isCalling:'1'},{status:'',isCalling:'1'}];
+          for(const x of yes) if(!eligible(x)) throw new Error('must notify '+JSON.stringify(x));
+          for(const x of no) if(eligible(x)) throw new Error('must not notify '+JSON.stringify(x));
+          NODE
 
       - name: Gateway schema initialization must be memoized per isolate
         run: |
