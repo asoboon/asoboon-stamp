@@ -93,14 +93,15 @@ async function pollRequest(id){
 async function post(action,body){
   const id=action==='createReservation'?requestIdFor(body):newRequestId(),payload={action,requestId:id,...body};
   const options={method:'POST',mode:'cors',credentials:'omit',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))};
+  let r;
   try{
-    const r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS,'受付送信の応答がタイムアウトしました。結果を確認します。');
-    let d=null;try{d=await r.json()}catch{}
-    if(d&&r.status!==202)return{...d,_requestId:id};
-    return await pollRequest(id);
+    r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS,'受付送信の応答がタイムアウトしました。結果を確認します。');
   }catch{
     return await pollRequest(id);
   }
+  let d=null;try{d=await r.json()}catch{}
+  if(d&&r.status!==202)return{...d,_requestId:id};
+  return await pollRequest(id);
 }
 
 function healthSupportsOfficialDevelop(h){

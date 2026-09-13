@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.3.dev6',
+  VERSION: '2.4.dev7',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -41,6 +41,7 @@ export async function serviceHealth(env) {
     serviceMessageImmediateObservationEnabled: true,
     serviceMessageTerminalRescueEnabled: true,
     serviceMessageReusableUnboundToken: true,
+    serviceMessageFreshActionReopenRequired: true,
   };
 }
 
@@ -60,7 +61,8 @@ export async function prepareReservationNotification(env, p) {
   if (usage && String(usage.request_id || '') !== requestId) {
     const adopted = await adoptReusableNotificationClaim(env, tokenHash, usage, requestId, businessDate, waitTypeId);
     if (adopted) return publicClaim(adopted, true);
-    throw apiError('LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP', 409, true);
+    const definitiveBound = String(usage.status || '') === 'BOUND';
+    throw apiError('LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP', 409, !definitiveBound);
   }
   if (!usage) {
     const now = Date.now();
