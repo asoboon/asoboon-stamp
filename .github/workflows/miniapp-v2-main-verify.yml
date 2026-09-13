@@ -118,6 +118,17 @@ jobs:
           grep -F 'body.createEnabled = false;' miniapp-v2/backend/develop-worker.mjs
           grep -F "'LINE_NOTIFICATION_NOT_READY'" miniapp-v2/backend/develop-worker.mjs
           grep -F 'prepareReservationNotification(env, createPayload)' miniapp-v2/backend/develop-worker.mjs
+      - name: Lock sequential same-day reception and fresh LINE action boundary
+        run: |
+          set -euo pipefail
+          grep -F "VERSION: '2.4.dev7'" miniapp-v2/backend/develop-service-message.js
+          grep -F 'serviceMessageFreshActionReopenRequired: true' miniapp-v2/backend/develop-service-message.js
+          grep -F "const definitiveBound = String(usage.status || '') === 'BOUND';" miniapp-v2/backend/develop-service-message.js
+          grep -F 'releaseTerminalPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
+          grep -F "if (!own || !['2','3'].includes(String(own.status || ''))) return false;" miniapp-v2/backend/develop-worker.mjs
+          grep -F '同じ日にもう一度受付できます。新しい受付のLINE通知を準備するため' miniapp-v2/backend/develop-worker.mjs
+          grep -F 'let r;' miniapp-v2/shared/reception.js
+          grep -F "r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS" miniapp-v2/shared/reception.js
       - name: Lock reception reads independently
         run: |
           set -euo pipefail
