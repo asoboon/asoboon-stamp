@@ -1,0 +1,82 @@
+/* ASOBooN new HOME / Developing prototype pages v7 */
+:root{--pv7-orange:#f08026;--pv7-blue:#3689cd;--pv7-green:#2f7d4a;--pv7-road:#30363b;--pv7-road2:#454d53;--pv7-cream:#f4f0e7;--pv7-paper:#fbfaf7;--pv7-ink:#22282d;--pv7-muted:#747b80;--pv7-line:#d9d4ca;--pv7-soft:#ece8de;--pv7-danger:#b4473c}
+body.v7-page-active{background:var(--pv7-cream)!important;color:var(--pv7-ink)}
+body.v7-page-active:before{display:none!important}
+body.v7-page-active .app{width:min(100%,480px);padding-left:14px;padding-right:14px}
+body.v7-page-active .devbar,body.v7-page-active .footer{display:none!important}
+body.v7-page-active .topbar{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:7px;padding:4px 0 11px;background:transparent;backdrop-filter:none}
+body.v7-page-active .brand{padding:7px 4px;border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center;overflow:visible}
+body.v7-page-active .brand:before{display:none}
+body.v7-page-active .brand strong{font-size:1.18rem;letter-spacing:-.04em;color:var(--pv7-ink)}
+body.v7-page-active .brand small{margin-top:2px;color:#969087;font-size:.59rem;letter-spacing:0;font-weight:800}
+body.v7-page-active .iconbtn{width:44px;height:44px;border:1px solid #d8d2c8;border-radius:14px;background:rgba(255,255,255,.6);box-shadow:none;color:var(--pv7-road);font-size:1.25rem}
+body.v7-page-active .view{animation:none}
+
+.pv7-page{overflow:hidden;border:1px solid rgba(70,74,76,.10)!important;border-radius:25px!important;background:var(--pv7-paper)!important;box-shadow:0 14px 30px rgba(31,36,39,.10)!important}
+.pv7-head{padding:22px 19px 18px;border-bottom:1px solid var(--pv7-line)}
+.pv7-eyebrow{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border-radius:999px;background:#ece9e2;color:#596066;font-size:.66rem;font-weight:950;letter-spacing:.02em}
+.pv7-head h1{margin:9px 0 5px;color:var(--pv7-ink);font-size:2rem;line-height:1.04;letter-spacing:-.055em}
+.pv7-head p{margin:0;color:#626a70;font-size:.78rem;line-height:1.55;font-weight:760}
+.pv7-body{padding:17px 18px 19px}
+.pv7-section+.pv7-section{margin-top:20px;padding-top:18px;border-top:1px solid var(--pv7-line)}
+.pv7-section h2{margin:0 0 9px;color:var(--pv7-ink);font-size:.94rem}
+.pv7-section p{margin:0;color:#657078;font-size:.72rem;line-height:1.65;font-weight:720}
+.pv7-band{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;min-height:78px;padding:13px 14px;border-bottom:1px solid var(--pv7-line)}
+.pv7-band:last-child{border-bottom:0}.pv7-band:before{content:"";position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:99px;background:var(--band,var(--pv7-road))}
+.pv7-band strong{display:block;font-size:.88rem}.pv7-band small{display:block;margin-top:3px;color:var(--pv7-muted);font-size:.64rem;line-height:1.45;font-weight:720}.pv7-band b{font-size:1.28rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pv7-list{border-top:1px solid var(--pv7-line);border-bottom:1px solid var(--pv7-line)}
+.pv7-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-height:52px;padding:12px 2px;border-bottom:1px solid var(--pv7-line)}.pv7-row:last-child{border-bottom:0}.pv7-row span{color:#747b80;font-size:.68rem;font-weight:800}.pv7-row strong{color:var(--pv7-ink);font-size:.76rem;text-align:right}
+.pv7-callout{margin-top:14px;padding:13px 14px;border-radius:15px;background:#f1eee7;color:#5d6468;font-size:.69rem;line-height:1.6;font-weight:760}.pv7-callout.orange{background:#fff1e3;color:#7a4a23}.pv7-callout.green{background:#eaf3ed;color:#315b3f}.pv7-callout.blue{background:#eaf3fa;color:#315a75}.pv7-callout strong{color:inherit}
+.pv7-primary,.pv7-secondary-btn{width:100%;min-height:49px;margin-top:13px;border:0;border-radius:14px;font-weight:1000}.pv7-primary{background:var(--pv7-orange);color:#fff}.pv7-primary.green{background:var(--pv7-green)}.pv7-secondary-btn{background:var(--pv7-road);color:#fff}.pv7-text-btn{width:100%;min-height:44px;margin-top:5px;border:0;background:transparent;color:#6b7175;font-size:.71rem;font-weight:900}
+
+/* price */
+.pv7-price-note{margin-top:12px;color:#6c7378;font-size:.66rem;line-height:1.55;font-weight:760}
+
+/* first visit timeline */
+.pv7-timeline{position:relative;display:grid;gap:0}.pv7-timeline:before{content:"";position:absolute;left:18px;top:20px;bottom:20px;width:2px;background:#d4d0c8}.pv7-step{position:relative;display:grid;grid-template-columns:38px 1fr;gap:11px;padding:8px 0}.pv7-step b{position:relative;z-index:2;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pv7-road);color:#fff;font-size:.72rem}.pv7-step strong{display:block;margin-top:2px;font-size:.80rem}.pv7-step small{display:block;margin-top:3px;color:var(--pv7-muted);font-size:.65rem;line-height:1.45;font-weight:720}
+
+/* entry highway rail */
+.pv7-roadflow{display:grid;gap:8px}.pv7-roadstep{position:relative;min-height:69px;padding:13px 14px 13px 52px;border-radius:15px;background:#f0eee8}.pv7-roadstep:before{content:"";position:absolute;left:19px;top:-8px;bottom:-8px;width:3px;background:#bbb7ae}.pv7-roadstep:first-child:before{top:24px}.pv7-roadstep:last-child:before{bottom:34px}.pv7-roadstep b{position:absolute;left:7px;top:15px;display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:var(--pv7-green);color:#fff;font-size:.68rem}.pv7-roadstep strong{display:block;font-size:.80rem}.pv7-roadstep small{display:block;margin-top:3px;color:#6d7478;font-size:.64rem;line-height:1.45;font-weight:720}
+
+/* rules */
+.pv7-promise{display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start;padding:13px 0;border-bottom:1px solid var(--pv7-line)}.pv7-promise:last-child{border-bottom:0}.pv7-promise b{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#e8f1eb;color:var(--pv7-green);font-size:.74rem}.pv7-promise strong{display:block;font-size:.80rem}.pv7-promise small{display:block;margin-top:3px;color:var(--pv7-muted);font-size:.64rem;line-height:1.5;font-weight:720}
+
+/* call status v7 skin */
+body.v7-callstatus-active .page-card.cs-page{overflow:hidden;border:1px solid rgba(70,74,76,.1);border-radius:25px;background:var(--pv7-paper);box-shadow:0 14px 30px rgba(31,36,39,.10)}
+body.v7-callstatus-active .page-head.green{padding:20px 18px 16px;background:var(--pv7-road);color:#fff}
+body.v7-callstatus-active .page-head.green small{font-size:.62rem;letter-spacing:.08em}
+body.v7-callstatus-active .page-head.green h2{margin-top:5px;font-size:1.55rem}
+body.v7-callstatus-active .cs-body{display:flex;flex-direction:column;padding:15px 16px 18px}
+body.v7-callstatus-active .cs-state{order:1;margin-top:0;padding:19px 14px;border:0;border-radius:18px;background:#f0eee8;text-align:left}
+body.v7-callstatus-active .cs-state-icon{display:none}
+body.v7-callstatus-active .cs-state strong{margin-top:0;color:var(--pv7-ink);font-size:1.38rem;letter-spacing:-.03em}
+body.v7-callstatus-active .cs-state p{margin:6px 0 0;max-width:none;color:#626a70;font-size:.73rem;line-height:1.55}
+body.v7-callstatus-active .cs-state.calling{background:#fff0e2;box-shadow:none}
+body.v7-callstatus-active .cs-state.calling strong{color:#a85013;font-size:1.58rem}
+body.v7-callstatus-active .cs-state.processing,body.v7-callstatus-active .cs-state.done{background:#eaf3ed}
+body.v7-callstatus-active .cs-state.canceled{background:#f8e9e7}
+body.v7-callstatus-active .cs-queue{order:2;grid-template-columns:1.35fr .65fr;margin-top:10px;gap:8px}
+body.v7-callstatus-active .cs-queue>div{padding:13px 10px;border:0;border-radius:16px;background:#fff;box-shadow:none}
+body.v7-callstatus-active .cs-queue>div:first-child strong{font-size:3.15rem;letter-spacing:-.06em;color:var(--pv7-road)}
+body.v7-callstatus-active .cs-queue>div:nth-child(2) strong{font-size:1.55rem;color:#555c61}
+body.v7-callstatus-active .cs-ticket{order:3;margin-top:11px;padding:14px;border:1px solid var(--pv7-line);border-radius:16px;background:transparent;text-align:left;overflow:visible}
+body.v7-callstatus-active .cs-ticket:before,body.v7-callstatus-active .cs-ticket:after{display:none}
+body.v7-callstatus-active .cs-ticket small{color:#777d80;font-size:.62rem}
+body.v7-callstatus-active .cs-ticket strong{margin-top:4px;color:var(--pv7-ink);font-size:2rem;letter-spacing:-.03em}
+body.v7-callstatus-active .cs-ticket>span{color:var(--pv7-ink);font-size:.75rem}
+body.v7-callstatus-active .cs-waittype{display:block;margin-top:7px;padding:0;background:transparent;box-shadow:none;color:#697176;font-size:.64rem}
+body.v7-callstatus-active .cs-top{order:4;margin-top:11px;padding:10px 11px;border:0;border-radius:13px;background:#efede7}
+body.v7-callstatus-active .cs-meta{order:5;margin-top:8px;border-color:#d4d0c8}
+body.v7-callstatus-active .cs-refresh{order:6;margin-top:11px;background:var(--pv7-road);box-shadow:none}
+body.v7-callstatus-active .cs-error{order:7}
+body.v7-callstatus-active .cs-note{order:8;background:#efede7;color:#646b70}
+body.v7-callstatus-active .cs-note strong{color:var(--pv7-road)}
+
+/* time guide v7 skin */
+body.v7-timeguide-active .page-card.tg-page{overflow:hidden;border:1px solid rgba(70,74,76,.1);border-radius:25px;background:var(--pv7-paper);box-shadow:0 14px 30px rgba(31,36,39,.10)}
+body.v7-timeguide-active .page-head.green{padding:20px 18px 16px;background:var(--pv7-green)}
+body.v7-timeguide-active .tg-body{padding:16px}
+body.v7-timeguide-active .tg-result{border-radius:18px}
+body.v7-timeguide-active .pv7-time-warning{margin:0 0 12px;padding:12px 13px;border-radius:14px;background:#fff1e3;color:#754b29;font-size:.67rem;line-height:1.55;font-weight:800}
+
+@media(max-width:370px){.pv7-head h1{font-size:1.78rem}.pv7-body{padding-left:14px;padding-right:14px}body.v7-callstatus-active .cs-queue>div:first-child strong{font-size:2.7rem}}
