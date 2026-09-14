@@ -4,7 +4,7 @@ const F=E.featureFlags||{};
 const root=document.getElementById('app');
 if(!root)return;
 let lastSignature='',latestStatus=window.ASOBOON_HOME_STATUS_SNAPSHOT||null;
-const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const currentView=()=>String(new URLSearchParams(location.search).get('view')||'home');
 const feature=name=>F[name]===true;
 function proximity(n){if(n<=3)return'arrival';if(n<=10)return'near';if(n<=20)return'mid';return'far'}
