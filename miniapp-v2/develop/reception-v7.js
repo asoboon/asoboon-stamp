@@ -4,14 +4,32 @@ if(!root)return;
 let obs=null;
 const qs=()=>new URLSearchParams(location.search);
 function currentView(){return String(qs().get('view')||'home')}
+function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
 function ensureHead(){const head=root.querySelector('.page-head');if(!head)return;const small=head.querySelector('small');const h=head.querySelector('h2');if(small)small.textContent='ASOBooN';if(h)h.textContent='受付';if(!head.querySelector('.rv7-head-note'))head.insertAdjacentHTML('beforeend','<div class="rv7-head-note">利用する回と人数を選んで、内容を確認してください。</div>')}
 function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<div class="rv7-progress" aria-label="受付の流れ"><div class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></div><div class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></div><div class="rv7-step" data-rv7-step="3"><b>3</b><span>確認</span></div></div>')}
 function ensureConfirmLabel(){const summary=root.querySelector('.rec-summary');if(!summary)return;if(summary.previousElementSibling?.classList?.contains('rv7-confirm-label'))return;summary.insertAdjacentHTML('beforebegin','<div class="rv7-confirm-label"><b>3</b><span>内容を確認</span></div>')}
 function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>{const span=btn.querySelector(':scope > span:first-child');if(!span||span.dataset.rv7Icon==='1')return;span.dataset.rv7Icon='1';span.innerHTML=methodIcon(btn.classList.contains('onsite')?'onsite':'web')})}
 function cleanLabels(){const web=root.querySelector('#recWeb strong');if(web)web.textContent='LINE受付';const onsite=root.querySelector('#recOnsite strong');if(onsite)onsite.textContent='現地受付';const titles=root.querySelectorAll('.rec-title');if(titles[0])titles[0].textContent='ご利用の回';if(titles[1])titles[1].textContent='ご利用人数'}
-function progressState(){const selected=Boolean(root.querySelector('.rec-slot.active'));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active')}
-function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',qs().get('dev')==='1');const brandSmall=document.querySelector('.brand small');if(brandSmall)brandSmall.textContent='川口ハイウェイオアシス';ensureHead();ensureProgress();ensureConfirmLabel();replaceMethodIcons();cleanLabels();progressState()}
-function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',()=>setTimeout(progressState,0),true);patch();setTimeout(patch,50);setTimeout(patch,300)}
+function cleanCustomerCopy(){
+ const dev=isDevTools();
+ const status=root.querySelector('#recStatus');
+ if(status&&!dev){
+   const t=String(status.textContent||'');
+   if(/LINE接続|営業カレンダー|受付枠を確認しています/.test(t))status.textContent='受付できる内容を確認しています…';
+   else if(/LINE本人確認・営業日・Gateway接続を確認しました/.test(t))status.textContent='受付できます。';
+   else if(/受付枠を取得できません|Gateway|新Gateway/.test(t))status.textContent='受付情報を確認できませんでした。もう一度開き直してお試しください。';
+   else if(/受付に必要な確認が完了していない/.test(t))status.textContent='ただいま受付を確定できません。しばらくしてからもう一度お試しください。';
+   else if(/AirWAITへ受付を送信しています/.test(t))status.textContent='受付しています…';
+   else if(/Developing|入場不可テスト/.test(t))status.textContent=root.querySelector('.rec-day strong')?.textContent==='休館'?'本日は休館日です。':'受付できます。';
+ }
+ const loc=root.querySelector('#recLocationText');if(loc&&!dev&&/500m以内|精度/.test(String(loc.textContent||'')))loc.textContent='現地受付では、ASOBooN付近にいることを現在地で確認します。';
+ const agree=root.querySelector('.rec-agree span');if(agree&&!dev)agree.textContent='受付内容を確認しました。受付ボタンは一度だけ押してください。';
+ root.querySelectorAll('.rec-slot').forEach(btn=>{const test=/入場不可テスト/.test(String(btn.textContent||''))||String(btn.dataset.recSlot||'')==='0042';btn.hidden=!dev&&test});
+ const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))submit.textContent='受付の準備中…';
+}
+function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active')}
+function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());const brandSmall=document.querySelector('.brand small');if(brandSmall)brandSmall.textContent='川口ハイウェイオアシス';ensureHead();ensureProgress();ensureConfirmLabel();replaceMethodIcons();cleanLabels();cleanCustomerCopy();progressState()}
+function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true,characterData:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',()=>setTimeout(progressState,0),true);patch();setTimeout(patch,50);setTimeout(patch,300)}
 start();
 })();
