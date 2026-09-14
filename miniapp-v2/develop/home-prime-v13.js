@@ -12,4 +12,6 @@ if(cached.businessDate&&String(snap.businessDate||'')!==String(cached.businessDa
 if(Date.now()-Number(snap.savedAt||0)>MAX_AGE)return;
 const status={...snap.status,source:'cache',checkedAt:Number(snap.savedAt||Date.now())};
 window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+const announce=()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+if(typeof requestAnimationFrame==='function')requestAnimationFrame(announce);else setTimeout(announce,0);
 })();
