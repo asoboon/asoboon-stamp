@@ -1,23 +1,28 @@
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{};
+const SAFE_VIEWS=new Set(['home','reception','callstatus','timeguide','first','entry','rules','parking','stamp','omikuji','game']);
 function baseUrl(){const u=new URL(E.endpoint||location.href,location.href);u.search='';u.hash='';return u}
-function navigate(view){
+function navigate(view,panel=''){
   const v=String(view||'').trim();
-  if(!v)return;
+  if(!SAFE_VIEWS.has(v))return;
+  const p=String(panel||'').trim();
   const u=baseUrl();
   u.searchParams.set('view',v);
   u.searchParams.set('mode','before');
-  history.pushState({asoboonV2:true,v7:true},'',u.href);
-  window.dispatchEvent(new PopStateEvent('popstate',{state:{asoboonV2:true,v7:true}}));
+  if(p)u.searchParams.set('panel',p);
+  history.pushState({asoboonV2:true,v7:true,view:v,panel:p},'',u.href);
+  window.dispatchEvent(new PopStateEvent('popstate',{state:{asoboonV2:true,v7:true,view:v,panel:p}}));
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.addEventListener('click',e=>{
-  const target=e.target?.closest?.('[data-v7-view]');
+  const target=e.target?.closest?.('[data-v7-view],[data-pv7-view]');
   if(!target||target.disabled)return;
+  const view=target.dataset.v7View||target.dataset.pv7View||'';
+  if(!SAFE_VIEWS.has(String(view)))return;
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
-  navigate(target.dataset.v7View);
+  navigate(view,target.dataset.v7Panel||target.dataset.pv7Panel||'');
 },true);
 window.ASOBOON_V7_NAVIGATE=navigate;
 })();
