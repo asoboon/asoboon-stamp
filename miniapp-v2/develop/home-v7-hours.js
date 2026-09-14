@@ -1,0 +1,16 @@
+(()=>{'use strict';
+const D=window.ASOBOON_V2_BUSINESS_DAY||{};const root=document.getElementById('app');if(!root)return;
+let day=null,loading=false;
+const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+function currentView(){return String(new URLSearchParams(location.search).get('view')||'home')}
+function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
+function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
+function availability(){if(!day)return null;const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',tag:'受付終了',title:'本日の受付は終了しました',message:'次回の営業日に、LINEミニアプリから受付してください。'};if(day.isClosed)return{type:'closed',tag:'休館日',title:'本日は休館日です',message:'次回の営業日にお待ちしています。'};if(now.minutes<7*60)return{type:'before',tag:'受付開始前',title:'LINE受付は7:00から',message:'受付開始までは、利用案内や料金をご確認いただけます。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',tag:'受付終了',title:'本日の受付は終了しました',message:'次回の営業日に、LINEミニアプリから受付してください。'};return{type:'open'}}
+function renderClosedState(hero,a){hero.dataset.hoursOverride='1';hero.className='v7-hero light';hero.innerHTML=`<div class="v7-simple"><span class="v7-tag">${a.tag}</span><h1>${a.title}</h1><p>${a.message}</p><button class="v7-primary" type="button" data-v7-view="first">利用案内を見る</button></div>`}
+function renderOpenState(hero){hero.dataset.hoursOverride='';hero.className='v7-hero light';hero.innerHTML='<div class="v7-simple"><span class="v7-tag">受付前</span><h1>受付</h1><p>ASOBooNをご利用の方はこちらから受付してください。</p><button class="v7-primary" type="button" data-v7-view="reception">受付する</button></div>'}
+function patchStrip(){const box=root.querySelector('#v7Today');if(!box||!day)return;const now=nowJst(),labels=box.querySelectorAll('small'),vals=box.querySelectorAll('strong');setText(labels[0],String(day.operationalDate||'')===now.date?'本日の営業':'次の営業日');setText(vals[0],day.isClosed?'休館':day.businessType||'—');setText(vals[1],day.isClosed?'—':day.durationLabel||'—');setText(vals[2],day.isClosed?'—':day.closingTime||'—');box.classList.toggle('closed',Boolean(day.isClosed))}
+function patchHero(){if(currentView()!=='home'||!day)return;const hero=root.querySelector('#v7Hero');if(!hero)return;const tag=String(hero.querySelector('.v7-tag')?.textContent||'').trim(),a=availability();if(!a)return;if(tag==='受付前'){if(a.type!=='open')renderClosedState(hero,a);return}if(hero.dataset.hoursOverride==='1'&&a.type==='open')renderOpenState(hero)}
+function patch(){patchStrip();patchHero()}
+async function refresh(force=false){if(loading||typeof D.getCurrent!=='function')return;loading=true;try{day=await D.getCurrent({force});patch()}catch{}finally{loading=false}}
+new MutationObserver(()=>queueMicrotask(patch)).observe(root,{childList:true,subtree:true,characterData:true});window.addEventListener('focus',()=>void refresh(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true)});void refresh(false);setTimeout(patch,100);setTimeout(patch,500);
+})();
