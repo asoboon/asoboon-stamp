@@ -1,0 +1,15 @@
+(()=>{'use strict';
+const RES_KEY='asoboon_v2_current_reservation_develop_v1';
+const CALL_KEY='asoboon_v2_callstatus_develop_v1';
+const SNAP_KEY='asoboon_v2_home_status_develop_v1';
+const MAX_AGE=10*60*1000;
+const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
+const cached=read(RES_KEY)||read(CALL_KEY)||null;
+const snap=read(SNAP_KEY);
+if(!cached?.receiptNo||!snap?.status)return;
+if(String(snap.receiptNo||'')!==String(cached.receiptNo||''))return;
+if(cached.businessDate&&String(snap.businessDate||'')!==String(cached.businessDate||''))return;
+if(Date.now()-Number(snap.savedAt||0)>MAX_AGE)return;
+const status={...snap.status,source:'cache',checkedAt:Number(snap.savedAt||Date.now())};
+window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+})();
