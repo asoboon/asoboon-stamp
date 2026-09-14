@@ -1,0 +1,19 @@
+(()=>{'use strict';
+const root=document.getElementById('app');if(!root)return;
+const RES_KEY='asoboon_v2_current_reservation_develop_v1';
+let timer=0,queued=false;
+const read=()=>{try{return JSON.parse(localStorage.getItem(RES_KEY)||'null')}catch{return null}};
+const view=()=>String(new URLSearchParams(location.search).get('view')||'home');
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function dateLabel(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[1]}.${m[2]}.${m[3]}`:String(v||'—')}
+function clock(){try{return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())}catch{return'--:--:--'}}
+function people(r){const a=Number(r?.adults||0),c=Number(r?.paidChildren||0),i=Number(r?.infants||0),total=Number(r?.totalPeople||a+c+i||0);const parts=[];if(a>0)parts.push(`大人${a}`);if(c>0)parts.push(`こども${c}`);if(i>0)parts.push(`0〜5か月${i}`);return{total,detail:parts.join('・')}}
+function passMarkup(r,{callstatus=false}={}){const p=people(r),receipt=esc(r?.receiptNo||'—');const receiptNode=callstatus?`<strong class="v17-number" id="csReceipt">${receipt}</strong>`:`<strong class="v17-number">${receipt}</strong>`;const waitType=callstatus?'<div id="csWaitType" class="v17-waittype">受付枠を確認中</div>':'';return `<div class="v17-pass${callstatus?' callstatus':''}" aria-label="本日の受付証"><div class="v17-pass-head"><span class="v17-pass-kicker">TODAY PASS</span><span class="v17-valid"><i></i>有効画面</span></div><div class="v17-number-label">受付番号</div>${receiptNode}<div class="v17-facts"><span><small>利用日</small><b>${esc(dateLabel(r?.businessDate))}</b></span><i></i><span><small>人数</small><b>${p.total>0?p.total+'名':'—'}</b></span></div>${p.detail?`<div class="v17-breakdown">${esc(p.detail)}</div>`:''}${waitType}<div class="v17-live"><span class="v17-live-dot" aria-hidden="true"></span><b>LIVE</b><time data-v17-clock>${clock()}</time><small>時刻が動いていることをご確認ください</small></div></div>`}
+function signature(r){return[String(r?.receiptNo||''),String(r?.businessDate||''),Number(r?.adults||0),Number(r?.paidChildren||0),Number(r?.infants||0),Number(r?.totalPeople||0)].join('|')}
+function ensureHome(r){const host=root.querySelector('#v7Hero .v7-ticket');if(!host)return;const sig=signature(r);if(host.dataset.v17Sig===sig&&host.querySelector('.v17-pass'))return;host.dataset.v17Sig=sig;host.classList.add('v17-ticket-host');host.innerHTML=passMarkup(r)}
+function ensureCallstatus(r){const host=root.querySelector('.cs-ticket');if(!host)return;const oldReceipt=String(root.querySelector('#csReceipt')?.textContent||r?.receiptNo||'—').trim();const oldWait=String(root.querySelector('#csWaitType')?.textContent||r?.waitTypeName||r?.waitTypeLabel||'受付枠').trim();const sig=signature(r);if(host.dataset.v17Sig===sig&&host.querySelector('.v17-pass'))return;const data={...r,receiptNo:oldReceipt==='—'?r?.receiptNo:oldReceipt};host.dataset.v17Sig=sig;host.classList.add('v17-ticket-host');host.innerHTML=passMarkup(data,{callstatus:true});const wait=root.querySelector('#csWaitType');if(wait&&oldWait)wait.textContent=oldWait}
+function tick(){const t=clock();root.querySelectorAll('[data-v17-clock]').forEach(el=>{if(el.textContent!==t)el.textContent=t})}
+function patch(){queued=false;const r=read();if(!r?.receiptNo)return;const v=view();if(v==='home')ensureHome(r);else if(v==='callstatus')ensureCallstatus(r);tick();if(!timer)timer=setInterval(tick,1000)}
+function queue(){if(queued)return;queued=true;queueMicrotask(patch)}
+new MutationObserver(queue).observe(root,{childList:true,subtree:true});window.addEventListener('popstate',()=>setTimeout(patch,0));patch();setTimeout(patch,80);setTimeout(patch,350);
+})();
