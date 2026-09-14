@@ -4,11 +4,13 @@ if(!root)return;
 const RES_KEY='asoboon_v2_current_reservation_develop_v1';
 let queued=false;
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+const setHTML=(el,html)=>{if(el&&el.innerHTML!==html)el.innerHTML=html};
 function routeState(){const p=new URLSearchParams(location.search);return{view:String(p.get('view')||'home'),panel:String(p.get('panel')||'')}}
 function readJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function yen(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('ja-JP')+'円':'—'}
 function dateLabel(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${Number(m[2])}月${Number(m[3])}日`:String(v||'—')}
-function setBrand(){const s=document.querySelector('.brand small');if(s)s.textContent='川口ハイウェイオアシス'}
+function setBrand(){setText(document.querySelector('.brand small'),'川口ハイウェイオアシス')}
 function clearClasses(){document.body.classList.remove('v7-page-active','v7-callstatus-active','v7-timeguide-active','v7-content-active')}
 function shell(tag,title,lead,body){return `<section class="page-card pv7-page"><div class="pv7-head"><span class="pv7-eyebrow">${esc(tag)}</span><h1>${esc(title)}</h1><p>${esc(lead)}</p></div><div class="pv7-body">${body}</div></section>`}
 function button(label,view,panel='',kind='primary'){return `<button class="${kind==='text'?'pv7-text-btn':kind==='secondary'?'pv7-secondary-btn':'pv7-primary'}" type="button" data-pv7-view="${esc(view)}"${panel?` data-pv7-panel="${esc(panel)}"`:''}>${esc(label)}</button>`}
@@ -75,8 +77,24 @@ function detailPage(){const r=readJSON(RES_KEY);if(!r?.receiptNo)return shell('�
 ${button('呼出状況を見る','callstatus','','secondary')}
 <div class="pv7-callout orange"><strong>受付の取り消し</strong><br>現在、ミニアプリからの受付取消には対応していません。取消が必要な場合はスタッフへお声がけください。</div>`)}
 function replaceMain(html,key){const main=root.querySelector('main.view');if(!main)return false;if(main.dataset.pv7Key===key)return true;main.innerHTML=html;main.dataset.pv7Key=key;return true}
-function patchCallstatus(){const page=root.querySelector('.cs-page');if(!page)return;document.body.classList.add('v7-page-active','v7-callstatus-active');const s=page.querySelector('.page-head small'),h=page.querySelector('.page-head h2');if(s)s.textContent='ASOBooN';if(h)h.textContent='呼出状況';const refresh=page.querySelector('#csRefresh');if(refresh){if(!refresh.disabled)refresh.textContent='最新状況を確認';if(!page.querySelector('.pv7-detail-link'))refresh.insertAdjacentHTML('afterend','<button class="pv7-text-btn pv7-detail-link" type="button" data-pv7-view="callstatus" data-pv7-panel="detail">受付詳細を見る</button>')}const note=page.querySelector('.cs-note');if(note)note.innerHTML='<strong>LINE通知：</strong>順番になるとLINEでお知らせします。画面を閉じている間も通知を優先します。';const top=page.querySelector('#csTop');if(top){const strong=top.querySelector('strong'),small=top.querySelector('small');if(strong&&/AirWAIT/.test(strong.textContent||''))strong.textContent='最新情報を確認中';if(small&&/(待ち状況に応じて|受付直後の反映待ち|次回は)/.test(small.textContent||''))small.textContent='順番は自動で更新されます。'}const title=page.querySelector('#csTitle');if(title&&/AirWAITへ受付を反映中/.test(title.textContent||''))title.textContent='受付情報を確認しています';const err=page.querySelector('#csError');if(err&&/AirWAIT側/.test(err.textContent||''))err.textContent='受付情報を確認できていません。新しい受付を作り直さず、受付番号をスタッフへお伝えください。'}
-function patchTimeguide(){const page=root.querySelector('.tg-page');if(!page)return;document.body.classList.add('v7-page-active','v7-timeguide-active');const s=page.querySelector('.page-head small'),h=page.querySelector('.page-head h2');if(s)s.textContent='ASOBooN';if(h)h.textContent='利用時間の目安';const body=page.querySelector('.tg-body');if(body&&!body.querySelector('.pv7-time-warning'))body.insertAdjacentHTML('afterbegin','<div class="pv7-time-warning"><strong>これは目安計算です。</strong><br>入場した時刻を選ぶと、その日の利用時間と閉館時刻から終了目安を計算します。</div>');const reload=page.querySelector('#tgReload');if(reload&&!reload.disabled)reload.textContent='営業情報を更新';const status=page.querySelector('#tgStatus');if(status&&/営業カレンダー/.test(status.textContent||''))status.textContent='本日の利用時間を確認しています…'}
+function patchCallstatus(){
+ const page=root.querySelector('.cs-page');if(!page)return;
+ document.body.classList.add('v7-page-active','v7-callstatus-active');
+ setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'呼出状況');
+ const refresh=page.querySelector('#csRefresh');if(refresh){if(!refresh.disabled)setText(refresh,'最新状況を確認');if(!page.querySelector('.pv7-detail-link'))refresh.insertAdjacentHTML('afterend','<button class="pv7-text-btn pv7-detail-link" type="button" data-pv7-view="callstatus" data-pv7-panel="detail">受付詳細を見る</button>')}
+ const note=page.querySelector('.cs-note');setHTML(note,'<strong>LINE通知：</strong>順番になるとLINEでお知らせします。画面を閉じている間も通知を優先します。');
+ const top=page.querySelector('#csTop');if(top){const strong=top.querySelector('strong'),small=top.querySelector('small');if(strong&&/AirWAIT/.test(strong.textContent||''))setText(strong,'最新情報を確認中');if(small&&/(待ち状況に応じて|受付直後の反映待ち|次回は)/.test(small.textContent||''))setText(small,'順番は自動で更新されます。')}
+ const title=page.querySelector('#csTitle');if(title&&/AirWAITへ受付を反映中/.test(title.textContent||''))setText(title,'受付情報を確認しています');
+ const err=page.querySelector('#csError');if(err&&/AirWAIT側/.test(err.textContent||''))setText(err,'受付情報を確認できていません。新しい受付を作り直さず、受付番号をスタッフへお伝えください。');
+}
+function patchTimeguide(){
+ const page=root.querySelector('.tg-page');if(!page)return;
+ document.body.classList.add('v7-page-active','v7-timeguide-active');
+ setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'利用時間の目安');
+ const body=page.querySelector('.tg-body');if(body&&!body.querySelector('.pv7-time-warning'))body.insertAdjacentHTML('afterbegin','<div class="pv7-time-warning"><strong>これは目安計算です。</strong><br>入場した時刻を選ぶと、その日の利用時間と閉館時刻から終了目安を計算します。</div>');
+ const reload=page.querySelector('#tgReload');if(reload&&!reload.disabled)setText(reload,'営業情報を更新');
+ const status=page.querySelector('#tgStatus');if(status&&/営業カレンダー/.test(status.textContent||''))setText(status,'本日の利用時間を確認しています…');
+}
 function apply(){queued=false;clearClasses();setBrand();const {view,panel}=routeState();if(view==='home'||view==='reception')return;
  if(view==='callstatus'&&panel==='detail'){try{window.ASOBOON_V2_CALLSTATUS?.unmount?.()}catch{}document.body.classList.add('v7-page-active','v7-content-active');replaceMain(detailPage(),'callstatus:detail');return}
  if(view==='callstatus'){patchCallstatus();return}
