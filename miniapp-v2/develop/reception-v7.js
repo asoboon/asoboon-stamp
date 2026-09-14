@@ -26,7 +26,9 @@ function cleanCustomerCopy(){
  }
  const loc=root.querySelector('#recLocationText');if(loc&&!dev&&/500m以内|精度/.test(String(loc.textContent||'')))setText(loc,'現地受付では、ASOBooN付近にいることを現在地で確認します。');
  const agree=root.querySelector('.rec-agree span');if(agree&&!dev)setText(agree,'受付内容を確認しました。受付ボタンは一度だけ押してください。');
- root.querySelectorAll('.rec-slot').forEach(btn=>{const test=/入場不可テスト/.test(String(btn.textContent||''))||String(btn.dataset.recSlot||'')==='0042';const hidden=!dev&&test;if(btn.hidden!==hidden)btn.hidden=hidden});
+ /* DevelopingではGatewayから返された利用可能枠をそのまま選択可能にする。
+    以前ここで0042を通常表示から隠していたため、テスト枠しかない場合に「利用する回」が選べなくなっていた。 */
+ root.querySelectorAll('.rec-slot').forEach(btn=>{if(btn.hidden)btn.hidden=false});
  const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))setText(submit,'受付の準備中…');
 }
 function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active')}
