@@ -1,0 +1,12 @@
+.v14-progress-card{margin:11px 0 2px;padding:11px 12px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff}
+.v14-progress-row{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.67rem;font-weight:800;color:rgba(255,255,255,.72)}
+.v14-progress-row b{color:#fff;font-size:.78rem}.v14-progress-arrow{opacity:.55}
+.v14-progress-track{position:relative;height:7px;margin:9px 0 8px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.13)}
+.v14-progress-track span{display:block;height:100%;border-radius:inherit;background:rgba(255,255,255,.9);transition:width .5s ease}
+.v14-progress-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}.v14-progress-foot strong{font-size:.72rem}.v14-progress-foot small{font-size:.57rem;color:rgba(255,255,255,.63);font-weight:750}
+.v14-journey-road:after{content:"";position:absolute;left:13px;top:50%;height:2px;width:var(--journey-pct,0%);max-width:calc(100% - 26px);transform:translateY(-50%);background:rgba(240,128,38,.88);box-shadow:0 0 12px rgba(240,128,38,.38);z-index:2;transition:width .5s ease}
+.v14-advance-pop{position:absolute;left:50%;top:128px;z-index:8;transform:translateX(-50%);padding:8px 12px;border-radius:999px;background:#fff;color:#2f7d4a;font-size:.72rem;font-weight:1000;box-shadow:0 8px 20px rgba(0,0,0,.2);animation:v14pop 1.9s ease both;white-space:nowrap}
+.v14-arrival-badge{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px auto 3px;padding:8px 11px;width:max-content;max-width:100%;border-radius:999px;background:rgba(255,255,255,.12);font-size:.63rem;color:rgba(255,255,255,.72)}
+.v14-arrival-badge strong{color:#fff;font-size:.7rem}
+@keyframes v14pop{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}15%,70%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-7px) scale(.98)}}
+@media(prefers-reduced-motion:reduce){.v14-progress-track span,.v14-journey-road:after{transition:none}.v14-advance-pop{animation:none;opacity:1}}
