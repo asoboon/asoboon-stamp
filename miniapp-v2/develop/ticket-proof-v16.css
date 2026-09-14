@@ -1,0 +1,12 @@
+.v16-proof{position:relative;overflow:hidden;margin:8px 0 2px;padding:10px 11px;border:1px solid rgba(255,255,255,.15);border-radius:14px;background:rgba(255,255,255,.07);color:#fff}
+.v16-facts{display:flex;align-items:center;justify-content:center;gap:12px}.v16-facts>span{display:flex;align-items:baseline;gap:5px}.v16-facts small{font-size:.55rem;color:rgba(255,255,255,.62);font-weight:850}.v16-facts strong{font-size:.76rem;letter-spacing:.02em}.v16-facts i{width:1px;height:20px;background:rgba(255,255,255,.18)}
+.v16-breakdown{margin-top:5px;text-align:center;color:rgba(255,255,255,.72);font-size:.58rem;font-weight:800}
+.v16-live{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:7px 8px;border-radius:10px;background:rgba(47,125,74,.92);font-variant-numeric:tabular-nums}
+.v16-live:after{content:"";position:absolute;top:0;bottom:0;width:32px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);animation:v16sweep 2.3s linear infinite;pointer-events:none}
+.v16-live-dot{width:7px;height:7px;border-radius:50%;background:#dff9e6;box-shadow:0 0 0 3px rgba(223,249,230,.15);animation:v16pulse 1s ease-in-out infinite alternate}.v16-live b{font-size:.6rem;letter-spacing:.08em}.v16-live time{font-size:.76rem;font-weight:1000}.v16-live small{font-size:.5rem;color:rgba(255,255,255,.82);font-weight:800}
+.v7-hero.light .v16-proof{background:#f7f4ed;border-color:#ddd7cb;color:#293033}.v7-hero.light .v16-facts small,.v7-hero.light .v16-breakdown{color:#747a78}.v7-hero.light .v16-facts i{background:#ddd7cb}
+.cs-ticket .v16-proof{margin:12px 0 0;background:#30363b;border:0}.cs-ticket .v16-live{background:#2f7d4a}
+@keyframes v16pulse{from{opacity:.55;transform:scale(.9)}to{opacity:1;transform:scale(1.12)}}
+@keyframes v16sweep{from{left:-40px}to{left:calc(100% + 10px)}}
+@media(prefers-reduced-motion:reduce){.v16-live:after,.v16-live-dot{animation:none}}
+@media(max-width:360px){.v16-facts{gap:8px}.v16-live{gap:4px}.v16-live small{font-size:.46rem}}
