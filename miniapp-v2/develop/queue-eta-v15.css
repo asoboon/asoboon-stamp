@@ -1,0 +1,10 @@
+.v15-goal-card{margin:11px 0 2px;padding:12px 13px;border:1px solid rgba(255,255,255,.13);border-radius:15px;background:rgba(255,255,255,.075);text-align:center;color:#fff}
+.v15-goal-label{font-size:.6rem;font-weight:850;color:rgba(255,255,255,.62);letter-spacing:.02em}
+.v15-eta-main{margin-top:3px;font-size:1.13rem;line-height:1.2;font-weight:1000;letter-spacing:-.025em}
+.v15-stage{margin-top:5px;font-size:.71rem;font-weight:950;color:#ffe1bd}
+.v15-eta-note{margin-top:4px;font-size:.54rem;line-height:1.45;font-weight:700;color:rgba(255,255,255,.58)}
+.v15-goal-road:after{content:"";position:absolute;left:13px;top:50%;height:3px;width:var(--goal-pct,0%);max-width:calc(100% - 26px);transform:translateY(-50%);border-radius:99px;background:rgba(240,128,38,.92);box-shadow:0 0 14px rgba(240,128,38,.42);z-index:2;transition:width .65s ease}
+.v15-goal-road.v15-arrived:after{width:100%}
+.v15-arrival-badge{display:flex;align-items:center;justify-content:center;gap:9px;margin:10px auto 4px;padding:8px 12px;width:max-content;max-width:100%;border-radius:999px;background:rgba(255,255,255,.13);color:rgba(255,255,255,.8);font-size:.63rem;font-weight:850}
+.v15-arrival-badge strong{color:#fff;font-size:.72rem;letter-spacing:.08em}
+@media(prefers-reduced-motion:reduce){.v15-goal-road:after{transition:none!important}}
