@@ -91,7 +91,6 @@ async function refresh(){
   try{
     const cached=cachedReservation();
     if(!cached?.receiptNo){emit({kind:'none'});return}
-    emit({kind:'sync',receipt:String(cached.receiptNo),message:'受付情報を確認しています。'});
     let session=await ensureSession(cached);
     if(gen!==generation||currentView()!=='home')return;
     if(!session){emit({kind:'none'});return}
