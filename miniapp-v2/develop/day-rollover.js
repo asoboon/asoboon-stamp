@@ -61,8 +61,13 @@ function scheduleReset(){
     location.reload();
   },msToNextCutoff());
 }
+function refreshAfterResume(){
+  const changed=purgeStaleDay();
+  if(changed){location.reload();return}
+  scheduleReset();
+}
 purgeStaleDay();
 scheduleReset();
-window.addEventListener('focus',()=>{purgeStaleDay();scheduleReset()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){purgeStaleDay();scheduleReset()}});
+window.addEventListener('focus',refreshAfterResume);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAfterResume()});
 })();
