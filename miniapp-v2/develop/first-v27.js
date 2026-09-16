@@ -9,6 +9,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
   <p>受付して、待って、呼ばれたら入口へ。まずはこの流れだけ分かれば大丈夫です。</p>
  </div>
  <div class="pv7-body">
+  <span class="v12-first-locker v27-locker-sentinel" hidden aria-hidden="true"></span>
   <div class="v27-flow" aria-label="初めての方の利用の流れ">
    <article class="v27-step reception">
     <div class="v27-num">01</div>
