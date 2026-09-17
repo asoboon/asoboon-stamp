@@ -6,7 +6,7 @@ let timer=0,queued=false;
 const readJSON=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const read=()=>{const cur=readJSON(RES_KEY);if(cur?.receiptNo)return cur;const last=readJSON(LAST_KEY);return last?.receiptNo?last:null};
 const view=()=>String(new URLSearchParams(location.search).get('view')||'home');
-const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function dateLabel(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[1]}.${m[2]}.${m[3]}`:String(v||'—')}
 function clock(){try{return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())}catch{return'--:--:--'}}
 function yen(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('ja-JP')+'円':'—'}
