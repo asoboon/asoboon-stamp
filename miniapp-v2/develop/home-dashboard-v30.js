@@ -11,11 +11,11 @@ function noneMarkup(d){if(d?.canceled)return `<div class="v30-home-card v30-home
 function syncMarkup(d){return `<div class="v30-home-card v30-home-neutral"><div class="v30-state-label">確認中</div><h1>受付状況を確認しています</h1><p>${esc(d?.message||'最新の状況を確認しています。')}</p><button class="v30-action dark" type="button" data-v7-view="callstatus">呼出状況を確認する <span>›</span></button></div>`}
 function guideMarkup(){return `<div class="v30-home-card v30-home-neutral"><div class="v30-state-label">ご案内中</div><h1>スタッフのご案内をご確認ください</h1><p>入場・退場の案内もこちらから確認できます。</p><button class="v30-action dark" type="button" data-v7-view="entry">入場・退場の案内を見る <span>›</span></button></div>`}
 function desired(d){const kind=String(d?.kind||'sync');if(kind==='waiting'){const n=Number(d?.ahead);if(Number.isFinite(n))return{kind,sig:`waiting|${d?.receipt||''}|${n}`,html:waitingMarkup(d,n)}}if(kind==='calling')return{kind,sig:`calling|${d?.receipt||''}`,html:callingMarkup(d)};if(kind==='none')return{kind,sig:`none|${d?.canceled?'1':'0'}|${d?.receipt||''}`,html:noneMarkup(d)};if(kind==='guide')return{kind,sig:'guide',html:guideMarkup()};return{kind:'sync',sig:`sync|${d?.receipt||''}|${d?.message||''}`,html:syncMarkup(d)}}
-function patch(){queued=false;if(view()!=='home')return;latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||latest||{kind:'sync'};const hero=root.querySelector('#v7Hero');if(!hero)return;const want=desired(latest);if(hero.dataset.v30Sig===want.sig&&hero.querySelector('.v30-home-card'))return;hero.dataset.v30Sig=want.sig;hero.className=`v7-hero v30-home-hero v30-kind-${want.kind}`;hero.innerHTML=want.html}
+function patch(){queued=false;if(view()!=='home')return;const d=latest||window.ASOBOON_HOME_STATUS_SNAPSHOT||{kind:'sync'};const hero=root.querySelector('#v7Hero');if(!hero)return;const want=desired(d);if(hero.dataset.v30Sig===want.sig&&hero.querySelector('.v30-home-card'))return;hero.dataset.v30Sig=want.sig;hero.className=`v7-hero v30-home-hero v30-kind-${want.kind}`;hero.innerHTML=want.html}
 function queue(){if(queued)return;queued=true;queueMicrotask(patch)}
 window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};queue()});
 window.addEventListener('popstate',()=>setTimeout(()=>{latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||latest;patch()},0));
-window.addEventListener('focus',()=>setTimeout(patch,0));
+window.addEventListener('focus',()=>setTimeout(()=>{latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||latest;patch()},0));
 new MutationObserver(queue).observe(root,{childList:true,subtree:true});
 patch();setTimeout(patch,80);setTimeout(patch,350);
 })();
