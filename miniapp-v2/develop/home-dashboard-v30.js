@@ -16,6 +16,5 @@ function queue(){if(queued)return;queued=true;queueMicrotask(patch)}
 window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};queue()});
 window.addEventListener('popstate',()=>setTimeout(()=>{latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||latest;patch()},0));
 window.addEventListener('focus',()=>setTimeout(()=>{latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||latest;patch()},0));
-new MutationObserver(queue).observe(root,{childList:true,subtree:true});
 patch();setTimeout(patch,80);setTimeout(patch,350);
 })();
