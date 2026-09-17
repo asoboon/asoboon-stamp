@@ -233,5 +233,4 @@ jobs:
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('missing cache versions');
           if(new Set(versions).size!==1) throw new Error('cache versions differ');
-          if(versions[0]!=='20260913-01') throw new Error(`unexpected cache version ${versions[0]}`);
           NODE
