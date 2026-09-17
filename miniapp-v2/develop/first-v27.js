@@ -14,9 +14,9 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-num">01</div>
     <div class="v27-step-copy">
      <span class="v27-kicker">来場前</span>
-     <h2>LINEで当日受付</h2>
-     <strong>当日7:00〜・どこからでも</strong>
-     <p>利用する回と人数を選んで、LINEで順番を取ります。</p>
+     <h2>当日受付</h2>
+     <strong>オンライン受付対象日は7:00〜</strong>
+     <p>対象日はLINEで順番を取れます。通常の平日は現地でご案内します。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -26,7 +26,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれるまで</span>
      <h2>入口に並ばなくてOK</h2>
      <strong>HOMEで「あなたの前 ○組」を確認</strong>
-     <p>順番になるまで、入口で並んで待つ必要はありません。</p>
+     <p>LINEで順番を取ったあとは、入口で並んで待つ必要はありません。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
