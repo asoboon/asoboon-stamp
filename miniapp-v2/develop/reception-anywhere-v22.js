@@ -13,7 +13,7 @@ function patch(){queued=false;if(view()!=='reception')return;const web=root.quer
    formSelectors.forEach(sel=>setHidden(sel,true));
    root.querySelector('.v22-anywhere-note')?.setAttribute('hidden','');
    let stop=root.querySelector('.v22-weekday-stop');
-   if(!stop){root.querySelector('#recDay')?.insertAdjacentHTML('afterend','<div class="v22-weekday-stop"><strong>通常平日は現地受付です</strong><span>9:30からASOBooN入口で受付します。LINE当日受付は対象日のみご利用いただけます。</span></div>');stop=root.querySelector('.v22-weekday-stop')}
+   if(!stop){root.querySelector('#recDay')?.insertAdjacentHTML('afterend','<div class="v22-anywhere-note v22-weekday-stop"><strong>通常平日は現地受付です</strong><span>9:30からASOBooN入口で受付します。LINE当日受付は対象日のみご利用いただけます。</span></div>');stop=root.querySelector('.v22-weekday-stop')}
    if(status)status.textContent='本日はLINE当日受付を行っていません。ASOBooN入口で受付してください。';
  }else{
    root.querySelector('.v22-weekday-stop')?.remove();
