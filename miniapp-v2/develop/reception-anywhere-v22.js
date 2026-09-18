@@ -102,6 +102,9 @@ function patch(){queued=false;if(view()!=='reception')return;
  if(status&&closed&&test&&!/受付中|送信|完了|結果|確認しています/.test(String(status.textContent||''))){
    status.textContent='本日は休館日です。下の紫色の「入場不可テスト」はDeveloping専用で利用できます。';
  }
+ if(status&&!plainWeekday&&!closed&&test&&/Developing：AirWAIT現地枠/.test(String(status.textContent||''))){
+   status.textContent='受付できます。下の紫色のブロックはDeveloping専用テストです。';
+ }
  if(status&&/location\s*stale|locationstale/i.test(String(status.textContent||'')))status.textContent='受付を確定できませんでした。もう一度お試しください。';
 }
 
