@@ -82,6 +82,13 @@ function patch(){queued=false;if(view()!=='reception')return;
  }
 
  const test=moveTestSlot();
+ const testSelected=Boolean(test&&test.classList.contains('active'));
+ const modeLabel=root.querySelector('#recModeLabel');
+ const submit=root.querySelector('#recSubmit');
+ if(testSelected){
+   if(modeLabel)modeLabel.textContent='Developingテスト';
+   if(submit&&!submit.disabled&&!/受付中/.test(String(submit.textContent||'')))submit.textContent='テスト受付をする';
+ }
  const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
  const regularSlots=[...root.querySelectorAll('#recSlots [data-rec-slot]')];
  const noRegular=plainWeekday||closed||regularSlots.length===0;
