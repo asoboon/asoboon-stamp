@@ -42,7 +42,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
   </div>
   <div class="v27-finish" aria-label="入場までの最後の流れ"><span>受付番号を見せる</span><b>→</b><span>会計</span><b>→</b><strong>入場！</strong></div>
   <div class="v27-basic"><div><small>対象</small><strong>0歳〜小学6年生</strong></div><div><small>人数</small><strong>保護者1名につき子ども3名まで</strong></div></div>
-  <button class="pv7-primary v27-primary" type="button" data-pv7-view="reception">当日受付をする</button>
+  <button class="pv7-primary v27-primary" type="button" data-pv7-view="reception">当日受付を確認する</button>
   <button class="pv7-text-btn" type="button" data-pv7-view="first" data-pv7-panel="price">料金を見る</button>
  </div>
 </section>`}
