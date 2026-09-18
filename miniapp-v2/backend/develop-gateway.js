@@ -22,7 +22,7 @@ const CFG = Object.freeze({
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
-  OPERATIONAL_CUTOFF_HOUR: 18,
+  OPERATIONAL_CUTOFF_HOUR: 19,
   WEB_OPEN_MIN: 7 * 60,
   ONSITE_OPEN_MIN: 9 * 60 + 30,
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,
@@ -195,6 +195,7 @@ async function health(env) {
     storeId: CFG.STORE_ID,
     allowedOrigin: CFG.ALLOWED_ORIGIN,
     browserHitsAirwait: false,
+    operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
   };
 }
 
