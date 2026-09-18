@@ -166,6 +166,7 @@ jobs:
                   x.airwaitKeyConfigured!==true ||
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
+                  x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||
                   x.serviceMessageVersion!=="2.4.dev7" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
