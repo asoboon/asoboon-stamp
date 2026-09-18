@@ -101,7 +101,7 @@ jobs:
           grep -F "day.businessType === '平日' && mode === 'web'" miniapp-v2/backend/develop-gateway.js
           grep -F "WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY" miniapp-v2/backend/develop-gateway.js
           grep -F "const TEST_WAIT_TYPE_ID='0042';" miniapp-v2/develop/reception-anywhere-v22.js
-          grep -F "class=\"v22-dev-test\"" miniapp-v2/develop/reception-anywhere-v22.js
+          grep -F "section.className='v22-dev-test';" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "DEVELOPING ONLY" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "本番ミニアプリには表示されません。" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "Developingテスト" miniapp-v2/develop/reception-anywhere-v22.js
