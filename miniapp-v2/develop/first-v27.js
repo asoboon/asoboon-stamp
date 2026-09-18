@@ -15,8 +15,8 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-step-copy">
      <span class="v27-kicker">来場前</span>
      <h2>当日受付</h2>
-     <strong>オンライン受付対象日は7:00〜</strong>
-     <p>対象日はLINEで順番を取れます。通常の平日は現地でご案内します。</p>
+     <strong>対象日はLINE・通常平日は現地</strong>
+     <p>オンライン受付対象日は7:00からLINEで順番を取れます。通常平日はASOBooN入口で受付します。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -24,9 +24,9 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-num">02</div>
     <div class="v27-step-copy">
      <span class="v27-kicker">呼ばれるまで</span>
-     <h2>入口に並ばなくてOK</h2>
+     <h2>LINE受付の日は順番を確認</h2>
      <strong>HOMEで「あなたの前 ○組」を確認</strong>
-     <p>LINEで順番を取ったあとは、入口で並んで待つ必要はありません。</p>
+     <p>LINEで順番を取った日は、入口で並ばずに呼出状況を確認できます。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -36,7 +36,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれたら</span>
      <h2>ASOBooN入口へ</h2>
      <strong>呼出後30分以内</strong>
-     <p>LINEでお知らせします。呼出状況に表示される受付番号をスタッフへ見せて、会計後に入場です。</p>
+     <p>LINE受付の日は通知後、受付番号をスタッフへ見せてください。現地受付の日はスタッフの案内に沿ってお進みください。</p>
     </div>
    </article>
   </div>
