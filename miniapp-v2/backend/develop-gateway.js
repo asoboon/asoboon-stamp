@@ -263,6 +263,7 @@ async function getBusinessDay(date) {
 
 function enforceReceptionHours(day, mode) {
   if (day.isClosed) throw apiError('CLOSED_DAY', 400);
+  if (day.businessType === '平日' && mode === 'web') throw apiError('WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY', 400);
   const min = currentMinute();
   const open = mode === 'onsite' ? CFG.ONSITE_OPEN_MIN : CFG.WEB_OPEN_MIN;
   if (min < open) throw apiError(mode === 'onsite' ? 'ONSITE_NOT_OPEN_YET' : 'WEB_NOT_OPEN_YET', 400);
