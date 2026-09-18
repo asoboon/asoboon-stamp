@@ -95,13 +95,14 @@ jobs:
           grep -F 'getBusinessDayCachedForCreate(env, serverDate)' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
-      - name: Regular weekdays must be onsite-only
+      - name: Regular weekdays block normal LINE reception but keep 0042 test
         run: |
           set -euo pipefail
           grep -F "day.businessType === '平日' && mode === 'web'" miniapp-v2/backend/develop-gateway.js
           grep -F "WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY" miniapp-v2/backend/develop-gateway.js
-          grep -F "通常平日は現地受付です" miniapp-v2/develop/reception-anywhere-v22.js
-          grep -F "plainWeekday&&!dev" miniapp-v2/develop/reception-anywhere-v22.js
+          grep -F "const TEST_WAIT_TYPE_ID='0042';" miniapp-v2/develop/reception-anywhere-v22.js
+          grep -F "通常平日は0042テスト枠のみ利用できます。" miniapp-v2/develop/reception-anywhere-v22.js
+          grep -F "plainWeekday&&!isTest" miniapp-v2/develop/reception-anywhere-v22.js
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node <<'NODE'
           const fs=require('fs');
