@@ -44,7 +44,7 @@ async function installLiff(page, mode) {
 async function openHome(page, mode) {
   await installLiff(page, mode);
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('.v35-home, .v37-home')).toBeVisible();
+  await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 }
 
 const routes = [
@@ -69,7 +69,7 @@ for (const mode of ['resolve', 'reject', 'pending', 'missing']) {
       await expect(page.locator('main.view')).toContainText(heading);
       await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
       await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('home');
-      await expect(page.locator('.v35-home, .v37-home')).toBeVisible();
+      await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
     }
   });
 }
@@ -80,7 +80,7 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await price.click();
   await expect.poll(() => new URL(page.url()).searchParams.get('panel')).toBe('price');
   await page.goBack();
-  await expect(page.locator('.v35-home, .v37-home')).toBeVisible();
+  await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
   await page.goForward();
   await expect(page.locator('main.view')).toContainText('料金');
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
@@ -92,7 +92,7 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
-  await expect(page.locator('.v35-home, .v37-home')).toBeVisible();
+  await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 });
 
 test('Developing test reception slot never accumulates after repeated slot renders', async ({ page }) => {

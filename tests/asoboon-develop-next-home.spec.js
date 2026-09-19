@@ -17,8 +17,8 @@ async function installNextHome(page, liffMode = 'resolve') {
   await page.route(BASE, async route => {
     if (process.env.ASOBOON_BASE_URL) return route.continue();
     const html = fs.readFileSync(LOCAL_INDEX, 'utf8')
-      .replace(/\.\/home-v35\.css\?v=[^\"']+/, './home-v37.css?v=next-test')
-      .replace(/\.\/home-v35\.js\?v=[^\"']+/, './home-v37.js?v=next-test');
+      .replace(/\.\/home-v(?:35|37)\.css\?v=[^\"']+/, './home-v38.css?v=next-test')
+      .replace(/\.\/home-v(?:35|37)\.js\?v=[^\"']+/, './home-v38.js?v=next-test');
     await route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
   });
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
@@ -51,8 +51,8 @@ async function installNextHome(page, liffMode = 'resolve') {
 async function openNextHome(page, liffMode = 'resolve') {
   await installNextHome(page, liffMode);
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('.v37-home')).toBeVisible();
-  await expect(page.locator('#v37Hero')).toContainText('本日の当日受付');
+  await expect(page.locator('.v38-home')).toBeVisible();
+  await expect(page.locator('#v38Hero')).toContainText('当日受付');
 }
 
 async function setStatus(page, detail) {
@@ -66,7 +66,7 @@ const routes = [
   ['[data-v7-view="parking"]', 'parking', null, /駐車場/],
   ['[data-v7-view="rules"]', 'rules', null, /館内ルール/],
   ['[data-v7-view="entry"]', 'entry', null, /一時退場/],
-  ['#v37Today', 'timeguide', null, /利用時間/],
+  ['#v38Today', 'timeguide', null, /利用時間/],
 ];
 
 test('inactive next HOME exposes every required route on the stable navigator', async ({ page }) => {
@@ -77,28 +77,28 @@ test('inactive next HOME exposes every required route on the stable navigator', 
     if (panel) await expect.poll(() => new URL(page.url()).searchParams.get('panel')).toBe(panel);
     await expect(page.locator('main.view')).toContainText(heading);
     await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
-    await expect(page.locator('.v37-home')).toBeVisible();
+    await expect(page.locator('.v38-home')).toBeVisible();
   }
-  await expect(page.locator('.v37-fun-card[disabled]')).toHaveCount(3);
-  await expect(page.locator('.v37-fun')).toContainText('準備中');
+  await expect(page.locator('.v38-fun-card[disabled]')).toHaveCount(3);
+  await expect(page.locator('.v38-fun')).toContainText('準備中');
 });
 
 test('next HOME renders none, waiting, calling, guide and canceled states', async ({ page }) => {
   await openNextHome(page);
   await setStatus(page, { kind: 'none' });
-  await expect(page.locator('#v37Hero')).toContainText('本日の当日受付');
+  await expect(page.locator('#v38Hero')).toContainText('当日受付');
   await setStatus(page, { kind: 'waiting', receipt: 'F123', ahead: 7 });
-  await expect(page.locator('#v37Hero')).toContainText('順番待ち');
-  await expect(page.locator('#v37Hero')).toContainText('受付番号 F123');
-  await expect(page.locator('#v37Hero')).toContainText('7');
+  await expect(page.locator('#v38Hero')).toContainText('順番待ち');
+  await expect(page.locator('#v38Hero')).toContainText('受付番号 F123');
+  await expect(page.locator('#v38Hero')).toContainText('7');
   await setStatus(page, { kind: 'calling', receipt: 'F123' });
-  await expect(page.locator('#v37Hero')).toContainText('入場できます！');
-  await expect(page.locator('#v37Hero')).toContainText('呼出後30分以内');
+  await expect(page.locator('#v38Hero')).toContainText('入場できます！');
+  await expect(page.locator('#v38Hero')).toContainText('呼出後30分以内');
   await setStatus(page, { kind: 'guide', receipt: 'F123' });
-  await expect(page.locator('#v37Hero')).toContainText('ご利用中のご案内');
+  await expect(page.locator('#v38Hero')).toContainText('ご利用中');
   await setStatus(page, { kind: 'none', canceled: true });
-  await expect(page.locator('#v37Hero')).toContainText('当日受付は取消済みです');
-  await expect(page.locator('#v37Hero [data-v7-view="reception"]')).toBeVisible();
+  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
+  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
 });
 
 for (const mode of ['resolve', 'reject', 'pending', 'missing']) {
@@ -107,7 +107,7 @@ for (const mode of ['resolve', 'reject', 'pending', 'missing']) {
     await page.locator('[data-v7-view="first"][data-v7-panel="price"]').click();
     await expect.poll(() => new URL(page.url()).searchParams.get('panel')).toBe('price');
     await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
-    await expect(page.locator('.v37-home')).toBeVisible();
+    await expect(page.locator('.v38-home')).toBeVisible();
   });
 }
 
@@ -118,7 +118,7 @@ test('next HOME tolerates startup click, repeated click, history and lifecycle e
   await price.click();
   await expect.poll(() => new URL(page.url()).searchParams.get('panel')).toBe('price');
   await page.goBack();
-  await expect(page.locator('.v37-home')).toBeVisible();
+  await expect(page.locator('.v38-home')).toBeVisible();
   await page.goForward();
   await expect(page.locator('main.view')).toContainText('料金');
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
@@ -130,5 +130,36 @@ test('next HOME tolerates startup click, repeated click, history and lifecycle e
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
-  await expect(page.locator('.v37-home')).toBeVisible();
+  await expect(page.locator('.v38-home')).toBeVisible();
 });
+
+test('v38 Japanese copy has no decorative English or emoji', async ({ page }) => {
+  await openNextHome(page);
+  const text = await page.locator('.v38-home').innerText();
+  for (const banned of ['TODAY ACTION', 'GUIDE', 'FUN', 'NOW CALLING', 'IN ASOBOON', 'CANCELED']) {
+    expect(text).not.toContain(banned);
+  }
+  expect(text).not.toMatch(/[🎮🎯🔩🎫🔔⏱️]/u);
+  expect((text.match(/確認/g) || []).length).toBeLessThanOrEqual(1);
+});
+
+for (const width of [320, 375, 390, 430]) {
+  test(`v38 visual viewport ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openNextHome(page);
+    const output = path.join('test-results', 'v38-visual');
+    fs.mkdirSync(output, { recursive: true });
+    await expect(page.locator('.v38-home')).toBeVisible();
+    await expect(page.locator('.v38-action.primary')).toHaveCount(1);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(overflow).toBe(false);
+    await page.screenshot({ path: path.join(output, `home-${width}.png`), fullPage: true });
+    if (width === 390) {
+      const blurStyle = await page.addStyleTag({ content: '.v38-home *{color:transparent!important;text-shadow:0 0 7px rgba(0,0,0,.65)!important}' });
+      await page.screenshot({ path: path.join(output, 'home-390-blur.png'), fullPage: true });
+      await blurStyle.evaluate(element => element.remove());
+      await page.addStyleTag({ content: 'html{filter:grayscale(1)!important}' });
+      await page.screenshot({ path: path.join(output, 'home-390-gray.png'), fullPage: true });
+    }
+  });
+}
