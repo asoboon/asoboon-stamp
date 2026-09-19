@@ -94,3 +94,17 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
   await expect(page.locator('.v35-home, .v37-home')).toBeVisible();
 });
+
+test('Developing test reception slot never accumulates after repeated slot renders', async ({ page }) => {
+  await openHome(page, 'resolve');
+  await page.locator('[data-v7-view="reception"]').click();
+  await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
+  for (let i = 0; i < 5; i += 1) {
+    await page.evaluate(() => {
+      const slots = document.querySelector('#recSlots');
+      slots.insertAdjacentHTML('beforeend', '<button type="button" data-rec-slot="0042"><strong>入場不可テスト</strong><small>0042</small></button>');
+    });
+    await expect(page.locator('.v22-dev-test-slot [data-rec-slot="0042"]')).toHaveCount(1);
+  }
+  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(1);
+});
