@@ -3,10 +3,16 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'tests/asoboon-develop-*.spec.js'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'tests/asoboon-develop-*.spec.js'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
 
 jobs:
