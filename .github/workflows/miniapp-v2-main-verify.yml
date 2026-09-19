@@ -141,9 +141,18 @@ jobs:
       - name: Lock call status as a first-class Developing route
         run: |
           set -euo pipefail
-          grep -F "if(view==='callstatus')return callstatusPage()" miniapp-v2/shared/app.js
-          grep -F "callstatusModule()?.mount?." miniapp-v2/shared/app.js
-          grep -F "callstatusModule()?.watchReception?." miniapp-v2/shared/app.js
+          node <<'NODE'
+          const fs=require('fs'),path=require('path');
+          const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
+          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          if(!appSrc) throw new Error('Active Developing app script not found');
+          const appPath=path.normalize(path.join('miniapp-v2/develop',appSrc.split('?')[0]));
+          const app=fs.readFileSync(appPath,'utf8');
+          for(const needle of ["if(view==='callstatus')return callstatusPage()","callstatusModule()?.mount?.","callstatusModule()?.watchReception?."]){
+            if(!app.includes(needle)) throw new Error('Active app missing callstatus invariant: '+needle);
+          }
+          NODE
           grep -F 'render:pageHtml' miniapp-v2/shared/callstatus.js
           grep -F 'mount:mountCallstatus' miniapp-v2/shared/callstatus.js
           grep -F 'watchReception' miniapp-v2/shared/callstatus.js
@@ -153,8 +162,18 @@ jobs:
       - name: Lock play-time guide as a first-class Developing route
         run: |
           set -euo pipefail
-          grep -F "if(view==='timeguide')return timePage()" miniapp-v2/shared/app.js
-          grep -F "timeguideModule()?.mount?." miniapp-v2/shared/app.js
+          node <<'NODE'
+          const fs=require('fs'),path=require('path');
+          const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
+          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          if(!appSrc) throw new Error('Active Developing app script not found');
+          const appPath=path.normalize(path.join('miniapp-v2/develop',appSrc.split('?')[0]));
+          const app=fs.readFileSync(appPath,'utf8');
+          for(const needle of ["if(view==='timeguide')return timePage()","timeguideModule()?.mount?."]){
+            if(!app.includes(needle)) throw new Error('Active app missing timeguide invariant: '+needle);
+          }
+          NODE
           grep -F 'window.ASOBOON_V2_TIMEGUIDE=Object.freeze' miniapp-v2/shared/timeguide.js
           grep -F "OPENING_TIME='10:00'" miniapp-v2/shared/timeguide.js
           grep -F 'day.closingTime' miniapp-v2/shared/timeguide.js
@@ -165,12 +184,36 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
+          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          if(!appSrc) throw new Error('Active Developing app script not found');
           const call=html.indexOf('../shared/callstatus.js');
           const time=html.indexOf('../shared/timeguide.js');
-          const app=html.indexOf('../shared/app.js');
-          if(call<0||time<0||app<0||call>app||time>app) throw new Error('Developing feature modules must load before app.js');
+          const app=html.indexOf(appSrc);
+          const router=html.indexOf('./router-v7.js');
+          if(call<0||time<0||app<0||router<0||call>app||time>app||app>router) throw new Error('Developing load order must be feature modules -> active app -> router');
           if(!html.includes('../shared/timeguide.css')) throw new Error('timeguide.css must be loaded');
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('Developing assets must carry cache versions');
           if(new Set(versions).size!==1) throw new Error('Developing asset cache versions must be consistent');
+          NODE
+
+      - name: Lock Developing new HOME DOM ownership
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
+          if(!html.includes('./app-newhome-shell-v1.js')) throw new Error('Dedicated Developing app shell must be active');
+          if(html.includes('../shared/app.js')) throw new Error('Shared app.js must not compete with dedicated Developing app shell');
+          if(!html.includes('./new-home-v6.js')) throw new Error('new-home-v6.js must be active');
+          const app=fs.readFileSync('miniapp-v2/develop/app-newhome-shell-v1.js','utf8');
+          const home=fs.readFileSync('miniapp-v2/develop/new-home-v6.js','utf8');
+          if(!app.includes('id="newHomeHost"')) throw new Error('Dedicated HOME host missing');
+          if(!app.includes('asoboon:v2-rendered')) throw new Error('App render completion event missing');
+          for(const forbidden of ['root.innerHTML=shell()','root.firstElementChild','outerHTML']){
+            if(home.includes(forbidden)) throw new Error('new HOME must not own app root DOM: '+forbidden);
+          }
+          if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
+          if(!home.includes('BUSINESS_DAY_HOME_TIMEOUT')||!home.includes('4500')) throw new Error('new HOME business-day fail-safe missing');
           NODE
