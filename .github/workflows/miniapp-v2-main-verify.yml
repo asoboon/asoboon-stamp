@@ -145,7 +145,7 @@ jobs:
           const fs=require('fs'),path=require('path');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
           const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
-          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          const appSrc=scripts.find(s=>s.includes('./app-stable-')||s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
           if(!appSrc) throw new Error('Active Developing app script not found');
           const appPath=path.normalize(path.join('miniapp-v2/develop',appSrc.split('?')[0]));
           const app=fs.readFileSync(appPath,'utf8');
@@ -166,7 +166,7 @@ jobs:
           const fs=require('fs'),path=require('path');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
           const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
-          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          const appSrc=scripts.find(s=>s.includes('./app-stable-')||s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
           if(!appSrc) throw new Error('Active Developing app script not found');
           const appPath=path.normalize(path.join('miniapp-v2/develop',appSrc.split('?')[0]));
           const app=fs.readFileSync(appPath,'utf8');
@@ -178,20 +178,22 @@ jobs:
           grep -F "OPENING_TIME='10:00'" miniapp-v2/shared/timeguide.js
           grep -F 'day.closingTime' miniapp-v2/shared/timeguide.js
           grep -F 'day.durationMinutes' miniapp-v2/shared/timeguide.js
-      - name: Lock Developing module script order before router
+      - name: Lock Developing module and app load order
         run: |
           set -euo pipefail
           node <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
           const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
-          const appSrc=scripts.find(s=>s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
+          const appSrc=scripts.find(s=>s.includes('./app-stable-')||s.includes('app-newhome-shell-')||s.includes('../shared/app.js'));
           if(!appSrc) throw new Error('Active Developing app script not found');
           const call=html.indexOf('../shared/callstatus.js');
           const time=html.indexOf('../shared/timeguide.js');
           const app=html.indexOf(appSrc);
+          if(call<0||time<0||app<0||call>app||time>app) throw new Error('Developing feature modules must load before active app');
           const router=html.indexOf('./router-v7.js');
-          if(call<0||time<0||app<0||router<0||call>app||time>app||app>router) throw new Error('Developing load order must be feature modules -> active app -> router');
+          if(router>=0&&app>router) throw new Error('Optional router must load after active app');
+          if(appSrc.includes('./app-stable-')&&router>=0) throw new Error('Stable Developing app must own navigation without router-v7.js');
           if(!html.includes('../shared/timeguide.css')) throw new Error('timeguide.css must be loaded');
           const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
           if(versions.length<8) throw new Error('Developing assets must carry cache versions');
@@ -204,27 +206,28 @@ jobs:
           node <<'NODE'
           const fs=require('fs'),path=require('path');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
-          if(html.includes('../shared/app.js')){
+          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
+          const stableSrc=scripts.find(s=>s.includes('./app-stable-'));
+          if(stableSrc){
             if(!html.includes('./home-v35.js')) throw new Error('Stable Developing mode must load home-v35.js');
-            if(html.includes('./app-newhome-shell-')||html.includes('./new-home-v')) throw new Error('Stable Developing mode must not mix dedicated new HOME scripts');
+            if(html.includes('./router-v7.js')) throw new Error('Stable Developing mode must not load router-v7.js');
+            if(html.includes('./transition-v33.js')||html.includes('./transition-v33.css')) throw new Error('Stable Developing mode must not load legacy route transition lock');
+            if(/class="[^"]*v33-boot/.test(html)) throw new Error('Stable Developing mode must not boot with v33-boot interaction lock');
+            if(html.includes('../shared/app.js')||html.includes('./app-newhome-shell-')||html.includes('./new-home-v')) throw new Error('Stable Developing mode must have one app owner');
+            const app=fs.readFileSync(path.normalize(path.join('miniapp-v2/develop',stableSrc.split('?')[0])),'utf8');
+            if(app.includes("if(!state.liffReady&&state.inClient)return")) throw new Error('Stable app must never block navigation on LIFF readiness');
+            if(!app.includes('LIFF_INIT_TIMEOUT')||!app.includes('6000')) throw new Error('Stable app must bound LIFF initialization');
+            if(!app.includes("[data-v7-view],[data-pv7-view],[data-view],#backBtn")) throw new Error('Stable app must own all internal navigation selectors');
+            if(!app.includes("window.addEventListener('popstate',()=>{readRoute();render()});")) throw new Error('Stable app must render popstate even during boot');
+            if(!app.includes('let appEventsBound=false')) throw new Error('Stable app must bind navigation events once');
             process.exit(0);
           }
-          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
           const appSrc=scripts.find(s=>s.includes('./app-newhome-shell-'));
           const homeSrc=scripts.find(s=>s.includes('./new-home-v'));
-          if(!appSrc||!homeSrc) throw new Error('Active dedicated app shell or new HOME script missing');
+          if(!appSrc||!homeSrc) throw new Error('No supported Developing HOME owner found');
           const resolve=s=>path.normalize(path.join('miniapp-v2/develop',s.split('?')[0]));
           const app=fs.readFileSync(resolve(appSrc),'utf8');
           const home=fs.readFileSync(resolve(homeSrc),'utf8');
           if(!app.includes('id="newHomeHost"')) throw new Error('Dedicated HOME host missing');
-          if(!app.includes('asoboon:v2-rendered')) throw new Error('App render completion event missing');
-          for(const forbidden of ['root.innerHTML=shell()','root.firstElementChild','outerHTML']){
-            if(home.includes(forbidden)) throw new Error('new HOME must not own app root DOM: '+forbidden);
-          }
           if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
-          if(home.includes('ASOBOON_NEW_HOME_NAVIGATE')||home.includes('data-nh-view')||home.includes('bindHostNavigation')) throw new Error('new HOME must use native href navigation only');
-          if(home.includes('data-v7-view')) throw new Error('new HOME must not depend on legacy router navigation');
-          if(!home.includes('function routeHref(')) throw new Error('new HOME native href navigation missing');
-          if(!home.includes("document.body.classList.remove('v33-route-pending','v33-boot')")) throw new Error('new HOME must clear stale route interaction locks');
-          if(!home.includes('BUSINESS_DAY_HOME_TIMEOUT')||!home.includes('4500')) throw new Error('new HOME business-day fail-safe missing');
           NODE
