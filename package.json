@@ -2,7 +2,7 @@
   "name": "asoboon-stamp-verification",
   "private": true,
   "scripts": {
-    "test:miniapp-develop": "playwright test tests/asoboon-develop-browser.spec.js"
+    "test:miniapp-develop": "playwright test tests/asoboon-develop-browser.spec.js tests/asoboon-develop-next-home.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0"
