@@ -4,6 +4,7 @@ const E=window.ASOBOON_V2_ENV||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
+const HOME_SNAP_KEY='asoboon_v2_home_status_develop_v1';
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
 const POLL_FRONT_MS=5000;
@@ -76,8 +77,10 @@ function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=
 function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textContent=busy?'確認中…':'↻ 今すぐ更新'}}
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
+function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};else if(d.state==='waiting'&&Number.isFinite(Number(d.aheadCount)))status={kind:'waiting',receipt,ahead:Number(d.aheadCount),checkedAt,source:'callstatus'};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(['hold','processing','done'].includes(String(d.state||'')))status={kind:'guide',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'none',receipt,canceled:true,checkedAt,source:'callstatus'};else status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
 function applyStatus(d){
   if(!d||!$('csState'))return;
+  shareHomeStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
   if($('csReceipt'))$('csReceipt').textContent=receipt;

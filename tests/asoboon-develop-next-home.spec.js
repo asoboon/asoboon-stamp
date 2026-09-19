@@ -5,7 +5,7 @@ const path = require('node:path');
 const BASE = process.env.ASOBOON_BASE_URL || 'http://127.0.0.1:4173/miniapp-v2/develop/';
 const LOCAL_INDEX = path.join(process.cwd(), 'miniapp-v2/develop/index.html');
 
-async function installNextHome(page, liffMode = 'resolve') {
+async function installNextHome(page, liffMode = 'resolve', statusFixture = null) {
   await page.addInitScript(() => {
     const RealDate = Date;
     const fixed = new RealDate('2026-09-19T03:00:00.000Z').valueOf();
@@ -23,6 +23,12 @@ async function installNextHome(page, liffMode = 'resolve') {
   });
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url = new URL(route.request().url());
+    const action = url.searchParams.get('action') || new URLSearchParams(route.request().postData() || '').get('action');
+    if (action === 'reservationStatus' && statusFixture) {
+      const body = typeof statusFixture.next === 'function' ? statusFixture.next() : statusFixture;
+      if (body.delay) await new Promise(resolve => setTimeout(resolve, body.delay));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    }
     if (url.searchParams.get('action') === 'businessDay') {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
         ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', durationLabel: '9:30〜18:00', closingTime: '18:00'
@@ -43,9 +49,20 @@ async function installNextHome(page, liffMode = 'resolve') {
     await route.fulfill({
       status: 200,
       contentType: 'application/javascript',
-      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>false,getProfile:()=>Promise.resolve({displayName:'Test'})};`
+      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>${statusFixture?'true':'false'},getAccessToken:()=>${statusFixture?'"test_access_token_abcdefghijklmnopqrstuvwxyz"':'""'},getProfile:()=>Promise.resolve({displayName:'Test'})};`
     });
   });
+}
+
+async function openStatusScenario(page, statusFixture) {
+  await page.addInitScript(() => {
+    const now = Date.now();
+    localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({ receiptNo: 'F123', businessDate: '2026-09-19', waitTypeId: '0042' }));
+    localStorage.setItem('asoboon_v2_callstatus_session_develop_v1', JSON.stringify({ sessionToken: 's'.repeat(40), receiptNo: 'F123', businessDate: '2026-09-19', waitTypeId: '0042', expiresAt: now + 3600000 }));
+  });
+  await installNextHome(page, 'resolve', statusFixture);
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.v38-home')).toBeVisible();
 }
 
 async function openNextHome(page, liffMode = 'resolve') {
@@ -143,6 +160,58 @@ test('v38 Japanese copy has no decorative English or emoji', async ({ page }) =>
   expect((text.match(/確認/g) || []).length).toBeLessThanOrEqual(1);
 });
 
+test('HOME waiting and callstatus waiting remain consistent', async ({ page }) => {
+  const status = { ok: true, found: true, state: 'waiting', receiptNo: 'F123', businessDate: '2026-09-19', aheadCount: 8, checkedAt: Date.now() };
+  await openStatusScenario(page, status);
+  await expect(page.locator('#v38Hero')).toContainText('あと8組');
+  await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
+  await expect(page.locator('#csQueue')).toContainText('8組');
+  await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
+  await expect(page.locator('#v38Hero')).toContainText('あと8組');
+});
+
+test('callstatus canceled immediately owns HOME and survives lifecycle refresh', async ({ page }) => {
+  const status = { ok: true, found: true, state: 'canceled', receiptNo: 'F123', businessDate: '2026-09-19', checkedAt: Date.now() };
+  await openStatusScenario(page, status);
+  await setStatus(page, { kind: 'sync', receipt: 'F123' });
+  await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
+  await expect(page.locator('#csState')).toContainText('受付は取消になっています');
+  await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
+  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
+  await page.evaluate(() => { window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); });
+  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
+});
+
+test('callstatus calling updates HOME to admission state', async ({ page }) => {
+  const status = { ok: true, found: true, state: 'calling', receiptNo: 'F123', businessDate: '2026-09-19', aheadCount: 0, checkedAt: Date.now() };
+  await openStatusScenario(page, status);
+  await expect(page.locator('#v38Hero')).toContainText('入場できます！');
+});
+
+for (const state of ['hold', 'processing', 'done']) {
+  test(`callstatus ${state} updates HOME to in-use state`, async ({ page }) => {
+    await openStatusScenario(page, { ok: true, found: true, state, receiptNo: 'F123', businessDate: '2026-09-19', checkedAt: Date.now() });
+    await expect(page.locator('#v38Hero')).toContainText('ご利用中');
+  });
+}
+
+test('missing session settles on an actionable error instead of loading forever', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({ receiptNo: 'F123', businessDate: '2026-09-19' })));
+  await installNextHome(page, 'resolve');
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#v38Hero')).toContainText('受付状況を取得できません');
+  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toContainText('呼出状況を見る');
+});
+
+test('LIFF-ready during refresh queues exactly one follow-up refresh', async ({ page }) => {
+  let calls = 0;
+  const fixture = { next: () => ({ ok: true, found: true, state: 'waiting', receiptNo: 'F123', businessDate: '2026-09-19', aheadCount: ++calls === 1 ? 9 : 8, checkedAt: Date.now(), delay: calls === 1 ? 250 : 0 }) };
+  await openStatusScenario(page, fixture);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('asoboon:v2-liff-ready')));
+  await expect.poll(() => calls).toBeGreaterThanOrEqual(2);
+  await expect(page.locator('#v38Hero')).toContainText('あと8組');
+});
+
 for (const width of [320, 375, 390, 430]) {
   test(`v38 visual viewport ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -153,6 +222,8 @@ for (const width of [320, 375, 390, 430]) {
     await expect(page.locator('.v38-action.primary')).toHaveCount(1);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(overflow).toBe(false);
+    const meaningfulSizes = await page.evaluate(() => [...document.querySelectorAll('.v38-hero p,.v38-action,.v38-today small,.v38-today strong,.v38-guide-card strong,.v38-guide-card small,.v38-fun-card strong,.v38-fun-card small')].map(el => parseFloat(getComputedStyle(el).fontSize)));
+    expect(Math.min(...meaningfulSizes)).toBeGreaterThanOrEqual(13);
     await page.screenshot({ path: path.join(output, `home-${width}.png`), fullPage: true });
     if (width === 390) {
       const blurStyle = await page.addStyleTag({ content: '.v38-home *{color:transparent!important;text-shadow:0 0 7px rgba(0,0,0,.65)!important}' });

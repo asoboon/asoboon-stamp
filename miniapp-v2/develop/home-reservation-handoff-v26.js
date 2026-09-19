@@ -8,7 +8,7 @@ function currentReservation(){const r=read(RES_KEY);return r?.receiptNo?r:null}
 function sameLiveStatus(rec,status){
   if(!rec?.receiptNo||!status)return false;
   if(String(status.receipt||'')!==String(rec.receiptNo))return false;
-  return ['waiting','calling','guide','sync'].includes(String(status.kind||''));
+  return ['waiting','calling','guide','error'].includes(String(status.kind||''))||(status.kind==='none'&&status.canceled===true);
 }
 function provisional(rec,force=false){
   if(!rec?.receiptNo)return null;
