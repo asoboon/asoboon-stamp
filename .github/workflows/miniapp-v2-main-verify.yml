@@ -221,5 +221,7 @@ jobs:
           if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
           if(!home.includes('ASOBOON_NEW_HOME_NAVIGATE')) throw new Error('new HOME must use dedicated app navigation');
           if(home.includes('data-v7-view')) throw new Error('new HOME must not depend on legacy router navigation');
+          if(!home.includes('function routeHref(')) throw new Error('new HOME native href fallback missing');
+          if(!home.includes("document.body.classList.remove('v33-route-pending','v33-boot')")) throw new Error('new HOME must clear stale route interaction locks');
           if(!home.includes('BUSINESS_DAY_HOME_TIMEOUT')||!home.includes('4500')) throw new Error('new HOME business-day fail-safe missing');
           NODE
