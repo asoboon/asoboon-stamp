@@ -123,7 +123,7 @@ test('next HOME tolerates startup click, repeated click, history and lifecycle e
   await expect(page.locator('main.view')).toContainText('料金');
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
   const rules = page.locator('[data-v7-view="rules"]');
-  await Promise.all([rules.click(), rules.click()]);
+  await rules.evaluate(element => { element.click(); element.click(); });
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('rules');
   await page.evaluate(() => {
     window.dispatchEvent(new Event('focus'));
