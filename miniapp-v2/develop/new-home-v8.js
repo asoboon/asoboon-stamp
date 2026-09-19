@@ -182,7 +182,7 @@ function heroMarkup(data={}){
       cls:'nh-canceled',
       html:`<div class="nh-eyebrow">取消済み</div><h1>当日受付は取り消されています</h1>
         <p>${a.type==='open'?'もう一度順番を取る場合は、当日受付からお進みください。':esc(a.message)}</p>
-        ${a.type==='open'?'<a class="nh-primary nh-primary-orange" href="${routeHref('reception')}" data-nh-view="reception">当日受付をする <span>›</span></a>':''}`
+        ${a.type==='open'?`<a class="nh-primary nh-primary-orange" href="${routeHref('reception')}" data-nh-view="reception">当日受付をする <span>›</span></a>`:''}`
     };
   }
 
@@ -205,7 +205,7 @@ function heroMarkup(data={}){
     cls:'nh-sync',
     html:`<div class="nh-eyebrow">確認中</div><h1>受付状況を確認中</h1>
       <p>${esc(data.message||'確認でき次第、ここに表示します。')}</p>
-      ${data.receipt?'<a class="nh-primary nh-primary-dark" href="${routeHref('callstatus')}" data-nh-view="callstatus">呼出状況を確認する <span>›</span></a>':''}`
+      ${data.receipt?`<a class="nh-primary nh-primary-dark" href="${routeHref('callstatus')}" data-nh-view="callstatus">呼出状況を確認する <span>›</span></a>`:''}`
   };
 }
 
