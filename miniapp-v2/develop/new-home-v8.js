@@ -264,6 +264,7 @@ function mount(){
   const host=document.getElementById('newHomeHost');
   if(!host)return;
   bindHostNavigation(host);
+  document.body.classList.remove('v33-route-pending','v33-boot');
   document.body.classList.add('new-home-active');
   document.body.classList.remove('v35-home-active','v34-home-active','v32-home-active','v7-home-active');
   const brandSmall=document.querySelector('.brand small');
