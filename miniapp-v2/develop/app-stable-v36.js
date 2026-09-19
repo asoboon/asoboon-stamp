@@ -71,7 +71,7 @@ function bindAppEvents(){
   },true);
 }
 function bind(){bindAppEvents();bindModule()}
-function render(){cleanupModules();document.title='ASOBooN 新HOME｜LINEミニアプリ';root.innerHTML=shell();bind()}
+function render(){cleanupModules();document.title='ASOBooN 新HOME｜LINEミニアプリ';root.innerHTML=shell();bind();window.dispatchEvent(new CustomEvent('asoboon:v2-route-rendered',{detail:{view:state.view,mode:state.mode}}))}
 function canonicalizeAfterLiff(){try{readRoute();const p=q(),extra={};if(p.get('panel'))extra.panel=p.get('panel');if(p.get('dev'))extra.dev=p.get('dev');const canonical=routeUrl(state.view,extra);if(location.href!==canonical)history.replaceState({asoboonV2:true},'',canonical)}catch{state.bootError='DEVELOP_ENDPOINT_INVALID'}}
 async function initLiff(){
   if(!E.liffId||!window.liff){state.booting=false;state.bootError='LIFF_SDK_NOT_READY';readRoute();window.dispatchEvent(new CustomEvent('asoboon:v2-liff-ready',{detail:lineState()}));render();return}

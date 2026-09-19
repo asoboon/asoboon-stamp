@@ -1,7 +1,0 @@
-(()=>{'use strict';
-const root=document.getElementById('app');if(!root)return;
-function currentView(){return String(new URLSearchParams(location.search).get('view')||'home')}
-function ensureStyle(){if(document.getElementById('v9ShortcutStyle'))return;const s=document.createElement('style');s.id='v9ShortcutStyle';s.textContent='.v9-status-shortcut{width:100%;min-height:48px;margin:12px 0 2px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--v7-line,#d9d4ca);border-radius:14px;background:rgba(255,255,255,.52);color:var(--v7-road,#30363b);font-size:.78rem;font-weight:950}.v9-status-shortcut small{color:var(--v7-muted,#747b80);font-size:.62rem;font-weight:760}.v9-status-shortcut span:last-child{font-size:1.15rem;color:#9a958d}';document.head.appendChild(s)}
-function patch(){if(currentView()!=='home')return;ensureStyle();const home=root.querySelector('.v7-home');if(!home||home.querySelector('.v9-status-shortcut'))return;const hero=home.querySelector('#v7Hero');if(!hero)return;hero.insertAdjacentHTML('afterend','<button type="button" class="v9-status-shortcut" data-v7-view="callstatus"><span>呼出状況 <small>受付番号・現在の順番を確認</small></span><span>›</span></button>')}
-new MutationObserver(()=>queueMicrotask(patch)).observe(root,{childList:true,subtree:true});window.addEventListener('popstate',()=>setTimeout(patch,0));patch();setTimeout(patch,100);setTimeout(patch,500);
-})();

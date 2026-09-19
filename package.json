@@ -1,0 +1,10 @@
+{
+  "name": "asoboon-stamp-verification",
+  "private": true,
+  "scripts": {
+    "test:miniapp-develop": "playwright test tests/asoboon-develop-browser.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

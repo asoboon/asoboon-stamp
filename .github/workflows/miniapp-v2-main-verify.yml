@@ -231,3 +231,21 @@ jobs:
           if(!app.includes('id="newHomeHost"')) throw new Error('Dedicated HOME host missing');
           if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
           NODE
+
+  develop-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Click every Developing HOME route under LIFF failures
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/asoboon-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          npm run test:miniapp-develop -- --reporter=line --workers=1
