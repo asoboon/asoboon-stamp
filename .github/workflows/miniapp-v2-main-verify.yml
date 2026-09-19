@@ -198,22 +198,28 @@ jobs:
           if(new Set(versions).size!==1) throw new Error('Developing asset cache versions must be consistent');
           NODE
 
-      - name: Lock Developing new HOME DOM ownership
+      - name: Lock Developing new HOME DOM and navigation ownership
         run: |
           set -euo pipefail
           node <<'NODE'
-          const fs=require('fs');
+          const fs=require('fs'),path=require('path');
           const html=fs.readFileSync('miniapp-v2/develop/index.html','utf8');
-          if(!html.includes('./app-newhome-shell-v1.js')) throw new Error('Dedicated Developing app shell must be active');
           if(html.includes('../shared/app.js')) throw new Error('Shared app.js must not compete with dedicated Developing app shell');
-          if(!html.includes('./new-home-v6.js')) throw new Error('new-home-v6.js must be active');
-          const app=fs.readFileSync('miniapp-v2/develop/app-newhome-shell-v1.js','utf8');
-          const home=fs.readFileSync('miniapp-v2/develop/new-home-v6.js','utf8');
+          const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
+          const appSrc=scripts.find(s=>s.includes('./app-newhome-shell-'));
+          const homeSrc=scripts.find(s=>s.includes('./new-home-v'));
+          if(!appSrc||!homeSrc) throw new Error('Active dedicated app shell or new HOME script missing');
+          const resolve=s=>path.normalize(path.join('miniapp-v2/develop',s.split('?')[0]));
+          const app=fs.readFileSync(resolve(appSrc),'utf8');
+          const home=fs.readFileSync(resolve(homeSrc),'utf8');
           if(!app.includes('id="newHomeHost"')) throw new Error('Dedicated HOME host missing');
           if(!app.includes('asoboon:v2-rendered')) throw new Error('App render completion event missing');
+          if(!app.includes('window.ASOBOON_NEW_HOME_NAVIGATE=go')) throw new Error('Dedicated HOME navigation export missing');
           for(const forbidden of ['root.innerHTML=shell()','root.firstElementChild','outerHTML']){
             if(home.includes(forbidden)) throw new Error('new HOME must not own app root DOM: '+forbidden);
           }
           if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
+          if(!home.includes('ASOBOON_NEW_HOME_NAVIGATE')) throw new Error('new HOME must use dedicated app navigation');
+          if(home.includes('data-v7-view')) throw new Error('new HOME must not depend on legacy router navigation');
           if(!home.includes('BUSINESS_DAY_HOME_TIMEOUT')||!home.includes('4500')) throw new Error('new HOME business-day fail-safe missing');
           NODE
