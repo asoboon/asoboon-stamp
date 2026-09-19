@@ -214,14 +214,14 @@ jobs:
           const home=fs.readFileSync(resolve(homeSrc),'utf8');
           if(!app.includes('id="newHomeHost"')) throw new Error('Dedicated HOME host missing');
           if(!app.includes('asoboon:v2-rendered')) throw new Error('App render completion event missing');
-          if(!app.includes('window.ASOBOON_NEW_HOME_NAVIGATE=go')) throw new Error('Dedicated HOME navigation export missing');
+          if(!app.includes('window.ASOBOON_NEW_HOME_NAVIGATE=go')) throw new Error('Dedicated app navigation export missing');
           for(const forbidden of ['root.innerHTML=shell()','root.firstElementChild','outerHTML']){
             if(home.includes(forbidden)) throw new Error('new HOME must not own app root DOM: '+forbidden);
           }
           if(!home.includes('host.innerHTML=shell()')) throw new Error('new HOME must render only inside dedicated host');
-          if(!home.includes('ASOBOON_NEW_HOME_NAVIGATE')) throw new Error('new HOME must use dedicated app navigation');
+          if(home.includes('ASOBOON_NEW_HOME_NAVIGATE')||home.includes('data-nh-view')||home.includes('bindHostNavigation')) throw new Error('new HOME must use native href navigation only');
           if(home.includes('data-v7-view')) throw new Error('new HOME must not depend on legacy router navigation');
-          if(!home.includes('function routeHref(')) throw new Error('new HOME native href fallback missing');
+          if(!home.includes('function routeHref(')) throw new Error('new HOME native href navigation missing');
           if(!home.includes("document.body.classList.remove('v33-route-pending','v33-boot')")) throw new Error('new HOME must clear stale route interaction locks');
           if(!home.includes('BUSINESS_DAY_HOME_TIMEOUT')||!home.includes('4500')) throw new Error('new HOME business-day fail-safe missing');
           NODE
