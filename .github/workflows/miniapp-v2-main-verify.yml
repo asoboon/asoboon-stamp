@@ -209,7 +209,7 @@ jobs:
           const scripts=[...html.matchAll(/<script src="([^"]+\.js\?v=[^"]+)"/g)].map(m=>m[1]);
           const stableSrc=scripts.find(s=>s.includes('./app-stable-'));
           if(stableSrc){
-            if(!html.includes('./home-v35.js')) throw new Error('Stable Developing mode must load home-v35.js');
+            if(!html.includes('./home-v37.js')) throw new Error('Stable Developing mode must load home-v37.js');
             if(html.includes('./router-v7.js')) throw new Error('Stable Developing mode must not load router-v7.js');
             if(html.includes('./transition-v33.js')||html.includes('./transition-v33.css')) throw new Error('Stable Developing mode must not load legacy route transition lock');
             if(/class="[^"]*v33-boot/.test(html)) throw new Error('Stable Developing mode must not boot with v33-boot interaction lock');
