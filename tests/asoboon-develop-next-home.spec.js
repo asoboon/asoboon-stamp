@@ -34,6 +34,16 @@ async function installNextHome(page, liffMode = 'resolve', statusFixture = null)
         ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', durationLabel: '9:30〜18:00', closingTime: '18:00'
       }) });
     }
+    if (url.searchParams.get('action') === 'waitTypes') {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        ok: true,
+        waitTypes: [
+          { waitTypeId: '0030', waitTypeName: '10時ご入場枠', dispFlg: true, usageDispType: 'KeyONLINE_RECEPTION_ONLY' },
+          { waitTypeId: '0032', waitTypeName: '12時半ご入場枠', dispFlg: true, usageDispType: 'KeyONLINE_RECEPTION_ONLY' },
+          { waitTypeId: '0034', waitTypeName: '15時ご入場枠', dispFlg: false, usageDispType: 'KeyONLINE_RECEPTION_ONLY' }
+        ]
+      }) });
+    }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
   await page.route('**/miniapp-v2/develop/env.js*', async route => {
@@ -160,6 +170,37 @@ test('v38 Japanese copy has no decorative English or emoji', async ({ page }) =>
   expect((text.match(/確認/g) || []).length).toBeLessThanOrEqual(1);
 });
 
+test('today section shows authoritative per-slot availability without invented rates', async ({ page }) => {
+  await openNextHome(page);
+  await expect(page.locator('#v38Slots')).toContainText('10:00');
+  await expect(page.locator('#v38Slots')).toContainText('12:30');
+  await expect(page.locator('#v38Slots')).toContainText('15:00');
+  await expect(page.locator('#v38Slots li.open')).toHaveCount(2);
+  await expect(page.locator('#v38Slots li.ended')).toHaveCount(1);
+  const text = await page.locator('#v38Slots').innerText();
+  expect(text).not.toMatch(/%|残り\s*\d+名/);
+});
+
+test('waiting and calling use distinct semantic presentation', async ({ page }) => {
+  await openNextHome(page);
+  await setStatus(page, { kind: 'waiting', receipt: 'F123', ahead: 20 });
+  await expect(page.locator('#v38Hero')).toHaveClass(/waiting/);
+  const waitingColor = await page.locator('.v38-ahead').evaluate(el => getComputedStyle(el).color);
+  await setStatus(page, { kind: 'calling', receipt: 'F123' });
+  await expect(page.locator('#v38Hero')).toHaveClass(/calling/);
+  const callingBorder = await page.locator('#v38Hero').evaluate(el => getComputedStyle(el).borderTopColor);
+  expect(waitingColor).not.toBe(callingBorder);
+});
+
+test('waiting proximity classes cover 20, 10, 5 and 3 groups', async ({ page }) => {
+  await openNextHome(page);
+  for (const [ahead, className] of [[20, 'far'], [10, 'closer'], [5, 'near'], [3, 'ready']]) {
+    await setStatus(page, { kind: 'waiting', receipt: 'F123', ahead });
+    await expect(page.locator('#v38Hero')).toHaveClass(new RegExp(`waiting.*${className}`));
+    await expect(page.locator('.v38-ahead')).toContainText(String(ahead));
+  }
+});
+
 test('HOME waiting and callstatus waiting remain consistent', async ({ page }) => {
   const status = { ok: true, found: true, state: 'waiting', receiptNo: 'F123', businessDate: '2026-09-19', aheadCount: 8, checkedAt: Date.now() };
   await openStatusScenario(page, status);
@@ -226,6 +267,8 @@ for (const width of [320, 375, 390, 430]) {
     expect(overflow).toBe(false);
     const meaningfulSizes = await page.evaluate(() => [...document.querySelectorAll('.v38-hero p,.v38-action,.v38-today small,.v38-today strong,.v38-guide-card strong,.v38-guide-card small,.v38-fun-card strong,.v38-fun-card small')].map(el => parseFloat(getComputedStyle(el).fontSize)));
     expect(Math.min(...meaningfulSizes)).toBeGreaterThanOrEqual(13);
+    const wrappedTimes = await page.locator('#v38Slots time').evaluateAll(items => items.some(el => el.scrollHeight > el.clientHeight + 1));
+    expect(wrappedTimes).toBe(false);
     await page.screenshot({ path: path.join(output, `home-${width}.png`), fullPage: true });
     if (width === 390) {
       const blurStyle = await page.addStyleTag({ content: '.v38-home *{color:transparent!important;text-shadow:0 0 7px rgba(0,0,0,.65)!important}' });

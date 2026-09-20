@@ -7,3 +7,33 @@ body.v38-home-active{background:linear-gradient(180deg,#faf8f3,#f2eee6 72%,#f8f5
 .v38-fun{padding:16px;border:1px solid #e2ded7;border-radius:22px;background:#fff}.v38-fun>div{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.v38-fun-card{min-height:104px;padding:12px 6px;border:0;border-radius:16px;background:#fdeaf2;color:#a33b68;font:inherit}.v38-fun-card.fortune{background:#eeeafb;color:#654ca0}.v38-fun-card.stamp{background:#fff2c9;color:#82651c}.v38-fun-icon{display:grid;width:38px;height:38px;margin:auto;place-items:center;border-radius:12px;background:rgba(255,255,255,.65)}.v38-fun-icon svg{width:22px}.v38-fun-card strong{display:block;margin-top:8px;font-size:16px}.v38-fun-card small{display:block;margin-top:4px;font-size:13px;font-weight:700}.v38-fun-card[disabled]{border:1px dashed #c8c8c4;background:var(--v38-gray);color:#555;box-shadow:none;opacity:1;cursor:not-allowed}.v38-fun-card[disabled] .v38-fun-icon{background:#d8d8d5;color:#555}.v38-action:focus-visible,.v38-today:focus-visible,.v38-guide-card:focus-visible,.v38-fun-card:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}.v38-action:active,.v38-today:active,.v38-guide-card:active,.v38-fun-card:not([disabled]):active{transform:translateY(1px)}
 @media(max-width:350px){body.v38-home-active .app{padding-inline:12px}.v38-hero{grid-template-columns:46px 1fr;gap:11px;padding:16px}.v38-hero-icon{width:46px;height:46px}.v38-hero h1{font-size:28px}.v38-guide-grid{grid-template-columns:1fr;gap:9px}.v38-guide-card{grid-template-columns:40px 1fr 16px;gap:10px;min-height:72px;padding:12px}.v38-guide-card>.v38-icon{width:40px;height:40px}.v38-guide-card strong{font-size:16px}.v38-today{grid-template-columns:1.25fr .9fr .7fr 18px}.v38-today>span{padding:11px 7px}.v38-today>span:first-child{padding-left:31px}.v38-today>span:first-child>svg{left:7px}.v38-today strong{font-size:13px}.v38-fun{padding:12px}.v38-fun>div{gap:4px}.v38-fun-card{padding-inline:0}}
 @media(prefers-reduced-motion:reduce){.v38-action,.v38-today,.v38-guide-card,.v38-fun-card{transition:none}}
+
+/* v38 master HOME: state colors and compact day guidance */
+.v38-hero.waiting{border-color:#83b5d0;background:linear-gradient(145deg,#fff,#eaf6fc);box-shadow:0 16px 36px rgba(23,102,143,.12)}
+.v38-hero.waiting .v38-hero-icon{background:#17668f;color:#fff}
+.v38-hero.waiting.near,.v38-hero.waiting.ready{border-width:2px;border-color:#17668f}
+.v38-hero.waiting.ready{box-shadow:0 18px 38px rgba(23,102,143,.2)}
+.v38-ahead{color:#17668f}.v38-eta{background:#d7ecf7;color:#145778}
+.v38-hero.calling{border-width:3px;border-color:#176747;background:linear-gradient(145deg,#f7fff9,#d4eedf);box-shadow:0 18px 38px rgba(23,103,71,.24)}
+.v38-today-section,.v38-guide,.v38-in-use,.v38-fun,.v38-help{margin-top:28px}
+.v38-today-section>h2,.v38-guide h2,.v38-in-use h2,.v38-fun h2{margin:0 2px 12px;font-size:21px;line-height:1.2;font-weight:850;letter-spacing:-.025em}
+.v38-today-section .v38-today{margin-top:0}.v38-today.closed{background:#5e6669}
+.v38-slots{margin-top:10px;padding:14px;border:1px solid #cfdcd4;border-radius:18px;background:#fff}
+.v38-slots:empty{display:none}.v38-slots h3{margin:0 0 10px;font-size:16px}
+.v38-slots ul{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.v38-slots li{display:grid;grid-template-columns:72px 1fr;align-items:center;min-height:42px;padding:0 10px;border-radius:12px;background:#f3f7f4}
+.v38-slots time{font-size:16px;font-weight:900;white-space:nowrap}
+.v38-slots li>span{display:flex;align-items:center;justify-content:flex-end;gap:7px;color:#176747}
+.v38-slots li>span svg{width:19px}.v38-slots li strong{font-size:14px;white-space:nowrap}
+.v38-slots li.ended,.v38-slots li.unknown{background:#efeeee}.v38-slots li.ended>span,.v38-slots li.unknown>span{color:#4e575a}
+.v38-slots-note,.v38-slots-error{margin:9px 2px 0;color:#4f5e65;font-size:13px}
+.v38-onsite{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.v38-onsite strong{font-size:16px}.v38-onsite span{font-size:13px;color:#4f5e65}
+.v38-in-use[hidden]{display:none!important}.v38-in-use{padding:14px 16px;border:1px solid #9dc2ad;border-radius:18px;background:#f1f8f4}.v38-in-use h2{margin-bottom:6px}.v38-in-use p{margin:0;color:#365e48;font-size:14px;line-height:1.5}
+.v38-event{display:grid;grid-template-columns:42px 1fr 18px;align-items:center;gap:10px;min-height:64px;margin-bottom:10px;padding:10px 12px;border-radius:15px;background:#fff3c9;color:#6e5410;text-decoration:none}
+.v38-event .v38-fun-icon{margin:0}.v38-event strong,.v38-event small{display:block}.v38-event strong{font-size:16px}.v38-event small{margin-top:3px;font-size:13px}.v38-event>svg{width:18px}
+.v38-fun-card{color:#8f2f59}.v38-fun-card.fortune{color:#58408e}.v38-fun-card.stamp{color:#6e5410}.v38-fun-icon{background:rgba(255,255,255,.78)}
+.v38-fun-card[disabled]{border-color:#aaa;color:#4e5558}.v38-fun-card[disabled] .v38-fun-icon{color:#4e5558}
+.v38-help details{border:1px solid var(--v38-line);border-radius:18px;background:#fff}.v38-help summary{display:flex;min-height:56px;align-items:center;justify-content:space-between;padding:0 15px;cursor:pointer;list-style:none}.v38-help summary::-webkit-details-marker{display:none}.v38-help summary>span{display:flex;align-items:center;gap:9px}.v38-help summary svg{width:21px;color:var(--v38-navy)}.v38-help summary>svg{width:18px}.v38-help summary strong{font-size:16px}.v38-help details[open] summary>svg{transform:rotate(90deg)}.v38-help details>div{padding:0 15px 14px}.v38-help p{margin:10px 0 0;color:#4f5e65;font-size:14px;line-height:1.55}
+.v38-event:focus-visible,.v38-help summary:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}.v38-event:active{transform:translateY(1px)}
+@media(max-width:350px){.v38-slots{padding:12px}.v38-slots li{grid-template-columns:64px 1fr;padding-inline:8px}.v38-slots li strong{font-size:13px}.v38-event{padding-inline:10px}}
+@media(max-width:400px){.v38-guide-grid{grid-template-columns:1fr;gap:9px}.v38-guide-card{grid-template-columns:40px 1fr 16px;gap:10px;min-height:72px;padding:12px}.v38-guide-card>.v38-icon{width:40px;height:40px}}
