@@ -80,8 +80,8 @@ jobs:
               errors.append('purple HOME WEB reservation must pass through purple-reserve-v5 method=web')
           if 'purple-callstatus.html' not in home:
               errors.append('purple HOME call-status route is missing')
-          if "backendConfigKey:BACKEND_KEY" not in config or "backendVersionPrefix:'2.1.'" not in config:
-              errors.append('purple-service-config.js must require hardened gateway v2.1')
+          if "backendVersionPrefix:'2.1.'" not in config or 'asoboon-purple-gateway.asoboon425.workers.dev' not in config or 'validBackend' not in config:
+              errors.append('purple-service-config.js must require the hardened Cloudflare gateway v2.1')
           if 'auto-bridge.js' in line_link or 'autoBindingApiUrl' in line_link or 'BRIDGE.queue' in line_link:
               errors.append('purple-line-link.html still contains executable legacy LINE auto-bridge flow')
           if 'purple-service-register.html' not in line_link:
