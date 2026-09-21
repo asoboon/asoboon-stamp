@@ -46,6 +46,7 @@ const PG2 = Object.freeze({
   ]),
   CALL_HEADERS: Object.freeze(['businessDate','receiptNo','waitTypeId','firstSeenAt','lastSeenAt']),
   SNAPSHOT_HEADERS: Object.freeze(['number','waitTypeId','waitTypeName','status','isCalling']),
+  CROWD_WAIT_TYPE_IDS: Object.freeze(['0030','0032','0034','0036','0038']),
   LOG_HEADERS: Object.freeze(['time','level','action','receiptNo','bindingId','httpStatus','result','message'])
 });
 
@@ -77,6 +78,7 @@ function doGet(e) {
     if (action === 'health') result = pg2Health_();
     else if (action === 'waitTypes') result = pg2WaitTypes_();
     else if (action === 'snapshot') result = pg2Snapshot_();
+    else if (action === 'crowdSummary') result = pg2CrowdSummary_();
     else if (action === 'requestStatus') result = pg2RequestStatus_(String(p.requestId || ''));
     else if (action === 'reservationStatus') result = pg2ReservationStatus_(p);
     else if (action === 'callInfo') result = pg2CallInfo_(p);
@@ -160,6 +162,41 @@ function pg2Snapshot_() {
     changed:snap.changed,
     rows:snap.rows
   };
+}
+
+/**
+ * Purple-only, read-only crowd summary.
+ * AirWAIT reservation rows are counted by people, never by reservation rows.
+ * A missing/invalid people field fails closed instead of treating one group as one person.
+ */
+function pg2CrowdSummary_() {
+  pg2RequireOperational_();
+  const allowed = PG2.CROWD_WAIT_TYPE_IDS.map(String);
+  const types = pg2WaitTypes_().waitTypes.filter(function(x){ return allowed.indexOf(String(x.waitTypeId)) >= 0; });
+  const rows = pg2AllReservations_();
+  const slots = types.map(function(type){
+    const id = String(type.waitTypeId || '');
+    const relevant = rows.filter(function(row){ return String(row && row.waitTypeId || '') === id && String(row && row.status || '') !== '3'; });
+    let currentCount = 0;
+    relevant.forEach(function(row){ currentCount += pg2ReservationPeople_(row); });
+    return {
+      waitTypeId:id,
+      waitTypeName:String(type.waitTypeName || ''),
+      currentCount:currentCount,
+      accepting:type.dispFlg !== false,
+      acceptance:type.dispFlg === false ? 'closed' : 'open'
+    };
+  });
+  return {ok:true,version:PG2.VERSION,businessDate:pg2OperationalDate_(new Date()),unit:'PERSON',slots:slots};
+}
+
+function pg2ReservationPeople_(row) {
+  const adult = Number(row && row.numPerson);
+  const child = Number(row && row.numPersonChild);
+  if (!Number.isInteger(adult) || adult < 0 || !Number.isInteger(child) || child < 0 || adult + child < 1) {
+    throw new Error('AIRWAIT_RESERVATION_PEOPLE_FIELDS_UNAVAILABLE');
+  }
+  return adult + child;
 }
 
 function pg2CreateReservation_(p) {

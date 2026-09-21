@@ -4,6 +4,10 @@ on:
     paths:
       - 'purple-*.html'
       - 'purple-*.js'
+      - 'home-purple.html'
+      - 'home-purple.js'
+      - 'home-purple.css'
+      - 'callstatus-purple.html'
       - 'staff-test-home.html'
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
@@ -13,6 +17,10 @@ on:
     paths:
       - 'purple-*.html'
       - 'purple-*.js'
+      - 'home-purple.html'
+      - 'home-purple.js'
+      - 'home-purple.css'
+      - 'callstatus-purple.html'
       - 'staff-test-home.html'
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
@@ -32,7 +40,7 @@ jobs:
           import re, sys
 
           purple = [p for p in Path('.').glob('purple-*') if p.is_file()]
-          purple += [Path('staff-test-home.html')]
+          purple += [Path('staff-test-home.html'), Path('home-purple.html'), Path('home-purple.js'), Path('home-purple.css'), Path('callstatus-purple.html')]
           errors = []
 
           forbidden = {
@@ -92,6 +100,9 @@ jobs:
               errors.append('gateway required Script Property names are missing')
           if re.search(r'AIRWAIT_API_KEY\s*[:=]\s*[\'\"][A-Za-z0-9_-]{16,}', backend):
               errors.append('gateway contains a hard-coded AirWAIT key')
+          for token in ['crowdSummary', 'CROWD_WAIT_TYPE_IDS', 'pg2ReservationPeople_', 'AIRWAIT_RESERVATION_PEOPLE_FIELDS_UNAVAILABLE']:
+              if token not in backend:
+                  errors.append(f'purple crowd read-only token missing: {token}')
 
           if 'PG21_WORKER_MARKER_PROP' not in marker_patch or 'PURPLE_V21_WORKER_LAST_MARKER' not in marker_patch:
               errors.append('notification worker must have its own AirWAIT update marker')
@@ -128,7 +139,8 @@ jobs:
           files = [
             'purple-service-config.js', 'purple-reserve-v5.html', 'purple-callstatus.html',
             'purple-timeguide.html', 'purple-service-register.html', 'purple-service-setup.html',
-            'purple-line-link.html', 'staff-test-home.html'
+            'purple-line-link.html', 'staff-test-home.html', 'home-purple.html',
+            'home-purple.js', 'callstatus-purple.html'
           ]
           failed=[]
           for name in files:
