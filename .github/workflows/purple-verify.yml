@@ -100,9 +100,9 @@ jobs:
               errors.append('gateway required Script Property names are missing')
           if re.search(r'AIRWAIT_API_KEY\s*[:=]\s*[\'\"][A-Za-z0-9_-]{16,}', backend):
               errors.append('gateway contains a hard-coded AirWAIT key')
-          for token in ['crowdSummary', 'CROWD_WAIT_TYPE_IDS', 'pg2ReservationPeople_', 'AIRWAIT_RESERVATION_PEOPLE_FIELDS_UNAVAILABLE']:
-              if token not in backend:
-                  errors.append(f'purple crowd read-only token missing: {token}')
+          for token in ['pg2CrowdSummary_', 'pg2ReservationPeople_', 'CROWD_WAIT_TYPE_IDS']:
+              if token in backend:
+                  errors.append(f'unverified reservation-count crowd path must be removed: {token}')
 
           if 'PG21_WORKER_MARKER_PROP' not in marker_patch or 'PURPLE_V21_WORKER_LAST_MARKER' not in marker_patch:
               errors.append('notification worker must have its own AirWAIT update marker')
