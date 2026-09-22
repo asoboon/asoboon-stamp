@@ -3,42 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="color-scheme" content="light">
-  <title>ASOBooN 呼出状況</title>
-  <link rel="stylesheet" href="./board.css?v=1">
+  <meta name="color-scheme" content="dark">
+  <title>ASOBooN ENTRY BOARD</title>
+  <link rel="stylesheet" href="./board.css?v=2">
 </head>
 <body>
   <main class="board" aria-label="ASOBooN 呼出状況掲示板">
-    <header class="board-header">
-      <div class="brand"><strong>ASOBooN</strong><span>呼出状況</span></div>
-      <div class="slot-title">
-        <div><strong id="slotLabel">10:00の回</strong><span id="slotCount"></span></div>
-        <p>受付した順番に並んでいます　ご自身の受付番号をご確認ください</p>
+    <header class="hero">
+      <div class="brand-block">
+        <div class="brand-mark">ASOBooN</div>
+        <div class="board-name">ENTRY BOARD</div>
+        <div class="board-sub">呼出状況</div>
+      </div>
+
+      <div class="session-sign" aria-label="現在表示中の利用回">
+        <span class="session-kicker">TODAY'S ENTRY</span>
+        <div class="session-main">
+          <strong id="slotLabel">10:00</strong>
+          <span>の回</span>
+        </div>
+        <small id="slotCount"></small>
       </div>
     </header>
 
-    <section class="legend" aria-label="表示の見方">
-      <span class="legend-item waiting"><i></i>呼出前</span>
-      <span class="legend-item calling"><i></i>呼出中</span>
-      <span class="legend-item done"><i>✓</i>案内済み</span>
-      <span class="legend-item hold"><i>!</i>保留</span>
-      <span class="legend-item canceled"><i>×</i>取消</span>
+    <section class="route-strip" aria-label="掲示板の見方">
+      <div class="route-copy">
+        <strong>YOUR NUMBER</strong>
+        <span>受付した順番に並んでいます</span>
+      </div>
+      <div class="road" aria-hidden="true">
+        <span class="road-start">START</span>
+        <i></i><i></i><i></i><i></i><i></i>
+        <span class="road-goal">ENTRY →</span>
+      </div>
+      <div class="legend">
+        <span class="legend-item waiting"><i></i>呼出前</span>
+        <span class="legend-item calling"><i>▶</i>呼出中</span>
+        <span class="legend-item done"><i>✓</i>案内済</span>
+        <span class="legend-item hold"><i>Ⅱ</i>保留</span>
+      </div>
     </section>
 
     <section class="queue-shell" aria-label="受付番号一覧">
+      <div class="queue-caption"><span>受付番号</span><strong id="liveCaption">CALL STATUS LIVE</strong></div>
       <div id="queueGrid" class="queue-grid"></div>
       <div id="emptyState" class="empty-state" hidden>
-        <strong id="emptyTitle">現在、表示する受付はありません</strong>
-        <p id="emptyText">受付が入ると自動で表示されます。</p>
+        <div class="empty-icon">↗</div>
+        <strong id="emptyTitle">ただいま準備中</strong>
+        <p id="emptyText">受付が入ると、ここに番号が並びます。</p>
       </div>
     </section>
 
     <footer class="board-footer">
       <div id="connection" class="connection"><span class="live-dot"></span>接続を確認しています</div>
-      <div class="updated">最終更新 <time id="updatedAt">--:--:--</time></div>
+      <div class="footer-center">KAWAGUCHI HIGHWAY OASIS</div>
+      <div class="updated">UPDATE <time id="updatedAt">--:--:--</time></div>
     </footer>
   </main>
   <script src="../env.js"></script>
-  <script src="./board.js?v=1"></script>
+  <script src="./board.js?v=2"></script>
 </body>
 </html>
