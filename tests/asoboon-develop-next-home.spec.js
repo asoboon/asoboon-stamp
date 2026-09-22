@@ -178,11 +178,20 @@ test('today section shows verified per-slot crowd estimates without acceptance c
   await expect(box).toContainText('12:30回');
   await expect(box).toContainText('15:00回');
   await expect(box.locator('[role="progressbar"]')).toHaveCount(3);
-  await expect(box.locator('.v38-crowd-card').filter({hasText:'10:00回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','50');
-  await expect(box.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','90');
-  await expect(box.locator('.v38-crowd-card').filter({hasText:'15:00回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
+  const ten=box.locator('.v38-crowd-card').filter({hasText:'10:00回'});
+  const twelve=box.locator('.v38-crowd-card').filter({hasText:'12:30回'});
+  const fifteen=box.locator('.v38-crowd-card').filter({hasText:'15:00回'});
+  await expect(ten.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','50');
+  await expect(twelve.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','90');
+  await expect(fifteen.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
+  await expect(ten.locator('.v38-crowd-remaining')).toContainText('195名');
+  await expect(twelve.locator('.v38-crowd-remaining')).toContainText('71名');
+  await expect(fifteen.locator('.v38-crowd-remaining')).toContainText('25名');
+  await expect(ten).toHaveClass(/crowd-light/);
+  await expect(twelve).toHaveClass(/crowd-high/);
+  await expect(fifteen).toHaveClass(/crowd-very-high/);
   const text = await box.innerText();
-  expect(text).not.toMatch(/受付できます|受付終了|満員|受付残り|350名|310名/);
+  expect(text).not.toMatch(/受付できます|受付終了|満員|350名|310名/);
 });
 
 test('waiting and calling use distinct semantic presentation', async ({ page }) => {
