@@ -18,6 +18,12 @@ const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
 const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0030','0032','0034','0036','0038']);
+const BOARD_SLOT_SPECS = Object.freeze([
+  Object.freeze({ key:'10:00', waitTypeIds:Object.freeze(['0029','0030','0035','0036']) }),
+  Object.freeze({ key:'12:30', waitTypeIds:Object.freeze(['0031','0032']) }),
+  Object.freeze({ key:'15:00', waitTypeIds:Object.freeze(['0033','0034']) }),
+]);
+
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const BUSINESS_DAY_CACHE_MS = 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
@@ -43,6 +49,12 @@ export default {
     if (request.method === 'GET' && action === 'crowdRemaining') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getCrowdRemaining(request, env, ctx)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
+    if (request.method === 'GET' && action === 'boardStatus') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try { return json(request, await getBoardStatus(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -240,6 +252,53 @@ async function getCrowdRemaining(request, env, ctx) {
   return { ok:true, source:'AirWAIT getWaitInfo', fetchedAt:new Date().toISOString(), slots };
 }
 
+async function getBoardStatus(env) {
+  if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
+  const rows = await fetchAllReservationsForReconcile(env);
+  const slots = BOARD_SLOT_SPECS.map(spec => {
+    const target = rows.filter(row => boardSlotKey(row) === spec.key);
+    return {
+      key:spec.key,
+      label:`${spec.key}の回`,
+      count:target.length,
+      rows:target.map((row,index)=>({
+        number:String(row?.number || ''),
+        state:boardReservationState(row),
+        order:index + 1,
+      })),
+    };
+  });
+  return {
+    ok:true,
+    source:'AirWAIT reservations / read-only sanitized board feed',
+    fetchedAt:new Date().toISOString(),
+    refreshAfterMs:10000,
+    slots,
+  };
+}
+
+function boardSlotKey(row) {
+  const id = String(row?.waitTypeId || '');
+  for (const spec of BOARD_SLOT_SPECS) {
+    if (spec.waitTypeIds.includes(id)) return spec.key;
+  }
+  const name = String(row?.waitTypeName || '').normalize('NFKC').replace(/\s+/g,'');
+  for (const spec of BOARD_SLOT_SPECS) {
+    if (name.includes(spec.key)) return spec.key;
+  }
+  return '';
+}
+
+function boardReservationState(row) {
+  const status = String(row?.status || '');
+  const isCalling = String(row?.isCalling || '') === '1';
+  if (status === '3') return 'canceled';
+  if (status === '2') return 'done';
+  if (status === '1') return 'hold';
+  if (status === '4') return 'calling';
+  if (status === '0' && isCalling) return 'calling';
+  return 'waiting';
+}
 async function getBusinessDayProxy(value) {
   const date = normalizeDate(value);
   if (!date) throw apiError('BUSINESS_DATE_INVALID', 400);
