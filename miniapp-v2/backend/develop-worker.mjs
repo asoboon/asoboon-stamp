@@ -16,6 +16,8 @@ import {
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
 const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
+const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
+const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0030','0032','0034','0036','0038']);
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const BUSINESS_DAY_CACHE_MS = 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
@@ -37,6 +39,12 @@ export default {
     env = withDevelopingServiceDefaults(env);
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
+
+    if (request.method === 'GET' && action === 'crowdRemaining') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try { return json(request, await getCrowdRemaining(request, env, ctx)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
 
     if (request.method === 'GET' && action === 'businessDay') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
@@ -169,6 +177,67 @@ function queueObservedCallNotification(env, response, ctx) {
   const guarded = job.catch(e => console.warn('CALLSTATUS_IMMEDIATE_NOTIFY_FAILED', safeError(e)));
   if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(guarded);
   else void guarded;
+}
+
+async function getCrowdRemaining(request, env, ctx) {
+  if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
+
+  const typesUrl = new URL(request.url);
+  typesUrl.searchParams.set('action','waitTypes');
+  const typesRequest = new Request(typesUrl.toString(), { method:'GET', headers:request.headers });
+  const typesResponse = await gateway.fetch(typesRequest, env, ctx);
+  let typesBody=null;try{typesBody=await typesResponse.json()}catch{}
+  if (!typesResponse.ok || typesBody?.ok !== true || !Array.isArray(typesBody.waitTypes)) {
+    throw apiError('AIRWAIT_CROWD_WAIT_TYPES_FAILED', 502);
+  }
+
+  const infoUrl = new URL(AIR_WAIT_INFO);
+  infoUrl.searchParams.set('key', env.AIRWAIT_API_KEY);
+  infoUrl.searchParams.set('storeId','KR01205179');
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+  let infoResponse;
+  try {
+    infoResponse = await fetch(infoUrl, { method:'GET', cache:'no-store', signal:ctrl.signal });
+  } catch (e) {
+    if (e?.name === 'AbortError') throw apiError('AIRWAIT_CROWD_TIMEOUT', 504);
+    throw e;
+  } finally { clearTimeout(timer); }
+
+  let d=null;try{d=await infoResponse.json()}catch{}
+  if (!infoResponse.ok || !(d?.success === true || d?.resultCode?.code === '0000')) {
+    throw apiError('AIRWAIT_CROWD_INFO_FAILED_HTTP_' + infoResponse.status + '_RC_' + String(d?.resultCode?.code || 'NONE'), 502);
+  }
+  const store = d?.innerDto?.stores?.[0];
+  if (!store || !Array.isArray(store.waitDetails)) throw apiError('AIRWAIT_CROWD_DETAILS_UNAVAILABLE', 502);
+
+  const norm=v=>String(v||'').normalize('NFKC').replace(/\s+/g,'').trim();
+  const details=store.waitDetails.map(row=>({
+    detailedWaitType:String(row?.detailedWaitType||'').slice(0,120),
+    reserveUnit:String(row?.reserveUnit||''),
+    remainingNum:row?.remainingNum,
+  }));
+  const targetTypes=typesBody.waitTypes.filter(type=>
+    CROWD_ONLINE_WAIT_TYPE_IDS.has(String(type?.waitTypeId||'')) &&
+    String(type?.usageDispType||'') === 'KeyONLINE_RECEPTION_ONLY'
+  );
+  const slots=targetTypes.map(type=>{
+    const waitTypeName=String(type?.waitTypeName||'');
+    const matches=details.filter(row=>norm(row.detailedWaitType)===norm(waitTypeName));
+    const matched=matches.length===1?matches[0]:null;
+    const raw=matched?.remainingNum;
+    const n=(typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw)))?Number(raw):NaN;
+    const valid=matched?.reserveUnit==='PERSON'&&Number.isSafeInteger(n)&&n>=0&&n<=350;
+    return {
+      waitTypeId:String(type.waitTypeId||''),
+      waitTypeName,
+      detailedWaitType:matched?.detailedWaitType||'',
+      reserveUnit:matched?.reserveUnit||'',
+      remaining:valid?n:null,
+      evidence:matches.length!==1?'MATCH_COUNT_'+matches.length:(valid?'PERSON':'UNVERIFIED_UNIT_OR_VALUE'),
+    };
+  });
+  return { ok:true, source:'AirWAIT getWaitInfo', fetchedAt:new Date().toISOString(), slots };
 }
 
 async function getBusinessDayProxy(value) {
