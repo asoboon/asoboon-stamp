@@ -107,7 +107,7 @@ function layoutGrid(){
     card.classList.toggle('near-band',dist===1);
   });
   const live=$('liveCaption');
-  if(live)live.textContent=callingRows.size?'NOW CALLING ▶':'CALL STATUS LIVE';
+  if(live)live.textContent=callingRows.size?'ただいま呼出中 ▶':'呼出状況';
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -124,7 +124,7 @@ function renderPayload(data){
   $('updatedAt').textContent=clockText(data?.fetchedAt||Date.now());
   renderRows(rows);
   state.lastGoodAt=Date.now();
-  setConnection(true,'LIVE / 10秒更新');
+  setConnection(true,'10秒ごとに自動更新');
 }
 async function fetchBoard(){
   if(state.busy)return;state.busy=true;
@@ -136,7 +136,7 @@ async function fetchBoard(){
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
   }catch(e){
-    setConnection(false,state.lastGoodAt?'UPDATE WAITING':'CONNECTING');
+    setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
     if(!state.lastGoodAt){
       $('slotLabel').textContent=activeSlotKey(new Date());
       $('emptyState').hidden=false;
