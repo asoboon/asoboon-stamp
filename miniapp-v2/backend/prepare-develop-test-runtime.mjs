@@ -317,7 +317,10 @@ async function fetchAirwaitReservationsUncached(env, waitTypeId) {
       throw e;
     } finally { clearTimeout(timer); }
     const d = await safeJson(r, 'AIRWAIT_RESERVATIONS');
-    if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') throw apiError('AIRWAIT_RESERVATIONS_FAILED', 502);
+    if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') {
+      const rc = String(d?.resultCode?.code || 'NONE');
+      throw apiError(`AIRWAIT_RESERVATIONS_FAILED_HTTP_${r.status}_RC_${rc}`, 502, false, rc);
+    }
     const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
     total = Number(d?.innerDto?.count || part.length || 0);
     rows.push(...part.map(x => ({
@@ -357,7 +360,21 @@ async function reservationStatus(env, p) {
     .bind(tokenHash).first();
   if (!session || Number(session.expires_at || 0) <= now) throw apiError('CALLSTATUS_SESSION_EXPIRED', 401);
 
-  const rows = await fetchAirwaitReservations(env, String(session.wait_type_id || ''));
+  const storedWaitTypeId = String(session.wait_type_id || '');
+  let rows;
+  let usedAllWaitTypesFallback = false;
+  try {
+    rows = await fetchAirwaitReservations(env, storedWaitTypeId);
+  } catch (e) {
+    const rc = String(e?.code || '');
+    if (storedWaitTypeId && rc === '3556') {
+      rows = await fetchAirwaitReservations(env, '');
+      usedAllWaitTypesFallback = true;
+    } else {
+      throw e;
+    }
+  }
+
   const ownMatch = selectTicketMatch(rows, session.receipt_no);
   const own = ownMatch.row;
   if (!own) {
@@ -367,12 +384,25 @@ async function reservationStatus(env, p) {
       version: CFG.VERSION,
       businessDate: String(session.business_date),
       receiptNo: String(session.receipt_no),
-      waitTypeId: String(session.wait_type_id || ''),
+      waitTypeId: storedWaitTypeId,
       checkedAt: now,
+      reconcileTried: usedAllWaitTypesFallback,
+      reconcileReason: usedAllWaitTypesFallback ? 'STALE_WAIT_TYPE_3556' : '',
+      reconcileAmbiguous: Boolean(ownMatch.ambiguous),
+      reconcileCandidateCount: Number(ownMatch.count || 0),
     };
   }
 
-  const active = rows.filter(r => ['0', '1', '4'].includes(String(r.status || '')));
+  const effectiveWaitTypeId = String(own.waitTypeId || storedWaitTypeId || '');
+  if (usedAllWaitTypesFallback && effectiveWaitTypeId && effectiveWaitTypeId !== storedWaitTypeId) {
+    await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
+      .bind(effectiveWaitTypeId, tokenHash).run();
+  }
+
+  const queueRows = effectiveWaitTypeId
+    ? rows.filter(r => String(r.waitTypeId || '') === effectiveWaitTypeId)
+    : rows;
+  const active = queueRows.filter(r => ['0', '1', '4'].includes(String(r.status || '')));
   const ownIdentity = ticketIdentity(own.number);
   const activeIndex = active.findIndex(r => ticketIdentity(r.number) === ownIdentity);
   const aheadCount = activeIndex >= 0
@@ -386,7 +416,7 @@ async function reservationStatus(env, p) {
     businessDate: String(session.business_date),
     receiptNo: String(session.receipt_no),
     reserveId: String(session.reserve_id),
-    waitTypeId: String(own.waitTypeId || session.wait_type_id || ''),
+    waitTypeId: effectiveWaitTypeId,
     waitTypeName: String(own.waitTypeName || ''),
     status: String(own.status || ''),
     isCalling: String(own.isCalling || '0') === '1',
@@ -395,6 +425,7 @@ async function reservationStatus(env, p) {
     queueRank: activeIndex >= 0 ? activeIndex + 1 : null,
     activeCount: active.length,
     checkedAt: now,
+    reconciledBy: usedAllWaitTypesFallback ? 'all-wait-types-after-3556' : '',
   };
 }
 
