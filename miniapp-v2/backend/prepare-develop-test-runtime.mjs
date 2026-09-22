@@ -319,7 +319,7 @@ async function fetchAirwaitReservationsUncached(env, waitTypeId) {
     const d = await safeJson(r, 'AIRWAIT_RESERVATIONS');
     if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') {
       const rc = String(d?.resultCode?.code || 'NONE');
-      throw apiError(`AIRWAIT_RESERVATIONS_FAILED_HTTP_${r.status}_RC_${rc}`, 502, false, rc);
+      throw apiError('AIRWAIT_RESERVATIONS_FAILED_HTTP_' + r.status + '_RC_' + rc, 502, false, rc);
     }
     const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
     total = Number(d?.innerDto?.count || part.length || 0);
