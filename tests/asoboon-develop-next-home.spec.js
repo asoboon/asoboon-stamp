@@ -34,13 +34,13 @@ async function installNextHome(page, liffMode = 'resolve', statusFixture = null)
         ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', durationLabel: '9:30〜18:00', closingTime: '18:00'
       }) });
     }
-    if (url.searchParams.get('action') === 'waitTypes') {
+    if (url.searchParams.get('action') === 'crowdRemaining') {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
         ok: true,
-        waitTypes: [
-          { waitTypeId: '0030', waitTypeName: '10時ご入場枠', dispFlg: true, usageDispType: 'KeyONLINE_RECEPTION_ONLY' },
-          { waitTypeId: '0032', waitTypeName: '12時半ご入場枠', dispFlg: true, usageDispType: 'KeyONLINE_RECEPTION_ONLY' },
-          { waitTypeId: '0034', waitTypeName: '15時ご入場枠', dispFlg: false, usageDispType: 'KeyONLINE_RECEPTION_ONLY' }
+        slots: [
+          { waitTypeId: '0030', waitTypeName: '10時ご入場枠', detailedWaitType: '10時ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 195 },
+          { waitTypeId: '0032', waitTypeName: '12時半ご入場枠', detailedWaitType: '12時半ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 71 },
+          { waitTypeId: '0034', waitTypeName: '15時ご入場枠', detailedWaitType: '15時ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 25 }
         ]
       }) });
     }
@@ -170,15 +170,19 @@ test('v38 Japanese copy has no decorative English or emoji', async ({ page }) =>
   expect((text.match(/確認/g) || []).length).toBeLessThanOrEqual(1);
 });
 
-test('today section shows authoritative per-slot availability without invented rates', async ({ page }) => {
+test('today section shows verified per-slot crowd estimates without acceptance claims', async ({ page }) => {
   await openNextHome(page);
-  await expect(page.locator('#v38Slots')).toContainText('10:00');
-  await expect(page.locator('#v38Slots')).toContainText('12:30');
-  await expect(page.locator('#v38Slots')).toContainText('15:00');
-  await expect(page.locator('#v38Slots li.open')).toHaveCount(2);
-  await expect(page.locator('#v38Slots li.ended')).toHaveCount(1);
-  const text = await page.locator('#v38Slots').innerText();
-  expect(text).not.toMatch(/%|残り\s*\d+名/);
+  const box=page.locator('#v38Slots');
+  await expect(box).toContainText('本日の混雑状況');
+  await expect(box).toContainText('10:00回');
+  await expect(box).toContainText('12:30回');
+  await expect(box).toContainText('15:00回');
+  await expect(box.locator('[role="progressbar"]')).toHaveCount(3);
+  await expect(box.locator('.v38-crowd-card').filter({hasText:'10:00回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','50');
+  await expect(box.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','90');
+  await expect(box.locator('.v38-crowd-card').filter({hasText:'15:00回'}).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','100');
+  const text = await box.innerText();
+  expect(text).not.toMatch(/受付できます|受付終了|満員|受付残り|350名|310名/);
 });
 
 test('waiting and calling use distinct semantic presentation', async ({ page }) => {
