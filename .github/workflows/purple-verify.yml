@@ -12,6 +12,8 @@ on:
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs'
+      - 'app/backend/purple-cloudflare-gateway/**'
+      - 'tests/asoboon-purple-gateway-crowd.test.cjs'
       - '.github/workflows/purple-verify.yml'
   pull_request:
     paths:
@@ -25,6 +27,8 @@ on:
       - 'admin.html'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs'
       - 'app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs'
+      - 'app/backend/purple-cloudflare-gateway/**'
+      - 'tests/asoboon-purple-gateway-crowd.test.cjs'
       - '.github/workflows/purple-verify.yml'
   workflow_dispatch:
 
@@ -161,3 +165,8 @@ jobs:
         run: |
           cat app/backend/ASOBooN_PURPLE_GATEWAY_V2_Code.gs app/backend/ASOBooN_PURPLE_GATEWAY_V21_MarkerPatch.gs > /tmp/purple-gateway-v21.js
           node --check /tmp/purple-gateway-v21.js
+
+      - name: Purple Cloudflare crowd read path
+        run: |
+          node --check app/backend/purple-cloudflare-gateway/worker.js
+          node --test tests/asoboon-purple-gateway-crowd.test.cjs
