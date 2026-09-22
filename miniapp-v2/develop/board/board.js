@@ -23,26 +23,27 @@ function clockText(value){
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function statusMeta(kind){
   switch(String(kind||'')){
-    case'calling':return{label:'呼出中',mark:'',aria:'呼出中'};
-    case'done':return{label:'案内済',mark:'✓',aria:'案内済み'};
-    case'hold':return{label:'保留',mark:'!',aria:'保留'};
-    case'canceled':return{label:'取消',mark:'×',aria:'取消'};
-    default:return{label:'',mark:'',aria:'呼出前'};
+    case'calling':return{label:'呼出中',icon:'▶',aria:'呼出中'};
+    case'done':return{label:'案内済',icon:'✓',aria:'案内済み'};
+    case'hold':return{label:'保留',icon:'Ⅱ',aria:'保留'};
+    default:return{label:'呼出前',icon:'•',aria:'呼出前'};
   }
+}
+function visibleRows(rows){
+  return (Array.isArray(rows)?rows:[]).filter(row=>String(row?.state||'')!=='canceled');
 }
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
-  state.rows=Array.isArray(rows)?rows:[];
+  state.rows=visibleRows(rows);
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
   grid.innerHTML=state.rows.map((row,index)=>{
-    const kind=['waiting','calling','done','hold','canceled'].includes(String(row?.state||''))?String(row.state):'waiting';
+    const kind=['waiting','calling','done','hold'].includes(String(row?.state||''))?String(row.state):'waiting';
     const m=statusMeta(kind),num=esc(row?.number||'—');
     return '<div class="queue-card '+kind+'" data-index="'+index+'" data-state="'+kind+'" aria-label="受付番号 '+num+' '+m.aria+'">'+
-      '<span class="queue-mark" aria-hidden="true">'+m.mark+'</span>'+
-      '<strong class="queue-number">'+num+'</strong>'+
-      (m.label?'<small class="queue-state">'+m.label+'</small>':'<small class="queue-state blank" aria-hidden="true">呼出前</small>')+
+      '<div class="number-wrap"><strong class="queue-number">'+num+'</strong></div>'+
+      '<div class="status-rail"><span class="status-icon" aria-hidden="true">'+m.icon+'</span><span class="status-label">'+m.label+'</span></div>'+
       '</div>';
   }).join('');
   requestAnimationFrame(layoutGrid);
@@ -60,8 +61,10 @@ function metrics(cols,count,w,h,gap){
   const rows=Math.max(1,Math.ceil(count/cols));
   const cellW=(w-gap*(cols-1))/cols;
   const cellH=(h-gap*(rows-1))/rows;
-  const font=Math.min(cellW*.25,cellH*.46);
-  return{cols,rows,cellW,cellH,font};
+  const rail=Math.max(13,Math.min(28,cellH*.25));
+  const numberH=Math.max(1,cellH-rail);
+  const font=Math.min(cellW*.29,numberH*.54);
+  return{cols,rows,cellW,cellH,rail,font};
 }
 function chooseColumns(count,w,h,gap){
   const maxCols=Math.min(Math.max(4,count),18);
@@ -69,9 +72,9 @@ function chooseColumns(count,w,h,gap){
   let best=metrics(start,count,w,h,gap);
   for(let cols=4;cols<=maxCols;cols++){
     const m=metrics(cols,count,w,h,gap);
-    const shapePenalty=Math.abs((m.cellW/Math.max(1,m.cellH))-1.75)*.35;
+    const shapePenalty=Math.abs((m.cellW/Math.max(1,m.cellH))-1.65)*.3;
     const score=m.font-shapePenalty;
-    const bestPenalty=Math.abs((best.cellW/Math.max(1,best.cellH))-1.75)*.35;
+    const bestPenalty=Math.abs((best.cellW/Math.max(1,best.cellH))-1.65)*.3;
     const bestScore=best.font-bestPenalty;
     if(score>bestScore)best=m;
   }
@@ -86,15 +89,15 @@ function layoutGrid(){
   const grid=$('queueGrid');if(!grid||grid.hidden||!state.rows.length)return;
   const box=grid.getBoundingClientRect(),count=state.rows.length;
   if(box.width<1||box.height<1)return;
-  const gap=Math.max(4,Math.min(10,Math.round(Math.min(box.width,box.height)*.006)));
+  const gap=Math.max(4,Math.min(10,Math.round(Math.min(box.width,box.height)*.0055)));
   const m=chooseColumns(count,box.width,box.height,gap);
-  const font=Math.max(12,Math.min(52,m.font));
+  const font=Math.max(12,Math.min(58,m.font));
   grid.style.setProperty('--grid-gap',gap+'px');
   grid.style.setProperty('--number-size',font+'px');
-  grid.style.setProperty('--state-size',Math.max(9,Math.min(16,font*.34))+'px');
+  grid.style.setProperty('--state-size',Math.max(8,Math.min(15,font*.29))+'px');
   grid.style.gridTemplateColumns='repeat('+m.cols+', minmax(0, 1fr))';
   grid.style.gridTemplateRows='repeat('+m.rows+', minmax(0, 1fr))';
-  grid.classList.toggle('ultra-compact',m.cellH<42||m.cellW<72);
+  grid.classList.toggle('ultra-compact',m.cellH<42||m.cellW<68);
   const callingRows=new Set();
   state.rows.forEach((r,i)=>{if(String(r?.state||'')==='calling')callingRows.add(Math.floor(i/m.cols));});
   grid.querySelectorAll('.queue-card').forEach((card,i)=>{
@@ -103,6 +106,8 @@ function layoutGrid(){
     card.classList.toggle('current-band',dist===0);
     card.classList.toggle('near-band',dist===1);
   });
+  const live=$('liveCaption');
+  if(live)live.textContent=callingRows.size?'NOW CALLING ▶':'CALL STATUS LIVE';
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -113,12 +118,13 @@ function renderPayload(data){
   const key=activeSlotKey(new Date());
   state.slotKey=key;
   const slot=Array.isArray(data?.slots)?data.slots.find(x=>String(x?.key||'')===key):null;
-  $('slotLabel').textContent=key+'の回';
-  $('slotCount').textContent=slot&&Number.isFinite(Number(slot.count))?'受付 '+Number(slot.count)+'組':'';
+  $('slotLabel').textContent=key;
+  const rows=visibleRows(slot?.rows||[]);
+  $('slotCount').textContent=rows.length?'受付 '+rows.length+'組':'';
   $('updatedAt').textContent=clockText(data?.fetchedAt||Date.now());
-  renderRows(slot?.rows||[]);
+  renderRows(rows);
   state.lastGoodAt=Date.now();
-  setConnection(true,'10秒ごとに自動更新');
+  setConnection(true,'LIVE / 10秒更新');
 }
 async function fetchBoard(){
   if(state.busy)return;state.busy=true;
@@ -130,13 +136,18 @@ async function fetchBoard(){
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
   }catch(e){
-    setConnection(false,state.lastGoodAt?'更新待機中':'接続を確認しています');
-    if(!state.lastGoodAt){$('slotLabel').textContent=activeSlotKey(new Date())+'の回';$('emptyState').hidden=false;$('emptyTitle').textContent='呼出状況を確認しています';$('emptyText').textContent='通信が戻ると自動で表示します。';}
+    setConnection(false,state.lastGoodAt?'UPDATE WAITING':'CONNECTING');
+    if(!state.lastGoodAt){
+      $('slotLabel').textContent=activeSlotKey(new Date());
+      $('emptyState').hidden=false;
+      $('emptyTitle').textContent='呼出状況を確認しています';
+      $('emptyText').textContent='通信が戻ると自動で表示します。';
+    }
   }finally{state.busy=false;}
 }
 function schedule(){clearInterval(state.timer);state.timer=setInterval(fetchBoard,REFRESH_MS);}
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard();});
-window.ASOBOON_CALL_BOARD_TEST=Object.freeze({activeSlotKey,statusMeta,preferredColumns});
+window.ASOBOON_CALL_BOARD_TEST=Object.freeze({activeSlotKey,statusMeta,preferredColumns,visibleRows});
 fetchBoard();schedule();
 })();
