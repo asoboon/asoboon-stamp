@@ -123,6 +123,27 @@ function position(el,x,y,size=1){
   el.style.left=x+'px';el.style.top=y+'px';
   el.style.setProperty('--resident-scale',String(size));
 }
+
+const GAG_FAMILIES=Object.freeze({
+  hide:new Set(['bad-hide','peek-switch','connect-look','space-peek','story-peek','exclamation-scare']),
+  push:new Set(['push-fail','domino-save-fail','wind-fight','float-brag']),
+  reverse:new Set(['wrong-way','double-back','hyper-return','afterimage-return','triple-wrong-way','swim-wrong','world-confused','radial-run','arrow-dodge']),
+  oversize:new Set(['too-big','too-big-drop','mega-too-close']),
+  chase:new Set(['ball-chase','story-chase','late-chase','follow-wave']),
+  ride:new Set(['story-ride','burst-ride','wave-surf','surf-fail']),
+  fakeout:new Set(['fakeout-drop','double-fakeout','smoke-reveal','collision-fake']),
+  offscreen:new Set(['story-offscreen','ricochet','impact-bounce','rocket-backfire']),
+  bounce:new Set(['miss-jump','jump-late','wave-bounce','hop-copy','ring-stuck','pinball-confused']),
+  spin:new Set(['orbit-dizzy','show-off','confetti-proud','swarm-late','swarm-crash']),
+  sneeze:new Set(['confetti-sneeze','glitter-sneeze','puff-surprise']),
+  slip:new Set(['polish-slip']),
+  brake:new Set(['chain-mistake','ring-chain','ring-depth']),
+  panic:new Set(['confetti-buried','scatter-panic','tornado-hat']),
+});
+function gagFamily(gag){
+  for(const [family,set] of Object.entries(GAG_FAMILIES))if(set.has(gag))return family;
+  return'cross';
+}
 function allCards(grid=document.getElementById('queueGrid')){
   return [...(grid?.querySelectorAll?.('.queue-card')||[])];
 }
@@ -172,7 +193,7 @@ function stageBump(scope,intensity=1){
 }
 
 async function residentGag(scope,directive,{grid,level=3}={}){
-  const r=stageRect(),id=directive.resident||'orb',gag=directive.gag;
+  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag);
   const el=resident(scope,id,'back');
   const s=level<=1?.72:1;
   if(level<=1){
@@ -194,7 +215,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
     {opacity:0,transform:`translate(calc(-50% + ${r.width+150}px),-50%) scale(${s*.88}) ${extra}`},
   ],{duration:directive.coreBaseMs*.78,easing:'cubic-bezier(.14,.72,.2,1)',fill:'forwards'});
 
-  if(gag==='bad-hide'||gag==='story-peek'){
+  if(gag==='hide'){
     position(el,left+18,midY,s);
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) translateX(-20px) scale(${s})`},
@@ -203,7 +224,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.78,transform:`translate(-50%,-50%) translateX(64px) scale(${s}) rotate(5deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-35px) scale(${s*.9})`},
     ],{duration:directive.coreBaseMs,easing:'ease-in-out',fill:'forwards'});
-  }else if(gag==='push-fail'){
+  }else if(gag==='push'){
     const x=r.left+r.width*.28;position(el,x,midY,s);
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) translateX(-80px) scale(${s})`},
@@ -213,7 +234,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:0,transform:`translate(-50%,-50%) translateX(-45vw) rotate(-280deg) scale(${s*.82})`},
     ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.72,.2,1)',fill:'forwards'});
     void rippleCards(scope,grid,.7,'wave');
-  }else if(gag.includes('wrong-way')||gag==='double-back'||gag==='hyper-return'||gag==='afterimage-return'){
+  }else if(gag==='reverse'){
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) translateX(0) scale(${s})`},
       {opacity:1,offset:.18,transform:`translate(-50%,-50%) translateX(${r.width*.72}px) scale(${s})`},
@@ -221,7 +242,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.66,transform:`translate(-50%,-50%) translateX(${r.width*.72}px) scale(${s}) rotate(-8deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-100px) scale(${s*.9}) rotate(-4deg)`},
     ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.16,.76,.2,1)',fill:'forwards'});
-  }else if(gag==='too-big'||gag==='too-big-drop'){
+  }else if(gag==='oversize'){
     position(el,r.left-10,midY,s*2.5);
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) translateX(-25vw) scale(${s*2.2})`},
@@ -230,7 +251,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.7,transform:`translate(-50%,-50%) translateX(16vw) scale(${s*1.7}) rotate(90deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(115vw) scale(${s*1.7}) rotate(90deg)`},
     ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'});
-  }else if(gag.includes('chase')||gag==='story-chase'){
+  }else if(gag==='chase'){
     const chaser=resident(scope,'ball','back');position(chaser,left-140,midY+20,s*1.45);
     await Promise.all([
       cross(),
@@ -241,7 +262,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
         {opacity:0,transform:`translate(-50%,-50%) translateX(${r.width+180}px) scale(${s*1.3}) rotate(720deg)`},
       ],{duration:directive.coreBaseMs*.92,delay:110,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'}),
     ]);
-  }else if(gag==='story-ride'||gag==='burst-ride'||gag==='wave-surf'){
+  }else if(gag==='ride'){
     const ball=resident(scope,'ball','back');position(ball,left,midY+18,s*1.55);position(el,left,midY-36,s*.85);
     await Promise.all([
       scope.animate(ball,[
@@ -257,7 +278,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
         {opacity:0,transform:`translate(-50%,-50%) translateX(${r.width*.82}px) translateY(95px) rotate(260deg) scale(${s*.82})`},
       ],{duration:directive.coreBaseMs,delay:40,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'}),
     ]);
-  }else if(gag.includes('fakeout')||gag==='double-fakeout'||gag==='smoke-reveal'){
+  }else if(gag==='fakeout'){
     position(el,r.left+r.width*.5,r.top+r.height*.48,s);
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) scale(.1)`},
@@ -267,7 +288,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:0,transform:`translate(-50%,-50%) scale(${s*3.8}) rotate(35deg)`},
     ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'});
     void stageBump(scope,.85);
-  }else if(gag.includes('offscreen')){
+  }else if(gag==='offscreen'){
     await cross();
     await scope.wait(120);
     void stageBump(scope,.65);
@@ -278,7 +299,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.62,transform:`translate(-50%,-50%) translateX(-125px) rotate(7deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-210px) rotate(-4deg)`},
     ],{duration:directive.coreBaseMs*.5,easing:'ease-out',fill:'forwards'});
-  }else if(gag.includes('jump')||gag.includes('hop')||gag.includes('bounce')){
+  }else if(gag==='bounce'){
     position(el,r.left+r.width*.42,r.bottom+30,s);
     await scope.animate(el,[
       {opacity:0,transform:`translate(-50%,-50%) translateY(60px) scale(${s})`},
@@ -286,6 +307,54 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.45,transform:`translate(-50%,-50%) translateY(24px) scale(${s*.92}) rotate(4deg)`},
       {opacity:1,offset:.68,transform:`translate(-50%,-50%) translateY(-42px) scale(${s}) rotate(-3deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateY(120px) scale(${s*.86}) rotate(12deg)`},
+    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
+  }else if(gag==='spin'){
+    position(el,r.left+r.width*.5,midY,s);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) scale(${s*.7}) rotate(0)`},
+      {opacity:1,offset:.2,transform:`translate(-50%,-50%) scale(${s}) rotate(40deg)`},
+      {opacity:1,offset:.58,transform:`translate(-50%,-50%) scale(${s}) rotate(760deg)`},
+      {opacity:1,offset:.78,transform:`translate(-50%,-50%) translateX(22px) scale(${s*.92}) rotate(820deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(140px) scale(${s*.8}) rotate(890deg)`},
+    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
+  }else if(gag==='sneeze'){
+    position(el,r.left+r.width*.46,midY,s);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) scale(${s*.8})`},
+      {opacity:1,offset:.25,transform:`translate(-50%,-50%) scale(${s})`},
+      {opacity:1,offset:.5,transform:`translate(-50%,-50%) scale(${s*.82},${s*1.18})`},
+      {opacity:1,offset:.62,transform:`translate(-50%,-50%) scale(${s*1.28},${s*.78}) rotate(-5deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(180px) rotate(220deg) scale(${s*.85})`},
+    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.8,.22,1)',fill:'forwards'});
+    void rippleCards(scope,grid,.65,'wave');
+  }else if(gag==='slip'){
+    position(el,r.left+r.width*.24,midY,s);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) translateX(-80px) scale(${s})`},
+      {opacity:1,offset:.22,transform:`translate(-50%,-50%) translateX(0) scale(${s})`},
+      {opacity:1,offset:.5,transform:`translate(-50%,-50%) translateX(30px) rotate(0)`},
+      {opacity:1,offset:.7,transform:`translate(-50%,-50%) translateX(190px) rotate(170deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(55vw) rotate(420deg) scale(${s*.8})`},
+    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.12,.78,.18,1)',fill:'forwards'});
+  }else if(gag==='brake'){
+    position(el,r.left+r.width*.3,midY,s);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) translateX(-100px) scale(${s})`},
+      {opacity:1,offset:.28,transform:`translate(-50%,-50%) translateX(150px) scale(${s})`},
+      {opacity:1,offset:.45,transform:`translate(-50%,-50%) translateX(195px) scale(${s*.92},${s*1.08})`},
+      {opacity:1,offset:.62,transform:`translate(-50%,-50%) translateX(170px) rotate(-4deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(135px) rotate(3deg) scale(${s*.9})`},
+    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.14,.82,.2,1)',fill:'forwards'});
+    void rippleCards(scope,grid,.8,'brake');
+  }else if(gag==='panic'){
+    position(el,r.left+r.width*.5,midY,s);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) scale(${s*.7})`},
+      {opacity:1,offset:.18,transform:`translate(-50%,-50%) scale(${s})`},
+      {opacity:1,offset:.38,transform:`translate(-50%,-50%) translate(-18px,-8px) rotate(-8deg)`},
+      {opacity:1,offset:.56,transform:`translate(-50%,-50%) translate(20px,7px) rotate(9deg)`},
+      {opacity:1,offset:.72,transform:`translate(-50%,-50%) translate(-12px,5px) rotate(-5deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(-55vw) rotate(-120deg) scale(${s*.85})`},
     ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
   }else{
     await cross();
@@ -389,6 +458,7 @@ function diagnostics(events=[]){
     residentCount:Object.keys(RESIDENTS).length,
     residents:Object.values(RESIDENTS),
     directiveCount:Object.keys(DIRECTIVES).length,
+    unmappedGags:[...new Set(Object.values(DIRECTIVES).map(x=>x.gag).filter(x=>gagFamily(x)==='cross'))],
     emotionCounts:emotionCounts(),
     storyState:{...storyState,lastResidents:[...storyState.lastResidents]},storyArcs:Object.fromEntries(Object.entries(STORY_ARCS).map(([k,v])=>[k,[...v]])),
     auditCount:report.length,
