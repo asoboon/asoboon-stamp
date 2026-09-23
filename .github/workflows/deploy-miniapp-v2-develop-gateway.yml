@@ -231,6 +231,15 @@ jobs:
             sleep 3
           done
 
+      - name: Diagnose Developing test reservation result
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=developTestStatus&_=${GITHUB_SHA}")"
+          echo "DEVELOP_TEST_STATUS=$RESPONSE"
+
       - name: Verify AirWAIT local test slot read-only
         if: steps.credentials.outputs.available == 'true'
         run: |
