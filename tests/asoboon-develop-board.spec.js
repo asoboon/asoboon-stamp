@@ -287,6 +287,7 @@ test('fullscreen world audit covers every current idle event individually', asyn
 
   expect(result.audit).toHaveLength(63);
   expect(new Set(result.audit.map(x => x.id)).size).toBe(63);
+  expect(new Set(result.audit.map(x => x.signature)).size).toBe(63);
   for (const row of result.audit) {
     expect(row.anticipation).toBe(true);
     expect(row.action).toBe(true);
@@ -323,6 +324,55 @@ test('fullscreen world audit covers every current idle event individually', asyn
   expect(result.idleDiag.fullScreenCount).toBe(63);
   expect(result.idleDiag.slowdownCoverage).toBe(63);
   expect(result.idleDiag.cleanupCoverage).toBe(63);
+});
+
+test('all 63 idle events actually play and fully clean up without touching ticket data', async ({ page }) => {
+  test.setTimeout(30000);
+  const current = payload([
+    { number: '7021', state: 'waiting', order: 1 },
+    { number: '7022', state: 'calling', order: 2 },
+    { number: '7023', state: 'hold', order: 3 },
+  ]);
+  const h = await installBoard(page, [current]);
+
+  const ids = await page.evaluate(() => window.ASOBOON_BOARD_IDLE_EVENTS.events.map(x => x.id));
+  expect(ids).toHaveLength(63);
+
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.02,{persistValue:false});
+    window.ASOBOON_BOARD_IDLE_EVENTS.setConfig({
+      ANIMATION_LEVEL: 3,
+      IDLE_POST_COOLDOWN_MIN_MS: 0,
+      IDLE_POST_COOLDOWN_MAX_MS: 0,
+    });
+  });
+
+  for (const id of ids) {
+    const result = await page.evaluate(async eventId => {
+      const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+      await idle.playEventForTest(eventId);
+      const runtime = window.ASOBOON_BOARD_EFFECTS.diagnostics();
+      const diag = idle.getDiagnostics();
+      return {
+        id: eventId,
+        runtimeScopes: runtime.activeScopes,
+        idleAnimations: diag.activeAnimations,
+        idleTimers: diag.activeTimers,
+        idleRunning: diag.running,
+        tempIdleNodes: document.querySelectorAll('#boardIdleLayer > *, .board-fx-back-layer > *, .board-fx-front-layer > *').length,
+        numbers: [...document.querySelectorAll('#queueGrid .queue-number')].map(x => x.textContent.trim()),
+      };
+    }, id);
+
+    expect(result.runtimeScopes, id).toBe(0);
+    expect(result.idleAnimations, id).toBe(0);
+    expect(result.idleTimers, id).toBe(0);
+    expect(result.idleRunning, id).toBe(false);
+    expect(result.tempIdleNodes, id).toBe(0);
+    expect(result.numbers, id).toEqual(['7021','7022','7023']);
+  }
+
+  expect(h.pageErrors).toEqual([]);
 });
 
 test('global slowdown runtime defaults to 2.5 and controls CSS timing variables', async ({ page }) => {
