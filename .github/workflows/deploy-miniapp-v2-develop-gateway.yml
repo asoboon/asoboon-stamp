@@ -95,22 +95,30 @@ jobs:
           set -euo pipefail
           API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
           AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-          QUERY='SELECT request_id,state,result_json,created_at,updated_at FROM v2_request_results WHERE state="AMBIGUOUS" ORDER BY updated_at DESC LIMIT 10'
+          QUERY='SELECT request_id,action,state,result_json,created_at,updated_at,expires_at FROM v2_request_results ORDER BY updated_at DESC LIMIT 20'
           RESPONSE="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY")" "$API")"
           printf '%s' "$RESPONSE" | node -e '
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
               const x=JSON.parse(s);
               const rows=x?.result?.[0]?.results||[];
-              console.log("RECENT_AMBIGUOUS_REQUESTS="+JSON.stringify(rows));
+              console.log("RECENT_REQUEST_RESULTS="+JSON.stringify(rows));
             });
           '
-          QUERY2='SELECT business_date,request_id,state,wait_type_id,created_at,updated_at FROM v2_user_day_claims WHERE state="AMBIGUOUS" ORDER BY updated_at DESC LIMIT 10'
+          QUERY2='SELECT business_date,request_id,state,wait_type_id,created_at,updated_at FROM v2_user_day_claims ORDER BY updated_at DESC LIMIT 20'
           RESPONSE2="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY2")" "$API")"
           printf '%s' "$RESPONSE2" | node -e '
             let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
               const x=JSON.parse(s);
               const rows=x?.result?.[0]?.results||[];
-              console.log("RECENT_AMBIGUOUS_CLAIMS="+JSON.stringify(rows));
+              console.log("RECENT_USER_DAY_CLAIMS="+JSON.stringify(rows));
+            });
+          '
+          QUERY3='SELECT request_id,business_date,wait_type_id,status,last_error,last_http_status,created_at,updated_at FROM v2_service_message_claims ORDER BY updated_at DESC LIMIT 20'
+          RESPONSE3="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY3")" "$API" || true)"
+          printf '%s' "$RESPONSE3" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              try{const x=JSON.parse(s);const rows=x?.result?.[0]?.results||[];console.log("RECENT_SERVICE_CLAIMS="+JSON.stringify(rows));}
+              catch{console.log("RECENT_SERVICE_CLAIMS=[]")}
             });
           '
 
