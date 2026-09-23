@@ -262,7 +262,7 @@ test('idle entertainment catalog has at least 60 non-reward events', async ({ pa
   expect(new Set(catalog.map(x => x.id)).size).toBe(catalog.length);
   for (const item of catalog) expect(['small','medium','large','rare']).toContain(item.tier);
   const text = JSON.stringify(catalog).toUpperCase();
-  for (const banned of ['JACKPOT','BONUS','RARE','COIN','SCORE','GACHA']) expect(text).not.toContain(banned);
+  for (const banned of ['JACKPOT','BONUS','COIN','SCORE','GACHA']) expect(text).not.toContain(banned);
 });
 
 test('idle events do not fire on initial load and only run after an unchanged update', async ({ page }) => {
