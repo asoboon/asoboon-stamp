@@ -233,7 +233,7 @@ body{
   box-shadow:0 5px 0 rgba(0,0,0,.23),0 8px 15px rgba(0,0,0,.16);
   transform:translateZ(0) scale(1);
   transform-origin:center;
-  transition:transform .22s ease,border-color .22s ease,background-color .22s ease,filter .22s ease;
+  transition:transform var(--board-transition-normal,.45s) ease,border-color var(--board-transition-normal,.45s) ease,background-color var(--board-transition-normal,.45s) ease,filter var(--board-transition-normal,.45s) ease;
 }
 .queue-card:before{
   content:"";
