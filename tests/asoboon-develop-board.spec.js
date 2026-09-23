@@ -311,7 +311,7 @@ test('real call interrupts a running idle event and immediately wins priority', 
     const d = await diagnostics(page);
     return d.history.some(x => x.number === '7201' && x.kind === 'call');
   }, { timeout: 3000 }).toBe(true);
-  await expect(page.locator('.queue-card.calling .queue-number')).toHaveText('7201');
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('7201');
   await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
 });
 
