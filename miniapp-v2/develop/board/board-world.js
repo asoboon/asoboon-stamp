@@ -73,9 +73,9 @@ const DIRECTIVES=Object.freeze({
   'mystery-eye-peek':d('謎','eye','bad-hide',2900,'巨大な目が覗く→引っ込む→別の端から覗く→隠れたつもりで半分残る'),
   'giant-ball-impact':d('ド派手','ball','impact-bounce',3000,'超巨大ボール接近→画面衝撃→跳ね返る→もう一度小さく戻ってくる'),
   'triple-flyby':d('完全予想外','shadow','triple-wrong-way',2950,'3物体連続通過→3つ目だけ逆走→1・2個目も追って戻る'),
-  'alternate-world':d('謎','orb','world-confused',3150,'背景が別世界→丸が入る→戸惑う→出口を間違え何度も戻る'),
+  'alternate-world':d('謎','orb','world-confused',3050,'背景が別世界→丸が入る→戸惑う→出口を間違え何度も戻る'),
   'star-depth-swarm':d('ド派手','star','swarm-crash',3000,'星が奥から大量飛来→整列→一個だけ列に入れず周囲を回る'),
-  'mini-chain-world':d('謎','orb','story-offscreen',3200,'短い3連鎖→丸が画面外へ走る→見えない所でドン→反対側からふらふら戻る'),
+  'mini-chain-world':d('謎','orb','story-offscreen',3100,'短い3連鎖→丸が画面外へ走る→見えない所でドン→反対側からふらふら戻る'),
   'mystery-orb-peek':d('かわいい','orb','story-peek',2900,'いつもの丸が左下から少し覗く→見つかったように隠れる→最後に反対側から一瞬だけ再登場'),
 });
 
