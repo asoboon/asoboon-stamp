@@ -279,6 +279,9 @@ test('idle events do not fire on initial load and only run after an unchanged up
   await expect.poll(async () => (await idleDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
   await expect.poll(async () => (await idleDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
   await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
+  const d = await idleDiagnostics(page);
+  expect(d.activeAnimations).toBe(0);
+  expect(d.activeTimers).toBe(0);
 });
 
 test('real call interrupts a running idle event and immediately wins priority', async ({ page }) => {
@@ -354,6 +357,9 @@ test('communication error cancels idle entertainment and leaves no temporary lay
 
   await expect.poll(async () => (await idleDiagnostics(page)).running).toBe(false);
   await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
+  const cleanup = await idleDiagnostics(page);
+  expect(cleanup.activeAnimations).toBe(0);
+  expect(cleanup.activeTimers).toBe(0);
 });
 
 test('idle reduced-motion mode caps animation level and keeps real numbers untouched', async ({ page }) => {
