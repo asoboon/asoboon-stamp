@@ -60,3 +60,28 @@ body.v38-home-active{background:linear-gradient(180deg,#faf8f3,#f2eee6 72%,#f8f5
 .v38-crowd-track{height:9px;margin-top:9px;overflow:hidden;border-radius:99px;background:rgba(23,36,42,.1)}
 .v38-crowd-track>span{display:block;height:100%;border-radius:inherit;background:var(--crowd-accent)}
 @media(max-width:350px){.v38-crowd-value strong{font-size:27px}.v38-crowd-value em{font-size:12px}.v38-crowd-remaining>strong{font-size:17px}}
+
+
+/* v39 state-first HOME: readable at a distance, reservation facts stay fixed */
+body.v38-home-active.v38-state-waiting{background:linear-gradient(180deg,#eaf5fb 0,#f7f5ef 44%,#f8f5ef 100%)!important}
+body.v38-home-active.v38-state-calling{background:linear-gradient(180deg,#e5f5ea 0,#f7f5ef 44%,#f8f5ef 100%)!important}
+body.v38-home-active.v38-state-guided{background:linear-gradient(180deg,#e7f5f2 0,#f7f5ef 44%,#f8f5ef 100%)!important}
+body.v38-home-active.v38-state-hold{background:linear-gradient(180deg,#fff2d8 0,#f8f5ef 44%,#f8f5ef 100%)!important}
+body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e5 0,#f8f5ef 44%,#f8f5ef 100%)!important}
+.v38-hero.waiting,.v38-hero.calling,.v38-hero.guided,.v38-hero.hold,.v38-hero.canceled{--state-accent:#17668f;--state-soft:#e7f3f9;--state-ink:#113f59;min-height:260px;border-width:3px}
+.v38-hero.waiting{--state-accent:#17668f;--state-soft:#dceef8;--state-ink:#104968;border-color:#17668f;background:linear-gradient(145deg,#f9fdff,#dceef8)}
+.v38-hero.calling{--state-accent:#176747;--state-soft:#d9efe1;--state-ink:#114d36;border-color:#176747;background:linear-gradient(145deg,#f7fff9,#d7efdf);box-shadow:0 20px 42px rgba(23,103,71,.25)}
+.v38-hero.guided{--state-accent:#28776d;--state-soft:#def1ed;--state-ink:#17544d;border-color:#28776d;background:linear-gradient(145deg,#f7fffd,#dcefeb)}
+.v38-hero.hold{--state-accent:#b56a0b;--state-soft:#ffedc8;--state-ink:#7a4300;border-color:#b56a0b;background:linear-gradient(145deg,#fffdf7,#ffe8bb)}
+.v38-hero.canceled{--state-accent:#a8493f;--state-soft:#f8ddd8;--state-ink:#753128;border-color:#a8493f;background:linear-gradient(145deg,#fffafa,#f6dcd6)}
+.v38-hero.waiting .v38-hero-icon,.v38-hero.calling .v38-hero-icon,.v38-hero.guided .v38-hero-icon,.v38-hero.hold .v38-hero-icon,.v38-hero.canceled .v38-hero-icon{background:var(--state-accent);color:#fff}
+.v38-hero.waiting h1,.v38-hero.calling h1,.v38-hero.guided h1,.v38-hero.hold h1,.v38-hero.canceled h1{color:var(--state-ink);font-size:34px;line-height:1.08}
+.v38-state-label{display:inline-flex;align-items:center;min-height:30px;margin-bottom:7px;padding:0 11px;border-radius:999px;background:var(--state-accent);color:#fff;font-size:13px;font-weight:950;letter-spacing:.04em}
+.v38-hero.waiting .v38-ahead{color:var(--state-accent)}
+.v38-hero.waiting .v38-eta{background:#fff;color:var(--state-ink);border:1px solid color-mix(in srgb,var(--state-accent) 24%,#fff)}
+.v38-hero.calling .v38-deadline{color:var(--state-ink);border:1px solid color-mix(in srgb,var(--state-accent) 24%,#fff)}
+.v38-hero.calling .v38-action.calling{background:var(--state-accent)}
+.v38-reservation-card{display:grid;grid-template-columns:1.15fr .85fr;gap:8px;margin-top:16px;padding:12px;border:1px solid rgba(23,36,42,.12);border-radius:16px;background:#fff;box-shadow:0 7px 18px rgba(23,36,42,.08);color:#17242a}
+.v38-reservation-item{min-width:0;padding:2px 4px}.v38-reservation-item small{display:block;color:#657178;font-size:11px;font-weight:800;letter-spacing:.02em}.v38-reservation-item strong{display:block;margin-top:3px;color:#17242a;font-size:18px;line-height:1.18;font-weight:900;overflow-wrap:anywhere}.v38-reservation-item.receipt strong{font-size:27px;letter-spacing:-.03em}.v38-reservation-item.people{grid-column:1/-1;padding-top:9px;border-top:1px solid #ece8e1}.v38-reservation-item.people strong{font-size:15px;line-height:1.35}
+.v38-hero.guided .v38-inline-actions{margin-top:12px}
+@media(max-width:350px){.v38-hero.waiting h1,.v38-hero.calling h1,.v38-hero.guided h1,.v38-hero.hold h1,.v38-hero.canceled h1{font-size:30px}.v38-reservation-card{grid-template-columns:1fr 1fr;padding:10px}.v38-reservation-item.receipt strong{font-size:24px}.v38-reservation-item strong{font-size:16px}.v38-reservation-item.people strong{font-size:14px}}
