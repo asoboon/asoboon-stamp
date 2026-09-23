@@ -22,6 +22,7 @@ function cleanCustomerCopy(){
    else if(/受付枠を取得できません|Gateway|新Gateway/.test(t))setText(status,'受付情報を確認できませんでした。もう一度開き直してお試しください。');
    else if(/受付に必要な確認が完了していない/.test(t))setText(status,'ただいま受付を確定できません。しばらくしてからもう一度お試しください。');
    else if(/AirWAITへ受付を送信しています/.test(t))setText(status,'受付しています…');
+   else if(/現在受付できる枠がありません|受付停止中/.test(t))setText(status,'現在受付できる枠がありません。最新の受付状況をご確認ください。');
    else if(/Developing|入場不可テスト/.test(t))setText(status,root.querySelector('.rec-day strong')?.textContent==='休館'?'本日は休館日です。':'受付できます。');
  }
  const loc=root.querySelector('#recLocationText');if(loc&&!dev&&/500m以内|精度/.test(String(loc.textContent||'')))setText(loc,'現地受付では、ASOBooN付近にいることを現在地で確認します。');
