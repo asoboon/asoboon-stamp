@@ -67,7 +67,7 @@ async function installNextHome(page, liffMode = 'resolve', statusFixture = null)
 async function openStatusScenario(page, statusFixture) {
   await page.addInitScript(() => {
     const now = Date.now();
-    localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({ receiptNo: 'F123', businessDate: '2026-09-19', waitTypeId: '0042' }));
+    localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({ receiptNo: 'F123', businessDate: '2026-09-19', waitTypeId: '0042', adults: 1, paidChildren: 2, infants: 1 }));
     localStorage.setItem('asoboon_v2_callstatus_session_develop_v1', JSON.stringify({ sessionToken: 's'.repeat(40), receiptNo: 'F123', businessDate: '2026-09-19', waitTypeId: '0042', expiresAt: now + 3600000 }));
   });
   await installNextHome(page, 'resolve', statusFixture);
@@ -110,22 +110,35 @@ test('inactive next HOME exposes every required route on the stable navigator', 
   await expect(page.locator('.v38-fun')).toContainText('準備中');
 });
 
-test('next HOME renders none, waiting, calling, guide and canceled states', async ({ page }) => {
+test('next HOME renders five distinct reception states and keeps reservation facts readable', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
+    receiptNo:'F123', businessDate:'2026-09-19', waitTypeId:'0042', adults:1, paidChildren:2, infants:1
+  })));
   await openNextHome(page);
   await setStatus(page, { kind: 'none' });
   await expect(page.locator('#v38Hero')).toContainText('当日受付');
-  await setStatus(page, { kind: 'waiting', receipt: 'F123', ahead: 7 });
-  await expect(page.locator('#v38Hero')).toContainText('順番待ち');
-  await expect(page.locator('#v38Hero')).toContainText('受付番号 F123');
-  await expect(page.locator('#v38Hero')).toContainText('7');
-  await setStatus(page, { kind: 'calling', receipt: 'F123' });
-  await expect(page.locator('#v38Hero')).toContainText('入場できます！');
-  await expect(page.locator('#v38Hero')).toContainText('呼出後30分以内');
-  await setStatus(page, { kind: 'guide', receipt: 'F123' });
-  await expect(page.locator('#v38Hero')).toContainText('ご利用中');
-  await setStatus(page, { kind: 'none', canceled: true });
-  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
-  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
+  const states = [
+    [{ kind:'waiting', receipt:'F123', ahead:7 }, '呼出前', '順番をお待ちください', /waiting/],
+    [{ kind:'calling', receipt:'F123' }, '呼出中', 'ご入場可能です', /calling/],
+    [{ kind:'hold', receipt:'F123' }, '保留', '受付でご確認ください', /hold/],
+    [{ kind:'guided', receipt:'F123' }, '案内済み', 'ご入場済みです', /guided/],
+    [{ kind:'canceled', receipt:'F123', canceled:true }, '取り消し', '受付が取り消されました', /canceled/],
+  ];
+  for (const [detail,label,title,cls] of states) {
+    await setStatus(page, detail);
+    await expect(page.locator('#v38Hero')).toHaveClass(cls);
+    await expect(page.locator('#v38Hero .v38-state-label')).toHaveText(label);
+    await expect(page.locator('#v38Hero')).toContainText(title);
+    const card=page.locator('#v38Hero .v38-reservation-card');
+    await expect(card).toContainText('受付番号');
+    await expect(card).toContainText('F123');
+    await expect(card).toContainText('利用日');
+    await expect(card).toContainText('9月19日');
+    await expect(card).toContainText('おとな 1名');
+    await expect(card).toContainText('こども 2名');
+    await expect(card).toContainText('0〜5か月 1名');
+  }
+  await expect(page.locator('#v38Hero')).toContainText('呼び出しから30分以上経過したためです。');
 });
 
 for (const mode of ['resolve', 'reject', 'pending', 'missing']) {
@@ -233,21 +246,27 @@ test('callstatus canceled immediately owns HOME and survives lifecycle refresh',
   });
   await expect(page.locator('#csState')).toContainText('受付は取消になっています');
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
-  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
+  await expect(page.locator('#v38Hero')).toContainText('受付が取り消されました');
   await page.evaluate(() => { window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); });
-  await expect(page.locator('#v38Hero')).toContainText('受付は取消済みです');
+  await expect(page.locator('#v38Hero')).toContainText('受付が取り消されました');
 });
 
 test('callstatus calling updates HOME to admission state', async ({ page }) => {
   const status = { ok: true, found: true, state: 'calling', receiptNo: 'F123', businessDate: '2026-09-19', aheadCount: 0, checkedAt: Date.now() };
   await openStatusScenario(page, status);
-  await expect(page.locator('#v38Hero')).toContainText('入場できます！');
+  await expect(page.locator('#v38Hero')).toContainText('ご入場可能です');
 });
 
-for (const state of ['hold', 'processing', 'done']) {
-  test(`callstatus ${state} updates HOME to in-use state`, async ({ page }) => {
-    await openStatusScenario(page, { ok: true, found: true, state, receiptNo: 'F123', businessDate: '2026-09-19', checkedAt: Date.now() });
-    await expect(page.locator('#v38Hero')).toContainText('ご利用中');
+test('callstatus hold updates HOME to hold state', async ({ page }) => {
+  await openStatusScenario(page, { ok:true, found:true, state:'hold', receiptNo:'F123', businessDate:'2026-09-19', checkedAt:Date.now() });
+  await expect(page.locator('#v38Hero')).toHaveClass(/hold/);
+  await expect(page.locator('#v38Hero')).toContainText('受付でご確認ください');
+});
+for (const state of ['processing','done']) {
+  test(`callstatus ${state} updates HOME to guided state`, async ({ page }) => {
+    await openStatusScenario(page, { ok:true, found:true, state, receiptNo:'F123', businessDate:'2026-09-19', checkedAt:Date.now() });
+    await expect(page.locator('#v38Hero')).toHaveClass(/guided/);
+    await expect(page.locator('#v38Hero')).toContainText('ご入場済みです');
   });
 }
 
