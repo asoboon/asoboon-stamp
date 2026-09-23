@@ -57,7 +57,7 @@ replaceOnce(
 );
 replaceOnce(
   "  const wt = await getWaitTypes(env, { force: true });",
-  "  const wt = await getWaitTypes(env);"
+  "  const wt = await getWaitTypesForCreate(env);"
 );
 replaceOnce(
   "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  await setRequestState(env, requestId, 'VALIDATED');",
@@ -78,31 +78,19 @@ replaceOnce(
 
 replaceOnce(
 `function validateWaitType(waitTypes, day, mode, waitTypeId) {
-  const allowed = SLOT_RULES[day.businessType] || [];
+  const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  const usage = String(w.usageDispType || '');
-  if (usage) {
-    const allowedUsage = mode === 'web' ? ['01', '03'] : ['01', '02'];
-    if (!allowedUsage.includes(usage)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  }
+  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }`,
-`function usageMatchesMode(usage, mode) {
-  const u = String(usage || '');
-  if (!u || u === '01' || u === 'KeyALL') return true;
-  if (mode === 'web') return u === '03' || u === 'KeyONLINE_RECEPTION_ONLY';
-  return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
-}
-
-function validateWaitType(waitTypes, day, mode, waitTypeId) {
+`function validateWaitType(waitTypes, day, mode, waitTypeId) {
   const isDevelopTest = waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID;
-  const allowed = SLOT_RULES[day.businessType] || [];
+  const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
   if (!isDevelopTest && !allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
-  if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  if (!isDevelopTest && w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
   if (isDevelopTest) {
     const u = String(w.usageDispType || '');
     if (u && !['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
@@ -159,6 +147,25 @@ async function fetchWithHardTimeout(url, options={}, ms=8000, label='EXTERNAL_TI
     if (e?.name === 'AbortError') throw apiError(label, 504, ambiguous);
     throw e;
   } finally { clearTimeout(timer); }
+}
+
+let createWaitTypesCache = { savedAt:0, value:null };
+let createWaitTypesInflight = null;
+const CREATE_WAIT_TYPES_CACHE_MS = 5 * 1000;
+
+async function getWaitTypesForCreate(env) {
+  const now = Date.now();
+  if (createWaitTypesCache.value && now - createWaitTypesCache.savedAt < CREATE_WAIT_TYPES_CACHE_MS) {
+    return createWaitTypesCache.value;
+  }
+  if (createWaitTypesInflight) return await createWaitTypesInflight;
+  const job = getWaitTypes(env, { force:true }).then(value => {
+    createWaitTypesCache = { savedAt:Date.now(), value };
+    return value;
+  });
+  createWaitTypesInflight = job;
+  try { return await job; }
+  finally { if (createWaitTypesInflight === job) createWaitTypesInflight = null; }
 }
 
 const createBusinessDayCache = new Map();
