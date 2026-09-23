@@ -199,13 +199,13 @@ function cancelIdleEvent(reason='manual'){
 }
 function onBaseline(){
   ready=true;
-  cooldownUntil=Date.now()+Number(CONFIG.INITIAL_QUIET_MS||10000);
+  cooldownUntil=Date.now()+Number(CONFIG.INITIAL_QUIET_MS??10000);
   lastStableAt=Date.now();
 }
 function onRealChange(){
   diagnostics.realInterrupts+=1;
   cancelIdleEvent('real-status-change');
-  cooldownUntil=Date.now()+Number(CONFIG.REAL_CHANGE_COOLDOWN_MS||15000);
+  cooldownUntil=Date.now()+Number(CONFIG.REAL_CHANGE_COOLDOWN_MS??15000);
   lastStableAt=Date.now();
 }
 function onCommunicationError(){
