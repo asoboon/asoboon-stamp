@@ -40,6 +40,13 @@ jobs:
           grep -F "recoverAmbiguous(requestId)" miniapp-v2/shared/reception.js
           grep -F "前回の受付結果を確認しています。新しい受付は行わないでください。" miniapp-v2/shared/reception.js
 
+      - name: Definitive ambiguous reception must not loop retry
+        run: |
+          set -euo pipefail
+          grep -F "if(r?.found&&r?.ambiguous===true)" miniapp-v2/shared/reception.js
+          grep -F "この受付は再確認しても自動確定できません。" miniapp-v2/shared/reception.js
+          grep -F "ASOBooNスタッフへお声がけください。" miniapp-v2/shared/reception.js
+
       - name: Reception operation id must survive ambiguous retries
         run: |
           set -euo pipefail
