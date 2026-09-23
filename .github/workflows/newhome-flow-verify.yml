@@ -30,14 +30,15 @@ jobs:
       - name: Reception must terminate or fail closed
         run: |
           set -euo pipefail
-          grep -F "const POST_TIMEOUT_MS=12000;" miniapp-v2/shared/reception.js
+          grep -F "const POST_TIMEOUT_MS=45000;" miniapp-v2/shared/reception.js
           grep -F "const GET_TIMEOUT_MS=5000;" miniapp-v2/shared/reception.js
-          grep -F "const POLL_DEADLINE_MS=22000;" miniapp-v2/shared/reception.js
-          grep -F "const SUBMIT_WATCHDOG_MS=60000;" miniapp-v2/shared/reception.js
+          grep -F "const POLL_DEADLINE_MS=60000;" miniapp-v2/shared/reception.js
+          grep -F "const SUBMIT_WATCHDOG_MS=120000;" miniapp-v2/shared/reception.js
           grep -F "const ctrl=new AbortController();" miniapp-v2/shared/reception.js
-          grep -F "lockAmbiguous()" miniapp-v2/shared/reception.js
+          grep -F "lockAmbiguous(requestId='')" miniapp-v2/shared/reception.js
           grep -F "CTX.go('callstatus',{replace:true})" miniapp-v2/shared/reception.js
-          ! grep -Fq "SUBMIT_WATCHDOG_MS=38000" miniapp-v2/shared/reception.js
+          grep -F "recoverAmbiguous(requestId)" miniapp-v2/shared/reception.js
+          grep -F "前回の受付結果を確認しています。新しい受付は行わないでください。" miniapp-v2/shared/reception.js
 
       - name: Reception operation id must survive ambiguous retries
         run: |
