@@ -40,6 +40,12 @@ jobs:
           grep -F "recoverAmbiguous(requestId)" miniapp-v2/shared/reception.js
           grep -F "前回の受付結果を確認しています。新しい受付は行わないでください。" miniapp-v2/shared/reception.js
 
+      - name: Presentation layer must not override reception availability
+        run: |
+          set -euo pipefail
+          grep -F "現在受付できる枠がありません|受付停止中" miniapp-v2/develop/reception-v7.js
+          ! grep -Fq "querySelectorAll('.rec-slot').forEach(btn=>{if(btn.hidden)btn.hidden=false})" miniapp-v2/develop/reception-v7.js
+
       - name: Definitive ambiguous reception must not loop retry
         run: |
           set -euo pipefail
