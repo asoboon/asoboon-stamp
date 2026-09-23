@@ -114,7 +114,7 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 });
 
-test('reception uses WEB AirWAIT IDs and never exposes store-only or disabled test slots', async ({ page }) => {
+test('Developing reception exposes only the 0042 test slot and no location UI', async ({ page }) => {
   await openHome(page, 'resolve');
   const rules = await page.evaluate(() => ({
     web: window.ASOBOON_V2_RULES.slotsFor('土日祝日','web').map(x=>x.waitTypeId),
@@ -129,11 +129,10 @@ test('reception uses WEB AirWAIT IDs and never exposes store-only or disabled te
 
   await page.locator('[data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
-  await expect(page.locator('#recSlots [data-rec-slot="0030"]')).toHaveCount(1);
-  await expect(page.locator('#recSlots [data-rec-slot="0032"]')).toHaveCount(1);
-  await expect(page.locator('#recSlots [data-rec-slot="0034"]')).toHaveCount(1);
-  await expect(page.locator('[data-rec-slot="0029"],[data-rec-slot="0031"],[data-rec-slot="0033"]')).toHaveCount(0);
-  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(0);
+  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0023"],[data-rec-slot="0025"],[data-rec-slot="0029"],[data-rec-slot="0030"],[data-rec-slot="0031"],[data-rec-slot="0032"],[data-rec-slot="0033"],[data-rec-slot="0034"],[data-rec-slot="0035"],[data-rec-slot="0036"],[data-rec-slot="0037"],[data-rec-slot="0038"]')).toHaveCount(0);
+  await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
+  await expect(page.locator('#recModeLabel')).toHaveText('Developingテスト');
 });
 
 test('legacy overlay never resurrects disabled Developing test slot', async ({ page }) => {
