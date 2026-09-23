@@ -85,43 +85,6 @@ jobs:
           echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
           echo "Dedicated D1 ready: $DB_NAME"
 
-      - name: Diagnose recent ambiguous receptions
-        if: steps.credentials.outputs.available == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DB_ID: ${{ steps.d1.outputs.database_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
-          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-          QUERY='SELECT request_id,action,state,result_json,created_at,updated_at,expires_at FROM v2_request_results ORDER BY updated_at DESC LIMIT 20'
-          RESPONSE="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY")" "$API")"
-          printf '%s' "$RESPONSE" | node -e '
-            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s);
-              const rows=x?.result?.[0]?.results||[];
-              console.log("RECENT_REQUEST_RESULTS="+JSON.stringify(rows));
-            });
-          '
-          QUERY2='SELECT business_date,request_id,state,wait_type_id,created_at,updated_at FROM v2_user_day_claims ORDER BY updated_at DESC LIMIT 20'
-          RESPONSE2="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY2")" "$API")"
-          printf '%s' "$RESPONSE2" | node -e '
-            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s);
-              const rows=x?.result?.[0]?.results||[];
-              console.log("RECENT_USER_DAY_CLAIMS="+JSON.stringify(rows));
-            });
-          '
-          QUERY3='SELECT request_id,business_date,wait_type_id,status,last_error,last_http_status,created_at,updated_at FROM v2_service_message_claims ORDER BY updated_at DESC LIMIT 20'
-          RESPONSE3="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY3")" "$API" || true)"
-          printf '%s' "$RESPONSE3" | node -e '
-            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-              try{const x=JSON.parse(s);const rows=x?.result?.[0]?.results||[];console.log("RECENT_SERVICE_CLAIMS="+JSON.stringify(rows));}
-              catch{console.log("RECENT_SERVICE_CLAIMS=[]")}
-            });
-          '
-
       - name: Prepare Developing-only AirWAIT test runtime
         if: steps.credentials.outputs.available == 'true'
         run: |
@@ -230,49 +193,6 @@ jobs:
             fi
             sleep 3
           done
-
-      - name: Diagnose Developing test reservation result
-        if: steps.credentials.outputs.available == 'true'
-        run: |
-          set -euo pipefail
-          RESPONSE="$(curl --fail-with-body --silent --show-error \
-            -H 'Origin: https://asoboon.github.io' \
-            "$WORKER_URL/?action=developTestStatus&_=${GITHUB_SHA}")"
-          echo "DEVELOP_TEST_STATUS=$RESPONSE"
-
-      - name: Repair verified non-created 0042 ambiguous request
-        if: steps.credentials.outputs.available == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DB_ID: ${{ steps.d1.outputs.database_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          REQUEST_ID='v2_884d7307-5c83-4009-bb3d-5b3147e234cb'
-          STATUS="$(curl --fail-with-body --silent --show-error \
-            -H 'Origin: https://asoboon.github.io' \
-            "$WORKER_URL/?action=developTestStatus&repair_check=${GITHUB_SHA}")"
-          COUNT="$(printf '%s' "$STATUS" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);if(x.ok!==true)process.exit(2);process.stdout.write(String(x.count));})')"
-          if [ "$COUNT" != "0" ]; then
-            echo "0042 contains reservations; refusing automatic repair."
-            exit 1
-          fi
-          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
-          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-          CHECK_SQL="SELECT r.request_id,r.state,r.result_json,c.business_date,c.state AS claim_state,c.wait_type_id FROM v2_request_results r JOIN v2_user_day_claims c ON c.request_id=r.request_id WHERE r.request_id='${REQUEST_ID}' LIMIT 1"
-          CHECK="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$CHECK_SQL")" "$API")"
-          printf '%s' "$CHECK" | node -e '
-            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s);const row=x?.result?.[0]?.results?.[0];
-              if(!row || row.request_id!=="v2_884d7307-5c83-4009-bb3d-5b3147e234cb" || row.state!=="AMBIGUOUS" || row.claim_state!=="AMBIGUOUS" || row.business_date!=="2026-09-23" || row.wait_type_id!=="0042" || !String(row.result_json||"").includes("AIRWAIT_CREATE_HTTP_500")) process.exit(3);
-            });
-          '
-          UPDATE_SQL="UPDATE v2_request_results SET state='REJECTED',ambiguous=0,result_json='{\"ok\":false,\"stored\":false,\"ambiguous\":false,\"error\":\"AIRWAIT_CREATE_HTTP_500_NOT_CREATED_VERIFIED\",\"version\":\"1.5.dev-correctness\"}',updated_at=(unixepoch('subsec')*1000) WHERE request_id='${REQUEST_ID}' AND state='AMBIGUOUS'"
-          DELETE_SQL="DELETE FROM v2_user_day_claims WHERE request_id='${REQUEST_ID}' AND business_date='2026-09-23' AND wait_type_id='0042' AND state='AMBIGUOUS'"
-          for SQL in "$UPDATE_SQL" "$DELETE_SQL"; do
-            curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$SQL")" "$API" >/dev/null
-          done
-          echo "Verified non-created 0042 ambiguous request repaired."
 
       - name: Verify AirWAIT local test slot read-only
         if: steps.credentials.outputs.available == 'true'
