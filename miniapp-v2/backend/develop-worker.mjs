@@ -52,6 +52,16 @@ export default {
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
+    if (request.method === 'GET' && action === 'developTestStatus') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try {
+        const rows = await fetchDevelopTestReservations(env);
+        return json(request, { ok:true, waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID, count:rows.length, rows:rows.map(r=>({number:String(r.number||''),status:String(r.status||'')})) });
+      } catch (e) {
+        return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503));
+      }
+    }
+
     if (request.method === 'GET' && action === 'boardStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getBoardStatus(env)); }
