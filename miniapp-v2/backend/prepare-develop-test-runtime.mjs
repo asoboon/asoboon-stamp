@@ -61,7 +61,7 @@ replaceOnce(
 );
 replaceOnce(
   "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  await setRequestState(env, requestId, 'VALIDATED');",
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) await incrementAttempt(env, hash, serverDate);\n\n  await setRequestState(env, requestId, 'VALIDATED');"
+  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  await setRequestState(env, requestId, 'VALIDATED');"
 );
 replaceOnce(
   "  enforceReceptionHours(day, mode);",
