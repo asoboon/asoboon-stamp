@@ -187,6 +187,7 @@ body{
 }
 .queue-caption{
   position:absolute;
+  z-index:4;
   left:16px;right:16px;top:8px;
   display:flex;
   justify-content:space-between;
@@ -198,6 +199,8 @@ body{
 }
 .queue-caption strong{color:#73dda0}
 .queue-grid{
+  position:relative;
+  z-index:3;
   --grid-gap:8px;
   --number-size:34px;
   --state-size:12px;
@@ -330,6 +333,7 @@ body{
 .queue-grid.ultra-compact .queue-card.near-band{transform:scale(1.008)}
 .empty-state{
   position:absolute;
+  z-index:3;
   inset:34px 8px 8px;
   display:flex;
   flex-direction:column;
@@ -363,6 +367,149 @@ body{
 .footer-center{justify-self:center;color:#74858a;font-size:10px;letter-spacing:.18em}
 .updated{justify-self:end}.updated time{color:#dfe7e9;font-variant-numeric:tabular-nums;font-weight:1000}
 
+
+
+/* Idle entertainment layer: normally empty, always behind real ticket cards. */
+.board-idle-layer{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+  contain:layout paint;
+}
+.idle-shape{
+  --idle-color:#ffd84f;
+  --idle-color-2:#73dda0;
+  position:fixed;
+  z-index:1;
+  width:52px;
+  height:52px;
+  pointer-events:none;
+  will-change:transform,opacity;
+  filter:drop-shadow(0 7px 10px rgba(0,0,0,.2));
+}
+.idle-shape[data-shape="star"]{
+  background:var(--idle-color);
+  clip-path:polygon(50% 0,61% 34%,98% 35%,68% 56%,79% 94%,50% 71%,21% 94%,32% 56%,2% 35%,39% 34%);
+}
+.idle-shape[data-shape="orb"],
+.idle-shape[data-shape="ball"]{
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 28%,rgba(255,255,255,.92) 0 9%,transparent 10%),
+    radial-gradient(circle at 38% 34%,rgba(255,255,255,.35),transparent 34%),
+    var(--idle-color);
+  box-shadow:inset -8px -10px 0 rgba(0,0,0,.12),0 8px 18px rgba(0,0,0,.2);
+}
+.idle-shape[data-shape="line"],
+.idle-shape[data-shape="speed-line"],
+.idle-shape[data-shape="afterimage"],
+.idle-shape[data-shape="speed-block"]{
+  width:120px;
+  height:12px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,var(--idle-color),#fff,var(--idle-color),transparent);
+  filter:drop-shadow(0 0 9px var(--idle-color));
+}
+.idle-shape[data-shape="speed-line"]{height:5px;width:180px}
+.idle-shape[data-shape="afterimage"]{width:210px;opacity:.72}
+.idle-shape[data-shape="speed-block"]{width:190px;height:32px;clip-path:polygon(0 35%,78% 35%,78% 0,100% 50%,78% 100%,78% 65%,0 65%)}
+.idle-shape[data-shape="arrow"]{
+  width:105px;height:72px;background:var(--idle-color);
+  clip-path:polygon(0 32%,62% 32%,62% 4%,100% 50%,62% 96%,62% 68%,0 68%);
+}
+.idle-shape[data-shape="rocket"]{
+  width:92px;height:42px;background:linear-gradient(90deg,var(--idle-color),#fff);
+  clip-path:polygon(0 28%,68% 28%,84% 0,100% 50%,84% 100%,68% 72%,0 72%,12% 50%);
+}
+.idle-shape[data-shape="shadow"]{
+  width:135px;height:38px;border-radius:50%;
+  background:rgba(4,10,12,.72);
+  filter:blur(4px);
+}
+.idle-shape[data-shape="exclamation"]{
+  width:auto;height:auto;
+  color:var(--idle-color);
+  font:1000 78px/1 sans-serif;
+  filter:drop-shadow(0 7px 0 rgba(0,0,0,.22));
+}
+.idle-shape[data-shape="exclamation"]::before{content:"!"}
+.idle-shape[data-shape="eye"]{
+  width:118px;height:72px;
+  border-radius:56% 56% 50% 50%/68% 68% 40% 40%;
+  background:
+    radial-gradient(circle at 50% 50%,#172226 0 12%,#fff 13% 30%,var(--idle-color) 31% 48%,#fff 49% 100%);
+  box-shadow:0 8px 20px rgba(0,0,0,.24);
+}
+.idle-cloud{
+  width:120px;height:42px;border-radius:999px;
+  background:rgba(229,244,248,.88);
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.1));
+}
+.idle-cloud:before,.idle-cloud:after{
+  content:"";position:absolute;border-radius:50%;background:inherit
+}
+.idle-cloud:before{width:52px;height:52px;left:18px;bottom:9px}
+.idle-cloud:after{width:66px;height:66px;right:18px;bottom:4px}
+.idle-ring{
+  width:110px;height:110px;border-radius:50%;
+  border:8px solid var(--idle-color);
+  background:transparent;
+  box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 22px rgba(120,229,255,.15);
+}
+.idle-tornado{
+  width:70px;height:100px;
+  border-radius:50%;
+  background:
+    repeating-radial-gradient(ellipse at center,transparent 0 9px,rgba(220,239,244,.72) 10px 14px,transparent 15px 22px);
+  transform-origin:center;
+}
+.idle-collision{width:76px;height:76px}
+.idle-depth{width:86px;height:86px}
+.idle-orbit{width:28px;height:28px}
+.idle-peek{z-index:2}
+
+.idle-canvas,.idle-svg{
+  position:fixed;
+  z-index:1;
+  pointer-events:none;
+}
+.idle-background{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--idle-color) 42%,transparent),transparent 46%),
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.1) 0 8deg,transparent 8deg 18deg);
+  will-change:opacity,transform;
+}
+.idle-background.space{
+  background:
+    radial-gradient(circle at 12% 20%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 72% 32%,#fff 0 1.5px,transparent 2.5px),
+    radial-gradient(circle at 42% 76%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 86% 70%,#78e5ff 0 1.5px,transparent 2.5px),
+    radial-gradient(circle at 50% 50%,rgba(36,71,108,.85),rgba(14,24,44,.86) 55%,rgba(5,10,20,.9));
+  background-size:90px 90px,130px 130px,110px 110px,150px 150px,auto;
+}
+.idle-background.world{
+  background:
+    radial-gradient(circle at 20% 30%,rgba(255,216,79,.32),transparent 22%),
+    radial-gradient(circle at 78% 68%,rgba(115,221,160,.28),transparent 24%),
+    linear-gradient(135deg,rgba(255,139,49,.26),rgba(120,229,255,.22));
+}
+.idle-background.radial{
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.11) 0 9deg,transparent 9deg 19deg),
+    radial-gradient(circle,var(--idle-color),transparent 60%);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .board-idle-layer{opacity:.72}
+  .idle-shape{filter:none}
+}
 
 /* Event-only entertainment layer. The board itself remains still between changes. */
 .board-fx-layer{
