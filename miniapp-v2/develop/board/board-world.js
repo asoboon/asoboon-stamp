@@ -504,8 +504,8 @@ function audit(events){
   const source=Array.isArray(events)?events:[];
   return source.map(e=>{
     const dir=DIRECTIVES[e.id];
-    const phaseExtra=dir?480:0;
-    const revisedBase=(dir?.coreBaseMs||e.duration||0)+phaseExtra;
+    const compressed=dir?Math.max(420,dir.coreBaseMs*.55):(e.duration||0);
+    const revisedBase=Math.max(1200,compressed+(dir?650:0));
     return{
       id:e.id,
       tier:e.tier,
