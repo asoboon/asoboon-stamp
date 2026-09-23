@@ -377,6 +377,48 @@ body{
 
 
 
+
+.board-shared-fx-canvas{
+  position:absolute;
+  inset:0;
+  z-index:13;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  contain:strict;
+}
+
+/* AUTO quality only removes expensive decoration; scale, travel and comedy stay intact. */
+:root[data-board-quality="medium"] .world-resident,
+:root[data-board-quality="low"] .world-resident,
+:root[data-board-quality="medium"] .idle-shape,
+:root[data-board-quality="low"] .idle-shape{
+  filter:none!important;
+}
+:root[data-board-quality="medium"] .resident-shadow,
+:root[data-board-quality="low"] .resident-shadow,
+:root[data-board-quality="medium"] .world-speed-field,
+:root[data-board-quality="low"] .world-speed-field,
+:root[data-board-quality="medium"] .fx-edge-sweep,
+:root[data-board-quality="low"] .fx-edge-sweep{
+  filter:none!important;
+}
+:root[data-board-quality="low"] .resident-ball,
+:root[data-board-quality="low"] .resident-orb,
+:root[data-board-quality="low"] .resident-square,
+:root[data-board-quality="low"] .resident-eye,
+:root[data-board-quality="low"] .queue-card,
+:root[data-board-quality="low"] .session-sign,
+:root[data-board-quality="low"] .brand-block{
+  box-shadow:none!important;
+}
+:root[data-board-quality="low"] .world-stage-wash{
+  background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--world-color) 40%,transparent),transparent 58%);
+}
+:root[data-board-quality="low"] .world-speed-field{
+  background:repeating-linear-gradient(102deg,transparent 0 80px,color-mix(in srgb,var(--world-color) 42%,transparent) 81px 88px,transparent 89px 160px);
+}
+
 /* Full-screen world layers: effects can fill the display, real information stays above. */
 .board-fx-back-layer,
 .board-fx-front-layer{
@@ -410,8 +452,8 @@ body{
 .world-resident{
   --resident-scale:1;
   position:fixed;
-  width:76px;
-  height:76px;
+  width:clamp(82px,9vw,150px);
+  height:clamp(82px,9vw,150px);
   z-index:1;
   pointer-events:none;
   will-change:transform,opacity;
@@ -445,7 +487,7 @@ body{
 }
 .resident-star:before{left:34%}.resident-star:after{right:34%}
 .resident-ball{
-  width:100px;height:100px;border-radius:50%;
+  width:clamp(130px,16vw,280px);height:clamp(130px,16vw,280px);border-radius:50%;
   background:
     radial-gradient(circle at 33% 27%,rgba(255,255,255,.92) 0 9%,transparent 10%),
     radial-gradient(circle at 34% 30%,rgba(255,255,255,.28),transparent 34%),
@@ -462,12 +504,12 @@ body{
 }
 .resident-square:before{left:27%}.resident-square:after{right:27%}
 .resident-shadow{
-  width:112px;height:52px;border-radius:50%;
+  width:clamp(180px,28vw,480px);height:clamp(70px,11vw,190px);border-radius:50%;
   background:rgba(6,14,17,.74);
   filter:blur(5px) drop-shadow(0 8px 12px rgba(0,0,0,.25));
 }
 .resident-eye{
-  width:120px;height:72px;
+  width:clamp(170px,22vw,380px);height:clamp(105px,14vw,240px);
   border-radius:58% 58% 52% 52%/70% 70% 42% 42%;
   background:
     radial-gradient(circle at 50% 50%,#1d292d 0 12%,#78e5ff 13% 26%,#fff 27% 52%,#73dda0 53% 100%);
@@ -505,8 +547,8 @@ body{
   --idle-color-2:#73dda0;
   position:fixed;
   z-index:1;
-  width:52px;
-  height:52px;
+  width:clamp(72px,9vw,150px);
+  height:clamp(72px,9vw,150px);
   pointer-events:none;
   will-change:transform,opacity;
   filter:drop-shadow(0 7px 10px rgba(0,0,0,.2));
@@ -575,7 +617,7 @@ body{
 .idle-cloud:before{width:52px;height:52px;left:18px;bottom:9px}
 .idle-cloud:after{width:66px;height:66px;right:18px;bottom:4px}
 .idle-ring{
-  width:110px;height:110px;border-radius:50%;
+  width:clamp(160px,22vw,380px);height:clamp(160px,22vw,380px);border-radius:50%;
   border:8px solid var(--idle-color);
   background:transparent;
   box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 22px rgba(120,229,255,.15);
@@ -732,3 +774,6 @@ body{
   .legend-item i{width:19px;height:19px}
   .queue-shell{padding-top:30px}
 }
+
+:root[data-board-quality="medium"] .idle-background,
+:root[data-board-quality="low"] .idle-background{filter:none!important}
