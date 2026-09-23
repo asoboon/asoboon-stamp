@@ -48,7 +48,7 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_ANIMATIONS))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS))).toBe(true);
   await page.evaluate(() => window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false));
 
   return {
@@ -60,6 +60,28 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
 async function diagnostics(page) {
   return page.evaluate(() => window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics());
+}
+
+async function idleDiagnostics(page) {
+  return page.evaluate(() => window.ASOBOON_BOARD_IDLE_EVENTS.getDiagnostics());
+}
+
+async function prepareIdleForTest(page, patch = {}) {
+  await page.evaluate(config => {
+    const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+    idle.resetForTest();
+    idle.setConfig({
+      ANIMATION_ENABLED: true,
+      ANIMATION_LEVEL: 1,
+      IDLE_EVENTS_ENABLED: true,
+      IDLE_EVENT_CHANCE: 1,
+      RARE_EVENTS_ENABLED: true,
+      INITIAL_QUIET_MS: 0,
+      REAL_CHANGE_COOLDOWN_MS: 0,
+      ...config,
+    });
+    idle.onBaseline();
+  }, patch);
 }
 
 async function waitForFxIdle(page) {
@@ -226,4 +248,125 @@ test('animation controls support OFF through level 3 and rare effects toggle', a
     return [fx.setLevel(1), fx.setLevel(2), fx.setLevel(3), fx.setRareEnabled(true), fx.getLevel(), fx.isRareEnabled()];
   });
   expect(values).toEqual([1, 2, 3, true, 3, true]);
+});
+
+
+test('idle entertainment catalog has at least 60 non-reward events', async ({ page }) => {
+  const current = payload([
+    { number: '7001', state: 'waiting', order: 1 },
+    { number: '7002', state: 'waiting', order: 2 },
+  ]);
+  await installBoard(page, [current]);
+  const catalog = await page.evaluate(() => window.ASOBOON_BOARD_IDLE_EVENTS.events.map(e => ({ id: e.id, tier: e.tier })));
+  expect(catalog.length).toBeGreaterThanOrEqual(60);
+  expect(new Set(catalog.map(x => x.id)).size).toBe(catalog.length);
+  for (const item of catalog) expect(['small','medium','large','rare']).toContain(item.tier);
+  const text = JSON.stringify(catalog).toUpperCase();
+  for (const banned of ['JACKPOT','BONUS','RARE','COIN','SCORE','GACHA']) expect(text).not.toContain(banned);
+});
+
+test('idle events do not fire on initial load and only run after an unchanged update', async ({ page }) => {
+  const current = payload([
+    { number: '7101', state: 'waiting', order: 1 },
+    { number: '7102', state: 'waiting', order: 2 },
+  ]);
+  const h = await installBoard(page, [current, current]);
+  expect((await idleDiagnostics(page)).played).toBe(0);
+
+  await prepareIdleForTest(page);
+  await h.refresh();
+
+  await expect.poll(async () => (await idleDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
+  await expect.poll(async () => (await idleDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
+  await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
+});
+
+test('real call interrupts a running idle event and immediately wins priority', async ({ page }) => {
+  const h = await installBoard(page, [
+    payload([
+      { number: '7201', state: 'waiting', order: 1 },
+      { number: '7202', state: 'waiting', order: 2 },
+    ]),
+    payload([
+      { number: '7201', state: 'calling', order: 1 },
+      { number: '7202', state: 'waiting', order: 2 },
+    ]),
+  ]);
+  await prepareIdleForTest(page, { ANIMATION_LEVEL: 3 });
+
+  await page.evaluate(() => {
+    const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+    void idle.onStableUpdate({ grid: document.getElementById('queueGrid') });
+  });
+  await expect.poll(async () => (await idleDiagnostics(page)).running).toBe(true);
+
+  h.next();
+  await h.refresh();
+
+  await expect.poll(async () => (await idleDiagnostics(page)).realInterrupts).toBeGreaterThanOrEqual(1);
+  await expect.poll(async () => (await idleDiagnostics(page)).running).toBe(false);
+  await expect.poll(async () => {
+    const d = await diagnostics(page);
+    return d.history.some(x => x.number === '7201' && x.kind === 'call');
+  }, { timeout: 3000 }).toBe(true);
+  await expect(page.locator('.queue-card.calling .queue-number')).toHaveText('7201');
+  await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
+});
+
+test('new reception data suppresses idle events even without a status transition', async ({ page }) => {
+  const h = await installBoard(page, [
+    payload([{ number: '7301', state: 'waiting', order: 1 }]),
+    payload([
+      { number: '7301', state: 'waiting', order: 1 },
+      { number: '7302', state: 'waiting', order: 2 },
+    ]),
+  ]);
+  await prepareIdleForTest(page);
+  h.next();
+  await h.refresh();
+
+  await expect(page.locator('.queue-number')).toHaveText(['7301','7302']);
+  expect((await idleDiagnostics(page)).played).toBe(0);
+});
+
+test('recent idle history prevents immediate event repetition', async ({ page }) => {
+  const current = payload([{ number: '7401', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+  await prepareIdleForTest(page, { ANIMATION_LEVEL: 1, RARE_EVENTS_ENABLED: false });
+
+  for (let i = 0; i < 5; i += 1) {
+    await page.evaluate(() => void window.ASOBOON_BOARD_IDLE_EVENTS.onStableUpdate({ grid: document.getElementById('queueGrid') }));
+    await expect.poll(async () => (await idleDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
+  }
+  const d = await idleDiagnostics(page);
+  expect(d.history.length).toBe(5);
+  expect(new Set(d.history.map(x => x.id)).size).toBe(5);
+});
+
+test('communication error cancels idle entertainment and leaves no temporary layers', async ({ page }) => {
+  const current = payload([{ number: '7501', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+  await prepareIdleForTest(page, { ANIMATION_LEVEL: 3 });
+
+  await page.evaluate(() => void window.ASOBOON_BOARD_IDLE_EVENTS.onStableUpdate({ grid: document.getElementById('queueGrid') }));
+  await expect.poll(async () => (await idleDiagnostics(page)).running).toBe(true);
+  await page.evaluate(() => window.ASOBOON_BOARD_IDLE_EVENTS.onCommunicationError());
+
+  await expect.poll(async () => (await idleDiagnostics(page)).running).toBe(false);
+  await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
+});
+
+test('idle reduced-motion mode caps animation level and keeps real numbers untouched', async ({ page }) => {
+  const current = payload([
+    { number: '7601', state: 'waiting', order: 1 },
+    { number: '7602', state: 'calling', order: 2 },
+  ]);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await installBoard(page, [current]);
+  await prepareIdleForTest(page, { ANIMATION_LEVEL: 3 });
+
+  const d = await idleDiagnostics(page);
+  expect(d.reduced).toBe(true);
+  expect(d.effectiveLevel).toBe(1);
+  await expect(page.locator('.queue-number')).toHaveText(['7601','7602']);
 });
