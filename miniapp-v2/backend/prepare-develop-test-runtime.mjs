@@ -147,7 +147,7 @@ replaceOnce(
 );
 replaceOnce(
   "        autoPrintFlg: 'false',\n      }),\n    });",
-  "        autoPrintFlg: 'false',\n      }),\n    }, 10000, 'AIRWAIT_CREATE_TIMEOUT', true);"
+  "        autoPrintFlg: 'false',\n      }),\n    }, 20000, 'AIRWAIT_CREATE_TIMEOUT', true);"
 );
 
 const hardeningRuntime = String.raw`
