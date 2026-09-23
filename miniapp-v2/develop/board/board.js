@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{};
 const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
+const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 const REFRESH_MS=10000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',lastColumns:0,lastGoodAt:0,busy:false};
@@ -139,7 +140,19 @@ function renderPayload(data){
   // Data/render updates are immediate. The animation module only visualizes
   // state transitions after the fresh DOM is already on screen.
   renderRows(allRows);
-  FX?.observe?.({slotKey:key,rows:allRows,previousFrame,grid});
+  const observation=FX?.observe?.({
+    slotKey:key,
+    rows:allRows,
+    previousFrame,
+    grid,
+    onBeforeRealChange:()=>IDLE?.onRealChange?.(),
+  })||{baseline:false,dataChangeCount:0};
+
+  if(observation.baseline){
+    IDLE?.onBaseline?.();
+  }else if(Number(observation.dataChangeCount||0)===0){
+    void IDLE?.onStableUpdate?.({grid});
+  }
 
   state.lastGoodAt=Date.now();
   setConnection(true,'10秒ごとに自動更新');
@@ -154,6 +167,7 @@ async function fetchBoard(){
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
   }catch(e){
+    IDLE?.onCommunicationError?.();
     setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
     if(!state.lastGoodAt){
       $('slotLabel').textContent=activeSlotKey(new Date());
@@ -173,6 +187,7 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   visibleRows,
   normalizeRows,
   refresh:fetchBoard,
+  idle:()=>IDLE?.getDiagnostics?.()||null,
 });
 fetchBoard();schedule();
 })();
