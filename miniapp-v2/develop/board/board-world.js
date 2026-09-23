@@ -172,7 +172,7 @@ async function playCameo(scope,eventId,primary,{level=3}={}){
   if(level<=1)return;
   const sig=motionSignature(eventId);
   if(sig.cameo===primary&&sig.cameoMode!=='copy')return;
-  const r=stageRect(),el=resident(scope,sig.cameo,'back');
+  const r=stageRect(),el=resident(scope,sig.cameo,(level>=3&&['chase','bonk'].includes(sig.cameoMode))?'front':'back');
   const y=r.top+r.height*(sig.lane>.72?.72:sig.lane<.2?.24:sig.lane);
   const fromLeft=sig.entrance==='left'||sig.entrance==='top';
   position(el,fromLeft?r.left-72:r.right+72,y,.62+sig.scale*.24);
@@ -266,7 +266,8 @@ function stageBump(scope,intensity=1){
 
 async function residentGag(scope,directive,{grid,level=3}={}){
   const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag),tempo=Math.max(420,directive.coreBaseMs*.55);
-  const el=resident(scope,id,'back');
+  const frontStage=level>=3&&['oversize','fakeout','offscreen','ride','chase'].includes(gag);
+  const el=resident(scope,id,frontStage?'front':'back');
   const s=level<=1?.72:1;
   if(level<=1){
     position(el,r.left+r.width*.12,r.top+r.height*.72,s*.72);
