@@ -21,6 +21,7 @@ let ready=false;
 let running=false;
 let currentAbort=null;
 let activeAnimations=new Set();
+let activeTimers=new Set();
 let recentIdleEvents=[];
 let cooldownUntil=0;
 let lastStableAt=0;
@@ -159,9 +160,29 @@ function animate(el,keyframes,options){
   if(!el?.animate)return Promise.resolve();
   return trackAnimation(el.animate(keyframes,options));
 }
+function wait(ms,signal){
+  if(signal?.aborted)return Promise.reject(new DOMException('Aborted','AbortError'));
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{
+      activeTimers.delete(timer);
+      signal?.removeEventListener?.('abort',onAbort);
+      resolve();
+    },Math.max(0,ms));
+    activeTimers.add(timer);
+    const onAbort=()=>{
+      clearTimeout(timer);
+      activeTimers.delete(timer);
+      signal?.removeEventListener?.('abort',onAbort);
+      reject(new DOMException('Aborted','AbortError'));
+    };
+    signal?.addEventListener?.('abort',onAbort,{once:true});
+  });
+}
 function cleanup(){
   for(const animation of activeAnimations){try{animation.cancel()}catch{}}
   activeAnimations.clear();
+  for(const timer of activeTimers)clearTimeout(timer);
+  activeTimers.clear();
   clearLayer();
   document.querySelectorAll('.queue-card').forEach(card=>{card.style.willChange='';card.style.filter=''});
   diagnostics.cleanupRuns+=1;
@@ -456,7 +477,7 @@ async function playCollision(def,{signal,level}){
   await Promise.all([
     animate(a,[{opacity:0,transform:'translate(-50%,-50%)'},{opacity:1,offset:.3,transform:`translate(calc(-50% + ${dx*.7}px),-50%)`},{opacity:0,transform:`translate(calc(-50% + ${dx}px),-50%) scale(.4)`}],{duration:def.duration,fill:'forwards'}),
     animate(b,[{opacity:0,transform:'translate(-50%,-50%)'},{opacity:1,offset:.3,transform:`translate(calc(-50% - ${dx*.7}px),-50%)`},{opacity:0,transform:`translate(calc(-50% - ${dx}px),-50%) scale(.4)`}],{duration:def.duration,fill:'forwards'}),
-    new Promise(resolve=>setTimeout(()=>{void playRing({...def,size:1.5,duration:520},{signal,level}).finally(resolve)},Math.floor(def.duration*.55))),
+    (async()=>{await wait(Math.floor(def.duration*.55),signal);await playRing({...def,size:1.5,duration:520},{signal,level})})(),
   ]);
 }
 async function playSequence(def,ctx){
@@ -468,7 +489,7 @@ async function playSequence(def,ctx){
     else if(step==='particles')await playParticles({...def,style:'stars',count:22,duration:520},ctx);
     else if(step==='burst')await playBurst({...def,count:30,duration:620},ctx);
     else if(step==='jump-all')await playCards({...def,pattern:'jump-all',count:999,duration:620},ctx);
-    else if(step==='triple-pass')await Promise.all([0,1,2].map((_,i)=>new Promise(resolve=>setTimeout(()=>{void playPass({...def,shape:i===1?'star':'orb',duration:520},{...ctx}).finally(resolve)},i*130))));
+    else if(step==='triple-pass')await Promise.all([0,1,2].map(async(_,i)=>{await wait(i*130,ctx.signal);await playPass({...def,shape:i===1?'star':'orb',duration:520},{...ctx})}));
   }
 }
 async function playDepth(def,{signal,level}){
