@@ -30,7 +30,7 @@ let monitoring=true;
 let sharedCanvas=null;
 let sharedCtx=null;
 let sharedCanvasUsers=0;
-const baselineDomCount=document.getElementsByTagName('*').length;
+let baselineDomCount=document.getElementsByTagName('*').length;
 let peakDomCount=baselineDomCount;
 let maxFrameTasks=0;
 let maxCanvasJobs=0;
@@ -233,12 +233,13 @@ function createScope(label='effect'){
   scopes.add(scope);return scope;
 }
 function abortAll(reason='abort-all'){for(const scope of [...scopes])scope.abort(reason)}
+function resetPerformanceBaseline(){baselineDomCount=document.getElementsByTagName('*').length;peakDomCount=baselineDomCount;maxFrameTasks=0;maxCanvasJobs=0;qualityChanges=0;longTasks=0;frameSamples=[];frameEma=16.7;fpsEma=60}
 function diagnostics(){
   return{
     slowdown,defaultSlowdown:DEFAULT_SLOWDOWN,reduced,
     qualityMode,effectiveQuality:effectiveQualityName(),qualityProfile:{...quality()},
     frameMs:Math.round(frameEma*10)/10,fps:Math.round(fpsEma*10)/10,longTasks,
-    activeScopes:scopes.size,frameTasks:frameTasks.size,canvasJobs:canvasJobs.size,
+    activeScopes:scopes.size,frameTasks:frameTasks.size,canvasJobs:canvasJobs.size,rafLoopCount:rafId?1:0,
     sharedCanvasCount:sharedCanvas?1:0,
     baselineDomCount,domCount:document.getElementsByTagName('*').length,peakDomCount,domDeltaPeak:peakDomCount-baselineDomCount,
     maxFrameTasks,maxCanvasJobs,qualityChanges,
@@ -264,6 +265,6 @@ window.ASOBOON_BOARD_EFFECTS=Object.freeze({
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
-  sharedCanvas:ensureSharedCanvas,runCanvas,runFrameTask,diagnostics,
+  sharedCanvas:ensureSharedCanvas,runCanvas,runFrameTask,resetPerformanceBaseline,diagnostics,
 });
 })();
