@@ -194,7 +194,7 @@ jobs:
             sleep 3
           done
 
-      - name: Diagnose AirWAIT slot mapping read-only
+      - name: Verify AirWAIT slot channel mapping
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -203,18 +203,27 @@ jobs:
             "$WORKER_URL/?action=waitTypes&slot_map=${GITHUB_SHA}")"
           printf '%s' "$RESPONSE" | node -e '
             let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s); const ids=new Set(["0023","0024","0025","0026","0027","0028","0029","0030","0031","0032","0033","0034","0035","0036","0037","0038","0042"]);
-              const rows=(x.waitTypes||[]).filter(v=>ids.has(String(v.waitTypeId))).map(v=>({
-                waitTypeId:String(v.waitTypeId||""),
-                waitTypeName:String(v.waitTypeName||""),
-                dispFlg:v.dispFlg,
-                usageDispType:String(v.usageDispType||""),
-              }));
-              console.log("AIRWAIT_SLOT_MAP="+JSON.stringify(rows));
+              const x=JSON.parse(s), rows=Array.isArray(x.waitTypes)?x.waitTypes:[];
+              const byId=id=>rows.find(v=>String(v.waitTypeId)===id);
+              const expected={
+                "0023":"KeySTORE_RECEPTION_ONLY","0024":"KeyONLINE_RECEPTION_ONLY",
+                "0025":"KeySTORE_RECEPTION_ONLY","0027":"KeyONLINE_RECEPTION_ONLY",
+                "0029":"KeySTORE_RECEPTION_ONLY","0030":"KeyONLINE_RECEPTION_ONLY",
+                "0031":"KeySTORE_RECEPTION_ONLY","0032":"KeyONLINE_RECEPTION_ONLY",
+                "0033":"KeySTORE_RECEPTION_ONLY","0034":"KeyONLINE_RECEPTION_ONLY",
+                "0035":"KeySTORE_RECEPTION_ONLY","0036":"KeyONLINE_RECEPTION_ONLY",
+                "0037":"KeySTORE_RECEPTION_ONLY","0038":"KeyONLINE_RECEPTION_ONLY",
+                "0042":"KeySTORE_RECEPTION_ONLY"
+              };
+              for(const [id,usage] of Object.entries(expected)){
+                const row=byId(id);
+                if(!row||String(row.usageDispType||"")!==usage) throw new Error("AirWAIT slot channel mismatch "+id);
+              }
+              console.log("AirWAIT WEB/onsite slot channel mapping verified.");
             });
           '
 
-      - name: Verify AirWAIT local test slot read-only
+      - name: Verify AirWAIT local test slot metadata read-only
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -226,7 +235,7 @@ jobs:
               const x=JSON.parse(s);
               const test=Array.isArray(x.waitTypes)?x.waitTypes.find(w=>String(w.waitTypeId)==="0042"):null;
               if(x.ok!==true || !test || String(test.waitTypeName)!=="入場不可テスト" || !["02","KeySTORE_RECEPTION_ONLY"].includes(String(test.usageDispType||""))) process.exit(1);
-              console.log(`AirWAIT local test slot ready: ${test.waitTypeId} ${test.waitTypeName} disp=${test.dispFlg} usage=${test.usageDispType}`);
+              console.log(`AirWAIT local test slot metadata: ${test.waitTypeId} ${test.waitTypeName} disp=${test.dispFlg} usage=${test.usageDispType}`);
             });
           '
 
