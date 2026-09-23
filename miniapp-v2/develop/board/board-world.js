@@ -265,7 +265,7 @@ function stageBump(scope,intensity=1){
 }
 
 async function residentGag(scope,directive,{grid,level=3}={}){
-  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag),tempo=Math.max(420,tempo*.55);
+  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag),tempo=Math.max(420,directive.coreBaseMs*.55);
   const el=resident(scope,id,'back');
   const s=level<=1?.72:1;
   if(level<=1){
