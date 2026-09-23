@@ -1,5 +1,6 @@
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{};
+const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const REFRESH_MS=10000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',lastColumns:0,lastGoodAt:0,busy:false};
@@ -21,6 +22,14 @@ function clockText(value){
   return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function rowKey(row,index){
+  const number=String(row?.number||'').trim();
+  const order=Number(row?.order);
+  return number+'::'+(Number.isFinite(order)?order:index+1);
+}
+function normalizeRows(rows){
+  return (Array.isArray(rows)?rows:[]).map((row,index)=>({...row,__key:rowKey(row,index)}));
+}
 function statusMeta(kind){
   switch(String(kind||'')){
     case'calling':return{label:'呼出中',icon:'▶',aria:'呼出中'};
@@ -40,8 +49,8 @@ function renderRows(rows){
   empty.hidden=true;grid.hidden=false;
   grid.innerHTML=state.rows.map((row,index)=>{
     const kind=['waiting','calling','done','hold'].includes(String(row?.state||''))?String(row.state):'waiting';
-    const m=statusMeta(kind),num=esc(row?.number||'—');
-    return '<div class="queue-card '+kind+'" data-index="'+index+'" data-state="'+kind+'" aria-label="受付番号 '+num+' '+m.aria+'">'+
+    const m=statusMeta(kind),num=esc(row?.number||'—'),key=esc(row?.__key||rowKey(row,index));
+    return '<div class="queue-card '+kind+'" data-index="'+index+'" data-row-key="'+key+'" data-state="'+kind+'" aria-label="受付番号 '+num+' '+m.aria+'">'+
       '<div class="number-wrap"><strong class="queue-number">'+num+'</strong></div>'+
       '<div class="status-rail"><span class="status-icon" aria-hidden="true">'+m.icon+'</span><span class="status-label">'+m.label+'</span></div>'+
       '</div>';
@@ -118,11 +127,20 @@ function renderPayload(data){
   const key=activeSlotKey(new Date());
   state.slotKey=key;
   const slot=Array.isArray(data?.slots)?data.slots.find(x=>String(x?.key||'')===key):null;
+  const allRows=normalizeRows(slot?.rows||[]);
+  const grid=$('queueGrid');
+  const previousFrame=FX?.capture?.(grid)||new Map();
+
   $('slotLabel').textContent=key;
-  const rows=visibleRows(slot?.rows||[]);
+  const rows=visibleRows(allRows);
   $('slotCount').textContent=rows.length?'受付 '+rows.length+'組':'';
   $('updatedAt').textContent=clockText(data?.fetchedAt||Date.now());
-  renderRows(rows);
+
+  // Data/render updates are immediate. The animation module only visualizes
+  // state transitions after the fresh DOM is already on screen.
+  renderRows(allRows);
+  FX?.observe?.({slotKey:key,rows:allRows,previousFrame,grid});
+
   state.lastGoodAt=Date.now();
   setConnection(true,'10秒ごとに自動更新');
 }
@@ -148,6 +166,13 @@ async function fetchBoard(){
 function schedule(){clearInterval(state.timer);state.timer=setInterval(fetchBoard,REFRESH_MS);}
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard();});
-window.ASOBOON_CALL_BOARD_TEST=Object.freeze({activeSlotKey,statusMeta,preferredColumns,visibleRows});
+window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
+  activeSlotKey,
+  statusMeta,
+  preferredColumns,
+  visibleRows,
+  normalizeRows,
+  refresh:fetchBoard,
+});
 fetchBoard();schedule();
 })();
