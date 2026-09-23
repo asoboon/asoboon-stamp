@@ -115,7 +115,7 @@ async function waitForLine(){let st=lineState();if(st.booting||!st.liffReady){aw
 function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!=='develop'||!t.waitTypeId)return null;return{waitTypeId:String(t.waitTypeId),label:String(t.label||'入場不可テスト'),detail:String(t.detail||'Developing専用テスト枠'),developTest:true}}
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
 function usageAllowed(actual,mode,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);if(!u||u==='01'||u==='KeyALL')return true;if(mode==='web')return u==='03'||u==='KeyONLINE_RECEPTION_ONLY';return u==='02'||u==='KeySTORE_RECEPTION_ONLY'}
-function buildSlots(waitTypes){const configured=[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType):[])],test=developTestRule();if(test)configured.push(test);return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(rule.developTest){if(!actual||!usageAllowed(actual,S.mode,{developTest:true}))return null;return{...rule,actual}}if(actual&&(actual.dispFlg===false||!usageAllowed(actual,S.mode)))return null;return{...rule,actual}}).filter(Boolean)}
+function buildSlots(waitTypes){const configured=[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])],test=developTestRule();if(test)configured.push(test);return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(actual.dispFlg===false)return null;if(rule.developTest){if(!usageAllowed(actual,S.mode,{developTest:true}))return null;return{...rule,actual}}if(!usageAllowed(actual,S.mode))return null;return{...rule,actual}}).filter(Boolean)}
 function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
 function locationOk(){return S.mode!=='onsite'||Boolean(S.location?.ok)}
 
@@ -173,7 +173,8 @@ async function boot(){
   if(!dayOK){status(hasTest?'営業区分を取得できません。🧪「入場不可テスト」は表示確認できますが、受付確定は安全のため停止しています。':'営業区分を取得できません。受付確定は安全のため停止しています。','warn');return}
   if(S.day?.isClosed&&hasTest){status('本日は休館日です。🧪 Developingテスト枠のみ確認できます。','warn');return}
   if(S.day?.isClosed){status('本日は休館日です。','warn');return}
-  if(S.canCreate&&hasTest){status('🧪 Developing：AirWAIT現地枠「入場不可テスト」を選んで実受付テストできます。','warn');return}
+  if(!S.slots.length){status(S.day?.businessType==='平日'&&S.mode==='web'?'本日は現地受付です。LINE当日受付はありません。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。','warn');return}
+  if(S.canCreate&&hasTest){status('🧪 Developing：利用可能なテスト枠を選んで実受付テストできます。','warn');return}
   if(S.canCreate){status('LINE本人確認・営業日・Gateway接続を確認しました。受付できます。','ok');return}
   status('受付に必要な確認が完了していないため、最終確定を停止しています。','warn');
 }
