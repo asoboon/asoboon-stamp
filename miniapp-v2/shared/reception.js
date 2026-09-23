@@ -28,6 +28,21 @@ const kidsPerAdult=()=>Number(R.limits?.childrenPerAdult||3);
 const validPeople=()=>S.adult>=1&&S.child>=0&&S.infant>=0&&total()<=maxTotal()&&kids()<=S.adult*kidsPerAdult();
 const fmtYen=n=>Number(n||0).toLocaleString('ja-JP')+'円';
 const fmtDate=v=>{const m=String(v||'').match(/^\d{4}-(\d{2})-(\d{2})$/);return m?`${+m[1]}月${+m[2]}日`:String(v||'')};
+function friendlyError(value){const code=String(value||'');const map={
+  WAIT_TYPE_NOT_AVAILABLE:'選択した受付枠は現在利用できません。最新の受付状況を確認してください。',
+  WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
+  WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',
+  WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY:'通常平日は現地受付です。ASOBooN入口で受付してください。',
+  AIRWAIT_NO_TICKETS_TODAY:'本日の受付は現在利用できません。',
+  AIRWAIT_RECEPTION_UNAVAILABLE:'本日の受付は現在利用できません。',
+  AIRWAIT_PEOPLE_OVER_LIMIT:'この人数では受付できません。人数をご確認ください。',
+  AIRWAIT_RECEPTION_ENDED:'本日の受付は終了しています。',
+  AIRWAIT_UNAUTHORIZED_OPERATION:'受付システムに接続できません。スタッフへお知らせください。',
+  AIRWAIT_OUTSIDE_RECEPTION_TIME:'現在は受付時間外です。',
+  AIRWAIT_WAIT_TYPE_OUTSIDE_TIME:'選択した回は現在受付時間外です。',
+  AIRWAIT_BELOW_MIN_PEOPLE:'選択した回の受付可能人数に達していません。',
+  AIRWAIT_INPUT_ERROR:'受付内容を確認できません。画面を開き直してもう一度お試しください。'
+};return map[code]||code||'受付を確定できませんでした。'};
 
 function render(){return `<section class="page-card"><div class="page-head orange"><small>TODAY RECEPTION / NEW HOME</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と営業カレンダーを確認しています…</div>
@@ -173,7 +188,7 @@ async function boot(){
   if(!dayOK){status(hasTest?'営業区分を取得できません。🧪「入場不可テスト」は表示確認できますが、受付確定は安全のため停止しています。':'営業区分を取得できません。受付確定は安全のため停止しています。','warn');return}
   if(S.day?.isClosed&&hasTest){status('本日は休館日です。🧪 Developingテスト枠のみ確認できます。','warn');return}
   if(S.day?.isClosed){status('本日は休館日です。','warn');return}
-  if(!S.slots.length){status(S.day?.businessType==='平日'&&S.mode==='web'?'本日は現地受付です。LINE当日受付はありません。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。','warn');return}
+  if(!S.slots.length){const test=Array.isArray(S.waitTypes)?S.waitTypes.find(x=>String(x?.waitTypeId||'')==='0042'):null;const testOff=E.environment==='develop'&&test&&test.dispFlg===false;const base=S.day?.businessType==='平日'&&S.mode==='web'?'本日は現地受付です。LINE当日受付はありません。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。';status(base+(testOff?' Developingテスト枠0042もAirWAIT側で受付停止中です。':''),'warn');return}
   if(S.canCreate&&hasTest){status('🧪 Developing：利用可能なテスト枠を選んで実受付テストできます。','warn');return}
   if(S.canCreate){status('LINE本人確認・営業日・Gateway接続を確認しました。受付できます。','ok');return}
   status('受付に必要な確認が完了していないため、最終確定を停止しています。','warn');
@@ -185,7 +200,7 @@ function completeConfirmed(r,meta={}){const rec=confirmedRecord(r,meta);saveConf
 function bindAmbiguousRetry(requestId){const btn=$('recResult')?.querySelector?.('[data-rec-check-result]');if(btn)btn.addEventListener('click',()=>void recoverAmbiguous(requestId))}
 function showRecoveryPanel(requestId,title='受付結果を確認しています。',message='同じ受付の結果だけを再確認します。受付の再送はしません。'){const id=String(requestId||'');const result=$('recResult');if(!result)return;result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>'+esc(title)+'</strong><br>'+esc(message)+(id?'<button class="rec-retry" type="button" data-rec-check-result>受付結果を再確認</button>':'')+'</div>';if(id)bindAmbiguousRetry(id)}
 function lockAmbiguous(requestId=''){const id=String(requestId||readPending()?.requestId||'');S.locked=true;S.busy=false;showRecoveryPanel(id,'受付結果を確認しています。新しい受付は行わないでください。','同じ受付の結果だけを再確認します。受付の再送はしません。');status('受付結果を安全に確認しています。新しい受付は行わないでください。','warn');renderForm();if(id)setTimeout(()=>void recoverAmbiguous(id),250)}
-async function recoverAmbiguous(requestId){const id=String(requestId||'');if(!id||S.recovering)return;S.recovering=true;showRecoveryPanel(id,'前回の受付結果を確認しています。','新しい受付は行わず、同じ受付の結果だけを確認しています。');status('前回の受付結果を再確認しています。新しい受付は行わないでください。','warn');try{const r=await pollRequest(id);if(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId){completeConfirmed(r,pendingBody());return}if(r?.found&&r?.ambiguous!==true&&r?.ok===false){clearPending(id);S.locked=false;S.busy=false;status(String(r?.error||'受付は成立していません。内容を確認してもう一度お試しください。'),'bad');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付結果を自動で確定できませんでした。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('受付結果を自動で確定できませんでした。下の「受付結果を再確認」をお試しください。','bad');renderForm()}catch{S.locked=true;showRecoveryPanel(id,'まだ受付結果を確認できません。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('まだ受付結果を確認できません。下の「受付結果を再確認」をお試しください。','warn');renderForm()}finally{S.recovering=false;bindAmbiguousRetry(id)}}
+async function recoverAmbiguous(requestId){const id=String(requestId||'');if(!id||S.recovering)return;S.recovering=true;showRecoveryPanel(id,'前回の受付結果を確認しています。','新しい受付は行わず、同じ受付の結果だけを確認しています。');status('前回の受付結果を再確認しています。新しい受付は行わないでください。','warn');try{const r=await pollRequest(id);if(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId){completeConfirmed(r,pendingBody());return}if(r?.found&&r?.ambiguous!==true&&r?.ok===false){clearPending(id);S.locked=false;S.busy=false;status(friendlyError(r?.error||'受付は成立していません。内容を確認してもう一度お試しください。'),'bad');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付結果を自動で確定できませんでした。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('受付結果を自動で確定できませんでした。下の「受付結果を再確認」をお試しください。','bad');renderForm()}catch{S.locked=true;showRecoveryPanel(id,'まだ受付結果を確認できません。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('まだ受付結果を確認できません。下の「受付結果を再確認」をお試しください。','warn');renderForm()}finally{S.recovering=false;bindAmbiguousRetry(id)}}
 function lockNotificationAmbiguous(requestId){clearPending(requestId);S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>LINE呼出通知の準備結果を確認できませんでした。</strong><br>AirWAITへの受付送信は行っていません。ミニアプリをいったん完全に閉じて、開き直してから受付してください。</div>'}status('LINE通知の準備結果が不明です。再送せず、ミニアプリを開き直してください。','bad');renderForm()}
 
 async function submit(){
@@ -206,7 +221,7 @@ async function submit(){
     if(seq!==S.submitSeq||S.locked)return;
     if(r?.notificationAmbiguous){lockNotificationAmbiguous(r?._requestId);return}
     if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous(r?._requestId||readPending()?.requestId||'');return}
-    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);throw Error(String(r?.error||'受付結果が不正です。'))}
+    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);throw Error(friendlyError(r?.error||'受付結果が不正です。'))}
     completeConfirmed(r,{operationalDate:S.day.operationalDate,mode:S.mode,waitTypeId:S.slot.waitTypeId,adults:S.adult,paidChildren:S.child,infants:S.infant});
   }catch(e){
     if(seq!==S.submitSeq)return;
