@@ -484,7 +484,7 @@ async function playDrop(def,{signal,level}){
 async function playConstellation(def,{signal,level}){
   const r=boardRect(),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.classList.add('idle-svg');svg.setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);svg.style.left=r.left+'px';svg.style.top=r.top+'px';layer().appendChild(svg);
-  const q=M?.quality?.()||{decorations:1};const pointCount=Math.max(4,Math.min(9,Math.round((level<=1?5:def.count||9)*q.decorations)));
+  const q=M?.quality?.()||{decorations:1};const pointCount=Math.max(4,Math.min(6,Math.round((level<=1?4:6)*q.decorations)));
   const pts=[];for(let i=0;i<pointCount;i++)pts.push([randomBetween(r.width*.08,r.width*.92),randomBetween(r.height*.12,r.height*.88)]);
   for(let i=0;i<pts.length-1;i++){const line=document.createElementNS(svg.namespaceURI,'line');line.setAttribute('x1',pts[i][0]);line.setAttribute('y1',pts[i][1]);line.setAttribute('x2',pts[i+1][0]);line.setAttribute('y2',pts[i+1][1]);line.setAttribute('stroke',def.color||'#78e5ff');line.setAttribute('stroke-width','2');line.setAttribute('stroke-dasharray','8 12');line.setAttribute('opacity','.65');svg.appendChild(line)}
   for(const [x,y] of pts){const c=document.createElementNS(svg.namespaceURI,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','4');c.setAttribute('fill','#fff');svg.appendChild(c)}
