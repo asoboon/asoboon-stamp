@@ -48,8 +48,8 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS))).toBe(true);
-  await page.evaluate(() => window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false));
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS))).toBe(true);
+  await page.evaluate(() => { window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}); window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false); });
 
   return {
     pageErrors,
@@ -85,7 +85,7 @@ async function prepareIdleForTest(page, patch = {}) {
 }
 
 async function waitForFxIdle(page) {
-  await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 4000 }).toBe(0);
+  await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
   await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia')).toHaveCount(0);
 }
@@ -265,6 +265,83 @@ test('idle entertainment catalog has at least 60 non-reward events', async ({ pa
   for (const banned of ['JACKPOT','BONUS','COIN','SCORE','GACHA']) expect(text).not.toContain(banned);
 });
 
+
+test('fullscreen world audit covers every current idle event individually', async ({ page }) => {
+  const current = payload([{ number: '7010', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+
+  const result = await page.evaluate(() => {
+    const fx = window.ASOBOON_BOARD_EFFECTS;
+    const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+    const world = window.ASOBOON_BOARD_WORLD;
+    fx.setSlowdown(2.5,{persistValue:false});
+    const audit = idle.audit();
+    const worldDiag = world.diagnostics(idle.events);
+    const idleDiag = idle.getDiagnostics();
+    const statusDiag = window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics();
+    fx.setSlowdown(0.05,{persistValue:false});
+    return { audit, worldDiag, idleDiag, statusDiag };
+  });
+
+  expect(result.audit).toHaveLength(63);
+  expect(new Set(result.audit.map(x => x.id)).size).toBe(63);
+  for (const row of result.audit) {
+    expect(row.anticipation).toBe(true);
+    expect(row.action).toBe(true);
+    expect(row.climax).toBe(true);
+    expect(row.afterglow).toBe(true);
+    expect(row.fullScreen).toBe(true);
+    expect(row.slowdown).toBe(true);
+    expect(row.cleanup).toBe(true);
+    expect(row.resident).toBeTruthy();
+    expect(row.gag).toBeTruthy();
+    expect(row.story.length).toBeGreaterThan(3);
+    expect(row.revisedAtCurrentSlowdownMs).toBeGreaterThanOrEqual(2500);
+    expect(row.revisedAtCurrentSlowdownMs).toBeLessThanOrEqual(9000);
+  }
+
+  expect(result.worldDiag.residentCount).toBe(6);
+  expect(result.worldDiag.directiveCount).toBe(63);
+  expect(result.worldDiag.unmappedGags).toEqual([]);
+  expect(result.worldDiag.fullScreenCount).toBe(63);
+  expect(result.worldDiag.slowdownCount).toBe(63);
+  expect(result.worldDiag.cleanupCount).toBe(63);
+  expect(result.worldDiag.emotionCounts).toEqual({
+    'かわいい': 7,
+    '謎': 13,
+    '笑い': 22,
+    'ド派手': 18,
+    '完全予想外': 3,
+  });
+  expect(Object.keys(result.worldDiag.storyArcs)).toEqual(expect.arrayContaining(['orb','star','square','eye']));
+  expect(result.statusDiag.statusAnimationsChecked).toBe(4);
+  expect(result.statusDiag.fullScreenStatusCount).toBe(4);
+  expect(result.statusDiag.slowdownCoverage).toBe(4);
+  expect(result.idleDiag.auditCount).toBe(63);
+  expect(result.idleDiag.fullScreenCount).toBe(63);
+  expect(result.idleDiag.slowdownCoverage).toBe(63);
+  expect(result.idleDiag.cleanupCoverage).toBe(63);
+});
+
+test('global slowdown runtime defaults to 2.5 and controls CSS timing variables', async ({ page }) => {
+  const current = payload([{ number: '7011', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+  const values = await page.evaluate(() => {
+    const fx = window.ASOBOON_BOARD_EFFECTS;
+    fx.setSlowdown(2.5,{persistValue:false});
+    const style = getComputedStyle(document.documentElement);
+    return {
+      defaultSlowdown: fx.DEFAULT_SLOWDOWN,
+      slowdown: fx.getSlowdown(),
+      normal: style.getPropertyValue('--board-transition-normal').trim(),
+    };
+  });
+  expect(values.defaultSlowdown).toBe(2.5);
+  expect(values.slowdown).toBe(2.5);
+  expect(values.normal).toBe('450ms');
+  await page.evaluate(() => window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}));
+});
+
 test('idle events do not fire on initial load and only run after an unchanged update', async ({ page }) => {
   const current = payload([
     { number: '7101', state: 'waiting', order: 1 },
@@ -359,6 +436,8 @@ test('communication error cancels idle entertainment and leaves no temporary lay
   const cleanup = await idleDiagnostics(page);
   expect(cleanup.activeAnimations).toBe(0);
   expect(cleanup.activeTimers).toBe(0);
+  const runtime = await page.evaluate(() => window.ASOBOON_BOARD_EFFECTS.diagnostics());
+  expect(runtime.activeScopes).toBe(0);
 });
 
 test('idle reduced-motion mode caps animation level and keeps real numbers untouched', async ({ page }) => {
