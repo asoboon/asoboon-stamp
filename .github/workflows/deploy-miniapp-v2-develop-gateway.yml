@@ -194,46 +194,25 @@ jobs:
             sleep 3
           done
 
-      - name: One-time direct AirWAIT create diagnostic
+      - name: Diagnose AirWAIT slot mapping read-only
         if: steps.credentials.outputs.available == 'true'
-        env:
-          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
-        shell: bash
         run: |
           set -euo pipefail
-          BODY_FILE="$(mktemp)"
-          HTTP_CODE="$(curl --silent --show-error -o "$BODY_FILE" -w '%{http_code}' \
-            -X POST \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/x-www-form-urlencoded;charset=UTF-8" \
-            -H "corWclpKeyCd: ${AIRWAIT_API_KEY}" \
-            --data-urlencode "storeId=KR01205179" \
-            --data-urlencode "numPerson=1" \
-            --data-urlencode "numPersonChild=0" \
-            --data-urlencode "waitTypeId=0042" \
-            --data-urlencode "langType=KeyJPN" \
-            --data-urlencode "autoPrintFlg=false" \
-            "https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create")"
-          node - "$HTTP_CODE" "$BODY_FILE" <<'NODE'
-          const fs=require('fs');
-          const http=process.argv[2], file=process.argv[3];
-          const raw=fs.readFileSync(file,'utf8');
-          let d=null;try{d=JSON.parse(raw)}catch{}
-          const out={
-            httpStatus:Number(http),
-            success:d?.success ?? null,
-            resultCode:String(d?.resultCode?.code ?? ''),
-            defaultMessage:String(d?.resultCode?.defaultMessage ?? ''),
-            reserveId:String(d?.innerDto?.reserveId ?? ''),
-            receiptNo:String(d?.innerDto?.receiptNo ?? ''),
-            waitTime:String(d?.innerDto?.waitTime ?? ''),
-            waitCount:Number(d?.innerDto?.waitCount ?? 0),
-            waitCountPerson:Number(d?.innerDto?.waitCountPerson ?? 0),
-            rawPreview:d?undefined:raw.replace(/[\r\n\t]+/g,' ').slice(0,300),
-          };
-          console.log('AIRWAIT_DIRECT_CREATE_DIAGNOSTIC='+JSON.stringify(out));
-          NODE
-          rm -f "$BODY_FILE"
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=waitTypes&slot_map=${GITHUB_SHA}")"
+          printf '%s' "$RESPONSE" | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s); const ids=new Set(["0029","0030","0031","0032","0033","0034","0035","0036","0037","0038","0042"]);
+              const rows=(x.waitTypes||[]).filter(v=>ids.has(String(v.waitTypeId))).map(v=>({
+                waitTypeId:String(v.waitTypeId||""),
+                waitTypeName:String(v.waitTypeName||""),
+                dispFlg:v.dispFlg,
+                usageDispType:String(v.usageDispType||""),
+              }));
+              console.log("AIRWAIT_SLOT_MAP="+JSON.stringify(rows));
+            });
+          '
 
       - name: Verify AirWAIT local test slot read-only
         if: steps.credentials.outputs.available == 'true'
