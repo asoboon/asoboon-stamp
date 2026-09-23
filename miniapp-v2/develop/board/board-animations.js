@@ -1,5 +1,7 @@
 (()=>{'use strict';
 
+const M=window.ASOBOON_BOARD_EFFECTS;
+const WORLD=window.ASOBOON_BOARD_WORLD;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
 const MAX_CONCURRENT=2;
@@ -162,7 +164,7 @@ function pump(){
         running=Math.max(0,running-1);
         pump();
       });
-    },delay);
+    },M?M.ms(delay):delay);
   }
 }
 async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kind}={}){
@@ -237,7 +239,7 @@ function onomatopoeia(text,rect,kind){
   el.style.left=clamp(rect.left+rect.width*.5,70,window.innerWidth-70)+'px';
   el.style.top=(above?rect.top-14:rect.bottom+18)+'px';
   fxLayer().appendChild(el);
-  const duration=reduced?360:720;
+  const duration=(M?M.ms(reduced?360:720):(reduced?360:720));
   const anim=el.animate([
     {opacity:0,transform:'translate(-50%,-50%) scale(.55) rotate(-7deg)'},
     {opacity:1,transform:'translate(-50%,-50%) scale(1.18) rotate(3deg)',offset:.28},
@@ -247,9 +249,13 @@ function onomatopoeia(text,rect,kind){
   anim.finished.catch(()=>{}).finally(()=>el.remove());
   return el;
 }
-function animateElement(el,keyframes,options){
+function animateElement(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
-  const animation=el.animate(keyframes,options);
+  const opts={...options};
+  if(Number.isFinite(Number(opts.duration)))opts.duration=M?M.ms(opts.duration):opts.duration;
+  if(Number.isFinite(Number(opts.delay)))opts.delay=M?M.ms(opts.delay):opts.delay;
+  if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=M?M.ms(opts.endDelay):opts.endDelay;
+  const animation=el.animate(keyframes,opts);
   return animation.finished.catch(()=>{});
 }
 function shakeBoard(){
@@ -282,6 +288,7 @@ async function playCallAnimation({element,frame,rare}){
   const ghost=ghostFrom(target,'fx-call-ghost');
   onomatopoeia(rare?'ドッカーン!!':'ドカン！',rect,'call');
   const particles=runParticles('call',rect,{rare,level:lvl});
+  const world=WORLD?.playStatusReaction?.('call',{grid:element?.closest?.('.queue-grid')||document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
     {transform:'scale(1.045)'},
@@ -292,7 +299,7 @@ async function playCallAnimation({element,frame,rare}){
     {transform:'scale(.96)',offset:.54},
     {transform:'scale(1.055)',offset:.74},
     {transform:'scale(1)'},
-  ],{duration:lvl<=1?420:760,delay:lvl<=1?0:330,easing:'cubic-bezier(.22,.9,.24,1)' }):Promise.resolve();
+  ],{duration:lvl<=1?420:1120,delay:lvl<=1?0:260,easing:'cubic-bezier(.22,.9,.24,1)' }):Promise.resolve();
 
   let flight=Promise.resolve();
   if(ghost){
@@ -305,11 +312,11 @@ async function playCallAnimation({element,frame,rare}){
       {opacity:1,transform:'translate3d(14px,-10px,0) rotate(1deg) scale(1.14)',offset:.68},
       {opacity:1,transform:'translate3d(-5px,4px,0) rotate(-.5deg) scale(.98)',offset:.84},
       {opacity:0,transform:'translate3d(0,0,0) rotate(0) scale(1)'},
-    ],{duration:lvl<=1?430:930,easing:'cubic-bezier(.12,.82,.18,1)',fill:'forwards'}).finally(()=>ghost.remove());
+    ],{duration:lvl<=1?430:1300,easing:'cubic-bezier(.12,.82,.18,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},410);
-  if(rare&&!reduced) setTimeout(()=>{void runParticles('call',rect,{rare:true,level:lvl,secondary:true})},240);
-  await Promise.all([flight,particles,elementPulse]);
+  if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(480):480);
+  if(rare&&!reduced) setTimeout(()=>{void runParticles('call',rect,{rare:true,level:lvl,secondary:true})},M?M.ms(360):360);
+  await Promise.all([flight,particles,elementPulse,world]);
 }
 async function playGuidedAnimation({element,frame}){
   const source=frame||currentFrame(element);
@@ -319,10 +326,11 @@ async function playGuidedAnimation({element,frame}){
   const ghost=ghostFrom(source,'fx-guided-ghost');
   onomatopoeia('ビューン！',rect,'guided');
   const particles=runParticles('guided',rect,{level:lvl});
+  const world=WORLD?.playStatusReaction?.('guided',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
   const settle=element?animateElement(element,[
     {transform:'scale(1.04)',filter:'brightness(1.15)'},
     {transform:'scale(1)',filter:'brightness(1)'},
-  ],{duration:lvl<=1?300:520,easing:'ease-out'}):Promise.resolve();
+  ],{duration:lvl<=1?300:900,easing:'ease-out'}):Promise.resolve();
   let flight=Promise.resolve();
   if(ghost){
     flight=animateElement(ghost,lvl<=1?[
@@ -332,9 +340,9 @@ async function playGuidedAnimation({element,frame}){
       {opacity:1,transform:'translate3d(0,0,0) rotate(0) scale(1)'},
       {opacity:1,transform:'translate3d(18px,-3px,0) rotate(1deg) scale(1.04)',offset:.18},
       {opacity:.15,transform:'translate3d(58vw,-9vh,0) rotate(6deg) scale(.82)'},
-    ],{duration:lvl<=1?360:720,easing:'cubic-bezier(.2,.7,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
+    ],{duration:lvl<=1?360:1050,easing:'cubic-bezier(.2,.7,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([flight,particles,settle]);
+  await Promise.all([flight,particles,settle,world]);
 }
 async function playHoldAnimation({element,frame}){
   const rect=rectFor(element,frame);
@@ -342,6 +350,7 @@ async function playHoldAnimation({element,frame}){
   const lvl=effectiveLevel();
   onomatopoeia('ピタッ！',rect,'hold');
   const particles=runParticles('hold',rect,{level:lvl});
+  const world=WORLD?.playStatusReaction?.('hold',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
   const motion=element?animateElement(element,lvl<=1?[
     {transform:'translateX(0)'},
     {transform:'translateX(4px)'},
@@ -354,8 +363,8 @@ async function playHoldAnimation({element,frame}){
     {transform:'translate3d(6px,0,0) rotate(.6deg)',offset:.6},
     {transform:'translate3d(-4px,0,0) rotate(-.35deg)',offset:.75},
     {transform:'translate3d(0,0,0) rotate(0)'},
-  ],{duration:lvl<=1?320:650,easing:'cubic-bezier(.2,.8,.25,1)'}):Promise.resolve();
-  await Promise.all([motion,particles]);
+  ],{duration:lvl<=1?320:1000,easing:'cubic-bezier(.2,.8,.25,1)'}):Promise.resolve();
+  await Promise.all([motion,particles,world]);
 }
 async function playCancelAnimation({frame,element}){
   const source=frame||currentFrame(element);
@@ -366,6 +375,7 @@ async function playCancelAnimation({frame,element}){
   if(ghost)attachCracks(ghost);
   onomatopoeia('パリン！',rect,'cancel');
   const particles=runParticles('cancel',rect,{level:lvl});
+  const world=WORLD?.playStatusReaction?.('cancel',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
   let shatter=Promise.resolve();
   if(ghost){
     shatter=animateElement(ghost,lvl<=1?[
@@ -377,9 +387,9 @@ async function playCancelAnimation({frame,element}){
       {opacity:1,transform:'scale(1.045) rotate(-.5deg)',filter:'blur(0)',offset:.26},
       {opacity:.5,transform:'scale(.98) rotate(1deg) translateY(4px)',filter:'blur(.5px)',offset:.56},
       {opacity:0,transform:'scale(.84) rotate(3deg) translateY(26px)',filter:'blur(2px)'},
-    ],{duration:lvl<=1?380:720,easing:'cubic-bezier(.2,.75,.22,1)',fill:'forwards'}).finally(()=>ghost.remove());
+    ],{duration:lvl<=1?380:1200,easing:'cubic-bezier(.2,.75,.22,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([shatter,particles]);
+  await Promise.all([shatter,particles,world]);
 }
 function attachCracks(ghost){
   const crack=document.createElement('div');
@@ -435,7 +445,8 @@ function runParticles(kind,rect,{rare=false,level:requested=3,secondary=false}={
     }
   }
 
-  const duration=lvl<=1?420:kind==='call'?(rare?1050:900):kind==='guided'?650:kind==='hold'?520:680;
+  const baseDuration=lvl<=1?420:kind==='call'?(rare?1400:1250):kind==='guided'?1000:kind==='hold'?1000:1200;
+  const duration=M?M.ms(baseDuration):baseDuration;
   const start=performance.now();
   return new Promise(resolve=>{
     const tick=now=>{
@@ -459,7 +470,7 @@ function runParticles(kind,rect,{rare=false,level:requested=3,secondary=false}={
       }
 
       for(const q of particles){
-        const t=elapsed/1000;
+        const t=elapsed/((M?.getSlowdown?.()||1)*1000);
         const gravity=(q.type==='smoke'?8:q.type==='line'?0:85);
         const x=q.x+q.vx*t;
         const y=q.y+q.vy*t+gravity*t*t*.5;
@@ -523,6 +534,10 @@ function getDiagnostics(){
     rareEnabled,
     reduced,
     baselineSlot,
+    globalSlowdown:M?.getSlowdown?.()||1,
+    statusAnimationsChecked:4,
+    fullScreenStatusCount:WORLD?4:0,
+    slowdownCoverage:4,
   };
 }
 function resetForTest(){
