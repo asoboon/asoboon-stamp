@@ -90,12 +90,13 @@ replaceOnce(
   const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
   if (!isDevelopTest && !allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
-  if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
   if (isDevelopTest) {
     const u = String(w.usageDispType || '');
     if (u && !['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
     return w;
   }
+  if (w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
   if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }`
