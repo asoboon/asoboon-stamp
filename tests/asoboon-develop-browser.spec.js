@@ -19,6 +19,25 @@ async function installLiff(page, mode) {
         ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', closingTime: '18:00'
       }) });
     }
+    if (url.searchParams.get('action') === 'health') {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        ok:true, officialDevelopEnabled:true, createRequiresVerifiedLiff:true, createEnabled:true
+      }) });
+    }
+    if (url.searchParams.get('action') === 'waitTypes') {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        ok:true,
+        waitTypes:[
+          {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+          {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+          {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+          {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+          {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+          {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+          {waitTypeId:'0042',waitTypeName:'入場不可テスト',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+        ]
+      }) });
+    }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
   await page.route('**/miniapp-v2/develop/env.js*', async route => {
@@ -93,6 +112,28 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   });
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
   await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
+});
+
+test('reception uses WEB AirWAIT IDs and never exposes store-only or disabled test slots', async ({ page }) => {
+  await openHome(page, 'resolve');
+  const rules = await page.evaluate(() => ({
+    web: window.ASOBOON_V2_RULES.slotsFor('土日祝日','web').map(x=>x.waitTypeId),
+    onsite: window.ASOBOON_V2_RULES.slotsFor('土日祝日','onsite').map(x=>x.waitTypeId),
+    regularWeb: window.ASOBOON_V2_RULES.slotsFor('平日','web').map(x=>x.waitTypeId),
+    specialWeb: window.ASOBOON_V2_RULES.slotsFor('平日特定日','web').map(x=>x.waitTypeId),
+  }));
+  expect(rules.web).toEqual(['0030','0032','0034']);
+  expect(rules.onsite).toEqual(['0029','0031','0033']);
+  expect(rules.regularWeb).toEqual([]);
+  expect(rules.specialWeb).toEqual(['0036','0038']);
+
+  await page.locator('[data-v7-view="reception"]').click();
+  await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSlots [data-rec-slot="0030"]')).toHaveCount(1);
+  await expect(page.locator('#recSlots [data-rec-slot="0032"]')).toHaveCount(1);
+  await expect(page.locator('#recSlots [data-rec-slot="0034"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0029"],[data-rec-slot="0031"],[data-rec-slot="0033"]')).toHaveCount(0);
+  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(0);
 });
 
 test('Developing test reception slot never accumulates after repeated slot renders', async ({ page }) => {
