@@ -48,6 +48,8 @@ body{
   background-size:auto,18px 18px;
 }
 .hero{
+  position:relative;
+  z-index:20;
   display:grid;
   grid-template-columns:1fr auto;
   align-items:stretch;
@@ -123,6 +125,8 @@ body{
 .session-sign small{margin-top:4px;font-size:14px;font-weight:900;opacity:.82}
 
 .route-strip{
+  position:relative;
+  z-index:20;
   display:grid;
   grid-template-columns:auto minmax(120px,1fr) auto;
   align-items:center;
@@ -177,6 +181,7 @@ body{
 
 .queue-shell{
   position:relative;
+  z-index:20;
   min-height:0;
   overflow:hidden;
   padding:34px 8px 8px;
@@ -200,7 +205,7 @@ body{
 .queue-caption strong{color:#73dda0}
 .queue-grid{
   position:relative;
-  z-index:3;
+  z-index:24;
   --grid-gap:8px;
   --number-size:34px;
   --state-size:12px;
@@ -350,6 +355,8 @@ body{
 .empty-state p{margin:8px 0 0;color:#aebcc0;font-size:17px;font-weight:750}
 
 .board-footer{
+  position:relative;
+  z-index:20;
   display:grid;
   grid-template-columns:1fr auto 1fr;
   align-items:center;
@@ -368,6 +375,121 @@ body{
 .updated{justify-self:end}.updated time{color:#dfe7e9;font-variant-numeric:tabular-nums;font-weight:1000}
 
 
+
+
+/* Full-screen world layers: effects can fill the display, real information stays above. */
+.board-fx-back-layer,
+.board-fx-front-layer{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  contain:layout paint;
+}
+.board-fx-back-layer{z-index:6}
+.board-fx-front-layer{z-index:14}
+.world-stage-wash{
+  --world-color:#78e5ff;
+  position:absolute;
+  inset:-8%;
+  background:
+    radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--world-color) 45%,transparent),transparent 48%),
+    repeating-conic-gradient(from 0deg at 50% 50%,color-mix(in srgb,var(--world-color) 18%,transparent) 0 6deg,transparent 6deg 15deg);
+  opacity:0;
+  pointer-events:none;
+}
+.world-speed-field{
+  --world-color:#fff;
+  position:absolute;
+  inset:-12% -30%;
+  background:
+    repeating-linear-gradient(102deg,transparent 0 42px,color-mix(in srgb,var(--world-color) 42%,transparent) 43px 48px,transparent 49px 92px);
+  filter:blur(.3px);
+  opacity:0;
+}
+.world-resident{
+  --resident-scale:1;
+  position:fixed;
+  width:76px;
+  height:76px;
+  z-index:1;
+  pointer-events:none;
+  will-change:transform,opacity;
+  filter:drop-shadow(0 10px 14px rgba(0,0,0,.22));
+  transform:translate(-50%,-50%) scale(var(--resident-scale));
+}
+.resident-orb{
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 31%,#fff 0 8%,transparent 9%),
+    radial-gradient(circle at 63% 31%,#fff 0 8%,transparent 9%),
+    radial-gradient(circle at 35% 32%,#1b272b 0 3%,transparent 4%),
+    radial-gradient(circle at 64% 32%,#1b272b 0 3%,transparent 4%),
+    linear-gradient(145deg,#ff9a3c,#ff6d1f);
+  box-shadow:inset -10px -12px 0 rgba(0,0,0,.10);
+}
+.resident-orb:after{
+  content:"";
+  position:absolute;
+  left:31%;right:31%;bottom:23%;
+  height:8px;
+  border-radius:0 0 999px 999px;
+  border-bottom:4px solid rgba(31,45,49,.75);
+}
+.resident-star{
+  background:#ffd84f;
+  clip-path:polygon(50% 0,61% 34%,98% 35%,68% 56%,79% 94%,50% 71%,21% 94%,32% 56%,2% 35%,39% 34%);
+}
+.resident-star:before,.resident-star:after{
+  content:"";position:absolute;top:30%;width:8px;height:8px;border-radius:50%;background:#263238
+}
+.resident-star:before{left:34%}.resident-star:after{right:34%}
+.resident-ball{
+  width:100px;height:100px;border-radius:50%;
+  background:
+    radial-gradient(circle at 33% 27%,rgba(255,255,255,.92) 0 9%,transparent 10%),
+    radial-gradient(circle at 34% 30%,rgba(255,255,255,.28),transparent 34%),
+    #78e5ff;
+  box-shadow:inset -13px -15px 0 rgba(0,0,0,.12),0 13px 22px rgba(0,0,0,.24);
+}
+.resident-square{
+  border-radius:18px;
+  background:#73dda0;
+  box-shadow:inset -9px -10px 0 rgba(0,0,0,.11);
+}
+.resident-square:before,.resident-square:after{
+  content:"";position:absolute;top:28%;width:9px;height:13px;border-radius:50%;background:#233137
+}
+.resident-square:before{left:27%}.resident-square:after{right:27%}
+.resident-shadow{
+  width:112px;height:52px;border-radius:50%;
+  background:rgba(6,14,17,.74);
+  filter:blur(5px) drop-shadow(0 8px 12px rgba(0,0,0,.25));
+}
+.resident-eye{
+  width:120px;height:72px;
+  border-radius:58% 58% 52% 52%/70% 70% 42% 42%;
+  background:
+    radial-gradient(circle at 50% 50%,#1d292d 0 12%,#78e5ff 13% 26%,#fff 27% 52%,#73dda0 53% 100%);
+  box-shadow:0 10px 22px rgba(0,0,0,.25);
+}
+.fx-screen-wash{
+  --fx-color:#78e5ff;
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--fx-color) 52%,transparent),transparent 55%),
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.11) 0 7deg,transparent 7deg 16deg);
+  opacity:0;
+}
+.fx-edge-sweep{
+  --fx-color:#78e5ff;
+  position:fixed;
+  top:-20%;left:0;
+  width:42vw;height:140%;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--fx-color) 62%,transparent),rgba(255,255,255,.45),transparent);
+  filter:blur(2px);
+}
 
 /* Idle entertainment layer: normally empty, always behind real ticket cards. */
 .board-idle-layer{
@@ -515,7 +637,7 @@ body{
 .board-fx-layer{
   position:fixed;
   inset:0;
-  z-index:1000;
+  z-index:14;
   overflow:hidden;
   pointer-events:none;
   contain:layout paint;
