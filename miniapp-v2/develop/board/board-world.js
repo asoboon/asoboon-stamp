@@ -227,7 +227,7 @@ function stageWash(scope,color='#78e5ff',strength=.18){
     {opacity:strength,transform:'scale(1)',offset:.25},
     {opacity:strength*.72,transform:'scale(1.012)',offset:.7},
     {opacity:0,transform:'scale(1.035)'},
-  ],{duration:520,easing:'ease-in-out',fill:'forwards'});
+  ],{duration:220,easing:'ease-in-out',fill:'forwards'});
 }
 function speedField(scope,color='#fff',direction=1){
   const el=make(scope,'world-speed-field','back');
@@ -237,7 +237,7 @@ function speedField(scope,color='#fff',direction=1){
     {opacity:.58,offset:.25,transform:'translateX(0)'},
     {opacity:.34,offset:.72,transform:`translateX(${direction*8}vw)`},
     {opacity:0,transform:`translateX(${direction*22}vw)`},
-  ],{duration:650,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
+  ],{duration:260,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
 }
 function rippleCards(scope,grid,intensity=1,pattern='wave'){
   const list=allCards(grid);
@@ -248,7 +248,7 @@ function rippleCards(scope,grid,intensity=1,pattern='wave'){
     if(pattern==='brake')frames=[{transform:'translateX(0)'},{transform:`translateX(${-5*intensity}px) rotate(-.6deg)`},{transform:`translateX(${3*intensity}px) rotate(.3deg)`},{transform:'translateX(0)'}];
     else if(pattern==='jump')frames=[{transform:'translateY(0)'},{transform:`translateY(${-8*intensity}px) scale(1.015)`},{transform:'translateY(0)'}];
     else frames=[{transform:'translateY(0)'},{transform:`translateY(${-4*intensity}px)`},{transform:`translateY(${2*intensity}px)`},{transform:'translateY(0)'}];
-    jobs.push(scope.animate(card,frames,{duration:260,delay,easing:'cubic-bezier(.2,.78,.22,1)'}));
+    jobs.push(scope.animate(card,frames,{duration:150,delay:Math.min(delay,55),easing:'cubic-bezier(.2,.78,.22,1)'}));
   });
   return Promise.all(jobs);
 }
@@ -261,11 +261,11 @@ function stageBump(scope,intensity=1){
     {transform:`translate3d(${4*intensity}px,${-2*intensity}px,0)`},
     {transform:`translate3d(${-2*intensity}px,${1*intensity}px,0)`},
     {transform:'translate3d(0,0,0)'},
-  ],{duration:150,easing:'linear'});
+  ],{duration:110,easing:'linear'});
 }
 
 async function residentGag(scope,directive,{grid,level=3}={}){
-  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag);
+  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag),tempo=Math.max(420,tempo*.55);
   const el=resident(scope,id,'back');
   const s=level<=1?.72:1;
   if(level<=1){
@@ -285,7 +285,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
     {opacity:1,offset:.14,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*r.width*.18}px),-50%) scale(${s*sig.scale}) rotate(${sig.tilt*.35}deg) ${extra}`},
     {opacity:1,offset:.7,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*r.width*.78}px),-50%) scale(${s*sig.scale}) rotate(${-sig.tilt*.35}deg) ${extra}`},
     {opacity:0,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*(r.width+150)}px),-50%) scale(${s*.88*sig.scale}) rotate(${sig.tilt}deg) ${extra}`},
-  ],{duration:directive.coreBaseMs*.78+sig.pause,easing:'cubic-bezier(.14,.72,.2,1)',fill:'forwards'});
+  ],{duration:tempo*.78+sig.pause,easing:'cubic-bezier(.14,.72,.2,1)',fill:'forwards'});
 
   if(gag==='hide'){
     position(el,left+18,midY,s);
@@ -295,7 +295,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.58,transform:`translate(-50%,-50%) translateX(42px) scale(${s})`},
       {opacity:1,offset:.78,transform:`translate(-50%,-50%) translateX(64px) scale(${s}) rotate(5deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-35px) scale(${s*.9})`},
-    ],{duration:directive.coreBaseMs,easing:'ease-in-out',fill:'forwards'});
+    ],{duration:tempo,easing:'ease-in-out',fill:'forwards'});
   }else if(gag==='push'){
     const x=r.left+r.width*.28;position(el,x,midY,s);
     await scope.animate(el,[
@@ -304,7 +304,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.55,transform:`translate(-50%,-50%) translateX(8px) scale(${s*.96},${s*1.04})`},
       {opacity:1,offset:.66,transform:`translate(-50%,-50%) translateX(0) scale(${s})`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-45vw) rotate(-280deg) scale(${s*.82})`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.72,.2,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.72,.2,1)',fill:'forwards'});
     void rippleCards(scope,grid,.7,'wave');
   }else if(gag==='reverse'){
     await scope.animate(el,[
@@ -313,7 +313,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.52,transform:`translate(-50%,-50%) translateX(${r.width*.86}px) scale(${s}) rotate(8deg)`},
       {opacity:1,offset:.66,transform:`translate(-50%,-50%) translateX(${r.width*.72}px) scale(${s}) rotate(-8deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-100px) scale(${s*.9}) rotate(-4deg)`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.16,.76,.2,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.16,.76,.2,1)',fill:'forwards'});
   }else if(gag==='oversize'){
     position(el,r.left-10,midY,s*2.5);
     await scope.animate(el,[
@@ -322,7 +322,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.52,transform:`translate(-50%,-50%) translateX(8vw) scale(${s*2.7}) rotate(-4deg)`},
       {opacity:1,offset:.7,transform:`translate(-50%,-50%) translateX(16vw) scale(${s*1.7}) rotate(90deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(115vw) scale(${s*1.7}) rotate(90deg)`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'});
   }else if(gag==='chase'){
     const chaser=resident(scope,'ball','back');position(chaser,left-140,midY+20,s*1.45);
     await Promise.all([
@@ -332,7 +332,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
         {opacity:1,offset:.24,transform:`translate(-50%,-50%) translateX(${r.width*.2}px) scale(${s*1.45}) rotate(90deg)`},
         {opacity:1,offset:.75,transform:`translate(-50%,-50%) translateX(${r.width*.77}px) scale(${s*1.45}) rotate(520deg)`},
         {opacity:0,transform:`translate(-50%,-50%) translateX(${r.width+180}px) scale(${s*1.3}) rotate(720deg)`},
-      ],{duration:directive.coreBaseMs*.92,delay:110,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'}),
+      ],{duration:tempo*.92,delay:110,easing:'cubic-bezier(.18,.7,.22,1)',fill:'forwards'}),
     ]);
   }else if(gag==='ride'){
     const ball=resident(scope,'ball','back');position(ball,left,midY+18,s*1.55);position(el,left,midY-36,s*.85);
@@ -342,13 +342,13 @@ async function residentGag(scope,directive,{grid,level=3}={}){
         {opacity:1,offset:.18,transform:`translate(-50%,-50%) translateX(${r.width*.18}px) scale(${s*1.55}) rotate(110deg)`},
         {opacity:1,offset:.72,transform:`translate(-50%,-50%) translateX(${r.width*.78}px) scale(${s*1.55}) rotate(560deg)`},
         {opacity:0,transform:`translate(-50%,-50%) translateX(${r.width+180}px) scale(${s*1.45}) rotate(760deg)`},
-      ],{duration:directive.coreBaseMs,easing:'linear',fill:'forwards'}),
+      ],{duration:tempo,easing:'linear',fill:'forwards'}),
       scope.animate(el,[
         {opacity:0,transform:`translate(-50%,-50%) translateX(-80px) translateY(-40px) scale(${s*.8})`},
         {opacity:1,offset:.2,transform:`translate(-50%,-50%) translateX(${r.width*.2}px) translateY(-42px) scale(${s*.9})`},
         {opacity:1,offset:.72,transform:`translate(-50%,-50%) translateX(${r.width*.76}px) translateY(-44px) rotate(8deg) scale(${s*.9})`},
         {opacity:0,transform:`translate(-50%,-50%) translateX(${r.width*.82}px) translateY(95px) rotate(260deg) scale(${s*.82})`},
-      ],{duration:directive.coreBaseMs,delay:40,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'}),
+      ],{duration:tempo,delay:40,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'}),
     ]);
   }else if(gag==='fakeout'){
     position(el,r.left+r.width*.5,r.top+r.height*.48,s);
@@ -358,7 +358,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:.95,offset:.55,transform:`translate(-50%,-50%) scale(${s*.3})`},
       {opacity:1,offset:.72,transform:`translate(-50%,-50%) scale(${s*2.2})`},
       {opacity:0,transform:`translate(-50%,-50%) scale(${s*3.8}) rotate(35deg)`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'});
     void stageBump(scope,.85);
   }else if(gag==='offscreen'){
     await cross();
@@ -370,7 +370,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.22,transform:`translate(-50%,-50%) translateX(-80px) rotate(-9deg)`},
       {opacity:1,offset:.62,transform:`translate(-50%,-50%) translateX(-125px) rotate(7deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-210px) rotate(-4deg)`},
-    ],{duration:directive.coreBaseMs*.5,easing:'ease-out',fill:'forwards'});
+    ],{duration:tempo*.5,easing:'ease-out',fill:'forwards'});
   }else if(gag==='bounce'){
     position(el,r.left+r.width*.42,r.bottom+30,s);
     await scope.animate(el,[
@@ -379,7 +379,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.45,transform:`translate(-50%,-50%) translateY(24px) scale(${s*.92}) rotate(4deg)`},
       {opacity:1,offset:.68,transform:`translate(-50%,-50%) translateY(-42px) scale(${s}) rotate(-3deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateY(120px) scale(${s*.86}) rotate(12deg)`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
   }else if(gag==='spin'){
     position(el,r.left+r.width*.5,midY,s);
     await scope.animate(el,[
@@ -388,7 +388,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.58,transform:`translate(-50%,-50%) scale(${s}) rotate(760deg)`},
       {opacity:1,offset:.78,transform:`translate(-50%,-50%) translateX(22px) scale(${s*.92}) rotate(820deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(140px) scale(${s*.8}) rotate(890deg)`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
   }else if(gag==='sneeze'){
     position(el,r.left+r.width*.46,midY,s);
     await scope.animate(el,[
@@ -397,7 +397,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.5,transform:`translate(-50%,-50%) scale(${s*.82},${s*1.18})`},
       {opacity:1,offset:.62,transform:`translate(-50%,-50%) scale(${s*1.28},${s*.78}) rotate(-5deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(180px) rotate(220deg) scale(${s*.85})`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.8,.22,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.8,.22,1)',fill:'forwards'});
     void rippleCards(scope,grid,.65,'wave');
   }else if(gag==='slip'){
     position(el,r.left+r.width*.24,midY,s);
@@ -407,7 +407,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.5,transform:`translate(-50%,-50%) translateX(30px) rotate(0)`},
       {opacity:1,offset:.7,transform:`translate(-50%,-50%) translateX(190px) rotate(170deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(55vw) rotate(420deg) scale(${s*.8})`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.12,.78,.18,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.12,.78,.18,1)',fill:'forwards'});
   }else if(gag==='brake'){
     position(el,r.left+r.width*.3,midY,s);
     await scope.animate(el,[
@@ -416,7 +416,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.45,transform:`translate(-50%,-50%) translateX(195px) scale(${s*.92},${s*1.08})`},
       {opacity:1,offset:.62,transform:`translate(-50%,-50%) translateX(170px) rotate(-4deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(135px) rotate(3deg) scale(${s*.9})`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.14,.82,.2,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.14,.82,.2,1)',fill:'forwards'});
     void rippleCards(scope,grid,.8,'brake');
   }else if(gag==='panic'){
     position(el,r.left+r.width*.5,midY,s);
@@ -427,7 +427,7 @@ async function residentGag(scope,directive,{grid,level=3}={}){
       {opacity:1,offset:.56,transform:`translate(-50%,-50%) translate(20px,7px) rotate(9deg)`},
       {opacity:1,offset:.72,transform:`translate(-50%,-50%) translate(-12px,5px) rotate(-5deg)`},
       {opacity:0,transform:`translate(-50%,-50%) translateX(-55vw) rotate(-120deg) scale(${s*.85})`},
-    ],{duration:directive.coreBaseMs,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
+    ],{duration:tempo,easing:'cubic-bezier(.18,.78,.22,1)',fill:'forwards'});
   }else{
     await cross();
   }
@@ -452,20 +452,21 @@ async function playIdleCompanion(event,directive,{grid,signal,level=3}={}){
     storyState.lastStoryResident=directive.resident;
   }
   try{
+    const sceneMs=Math.max(420,directive.coreBaseMs*.55);
     const colors={笑い:'#ffb84d',ド派手:'#78e5ff',謎:'#8f91ff',かわいい:'#ff9bc5','完全予想外':'#73dda0'};
     const color=colors[directive.emotion]||'#78e5ff';
     const anticipation=stageWash(scope,color,directive.emotion==='ド派手'?.24:.14);
-    await scope.wait(level<=1?70:120);
+    await scope.wait(level<=1?45:90);
     const gag=residentGag(scope,sceneDirective,{grid,level});
     const cameo=playCameo(scope,event.id,sceneDirective.resident,{level});
     const field=level<=1?Promise.resolve():speedField(scope,color,Math.random()<.5?1:-1);
-    await scope.wait(level<=1?100:Math.max(120,directive.coreBaseMs*.33));
+    await scope.wait(level<=1?80:Math.min(380,Math.max(160,sceneMs*.32)));
     const climax=Promise.all([
       level<=1?Promise.resolve():(directive.emotion==='ド派手'||directive.emotion==='完全予想外'?stageBump(scope,directive.emotion==='完全予想外'?1.05:.75):Promise.resolve()),
       rippleCards(scope,grid,level<=1?.2:(directive.emotion==='ド派手'?1:.55),directive.emotion==='笑い'?'brake':'wave'),
     ]);
     await Promise.allSettled([anticipation,gag,cameo,field,climax]);
-    await scope.wait(level<=1?70:160);
+    await scope.wait(level<=1?80:220);
   }finally{
     signal?.removeEventListener?.('abort',abort);
     scope.cleanup();
