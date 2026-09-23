@@ -97,13 +97,20 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     previous=next;
     queue.length=0;
     diagnostics.baselines+=1;
-    return {baseline:true,changeCount:0,events:[]};
+    return {baseline:true,changeCount:0,dataChangeCount:0,events:[]};
   }
 
   const events=[];
+  let dataChangeCount=0;
+  if(next.size!==previous.size)dataChangeCount+=Math.abs(next.size-previous.size)||1;
+
   for(const [key,now] of next){
     const before=previous.get(key);
-    if(!before)continue;
+    if(!before){
+      dataChangeCount+=1;
+      continue;
+    }
+    if(before.state!==now.state||before.order!==now.order||before.number!==now.number)dataChangeCount+=1;
     const kind=transitionKind(before.state,now.state);
     if(!kind)continue;
     events.push({
@@ -117,10 +124,11 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
       grid,
     });
   }
+  for(const key of previous.keys())if(!next.has(key))dataChangeCount+=1;
   previous=next;
 
-  if(events.length&&typeof onBeforeRealChange==='function'){
-    try{onBeforeRealChange(events)}catch{}
+  if(dataChangeCount>0&&typeof onBeforeRealChange==='function'){
+    try{onBeforeRealChange({dataChangeCount,events})}catch{}
   }
 
   if(document.visibilityState!=='hidden'&&effectiveLevel()>0){
@@ -132,7 +140,12 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     }
     if(events.length>MAX_BATCH)diagnostics.dropped+=events.length-MAX_BATCH;
   }
-  return {baseline:false,changeCount:events.length,events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind}))};
+  return {
+    baseline:false,
+    changeCount:events.length,
+    dataChangeCount,
+    events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind})),
+  };
 }
 function enqueue(evt){
   queue.push(evt);
