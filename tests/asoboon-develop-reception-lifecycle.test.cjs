@@ -70,9 +70,11 @@ test('WEB and onsite waitType IDs are separated and regular weekday WEB is empty
   assert.deepEqual(Array.from(r.onsite['平日']), ['0023','0025']);
 });
 
-test('disabled 0042 and mode mismatches are rejected by generated runtime', () => {
+test('0042 is a Developing-only exception while customer slots still enforce availability and mode', () => {
   const closedTest=[{waitTypeId:'0042',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
-  assert.throws(()=>runtime.validateWaitType(closedTest,{businessType:'土日祝日'},'web','0042'),/WAIT_TYPE_NOT_AVAILABLE/);
+  assert.equal(runtime.validateWaitType(closedTest,{businessType:'土日祝日'},'web','0042').waitTypeId,'0042');
+  const disabledCustomer=[{waitTypeId:'0030',dispFlg:false,usageDispType:'KeyONLINE_RECEPTION_ONLY'}];
+  assert.throws(()=>runtime.validateWaitType(disabledCustomer,{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_NOT_AVAILABLE/);
   const storeOnly=[{waitTypeId:'0030',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
   assert.throws(()=>runtime.validateWaitType(storeOnly,{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_MODE_MISMATCH/);
   assert.throws(()=>runtime.validateWaitType([],{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_NOT_AVAILABLE/);
