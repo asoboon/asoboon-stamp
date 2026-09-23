@@ -565,5 +565,19 @@ window.ASOBOON_BOARD_IDLE_EVENTS=Object.freeze({
   getDiagnostics,
   resetForTest,
   audit:()=>WORLD?.audit?.(IDLE_EVENTS)||[],
+  playEventForTest:async(id,{grid=document.getElementById('queueGrid')}={})=>{
+    const event=IDLE_EVENTS.find(x=>x.id===String(id||''));
+    if(!event)throw new Error('UNKNOWN_IDLE_EVENT:'+id);
+    const prevRunning=running;
+    if(prevRunning)cancelIdleEvent('test-force');
+    const prevQuiet=cooldownUntil;
+    cooldownUntil=0;
+    try{
+      await playIdleEvent(event,{grid});
+      return {id:event.id,played:true};
+    }finally{
+      cooldownUntil=prevQuiet;
+    }
+  },
 });
 })();
