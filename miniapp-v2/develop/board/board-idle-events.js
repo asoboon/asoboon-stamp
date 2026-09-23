@@ -270,6 +270,9 @@ async function playIdleEvent(event,{grid}={}){
   const lvl=effectiveLevel();
   const directive=WORLD?.directives?.[event.id]||null;
   const stagedEvent=directive?{...event,duration:directive.coreBaseMs}:event;
+  const runtimeScope=M?.createScope?.('idle-core:'+event.id)||null;
+  const abortRuntime=()=>runtimeScope?.abort?.('idle-abort');
+  signal.addEventListener('abort',abortRuntime,{once:true});
   diagnostics.played+=1;
   diagnostics.lastEvent={id:event.id,tier:event.tier,emotion:directive?.emotion||null,resident:directive?.resident||null,at:Date.now()};
   diagnostics.history.push({...diagnostics.lastEvent});
@@ -281,10 +284,12 @@ async function playIdleEvent(event,{grid}={}){
 
   try{
     const worldJob=WORLD?.playIdleCompanion?.(stagedEvent,directive,{grid,signal,level:lvl})||Promise.resolve();
-    const coreJob=playDefinition(stagedEvent,{grid,signal,level:lvl});
+    const coreJob=playDefinition(stagedEvent,{grid,signal,level:lvl,runtimeScope});
     await Promise.allSettled([coreJob,worldJob]);
   }catch{}
   finally{
+    signal.removeEventListener('abort',abortRuntime);
+    runtimeScope?.cleanup?.();
     if(currentAbort?.signal===signal)currentAbort=null;
     running=false;
     cleanup();
@@ -383,38 +388,43 @@ async function playCards(def,{grid,signal,level}){
   });
   await Promise.all(promises);
 }
-async function playParticles(def,{signal,level}){
-  const r=boardRect(),canvas=document.createElement('canvas');
-  canvas.className='idle-canvas';
-  const dpr=Math.min(window.devicePixelRatio||1,1.4);
-  canvas.width=Math.floor(r.width*dpr);canvas.height=Math.floor(r.height*dpr);
-  canvas.style.left=r.left+'px';canvas.style.top=r.top+'px';canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';
-  layer().appendChild(canvas);
-  const ctx=canvas.getContext('2d');if(!ctx)return;
-  ctx.scale(dpr,dpr);
-  const count=Math.max(4,Math.floor((def.count||18)*(level<=1?.35:level===2?.72:1)));
+async function playParticles(def,{signal,level,runtimeScope}){
+  const r=boardRect();
+  const q=M?.quality?.()||{particleScale:1,maxParticles:20};
+  const count=Math.max(3,Math.min(q.maxParticles,Math.floor((def.count||12)*(level<=1?.3:level===2?.65:q.particleScale))));
   const p=[];
   const palette=['#ffd84f','#ff8b31','#73dda0','#78e5ff','#ffffff'];
-  for(let i=0;i<count;i++)p.push({x:randomBetween(0,r.width),y:def.style==='stream'?randomBetween(r.height*.25,r.height*.75):randomBetween(0,r.height),vx:randomBetween(-70,110),vy:def.style==='confetti'||def.style==='confetti-stars'?randomBetween(28,95):randomBetween(-55,45),size:randomBetween(2,8),rot:randomBetween(0,6.2),spin:randomBetween(-5,5),color:palette[i%palette.length]});
-  const start=performance.now(),duration=(M?M.ms(def.duration*(level<=1?.7:1)):def.duration*(level<=1?.7:1));
-  await new Promise(resolve=>{
-    const tick=now=>{
-      if(signal.aborted){resolve();return}
-      const t=(now-start)/1000,q=clamp((now-start)/duration,0,1);
-      ctx.clearRect(0,0,r.width,r.height);
+  for(let i=0;i<count;i++)p.push({
+    x:randomBetween(r.left,r.right),
+    y:def.style==='stream'?randomBetween(r.top+r.height*.25,r.top+r.height*.75):randomBetween(r.top,r.bottom),
+    vx:randomBetween(-110,150),
+    vy:def.style==='confetti'||def.style==='confetti-stars'?randomBetween(35,105):randomBetween(-70,60),
+    size:randomBetween(7,16),
+    rot:randomBetween(0,6.2),
+    spin:randomBetween(-4,4),
+    color:palette[i%palette.length]
+  });
+  const duration=def.duration*(level<=1?.7:1);
+  const scope=runtimeScope||M?.createScope?.('idle-particles');
+  if(!scope)return;
+  try{
+    await scope.canvas(duration,(ctx,progress,elapsed)=>{
+      const motionT=elapsed/(M?.getSlowdown?.()||1);
       for(const a of p){
-        const motionT=t/(M?.getSlowdown?.()||1);const x=a.x+a.vx*motionT,y=a.y+a.vy*motionT+(def.style==='confetti'||def.style==='confetti-stars'?30*motionT*motionT:0);
-        ctx.save();ctx.globalAlpha=Math.max(0,1-q*.9);ctx.translate(x,y);ctx.rotate(a.rot+a.spin*t);
-        if(def.style==='stars'||def.style==='confetti-stars'||def.style==='sparkle'){drawStar(ctx,a.size,a.color)}
-        else if(def.style==='smoke'){ctx.fillStyle=a.color;ctx.globalAlpha*=.25;ctx.beginPath();ctx.arc(0,0,a.size*(1+q*2),0,Math.PI*2);ctx.fill()}
-        else if(def.style==='dots-wave'||def.style==='stream'){ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(0,Math.sin(t*8+a.x*.03)*8,a.size,0,Math.PI*2);ctx.fill()}
-        else{ctx.fillStyle=a.color;ctx.fillRect(-a.size,-a.size*.3,a.size*2,a.size*.6)}
+        const x=a.x+a.vx*motionT;
+        const y=a.y+a.vy*motionT+(def.style==='confetti'||def.style==='confetti-stars'?36*motionT*motionT:0);
+        const alpha=Math.max(0,1-progress*.92);
+        ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(a.rot+a.spin*motionT);
+        if(def.style==='stars'||def.style==='confetti-stars'||def.style==='sparkle')drawStar(ctx,a.size,a.color);
+        else if(def.style==='smoke'){ctx.fillStyle=a.color;ctx.globalAlpha*=.28;ctx.beginPath();ctx.arc(0,0,a.size*(1+progress*1.5),0,Math.PI*2);ctx.fill()}
+        else if(def.style==='dots-wave'||def.style==='stream'){ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(0,Math.sin(motionT*7+a.x*.02)*12,a.size*.72,0,Math.PI*2);ctx.fill()}
+        else{ctx.fillStyle=a.color;ctx.fillRect(-a.size,-a.size*.34,a.size*2,a.size*.68)}
         ctx.restore();
       }
-      if(q<1)requestAnimationFrame(tick);else resolve();
-    };
-    requestAnimationFrame(tick);
-  });
+    });
+  }finally{
+    if(!runtimeScope)scope.cleanup?.();
+  }
 }
 function drawStar(ctx,r,color){
   ctx.fillStyle=color;ctx.beginPath();
@@ -431,21 +441,22 @@ async function playPeek(def,{signal,level}){
   el.style.left=x+'px';el.style.top=y+'px';
   await animate(el,[{opacity:0,transform:`translate(-50%,-50%) scale(${scale*.8})`},{opacity:.9,offset:.28,transform:`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`},{opacity:.9,offset:.68,transform:`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`},{opacity:0,transform:`translate(-50%,-50%) scale(${scale*.85})`}],{duration:def.duration*(level<=1?.72:1),easing:'ease-in-out',fill:'forwards'});
 }
-async function playOrbit(def,{grid,signal,level}){
+async function playOrbit(def,{grid,signal,level,runtimeScope}){
   const target=cards(grid,1)[0];if(!target)return;
   const r=target.getBoundingClientRect(),el=createShape(def,'idle-orbit');
   el.style.left=(r.left+r.width/2)+'px';el.style.top=(r.top+r.height/2)+'px';
-  const radius=Math.max(18,Math.min(r.width,r.height)*.58);
-  const start=performance.now(),duration=(M?M.ms(def.duration*(level<=1?.7:1)):def.duration*(level<=1?.7:1));
-  await new Promise(resolve=>{
-    const tick=now=>{
-      if(signal.aborted){resolve();return}
-      const q=clamp((now-start)/duration,0,1),a=q*Math.PI*2;
+  const radius=Math.max(22,Math.min(r.width,r.height)*.72);
+  const scope=runtimeScope||M?.createScope?.('idle-orbit');
+  if(!scope)return;
+  try{
+    await scope.raf(def.duration*(level<=1?.7:1),(progress)=>{
+      const a=progress*Math.PI*2;
       el.style.transform=`translate(-50%,-50%) translate(${Math.cos(a)*radius}px,${Math.sin(a)*radius}px) scale(${(def.size||1)*(level<=1?.65:1)})`;
-      el.style.opacity=String(Math.sin(q*Math.PI));
-      if(q<1)requestAnimationFrame(tick);else resolve();
-    };requestAnimationFrame(tick);
-  });
+      el.style.opacity=String(Math.sin(progress*Math.PI));
+    });
+  }finally{
+    if(!runtimeScope)scope.cleanup?.();
+  }
 }
 async function playRing(def,{signal,level}){
   const r=boardRect(),el=createShape(def,'idle-ring');
@@ -473,7 +484,8 @@ async function playDrop(def,{signal,level}){
 async function playConstellation(def,{signal,level}){
   const r=boardRect(),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.classList.add('idle-svg');svg.setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);svg.style.left=r.left+'px';svg.style.top=r.top+'px';layer().appendChild(svg);
-  const pts=[];for(let i=0;i<(level<=1?5:def.count||9);i++)pts.push([randomBetween(r.width*.08,r.width*.92),randomBetween(r.height*.12,r.height*.88)]);
+  const q=M?.quality?.()||{decorations:1};const pointCount=Math.max(4,Math.min(9,Math.round((level<=1?5:def.count||9)*q.decorations)));
+  const pts=[];for(let i=0;i<pointCount;i++)pts.push([randomBetween(r.width*.08,r.width*.92),randomBetween(r.height*.12,r.height*.88)]);
   for(let i=0;i<pts.length-1;i++){const line=document.createElementNS(svg.namespaceURI,'line');line.setAttribute('x1',pts[i][0]);line.setAttribute('y1',pts[i][1]);line.setAttribute('x2',pts[i+1][0]);line.setAttribute('y2',pts[i+1][1]);line.setAttribute('stroke',def.color||'#78e5ff');line.setAttribute('stroke-width','2');line.setAttribute('stroke-dasharray','8 12');line.setAttribute('opacity','.65');svg.appendChild(line)}
   for(const [x,y] of pts){const c=document.createElementNS(svg.namespaceURI,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','4');c.setAttribute('fill','#fff');svg.appendChild(c)}
   await animate(svg,[{opacity:0},{opacity:.8,offset:.35},{opacity:.8,offset:.7},{opacity:0}],{duration:def.duration*(level<=1?.72:1),fill:'forwards'});
@@ -517,7 +529,7 @@ async function playSequence(def,ctx){
   }
 }
 async function playDepth(def,{signal,level}){
-  const r=boardRect(),count=def.shape==='stars'?(level<=1?8:26):1,promises=[];
+  const r=boardRect(),q=M?.quality?.()||{decorations:1},count=def.shape==='stars'?(level<=1?4:Math.max(4,Math.min(12,Math.round(12*q.decorations)))):1,promises=[];
   for(let i=0;i<count;i++){
     const el=createShape({...def,shape:def.shape==='stars'?'star':def.shape},'idle-depth');
     el.style.left=randomBetween(r.left+r.width*.12,r.right-r.width*.12)+'px';el.style.top=randomBetween(r.top+r.height*.12,r.bottom-r.height*.12)+'px';
@@ -543,7 +555,7 @@ function setConfig(patch={}){
   persist();return getConfig();
 }
 function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),IDLE_POST_COOLDOWN_MIN_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MIN_MS),IDLE_POST_COOLDOWN_MAX_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MAX_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
-function getDiagnostics(){const audit=WORLD?.audit?.(IDLE_EVENTS)||[];return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy(),globalSlowdown:M?.getSlowdown?.()||1,auditCount:audit.length,fullScreenCount:audit.filter(x=>x.fullScreen).length,slowdownCoverage:audit.filter(x=>x.slowdown).length,cleanupCoverage:audit.filter(x=>x.cleanup).length,emotionCounts:WORLD?.diagnostics?.(IDLE_EVENTS)?.emotionCounts||{}}}
+function getDiagnostics(){const audit=WORLD?.audit?.(IDLE_EVENTS)||[];return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy(),globalSlowdown:M?.getSlowdown?.()||1,qualityLevel:M?.getQuality?.()||'AUTO',effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',auditCount:audit.length,fullScreenCount:audit.filter(x=>x.fullScreen).length,slowdownCoverage:audit.filter(x=>x.slowdown).length,cleanupCoverage:audit.filter(x=>x.cleanup).length,emotionCounts:WORLD?.diagnostics?.(IDLE_EVENTS)?.emotionCounts||{}}}
 function resetForTest(){
   cancelIdleEvent('test-reset');ready=false;running=false;currentAbort=null;recentIdleEvents=[];cooldownUntil=0;lastStableAt=0;sequence=0;storyStage=0;lastEventAt=0;
   for(const k of Object.keys(diagnostics)){if(typeof diagnostics[k]==='number')diagnostics[k]=0}
