@@ -51,12 +51,14 @@ jobs:
           grep -F "現在受付できる枠がありません|受付停止中" miniapp-v2/develop/reception-v7.js
           ! grep -Fq "querySelectorAll('.rec-slot').forEach(btn=>{if(btn.hidden)btn.hidden=false})" miniapp-v2/develop/reception-v7.js
 
-      - name: Definitive ambiguous reception must not loop retry
+      - name: Ambiguous reception must not expose staff-handoff technical copy
         run: |
           set -euo pipefail
           grep -F "if(r?.found&&r?.ambiguous===true)" miniapp-v2/shared/reception.js
-          grep -F "この受付は再確認しても自動確定できません。" miniapp-v2/shared/reception.js
-          grep -F "ASOBooNスタッフへお声がけください。" miniapp-v2/shared/reception.js
+          grep -F "受付処理の確認に時間がかかっています。" miniapp-v2/shared/reception.js
+          grep -F "前回のテスト受付は確定できませんでした。" miniapp-v2/shared/reception.js
+          ! grep -Fq "スタッフ対応が必要" miniapp-v2/shared/reception.js
+          ! grep -Fq "ASOBooNスタッフへお声がけください" miniapp-v2/shared/reception.js
 
       - name: Reception operation id must survive ambiguous retries
         run: |
@@ -144,7 +146,9 @@ jobs:
           grep -F "DEVELOPING ONLY" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "本番ミニアプリには表示されません。" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "Developingテスト" miniapp-v2/develop/reception-anywhere-v22.js
+          grep -F "DEVELOP_TEST_ONLY" miniapp-v2/shared/reception.js
           grep -F ".v22-dev-test{" miniapp-v2/develop/reception-v7.css
+          ! grep -Fq "現在地の確認は不要です" miniapp-v2/develop/reception-anywhere-v22.js
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node <<'NODE'
           const fs=require('fs');
@@ -152,7 +156,10 @@ jobs:
           const bypass=s.indexOf("if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;");
           const weekday=s.indexOf("day.businessType === '平日' && mode === 'web'");
           if(bypass<0||weekday<0||bypass>weekday) throw new Error('Developing test bypass must precede regular-weekday web block');
-          if(!s.includes("if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('disabled Developing test slot must be rejected');
+          if(!s.includes("if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('Developing test wait type must exist');
+          if(!s.includes("if (w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('customer slots must still respect dispFlg');
+          if(!s.includes("waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) validateLocation(p)")) throw new Error('Developing test must not require location');
+          if(!s.includes("DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000")) throw new Error('Developing test ambiguous recycle missing');
           NODE
 
       - name: AirWAIT read pressure must be bounded
