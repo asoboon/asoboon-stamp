@@ -24,7 +24,8 @@ function moveTestSlot(){
   const section=ensureTestSection();
   if(!section)return null;
   const holder=section.querySelector('.v22-dev-test-slot');
-  const current=root.querySelector('#recSlots [data-rec-slot="0042"]');
+  const current=root.querySelector('#recSlots [data-rec-slot="0042"][data-rec-available="1"]');
+  root.querySelectorAll('#recSlots [data-rec-slot="0042"]:not([data-rec-available="1"])').forEach(el=>el.remove());
   if(current)holder.replaceChildren(current);
   const duplicates=[...holder.querySelectorAll('[data-rec-slot="0042"]')];
   duplicates.slice(1).forEach(el=>el.remove());

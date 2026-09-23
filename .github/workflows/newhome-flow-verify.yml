@@ -3,10 +3,12 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
 
 jobs:
@@ -26,6 +28,9 @@ jobs:
           node --check miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node --input-type=module --check < develop-gateway.runtime.mjs
+
+      - name: Reception lifecycle regression
+        run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
 
       - name: Reception must terminate or fail closed
         run: |
@@ -147,6 +152,7 @@ jobs:
           const bypass=s.indexOf("if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;");
           const weekday=s.indexOf("day.businessType === '平日' && mode === 'web'");
           if(bypass<0||weekday<0||bypass>weekday) throw new Error('Developing test bypass must precede regular-weekday web block');
+          if(!s.includes("if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('disabled Developing test slot must be rejected');
           NODE
 
       - name: AirWAIT read pressure must be bounded

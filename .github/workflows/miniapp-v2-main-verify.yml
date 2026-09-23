@@ -4,6 +4,7 @@ on:
     paths:
       - 'miniapp-v2/**'
       - 'tests/asoboon-develop-*.spec.js'
+      - 'tests/asoboon-develop-*.test.cjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -11,6 +12,7 @@ on:
     paths:
       - 'miniapp-v2/**'
       - 'tests/asoboon-develop-*.spec.js'
+      - 'tests/asoboon-develop-*.test.cjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -30,6 +32,8 @@ jobs:
           node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
+      - name: Developing reception lifecycle
+        run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
       - name: Lock infant pricing rule
         run: |
           set -euo pipefail

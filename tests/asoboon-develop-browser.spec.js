@@ -55,7 +55,7 @@ async function installLiff(page, mode) {
     await route.fulfill({
       status: 200,
       contentType: 'application/javascript',
-      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>false,getProfile:()=>Promise.resolve({displayName:'Test'})};`
+      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>${mode==='authenticated'?'true':'false'},getAccessToken:()=>${mode==='authenticated'?"'test-liff-access-token-1234567890'":"''"},getProfile:()=>Promise.resolve({displayName:'Test'})};`
     });
   });
 }
@@ -136,16 +136,57 @@ test('reception uses WEB AirWAIT IDs and never exposes store-only or disabled te
   await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(0);
 });
 
-test('Developing test reception slot never accumulates after repeated slot renders', async ({ page }) => {
+test('legacy overlay never resurrects disabled Developing test slot', async ({ page }) => {
   await openHome(page, 'resolve');
   await page.locator('[data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
-  for (let i = 0; i < 5; i += 1) {
-    await page.evaluate(() => {
-      const slots = document.querySelector('#recSlots');
-      slots.insertAdjacentHTML('beforeend', '<button type="button" data-rec-slot="0042"><strong>入場不可テスト</strong><small>0042</small></button>');
-    });
-    await expect(page.locator('.v22-dev-test-slot [data-rec-slot="0042"]')).toHaveCount(1);
-  }
-  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(1);
+  await page.evaluate(() => {
+    const slots = document.querySelector('#recSlots');
+    slots.insertAdjacentHTML('beforeend', '<button type="button" data-rec-slot="0042"><strong>入場不可テスト</strong><small>0042</small></button>');
+  });
+  await expect(page.locator('.v22-dev-test-slot [data-rec-slot="0042"]')).toHaveCount(0);
+  await expect(page.locator('#recSlots [data-rec-slot="0042"]')).toHaveCount(0);
+});
+
+async function openReceptionWithPending(page, result) {
+  await installLiff(page, 'authenticated');
+  await page.addInitScript(pending => localStorage.setItem('asoboon_v2_pending_reception_develop_v1', JSON.stringify(pending)), {
+    requestId:'v2_pending_12345678', fingerprint:'2026-09-19|web|0030|1|0|0',
+    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0030',adults:1,paidChildren:0,infants:0}, createdAt:Date.parse('2026-09-19T03:00:00Z')
+  });
+  await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
+    const url=new URL(route.request().url());
+    if(url.searchParams.get('action')==='requestStatus')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
+    return route.fallback();
+  });
+  await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#recStatus')).toBeVisible();
+}
+
+test('app reopen clears pending after deterministic REJECTED result', async ({page}) => {
+  await openReceptionWithPending(page,{found:true,ok:false,ambiguous:false,error:'AIRWAIT_RECEPTION_ENDED'});
+  await expect(page.locator('#recStatus')).toContainText('受付は終了');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
+  await expect(page.locator('#recSubmit')).not.toBeDisabled({timeout:1000}).catch(()=>{});
+});
+
+test('app reopen preserves pending and retry control for AMBIGUOUS result', async ({page}) => {
+  await openReceptionWithPending(page,{found:true,ok:false,ambiguous:true,error:'AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW'});
+  await expect(page.locator('#recStatus')).toContainText('スタッフ対応');
+  await expect(page.locator('[data-rec-check-result]')).toHaveCount(1);
+  await expect.poll(()=>page.evaluate(()=>Boolean(localStorage.getItem('asoboon_v2_pending_reception_develop_v1')))).toBe(true);
+});
+
+test('app reopen recovers CONFIRMED and moves to callstatus', async ({page}) => {
+  await openReceptionWithPending(page,{found:true,ok:true,stored:true,ambiguous:false,businessDate:'2026-09-19',reserveId:'000000000123',receiptNo:'F123'});
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_current_reservation_develop_v1')));
+  expect(saved.receiptNo).toBe('F123');
+});
+
+for(const width of [320,375,390,430])test(`reception layout has no horizontal overflow at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:900});await openHome(page,'resolve');await page.locator('[data-v7-view="reception"]').click();
+  await expect(page.locator('#recSlots')).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
 });
