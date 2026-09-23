@@ -490,9 +490,11 @@ function setConfig(patch={}){
   for(const key of ['ANIMATION_ENABLED','IDLE_EVENTS_ENABLED','RARE_EVENTS_ENABLED'])if(key in patch)CONFIG[key]=Boolean(patch[key]);
   if('ANIMATION_LEVEL'in patch)CONFIG.ANIMATION_LEVEL=clamp(Math.round(Number(patch.ANIMATION_LEVEL)||0),0,3);
   if('IDLE_EVENT_CHANCE'in patch)CONFIG.IDLE_EVENT_CHANCE=clamp(Number(patch.IDLE_EVENT_CHANCE)||0,0,1);
+  if('REAL_CHANGE_COOLDOWN_MS'in patch)CONFIG.REAL_CHANGE_COOLDOWN_MS=clamp(Number(patch.REAL_CHANGE_COOLDOWN_MS)||0,0,120000);
+  if('INITIAL_QUIET_MS'in patch)CONFIG.INITIAL_QUIET_MS=clamp(Number(patch.INITIAL_QUIET_MS)||0,0,120000);
   persist();return getConfig();
 }
-function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
+function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt}}
 function resetForTest(){
   cancelIdleEvent('test-reset');ready=false;running=false;currentAbort=null;recentIdleEvents=[];cooldownUntil=0;lastStableAt=0;sequence=0;storyStage=0;lastEventAt=0;
