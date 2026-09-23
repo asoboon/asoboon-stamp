@@ -144,6 +144,78 @@ function gagFamily(gag){
   for(const [family,set] of Object.entries(GAG_FAMILIES))if(set.has(gag))return family;
   return'cross';
 }
+
+function hashText(text){
+  let h=2166136261;
+  for(const ch of String(text||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}
+  return h>>>0;
+}
+function motionSignature(eventId){
+  const h=hashText(eventId);
+  const sides=['left','right','top','bottom'];
+  const exits=['right','left','bottom','top'];
+  const residents=['orb','star','square','eye','shadow','ball'];
+  return Object.freeze({
+    code:(h>>>0).toString(36),
+    entrance:sides[h%4],
+    exit:exits[(h>>>3)%4],
+    lane:.18+((h>>>5)%61)/100,
+    scale:.82+((h>>>11)%49)/100,
+    tilt:-14+((h>>>17)%29),
+    pause:90+((h>>>22)%251),
+    cameo:residents[(h>>>7)%residents.length],
+    cameoMode:['peek','chase','copy','late','bonk'][(h>>>13)%5],
+    flip:Boolean((h>>>19)&1),
+  });
+}
+async function playCameo(scope,eventId,primary,{level=3}={}){
+  if(level<=1)return;
+  const sig=motionSignature(eventId);
+  if(sig.cameo===primary&&sig.cameoMode!=='copy')return;
+  const r=stageRect(),el=resident(scope,sig.cameo,'back');
+  const y=r.top+r.height*(sig.lane>.72?.72:sig.lane<.2?.24:sig.lane);
+  const fromLeft=sig.entrance==='left'||sig.entrance==='top';
+  position(el,fromLeft?r.left-72:r.right+72,y,.62+sig.scale*.24);
+  const dx=(fromLeft?1:-1)*r.width;
+  if(sig.cameoMode==='peek'){
+    await scope.animate(el,[
+      {opacity:0,transform:'translate(-50%,-50%) translateX(0) scale(.7)'},
+      {opacity:.88,offset:.35,transform:`translate(-50%,-50%) translateX(${fromLeft?70:-70}px) scale(.9)`},
+      {opacity:.88,offset:.68,transform:`translate(-50%,-50%) translateX(${fromLeft?48:-48}px) scale(.85)`},
+      {opacity:0,transform:'translate(-50%,-50%) translateX(0) scale(.72)'},
+    ],{duration:420+sig.pause,easing:'ease-in-out',fill:'forwards'});
+  }else if(sig.cameoMode==='late'){
+    await scope.wait(80+sig.pause*.45);
+    await scope.animate(el,[
+      {opacity:0,transform:'translate(-50%,-50%)'},
+      {opacity:1,offset:.14,transform:`translate(-50%,-50%) translateX(${dx*.18}px) rotate(${sig.tilt}deg)`},
+      {opacity:1,offset:.72,transform:`translate(-50%,-50%) translateX(${dx*.75}px) rotate(${-sig.tilt}deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(${dx*1.06}px) rotate(${sig.tilt*2}deg)`},
+    ],{duration:520+sig.pause,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
+  }else if(sig.cameoMode==='bonk'){
+    await scope.animate(el,[
+      {opacity:0,transform:'translate(-50%,-50%) scale(.7)'},
+      {opacity:1,offset:.28,transform:`translate(-50%,-50%) translateX(${dx*.34}px) scale(.9)`},
+      {opacity:1,offset:.5,transform:`translate(-50%,-50%) translateX(${dx*.42}px) scale(.82,.98)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(${dx*.18}px) translateY(-80px) rotate(${-220*(fromLeft?1:-1)}deg) scale(.72)`},
+    ],{duration:560+sig.pause,easing:'cubic-bezier(.18,.8,.22,1)',fill:'forwards'});
+  }else if(sig.cameoMode==='copy'){
+    await scope.animate(el,[
+      {opacity:0,transform:'translate(-50%,-50%) scale(.7)'},
+      {opacity:1,offset:.22,transform:`translate(-50%,-50%) translateX(${dx*.2}px) scale(.88)`},
+      {opacity:1,offset:.52,transform:`translate(-50%,-50%) translateX(${dx*.32}px) translateY(-30px) rotate(${sig.tilt}deg)`},
+      {opacity:.9,offset:.72,transform:`translate(-50%,-50%) translateX(${dx*.38}px) translateY(8px) rotate(${-sig.tilt}deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(${dx*.7}px) scale(.72)`},
+    ],{duration:620+sig.pause,easing:'cubic-bezier(.16,.74,.22,1)',fill:'forwards'});
+  }else{
+    await scope.animate(el,[
+      {opacity:0,transform:'translate(-50%,-50%)'},
+      {opacity:1,offset:.18,transform:`translate(-50%,-50%) translateX(${dx*.18}px)`},
+      {opacity:1,offset:.76,transform:`translate(-50%,-50%) translateX(${dx*.72}px) rotate(${sig.tilt}deg)`},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(${dx*1.04}px) rotate(${sig.tilt*1.5}deg)`},
+    ],{duration:590+sig.pause,easing:'cubic-bezier(.16,.72,.2,1)',fill:'forwards'});
+  }
+}
 function allCards(grid=document.getElementById('queueGrid')){
   return [...(grid?.querySelectorAll?.('.queue-card')||[])];
 }
@@ -193,7 +265,7 @@ function stageBump(scope,intensity=1){
 }
 
 async function residentGag(scope,directive,{grid,level=3}={}){
-  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag);
+  const r=stageRect(),id=directive.resident||'orb',rawGag=directive.gag,gag=gagFamily(rawGag),sig=motionSignature(directive.eventId||rawGag);
   const el=resident(scope,id,'back');
   const s=level<=1?.72:1;
   if(level<=1){
@@ -205,15 +277,15 @@ async function residentGag(scope,directive,{grid,level=3}={}){
     ],{duration:360,easing:'ease-in-out',fill:'forwards'});
     return;
   }
-  const left=r.left-70,right=r.right+70,midY=r.top+r.height*(.32+Math.random()*.42);
-  position(el,left,midY,s);
+  const left=r.left-70,right=r.right+70,midY=r.top+r.height*sig.lane;
+  position(el,sig.flip?right:left,midY,s*sig.scale);
 
   const cross=(extra='')=>scope.animate(el,[
-    {opacity:0,transform:`translate(-50%,-50%) scale(${s*.8})`},
-    {opacity:1,offset:.14,transform:`translate(calc(-50% + ${r.width*.18}px),-50%) scale(${s}) ${extra}`},
-    {opacity:1,offset:.7,transform:`translate(calc(-50% + ${r.width*.78}px),-50%) scale(${s}) ${extra}`},
-    {opacity:0,transform:`translate(calc(-50% + ${r.width+150}px),-50%) scale(${s*.88}) ${extra}`},
-  ],{duration:directive.coreBaseMs*.78,easing:'cubic-bezier(.14,.72,.2,1)',fill:'forwards'});
+    {opacity:0,transform:`translate(-50%,-50%) scale(${s*.8*sig.scale}) rotate(${sig.tilt}deg)`},
+    {opacity:1,offset:.14,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*r.width*.18}px),-50%) scale(${s*sig.scale}) rotate(${sig.tilt*.35}deg) ${extra}`},
+    {opacity:1,offset:.7,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*r.width*.78}px),-50%) scale(${s*sig.scale}) rotate(${-sig.tilt*.35}deg) ${extra}`},
+    {opacity:0,transform:`translate(calc(-50% + ${(sig.flip?-1:1)*(r.width+150)}px),-50%) scale(${s*.88*sig.scale}) rotate(${sig.tilt}deg) ${extra}`},
+  ],{duration:directive.coreBaseMs*.78+sig.pause,easing:'cubic-bezier(.14,.72,.2,1)',fill:'forwards'});
 
   if(gag==='hide'){
     position(el,left+18,midY,s);
@@ -369,12 +441,12 @@ async function playIdleCompanion(event,directive,{grid,signal,level=3}={}){
   storyState.scenes+=1;
   storyState.lastResidents.push(directive.resident);
   storyState.lastResidents=storyState.lastResidents.slice(-8);
-  let sceneDirective=directive;
+  let sceneDirective={...directive,eventId:event.id};
   const arc=STORY_ARCS[directive.resident];
   const canStory=arc&&storyState.scenes-storyState.lastStoryScene>=2;
   if(canStory&&Math.random()<.48){
     const stage=storyState[directive.resident]||0;
-    sceneDirective={...directive,gag:arc[stage%arc.length],story:directive.story+'／前回から続く住人の小話'};
+    sceneDirective={...directive,eventId:event.id,gag:arc[stage%arc.length],story:directive.story+'／前回から続く住人の小話'};
     storyState[directive.resident]=(stage+1)%arc.length;
     storyState.lastStoryScene=storyState.scenes;
     storyState.lastStoryResident=directive.resident;
@@ -385,13 +457,14 @@ async function playIdleCompanion(event,directive,{grid,signal,level=3}={}){
     const anticipation=stageWash(scope,color,directive.emotion==='ド派手'?.24:.14);
     await scope.wait(level<=1?70:120);
     const gag=residentGag(scope,sceneDirective,{grid,level});
+    const cameo=playCameo(scope,event.id,sceneDirective.resident,{level});
     const field=level<=1?Promise.resolve():speedField(scope,color,Math.random()<.5?1:-1);
     await scope.wait(level<=1?100:Math.max(120,directive.coreBaseMs*.33));
     const climax=Promise.all([
       level<=1?Promise.resolve():(directive.emotion==='ド派手'||directive.emotion==='完全予想外'?stageBump(scope,directive.emotion==='完全予想外'?1.05:.75):Promise.resolve()),
       rippleCards(scope,grid,level<=1?.2:(directive.emotion==='ド派手'?1:.55),directive.emotion==='笑い'?'brake':'wave'),
     ]);
-    await Promise.allSettled([anticipation,gag,field,climax]);
+    await Promise.allSettled([anticipation,gag,cameo,field,climax]);
     await scope.wait(level<=1?70:160);
   }finally{
     signal?.removeEventListener?.('abort',abort);
@@ -449,6 +522,11 @@ function audit(events){
       slowdown:Boolean(dir?.slowdown),
       cleanup:Boolean(dir?.cleanup),
       story:dir?.story||'',
+      signature:motionSignature(e.id).code,
+      entrance:motionSignature(e.id).entrance,
+      exit:motionSignature(e.id).exit,
+      cameo:motionSignature(e.id).cameo,
+      cameoMode:motionSignature(e.id).cameoMode,
     };
   });
 }
