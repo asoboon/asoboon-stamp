@@ -39,10 +39,18 @@ const CFG = Object.freeze({
 });
 
 const SLOT_RULES = Object.freeze({
-  '平日': Object.freeze(['0023', '0025']),
-  '平日特定日': Object.freeze(['0035', '0037']),
-  '土日祝日': Object.freeze(['0029', '0031', '0033']),
-  '休館': Object.freeze([]),
+  onsite: Object.freeze({
+    '平日': Object.freeze(['0023', '0025']),
+    '平日特定日': Object.freeze(['0035', '0037']),
+    '土日祝日': Object.freeze(['0029', '0031', '0033']),
+    '休館': Object.freeze([]),
+  }),
+  web: Object.freeze({
+    '平日': Object.freeze([]),
+    '平日特定日': Object.freeze(['0036', '0038']),
+    '土日祝日': Object.freeze(['0030', '0032', '0034']),
+    '休館': Object.freeze([]),
+  }),
 });
 
 const BUSINESS_RULES = Object.freeze({
@@ -305,16 +313,19 @@ async function getWaitTypes(env, { force = false } = {}) {
   return { ok: true, cached: false, waitTypes, version: CFG.VERSION };
 }
 
+function usageMatchesMode(usage, mode) {
+  const u = String(usage || '');
+  if (!u || u === '01' || u === 'KeyALL') return true;
+  if (mode === 'web') return u === '03' || u === 'KeyONLINE_RECEPTION_ONLY';
+  return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
+}
+
 function validateWaitType(waitTypes, day, mode, waitTypeId) {
-  const allowed = SLOT_RULES[day.businessType] || [];
+  const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  const usage = String(w.usageDispType || '');
-  if (usage) {
-    const allowedUsage = mode === 'web' ? ['01', '03'] : ['01', '02'];
-    if (!allowedUsage.includes(usage)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  }
+  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }
 
@@ -385,16 +396,22 @@ async function createReservation(env, p, requestId) {
     throw apiError(amb ? 'AIRWAIT_CREATE_RESPONSE_AMBIGUOUS_MANUAL_REVIEW' : 'AIRWAIT_CREATE_INVALID_RESPONSE', 502, amb);
   }
 
+  const resultCode = String(d?.resultCode?.code || '');
+  const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';
+  if (!res.ok && hasDefinitiveAirwaitError) {
+    await releaseUserClaim(env, hash, serverDate, requestId);
+    throw airwaitResultError(resultCode);
+  }
   if (!res.ok) {
     const amb = res.status >= 500;
     if (amb) await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
     else await releaseUserClaim(env, hash, serverDate, requestId);
-    throw apiError(`AIRWAIT_CREATE_HTTP_${res.status}`, res.status, amb);
+    throw apiError(`AIRWAIT_CREATE_HTTP_${res.status}_RC_${resultCode || 'NONE'}`, res.status, amb, resultCode);
   }
 
-  if (d?.success !== true || d?.resultCode?.code !== '0000') {
+  if (d?.success !== true || resultCode !== '0000') {
     await releaseUserClaim(env, hash, serverDate, requestId);
-    throw airwaitResultError(d?.resultCode?.code);
+    throw airwaitResultError(resultCode);
   }
 
   const dto = d?.innerDto || {};
@@ -529,6 +546,8 @@ async function requestStatus(env, requestId) {
 function airwaitResultError(code) {
   const c = String(code || 'NONE');
   const known = {
+    '1000': 'AIRWAIT_INPUT_ERROR',
+    '3509': 'AIRWAIT_PRINTER_NOT_FOUND',
     '3527': 'AIRWAIT_NO_TICKETS_TODAY',
     '3528': 'AIRWAIT_RECEPTION_UNAVAILABLE',
     '3532': 'AIRWAIT_PEOPLE_OVER_LIMIT',
