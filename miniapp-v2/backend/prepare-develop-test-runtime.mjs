@@ -15,7 +15,7 @@ function replaceOnce(oldText, newText) {
 replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.5.dev-correctness',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
-  "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
+  "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
 );
 replaceOnce(
   "  AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',",
@@ -68,12 +68,16 @@ replaceOnce(
   "  enforceReceptionHours(day, mode, waitTypeId);"
 );
 replaceOnce(
+  "  if (mode === 'onsite') validateLocation(p);",
+  "  if (mode === 'onsite' && waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) validateLocation(p);"
+);
+replaceOnce(
   "SELECT request_id,state,receipt_no,reserve_id,wait_type_id FROM v2_user_day_claims",
   "SELECT request_id,state,receipt_no,reserve_id,wait_type_id,updated_at FROM v2_user_day_claims"
 );
 replaceOnce(
   "  const e = apiError(state === 'AMBIGUOUS' ? 'EXISTING_AMBIGUOUS_RECEPTION_REQUIRES_MANUAL_REVIEW' : 'ACTIVE_RECEPTION_ALREADY_IN_PROGRESS', 409, state === 'AMBIGUOUS');\n  throw e;",
-  "  if (state === 'CREATE_INFLIGHT' && Number(row.updated_at || 0) < now - CFG.STALE_CREATE_INFLIGHT_MS) {\n    await env.DB.prepare(\"UPDATE v2_user_day_claims SET state='AMBIGUOUS',updated_at=? WHERE user_hash=? AND business_date=? AND request_id=? AND state='CREATE_INFLIGHT'\")\n      .bind(Date.now(), hash, date, String(row.request_id || '')).run();\n    throw apiError('STALE_CREATE_INFLIGHT_REQUIRES_MANUAL_REVIEW', 409, true);\n  }\n  const e = apiError(state === 'AMBIGUOUS' ? 'EXISTING_AMBIGUOUS_RECEPTION_REQUIRES_MANUAL_REVIEW' : 'ACTIVE_RECEPTION_ALREADY_IN_PROGRESS', 409, state === 'AMBIGUOUS');\n  throw e;"
+  "  if (state === 'CREATE_INFLIGHT' && Number(row.updated_at || 0) < now - CFG.STALE_CREATE_INFLIGHT_MS) {\n    await env.DB.prepare(\"UPDATE v2_user_day_claims SET state='AMBIGUOUS',updated_at=? WHERE user_hash=? AND business_date=? AND request_id=? AND state='CREATE_INFLIGHT'\")\n      .bind(Date.now(), hash, date, String(row.request_id || '')).run();\n    throw apiError('STALE_CREATE_INFLIGHT_REQUIRES_MANUAL_REVIEW', 409, true);\n  }\n  if (state === 'AMBIGUOUS' && waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID && String(row.wait_type_id || '') === CFG.DEVELOP_TEST_WAIT_TYPE_ID && Number(row.updated_at || 0) < now - CFG.DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS) {\n    await env.DB.batch([\n      env.DB.prepare(\"DELETE FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND request_id=? AND state='AMBIGUOUS' AND wait_type_id=?\").bind(hash,date,String(row.request_id||''),CFG.DEVELOP_TEST_WAIT_TYPE_ID),\n      env.DB.prepare(\"DELETE FROM v2_request_results WHERE request_id=? AND state='AMBIGUOUS'\").bind(String(row.request_id||''))\n    ]);\n    return await claimUserDay(env, hash, date, requestId, waitTypeId);\n  }\n  const e = apiError(state === 'AMBIGUOUS' ? 'EXISTING_AMBIGUOUS_RECEPTION_REQUIRES_MANUAL_REVIEW' : 'ACTIVE_RECEPTION_ALREADY_IN_PROGRESS', 409, state === 'AMBIGUOUS');\n  throw e;"
 );
 
 replaceOnce(
@@ -90,7 +94,7 @@ replaceOnce(
   const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
   if (!isDevelopTest && !allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
-  if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
+  if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
   if (isDevelopTest) {
     const u = String(w.usageDispType || '');
     if (u && !['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
