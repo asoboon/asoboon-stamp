@@ -88,10 +88,18 @@ function d(emotion,resident,gag,coreBaseMs,story){
 }
 
 const emotionCounts=()=>Object.values(DIRECTIVES).reduce((a,x)=>(a[x.emotion]=(a[x.emotion]||0)+1,a),{});
+const STORY_ARCS=Object.freeze({
+  orb:Object.freeze(['bad-hide','peek-switch','ball-chase','story-ride','offscreen-bonk']),
+  star:Object.freeze(['show-off','miss-jump','rocket-backfire','orbit-dizzy','wrong-way']),
+  square:Object.freeze(['push-fail','wrong-way','wind-fight','domino-save-fail','jump-late']),
+  eye:Object.freeze(['bad-hide','exclamation-scare','connect-look','space-peek','peek-switch']),
+});
 const storyState={
   orb:0,star:0,square:0,eye:0,
   lastResidents:[],
   scenes:0,
+  lastStoryScene:-99,
+  lastStoryResident:null,
 };
 
 function stageRect(){
@@ -167,6 +175,15 @@ async function residentGag(scope,directive,{grid,level=3}={}){
   const r=stageRect(),id=directive.resident||'orb',gag=directive.gag;
   const el=resident(scope,id,'back');
   const s=level<=1?.72:1;
+  if(level<=1){
+    position(el,r.left+r.width*.12,r.top+r.height*.72,s*.72);
+    await scope.animate(el,[
+      {opacity:0,transform:`translate(-50%,-50%) scale(${s*.68})`},
+      {opacity:.75,transform:`translate(-50%,-50%) scale(${s*.82})`,offset:.45},
+      {opacity:0,transform:`translate(-50%,-50%) translateX(18px) scale(${s*.75})`},
+    ],{duration:360,easing:'ease-in-out',fill:'forwards'});
+    return;
+  }
   const left=r.left-70,right=r.right+70,midY=r.top+r.height*(.32+Math.random()*.42);
   position(el,left,midY,s);
 
@@ -283,18 +300,27 @@ async function playIdleCompanion(event,directive,{grid,signal,level=3}={}){
   storyState.scenes+=1;
   storyState.lastResidents.push(directive.resident);
   storyState.lastResidents=storyState.lastResidents.slice(-8);
-  if(directive.resident in storyState)storyState[directive.resident]=(storyState[directive.resident]+1)%5;
+  let sceneDirective=directive;
+  const arc=STORY_ARCS[directive.resident];
+  const canStory=arc&&storyState.scenes-storyState.lastStoryScene>=2;
+  if(canStory&&Math.random()<.48){
+    const stage=storyState[directive.resident]||0;
+    sceneDirective={...directive,gag:arc[stage%arc.length],story:directive.story+'／前回から続く住人の小話'};
+    storyState[directive.resident]=(stage+1)%arc.length;
+    storyState.lastStoryScene=storyState.scenes;
+    storyState.lastStoryResident=directive.resident;
+  }
   try{
     const colors={笑い:'#ffb84d',ド派手:'#78e5ff',謎:'#8f91ff',かわいい:'#ff9bc5','完全予想外':'#73dda0'};
     const color=colors[directive.emotion]||'#78e5ff';
     const anticipation=stageWash(scope,color,directive.emotion==='ド派手'?.24:.14);
     await scope.wait(level<=1?70:120);
-    const gag=residentGag(scope,directive,{grid,level});
-    const field=speedField(scope,color,Math.random()<.5?1:-1);
+    const gag=residentGag(scope,sceneDirective,{grid,level});
+    const field=level<=1?Promise.resolve():speedField(scope,color,Math.random()<.5?1:-1);
     await scope.wait(level<=1?100:Math.max(120,directive.coreBaseMs*.33));
     const climax=Promise.all([
-      directive.emotion==='ド派手'||directive.emotion==='完全予想外'?stageBump(scope,directive.emotion==='完全予想外'?1.05:.75):Promise.resolve(),
-      rippleCards(scope,grid,directive.emotion==='ド派手'?1:.55,directive.emotion==='笑い'?'brake':'wave'),
+      level<=1?Promise.resolve():(directive.emotion==='ド派手'||directive.emotion==='完全予想外'?stageBump(scope,directive.emotion==='完全予想外'?1.05:.75):Promise.resolve()),
+      rippleCards(scope,grid,level<=1?.2:(directive.emotion==='ド派手'?1:.55),directive.emotion==='笑い'?'brake':'wave'),
     ]);
     await Promise.allSettled([anticipation,gag,field,climax]);
     await scope.wait(level<=1?70:160);
@@ -364,7 +390,7 @@ function diagnostics(events=[]){
     residents:Object.values(RESIDENTS),
     directiveCount:Object.keys(DIRECTIVES).length,
     emotionCounts:emotionCounts(),
-    storyState:{...storyState,lastResidents:[...storyState.lastResidents]},
+    storyState:{...storyState,lastResidents:[...storyState.lastResidents]},storyArcs:Object.fromEntries(Object.entries(STORY_ARCS).map(([k,v])=>[k,[...v]])),
     auditCount:report.length,
     fullScreenCount:report.filter(x=>x.fullScreen).length,
     slowdownCount:report.filter(x=>x.slowdown).length,
@@ -372,7 +398,7 @@ function diagnostics(events=[]){
   };
 }
 function resetForTest(){
-  storyState.orb=0;storyState.star=0;storyState.square=0;storyState.eye=0;storyState.lastResidents=[];storyState.scenes=0;
+  storyState.orb=0;storyState.star=0;storyState.square=0;storyState.eye=0;storyState.lastResidents=[];storyState.scenes=0;storyState.lastStoryScene=-99;storyState.lastStoryResident=null;
 }
 
 window.ASOBOON_BOARD_WORLD=Object.freeze({
