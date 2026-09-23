@@ -39,6 +39,7 @@ const diagnostics={
   cleanupRuns:0,
   lastEvent:null,
   history:[],
+  lastDecision:'none',
 };
 
 const IDLE_EVENTS=Object.freeze([
@@ -214,13 +215,18 @@ function onCommunicationError(){
 async function onStableUpdate({grid}={}){
   diagnostics.attempts+=1;
   lastStableAt=Date.now();
-  if(!ready||!CONFIG.ANIMATION_ENABLED||!CONFIG.IDLE_EVENTS_ENABLED||effectiveLevel()===0){diagnostics.skipped+=1;return{played:false,reason:'disabled'}}
-  if(document.visibilityState==='hidden'||Date.now()<cooldownUntil||running||realFxBusy()){diagnostics.skipped+=1;return{played:false,reason:'busy'}}
-  if(Math.random()>clamp(Number(CONFIG.IDLE_EVENT_CHANCE)||0,0,1)){diagnostics.none+=1;return{played:false,reason:'none'}}
+  if(!ready){diagnostics.skipped+=1;diagnostics.lastDecision='not-ready';return{played:false,reason:'not-ready'}}
+  if(!CONFIG.ANIMATION_ENABLED||!CONFIG.IDLE_EVENTS_ENABLED||effectiveLevel()===0){diagnostics.skipped+=1;diagnostics.lastDecision='disabled';return{played:false,reason:'disabled'}}
+  if(document.visibilityState==='hidden'){diagnostics.skipped+=1;diagnostics.lastDecision='hidden';return{played:false,reason:'hidden'}}
+  if(Date.now()<cooldownUntil){diagnostics.skipped+=1;diagnostics.lastDecision='cooldown';return{played:false,reason:'cooldown'}}
+  if(running){diagnostics.skipped+=1;diagnostics.lastDecision='idle-running';return{played:false,reason:'idle-running'}}
+  if(realFxBusy()){diagnostics.skipped+=1;diagnostics.lastDecision='real-fx-busy';return{played:false,reason:'real-fx-busy'}}
+  if(Math.random()>clamp(Number(CONFIG.IDLE_EVENT_CHANCE)||0,0,1)){diagnostics.none+=1;diagnostics.lastDecision='none';return{played:false,reason:'none'}}
 
   const tier=pickTier();
   const event=pickEvent(tier);
-  if(!event){diagnostics.skipped+=1;return{played:false,reason:'no-event'}}
+  if(!event){diagnostics.skipped+=1;diagnostics.lastDecision='no-event';return{played:false,reason:'no-event'}}
+  diagnostics.lastDecision='play:'+event.id;
   await playIdleEvent(event,{grid:grid||document.getElementById('queueGrid')});
   return{played:true,id:event.id,tier:event.tier};
 }
@@ -516,7 +522,7 @@ function setConfig(patch={}){
   persist();return getConfig();
 }
 function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size}}
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy()}}
 function resetForTest(){
   cancelIdleEvent('test-reset');ready=false;running=false;currentAbort=null;recentIdleEvents=[];cooldownUntil=0;lastStableAt=0;sequence=0;storyStage=0;lastEventAt=0;
   for(const k of Object.keys(diagnostics)){if(typeof diagnostics[k]==='number')diagnostics[k]=0}
