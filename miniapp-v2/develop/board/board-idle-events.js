@@ -269,7 +269,7 @@ async function playIdleEvent(event,{grid}={}){
   const signal=currentAbort.signal;
   const lvl=effectiveLevel();
   const directive=WORLD?.directives?.[event.id]||null;
-  const stagedEvent=directive?{...event,duration:directive.coreBaseMs}:event;
+  const stagedEvent=directive?{...event,duration:Math.max(420,Math.round(directive.coreBaseMs*.55))}:event;
   const runtimeScope=M?.createScope?.('idle-core:'+event.id)||null;
   const abortRuntime=()=>runtimeScope?.abort?.('idle-abort');
   signal.addEventListener('abort',abortRuntime,{once:true});
@@ -378,7 +378,7 @@ async function playCards(def,{grid,signal,level}){
     else if(pattern==='wind')frames=[{transform:'rotate(0)'},{transform:'rotate(-3deg) translateX(-2px)'},{transform:'rotate(2deg) translateX(2px)'},{transform:'rotate(0)'}];
     else if(pattern==='wave')frames=[{transform:'translateY(0)'},{transform:'translateY(-6px) rotate(-1deg)'},{transform:'translateY(3px) rotate(1deg)'},{transform:'translateY(0)'}];
     else if(pattern==='domino')frames=[{transform:'rotate(0)'},{transform:'rotate(5deg)'},{transform:'rotate(-1deg)'},{transform:'rotate(0)'}];
-    else if(pattern==='sheen')frames=[{filter:'brightness(1)'},{filter:'brightness(1.28)'},{filter:'brightness(1)'}];
+    else if(pattern==='sheen')frames=(M?.getEffectiveQuality?.()==='HIGH'?[{filter:'brightness(1)'},{filter:'brightness(1.28)'},{filter:'brightness(1)'}]:[{transform:'scale(1)'},{transform:'scale(1.025)'},{transform:'scale(1)'}]);
     else if(pattern==='jump-all')frames=[{transform:'translateY(0)'},{transform:`translateY(${level<=1?-4:-12}px) scale(1.025)`},{transform:'translateY(0)'}];
     else if(pattern==='float-drop')frames=[{transform:'translateY(0)'},{transform:'translateY(-7px)',offset:.45},{transform:'translateY(3px)',offset:.72},{transform:'translateY(0)'}];
     else if(pattern==='scatter')frames=[{transform:'translate(0,0) rotate(0)'},{transform:`translate(${randomBetween(-10,10)}px,${randomBetween(-8,8)}px) rotate(${randomBetween(-3,3)}deg)`},{transform:'translate(0,0) rotate(0)'}];
