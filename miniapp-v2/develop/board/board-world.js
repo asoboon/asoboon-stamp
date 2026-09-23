@@ -406,12 +406,12 @@ async function playStatusReaction(kind,{grid,signal,level=3,rect}={}){
   signal?.addEventListener?.('abort',abort,{once:true});
   const color=kind==='call'?'#73dda0':kind==='guided'?'#78e5ff':kind==='hold'?'#ffd84f':'#dfe7ea';
   try{
-    const wash=stageWash(scope,color,kind==='call'?.46:.28);
-    const speed=speedField(scope,color,kind==='guided'?1:-1);
+    const wash=stageWash(scope,color,level<=1?.12:(kind==='call'?.46:.28));
+    const speed=level<=1?Promise.resolve():speedField(scope,color,kind==='guided'?1:-1);
     const cards=kind==='call'
-      ?rippleCards(scope,grid,1.2,'jump')
-      :kind==='hold'?rippleCards(scope,grid,.85,'brake')
-      :rippleCards(scope,grid,.75,'wave');
+      ?rippleCards(scope,grid,level<=1?.2:1.2,'jump')
+      :kind==='hold'?rippleCards(scope,grid,level<=1?.16:.85,'brake')
+      :rippleCards(scope,grid,level<=1?.14:.75,'wave');
     const gagDirective=kind==='call'?d('ド派手','orb','offscreen-bonk',1250,'呼出衝撃で住人が吹き飛び、あとから戻る')
       :kind==='guided'?d('笑い','star','late-chase',900,'出発風圧を星が追いかける')
       :kind==='hold'?d('笑い','square','push-fail',900,'世界ごと急ブレーキ')
