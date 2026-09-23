@@ -96,6 +96,26 @@ jobs:
           grep -F 'getBusinessDayCachedForCreate(env, serverDate)' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
 
+      - name: Reception slot IDs must match AirWAIT channel
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          const code=fs.readFileSync('miniapp-v2/shared/app-rules.js','utf8');
+          const ctx={window:{}};vm.createContext(ctx);vm.runInContext(code,ctx);
+          const r=ctx.window.ASOBOON_V2_RULES;
+          const ids=(type,mode)=>Array.from(r.slotsFor(type,mode),x=>x.waitTypeId);
+          const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+          if(!same(ids('土日祝日','web'),['0030','0032','0034'])) throw new Error('weekend web slot IDs mismatch');
+          if(!same(ids('土日祝日','onsite'),['0029','0031','0033'])) throw new Error('weekend onsite slot IDs mismatch');
+          if(!same(ids('平日特定日','web'),['0036','0038'])) throw new Error('special weekday web slot IDs mismatch');
+          if(!same(ids('平日特定日','onsite'),['0035','0037'])) throw new Error('special weekday onsite slot IDs mismatch');
+          if(!same(ids('平日','web'),[])) throw new Error('regular weekday web must be empty');
+          if(Number(r.operationalCutoffHour)!==19) throw new Error('operational cutoff must be 19');
+          NODE
+          grep -F "const allowed = SLOT_RULES[mode]?.[day.businessType] || [];" miniapp-v2/backend/develop-gateway.js
+          grep -F "if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);" miniapp-v2/backend/develop-gateway.js
+
       - name: Customer reception and 0042 Developing test stay structurally separate
         run: |
           set -euo pipefail
@@ -122,8 +142,10 @@ jobs:
           grep -F 'CALLSTATUS_AIRWAIT_CACHE_MS = 5 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'CALLSTATUS_AIRWAIT_TIMEOUT_MS = 8 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
           grep -F 'callstatusAirwaitInflight' miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F 'const wt = await getWaitTypes(env);' miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          ! grep -Fq 'const wt = await getWaitTypes(env, { force: true });' develop-gateway.runtime.mjs
+          grep -F 'CREATE_WAIT_TYPES_CACHE_MS = 5 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'const wt = await getWaitTypesForCreate(env);' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'const wt = await getWaitTypesForCreate(env);' develop-gateway.runtime.mjs
+          grep -F 'getWaitTypes(env, { force:true })' develop-gateway.runtime.mjs
 
       - name: Sequential same-day reception only recycles terminal previous claim
         run: |
