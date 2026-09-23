@@ -350,12 +350,18 @@ test('all 63 idle events actually play and fully clean up without touching ticke
   for (const id of ids) {
     const result = await page.evaluate(async eventId => {
       const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+      const fx = window.ASOBOON_BOARD_EFFECTS;
+      fx.resetPerformanceBaseline();
       await idle.playEventForTest(eventId);
-      const runtime = window.ASOBOON_BOARD_EFFECTS.diagnostics();
+      const runtime = fx.diagnostics();
       const diag = idle.getDiagnostics();
       return {
         id: eventId,
         runtimeScopes: runtime.activeScopes,
+        domDeltaPeak: runtime.domDeltaPeak,
+        sharedCanvasCount: runtime.sharedCanvasCount,
+        maxCanvasJobs: runtime.maxCanvasJobs,
+        maxFrameTasks: runtime.maxFrameTasks,
         idleAnimations: diag.activeAnimations,
         idleTimers: diag.activeTimers,
         idleRunning: diag.running,
@@ -365,6 +371,10 @@ test('all 63 idle events actually play and fully clean up without touching ticke
     }, id);
 
     expect(result.runtimeScopes, id).toBe(0);
+    expect(result.domDeltaPeak, id).toBeLessThanOrEqual(20);
+    expect(result.sharedCanvasCount, id).toBeLessThanOrEqual(1);
+    expect(result.maxCanvasJobs, id).toBeLessThanOrEqual(1);
+    expect(result.maxFrameTasks, id).toBeLessThanOrEqual(1);
     expect(result.idleAnimations, id).toBe(0);
     expect(result.idleTimers, id).toBe(0);
     expect(result.idleRunning, id).toBe(false);
@@ -373,6 +383,22 @@ test('all 63 idle events actually play and fully clean up without touching ticke
   }
 
   expect(h.pageErrors).toEqual([]);
+});
+
+test('animation architecture has one RAF owner and one Canvas owner', async () => {
+  const runtime = fs.readFileSync('miniapp-v2/develop/board/board-effects-runtime.js','utf8');
+  const idle = fs.readFileSync('miniapp-v2/develop/board/board-idle-events.js','utf8');
+  const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const world = fs.readFileSync('miniapp-v2/develop/board/board-world.js','utf8');
+
+  expect((runtime.match(/requestAnimationFrame\(/g)||[]).length).toBe(1);
+  expect((runtime.match(/createElement\(['"]canvas['"]\)/g)||[]).length).toBe(1);
+  expect(idle).not.toContain('requestAnimationFrame(');
+  expect(status).not.toContain('requestAnimationFrame(');
+  expect(world).not.toContain('requestAnimationFrame(');
+  expect(idle).not.toMatch(/createElement\(['"]canvas['"]\)/);
+  expect(status).not.toMatch(/createElement\(['"]canvas['"]\)/);
+  expect(world).not.toMatch(/createElement\(['"]canvas['"]\)/);
 });
 
 test('global slowdown runtime defaults to 2.5 and controls CSS timing variables', async ({ page }) => {
