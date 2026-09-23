@@ -397,7 +397,7 @@ async function playParticles(def,{signal,level}){
       const t=(now-start)/1000,q=clamp((now-start)/duration,0,1);
       ctx.clearRect(0,0,r.width,r.height);
       for(const a of p){
-        const x=a.x+a.vx*t,y=a.y+a.vy*t+(def.style==='confetti'||def.style==='confetti-stars'?30*t*t:0);
+        const motionT=t/(M?.getSlowdown?.()||1);const x=a.x+a.vx*motionT,y=a.y+a.vy*motionT+(def.style==='confetti'||def.style==='confetti-stars'?30*motionT*motionT:0);
         ctx.save();ctx.globalAlpha=Math.max(0,1-q*.9);ctx.translate(x,y);ctx.rotate(a.rot+a.spin*t);
         if(def.style==='stars'||def.style==='confetti-stars'||def.style==='sparkle'){drawStar(ctx,a.size,a.color)}
         else if(def.style==='smoke'){ctx.fillStyle=a.color;ctx.globalAlpha*=.25;ctx.beginPath();ctx.arc(0,0,a.size*(1+q*2),0,Math.PI*2);ctx.fill()}
