@@ -1,6 +1,7 @@
 (()=>{'use strict';
 
 const DEFAULT_SLOWDOWN=2.5;
+const LOW_SPEC_FALLBACK=true;
 const SLOWDOWN_KEY='asoboon_board_global_slowdown_v1';
 const QUALITY_KEY='asoboon_board_quality_v1';
 const QUALITY_MODES=Object.freeze(['AUTO','HIGH','MEDIUM','LOW']);
@@ -29,6 +30,11 @@ let monitoring=true;
 let sharedCanvas=null;
 let sharedCtx=null;
 let sharedCanvasUsers=0;
+const baselineDomCount=document.getElementsByTagName('*').length;
+let peakDomCount=baselineDomCount;
+let maxFrameTasks=0;
+let maxCanvasJobs=0;
+let qualityChanges=0;
 const canvasJobs=new Set();
 let canvasDirty=false;
 
@@ -79,7 +85,7 @@ function setQuality(value,{persistValue=true}={}){
 }
 function setAutoQuality(next){
   if(!['HIGH','MEDIUM','LOW'].includes(next)||autoQuality===next)return;
-  autoQuality=next;lastQualityChange=performance.now();applyEnvironment();resizeSharedCanvas();
+  autoQuality=next;qualityChanges+=1;lastQualityChange=performance.now();applyEnvironment();resizeSharedCanvas();
 }
 function evaluateQuality(now){
   if(qualityMode!=='AUTO'||reduced)return;
@@ -104,6 +110,10 @@ function mainLoop(now){
     evaluateQuality(now);
   }
   lastFrameAt=now;
+  const domNow=document.getElementsByTagName('*').length;
+  if(domNow>peakDomCount)peakDomCount=domNow;
+  if(frameTasks.size>maxFrameTasks)maxFrameTasks=frameTasks.size;
+  if(canvasJobs.size>maxCanvasJobs)maxCanvasJobs=canvasJobs.size;
 
   for(const task of [...frameTasks]){
     if(task.signal?.aborted){frameTasks.delete(task);task.resolve?.();continue}
@@ -230,7 +240,10 @@ function diagnostics(){
     frameMs:Math.round(frameEma*10)/10,fps:Math.round(fpsEma*10)/10,longTasks,
     activeScopes:scopes.size,frameTasks:frameTasks.size,canvasJobs:canvasJobs.size,
     sharedCanvasCount:sharedCanvas?1:0,
-    domCount:document.getElementsByTagName('*').length,
+    baselineDomCount,domCount:document.getElementsByTagName('*').length,peakDomCount,domDeltaPeak:peakDomCount-baselineDomCount,
+    maxFrameTasks,maxCanvasJobs,qualityChanges,
+    activeTimers:[...scopes].reduce((n,x)=>n+(x.stats?.().timers||0),0),
+    jsHeapUsed:performance.memory?.usedJSHeapSize||null,
     scopes:[...scopes].map(x=>x.stats()),
   };
 }
@@ -247,7 +260,7 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.0.0',DEFAULT_SLOWDOWN,QUALITY_MODES,
+  version:'2.1.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
