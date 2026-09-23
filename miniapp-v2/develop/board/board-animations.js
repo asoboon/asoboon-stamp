@@ -88,7 +88,7 @@ function transitionKind(fromStatus,toStatus){
   if(toStatus==='hold'&&fromStatus!=='hold')return'hold';
   return'';
 }
-function observe({slotKey,rows,previousFrame,grid}={}){
+function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
   const next=snapshot(rows);
   const slot=String(slotKey||'');
   if(!initialized||baselineSlot!==slot){
@@ -97,7 +97,7 @@ function observe({slotKey,rows,previousFrame,grid}={}){
     previous=next;
     queue.length=0;
     diagnostics.baselines+=1;
-    return;
+    return {baseline:true,changeCount:0,events:[]};
   }
 
   const events=[];
@@ -119,14 +119,20 @@ function observe({slotKey,rows,previousFrame,grid}={}){
   }
   previous=next;
 
-  if(document.visibilityState==='hidden'||effectiveLevel()===0)return;
-  const cards=new Map();
-  grid?.querySelectorAll?.('.queue-card[data-row-key]').forEach(card=>cards.set(String(card.dataset.rowKey||''),card));
-  for(const evt of events.slice(0,MAX_BATCH)){
-    evt.element=cards.get(evt.key)||null;
-    enqueue(evt);
+  if(events.length&&typeof onBeforeRealChange==='function'){
+    try{onBeforeRealChange(events)}catch{}
   }
-  if(events.length>MAX_BATCH)diagnostics.dropped+=events.length-MAX_BATCH;
+
+  if(document.visibilityState!=='hidden'&&effectiveLevel()>0){
+    const cards=new Map();
+    grid?.querySelectorAll?.('.queue-card[data-row-key]').forEach(card=>cards.set(String(card.dataset.rowKey||''),card));
+    for(const evt of events.slice(0,MAX_BATCH)){
+      evt.element=cards.get(evt.key)||null;
+      enqueue(evt);
+    }
+    if(events.length>MAX_BATCH)diagnostics.dropped+=events.length-MAX_BATCH;
+  }
+  return {baseline:false,changeCount:events.length,events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind}))};
 }
 function enqueue(evt){
   queue.push(evt);
