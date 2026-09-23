@@ -1,5 +1,7 @@
 (()=>{'use strict';
 
+const M=window.ASOBOON_BOARD_EFFECTS;
+const WORLD=window.ASOBOON_BOARD_WORLD;
 const STORAGE_KEY='asoboon_call_board_idle_config_v1';
 const DEFAULT_CONFIG=Object.freeze({
   ANIMATION_ENABLED:true,
@@ -157,9 +159,13 @@ function trackAnimation(animation){
   activeAnimations.add(animation);
   return animation.finished.catch(()=>{}).finally(()=>activeAnimations.delete(animation));
 }
-function animate(el,keyframes,options){
+function animate(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
-  return trackAnimation(el.animate(keyframes,options));
+  const opts={...options};
+  if(Number.isFinite(Number(opts.duration)))opts.duration=M?M.ms(opts.duration):opts.duration;
+  if(Number.isFinite(Number(opts.delay)))opts.delay=M?M.ms(opts.delay):opts.delay;
+  if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=M?M.ms(opts.endDelay):opts.endDelay;
+  return trackAnimation(el.animate(keyframes,opts));
 }
 function wait(ms,signal){
   if(signal?.aborted)return Promise.reject(new DOMException('Aborted','AbortError'));
@@ -168,7 +174,7 @@ function wait(ms,signal){
       activeTimers.delete(timer);
       signal?.removeEventListener?.('abort',onAbort);
       resolve();
-    },Math.max(0,ms));
+    },M?M.ms(ms):Math.max(0,ms));
     activeTimers.add(timer);
     const onAbort=()=>{
       clearTimeout(timer);
@@ -258,8 +264,10 @@ async function playIdleEvent(event,{grid}={}){
   currentAbort=new AbortController();
   const signal=currentAbort.signal;
   const lvl=effectiveLevel();
+  const directive=WORLD?.directives?.[event.id]||null;
+  const stagedEvent=directive?{...event,duration:directive.coreBaseMs}:event;
   diagnostics.played+=1;
-  diagnostics.lastEvent={id:event.id,tier:event.tier,at:Date.now()};
+  diagnostics.lastEvent={id:event.id,tier:event.tier,emotion:directive?.emotion||null,resident:directive?.resident||null,at:Date.now()};
   diagnostics.history.push({...diagnostics.lastEvent});
   diagnostics.history=diagnostics.history.slice(-40);
   recentIdleEvents.push(event.id);
@@ -268,12 +276,16 @@ async function playIdleEvent(event,{grid}={}){
   if(event.story==='orb')storyStage=event.stage||0;
 
   try{
-    await playDefinition(event,{grid,signal,level:lvl});
+    const worldJob=WORLD?.playIdleCompanion?.(stagedEvent,directive,{grid,signal,level:lvl})||Promise.resolve();
+    const coreJob=playDefinition(stagedEvent,{grid,signal,level:lvl});
+    await Promise.allSettled([coreJob,worldJob]);
   }catch{}
   finally{
     if(currentAbort?.signal===signal)currentAbort=null;
     running=false;
     cleanup();
+    const quietMs=6000+Math.floor(Math.random()*3001);
+    cooldownUntil=Math.max(cooldownUntil,Date.now()+quietMs);
   }
 }
 function boardRect(){
@@ -378,7 +390,7 @@ async function playParticles(def,{signal,level}){
   const p=[];
   const palette=['#ffd84f','#ff8b31','#73dda0','#78e5ff','#ffffff'];
   for(let i=0;i<count;i++)p.push({x:randomBetween(0,r.width),y:def.style==='stream'?randomBetween(r.height*.25,r.height*.75):randomBetween(0,r.height),vx:randomBetween(-70,110),vy:def.style==='confetti'||def.style==='confetti-stars'?randomBetween(28,95):randomBetween(-55,45),size:randomBetween(2,8),rot:randomBetween(0,6.2),spin:randomBetween(-5,5),color:palette[i%palette.length]});
-  const start=performance.now(),duration=def.duration*(level<=1?.7:1);
+  const start=performance.now(),duration=(M?M.ms(def.duration*(level<=1?.7:1)):def.duration*(level<=1?.7:1));
   await new Promise(resolve=>{
     const tick=now=>{
       if(signal.aborted){resolve();return}
@@ -418,7 +430,7 @@ async function playOrbit(def,{grid,signal,level}){
   const r=target.getBoundingClientRect(),el=createShape(def,'idle-orbit');
   el.style.left=(r.left+r.width/2)+'px';el.style.top=(r.top+r.height/2)+'px';
   const radius=Math.max(18,Math.min(r.width,r.height)*.58);
-  const start=performance.now(),duration=def.duration*(level<=1?.7:1);
+  const start=performance.now(),duration=(M?M.ms(def.duration*(level<=1?.7:1)):def.duration*(level<=1?.7:1));
   await new Promise(resolve=>{
     const tick=now=>{
       if(signal.aborted){resolve();return}
@@ -522,7 +534,7 @@ function setConfig(patch={}){
   persist();return getConfig();
 }
 function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy()}}
+function getDiagnostics(){const audit=WORLD?.audit?.(IDLE_EVENTS)||[];return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy(),globalSlowdown:M?.getSlowdown?.()||1,auditCount:audit.length,fullScreenCount:audit.filter(x=>x.fullScreen).length,slowdownCoverage:audit.filter(x=>x.slowdown).length,cleanupCoverage:audit.filter(x=>x.cleanup).length,emotionCounts:WORLD?.diagnostics?.(IDLE_EVENTS)?.emotionCounts||{}}}
 function resetForTest(){
   cancelIdleEvent('test-reset');ready=false;running=false;currentAbort=null;recentIdleEvents=[];cooldownUntil=0;lastStableAt=0;sequence=0;storyStage=0;lastEventAt=0;
   for(const k of Object.keys(diagnostics)){if(typeof diagnostics[k]==='number')diagnostics[k]=0}
@@ -543,5 +555,6 @@ window.ASOBOON_BOARD_IDLE_EVENTS=Object.freeze({
   getConfig,
   getDiagnostics,
   resetForTest,
+  audit:()=>WORLD?.audit?.(IDLE_EVENTS)||[],
 });
 })();
