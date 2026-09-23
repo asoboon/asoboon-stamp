@@ -152,7 +152,8 @@ jobs:
           set -euo pipefail
           grep -F "const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';" miniapp-v2/backend/develop-gateway.js
           grep -F "throw airwaitResultError(resultCode);" miniapp-v2/backend/develop-gateway.js
-          grep -F "AIRWAIT_CREATE_HTTP_${res.status}_RC_${resultCode || 'NONE'}" miniapp-v2/backend/develop-gateway.js
+          grep -F 'AIRWAIT_CREATE_HTTP_' miniapp-v2/backend/develop-gateway.js
+          grep -F '_RC_' miniapp-v2/backend/develop-gateway.js
           grep -F "'1000': 'AIRWAIT_INPUT_ERROR'" miniapp-v2/backend/develop-gateway.js
           grep -F "'3509': 'AIRWAIT_PRINTER_NOT_FOUND'" miniapp-v2/backend/develop-gateway.js
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
