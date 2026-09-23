@@ -275,8 +275,6 @@ test('idle events do not fire on initial load and only run after an unchanged up
 
   await prepareIdleForTest(page);
   await h.refresh();
-  console.log('IDLE_DEBUG_UNCHANGED', await idleDiagnostics(page));
-
   await expect.poll(async () => (await idleDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
   await expect.poll(async () => (await idleDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
   await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
