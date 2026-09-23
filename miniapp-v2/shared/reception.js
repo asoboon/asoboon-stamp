@@ -6,15 +6,15 @@ const D=window.ASOBOON_V2_BUSINESS_DAY||{};
 const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
 const CALL_KEY='asoboon_v2_callstatus_develop_v1';
 const PENDING_KEY='asoboon_v2_pending_reception_develop_v1';
-const POST_TIMEOUT_MS=12000;
+const POST_TIMEOUT_MS=45000;
 const GET_TIMEOUT_MS=5000;
-const POLL_DEADLINE_MS=22000;
-const SUBMIT_WATCHDOG_MS=60000;
+const POLL_DEADLINE_MS=60000;
+const SUBMIT_WATCHDOG_MS=120000;
 const PENDING_TTL_MS=24*60*60*1000;
 const S={
   mode:'web',day:null,waitTypes:null,slots:[],slot:null,
   adult:1,child:0,infant:0,agree:false,location:null,
-  health:null,canCreate:false,busy:false,locked:false,generation:0,submitSeq:0
+  health:null,canCreate:false,busy:false,locked:false,recovering:false,generation:0,submitSeq:0
 };
 let CTX=null;
 const $=id=>document.getElementById(id);
@@ -52,7 +52,8 @@ function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E
 function newRequestId(){try{return'v2_'+crypto.randomUUID()}catch{return'v2_'+Date.now()+'_'+Math.random().toString(36).slice(2)}}
 function readPending(){try{const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'null');if(!p||!p.requestId||Date.now()-Number(p.createdAt||0)>PENDING_TTL_MS){localStorage.removeItem(PENDING_KEY);return null}return p}catch{return null}}
 function pendingFingerprint(body){return [body.operationalDate,body.mode,body.waitTypeId,body.adults,body.paidChildren,body.infants].map(v=>String(v??'')).join('|')}
-function requestIdFor(body){const fingerprint=pendingFingerprint(body),old=readPending();if(old?.fingerprint===fingerprint)return String(old.requestId);const requestId=newRequestId();try{localStorage.setItem(PENDING_KEY,JSON.stringify({requestId,fingerprint,createdAt:Date.now()}))}catch{}return requestId}
+function requestIdFor(body){const fingerprint=pendingFingerprint(body),old=readPending();if(old?.fingerprint===fingerprint){if(!old.body){try{localStorage.setItem(PENDING_KEY,JSON.stringify({...old,body:{operationalDate:body.operationalDate,mode:body.mode,waitTypeId:body.waitTypeId,adults:body.adults,paidChildren:body.paidChildren,infants:body.infants}}))}catch{}}return String(old.requestId)}const requestId=newRequestId();try{localStorage.setItem(PENDING_KEY,JSON.stringify({requestId,fingerprint,body:{operationalDate:body.operationalDate,mode:body.mode,waitTypeId:body.waitTypeId,adults:body.adults,paidChildren:body.paidChildren,infants:body.infants},createdAt:Date.now()}))}catch{}return requestId}
+function pendingBody(p=readPending()){if(!p)return null;if(p.body)return p.body;const a=String(p.fingerprint||'').split('|');if(a.length!==6)return null;return{operationalDate:a[0],mode:a[1],waitTypeId:a[2],adults:Number(a[3]),paidChildren:Number(a[4]),infants:Number(a[5])}}
 function clearPending(requestId=''){try{const p=readPending();if(!requestId||!p||String(p.requestId)===String(requestId))localStorage.removeItem(PENDING_KEY)}catch{}}
 async function withTimeout(promise,ms,message){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})])}finally{clearTimeout(timer)}}
 
@@ -133,7 +134,7 @@ function distanceM(a,b,c,d){const Rm=6371000,rad=x=>x*Math.PI/180,x=rad(c-a),y=r
 async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocationBtn');if(!navigator.geolocation){txt.textContent='この端末では位置情報を利用できません。';return}btn.disabled=true;txt.textContent='現在地を確認しています…';try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:10000,maximumAge:0}));const g=R.geofence||{},lat=+p.coords.latitude,lng=+p.coords.longitude,accuracy=+p.coords.accuracy,age=Math.max(0,Date.now()-Number(p.timestamp||Date.now())),distance=distanceM(+g.lat,+g.lng,lat,lng),ok=distance<=Number(g.radiusM||500)&&accuracy<=Number(g.maxAccuracyM||200)&&age<=Number(g.maxAgeMs||120000);S.location={ok,lat,lng,accuracy,timestamp:Number(p.timestamp||Date.now()),distance};txt.textContent=ok?`現在地OK：施設から約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`:`現地受付の範囲外です：距離 約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`;txt.style.color=ok?'#286143':'#87362f'}catch{S.location=null;txt.textContent='位置情報を確認できませんでした。位置情報の許可を確認してください。'}finally{btn.disabled=false;renderForm()}}
 
 async function boot(){
-  const gen=++S.generation;S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;if($('recAgree'))$('recAgree').checked=false;
+  const gen=++S.generation;S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
   const dayEl=$('recDay');if(dayEl)dayEl.innerHTML='<span><small>営業区分</small><strong>確認中</strong></span><b>—</b>';
   status('LINE接続・営業カレンダー・受付枠を確認しています…');renderForm();
 
@@ -163,6 +164,8 @@ async function boot(){
 
   S.canCreate=Boolean(lineOK&&dayOK&&gatewayOK&&E.featureFlags?.receptionCreate===true&&healthSupportsOfficialDevelop(S.health));
   S.slots=buildSlots(S.waitTypes);renderSlots();renderForm();
+  const pending=readPending();
+  if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
   if(!lineOK){status(String(lineResult.reason?.message||lineResult.reason||'LINE接続を確認できません。'),'bad');return}
@@ -176,14 +179,18 @@ async function boot(){
 }
 
 function saveConfirmed(rec){try{localStorage.setItem(CACHE_KEY,JSON.stringify({...rec,cachedAt:Date.now()}));localStorage.setItem(CALL_KEY,JSON.stringify({businessDate:rec.businessDate,receiptNo:String(rec.receiptNo),cachedAt:Date.now()}))}catch{}}
-function lockAmbiguous(){S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>受付結果を確認しています。新しい受付は行わないでください。</strong><br>AirWAIT側だけ受付が成立している可能性があります。自動再送は停止しました。</div>'}status('受付結果が不明なため、安全のため再受付をロックしました。','bad');renderForm()}
+function confirmedRecord(r,meta={}){const adults=Number(meta.adults??S.adult??1),paidChildren=Number(meta.paidChildren??S.child??0),infants=Number(meta.infants??S.infant??0),waitTypeId=String(r.waitTypeId||meta.waitTypeId||S.slot?.waitTypeId||''),slot=S.slots.find(x=>String(x.waitTypeId)===waitTypeId);return{reserveId:r.reserveId,receiptNo:r.receiptNo,shortUrl:String(r.shortUrl||''),businessDate:String(r.businessDate||meta.operationalDate||S.day?.operationalDate||''),businessType:String(S.day?.businessType||''),mode:String(meta.mode||S.mode||'web'),waitTypeId,waitTypeLabel:String(slot?.label||S.slot?.label||''),adults,paidChildren,infants,totalPeople:adults+paidChildren+infants,totalPrice:typeof R.priceFor==='function'?R.priceFor({adult:adults,child:paidChildren,infant:infants}):adults*600+paidChildren*900+(infants>0?900:0),source:'asoboon-miniapp-v2-develop'}}
+function completeConfirmed(r,meta={}){const rec=confirmedRecord(r,meta);saveConfirmed(rec);clearPending(r?._requestId||readPending()?.requestId||'');S.locked=false;S.busy=false;S.recovering=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML=`<div class="rec-result"><strong>${esc(rec.receiptNo)}</strong><span>受付番号 / 受付が完了しました</span></div>`}status('受付が完了しました。呼出状況へ移動します。','ok');renderForm();if(typeof CTX?.go==='function')setTimeout(()=>CTX.go('callstatus',{replace:true}),250)}
+function bindAmbiguousRetry(requestId){const btn=$('recResult')?.querySelector?.('[data-rec-check-result]');if(btn)btn.addEventListener('click',()=>void recoverAmbiguous(requestId))}
+function lockAmbiguous(requestId=''){const id=String(requestId||readPending()?.requestId||'');S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>受付結果を確認しています。新しい受付は行わないでください。</strong><br>同じ受付の結果だけを再確認します。受付の再送はしません。'+(id?'<br><button type="button" data-rec-check-result>受付結果を再確認</button>':'')+'</div>'}status('受付結果を安全に確認しています。新しい受付は行わないでください。','warn');renderForm();if(id){bindAmbiguousRetry(id);setTimeout(()=>void recoverAmbiguous(id),250)}}
+async function recoverAmbiguous(requestId){const id=String(requestId||'');if(!id||S.recovering)return;S.recovering=true;status('前回の受付結果を再確認しています。新しい受付は行わないでください。','warn');try{const r=await pollRequest(id);if(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId){completeConfirmed(r,pendingBody());return}if(r?.found&&r?.ambiguous!==true&&r?.ok===false){clearPending(id);S.locked=false;S.busy=false;status(String(r?.error||'受付は成立していません。内容を確認してもう一度お試しください。'),'bad');renderForm();return}S.locked=true;status('受付結果を自動で確定できませんでした。新しい受付は行わず、受付状況をご確認ください。','bad');renderForm()}catch{S.locked=true;status('まだ受付結果を確認できません。新しい受付は行わず、「受付結果を再確認」をお試しください。','warn');renderForm()}finally{S.recovering=false;bindAmbiguousRetry(id)}}
 function lockNotificationAmbiguous(requestId){clearPending(requestId);S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>LINE呼出通知の準備結果を確認できませんでした。</strong><br>AirWAITへの受付送信は行っていません。ミニアプリをいったん完全に閉じて、開き直してから受付してください。</div>'}status('LINE通知の準備結果が不明です。再送せず、ミニアプリを開き直してください。','bad');renderForm()}
 
 async function submit(){
   if($('recSubmit')?.disabled||S.busy||S.locked||!S.slot||!S.day||!S.canCreate)return;
   const seq=++S.submitSeq;
   S.busy=true;status('受付内容を最終確認しています…','warn');renderForm();
-  const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous()},SUBMIT_WATCHDOG_MS);
+  const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);
   try{
     const latest=await withTimeout(D.getCurrent({force:true}),10000,'営業カレンダーの再確認がタイムアウトしました。受付は送信していません。');
     if(seq!==S.submitSeq||S.locked)return;
@@ -196,17 +203,12 @@ async function submit(){
     const r=await post('createReservation',{mode:S.mode,adults:S.adult,paidChildren:S.child,infants:S.infant,waitTypeId:S.slot.waitTypeId,operationalDate:S.day.operationalDate,liffAccessToken:token,latitude:loc.lat||'',longitude:loc.lng||'',accuracy:loc.accuracy||'',locationTimestamp:loc.timestamp||''});
     if(seq!==S.submitSeq||S.locked)return;
     if(r?.notificationAmbiguous){lockNotificationAmbiguous(r?._requestId);return}
-    if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous();return}
+    if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous(r?._requestId||readPending()?.requestId||'');return}
     if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);throw Error(String(r?.error||'受付結果が不正です。'))}
-    clearPending(r?._requestId);
-    const rec={reserveId:r.reserveId,receiptNo:r.receiptNo,shortUrl:String(r.shortUrl||''),businessDate:S.day.operationalDate,businessType:S.day.businessType,mode:S.mode,waitTypeId:S.slot.waitTypeId,waitTypeLabel:S.slot.label,adults:S.adult,paidChildren:S.child,infants:S.infant,totalPeople:total(),totalPrice:price(),source:'asoboon-miniapp-v2-develop'};
-    saveConfirmed(rec);
-    const result=$('recResult');if(result){result.hidden=false;result.innerHTML=`<div class="rec-result"><strong>${esc(rec.receiptNo)}</strong><span>受付番号 / 受付が完了しました</span></div>`}
-    S.busy=false;status('受付が完了しました。呼出状況へ移動します。','ok');renderForm();
-    if(typeof CTX?.go==='function')setTimeout(()=>{if(seq===S.submitSeq)CTX.go('callstatus',{replace:true})},250);
+    completeConfirmed(r,{operationalDate:S.day.operationalDate,mode:S.mode,waitTypeId:S.slot.waitTypeId,adults:S.adult,paidChildren:S.child,infants:S.infant});
   }catch(e){
     if(seq!==S.submitSeq)return;
-    if(e?.ambiguous){lockAmbiguous();return}
+    if(e?.ambiguous){lockAmbiguous(e?.requestId||readPending()?.requestId||'');return}
     S.busy=false;status(String(e?.message||e),'bad');renderForm();
   }finally{
     clearTimeout(watchdog);
