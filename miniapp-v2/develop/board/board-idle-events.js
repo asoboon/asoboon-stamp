@@ -11,6 +11,8 @@ const DEFAULT_CONFIG=Object.freeze({
   RARE_EVENTS_ENABLED:true,
   REAL_CHANGE_COOLDOWN_MS:15000,
   INITIAL_QUIET_MS:10000,
+  IDLE_POST_COOLDOWN_MIN_MS:6000,
+  IDLE_POST_COOLDOWN_MAX_MS:9000,
   RECENT_HISTORY:8,
   TIER_WEIGHTS:Object.freeze({small:.40,medium:.25,large:.12,rare:.03}),
 });
@@ -129,6 +131,8 @@ function persist(){
       IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),
       IDLE_EVENT_CHANCE:clamp(Number(CONFIG.IDLE_EVENT_CHANCE)||0,0,1),
       RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),
+      IDLE_POST_COOLDOWN_MIN_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MIN_MS),
+      IDLE_POST_COOLDOWN_MAX_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MAX_MS),
     }));
   }catch{}
 }
@@ -284,7 +288,9 @@ async function playIdleEvent(event,{grid}={}){
     if(currentAbort?.signal===signal)currentAbort=null;
     running=false;
     cleanup();
-    const quietMs=6000+Math.floor(Math.random()*3001);
+    const quietMin=Math.max(0,Number(CONFIG.IDLE_POST_COOLDOWN_MIN_MS??6000));
+    const quietMax=Math.max(quietMin,Number(CONFIG.IDLE_POST_COOLDOWN_MAX_MS??9000));
+    const quietMs=quietMin+Math.floor(Math.random()*(quietMax-quietMin+1));
     cooldownUntil=Math.max(cooldownUntil,Date.now()+quietMs);
   }
 }
@@ -531,9 +537,12 @@ function setConfig(patch={}){
   if('IDLE_EVENT_CHANCE'in patch)CONFIG.IDLE_EVENT_CHANCE=clamp(Number(patch.IDLE_EVENT_CHANCE)||0,0,1);
   if('REAL_CHANGE_COOLDOWN_MS'in patch)CONFIG.REAL_CHANGE_COOLDOWN_MS=clamp(Number(patch.REAL_CHANGE_COOLDOWN_MS)||0,0,120000);
   if('INITIAL_QUIET_MS'in patch)CONFIG.INITIAL_QUIET_MS=clamp(Number(patch.INITIAL_QUIET_MS)||0,0,120000);
+  if('IDLE_POST_COOLDOWN_MIN_MS'in patch)CONFIG.IDLE_POST_COOLDOWN_MIN_MS=clamp(Number(patch.IDLE_POST_COOLDOWN_MIN_MS)||0,0,120000);
+  if('IDLE_POST_COOLDOWN_MAX_MS'in patch)CONFIG.IDLE_POST_COOLDOWN_MAX_MS=clamp(Number(patch.IDLE_POST_COOLDOWN_MAX_MS)||0,0,120000);
+  if(CONFIG.IDLE_POST_COOLDOWN_MAX_MS<CONFIG.IDLE_POST_COOLDOWN_MIN_MS)CONFIG.IDLE_POST_COOLDOWN_MAX_MS=CONFIG.IDLE_POST_COOLDOWN_MIN_MS;
   persist();return getConfig();
 }
-function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
+function getConfig(){return{ANIMATION_ENABLED:Boolean(CONFIG.ANIMATION_ENABLED),ANIMATION_LEVEL:Number(CONFIG.ANIMATION_LEVEL),IDLE_EVENTS_ENABLED:Boolean(CONFIG.IDLE_EVENTS_ENABLED),IDLE_EVENT_CHANCE:Number(CONFIG.IDLE_EVENT_CHANCE),RARE_EVENTS_ENABLED:Boolean(CONFIG.RARE_EVENTS_ENABLED),REAL_CHANGE_COOLDOWN_MS:Number(CONFIG.REAL_CHANGE_COOLDOWN_MS),INITIAL_QUIET_MS:Number(CONFIG.INITIAL_QUIET_MS),IDLE_POST_COOLDOWN_MIN_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MIN_MS),IDLE_POST_COOLDOWN_MAX_MS:Number(CONFIG.IDLE_POST_COOLDOWN_MAX_MS),TIER_WEIGHTS:{...CONFIG.TIER_WEIGHTS}}}
 function getDiagnostics(){const audit=WORLD?.audit?.(IDLE_EVENTS)||[];return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,recentIdleEvents:[...recentIdleEvents],cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),eventCount:IDLE_EVENTS.length,reduced,effectiveLevel:effectiveLevel(),storyStage,lastEventAt,activeAnimations:activeAnimations.size,activeTimers:activeTimers.size,visibilityState:document.visibilityState,ready,realFxBusy:realFxBusy(),globalSlowdown:M?.getSlowdown?.()||1,auditCount:audit.length,fullScreenCount:audit.filter(x=>x.fullScreen).length,slowdownCoverage:audit.filter(x=>x.slowdown).length,cleanupCoverage:audit.filter(x=>x.cleanup).length,emotionCounts:WORLD?.diagnostics?.(IDLE_EVENTS)?.emotionCounts||{}}}
 function resetForTest(){
   cancelIdleEvent('test-reset');ready=false;running=false;currentAbort=null;recentIdleEvents=[];cooldownUntil=0;lastStableAt=0;sequence=0;storyStage=0;lastEventAt=0;
