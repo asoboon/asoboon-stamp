@@ -203,7 +203,7 @@ jobs:
             "$WORKER_URL/?action=waitTypes&slot_map=${GITHUB_SHA}")"
           printf '%s' "$RESPONSE" | node -e '
             let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s); const ids=new Set(["0029","0030","0031","0032","0033","0034","0035","0036","0037","0038","0042"]);
+              const x=JSON.parse(s); const ids=new Set(["0023","0024","0025","0026","0027","0028","0029","0030","0031","0032","0033","0034","0035","0036","0037","0038","0042"]);
               const rows=(x.waitTypes||[]).filter(v=>ids.has(String(v.waitTypeId))).map(v=>({
                 waitTypeId:String(v.waitTypeId||""),
                 waitTypeName:String(v.waitTypeName||""),
