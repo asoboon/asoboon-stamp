@@ -85,6 +85,35 @@ jobs:
           echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
           echo "Dedicated D1 ready: $DB_NAME"
 
+      - name: Diagnose recent ambiguous receptions
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DB_ID: ${{ steps.d1.outputs.database_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+          QUERY='SELECT request_id,state,result_json,created_at,updated_at FROM v2_request_results WHERE state="AMBIGUOUS" ORDER BY updated_at DESC LIMIT 10'
+          RESPONSE="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY")" "$API")"
+          printf '%s' "$RESPONSE" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              const rows=x?.result?.[0]?.results||[];
+              console.log("RECENT_AMBIGUOUS_REQUESTS="+JSON.stringify(rows));
+            });
+          '
+          QUERY2='SELECT business_date,request_id,state,wait_type_id,created_at,updated_at FROM v2_user_day_claims WHERE state="AMBIGUOUS" ORDER BY updated_at DESC LIMIT 10'
+          RESPONSE2="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "$(node -e 'process.stdout.write(JSON.stringify({sql:process.argv[1]}))' "$QUERY2")" "$API")"
+          printf '%s' "$RESPONSE2" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              const rows=x?.result?.[0]?.results||[];
+              console.log("RECENT_AMBIGUOUS_CLAIMS="+JSON.stringify(rows));
+            });
+          '
+
       - name: Prepare Developing-only AirWAIT test runtime
         if: steps.credentials.outputs.available == 'true'
         run: |
