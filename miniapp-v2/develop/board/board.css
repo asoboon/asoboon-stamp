@@ -295,15 +295,11 @@ body{
 .queue-card.calling:after{
   content:"";
   position:absolute;
-  top:0;bottom:0;
-  left:-45%;
-  width:32%;
-  transform:skewX(-18deg);
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.19),transparent);
-  animation:signSweep 3.2s ease-in-out infinite;
+  inset:0;
+  background:linear-gradient(115deg,transparent 0 38%,rgba(255,255,255,.12) 47%,transparent 56% 100%);
   pointer-events:none;
 }
-.queue-card.calling .status-icon{animation:arrowHop 1.2s ease-in-out infinite}
+.queue-card.calling .status-icon{transform:translateX(0)}
 .queue-card.done{
   --card-bg:#58676c;
   --card-ink:#e7edef;
@@ -367,8 +363,88 @@ body{
 .footer-center{justify-self:center;color:#74858a;font-size:10px;letter-spacing:.18em}
 .updated{justify-self:end}.updated time{color:#dfe7e9;font-variant-numeric:tabular-nums;font-weight:1000}
 
-@keyframes signSweep{0%,58%{left:-48%}82%,100%{left:130%}}
-@keyframes arrowHop{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+
+/* Event-only entertainment layer. The board itself remains still between changes. */
+.board-fx-layer{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  overflow:hidden;
+  pointer-events:none;
+  contain:layout paint;
+}
+.fx-canvas{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+}
+.fx-card-ghost{
+  z-index:4!important;
+  pointer-events:none!important;
+  will-change:transform,opacity,filter;
+  contain:layout paint;
+}
+.fx-card-ghost:after{animation:none!important}
+.fx-onomatopoeia{
+  position:fixed;
+  z-index:7;
+  pointer-events:none;
+  white-space:nowrap;
+  transform:translate(-50%,-50%);
+  font-size:clamp(24px,3.3vw,56px);
+  line-height:.9;
+  font-weight:1000;
+  letter-spacing:-.08em;
+  color:#fff;
+  -webkit-text-stroke:3px #182226;
+  paint-order:stroke fill;
+  text-shadow:0 5px 0 rgba(0,0,0,.28),0 11px 24px rgba(0,0,0,.28);
+  will-change:transform,opacity;
+}
+.fx-onomatopoeia.call{color:#ffd84f;-webkit-text-stroke-color:#d34f18}
+.fx-onomatopoeia.guided{color:#78e5ff;-webkit-text-stroke-color:#176787}
+.fx-onomatopoeia.hold{color:#fff0a6;-webkit-text-stroke-color:#8c6900}
+.fx-onomatopoeia.cancel{color:#f5fbff;-webkit-text-stroke-color:#56666c}
+.fx-cracks{
+  position:absolute;
+  inset:0;
+  z-index:8;
+  pointer-events:none;
+}
+.fx-cracks i{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:42%;
+  height:3px;
+  border-radius:99px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 0 0 1px rgba(31,45,49,.18);
+  transform-origin:left center;
+}
+.fx-cracks i:nth-child(1){transform:rotate(-18deg)}
+.fx-cracks i:nth-child(2){transform:rotate(34deg);width:35%}
+.fx-cracks i:nth-child(3){transform:rotate(92deg);width:32%}
+.fx-cracks i:nth-child(4){transform:rotate(151deg);width:37%}
+.fx-cracks i:nth-child(5){transform:rotate(218deg);width:29%}
+.fx-call-ghost{
+  border-color:#b8ffd0!important;
+  box-shadow:0 0 0 4px rgba(112,239,159,.2),0 8px 0 #0b4c30,0 20px 40px rgba(0,0,0,.32)!important;
+}
+.fx-guided-ghost{filter:brightness(1.08)}
+.fx-cancel-ghost{z-index:6!important}
+
+@media (prefers-reduced-motion: reduce){
+  .board-fx-layer *{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+  }
+  .fx-onomatopoeia{
+    font-size:clamp(20px,2.6vw,38px);
+    -webkit-text-stroke-width:2px;
+  }
+}
 
 @media (max-width:760px){
   .board{padding:12px 12px 10px;gap:8px}
