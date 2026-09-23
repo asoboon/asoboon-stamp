@@ -299,8 +299,8 @@ test('fullscreen world audit covers every current idle event individually', asyn
     expect(row.resident).toBeTruthy();
     expect(row.gag).toBeTruthy();
     expect(row.story.length).toBeGreaterThan(3);
-    expect(row.revisedAtCurrentSlowdownMs).toBeGreaterThanOrEqual(2500);
-    expect(row.revisedAtCurrentSlowdownMs).toBeLessThanOrEqual(9000);
+    expect(row.revisedAtCurrentSlowdownMs).toBeGreaterThanOrEqual(3000);
+    expect(row.revisedAtCurrentSlowdownMs).toBeLessThanOrEqual(6000);
   }
 
   expect(result.worldDiag.residentCount).toBe(6);
@@ -392,6 +392,112 @@ test('global slowdown runtime defaults to 2.5 and controls CSS timing variables'
   expect(values.slowdown).toBe(2.5);
   expect(values.normal).toBe('450ms');
   await page.evaluate(() => window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}));
+});
+
+
+test('quality AUTO and LOW fallback keep giant scale while removing expensive decoration', async ({ page }) => {
+  const current = payload([{ number: '7030', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+
+  const values = await page.evaluate(() => {
+    const fx = window.ASOBOON_BOARD_EFFECTS;
+    const probe = document.createElement('div');
+    probe.className = 'world-resident resident-ball';
+    document.body.appendChild(probe);
+
+    fx.setQuality('HIGH',{persistValue:false});
+    const high = getComputedStyle(probe);
+    const highWidth = high.width;
+    const highFilter = high.filter;
+
+    fx.setQuality('LOW',{persistValue:false});
+    const low = getComputedStyle(probe);
+    const lowWidth = low.width;
+    const lowFilter = low.filter;
+    const lowShadow = low.boxShadow;
+
+    fx.setQuality('AUTO',{persistValue:false});
+    probe.remove();
+    return {
+      lowSpecFallback: fx.LOW_SPEC_FALLBACK,
+      mode: fx.getQuality(),
+      highWidth,
+      lowWidth,
+      highFilter,
+      lowFilter,
+      lowShadow,
+    };
+  });
+
+  expect(values.lowSpecFallback).toBe(true);
+  expect(values.mode).toBe('AUTO');
+  expect(values.lowWidth).toBe(values.highWidth);
+  expect(values.lowFilter).toBe('none');
+  expect(values.lowShadow).toBe('none');
+});
+
+test('shared animation engine stays bounded under 6x CPU throttling', async ({ page }) => {
+  test.setTimeout(30000);
+  const current = payload([
+    { number: '7040', state: 'waiting', order: 1 },
+    { number: '7041', state: 'calling', order: 2 },
+    { number: '7042', state: 'hold', order: 3 },
+  ]);
+  const h = await installBoard(page, [current]);
+  const client = await page.context().newCDPSession(page);
+
+  await client.send('Performance.enable');
+  await client.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+  const beforeRaw = await client.send('Performance.getMetrics');
+
+  const runtime = await page.evaluate(async () => {
+    const fx = window.ASOBOON_BOARD_EFFECTS;
+    const idle = window.ASOBOON_BOARD_IDLE_EVENTS;
+    fx.setQuality('AUTO',{persistValue:false});
+    fx.setSlowdown(0.2,{persistValue:false});
+    fx.resetPerformanceBaseline();
+
+    await idle.playEventForTest('confetti-glitter');
+    await idle.playEventForTest('orbit-star');
+
+    return fx.diagnostics();
+  });
+
+  const afterRaw = await client.send('Performance.getMetrics');
+  await client.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+
+  const metrics = rows => Object.fromEntries(rows.metrics.map(x => [x.name, x.value]));
+  const before = metrics(beforeRaw);
+  const after = metrics(afterRaw);
+
+  expect(runtime.sharedCanvasCount).toBe(1);
+  expect(runtime.rafLoopCount).toBeLessThanOrEqual(1);
+  expect(runtime.maxCanvasJobs).toBeLessThanOrEqual(1);
+  expect(runtime.maxFrameTasks).toBeLessThanOrEqual(1);
+  expect(runtime.domDeltaPeak).toBeLessThanOrEqual(20);
+  expect(runtime.activeScopes).toBe(0);
+  expect(runtime.frameTasks).toBe(0);
+  expect(runtime.canvasJobs).toBe(0);
+  expect(runtime.activeTimers).toBe(0);
+  expect(h.pageErrors).toEqual([]);
+
+  expect(after.JSHeapUsedSize).toBeGreaterThan(0);
+  expect(after.LayoutCount - before.LayoutCount).toBeLessThan(160);
+  expect(after.RecalcStyleCount - before.RecalcStyleCount).toBeLessThan(220);
+  expect(after.TaskDuration - before.TaskDuration).toBeLessThan(12);
+
+  console.log('BOARD_PERF_6X_CPU', {
+    effectiveQuality: runtime.effectiveQuality,
+    fps: runtime.fps,
+    frameMs: runtime.frameMs,
+    domDeltaPeak: runtime.domDeltaPeak,
+    maxCanvasJobs: runtime.maxCanvasJobs,
+    maxFrameTasks: runtime.maxFrameTasks,
+    layoutDelta: after.LayoutCount - before.LayoutCount,
+    styleDelta: after.RecalcStyleCount - before.RecalcStyleCount,
+    taskDurationDelta: after.TaskDuration - before.TaskDuration,
+    heapDelta: after.JSHeapUsedSize - before.JSHeapUsedSize,
+  });
 });
 
 test('idle events do not fire on initial load and only run after an unchanged update', async ({ page }) => {
