@@ -33,7 +33,9 @@ reducedQuery?.addEventListener?.('change',e=>{reduced=Boolean(e.matches)});
 
 function readLevel(){
   try{
-    const v=Number(localStorage.getItem(LEVEL_KEY));
+    const raw=localStorage.getItem(LEVEL_KEY);
+    if(raw===null)return DEFAULT_LEVEL;
+    const v=Number(raw);
     return Number.isInteger(v)&&v>=0&&v<=3?v:DEFAULT_LEVEL;
   }catch{return DEFAULT_LEVEL}
 }
