@@ -78,6 +78,8 @@ async function prepareIdleForTest(page, patch = {}) {
       RARE_EVENTS_ENABLED: true,
       INITIAL_QUIET_MS: 0,
       REAL_CHANGE_COOLDOWN_MS: 0,
+      IDLE_POST_COOLDOWN_MIN_MS: 0,
+      IDLE_POST_COOLDOWN_MAX_MS: 0,
       ...config,
     });
     idle.onBaseline();
