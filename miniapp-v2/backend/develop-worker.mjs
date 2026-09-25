@@ -18,6 +18,15 @@ const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
 const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0024','0027','0030','0032','0034','0036','0038']);
+const CROWD_SLOT_KEYS = Object.freeze({
+  '0024':'10:00',
+  '0027':'14:00',
+  '0030':'10:00',
+  '0032':'12:30',
+  '0034':'15:00',
+  '0036':'10:00',
+  '0038':'13:30',
+});
 const BOARD_SLOT_SPECS = Object.freeze({
   '平日':Object.freeze([
     Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
@@ -236,32 +245,80 @@ async function getCrowdRemaining(request, env, ctx) {
   if (!store || !Array.isArray(store.waitDetails)) throw apiError('AIRWAIT_CROWD_DETAILS_UNAVAILABLE', 502);
 
   const norm=v=>String(v||'').normalize('NFKC').replace(/\s+/g,'').trim();
-  const details=store.waitDetails.map(row=>({
+  const slotKeyFromText=value=>{
+    const t=norm(value);
+    let m=t.match(/(?:^|[^0-9])(\d{1,2}):(\d{2})(?:[^0-9]|$)/);
+    if(m){
+      const h=Number(m[1]),min=Number(m[2]);
+      if(h<=23&&min<=59)return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');
+    }
+    m=t.match(/(?:^|[^0-9])(\d{1,2})時(半|([0-5]?\d)分?)?/);
+    if(!m)return'';
+    const h=Number(m[1]),min=m[2]==='半'?30:Number(m[3]||0);
+    return h<=23&&min<=59?String(h).padStart(2,'0')+':'+String(min).padStart(2,'0'):'';
+  };
+  const details=store.waitDetails.map((row,index)=>({
+    index,
     detailedWaitType:String(row?.detailedWaitType||'').slice(0,120),
     reserveUnit:String(row?.reserveUnit||''),
     remainingNum:row?.remainingNum,
+    slotKey:slotKeyFromText(row?.detailedWaitType),
   }));
   const targetTypes=typesBody.waitTypes.filter(type=>
     CROWD_ONLINE_WAIT_TYPE_IDS.has(String(type?.waitTypeId||'')) &&
     String(type?.usageDispType||'') === 'KeyONLINE_RECEPTION_ONLY'
   );
+  const diagnostics=[];
   const slots=targetTypes.map(type=>{
+    const waitTypeId=String(type?.waitTypeId||'');
     const waitTypeName=String(type?.waitTypeName||'');
-    const matches=details.filter(row=>norm(row.detailedWaitType)===norm(waitTypeName));
-    const matched=matches.length===1?matches[0]:null;
+    const expectedSlot=String(CROWD_SLOT_KEYS[waitTypeId]||slotKeyFromText(waitTypeName)||'');
+    const exactMatches=details.filter(row=>norm(row.detailedWaitType)===norm(waitTypeName));
+    const slotMatches=expectedSlot?details.filter(row=>row.slotKey===expectedSlot):[];
+    const matchMode=exactMatches.length===1?'exact-name':exactMatches.length===0&&slotMatches.length===1?'time-key':'';
+    const matched=matchMode==='exact-name'?exactMatches[0]:matchMode==='time-key'?slotMatches[0]:null;
     const raw=matched?.remainingNum;
     const n=(typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw)))?Number(raw):NaN;
     const valid=matched?.reserveUnit==='PERSON'&&Number.isSafeInteger(n)&&n>=0&&n<=350;
+    const matchCount=exactMatches.length>0?exactMatches.length:slotMatches.length;
+    const evidence=!matched
+      ?(matchCount>1?'AMBIGUOUS_MATCH':'NO_MATCH')
+      :(valid?'PERSON':'UNVERIFIED_UNIT_OR_VALUE');
+    diagnostics.push({
+      waitTypeId,
+      waitTypeName:waitTypeName.slice(0,120),
+      expectedSlot,
+      exactMatchCount:exactMatches.length,
+      slotMatchCount:slotMatches.length,
+      matchMode:matchMode||'none',
+      matchedName:String(matched?.detailedWaitType||'').slice(0,120),
+      reserveUnit:String(matched?.reserveUnit||''),
+      remainingReadable:Number.isSafeInteger(n)&&n>=0&&n<=350,
+      evidence,
+    });
     return {
-      waitTypeId:String(type.waitTypeId||''),
+      waitTypeId,
       waitTypeName,
+      slotKey:expectedSlot,
       detailedWaitType:matched?.detailedWaitType||'',
       reserveUnit:matched?.reserveUnit||'',
       remaining:valid?n:null,
-      evidence:matches.length!==1?'MATCH_COUNT_'+matches.length:(valid?'PERSON':'UNVERIFIED_UNIT_OR_VALUE'),
+      matchMode:matchMode||'none',
+      evidence,
     };
   });
-  return { ok:true, source:'AirWAIT getWaitInfo', fetchedAt:new Date().toISOString(), slots };
+  return {
+    ok:true,
+    source:'AirWAIT getWaitInfo',
+    fetchedAt:new Date().toISOString(),
+    slots,
+    diagnostics,
+    observedDetails:details.map(row=>({
+      detailedWaitType:row.detailedWaitType,
+      reserveUnit:row.reserveUnit,
+      slotKey:row.slotKey,
+    })),
+  };
 }
 
 function tokyoCalendarDate(date=new Date()) {
