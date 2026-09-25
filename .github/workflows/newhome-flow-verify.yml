@@ -130,7 +130,7 @@ jobs:
           if(!same(ids('土日祝日','onsite'),['0029','0031','0033'])) throw new Error('weekend onsite slot IDs mismatch');
           if(!same(ids('平日特定日','web'),['0036','0038'])) throw new Error('special weekday web slot IDs mismatch');
           if(!same(ids('平日特定日','onsite'),['0035','0037'])) throw new Error('special weekday onsite slot IDs mismatch');
-          if(!same(ids('平日','web'),['0024','0027'])) throw new Error('regular weekday web slot IDs mismatch');
+          if(!same(ids('平日','web'),['0023','0024','0025','0027'])) throw new Error('regular weekday LINE slot IDs mismatch');
           const home=fs.readFileSync('miniapp-v2/develop/home-v38.js','utf8');
           if(home.includes('本日は現地受付です')) throw new Error('weekday HOME must not force onsite reception');
           if(home.includes('平日の混雑目安は現在準備中です')) throw new Error('weekday crowd must not remain in prepared-only state');
@@ -145,7 +145,7 @@ jobs:
       - name: Developing defaults to live WEB slots and keeps 0042 behind explicit dev mode
         run: |
           set -euo pipefail
-          grep -F "'平日': Object.freeze(['0024', '0027'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "'平日': Object.freeze(['0023', '0024', '0025', '0027'])" miniapp-v2/backend/develop-gateway.js
           ! grep -Fq "WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY" miniapp-v2/backend/develop-gateway.js
           grep -F "const DEVELOP_LINE_ONLY=E.environment==='develop';" miniapp-v2/shared/reception.js
           grep -F "get('dev')==='0042'" miniapp-v2/shared/reception.js
@@ -163,7 +163,7 @@ jobs:
           const s=fs.readFileSync('develop-gateway.runtime.mjs','utf8');
           const bypass=s.indexOf("if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;");
           if(bypass<0) throw new Error('Developing test bypass missing');
-          if(!s.includes("'平日': Object.freeze(['0024', '0027'])")) throw new Error('regular weekday WEB slots missing from runtime');
+          if(!s.includes("'平日': Object.freeze(['0023', '0024', '0025', '0027'])")) throw new Error('regular weekday LINE slots missing from runtime');
           if(!s.includes("if (!w) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('Developing test wait type must exist');
           if(!s.includes("if (w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);")) throw new Error('customer slots must still respect dispFlg');
           if(!s.includes("waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) validateLocation(p)")) throw new Error('Developing test must not require location');
