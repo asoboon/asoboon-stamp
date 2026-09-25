@@ -499,7 +499,7 @@ function getDiagnostics(){
     baselineSlot,
     globalSlowdown:M?.getSlowdown?.()||1,
     statusAnimationsChecked:4,
-    fullScreenStatusCount:WORLD?4:0,
+    fullScreenStatusCount:SOURCEFX?4:0,
     slowdownCoverage:4,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
