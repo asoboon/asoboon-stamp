@@ -18,11 +18,21 @@ const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
 const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0030','0032','0034','0036','0038']);
-const BOARD_SLOT_SPECS = Object.freeze([
-  Object.freeze({ key:'10:00', waitTypeIds:Object.freeze(['0029','0030','0035','0036']) }),
-  Object.freeze({ key:'12:30', waitTypeIds:Object.freeze(['0031','0032']) }),
-  Object.freeze({ key:'15:00', waitTypeIds:Object.freeze(['0033','0034']) }),
-]);
+const BOARD_SLOT_SPECS = Object.freeze({
+  '平日':Object.freeze([
+    Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
+  ]),
+  '平日特定日':Object.freeze([
+    Object.freeze({ key:'10:00', label:'10:00の回', waitTypeIds:Object.freeze(['0035','0036']), nameTokens:Object.freeze(['10:00','10時']) }),
+    Object.freeze({ key:'13:30', label:'13:30の回', waitTypeIds:Object.freeze(['0037','0038']), nameTokens:Object.freeze(['13:30','13時30分','13時半']) }),
+  ]),
+  '土日祝日':Object.freeze([
+    Object.freeze({ key:'10:00', label:'10:00の回', waitTypeIds:Object.freeze(['0029','0030']), nameTokens:Object.freeze(['10:00','10時']) }),
+    Object.freeze({ key:'12:30', label:'12:30の回', waitTypeIds:Object.freeze(['0031','0032']), nameTokens:Object.freeze(['12:30','12時30分','12時半']) }),
+    Object.freeze({ key:'15:00', label:'15:00の回', waitTypeIds:Object.freeze(['0033','0034']), nameTokens:Object.freeze(['15:00','15時']) }),
+  ]),
+  '休館':Object.freeze([]),
+});
 
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const BUSINESS_DAY_CACHE_MS = 60 * 1000;
@@ -252,14 +262,27 @@ async function getCrowdRemaining(request, env, ctx) {
   return { ok:true, source:'AirWAIT getWaitInfo', fetchedAt:new Date().toISOString(), slots };
 }
 
+function tokyoCalendarDate(date=new Date()) {
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'
+  }).formatToParts(date).map(x=>[x.type,x.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
-  const rows = await fetchAllReservationsForReconcile(env);
-  const slots = BOARD_SLOT_SPECS.map(spec => {
-    const target = rows.filter(row => boardSlotKey(row) === spec.key);
+  const businessDate=tokyoCalendarDate();
+  const [rows,day]=await Promise.all([
+    fetchAllReservationsForReconcile(env),
+    getBusinessDayProxy(businessDate),
+  ]);
+  const businessType=String(day?.businessType||'');
+  const specs=BOARD_SLOT_SPECS[businessType]||Object.freeze([]);
+  const slots = specs.map(spec => {
+    const target = rows.filter(row => boardSlotKey(row,specs) === spec.key);
     return {
       key:spec.key,
-      label:`${spec.key}の回`,
+      label:spec.label,
       count:target.length,
       rows:target.map((row,index)=>({
         number:String(row?.number || ''),
@@ -270,21 +293,26 @@ async function getBoardStatus(env) {
   });
   return {
     ok:true,
-    source:'AirWAIT reservations / read-only sanitized board feed',
+    source:'AirWAIT reservations + ASOBooN business calendar / read-only sanitized board feed',
     fetchedAt:new Date().toISOString(),
     refreshAfterMs:10000,
+    businessDate,
+    businessType,
+    isClosed:businessType==='休館',
+    weekday:String(day?.weekday||''),
+    note:String(day?.note||''),
     slots,
   };
 }
 
-function boardSlotKey(row) {
+function boardSlotKey(row,specs=[]) {
   const id = String(row?.waitTypeId || '');
-  for (const spec of BOARD_SLOT_SPECS) {
+  for (const spec of specs) {
     if (spec.waitTypeIds.includes(id)) return spec.key;
   }
   const name = String(row?.waitTypeName || '').normalize('NFKC').replace(/\s+/g,'');
-  for (const spec of BOARD_SLOT_SPECS) {
-    if (name.includes(spec.key)) return spec.key;
+  for (const spec of specs) {
+    if ((spec.nameTokens||[]).some(token=>name.includes(String(token).normalize('NFKC').replace(/\s+/g,'')))) return spec.key;
   }
   return '';
 }
