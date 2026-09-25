@@ -110,11 +110,19 @@ jobs:
         run: |
           set -euo pipefail
           grep -F "action','businessDay'" miniapp-v2/shared/business-day.js
-          grep -F "BUSINESS_DAY_CACHE_MS = 60 * 1000" miniapp-v2/backend/develop-worker.mjs
+          grep -F "BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000" miniapp-v2/backend/develop-worker.mjs
+          grep -F "BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000" miniapp-v2/backend/develop-worker.mjs
+          grep -F "BUSINESS_CALENDAR_READ_TIMEOUT_MS = 5 * 1000" miniapp-v2/backend/develop-worker.mjs
+          grep -F "readBusinessDayD1" miniapp-v2/backend/develop-worker.mjs
+          grep -F "'business_day:'+date" miniapp-v2/backend/develop-worker.mjs
           grep -F "businessDayInflight" miniapp-v2/backend/develop-worker.mjs
           grep -F "action === 'businessDay'" miniapp-v2/backend/develop-worker.mjs
           grep -F 'getBusinessDayCachedForCreate(env, serverDate)' miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F 'CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'CREATE_BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'CREATE_BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F 'parseBusinessDayCacheRow' miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "STALE_CACHE_MS=12*60*60*1000" miniapp-v2/shared/business-day.js
+          grep -F "BUSINESS_DAY_HOME_TIMEOUT')),12000" miniapp-v2/develop/home-v38.js
 
       - name: Reception slot IDs must match AirWAIT channel
         run: |
