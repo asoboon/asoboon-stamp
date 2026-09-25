@@ -1,0 +1,600 @@
+{
+  "database_version": "1.1.0",
+  "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
+  "runtime_policy": {
+    "approved_sources": [
+      "POMPON_CHIRU_assets_draft_40 2.zip",
+      "effects_pack_v2.zip"
+    ],
+    "legacy_visual_assets_allowed": false,
+    "unreviewed_effects_allowed": false,
+    "rule": "characters registry または approved_effects に登録された新情報源素材だけを通常演出で使用する"
+  },
+  "counts": {
+    "characters": 40,
+    "effect_clusters": 67,
+    "effect_parts": 522,
+    "effects_total": 589,
+    "approved_effects": 20
+  },
+  "effect_inventory": {
+    "motion": {
+      "clusters": {
+        "prefix": "motion_cluster_",
+        "range": [
+          1,
+          12
+        ]
+      },
+      "parts": {
+        "prefix": "motion_part_",
+        "range": [
+          1,
+          142
+        ]
+      }
+    },
+    "reaction": {
+      "clusters": {
+        "prefix": "reaction_cluster_",
+        "range": [
+          1,
+          26
+        ]
+      },
+      "parts": {
+        "prefix": "reaction_part_",
+        "range": [
+          1,
+          150
+        ]
+      }
+    },
+    "magic": {
+      "clusters": {
+        "prefix": "magic_cluster_",
+        "range": [
+          1,
+          29
+        ]
+      },
+      "parts": {
+        "prefix": "magic_part_",
+        "range": [
+          1,
+          230
+        ]
+      }
+    }
+  },
+  "characters": [
+    {
+      "id": "pompon_idle",
+      "file": "pompon_idle.png",
+      "actor": "POMPON",
+      "label_ja": "通常立ち",
+      "semantic": "neutral",
+      "standalone_ok": true
+    },
+    {
+      "id": "pompon_run",
+      "file": "pompon_run.png",
+      "actor": "POMPON",
+      "label_ja": "走る",
+      "semantic": "movement",
+      "standalone_ok": true
+    },
+    {
+      "id": "pompon_dash",
+      "file": "pompon_dash.png",
+      "actor": "POMPON",
+      "label_ja": "全力ダッシュ",
+      "semantic": "movement",
+      "standalone_ok": true
+    },
+    {
+      "id": "pompon_brake",
+      "file": "pompon_brake.png",
+      "actor": "POMPON",
+      "label_ja": "急ブレーキ",
+      "semantic": "failure",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_cannot_stop",
+      "file": "pompon_cannot_stop.png",
+      "actor": "POMPON",
+      "label_ja": "止まれない",
+      "semantic": "failure",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_peek",
+      "file": "pompon_peek.png",
+      "actor": "POMPON",
+      "label_ja": "のぞく",
+      "semantic": "peek",
+      "standalone_ok": true
+    },
+    {
+      "id": "pompon_shocked",
+      "file": "pompon_shocked.png",
+      "actor": "POMPON",
+      "label_ja": "びっくり",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_smug",
+      "file": "pompon_smug.png",
+      "actor": "POMPON",
+      "label_ja": "どや顔",
+      "semantic": "boast",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_oops",
+      "file": "pompon_oops.png",
+      "actor": "POMPON",
+      "label_ja": "しまった",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_fly",
+      "file": "pompon_fly.png",
+      "actor": "POMPON",
+      "label_ja": "吹っ飛ぶ",
+      "semantic": "impact",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_wobble",
+      "file": "pompon_wobble.png",
+      "actor": "POMPON",
+      "label_ja": "ヨロヨロ",
+      "semantic": "aftermath",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_slide",
+      "file": "pompon_slide.png",
+      "actor": "POMPON",
+      "label_ja": "滑る",
+      "semantic": "failure",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_trip",
+      "file": "pompon_trip.png",
+      "actor": "POMPON",
+      "label_ja": "転びかけ",
+      "semantic": "failure",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_ballride",
+      "file": "pompon_ballride.png",
+      "actor": "POMPON",
+      "label_ja": "ボールに乗る",
+      "semantic": "prop",
+      "standalone_ok": false
+    },
+    {
+      "id": "pompon_proud_run",
+      "file": "pompon_proud_run.png",
+      "actor": "POMPON",
+      "label_ja": "得意げ走り",
+      "semantic": "boast",
+      "standalone_ok": true
+    },
+    {
+      "id": "chiru_idle",
+      "file": "chiru_idle.png",
+      "actor": "CHIRU",
+      "label_ja": "通常立ち",
+      "semantic": "neutral",
+      "standalone_ok": true
+    },
+    {
+      "id": "chiru_run",
+      "file": "chiru_run.png",
+      "actor": "CHIRU",
+      "label_ja": "走る",
+      "semantic": "movement",
+      "standalone_ok": true
+    },
+    {
+      "id": "chiru_chase",
+      "file": "chiru_chase.png",
+      "actor": "CHIRU",
+      "label_ja": "追跡",
+      "semantic": "chase",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_brake",
+      "file": "chiru_brake.png",
+      "actor": "CHIRU",
+      "label_ja": "急停止",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_peek",
+      "file": "chiru_peek.png",
+      "actor": "CHIRU",
+      "label_ja": "のぞく",
+      "semantic": "peek",
+      "standalone_ok": true
+    },
+    {
+      "id": "chiru_watch",
+      "file": "chiru_watch.png",
+      "actor": "CHIRU",
+      "label_ja": "様子を見る",
+      "semantic": "observe",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_shocked",
+      "file": "chiru_shocked.png",
+      "actor": "CHIRU",
+      "label_ja": "びっくり",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_exasperated",
+      "file": "chiru_exasperated.png",
+      "actor": "CHIRU",
+      "label_ja": "呆れる",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_angry",
+      "file": "chiru_angry.png",
+      "actor": "CHIRU",
+      "label_ja": "怒る",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_dodge",
+      "file": "chiru_dodge.png",
+      "actor": "CHIRU",
+      "label_ja": "回避",
+      "semantic": "dodge",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_fly",
+      "file": "chiru_fly.png",
+      "actor": "CHIRU",
+      "label_ja": "吹っ飛ぶ",
+      "semantic": "impact",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_wobble",
+      "file": "chiru_wobble.png",
+      "actor": "CHIRU",
+      "label_ja": "ヨロヨロ",
+      "semantic": "aftermath",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_sneak",
+      "file": "chiru_sneak.png",
+      "actor": "CHIRU",
+      "label_ja": "こっそり移動",
+      "semantic": "sneak",
+      "standalone_ok": true
+    },
+    {
+      "id": "chiru_sigh",
+      "file": "chiru_sigh.png",
+      "actor": "CHIRU",
+      "label_ja": "ため息",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "chiru_retort",
+      "file": "chiru_retort.png",
+      "actor": "CHIRU",
+      "label_ja": "つっこみ・指差し",
+      "semantic": "retort",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_chase",
+      "file": "duo_chase.png",
+      "actor": "DUO",
+      "label_ja": "POMPON逃走 / CHIRU追跡",
+      "semantic": "chase",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_runaway_crash",
+      "file": "duo_runaway_crash.png",
+      "actor": "DUO",
+      "label_ja": "CHIRUがPOMPONを掴む",
+      "semantic": "catch",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_surprised",
+      "file": "duo_surprised.png",
+      "actor": "DUO",
+      "label_ja": "2体同時びっくり",
+      "semantic": "reaction",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_boast_disbelief",
+      "file": "duo_boast_disbelief.png",
+      "actor": "DUO",
+      "label_ja": "POMPONどや / CHIRU呆れ",
+      "semantic": "relationship",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_failure_scold",
+      "file": "duo_failure_scold.png",
+      "actor": "DUO",
+      "label_ja": "POMPON失敗 / CHIRU叱る",
+      "semantic": "relationship",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_fly",
+      "file": "duo_fly.png",
+      "actor": "DUO",
+      "label_ja": "2体同時に吹っ飛ぶ",
+      "semantic": "impact",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_dodge",
+      "file": "duo_dodge.png",
+      "actor": "DUO",
+      "label_ja": "CHIRU回避 / POMPON失敗",
+      "semantic": "dodge",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_entangled",
+      "file": "duo_entangled.png",
+      "actor": "DUO",
+      "label_ja": "POMPONがCHIRUを巻き込む",
+      "semantic": "entangle",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_friendship_oops",
+      "file": "duo_friendship_oops.png",
+      "actor": "DUO",
+      "label_ja": "一瞬仲良し→やらかし",
+      "semantic": "relationship",
+      "standalone_ok": false
+    },
+    {
+      "id": "duo_oh_no",
+      "file": "duo_oh_no.png",
+      "actor": "DUO",
+      "label_ja": "2体そろって「あっ…」",
+      "semantic": "reaction",
+      "standalone_ok": false
+    }
+  ],
+  "contextual_rules": {
+    "chiru_watch": "見る対象が直前に必要。単独ランダム禁止",
+    "chiru_exasperated": "POMPONの失敗・自慢の直後のみ",
+    "chiru_retort": "指差す対象が必要。POMPON失敗または本物の呼出番号",
+    "duo_runaway_crash": "クラッシュ完成絵ではない。CHIRUがPOMPONを掴む中間ポーズ",
+    "pompon_cannot_stop": "pompon_brakeの後に使う",
+    "duo_fly": "明確な衝突・爆風原因がある場合のみ"
+  },
+  "approved_effects": [
+    {
+      "id": "dust_streak",
+      "source": "motion_part_005",
+      "label_ja": "走行・スライドの砂煙",
+      "semantic": "movement",
+      "approved_runtime": true
+    },
+    {
+      "id": "dust_impact",
+      "source": "motion_part_008",
+      "label_ja": "着地・衝突の砂煙",
+      "semantic": "impact",
+      "approved_runtime": true
+    },
+    {
+      "id": "dust_trail",
+      "source": "motion_part_025",
+      "label_ja": "高速移動後の砂煙",
+      "semantic": "movement",
+      "approved_runtime": true
+    },
+    {
+      "id": "dust_burst",
+      "source": "motion_part_035",
+      "label_ja": "急停止・着地",
+      "semantic": "impact",
+      "approved_runtime": true
+    },
+    {
+      "id": "speed_slash",
+      "source": "motion_part_076",
+      "label_ja": "高速移動の速度線",
+      "semantic": "movement",
+      "approved_runtime": true
+    },
+    {
+      "id": "speed_lines",
+      "source": "motion_part_091",
+      "label_ja": "高速通過の複数線",
+      "semantic": "movement",
+      "approved_runtime": true
+    },
+    {
+      "id": "impact_burst",
+      "source": "reaction_part_001",
+      "label_ja": "強い衝突",
+      "semantic": "impact",
+      "approved_runtime": true
+    },
+    {
+      "id": "impact_starburst",
+      "source": "reaction_part_032",
+      "label_ja": "コミカルな衝撃",
+      "semantic": "impact",
+      "approved_runtime": true
+    },
+    {
+      "id": "alert_red",
+      "source": "reaction_part_066",
+      "label_ja": "強い注意",
+      "semantic": "alert",
+      "approved_runtime": true
+    },
+    {
+      "id": "exclamation",
+      "source": "reaction_part_075",
+      "label_ja": "発見・驚き・呼出注目",
+      "semantic": "alert",
+      "approved_runtime": true
+    },
+    {
+      "id": "question",
+      "source": "reaction_part_073",
+      "label_ja": "疑問・探す",
+      "semantic": "question",
+      "approved_runtime": true
+    },
+    {
+      "id": "sweat",
+      "source": "reaction_part_077",
+      "label_ja": "焦り",
+      "semantic": "reaction",
+      "approved_runtime": true
+    },
+    {
+      "id": "anger",
+      "source": "reaction_part_078",
+      "label_ja": "怒り",
+      "semantic": "anger",
+      "approved_runtime": true
+    },
+    {
+      "id": "dizzy_stars",
+      "source": "reaction_part_099",
+      "label_ja": "衝突後の目眩",
+      "semantic": "aftermath",
+      "approved_runtime": true
+    },
+    {
+      "id": "dizzy_spiral",
+      "source": "reaction_part_100",
+      "label_ja": "ヨロヨロ・目眩",
+      "semantic": "aftermath",
+      "approved_runtime": true
+    },
+    {
+      "id": "comic_star",
+      "source": "reaction_part_102",
+      "label_ja": "衝突後アクセント",
+      "semantic": "impact",
+      "approved_runtime": true
+    },
+    {
+      "id": "sparkle_gold",
+      "source": "reaction_part_120",
+      "label_ja": "成功・どや",
+      "semantic": "success",
+      "approved_runtime": true
+    },
+    {
+      "id": "jump_arc",
+      "source": "reaction_part_131",
+      "label_ja": "跳躍・回避の軌道。衝突には使用禁止",
+      "semantic": "trajectory",
+      "approved_runtime": true
+    },
+    {
+      "id": "magic_star",
+      "source": "magic_part_003",
+      "label_ja": "楽しいキラキラ",
+      "semantic": "magic",
+      "approved_runtime": true
+    },
+    {
+      "id": "magic_sparkle",
+      "source": "magic_part_007",
+      "label_ja": "成功・魔法のキラキラ",
+      "semantic": "magic",
+      "approved_runtime": true
+    }
+  ],
+  "stories": [
+    {
+      "id": "POMPON_BRAKE_FAIL",
+      "beats": [
+        "pompon_dash",
+        "pompon_brake",
+        "pompon_cannot_stop",
+        "OFFSCREEN_IMPACT",
+        "pompon_wobble",
+        "chiru_exasperated"
+      ],
+      "logic": "暴走→停止失敗→衝突→ヨロヨロ→CHIRUが呆れる"
+    },
+    {
+      "id": "DUO_CHASE_CRASH",
+      "beats": [
+        "pompon_dash",
+        "chiru_chase",
+        "duo_chase",
+        "duo_runaway_crash",
+        "OFFSCREEN_IMPACT",
+        "duo_entangled"
+      ],
+      "logic": "逃走→追跡→CHIRUが捕まえる→勢い余って事故→2体が巻き込まれる"
+    },
+    {
+      "id": "PEEK_DISCOVERY",
+      "beats": [
+        "pompon_peek",
+        "chiru_peek",
+        "duo_surprised",
+        "duo_chase"
+      ],
+      "logic": "両側から覗く→目が合う→同時びっくり→追いかけっこ"
+    },
+    {
+      "id": "BALL_RIDE_FAIL",
+      "beats": [
+        "pompon_ballride",
+        "SUCCESS_TEASE",
+        "pompon_fly",
+        "chiru_dodge",
+        "duo_dodge",
+        "OFFSCREEN_IMPACT"
+      ],
+      "logic": "成功したように見せる→飛ばされる→CHIRU回避→POMPONだけ失敗"
+    },
+    {
+      "id": "CALL_DELIVERY",
+      "beats": [
+        "pompon_dash",
+        "REAL_NUMBER_IMPACT",
+        "chiru_retort",
+        "REAL_NUMBER_REMAINS"
+      ],
+      "logic": "POMPONが番号を届ける→CHIRUが本物の番号を指す→番号だけ残る"
+    }
+  ]
+}

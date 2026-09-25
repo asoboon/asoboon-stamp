@@ -187,8 +187,9 @@ function getLayer(which='back'){
   (document.querySelector('.board')||document.body).appendChild(layer);
   return layer;
 }
-function createScope(label='effect'){
+function createScope(label='effect',timeScale=1){
   const controller=new AbortController();
+  const scopeScale=Math.max(.25,Math.min(3,Number(timeScale)||1));
   const nodes=new Set(),animations=new Set(),timers=new Set();
   let cleaned=false;
   const scope={
@@ -197,16 +198,16 @@ function createScope(label='effect'){
     animate(el,keyframes,options={}){
       if(!el?.animate||controller.signal.aborted)return Promise.resolve();
       const opts={...options};
-      if(Number.isFinite(Number(opts.duration)))opts.duration=ms(opts.duration);
-      if(Number.isFinite(Number(opts.delay)))opts.delay=ms(opts.delay);
-      if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=ms(opts.endDelay);
+      if(Number.isFinite(Number(opts.duration)))opts.duration=ms(opts.duration*scopeScale);
+      if(Number.isFinite(Number(opts.delay)))opts.delay=ms(opts.delay*scopeScale);
+      if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=ms(opts.endDelay*scopeScale);
       const animation=el.animate(keyframes,opts);animations.add(animation);
       return animation.finished.catch(()=>{}).finally(()=>animations.delete(animation));
     },
     wait(baseMs){
       if(controller.signal.aborted)return Promise.reject(new DOMException('Aborted','AbortError'));
       return new Promise((resolve,reject)=>{
-        const timer=setTimeout(()=>{timers.delete(timer);controller.signal.removeEventListener('abort',onAbort);resolve()},ms(baseMs));
+        const timer=setTimeout(()=>{timers.delete(timer);controller.signal.removeEventListener('abort',onAbort);resolve()},ms(baseMs*scopeScale));
         timers.add(timer);
         const onAbort=()=>{clearTimeout(timer);timers.delete(timer);controller.signal.removeEventListener('abort',onAbort);reject(new DOMException('Aborted','AbortError'))};
         controller.signal.addEventListener('abort',onAbort,{once:true});
@@ -214,10 +215,10 @@ function createScope(label='effect'){
     },
     later(baseMs,fn){
       if(controller.signal.aborted)return null;
-      const timer=setTimeout(()=>{timers.delete(timer);if(!controller.signal.aborted)fn?.()},ms(baseMs));timers.add(timer);return timer;
+      const timer=setTimeout(()=>{timers.delete(timer);if(!controller.signal.aborted)fn?.()},ms(baseMs*scopeScale));timers.add(timer);return timer;
     },
-    raf(baseDuration,draw){return runFrameTask(scope,baseDuration,draw)},
-    canvas(baseDuration,draw){return runCanvas(scope,baseDuration,draw)},
+    raf(baseDuration,draw){return runFrameTask(scope,baseDuration*scopeScale,draw)},
+    canvas(baseDuration,draw){return runCanvas(scope,baseDuration*scopeScale,draw)},
     abort(reason='aborted'){if(!controller.signal.aborted)controller.abort(reason);scope.cleanup()},
     cleanup(){
       if(cleaned)return;cleaned=true;
@@ -261,7 +262,7 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.1.1',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
+  version:'2.2.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,

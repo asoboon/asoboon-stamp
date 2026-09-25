@@ -1,7 +1,7 @@
 (()=>{'use strict';
 
 const M=window.ASOBOON_BOARD_EFFECTS;
-const WORLD=window.ASOBOON_BOARD_WORLD;
+const SOURCEFX=window.ASOBOON_BOARD_SOURCE_EFFECTS||null;
 const CHAR=window.ASOBOON_BOARD_CHARACTER_EVENTS||null;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
@@ -289,7 +289,7 @@ async function playCallAnimation({number,element,frame,rare}){
   const ghost=ghostFrom(target,'fx-call-ghost');
   onomatopoeia(rare?'ドッカーン!!':'ドカン！',rect,'call');
   const particles=runParticles('call',rect,{rare,level:lvl});
-  const world=WORLD?.playStatusReaction?.('call',{grid:element?.closest?.('.queue-grid')||document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
+  const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
@@ -318,7 +318,7 @@ async function playCallAnimation({number,element,frame,rare}){
   }
   if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(480):480);
   if(rare&&!reduced) setTimeout(()=>{void runParticles('call',rect,{rare:true,level:lvl,secondary:true})},M?M.ms(360):360);
-  await Promise.all([flight,particles,elementPulse,world,character]);
+  await Promise.all([flight,particles,elementPulse,sourceFx,character]);
 }
 async function playGuidedAnimation({element,frame}){
   const source=frame||currentFrame(element);
@@ -328,7 +328,7 @@ async function playGuidedAnimation({element,frame}){
   const ghost=ghostFrom(source,'fx-guided-ghost');
   onomatopoeia('ビューン！',rect,'guided');
   const particles=runParticles('guided',rect,{level:lvl});
-  const world=WORLD?.playStatusReaction?.('guided',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
+  const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
   const useFilter=(M?.getEffectiveQuality?.()||'HIGH')==='HIGH';
   const settle=element?animateElement(element,useFilter?[
     {transform:'scale(1.04)',filter:'brightness(1.15)'},
@@ -348,7 +348,7 @@ async function playGuidedAnimation({element,frame}){
       {opacity:.15,transform:'translate3d(58vw,-9vh,0) rotate(6deg) scale(.82)'},
     ],{duration:lvl<=1?360:1050,easing:'cubic-bezier(.2,.7,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([flight,particles,settle,world]);
+  await Promise.all([flight,particles,settle,sourceFx]);
 }
 async function playHoldAnimation({element,frame}){
   const rect=rectFor(element,frame);
@@ -356,7 +356,7 @@ async function playHoldAnimation({element,frame}){
   const lvl=effectiveLevel();
   onomatopoeia('ピタッ！',rect,'hold');
   const particles=runParticles('hold',rect,{level:lvl});
-  const world=WORLD?.playStatusReaction?.('hold',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
+  const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
   const motion=element?animateElement(element,lvl<=1?[
     {transform:'translateX(0)'},
     {transform:'translateX(4px)'},
@@ -381,7 +381,7 @@ async function playCancelAnimation({frame,element}){
   if(ghost)attachCracks(ghost);
   onomatopoeia('パリン！',rect,'cancel');
   const particles=runParticles('cancel',rect,{level:lvl});
-  const world=WORLD?.playStatusReaction?.('cancel',{grid:document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
+  const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
   let shatter=Promise.resolve();
   if(ghost){
     shatter=animateElement(ghost,lvl<=1?[
@@ -395,7 +395,7 @@ async function playCancelAnimation({frame,element}){
       {opacity:0,transform:'scale(.84) rotate(3deg) translateY(26px)'},
     ],{duration:lvl<=1?380:1200,easing:'cubic-bezier(.2,.75,.22,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([shatter,particles,world]);
+  await Promise.all([shatter,particles,sourceFx]);
 }
 function attachCracks(ghost){
   const crack=document.createElement('div');
@@ -513,7 +513,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.1.0',
+  version:'1.2.0',
   capture,
   observe,
   playStatusAnimation,

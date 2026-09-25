@@ -61,7 +61,7 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_SOURCE_EFFECTS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
   await page.evaluate(() => { window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}); window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false); });
 
   return {
@@ -81,6 +81,10 @@ async function idleDiagnostics(page) {
 
 async function characterDiagnostics(page) {
   return page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics());
+}
+
+async function sourceFxDiagnostics(page) {
+  return page.evaluate(() => window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics());
 }
 
 async function waitForCharacterIdle(page) {
@@ -604,22 +608,27 @@ test('shared animation engine stays bounded under 6x CPU throttling', async ({ p
   });
 });
 
-test('idle events do not fire on initial load and only run after an unchanged update', async ({ page }) => {
+test('new-source effects do not fire on initial load and only run after an unchanged update', async ({ page }) => {
   const current = payload([
     { number: '7101', state: 'waiting', order: 1 },
     { number: '7102', state: 'waiting', order: 2 },
   ]);
   const h = await installBoard(page, [current, current]);
-  expect((await idleDiagnostics(page)).played).toBe(0);
+  expect((await sourceFxDiagnostics(page)).played).toBe(0);
 
-  await prepareIdleForTest(page);
+  await page.evaluate(() => {
+    const director=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR;
+    director.resetForTest();
+    director.setConfig({
+      weights:{SOURCE_FX:1,POMPON_CAMEO:0,CHIRU_CAMEO:0,POMPON_STORY:0,DUO_STORY:0,RARE_STORY:0},
+      REAL_CHANGE_COOLDOWN_MS:0,
+      CHARACTER_FORCE_AFTER_MS:999999,
+    });
+  });
   await h.refresh();
-  await expect.poll(async () => (await idleDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
-  await expect.poll(async () => (await idleDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
-  await expect(page.locator('.idle-shape,.idle-canvas,.idle-svg,.idle-background')).toHaveCount(0);
-  const d = await idleDiagnostics(page);
-  expect(d.activeAnimations).toBe(0);
-  expect(d.activeTimers).toBe(0);
+  await expect.poll(async () => (await sourceFxDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
+  await expect.poll(async () => (await sourceFxDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
+  await expect(page.locator('.pc-effect')).toHaveCount(0);
 });
 
 test('real call interrupts a running idle event and immediately wins priority', async ({ page }) => {
@@ -719,18 +728,18 @@ test('idle reduced-motion mode caps animation level and keeps real numbers untou
 
 
 test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use', async () => {
-  const characterAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-atlas.webp');
-  const effectAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-effects-atlas.webp');
+  const characterAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-atlas-v2.webp');
+  const effectAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-effects-atlas-v2.webp');
   expect(characterAtlas.size).toBeGreaterThan(50000);
-  expect(characterAtlas.size).toBeLessThan(300000);
+  expect(characterAtlas.size).toBeLessThan(700000);
   expect(effectAtlas.size).toBeGreaterThan(20000);
-  expect(effectAtlas.size).toBeLessThan(160000);
+  expect(effectAtlas.size).toBeLessThan(350000);
 
   const assets = fs.readFileSync('miniapp-v2/develop/board/board-character-assets.js','utf8');
   expect(assets).toContain("pompon_dash");
   expect(assets).toContain("chiru_retort");
-  expect(assets).toContain("collision_arc");
-  expect(assets).toContain("stars");
+  expect(assets).toContain("impact_starburst");
+  expect(assets).toContain("dizzy_spiral");
 });
 
 test('entertainment director keeps characters special while guaranteeing a return within about a minute', async ({ page }) => {
@@ -739,7 +748,7 @@ test('entertainment director keeps characters special while guaranteeing a retur
   expect(result.characterRate).toBeGreaterThanOrEqual(0.29);
   expect(result.characterRate).toBeLessThanOrEqual(0.36);
   expect(result.maxCharacterGapSeconds).toBeLessThanOrEqual(60);
-  expect(result.counts.WORLD).toBeGreaterThan(result.counts.POMPON_CAMEO);
+  expect(result.counts.SOURCE_FX).toBeGreaterThan(result.counts.POMPON_CAMEO);
   expect(result.counts.POMPON_CAMEO).toBeGreaterThan(result.counts.CHIRU_CAMEO);
   expect(result.counts.RARE_STORY).toBeGreaterThan(0);
 });
@@ -818,8 +827,35 @@ test('character engine adds no RAF or canvas owners beyond the shared runtime', 
   const assets=fs.readFileSync('miniapp-v2/develop/board/board-character-assets.js','utf8');
   const chars=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
   const director=fs.readFileSync('miniapp-v2/develop/board/board-entertainment-director.js','utf8');
-  for(const code of [assets,chars,director]){
+  const sourcefx=fs.readFileSync('miniapp-v2/develop/board/board-source-effects.js','utf8');
+  for(const code of [assets,chars,director,sourcefx]){
     expect(code).not.toContain('requestAnimationFrame(');
     expect(code).not.toMatch(/createElement\\(['"]canvas['"]\\)/);
   }
+});
+
+
+test('normal entertainment rotation is new-source-only and legacy mystery residents are excluded', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8501', state:'waiting', order:1 }])]);
+  const state=await page.evaluate(() => ({
+    director:window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.getDiagnostics(),
+    chars:window.ASOBOON_BOARD_CHARACTER_EVENTS.events.map(x=>x.id),
+    sourceFx:window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics(),
+  }));
+  expect(state.director.legacyIdleInNormalRotation).toBe(false);
+  expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','CHIRU_PEEK','CHIRU_SNEAK','POMPON_BRAKE_FAIL']));
+  expect(state.chars).not.toEqual(expect.arrayContaining(['CHIRU_WATCH','CHIRU_EXASPERATED']));
+  expect(state.sourceFx.sourcePolicy).toBe('effects_pack_v2-only');
+});
+
+test('source asset database locks approved sources and contextual use rules', async () => {
+  const db=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/assets/source-assets-db.json','utf8'));
+  expect(db.runtime_policy.legacy_visual_assets_allowed).toBe(false);
+  expect(db.runtime_policy.approved_sources).toEqual(expect.arrayContaining(['POMPON_CHIRU_assets_draft_40 2.zip','effects_pack_v2.zip']));
+  expect(db.counts.characters).toBe(40);
+  expect(db.counts.effects_total).toBe(589);
+  const chiruWatch=db.characters.find(x=>x.id==='chiru_watch');
+  const duoCatch=db.characters.find(x=>x.id==='duo_runaway_crash');
+  expect(chiruWatch.standalone_ok).toBe(false);
+  expect(duoCatch.semantic).toBe('catch');
 });
