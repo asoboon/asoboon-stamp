@@ -17,9 +17,10 @@ function provisional(rec,force=false){
   const stored=read(SNAP_KEY);
   if(stored?.receiptNo&&String(stored.receiptNo)!==String(rec.receiptNo))remove(SNAP_KEY);
   const status={kind:'sync',receipt:String(rec.receiptNo),message:'受付は完了しています。最新の順番を確認しています…',source:'local',checkedAt:Date.now()};
-  window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
-  window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
-  return status;
+  const chosen=window.ASOBOON_V38_ACCEPT_STATUS?.(status)||status;
+  window.ASOBOON_HOME_STATUS_SNAPSHOT=chosen;
+  window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:chosen}));
+  return chosen;
 }
 function refreshHome(){
   if(view()!=='home')return;
