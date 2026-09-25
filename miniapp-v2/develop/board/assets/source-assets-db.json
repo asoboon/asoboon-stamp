@@ -1,5 +1,5 @@
 {
-  "database_version": "1.1.0",
+  "database_version": "1.2.0",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
   "runtime_policy": {
     "approved_sources": [
@@ -8,7 +8,7 @@
     ],
     "legacy_visual_assets_allowed": false,
     "unreviewed_effects_allowed": false,
-    "rule": "characters registry または approved_effects に登録された新情報源素材だけを通常演出で使用する"
+    "rule": "characters registry と approved_effects の意味分類に合う組み合わせだけを通常演出で使用する"
   },
   "counts": {
     "characters": 40,
@@ -395,7 +395,10 @@
     "chiru_retort": "指差す対象が必要。POMPON失敗または本物の呼出番号",
     "duo_runaway_crash": "クラッシュ完成絵ではない。CHIRUがPOMPONを掴む中間ポーズ",
     "pompon_cannot_stop": "pompon_brakeの後に使う",
-    "duo_fly": "明確な衝突・爆風原因がある場合のみ"
+    "duo_fly": "明確な衝突・爆風原因がある場合のみ",
+    "pompon_smug": "成功・勘違い成功の直後のみ。単独ランダム禁止",
+    "jump_arc": "ジャンプ・回避専用。衝突表現には使用禁止",
+    "sparkle_gold": "成功・どや・成功に見せる場面専用。衝突後には使用禁止"
   },
   "approved_effects": [
     {
@@ -553,7 +556,7 @@
       "logic": "暴走→停止失敗→衝突→ヨロヨロ→CHIRUが呆れる"
     },
     {
-      "id": "DUO_CHASE_CRASH",
+      "id": "DUO_CHASE_CATCH",
       "beats": [
         "pompon_dash",
         "chiru_chase",
@@ -562,7 +565,7 @@
         "OFFSCREEN_IMPACT",
         "duo_entangled"
       ],
-      "logic": "逃走→追跡→CHIRUが捕まえる→勢い余って事故→2体が巻き込まれる"
+      "logic": "逃走→追跡→CHIRUが捕まえる→勢い余って画面外事故→2体がもつれる"
     },
     {
       "id": "PEEK_DISCOVERY",
@@ -590,11 +593,71 @@
       "id": "CALL_DELIVERY",
       "beats": [
         "pompon_dash",
-        "REAL_NUMBER_IMPACT",
+        "REAL_NUMBER_STOP",
         "chiru_retort",
         "REAL_NUMBER_REMAINS"
       ],
-      "logic": "POMPONが番号を届ける→CHIRUが本物の番号を指す→番号だけ残る"
+      "logic": "POMPONが番号位置まで届ける→止まる→CHIRUが本物の番号を指す→番号だけ残る"
     }
-  ]
+  ],
+  "runtime_event_rules": {
+    "standalone_character_events": [
+      "POMPON_PEEK",
+      "POMPON_SPARKLE_SMUG",
+      "CHIRU_PEEK",
+      "CHIRU_SNEAK"
+    ],
+    "forbidden_standalone_character_assets": [
+      "chiru_watch",
+      "chiru_exasperated",
+      "chiru_angry",
+      "chiru_retort",
+      "pompon_brake",
+      "pompon_cannot_stop",
+      "pompon_fly",
+      "pompon_wobble"
+    ],
+    "source_fx_events": [
+      "FX_MAGIC_STAR_PASS",
+      "FX_SPARKLE_SWEEP",
+      "FX_CARD_GLINT",
+      "FX_SPEED_PASS"
+    ],
+    "forbidden_source_fx_events": [
+      "FX_DUST_BOUNCE",
+      "FX_OFFSCREEN_BONK",
+      "FX_STAR_POP"
+    ],
+    "effect_semantic_groups": {
+      "movement": [
+        "dust_streak",
+        "dust_trail",
+        "speed_slash",
+        "speed_lines"
+      ],
+      "impact": [
+        "dust_impact",
+        "dust_burst",
+        "impact_burst",
+        "impact_starburst",
+        "comic_star"
+      ],
+      "success": [
+        "sparkle_gold",
+        "magic_sparkle"
+      ],
+      "aftermath": [
+        "dizzy_stars",
+        "dizzy_spiral"
+      ],
+      "alert": [
+        "exclamation",
+        "alert_red"
+      ],
+      "dodge": [
+        "jump_arc",
+        "speed_slash"
+      ]
+    }
+  }
 }

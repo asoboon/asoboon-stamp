@@ -289,7 +289,7 @@ async function playCallAnimation({number,element,frame,rare}){
   const ghost=ghostFrom(target,'fx-call-ghost');
   onomatopoeia(rare?'ドッカーン!!':'ドカン！',rect,'call');
   const particles=runParticles('call',rect,{rare,level:lvl});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
+  const sourceFx=CHAR?.playCallDelivery?Promise.resolve():(SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve());
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
@@ -370,7 +370,7 @@ async function playHoldAnimation({element,frame}){
     {transform:'translate3d(-4px,0,0) rotate(-.35deg)',offset:.75},
     {transform:'translate3d(0,0,0) rotate(0)'},
   ],{duration:lvl<=1?320:1000,easing:'cubic-bezier(.2,.8,.25,1)'}):Promise.resolve();
-  await Promise.all([motion,particles,world]);
+  await Promise.all([motion,particles,sourceFx]);
 }
 async function playCancelAnimation({frame,element}){
   const source=frame||currentFrame(element);

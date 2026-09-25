@@ -764,7 +764,7 @@ test('four representative POMPON CHIRU stories play and fully clean up without c
     window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.02,{persistValue:false});
     window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
   });
-  const ids=['POMPON_BRAKE_FAIL','DUO_CHASE_CRASH','PEEK_DISCOVERY','BALL_RIDE_FAIL'];
+  const ids=['POMPON_BRAKE_FAIL','DUO_CHASE_CATCH','PEEK_DISCOVERY','BALL_RIDE_FAIL'];
   for(const id of ids){
     const result=await page.evaluate(async eventId=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -843,9 +843,12 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
     sourceFx:window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics(),
   }));
   expect(state.director.legacyIdleInNormalRotation).toBe(false);
-  expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','CHIRU_PEEK','CHIRU_SNEAK','POMPON_BRAKE_FAIL']));
-  expect(state.chars).not.toEqual(expect.arrayContaining(['CHIRU_WATCH','CHIRU_EXASPERATED']));
+  expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','CHIRU_PEEK','CHIRU_SNEAK','POMPON_BRAKE_FAIL','DUO_CHASE_CATCH']));
+  expect(state.chars).not.toEqual(expect.arrayContaining(['POMPON_DASH_BY','CHIRU_WATCH','CHIRU_EXASPERATED']));
   expect(state.sourceFx.sourcePolicy).toBe('effects_pack_v2-only');
+  expect(state.sourceFx.semanticPolicy).toBe('context-matched-only');
+  expect(state.sourceFx.events).toEqual(expect.arrayContaining(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS']));
+  expect(state.sourceFx.events).not.toEqual(expect.arrayContaining(['FX_DUST_BOUNCE','FX_OFFSCREEN_BONK','FX_STAR_POP']));
 });
 
 test('source asset database locks approved sources and contextual use rules', async () => {
@@ -858,4 +861,30 @@ test('source asset database locks approved sources and contextual use rules', as
   const duoCatch=db.characters.find(x=>x.id==='duo_runaway_crash');
   expect(chiruWatch.standalone_ok).toBe(false);
   expect(duoCatch.semantic).toBe('catch');
+  expect(db.contextual_rules.jump_arc).toContain('衝突表現には使用禁止');
+  expect(db.runtime_event_rules.standalone_character_events).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','CHIRU_PEEK','CHIRU_SNEAK']));
+  expect(db.runtime_event_rules.forbidden_standalone_character_assets).toEqual(expect.arrayContaining(['chiru_watch','chiru_exasperated','chiru_retort']));
+  expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS']);
+  expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
+});
+
+
+test('character pacing is deliberately slower while call delivery stays separate', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8601', state:'waiting', order:1 }])]);
+  const state=await page.evaluate(() => ({
+    chars:window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics(),
+    sourceFx:window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics(),
+    assets:window.ASOBOON_BOARD_CHARACTER_ASSETS.diagnostics(),
+  }));
+  expect(state.chars.idlePace).toBeGreaterThanOrEqual(1.4);
+  expect(state.sourceFx.pace).toBeGreaterThanOrEqual(1.3);
+  expect(state.assets.effectRules.dodge).toEqual(expect.arrayContaining(['jump_arc','speed_slash']));
+  expect(state.assets.effectRules.impact).not.toContain('jump_arc');
+  expect(state.assets.effectRules.impact).not.toContain('sparkle_gold');
+});
+
+test('hold transition uses source-matched effect path without legacy world variables', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  expect(code).not.toContain('Promise.all([motion,particles,world])');
+  expect(code).toContain('Promise.all([motion,particles,sourceFx])');
 });

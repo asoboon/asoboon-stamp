@@ -34,9 +34,7 @@ function recordBeat(category,eventId,now=Date.now()){
 function chooseCategory(now=Date.now(),random=Math.random){return weightedPick(eligibleWeights(now),random)}
 function recentEvents(){return eventHistory.slice(-CONFIG.RECENT_BEATS)}
 async function playCharacter(category,grid){
-  const recent=recentEvents();
-  if(category==='RARE_STORY'){const choices=['BALL_RIDE_FAIL','DUO_CHASE_CRASH','PEEK_DISCOVERY'],filtered=choices.filter(x=>!recent.includes(x));const list=filtered.length?filtered:choices;return CHAR.play(list[Math.floor(Math.random()*list.length)],{grid})}
-  return CHAR.playRandom(category,{grid,recent});
+  return CHAR.playRandom(category,{grid,recent:recentEvents()});
 }
 async function onStableUpdate({grid}={}){
   diagnostics.attempts++;const now=Date.now();
@@ -74,5 +72,5 @@ function simulateForTest(beats=10000,seed=12345){
     const c=weightedPick(w,rand);counts[c]++;list.push({category:c});if(list.length>16)list.shift();if(isCharacter(c)){maxGap=Math.max(maxGap,(i-lastCharBeat)*10);lastCharBeat=i;st.lastCharacterAt=now;if(c==='POMPON_STORY')st.lastPomponStoryAt=now;if(c==='DUO_STORY')st.lastDuoStoryAt=now;if(c==='RARE_STORY')st.lastRareAt=now}}
   maxGap=Math.max(maxGap,(Math.max(1,beats)-lastCharBeat)*10);const ch=Object.entries(counts).filter(([k])=>isCharacter(k)).reduce((n,[,v])=>n+v,0);return{beats:Math.max(1,beats),counts,characterRate:ch/Math.max(1,beats),maxCharacterGapSeconds:maxGap};
 }
-window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'2.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,simulateForTest});
+window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'3.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,simulateForTest});
 })();
