@@ -111,10 +111,10 @@ test('inactive next HOME exposes every required route on the stable navigator', 
 });
 
 test('next HOME renders five distinct reception states and keeps reservation facts readable', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
+  await openNextHome(page);
+  await page.evaluate(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
     receiptNo:'F123', businessDate:'2026-09-19', waitTypeId:'0042', adults:1, paidChildren:2, infants:1
   })));
-  await openNextHome(page);
   await setStatus(page, { kind: 'none' });
   await expect(page.locator('#v38Hero')).toContainText('当日受付');
   const states = [
