@@ -777,3 +777,22 @@ body{
 
 :root[data-board-quality="medium"] .idle-background,
 :root[data-board-quality="low"] .idle-background{filter:none!important}
+
+
+/* Developing-only diagnostic badge: shown only with ?debug=1 or localhost. */
+.board-diagnostics[hidden]{display:none}
+.board-diagnostics{
+  position:fixed;
+  right:8px;
+  bottom:6px;
+  z-index:90;
+  max-width:min(92vw,760px);
+  padding:5px 8px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:7px;
+  background:rgba(0,0,0,.72);
+  color:#dce7e9;
+  font:700 10px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;
+  letter-spacing:.02em;
+  pointer-events:none;
+}
