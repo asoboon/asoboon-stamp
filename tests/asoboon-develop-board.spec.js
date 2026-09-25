@@ -3,16 +3,29 @@ const fs = require('node:fs');
 
 const BASE = process.env.ASOBOON_BASE_URL || 'http://127.0.0.1:4173/miniapp-v2/develop/board/';
 
-function payload(rows) {
+function payload(rows, options = {}) {
+  const businessType = options.businessType || '土日祝日';
+  const businessDate = options.businessDate || '2026-09-19';
+  const activeKey = options.activeKey || '10:00';
+  const definitions = businessType === '平日'
+    ? [{ key: 'weekday', label: '本日の呼出状況' }]
+    : businessType === '平日特定日'
+      ? [{ key: '10:00', label: '10:00の回' }, { key: '13:30', label: '13:30の回' }]
+      : businessType === '休館'
+        ? []
+        : [{ key: '10:00', label: '10:00の回' }, { key: '12:30', label: '12:30の回' }, { key: '15:00', label: '15:00の回' }];
   return {
     ok: true,
     fetchedAt: new Date().toISOString(),
     refreshAfterMs: 10000,
-    slots: [
-      { key: '10:00', label: '10:00の回', count: rows.length, rows },
-      { key: '12:30', label: '12:30の回', count: 0, rows: [] },
-      { key: '15:00', label: '15:00の回', count: 0, rows: [] },
-    ],
+    businessDate,
+    businessType,
+    isClosed: businessType === '休館',
+    slots: definitions.map(slot => ({
+      ...slot,
+      count: slot.key === activeKey ? rows.length : 0,
+      rows: slot.key === activeKey ? rows : [],
+    })),
   };
 }
 
@@ -91,6 +104,46 @@ async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
   await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia')).toHaveCount(0);
 }
+
+test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
+  await installBoard(page, [payload([])]);
+  const result = await page.evaluate(() => {
+    const resolve = window.ASOBOON_CALL_BOARD_TEST.resolveBoardContext;
+    const at = iso => new Date(iso);
+    return {
+      weekday: resolve(at('2026-09-21T01:00:00.000Z'), '平日'),
+      specialBeforeSwitch: resolve(at('2026-09-21T03:59:00.000Z'), '平日特定日'),
+      specialAfterSwitch: resolve(at('2026-09-21T04:00:00.000Z'), '平日特定日'),
+      weekendMorning: resolve(at('2026-09-19T02:59:00.000Z'), '土日祝日'),
+      weekendMidday: resolve(at('2026-09-19T03:00:00.000Z'), '土日祝日'),
+      weekendAfternoon: resolve(at('2026-09-19T05:30:00.000Z'), '土日祝日'),
+      closed: resolve(at('2026-09-22T01:00:00.000Z'), '休館'),
+      beforeOpen: resolve(at('2026-09-19T00:29:00.000Z'), '土日祝日'),
+      weekdayEnded: resolve(at('2026-09-21T08:00:00.000Z'), '平日'),
+      weekendEnded: resolve(at('2026-09-19T09:00:00.000Z'), '土日祝日'),
+    };
+  });
+
+  expect(result.weekday).toMatchObject({ phase:'active', slotKey:'weekday', slotSuffix:'' });
+  expect(result.specialBeforeSwitch).toMatchObject({ phase:'active', slotKey:'10:00' });
+  expect(result.specialAfterSwitch).toMatchObject({ phase:'active', slotKey:'13:30' });
+  expect(result.weekendMorning).toMatchObject({ phase:'active', slotKey:'10:00' });
+  expect(result.weekendMidday).toMatchObject({ phase:'active', slotKey:'12:30' });
+  expect(result.weekendAfternoon).toMatchObject({ phase:'active', slotKey:'15:00' });
+  expect(result.closed).toMatchObject({ phase:'closed', slotKey:'' });
+  expect(result.beforeOpen).toMatchObject({ phase:'before', slotKey:'' });
+  expect(result.weekdayEnded).toMatchObject({ phase:'ended', slotKey:'' });
+  expect(result.weekendEnded).toMatchObject({ phase:'ended', slotKey:'' });
+});
+
+test('board backend slot definitions include regular weekday and 13:30 special weekday queues', async () => {
+  const worker = fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
+  expect(worker).toContain("key:'weekday'");
+  expect(worker).toContain("'0023','0025'");
+  expect(worker).toContain("key:'13:30'");
+  expect(worker).toContain("'0037','0038'");
+  expect(worker).toContain("getBusinessDayProxy(businessDate)");
+});
 
 test('initial board snapshot never fires status animations', async ({ page }) => {
   const initial = payload([
