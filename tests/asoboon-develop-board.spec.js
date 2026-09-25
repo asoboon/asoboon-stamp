@@ -142,7 +142,7 @@ test('board backend slot definitions include regular weekday and 13:30 special w
   expect(worker).toContain("'0023','0025'");
   expect(worker).toContain("key:'13:30'");
   expect(worker).toContain("'0037','0038'");
-  expect(worker).toContain("getBusinessDayProxy(businessDate)");
+  expect(worker).toContain("getBusinessDayProxy(businessDate, env)");
 });
 
 test('initial board snapshot never fires status animations', async ({ page }) => {
