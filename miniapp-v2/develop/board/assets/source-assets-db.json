@@ -1,5 +1,5 @@
 {
-  "database_version": "1.2.0",
+  "database_version": "1.3.0",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
   "runtime_policy": {
     "approved_sources": [
@@ -598,14 +598,81 @@
         "REAL_NUMBER_REMAINS"
       ],
       "logic": "POMPONが番号位置まで届ける→止まる→CHIRUが本物の番号を指す→番号だけ残る"
+    },
+    {
+      "id": "POMPON_SMUG_OOPS",
+      "beats": [
+        "sparkle_gold",
+        "pompon_smug",
+        "comic_star",
+        "dust_impact",
+        "pompon_oops"
+      ],
+      "logic": "成功した気になる→どや顔→小さな事故→やっちまった顔"
+    },
+    {
+      "id": "POMPON_STAR_FLYBACK",
+      "beats": [
+        "magic_star",
+        "pompon_smug",
+        "pompon_fly",
+        "impact_starburst",
+        "pompon_wobble",
+        "dizzy_stars"
+      ],
+      "logic": "星に近づく→勢い余って吹っ飛ぶ→画面外衝突→ヨロヨロ帰還"
+    },
+    {
+      "id": "DUO_BOAST_DISBELIEF",
+      "beats": [
+        "pompon_smug",
+        "sparkle_gold",
+        "duo_boast_disbelief",
+        "sweat"
+      ],
+      "logic": "POMPON自慢→CHIRUが信じない→微妙な空気"
+    },
+    {
+      "id": "DUO_FAILURE_SCOLD",
+      "beats": [
+        "pompon_oops",
+        "chiru_angry",
+        "anger",
+        "duo_failure_scold"
+      ],
+      "logic": "POMPONやらかす→CHIRU怒る→その場で説教"
+    },
+    {
+      "id": "DUO_OH_NO_ESCAPE",
+      "beats": [
+        "alert_red",
+        "duo_oh_no",
+        "duo_chase",
+        "speed_lines"
+      ],
+      "logic": "警告→2人ともやばいと気づく→一緒に逃走"
+    },
+    {
+      "id": "DUO_FRIENDSHIP_OOPS",
+      "beats": [
+        "duo_friendship_oops",
+        "magic_sparkle",
+        "comic_star",
+        "duo_oh_no"
+      ],
+      "logic": "仲良く決める→小さな失敗→2人とも『あっ』"
     }
   ],
   "runtime_event_rules": {
     "standalone_character_events": [
       "POMPON_PEEK",
       "POMPON_SPARKLE_SMUG",
+      "POMPON_STAR_SHOCK",
+      "POMPON_OOPS_QUESTION",
       "CHIRU_PEEK",
-      "CHIRU_SNEAK"
+      "CHIRU_SNEAK",
+      "CHIRU_STAR_DODGE",
+      "CHIRU_ALERT_SHOCK"
     ],
     "forbidden_standalone_character_assets": [
       "chiru_watch",
@@ -621,7 +688,9 @@
       "FX_MAGIC_STAR_PASS",
       "FX_SPARKLE_SWEEP",
       "FX_CARD_GLINT",
-      "FX_SPEED_PASS"
+      "FX_SPEED_PASS",
+      "FX_DUST_GUST",
+      "FX_MAGIC_TRAIL"
     ],
     "forbidden_source_fx_events": [
       "FX_DUST_BOUNCE",
@@ -657,7 +726,65 @@
       "dodge": [
         "jump_arc",
         "speed_slash"
+      ],
+      "question": [
+        "question"
+      ],
+      "reaction": [
+        "sweat"
+      ],
+      "anger": [
+        "anger"
       ]
+    },
+    "shuffle_bag": {
+      "slots": 48,
+      "source_fx": 30,
+      "pompon_cameo": 4,
+      "chiru_cameo": 4,
+      "pompon_story": 3,
+      "duo_story": 6,
+      "rare_story": 1,
+      "guaranteed_unique_idle_patterns": 24
     }
+  },
+  "pattern_catalog": {
+    "total_idle_patterns": 24,
+    "source_fx": [
+      "FX_MAGIC_STAR_PASS",
+      "FX_SPARKLE_SWEEP",
+      "FX_CARD_GLINT",
+      "FX_SPEED_PASS",
+      "FX_DUST_GUST",
+      "FX_MAGIC_TRAIL"
+    ],
+    "pompon_cameo": [
+      "POMPON_PEEK",
+      "POMPON_SPARKLE_SMUG",
+      "POMPON_STAR_SHOCK",
+      "POMPON_OOPS_QUESTION"
+    ],
+    "chiru_cameo": [
+      "CHIRU_PEEK",
+      "CHIRU_SNEAK",
+      "CHIRU_STAR_DODGE",
+      "CHIRU_ALERT_SHOCK"
+    ],
+    "pompon_story": [
+      "POMPON_BRAKE_FAIL",
+      "POMPON_SMUG_OOPS",
+      "POMPON_STAR_FLYBACK"
+    ],
+    "duo_story": [
+      "DUO_CHASE_CATCH",
+      "PEEK_DISCOVERY",
+      "DUO_BOAST_DISBELIEF",
+      "DUO_FAILURE_SCOLD",
+      "DUO_OH_NO_ESCAPE",
+      "DUO_FRIENDSHIP_OOPS"
+    ],
+    "rare_story": [
+      "BALL_RIDE_FAIL"
+    ]
   }
 }

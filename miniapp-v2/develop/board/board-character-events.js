@@ -9,11 +9,21 @@ const CALL_PACE=1.00;
 const EVENTS=Object.freeze([
   Object.freeze({id:'POMPON_PEEK',category:'POMPON_CAMEO',story:'POMPONが端から様子をうかがう'}),
   Object.freeze({id:'POMPON_SPARKLE_SMUG',category:'POMPON_CAMEO',story:'キラッを自分の手柄だと思ってどや顔'}),
+  Object.freeze({id:'POMPON_STAR_SHOCK',category:'POMPON_CAMEO',story:'星が横切る→POMPONが気づいてびっくり'}),
+  Object.freeze({id:'POMPON_OOPS_QUESTION',category:'POMPON_CAMEO',story:'謎の？→POMPONが出てきて首をかしげる'}),
   Object.freeze({id:'CHIRU_PEEK',category:'CHIRU_CAMEO',story:'CHIRUが端から様子をうかがう'}),
   Object.freeze({id:'CHIRU_SNEAK',category:'CHIRU_CAMEO',story:'CHIRUが静かにこっそり横切る'}),
+  Object.freeze({id:'CHIRU_STAR_DODGE',category:'CHIRU_CAMEO',story:'星が飛来→CHIRUが素早く回避'}),
+  Object.freeze({id:'CHIRU_ALERT_SHOCK',category:'CHIRU_CAMEO',story:'警告マーク→CHIRUが飛び上がって驚く'}),
   Object.freeze({id:'POMPON_BRAKE_FAIL',category:'POMPON_STORY',story:'暴走→ブレーキ→止まれない→画面外衝突→ヨロヨロ→CHIRU呆れ'}),
+  Object.freeze({id:'POMPON_SMUG_OOPS',category:'POMPON_STORY',story:'成功した気になる→どや顔→小さな事故→やっちまった顔'}),
+  Object.freeze({id:'POMPON_STAR_FLYBACK',category:'POMPON_STORY',story:'星に気づく→近づく→勢い余って吹っ飛ぶ→ヨロヨロ帰還'}),
   Object.freeze({id:'DUO_CHASE_CATCH',category:'DUO_STORY',story:'逃走→追跡→捕まえる→勢い余って事故→2体でもつれる'}),
   Object.freeze({id:'PEEK_DISCOVERY',category:'DUO_STORY',story:'両側から覗く→目が合う→びっくり→追いかけっこ'}),
+  Object.freeze({id:'DUO_BOAST_DISBELIEF',category:'DUO_STORY',story:'POMPONが自慢→CHIRUが信じない→POMPON固まる'}),
+  Object.freeze({id:'DUO_FAILURE_SCOLD',category:'DUO_STORY',story:'POMPONがやらかす→CHIRUが怒る→その場で説教'}),
+  Object.freeze({id:'DUO_OH_NO_ESCAPE',category:'DUO_STORY',story:'警告に2人で気づく→やばい！→一緒に逃げる'}),
+  Object.freeze({id:'DUO_FRIENDSHIP_OOPS',category:'DUO_STORY',story:'仲良く決める→小さな失敗→2人とも「あっ」'}),
   Object.freeze({id:'BALL_RIDE_FAIL',category:'RARE_STORY',story:'ボール成功→調子に乗る→飛ぶ→CHIRU回避→POMPONだけ画面外事故'}),
 ]);
 
@@ -81,11 +91,21 @@ async function reducedEvent(scope,id,context={}){
   const map={
     POMPON_PEEK:['pompon_peek',r.width*.14,r.height*.64],
     POMPON_SPARKLE_SMUG:['pompon_smug',r.width*.28,r.height*.67],
+    POMPON_STAR_SHOCK:['pompon_shocked',r.width*.56,r.height*.64],
+    POMPON_OOPS_QUESTION:['pompon_oops',r.width*.48,r.height*.68],
     CHIRU_PEEK:['chiru_peek',r.width*.84,r.height*.64],
     CHIRU_SNEAK:['chiru_sneak',r.width*.74,r.height*.68],
+    CHIRU_STAR_DODGE:['chiru_dodge',r.width*.58,r.height*.66],
+    CHIRU_ALERT_SHOCK:['chiru_shocked',r.width*.62,r.height*.66],
     POMPON_BRAKE_FAIL:['pompon_wobble',r.width*.66,r.height*.68],
+    POMPON_SMUG_OOPS:['pompon_oops',r.width*.5,r.height*.68],
+    POMPON_STAR_FLYBACK:['pompon_wobble',r.width*.7,r.height*.68],
     DUO_CHASE_CATCH:['duo_entangled',r.width*.52,r.height*.65],
     PEEK_DISCOVERY:['duo_surprised',r.width*.5,r.height*.62],
+    DUO_BOAST_DISBELIEF:['duo_boast_disbelief',r.width*.5,r.height*.64],
+    DUO_FAILURE_SCOLD:['duo_failure_scold',r.width*.52,r.height*.65],
+    DUO_OH_NO_ESCAPE:['duo_oh_no',r.width*.5,r.height*.63],
+    DUO_FRIENDSHIP_OOPS:['duo_friendship_oops',r.width*.5,r.height*.64],
     BALL_RIDE_FAIL:['pompon_ballride',r.width*.5,r.height*.64],
     CALL_DELIVERY:['chiru_retort',clamp((context.localX||r.width*.5)+r.width*.18,150,r.width-150),clamp(context.localY||r.height*.55,150,r.height-150)],
   };
@@ -144,6 +164,287 @@ async function chiruSneak(scope){
     {opacity:1,offset:.72,transform:transform(r.width*.35,y+4,s*.78,2,-1)},
     {opacity:0,transform:transform(-150,y+6,s*.72,3,-1)},
   ],{duration:1250,easing:'cubic-bezier(.22,.6,.2,1)',fill:'forwards'});
+}
+
+async function pomponStarShock(scope){
+  const r=rect(),s=scaleForStage(),y=r.height*.46;
+  const star=fx(scope,'magic_star','ambient',{x:-70,y,scale:s*.46,opacity:0});
+  const p=pose(scope,'pompon_shocked',{x:r.width*.62,y:r.height*.68,scale:s*.78,opacity:0});
+  await Promise.all([
+    anim(scope,star,[
+      {opacity:0,transform:transform(-80,y,s*.3,-8)},
+      {opacity:1,offset:.28,transform:transform(r.width*.28,y-8,s*.52,4)},
+      {opacity:.9,offset:.72,transform:transform(r.width*.52,y+4,s*.48,-3)},
+      {opacity:0,transform:transform(r.width*.72,y-3,s*.36,7)}
+    ],{duration:900,easing:'cubic-bezier(.18,.65,.2,1)',fill:'forwards'}),
+    anim(scope,p,[
+      {opacity:0,transform:transform(r.width*.62,r.height*.74,s*.68)},
+      {opacity:1,offset:.5,transform:transform(r.width*.62,r.height*.68,s*.82,-3)},
+      {opacity:1,offset:.78,transform:transform(r.width*.62,r.height*.68,s*.78,3)},
+      {opacity:0,transform:transform(r.width*.62,r.height*.72,s*.7)}
+    ],{duration:920,easing:'ease-out',fill:'forwards'})
+  ]);
+}
+async function pomponOopsQuestion(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.48,y=r.height*.68;
+  const q=fx(scope,'question','question',{x:x+55,y:y-115,scale:s*.52,opacity:0});
+  const p=pose(scope,'pompon_oops',{x,y:y+60,scale:s*.82,opacity:0});
+  await Promise.all([
+    anim(scope,q,[
+      {opacity:0,transform:transform(x+55,y-95,s*.24,-8)},
+      {opacity:1,offset:.34,transform:transform(x+55,y-120,s*.58,4)},
+      {opacity:.9,offset:.72,transform:transform(x+48,y-124,s*.52,-2)},
+      {opacity:0,transform:transform(x+40,y-132,s*.42,6)}
+    ],{duration:860,easing:'ease-out',fill:'forwards'}),
+    anim(scope,p,[
+      {opacity:0,transform:transform(x,y+70,s*.72)},
+      {opacity:1,offset:.32,transform:transform(x,y,s*.84,-2)},
+      {opacity:1,offset:.78,transform:transform(x,y,s*.84,2)},
+      {opacity:0,transform:transform(x,y+26,s*.76)}
+    ],{duration:980,easing:'cubic-bezier(.2,.76,.2,1)',fill:'forwards'})
+  ]);
+}
+async function chiruStarDodge(scope){
+  const r=rect(),s=scaleForStage(),y=r.height*.58;
+  const star=fx(scope,'magic_star','ambient',{x:-80,y,scale:s*.48,opacity:0});
+  const c=pose(scope,'chiru_dodge',{x:r.width*.58,y:r.height*.68,scale:s*.72,opacity:0});
+  const arc=fx(scope,'jump_arc','dodge',{x:r.width*.58,y:r.height*.56,scale:s*.5,opacity:0,layer:'back'});
+  await Promise.all([
+    anim(scope,star,[
+      {opacity:0,transform:transform(-90,y,s*.34,-6)},
+      {opacity:1,offset:.25,transform:transform(r.width*.28,y-6,s*.5,2)},
+      {opacity:.92,offset:.68,transform:transform(r.width*.53,y+5,s*.48,-2)},
+      {opacity:0,transform:transform(r.width+90,y-4,s*.34,5)}
+    ],{duration:980,easing:'cubic-bezier(.16,.68,.2,1)',fill:'forwards'}),
+    anim(scope,c,[
+      {opacity:0,transform:transform(r.width*.58,r.height*.72,s*.64)},
+      {opacity:1,offset:.42,transform:transform(r.width*.55,r.height*.61,s*.76,-5)},
+      {opacity:0,transform:transform(r.width*.49,r.height*.69,s*.68,-2)}
+    ],{duration:780,delay:220,easing:'cubic-bezier(.18,.8,.2,1)',fill:'forwards'}),
+    anim(scope,arc,[
+      {opacity:0,transform:transform(r.width*.58,r.height*.58,s*.28)},
+      {opacity:.88,offset:.45,transform:transform(r.width*.54,r.height*.54,s*.52,-8)},
+      {opacity:0,transform:transform(r.width*.48,r.height*.6,s*.62,-15)}
+    ],{duration:760,delay:220,easing:'ease-out',fill:'forwards'})
+  ]);
+}
+async function chiruAlertShock(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.62,y=r.height*.68;
+  const alert=fx(scope,'alert_red','alert',{x:x+70,y:y-115,scale:s*.48,opacity:0});
+  const c=pose(scope,'chiru_shocked',{x,y:y+55,scale:s*.76,opacity:0});
+  await Promise.all([
+    anim(scope,alert,[
+      {opacity:0,transform:transform(x+70,y-105,s*.22)},
+      {opacity:1,offset:.28,transform:transform(x+70,y-125,s*.56,0)},
+      {opacity:1,offset:.62,transform:transform(x+70,y-125,s*.52,3)},
+      {opacity:0,transform:transform(x+70,y-138,s*.38,6)}
+    ],{duration:760,easing:'ease-out',fill:'forwards'}),
+    anim(scope,c,[
+      {opacity:0,transform:transform(x,y+72,s*.64)},
+      {opacity:1,offset:.34,transform:transform(x,y,s*.8,-4)},
+      {opacity:1,offset:.72,transform:transform(x,y,s*.78,4)},
+      {opacity:0,transform:transform(x,y+28,s*.68)}
+    ],{duration:900,easing:'cubic-bezier(.18,.82,.2,1)',fill:'forwards'})
+  ]);
+}
+async function pomponSmugOops(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.48,y=r.height*.68;
+  const sparkle=fx(scope,'sparkle_gold','success',{x:x+80,y:y-110,scale:s*.54,opacity:0});
+  const smug=pose(scope,'pompon_smug',{x,y:y+40,scale:s*.84,opacity:0});
+  await Promise.all([
+    anim(scope,sparkle,[
+      {opacity:0,transform:transform(x+80,y-100,s*.26)},
+      {opacity:1,offset:.34,transform:transform(x+80,y-118,s*.62)},
+      {opacity:.75,transform:transform(x+72,y-126,s*.52,6)}
+    ],{duration:520,easing:'ease-out',fill:'forwards'}),
+    anim(scope,smug,[
+      {opacity:0,transform:transform(x,y+55,s*.74)},
+      {opacity:1,offset:.3,transform:transform(x,y,s*.86,-2)},
+      {opacity:1,transform:transform(x,y,s*.86,2)}
+    ],{duration:700,easing:'cubic-bezier(.2,.78,.2,1)',fill:'forwards'})
+  ]);
+  hide(smug);
+  await wait(scope,80);
+  await Promise.all([
+    popFx(scope,'comic_star','impact',x+8,y+38,s*.5,4),
+    popFx(scope,'dust_impact','impact',x-35,y+70,s*.46,0)
+  ]);
+  const oops=pose(scope,'pompon_oops',{x,y,scale:s*.82,opacity:0});
+  await anim(scope,oops,[
+    {opacity:0,transform:transform(x,y-6,s*.7,-4)},
+    {opacity:1,offset:.3,transform:transform(x,y,s*.86,2)},
+    {opacity:1,offset:.78,transform:transform(x,y,s*.82,-2)},
+    {opacity:0,transform:transform(x,y+18,s*.74)}
+  ],{duration:760,easing:'ease-out',fill:'forwards'});
+}
+async function pomponStarFlyback(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.4,y=r.height*.66;
+  const star=fx(scope,'magic_star','ambient',{x:r.width*.26,y:r.height*.5,scale:s*.5,opacity:0});
+  const curious=pose(scope,'pompon_smug',{x,y,scale:s*.78,opacity:0});
+  await Promise.all([
+    anim(scope,star,[
+      {opacity:0,transform:transform(r.width*.18,r.height*.48,s*.3)},
+      {opacity:1,offset:.36,transform:transform(r.width*.34,r.height*.5,s*.54)},
+      {opacity:.9,transform:transform(r.width*.48,r.height*.48,s*.5,5)}
+    ],{duration:650,easing:'ease-out',fill:'forwards'}),
+    anim(scope,curious,[
+      {opacity:0,transform:transform(x,y+45,s*.7)},
+      {opacity:1,offset:.34,transform:transform(x,y,s*.8,-2)},
+      {opacity:1,transform:transform(x+25,y-4,s*.8,2)}
+    ],{duration:650,easing:'ease-out',fill:'forwards'})
+  ]);
+  hide(curious);hide(star);
+  const fly=pose(scope,'pompon_fly',{x:r.width*.52,y:r.height*.57,scale:s*.76,opacity:0});
+  const slash=fx(scope,'speed_slash','movement',{x:r.width*.58,y:r.height*.57,scale:s*.7,opacity:0,layer:'back'});
+  await Promise.all([
+    anim(scope,fly,[
+      {opacity:0,transform:transform(r.width*.5,r.height*.62,s*.64,-6)},
+      {opacity:1,offset:.25,transform:transform(r.width*.64,r.height*.5,s*.8,-18)},
+      {opacity:0,transform:transform(r.width+150,r.height*.36,s*.7,-28)}
+    ],{duration:520,easing:'cubic-bezier(.16,.68,.18,1)',fill:'forwards'}),
+    anim(scope,slash,[
+      {opacity:0,transform:transform(r.width*.5,r.height*.6,s*.36)},
+      {opacity:.9,offset:.36,transform:transform(r.width*.68,r.height*.5,s*.72,-12)},
+      {opacity:0,transform:transform(r.width*.88,r.height*.4,s*.92,-18)}
+    ],{duration:500,easing:'ease-out',fill:'forwards'})
+  ]);
+  await popFx(scope,'impact_starburst','impact',r.width-15,r.height*.36,s*.72,-6);
+  await wait(scope,120);
+  const wobble=pose(scope,'pompon_wobble',{x:r.width+120,y:r.height*.68,scale:s*.84,flip:-1,opacity:0});
+  const dizzy=fx(scope,'dizzy_stars','aftermath',{x:r.width*.78,y:r.height*.46,scale:s*.46,opacity:0});
+  await Promise.all([
+    anim(scope,wobble,[
+      {opacity:0,transform:transform(r.width+120,r.height*.68,s*.78,6,-1)},
+      {opacity:1,offset:.3,transform:transform(r.width*.8,r.height*.68,s*.86,-4,-1)},
+      {opacity:1,offset:.76,transform:transform(r.width*.72,r.height*.68,s*.84,4,-1)},
+      {opacity:0,transform:transform(r.width*.68,r.height*.72,s*.76,-2,-1)}
+    ],{duration:760,easing:'cubic-bezier(.18,.72,.22,1)',fill:'forwards'}),
+    anim(scope,dizzy,[
+      {opacity:0,transform:transform(r.width*.78,r.height*.46,s*.25)},
+      {opacity:.92,offset:.34,transform:transform(r.width*.78,r.height*.46,s*.5)},
+      {opacity:0,transform:transform(r.width*.8,r.height*.43,s*.58,20)}
+    ],{duration:650,easing:'ease-out',fill:'forwards'})
+  ]);
+}
+async function duoBoastDisbelief(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.5,y=r.height*.65;
+  const smug=pose(scope,'pompon_smug',{x:r.width*.38,y,scale:s*.78,opacity:0});
+  const sparkle=fx(scope,'sparkle_gold','success',{x:r.width*.42,y:y-115,scale:s*.48,opacity:0});
+  await Promise.all([
+    anim(scope,smug,[
+      {opacity:0,transform:transform(r.width*.38,y+45,s*.68)},
+      {opacity:1,offset:.3,transform:transform(r.width*.38,y,s*.8,-2)},
+      {opacity:1,transform:transform(r.width*.38,y,s*.8,2)}
+    ],{duration:620,easing:'ease-out',fill:'forwards'}),
+    anim(scope,sparkle,[
+      {opacity:0,transform:transform(r.width*.42,y-100,s*.24)},
+      {opacity:1,offset:.38,transform:transform(r.width*.42,y-120,s*.56)},
+      {opacity:.6,transform:transform(r.width*.44,y-130,s*.46,5)}
+    ],{duration:560,easing:'ease-out',fill:'forwards'})
+  ]);
+  hide(smug);hide(sparkle);
+  const duo=pose(scope,'duo_boast_disbelief',{x,y,scale:s*.9,opacity:0});
+  const sweat=fx(scope,'sweat','reaction',{x:r.width*.63,y:y-95,scale:s*.42,opacity:0});
+  await Promise.all([
+    anim(scope,duo,[
+      {opacity:0,transform:transform(x,y+8,s*.76)},
+      {opacity:1,offset:.28,transform:transform(x,y,s*.92,-2)},
+      {opacity:1,offset:.78,transform:transform(x,y,s*.9,2)},
+      {opacity:0,transform:transform(x,y+18,s*.82)}
+    ],{duration:900,easing:'cubic-bezier(.18,.8,.2,1)',fill:'forwards'}),
+    anim(scope,sweat,[
+      {opacity:0,transform:transform(r.width*.63,y-90,s*.24)},
+      {opacity:.95,offset:.35,transform:transform(r.width*.63,y-105,s*.46)},
+      {opacity:0,transform:transform(r.width*.65,y-80,s*.4)}
+    ],{duration:620,delay:140,easing:'ease-out',fill:'forwards'})
+  ]);
+}
+async function duoFailureScold(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.5,y=r.height*.66;
+  const oops=pose(scope,'pompon_oops',{x:r.width*.4,y,scale:s*.76,opacity:0});
+  await anim(scope,oops,[
+    {opacity:0,transform:transform(r.width*.4,y+42,s*.66)},
+    {opacity:1,offset:.3,transform:transform(r.width*.4,y,s*.78,-2)},
+    {opacity:1,transform:transform(r.width*.4,y,s*.78,2)}
+  ],{duration:560,easing:'ease-out',fill:'forwards'});
+  hide(oops);
+  const angry=pose(scope,'chiru_angry',{x:r.width*.63,y,scale:s*.7,flip:-1,opacity:0});
+  await Promise.all([
+    anim(scope,angry,[
+      {opacity:0,transform:transform(r.width*.63,y+35,s*.62,0,-1)},
+      {opacity:1,offset:.3,transform:transform(r.width*.63,y,s*.74,-3,-1)},
+      {opacity:1,transform:transform(r.width*.6,y,s*.74,3,-1)}
+    ],{duration:560,easing:'ease-out',fill:'forwards'}),
+    popFx(scope,'anger','anger',r.width*.68,y-110,s*.46,2)
+  ]);
+  hide(angry);
+  const duo=pose(scope,'duo_failure_scold',{x,y,scale:s*.9,opacity:0});
+  await anim(scope,duo,[
+    {opacity:0,transform:transform(x,y+6,s*.76)},
+    {opacity:1,offset:.28,transform:transform(x,y,s*.92,-2)},
+    {opacity:1,offset:.78,transform:transform(x,y,s*.9,2)},
+    {opacity:0,transform:transform(x,y+20,s*.82)}
+  ],{duration:920,easing:'cubic-bezier(.18,.82,.2,1)',fill:'forwards'});
+}
+async function duoOhNoEscape(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.5,y=r.height*.64;
+  const alert=fx(scope,'alert_red','alert',{x,y:y-130,scale:s*.56,opacity:0});
+  const duo=pose(scope,'duo_oh_no',{x,y:y+25,scale:s*.86,opacity:0});
+  await Promise.all([
+    anim(scope,alert,[
+      {opacity:0,transform:transform(x,y-110,s*.24)},
+      {opacity:1,offset:.3,transform:transform(x,y-135,s*.62)},
+      {opacity:1,offset:.7,transform:transform(x,y-135,s*.56,4)},
+      {opacity:0,transform:transform(x,y-150,s*.4,8)}
+    ],{duration:720,easing:'ease-out',fill:'forwards'}),
+    anim(scope,duo,[
+      {opacity:0,transform:transform(x,y+38,s*.74)},
+      {opacity:1,offset:.34,transform:transform(x,y,s*.9,-2)},
+      {opacity:1,offset:.72,transform:transform(x,y,s*.88,2)},
+      {opacity:0,transform:transform(x,y+10,s*.8)}
+    ],{duration:760,easing:'ease-out',fill:'forwards'})
+  ]);
+  const chase=pose(scope,'duo_chase',{x:r.width*.42,y:r.height*.68,scale:s*.8,opacity:0});
+  const speed=fx(scope,'speed_lines','movement',{x:r.width*.5,y:r.height*.7,scale:s*.82,opacity:0,layer:'back'});
+  await Promise.all([
+    anim(scope,chase,[
+      {opacity:0,transform:transform(r.width*.35,r.height*.68,s*.7)},
+      {opacity:1,offset:.22,transform:transform(r.width*.46,r.height*.68,s*.82)},
+      {opacity:0,transform:transform(r.width+170,r.height*.62,s*.74,5)}
+    ],{duration:560,easing:'cubic-bezier(.12,.74,.16,1)',fill:'forwards'}),
+    anim(scope,speed,[
+      {opacity:0,transform:transform(r.width*.36,r.height*.71,s*.4)},
+      {opacity:.88,offset:.35,transform:transform(r.width*.58,r.height*.68,s*.8)},
+      {opacity:0,transform:transform(r.width*.88,r.height*.63,s)}
+    ],{duration:540,easing:'ease-out',fill:'forwards'})
+  ]);
+}
+async function duoFriendshipOops(scope){
+  const r=rect(),s=scaleForStage(),x=r.width*.5,y=r.height*.64;
+  const duo=pose(scope,'duo_friendship_oops',{x,y,scale:s*.88,opacity:0});
+  const spark=fx(scope,'magic_sparkle','success',{x:x+80,y:y-110,scale:s*.48,opacity:0});
+  await Promise.all([
+    anim(scope,duo,[
+      {opacity:0,transform:transform(x,y+18,s*.74)},
+      {opacity:1,offset:.28,transform:transform(x,y,s*.9,-2)},
+      {opacity:1,offset:.7,transform:transform(x,y,s*.9,2)},
+      {opacity:0,transform:transform(x,y,s*.84)}
+    ],{duration:760,easing:'ease-out',fill:'forwards'}),
+    anim(scope,spark,[
+      {opacity:0,transform:transform(x+80,y-100,s*.24)},
+      {opacity:1,offset:.36,transform:transform(x+80,y-120,s*.56)},
+      {opacity:0,transform:transform(x+88,y-128,s*.42,7)}
+    ],{duration:620,easing:'ease-out',fill:'forwards'})
+  ]);
+  await wait(scope,80);
+  await popFx(scope,'comic_star','impact',x+12,y+20,s*.52,5);
+  const oh=pose(scope,'duo_oh_no',{x,y,scale:s*.86,opacity:0});
+  await anim(scope,oh,[
+    {opacity:0,transform:transform(x,y-4,s*.72,-4)},
+    {opacity:1,offset:.28,transform:transform(x,y,s*.9,2)},
+    {opacity:1,offset:.78,transform:transform(x,y,s*.86,-2)},
+    {opacity:0,transform:transform(x,y+18,s*.78)}
+  ],{duration:720,easing:'ease-out',fill:'forwards'});
 }
 async function brakeFail(scope){
   const r=rect(),s=scaleForStage(),y=r.height*.68,stopX=r.width*.44;
@@ -468,11 +769,11 @@ async function callDelivery(scope,context={}){
 }
 
 const PLAYERS=Object.freeze({
-  POMPON_PEEK:pomponPeek,POMPON_SPARKLE_SMUG:pomponSparkleSmug,
-  CHIRU_PEEK:chiruPeek,CHIRU_SNEAK:chiruSneak,
-  POMPON_BRAKE_FAIL:brakeFail,DUO_CHASE_CATCH:chaseCatch,
-  PEEK_DISCOVERY:peekDiscovery,BALL_RIDE_FAIL:ballRideFail,
-  CALL_DELIVERY:callDelivery,
+  POMPON_PEEK:pomponPeek,POMPON_SPARKLE_SMUG:pomponSparkleSmug,POMPON_STAR_SHOCK:pomponStarShock,POMPON_OOPS_QUESTION:pomponOopsQuestion,
+  CHIRU_PEEK:chiruPeek,CHIRU_SNEAK:chiruSneak,CHIRU_STAR_DODGE:chiruStarDodge,CHIRU_ALERT_SHOCK:chiruAlertShock,
+  POMPON_BRAKE_FAIL:brakeFail,POMPON_SMUG_OOPS:pomponSmugOops,POMPON_STAR_FLYBACK:pomponStarFlyback,
+  DUO_CHASE_CATCH:chaseCatch,PEEK_DISCOVERY:peekDiscovery,DUO_BOAST_DISBELIEF:duoBoastDisbelief,DUO_FAILURE_SCOLD:duoFailureScold,DUO_OH_NO_ESCAPE:duoOhNoEscape,DUO_FRIENDSHIP_OOPS:duoFriendshipOops,
+  BALL_RIDE_FAIL:ballRideFail,CALL_DELIVERY:callDelivery,
 });
 
 async function runScoped(label,fn,context={},mode='idle'){
@@ -538,7 +839,7 @@ function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'2.0.0',events:EVENTS,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  version:'3.0.0',events:EVENTS,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
   getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();

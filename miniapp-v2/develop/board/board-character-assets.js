@@ -44,8 +44,11 @@ const EFFECT_RULES=Object.freeze({
   success:Object.freeze(['sparkle_gold','magic_sparkle']),
   aftermath:Object.freeze(['dizzy_stars','dizzy_spiral']),
   alert:Object.freeze(['exclamation','alert_red']),
+  question:Object.freeze(['question']),
+  reaction:Object.freeze(['sweat']),
+  anger:Object.freeze(['anger']),
   dodge:Object.freeze(['jump_arc','speed_slash']),
-  ambient:Object.freeze(['magic_star','magic_sparkle','sparkle_gold','speed_lines']),
+  ambient:Object.freeze(['magic_star','magic_sparkle','sparkle_gold','speed_lines','dust_streak']),
 });
 const STANDALONE_CHARACTERS=Object.freeze(['pompon_peek','chiru_peek','chiru_sneak']);
 
@@ -80,7 +83,7 @@ function validatePairing(effectName,requiredSemantic){
   const allowed=EFFECT_RULES[String(requiredSemantic||'')];
   return Array.isArray(allowed)&&allowed.includes(String(effectName||''));
 }
-function diagnostics(){return{version:'3.0.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
+function diagnostics(){return{version:'3.1.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
 
 window.ASOBOON_BOARD_CHARACTER_ASSETS=Object.freeze({
   version:'3.0.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,

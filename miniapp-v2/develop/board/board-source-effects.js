@@ -6,7 +6,7 @@ if(!M||!A)return;
 const PACE=1.35;
 let currentScope=null,running=false,currentId='';
 const diagnostics={played:0,canceled:0,statusPlayed:0,cleanupRuns:0,lastEvent:null,history:[]};
-const MICRO_EVENTS=Object.freeze(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS']);
+const MICRO_EVENTS=Object.freeze(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
 
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function ms(v){return Math.round(Number(v||0)*PACE)}
@@ -78,7 +78,32 @@ async function speedPass(scope){
     {opacity:0,transform:t(end,y-6,.52,0,flip)}
   ],{duration:820,easing:'cubic-bezier(.14,.68,.2,1)',fill:'forwards'});
 }
-const PLAYERS=Object.freeze({FX_MAGIC_STAR_PASS:magicStarPass,FX_SPARKLE_SWEEP:sparkleSweep,FX_CARD_GLINT:cardGlint,FX_SPEED_PASS:speedPass});
+
+async function dustGust(scope){
+  const r=boardRect(),fromLeft=Math.random()<.5,y=r.height*.79,start=fromLeft?-90:r.width+90,end=fromLeft?r.width+90:-90,flip=fromLeft?1:-1;
+  const dust=add(scope,'dust_streak','ambient',{x:start,y,scale:.62,flip,opacity:0,layer:'back'});
+  await anim(scope,dust,[
+    {opacity:0,transform:t(start,y,.38,0,flip)},
+    {opacity:.72,offset:.28,transform:t(fromLeft?r.width*.28:r.width*.72,y-4,.7,0,flip)},
+    {opacity:.62,offset:.72,transform:t(fromLeft?r.width*.72:r.width*.28,y+2,.68,0,flip)},
+    {opacity:0,transform:t(end,y-2,.44,0,flip)}
+  ],{duration:980,easing:'cubic-bezier(.18,.62,.2,1)',fill:'forwards'});
+}
+async function magicTrail(scope){
+  const r=boardRect(),fromLeft=Math.random()<.5,startX=fromLeft?-70:r.width+70,endX=fromLeft?r.width+70:-70,flip=fromLeft?1:-1;
+  const points=[[0,.34],[.5,.28],[1,.4]];
+  await Promise.all(points.map(([p,py],i)=>{
+    const x=startX+(endX-startX)*p,y=r.height*py;
+    const e=add(scope,'magic_sparkle','ambient',{x,y,scale:.38+i*.05,flip,opacity:0});
+    return anim(scope,e,[
+      {opacity:0,transform:t(x,y+8,.2,0,flip)},
+      {opacity:.95,offset:.34,transform:t(x,y,.5+i*.06,4,flip)},
+      {opacity:.7,offset:.72,transform:t(x+(fromLeft?20:-20),y-8,.44+i*.05,8,flip)},
+      {opacity:0,transform:t(x+(fromLeft?35:-35),y-14,.3,12,flip)}
+    ],{duration:760,delay:i*120,easing:'ease-out',fill:'forwards'});
+  }));
+}
+const PLAYERS=Object.freeze({FX_MAGIC_STAR_PASS:magicStarPass,FX_SPARKLE_SWEEP:sparkleSweep,FX_CARD_GLINT:cardGlint,FX_SPEED_PASS:speedPass,FX_DUST_GUST:dustGust,FX_MAGIC_TRAIL:magicTrail});
 
 async function play(id){
   if(running)return{played:false,reason:'busy'};
@@ -115,5 +140,5 @@ async function playStatusReaction(kind,{rect}={}){
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:[...MICRO_EVENTS],pace:PACE,sourcePolicy:'effects_pack_v2-only',semanticPolicy:'context-matched-only'}}
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.statusPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
-window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'2.0.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
+window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.0.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
 })();

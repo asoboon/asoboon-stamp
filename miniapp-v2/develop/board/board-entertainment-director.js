@@ -7,11 +7,11 @@ if(!CHAR||!SOURCEFX)return;
 
 const CHARACTER_CATEGORIES=new Set(['POMPON_CAMEO','CHIRU_CAMEO','POMPON_STORY','DUO_STORY','RARE_STORY']);
 const BAG_TEMPLATE=Object.freeze({
-  SOURCE_FX:21,
+  SOURCE_FX:30,
   POMPON_CAMEO:4,
-  CHIRU_CAMEO:2,
-  POMPON_STORY:2,
-  DUO_STORY:2,
+  CHIRU_CAMEO:4,
+  POMPON_STORY:3,
+  DUO_STORY:6,
   RARE_STORY:1,
 });
 const CONFIG={
@@ -149,5 +149,5 @@ function simulateCycleForTest(seed=12345){
   return{slots:shuffled.length,counts,uniqueSeen:seen.size,totalPatterns:new Set(all).size,missing:[...new Set(all)].filter(x=>!seen.has(x)),characterRate:shuffled.filter(isCharacter).length/shuffled.length};
 }
 
-window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'4.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,setBagForTest,simulateCycleForTest});
+window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'5.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,setBagForTest,simulateCycleForTest});
 })();

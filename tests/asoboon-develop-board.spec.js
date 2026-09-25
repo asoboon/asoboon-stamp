@@ -742,19 +742,19 @@ test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use',
   expect(assets).toContain("dizzy_spiral");
 });
 
-test('entertainment director uses a 32-slot shuffle bag and guarantees every idle pattern once per cycle', async ({ page }) => {
+test('entertainment director uses a 48-slot shuffle bag and guarantees all 24 idle patterns once per cycle', async ({ page }) => {
   await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
   const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateCycleForTest(12345));
-  expect(result.slots).toBe(32);
-  expect(result.counts.SOURCE_FX).toBe(21);
+  expect(result.slots).toBe(48);
+  expect(result.counts.SOURCE_FX).toBe(30);
   expect(result.counts.POMPON_CAMEO).toBe(4);
-  expect(result.counts.CHIRU_CAMEO).toBe(2);
-  expect(result.counts.POMPON_STORY).toBe(2);
-  expect(result.counts.DUO_STORY).toBe(2);
+  expect(result.counts.CHIRU_CAMEO).toBe(4);
+  expect(result.counts.POMPON_STORY).toBe(3);
+  expect(result.counts.DUO_STORY).toBe(6);
   expect(result.counts.RARE_STORY).toBe(1);
-  expect(result.characterRate).toBeCloseTo(11/32, 5);
+  expect(result.characterRate).toBeCloseTo(18/48, 5);
   expect(result.uniqueSeen).toBe(result.totalPatterns);
-  expect(result.totalPatterns).toBe(12);
+  expect(result.totalPatterns).toBe(24);
   expect(result.missing).toEqual([]);
 });
 
@@ -848,11 +848,11 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
     sourceFx:window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics(),
   }));
   expect(state.director.legacyIdleInNormalRotation).toBe(false);
-  expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','CHIRU_PEEK','CHIRU_SNEAK','POMPON_BRAKE_FAIL','DUO_CHASE_CATCH']));
+  expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','POMPON_STAR_SHOCK','POMPON_OOPS_QUESTION','CHIRU_PEEK','CHIRU_SNEAK','CHIRU_STAR_DODGE','CHIRU_ALERT_SHOCK','POMPON_BRAKE_FAIL','POMPON_SMUG_OOPS','POMPON_STAR_FLYBACK','DUO_CHASE_CATCH','DUO_BOAST_DISBELIEF','DUO_FAILURE_SCOLD','DUO_OH_NO_ESCAPE','DUO_FRIENDSHIP_OOPS']));
   expect(state.chars).not.toEqual(expect.arrayContaining(['POMPON_DASH_BY','CHIRU_WATCH','CHIRU_EXASPERATED']));
   expect(state.sourceFx.sourcePolicy).toBe('effects_pack_v2-only');
   expect(state.sourceFx.semanticPolicy).toBe('context-matched-only');
-  expect(state.sourceFx.events).toEqual(expect.arrayContaining(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS']));
+  expect(state.sourceFx.events).toEqual(expect.arrayContaining(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']));
   expect(state.sourceFx.events).not.toEqual(expect.arrayContaining(['FX_DUST_BOUNCE','FX_OFFSCREEN_BONK','FX_STAR_POP']));
 });
 
@@ -867,10 +867,12 @@ test('source asset database locks approved sources and contextual use rules', as
   expect(chiruWatch.standalone_ok).toBe(false);
   expect(duoCatch.semantic).toBe('catch');
   expect(db.contextual_rules.jump_arc).toContain('衝突表現には使用禁止');
-  expect(db.runtime_event_rules.standalone_character_events).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','CHIRU_PEEK','CHIRU_SNEAK']));
+  expect(db.runtime_event_rules.standalone_character_events).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','POMPON_STAR_SHOCK','POMPON_OOPS_QUESTION','CHIRU_PEEK','CHIRU_SNEAK','CHIRU_STAR_DODGE','CHIRU_ALERT_SHOCK']));
   expect(db.runtime_event_rules.forbidden_standalone_character_assets).toEqual(expect.arrayContaining(['chiru_watch','chiru_exasperated','chiru_retort']));
-  expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS']);
+  expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
   expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
+  expect(db.pattern_catalog.total_idle_patterns).toBe(24);
+  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(48);
 });
 
 
@@ -903,4 +905,64 @@ test('real status effects serialize major presentations and do not use legacy ca
   expect(code).not.toContain("const particles=runParticles('hold'");
   expect(code).not.toContain("const particles=runParticles('cancel'");
   expect(code).toContain("onomatopoeia('キタ！'");
+});
+
+
+test('all 18 character idle patterns play, clean up, and preserve ticket data', async ({ page }) => {
+  test.setTimeout(30000);
+  const h = await installBoard(page, [payload([
+    { number:'8251', state:'waiting', order:1 },
+    { number:'8252', state:'calling', order:2 },
+    { number:'8253', state:'hold', order:3 },
+  ])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.015,{persistValue:false});
+    window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+  });
+  const ids=await page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.events.map(x=>x.id));
+  expect(ids).toHaveLength(18);
+  for(const id of ids){
+    const result=await page.evaluate(async eventId=>{
+      const fx=window.ASOBOON_BOARD_EFFECTS;
+      fx.resetPerformanceBaseline();
+      const played=await window.ASOBOON_BOARD_CHARACTER_EVENTS.playEventForTest(eventId);
+      return{
+        played,
+        runtime:fx.diagnostics(),
+        numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+        tempNodes:document.querySelectorAll('.pc-sprite,.pc-giant-ball').length,
+      };
+    },id);
+    expect(result.played.played,id).toBe(true);
+    expect(result.runtime.activeScopes,id).toBe(0);
+    expect(result.runtime.domDeltaPeak,id).toBeLessThanOrEqual(20);
+    expect(result.tempNodes,id).toBe(0);
+    expect(result.numbers,id).toEqual(['8251','8252','8253']);
+  }
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('all six source effect patterns play and clean up', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8261', state:'waiting', order:1 }])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.02,{persistValue:false});
+    window.ASOBOON_BOARD_SOURCE_EFFECTS.resetForTest();
+  });
+  const ids=await page.evaluate(() => [...window.ASOBOON_BOARD_SOURCE_EFFECTS.events]);
+  expect(ids).toHaveLength(6);
+  for(const id of ids){
+    const result=await page.evaluate(async eventId=>{
+      const played=await window.ASOBOON_BOARD_SOURCE_EFFECTS.play(eventId);
+      return{
+        played,
+        running:window.ASOBOON_BOARD_SOURCE_EFFECTS.getDiagnostics().running,
+        tempNodes:document.querySelectorAll('.pc-effect').length,
+        scopes:window.ASOBOON_BOARD_EFFECTS.diagnostics().activeScopes,
+      };
+    },id);
+    expect(result.played.played,id).toBe(true);
+    expect(result.running,id).toBe(false);
+    expect(result.tempNodes,id).toBe(0);
+    expect(result.scopes,id).toBe(0);
+  }
 });
