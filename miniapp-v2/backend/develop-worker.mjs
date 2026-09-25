@@ -17,7 +17,7 @@ const ALLOWED_ORIGIN = 'https://asoboon.github.io';
 const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
-const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0030','0032','0034','0036','0038']);
+const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0024','0027','0030','0032','0034','0036','0038']);
 const BOARD_SLOT_SPECS = Object.freeze({
   '平日':Object.freeze([
     Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
