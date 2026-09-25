@@ -131,6 +131,12 @@ jobs:
           if(!same(ids('平日特定日','web'),['0036','0038'])) throw new Error('special weekday web slot IDs mismatch');
           if(!same(ids('平日特定日','onsite'),['0035','0037'])) throw new Error('special weekday onsite slot IDs mismatch');
           if(!same(ids('平日','web'),['0024','0027'])) throw new Error('regular weekday web slot IDs mismatch');
+          const home=fs.readFileSync('miniapp-v2/develop/home-v38.js','utf8');
+          if(home.includes('本日は現地受付です')) throw new Error('weekday HOME must not force onsite reception');
+          if(home.includes('平日の混雑目安は現在準備中です')) throw new Error('weekday crowd must not remain in prepared-only state');
+          if(!home.includes("'平日':Object.freeze(['0024','0027'])")) throw new Error('weekday crowd slot IDs missing from HOME');
+          const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
+          if(!worker.includes("['0024','0027','0030','0032','0034','0036','0038']")) throw new Error('weekday crowd slot IDs missing from Worker');
           if(Number(r.operationalCutoffHour)!==19) throw new Error('operational cutoff must be 19');
           NODE
           grep -F "const allowed = SLOT_RULES[mode]?.[day.businessType] || [];" miniapp-v2/backend/develop-gateway.js
