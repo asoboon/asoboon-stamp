@@ -60,13 +60,13 @@ class LifecycleDB {
   }
 }
 
-test('WEB and onsite waitType IDs are separated and regular weekday WEB is empty', () => {
+test('WEB and onsite waitType IDs are separated and regular weekdays also expose WEB slots', () => {
   const r = runtime.SLOT_RULES;
   assert.deepEqual(Array.from(r.web['土日祝日']), ['0030','0032','0034']);
   assert.deepEqual(Array.from(r.onsite['土日祝日']), ['0029','0031','0033']);
   assert.deepEqual(Array.from(r.web['平日特定日']), ['0036','0038']);
   assert.deepEqual(Array.from(r.onsite['平日特定日']), ['0035','0037']);
-  assert.deepEqual(Array.from(r.web['平日']), []);
+  assert.deepEqual(Array.from(r.web['平日']), ['0024','0027']);
   assert.deepEqual(Array.from(r.onsite['平日']), ['0023','0025']);
 });
 
