@@ -46,7 +46,7 @@ const SLOT_RULES = Object.freeze({
     '休館': Object.freeze([]),
   }),
   web: Object.freeze({
-    '平日': Object.freeze(['0024', '0027']),
+    '平日': Object.freeze(['0023', '0024', '0025', '0027']),
     '平日特定日': Object.freeze(['0036', '0038']),
     '土日祝日': Object.freeze(['0030', '0032', '0034']),
     '休館': Object.freeze([]),
@@ -324,7 +324,12 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
+  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  if (regularWeekdayLine) {
+    const u=String(w.usageDispType||'');
+    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  }
   return w;
 }
 
