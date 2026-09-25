@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.6.dev-weekday-web',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.7.dev-weekday-all-slots',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -86,7 +86,12 @@ replaceOnce(
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
+  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  if (regularWeekdayLine) {
+    const u=String(w.usageDispType||'');
+    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  }
   return w;
 }`,
 `function validateWaitType(waitTypes, day, mode, waitTypeId) {
@@ -101,7 +106,12 @@ replaceOnce(
     return w;
   }
   if (w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
+  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  if (regularWeekdayLine) {
+    const u=String(w.usageDispType||'');
+    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  }
   return w;
 }`
 );
