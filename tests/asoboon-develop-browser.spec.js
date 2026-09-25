@@ -124,7 +124,7 @@ test('Developing LINE reception exposes live WEB slots and no location UI', asyn
   }));
   expect(rules.web).toEqual(['0030','0032','0034']);
   expect(rules.onsite).toEqual(['0029','0031','0033']);
-  expect(rules.regularWeb).toEqual(['0024','0027']);
+  expect(rules.regularWeb).toEqual(['0023','0024','0025','0027']);
   expect(rules.specialWeb).toEqual(['0036','0038']);
 
   await page.locator('[data-v7-view="reception"]').click();
