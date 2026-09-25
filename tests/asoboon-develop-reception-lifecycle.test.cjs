@@ -66,7 +66,7 @@ test('WEB and onsite waitType IDs are separated and regular weekdays also expose
   assert.deepEqual(Array.from(r.onsite['土日祝日']), ['0029','0031','0033']);
   assert.deepEqual(Array.from(r.web['平日特定日']), ['0036','0038']);
   assert.deepEqual(Array.from(r.onsite['平日特定日']), ['0035','0037']);
-  assert.deepEqual(Array.from(r.web['平日']), ['0024','0027']);
+  assert.deepEqual(Array.from(r.web['平日']), ['0023','0024','0025','0027']);
   assert.deepEqual(Array.from(r.onsite['平日']), ['0023','0025']);
 });
 
@@ -77,6 +77,8 @@ test('0042 is a Developing-only exception while customer slots still enforce ava
   assert.throws(()=>runtime.validateWaitType(disabledCustomer,{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_NOT_AVAILABLE/);
   const storeOnly=[{waitTypeId:'0030',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
   assert.throws(()=>runtime.validateWaitType(storeOnly,{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_MODE_MISMATCH/);
+  const weekdayStore=[{waitTypeId:'0023',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
+  assert.equal(runtime.validateWaitType(weekdayStore,{businessType:'平日'},'web','0023').waitTypeId,'0023');
   assert.throws(()=>runtime.validateWaitType([],{businessType:'土日祝日'},'web','0030'),/WAIT_TYPE_NOT_AVAILABLE/);
 });
 
