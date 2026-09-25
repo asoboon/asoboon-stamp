@@ -124,14 +124,16 @@ test('next HOME renders five distinct reception states and keeps reservation fac
     [{ kind:'guided', receipt:'F123' }, '案内済み', 'ご入場済みです', /guided/],
     [{ kind:'canceled', receipt:'F123', canceled:true }, '取り消し', '受付が取り消されました', /canceled/],
   ];
-  for (const [detail,label,title,cls] of states) {
-    await setStatus(page, detail);
+  for (const [index, [detail,label,title,cls]] of states.entries()) {
+    const receipt=`F${123+index}`;
+    await page.evaluate(number => { const key='asoboon_v2_current_reservation_develop_v1'; const rec=JSON.parse(localStorage.getItem(key)); rec.receiptNo=number; localStorage.setItem(key,JSON.stringify(rec)); }, receipt);
+    await setStatus(page, { ...detail, receipt });
     await expect(page.locator('#v38Hero')).toHaveClass(cls);
     await expect(page.locator('#v38Hero .v38-state-label')).toHaveText(label);
     await expect(page.locator('#v38Hero')).toContainText(title);
     const card=page.locator('#v38Hero .v38-reservation-card');
     await expect(card).toContainText('受付番号');
-    await expect(card).toContainText('F123');
+    await expect(card).toContainText(receipt);
     await expect(card).toContainText('利用日');
     await expect(card).toContainText('9月19日');
     await expect(card).toContainText('おとな 1名');
@@ -270,6 +272,17 @@ for (const state of ['processing','done']) {
   });
 }
 
+test('confirmed admission survives weak updates and rejected backward transitions', async ({ page }) => {
+  await openStatusScenario(page, { ok:true, found:true, state:'calling', receiptNo:'F123', businessDate:'2026-09-19', checkedAt:Date.now() });
+  await expect(page.locator('#v38Hero')).toContainText('ご入場可能です');
+  await setStatus(page, { kind:'sync', receipt:'F123' });
+  await setStatus(page, { kind:'error', receipt:'F123' });
+  await setStatus(page, { kind:'waiting', receipt:'F123', ahead:12 });
+  await expect(page.locator('#v38Hero')).toContainText('ご入場可能です');
+  await expect(page.locator('#v38Hero')).toContainText('最新情報を確認できませんでした');
+  await expect(page.locator('#v38Hero .v38-reservation-card')).toContainText('F123');
+});
+
 test('missing session settles on an actionable error instead of loading forever', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({ receiptNo: 'F123', businessDate: '2026-09-19' })));
   await installNextHome(page, 'resolve');
@@ -286,6 +299,21 @@ test('LIFF-ready during refresh queues exactly one follow-up refresh', async ({ 
   await expect.poll(() => calls).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#v38Hero')).toContainText('あと8組');
 });
+
+for (const width of [320, 375, 390, 430]) {
+  test(`reservation facts stay readable at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await openStatusScenario(page, { ok:true, found:true, state:'calling', receiptNo:'F123', businessDate:'2026-09-19', checkedAt:Date.now() });
+    await expect(page.locator('#v38Hero')).toContainText('ご入場可能です');
+    const card=page.locator('#v38Hero .v38-reservation-card');
+    await expect(card).toContainText('F123');
+    await expect(card).toContainText('9月19日');
+    await expect(card).toContainText('おとな 1名');
+    const values=await card.locator('strong').evaluateAll(items => items.map(el => ({ size:parseFloat(getComputedStyle(el).fontSize), width:el.scrollWidth, visible:el.clientWidth })));
+    expect(values.every(value => value.size>=14 && value.width<=value.visible+1)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
+  });
+}
 
 for (const width of [320, 375, 390, 430]) {
   test(`v38 visual viewport ${width}px`, async ({ page }) => {
