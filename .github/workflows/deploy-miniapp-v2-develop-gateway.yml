@@ -223,6 +223,37 @@ jobs:
             });
           '
 
+      - name: Verify Developing crowd diagnostics
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=crowdRemaining&diag=${GITHUB_SHA}")"
+          printf '%s' "$RESPONSE" | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              if(x.ok!==true || !Array.isArray(x.slots)) throw new Error("crowdRemaining unavailable");
+              const summary=x.slots.map(v=>({
+                waitTypeId:String(v.waitTypeId||""),
+                slotKey:String(v.slotKey||""),
+                matchMode:String(v.matchMode||""),
+                reserveUnit:String(v.reserveUnit||""),
+                evidence:String(v.evidence||""),
+                remaining:Number.isInteger(v.remaining)?v.remaining:null
+              }));
+              console.log("Developing crowd slot diagnostics:");
+              console.log(JSON.stringify(summary,null,2));
+              if(Array.isArray(x.diagnostics)){
+                console.log("Developing crowd matching diagnostics:");
+                console.log(JSON.stringify(x.diagnostics,null,2));
+              }
+              if(Array.isArray(x.observedDetails)){
+                console.log("Developing crowd observed AirWAIT details:");
+                console.log(JSON.stringify(x.observedDetails,null,2));
+              }
+            });
+          '
       - name: Verify AirWAIT local test slot metadata read-only
         if: steps.credentials.outputs.available == 'true'
         run: |
