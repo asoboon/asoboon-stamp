@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <title>ASOBooN 呼出状況</title>
-  <link rel="stylesheet" href="./board.css?v=8">
+  <link rel="stylesheet" href="./board.css?v=9">
 </head>
 <body>
   <main class="board" aria-label="ASOBooN 呼出状況掲示板">
@@ -17,10 +17,10 @@
       </div>
 
       <div class="session-sign" aria-label="現在表示中の利用回">
-        <span class="session-kicker">本日のご案内</span>
+        <span id="sessionKicker" class="session-kicker">本日のご案内</span>
         <div class="session-main">
           <strong id="slotLabel">10:00</strong>
-          <span>の回</span>
+          <span id="slotSuffix">の回</span>
         </div>
         <small id="slotCount"></small>
       </div>
@@ -57,14 +57,15 @@
     <footer class="board-footer">
       <div id="connection" class="connection"><span class="live-dot"></span>接続を確認しています</div>
       <div class="footer-center">川口ハイウェイオアシス</div>
+      <div id="boardDiagnostics" class="board-diagnostics" hidden></div>
       <div class="updated">最終更新 <time id="updatedAt">--:--:--</time></div>
     </footer>
   </main>
   <script src="../env.js"></script>
-  <script src="./board-effects-runtime.js?v=8"></script>
-  <script src="./board-world.js?v=8"></script>
-  <script src="./board-animations.js?v=8"></script>
-  <script src="./board-idle-events.js?v=8"></script>
-  <script src="./board.js?v=8"></script>
+  <script src="./board-effects-runtime.js?v=9"></script>
+  <script src="./board-world.js?v=9"></script>
+  <script src="./board-animations.js?v=9"></script>
+  <script src="./board-idle-events.js?v=9"></script>
+  <script src="./board.js?v=9"></script>
 </body>
 </html>
