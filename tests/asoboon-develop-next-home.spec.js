@@ -5,7 +5,13 @@ const path = require('node:path');
 const BASE = process.env.ASOBOON_BASE_URL || 'http://127.0.0.1:4173/miniapp-v2/develop/';
 const LOCAL_INDEX = path.join(process.cwd(), 'miniapp-v2/develop/index.html');
 
-async function installNextHome(page, liffMode = 'resolve', statusFixture = null) {
+async function installNextHome(page, liffMode = 'resolve', statusFixture = null, options = {}) {
+  const dayFixture = options.dayFixture || { ok:true, operationalDate:'2026-09-19', businessType:'土日祝日', durationLabel:'9:30〜18:00', closingTime:'18:00' };
+  const crowdFixture = options.crowdFixture || [
+    { waitTypeId:'0030', waitTypeName:'10時ご入場枠', detailedWaitType:'10時ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', remaining:195 },
+    { waitTypeId:'0032', waitTypeName:'12時半ご入場枠', detailedWaitType:'12時半ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', remaining:71 },
+    { waitTypeId:'0034', waitTypeName:'15時ご入場枠', detailedWaitType:'15時ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', remaining:25 },
+  ];
   await page.addInitScript(() => {
     const RealDate = Date;
     const fixed = new RealDate('2026-09-19T03:00:00.000Z').valueOf();
@@ -30,19 +36,10 @@ async function installNextHome(page, liffMode = 'resolve', statusFixture = null)
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
     }
     if (url.searchParams.get('action') === 'businessDay') {
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', durationLabel: '9:30〜18:00', closingTime: '18:00'
-      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(dayFixture) });
     }
     if (url.searchParams.get('action') === 'crowdRemaining') {
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        ok: true,
-        slots: [
-          { waitTypeId: '0030', waitTypeName: '10時ご入場枠', detailedWaitType: '10時ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 195 },
-          { waitTypeId: '0032', waitTypeName: '12時半ご入場枠', detailedWaitType: '12時半ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 71 },
-          { waitTypeId: '0034', waitTypeName: '15時ご入場枠', detailedWaitType: '15時ご入場枠', reserveUnit: 'PERSON', evidence: 'PERSON', remaining: 25 }
-        ]
-      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok:true, slots:crowdFixture }) });
     }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
@@ -205,6 +202,28 @@ test('today section shows verified per-slot crowd estimates without acceptance c
   await expect(fifteen).toHaveClass(/crowd-very-high/);
   const text = await box.innerText();
   expect(text).not.toMatch(/受付できます|受付終了|満員|350名|310名/);
+});
+
+test('regular weekday HOME exposes LINE reception and 10:00 / 14:00 crowd estimates', async ({ page }) => {
+  await installNextHome(page, 'resolve', null, {
+    dayFixture:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', durationLabel:'10:00〜17:00', closingTime:'17:00' },
+    crowdFixture:[
+      { waitTypeId:'0024', waitTypeName:'10時ご入場枠【WEB平日】', detailedWaitType:'10時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', remaining:155 },
+      { waitTypeId:'0027', waitTypeName:'14時ご入場枠【WEB平日】', detailedWaitType:'14時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', remaining:85 },
+    ],
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.v38-home')).toBeVisible();
+  await expect(page.locator('#v38Hero')).toContainText('当日受付');
+  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
+  await expect(page.locator('#v38Hero')).not.toContainText('本日は現地受付です');
+  const box=page.locator('#v38Slots');
+  await expect(box).not.toContainText('準備中');
+  await expect(box).toContainText('10:00回');
+  await expect(box).toContainText('14:00回');
+  await expect(box.locator('.v38-crowd-card')).toHaveCount(2);
+  await expect(box).toContainText('155名');
+  await expect(box).toContainText('85名');
 });
 
 test('waiting and calling use distinct semantic presentation', async ({ page }) => {
