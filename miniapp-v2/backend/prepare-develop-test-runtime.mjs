@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.7.dev-weekday-all-slots',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.8.dev-businessday-resilient',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -185,7 +185,17 @@ async function getWaitTypesForCreate(env) {
 
 const createBusinessDayCache = new Map();
 const createBusinessDayInflight = new Map();
-const CREATE_BUSINESS_DAY_CACHE_MS = 60 * 1000;
+const CREATE_BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
+const CREATE_BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
+
+function parseBusinessDayCacheRow(row,date){
+  if(!row)return null;
+  try{
+    const value=JSON.parse(String(row.value||''));
+    if(value?.operationalDate!==date||!BUSINESS_RULES[value.businessType])return null;
+    return{savedAt:Number(row.updated_at||0),value};
+  }catch{return null}
+}
 
 async function getBusinessDayCachedForCreate(env, date) {
   const now = Date.now();
@@ -195,23 +205,30 @@ async function getBusinessDayCachedForCreate(env, date) {
 
   const dbKey = 'business_day:' + date;
   const dbRow = await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1').bind(dbKey).first();
-  if (dbRow && now - Number(dbRow.updated_at || 0) < CREATE_BUSINESS_DAY_CACHE_MS) {
-    try {
-      const value = JSON.parse(String(dbRow.value || ''));
-      if (value?.operationalDate === date && BUSINESS_RULES[value.businessType]) {
-        createBusinessDayCache.set(date, { savedAt: now, value });
-        return value;
-      }
-    } catch {}
+  const stored=parseBusinessDayCacheRow(dbRow,date);
+  if (stored && now-stored.savedAt < CREATE_BUSINESS_DAY_CACHE_MS) {
+    createBusinessDayCache.set(date,stored);
+    return stored.value;
   }
 
   const job = (async () => {
-    const value = await getBusinessDay(date);
-    createBusinessDayCache.set(date, { savedAt: Date.now(), value });
-    await env.DB.prepare(
-      'INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at'
-    ).bind(dbKey, JSON.stringify(value), Date.now()).run();
-    return value;
+    try{
+      const value = await getBusinessDay(date);
+      const savedAt=Date.now();
+      createBusinessDayCache.set(date, { savedAt, value });
+      await env.DB.prepare(
+        'INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at'
+      ).bind(dbKey, JSON.stringify(value), savedAt).run();
+      return value;
+    }catch(e){
+      const memoryFallback=createBusinessDayCache.get(date);
+      if(memoryFallback&&Date.now()-memoryFallback.savedAt<CREATE_BUSINESS_DAY_STALE_FALLBACK_MS)return memoryFallback.value;
+      if(stored&&Date.now()-stored.savedAt<CREATE_BUSINESS_DAY_STALE_FALLBACK_MS){
+        createBusinessDayCache.set(date,stored);
+        return stored.value;
+      }
+      throw e;
+    }
   })();
   createBusinessDayInflight.set(date, job);
   try { return await job; }
