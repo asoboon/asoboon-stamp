@@ -192,7 +192,7 @@ async function boot(){
   if(DEVELOP_TEST_ONLY&&S.canCreate&&hasTest){status('🧪 「入場不可テスト」で受付動作を確認できます。','ok');return}
   if(S.day?.isClosed&&hasTest){status('本日は休館日です。🧪 Developingテスト枠のみ確認できます。','warn');return}
   if(S.day?.isClosed){status('本日は休館日です。','warn');return}
-  if(!S.slots.length){status(S.day?.businessType==='平日'&&S.mode==='web'?'本日は現地受付です。LINE当日受付はありません。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。','warn');return}
+  if(!S.slots.length){status(S.mode==='web'?'現在受付できるLINE受付枠がありません。AirWAITの受付状況をご確認ください。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。','warn');return}
   if(S.canCreate&&hasTest){status('🧪 Developing：利用可能なテスト枠を選んで実受付テストできます。','warn');return}
   if(S.canCreate){status('LINE本人確認・営業日・Gateway接続を確認しました。受付できます。','ok');return}
   status('受付に必要な確認が完了していないため、最終確定を停止しています。','warn');
