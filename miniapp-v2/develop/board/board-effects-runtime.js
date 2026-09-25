@@ -193,7 +193,7 @@ function createScope(label='effect'){
   let cleaned=false;
   const scope={
     label,signal:controller.signal,
-    add(node,which='back'){if(!node)return node;getLayer(which).appendChild(node);nodes.add(node);return node},
+    add(node,which='back'){if(!node)return node;if(cleaned||controller.signal.aborted){try{node.remove()}catch{}return null}getLayer(which).appendChild(node);nodes.add(node);return node},
     animate(el,keyframes,options={}){
       if(!el?.animate||controller.signal.aborted)return Promise.resolve();
       const opts={...options};
@@ -261,7 +261,7 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.1.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
+  version:'2.1.1',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
