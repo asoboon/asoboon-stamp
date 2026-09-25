@@ -18,7 +18,10 @@ const SLOT_RULES=Object.freeze({
     '休館':Object.freeze([])
   }),
   web:Object.freeze({
-    '平日':Object.freeze([]),
+    '平日':Object.freeze([
+      Object.freeze({waitTypeId:'0024',label:'10:00の回',detail:'10:00からのご入場枠'}),
+      Object.freeze({waitTypeId:'0027',label:'14:00の回',detail:'14:00からのご入場枠'})
+    ]),
     '平日特定日':Object.freeze([
       Object.freeze({waitTypeId:'0036',label:'10:00の回',detail:'10:00からの3時間利用'}),
       Object.freeze({waitTypeId:'0038',label:'13:30の回',detail:'13:30からの3時間利用'})
@@ -43,7 +46,7 @@ function priceFor({adult=0,child=0,infant=0}={}){
   return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirstWhenNoPaidChild;
 }
 const RULES=Object.freeze({
-  version:'1.0.2',
+  version:'1.0.3',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:19,
   onsiteOpen:'09:30',
