@@ -188,7 +188,7 @@ function getDiagnostics(){
 }
 function resetForTest(){
   CHAR.cancel?.('test-reset');IDLE.cancelIdleEvent?.('test-reset');
-  ready=true;cooldownUntil=0;lastCharacterAt=0;lastPomponStoryAt=0;lastDuoStoryAt=0;lastRareAt=0;beatHistory=[];eventHistory=[];sequence=0;
+  ready=true;cooldownUntil=0;lastCharacterAt=Date.now();lastPomponStoryAt=0;lastDuoStoryAt=0;lastRareAt=0;beatHistory=[];eventHistory=[];sequence=0;
   for(const k of Object.keys(diagnostics)){if(typeof diagnostics[k]==='number')diagnostics[k]=0}
   diagnostics.lastDecision='none';diagnostics.lastEvent=null;diagnostics.history=[];
 }
