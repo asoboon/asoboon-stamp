@@ -2,6 +2,7 @@
 
 const M=window.ASOBOON_BOARD_EFFECTS;
 const WORLD=window.ASOBOON_BOARD_WORLD;
+const CHAR=window.ASOBOON_BOARD_CHARACTER_EVENTS||null;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
 const MAX_CONCURRENT=2;
@@ -289,6 +290,7 @@ async function playCallAnimation({element,frame,rare}){
   onomatopoeia(rare?'ドッカーン!!':'ドカン！',rect,'call');
   const particles=runParticles('call',rect,{rare,level:lvl});
   const world=WORLD?.playStatusReaction?.('call',{grid:element?.closest?.('.queue-grid')||document.getElementById('queueGrid'),level:lvl,rect})||Promise.resolve();
+  const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
     {transform:'scale(1.045)'},
@@ -316,7 +318,7 @@ async function playCallAnimation({element,frame,rare}){
   }
   if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(480):480);
   if(rare&&!reduced) setTimeout(()=>{void runParticles('call',rect,{rare:true,level:lvl,secondary:true})},M?M.ms(360):360);
-  await Promise.all([flight,particles,elementPulse,world]);
+  await Promise.all([flight,particles,elementPulse,world,character]);
 }
 async function playGuidedAnimation({element,frame}){
   const source=frame||currentFrame(element);
@@ -511,7 +513,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.0.0',
+  version:'1.1.0',
   capture,
   observe,
   playStatusAnimation,

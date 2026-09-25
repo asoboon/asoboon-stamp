@@ -543,6 +543,18 @@ async function playStoryOrb(def,ctx){
   else await playDrop({...def,shape:'orb'},ctx);
 }
 
+async function playWorldForDirector({grid=document.getElementById('queueGrid'),tier=''}={}){
+  if(running)return{played:false,reason:'idle-running'};
+  if(realFxBusy())return{played:false,reason:'real-fx-busy'};
+  if(document.visibilityState==='hidden')return{played:false,reason:'hidden'};
+  const resolvedTier=['small','medium','large','rare'].includes(String(tier||''))?String(tier):pickTier();
+  const event=pickEvent(resolvedTier);
+  if(!event)return{played:false,reason:'no-event'};
+  const canceledBefore=diagnostics.canceled;
+  await playIdleEvent(event,{grid});
+  if(diagnostics.canceled>canceledBefore)return{played:false,reason:'interrupted',id:event.id,tier:event.tier};
+  return{played:true,id:event.id,tier:event.tier};
+}
 function setConfig(patch={}){
   for(const key of ['ANIMATION_ENABLED','IDLE_EVENTS_ENABLED','RARE_EVENTS_ENABLED'])if(key in patch)CONFIG[key]=Boolean(patch[key]);
   if('ANIMATION_LEVEL'in patch)CONFIG.ANIMATION_LEVEL=clamp(Math.round(Number(patch.ANIMATION_LEVEL)||0),0,3);
@@ -565,13 +577,14 @@ function resetForTest(){
 document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelIdleEvent('hidden')});
 
 window.ASOBOON_BOARD_IDLE_EVENTS=Object.freeze({
-  version:'1.0.0',
+  version:'1.1.0',
   events:IDLE_EVENTS,
   onBaseline,
   onRealChange,
   onStableUpdate,
   onCommunicationError,
   cancelIdleEvent,
+  playWorldForDirector,
   setConfig,
   getConfig,
   getDiagnostics,

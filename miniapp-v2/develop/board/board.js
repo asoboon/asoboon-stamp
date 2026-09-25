@@ -2,6 +2,7 @@
 const E=window.ASOBOON_V2_ENV||{};
 const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
+const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
 const REFRESH_MS=10000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
@@ -153,15 +154,23 @@ function updateDiagnostics(context,data){
   const debug=new URLSearchParams(location.search).get('debug')==='1'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
   el.hidden=!debug;
   if(!debug)return;
+  const director=DIRECTOR?.getDiagnostics?.()||null;
+  const char=window.ASOBOON_BOARD_CHARACTER_EVENTS?.getDiagnostics?.()||null;
+  const perf=window.ASOBOON_BOARD_EFFECTS?.diagnostics?.()||null;
   el.textContent=[
     String(data?.businessDate||tokyoDateKey()),
     'MODE: '+String(context?.businessType||data?.businessType||'UNKNOWN'),
     'SLOT: '+String(context?.slotKey||'NONE'),
-    'PHASE: '+String(context?.phase||'UNKNOWN')
+    'PHASE: '+String(context?.phase||'UNKNOWN'),
+    'ENT: '+String(director?.lastDecision||'—'),
+    'CHAR: '+String(char?.currentId||'—'),
+    'CHAR RATE: '+(director?.played?Math.round(Number(director.characterRate||0)*100)+'%':'—'),
+    'QUALITY: '+String(perf?.effectiveQuality||'—'),
+    'FPS: '+String(perf?.fps??'—')
   ].join(' / ');
 }
 function renderStaticBoard(context,data){
-  IDLE?.onRealChange?.();
+  if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
   state.rows=[];state.lastColumns=0;
   const grid=$('queueGrid'),empty=$('emptyState');
   if(grid){grid.innerHTML='';grid.hidden=true;}
@@ -230,13 +239,13 @@ function renderPayload(data){
     rows:allRows,
     previousFrame,
     grid,
-    onBeforeRealChange:()=>IDLE?.onRealChange?.(),
+    onBeforeRealChange:()=>{if(DIRECTOR?.onRealChange)DIRECTOR.onRealChange();else IDLE?.onRealChange?.()},
   })||{baseline:false,dataChangeCount:0};
 
   if(observation.baseline){
-    IDLE?.onBaseline?.();
+    if(DIRECTOR?.onBaseline)DIRECTOR.onBaseline();else IDLE?.onBaseline?.();
   }else if(Number(observation.dataChangeCount||0)===0){
-    void IDLE?.onStableUpdate?.({grid});
+    if(DIRECTOR?.onStableUpdate)void DIRECTOR.onStableUpdate({grid});else void IDLE?.onStableUpdate?.({grid});
   }
 
   state.lastGoodAt=Date.now();
@@ -252,7 +261,7 @@ async function fetchBoard(){
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
   }catch(e){
-    IDLE?.onCommunicationError?.();
+    if(DIRECTOR?.onCommunicationError)DIRECTOR.onCommunicationError();else IDLE?.onCommunicationError?.();
     setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
     if(!state.lastGoodAt){
       setSessionHeader({phase:'checking',slotLabel:'確認中',slotSuffix:'',detail:'呼出状況を確認しています'});
@@ -275,6 +284,8 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   normalizeRows,
   refresh:fetchBoard,
   idle:()=>IDLE?.getDiagnostics?.()||null,
+  director:()=>DIRECTOR?.getDiagnostics?.()||null,
+  characters:()=>window.ASOBOON_BOARD_CHARACTER_EVENTS?.getDiagnostics?.()||null,
 });
 fetchBoard();schedule();
 })();

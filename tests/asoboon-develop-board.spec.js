@@ -61,7 +61,7 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
   await page.evaluate(() => { window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}); window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false); });
 
   return {
@@ -77,6 +77,15 @@ async function diagnostics(page) {
 
 async function idleDiagnostics(page) {
   return page.evaluate(() => window.ASOBOON_BOARD_IDLE_EVENTS.getDiagnostics());
+}
+
+async function characterDiagnostics(page) {
+  return page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics());
+}
+
+async function waitForCharacterIdle(page) {
+  await expect.poll(async () => (await characterDiagnostics(page)).running, { timeout: 7000 }).toBe(false);
+  await expect(page.locator('.pc-sprite,.pc-giant-ball')).toHaveCount(0);
 }
 
 async function prepareIdleForTest(page, patch = {}) {
@@ -690,4 +699,111 @@ test('idle reduced-motion mode caps animation level and keeps real numbers untou
   expect(d.reduced).toBe(true);
   expect(d.effectiveLevel).toBe(1);
   await expect(page.locator('.queue-number')).toHaveText(['7601','7602']);
+});
+
+
+test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use', async () => {
+  const characterAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-atlas.webp');
+  const effectAtlas = fs.statSync('miniapp-v2/develop/board/assets/pompon-chiru-effects-atlas.webp');
+  expect(characterAtlas.size).toBeGreaterThan(50000);
+  expect(characterAtlas.size).toBeLessThan(300000);
+  expect(effectAtlas.size).toBeGreaterThan(20000);
+  expect(effectAtlas.size).toBeLessThan(160000);
+
+  const assets = fs.readFileSync('miniapp-v2/develop/board/board-character-assets.js','utf8');
+  expect(assets).toContain("pompon_dash");
+  expect(assets).toContain("chiru_retort");
+  expect(assets).toContain("collision_arc");
+  expect(assets).toContain("stars");
+});
+
+test('entertainment director keeps characters special while guaranteeing a return within about a minute', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
+  const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateForTest(10000, 12345));
+  expect(result.characterRate).toBeGreaterThanOrEqual(0.29);
+  expect(result.characterRate).toBeLessThanOrEqual(0.36);
+  expect(result.maxCharacterGapSeconds).toBeLessThanOrEqual(60);
+  expect(result.counts.WORLD).toBeGreaterThan(result.counts.POMPON_CAMEO);
+  expect(result.counts.POMPON_CAMEO).toBeGreaterThan(result.counts.CHIRU_CAMEO);
+  expect(result.counts.RARE_STORY).toBeGreaterThan(0);
+});
+
+test('four representative POMPON CHIRU stories play and fully clean up without changing ticket data', async ({ page }) => {
+  test.setTimeout(20000);
+  const h = await installBoard(page, [payload([
+    { number:'8201', state:'waiting', order:1 },
+    { number:'8202', state:'calling', order:2 },
+    { number:'8203', state:'hold', order:3 },
+  ])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.02,{persistValue:false});
+    window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+  });
+  const ids=['POMPON_BRAKE_FAIL','DUO_CHASE_CRASH','PEEK_DISCOVERY','BALL_RIDE_FAIL'];
+  for(const id of ids){
+    const result=await page.evaluate(async eventId=>{
+      const fx=window.ASOBOON_BOARD_EFFECTS;
+      fx.resetPerformanceBaseline();
+      const played=await window.ASOBOON_BOARD_CHARACTER_EVENTS.playEventForTest(eventId);
+      return{
+        played,
+        char:window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics(),
+        runtime:fx.diagnostics(),
+        numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+        tempNodes:document.querySelectorAll('.pc-sprite,.pc-giant-ball').length,
+      };
+    },id);
+    expect(result.played.played,id).toBe(true);
+    expect(result.char.running,id).toBe(false);
+    expect(result.runtime.activeScopes,id).toBe(0);
+    expect(result.runtime.domDeltaPeak,id).toBeLessThanOrEqual(20);
+    expect(result.tempNodes,id).toBe(0);
+    expect(result.numbers,id).toEqual(['8201','8202','8203']);
+  }
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('real data change immediately interrupts a running character story', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8301', state:'waiting', order:1 }])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.5,{persistValue:false});
+    window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+    window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.resetForTest();
+    void window.ASOBOON_BOARD_CHARACTER_EVENTS.playEventForTest('BALL_RIDE_FAIL');
+  });
+  await expect.poll(async () => (await characterDiagnostics(page)).running).toBe(true);
+  await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.onRealChange());
+  await waitForCharacterIdle(page);
+  const d=await characterDiagnostics(page);
+  expect(d.canceled).toBeGreaterThanOrEqual(1);
+  expect(d.running).toBe(false);
+});
+
+test('a genuine call adds CALL_DELIVERY while the real calling number remains authoritative', async ({ page }) => {
+  const h = await installBoard(page, [
+    payload([{ number:'8401', state:'waiting', order:1 }]),
+    payload([{ number:'8401', state:'calling', order:1 }]),
+  ]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false});
+    window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+  });
+  h.next();
+  await h.refresh();
+  await expect.poll(async () => (await characterDiagnostics(page)).callPlayed, { timeout:4000 }).toBeGreaterThanOrEqual(1);
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
+  await waitForCharacterIdle(page);
+  await waitForFxIdle(page);
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('character engine adds no RAF or canvas owners beyond the shared runtime', async () => {
+  const assets=fs.readFileSync('miniapp-v2/develop/board/board-character-assets.js','utf8');
+  const chars=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
+  const director=fs.readFileSync('miniapp-v2/develop/board/board-entertainment-director.js','utf8');
+  for(const code of [assets,chars,director]){
+    expect(code).not.toContain('requestAnimationFrame(');
+    expect(code).not.toMatch(/createElement\\(['"]canvas['"]\\)/);
+  }
 });

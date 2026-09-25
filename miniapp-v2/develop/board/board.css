@@ -796,3 +796,45 @@ body{
   letter-spacing:.02em;
   pointer-events:none;
 }
+
+
+/* POMPON / CHIRU entertainment sprites. Atlas cells stay fixed; only transform/opacity animate. */
+.pc-sprite{
+  position:absolute;
+  left:0;
+  top:0;
+  width:256px;
+  height:256px;
+  background-repeat:no-repeat;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+  transform-origin:50% 94%;
+  will-change:transform,opacity;
+  contain:layout paint;
+}
+.pc-character{z-index:2}
+.pc-effect{z-index:3}
+.pc-giant-ball{
+  position:absolute;
+  left:0;
+  top:0;
+  z-index:1;
+  width:240px;
+  height:240px;
+  border:10px solid rgba(35,30,26,.82);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 28%,rgba(255,255,255,.75) 0 7%,transparent 8%),
+    repeating-radial-gradient(circle at 45% 42%,#ffb33b 0 23px,#ff7c35 24px 48px,#ffd14e 49px 71px);
+  pointer-events:none;
+  will-change:transform,opacity;
+  contain:layout paint;
+}
+:root[data-board-quality="low"] .pc-giant-ball{
+  border-width:8px;
+  background:radial-gradient(circle at 35% 30%,#ffd86d 0 12%,#ff9a38 13% 58%,#f17331 59% 100%);
+}
+@media (prefers-reduced-motion: reduce){
+  .pc-sprite,.pc-giant-ball{will-change:opacity,transform}
+}
