@@ -85,3 +85,5 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-reservation-item{min-width:0;padding:2px 4px}.v38-reservation-item small{display:block;color:#657178;font-size:11px;font-weight:800;letter-spacing:.02em}.v38-reservation-item strong{display:block;margin-top:3px;color:#17242a;font-size:18px;line-height:1.18;font-weight:900;overflow-wrap:anywhere}.v38-reservation-item.receipt strong{font-size:27px;letter-spacing:-.03em}.v38-reservation-item.people{grid-column:1/-1;padding-top:9px;border-top:1px solid #ece8e1}.v38-reservation-item.people strong{font-size:15px;line-height:1.35}
 .v38-hero.guided .v38-inline-actions{margin-top:12px}
 @media(max-width:350px){.v38-hero.waiting h1,.v38-hero.calling h1,.v38-hero.guided h1,.v38-hero.hold h1,.v38-hero.canceled h1{font-size:30px}.v38-reservation-card{grid-template-columns:1fr 1fr;padding:10px}.v38-reservation-item.receipt strong{font-size:24px}.v38-reservation-item strong{font-size:16px}.v38-reservation-item.people strong{font-size:14px}}
+
+.v38-connection-note{margin:12px 0 0;padding:9px 12px;border-radius:10px;background:#fff;color:#753128;font-size:14px;font-weight:700}
