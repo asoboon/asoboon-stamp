@@ -620,10 +620,10 @@ test('new-source effects do not fire on initial load and only run after an uncha
     const director=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR;
     director.resetForTest();
     director.setConfig({
-      weights:{SOURCE_FX:1,POMPON_CAMEO:0,CHIRU_CAMEO:0,POMPON_STORY:0,DUO_STORY:0,RARE_STORY:0},
       REAL_CHANGE_COOLDOWN_MS:0,
       CHARACTER_FORCE_AFTER_MS:999999,
     });
+    director.setBagForTest(['SOURCE_FX']);
   });
   await h.refresh();
   await expect.poll(async () => (await sourceFxDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
@@ -742,15 +742,20 @@ test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use',
   expect(assets).toContain("dizzy_spiral");
 });
 
-test('entertainment director keeps characters special while guaranteeing a return within about a minute', async ({ page }) => {
+test('entertainment director uses a 32-slot shuffle bag and guarantees every idle pattern once per cycle', async ({ page }) => {
   await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
-  const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateForTest(10000, 12345));
-  expect(result.characterRate).toBeGreaterThanOrEqual(0.29);
-  expect(result.characterRate).toBeLessThanOrEqual(0.36);
-  expect(result.maxCharacterGapSeconds).toBeLessThanOrEqual(60);
-  expect(result.counts.SOURCE_FX).toBeGreaterThan(result.counts.POMPON_CAMEO);
-  expect(result.counts.POMPON_CAMEO).toBeGreaterThan(result.counts.CHIRU_CAMEO);
-  expect(result.counts.RARE_STORY).toBeGreaterThan(0);
+  const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateCycleForTest(12345));
+  expect(result.slots).toBe(32);
+  expect(result.counts.SOURCE_FX).toBe(21);
+  expect(result.counts.POMPON_CAMEO).toBe(4);
+  expect(result.counts.CHIRU_CAMEO).toBe(2);
+  expect(result.counts.POMPON_STORY).toBe(2);
+  expect(result.counts.DUO_STORY).toBe(2);
+  expect(result.counts.RARE_STORY).toBe(1);
+  expect(result.characterRate).toBeCloseTo(11/32, 5);
+  expect(result.uniqueSeen).toBe(result.totalPatterns);
+  expect(result.totalPatterns).toBe(12);
+  expect(result.missing).toEqual([]);
 });
 
 test('four representative POMPON CHIRU stories play and fully clean up without changing ticket data', async ({ page }) => {
@@ -887,4 +892,15 @@ test('hold transition uses source-matched effect path without legacy world varia
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).not.toContain('Promise.all([motion,particles,world])');
   expect(code).toContain('Promise.all([motion,particles,sourceFx])');
+});
+
+
+test('real status effects serialize major presentations and do not use legacy canvas particles', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  expect(code).toContain('const MAX_CONCURRENT=1;');
+  expect(code).not.toContain("const particles=runParticles('call'");
+  expect(code).not.toContain("const particles=runParticles('guided'");
+  expect(code).not.toContain("const particles=runParticles('hold'");
+  expect(code).not.toContain("const particles=runParticles('cancel'");
+  expect(code).toContain("onomatopoeia('キタ！'");
 });

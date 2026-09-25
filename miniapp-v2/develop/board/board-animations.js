@@ -5,7 +5,7 @@ const SOURCEFX=window.ASOBOON_BOARD_SOURCE_EFFECTS||null;
 const CHAR=window.ASOBOON_BOARD_CHARACTER_EVENTS||null;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
-const MAX_CONCURRENT=2;
+const MAX_CONCURRENT=1;
 const MAX_BATCH=8;
 const STAGGER_MS=90;
 const LEVEL_KEY='asoboon_call_board_animation_level_v1';
@@ -286,9 +286,8 @@ async function playCallAnimation({number,element,frame,rare}){
   const rect=rectFor(element,target);
   if(!rect)return;
   const lvl=effectiveLevel();
-  const ghost=ghostFrom(target,'fx-call-ghost');
-  onomatopoeia(rare?'ドッカーン!!':'ドカン！',rect,'call');
-  const particles=runParticles('call',rect,{rare,level:lvl});
+  onomatopoeia('キタ！',rect,'call');
+  const particles=Promise.resolve();
   const sourceFx=CHAR?.playCallDelivery?Promise.resolve():(SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve());
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
   const elementPulse=element?animateElement(element,lvl<=1?[
@@ -303,21 +302,8 @@ async function playCallAnimation({number,element,frame,rare}){
     {transform:'scale(1)'},
   ],{duration:lvl<=1?420:1120,delay:lvl<=1?0:260,easing:'cubic-bezier(.22,.9,.24,1)' }):Promise.resolve();
 
-  let flight=Promise.resolve();
-  if(ghost){
-    flight=animateElement(ghost,lvl<=1?[
-      {opacity:.2,transform:'translate3d(-20px,-12px,0) scale(.92)'},
-      {opacity:.9,transform:'translate3d(0,0,0) scale(1.03)'},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1)'},
-    ]:[
-      {opacity:.15,transform:'translate3d(-68vw,-18vh,0) rotate(-7deg) scale(.62)'},
-      {opacity:1,transform:'translate3d(14px,-10px,0) rotate(1deg) scale(1.14)',offset:.68},
-      {opacity:1,transform:'translate3d(-5px,4px,0) rotate(-.5deg) scale(.98)',offset:.84},
-      {opacity:0,transform:'translate3d(0,0,0) rotate(0) scale(1)'},
-    ],{duration:lvl<=1?430:1300,easing:'cubic-bezier(.12,.82,.18,1)',fill:'forwards'}).finally(()=>ghost.remove());
-  }
-  if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(480):480);
-  if(rare&&!reduced) setTimeout(()=>{void runParticles('call',rect,{rare:true,level:lvl,secondary:true})},M?M.ms(360):360);
+  const flight=Promise.resolve();
+  if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(360):360);
   await Promise.all([flight,particles,elementPulse,sourceFx,character]);
 }
 async function playGuidedAnimation({element,frame}){
@@ -327,7 +313,7 @@ async function playGuidedAnimation({element,frame}){
   const lvl=effectiveLevel();
   const ghost=ghostFrom(source,'fx-guided-ghost');
   onomatopoeia('ビューン！',rect,'guided');
-  const particles=runParticles('guided',rect,{level:lvl});
+  const particles=Promise.resolve();
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
   const useFilter=(M?.getEffectiveQuality?.()||'HIGH')==='HIGH';
   const settle=element?animateElement(element,useFilter?[
@@ -355,7 +341,7 @@ async function playHoldAnimation({element,frame}){
   if(!rect)return;
   const lvl=effectiveLevel();
   onomatopoeia('ピタッ！',rect,'hold');
-  const particles=runParticles('hold',rect,{level:lvl});
+  const particles=Promise.resolve();
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
   const motion=element?animateElement(element,lvl<=1?[
     {transform:'translateX(0)'},
@@ -380,7 +366,7 @@ async function playCancelAnimation({frame,element}){
   const ghost=ghostFrom(source,'fx-cancel-ghost');
   if(ghost)attachCracks(ghost);
   onomatopoeia('パリン！',rect,'cancel');
-  const particles=runParticles('cancel',rect,{level:lvl});
+  const particles=Promise.resolve();
   const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
   let shatter=Promise.resolve();
   if(ghost){
@@ -513,7 +499,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.2.0',
+  version:'1.3.0',
   capture,
   observe,
   playStatusAnimation,
