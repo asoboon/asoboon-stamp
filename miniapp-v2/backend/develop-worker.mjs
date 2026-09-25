@@ -35,7 +35,8 @@ const BOARD_SLOT_SPECS = Object.freeze({
 });
 
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
-const BUSINESS_DAY_CACHE_MS = 60 * 1000;
+const BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
+const BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
 const RECONCILE_CACHE_MS = 5 * 1000;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
@@ -70,7 +71,7 @@ export default {
 
     if (request.method === 'GET' && action === 'businessDay') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
-      try { return json(request, await getBusinessDayProxy(url.searchParams.get('date'))); }
+      try { return json(request, await getBusinessDayProxy(url.searchParams.get('date'), env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -274,7 +275,7 @@ async function getBoardStatus(env) {
   const businessDate=tokyoCalendarDate();
   const [rows,day]=await Promise.all([
     fetchAllReservationsForReconcile(env),
-    getBusinessDayProxy(businessDate),
+    getBusinessDayProxy(businessDate, env),
   ]);
   const businessType=String(day?.businessType||'');
   const specs=BOARD_SLOT_SPECS[businessType]||Object.freeze([]);
@@ -327,42 +328,92 @@ function boardReservationState(row) {
   if (status === '0' && isCalling) return 'calling';
   return 'waiting';
 }
-async function getBusinessDayProxy(value) {
+let workerStateTableReady=null;
+async function ensureWorkerStateTable(env){
+  if(!env?.DB)return false;
+  if(workerStateTableReady)return await workerStateTableReady;
+  workerStateTableReady=env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`).run().then(()=>true).catch(e=>{workerStateTableReady=null;console.warn('BUSINESS_DAY_CACHE_TABLE_FAILED',safeError(e));return false});
+  return await workerStateTableReady;
+}
+async function readBusinessDayD1(env,date){
+  if(!await ensureWorkerStateTable(env))return null;
+  try{
+    const row=await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1').bind('business_day:'+date).first();
+    if(!row)return null;
+    const value=JSON.parse(String(row.value||''));
+    const returned=normalizeDate(value?.operationalDate||value?.calendarDate||'');
+    const businessType=String(value?.businessType||'').normalize('NFKC').trim();
+    if(returned!==date||!VALID_BUSINESS_TYPES.has(businessType))return null;
+    return{savedAt:Number(row.updated_at||0),value:{...value,ok:true,operationalDate:date,calendarDate:date,businessType}};
+  }catch(e){console.warn('BUSINESS_DAY_CACHE_READ_FAILED',safeError(e));return null}
+}
+async function writeBusinessDayD1(env,date,value){
+  if(!await ensureWorkerStateTable(env))return;
+  try{
+    await env.DB.prepare('INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at')
+      .bind('business_day:'+date,JSON.stringify(value),Date.now()).run();
+  }catch(e){console.warn('BUSINESS_DAY_CACHE_WRITE_FAILED',safeError(e))}
+}
+async function getBusinessDayProxy(value, env) {
   const date = normalizeDate(value);
   if (!date) throw apiError('BUSINESS_DATE_INVALID', 400);
   const now = Date.now();
   const cached = businessDayCache.get(date);
-  if (cached && now - cached.savedAt < BUSINESS_DAY_CACHE_MS) return { ...cached.value, cached:true };
+  if (cached && now - cached.savedAt < BUSINESS_DAY_CACHE_MS) return { ...cached.value, cached:true, cacheSource:'memory' };
+
+  const d1=await readBusinessDayD1(env,date);
+  if(d1 && now-d1.savedAt < BUSINESS_DAY_CACHE_MS){
+    businessDayCache.set(date,{savedAt:d1.savedAt,value:d1.value});
+    return{...d1.value,cached:true,cacheSource:'d1'};
+  }
   if (businessDayInflight.has(date)) return businessDayInflight.get(date);
 
   const job = (async () => {
-    const u = new URL(BUSINESS_CALENDAR_API);
-    u.searchParams.set('action','current');
-    u.searchParams.set('date',date);
-    u.searchParams.set('_',String(Date.now()));
-    const ctrl = new AbortController();
-    const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
-    let r;
-    try { r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store',signal:ctrl.signal}); }
-    catch(e){ if(e?.name==='AbortError') throw apiError('BUSINESS_CALENDAR_TIMEOUT',504); throw e; }
-    finally { clearTimeout(timer); }
-    let d=null;try{d=await r.json()}catch{}
-    if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE',503);
-    const returned = normalizeDate(d.operationalDate || d.calendarDate || date);
-    const businessType = String(d.businessType || '').normalize('NFKC').trim();
-    if (returned !== date || !VALID_BUSINESS_TYPES.has(businessType)) throw apiError('BUSINESS_CALENDAR_INVALID',503);
-    const valueOut = {
-      ok:true,
-      source:'develop-worker-cache',
-      operationalDate:date,
-      calendarDate:date,
-      businessType,
-      note:String(d.note||''),
-      weekday:String(d.weekday||''),
-      cached:false,
-    };
-    businessDayCache.set(date,{savedAt:Date.now(),value:valueOut});
-    return valueOut;
+    try{
+      const u = new URL(BUSINESS_CALENDAR_API);
+      u.searchParams.set('action','current');
+      u.searchParams.set('date',date);
+      u.searchParams.set('_',String(Date.now()));
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+      let r;
+      try { r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store',signal:ctrl.signal}); }
+      catch(e){ if(e?.name==='AbortError') throw apiError('BUSINESS_CALENDAR_TIMEOUT',504); throw e; }
+      finally { clearTimeout(timer); }
+      let d=null;try{d=await r.json()}catch{}
+      if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE',503);
+      const returned = normalizeDate(d.operationalDate || d.calendarDate || date);
+      const businessType = String(d.businessType || '').normalize('NFKC').trim();
+      if (returned !== date || !VALID_BUSINESS_TYPES.has(businessType)) throw apiError('BUSINESS_CALENDAR_INVALID',503);
+      const valueOut = {
+        ok:true,
+        source:'develop-worker-cache',
+        operationalDate:date,
+        calendarDate:date,
+        businessType,
+        note:String(d.note||''),
+        weekday:String(d.weekday||''),
+        cached:false,
+      };
+      businessDayCache.set(date,{savedAt:Date.now(),value:valueOut});
+      await writeBusinessDayD1(env,date,valueOut);
+      return valueOut;
+    }catch(e){
+      const fallback=businessDayCache.get(date);
+      if(fallback&&Date.now()-fallback.savedAt<BUSINESS_DAY_STALE_FALLBACK_MS){
+        return{...fallback.value,cached:true,stale:true,cacheSource:'memory-stale'};
+      }
+      const stored=d1||await readBusinessDayD1(env,date);
+      if(stored&&Date.now()-stored.savedAt<BUSINESS_DAY_STALE_FALLBACK_MS){
+        businessDayCache.set(date,{savedAt:stored.savedAt,value:stored.value});
+        return{...stored.value,cached:true,stale:true,cacheSource:'d1-stale'};
+      }
+      throw e;
+    }
   })();
   businessDayInflight.set(date,job);
   try { return await job; }
