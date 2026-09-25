@@ -4,18 +4,35 @@ const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 const REFRESH_MS=10000;
 const $=id=>document.getElementById(id);
-const state={timer:0,rows:[],slotKey:'',lastColumns:0,lastGoodAt:0,busy:false};
+const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
+const BOARD_OPEN_MINUTE=9*60+30;
+const CLOSE_MINUTES=Object.freeze({'平日':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
 function tokyoParts(date=new Date()){
-  const parts=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date);
+  const parts=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date);
   const out={};for(const p of parts)if(p.type!=='literal')out[p.type]=p.value;
-  return {hour:Number(out.hour||0),minute:Number(out.minute||0),second:Number(out.second||0)};
+  return {year:Number(out.year||0),month:Number(out.month||0),day:Number(out.day||0),hour:Number(out.hour||0),minute:Number(out.minute||0),second:Number(out.second||0)};
 }
-function activeSlotKey(date=new Date()){
-  const t=tokyoParts(date),m=t.hour*60+t.minute;
-  if(m<12*60)return '10:00';
-  if(m<14*60+30)return '12:30';
-  return '15:00';
+function tokyoDateKey(date=new Date()){
+  const t=tokyoParts(date),pad=v=>String(v).padStart(2,'0');
+  return String(t.year)+'-'+pad(t.month)+'-'+pad(t.day);
+}
+function resolveBoardContext(date=new Date(),businessType=''){
+  const type=String(businessType||''),t=tokyoParts(date),m=t.hour*60+t.minute;
+  if(type==='休館')return{businessType:type,phase:'closed',slotKey:'',slotLabel:'休館日',slotSuffix:'',detail:'本日は休館日です'};
+  if(!CLOSE_MINUTES[type])return{businessType:type,phase:'checking',slotKey:'',slotLabel:'確認中',slotSuffix:'',detail:'営業情報を確認しています'};
+  if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'9:30から呼出状況を表示します'};
+  if(m>=CLOSE_MINUTES[type])return{businessType:type,phase:'ended',slotKey:'',slotLabel:'終了',slotSuffix:'',detail:'本日のご案内は終了しました'};
+  if(type==='平日')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'受付中',slotSuffix:'',detail:'時間制限なし'};
+  if(type==='平日特定日'){
+    const key=m<13*60?'10:00':'13:30';
+    return{businessType:type,phase:'active',slotKey:key,slotLabel:key,slotSuffix:'の回',detail:'3時間利用'};
+  }
+  const key=m<12*60?'10:00':m<14*60+30?'12:30':'15:00';
+  return{businessType:type,phase:'active',slotKey:key,slotLabel:key,slotSuffix:'の回',detail:'2時間30分利用'};
+}
+function activeSlotKey(date=new Date(),businessType='土日祝日'){
+  return resolveBoardContext(date,businessType).slotKey;
 }
 function clockText(value){
   const d=value?new Date(value):new Date();
@@ -124,24 +141,92 @@ function setConnection(ok,text){
   el.className='connection '+(ok?'ok':'warn');
   el.innerHTML='<span class="live-dot"></span>'+esc(text);
 }
+function setSessionHeader(context,countText=''){
+  const kicker=$('sessionKicker'),label=$('slotLabel'),suffix=$('slotSuffix'),count=$('slotCount');
+  if(kicker)kicker.textContent=context.phase==='active'?'本日のご案内':'営業案内';
+  if(label)label.textContent=context.slotLabel||'確認中';
+  if(suffix){suffix.textContent=context.slotSuffix||'';suffix.hidden=!context.slotSuffix;}
+  if(count)count.textContent=countText||context.detail||'';
+}
+function updateDiagnostics(context,data){
+  const el=$('boardDiagnostics');if(!el)return;
+  const debug=new URLSearchParams(location.search).get('debug')==='1'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
+  el.hidden=!debug;
+  if(!debug)return;
+  el.textContent=[
+    String(data?.businessDate||tokyoDateKey()),
+    'MODE: '+String(context?.businessType||data?.businessType||'UNKNOWN'),
+    'SLOT: '+String(context?.slotKey||'NONE'),
+    'PHASE: '+String(context?.phase||'UNKNOWN')
+  ].join(' / ');
+}
+function renderStaticBoard(context,data){
+  IDLE?.onRealChange?.();
+  state.rows=[];state.lastColumns=0;
+  const grid=$('queueGrid'),empty=$('emptyState');
+  if(grid){grid.innerHTML='';grid.hidden=true;}
+  if(empty)empty.hidden=false;
+  setSessionHeader(context,'');
+  $('updatedAt').textContent=clockText(data?.fetchedAt||Date.now());
+  const title=$('emptyTitle'),text=$('emptyText');
+  if(context.phase==='closed'){
+    if(title)title.textContent='本日は休館日です';
+    if(text)text.textContent='またあそびにきてね！';
+    setConnection(true,'休館日');
+  }else if(context.phase==='before'){
+    if(title)title.textContent='まもなく受付開始';
+    if(text)text.textContent='9:30から呼出状況を表示します。';
+    setConnection(true,'営業開始前');
+  }else if(context.phase==='ended'){
+    if(title)title.textContent='本日のご案内は終了しました';
+    if(text)text.textContent='またあそびにきてね！';
+    setConnection(true,'本日の営業終了');
+  }else{
+    if(title)title.textContent='営業情報を確認しています';
+    if(text)text.textContent='確認でき次第、自動で表示します。';
+    setConnection(false,'営業情報を確認中');
+  }
+  updateDiagnostics(context,data);
+}
 function renderPayload(data){
-  const key=activeSlotKey(new Date());
-  state.slotKey=key;
-  const slot=Array.isArray(data?.slots)?data.slots.find(x=>String(x?.key||'')===key):null;
+  const context=resolveBoardContext(new Date(),data?.businessType);
+  state.businessType=context.businessType;
+  state.phase=context.phase;
+  state.slotKey=context.slotKey;
+  updateDiagnostics(context,data);
+
+  if(data?.businessDate&&String(data.businessDate)!==tokyoDateKey(new Date())){
+    renderStaticBoard({...context,phase:'checking',slotKey:'',slotLabel:'確認中',slotSuffix:'',detail:'営業日を確認しています'},data);
+    return;
+  }
+  if(context.phase!=='active'){
+    renderStaticBoard(context,data);
+    state.lastGoodAt=Date.now();
+    return;
+  }
+
+  const slot=Array.isArray(data?.slots)?data.slots.find(x=>String(x?.key||'')===context.slotKey):null;
+  if(!slot){
+    renderStaticBoard({...context,phase:'checking',slotKey:'',slotLabel:'確認中',slotSuffix:'',detail:'受付枠を確認しています'},data);
+    return;
+  }
+
   const allRows=normalizeRows(slot?.rows||[]);
   const grid=$('queueGrid');
   const previousFrame=FX?.capture?.(grid)||new Map();
-
-  $('slotLabel').textContent=key;
   const rows=visibleRows(allRows);
-  $('slotCount').textContent=rows.length?'受付 '+rows.length+'組':'';
+
+  setSessionHeader(context,rows.length?'受付 '+rows.length+'組':context.detail);
   $('updatedAt').textContent=clockText(data?.fetchedAt||Date.now());
+  const emptyTitle=$('emptyTitle'),emptyText=$('emptyText');
+  if(emptyTitle)emptyTitle.textContent='ただいま準備中';
+  if(emptyText)emptyText.textContent='受付が入ると、ここに番号が並びます。';
 
   // Data/render updates are immediate. The animation module only visualizes
   // state transitions after the fresh DOM is already on screen.
   renderRows(allRows);
   const observation=FX?.observe?.({
-    slotKey:key,
+    slotKey:context.businessType+'::'+context.slotKey,
     rows:allRows,
     previousFrame,
     grid,
@@ -170,7 +255,7 @@ async function fetchBoard(){
     IDLE?.onCommunicationError?.();
     setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
     if(!state.lastGoodAt){
-      $('slotLabel').textContent=activeSlotKey(new Date());
+      setSessionHeader({phase:'checking',slotLabel:'確認中',slotSuffix:'',detail:'呼出状況を確認しています'});
       $('emptyState').hidden=false;
       $('emptyTitle').textContent='呼出状況を確認しています';
       $('emptyText').textContent='通信が戻ると自動で表示します。';
@@ -182,6 +267,8 @@ window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard();});
 window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   activeSlotKey,
+  resolveBoardContext,
+  tokyoDateKey,
   statusMeta,
   preferredColumns,
   visibleRows,
