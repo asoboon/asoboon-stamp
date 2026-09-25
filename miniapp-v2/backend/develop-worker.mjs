@@ -38,6 +38,7 @@ const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8r
 const BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
 const BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
+const BUSINESS_CALENDAR_READ_TIMEOUT_MS = 5 * 1000;
 const RECONCILE_CACHE_MS = 5 * 1000;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
 const businessDayCache = new Map();
@@ -379,7 +380,7 @@ async function getBusinessDayProxy(value, env) {
       u.searchParams.set('date',date);
       u.searchParams.set('_',String(Date.now()));
       const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+      const timer = setTimeout(()=>ctrl.abort(), BUSINESS_CALENDAR_READ_TIMEOUT_MS);
       let r;
       try { r = await fetch(u,{headers:{Accept:'application/json'},cache:'no-store',signal:ctrl.signal}); }
       catch(e){ if(e?.name==='AbortError') throw apiError('BUSINESS_CALENDAR_TIMEOUT',504); throw e; }
