@@ -42,13 +42,22 @@ function moveTestSlot(){
 
 function patch(){
   queued=false;if(view()!=='reception')return;
+  const devTest=new URLSearchParams(location.search).get('dev')==='0042';
+  root.querySelector('.rec-methods')?.remove();
+  root.querySelector('#recLocation')?.remove();
+  root.querySelector('.v22-anywhere-note')?.remove();
+  if(!devTest){
+    root.querySelector('.v22-dev-test')?.remove();
+    const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
+    if(slotTitle)slotTitle.hidden=false;
+    const slotsBox=root.querySelector('#recSlots');if(slotsBox)slotsBox.hidden=false;
+    setText(root.querySelector('#recModeLabel'),'LINE受付');
+    return;
+  }
   const test=moveTestSlot();
   const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
   if(slotTitle)slotTitle.hidden=true;
   const slotsBox=root.querySelector('#recSlots');if(slotsBox)slotsBox.hidden=true;
-  root.querySelector('.rec-methods')?.remove();
-  root.querySelector('#recLocation')?.remove();
-  root.querySelector('.v22-anywhere-note')?.remove();
   setText(root.querySelector('#recModeLabel'),'Developingテスト');
   const submit=root.querySelector('#recSubmit');
   if(test&&submit&&!submit.disabled&&!/受付中/.test(String(submit.textContent||'')))setText(submit,'テスト受付をする');
