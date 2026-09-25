@@ -182,7 +182,8 @@ test('app reopen clears pending after deterministic REJECTED result', async ({pa
 
 test('app reopen preserves pending and retry control for AMBIGUOUS result', async ({page}) => {
   await openReceptionWithPending(page,{found:true,ok:false,ambiguous:true,error:'AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW'});
-  await expect(page.locator('#recStatus')).toContainText('スタッフ対応');
+  await expect(page.locator('#recStatus')).toContainText('新しい受付は行わないでください');
+  await expect(page.locator('#recStatus')).not.toContainText('スタッフ対応');
   await expect(page.locator('[data-rec-check-result]')).toHaveCount(1);
   await expect.poll(()=>page.evaluate(()=>Boolean(localStorage.getItem('asoboon_v2_pending_reception_develop_v1')))).toBe(true);
 });
