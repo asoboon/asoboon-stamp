@@ -6,7 +6,7 @@ const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
 const REFRESH_MS=10000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
-const BOARD_OPEN_MINUTE=9*60+30;
+const BOARD_OPEN_MINUTE=8*60;
 const CLOSE_MINUTES=Object.freeze({'平日':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
 function tokyoParts(date=new Date()){
@@ -22,7 +22,7 @@ function resolveBoardContext(date=new Date(),businessType=''){
   const type=String(businessType||''),t=tokyoParts(date),m=t.hour*60+t.minute;
   if(type==='休館')return{businessType:type,phase:'closed',slotKey:'',slotLabel:'休館日',slotSuffix:'',detail:'本日は休館日です'};
   if(!CLOSE_MINUTES[type])return{businessType:type,phase:'checking',slotKey:'',slotLabel:'確認中',slotSuffix:'',detail:'営業情報を確認しています'};
-  if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'9:30から呼出状況を表示します'};
+  if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'8:00から呼出状況を表示します'};
   if(m>=CLOSE_MINUTES[type])return{businessType:type,phase:'ended',slotKey:'',slotLabel:'終了',slotSuffix:'',detail:'本日のご案内は終了しました'};
   if(type==='平日')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'受付中',slotSuffix:'',detail:'時間制限なし'};
   if(type==='平日特定日'){

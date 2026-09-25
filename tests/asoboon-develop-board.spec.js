@@ -147,7 +147,8 @@ test('business-day routing covers weekday, special weekday, three-session days a
       weekendMidday: resolve(at('2026-09-19T03:00:00.000Z'), '土日祝日'),
       weekendAfternoon: resolve(at('2026-09-19T05:30:00.000Z'), '土日祝日'),
       closed: resolve(at('2026-09-22T01:00:00.000Z'), '休館'),
-      beforeOpen: resolve(at('2026-09-19T00:29:00.000Z'), '土日祝日'),
+      beforeOpen: resolve(at('2026-09-18T22:59:00.000Z'), '土日祝日'),
+      atEight: resolve(at('2026-09-18T23:00:00.000Z'), '土日祝日'),
       weekdayEnded: resolve(at('2026-09-21T08:00:00.000Z'), '平日'),
       weekendEnded: resolve(at('2026-09-19T09:00:00.000Z'), '土日祝日'),
     };
@@ -161,6 +162,7 @@ test('business-day routing covers weekday, special weekday, three-session days a
   expect(result.weekendAfternoon).toMatchObject({ phase:'active', slotKey:'15:00' });
   expect(result.closed).toMatchObject({ phase:'closed', slotKey:'' });
   expect(result.beforeOpen).toMatchObject({ phase:'before', slotKey:'' });
+  expect(result.atEight).toMatchObject({ phase:'active', slotKey:'10:00' });
   expect(result.weekdayEnded).toMatchObject({ phase:'ended', slotKey:'' });
   expect(result.weekendEnded).toMatchObject({ phase:'ended', slotKey:'' });
 });
