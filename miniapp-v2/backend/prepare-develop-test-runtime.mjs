@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.8.dev-businessday-resilient',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '1.9.dev-businessday-cache-shape-fix',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -192,8 +192,9 @@ function parseBusinessDayCacheRow(row,date){
   if(!row)return null;
   try{
     const value=JSON.parse(String(row.value||''));
-    if(value?.operationalDate!==date||!BUSINESS_RULES[value.businessType])return null;
-    return{savedAt:Number(row.updated_at||0),value};
+    const rule=BUSINESS_RULES[value?.businessType];
+    if(value?.operationalDate!==date||!rule)return null;
+    return{savedAt:Number(row.updated_at||0),value:{...value,...rule}};
   }catch{return null}
 }
 
