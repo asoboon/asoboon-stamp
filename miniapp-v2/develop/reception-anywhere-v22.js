@@ -48,6 +48,7 @@ function patch(){
   root.querySelector('.v22-anywhere-note')?.remove();
   if(!devTest){
     root.querySelector('.v22-dev-test')?.remove();
+    root.querySelectorAll('#recSlots [data-rec-slot="'+TEST_WAIT_TYPE_ID+'"]').forEach(el=>el.remove());
     const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
     if(slotTitle)slotTitle.hidden=false;
     const slotsBox=root.querySelector('#recSlots');if(slotsBox)slotsBox.hidden=false;
