@@ -281,7 +281,7 @@ function rectFor(element,frame){
   return frame?.rect||null;
 }
 
-async function playCallAnimation({element,frame,rare}){
+async function playCallAnimation({number,element,frame,rare}){
   const target=currentFrame(element)||frame;
   const rect=rectFor(element,target);
   if(!rect)return;

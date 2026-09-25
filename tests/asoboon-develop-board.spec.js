@@ -105,6 +105,22 @@ async function prepareIdleForTest(page, patch = {}) {
       ...config,
     });
     idle.onBaseline();
+    const director = window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR;
+    if (director) {
+      director.resetForTest();
+      director.setConfig({
+        weights: {
+          WORLD: 1,
+          POMPON_CAMEO: 0,
+          CHIRU_CAMEO: 0,
+          POMPON_STORY: 0,
+          DUO_STORY: 0,
+          RARE_STORY: 0,
+        },
+        REAL_CHANGE_COOLDOWN_MS: 0,
+        CHARACTER_FORCE_AFTER_MS: 999999,
+      });
+    }
   }, patch);
 }
 
