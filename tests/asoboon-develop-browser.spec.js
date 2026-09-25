@@ -3,7 +3,17 @@ const fs = require('node:fs');
 
 const BASE = process.env.ASOBOON_BASE_URL || 'http://127.0.0.1:4173/miniapp-v2/develop/';
 
-async function installLiff(page, mode) {
+async function installLiff(page, mode, fixtures = {}) {
+  const businessDayFixture = fixtures.businessDay || { ok:true, operationalDate:'2026-09-19', businessType:'土日祝日', closingTime:'18:00' };
+  const waitTypesFixture = fixtures.waitTypes || [
+    {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+    {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+    {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+    {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+    {waitTypeId:'0042',waitTypeName:'入場不可テスト',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+  ];
   await page.addInitScript(() => {
     const RealDate = Date;
     const fixed = new RealDate('2026-09-19T03:00:00.000Z').valueOf();
@@ -15,9 +25,7 @@ async function installLiff(page, mode) {
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url = new URL(route.request().url());
     if (url.searchParams.get('action') === 'businessDay') {
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        ok: true, operationalDate: '2026-09-19', businessType: '土日祝日', closingTime: '18:00'
-      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(businessDayFixture) });
     }
     if (url.searchParams.get('action') === 'health') {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
@@ -25,18 +33,7 @@ async function installLiff(page, mode) {
       }) });
     }
     if (url.searchParams.get('action') === 'waitTypes') {
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        ok:true,
-        waitTypes:[
-          {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
-          {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
-          {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
-          {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
-          {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
-          {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
-          {waitTypeId:'0042',waitTypeName:'入場不可テスト',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}
-        ]
-      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok:true, waitTypes:waitTypesFixture }) });
     }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
@@ -135,6 +132,24 @@ test('Developing LINE reception exposes live WEB slots and no location UI', asyn
   await expect(page.locator('[data-rec-slot="0042"],[data-rec-slot="0029"],[data-rec-slot="0031"],[data-rec-slot="0033"]')).toHaveCount(0);
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
   await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
+});
+
+test('regular weekday LINE reception shows all four AirWAIT slots', async ({ page }) => {
+  await installLiff(page, 'authenticated', {
+    businessDay:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', closingTime:'17:00' },
+    waitTypes:[
+      {waitTypeId:'0023',waitTypeName:'すぐ入場受付【平日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0024',waitTypeName:'10時ご入場枠【WEB平日】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+      {waitTypeId:'0025',waitTypeName:'14時から【平日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0027',waitTypeName:'14時ご入場枠【WEB平日】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}
+    ]
+  });
+  await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
+  for (const id of ['0023','0024','0025','0027']) {
+    await expect(page.locator(`[data-rec-slot="${id}"]`)).toHaveCount(1);
+  }
+  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
+  await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
 });
 
 test('Developing 0042 remains available only behind explicit dev mode', async ({ page }) => {
