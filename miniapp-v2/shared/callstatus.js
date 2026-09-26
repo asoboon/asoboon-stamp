@@ -36,9 +36,24 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div id="csQueue" class="cs-queue" hidden><div><small>あなたの前</small><strong id="csAhead">—</strong><span>組</span></div><div><small>現在の位置</small><strong id="csRank">—</strong><span id="csTotal">組中</span></div></div>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
+<div id="csCancelArea" class="cs-cancel-area" hidden>
+  <button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button>
+  <small>キャンセル後は元の順番には戻せません。</small>
+</div>
 <div id="csError" class="cs-error" hidden></div>
 <div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約5秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
-</div></section>`}
+</div>
+<div id="csCancelDialog" class="cs-cancel-dialog" hidden>
+  <div class="cs-cancel-backdrop" data-cs-cancel-close></div>
+  <div class="cs-cancel-sheet" role="dialog" aria-modal="true" aria-labelledby="csCancelTitle">
+    <div class="cs-cancel-mark">!</div>
+    <h3 id="csCancelTitle">受付をキャンセルしますか？</h3>
+    <p>受付番号 <strong id="csCancelReceipt">—</strong> のキャンセル手続きへ進みます。<br>キャンセル後は元の順番には戻せません。</p>
+    <button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセル手続きへ</button>
+    <button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button>
+  </div>
+</div>
+</section>`}
 
 function stateMeta(state,ahead){
   switch(String(state||'')){
@@ -77,6 +92,52 @@ function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=
 function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textContent=busy?'確認中…':'↻ 今すぐ更新'}}
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
+function safeCancelUrl(){
+  const raw=String(cachedReservation()?.shortUrl||'').trim();
+  if(!raw)return'';
+  try{
+    const u=new URL(raw,location.href);
+    const host=String(u.hostname||'').toLowerCase();
+    if(u.protocol!=='https:'||!(host==='airwait.jp'||host.endsWith('.airwait.jp')))return'';
+    return u.toString();
+  }catch{return''}
+}
+function updateCancelAction(state){
+  const area=$('csCancelArea');
+  if(!area)return;
+  const cancelable=['waiting','calling','hold'].includes(String(state||''));
+  area.hidden=!(cancelable&&safeCancelUrl());
+}
+function closeCancelDialog(){
+  const dlg=$('csCancelDialog');
+  if(dlg)dlg.hidden=true;
+}
+function openCancelDialog(){
+  const url=safeCancelUrl();
+  if(!url){setError('キャンセル画面を開けませんでした。受付状況を更新してからもう一度お試しください。');return}
+  const receipt=String(cachedReservation()?.receiptNo||$('csReceipt')?.textContent||'—');
+  if($('csCancelReceipt'))$('csCancelReceipt').textContent=receipt;
+  const dlg=$('csCancelDialog');
+  if(dlg)dlg.hidden=false;
+}
+function openOfficialCancelPage(){
+  const url=safeCancelUrl();
+  if(!url){closeCancelDialog();setError('キャンセル画面を開けませんでした。');return}
+  closeCancelDialog();
+  const top=$('csTop');
+  if(top){
+    top.className='cs-top warn';
+    top.querySelector('strong').textContent='キャンセル手続き中';
+    top.querySelector('small').textContent='AirWAITでキャンセル後、この画面に戻ると自動で反映します。';
+  }
+  try{
+    if(window.liff&&typeof liff.openWindow==='function'){
+      liff.openWindow({url,external:false});
+      return;
+    }
+  }catch{}
+  window.open(url,'_blank','noopener,noreferrer');
+}
 function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};else if(d.state==='waiting'&&Number.isFinite(Number(d.aheadCount)))status={kind:'waiting',receipt,ahead:Number(d.aheadCount),checkedAt,source:'callstatus'};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(d.state==='hold')status={kind:'hold',receipt,checkedAt,source:'callstatus'};else if(['processing','done'].includes(String(d.state||'')))status={kind:'guided',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};else status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
 function applyStatus(d){
   if(!d||!$('csState'))return;
@@ -103,6 +164,7 @@ function applyStatus(d){
   nextPollMs=delayForStatus(d);
   const ahead=Number.isFinite(Number(d.aheadCount))?Number(d.aheadCount):null;
   const m=stateMeta(d.state,ahead),box=$('csState');
+  updateCancelAction(d.state);
   if(box)box.className='cs-state '+m.cls;
   const icon=box?.querySelector?.('.cs-state-icon');if(icon)icon.textContent=m.icon;
   if($('csTitle'))$('csTitle').textContent=m.title;
@@ -145,10 +207,14 @@ async function recoverSession(){
   const d=await gatewayPost('recoverReservationSession',{liffAccessToken:token,businessDate:String(cached.businessDate||'')});
   if(!d?.ok)throw Error('受付情報の復元に失敗しました。');
   if(!d.found)return null;
-  const session={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};
+  const session={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),shortUrl:String(d.shortUrl||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};
   if(session.sessionToken.length<32)throw Error('呼出状況セッションを作成できませんでした。');
   writeJSON(SESSION_KEY,session);
   writeJSON(CALL_KEY,{businessDate:session.businessDate,receiptNo:session.receiptNo,waitTypeId:session.waitTypeId,cachedAt:Date.now()});
+  if(session.shortUrl){
+    const current=readJSON(CACHE_KEY)||{};
+    writeJSON(CACHE_KEY,{...current,businessDate:session.businessDate,receiptNo:session.receiptNo,waitTypeId:session.waitTypeId,shortUrl:session.shortUrl,cachedAt:Date.now()});
+  }
   return session;
 }
 
@@ -175,6 +241,7 @@ async function refreshStatus({manual=false}={}){
       const cached=cachedReservation();
       if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
       if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
+      updateCancelAction('');
       if($('csTitle'))$('csTitle').textContent='本日の受付が見つかりません';
       if($('csMessage'))$('csMessage').textContent='当日受付を完了すると、ここに自動で呼出状況が表示されます。';
       setError('受付済みなのに表示されない場合は、受付番号をスタッフへお伝えください。');
@@ -206,6 +273,10 @@ function mountCallstatus(){
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
   if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
   $('csRefresh')?.addEventListener('click',()=>refreshStatus({manual:true}));
+  $('csCancel')?.addEventListener('click',openCancelDialog);
+  $('csCancelProceed')?.addEventListener('click',openOfficialCancelPage);
+  document.querySelectorAll('[data-cs-cancel-close]').forEach(el=>el.addEventListener('click',closeCancelDialog));
+  updateCancelAction('');
   queueMicrotask(()=>{if(gen===generation&&$('csState'))void refreshStatus()});
 }
 
