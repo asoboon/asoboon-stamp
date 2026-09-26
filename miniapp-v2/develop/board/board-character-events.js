@@ -33,7 +33,7 @@ const EVENTS=Object.freeze([
 ]);
 
 let currentScope=null,running=false,currentId='';
-const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,duplicateSuppressions:0,lastEvent:null,history:[]};
+const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,duplicateSuppressions:0,faceSafeAdjustments:0,gazeResolved:0,lastEvent:null,history:[]};
 
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function tm(ms,mode='idle'){return Math.round(Number(ms||0)*(mode==='call'?CALL_PACE:IDLE_PACE))}
@@ -84,10 +84,31 @@ function registerCharacter(scope,el,name){
   el.dataset.pcOwner=owner;
   return el;
 }
-function pose(scope,name,{x=0,y=0,scale=1,rotate=0,flip=1,opacity=1,layer='front',className=''}={}){
+function targetAwareFlip(name,x,targetX,fallback=1){
+  const meta=A.CHARACTER_META?.[String(name||'')];
+  if(!Number.isFinite(Number(targetX))||!meta?.flipSafe)return fallback;
+  const wantsRight=Number(targetX)>=Number(x);
+  let resolved=fallback;
+  if(meta.nativeFacing==='right')resolved=wantsRight?1:-1;
+  else if(meta.nativeFacing==='left')resolved=wantsRight?-1:1;
+  diagnostics.gazeResolved+=1;
+  return resolved;
+}
+function resolvedFacing(name,flip=1){
+  const meta=A.CHARACTER_META?.[String(name||'')];
+  if(!meta)return'unknown';
+  if(meta.nativeFacing==='right')return Number(flip)<0?'left':'right';
+  if(meta.nativeFacing==='left')return Number(flip)<0?'right':'left';
+  return meta.nativeFacing||'unknown';
+}
+function pose(scope,name,{x=0,y=0,scale=1,rotate=0,flip=1,lookX=null,lookTarget='',opacity=1,layer='front',className=''}={}){
   const el=A.createCharacter(name,className);if(!el)return null;
-  Object.assign(el.dataset,{sceneX:String(x),sceneY:String(y),sceneScale:String(scale),sceneRotate:String(rotate),sceneFlip:String(flip)});
-  el.style.opacity=String(opacity);el.style.transform=transform(x,y,scale,rotate,flip);
+  const finalFlip=targetAwareFlip(name,x,lookX,flip);
+  Object.assign(el.dataset,{
+    sceneX:String(x),sceneY:String(y),sceneScale:String(scale),sceneRotate:String(rotate),sceneFlip:String(finalFlip),
+    pcFacing:resolvedFacing(name,finalFlip),pcLookTarget:String(lookTarget||''),pcLookX:Number.isFinite(Number(lookX))?String(Number(lookX)):''
+  });
+  el.style.opacity=String(opacity);el.style.transform=transform(x,y,scale,rotate,finalFlip);
   return registerCharacter(scope,scope.add(el,layer),name);
 }
 function anchorPoint(el,key='CENTER'){
@@ -97,7 +118,32 @@ function anchorPoint(el,key='CENTER'){
   const ox=(nx-.5)*256*scale*flip,oy=(ny-.5)*256*scale;
   return{x:x+ox*Math.cos(rad)-oy*Math.sin(rad),y:y+ox*Math.sin(rad)+oy*Math.cos(rad)};
 }
-function anchoredFx(scope,character,anchor,name,semantic,options={}){const p=anchorPoint(character,anchor);return fx(scope,name,semantic,{...options,x:p.x+(options.dx||0),y:p.y+(options.dy||0)})}
+const FACE_SAFE_SEMANTICS=new Set(['alert','question','reaction','anger','aftermath','success']);
+function avoidFaceSafeZone(character,point,semantic,effectScale=1,anchor='CENTER'){
+  if(!character||!FACE_SAFE_SEMANTICS.has(String(semantic||'')))return point;
+  const face=anchorPoint(character,'FACE_SAFE');
+  const characterScale=Math.max(.4,Number(character.dataset?.sceneScale)||1);
+  const rx=58*characterScale+42*Math.max(.35,Number(effectScale)||1);
+  const ry=48*characterScale+40*Math.max(.35,Number(effectScale)||1);
+  const dx=point.x-face.x,dy=point.y-face.y;
+  if(Math.abs(dx)>=rx||Math.abs(dy)>=ry)return point;
+  diagnostics.faceSafeAdjustments+=1;
+  if(anchor==='HEAD'||['alert','question','anger','aftermath'].includes(String(semantic||''))){
+    const sign=dy<=0?-1:1;
+    return{x:point.x,y:face.y+sign*ry,adjusted:true};
+  }
+  const flip=Number(character.dataset?.sceneFlip)||1;
+  const sign=dx===0?(flip>=0?1:-1):Math.sign(dx);
+  return{x:face.x+sign*rx,y:point.y,adjusted:true};
+}
+function anchoredFx(scope,character,anchor,name,semantic,options={}){
+  const p=anchorPoint(character,anchor);
+  const raw={x:p.x+(options.dx||0),y:p.y+(options.dy||0)};
+  const safe=avoidFaceSafeZone(character,raw,semantic,options.scale||1,anchor);
+  const el=fx(scope,name,semantic,{...options,x:safe.x,y:safe.y});
+  if(el&&safe.adjusted)el.dataset.faceSafeAdjusted='1';
+  return el;
+}
 function fx(scope,name,semantic,{x=0,y=0,scale=1,rotate=0,opacity=1,layer='front',className=''}={}){
   if(semantic&&!A.validatePairing(name,semantic))return null;
   const el=A.createEffect(name,className);if(!el)return null;
@@ -968,14 +1014,15 @@ async function statusAccent(scope,kind,{localX,localY}={}){
       ],{duration:900,easing:'ease-out',fill:'forwards'},'call')
     ]);
     await hold(scope,180,'call');
-    const c=pose(scope,'chiru_watch',{x:r.width-105,y:y+54,scale:s*.86,flip:-1,opacity:0});
-    const sparkle=anchoredFx(scope,c,'LOOK_TARGET','sparkle_gold','success',{dx:-70,dy:-70,scale:s*.52,opacity:0});
+    const c=pose(scope,'chiru_watch',{x:r.width-105,y:y+54,scale:s*.86,lookX:x+35,lookTarget:'guided-number',opacity:0});
+    const cFlip=Number(c?.dataset?.sceneFlip)||-1;
+    const sparkle=anchoredFx(scope,c,'LOOK_TARGET','sparkle_gold','success',{dx:70*cFlip,dy:-70,scale:s*.52,opacity:0});
     await Promise.all([
       anim(scope,c,[
-        {opacity:0,transform:transform(r.width+120,y+54,s*.72,0,-1)},
-        {opacity:1,offset:.28,transform:transform(r.width-105,y+54,s*.88,-2,-1)},
-        {opacity:1,offset:.78,transform:transform(r.width-105,y+54,s*.86,2,-1)},
-        {opacity:0,transform:transform(r.width+170,y+64,s*.72,3,-1)},
+        {opacity:0,transform:transform(r.width+120,y+54,s*.72,0,cFlip)},
+        {opacity:1,offset:.28,transform:transform(r.width-105,y+54,s*.88,-2,cFlip)},
+        {opacity:1,offset:.78,transform:transform(r.width-105,y+54,s*.86,2,cFlip)},
+        {opacity:0,transform:transform(r.width+170,y+64,s*.72,3,cFlip)},
       ],{duration:940,easing:'ease-out',fill:'forwards'},'call'),
       anim(scope,sparkle,[{opacity:0},{opacity:1,offset:.32},{opacity:.8,offset:.68},{opacity:0}],{duration:760,fill:'forwards'},'call')
     ]);
@@ -1020,16 +1067,17 @@ async function statusAccent(scope,kind,{localX,localY}={}){
       anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1}],{duration:680,fill:'forwards'},'call')
     ]);
     await hold(scope,480,'call');
-    const c=pose(scope,'chiru_angry',{x:x+145,y:y+50,scale:s*1.02,flip:-1,opacity:0});
-    const anger=anchoredFx(scope,c,'HEAD','anger','anger',{dx:-42,dy:-26,scale:s*.62,opacity:0});
+    const c=pose(scope,'chiru_angry',{x:x+145,y:y+50,scale:s*1.02,lookX:x-115,lookTarget:'POMPON',opacity:0});
+    const cFlip=Number(c?.dataset?.sceneFlip)||-1;
+    const anger=anchoredFx(scope,c,'HEAD','anger','anger',{dx:42*cFlip,dy:-26,scale:s*.62,opacity:0});
     await Promise.all([
-      anim(scope,c,[{opacity:0,transform:transform(r.width+160,y+70,s*.8,0,-1)},{opacity:1,offset:.32,transform:transform(x+145,y+48,s*1.04,-3,-1)},{opacity:1,transform:transform(x+145,y+48,s*1.02,2,-1)}],{duration:860,easing:'ease-out',fill:'forwards'},'call'),
+      anim(scope,c,[{opacity:0,transform:transform(r.width+160,y+70,s*.8,0,cFlip)},{opacity:1,offset:.32,transform:transform(x+145,y+48,s*1.04,-3,cFlip)},{opacity:1,transform:transform(x+145,y+48,s*1.02,2,cFlip)}],{duration:860,easing:'ease-out',fill:'forwards'},'call'),
       anim(scope,anger,[{opacity:0},{opacity:1,offset:.35},{opacity:1}],{duration:720,fill:'forwards'},'call')
     ]);
     await hold(scope,520,'call');
     await Promise.all([
       anim(scope,p,[{opacity:1,transform:transform(x-115,y+48,s*1.2,-3)},{opacity:1,offset:.3,transform:transform(x+10,y+35,s*1.1,5)},{opacity:0,transform:transform(r.width+220,y+8,s*.88,11)}],{duration:900,easing:'cubic-bezier(.16,.72,.18,1)',fill:'forwards'},'call'),
-      anim(scope,c,[{opacity:1,transform:transform(x+145,y+48,s*1.02,2,-1)},{opacity:1,offset:.38,transform:transform(x+215,y+52,s*.96,0,-1)},{opacity:0,transform:transform(r.width+210,y+64,s*.78,-3,-1)}],{duration:1080,easing:'ease-in',fill:'forwards'},'call'),
+      anim(scope,c,[{opacity:1,transform:transform(x+145,y+48,s*1.02,2,cFlip)},{opacity:1,offset:.38,transform:transform(x+215,y+52,s*.96,0,cFlip)},{opacity:0,transform:transform(r.width+210,y+64,s*.78,-3,cFlip)}],{duration:1080,easing:'ease-in',fill:'forwards'},'call'),
       anim(scope,alert,[{opacity:1},{opacity:0}],{duration:420,fill:'forwards'},'call'),
       anim(scope,anger,[{opacity:1},{opacity:0}],{duration:620,fill:'forwards'},'call')
     ]);
