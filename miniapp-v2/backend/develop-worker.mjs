@@ -18,15 +18,15 @@ const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_LAST_UPDATE = 'https://cl.airwait.jp/WCLP/api/external/stateless/store/getLastUpdDateStateless';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
-const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0023','0025','0029','0031','0033','0035','0037']);
+// Crowd is read-only display data and intentionally independent from LINE reception write slots.\nconst CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0024','0027','0030','0032','0034','0036','0038']);
 const CROWD_SLOT_KEYS = Object.freeze({
-  '0023':'10:00',
-  '0025':'14:00',
-  '0029':'10:00',
-  '0031':'12:30',
-  '0033':'15:00',
-  '0035':'10:00',
-  '0037':'13:30',
+  '0024':'10:00',
+  '0027':'14:00',
+  '0030':'10:00',
+  '0032':'12:30',
+  '0034':'15:00',
+  '0036':'10:00',
+  '0038':'13:30',
 });
 const BOARD_SLOT_SPECS = Object.freeze({
   '平日':Object.freeze([
