@@ -398,7 +398,43 @@ async function getCreateDiagnostics(env) {
   };
 }
 
-async function getCrowdRemaining(request, env, ctx) {
+const CROWD_SNAPSHOT_KEY='crowd_remaining_snapshot_v1';
+const CROWD_SNAPSHOT_MAX_AGE_MS=30*60*1000;
+
+async function readCrowdSnapshot(env){
+  if(!await ensureWorkerStateTable(env))return null;
+  try{
+    const row=await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1').bind(CROWD_SNAPSHOT_KEY).first();
+    if(!row)return null;
+    const value=JSON.parse(String(row.value||''));
+    if(value?.ok!==true||!Array.isArray(value?.slots)||!value.slots.length)return null;
+    return{savedAt:Number(row.updated_at||0),value};
+  }catch(e){console.warn('CROWD_SNAPSHOT_READ_FAILED',safeError(e));return null}
+}
+async function writeCrowdSnapshot(env,value){
+  if(!await ensureWorkerStateTable(env))return;
+  try{
+    await env.DB.prepare('INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at')
+      .bind(CROWD_SNAPSHOT_KEY,JSON.stringify(value),Date.now()).run();
+  }catch(e){console.warn('CROWD_SNAPSHOT_WRITE_FAILED',safeError(e))}
+}
+async function getCrowdRemaining(request,env,ctx){
+  const cached=await readCrowdSnapshot(env);
+  try{
+    const fresh=await fetchCrowdRemainingFresh(request,env,ctx);
+    if(!Array.isArray(fresh?.slots)||!fresh.slots.length)throw apiError('AIRWAIT_CROWD_EMPTY',502);
+    await writeCrowdSnapshot(env,fresh);
+    return{...fresh,stale:false,cacheSource:'airwait-fresh'};
+  }catch(e){
+    const age=cached?Date.now()-Number(cached.savedAt||0):Infinity;
+    if(cached&&age<=CROWD_SNAPSHOT_MAX_AGE_MS){
+      return{...cached.value,ok:true,stale:true,staleAgeMs:age,cacheSource:'d1-stale',warning:safeError(e)};
+    }
+    throw e;
+  }
+}
+
+async function fetchCrowdRemainingFresh(request, env, ctx) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
   const typesUrl = new URL(request.url);
