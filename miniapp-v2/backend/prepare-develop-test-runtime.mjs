@@ -314,8 +314,9 @@ async function fetchAirwaitReservationsUncached(env, waitTypeId) {
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const rows = [];
   let start = 1;
-  let total = 0;
-  for (let page = 0; page < 20; page += 1) {
+  let total = Infinity;
+  let page = 0;
+  while (rows.length < total && start <= 99999 && page < 1000) {
     const body = new URLSearchParams({
       storeId: CFG.STORE_ID,
       sortStatus: '0',
@@ -359,7 +360,9 @@ async function fetchAirwaitReservationsUncached(env, waitTypeId) {
     })));
     if (!part.length || rows.length >= total) break;
     start += part.length;
+    page += 1;
   }
+  if (rows.length < total) throw apiError('AIRWAIT_RESERVATIONS_TRUNCATED', 502);
   return rows;
 }
 
