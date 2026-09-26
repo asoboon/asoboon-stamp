@@ -300,16 +300,21 @@ jobs:
               const x=JSON.parse(s);
               if(x.ok!==true) throw new Error("createDiagnostics unavailable");
               console.log("Developing recent create diagnostics:");
-              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[]},null,2));
+              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[],cancelCapability:x.cancelCapability||{}},null,2));
             });
           '
       - name: Verify Developing crowd diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
-          RESPONSE="$(curl --fail-with-body --silent --show-error \
+          HTTP_CODE="$(curl --silent --show-error \
+            -o /tmp/crowd-response.json \
+            -w '%{http_code}' \
             -H 'Origin: https://asoboon.github.io' \
             "$WORKER_URL/?action=crowdRemaining&diag=${GITHUB_SHA}")"
+          RESPONSE="$(cat /tmp/crowd-response.json)"
+          echo "crowdRemaining HTTP: $HTTP_CODE"
+          echo "crowdRemaining body: $RESPONSE"
           printf '%s' "$RESPONSE" | node -e '
             let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
               const x=JSON.parse(s);
