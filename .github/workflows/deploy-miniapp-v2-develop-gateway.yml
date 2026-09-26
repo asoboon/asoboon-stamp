@@ -263,6 +263,54 @@ jobs:
             exit 1
           fi
 
+      - name: Inspect AirWAIT CancelReserve module 1214
+        run: |
+          set -euo pipefail
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          CSP_URL="$(python3 - "$PAGE" <<'PY'
+          import re,sys
+          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
+          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
+          PY
+          )"
+          test -n "$CSP_URL"
+          JS="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
+          python3 - "$JS" <<'PY'
+          import sys
+          src=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          needle='function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(1215)'
+          p=src.find(needle)
+          print('MODULE1214_POS',p)
+          if p<0:
+              # fallback: module 1214 re-export reference context
+              p=src.find('var u=n(1214);Object.defineProperty(t,"CancelReserve"')
+              print('EXPORT_REF_POS',p)
+              print(src[max(0,p-1000):p+3000] if p>=0 else 'NOT_FOUND')
+              raise SystemExit(0)
+          # brace-aware extraction of function body
+          i=p+src[p:].find('{')
+          depth=0; quote=None; esc=False; j=i
+          while j<len(src):
+              c=src[j]
+              if quote:
+                  if esc: esc=False
+                  elif c=='\\\\': esc=True
+                  elif c==quote: quote=None
+              else:
+                  if c in ('\"',"'",'`'): quote=c
+                  elif c=='{': depth+=1
+                  elif c=='}':
+                      depth-=1
+                      if depth==0:
+                          j+=1; break
+              j+=1
+          mod=src[p:j]
+          print('MODULE1214_LEN',len(mod))
+          print(mod[:30000])
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
