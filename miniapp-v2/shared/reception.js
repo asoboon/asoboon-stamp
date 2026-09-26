@@ -40,11 +40,13 @@ function friendlyError(value){const code=String(value||'');const map={
   AIRWAIT_PEOPLE_OVER_LIMIT:'この人数では受付できません。人数をご確認ください。',
   AIRWAIT_RECEPTION_ENDED:'本日の受付は終了しています。',
   AIRWAIT_UNAUTHORIZED_OPERATION:'受付システムに接続できません。時間をおいてもう一度お試しください。',
+  AIRWAIT_WAIT_TYPE_UNUSED:'選択した受付枠は現在利用できません。画面を開き直して最新の受付状況をご確認ください。',
   AIRWAIT_OUTSIDE_RECEPTION_TIME:'現在は受付時間外です。',
   AIRWAIT_WAIT_TYPE_OUTSIDE_TIME:'選択した回は現在受付時間外です。',
   AIRWAIT_BELOW_MIN_PEOPLE:'選択した回の受付可能人数に達していません。',
-  AIRWAIT_INPUT_ERROR:'受付内容を確認できません。画面を開き直してもう一度お試しください。'
-};if(/^AIRWAIT_CREATE_ERROR_RC_/.test(code))return '受付システムで一時的なエラーが発生しました。時間をおいてもう一度お試しください。';return map[code]||code||'受付を確定できませんでした。'};
+  AIRWAIT_INPUT_ERROR:'受付内容を確認できません。画面を開き直してもう一度お試しください。',
+  AIRWAIT_SYSTEM_ERROR:'受付システム側で一時的なエラーが発生しました。受付は成立していません。時間をおいてもう一度お試しください。'
+};if(/^AIRWAIT_CREATE_ERROR_RC_/.test(code))return '受付システムから確認できないエラーが返されました。受付は成立していません。画面を開き直してもう一度お試しください。';return map[code]||code||'受付を確定できませんでした。'};
 
 function render(){const methodBlock=DEVELOP_LINE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>現地受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=DEVELOP_LINE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">現地受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>TODAY RECEPTION / NEW HOME</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と受付環境を確認しています…</div>
