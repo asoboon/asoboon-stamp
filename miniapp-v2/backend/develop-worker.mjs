@@ -397,6 +397,10 @@ async function getCrowdRemaining(request, env, ctx) {
     ok:true,
     source:'AirWAIT getWaitInfo',
     fetchedAt:new Date().toISOString(),
+    onlineReception:{
+      enabled:Boolean(store?.onlineRcptFlg),
+      code:String(store?.onlineRcptCode||''),
+    },
     slots,
     diagnostics,
     observedDetails:details.map(row=>({
