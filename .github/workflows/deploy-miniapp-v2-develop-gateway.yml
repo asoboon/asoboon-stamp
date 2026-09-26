@@ -285,6 +285,39 @@ jobs:
           print('AirWAIT public route candidates:')
           for x in sorted(out)[:250]: print(x)
           PY
+      - name: Inspect AirWAIT public reserve payload snippets
+        run: |
+          set -euo pipefail
+          TMP="$(mktemp -d)"
+          PAGE="$TMP/store.html"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          needles=[
+              '/WCSP/api/internal/stateless/reserve/create',
+              '/WCSP/api/internal/stateless/reserve/getReserveInput',
+              '/WCSP/api/internal/stateless/reserve/mailAuthCreate',
+          ]
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try:
+                  body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=20)
+              except Exception:
+                  continue
+              for needle in needles:
+                  start=0
+                  while True:
+                      i=body.find(needle,start)
+                      if i<0: break
+                      lo=max(0,i-1800); hi=min(len(body),i+2600)
+                      print('---',needle,'FROM',url,'---')
+                      print(body[lo:hi].replace('\\n',' ')[:5000])
+                      start=i+len(needle)
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
