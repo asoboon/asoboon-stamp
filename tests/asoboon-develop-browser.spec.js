@@ -227,6 +227,39 @@ test('app reopen recovers CONFIRMED and moves to callstatus', async ({page}) => 
   expect(saved.receiptNo).toBe('F123');
 });
 
+test('callstatus cancels inside LINE without opening AirWAIT', async ({page}) => {
+  await installLiff(page, 'authenticated');
+  await page.unroute('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**');
+  await page.addInitScript(() => {
+    localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
+      businessDate:'2026-09-19', receiptNo:'F123', reserveId:'000000000123', waitTypeId:'0029', waitTypeName:'10時25分頃入場【土休日特定日】'
+    }));
+  });
+  let canceled=false;
+  await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
+    const req=route.request();
+    const url=new URL(req.url());
+    if(req.method()==='GET'&&url.searchParams.get('action')==='businessDay')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:'2026-09-19',businessType:'土日祝日',closingTime:'18:00'})});
+    if(req.method()==='GET'&&url.searchParams.get('action')==='health')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,officialDevelopEnabled:true,createEnabled:true})});
+    if(req.method()==='POST'){
+      const body=Object.fromEntries(new URLSearchParams(req.postData()||''));
+      if(body.action==='recoverReservationSession')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,found:true,sessionToken:'s'.repeat(64),expiresAt:Date.parse('2026-09-19T12:00:00Z'),businessDate:'2026-09-19',reserveId:'000000000123',receiptNo:'F123',waitTypeId:'0029'})});
+      if(body.action==='reservationStatus')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(canceled?{ok:true,found:true,state:'canceled',status:'3',receiptNo:'F123',businessDate:'2026-09-19',waitTypeId:'0029',checkedAt:Date.now()}:{ok:true,found:true,state:'waiting',status:'0',receiptNo:'F123',businessDate:'2026-09-19',waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',aheadCount:3,queueRank:4,activeCount:20,checkedAt:Date.now()})});
+      if(body.action==='cancelReservation'){canceled=true;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,canceled:true,state:'canceled',receiptNo:'F123',businessDate:'2026-09-19',waitTypeId:'0029',checkedAt:Date.now()})});}
+    }
+    return route.fulfill({status:404,contentType:'application/json',body:'{"ok":false}'});
+  });
+  await page.goto(`${BASE}?view=callstatus`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csCancel')).toBeVisible();
+  await page.locator('#csCancel').click();
+  await expect(page.locator('#csCancelDialog')).toBeVisible();
+  await expect(page.locator('#csCancelReceipt')).toHaveText('F123');
+  await page.locator('#csCancelProceed').click();
+  await expect(page.locator('#csTitle')).toContainText('取消');
+  await expect(page.locator('#csCancelArea')).toBeHidden();
+  expect(await page.evaluate(()=>window.__lastLiffOpenWindow||null)).toBeNull();
+});
+
 for(const width of [320,375,390,430])test(`reception layout has no horizontal overflow at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:900});await openHome(page,'resolve');await page.locator('[data-v7-view="reception"]').click();
   await expect(page.locator('#recSlots')).toBeVisible();
