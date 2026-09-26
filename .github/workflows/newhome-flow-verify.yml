@@ -115,8 +115,27 @@ jobs:
           grep -F "const POLL_RECONCILE_MS=6000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_RECONCILE_MAX=3;" miniapp-v2/shared/callstatus.js
           grep -F "notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS" miniapp-v2/shared/callstatus.js
-          grep -F "新しい受付を作り直さないでください。" miniapp-v2/shared/callstatus.js
-          grep -F "version:'1.7.0-native-cancel'" miniapp-v2/shared/callstatus.js
+          grep -F "新しい受付を作り直さず" miniapp-v2/shared/callstatus.js
+          grep -F "version:'1.8.0-terminal-resolution'" miniapp-v2/shared/callstatus.js
+
+      - name: Reservation status must survive high receipt numbers and closeout
+        run: |
+          set -euo pipefail
+          grep -F "const maxPages = 1000;" miniapp-v2/backend/develop-worker.mjs
+          grep -F "start <= 99999 && page < maxPages" miniapp-v2/backend/develop-worker.mjs
+          grep -F "start<=99999&&page<1000" miniapp-v2/backend/develop-service-message.js
+          grep -F "start <= 99999 && page < 1000" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "start<=99999&&page<1000" miniapp-v2/backend/develop-gateway.js
+          ! grep -Fq "page<20" miniapp-v2/backend/develop-gateway.js
+          ! grep -Fq "page < 20" miniapp-v2/backend/develop-service-message.js
+          ! grep -Fq "page < 20" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "CALLSTATUS_CLOSE_BY_WAITTYPE" miniapp-v2/backend/develop-worker.mjs
+          grep -F "terminalReason:'BUSINESS_DAY_CLOSED'" miniapp-v2/backend/develop-worker.mjs
+          grep -F "UPDATE v2_user_day_claims SET wait_type_id=?,updated_at=?" miniapp-v2/backend/develop-worker.mjs
+          grep -F "case'closed'" miniapp-v2/shared/callstatus.js
+          grep -F "本日の受付は終了しました" miniapp-v2/shared/callstatus.js
+          grep -F "if(s==='closed')" miniapp-v2/develop/home-status-v13.js
+          grep -F "if(kind==='closed')" miniapp-v2/develop/home-v38.js
 
       - name: Business calendar must collapse stampedes
         run: |
