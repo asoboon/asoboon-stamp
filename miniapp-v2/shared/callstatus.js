@@ -132,7 +132,34 @@ function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textConten
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 
-function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'sync',receipt,message:'受付状況を照合しています',checkedAt,source:'callstatus'};else if(d.state==='waiting'){const a=Number(d.aheadCount);status={kind:'waiting',receipt,ahead:Number.isFinite(a)?a:null,checkedAt,source:'callstatus'}};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(d.state==='hold')status={kind:'hold',receipt,checkedAt,source:'callstatus'};else if(['processing','done'].includes(String(d.state||'')))status={kind:'guided',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};else if(d.state==='closed')status={kind:'closed',receipt,checkedAt,source:'callstatus'};else status={kind:'sync',receipt,message:'受付状況を確認しています',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
+function shareHomeStatus(d){
+  if(E.environment!=='develop')return;
+  const cached=cachedReservation();
+  const receipt=String(d?.receiptNo||cached?.receiptNo||'—');
+  const checkedAt=Number(d?.checkedAt||Date.now());
+  let status;
+  if(!d?.found){
+    status={kind:'sync',receipt,message:'受付状況を照合しています',checkedAt,source:'callstatus'};
+  }else if(d.state==='waiting'){
+    const ahead=Number(d.aheadCount);
+    status={kind:'waiting',receipt,ahead:Number.isFinite(ahead)?ahead:null,checkedAt,source:'callstatus'};
+  }else if(d.state==='calling'){
+    status={kind:'calling',receipt,checkedAt,source:'callstatus'};
+  }else if(d.state==='hold'){
+    status={kind:'hold',receipt,checkedAt,source:'callstatus'};
+  }else if(['processing','done'].includes(String(d.state||''))){
+    status={kind:'guided',receipt,checkedAt,source:'callstatus'};
+  }else if(d.state==='canceled'){
+    status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};
+  }else if(d.state==='closed'){
+    status={kind:'closed',receipt,checkedAt,source:'callstatus'};
+  }else{
+    status={kind:'sync',receipt,message:'受付状況を確認しています',checkedAt,source:'callstatus'};
+  }
+  window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+  writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});
+  window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+}
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
