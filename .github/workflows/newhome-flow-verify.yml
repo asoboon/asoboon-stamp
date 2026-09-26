@@ -208,6 +208,22 @@ jobs:
           grep -F "STORE_NO: 'AKR2298124918'" develop-gateway.runtime.mjs
           grep -F "storeNo: CFG.STORE_NO" develop-gateway.runtime.mjs
 
+      - name: WEB-only reception must preserve AirWAIT online pool and use official handoff
+        run: |
+          set -euo pipefail
+          grep -F "OFFICIAL_WEB_HANDOFF_TTL_MS" miniapp-v2/backend/develop-gateway.js
+          grep -F "v2_official_web_handoffs" miniapp-v2/backend/develop-gateway.js
+          grep -F "isOnlineOnlyWaitType(waitType?.usageDispType)" miniapp-v2/backend/develop-gateway.js
+          grep -F "adoptOfficialWebReception" miniapp-v2/backend/develop-gateway.js
+          grep -F "OFFICIAL_RECEIPT_NOT_NEW" miniapp-v2/backend/develop-gateway.js
+          grep -F "createIdentifier:'official-web-adoption'" miniapp-v2/backend/develop-gateway.js
+          grep -F "handoffRequired===true" miniapp-v2/shared/reception.js
+          grep -F "recOfficialReceipt" miniapp-v2/shared/reception.js
+          ! grep -Eq "0034[^\n]{0,80}0033|0032[^\n]{0,80}0031|0030[^\n]{0,80}0029" miniapp-v2/backend/develop-gateway.js
+          node miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          grep -F "adoptOfficialWebReception" develop-gateway.runtime.mjs
+          grep -F "OFFICIAL_WEB_HANDOFF_TTL_MS" develop-gateway.runtime.mjs
+
       - name: Sequential same-day reception only recycles terminal previous claim
         run: |
           set -euo pipefail
