@@ -91,6 +91,8 @@ jobs:
           grep -F 'async function cancelReservationInMiniapp' miniapp-v2/backend/develop-worker.mjs
           grep -F "/WCSP/cancel/confirm" miniapp-v2/backend/develop-worker.mjs
           grep -F "/WCSP/cancel/complete" miniapp-v2/backend/develop-worker.mjs
+          grep -F "const escaped=String(name||'').replace(/[.*+?^$()|[\\]\\\\]/g,'\\\\          grep -F "/WCSP/cancel/complete" miniapp-v2/backend/develop-worker.mjs
+');" miniapp-v2/backend/develop-worker.mjs
           ! grep -Fq 'airwait.jp' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'openWindow' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'window.open' miniapp-v2/shared/callstatus.js
