@@ -225,7 +225,7 @@ function bindOfficialHandoff(){
     const h=readOfficialHandoff();const url=String(h?.officialUrl||'');
     if(!url)return;
     try{
-      if(window.liff&&typeof liff.openWindow==='function'){liff.openWindow({url,external:true});return}
+      if(window.liff&&typeof liff.openWindow==='function'){liff.openWindow({url,external:false});return}
     }catch{}
     window.open(url,'_blank','noopener,noreferrer');
   });
@@ -235,7 +235,7 @@ function showOfficialHandoff(value,{persist=true}={}){
   const pending=readPending();
   const h=value?.handoffRequestId?{
     handoffRequestId:String(value.handoffRequestId||value._requestId||pending?.requestId||''),
-    officialUrl:String(value.officialUrl||'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918'),
+    officialUrl:String(value.officialUrl||'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN'),
     expiresAt:Number(value.expiresAt||Date.now()+15*60*1000),
     businessDate:String(value.businessDate||pendingBody(pending)?.operationalDate||S.day?.operationalDate||''),
     waitTypeId:String(value.waitTypeId||pendingBody(pending)?.waitTypeId||S.slot?.waitTypeId||''),
