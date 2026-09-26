@@ -135,8 +135,8 @@ test('next HOME renders six distinct reception states and keeps reservation fact
     await expect(card).toContainText('おとな 1名');
     await expect(card).toContainText('こども 2名');
     await expect(card).toContainText('0〜5か月 1名');
+    if(detail.kind==='canceled')await expect(page.locator('#v38Hero')).toContainText('この受付はキャンセルされています。');
   }
-  await expect(page.locator('#v38Hero')).toContainText('この受付はキャンセルされています。');
 });
 
 for (const mode of ['resolve', 'reject', 'pending', 'missing']) {
