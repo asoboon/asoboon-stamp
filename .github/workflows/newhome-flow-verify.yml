@@ -142,9 +142,9 @@ jobs:
           const home=fs.readFileSync('miniapp-v2/develop/home-v38.js','utf8');
           if(home.includes('本日は現地受付です')) throw new Error('weekday HOME must not force onsite reception');
           if(home.includes('平日の混雑目安は現在準備中です')) throw new Error('weekday crowd must not remain in prepared-only state');
-          if(!home.includes("'平日':Object.freeze(['0023','0025'])")) throw new Error('weekday crowd slot IDs missing from HOME');
+          if(!home.includes("'平日':Object.freeze(['0024','0027'])")) throw new Error('weekday crowd online-pool IDs missing from HOME');
           const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
-          if(!worker.includes("['0023','0025','0029','0031','0033','0035','0037']")) throw new Error('store-pool crowd slot IDs missing from Worker');
+          if(!worker.includes("['0024','0027','0030','0032','0034','0036','0038']")) throw new Error('online-pool crowd slot IDs missing from Worker');
           if(Number(r.operationalCutoffHour)!==19) throw new Error('operational cutoff must be 19');
           NODE
           grep -F "const allowed = SLOT_RULES[mode]?.[day.businessType] || [];" miniapp-v2/backend/develop-gateway.js
@@ -207,6 +207,17 @@ jobs:
           grep -F "const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';" develop-gateway.runtime.mjs
           grep -F "STORE_NO: 'AKR2298124918'" develop-gateway.runtime.mjs
           grep -F "storeNo: CFG.STORE_NO" develop-gateway.runtime.mjs
+
+      - name: Crowd display must stay independent from LINE reception slots
+        run: |
+          set -euo pipefail
+          grep -F "['0024','0027','0030','0032','0034','0036','0038']" miniapp-v2/backend/develop-worker.mjs
+          grep -F "'平日':Object.freeze(['0024','0027'])" miniapp-v2/develop/home-v38.js
+          grep -F "'平日特定日':Object.freeze(['0036','0038'])" miniapp-v2/develop/home-v38.js
+          grep -F "'土日祝日':Object.freeze(['0030','0032','0034'])" miniapp-v2/develop/home-v38.js
+          grep -F "'平日': Object.freeze(['0023', '0025'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "'平日特定日': Object.freeze(['0035', '0037'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "'土日祝日': Object.freeze(['0029', '0031', '0033'])" miniapp-v2/backend/develop-gateway.js
 
       - name: LINE reception must use store-only AirWAIT slots with no outbound AirWAIT links
         run: |
