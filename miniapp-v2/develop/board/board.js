@@ -63,8 +63,7 @@ function visibleRows(rows){
 }
 function updateLiveCaption(rows=[]){
   const live=$('liveCaption');if(!live)return;
-  const callingNumbers=(Array.isArray(rows)?rows:[]).filter(r=>String(r?.state||'')==='calling').map(r=>String(r?.number||'').trim()).filter(Boolean);
-  live.textContent=callingNumbers.length===0?'呼出状況':callingNumbers.length===1?'ただいまご案内中 '+callingNumbers[0]:'ただいまご案内中 '+callingNumbers[0]+'〜'+callingNumbers[callingNumbers.length-1];
+  live.textContent='呼出状況';
 }
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');

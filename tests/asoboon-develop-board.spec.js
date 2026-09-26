@@ -192,14 +192,14 @@ test('initial board snapshot never fires status animations', async ({ page }) =>
   expect(h.pageErrors).toEqual([]);
 });
 
-test('calling caption clears when all rows are canceled or the board becomes inactive', async ({ page }) => {
+test('board caption stays simple while calling state is expressed by cards and motion', async ({ page }) => {
   const h = await installBoard(page, [
     payload([{ number: '2551', state: 'calling', order: 1 }]),
     payload([{ number: '2551', state: 'canceled', order: 1 }]),
     payload([], { businessType: '休館' }),
   ]);
 
-  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2551');
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
   h.next();
   await h.refresh();
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
@@ -223,13 +223,13 @@ test('temporary API failure preserves readable data and automatically recovers',
   await h.refresh();
   await expect(page.locator('.queue-number')).toHaveText(['2581']);
   await expect(page.locator('#connection')).toContainText('更新待機中');
-  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2581');
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
 
   h.next();
   await h.refresh();
   await expect(page.locator('.queue-number')).toHaveText(['2581','2582']);
   await expect(page.locator('#connection')).toContainText('10秒ごとに自動更新');
-  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2582');
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
   expect(h.pageErrors).toEqual([]);
 });
 
@@ -257,7 +257,7 @@ test('240 receptions fit a 1080x1920 portrait board without scrolling or overlap
   expect(layout.minFont).toBeGreaterThanOrEqual(12);
   expect(layout.outside).toBe(0);
   expect(layout.overlap).toBe(false);
-  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 3120');
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
 });
 
 test('call, guided, hold and cancel transitions fire only for the changed number', async ({ page }) => {
@@ -972,14 +972,17 @@ test('character pacing is deliberately slower while call delivery stays separate
   expect(state.assets.effectRules.impact).not.toContain('sparkle_gold');
 });
 
-test('hold transition uses source-matched effect path without legacy world variables', async () => {
+test('hold transition uses the special-event path without legacy world variables', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).not.toContain('Promise.all([motion,particles,world])');
-  expect(code).toContain('Promise.all([motion,particles,sourceFx])');
+  expect(code).toContain("specialScreen('hold'");
+  expect(code).toContain("playStatusAccent?.('hold'");
+  expect(code).toContain("onomatopoeia('キキィーッ！'");
+  expect(code).toContain("onomatopoeia('ピタッ！'");
 });
 
 
-test('real status effects serialize major presentations and do not use legacy canvas particles', async () => {
+test('real status effects serialize as full-screen manga special events', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).toContain('const MAX_CONCURRENT=1;');
   expect(code).not.toContain("const particles=runParticles('call'");
@@ -987,6 +990,25 @@ test('real status effects serialize major presentations and do not use legacy ca
   expect(code).not.toContain("const particles=runParticles('hold'");
   expect(code).not.toContain("const particles=runParticles('cancel'");
   expect(code).toContain("onomatopoeia('キタ！'");
+  expect(code).toContain("onomatopoeia('ドン！'");
+  expect(code).toContain("onomatopoeia('ビューン！'");
+  expect(code).toContain("onomatopoeia('キキィーッ！'");
+  expect(code).toContain("onomatopoeia('バリン！'");
+  expect(code).toContain("specialScreen('call'");
+  expect(code).toContain("specialScreen('guided'");
+  expect(code).toContain("specialScreen('hold'");
+  expect(code).toContain("specialScreen('cancel'");
+});
+
+test('character scenes enforce one visible POMPON and one visible CHIRU unless explicitly represented by one DUO sprite', async ({ page }) => {
+  await installBoard(page, [payload([{ number:'8651', state:'waiting', order:1 }])]);
+  const state=await page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics());
+  expect(state.characterContinuity).toBe('single-instance-per-character');
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
+  expect(code).toContain("if(owner==='DUO')");
+  expect(code).toContain('suppressVisibleCharacter(state.POMPON)');
+  expect(code).toContain('suppressVisibleCharacter(state.CHIRU)');
+  expect(code).toContain('suppressVisibleCharacter(state[owner])');
 });
 
 
