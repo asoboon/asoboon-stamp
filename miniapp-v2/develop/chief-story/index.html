@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e8">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>ASOBooN｜ひみつの資料室</title>
+<link rel="stylesheet" href="./app.css?v=20260926-01">
+</head>
+<body>
+<header class="topbar">
+  <a class="home-link" href="../?view=home" aria-label="ASOBooN HOMEへ戻る">← HOME</a>
+  <div class="top-title">
+    <strong>ASOBooN ひみつの資料室</strong>
+    <small>横向き推奨｜左右にスワイプ</small>
+  </div>
+  <div class="page-count"><span id="pageNow">1</span>/<span id="pageTotal">1</span></div>
+</header>
+
+<nav class="tabs" aria-label="表示切替">
+  <button class="tab active" type="button" data-tab="slides">スライド</button>
+  <button class="tab" type="button" data-tab="words">ことば・資料集</button>
+</nav>
+
+<main>
+  <section id="slidesPanel" class="panel active" aria-label="ASOBooNスライド">
+    <div id="slideTrack" class="slide-track" tabindex="0"></div>
+    <div class="pager">
+      <button id="prevSlide" type="button" aria-label="前のスライド">←</button>
+      <div id="dots" class="dots" aria-hidden="true"></div>
+      <button id="nextSlide" type="button" aria-label="次のスライド">→</button>
+    </div>
+  </section>
+
+  <section id="wordsPanel" class="panel" aria-label="用語集・資料集">
+    <div class="words-intro">
+      <p class="eyebrow">もっと知りたい人へ</p>
+      <h1>遊び場の裏側にある「ことば」を、やさしく。</h1>
+      <p>プレゼンに出てくる言葉を、専門用語のまま終わらせずに説明しています。</p>
+    </div>
+    <div id="wordGrid" class="word-grid"></div>
+    <section class="source-box">
+      <h2>参考にした主な資料</h2>
+      <div id="sourceList"></div>
+      <p class="note">※Risky Playに関する国土交通省の指針は都市公園の固定遊具を対象とする技術的助言です。ASOBooNへ直接適用される規則として掲載しているものではありません。</p>
+    </section>
+  </section>
+</main>
+
+<script src="./app.js?v=20260926-01"></script>
+</body>
+</html>
