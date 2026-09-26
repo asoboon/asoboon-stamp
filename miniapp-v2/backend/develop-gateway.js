@@ -21,6 +21,7 @@ const CFG = Object.freeze({
   CHANNEL_ID: '2009884611',
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
   STORE_ID: 'KR01205179',
+  STORE_NO: 'AKR2298124918',
   TZ: 'Asia/Tokyo',
   OPERATIONAL_CUTOFF_HOUR: 19,
   WEB_OPEN_MIN: 7 * 60,
@@ -215,6 +216,7 @@ async function health(env) {
     dbConfigured: Boolean(env.DB),
     airwaitKeyConfigured: Boolean(env.AIRWAIT_API_KEY),
     storeId: CFG.STORE_ID,
+    createStoreNoFallbackEnabled: Boolean(CFG.STORE_NO),
     allowedOrigin: CFG.ALLOWED_ORIGIN,
     browserHitsAirwait: false,
     operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
@@ -414,7 +416,57 @@ async function createReservation(env, p, requestId) {
     throw apiError(amb ? 'AIRWAIT_CREATE_RESPONSE_AMBIGUOUS_MANUAL_REVIEW' : 'AIRWAIT_CREATE_INVALID_RESPONSE', 502, amb);
   }
 
-  const resultCode = String(d?.resultCode?.code || '');
+  let resultCode = String(d?.resultCode?.code || '');
+  let usedStoreNoFallback = false;
+
+  // Some AirWAIT stores are readable by storeId but reserve/create returns 3201
+  // for that identifier. 3201 is a definitive rejection (no reservation was
+  // created), so it is safe to retry exactly once with the documented storeNo.
+  if (d?.success === false && resultCode === '3201' && CFG.STORE_NO) {
+    let retryRes;
+    try {
+      retryRes = await fetch(CFG.AIR_CREATE, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          corWclpKeyCd: env.AIRWAIT_API_KEY,
+        },
+        body: new URLSearchParams({
+          storeNo: CFG.STORE_NO,
+          numPerson: String(adults),
+          numPersonChild: String(paidChildren + infants),
+          waitTypeId,
+          langType: 'KeyJPN',
+          autoPrintFlg: 'false',
+        }),
+      });
+    } catch {
+      await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
+      const e=apiError('AIRWAIT_CREATE_STORENO_NETWORK_AMBIGUOUS_MANUAL_REVIEW',502,true);
+      e.airwaitIdentifier='storeNo';
+      throw e;
+    }
+
+    const retryText = await retryRes.text();
+    let retryData;
+    try { retryData = JSON.parse(retryText); }
+    catch {
+      const amb = retryRes.ok || retryRes.status >= 500;
+      if (amb) await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
+      else await releaseUserClaim(env, hash, serverDate, requestId);
+      const e=apiError(amb ? 'AIRWAIT_CREATE_STORENO_RESPONSE_AMBIGUOUS_MANUAL_REVIEW' : 'AIRWAIT_CREATE_STORENO_INVALID_RESPONSE',502,amb);
+      e.airwaitHttp=Number(retryRes.status||0);
+      e.airwaitIdentifier='storeNo';
+      throw e;
+    }
+
+    res = retryRes;
+    d = retryData;
+    resultCode = String(d?.resultCode?.code || '');
+    usedStoreNoFallback = true;
+  }
+
   const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';
   if (!res.ok && hasDefinitiveAirwaitError) {
     await releaseUserClaim(env, hash, serverDate, requestId);
@@ -453,6 +505,7 @@ async function createReservation(env, p, requestId) {
     waitTime: Number(dto.waitTime || 0),
     waitCount: Number(dto.waitCount || 0),
     waitCountPerson: Number(dto.waitCountPerson || 0),
+    createIdentifier: usedStoreNoFallback ? 'storeNo-fallback' : 'storeId',
   };
 
   await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CONFIRMED',receipt_no=?,reserve_id=?,updated_at=?
@@ -565,6 +618,7 @@ function airwaitResultError(code, meta={}) {
   const c = String(code || 'NONE');
   const known = {
     '1000': 'AIRWAIT_INPUT_ERROR',
+    '3201': 'AIRWAIT_UNREGISTERED_DATA',
     '3509': 'AIRWAIT_PRINTER_NOT_FOUND',
     '3527': 'AIRWAIT_NO_TICKETS_TODAY',
     '3528': 'AIRWAIT_RECEPTION_UNAVAILABLE',
