@@ -260,6 +260,33 @@ test('callstatus cancels inside LINE without opening AirWAIT', async ({page}) =>
   expect(await page.evaluate(()=>window.__lastLiffOpenWindow||null)).toBeNull();
 });
 
+test('callstatus treats post-close missing AirWAIT rows as a closed terminal state', async ({page}) => {
+  await installLiff(page, 'authenticated');
+  await page.unroute('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**');
+  await page.addInitScript(() => {
+    localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
+      businessDate:'2026-09-26', receiptNo:'2510', reserveId:'000000002510', waitTypeId:'0033', waitTypeName:'15時15分頃入場時間【土休日特定日】'
+    }));
+  });
+  await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
+    const req=route.request(),url=new URL(req.url());
+    if(req.method()==='GET'&&url.searchParams.get('action')==='businessDay')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:'2026-09-26',businessType:'土日祝日',closingTime:'18:00'})});
+    if(req.method()==='GET'&&url.searchParams.get('action')==='health')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,officialDevelopEnabled:true,createEnabled:true})});
+    if(req.method()==='POST'){
+      const body=Object.fromEntries(new URLSearchParams(req.postData()||''));
+      if(body.action==='recoverReservationSession')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,found:true,sessionToken:'s'.repeat(64),expiresAt:Date.now()+3600000,businessDate:'2026-09-26',reserveId:'000000002510',receiptNo:'2510',waitTypeId:'0033'})});
+      if(body.action==='reservationStatus')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,found:true,state:'closed',status:'closed',receiptNo:'2510',businessDate:'2026-09-26',waitTypeId:'0033',checkedAt:Date.now(),syntheticTerminal:true,terminalReason:'BUSINESS_DAY_CLOSED'})});
+    }
+    return route.fulfill({status:404,contentType:'application/json',body:'{"ok":false}'});
+  });
+  await page.goto(`${BASE}?view=callstatus`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csTitle')).toHaveText('本日の受付は終了しました');
+  await expect(page.locator('#csMessage')).toContainText('呼出状況表示は終了');
+  await expect(page.locator('#csError')).toBeHidden();
+  await expect(page.locator('#csCancelArea')).toBeHidden();
+  await expect(page.locator('body')).not.toContainText('受付状況を取得できません');
+});
+
 for(const width of [320,375,390,430])test(`reception layout has no horizontal overflow at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:900});await openHome(page,'resolve');await page.locator('[data-v7-view="reception"]').click();
   await expect(page.locator('#recSlots')).toBeVisible();
