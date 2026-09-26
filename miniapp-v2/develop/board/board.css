@@ -690,6 +690,50 @@ body{
   z-index:1;
   pointer-events:none;
 }
+.fx-special-screen{
+  position:fixed;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  opacity:0;
+  transform-origin:var(--fx-x,50vw) var(--fx-y,50vh);
+  will-change:transform,opacity;
+  contain:strict;
+}
+.fx-special-screen.call{
+  background:
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,244,153,.82) 0 5%,rgba(255,194,59,.42) 6% 18%,transparent 40%),
+    repeating-conic-gradient(from -8deg at var(--fx-x) var(--fx-y),rgba(255,255,255,.3) 0 3deg,transparent 3deg 11deg);
+}
+.fx-special-screen.guided{
+  background:
+    linear-gradient(100deg,transparent 0 10%,rgba(120,229,255,.12) 18%,rgba(120,229,255,.55) 43%,rgba(255,255,255,.8) 49%,rgba(120,229,255,.38) 55%,transparent 82%),
+    repeating-linear-gradient(100deg,transparent 0 58px,rgba(255,255,255,.18) 59px 64px,transparent 65px 118px);
+}
+.fx-special-screen.hold{
+  background:
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,237,133,.7) 0 7%,rgba(255,198,49,.26) 8% 26%,transparent 50%),
+    repeating-linear-gradient(90deg,transparent 0 70px,rgba(255,226,105,.2) 71px 76px,transparent 77px 145px);
+}
+.fx-special-screen.cancel{
+  background:
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.92) 0 3%,rgba(201,230,237,.38) 4% 15%,transparent 36%),
+    repeating-conic-gradient(from 4deg at var(--fx-x) var(--fx-y),rgba(230,246,250,.55) 0 1.1deg,transparent 1.1deg 13deg);
+}
+.fx-special-screen.cancel:before,
+.fx-special-screen.cancel:after{
+  content:"";
+  position:absolute;
+  left:var(--fx-x,50vw);
+  top:var(--fx-y,50vh);
+  width:145vmax;
+  height:8px;
+  transform-origin:left center;
+  background:linear-gradient(90deg,rgba(255,255,255,.95),rgba(184,216,225,.6) 24%,transparent 78%);
+  box-shadow:0 0 8px rgba(255,255,255,.5);
+}
+.fx-special-screen.cancel:before{transform:rotate(23deg)}
+.fx-special-screen.cancel:after{transform:rotate(147deg)}
 .fx-card-ghost{
   z-index:4!important;
   pointer-events:none!important;
@@ -712,6 +756,18 @@ body{
   paint-order:stroke fill;
   text-shadow:0 5px 0 rgba(0,0,0,.28),0 11px 24px rgba(0,0,0,.28);
   will-change:transform,opacity;
+}
+.fx-onomatopoeia.giant{
+  z-index:10;
+  font-size:clamp(72px,14vw,230px);
+  line-height:.82;
+  letter-spacing:-.12em;
+  -webkit-text-stroke-width:clamp(5px,.7vw,10px);
+  text-shadow:
+    0 8px 0 rgba(0,0,0,.34),
+    0 18px 42px rgba(0,0,0,.42),
+    0 0 28px rgba(255,255,255,.22);
+  transform-origin:50% 50%;
 }
 .fx-onomatopoeia.call{color:#ffd84f;-webkit-text-stroke-color:#d34f18}
 .fx-onomatopoeia.guided{color:#78e5ff;-webkit-text-stroke-color:#176787}
