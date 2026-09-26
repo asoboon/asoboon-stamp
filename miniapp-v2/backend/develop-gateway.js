@@ -50,9 +50,9 @@ const SLOT_RULES = Object.freeze({
     '休館': Object.freeze([]),
   }),
   web: Object.freeze({
-    '平日': Object.freeze(['0023', '0024', '0025', '0027']),
-    '平日特定日': Object.freeze(['0036', '0038']),
-    '土日祝日': Object.freeze(['0030', '0032', '0034']),
+    '平日': Object.freeze(['0023', '0025']),
+    '平日特定日': Object.freeze(['0035', '0037']),
+    '土日祝日': Object.freeze(['0029', '0031', '0033']),
     '休館': Object.freeze([]),
   }),
 });
@@ -84,7 +84,7 @@ export default {
       if (request.method !== 'POST') return out(request, { ok: false, error: 'METHOD_NOT_ALLOWED', version: CFG.VERSION }, 405);
       const p = await readBody(request);
       const action = String(p.action || '');
-      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {
+      if (action !== 'createReservation') {
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
       }
 
@@ -97,9 +97,7 @@ export default {
 
       let result;
       try {
-        result = action === 'createReservation'
-          ? await createReservation(env, p, requestId)
-          : await adoptOfficialWebReception(env, p, requestId);
+        result = await createReservation(env, p, requestId);
       } catch (e) {
         if (action === 'createReservation') await recordCreateDiagnostic(env, p, e);
         result = {
@@ -359,7 +357,7 @@ async function getWaitTypes(env, { force = false } = {}) {
 function usageMatchesMode(usage, mode) {
   const u = String(usage || '');
   if (!u || u === '01' || u === 'KeyALL') return true;
-  if (mode === 'web') return u === '03' || u === 'KeyONLINE_RECEPTION_ONLY';
+  if (mode === 'web') return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
   return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
 }
 
@@ -368,12 +366,7 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
-  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  if (regularWeekdayLine) {
-    const u=String(w.usageDispType||'');
-    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  }
+  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }
 
@@ -407,34 +400,6 @@ async function createReservation(env, p, requestId) {
 
   const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);
   if (userClaim.existing) return userClaim.result;
-
-  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {
-    const baselineRows = await fetchOfficialReservations(env, waitTypeId);
-    const baseline = Array.from(new Set(baselineRows.map(x=>normalizeReceipt(x?.number)).filter(Boolean)));
-    const now = Date.now();
-    await env.DB.prepare(`INSERT INTO v2_official_web_handoffs
-      (request_id,user_hash,business_date,wait_type_id,adults,paid_children,infants,baseline_json,state,receipt_no,reserve_id,created_at,updated_at,expires_at)
-      VALUES(?,?,?,?,?,?,?,?,'PENDING','','',?,?,?)
-      ON CONFLICT(request_id) DO UPDATE SET
-        baseline_json=excluded.baseline_json,state='PENDING',updated_at=excluded.updated_at,expires_at=excluded.expires_at`)
-      .bind(requestId,hash,serverDate,waitTypeId,adults,paidChildren,infants,JSON.stringify(baseline),now,now,now+CFG.OFFICIAL_WEB_HANDOFF_TTL_MS).run();
-    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='OFFICIAL_WEB_PENDING',updated_at=?
-      WHERE user_hash=? AND business_date=? AND request_id=?`)
-      .bind(now,hash,serverDate,requestId).run();
-    await setRequestState(env, requestId, 'HANDOFF_PENDING');
-    return {
-      ok:true,
-      stored:false,
-      handoffRequired:true,
-      handoffRequestId:requestId,
-      businessDate:serverDate,
-      operationalDate:serverDate,
-      waitTypeId,
-      officialUrl:CFG.OFFICIAL_WEB_URL,
-      expiresAt:now+CFG.OFFICIAL_WEB_HANDOFF_TTL_MS,
-      version:CFG.VERSION,
-    };
-  }
 
   await setRequestState(env, requestId, 'VALIDATED');
   await setRequestState(env, requestId, 'AIRWAIT_CREATE_INFLIGHT');
