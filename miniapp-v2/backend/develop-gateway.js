@@ -388,7 +388,6 @@ async function createReservation(env, p, requestId) {
 
   const line = await verifyLineUser(p.liffAccessToken);
   const hash = await userHash(line.userId);
-  await incrementAttempt(env, hash, serverDate);
 
   const day = await getBusinessDay(serverDate);
   enforceReceptionHours(day, mode);
