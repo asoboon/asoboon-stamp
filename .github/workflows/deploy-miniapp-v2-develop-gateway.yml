@@ -462,6 +462,31 @@ jobs:
           print('ASOBooN public online-reception settings:')
           print(json.dumps(safe,ensure_ascii=False,indent=2))
           PY
+      - name: Inspect AirWAIT internal reserve create call shape
+        run: |
+          set -euo pipefail
+          TMP="$(mktemp -d)"
+          PAGE="$TMP/store.html"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          needles=['/WCSP/api/internal/stateless/reserve/create','/WCSP/api/internal/stateless/reserve/getReserveInput','mailAuthCreate']
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try:
+                  body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=20)
+              except Exception:
+                  continue
+              for needle in needles:
+                  pos=body.find(needle)
+                  if pos>=0:
+                      print('\n===',url,needle,'===')
+                      print(body[max(0,pos-3500):min(len(body),pos+6500)])
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
