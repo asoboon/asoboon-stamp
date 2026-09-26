@@ -16,6 +16,7 @@ import {
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
 const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
+const AIR_LAST_UPDATE = 'https://cl.airwait.jp/WCLP/api/external/stateless/store/getLastUpdDateStateless';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
 const CROWD_ONLINE_WAIT_TYPE_IDS = new Set(['0024','0027','0030','0032','0034','0036','0038']);
 const CROWD_SLOT_KEYS = Object.freeze({
@@ -49,11 +50,16 @@ const BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
 const BUSINESS_CALENDAR_READ_TIMEOUT_MS = 5 * 1000;
 const RECONCILE_CACHE_MS = 5 * 1000;
+const BOARD_BROWSER_TIMEOUT_BUDGET_MS = 20 * 1000;
+const BOARD_SNAPSHOT_STALE_FALLBACK_MS = 3 * 60 * 1000;
+const BOARD_PAGE_CONCURRENCY = 4;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
 const businessDayCache = new Map();
 const businessDayInflight = new Map();
 let reconcileAllCache = { savedAt:0, rows:[] };
 let reconcileAllInflight = null;
+const boardSnapshotMemory = new Map();
+const boardSnapshotInflight = new Map();
 const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -419,17 +425,177 @@ function tokyoCalendarDate(date=new Date()) {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
+async function fetchAirwaitLastUpdate(env) {
+  const u=new URL(AIR_LAST_UPDATE);
+  u.searchParams.set('storeId','KR01205179');
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),Math.min(EXTERNAL_READ_TIMEOUT_MS,5000));
+  let r;
+  try{
+    r=await fetch(u,{
+      method:'GET',
+      headers:{Accept:'application/json',corWclpKeyCd:env.AIRWAIT_API_KEY},
+      cache:'no-store',
+      signal:ctrl.signal,
+    });
+  }catch(e){
+    if(e?.name==='AbortError') throw apiError('AIRWAIT_LAST_UPDATE_TIMEOUT',504);
+    throw e;
+  }finally{clearTimeout(timer)}
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LAST_UPDATE_FAILED',502);
+  return String(d?.innerDto?.lastUpdDate||'');
+}
+
+async function fetchBoardReservationPage(env,start=1){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+  let r;
+  try{
+    r=await fetch(AIR_RESERVATIONS,{
+      method:'POST',
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+        corWclpKeyCd:env.AIRWAIT_API_KEY,
+      },
+      body:new URLSearchParams({
+        storeId:'KR01205179',
+        sortStatus:'0',
+        isDesc:'0',
+        start:String(start),
+        limit:'100',
+      }),
+      cache:'no-store',
+      signal:ctrl.signal,
+    });
+  }catch(e){
+    if(e?.name==='AbortError')throw apiError('AIRWAIT_BOARD_TIMEOUT',504);
+    throw e;
+  }finally{clearTimeout(timer)}
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_BOARD_FAILED',502);
+  const part=Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[];
+  return{
+    count:Number(d?.innerDto?.count||part.length||0),
+    rows:part.map(x=>({
+      number:String(x?.number||''),
+      waitTypeId:String(x?.waitTypeId||''),
+      waitTypeName:String(x?.waitTypeName||''),
+      status:String(x?.status||''),
+      isCalling:String(x?.isCalling||'0'),
+    })),
+  };
+}
+
+async function fetchBoardReservationsFresh(env){
+  const first=await fetchBoardReservationPage(env,1);
+  const total=Math.max(0,Number(first.count||0));
+  const starts=[];
+  for(let start=101;start<=total&&starts.length<19;start+=100)starts.push(start);
+  const pages=[first];
+  for(let i=0;i<starts.length;i+=BOARD_PAGE_CONCURRENCY){
+    const batch=starts.slice(i,i+BOARD_PAGE_CONCURRENCY);
+    const values=await Promise.all(batch.map(start=>fetchBoardReservationPage(env,start)));
+    pages.push(...values);
+  }
+  return pages.flatMap(page=>page.rows);
+}
+
+async function readBoardSnapshotD1(env,businessDate){
+  if(!await ensureWorkerStateTable(env))return null;
+  try{
+    const row=await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1')
+      .bind('board_snapshot:'+businessDate).first();
+    if(!row)return null;
+    const value=JSON.parse(String(row.value||''));
+    if(String(value?.businessDate||'')!==businessDate||!Array.isArray(value?.rows))return null;
+    return{savedAt:Number(row.updated_at||0),value};
+  }catch(e){console.warn('BOARD_SNAPSHOT_READ_FAILED',safeError(e));return null}
+}
+
+async function writeBoardSnapshotD1(env,businessDate,value){
+  if(!await ensureWorkerStateTable(env))return;
+  try{
+    await env.DB.prepare('INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at')
+      .bind('board_snapshot:'+businessDate,JSON.stringify(value),Date.now()).run();
+  }catch(e){console.warn('BOARD_SNAPSHOT_WRITE_FAILED',safeError(e))}
+}
+
+async function getBoardRows(env,businessDate,businessType){
+  const key=businessDate+'::'+businessType;
+  if(boardSnapshotInflight.has(key))return await boardSnapshotInflight.get(key);
+  const job=(async()=>{
+    let snapshot=boardSnapshotMemory.get(key)||null;
+    if(!snapshot){
+      const stored=await readBoardSnapshotD1(env,businessDate);
+      if(stored&&String(stored.value?.businessType||'')===businessType){
+        snapshot={savedAt:stored.savedAt,...stored.value};
+        boardSnapshotMemory.set(key,snapshot);
+      }
+    }
+
+    let lastUpdDate='';
+    try{lastUpdDate=await fetchAirwaitLastUpdate(env)}catch(e){
+      console.warn('BOARD_LAST_UPDATE_READ_FAILED',safeError(e));
+    }
+
+    if(snapshot&&lastUpdDate&&String(snapshot.lastUpdDate||'')===lastUpdDate){
+      return{rows:snapshot.rows,stale:false,cacheSource:snapshot.cacheSource||'snapshot',lastUpdDate};
+    }
+
+    try{
+      const rows=await fetchBoardReservationsFresh(env);
+      const value={businessDate,businessType,lastUpdDate,rows,cacheSource:'airwait-fresh'};
+      const fresh={savedAt:Date.now(),...value};
+      boardSnapshotMemory.set(key,fresh);
+      await writeBoardSnapshotD1(env,businessDate,value);
+      return{rows,stale:false,cacheSource:'airwait-fresh',lastUpdDate};
+    }catch(e){
+      if(snapshot&&Date.now()-Number(snapshot.savedAt||0)<=BOARD_SNAPSHOT_STALE_FALLBACK_MS){
+        console.warn('BOARD_USING_STALE_SNAPSHOT',safeError(e));
+        return{
+          rows:snapshot.rows,
+          stale:true,
+          staleAgeMs:Date.now()-Number(snapshot.savedAt||0),
+          cacheSource:'snapshot-stale',
+          lastUpdDate:String(snapshot.lastUpdDate||lastUpdDate||''),
+          warning:safeError(e),
+        };
+      }
+      throw e;
+    }
+  })();
+  boardSnapshotInflight.set(key,job);
+  try{return await job}
+  finally{if(boardSnapshotInflight.get(key)===job)boardSnapshotInflight.delete(key)}
+}
+
+function boardActiveNow(businessType,date=new Date()){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hour12:false
+  }).formatToParts(date).map(x=>[x.type,x.value]));
+  const m=Number(p.hour||0)*60+Number(p.minute||0);
+  if(m<8*60)return false;
+  if(businessType==='平日'||businessType==='平日特定日')return m<17*60;
+  if(businessType==='土日祝日')return m<18*60;
+  return false;
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const businessDate=tokyoCalendarDate();
-  const [rows,day]=await Promise.all([
-    fetchAllReservationsForReconcile(env),
-    getBusinessDayProxy(businessDate, env),
-  ]);
+  const day=await getBusinessDayProxy(businessDate, env);
   const businessType=String(day?.businessType||'');
   const specs=BOARD_SLOT_SPECS[businessType]||Object.freeze([]);
+
+  let boardRows={rows:[],stale:false,cacheSource:'inactive',lastUpdDate:''};
+  if(boardActiveNow(businessType)){
+    boardRows=await getBoardRows(env,businessDate,businessType);
+  }
+
   const slots = specs.map(spec => {
-    const target = rows.filter(row => boardSlotKey(row,specs) === spec.key);
+    const target = boardRows.rows.filter(row => boardSlotKey(row,specs) === spec.key);
     return {
       key:spec.key,
       label:spec.label,
@@ -446,14 +612,21 @@ async function getBoardStatus(env) {
     source:'AirWAIT reservations + ASOBooN business calendar / read-only sanitized board feed',
     fetchedAt:new Date().toISOString(),
     refreshAfterMs:10000,
+    requestBudgetMs:BOARD_BROWSER_TIMEOUT_BUDGET_MS,
     businessDate,
     businessType,
     isClosed:businessType==='休館',
     weekday:String(day?.weekday||''),
     note:String(day?.note||''),
+    stale:Boolean(boardRows.stale),
+    staleAgeMs:Number(boardRows.staleAgeMs||0),
+    cacheSource:String(boardRows.cacheSource||''),
+    lastUpdDate:String(boardRows.lastUpdDate||''),
+    warning:String(boardRows.warning||''),
     slots,
   };
 }
+
 
 function boardSlotKey(row,specs=[]) {
   const id = String(row?.waitTypeId || '');

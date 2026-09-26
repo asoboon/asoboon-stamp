@@ -225,6 +225,40 @@ jobs:
             });
           '
 
+      - name: Verify live boardStatus read path
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          START_MS="$(date +%s%3N)"
+          RESPONSE="$(curl --max-time 20 --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=boardStatus&live_check=${GITHUB_SHA}")"
+          END_MS="$(date +%s%3N)"
+          ELAPSED_MS="$((END_MS-START_MS))"
+          printf '%s' "$RESPONSE" | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              const validTypes=new Set(["平日","平日特定日","土日祝日","休館"]);
+              if(x.ok!==true) throw new Error("boardStatus ok=false");
+              if(!validTypes.has(String(x.businessType||""))) throw new Error("boardStatus businessType invalid");
+              if(!Array.isArray(x.slots)) throw new Error("boardStatus slots missing");
+              if(Number(x.refreshAfterMs)!==10000) throw new Error("boardStatus refresh contract mismatch");
+              console.log(JSON.stringify({
+                businessDate:x.businessDate,
+                businessType:x.businessType,
+                slots:x.slots.map(v=>({key:v.key,count:v.count})),
+                stale:Boolean(x.stale),
+                cacheSource:x.cacheSource||"",
+                lastUpdDate:x.lastUpdDate||""
+              },null,2));
+            });
+          '
+          echo "boardStatus live latency: ${ELAPSED_MS}ms"
+          if [ "$ELAPSED_MS" -gt 20000 ]; then
+            echo "boardStatus exceeded 20s live budget" >&2
+            exit 1
+          fi
+
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
