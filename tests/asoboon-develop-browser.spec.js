@@ -52,7 +52,7 @@ async function installLiff(page, mode, fixtures = {}) {
     await route.fulfill({
       status: 200,
       contentType: 'application/javascript',
-      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>${mode==='authenticated'?'true':'false'},getAccessToken:()=>${mode==='authenticated'?"'test-liff-access-token-1234567890'":"''"},getProfile:()=>Promise.resolve({displayName:'Test'})};`
+      body: `window.liff={isInClient:()=>true,init:()=>${init},isLoggedIn:()=>${mode==='authenticated'?'true':'false'},getAccessToken:()=>${mode==='authenticated'?"'test-liff-access-token-1234567890'":"''"},getProfile:()=>Promise.resolve({displayName:'Test'}),openWindow:(opts)=>{window.__lastLiffOpenWindow=opts;}};`
     });
   });
 }
@@ -188,6 +188,11 @@ test('WEB-only reception hands off to official AirWAIT then links receipt back t
   await expect(page.locator('.rec-official')).toBeVisible();
   await expect(page.locator('.rec-official')).toContainText('AirWAIT公式画面で受付');
   await expect(page.locator('#recOfficialOpen')).toBeVisible();
+  await page.locator('#recOfficialOpen').click();
+  await expect.poll(()=>page.evaluate(()=>window.__lastLiffOpenWindow||null)).toEqual({
+    url:'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN',
+    external:false
+  });
   await page.locator('#recOfficialReceipt').fill('9876');
   await page.locator('#recOfficialLink').click();
 
