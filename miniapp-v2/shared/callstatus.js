@@ -98,7 +98,8 @@ function safeCancelUrl(){
   try{
     const u=new URL(raw,location.href);
     const host=String(u.hostname||'').toLowerCase();
-    if(u.protocol!=='https:'||!(host==='airwait.jp'||host.endsWith('.airwait.jp')))return'';
+    if(!['http:','https:'].includes(u.protocol)||!(host==='airwait.jp'||host.endsWith('.airwait.jp')))return'';
+    u.protocol='https:';
     return u.toString();
   }catch{return''}
 }
