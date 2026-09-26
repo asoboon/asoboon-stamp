@@ -76,7 +76,7 @@ test('0042 is a Developing-only exception while customer slots still enforce ava
   const disabledCustomer=[{waitTypeId:'0029',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
   assert.throws(()=>runtime.validateWaitType(disabledCustomer,{businessType:'土日祝日'},'web','0029'),/WAIT_TYPE_NOT_AVAILABLE/);
   const onlineOnly=[{waitTypeId:'0029',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}];
-  assert.throws(()=>runtime.validateWaitType(onlineOnly,{businessType:'土日祝日'},'web','0029'),/WAIT_TYPE_NOT_ALLOWED_FOR_DAY/);
+  assert.throws(()=>runtime.validateWaitType(onlineOnly,{businessType:'土日祝日'},'web','0029'),/WAIT_TYPE_MODE_MISMATCH/);
   const weekdayStore=[{waitTypeId:'0023',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}];
   assert.equal(runtime.validateWaitType(weekdayStore,{businessType:'平日'},'web','0023').waitTypeId,'0023');
   assert.throws(()=>runtime.validateWaitType([],{businessType:'土日祝日'},'web','0029'),/WAIT_TYPE_NOT_AVAILABLE/);
