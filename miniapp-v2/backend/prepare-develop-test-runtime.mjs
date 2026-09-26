@@ -56,8 +56,8 @@ replaceOnce(
   "  const wt = await getWaitTypesForCreate(env);"
 );
 replaceOnce(
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {",
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {"
+  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  await setRequestState(env, requestId, 'VALIDATED');",
+  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  await setRequestState(env, requestId, 'VALIDATED');"
 );
 replaceOnce(
   "  enforceReceptionHours(day, mode);",
@@ -78,12 +78,7 @@ replaceOnce(
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
-  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  if (regularWeekdayLine) {
-    const u=String(w.usageDispType||'');
-    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  }
+  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }`,
 `function validateWaitType(waitTypes, day, mode, waitTypeId) {
@@ -98,12 +93,7 @@ replaceOnce(
     return w;
   }
   if (w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  const regularWeekdayLine = mode === 'web' && day.businessType === '平日';
-  if (!regularWeekdayLine && !usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  if (regularWeekdayLine) {
-    const u=String(w.usageDispType||'');
-    if (u && !['01','02','03','KeyALL','KeySTORE_RECEPTION_ONLY','KeyONLINE_RECEPTION_ONLY'].includes(u)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
-  }
+  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
 }`
 );
