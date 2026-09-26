@@ -6,108 +6,179 @@ const ASSETS=window.ASOBOON_BOARD_CHARACTER_ASSETS;
 const LEGACY_IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 if(!CHAR||!SOURCEFX||!FOURTH)return;
 
-const CHARACTER_CATEGORIES=new Set(['POMPON_CAMEO','CHIRU_CAMEO','POMPON_STORY','DUO_STORY','RARE_STORY','FOURTH_WALL_STORY']);
-const FOURTH_CATEGORIES=new Set(['FOURTH_WALL_MICRO','FOURTH_WALL_STORY']);
-const BAG_TEMPLATE=Object.freeze({
-  SOURCE_FX:30,
-  POMPON_CAMEO:4,
-  CHIRU_CAMEO:4,
-  POMPON_STORY:4,
-  DUO_STORY:8,
-  RARE_STORY:1,
-  FOURTH_WALL_MICRO:12,
-  FOURTH_WALL_STORY:14,
-});
 const CONFIG={
   REAL_CHANGE_COOLDOWN_MS:15000,
-  CHARACTER_FORCE_AFTER_MS:60000,
-  POMPON_STORY_MIN_MS:30000,
-  DUO_STORY_MIN_MS:40000,
-  RARE_STORY_MIN_MS:180000,
-  FOURTH_WALL_MICRO_MIN_MS:20000,
-  FOURTH_WALL_STORY_MIN_MS:45000,
-  MAX_CHAR_IN_LAST_FIVE:3,
-  MAX_FOURTH_IN_LAST_FIVE:2,
+  CHARACTER_FORCE_AFTER_MS:25000,
+  MEGA_MIN_MS:90000,
+  QUIET_BEAT_MS:6500,
+  INITIAL_SHOW_DELAY_MS:2000,
+  MAX_PURE_FX_IN_ROW:1,
+  HISTORY_LIMIT:80,
 };
-let ready=false,cooldownUntil=0,lastCharacterAt=0,lastPomponStoryAt=0,lastDuoStoryAt=0,lastRareAt=0,lastFourthMicroAt=0,lastFourthStoryAt=0;
-let beatHistory=[],eventHistory=[],categoryBag=[],eventBags={},cycleNumber=0,cycleStartedAt=0,sequence=0;
-const diagnostics={attempts:0,played:0,sourceFx:0,character:0,fourthWall:0,skipped:0,realInterrupts:0,suspends:0,cyclesCompleted:0,lastDecision:'none',lastEvent:null,history:[]};
+const SOURCE_IDS=Object.freeze([...(SOURCEFX.events||[])]);
+const CHAR_EVENTS=Object.freeze([...(CHAR.events||[])]);
+const FOURTH_EVENTS=Object.freeze([...(FOURTH.events||[])]);
+const POMPON_CAMEOS=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='POMPON_CAMEO').map(x=>x.id));
+const CHIRU_CAMEOS=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='CHIRU_CAMEO').map(x=>x.id));
+const POMPON_STORIES=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='POMPON_STORY').map(x=>x.id));
+const DUO_STORIES=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='DUO_STORY').map(x=>x.id));
+const RARE_STORIES=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='RARE_STORY').map(x=>x.id));
+const MEGA_STORIES=Object.freeze(CHAR_EVENTS.filter(x=>x.category==='MEGA_STORY').map(x=>x.id));
+const FOURTH_MICRO=Object.freeze(FOURTH_EVENTS.filter(x=>x.category==='FOURTH_WALL_MICRO').map(x=>x.id));
+const FOURTH_STORY=Object.freeze(FOURTH_EVENTS.filter(x=>x.category==='FOURTH_WALL_STORY').map(x=>x.id));
+const FOURTH_MEGA=Object.freeze(['FW_KNOCK_KNOCK_POMPON','FW_REPAIR_REBREAK_DUO','FW_DUO_RACE_OUT','FW_DUO_SHARED_BREAK'].filter(id=>FOURTH_STORY.includes(id)));
+const FOURTH_BIG=Object.freeze(FOURTH_STORY.filter(id=>!FOURTH_MEGA.includes(id)));
+const CHARACTER_CATEGORIES=new Set(['POMPON_CAMEO','CHIRU_CAMEO','POMPON_STORY','DUO_STORY','RARE_STORY','MEGA_STORY','FOURTH_WALL_STORY']);
 
-function isCharacter(c){return CHARACTER_CATEGORIES.has(String(c||''))}
-function isFourth(c){return FOURTH_CATEGORIES.has(String(c||''))}
+const SHOW_ARCS=Object.freeze({
+  BALL_CHAOS:Object.freeze({
+    title:'巨大ボール大事故',
+    beats:Object.freeze([
+      Object.freeze({role:'OPENING',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'SEED',choose:POMPON_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'DISTRACTION',choose:SOURCE_IDS,magnitude:'SMALL'}),
+      Object.freeze({role:'CALLBACK',choose:POMPON_STORIES,magnitude:'MEDIUM'}),
+      Object.freeze({role:'REACTION',choose:CHIRU_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'BIG',choose:RARE_STORIES.length?RARE_STORIES:['BALL_RIDE_FAIL'],magnitude:'BIG'}),
+      Object.freeze({role:'CALLBACK',choose:DUO_STORIES,magnitude:'BIG'}),
+      Object.freeze({role:'TENSION',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'MEGA',event:'MEGA_GREAT_CRASH',fallback:'BALL_RIDE_FAIL',magnitude:'MEGA'}),
+      Object.freeze({role:'AFTERMATH',choose:DUO_STORIES,magnitude:'MEDIUM'}),
+      Object.freeze({role:'TAG',choose:FOURTH_MICRO,magnitude:'SMALL'}),
+    ])
+  }),
+  CHASE_COMEDY:Object.freeze({
+    title:'追いかけっこ騒動',
+    beats:Object.freeze([
+      Object.freeze({role:'OPENING',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'SEED',choose:CHIRU_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'CALLBACK',choose:POMPON_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'STORY',choose:DUO_STORIES,magnitude:'MEDIUM'}),
+      Object.freeze({role:'DISTRACTION',choose:SOURCE_IDS,magnitude:'SMALL'}),
+      Object.freeze({role:'RISING',choose:POMPON_STORIES,magnitude:'MEDIUM'}),
+      Object.freeze({role:'BIG',choose:DUO_STORIES,magnitude:'BIG'}),
+      Object.freeze({role:'TENSION',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'MEGA',event:'MEGA_SCREEN_TAKEOVER',fallback:'POMPON_WRONG_WAY_VICTORY',magnitude:'MEGA'}),
+      Object.freeze({role:'AFTERMATH',choose:CHIRU_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'TAG',choose:FOURTH_MICRO,magnitude:'SMALL'}),
+    ])
+  }),
+  FOURTH_WALL_MYSTERY:Object.freeze({
+    title:'第四の壁ミステリー',
+    beats:Object.freeze([
+      Object.freeze({role:'OPENING',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'SEED',choose:POMPON_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'OMEN',choose:FOURTH_MICRO,magnitude:'SMALL'}),
+      Object.freeze({role:'CALLBACK',choose:POMPON_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'FALSE_ALARM',choose:FOURTH_MICRO,magnitude:'MEDIUM'}),
+      Object.freeze({role:'REACTION',choose:CHIRU_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'RISING',choose:FOURTH_BIG.length?FOURTH_BIG:FOURTH_STORY,magnitude:'BIG'}),
+      Object.freeze({role:'TENSION',quiet:true,magnitude:'ZERO'}),
+      Object.freeze({role:'MEGA',choose:FOURTH_MEGA.length?FOURTH_MEGA:FOURTH_STORY,fallback:'FW_POMPON_FACE_POP',magnitude:'MEGA'}),
+      Object.freeze({role:'AFTERMATH',choose:CHIRU_CAMEOS,magnitude:'SMALL'}),
+      Object.freeze({role:'EPILOGUE',choose:DUO_STORIES,magnitude:'MEDIUM'}),
+    ])
+  }),
+});
+
+let ready=false,cooldownUntil=0,lastCharacterAt=0,lastMegaAt=0,sequence=0;
+let currentArc='',currentArcTitle='',currentBeatIndex=0,arcBag=[],choiceBags=new Map(),forcedArcQueue=[];
+let beatHistory=[],eventHistory=[],lastCategory='',pureFxStreak=0;
+const diagnostics={
+  attempts:0,played:0,quietBeats:0,character:0,sourceFx:0,fourthWall:0,megaPlayed:0,megaDeferred:0,
+  livingCameos:0,callbacks:0,aftermaths:0,realInterrupts:0,suspends:0,arcsStarted:0,arcsCompleted:0,
+  skipped:0,lastDecision:'none',lastEvent:null,history:[]
+};
+
 function shuffle(list,random=Math.random){
   const a=[...list];
   for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
   return a;
 }
-function categoryEvents(category){
-  if(category==='SOURCE_FX')return [...(SOURCEFX.events||[])];
-  if(isFourth(category))return (FOURTH.events||[]).filter(x=>x.category===category).map(x=>x.id);
-  return (CHAR.events||[]).filter(x=>x.category===category).map(x=>x.id);
+function eventCategory(id){
+  const key=String(id||'');
+  if(SOURCE_IDS.includes(key))return'SOURCE_FX';
+  const c=CHAR_EVENTS.find(x=>x.id===key);if(c)return c.category;
+  const f=FOURTH_EVENTS.find(x=>x.id===key);if(f)return f.category;
+  return'';
 }
-function buildCategoryBag(random=Math.random){
-  const bag=[];
-  for(const [category,count] of Object.entries(BAG_TEMPLATE))for(let i=0;i<count;i++)bag.push(category);
-  categoryBag=shuffle(bag,random);
-  eventBags={};
-  for(const category of Object.keys(BAG_TEMPLATE))eventBags[category]=shuffle(categoryEvents(category),random);
-  cycleNumber+=1;cycleStartedAt=Date.now();
-  return categoryBag;
+function isFourthCategory(category){return String(category||'').startsWith('FOURTH_WALL_')}
+function isCharacterCategory(category){return CHARACTER_CATEGORIES.has(String(category||''))}
+function isCharacterEvent(id){return isCharacterCategory(eventCategory(id))}
+function statusFxBusy(){
+  const d=window.ASOBOON_BOARD_ANIMATIONS?.getDiagnostics?.();
+  return Boolean(d&&(Number(d.activeFx||0)>0||Number(d.queuedNow||0)>0||Number(d.running||0)>0));
 }
-function nextEvent(category,random=Math.random){
-  const all=categoryEvents(category);if(!all.length)return'';
-  let bag=eventBags[category];
-  if(!Array.isArray(bag)||!bag.length){bag=shuffle(all,random);eventBags[category]=bag}
-  return bag.shift()||'';
+function chooseFrom(pool,key,random=Math.random){
+  const list=[...(Array.isArray(pool)?pool:[])].filter(Boolean);if(!list.length)return'';
+  const bagKey=String(key||list.join('|'));
+  let bag=choiceBags.get(bagKey);
+  if(!Array.isArray(bag)||!bag.length){bag=shuffle(list,random);choiceBags.set(bagKey,bag)}
+  let id=bag.shift()||'';
+  if(id&&eventHistory.slice(-4).includes(id)&&bag.length){bag.push(id);id=bag.shift()||id}
+  return id;
 }
-function putBack(category,eventId){
-  categoryBag.unshift(category);
-  if(eventId){if(!Array.isArray(eventBags[category]))eventBags[category]=[];eventBags[category].unshift(eventId)}
+function refillArcBag(random=Math.random){arcBag=shuffle(Object.keys(SHOW_ARCS),random)}
+function nextArc(random=Math.random){
+  if(forcedArcQueue.length)return String(forcedArcQueue.shift()||'CHASE_COMEDY');
+  if(!arcBag.length)refillArcBag(random);
+  return String(arcBag.shift()||'CHASE_COMEDY');
 }
-function statusFxBusy(){const d=window.ASOBOON_BOARD_ANIMATIONS?.getDiagnostics?.();return Boolean(d&&(Number(d.activeFx||0)>0||Number(d.queuedNow||0)>0||Number(d.running||0)>0))}
-function recentCharacterCount(n=5){return beatHistory.slice(-n).filter(x=>isCharacter(x.category)).length}
-function consecutiveCharacters(){let n=0;for(let i=beatHistory.length-1;i>=0;i--){if(isCharacter(beatHistory[i].category))n++;else break}return n}
-function recentFourthCount(n=5){return beatHistory.slice(-n).filter(x=>isFourth(x.category)).length}
-function eligible(category,now,{ignoreCharacterForce=false}={}){
-  if(isCharacter(category)&&(recentCharacterCount(5)>=CONFIG.MAX_CHAR_IN_LAST_FIVE||consecutiveCharacters()>=2))return false;
-  if(category==='POMPON_STORY'&&now-lastPomponStoryAt<CONFIG.POMPON_STORY_MIN_MS)return false;
-  if(category==='DUO_STORY'&&now-lastDuoStoryAt<CONFIG.DUO_STORY_MIN_MS)return false;
-  if(category==='RARE_STORY'&&now-lastRareAt<CONFIG.RARE_STORY_MIN_MS)return false;
-  if(isFourth(category)&&recentFourthCount(5)>=CONFIG.MAX_FOURTH_IN_LAST_FIVE)return false;
-  if(category==='FOURTH_WALL_MICRO'&&now-lastFourthMicroAt<CONFIG.FOURTH_WALL_MICRO_MIN_MS)return false;
-  if(category==='FOURTH_WALL_STORY'&&now-lastFourthStoryAt<CONFIG.FOURTH_WALL_STORY_MIN_MS)return false;
-  if(!ignoreCharacterForce&&now-lastCharacterAt>=CONFIG.CHARACTER_FORCE_AFTER_MS&&(category==='SOURCE_FX'||category==='FOURTH_WALL_MICRO'))return false;
-  return true;
+function startArc(name='',random=Math.random){
+  const key=SHOW_ARCS[name]?name:nextArc(random),arc=SHOW_ARCS[key];
+  if(currentArc)diagnostics.arcsCompleted+=1;
+  currentArc=key;currentArcTitle=arc.title;currentBeatIndex=0;diagnostics.arcsStarted+=1;
+  diagnostics.lastDecision='arc-start:'+key;
+  return arc;
 }
-function takeCategory(now=Date.now()){
-  if(!categoryBag.length)buildCategoryBag();
-  const forceCharacter=now-lastCharacterAt>=CONFIG.CHARACTER_FORCE_AFTER_MS;
-  let idx=-1;
-  for(let i=0;i<categoryBag.length;i++){
-    const c=categoryBag[i];
-    if(forceCharacter&&!isCharacter(c))continue;
-    if(eligible(c,now)){idx=i;break}
+function ensureArc(random=Math.random){
+  if(!currentArc||!SHOW_ARCS[currentArc]||currentBeatIndex>=SHOW_ARCS[currentArc].beats.length)return startArc(nextArc(random),random);
+  return SHOW_ARCS[currentArc];
+}
+function resolveBeatEvent(beat,now=Date.now(),random=Math.random){
+  if(!beat||beat.quiet)return{eventId:'',category:'QUIET',mega:false,deferred:false};
+  let eventId=beat.event||chooseFrom(beat.choose,currentArc+':'+currentBeatIndex+':'+beat.role,random);
+  let mega=beat.role==='MEGA';
+  let deferred=false;
+  if(mega&&lastMegaAt&&now-lastMegaAt<CONFIG.MEGA_MIN_MS){
+    eventId=String(beat.fallback||'')||chooseFrom(
+      currentArc==='FOURTH_WALL_MYSTERY'?(FOURTH_BIG.length?FOURTH_BIG:FOURTH_STORY):POMPON_STORIES,
+      currentArc+':mega-fallback',
+      random
+    );
+    mega=false;deferred=true;
   }
-  if(idx<0){
-    for(let i=0;i<categoryBag.length;i++){if(eligible(categoryBag[i],now,{ignoreCharacterForce:true})){idx=i;break}}
-  }
-  if(idx<0)return'SOURCE_FX';
-  return categoryBag.splice(idx,1)[0];
+  return{eventId,category:eventCategory(eventId),mega,deferred};
 }
-function recordBeat(category,eventId,now=Date.now()){
-  const row={sequence:++sequence,cycle:cycleNumber,category:String(category),eventId:String(eventId||''),at:now};
-  beatHistory.push(row);beatHistory=beatHistory.slice(-16);
-  if(eventId){eventHistory.push(String(eventId));eventHistory=eventHistory.slice(-16)}
-  if(isCharacter(category)){
-    lastCharacterAt=now;
-    if(category==='POMPON_STORY')lastPomponStoryAt=now;
-    if(category==='DUO_STORY')lastDuoStoryAt=now;
-    if(category==='RARE_STORY')lastRareAt=now;
-  }
-  if(category==='FOURTH_WALL_MICRO')lastFourthMicroAt=now;
-  if(category==='FOURTH_WALL_STORY')lastFourthStoryAt=now;
-  if(categoryBag.length===0)diagnostics.cyclesCompleted+=1;
-  diagnostics.lastDecision=category;diagnostics.lastEvent=row;diagnostics.history.push({...row});diagnostics.history=diagnostics.history.slice(-60);
+function recordBeat({role,eventId,category,magnitude,injected=false,quiet=false,mega=false,deferred=false},now=Date.now()){
+  const row={
+    sequence:++sequence,arc:currentArc,arcTitle:currentArcTitle,beat:currentBeatIndex,role:String(role||''),
+    eventId:String(eventId||''),category:String(category||''),magnitude:String(magnitude||''),injected:Boolean(injected),
+    quiet:Boolean(quiet),mega:Boolean(mega),deferred:Boolean(deferred),at:now
+  };
+  beatHistory.push(row);beatHistory=beatHistory.slice(-32);
+  if(eventId){eventHistory.push(String(eventId));eventHistory=eventHistory.slice(-32)}
+  if(eventId&&isCharacterEvent(eventId)){lastCharacterAt=now;diagnostics.character+=1}
+  if(category==='SOURCE_FX'){diagnostics.sourceFx+=1;pureFxStreak+=1}else if(!quiet)pureFxStreak=0;
+  if(isFourthCategory(category))diagnostics.fourthWall+=1;
+  if(mega){lastMegaAt=now;diagnostics.megaPlayed+=1}
+  if(deferred)diagnostics.megaDeferred+=1;
+  if(role==='CALLBACK')diagnostics.callbacks+=1;
+  if(role==='AFTERMATH'||role==='EPILOGUE')diagnostics.aftermaths+=1;
+  diagnostics.lastDecision=quiet?'show-quiet':String(role||category||'show');
+  diagnostics.lastEvent=row;diagnostics.history.push({...row});diagnostics.history=diagnostics.history.slice(-CONFIG.HISTORY_LIMIT);
+}
+async function playEvent(eventId,{grid}={}){
+  const category=eventCategory(eventId);
+  if(category==='SOURCE_FX')return SOURCEFX.play(eventId);
+  if(isFourthCategory(category))return FOURTH.play(eventId);
+  if(category)return CHAR.play(eventId,{grid:grid||document.getElementById('queueGrid')});
+  return{played:false,reason:'unknown-event'};
+}
+function livingCameoId(){
+  const recent=new Set(eventHistory.slice(-3));
+  const pool=[...POMPON_CAMEOS,...CHIRU_CAMEOS].filter(id=>!recent.has(id));
+  return chooseFrom(pool.length?pool:[...POMPON_CAMEOS,...CHIRU_CAMEOS],'living-cameo');
 }
 async function onStableUpdate({grid}={}){
   diagnostics.attempts++;const now=Date.now();
@@ -116,54 +187,140 @@ async function onStableUpdate({grid}={}){
   if(now<cooldownUntil){diagnostics.skipped++;diagnostics.lastDecision='cooldown';return{played:false,reason:'cooldown'}}
   if(CHAR.isRunning?.()||SOURCEFX.isRunning?.()||FOURTH.isRunning?.()){diagnostics.skipped++;diagnostics.lastDecision='busy';return{played:false,reason:'busy'}}
   if(statusFxBusy()){diagnostics.skipped++;diagnostics.lastDecision='real-fx-busy';return{played:false,reason:'real-fx-busy'}}
-  const category=takeCategory(now),eventId=nextEvent(category);
-  const result=category==='SOURCE_FX'?await SOURCEFX.play(eventId):isFourth(category)?await FOURTH.play(eventId):await CHAR.play(eventId,{grid:grid||document.getElementById('queueGrid')});
-  if(result?.played){
-    diagnostics.played++;if(category==='SOURCE_FX')diagnostics.sourceFx++;if(isCharacter(category))diagnostics.character++;if(isFourth(category))diagnostics.fourthWall++;
-    recordBeat(category,result.id||eventId,now);
-    return{played:true,category,id:result.id||eventId,cycle:cycleNumber,remainingInCycle:categoryBag.length};
+
+  const arc=ensureArc(),beat=arc.beats[currentBeatIndex];
+  if(!beat)return{played:false,reason:'no-beat'};
+
+  if(now-lastCharacterAt>=CONFIG.CHARACTER_FORCE_AFTER_MS&&!beat.quiet){
+    const planned=resolveBeatEvent(beat,now);
+    if(!isCharacterCategory(planned.category)){
+      const cameo=livingCameoId();
+      const result=await playEvent(cameo,{grid});
+      if(result?.played){
+        diagnostics.played+=1;diagnostics.livingCameos+=1;
+        recordBeat({role:'LIVING_CAMEO',eventId:result.id||cameo,category:eventCategory(result.id||cameo),magnitude:'SMALL',injected:true},now);
+        return{played:true,arc:currentArc,role:'LIVING_CAMEO',id:result.id||cameo,injected:true,beat:currentBeatIndex};
+      }
+    }
   }
-  putBack(category,eventId);
-  diagnostics.skipped++;diagnostics.lastDecision='play-failed:'+category;
-  return{played:false,category,reason:result?.reason||'play-failed'};
+
+  if(beat.quiet){
+    diagnostics.quietBeats+=1;
+    recordBeat({role:beat.role,eventId:'',category:'QUIET',magnitude:beat.magnitude,quiet:true},now);
+    currentBeatIndex+=1;cooldownUntil=now+CONFIG.QUIET_BEAT_MS;
+    return{played:false,reason:'show-quiet',arc:currentArc,role:beat.role,beat:currentBeatIndex-1};
+  }
+
+  let resolved=resolveBeatEvent(beat,now);
+  if(resolved.category==='SOURCE_FX'&&pureFxStreak>=CONFIG.MAX_PURE_FX_IN_ROW){
+    const cameo=livingCameoId();
+    resolved={eventId:cameo,category:eventCategory(cameo),mega:false,deferred:false,injected:true};
+  }
+  const result=await playEvent(resolved.eventId,{grid});
+  if(result?.played){
+    diagnostics.played+=1;
+    recordBeat({
+      role:beat.role,eventId:result.id||resolved.eventId,category:eventCategory(result.id||resolved.eventId),
+      magnitude:beat.magnitude,injected:Boolean(resolved.injected),mega:resolved.mega,deferred:resolved.deferred
+    },now);
+    currentBeatIndex+=1;
+    return{
+      played:true,arc:currentArc,arcTitle:currentArcTitle,role:beat.role,magnitude:beat.magnitude,
+      id:result.id||resolved.eventId,mega:resolved.mega,deferred:resolved.deferred,beat:currentBeatIndex-1
+    };
+  }
+  diagnostics.skipped++;diagnostics.lastDecision='play-failed:'+String(resolved.category||'unknown');
+  return{played:false,arc:currentArc,role:beat.role,reason:result?.reason||'play-failed'};
 }
 function onBaseline(){
-  ready=true;const now=Date.now();cooldownUntil=now+10000;if(!lastCharacterAt)lastCharacterAt=now;
-  if(!categoryBag.length)buildCategoryBag();
+  ready=true;const now=Date.now();cooldownUntil=now+CONFIG.INITIAL_SHOW_DELAY_MS;
+  lastCharacterAt=now;lastMegaAt=now;
+  if(!currentArc)startArc(nextArc());
   const warm=()=>void ASSETS?.preloadAll?.();if('requestIdleCallback'in window)requestIdleCallback(warm,{timeout:4000});else setTimeout(warm,500);
 }
-function onRealChange(){diagnostics.realInterrupts++;CHAR.cancel?.('real-status-change');SOURCEFX.cancel?.('real-status-change');FOURTH.cancel?.('real-status-change');LEGACY_IDLE?.onRealChange?.();cooldownUntil=Date.now()+CONFIG.REAL_CHANGE_COOLDOWN_MS}
-function onCommunicationError(){CHAR.cancel?.('communication-error');SOURCEFX.cancel?.('communication-error');FOURTH.cancel?.('communication-error');LEGACY_IDLE?.onCommunicationError?.();cooldownUntil=Math.max(cooldownUntil,Date.now()+10000)}
-function suspend(reason='inactive'){diagnostics.suspends++;ready=false;CHAR.cancel?.('director-suspend:'+reason);SOURCEFX.cancel?.('director-suspend:'+reason);FOURTH.cancel?.('director-suspend:'+reason);LEGACY_IDLE?.cancelIdleEvent?.('director-suspend:'+reason)}
+function onRealChange(){
+  diagnostics.realInterrupts++;CHAR.cancel?.('real-status-change');SOURCEFX.cancel?.('real-status-change');FOURTH.cancel?.('real-status-change');
+  LEGACY_IDLE?.onRealChange?.();cooldownUntil=Date.now()+CONFIG.REAL_CHANGE_COOLDOWN_MS;
+}
+function onCommunicationError(){
+  CHAR.cancel?.('communication-error');SOURCEFX.cancel?.('communication-error');FOURTH.cancel?.('communication-error');
+  LEGACY_IDLE?.onCommunicationError?.();cooldownUntil=Math.max(cooldownUntil,Date.now()+10000);
+}
+function suspend(reason='inactive'){
+  diagnostics.suspends++;ready=false;CHAR.cancel?.('director-suspend:'+reason);SOURCEFX.cancel?.('director-suspend:'+reason);
+  FOURTH.cancel?.('director-suspend:'+reason);LEGACY_IDLE?.cancelIdleEvent?.('director-suspend:'+reason);
+}
 function setConfig(patch={}){
-  for(const k of ['REAL_CHANGE_COOLDOWN_MS','CHARACTER_FORCE_AFTER_MS','POMPON_STORY_MIN_MS','DUO_STORY_MIN_MS','RARE_STORY_MIN_MS','FOURTH_WALL_MICRO_MIN_MS','FOURTH_WALL_STORY_MIN_MS'])if(k in patch)CONFIG[k]=Math.max(0,Number(patch[k])||0);
-  if('MAX_CHAR_IN_LAST_FIVE'in patch)CONFIG.MAX_CHAR_IN_LAST_FIVE=Math.max(0,Math.min(5,Math.round(Number(patch.MAX_CHAR_IN_LAST_FIVE)||0)));
-  if('MAX_FOURTH_IN_LAST_FIVE'in patch)CONFIG.MAX_FOURTH_IN_LAST_FIVE=Math.max(0,Math.min(5,Math.round(Number(patch.MAX_FOURTH_IN_LAST_FIVE)||0)));
+  for(const k of ['REAL_CHANGE_COOLDOWN_MS','CHARACTER_FORCE_AFTER_MS','MEGA_MIN_MS','QUIET_BEAT_MS','INITIAL_SHOW_DELAY_MS']){
+    if(k in patch)CONFIG[k]=Math.max(0,Number(patch[k])||0);
+  }
+  if('MAX_PURE_FX_IN_ROW'in patch)CONFIG.MAX_PURE_FX_IN_ROW=Math.max(0,Math.min(2,Math.round(Number(patch.MAX_PURE_FX_IN_ROW)||0)));
   return getConfig();
 }
-function getConfig(){return{...CONFIG,bagTemplate:{...BAG_TEMPLATE}}}
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),ready,cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),beatHistory:beatHistory.map(x=>({...x})),eventHistory:[...eventHistory],lastCharacterAt,lastPomponStoryAt,lastDuoStoryAt,lastRareAt,lastFourthMicroAt,lastFourthStoryAt,characterRate:diagnostics.played?diagnostics.character/diagnostics.played:0,fourthWallRate:diagnostics.played?diagnostics.fourthWall/diagnostics.played:0,cycleNumber,cycleStartedAt,remainingInCycle:categoryBag.length,bagSize:Object.values(BAG_TEMPLATE).reduce((a,b)=>a+b,0),legacyIdleInNormalRotation:false,scheduler:'shuffle-bag-fourth-wall'}}
+function getConfig(){
+  return{...CONFIG,arcs:Object.fromEntries(Object.entries(SHOW_ARCS).map(([k,v])=>[k,{title:v.title,beats:v.beats.length}]))};
+}
+function getDiagnostics(){
+  return{
+    ...diagnostics,history:diagnostics.history.map(x=>({...x})),ready,
+    cooldownRemainingMs:Math.max(0,cooldownUntil-Date.now()),currentArc,currentArcTitle,currentBeatIndex,
+    currentRole:SHOW_ARCS[currentArc]?.beats?.[currentBeatIndex]?.role||'',beatHistory:beatHistory.map(x=>({...x})),
+    eventHistory:[...eventHistory],lastCharacterAt,lastMegaAt,pureFxStreak,
+    characterRate:diagnostics.played?diagnostics.character/diagnostics.played:0,
+    sourceFxRate:diagnostics.played?diagnostics.sourceFx/diagnostics.played:0,
+    scheduler:'show-director-v1',storyState:{arc:currentArc,beat:currentBeatIndex,totalBeats:SHOW_ARCS[currentArc]?.beats?.length||0},
+    legacyIdleInNormalRotation:false,jackpotEvents:['MEGA_GREAT_CRASH','MEGA_SCREEN_TAKEOVER',...FOURTH_MEGA]
+  };
+}
 function resetForTest(){
-  CHAR.cancel?.('test-reset');SOURCEFX.cancel?.('test-reset');FOURTH.cancel?.('test-reset');ready=true;cooldownUntil=0;lastCharacterAt=Date.now();lastPomponStoryAt=0;lastDuoStoryAt=0;lastRareAt=0;lastFourthMicroAt=0;lastFourthStoryAt=0;
-  beatHistory=[];eventHistory=[];categoryBag=[];eventBags={};cycleNumber=0;cycleStartedAt=0;sequence=0;
+  CHAR.cancel?.('test-reset');SOURCEFX.cancel?.('test-reset');FOURTH.cancel?.('test-reset');
+  ready=true;cooldownUntil=0;lastCharacterAt=Date.now();lastMegaAt=0;sequence=0;currentArc='';currentArcTitle='';currentBeatIndex=0;
+  arcBag=[];choiceBags=new Map();forcedArcQueue=[];beatHistory=[];eventHistory=[];lastCategory='';pureFxStreak=0;
   for(const k of Object.keys(diagnostics))if(typeof diagnostics[k]==='number')diagnostics[k]=0;
-  diagnostics.lastDecision='none';diagnostics.lastEvent=null;diagnostics.history=[];buildCategoryBag();
+  diagnostics.lastDecision='none';diagnostics.lastEvent=null;diagnostics.history=[];startArc('CHASE_COMEDY');
 }
-function setBagForTest(list=[]){categoryBag=Array.isArray(list)?[...list]:[];eventBags={};cycleStartedAt=Date.now();return[...categoryBag]}
-function simulateCycleForTest(seed=12345){
-  let s=(Number(seed)||1)>>>0;const rnd=()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296};
-  const cats=[];for(const [c,n] of Object.entries(BAG_TEMPLATE))for(let i=0;i<n;i++)cats.push(c);
-  const shuffled=shuffle(cats,rnd),bags={};
-  for(const c of Object.keys(BAG_TEMPLATE))bags[c]=shuffle(categoryEvents(c),rnd);
-  const seen=new Set(),counts={};
-  for(const c of shuffled){
-    counts[c]=(counts[c]||0)+1;
-    if(!bags[c]?.length)bags[c]=shuffle(categoryEvents(c),rnd);
-    const id=bags[c]?.shift();if(id)seen.add(id);
+function setBagForTest(list=[]){
+  forcedArcQueue=(Array.isArray(list)?list:[]).filter(x=>SHOW_ARCS[x]);currentArc='';currentBeatIndex=0;
+  return[...forcedArcQueue];
+}
+function setShowForTest(name='CHASE_COMEDY',beat=0){
+  forcedArcQueue=[];startArc(SHOW_ARCS[name]?name:'CHASE_COMEDY');currentBeatIndex=Math.max(0,Math.min(SHOW_ARCS[currentArc].beats.length-1,Number(beat)||0));
+  return{arc:currentArc,beat:currentBeatIndex};
+}
+function simulateShowForTest(seed=12345){
+  let state=(Number(seed)||1)>>>0;const rnd=()=>{state=(1664525*state+1013904223)>>>0;return state/4294967296};
+  const rows=[];let megaSlots=0,quietBeats=0,pureFx=0,callbackBeats=0,aftermathBeats=0;
+  for(const [arcName,arc] of Object.entries(SHOW_ARCS)){
+    arc.beats.forEach((beat,index)=>{
+      let eventId='';
+      if(!beat.quiet){
+        const pool=beat.event?[beat.event]:(beat.choose||[]);
+        eventId=pool.length?pool[Math.floor(rnd()*pool.length)]||pool[0]:'';
+      }
+      const category=eventCategory(eventId);
+      if(beat.quiet)quietBeats+=1;
+      if(category==='SOURCE_FX')pureFx+=1;
+      if(beat.role==='MEGA')megaSlots+=1;
+      if(beat.role==='CALLBACK')callbackBeats+=1;
+      if(beat.role==='AFTERMATH'||beat.role==='EPILOGUE')aftermathBeats+=1;
+      rows.push({arc:arcName,index,role:beat.role,eventId,category,magnitude:beat.magnitude,quiet:Boolean(beat.quiet)});
+    });
   }
-  const all=[...SOURCEFX.events,...CHAR.events.map(x=>x.id),...FOURTH.events.map(x=>x.id)];
-  return{slots:shuffled.length,counts,uniqueSeen:seen.size,totalPatterns:new Set(all).size,missing:[...new Set(all)].filter(x=>!seen.has(x)),characterRate:shuffled.filter(isCharacter).length/shuffled.length};
+  let maxNonCharacterGap=0,gap=0;
+  for(const row of rows){
+    if(row.quiet||!row.eventId||!isCharacterEvent(row.eventId)){gap+=1;maxNonCharacterGap=Math.max(maxNonCharacterGap,gap)}
+    else gap=0;
+  }
+  return{
+    scheduler:'show-director-v1',arcCount:Object.keys(SHOW_ARCS).length,totalBeats:rows.length,rows,
+    quietBeats,pureFxBeats:pureFx,megaSlots,callbackBeats,aftermathBeats,maxNonCharacterGap,
+    sourceFxShare:rows.length?pureFx/rows.length:0,jackpotEvents:['MEGA_GREAT_CRASH','MEGA_SCREEN_TAKEOVER',...FOURTH_MEGA]
+  };
 }
+const simulateCycleForTest=simulateShowForTest;
 
-window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'6.1.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,setBagForTest,simulateCycleForTest});
+window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({
+  version:'7.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,
+  resetForTest,setBagForTest,setShowForTest,simulateShowForTest,simulateCycleForTest,showArcs:SHOW_ARCS
+});
 })();
