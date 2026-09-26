@@ -41,6 +41,14 @@ function toLocalDelta(dx,dy){
 function visualSwipeDelta(dx,dy){
   return portraitViewport()?dy:dx;
 }
+function toLocalPoint(x,y){
+  const w=stage?.clientWidth||innerWidth;
+  const h=stage?.clientHeight||innerHeight;
+  if(!portraitViewport()) return {x,y};
+  const vx=x-innerWidth/2;
+  const vy=y-innerHeight/2;
+  return {x:w/2+vy,y:h/2-vx};
+}
 function maxPan(){
   const w=stage?.clientWidth||innerWidth;
   const h=stage?.clientHeight||innerHeight;
@@ -68,9 +76,25 @@ function setZoom(nextScale,animate=false){
   if(scale<=1.001){scale=1;panX=0;panY=0;}
   applyTransform(animate);
 }
+function zoomAt(clientX,clientY){
+  if(scale>1.001){resetZoom(true);showUI();return;}
+  const p=toLocalPoint(clientX,clientY);
+  const w=stage?.clientWidth||innerWidth;
+  const h=stage?.clientHeight||innerHeight;
+  const rx=p.x-w/2, ry=p.y-h/2;
+  scale=DOUBLE_TAP_SCALE;
+  panX=-scale*rx;
+  panY=-scale*ry;
+  applyTransform(true);
+  showUI();
+}
 function toggleZoom(){
   if(scale>1.001)resetZoom(true);
-  else{scale=DOUBLE_TAP_SCALE;panX=0;panY=0;applyTransform(true);}
+  else{
+    const r=stage.getBoundingClientRect();
+    zoomAt(r.left+r.width/2,r.top+r.height/2);
+    return;
+  }
   showUI();
 }
 
@@ -155,7 +179,16 @@ shell.addEventListener('pointerdown',e=>{
     pinchStart=null;
   }else if(pointers.size===2){
     const [a,b]=pointerValues();
-    pinchStart={distance:Math.max(1,distance(a,b)),scale,center:center(a,b),panX,panY};
+    {
+      const c=center(a,b), lp=toLocalPoint(c.x,c.y);
+      const w=stage?.clientWidth||innerWidth, h=stage?.clientHeight||innerHeight;
+      const r={x:lp.x-w/2,y:lp.y-h/2};
+      pinchStart={
+        distance:Math.max(1,distance(a,b)),
+        scale,
+        anchor:{x:(r.x-panX)/scale,y:(r.y-panY)/scale}
+      };
+    }
     gestureStart=null;
   }
 },{passive:false});
@@ -170,14 +203,24 @@ shell.addEventListener('pointermove',e=>{
   if(pointers.size>=2){
     const [a,b]=pointerValues();
     if(!pinchStart){
-      pinchStart={distance:Math.max(1,distance(a,b)),scale,center:center(a,b),panX,panY};
+      {
+      const c=center(a,b), lp=toLocalPoint(c.x,c.y);
+      const w=stage?.clientWidth||innerWidth, h=stage?.clientHeight||innerHeight;
+      const r={x:lp.x-w/2,y:lp.y-h/2};
+      pinchStart={
+        distance:Math.max(1,distance(a,b)),
+        scale,
+        anchor:{x:(r.x-panX)/scale,y:(r.y-panY)/scale}
+      };
+    }
     }
     const ratio=distance(a,b)/pinchStart.distance;
     scale=clamp(pinchStart.scale*ratio,MIN_SCALE,MAX_SCALE);
-    const c=center(a,b);
-    const d=toLocalDelta(c.x-pinchStart.center.x,c.y-pinchStart.center.y);
-    panX=pinchStart.panX+d.x;
-    panY=pinchStart.panY+d.y;
+    const c=center(a,b), lp=toLocalPoint(c.x,c.y);
+    const w=stage?.clientWidth||innerWidth, h=stage?.clientHeight||innerHeight;
+    const r={x:lp.x-w/2,y:lp.y-h/2};
+    panX=r.x-scale*pinchStart.anchor.x;
+    panY=r.y-scale*pinchStart.anchor.y;
     if(scale<=1.001){scale=1;panX=0;panY=0;}
     applyTransform(false);
     return;
@@ -229,7 +272,7 @@ function finishPointer(e){
     const doubleTap=now-lastTapAt<330&&Math.hypot(end.x-lastTapX,end.y-lastTapY)<34;
     if(doubleTap){
       lastTapAt=0;
-      toggleZoom();
+      zoomAt(end.x,end.y);
     }else{
       lastTapAt=now;lastTapX=end.x;lastTapY=end.y;
       showUI();
