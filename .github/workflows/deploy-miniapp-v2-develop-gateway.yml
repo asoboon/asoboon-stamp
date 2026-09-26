@@ -268,32 +268,36 @@ jobs:
           set -euo pipefail
           PAGE="$(mktemp)"
           curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
-          python3 - "$PAGE" <<'PY'
-          import re, subprocess, sys
-          from urllib.parse import urljoin
-          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
-          patterns=[
-            r'CANCEL_RESERVE[^,;}]{0,240}',
-            r'/WCSP/api/internal/stateless/[^\"\\\']*cancel[^\"\\\']*',
-            r'cancelReserve=function[^;]{0,1800}',
-            r'cancel.*reserve.*post\([^;]{0,1800}',
-            r'WAIT_DETAIL[^,;}]{0,400}',
-          ]
-          found=set()
-          for src in srcs:
-              url=urljoin('https://airwait.jp',src)
-              if not url.startswith('https://airwait.jp/'): continue
-              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
-              except Exception: continue
-              for pat in patterns:
-                  for m in re.finditer(pat,body,re.I):
-                      snippet=body[max(0,m.start()-1200):min(len(body),m.end()+2200)].replace('\n',' ')
-                      key=(url,snippet[:3200])
-                      if key not in found:
-                          found.add(key)
-                          print('===',url,'===')
-                          print(snippet[:3200])
+          CSP_URL="$(python3 - "$PAGE" <<'PY'
+          import re,sys
+          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
+          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
+          PY
+          )"
+          test -n "$CSP_URL"
+          JS="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
+          python3 - "$JS" <<'PY'
+          import re,sys
+          body=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          print('CSP bytes:',len(body))
+          for pat in [
+              r'/WCSP/api/internal/stateless/[^\"\\\']{0,160}',
+              r'CANCEL_RESERVE[^,;}]{0,300}',
+              r'cancelReserve=function[^;]{0,2500}',
+              r'cancel[^=]{0,80}=function[^;]{0,2500}',
+              r'Page\.CANCEL_RESERVE[^;]{0,1600}',
+          ]:
+              seen=set()
+              for m in re.finditer(pat,body,re.I):
+                  sn=body[max(0,m.start()-1200):min(len(body),m.end()+2200)].replace('\n',' ')
+                  if sn in seen: continue
+                  seen.add(sn)
+                  if re.search(r'cancel|取消|reserve',sn,re.I):
+                      print('=== MATCH ===')
+                      print(sn[:3800])
+                      if len(seen)>=12: break
           PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
