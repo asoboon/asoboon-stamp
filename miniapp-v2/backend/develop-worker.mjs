@@ -1089,8 +1089,8 @@ async function fetchAllReservationsForReconcile(env) {
     let start = 1;
     let total = Infinity;
     let page = 0;
-    const maxPages = 100; // up to 10,000 same-day records; receipt numbers can exceed 2,000.
-    while (rows.length < total && page < maxPages) {
+    const maxPages = 1000; // AirWAIT start supports up to 99,999; do not truncate late receipt numbers.
+    while (rows.length < total && start <= 99999 && page < maxPages) {
       const ctrl=new AbortController();
       const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
       let r;
@@ -1196,8 +1196,8 @@ async function releaseTerminalPreviousClaim(env, createPayload, existing) {
 
 async function fetchDevelopTestReservations(env, filters={}) {
   const rows = [];
-  let start = 1;
-  for (let page = 0; page < 20; page += 1) {
+  let start = 1,total=Infinity,page=0;
+  while(rows.length<total&&start<=99999&&page<1000) {
     const params = {
       storeId:'KR01205179',
       waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID,
@@ -1228,9 +1228,10 @@ async function fetchDevelopTestReservations(env, filters={}) {
     if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') return [];
     const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
     rows.push(...part.map(x=>({number:String(x?.number||''),status:String(x?.status||'')})));
-    const total = Number(d?.innerDto?.count || part.length || 0);
+    total = Number(d?.innerDto?.count || part.length || 0);
     if (!part.length || rows.length >= total) break;
     start += part.length;
+    page += 1;
   }
   return rows;
 }
