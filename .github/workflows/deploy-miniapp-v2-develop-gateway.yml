@@ -345,7 +345,7 @@ jobs:
               const x=JSON.parse(s);
               if(x.ok!==true) throw new Error("createDiagnostics unavailable");
               console.log("Developing recent create diagnostics:");
-              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[]},null,2));
+              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[],receipt2510:x.receipt2510||null},null,2));
             });
           '
       - name: Verify Developing crowd diagnostics
