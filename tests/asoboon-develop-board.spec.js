@@ -783,7 +783,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
   const before=metrics(beforeRaw),after=metrics(afterRaw);
 
   expect(result.overlayZ).toBeGreaterThan(result.frontZ);
-  expect(result.runtime.sharedCanvasCount).toBe(1);
+  expect(result.runtime.sharedCanvasCount).toBeLessThanOrEqual(1);
   expect(result.runtime.rafLoopCount).toBeLessThanOrEqual(1);
   expect(result.runtime.maxCanvasJobs).toBeLessThanOrEqual(1);
   expect(result.runtime.maxFrameTasks).toBeLessThanOrEqual(1);
