@@ -4,7 +4,9 @@ const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
 const REFRESH_MS=10000;
-const REQUEST_TIMEOUT_MS=8000;
+const REQUEST_TIMEOUT_MS=20000;
+const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
+const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
 const BOARD_OPEN_MINUTE=8*60;
@@ -60,6 +62,21 @@ function statusMeta(kind){
 }
 function visibleRows(rows){
   return (Array.isArray(rows)?rows:[]).filter(row=>String(row?.state||'')!=='canceled');
+}
+function saveLastGoodPayload(data){
+  if(!data||data.ok!==true||data.stale===true)return;
+  try{
+    localStorage.setItem(BOARD_CACHE_KEY,JSON.stringify({savedAt:Date.now(),data}));
+  }catch{}
+}
+function readLastGoodPayload(){
+  try{
+    const raw=localStorage.getItem(BOARD_CACHE_KEY);if(!raw)return null;
+    const parsed=JSON.parse(raw),savedAt=Number(parsed?.savedAt||0),data=parsed?.data;
+    if(!data||data.ok!==true||Date.now()-savedAt>BOARD_CACHE_MAX_AGE_MS)return null;
+    if(String(data.businessDate||'')!==tokyoDateKey(new Date()))return null;
+    return{...data,stale:true,staleAgeMs:Date.now()-savedAt,cacheSource:'browser-last-good'};
+  }catch{return null}
 }
 function updateLiveCaption(rows=[]){
   const live=$('liveCaption');if(!live)return;
@@ -254,7 +271,12 @@ function renderPayload(data){
   }
 
   state.lastGoodAt=Date.now();
-  setConnection(true,'10秒ごとに自動更新');
+  if(data?.stale===true){
+    setConnection(false,'前回の状況を表示中・更新待機中');
+  }else{
+    saveLastGoodPayload(data);
+    setConnection(true,'10秒ごとに自動更新');
+  }
 }
 async function fetchBoard(){
   if(state.busy)return;state.busy=true;
@@ -268,6 +290,13 @@ async function fetchBoard(){
     renderPayload(d);
   }catch(e){
     if(DIRECTOR?.onCommunicationError)DIRECTOR.onCommunicationError();else IDLE?.onCommunicationError?.();
+    if(!state.lastGoodAt){
+      const cached=readLastGoodPayload();
+      if(cached){
+        renderPayload(cached);
+        setConnection(false,'前回の状況を表示中・更新待機中');
+      }
+    }
     setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
     if(!state.lastGoodAt){
       setSessionHeader({phase:'checking',slotLabel:'確認中',slotSuffix:'',detail:'呼出状況を確認しています'});
@@ -290,6 +319,8 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   normalizeRows,
   updateLiveCaption,
   REQUEST_TIMEOUT_MS,
+  BOARD_CACHE_MAX_AGE_MS,
+  readLastGoodPayload,
   refresh:fetchBoard,
   idle:()=>IDLE?.getDiagnostics?.()||null,
   director:()=>DIRECTOR?.getDiagnostics?.()||null,
