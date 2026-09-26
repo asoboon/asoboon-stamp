@@ -277,7 +277,9 @@ function flashFrame(kind,rect,{duration=180}={}){
 function foregroundShards(rect,{count=7,duration=1250}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
   const layer=overlayFxLayer(),cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
-  const total=Math.max(4,Math.min(8,count)),jobs=[];
+  const quality=String(M?.getEffectiveQuality?.()||'HIGH').toUpperCase();
+  const cap=quality==='LOW'?4:quality==='MEDIUM'?5:8;
+  const total=Math.max(3,Math.min(cap,count)),jobs=[];
   for(let i=0;i<total;i++){
     const el=document.createElement('i');el.className='fx-foreground-shard';
     const angle=(-145+i*(290/Math.max(1,total-1)))*Math.PI/180;
