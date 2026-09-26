@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.4.dev-line-store-only',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.5.dev-no-attempt-block',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -44,20 +44,12 @@ replaceOnce(
 );
 
 replaceOnce(
-  "  const hash = await userHash(line.userId);\n  await incrementAttempt(env, hash, serverDate);",
-  "  const hash = await userHash(line.userId);"
-);
-replaceOnce(
   "  const day = await getBusinessDay(serverDate);",
   "  const day = await getBusinessDayCachedForCreate(env, serverDate);"
 );
 replaceOnce(
   "  const wt = await getWaitTypes(env, { force: true });",
   "  const wt = await getWaitTypesForCreate(env);"
-);
-replaceOnce(
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  await setRequestState(env, requestId, 'VALIDATED');",
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  await setRequestState(env, requestId, 'VALIDATED');"
 );
 replaceOnce(
   "  enforceReceptionHours(day, mode);",
