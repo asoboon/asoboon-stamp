@@ -260,30 +260,30 @@ jobs:
             exit 1
           fi
 
-      - name: Inspect AirWAIT reservation fields for native cancel
-        if: steps.credentials.outputs.available == 'true'
-        env:
-          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
+      - name: Inspect AirWAIT public cancellation call shape
         run: |
           set -euo pipefail
-          RESPONSE="$(curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H 'Accept: application/json' \
-            -H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' \
-            -H "corWclpKeyCd: $AIRWAIT_API_KEY" \
-            --data 'storeId=KR01205179&sortStatus=0&isDesc=1&start=1&limit=5' \
-            'https://cl.airwait.jp/WCLP/api/external/stateless/reservations')"
-          printf '%s' "$RESPONSE" | node -e '
-            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s);
-              if(x?.success!==true||x?.resultCode?.code!=="0000") throw new Error("AirWAIT reservations unavailable");
-              const rows=Array.isArray(x?.innerDto?.reservations)?x.innerDto.reservations:[];
-              const keys=rows.length?Object.keys(rows[0]).sort():[];
-              console.log("AirWAIT reservation field names:",JSON.stringify(keys));
-              console.log("AirWAIT reservation exposes version:",rows.some(r=>Object.prototype.hasOwnProperty.call(r,"version")));
-              console.log("AirWAIT reservation exposes reserveId:",rows.some(r=>Object.prototype.hasOwnProperty.call(r,"reserveId")));
-            });
-          '
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          pats=['reserve/update','callStatus','version','cancel','取消','CANCEL']
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
+              except Exception: continue
+              if not re.search(r'reserve/update|callStatus|cancel|取消',body,re.I): continue
+              for pat in pats:
+                  for m in list(re.finditer(re.escape(pat),body,re.I))[:15]:
+                      i=m.start(); snippet=body[max(0,i-2200):min(len(body),i+4200)].replace('\n',' ')
+                      if re.search(r'reserve|cancel|取消|callStatus',snippet,re.I):
+                          print('===',pat,'FROM',url,'===')
+                          print(snippet[:6500])
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
