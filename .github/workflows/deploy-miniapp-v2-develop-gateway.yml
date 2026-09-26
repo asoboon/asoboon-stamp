@@ -273,8 +273,14 @@ jobs:
           API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
           AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
           OUT="$(mktemp)"
+          PAYLOAD="$(node <<'NODE'
+          process.stdout.write(JSON.stringify({
+            sql:"SELECT rr.result_json,c.reserve_id FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.state='CONFIRMED' ORDER BY c.updated_at DESC LIMIT 20"
+          }));
+          NODE
+          )"
           curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' \
-            --data '{"sql":"SELECT rr.result_json,c.reserve_id FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.state=''CONFIRMED'' ORDER BY c.updated_at DESC LIMIT 20"}' \
+            --data "$PAYLOAD" \
             "$API" > "$OUT"
           node --input-type=module - "$OUT" <<'NODE'
           import fs from 'node:fs';
