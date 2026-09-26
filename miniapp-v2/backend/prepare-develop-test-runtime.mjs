@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.2.dev-official-web-handoff',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.3.dev-official-web-handoff',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
