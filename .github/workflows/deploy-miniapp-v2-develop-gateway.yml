@@ -411,6 +411,56 @@ jobs:
                       print(body[max(0,i-1600):min(len(body),i+2400)].replace('\\n',' ')[:4300])
                       pos=i+len(needle); seen+=1
           PY
+      - name: Verify ASOBooN public online-reception settings
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,re,subprocess,urllib.parse
+          store_no='AKR2298124918'
+          page=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',f'https://airwait.jp/WCSP/storeDetail?storeNo={store_no}'],text=True,errors='ignore',timeout=25)
+          patterns=[
+            r'[\"\\\']apiKey[\"\\\']\s*:\s*[\"\\\']([^\"\\\']+)',
+            r'apiKey\s*:\s*[\"\\\']([^\"\\\']+)',
+            r'COMMON_DATA[^;]{0,5000}?apiKey[^:]{0,30}:[\"\\\']([^\"\\\']+)',
+          ]
+          key=None
+          for p in patterns:
+            m=re.search(p,page,re.I|re.S)
+            if m: key=m.group(1); break
+          if not key:
+            # Some deployments put COMMON_DATA in an external bootstrap script.
+            srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+            from urllib.parse import urljoin
+            for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=20)
+              except Exception: continue
+              for p in patterns:
+                m=re.search(p,body,re.I|re.S)
+                if m: key=m.group(1); break
+              if key: break
+          if not key: raise SystemExit('PUBLIC_COMMON_DATA_API_KEY_NOT_FOUND')
+          url='https://airwait.jp/WCSP/api/internal/stateless/store/getStoreDetail?'+urllib.parse.urlencode({'storeNo':store_no,'key':key})
+          raw=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0','-H','Accept: application/json',url],text=True,errors='ignore',timeout=25)
+          d=json.loads(raw)
+          if str((d.get('resultCode') or {}).get('code')) not in ('0000','0'):
+            raise SystemExit('STORE_DETAIL_FAILED:'+json.dumps(d.get('resultCode'),ensure_ascii=False))
+          inner=d.get('innerDto') or {}
+          online=inner.get('onlineReserveStoreInfo') or {}
+          cap=inner.get('capacityInfo') or {}
+          safe={
+            'useWaitTypeFlg':online.get('useWaitTypeFlg'),
+            'useCustomerInfoFlg':online.get('useCustomerInfoFlg'),
+            'mailPermissionCollectionFlg':online.get('mailPermissionCollectionFlg'),
+            'onlineFreeWordInputFlg':online.get('onlineFreeWordInputFlg'),
+            'oneAcceptMaxPerson':online.get('oneAcceptMaxPerson'),
+            'oneAcceptMaxChild':online.get('oneAcceptMaxChild'),
+            'waitTypes':[{'waitTypeId':x.get('waitTypeId'),'usageDispType':x.get('usageDispType'),'remainsCount':x.get('remainsCount'),'reserveUnitType':x.get('reserveUnitType')} for x in (cap.get('waitTypeList') or [])],
+          }
+          print('ASOBooN public online-reception settings:')
+          print(json.dumps(safe,ensure_ascii=False,indent=2))
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
