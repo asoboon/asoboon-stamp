@@ -101,6 +101,7 @@ function stateMeta(state,ahead){
     case'processing':return{cls:'processing',icon:'✅',title:'受付対応中です',msg:'スタッフが受付対応を進めています。'};
     case'done':return{cls:'done',icon:'🏁',title:'ご案内済みです',msg:'この受付はご案内済みになっています。'};
     case'canceled':return{cls:'canceled',icon:'✕',title:'受付は取消になっています',msg:'受付状況についてスタッフへご確認ください。'};
+    case'closed':return{cls:'closed',icon:'✓',title:'本日の受付は終了しました',msg:'この受付番号の呼出状況表示は終了しています。'};
     default:return{cls:'loading',icon:'🔄',title:'状況を確認しています',msg:'AirWAITの最新情報を取得しています。'};
   }
 }
@@ -108,7 +109,7 @@ function stateMeta(state,ahead){
 function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
-  if(['calling','done','canceled'].includes(state))return 0;
+  if(['calling','done','canceled','closed'].includes(state))return 0;
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
     const ahead=Number(d.aheadCount);
@@ -131,7 +132,7 @@ function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textConten
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 
-function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};else if(d.state==='waiting'&&Number.isFinite(Number(d.aheadCount)))status={kind:'waiting',receipt,ahead:Number(d.aheadCount),checkedAt,source:'callstatus'};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(d.state==='hold')status={kind:'hold',receipt,checkedAt,source:'callstatus'};else if(['processing','done'].includes(String(d.state||'')))status={kind:'guided',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};else status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
+function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};else if(d.state==='waiting'&&Number.isFinite(Number(d.aheadCount)))status={kind:'waiting',receipt,ahead:Number(d.aheadCount),checkedAt,source:'callstatus'};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(d.state==='hold')status={kind:'hold',receipt,checkedAt,source:'callstatus'};else if(['processing','done'].includes(String(d.state||'')))status={kind:'guided',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};else if(d.state==='closed')status={kind:'closed',receipt,checkedAt,source:'callstatus'};else status={kind:'error',receipt,message:'受付状況を確認しています',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
@@ -148,10 +149,10 @@ function applyStatus(d){
     if($('csQueue'))$('csQueue').hidden=true;
     if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
     const reconciling=notFoundStreak<=POLL_RECONCILE_MAX;
-    if($('csTitle'))$('csTitle').textContent=reconciling?'AirWAITへ受付を反映中':'受付情報をまだ確認できません';
-    if($('csMessage'))$('csMessage').textContent=reconciling?`受付番号は保存済みです。約6秒後に再確認します（${notFoundStreak}/${POLL_RECONCILE_MAX}）。`:'受付番号は保存済みです。「今すぐ更新」を押しても変わらない場合はスタッフへ受付番号をお伝えください。';
-    setError(reconciling?'':'AirWAIT側の受付反映を確認できていません。新しい受付を作り直さないでください。');
-    const top=$('csTop');if(top){top.className=reconciling?'cs-top ok':'cs-top warn';top.querySelector('strong').textContent=reconciling?'AirWAITと照合中':'再確認が必要です';top.querySelector('small').textContent=reconciling?'受付直後の反映待ちを自動で再確認しています。':`次回は${pollLabel(nextPollMs)}に確認します。`}
+    if($('csTitle'))$('csTitle').textContent=reconciling?'受付状況を照合中':'受付状況が変更されています';
+    if($('csMessage'))$('csMessage').textContent=reconciling?`受付番号は保存済みです。全ての受付枠から最新状態を探しています（${notFoundStreak}/${POLL_RECONCILE_MAX}）。`:'取消・案内済み・受付枠変更の可能性があります。受付番号は保持したまま再確認します。';
+    setError(reconciling?'':'新しい受付を作り直さず、この受付番号のままご確認ください。');
+    const top=$('csTop');if(top){top.className=reconciling?'cs-top ok':'cs-top warn';top.querySelector('strong').textContent=reconciling?'受付状況を照合中':'受付状況が変更されています';top.querySelector('small').textContent=reconciling?'受付直後の反映待ちを自動で再確認しています。':`次回は${pollLabel(nextPollMs)}に確認します。`}
     return;
   }
   notFoundStreak=0;
@@ -305,7 +306,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.7.0-native-cancel',
+  version:'1.8.0-terminal-resolution',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
