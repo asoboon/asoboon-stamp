@@ -25,8 +25,16 @@ function anim(scope,el,keyframes,options={}){
   if(Number.isFinite(Number(opts.delay)))opts.delay=ms(opts.delay);
   return scope.animate(el,keyframes,opts);
 }
+function guardedLocalPoint(x,y,semantic,scale=1){
+  if(!M.resolveEffectPoint||!['impact','alert','question','reaction','anger','aftermath','success'].includes(String(semantic||'')))return{x,y,adjusted:false};
+  const b=boardRect(),base=semantic==='impact'?180:semantic==='aftermath'?164:148,size=Math.max(52,base*Math.max(.35,Number(scale)||1));
+  const guarded=M.resolveEffectPoint({x:x+b.left,y:y+b.top},{width:size,height:size,phase:semantic==='impact'?'impact':'reaction'});
+  return{x:guarded.x-b.left,y:guarded.y-b.top,adjusted:guarded.adjusted};
+}
 async function pop(scope,name,semantic,x,y,scale=1,rotate=0,duration=520){
+  const guarded=guardedLocalPoint(x,y,semantic,scale);x=guarded.x;y=guarded.y;
   const el=add(scope,name,semantic,{x,y,scale:scale*.5,rotate,opacity:0});if(!el)return;
+  if(guarded.adjusted)el.dataset.faceSafeAdjusted='1';
   await anim(scope,el,[
     {opacity:0,transform:t(x,y,scale*.38,rotate)},
     {opacity:1,offset:.34,transform:t(x,y,scale*1.12,rotate)},
@@ -140,5 +148,5 @@ async function playStatusReaction(kind,{rect}={}){
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:[...MICRO_EVENTS],pace:PACE,sourcePolicy:'effects_pack_v2-only',semanticPolicy:'context-matched-only'}}
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.statusPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
-window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.0.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
+window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.1.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
 })();

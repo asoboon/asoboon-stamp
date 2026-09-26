@@ -1188,6 +1188,91 @@ test('real status effects serialize as full-screen manga special events', async 
   expect(code).toContain("specialScreen('cancel'");
 });
 
+test('composition guard v2 uses live character rects and area overlap instead of stale scene points', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8635',state:'waiting',order:1}])]);
+  const result=await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+    const el=assets.createCharacter('pompon_dash');
+    el.dataset.sceneX='80';
+    el.dataset.sceneY='80';
+    el.dataset.sceneScale='1';
+    el.dataset.sceneFlip='1';
+    el.style.opacity='1';
+    el.style.transform='translate3d(392px,532px,0) scale(1)';
+    fx.getLayer('front').appendChild(el);
+
+    const live=fx.characterAnchorPoint(el,'FACE_SAFE','local');
+    const snapshot=fx.compositionSnapshot();
+    const face=snapshot.faces[0];
+    const center={x:face.left+face.width/2,y:face.top+face.height/2};
+    const guarded=fx.resolveEffectPoint(center,{width:96,height:96,phase:'reaction'});
+    const guardBox={left:guarded.x-48,top:guarded.y-48,width:96,height:96,right:guarded.x+48,bottom:guarded.y+48};
+    const faceOverlap=fx.overlapRatio(guardBox,face);
+    const overlay=fx.chooseOverlayPlacement({left:450,top:650,width:180,height:80,right:630,bottom:730},{width:520,height:210,giant:true});
+    const textBox={left:overlay.x-260,top:overlay.y-105,width:520,height:210,right:overlay.x+260,bottom:overlay.y+105};
+    const textFaceOverlap=fx.overlapRatio(textBox,face);
+    const start={x:face.left-180,y:center.y};
+    const base=0;
+    const routed=fx.rerouteRay(start,base,460,{radius:34});
+    el.remove();
+    return{
+      live,
+      face,
+      guarded,
+      faceOverlap,
+      textFaceOverlap,
+      routed,
+      composition:fx.diagnostics().composition,
+    };
+  });
+
+  expect(result.live.x).toBeGreaterThan(350);
+  expect(result.guarded.adjusted).toBe(true);
+  expect(result.faceOverlap).toBeLessThanOrEqual(0.12);
+  expect(result.textFaceOverlap).toBeLessThanOrEqual(0.16);
+  expect(Math.abs(result.routed)).toBeGreaterThan(0.01);
+  expect(result.composition.snapshots).toBeGreaterThan(0);
+  expect(result.composition.adjustments).toBeGreaterThan(0);
+  expect(result.composition.textPlacements).toBeGreaterThan(0);
+  expect(result.composition.rayReroutes).toBeGreaterThan(0);
+});
+
+test('HOLD giant typography keeps reaction faces readable while animation is live', async ({ page }) => {
+  test.setTimeout(15000);
+  await installBoard(page,[payload([{number:'8636',state:'waiting',order:1}])]);
+  await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    fx.setSlowdown(0.35,{persistValue:false});
+    const card=document.querySelector('#queueGrid .queue-card');
+    window.__holdCompositionPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'8636',kind:'hold',fromStatus:'waiting',toStatus:'hold',element:card,
+    });
+  });
+
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-onomatopoeia.giant')&&document.querySelector('.pc-character'))),{timeout:4000}).toBe(true);
+
+  const overlap=await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const text=document.querySelector('.fx-onomatopoeia.giant');
+    const tr=text.getBoundingClientRect();
+    const t={left:tr.left,top:tr.top,width:tr.width,height:tr.height,right:tr.right,bottom:tr.bottom};
+    const faces=fx.compositionSnapshot().faces;
+    return faces.reduce((max,face)=>Math.max(max,fx.overlapRatio(t,face)),0);
+  });
+  expect(overlap).toBeLessThanOrEqual(0.22);
+
+  await page.evaluate(()=>window.__holdCompositionPromise);
+  await expect(page.locator('.fx-onomatopoeia,.pc-sprite')).toHaveCount(0);
+});
+
+test('source status effects use the shared composition guard', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-source-effects.js','utf8');
+  expect(code).toContain('guardedLocalPoint');
+  expect(code).toContain('M.resolveEffectPoint');
+  expect(code).toContain("phase:semantic==='impact'?'impact':'reaction'");
+});
+
 test('face-safe placement, target-aware gaze and CALL edge exits are active behavior', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8640',state:'waiting',order:1}])]);
