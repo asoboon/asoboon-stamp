@@ -871,22 +871,21 @@ test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use',
   expect(assets).toContain("dizzy_spiral");
 });
 
-test('entertainment director uses a 77-slot shuffle bag and guarantees all 47 idle patterns once per cycle', async ({ page }) => {
+test('entertainment director runs three story arcs with callbacks, quiet beats and jackpot slots', async ({ page }) => {
   await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
-  const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateCycleForTest(12345));
-  expect(result.slots).toBe(77);
-  expect(result.counts.SOURCE_FX).toBe(30);
-  expect(result.counts.POMPON_CAMEO).toBe(4);
-  expect(result.counts.CHIRU_CAMEO).toBe(4);
-  expect(result.counts.POMPON_STORY).toBe(4);
-  expect(result.counts.DUO_STORY).toBe(8);
-  expect(result.counts.RARE_STORY).toBe(1);
-  expect(result.counts.FOURTH_WALL_MICRO).toBe(12);
-  expect(result.counts.FOURTH_WALL_STORY).toBe(14);
-  expect(result.characterRate).toBeCloseTo(35/77, 5);
-  expect(result.uniqueSeen).toBe(result.totalPatterns);
-  expect(result.totalPatterns).toBe(47);
-  expect(result.missing).toEqual([]);
+  const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateShowForTest(12345));
+  expect(result.scheduler).toBe('show-director-v1');
+  expect(result.arcCount).toBe(3);
+  expect(result.totalBeats).toBe(33);
+  expect(result.quietBeats).toBe(6);
+  expect(result.pureFxBeats).toBe(2);
+  expect(result.sourceFxShare).toBeLessThan(.10);
+  expect(result.megaSlots).toBe(3);
+  expect(result.callbackBeats).toBeGreaterThanOrEqual(3);
+  expect(result.aftermathBeats).toBeGreaterThanOrEqual(3);
+  expect(result.maxNonCharacterGap).toBeLessThanOrEqual(2);
+  expect(result.jackpotEvents).toEqual(expect.arrayContaining(['MEGA_GREAT_CRASH','MEGA_SCREEN_TAKEOVER','FW_KNOCK_KNOCK_POMPON']));
+  expect(new Set(result.rows.map(x=>x.arc))).toEqual(new Set(['BALL_CHAOS','CHASE_COMEDY','FOURTH_WALL_MYSTERY']));
 });
 
 test('four representative POMPON CHIRU stories play and fully clean up without changing ticket data', async ({ page }) => {
@@ -911,7 +910,7 @@ test('four representative POMPON CHIRU stories play and fully clean up without c
         char:window.ASOBOON_BOARD_CHARACTER_EVENTS.getDiagnostics(),
         runtime:fx.diagnostics(),
         numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
-        tempNodes:document.querySelectorAll('.pc-sprite,.pc-giant-ball').length,
+        tempNodes:document.querySelectorAll('.pc-sprite,.pc-giant-ball,.pc-mega-wash').length,
       };
     },id);
     expect(result.played.played,id).toBe(true);
@@ -920,6 +919,37 @@ test('four representative POMPON CHIRU stories play and fully clean up without c
     expect(result.runtime.domDeltaPeak,id).toBeLessThanOrEqual(20);
     expect(result.tempNodes,id).toBe(0);
     expect(result.numbers,id).toEqual(['8201','8202','8203']);
+  }
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('jackpot character scenes fill the stage, clean up, and preserve real ticket data', async ({ page }) => {
+  test.setTimeout(20000);
+  const h = await installBoard(page, [payload([
+    { number:'8291', state:'waiting', order:1 },
+    { number:'8292', state:'calling', order:2 },
+  ])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.015,{persistValue:false});
+    window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+  });
+  for(const id of ['MEGA_SCREEN_TAKEOVER','MEGA_GREAT_CRASH']){
+    const result=await page.evaluate(async eventId=>{
+      const fx=window.ASOBOON_BOARD_EFFECTS;
+      fx.resetPerformanceBaseline();
+      const played=await window.ASOBOON_BOARD_CHARACTER_EVENTS.playEventForTest(eventId);
+      return{
+        played,
+        runtime:fx.diagnostics(),
+        numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+        tempNodes:document.querySelectorAll('.pc-sprite,.pc-giant-ball,.pc-mega-wash').length,
+      };
+    },id);
+    expect(result.played.played,id).toBe(true);
+    expect(result.runtime.activeScopes,id).toBe(0);
+    expect(result.runtime.domDeltaPeak,id).toBeLessThanOrEqual(20);
+    expect(result.tempNodes,id).toBe(0);
+    expect(result.numbers,id).toEqual(['8291','8292']);
   }
   expect(h.pageErrors).toEqual([]);
 });
@@ -991,7 +1021,7 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
 
 test('source asset database locks approved sources and contextual use rules', async () => {
   const db=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/assets/source-assets-db.json','utf8'));
-  expect(db.database_version).toBe('1.5.0');
+  expect(db.database_version).toBe('1.6.0');
   expect(db.source_archive_verification.runtime_reads_source_archives).toBe(false);
   expect(db.source_archive_verification.archives).toHaveLength(3);
   expect(db.runtime_policy.legacy_visual_assets_allowed).toBe(false);
@@ -1007,8 +1037,18 @@ test('source asset database locks approved sources and contextual use rules', as
   expect(db.runtime_event_rules.forbidden_standalone_character_assets).toEqual(expect.arrayContaining(['chiru_watch','chiru_exasperated','chiru_retort']));
   expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
   expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
-  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(77);
-  expect(db.pattern_catalog.total_idle_patterns).toBe(47);
+  expect(db.stories.some(x=>x.id==='MEGA_GREAT_CRASH')).toBe(true);
+  expect(db.stories.some(x=>x.id==='MEGA_SCREEN_TAKEOVER')).toBe(true);
+  expect(db.runtime_event_rules.scheduler).toBe('show-director-v1');
+  expect(db.runtime_event_rules.show_director.arcs).toEqual(['BALL_CHAOS','CHASE_COMEDY','FOURTH_WALL_MYSTERY']);
+  expect(db.runtime_event_rules.show_director.max_pure_fx_in_row).toBe(1);
+  expect(db.runtime_event_rules.show_director.character_force_after_ms).toBe(25000);
+  expect(db.runtime_event_rules.show_director.mega_min_interval_ms).toBe(90000);
+  expect(db.runtime_event_rules.shuffle_bag.deprecated).toBe(true);
+  expect(db.runtime_event_rules.shuffle_bag.used_by_runtime).toBe(false);
+  expect(db.pattern_catalog.total_idle_patterns).toBe(49);
+  expect(db.pattern_catalog.mega_story).toEqual(['MEGA_SCREEN_TAKEOVER','MEGA_GREAT_CRASH']);
+  expect(db.counts.runtime_idle_patterns).toBe(49);
   expect(db.counts.fourth_wall_implementation_assets).toBe(80);
   expect(db.fourth_wall_inventory.total_implementation_assets).toBe(80);
   expect(db.runtime_event_rules.fourth_wall_rules.source_only).toBe(true);
@@ -1023,7 +1063,7 @@ test('character pacing is deliberately slower while call delivery stays separate
     assets:window.ASOBOON_BOARD_CHARACTER_ASSETS.diagnostics(),
   }));
   expect(state.chars.idlePace).toBeGreaterThanOrEqual(1.4);
-  expect(state.chars.sceneRecipeCount).toBe(21);
+  expect(state.chars.sceneRecipeCount).toBe(23);
   expect(state.assets.anchorCount).toBe(30);
   expect(state.sourceFx.pace).toBeGreaterThanOrEqual(1.3);
   expect(state.assets.effectRules.dodge).toEqual(expect.arrayContaining(['jump_arc','speed_slash']));
@@ -1071,7 +1111,7 @@ test('character scenes enforce one visible POMPON and one visible CHIRU unless e
 });
 
 
-test('all 21 character idle patterns play, clean up, and preserve ticket data', async ({ page }) => {
+test('all 23 character idle patterns play, clean up, and preserve ticket data', async ({ page }) => {
   test.setTimeout(30000);
   const h = await installBoard(page, [payload([
     { number:'8251', state:'waiting', order:1 },
@@ -1083,7 +1123,7 @@ test('all 21 character idle patterns play, clean up, and preserve ticket data', 
     window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
   });
   const ids=await page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.events.map(x=>x.id));
-  expect(ids).toHaveLength(21);
+  expect(ids).toHaveLength(23);
   for(const id of ids){
     const result=await page.evaluate(async eventId=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -1197,16 +1237,19 @@ test('real data change immediately interrupts fourth-wall breakout and leaves no
   await expect(page.locator('.fw-sprite')).toHaveCount(0);
 });
 
-test('fourth-wall scheduler prevents crowding and uses the new source pack only', async ({ page }) => {
+test('show director spaces jackpot scenes while fourth-wall pack remains source-only', async ({ page }) => {
   await installBoard(page,[payload([{number:'8721',state:'waiting',order:1}])]);
   const state=await page.evaluate(()=>({
     director:window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.getConfig(),
+    diagnostics:window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.getDiagnostics(),
     fourth:window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.getDiagnostics(),
     assets:window.ASOBOON_BOARD_FOURTH_WALL_ASSETS.diagnostics(),
   }));
-  expect(state.director.FOURTH_WALL_MICRO_MIN_MS).toBe(20000);
-  expect(state.director.FOURTH_WALL_STORY_MIN_MS).toBe(45000);
-  expect(state.director.MAX_FOURTH_IN_LAST_FIVE).toBe(2);
+  expect(state.director.MEGA_MIN_MS).toBe(90000);
+  expect(state.director.CHARACTER_FORCE_AFTER_MS).toBe(25000);
+  expect(state.director.MAX_PURE_FX_IN_ROW).toBe(1);
+  expect(state.director.arcs.FOURTH_WALL_MYSTERY.beats).toBe(11);
+  expect(state.diagnostics.scheduler).toBe('show-director-v1');
   expect(state.fourth.events).toHaveLength(20);
   expect(state.assets.totalImplementationAssets).toBe(80);
   expect(state.assets.source).toBe('fourth_wall_implementation_pack_v1');
