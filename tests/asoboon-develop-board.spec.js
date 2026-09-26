@@ -737,6 +737,83 @@ test('shared animation engine stays bounded under 6x CPU throttling', async ({ p
   });
 });
 
+test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a true foreground overlay', async ({ page }) => {
+  test.setTimeout(30000);
+  const h = await installBoard(page, [payload([
+    { number:'7050', state:'waiting', order:1 },
+    { number:'7051', state:'waiting', order:2 },
+  ])]);
+  const client = await page.context().newCDPSession(page);
+  await client.send('Performance.enable');
+  await client.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+  const beforeRaw = await client.send('Performance.getMetrics');
+
+  const result = await page.evaluate(async () => {
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const anim=window.ASOBOON_BOARD_ANIMATIONS;
+    const card=document.querySelector('#queueGrid .queue-card');
+    fx.setQuality('AUTO',{persistValue:false});
+    fx.setSlowdown(0.06,{persistValue:false});
+    fx.resetPerformanceBaseline();
+
+    for(const kind of ['call','guided','hold','cancel']){
+      await anim.playStatusAnimation({
+        number:'7050',
+        kind,
+        fromStatus:'waiting',
+        toStatus:kind==='call'?'calling':kind==='guided'?'done':kind==='hold'?'hold':'canceled',
+        element:card,
+      });
+    }
+
+    const overlay=fx.getLayer('overlay');
+    const front=fx.getLayer('front');
+    return{
+      runtime:fx.diagnostics(),
+      overlayZ:Number(getComputedStyle(overlay).zIndex)||0,
+      frontZ:Number(getComputedStyle(front).zIndex)||0,
+      tempNodes:document.querySelectorAll('.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
+      numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+    };
+  });
+
+  const afterRaw = await client.send('Performance.getMetrics');
+  await client.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  const metrics = rows => Object.fromEntries(rows.metrics.map(x => [x.name, x.value]));
+  const before=metrics(beforeRaw),after=metrics(afterRaw);
+
+  expect(result.overlayZ).toBeGreaterThan(result.frontZ);
+  expect(result.runtime.sharedCanvasCount).toBe(1);
+  expect(result.runtime.rafLoopCount).toBeLessThanOrEqual(1);
+  expect(result.runtime.maxCanvasJobs).toBeLessThanOrEqual(1);
+  expect(result.runtime.maxFrameTasks).toBeLessThanOrEqual(1);
+  expect(result.runtime.domDeltaPeak).toBeLessThanOrEqual(24);
+  expect(result.runtime.activeScopes).toBe(0);
+  expect(result.runtime.frameTasks).toBe(0);
+  expect(result.runtime.canvasJobs).toBe(0);
+  expect(result.runtime.activeTimers).toBe(0);
+  expect(result.tempNodes).toBe(0);
+  expect(result.numbers).toEqual(['7050','7051']);
+  expect(after.LayoutCount-before.LayoutCount).toBeLessThan(260);
+  expect(after.RecalcStyleCount-before.RecalcStyleCount).toBeLessThan(360);
+  expect(after.TaskDuration-before.TaskDuration).toBeLessThan(18);
+  expect(h.pageErrors).toEqual([]);
+
+  console.log('BOARD_SPECIAL_PERF_6X_CPU',{
+    effectiveQuality:result.runtime.effectiveQuality,
+    fps:result.runtime.fps,
+    frameMs:result.runtime.frameMs,
+    domDeltaPeak:result.runtime.domDeltaPeak,
+    maxCanvasJobs:result.runtime.maxCanvasJobs,
+    overlayZ:result.overlayZ,
+    frontZ:result.frontZ,
+    layoutDelta:after.LayoutCount-before.LayoutCount,
+    styleDelta:after.RecalcStyleCount-before.RecalcStyleCount,
+    taskDurationDelta:after.TaskDuration-before.TaskDuration,
+    heapDelta:after.JSHeapUsedSize-before.JSHeapUsedSize,
+  });
+});
+
 test('new-source effects stay quiet on load and only run when the show story reaches an FX beat', async ({ page }) => {
   const current = payload([
     { number: '7101', state: 'waiting', order: 1 },
@@ -1109,6 +1186,47 @@ test('real status effects serialize as full-screen manga special events', async 
   expect(code).toContain("specialScreen('guided'");
   expect(code).toContain("specialScreen('hold'");
   expect(code).toContain("specialScreen('cancel'");
+});
+
+test('face-safe placement, target-aware gaze and CALL edge exits are active behavior', async ({ page }) => {
+  test.setTimeout(15000);
+  await installBoard(page,[payload([{number:'8640',state:'waiting',order:1}])]);
+  const result=await page.evaluate(async()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const chars=window.ASOBOON_BOARD_CHARACTER_EVENTS;
+    const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+    fx.setSlowdown(0.03,{persistValue:false});
+    chars.resetForTest();
+    const card=document.querySelector('#queueGrid .queue-card');
+    const r=card.getBoundingClientRect();
+    const rect={left:r.left,top:r.top,width:r.width,height:r.height,right:r.right,bottom:r.bottom};
+    await chars.playStatusAccent('cancel',{rect});
+    await chars.playCallDelivery({number:'8640',rect});
+    return{
+      diagnostics:chars.getDiagnostics(),
+      meta:assets.CHARACTER_META,
+      recipes:chars.sceneRecipes,
+      leftovers:document.querySelectorAll('.pc-sprite,.pc-effect').length,
+    };
+  });
+  expect(result.diagnostics.faceSafeAdjustments).toBeGreaterThan(0);
+  expect(result.diagnostics.gazeResolved).toBeGreaterThan(0);
+  expect(result.meta.pompon_dash.nativeFacing).toBe('right');
+  expect(result.meta.pompon_dash.flipSafe).toBe(true);
+  expect(result.meta.chiru_retort.gazePolicy).toBe('target-aware');
+  expect(result.recipes.POMPON_BRAKE_FAIL.faceSafeDuringReaction).toBe(true);
+  expect(result.recipes.POMPON_BRAKE_FAIL.facingPolicy).toBe('target-aware-when-directional');
+  expect(result.recipes.POMPON_BRAKE_FAIL.exitGrammar).toBe('edge-or-occlusion');
+  expect(result.leftovers).toBe(0);
+
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
+  const start=code.indexOf('async function callDelivery');
+  const end=code.indexOf('const PLAYERS=Object.freeze',start);
+  const call=code.slice(start,end);
+  expect(call).not.toContain('hide(p)');
+  expect(call).toContain("p.dataset.pcLookTarget='CHIRU'");
+  expect(call).toContain('pExitX');
+  expect(call).toContain('cExitX');
 });
 
 test('character scenes enforce one visible POMPON and one visible CHIRU unless explicitly represented by one DUO sprite', async ({ page }) => {
