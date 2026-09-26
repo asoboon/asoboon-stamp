@@ -737,7 +737,7 @@ test('shared animation engine stays bounded under 6x CPU throttling', async ({ p
   });
 });
 
-test('new-source effects do not fire on initial load and only run after an unchanged update', async ({ page }) => {
+test('new-source effects stay quiet on load and only run when the show story reaches an FX beat', async ({ page }) => {
   const current = payload([
     { number: '7101', state: 'waiting', order: 1 },
     { number: '7102', state: 'waiting', order: 2 },
@@ -751,9 +751,17 @@ test('new-source effects do not fire on initial load and only run after an uncha
     director.setConfig({
       REAL_CHANGE_COOLDOWN_MS:0,
       CHARACTER_FORCE_AFTER_MS:999999,
+      QUIET_BEAT_MS:0,
+      INITIAL_SHOW_DELAY_MS:0,
     });
-    director.setBagForTest(['SOURCE_FX']);
+    director.setShowForTest('BALL_CHAOS',0);
   });
+  await h.refresh();
+  expect((await sourceFxDiagnostics(page)).played).toBe(0);
+  const afterQuiet=await page.evaluate(()=>window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.getDiagnostics());
+  expect(afterQuiet.quietBeats).toBeGreaterThanOrEqual(1);
+
+  await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.setShowForTest('BALL_CHAOS',2));
   await h.refresh();
   await expect.poll(async () => (await sourceFxDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
   await expect.poll(async () => (await sourceFxDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
