@@ -956,7 +956,7 @@ async function fetchWithCancelTimeout(url,options={},timeoutMs=10000){
   finally{clearTimeout(timer)}
 }
 function htmlMetaContent(html,name){
-  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\async function fetchAllReservationsForReconcile(env) {');');
+  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\$&');
   const a=new RegExp('<meta[^>]+name=["\\\']'+escaped+'["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\']','i').exec(String(html||''));
   const b=new RegExp('<meta[^>]+content=["\\\']([^"\\\']+)["\\\'][^>]+name=["\\\']'+escaped+'["\\\']','i').exec(String(html||''));
   return String((a||b)?.[1]||'').replace(/&amp;/g,'&').replace(/&#x27;/g,"'").replace(/&quot;/g,'"');
