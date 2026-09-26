@@ -12,22 +12,18 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.1.dev-store-no-fallback',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.2.dev-official-web-handoff',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
-);
-replaceOnce(
-  "  AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',",
-  "  AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',\n  AIR_RESERVATIONS: 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',"
 );
 replaceOnce(
   "    createEnabled: String(env.CREATE_ENABLED || '0') === '1',",
   "    createEnabled: String(env.CREATE_ENABLED || '0') === '1',\n    developTestWaitTypeId: CFG.DEVELOP_TEST_WAIT_TYPE_ID,\n    callstatusEnabled: true,"
 );
 replaceOnce(
-  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action !== 'createReservation') return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);\n\n      const requestId = normalizeRequestId(p.requestId);",
-  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action === 'recoverReservationSession') return out(request, await recoverReservationSession(env, p));\n      if (action === 'reservationStatus') return out(request, await reservationStatus(env, p));\n      if (action !== 'createReservation') return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);\n\n      const requestId = normalizeRequestId(p.requestId);"
+  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {",
+  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action === 'recoverReservationSession') return out(request, await recoverReservationSession(env, p));\n      if (action === 'reservationStatus') return out(request, await reservationStatus(env, p));\n      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {"
 );
 replaceOnce(
   "    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at INTEGER NOT NULL\n    )`),",
@@ -60,8 +56,8 @@ replaceOnce(
   "  const wt = await getWaitTypesForCreate(env);"
 );
 replaceOnce(
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  await setRequestState(env, requestId, 'VALIDATED');",
-  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  await setRequestState(env, requestId, 'VALIDATED');"
+  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n\n  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {",
+  "  const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);\n  if (userClaim.existing) return userClaim.result;\n  if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {\n    try { await incrementAttempt(env, hash, serverDate); }\n    catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }\n  }\n\n  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {"
 );
 replaceOnce(
   "  enforceReceptionHours(day, mode);",
@@ -70,10 +66,6 @@ replaceOnce(
 replaceOnce(
   "  if (mode === 'onsite') validateLocation(p);",
   "  if (mode === 'onsite' && waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) validateLocation(p);"
-);
-replaceOnce(
-  "SELECT request_id,state,receipt_no,reserve_id,wait_type_id FROM v2_user_day_claims",
-  "SELECT request_id,state,receipt_no,reserve_id,wait_type_id,updated_at FROM v2_user_day_claims"
 );
 replaceOnce(
   "  const e = apiError(state === 'AMBIGUOUS' ? 'EXISTING_AMBIGUOUS_RECEPTION_REQUIRES_MANUAL_REVIEW' : 'ACTIVE_RECEPTION_ALREADY_IN_PROGRESS', 409, state === 'AMBIGUOUS');\n  throw e;",
