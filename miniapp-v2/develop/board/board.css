@@ -814,6 +814,10 @@ body{
   box-shadow:0 5px 0 rgba(19,31,35,.28);
   will-change:transform,opacity;
 }
+:root[data-board-quality="low"] .fx-foreground-shard{
+  box-shadow:none;
+  border-width:1px;
+}
 .fx-impact-flash{
   position:fixed;
   inset:0;
