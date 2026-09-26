@@ -309,7 +309,10 @@ async function recoverReservationSession(env, p) {
     const rawUrl = String(result?.shortUrl || '').trim();
     const parsed = rawUrl ? new URL(rawUrl) : null;
     const host = String(parsed?.hostname || '').toLowerCase();
-    if (parsed?.protocol === 'https:' && (host === 'airwait.jp' || host.endsWith('.airwait.jp'))) recoveredShortUrl = parsed.toString();
+    if (parsed && ['http:','https:'].includes(parsed.protocol) && (host === 'airwait.jp' || host.endsWith('.airwait.jp'))) {
+      parsed.protocol = 'https:';
+      recoveredShortUrl = parsed.toString();
+    }
   } catch {}
   const rawToken = randomOpaqueToken();
   const tokenHash = await sha256Hex(rawToken);
