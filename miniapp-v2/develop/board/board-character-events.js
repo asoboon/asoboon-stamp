@@ -33,7 +33,7 @@ const EVENTS=Object.freeze([
 ]);
 
 let currentScope=null,running=false,currentId='';
-const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,duplicateSuppressions:0,faceSafeAdjustments:0,gazeResolved:0,lastEvent:null,history:[]};
+const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,duplicateSuppressions:0,faceSafeAdjustments:0,gazeResolved:0,liveAnchorReads:0,compositionGuardAdjustments:0,lastEvent:null,history:[]};
 
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function tm(ms,mode='idle'){return Math.round(Number(ms||0)*(mode==='call'?CALL_PACE:IDLE_PACE))}
@@ -112,6 +112,8 @@ function pose(scope,name,{x=0,y=0,scale=1,rotate=0,flip=1,lookX=null,lookTarget=
   return registerCharacter(scope,scope.add(el,layer),name);
 }
 function anchorPoint(el,key='CENTER'){
+  const live=M.characterAnchorPoint?.(el,key,'local');
+  if(live){diagnostics.liveAnchorReads+=1;return live}
   const anchors=A.CHARACTER_ANCHORS?.[el?.dataset?.pcAsset]||{CENTER:[.5,.5]};
   const [nx,ny]=anchors[key]||anchors.CENTER||[.5,.5],x=Number(el?.dataset?.sceneX)||0,y=Number(el?.dataset?.sceneY)||0;
   const scale=Number(el?.dataset?.sceneScale)||1,flip=Number(el?.dataset?.sceneFlip)||1,rad=(Number(el?.dataset?.sceneRotate)||0)*Math.PI/180;
@@ -119,29 +121,32 @@ function anchorPoint(el,key='CENTER'){
   return{x:x+ox*Math.cos(rad)-oy*Math.sin(rad),y:y+ox*Math.sin(rad)+oy*Math.cos(rad)};
 }
 const FACE_SAFE_SEMANTICS=new Set(['alert','question','reaction','anger','aftermath','success']);
-function avoidFaceSafeZone(character,point,semantic,effectScale=1,anchor='CENTER'){
-  if(!character||!FACE_SAFE_SEMANTICS.has(String(semantic||'')))return point;
-  const face=anchorPoint(character,'FACE_SAFE');
-  const characterScale=Math.max(.4,Number(character.dataset?.sceneScale)||1);
-  const rx=58*characterScale+42*Math.max(.35,Number(effectScale)||1);
-  const ry=48*characterScale+40*Math.max(.35,Number(effectScale)||1);
-  const dx=point.x-face.x,dy=point.y-face.y;
-  if(Math.abs(dx)>=rx||Math.abs(dy)>=ry)return point;
-  diagnostics.faceSafeAdjustments+=1;
-  if(anchor==='HEAD'||['alert','question','anger','aftermath'].includes(String(semantic||''))){
-    const sign=dy<=0?-1:1;
-    return{x:point.x,y:face.y+sign*ry,adjusted:true};
+function effectVisualSize(semantic,scale=1){
+  const base=semantic==='impact'?180:semantic==='aftermath'?164:semantic==='success'?138:148;
+  const value=Math.max(52,base*Math.max(.35,Number(scale)||1));
+  return{width:value,height:value};
+}
+function guardPoint(point,semantic,effectScale=1,phase='reaction'){
+  if(!M.resolveEffectPoint)return{...point,adjusted:false};
+  const board=rect(),size=effectVisualSize(semantic,effectScale);
+  const guarded=M.resolveEffectPoint({x:point.x+board.left,y:point.y+board.top},{...size,phase});
+  if(guarded.adjusted){
+    diagnostics.faceSafeAdjustments+=1;
+    diagnostics.compositionGuardAdjustments+=1;
   }
-  const flip=Number(character.dataset?.sceneFlip)||1;
-  const sign=dx===0?(flip>=0?1:-1):Math.sign(dx);
-  return{x:face.x+sign*rx,y:point.y,adjusted:true};
+  return{x:guarded.x-board.left,y:guarded.y-board.top,adjusted:guarded.adjusted,overlapBefore:guarded.overlapBefore,overlapAfter:guarded.overlapAfter};
 }
 function anchoredFx(scope,character,anchor,name,semantic,options={}){
   const p=anchorPoint(character,anchor);
   const raw={x:p.x+(options.dx||0),y:p.y+(options.dy||0)};
-  const safe=avoidFaceSafeZone(character,raw,semantic,options.scale||1,anchor);
+  const shouldGuard=FACE_SAFE_SEMANTICS.has(String(semantic||''));
+  const safe=shouldGuard?guardPoint(raw,semantic,options.scale||1,'reaction'):{...raw,adjusted:false};
   const el=fx(scope,name,semantic,{...options,x:safe.x,y:safe.y});
-  if(el&&safe.adjusted)el.dataset.faceSafeAdjusted='1';
+  if(el&&safe.adjusted){
+    el.dataset.faceSafeAdjusted='1';
+    el.dataset.overlapBefore=String(safe.overlapBefore||0);
+    el.dataset.overlapAfter=String(safe.overlapAfter||0);
+  }
   return el;
 }
 function fx(scope,name,semantic,{x=0,y=0,scale=1,rotate=0,opacity=1,layer='front',className=''}={}){
@@ -166,8 +171,12 @@ function anim(scope,el,keyframes,options={},mode='idle'){
 }
 function wait(scope,ms,mode='idle'){return scope.wait(tm(ms,mode))}
 async function popFx(scope,name,semantic,x,y,scale=1,rotate=0,mode='idle'){
+  const phase=semantic==='impact'?'impact':'reaction';
+  const guarded=['impact','alert','question','reaction','anger','aftermath','success'].includes(String(semantic||''))?guardPoint({x,y},semantic,scale,phase):{x,y,adjusted:false};
+  x=guarded.x;y=guarded.y;
   const el=fx(scope,name,semantic,{x,y,scale:scale*.5,rotate,opacity:0});
   if(!el)return;
+  if(guarded.adjusted)el.dataset.faceSafeAdjusted='1';
   await anim(scope,el,[
     {opacity:0,transform:transform(x,y,scale*.42,rotate)},
     {opacity:1,offset:.34,transform:transform(x,y,scale*1.15,rotate)},
@@ -1237,11 +1246,11 @@ async function playCallDelivery({number='',rect:targetRect=null}={}){
   return play('CALL_DELIVERY',{number,localX:p.x,localY:p.y});
 }
 const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({cast:e.category==='MEGA_STORY'||e.id.startsWith('DUO')||e.id==='PEEK_DISCOVERY'?['POMPON','CHIRU']:e.id.startsWith('CHIRU')?['CHIRU']:['POMPON'],actionZone:e.id.includes('PEEK')?'edges':'full-stage',beats:['anticipation','entrance','action','hold','incident','reaction','aftermath','exit'],anchors:['ENTRY_POINT','TRAIL_ORIGIN','IMPACT','FACE','HEAD'],zOrder:['rear-effect','character','front-effect'],minimumReactionHoldMs:e.category.includes('STORY')?780:520,lookTarget:'scene-defined',facingPolicy:'target-aware-when-directional',faceSafeDuringReaction:true,exitGrammar:'edge-or-occlusion'})])));
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length,characterContinuity:'single-instance-per-character'}}
-function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.faceSafeAdjustments=0;diagnostics.gazeResolved=0;diagnostics.lastEvent=null;diagnostics.history=[]}
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length,characterContinuity:'single-instance-per-character',compositionGuard:'v2-live-rect'}}
+function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.faceSafeAdjustments=0;diagnostics.gazeResolved=0;diagnostics.liveAnchorReads=0;diagnostics.compositionGuardAdjustments=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'4.1.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
-  getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
+  version:'4.2.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  getDiagnostics,resetForTest,getCompositionSnapshot:()=>M.compositionSnapshot?.()||{characters:[],faces:[],bodies:[]},playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();
