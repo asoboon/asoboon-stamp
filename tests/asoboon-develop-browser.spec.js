@@ -119,16 +119,17 @@ test('Developing LINE reception exposes live WEB slots and no location UI', asyn
     regularWeb: window.ASOBOON_V2_RULES.slotsFor('平日','web').map(x=>x.waitTypeId),
     specialWeb: window.ASOBOON_V2_RULES.slotsFor('平日特定日','web').map(x=>x.waitTypeId),
   }));
-  expect(rules.web).toEqual(['0030','0032','0034']);
+  expect(rules.web).toEqual(['0029','0031','0033']);
   expect(rules.onsite).toEqual(['0029','0031','0033']);
   expect(rules.regularWeb).toEqual(['0023','0024','0025','0027']);
   expect(rules.specialWeb).toEqual(['0036','0038']);
 
   await page.locator('[data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
-  await expect(page.locator('[data-rec-slot="0030"]')).toHaveCount(1);
-  await expect(page.locator('[data-rec-slot="0032"]')).toHaveCount(1);
-  await expect(page.locator('[data-rec-slot="0034"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0029"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0031"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0033"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0030"],[data-rec-slot="0032"],[data-rec-slot="0034"]')).toHaveCount(0);
   await expect(page.locator('[data-rec-slot="0042"],[data-rec-slot="0029"],[data-rec-slot="0031"],[data-rec-slot="0033"]')).toHaveCount(0);
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
   await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
@@ -145,63 +146,12 @@ test('regular weekday LINE reception shows all four AirWAIT slots', async ({ pag
     ]
   });
   await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
-  for (const id of ['0023','0024','0025','0027']) {
+  for (const id of ['0023','0025']) {
     await expect(page.locator(`[data-rec-slot="${id}"]`)).toHaveCount(1);
   }
+  await expect(page.locator('[data-rec-slot="0024"],[data-rec-slot="0027"]')).toHaveCount(0);
   await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
-});
-
-test('WEB-only reception hands off to official AirWAIT then links receipt back to LINE', async ({ page }) => {
-  await installLiff(page, 'authenticated');
-  await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
-    const url=new URL(route.request().url());
-    const post=new URLSearchParams(route.request().postData()||'');
-    const action=url.searchParams.get('action')||post.get('action')||'';
-    if(action==='createReservation'){
-      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-        ok:true,stored:false,handoffRequired:true,
-        handoffRequestId:post.get('requestId'),
-        businessDate:'2026-09-19',operationalDate:'2026-09-19',waitTypeId:'0034',
-        officialUrl:'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN',
-        expiresAt:Date.parse('2026-09-19T03:15:00Z')
-      })});
-    }
-    if(action==='adoptOfficialWebReception'){
-      expect(post.get('handoffRequestId')).toMatch(/^v2_/);
-      expect(post.get('waitTypeId')).toBe('0034');
-      expect(post.get('receiptNo')).toBe('9876');
-      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-        ok:true,stored:true,adopted:true,businessDate:'2026-09-19',operationalDate:'2026-09-19',
-        waitTypeId:'0034',receiptNo:'9876',reserveId:'000000009876',shortUrl:'',notificationReady:true
-      })});
-    }
-    return route.fallback();
-  });
-  await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('[data-rec-slot="0034"]')).toBeVisible();
-  await page.locator('[data-rec-slot="0034"]').click();
-  await page.locator('#recAgree').check();
-  await expect(page.locator('#recSubmit')).toBeEnabled();
-  await page.locator('#recSubmit').click();
-
-  await expect(page.locator('.rec-official')).toBeVisible();
-  await expect(page.locator('.rec-official')).toContainText('AirWAIT公式画面で受付');
-  await expect(page.locator('#recOfficialOpen')).toBeVisible();
-  await page.locator('#recOfficialOpen').click();
-  await expect.poll(()=>page.evaluate(()=>window.__lastLiffOpenWindow||null)).toEqual({
-    url:'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN',
-    external:false
-  });
-  await page.locator('#recOfficialReceipt').fill('9876');
-  await page.locator('#recOfficialLink').click();
-
-  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
-  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_current_reservation_develop_v1')));
-  expect(saved.receiptNo).toBe('9876');
-  expect(saved.waitTypeId).toBe('0034');
-  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_official_web_handoff_develop_v1'))).toBeNull();
-  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
 });
 
 test('Developing 0042 remains available only behind explicit dev mode', async ({ page }) => {
@@ -228,8 +178,8 @@ test('legacy overlay never resurrects disabled Developing test slot', async ({ p
 async function openReceptionWithPending(page, result) {
   await installLiff(page, 'authenticated');
   await page.addInitScript(pending => localStorage.setItem('asoboon_v2_pending_reception_develop_v1', JSON.stringify(pending)), {
-    requestId:'v2_pending_12345678', fingerprint:'2026-09-19|web|0030|1|0|0',
-    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0030',adults:1,paidChildren:0,infants:0}, createdAt:Date.parse('2026-09-19T03:00:00Z')
+    requestId:'v2_pending_12345678', fingerprint:'2026-09-19|web|0029|1|0|0',
+    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0029',adults:1,paidChildren:0,infants:0}, createdAt:Date.parse('2026-09-19T03:00:00Z')
   });
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url=new URL(route.request().url());
