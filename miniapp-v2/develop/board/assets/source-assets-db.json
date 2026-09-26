@@ -1,5 +1,5 @@
 {
-  "database_version": "1.4.1",
+  "database_version": "1.5.0",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
   "source_archive_verification": {
     "verified_on": "2026-09-26",
@@ -766,16 +766,16 @@
       ]
     },
     "shuffle_bag": {
-      "slots": 72,
+      "slots": 77,
       "source_fx": 30,
       "pompon_cameo": 4,
       "chiru_cameo": 4,
-      "pompon_story": 3,
-      "duo_story": 6,
+      "pompon_story": 4,
+      "duo_story": 8,
       "rare_story": 1,
       "fourth_wall_micro": 12,
-      "fourth_wall_story": 12,
-      "guaranteed_unique_idle_patterns": 42
+      "fourth_wall_story": 14,
+      "guaranteed_unique_idle_patterns": 47
     },
     "fourth_wall_rules": {
       "max_in_last_five": 2,
@@ -787,7 +787,7 @@
     }
   },
   "pattern_catalog": {
-    "total_idle_patterns": 42,
+    "total_idle_patterns": 47,
     "source_fx": [
       "FX_MAGIC_STAR_PASS",
       "FX_SPARKLE_SWEEP",
@@ -811,7 +811,8 @@
     "pompon_story": [
       "POMPON_BRAKE_FAIL",
       "POMPON_SMUG_OOPS",
-      "POMPON_STAR_FLYBACK"
+      "POMPON_STAR_FLYBACK",
+      "POMPON_WRONG_WAY_VICTORY"
     ],
     "duo_story": [
       "DUO_CHASE_CATCH",
@@ -819,7 +820,9 @@
       "DUO_BOAST_DISBELIEF",
       "DUO_FAILURE_SCOLD",
       "DUO_OH_NO_ESCAPE",
-      "DUO_FRIENDSHIP_OOPS"
+      "DUO_FRIENDSHIP_OOPS",
+      "DUO_RESCUE_RELAY",
+      "DUO_QUIET_PEEK_RETREAT"
     ],
     "rare_story": [
       "BALL_RIDE_FAIL"
@@ -844,7 +847,9 @@
       "FW_CHIRU_LOW_BREAK",
       "FW_DUO_RACE_OUT",
       "FW_DUO_SHARED_BREAK",
-      "FW_DUO_SIDE_BY_SIDE"
+      "FW_DUO_SIDE_BY_SIDE",
+      "FW_KNOCK_KNOCK_POMPON",
+      "FW_REPAIR_REBREAK_DUO"
     ]
   },
   "fourth_wall_inventory": {

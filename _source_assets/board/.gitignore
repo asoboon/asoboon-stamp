@@ -1,0 +1,3 @@
+# Raw source archives and expanded PNG trees stay on the local production workstation.
+*.zip
+extracted/

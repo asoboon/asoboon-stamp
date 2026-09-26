@@ -25,6 +25,8 @@ const STORY_EVENTS=Object.freeze([
   Object.freeze({id:'FW_DUO_RACE_OUT',category:'FOURTH_WALL_STORY',family:'duo',asset:4,story:'POMPONとCHIRUが一緒に突破してくる'}),
   Object.freeze({id:'FW_DUO_SHARED_BREAK',category:'FOURTH_WALL_STORY',family:'duo',asset:5,story:'2人で同じ破れ目から顔を出す'}),
   Object.freeze({id:'FW_DUO_SIDE_BY_SIDE',category:'FOURTH_WALL_STORY',family:'duo',asset:6,story:'2人並んで画面の外へ身を乗り出す'}),
+  Object.freeze({id:'FW_KNOCK_KNOCK_POMPON',category:'FOURTH_WALL_STORY',family:'pompon',asset:3,special:'knock',story:'内側から二度ノック→静寂→POMPONの巨大な顔が飛び出す'}),
+  Object.freeze({id:'FW_REPAIR_REBREAK_DUO',category:'FOURTH_WALL_STORY',family:'duo',asset:5,special:'rebreak',story:'割れ目が直ったと思わせる→間を置いて2人がもう一度破る'}),
 ]);
 const EVENTS=Object.freeze([...MICRO_EVENTS,...STORY_EVENTS]);
 
@@ -140,28 +142,31 @@ async function breakoutStory(scope,event){
     if(shard)shards.push(shard);
   }
 
+  await wait(scope,180);
   await animate(scope,crack,[
     {opacity:0,transform:tr(crack,x,y,s*.35,cfg.rotate)},
     {opacity:1,offset:.4,transform:tr(crack,x,y,s*.78,cfg.rotate)},
     {opacity:.92,transform:tr(crack,x,y,s*.72,cfg.rotate)}
-  ],{duration:230,easing:'cubic-bezier(.16,.82,.2,1)',fill:'forwards'});
+  ],{duration:360,easing:'cubic-bezier(.16,.82,.2,1)',fill:'forwards'});
+
+  await wait(scope,180);
 
   await Promise.all([
     animate(scope,frameBack,[
       {opacity:0,transform:tr(frameBack,x,y,s*.42,cfg.rotate)},
       {opacity:1,offset:.42,transform:tr(frameBack,x,y,s*.92,cfg.rotate)},
       {opacity:.96,transform:tr(frameBack,x,y,s*.84,cfg.rotate)}
-    ],{duration:260,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
+    ],{duration:390,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
     animate(scope,frameFront,[
       {opacity:0,transform:tr(frameFront,x,y,s*.42,cfg.rotate)},
       {opacity:1,offset:.42,transform:tr(frameFront,x,y,s*.92,cfg.rotate)},
       {opacity:.98,transform:tr(frameFront,x,y,s*.84,cfg.rotate)}
-    ],{duration:260,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
+    ],{duration:390,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
     animate(scope,impact,[
       {opacity:0,transform:tr(impact,x,y,s*.22,cfg.rotate)},
       {opacity:1,offset:.35,transform:tr(impact,x,y,s*.78,cfg.rotate)},
       {opacity:0,transform:tr(impact,x,y,s*.92,cfg.rotate)}
-    ],{duration:310,easing:'ease-out',fill:'forwards'}),
+    ],{duration:420,easing:'ease-out',fill:'forwards'}),
     shake(scope,.65)
   ]);
 
@@ -180,18 +185,42 @@ async function breakoutStory(scope,event){
       {opacity:1,offset:.28,transform:tr(character,x,y-4,s*1.02,cfg.rotate)},
       {opacity:1,offset:.62,transform:tr(character,x,y,s*.94,cfg.rotate)},
       {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)}
-    ],{duration:430,easing:'cubic-bezier(.14,.82,.18,1)',fill:'forwards'})
+    ],{duration:620,easing:'cubic-bezier(.14,.82,.18,1)',fill:'forwards'})
   ]);
-  await wait(scope,460);
+  await wait(scope,760);
   await Promise.all([
     animate(scope,character,[
       {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)},
       {opacity:0,transform:tr(character,x,y+18,s*.72,cfg.rotate)}
-    ],{duration:300,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameBack,[{opacity:.96},{opacity:0}],{duration:320,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameFront,[{opacity:.98},{opacity:0}],{duration:320,easing:'ease-in',fill:'forwards'}),
-    animate(scope,crack,[{opacity:.9},{opacity:0}],{duration:360,easing:'ease-in',fill:'forwards'})
+    ],{duration:460,easing:'ease-in',fill:'forwards'}),
+    animate(scope,frameBack,[{opacity:.96},{opacity:0}],{duration:480,easing:'ease-in',fill:'forwards'}),
+    animate(scope,frameFront,[{opacity:.98},{opacity:0}],{duration:480,easing:'ease-in',fill:'forwards'}),
+    animate(scope,crack,[{opacity:.9},{opacity:0}],{duration:520,easing:'ease-in',fill:'forwards'})
   ]);
+}
+async function knockKnock(scope,event){
+  const cfg=groupForStory(event.id),[x,y]=chooseAnchor('center'),s=boardScale()*1.18;
+  await A.preloadFamilies(['cracks','frames','impacts','shards','pompon']);
+  const crack=sprite(scope,'cracks',nextVariant('crackCenter',GROUPS.crackCenter),'fw-crack',{x,y,scale:s*.35,opacity:0});
+  for(let i=0;i<2;i++){
+    await Promise.all([
+      animate(scope,crack,[{opacity:.18,transform:tr(crack,x,y,s*(.3+i*.08))},{opacity:.85,transform:tr(crack,x,y,s*(.48+i*.1))}],{duration:260,fill:'forwards'}),
+      shake(scope,.32+i*.16)
+    ]);
+    await wait(scope,300);
+  }
+  await wait(scope,520);
+  return breakoutStory(scope,event);
+}
+async function repairRebreak(scope,event){
+  const [x,y]=chooseAnchor('center'),s=boardScale()*1.12;
+  await A.preloadFamilies(['cracks','frames','impacts','duo']);
+  const crack=sprite(scope,'cracks',nextVariant('crackWide',GROUPS.crackWide),'fw-crack',{x,y,scale:s*.78,opacity:0});
+  await animate(scope,crack,[{opacity:0,transform:tr(crack,x,y,s*.3)},{opacity:1,transform:tr(crack,x,y,s*.78)}],{duration:420,fill:'forwards'});
+  await wait(scope,420);
+  await animate(scope,crack,[{opacity:1},{opacity:0,transform:tr(crack,x,y,s*.25)}],{duration:620,easing:'ease-in',fill:'forwards'});
+  await wait(scope,720);
+  return breakoutStory(scope,event);
 }
 async function crackPulse(scope,{anchor='center',group='crackCenter',double=false}={}){
   const [x,y]=chooseAnchor(anchor),s=boardScale();
@@ -264,7 +293,7 @@ async function play(id){
   diagnostics.played++;if(micro)diagnostics.microPlayed++;else diagnostics.storyPlayed++;
   diagnostics.lastEvent={id:key,at:Date.now()};diagnostics.history.push({...diagnostics.lastEvent});diagnostics.history=diagnostics.history.slice(-50);
   try{
-    if(micro)await micro(scope);else await breakoutStory(scope,story);
+    if(micro)await micro(scope);else if(story.special==='knock')await knockKnock(scope,story);else if(story.special==='rebreak')await repairRebreak(scope,story);else await breakoutStory(scope,story);
     return{played:!scope.signal.aborted,id:key,reason:scope.signal.aborted?'aborted':undefined};
   }catch(e){
     return{played:false,id:key,reason:scope.signal.aborted?'aborted':'error'};
@@ -275,10 +304,11 @@ async function play(id){
   }
 }
 function cancel(reason='manual'){if(!currentScope)return false;diagnostics.canceled++;const s=currentScope;currentScope=null;currentId='';running=false;s.abort(reason);return true}
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:EVENTS.map(x=>x.id),assets:A.diagnostics()}}
+const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({impactPoint:'shared',beats:e.category==='FOURTH_WALL_STORY'?['warning','vibration','crack','break','hole','character','impact','shards','foreground','reaction','gag','exit']:['warning','action','hold','aftermath'],zOrder:['crack','rear-frame','character','impact','front-frame','foreground-shards'],minimumHoldMs:e.category==='FOURTH_WALL_STORY'?1900:900})])));
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:EVENTS.map(x=>x.id),sceneRecipeCount:Object.keys(SCENE_RECIPES).length,assets:A.diagnostics()}}
 function resetForTest(){cancel('test-reset');variantBags.clear();diagnostics.played=0;diagnostics.canceled=0;diagnostics.microPlayed=0;diagnostics.storyPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_FOURTH_WALL_EVENTS=Object.freeze({
-  version:'1.0.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
+  version:'1.2.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,sceneRecipes:SCENE_RECIPES,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
 });
 })();

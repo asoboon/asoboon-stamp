@@ -21,3 +21,8 @@
 - At most three character beats and two fourth-wall beats may occur within the last five scheduled beats.
 - No entertainment event may rewrite `.queue-number`, replace a ticket card, or persist temporary nodes after completion.
 - Legacy mystery visuals remain available only to dedicated legacy test APIs and are excluded from normal rotation.
+# 2026-09-26 anchor and scene mapping
+
+Character effects are no longer treated as unrelated screen decoration. Runtime pose metadata resolves semantic effects from relative anchors (`TRAIL_ORIGIN` for dust/speed, `IMPACT` for collisions, `HEAD`/`FACE` for reactions, and `HAND` for deliberate magic/sparkle actions). Fourth-wall layers use one shared scene impact point and explicit rear/front ordering.
+
+The raw ZIP files and expanded PNG trees remain available locally under `_source_assets/board/`, but are ignored from the current Git tree. Only the notes, policy database, and optimized WebP atlases are deployable inputs.

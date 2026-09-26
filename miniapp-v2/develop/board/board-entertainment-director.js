@@ -12,11 +12,11 @@ const BAG_TEMPLATE=Object.freeze({
   SOURCE_FX:30,
   POMPON_CAMEO:4,
   CHIRU_CAMEO:4,
-  POMPON_STORY:3,
-  DUO_STORY:6,
+  POMPON_STORY:4,
+  DUO_STORY:8,
   RARE_STORY:1,
   FOURTH_WALL_MICRO:12,
-  FOURTH_WALL_STORY:12,
+  FOURTH_WALL_STORY:14,
 });
 const CONFIG={
   REAL_CHANGE_COOLDOWN_MS:15000,
@@ -165,5 +165,5 @@ function simulateCycleForTest(seed=12345){
   return{slots:shuffled.length,counts,uniqueSeen:seen.size,totalPatterns:new Set(all).size,missing:[...new Set(all)].filter(x=>!seen.has(x)),characterRate:shuffled.filter(isCharacter).length/shuffled.length};
 }
 
-window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'6.0.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,setBagForTest,simulateCycleForTest});
+window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR=Object.freeze({version:'6.1.0',onBaseline,onRealChange,onStableUpdate,onCommunicationError,suspend,setConfig,getConfig,getDiagnostics,resetForTest,setBagForTest,simulateCycleForTest});
 })();

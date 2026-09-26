@@ -812,21 +812,21 @@ test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use',
   expect(assets).toContain("dizzy_spiral");
 });
 
-test('entertainment director uses a 72-slot shuffle bag and guarantees all 42 idle patterns once per cycle', async ({ page }) => {
+test('entertainment director uses a 77-slot shuffle bag and guarantees all 47 idle patterns once per cycle', async ({ page }) => {
   await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
   const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateCycleForTest(12345));
-  expect(result.slots).toBe(72);
+  expect(result.slots).toBe(77);
   expect(result.counts.SOURCE_FX).toBe(30);
   expect(result.counts.POMPON_CAMEO).toBe(4);
   expect(result.counts.CHIRU_CAMEO).toBe(4);
-  expect(result.counts.POMPON_STORY).toBe(3);
-  expect(result.counts.DUO_STORY).toBe(6);
+  expect(result.counts.POMPON_STORY).toBe(4);
+  expect(result.counts.DUO_STORY).toBe(8);
   expect(result.counts.RARE_STORY).toBe(1);
   expect(result.counts.FOURTH_WALL_MICRO).toBe(12);
-  expect(result.counts.FOURTH_WALL_STORY).toBe(12);
-  expect(result.characterRate).toBeCloseTo(30/72, 5);
+  expect(result.counts.FOURTH_WALL_STORY).toBe(14);
+  expect(result.characterRate).toBeCloseTo(35/77, 5);
   expect(result.uniqueSeen).toBe(result.totalPatterns);
-  expect(result.totalPatterns).toBe(42);
+  expect(result.totalPatterns).toBe(47);
   expect(result.missing).toEqual([]);
 });
 
@@ -932,7 +932,7 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
 
 test('source asset database locks approved sources and contextual use rules', async () => {
   const db=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/assets/source-assets-db.json','utf8'));
-  expect(db.database_version).toBe('1.4.1');
+  expect(db.database_version).toBe('1.5.0');
   expect(db.source_archive_verification.runtime_reads_source_archives).toBe(false);
   expect(db.source_archive_verification.archives).toHaveLength(3);
   expect(db.runtime_policy.legacy_visual_assets_allowed).toBe(false);
@@ -948,8 +948,8 @@ test('source asset database locks approved sources and contextual use rules', as
   expect(db.runtime_event_rules.forbidden_standalone_character_assets).toEqual(expect.arrayContaining(['chiru_watch','chiru_exasperated','chiru_retort']));
   expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
   expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
-  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(72);
-  expect(db.pattern_catalog.total_idle_patterns).toBe(42);
+  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(77);
+  expect(db.pattern_catalog.total_idle_patterns).toBe(47);
   expect(db.counts.fourth_wall_implementation_assets).toBe(80);
   expect(db.fourth_wall_inventory.total_implementation_assets).toBe(80);
   expect(db.runtime_event_rules.fourth_wall_rules.source_only).toBe(true);
@@ -964,6 +964,8 @@ test('character pacing is deliberately slower while call delivery stays separate
     assets:window.ASOBOON_BOARD_CHARACTER_ASSETS.diagnostics(),
   }));
   expect(state.chars.idlePace).toBeGreaterThanOrEqual(1.4);
+  expect(state.chars.sceneRecipeCount).toBe(21);
+  expect(state.assets.anchorCount).toBe(30);
   expect(state.sourceFx.pace).toBeGreaterThanOrEqual(1.3);
   expect(state.assets.effectRules.dodge).toEqual(expect.arrayContaining(['jump_arc','speed_slash']));
   expect(state.assets.effectRules.impact).not.toContain('jump_arc');
@@ -988,7 +990,7 @@ test('real status effects serialize major presentations and do not use legacy ca
 });
 
 
-test('all 18 character idle patterns play, clean up, and preserve ticket data', async ({ page }) => {
+test('all 21 character idle patterns play, clean up, and preserve ticket data', async ({ page }) => {
   test.setTimeout(30000);
   const h = await installBoard(page, [payload([
     { number:'8251', state:'waiting', order:1 },
@@ -1000,7 +1002,7 @@ test('all 18 character idle patterns play, clean up, and preserve ticket data', 
     window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
   });
   const ids=await page.evaluate(() => window.ASOBOON_BOARD_CHARACTER_EVENTS.events.map(x=>x.id));
-  expect(ids).toHaveLength(18);
+  expect(ids).toHaveLength(21);
   for(const id of ids){
     const result=await page.evaluate(async eventId=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -1064,7 +1066,7 @@ test('fourth-wall pack atlases are present and bounded for kiosk use', async () 
   }
 });
 
-test('all 18 fourth-wall patterns play, clean up and preserve ticket data', async ({ page }) => {
+test('all 20 fourth-wall patterns play, clean up and preserve ticket data', async ({ page }) => {
   test.setTimeout(30000);
   const h=await installBoard(page,[payload([
     { number:'8701', state:'waiting', order:1 },
@@ -1076,7 +1078,7 @@ test('all 18 fourth-wall patterns play, clean up and preserve ticket data', asyn
     window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.resetForTest();
   });
   const ids=await page.evaluate(() => window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.events.map(x=>x.id));
-  expect(ids).toHaveLength(18);
+  expect(ids).toHaveLength(20);
   for(const id of ids){
     const result=await page.evaluate(async eventId=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -1124,7 +1126,7 @@ test('fourth-wall scheduler prevents crowding and uses the new source pack only'
   expect(state.director.FOURTH_WALL_MICRO_MIN_MS).toBe(20000);
   expect(state.director.FOURTH_WALL_STORY_MIN_MS).toBe(45000);
   expect(state.director.MAX_FOURTH_IN_LAST_FIVE).toBe(2);
-  expect(state.fourth.events).toHaveLength(18);
+  expect(state.fourth.events).toHaveLength(20);
   expect(state.assets.totalImplementationAssets).toBe(80);
   expect(state.assets.source).toBe('fourth_wall_implementation_pack_v1');
 });

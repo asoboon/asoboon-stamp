@@ -2,7 +2,7 @@
 
 const DEFAULT_SLOWDOWN=2.5;
 const LOW_SPEC_FALLBACK=true;
-const SLOWDOWN_KEY='asoboon_board_global_slowdown_v1';
+const SLOWDOWN_KEY='asoboon_board_global_slowdown_v2';
 const QUALITY_KEY='asoboon_board_quality_v1';
 const QUALITY_MODES=Object.freeze(['AUTO','HIGH','MEDIUM','LOW']);
 const QUALITY_PROFILES=Object.freeze({

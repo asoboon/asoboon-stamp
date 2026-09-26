@@ -51,6 +51,14 @@ const EFFECT_RULES=Object.freeze({
   ambient:Object.freeze(['magic_star','magic_sparkle','sparkle_gold','speed_lines','dust_streak']),
 });
 const STANDALONE_CHARACTERS=Object.freeze(['pompon_peek','chiru_peek','chiru_sneak']);
+const DEFAULT_ANCHORS=Object.freeze({HEAD:[.5,.16],FACE:[.5,.26],HAND:[.72,.48],FEET:[.5,.88],BODY:[.5,.54],CENTER:[.5,.5],IMPACT:[.72,.54],TRAIL_ORIGIN:[.22,.72],ENTRY_POINT:[.5,.62]});
+const CHARACTER_ANCHORS=Object.freeze(Object.fromEntries(Object.keys(CHARACTERS).map(name=>[name,Object.freeze({
+  ...DEFAULT_ANCHORS,
+  ...(name.includes('peek')?{FACE:[.5,.34],HAND:[.62,.58],ENTRY_POINT:[.5,.55]}:{}),
+  ...(name.includes('dash')||name.includes('chase')||name.includes('runaway')?{FEET:[.5,.82],IMPACT:[.82,.55],TRAIL_ORIGIN:[.12,.68]}:{}),
+  ...(name.includes('fly')||name.includes('dodge')?{IMPACT:[.68,.48],TRAIL_ORIGIN:[.22,.62]}:{}),
+  ...(name.startsWith('duo_')?{HEAD:[.5,.13],FACE:[.5,.25],HAND:[.76,.48],IMPACT:[.72,.56],TRAIL_ORIGIN:[.18,.7]}:{}),
+})])));
 
 let charPromise=null,effectPromise=null;
 const preloadState={characters:false,effects:false,characterErrors:0,effectErrors:0};
@@ -83,10 +91,10 @@ function validatePairing(effectName,requiredSemantic){
   const allowed=EFFECT_RULES[String(requiredSemantic||'')];
   return Array.isArray(allowed)&&allowed.includes(String(effectName||''));
 }
-function diagnostics(){return{version:'3.1.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
+function diagnostics(){return{version:'3.2.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,anchorCount:Object.keys(CHARACTER_ANCHORS).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
 
 window.ASOBOON_BOARD_CHARACTER_ASSETS=Object.freeze({
-  version:'3.0.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,
+  version:'3.2.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,CHARACTER_ANCHORS,
   preloadCharacters,preloadEffects,preloadAll,createCharacter,createEffect,validatePairing,diagnostics,
 });
 })();

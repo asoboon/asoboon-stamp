@@ -4,7 +4,7 @@ const M=window.ASOBOON_BOARD_EFFECTS;
 const A=window.ASOBOON_BOARD_CHARACTER_ASSETS;
 if(!M||!A)return;
 
-const IDLE_PACE=1.45;
+const IDLE_PACE=1.62;
 const CALL_PACE=1.00;
 const EVENTS=Object.freeze([
   Object.freeze({id:'POMPON_PEEK',category:'POMPON_CAMEO',story:'POMPONが端から様子をうかがう'}),
@@ -18,12 +18,15 @@ const EVENTS=Object.freeze([
   Object.freeze({id:'POMPON_BRAKE_FAIL',category:'POMPON_STORY',story:'暴走→ブレーキ→止まれない→画面外衝突→ヨロヨロ→CHIRU呆れ'}),
   Object.freeze({id:'POMPON_SMUG_OOPS',category:'POMPON_STORY',story:'成功した気になる→どや顔→小さな事故→やっちまった顔'}),
   Object.freeze({id:'POMPON_STAR_FLYBACK',category:'POMPON_STORY',story:'星に気づく→近づく→勢い余って吹っ飛ぶ→ヨロヨロ帰還'}),
+  Object.freeze({id:'POMPON_WRONG_WAY_VICTORY',category:'POMPON_STORY',story:'勝ち誇って逆走→間違いに気づいて固まる→そっと正しい方向へ退場'}),
   Object.freeze({id:'DUO_CHASE_CATCH',category:'DUO_STORY',story:'逃走→追跡→捕まえる→勢い余って事故→2体でもつれる'}),
   Object.freeze({id:'PEEK_DISCOVERY',category:'DUO_STORY',story:'両側から覗く→目が合う→びっくり→追いかけっこ'}),
   Object.freeze({id:'DUO_BOAST_DISBELIEF',category:'DUO_STORY',story:'POMPONが自慢→CHIRUが信じない→POMPON固まる'}),
   Object.freeze({id:'DUO_FAILURE_SCOLD',category:'DUO_STORY',story:'POMPONがやらかす→CHIRUが怒る→その場で説教'}),
   Object.freeze({id:'DUO_OH_NO_ESCAPE',category:'DUO_STORY',story:'警告に2人で気づく→やばい！→一緒に逃げる'}),
   Object.freeze({id:'DUO_FRIENDSHIP_OOPS',category:'DUO_STORY',story:'仲良く決める→小さな失敗→2人とも「あっ」'}),
+  Object.freeze({id:'DUO_RESCUE_RELAY',category:'DUO_STORY',story:'止まれないPOMPONを遠くからCHIRUが追う→救助成功→2人でもつれる'}),
+  Object.freeze({id:'DUO_QUIET_PEEK_RETREAT',category:'DUO_STORY',story:'左右からそっと覗く→目が合って静止→気まずくゆっくり引っ込む'}),
   Object.freeze({id:'BALL_RIDE_FAIL',category:'RARE_STORY',story:'ボール成功→調子に乗る→飛ぶ→CHIRU回避→POMPONだけ画面外事故'}),
 ]);
 
@@ -46,9 +49,18 @@ function transform(x,y,scale=1,rotate=0,flip=1){
 }
 function pose(scope,name,{x=0,y=0,scale=1,rotate=0,flip=1,opacity=1,layer='front',className=''}={}){
   const el=A.createCharacter(name,className);if(!el)return null;
+  Object.assign(el.dataset,{sceneX:String(x),sceneY:String(y),sceneScale:String(scale),sceneRotate:String(rotate),sceneFlip:String(flip)});
   el.style.opacity=String(opacity);el.style.transform=transform(x,y,scale,rotate,flip);
   return scope.add(el,layer);
 }
+function anchorPoint(el,key='CENTER'){
+  const anchors=A.CHARACTER_ANCHORS?.[el?.dataset?.pcAsset]||{CENTER:[.5,.5]};
+  const [nx,ny]=anchors[key]||anchors.CENTER||[.5,.5],x=Number(el?.dataset?.sceneX)||0,y=Number(el?.dataset?.sceneY)||0;
+  const scale=Number(el?.dataset?.sceneScale)||1,flip=Number(el?.dataset?.sceneFlip)||1,rad=(Number(el?.dataset?.sceneRotate)||0)*Math.PI/180;
+  const ox=(nx-.5)*256*scale*flip,oy=(ny-.5)*256*scale;
+  return{x:x+ox*Math.cos(rad)-oy*Math.sin(rad),y:y+ox*Math.sin(rad)+oy*Math.cos(rad)};
+}
+function anchoredFx(scope,character,anchor,name,semantic,options={}){const p=anchorPoint(character,anchor);return fx(scope,name,semantic,{...options,x:p.x+(options.dx||0),y:p.y+(options.dy||0)})}
 function fx(scope,name,semantic,{x=0,y=0,scale=1,rotate=0,opacity=1,layer='front',className=''}={}){
   if(semantic&&!A.validatePairing(name,semantic))return null;
   const el=A.createEffect(name,className);if(!el)return null;
@@ -74,6 +86,7 @@ async function popFx(scope,name,semantic,x,y,scale=1,rotate=0,mode='idle'){
     {opacity:0,transform:transform(x,y,scale*1.08,rotate)},
   ],{duration:360,easing:'cubic-bezier(.18,.86,.2,1)',fill:'forwards'},mode);
 }
+async function hold(scope,ms=260,mode='idle'){await wait(scope,ms,mode)}
 function shakeShell(scope,strength=.7,mode='idle'){
   if(M.isReduced())return Promise.resolve();
   const shell=document.querySelector('.queue-shell');if(!shell)return Promise.resolve();
@@ -686,6 +699,69 @@ async function ballRideFail(scope){
     shakeShell(scope,.55),
   ]);
 }
+async function pomponWrongWayVictory(scope){
+  const r=rect(),s=scaleForStage(),y=r.height*.62;
+  const proud=pose(scope,'pompon_smug',{x:r.width+150,y,scale:s*1.12,flip:-1,opacity:0});
+  const sparkle=anchoredFx(scope,proud,'HAND','sparkle_gold','success',{scale:s*.62,opacity:0,layer:'front'});
+  await Promise.all([
+    anim(scope,proud,[{opacity:0,transform:transform(r.width+150,y,s*.92,0,-1)},{opacity:1,offset:.26,transform:transform(r.width*.7,y,s*1.12,-2,-1)},{opacity:1,transform:transform(r.width*.48,y,s*1.14,2,-1)}],{duration:720,easing:'cubic-bezier(.18,.72,.2,1)',fill:'forwards'}),
+    anim(scope,sparkle,[{opacity:0},{opacity:1,offset:.45},{opacity:.8}],{duration:680,fill:'forwards'})
+  ]);
+  await hold(scope,360);
+  hide(proud);hide(sparkle);
+  const shocked=pose(scope,'pompon_shocked',{x:r.width*.48,y,scale:s*1.22,flip:-1,opacity:0});
+  const question=anchoredFx(scope,shocked,'HEAD','question','question',{dx:65,dy:-35,scale:s*.64,opacity:0});
+  await Promise.all([
+    anim(scope,shocked,[{opacity:0,transform:transform(r.width*.48,y+10,s*.92,0,-1)},{opacity:1,offset:.28,transform:transform(r.width*.48,y,s*1.22,-3,-1)},{opacity:1,transform:transform(r.width*.48,y,s*1.18,2,-1)}],{duration:520,easing:'ease-out',fill:'forwards'}),
+    anim(scope,question,[{opacity:0},{opacity:1,offset:.35},{opacity:1}],{duration:480,fill:'forwards'})
+  ]);
+  await hold(scope,520);
+  hide(shocked);hide(question);
+  const sneak=pose(scope,'pompon_peek',{x:r.width*.48,y:y+18,scale:s*.98,opacity:1});
+  await anim(scope,sneak,[{opacity:1,transform:transform(r.width*.48,y+18,s*.98)},{opacity:1,offset:.34,transform:transform(r.width*.4,y+18,s*.94,-3)},{opacity:0,transform:transform(-150,y+30,s*.82,-5)}],{duration:920,easing:'cubic-bezier(.35,.05,.55,1)',fill:'forwards'});
+}
+async function duoRescueRelay(scope){
+  const r=rect(),s=scaleForStage(),y=r.height*.65,impactX=r.width*.72;
+  const p=pose(scope,'pompon_cannot_stop',{x:-180,y,scale:s*1.12,opacity:0});
+  const trail=anchoredFx(scope,p,'TRAIL_ORIGIN','dust_trail','movement',{scale:s*.82,opacity:0,layer:'back'});
+  await Promise.all([
+    anim(scope,p,[{opacity:0,transform:transform(-180,y,s*.92)},{opacity:1,offset:.22,transform:transform(r.width*.28,y,s*1.12,-4)},{opacity:1,transform:transform(impactX,y,s*1.16,7)}],{duration:780,easing:'cubic-bezier(.12,.72,.2,1)',fill:'forwards'}),
+    anim(scope,trail,[{opacity:0},{opacity:.85,offset:.3},{opacity:0}],{duration:760,fill:'forwards'})
+  ]);
+  await hold(scope,240);
+  const c=pose(scope,'chiru_chase',{x:-180,y:y+18,scale:s*.92,opacity:0});
+  await anim(scope,c,[{opacity:0,transform:transform(-180,y+18,s*.76)},{opacity:1,offset:.22,transform:transform(r.width*.22,y+18,s*.92)},{opacity:1,transform:transform(impactX-145,y+8,s*1.02,-3)}],{duration:820,easing:'cubic-bezier(.14,.7,.2,1)',fill:'forwards'});
+  await hold(scope,260);
+  hide(p);hide(c);
+  await Promise.all([popFx(scope,'impact_burst','impact',impactX,y,s*1.18),shakeShell(scope,.82)]);
+  await hold(scope,180);
+  const tangled=pose(scope,'duo_entangled',{x:impactX-25,y,scale:s*1.25,opacity:0});
+  const dizzy=anchoredFx(scope,tangled,'HEAD','dizzy_stars','aftermath',{scale:s*.7,opacity:0});
+  await Promise.all([
+    anim(scope,tangled,[{opacity:0,transform:transform(impactX-25,y-20,s*.9,8)},{opacity:1,offset:.25,transform:transform(impactX-25,y,s*1.28,-4)},{opacity:1,transform:transform(impactX-25,y,s*1.25,2)}],{duration:540,easing:'cubic-bezier(.16,.86,.2,1)',fill:'forwards'}),
+    anim(scope,dizzy,[{opacity:0},{opacity:1,offset:.35},{opacity:.9}],{duration:520,fill:'forwards'})
+  ]);
+  await hold(scope,620);
+  await anim(scope,tangled,[{opacity:1},{opacity:0,transform:transform(impactX+120,y+30,s*.95,8)}],{duration:520,fill:'forwards'});
+}
+async function duoQuietPeekRetreat(scope){
+  const r=rect(),s=scaleForStage(),y=r.height*.58;
+  const p=pose(scope,'pompon_peek',{x:-120,y,scale:s*1.04,opacity:0});
+  const c=pose(scope,'chiru_peek',{x:r.width+120,y:y+8,scale:s*.98,flip:-1,opacity:0});
+  await Promise.all([
+    anim(scope,p,[{opacity:0,transform:transform(-120,y,s*.86)},{opacity:1,transform:transform(r.width*.18,y,s*1.04)}],{duration:720,easing:'ease-out',fill:'forwards'}),
+    anim(scope,c,[{opacity:0,transform:transform(r.width+120,y+8,s*.82,0,-1)},{opacity:1,transform:transform(r.width*.82,y+8,s*.98,0,-1)}],{duration:880,easing:'ease-out',fill:'forwards'})
+  ]);
+  await hold(scope,560);
+  const alert=fx(scope,'exclamation','alert',{x:r.width*.5,y:r.height*.3,scale:s*.7,opacity:0});
+  await anim(scope,alert,[{opacity:0,transform:transform(r.width*.5,r.height*.3,s*.3)},{opacity:1,offset:.28,transform:transform(r.width*.5,r.height*.3,s*.75)},{opacity:1,transform:transform(r.width*.5,r.height*.3,s*.68)}],{duration:440,fill:'forwards'});
+  await hold(scope,480);
+  await Promise.all([
+    anim(scope,p,[{opacity:1},{opacity:1,offset:.4,transform:transform(r.width*.1,y,s*.98,-3)},{opacity:0,transform:transform(-140,y,s*.82,-4)}],{duration:980,easing:'ease-in',fill:'forwards'}),
+    anim(scope,c,[{opacity:1},{opacity:1,offset:.4,transform:transform(r.width*.9,y+8,s*.92,3,-1)},{opacity:0,transform:transform(r.width+140,y+8,s*.78,4,-1)}],{duration:980,easing:'ease-in',fill:'forwards'}),
+    anim(scope,alert,[{opacity:1},{opacity:0}],{duration:420,fill:'forwards'})
+  ]);
+}
 async function ambient(scope,id){
   const r=rect(),s=scaleForStage();
   if(id==='AMBIENT_MAGIC_STAR'){
@@ -772,7 +848,9 @@ const PLAYERS=Object.freeze({
   POMPON_PEEK:pomponPeek,POMPON_SPARKLE_SMUG:pomponSparkleSmug,POMPON_STAR_SHOCK:pomponStarShock,POMPON_OOPS_QUESTION:pomponOopsQuestion,
   CHIRU_PEEK:chiruPeek,CHIRU_SNEAK:chiruSneak,CHIRU_STAR_DODGE:chiruStarDodge,CHIRU_ALERT_SHOCK:chiruAlertShock,
   POMPON_BRAKE_FAIL:brakeFail,POMPON_SMUG_OOPS:pomponSmugOops,POMPON_STAR_FLYBACK:pomponStarFlyback,
+  POMPON_WRONG_WAY_VICTORY:pomponWrongWayVictory,
   DUO_CHASE_CATCH:chaseCatch,PEEK_DISCOVERY:peekDiscovery,DUO_BOAST_DISBELIEF:duoBoastDisbelief,DUO_FAILURE_SCOLD:duoFailureScold,DUO_OH_NO_ESCAPE:duoOhNoEscape,DUO_FRIENDSHIP_OOPS:duoFriendshipOops,
+  DUO_RESCUE_RELAY:duoRescueRelay,DUO_QUIET_PEEK_RETREAT:duoQuietPeekRetreat,
   BALL_RIDE_FAIL:ballRideFail,CALL_DELIVERY:callDelivery,
 });
 
@@ -835,11 +913,12 @@ async function playCallDelivery({number='',rect:targetRect=null}={}){
   cancel('real-call');const p=localPoint(targetRect);
   return play('CALL_DELIVERY',{number,localX:p.x,localY:p.y});
 }
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE}}
+const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({cast:e.id.startsWith('CHIRU')?['CHIRU']:e.id.startsWith('DUO')||e.id==='PEEK_DISCOVERY'?['POMPON','CHIRU']:['POMPON'],actionZone:e.id.includes('PEEK')?'edges':'full-stage',beats:['anticipation','entrance','action','hold','incident','reaction','aftermath','exit'],anchors:['ENTRY_POINT','TRAIL_ORIGIN','IMPACT','FACE','HEAD'],zOrder:['rear-effect','character','front-effect'],minimumReactionHoldMs:e.category.includes('STORY')?780:520})])));
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length}}
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'3.0.0',events:EVENTS,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  version:'3.2.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
   getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();
