@@ -281,23 +281,23 @@ jobs:
           python3 - "$JS" <<'PY'
           import re,sys
           body=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          print('CSP bytes:',len(body))
-          for pat in [
-              r'/WCSP/api/internal/stateless/[^\"\\\']{0,160}',
-              r'CANCEL_RESERVE[^,;}]{0,300}',
-              r'cancelReserve=function[^;]{0,2500}',
-              r'cancel[^=]{0,80}=function[^;]{0,2500}',
-              r'Page\.CANCEL_RESERVE[^;]{0,1600}',
-          ]:
-              seen=set()
-              for m in re.finditer(pat,body,re.I):
-                  sn=body[max(0,m.start()-1200):min(len(body),m.end()+2200)].replace('\n',' ')
-                  if sn in seen: continue
-                  seen.add(sn)
-                  if re.search(r'cancel|取消|reserve',sn,re.I):
-                      print('=== MATCH ===')
-                      print(sn[:3800])
-                      if len(seen)>=12: break
+          mods=re.split(r'},function\(e,t,n\)\{',body)
+          keys=['CANCEL_RESERVE','/WCSP/cancel/confirm','/WCSP/cancel/complete','cancel/complete','cancel/confirm']
+          for idx,mod in enumerate(mods):
+              if any(k.lower() in mod.lower() for k in keys):
+                  print(f'=== MODULE {idx} ===')
+                  urls=sorted(set(re.findall(r'[\"\\\'](/WCSP/[^\"\\\']{1,220})[\"\\\']',mod)))
+                  print('URLS',urls)
+                  posts=[]
+                  for m in re.finditer(r'\.post\(',mod):
+                      posts.append(mod[max(0,m.start()-900):min(len(mod),m.start()+2400)].replace('\n',' '))
+                  for p in posts[:12]:
+                      if re.search(r'cancel|reserve|complete|confirm',p,re.I):
+                          print('POST',p[:3300])
+                  for k in keys:
+                      pos=mod.lower().find(k.lower())
+                      if pos>=0:
+                          print('CTX',mod[max(0,pos-1600):min(len(mod),pos+3200)].replace('\n',' ')[:4800])
           PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
