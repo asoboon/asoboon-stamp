@@ -83,6 +83,18 @@ jobs:
           grep -F "signal:ctrl.signal" miniapp-v2/shared/callstatus.js
           grep -F "呼出状況の確認がタイムアウトしました。" miniapp-v2/shared/callstatus.js
 
+      - name: Native cancel must stay inside the LINE miniapp
+        run: |
+          set -euo pipefail
+          grep -F 'id="csCancel"' miniapp-v2/shared/callstatus.js
+          grep -F "gatewayPost('cancelReservation'" miniapp-v2/shared/callstatus.js
+          grep -F 'async function cancelReservationInMiniapp' miniapp-v2/backend/develop-worker.mjs
+          grep -F "/WCSP/cancel/confirm" miniapp-v2/backend/develop-worker.mjs
+          grep -F "/WCSP/cancel/complete" miniapp-v2/backend/develop-worker.mjs
+          ! grep -Fq 'airwait.jp' miniapp-v2/shared/callstatus.js
+          ! grep -Fq 'openWindow' miniapp-v2/shared/callstatus.js
+          ! grep -Fq 'window.open' miniapp-v2/shared/callstatus.js
+
       - name: Call status must shed background load and herd bursts
         run: |
           set -euo pipefail
@@ -104,7 +116,7 @@ jobs:
           grep -F "const POLL_RECONCILE_MAX=3;" miniapp-v2/shared/callstatus.js
           grep -F "notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS" miniapp-v2/shared/callstatus.js
           grep -F "新しい受付を作り直さないでください。" miniapp-v2/shared/callstatus.js
-          grep -F "version:'1.6.2-frontline-observe'" miniapp-v2/shared/callstatus.js
+          grep -F "version:'1.7.0-native-cancel'" miniapp-v2/shared/callstatus.js
 
       - name: Business calendar must collapse stampedes
         run: |
