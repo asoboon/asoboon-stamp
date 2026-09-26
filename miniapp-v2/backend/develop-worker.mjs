@@ -294,6 +294,24 @@ async function getCreateDiagnostics(env) {
     if(!/no such table/i.test(String(e?.message||e||''))) throw e;
   }
 
+  const liveWaitTypes=[];
+  try{
+    const rows=await fetchAllReservationsForReconcile(env);
+    const agg=new Map();
+    for(const row of rows){
+      const id=String(row?.waitTypeId||'');
+      if(!id)continue;
+      const cur=agg.get(id)||{waitTypeId:id,waitTypeName:String(row?.waitTypeName||''),total:0,waiting:0,calling:0,hold:0,done:0,canceled:0,processing:0};
+      cur.total+=1;
+      const state=reservationState(row);
+      if(Object.prototype.hasOwnProperty.call(cur,state))cur[state]+=1;
+      agg.set(id,cur);
+    }
+    liveWaitTypes.push(...Array.from(agg.values()).sort((a,b)=>a.waitTypeId.localeCompare(b.waitTypeId)));
+  }catch(e){
+    liveWaitTypes.push({error:safeError(e)});
+  }
+
   return {
     ok:true,
     source:'Developing sanitized create diagnostics / no user identity',
@@ -301,6 +319,7 @@ async function getCreateDiagnostics(env) {
     attempts,
     legacy,
     confirmed,
+    liveWaitTypes,
   };
 }
 
