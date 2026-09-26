@@ -29,11 +29,14 @@ const CFG = Object.freeze({
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,
   REQUEST_RESULT_TTL_MS: 24 * 60 * 60 * 1000,
   WAIT_TYPES_CACHE_MS: 10 * 60 * 1000,
+  OFFICIAL_WEB_HANDOFF_TTL_MS: 15 * 60 * 1000,
   USER_ATTEMPT_LIMIT: 5,
   FACILITY: Object.freeze({ lat: 35.84895, lng: 139.74345 }),
   GEOFENCE: Object.freeze({ radiusM: 500, maxAccuracyM: 200, maxAgeMs: 2 * 60 * 1000 }),
   AIR_WAIT_TYPES: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
   AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',
+  AIR_RESERVATIONS: 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',
+  OFFICIAL_WEB_URL: 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
   LINE_VERIFY: 'https://api.line.me/oauth2/v2.1/verify',
   LINE_PROFILE: 'https://api.line.me/v2/profile',
   BUSINESS_CALENDAR_API: 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec',
@@ -81,7 +84,9 @@ export default {
       if (request.method !== 'POST') return out(request, { ok: false, error: 'METHOD_NOT_ALLOWED', version: CFG.VERSION }, 405);
       const p = await readBody(request);
       const action = String(p.action || '');
-      if (action !== 'createReservation') return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
+      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {
+        return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
+      }
 
       const requestId = normalizeRequestId(p.requestId);
       if (!requestId) return out(request, { ok: false, error: 'REQUEST_ID_REQUIRED', version: CFG.VERSION }, 400);
@@ -92,9 +97,11 @@ export default {
 
       let result;
       try {
-        result = await createReservation(env, p, requestId);
+        result = action === 'createReservation'
+          ? await createReservation(env, p, requestId)
+          : await adoptOfficialWebReception(env, p, requestId);
       } catch (e) {
-        await recordCreateDiagnostic(env, p, e);
+        if (action === 'createReservation') await recordCreateDiagnostic(env, p, e);
         result = {
           ok: false,
           stored: false,
@@ -201,6 +208,26 @@ async function ensureSchema(env) {
     )`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_create_diagnostics_created
       ON v2_create_diagnostics(created_at)`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_official_web_handoffs (
+      request_id TEXT PRIMARY KEY,
+      user_hash TEXT NOT NULL,
+      business_date TEXT NOT NULL,
+      wait_type_id TEXT NOT NULL,
+      adults INTEGER NOT NULL DEFAULT 1,
+      paid_children INTEGER NOT NULL DEFAULT 0,
+      infants INTEGER NOT NULL DEFAULT 0,
+      baseline_json TEXT NOT NULL DEFAULT '[]',
+      state TEXT NOT NULL DEFAULT 'PENDING',
+      receipt_no TEXT NOT NULL DEFAULT '',
+      reserve_id TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_official_web_handoffs_user
+      ON v2_official_web_handoffs(user_hash,business_date,expires_at)`),
+    env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_v2_official_web_handoffs_receipt
+      ON v2_official_web_handoffs(business_date,receipt_no) WHERE receipt_no<>''`),
   ]);
 }
 
@@ -217,6 +244,7 @@ async function health(env) {
     airwaitKeyConfigured: Boolean(env.AIRWAIT_API_KEY),
     storeId: CFG.STORE_ID,
     createStoreNoFallbackEnabled: Boolean(CFG.STORE_NO),
+    officialWebHandoffEnabled: true,
     allowedOrigin: CFG.ALLOWED_ORIGIN,
     browserHitsAirwait: false,
     operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
@@ -375,10 +403,38 @@ async function createReservation(env, p, requestId) {
   if (mode === 'onsite') validateLocation(p);
 
   const wt = await getWaitTypes(env, { force: true });
-  validateWaitType(wt.waitTypes, day, mode, waitTypeId);
+  const waitType = validateWaitType(wt.waitTypes, day, mode, waitTypeId);
 
   const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);
   if (userClaim.existing) return userClaim.result;
+
+  if (mode === 'web' && isOnlineOnlyWaitType(waitType?.usageDispType)) {
+    const baselineRows = await fetchOfficialReservations(env, waitTypeId);
+    const baseline = Array.from(new Set(baselineRows.map(x=>normalizeReceipt(x?.number)).filter(Boolean)));
+    const now = Date.now();
+    await env.DB.prepare(`INSERT INTO v2_official_web_handoffs
+      (request_id,user_hash,business_date,wait_type_id,adults,paid_children,infants,baseline_json,state,receipt_no,reserve_id,created_at,updated_at,expires_at)
+      VALUES(?,?,?,?,?,?,?,?,'PENDING','','',?,?,?)
+      ON CONFLICT(request_id) DO UPDATE SET
+        baseline_json=excluded.baseline_json,state='PENDING',updated_at=excluded.updated_at,expires_at=excluded.expires_at`)
+      .bind(requestId,hash,serverDate,waitTypeId,adults,paidChildren,infants,JSON.stringify(baseline),now,now,now+CFG.OFFICIAL_WEB_HANDOFF_TTL_MS).run();
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='OFFICIAL_WEB_PENDING',updated_at=?
+      WHERE user_hash=? AND business_date=? AND request_id=?`)
+      .bind(now,hash,serverDate,requestId).run();
+    await setRequestState(env, requestId, 'HANDOFF_PENDING');
+    return {
+      ok:true,
+      stored:false,
+      handoffRequired:true,
+      handoffRequestId:requestId,
+      businessDate:serverDate,
+      operationalDate:serverDate,
+      waitTypeId,
+      officialUrl:CFG.OFFICIAL_WEB_URL,
+      expiresAt:now+CFG.OFFICIAL_WEB_HANDOFF_TTL_MS,
+      version:CFG.VERSION,
+    };
+  }
 
   await setRequestState(env, requestId, 'VALIDATED');
   await setRequestState(env, requestId, 'AIRWAIT_CREATE_INFLIGHT');
@@ -515,6 +571,124 @@ async function createReservation(env, p, requestId) {
   return result;
 }
 
+function isOnlineOnlyWaitType(usage) {
+  const u=String(usage||'');
+  return u==='03'||u==='KeyONLINE_RECEPTION_ONLY';
+}
+
+async function fetchOfficialReservations(env, waitTypeId) {
+  if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  const rows=[];
+  let start=1;
+  for(let page=0;page<20;page+=1){
+    const r=await fetch(CFG.AIR_RESERVATIONS,{
+      method:'POST',
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+        corWclpKeyCd:env.AIRWAIT_API_KEY,
+      },
+      body:new URLSearchParams({
+        storeId:CFG.STORE_ID,
+        waitTypeId:String(waitTypeId||''),
+        sortStatus:'0',
+        isDesc:'0',
+        start:String(start),
+        limit:'100',
+      }),
+      cache:'no-store',
+    });
+    const d=await safeJson(r,'AIRWAIT_OFFICIAL_RESERVATIONS');
+    if(!r.ok||d?.success!==true||String(d?.resultCode?.code||'')!=='0000') throw apiError('AIRWAIT_OFFICIAL_RESERVATIONS_FAILED',502);
+    const part=Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[];
+    rows.push(...part.map(x=>({
+      number:String(x?.number||''),
+      waitTypeId:String(x?.waitTypeId||''),
+      status:String(x?.status||''),
+      isCalling:String(x?.isCalling||'0'),
+    })));
+    const total=Number(d?.innerDto?.count||part.length||0);
+    if(!part.length||rows.length>=total)break;
+    start+=part.length;
+  }
+  return rows;
+}
+
+async function syntheticAdoptReserveId(businessDate,waitTypeId,receiptNo){
+  const hex=await sha256Hex(`official-web:${businessDate}:${waitTypeId}:${receiptNo}`);
+  const n=BigInt('0x'+hex.slice(0,14))%1000000000000n;
+  return n.toString().padStart(12,'0');
+}
+
+async function adoptOfficialWebReception(env,p,requestId){
+  const handoffRequestId=normalizeRequestId(p?.handoffRequestId);
+  const requestedDate=normalizeDate(p?.operationalDate);
+  const waitTypeId=normalizeWaitType(p?.waitTypeId);
+  const receiptNo=normalizeReceipt(p?.receiptNo);
+  if(!handoffRequestId||!requestedDate||!waitTypeId||!receiptNo) throw apiError('OFFICIAL_WEB_ADOPTION_INPUT_INVALID',400);
+
+  const serverDate=operationalDate();
+  if(requestedDate!==serverDate) throw apiError('OPERATIONAL_DATE_MISMATCH',400);
+  const line=await verifyLineUser(p?.liffAccessToken);
+  const hash=await userHash(line.userId);
+
+  const handoff=await env.DB.prepare(`SELECT request_id,user_hash,business_date,wait_type_id,baseline_json,state,expires_at
+    FROM v2_official_web_handoffs WHERE request_id=? LIMIT 1`).bind(handoffRequestId).first();
+  if(!handoff) throw apiError('OFFICIAL_WEB_HANDOFF_NOT_FOUND',404);
+  if(String(handoff.user_hash||'')!==hash) throw apiError('OFFICIAL_WEB_HANDOFF_OWNER_MISMATCH',403);
+  if(String(handoff.business_date||'')!==serverDate||String(handoff.wait_type_id||'')!==waitTypeId) throw apiError('OFFICIAL_WEB_HANDOFF_MISMATCH',409);
+  if(Number(handoff.expires_at||0)<Date.now()) throw apiError('OFFICIAL_WEB_HANDOFF_EXPIRED',409);
+  if(String(handoff.state||'')==='CONFIRMED'){
+    const row=await env.DB.prepare(`SELECT business_date,receipt_no,reserve_id,wait_type_id FROM v2_user_day_claims
+      WHERE user_hash=? AND business_date=? AND state='CONFIRMED' LIMIT 1`).bind(hash,serverDate).first();
+    if(row?.receipt_no&&row?.reserve_id)return{
+      ok:true,stored:true,adopted:true,alreadyExists:true,version:CFG.VERSION,
+      businessDate:serverDate,operationalDate:serverDate,
+      receiptNo:String(row.receipt_no),reserveId:String(row.reserve_id),waitTypeId:String(row.wait_type_id||waitTypeId),shortUrl:'',
+    };
+  }
+
+  let baseline=[];
+  try{baseline=JSON.parse(String(handoff.baseline_json||'[]'))}catch{}
+  if(Array.isArray(baseline)&&baseline.includes(receiptNo)) throw apiError('OFFICIAL_RECEIPT_NOT_NEW',409);
+
+  const rows=await fetchOfficialReservations(env,waitTypeId);
+  const matches=rows.filter(row=>normalizeReceipt(row?.number)===receiptNo);
+  if(matches.length!==1) throw apiError(matches.length>1?'OFFICIAL_RECEIPT_AMBIGUOUS':'OFFICIAL_RECEIPT_NOT_FOUND',409);
+  const own=matches[0];
+  if(String(own.waitTypeId||'')!==waitTypeId) throw apiError('OFFICIAL_RECEIPT_WAIT_TYPE_MISMATCH',409);
+  if(['2','3'].includes(String(own.status||''))) throw apiError('OFFICIAL_RECEIPT_TERMINAL',409);
+
+  const reserveId=await syntheticAdoptReserveId(serverDate,waitTypeId,receiptNo);
+  const now=Date.now();
+  try{
+    const changed=await env.DB.prepare(`UPDATE v2_official_web_handoffs
+      SET state='CONFIRMED',receipt_no=?,reserve_id=?,updated_at=?
+      WHERE request_id=? AND user_hash=? AND business_date=? AND state='PENDING'`)
+      .bind(receiptNo,reserveId,now,handoffRequestId,hash,serverDate).run();
+    if(Number(changed?.meta?.changes||0)!==1) throw apiError('OFFICIAL_WEB_HANDOFF_STATE_CHANGED',409);
+  }catch(e){
+    if(/UNIQUE|constraint/i.test(String(e?.message||e||''))) throw apiError('OFFICIAL_RECEIPT_ALREADY_LINKED',409);
+    throw e;
+  }
+
+  const claim=await env.DB.prepare(`UPDATE v2_user_day_claims
+    SET state='CONFIRMED',receipt_no=?,reserve_id=?,wait_type_id=?,updated_at=?
+    WHERE user_hash=? AND business_date=? AND request_id=? AND state='OFFICIAL_WEB_PENDING'`)
+    .bind(receiptNo,reserveId,waitTypeId,now,hash,serverDate,handoffRequestId).run();
+  if(Number(claim?.meta?.changes||0)!==1){
+    await env.DB.prepare(`UPDATE v2_official_web_handoffs SET state='PENDING',receipt_no='',reserve_id='',updated_at=? WHERE request_id=?`)
+      .bind(Date.now(),handoffRequestId).run();
+    throw apiError('OFFICIAL_WEB_CLAIM_NOT_PENDING',409);
+  }
+
+  return{
+    ok:true,stored:true,adopted:true,ambiguous:false,version:CFG.VERSION,
+    businessDate:serverDate,operationalDate:serverDate,reserveId,receiptNo,waitTypeId,shortUrl:'',
+    createIdentifier:'official-web-adoption',
+  };
+}
+
 function validateLocation(p) {
   const lat = Number(p.latitude), lng = Number(p.longitude), accuracy = Number(p.accuracy), ts = Number(p.locationTimestamp);
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(accuracy) || !Number.isFinite(ts)) throw apiError('LOCATION_REQUIRED', 400);
@@ -542,10 +716,21 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
     VALUES(?,?,?,'CREATE_INFLIGHT','','',?,?,?)`)
     .bind(hash, date, requestId, waitTypeId, now, now).run();
   if (Number(r?.meta?.changes || 0) === 1) return { existing: false };
-  const row = await env.DB.prepare(`SELECT request_id,state,receipt_no,reserve_id,wait_type_id FROM v2_user_day_claims
+  const row = await env.DB.prepare(`SELECT request_id,state,receipt_no,reserve_id,wait_type_id,updated_at FROM v2_user_day_claims
     WHERE user_hash=? AND business_date=? LIMIT 1`).bind(hash, date).first();
   if (!row) throw apiError('USER_DAY_CLAIM_FAILED', 409);
   const state = String(row.state || '');
+  if(state==='OFFICIAL_WEB_PENDING'){
+    const h=await env.DB.prepare('SELECT expires_at FROM v2_official_web_handoffs WHERE request_id=? LIMIT 1').bind(String(row.request_id||'')).first();
+    if(!h||Number(h.expires_at||0)<now){
+      await env.DB.batch([
+        env.DB.prepare(`DELETE FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND request_id=? AND state='OFFICIAL_WEB_PENDING'`).bind(hash,date,String(row.request_id||'')),
+        env.DB.prepare('DELETE FROM v2_official_web_handoffs WHERE request_id=?').bind(String(row.request_id||'')),
+      ]);
+      return await claimUserDay(env,hash,date,requestId,waitTypeId);
+    }
+    throw apiError('OFFICIAL_WEB_HANDOFF_ALREADY_PENDING',409);
+  }
   if (state === 'CONFIRMED' && row.receipt_no && row.reserve_id) {
     return { existing: true, result: {
       ok: true, stored: true, alreadyExists: true, version: CFG.VERSION,
@@ -578,7 +763,7 @@ async function claimRequest(env, requestId, action) {
   const row = await env.DB.prepare('SELECT state,result_json,expires_at FROM v2_request_results WHERE request_id=? LIMIT 1').bind(requestId).first();
   if (!row) return { owner: false, cached: false };
   const state = String(row.state || '');
-  if (['CONFIRMED','REJECTED','AMBIGUOUS'].includes(state) && row.result_json) {
+  if (['CONFIRMED','REJECTED','AMBIGUOUS','HANDOFF_PENDING'].includes(state) && row.result_json) {
     try { return { owner: false, cached: true, result: JSON.parse(String(row.result_json)) }; } catch {}
   }
   if (Number(row.expires_at || 0) < now) {
@@ -597,7 +782,7 @@ async function setRequestState(env, requestId, state) {
 
 async function finalizeRequest(env, requestId, action, result) {
   const now = Date.now();
-  const state = result?.ok ? 'CONFIRMED' : result?.ambiguous ? 'AMBIGUOUS' : 'REJECTED';
+  const state = result?.handoffRequired ? 'HANDOFF_PENDING' : result?.ok ? 'CONFIRMED' : result?.ambiguous ? 'AMBIGUOUS' : 'REJECTED';
   await env.DB.prepare(`UPDATE v2_request_results SET action=?,state=?,result_json=?,ambiguous=?,updated_at=?,expires_at=? WHERE request_id=?`)
     .bind(action, state, JSON.stringify(result || {}), result?.ambiguous ? 1 : 0, now, now + CFG.REQUEST_RESULT_TTL_MS, requestId).run();
   await env.DB.prepare('DELETE FROM v2_request_results WHERE expires_at < ?').bind(now).run();
@@ -609,7 +794,7 @@ async function requestStatus(env, requestId) {
   const row = await env.DB.prepare('SELECT state,result_json,expires_at FROM v2_request_results WHERE request_id=? LIMIT 1').bind(id).first();
   if (!row || Number(row.expires_at || 0) < Date.now()) return { ok: true, found: false, version: CFG.VERSION };
   const state = String(row.state || '');
-  if (!['CONFIRMED','REJECTED','AMBIGUOUS'].includes(state)) return { ok: true, found: false, pending: true, state, version: CFG.VERSION };
+  if (!['CONFIRMED','REJECTED','AMBIGUOUS','HANDOFF_PENDING'].includes(state)) return { ok: true, found: false, pending: true, state, version: CFG.VERSION };
   try { return { found: true, ...JSON.parse(String(row.result_json || '{}')) }; }
   catch { return { ok: false, found: false, error: 'REQUEST_RESULT_INVALID', version: CFG.VERSION }; }
 }
