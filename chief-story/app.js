@@ -124,9 +124,8 @@ track.addEventListener('scroll',()=>{
 track.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')setIndex(index-1,true);if(e.key==='ArrowRight')setIndex(index+1,true)});
 
 const wordGrid=document.getElementById('wordGrid');
-wordGrid.innerHTML=words.map(w=>'<article class="word-card"><div class="word-tag">'+w.tag+'</div><h2>'+w.name+'</h2><p class="short">'+w.short+'</p><details><summary>もう少し詳しく</summary><p>'+w.detail+'</p><p><b>ASOBooNでは：</b>'+w.aso+'</p>'+(w.source?'<a href="'+w.source+'" target="_blank" rel="noopener noreferrer">参考資料を開く ↗</a>':'')+'</details></article>').join('');
+wordGrid.innerHTML=words.map(w=>'<article class="word-card"><div class="word-tag">'+w.tag+'</div><h2>'+w.name+'</h2><p class="short">'+w.short+'</p><details><summary>もう少し詳しく</summary><p>'+w.detail+'</p><p><b>ASOBooNでは：</b>'+w.aso+'</p>'+'</details></article>').join('');
 
-document.getElementById('sourceList').innerHTML=sources.map(s=>'<a href="'+s[1]+'" target="_blank" rel="noopener noreferrer">'+s[0]+' ↗</a>').join('');
 
 const tabs=[...document.querySelectorAll('.tab')];
 const panels={slides:document.getElementById('slidesPanel'),words:document.getElementById('wordsPanel')};
