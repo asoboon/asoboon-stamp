@@ -271,12 +271,30 @@ async function getCreateDiagnostics(env) {
     if(!/no such table/i.test(String(e?.message||e||''))) throw e;
   }
 
+  const confirmed=[];
+  try{
+    const r=await env.DB.prepare(`SELECT business_date,wait_type_id,updated_at
+      FROM v2_user_day_claims
+      WHERE state='CONFIRMED' AND updated_at>=?
+      ORDER BY updated_at DESC LIMIT 50`).bind(now-7*24*60*60*1000).all();
+    for(const row of Array.isArray(r?.results)?r.results:[]){
+      confirmed.push({
+        businessDate:String(row.business_date||''),
+        waitTypeId:String(row.wait_type_id||''),
+        updatedAt:Number(row.updated_at||0),
+      });
+    }
+  }catch(e){
+    if(!/no such table/i.test(String(e?.message||e||''))) throw e;
+  }
+
   return {
     ok:true,
     source:'Developing sanitized create diagnostics / no user identity',
     fetchedAt:new Date().toISOString(),
     attempts,
     legacy,
+    confirmed,
   };
 }
 
