@@ -36,7 +36,7 @@ const CFG = Object.freeze({
   AIR_WAIT_TYPES: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
   AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',
   AIR_RESERVATIONS: 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',
-  OFFICIAL_WEB_URL: 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
+  OFFICIAL_WEB_URL: 'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN',
   LINE_VERIFY: 'https://api.line.me/oauth2/v2.1/verify',
   LINE_PROFILE: 'https://api.line.me/v2/profile',
   BUSINESS_CALENDAR_API: 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec',
