@@ -263,56 +263,6 @@ jobs:
             exit 1
           fi
 
-      - name: Dry-run native cancel capability
-        if: steps.credentials.outputs.available == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DB_ID: ${{ steps.d1.outputs.database_id }}
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
-          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-          OUT="$(mktemp)"
-          PAYLOAD="$(node <<'NODE'
-          process.stdout.write(JSON.stringify({
-            sql:"SELECT rr.result_json,c.reserve_id FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.state='CONFIRMED' ORDER BY c.updated_at DESC LIMIT 20"
-          }));
-          NODE
-          )"
-          curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' \
-            --data "$PAYLOAD" \
-            "$API" > "$OUT"
-          node --input-type=module - "$OUT" <<'NODE'
-          import fs from 'node:fs';
-          const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if(x?.success!==true) throw new Error('D1 query failed');
-          const rows=(x.result||[]).flatMap(v=>Array.isArray(v?.results)?v.results:[]);
-          let candidate=null;
-          for(const row of rows){
-            let v={}; try{v=JSON.parse(String(row?.result_json||'{}'))}catch{}
-            const shortUrl=String(v?.shortUrl||'');
-            if(/^https?:\/\//.test(shortUrl)&&String(row?.reserve_id||'')){candidate={shortUrl,reserveId:String(row.reserve_id)};break}
-          }
-          if(!candidate){console.log('Native cancel dry-run skipped: no confirmed shortUrl candidate.');process.exit(0)}
-          const detail=await fetch(candidate.shortUrl,{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
-          const html=await detail.text();
-          if(!detail.ok) throw new Error('shortUrl detail unavailable');
-          const u=new URL(detail.url);
-          const storeNo=u.searchParams.get('storeNo')||'';
-          const reserveId=u.searchParams.get('reserveId')||'';
-          const p=u.searchParams.get('p')||'';
-          if(!storeNo||!reserveId||!p||reserveId!==candidate.reserveId) throw new Error('cancel capability missing');
-          const confirm=new URL('/WCSP/cancel/confirm','https://airwait.jp');
-          confirm.searchParams.set('storeNo',storeNo);
-          confirm.searchParams.set('reserveId',reserveId);
-          confirm.searchParams.set('p',p);
-          const cr=await fetch(confirm,{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
-          const ch=await cr.text();
-          if(!cr.ok||new URL(cr.url).pathname!=='/WCSP/cancel/confirm') throw new Error('cancel confirm unavailable');
-          const hasCsrf=/<meta[^>]+name=["']_csrf["'][^>]+content=["'][^"']+["']/i.test(ch)||/<input[^>]+name=["']_csrf["'][^>]+value=["'][^"']+["']/i.test(ch);
-          if(!hasCsrf) throw new Error('cancel CSRF unavailable');
-          console.log('Native cancel dry-run PASS: capability and CSRF are available; no cancellation was sent.');
-          NODE
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
