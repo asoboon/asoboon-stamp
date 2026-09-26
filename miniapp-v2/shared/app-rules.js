@@ -32,7 +32,7 @@ const SLOT_RULES=Object.freeze({
       Object.freeze({waitTypeId:'0033',label:'15:00の回',detail:'15:00からの2時間30分利用'})
     ]),
     '休館':Object.freeze([])
-  }))
+  })
 });
 const PRICES=Object.freeze({adult:600,child:900,infantFirstWhenNoPaidChild:900,infantAdditional:0});
 function count(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.floor(n)):0}
