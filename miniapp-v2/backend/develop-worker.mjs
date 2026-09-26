@@ -245,16 +245,21 @@ async function getCreateDiagnostics(env) {
 
   const legacy=[];
   try{
-    const r=await env.DB.prepare(`SELECT state,result_json,updated_at
-      FROM v2_request_results
-      WHERE action='createReservation' AND state IN ('REJECTED','AMBIGUOUS') AND updated_at>=?
-      ORDER BY updated_at DESC LIMIT 20`).bind(since).all();
+    const r=await env.DB.prepare(`SELECT rr.state,rr.result_json,rr.updated_at,
+        COALESCE(c.business_date,'') AS business_date,
+        COALESCE(c.wait_type_id,'') AS wait_type_id
+      FROM v2_request_results rr
+      LEFT JOIN v2_service_token_claims c ON c.request_id=rr.request_id
+      WHERE rr.action='createReservation' AND rr.state IN ('REJECTED','AMBIGUOUS') AND rr.updated_at>=?
+      ORDER BY rr.updated_at DESC LIMIT 20`).bind(since).all();
     for(const row of Array.isArray(r?.results)?r.results:[]){
       let value={};
       try{value=JSON.parse(String(row.result_json||'{}'))||{}}catch{}
       legacy.push({
         source:'request-result',
         createdAt:Number(row.updated_at||0),
+        businessDate:String(row.business_date||''),
+        waitTypeId:String(row.wait_type_id||''),
         state:String(row.state||''),
         ambiguous:Boolean(value?.ambiguous),
         resultCode:String(value?.errorCode||'').slice(0,40),
