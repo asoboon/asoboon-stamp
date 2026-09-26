@@ -1088,14 +1088,15 @@ async function callDelivery(scope,context={}){
   const x=clamp(Number(context.localX)||r.width*.5,160,r.width-160),y=clamp(Number(context.localY)||r.height*.55,160,r.height-160);
   const stopX=clamp(x-105,145,r.width-145);
   if(M.isReduced())return reducedEvent(scope,'CALL_DELIVERY',{localX:x,localY:y});
-  const p=pose(scope,'pompon_dash',{x:-190,y:y+26,scale:s*1.08,opacity:0});
+
+  const p=pose(scope,'pompon_dash',{x:-190,y:y+26,scale:s*1.08,lookX:x,lookTarget:'calling-number',opacity:0});
   const speed=fx(scope,'speed_lines','movement',{x:x*.36,y:y+30,scale:s*1.08,opacity:0,layer:'back'});
   await Promise.all([
     anim(scope,p,[
-      {opacity:0,transform:transform(-190,y+26,s*.9,-4)},
-      {opacity:1,offset:.16,transform:transform(-20,y+24,s*1.05,-1)},
-      {opacity:1,offset:.76,transform:transform(stopX-18,y+12,s*1.12,2)},
-      {opacity:1,transform:transform(stopX,y+10,s*1.08,1)},
+      {opacity:0,transform:transform(-190,y+26,s*.9,-4,1)},
+      {opacity:1,offset:.16,transform:transform(-20,y+24,s*1.05,-1,1)},
+      {opacity:1,offset:.76,transform:transform(stopX-18,y+12,s*1.12,2,1)},
+      {opacity:1,transform:transform(stopX,y+10,s*1.08,1,1)},
     ],{duration:560,easing:'cubic-bezier(.1,.78,.18,1)',fill:'forwards'},'call'),
     anim(scope,speed,[
       {opacity:0,transform:transform(0,y+34,s*.45)},
@@ -1103,27 +1104,67 @@ async function callDelivery(scope,context={}){
       {opacity:0,transform:transform(stopX,y+14,s*1.36)},
     ],{duration:540,easing:'ease-out',fill:'forwards'},'call'),
   ]);
+
   await hold(scope,140,'call');
-  hide(p);
   await Promise.all([
     popFx(scope,'dust_burst','impact',x-58,y+46,s*.92,0,'call'),
     popFx(scope,'impact_burst','impact',x-18,y+6,s*.86,-4,'call')
   ]);
   await hold(scope,220,'call');
-  const retortX=x<r.width*.55?clamp(x+225,190,r.width-150):clamp(x-225,150,r.width-190);
-  const flip=retortX>x?-1:1;
-  const c=pose(scope,'chiru_retort',{x:retortX,y:y+62,scale:s*.92,flip,opacity:0});
-  const alert=anchoredFx(scope,c,'HEAD','exclamation','alert',{dx:44,dy:-24,scale:s*.62,opacity:0});
+
+  const retortOnRight=stopX<r.width*.62;
+  const retortX=retortOnRight?clamp(stopX+230,190,r.width-145):clamp(stopX-230,145,r.width-190);
+  const pLookFlip=retortX>=stopX?1:-1;
+  p.dataset.pcLookTarget='CHIRU';
+  p.dataset.pcLookX=String(retortX);
+  p.dataset.pcFacing=pLookFlip>0?'right':'left';
+  await anim(scope,p,[
+    {opacity:1,transform:transform(stopX,y+10,s*1.08,1,1)},
+    {opacity:1,offset:.48,transform:transform(stopX,y+12,s*.92,-1,pLookFlip*.18)},
+    {opacity:1,transform:transform(stopX,y+10,s*1.02,-2,pLookFlip)},
+  ],{duration:300,easing:'ease-in-out',fill:'forwards'},'call');
+
+  const c=pose(scope,'chiru_retort',{x:retortX,y:y+62,scale:s*.92,lookX:stopX,lookTarget:'POMPON',opacity:0});
+  const cFlip=Number(c?.dataset?.sceneFlip)||(retortX>stopX?-1:1);
+  const alert=anchoredFx(scope,c,'HEAD','exclamation','alert',{dx:44*cFlip,dy:-24,scale:s*.62,opacity:0});
+  const cEntryX=retortOnRight?r.width+150:-150;
   await Promise.all([
     anim(scope,c,[
-      {opacity:0,transform:transform(retortX,y+92,s*.74,0,flip)},
-      {opacity:1,offset:.24,transform:transform(retortX,y+60,s*.94,-3,flip)},
-      {opacity:1,offset:.82,transform:transform(retortX,y+60,s*.92,3,flip)},
-      {opacity:0,transform:transform(retortX,y+84,s*.78,0,flip)},
-    ],{duration:880,easing:'ease-out',fill:'forwards'},'call'),
-    anim(scope,alert,[{opacity:0},{opacity:1,offset:.28},{opacity:1,offset:.7},{opacity:0}],{duration:760,fill:'forwards'},'call'),
+      {opacity:0,transform:transform(cEntryX,y+92,s*.74,0,cFlip)},
+      {opacity:1,offset:.28,transform:transform(retortX,y+60,s*.94,-3,cFlip)},
+      {opacity:1,transform:transform(retortX,y+60,s*.92,2,cFlip)},
+    ],{duration:760,easing:'ease-out',fill:'forwards'},'call'),
+    anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1}],{duration:620,fill:'forwards'},'call'),
   ]);
-  await hold(scope,380,'call');
+
+  await hold(scope,420,'call');
+
+  const escapeDir=retortOnRight?-1:1;
+  const pExitX=escapeDir<0?-240:r.width+240;
+  const cExitX=escapeDir<0?-300:r.width+300;
+  const pExitFlip=escapeDir<0?-1:1;
+  const cExitFlip=escapeDir<0?-1:1;
+  p.dataset.pcLookTarget='exit';
+  p.dataset.pcFacing=escapeDir<0?'left':'right';
+  c.dataset.pcLookTarget='POMPON-exit';
+  c.dataset.pcFacing=escapeDir<0?'left':'right';
+
+  await Promise.all([
+    anim(scope,p,[
+      {opacity:1,transform:transform(stopX,y+10,s*1.02,-2,pLookFlip)},
+      {opacity:1,offset:.22,transform:transform(stopX+escapeDir*36,y+5,s*1.07,3,pExitFlip)},
+      {opacity:1,offset:.84,transform:transform(pExitX-escapeDir*80,y-18,s*.96,7*escapeDir,pExitFlip)},
+      {opacity:0,transform:transform(pExitX,y-24,s*.9,9*escapeDir,pExitFlip)},
+    ],{duration:900,easing:'cubic-bezier(.14,.7,.2,1)',fill:'forwards'},'call'),
+    anim(scope,c,[
+      {opacity:1,transform:transform(retortX,y+60,s*.92,2,cFlip)},
+      {opacity:1,offset:.34,transform:transform(retortX+escapeDir*55,y+62,s*.9,0,cExitFlip)},
+      {opacity:1,offset:.86,transform:transform(cExitX-escapeDir*90,y+68,s*.82,2*escapeDir,cExitFlip)},
+      {opacity:0,transform:transform(cExitX,y+72,s*.76,3*escapeDir,cExitFlip)},
+    ],{duration:1080,easing:'cubic-bezier(.18,.64,.24,1)',fill:'forwards'},'call'),
+    anim(scope,alert,[{opacity:1},{opacity:0}],{duration:460,fill:'forwards'},'call'),
+  ]);
+  await hold(scope,120,'call');
 }
 
 const PLAYERS=Object.freeze({
@@ -1195,12 +1236,12 @@ async function playCallDelivery({number='',rect:targetRect=null}={}){
   cancel('real-call');const p=localPoint(targetRect);
   return play('CALL_DELIVERY',{number,localX:p.x,localY:p.y});
 }
-const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({cast:e.category==='MEGA_STORY'||e.id.startsWith('DUO')||e.id==='PEEK_DISCOVERY'?['POMPON','CHIRU']:e.id.startsWith('CHIRU')?['CHIRU']:['POMPON'],actionZone:e.id.includes('PEEK')?'edges':'full-stage',beats:['anticipation','entrance','action','hold','incident','reaction','aftermath','exit'],anchors:['ENTRY_POINT','TRAIL_ORIGIN','IMPACT','FACE','HEAD'],zOrder:['rear-effect','character','front-effect'],minimumReactionHoldMs:e.category.includes('STORY')?780:520})])));
+const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({cast:e.category==='MEGA_STORY'||e.id.startsWith('DUO')||e.id==='PEEK_DISCOVERY'?['POMPON','CHIRU']:e.id.startsWith('CHIRU')?['CHIRU']:['POMPON'],actionZone:e.id.includes('PEEK')?'edges':'full-stage',beats:['anticipation','entrance','action','hold','incident','reaction','aftermath','exit'],anchors:['ENTRY_POINT','TRAIL_ORIGIN','IMPACT','FACE','HEAD'],zOrder:['rear-effect','character','front-effect'],minimumReactionHoldMs:e.category.includes('STORY')?780:520,lookTarget:'scene-defined',facingPolicy:'target-aware-when-directional',faceSafeDuringReaction:true,exitGrammar:'edge-or-occlusion'})])));
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length,characterContinuity:'single-instance-per-character'}}
-function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.lastEvent=null;diagnostics.history=[]}
+function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.faceSafeAdjustments=0;diagnostics.gazeResolved=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'4.0.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  version:'4.1.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
   getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();
