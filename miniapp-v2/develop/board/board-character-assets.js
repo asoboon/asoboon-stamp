@@ -51,10 +51,10 @@ const EFFECT_RULES=Object.freeze({
   ambient:Object.freeze(['magic_star','magic_sparkle','sparkle_gold','speed_lines','dust_streak']),
 });
 const STANDALONE_CHARACTERS=Object.freeze(['pompon_peek','chiru_peek','chiru_sneak']);
-const DEFAULT_ANCHORS=Object.freeze({HEAD:[.5,.16],FACE:[.5,.26],HAND:[.72,.48],FEET:[.5,.88],BODY:[.5,.54],CENTER:[.5,.5],IMPACT:[.72,.54],TRAIL_ORIGIN:[.22,.72],ENTRY_POINT:[.5,.62]});
+const DEFAULT_ANCHORS=Object.freeze({HEAD:[.5,.16],FACE:[.5,.26],FACE_SAFE:[.5,.26],HAND:[.72,.48],FEET:[.5,.88],BODY:[.5,.54],FULL_BODY:[.5,.52],CENTER:[.5,.5],IMPACT:[.72,.54],TRAIL_ORIGIN:[.22,.72],ENTRY_POINT:[.5,.62],LOOK_TARGET:[.82,.3]});
 const CHARACTER_ANCHORS=Object.freeze(Object.fromEntries(Object.keys(CHARACTERS).map(name=>[name,Object.freeze({
   ...DEFAULT_ANCHORS,
-  ...(name.includes('peek')?{FACE:[.5,.34],HAND:[.62,.58],ENTRY_POINT:[.5,.55]}:{}),
+  ...(name.includes('peek')?{FACE:[.5,.34],FACE_SAFE:[.5,.34],HAND:[.62,.58],ENTRY_POINT:[.5,.55],LOOK_TARGET:[.78,.36]}:{}),
   ...(name.includes('dash')||name.includes('chase')||name.includes('runaway')?{FEET:[.5,.82],IMPACT:[.82,.55],TRAIL_ORIGIN:[.12,.68]}:{}),
   ...(name.includes('fly')||name.includes('dodge')?{IMPACT:[.68,.48],TRAIL_ORIGIN:[.22,.62]}:{}),
   ...(name.startsWith('duo_')?{HEAD:[.5,.13],FACE:[.5,.25],HAND:[.76,.48],IMPACT:[.72,.56],TRAIL_ORIGIN:[.18,.7]}:{}),

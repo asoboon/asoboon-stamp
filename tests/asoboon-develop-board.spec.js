@@ -139,7 +139,7 @@ async function prepareIdleForTest(page, patch = {}) {
 async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
-  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia')).toHaveCount(0);
+  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
 }
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
@@ -1084,8 +1084,9 @@ test('hold transition uses the special-event path without legacy world variables
   expect(code).not.toContain('Promise.all([motion,particles,world])');
   expect(code).toContain("specialScreen('hold'");
   expect(code).toContain("playStatusAccent?.('hold'");
-  expect(code).toContain("onomatopoeia('キキィーッ！'");
-  expect(code).toContain("onomatopoeia('ピタッ！'");
+  expect(code).toContain("onomatopoeia('キキキキィー！！'");
+  expect(code).toContain("onomatopoeia('ピタッ！！'");
+  expect(code).toContain('impactFreeze(');
 });
 
 
@@ -1097,10 +1098,13 @@ test('real status effects serialize as full-screen manga special events', async 
   expect(code).not.toContain("const particles=runParticles('hold'");
   expect(code).not.toContain("const particles=runParticles('cancel'");
   expect(code).toContain("onomatopoeia('キタ！'");
-  expect(code).toContain("onomatopoeia('ドン！'");
-  expect(code).toContain("onomatopoeia('ビューン！'");
-  expect(code).toContain("onomatopoeia('キキィーッ！'");
-  expect(code).toContain("onomatopoeia('バリン！'");
+  expect(code).toContain("onomatopoeia('ドォォン！！'");
+  expect(code).toContain("onomatopoeia('シュッ！！'");
+  expect(code).toContain("onomatopoeia('ビューン！！'");
+  expect(code).toContain("onomatopoeia('キキキキィー！！'");
+  expect(code).toContain("onomatopoeia('バァァァリン！！'");
+  expect(code).toContain("onomatopoeia('ガシャン！'");
+  expect(code).toContain('foregroundShards(rect,{count:lvl<=1?4:6');
   expect(code).toContain("specialScreen('call'");
   expect(code).toContain("specialScreen('guided'");
   expect(code).toContain("specialScreen('hold'");

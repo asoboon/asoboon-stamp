@@ -957,16 +957,28 @@ async function statusAccent(scope,kind,{localX,localY}={}){
       anim(scope,p,[
         {opacity:0,transform:transform(x-r.width*.32,y+28,s*.9,-3)},
         {opacity:1,offset:.2,transform:transform(x-r.width*.22,y+24,s*1.06,-1)},
-        {opacity:1,offset:.72,transform:transform(x+35,y+8,s*1.1,2)},
-        {opacity:0,transform:transform(x+r.width*.34,y-12,s*.96,5)},
-      ],{duration:760,easing:'cubic-bezier(.12,.76,.16,1)',fill:'forwards'},'call'),
+        {opacity:1,offset:.58,transform:transform(x+35,y+8,s*1.1,2)},
+        {opacity:1,offset:.88,transform:transform(r.width+120,y-18,s*1.02,5)},
+        {opacity:0,transform:transform(r.width+240,y-24,s*.94,7)},
+      ],{duration:980,easing:'cubic-bezier(.12,.76,.16,1)',fill:'forwards'},'call'),
       anim(scope,e,[
         {opacity:0,transform:transform(x-r.width*.28,y+36,s*.5)},
         {opacity:.92,offset:.34,transform:transform(x-r.width*.08,y+26,s*1.02)},
         {opacity:0,transform:transform(x+r.width*.25,y+4,s*1.32)},
-      ],{duration:720,easing:'ease-out',fill:'forwards'},'call')
+      ],{duration:900,easing:'ease-out',fill:'forwards'},'call')
     ]);
-    await hold(scope,220,'call');
+    await hold(scope,180,'call');
+    const c=pose(scope,'chiru_watch',{x:r.width-105,y:y+54,scale:s*.86,flip:-1,opacity:0});
+    const sparkle=anchoredFx(scope,c,'LOOK_TARGET','sparkle_gold','success',{dx:-70,dy:-70,scale:s*.52,opacity:0});
+    await Promise.all([
+      anim(scope,c,[
+        {opacity:0,transform:transform(r.width+120,y+54,s*.72,0,-1)},
+        {opacity:1,offset:.28,transform:transform(r.width-105,y+54,s*.88,-2,-1)},
+        {opacity:1,offset:.78,transform:transform(r.width-105,y+54,s*.86,2,-1)},
+        {opacity:0,transform:transform(r.width+170,y+64,s*.72,3,-1)},
+      ],{duration:940,easing:'ease-out',fill:'forwards'},'call'),
+      anim(scope,sparkle,[{opacity:0},{opacity:1,offset:.32},{opacity:.8,offset:.68},{opacity:0}],{duration:760,fill:'forwards'},'call')
+    ]);
   }else if(kind==='hold'){
     const p=pose(scope,'pompon_brake',{x:x-75,y:y+48,scale:s*1.08,opacity:0});
     await anim(scope,p,[
@@ -979,38 +991,54 @@ async function statusAccent(scope,kind,{localX,localY}={}){
       popFx(scope,'dust_burst','impact',x-66,y+80,s*.86,0,'call'),
       shakeShell(scope,.5,'call')
     ]);
-    await hold(scope,320,'call');
-    hide(p);
+    await hold(scope,300,'call');
     const c=pose(scope,'chiru_shocked',{x:x+120,y:y+44,scale:s*.92,opacity:0});
     const alert=anchoredFx(scope,c,'HEAD','alert_red','alert',{dx:42,dy:-20,scale:s*.58,opacity:0});
     await Promise.all([
       anim(scope,c,[
         {opacity:0,transform:transform(x+120,y+72,s*.76)},
         {opacity:1,offset:.24,transform:transform(x+120,y+42,s*.94,-4)},
-        {opacity:1,offset:.82,transform:transform(x+120,y+42,s*.92,3)},
-        {opacity:0,transform:transform(x+120,y+60,s*.8)},
+        {opacity:1,transform:transform(x+120,y+42,s*.92,3)},
       ],{duration:840,easing:'ease-out',fill:'forwards'},'call'),
-      anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1,offset:.72},{opacity:0}],{duration:700,fill:'forwards'},'call')
+      anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1}],{duration:700,fill:'forwards'},'call')
     ]);
-    await hold(scope,260,'call');
+    await hold(scope,420,'call');
+    await Promise.all([
+      anim(scope,p,[{opacity:1,transform:transform(x-72,y+46,s*1.08)},{opacity:1,offset:.35,transform:transform(x-130,y+50,s,3)},{opacity:0,transform:transform(-190,y+65,s*.82,7)}],{duration:820,easing:'ease-in',fill:'forwards'},'call'),
+      anim(scope,c,[{opacity:1,transform:transform(x+120,y+42,s*.92,3)},{opacity:1,offset:.45,transform:transform(x+165,y+48,s*.86,1)},{opacity:0,transform:transform(r.width+180,y+66,s*.72,-2)}],{duration:920,easing:'ease-in',fill:'forwards'},'call'),
+      anim(scope,alert,[{opacity:1},{opacity:0}],{duration:420,fill:'forwards'},'call')
+    ]);
   }else if(kind==='cancel'){
-    const p=pose(scope,'pompon_shocked',{x:x-105,y:y+48,scale:s*1.18,opacity:0});
-    const alert=anchoredFx(scope,p,'HEAD','exclamation','alert',{dx:48,dy:-24,scale:s*.64,opacity:0});
+    const p=pose(scope,'pompon_oops',{x:x-115,y:y+52,scale:s*1.22,opacity:0});
+    const alert=anchoredFx(scope,p,'HEAD','exclamation','alert',{dx:92,dy:-92,scale:s*.58,opacity:0});
     await Promise.all([
       anim(scope,p,[
-        {opacity:0,transform:transform(x-105,y+82,s*.9,-7)},
-        {opacity:1,offset:.22,transform:transform(x-105,y+42,s*1.22,5)},
-        {opacity:1,offset:.84,transform:transform(x-105,y+42,s*1.18,-3)},
-        {opacity:0,transform:transform(x-140,y+64,s*.96,-8)},
-      ],{duration:920,easing:'cubic-bezier(.18,.86,.2,1)',fill:'forwards'},'call'),
-      anim(scope,alert,[{opacity:0},{opacity:1,offset:.25},{opacity:1,offset:.7},{opacity:0}],{duration:740,fill:'forwards'},'call')
+        {opacity:0,transform:transform(x-180,y+78,s*.9,-7)},
+        {opacity:1,offset:.24,transform:transform(x-115,y+48,s*1.24,5)},
+        {opacity:1,transform:transform(x-115,y+48,s*1.2,-3)},
+      ],{duration:820,easing:'cubic-bezier(.18,.86,.2,1)',fill:'forwards'},'call'),
+      anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1}],{duration:680,fill:'forwards'},'call')
     ]);
-    await hold(scope,360,'call');
+    await hold(scope,480,'call');
+    const c=pose(scope,'chiru_angry',{x:x+145,y:y+50,scale:s*1.02,flip:-1,opacity:0});
+    const anger=anchoredFx(scope,c,'HEAD','anger','anger',{dx:-42,dy:-26,scale:s*.62,opacity:0});
+    await Promise.all([
+      anim(scope,c,[{opacity:0,transform:transform(r.width+160,y+70,s*.8,0,-1)},{opacity:1,offset:.32,transform:transform(x+145,y+48,s*1.04,-3,-1)},{opacity:1,transform:transform(x+145,y+48,s*1.02,2,-1)}],{duration:860,easing:'ease-out',fill:'forwards'},'call'),
+      anim(scope,anger,[{opacity:0},{opacity:1,offset:.35},{opacity:1}],{duration:720,fill:'forwards'},'call')
+    ]);
+    await hold(scope,520,'call');
+    await Promise.all([
+      anim(scope,p,[{opacity:1,transform:transform(x-115,y+48,s*1.2,-3)},{opacity:1,offset:.3,transform:transform(x+10,y+35,s*1.1,5)},{opacity:0,transform:transform(r.width+220,y+8,s*.88,11)}],{duration:900,easing:'cubic-bezier(.16,.72,.18,1)',fill:'forwards'},'call'),
+      anim(scope,c,[{opacity:1,transform:transform(x+145,y+48,s*1.02,2,-1)},{opacity:1,offset:.38,transform:transform(x+215,y+52,s*.96,0,-1)},{opacity:0,transform:transform(r.width+210,y+64,s*.78,-3,-1)}],{duration:1080,easing:'ease-in',fill:'forwards'},'call'),
+      anim(scope,alert,[{opacity:1},{opacity:0}],{duration:420,fill:'forwards'},'call'),
+      anim(scope,anger,[{opacity:1},{opacity:0}],{duration:620,fill:'forwards'},'call')
+    ]);
   }
 }
 async function callDelivery(scope,context={}){
   const r=rect(),s=scaleForStage();
   const x=clamp(Number(context.localX)||r.width*.5,160,r.width-160),y=clamp(Number(context.localY)||r.height*.55,160,r.height-160);
+  const stopX=clamp(x-105,145,r.width-145);
   if(M.isReduced())return reducedEvent(scope,'CALL_DELIVERY',{localX:x,localY:y});
   const p=pose(scope,'pompon_dash',{x:-190,y:y+26,scale:s*1.08,opacity:0});
   const speed=fx(scope,'speed_lines','movement',{x:x*.36,y:y+30,scale:s*1.08,opacity:0,layer:'back'});
@@ -1018,13 +1046,13 @@ async function callDelivery(scope,context={}){
     anim(scope,p,[
       {opacity:0,transform:transform(-190,y+26,s*.9,-4)},
       {opacity:1,offset:.16,transform:transform(-20,y+24,s*1.05,-1)},
-      {opacity:1,offset:.76,transform:transform(x-135,y+12,s*1.12,2)},
-      {opacity:1,transform:transform(x-118,y+10,s*1.08,1)},
+      {opacity:1,offset:.76,transform:transform(stopX-18,y+12,s*1.12,2)},
+      {opacity:1,transform:transform(stopX,y+10,s*1.08,1)},
     ],{duration:560,easing:'cubic-bezier(.1,.78,.18,1)',fill:'forwards'},'call'),
     anim(scope,speed,[
       {opacity:0,transform:transform(0,y+34,s*.45)},
       {opacity:.92,offset:.32,transform:transform(x*.4,y+28,s*1.02)},
-      {opacity:0,transform:transform(x-120,y+14,s*1.36)},
+      {opacity:0,transform:transform(stopX,y+14,s*1.36)},
     ],{duration:540,easing:'ease-out',fill:'forwards'},'call'),
   ]);
   await hold(scope,140,'call');

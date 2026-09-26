@@ -189,14 +189,16 @@ async function breakoutStory(scope,event){
     ],{duration:900,easing:'cubic-bezier(.14,.82,.18,1)',fill:'forwards'})
   ]);
   await wait(scope,1250);
+  await animate(scope,character,[
+    {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)},
+    {opacity:1,offset:.36,transform:tr(character,x,y+12,s*.86,cfg.rotate)},
+    {opacity:1,offset:.82,transform:tr(character,x,y+24,s*.5,cfg.rotate)},
+    {opacity:0,transform:tr(character,x,y+30,s*.28,cfg.rotate)}
+  ],{duration:820,easing:'cubic-bezier(.35,.05,.58,1)',fill:'forwards'});
   await Promise.all([
-    animate(scope,character,[
-      {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)},
-      {opacity:0,transform:tr(character,x,y+18,s*.72,cfg.rotate)}
-    ],{duration:620,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameBack,[{opacity:.96},{opacity:0}],{duration:620,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameFront,[{opacity:.98},{opacity:0}],{duration:620,easing:'ease-in',fill:'forwards'}),
-    animate(scope,crack,[{opacity:.9},{opacity:0}],{duration:680,easing:'ease-in',fill:'forwards'})
+    animate(scope,frameBack,[{opacity:.96,transform:tr(frameBack,x,y,s*.84,cfg.rotate)},{opacity:.86,offset:.55,transform:tr(frameBack,x,y,s*.62,cfg.rotate)},{opacity:0,transform:tr(frameBack,x,y,s*.3,cfg.rotate)}],{duration:720,easing:'ease-in',fill:'forwards'}),
+    animate(scope,frameFront,[{opacity:.98,transform:tr(frameFront,x,y,s*.84,cfg.rotate)},{opacity:.9,offset:.55,transform:tr(frameFront,x,y,s*.62,cfg.rotate)},{opacity:0,transform:tr(frameFront,x,y,s*.3,cfg.rotate)}],{duration:720,easing:'ease-in',fill:'forwards'}),
+    animate(scope,crack,[{opacity:.9,transform:tr(crack,x,y,s*.72,cfg.rotate)},{opacity:.7,offset:.55,transform:tr(crack,x,y,s*.5,cfg.rotate)},{opacity:0,transform:tr(crack,x,y,s*.24,cfg.rotate)}],{duration:780,easing:'ease-in',fill:'forwards'})
   ]);
 }
 async function knockKnock(scope,event){
@@ -305,11 +307,11 @@ async function play(id){
   }
 }
 function cancel(reason='manual'){if(!currentScope)return false;diagnostics.canceled++;const s=currentScope;currentScope=null;currentId='';running=false;s.abort(reason);return true}
-const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({impactPoint:'shared',beats:e.category==='FOURTH_WALL_STORY'?['warning','vibration','crack','break','hole','character','impact','shards','foreground','reaction','gag','exit']:['warning','action','hold','aftermath'],zOrder:['crack','rear-frame','character','impact','front-frame','foreground-shards'],minimumHoldMs:e.category==='FOURTH_WALL_STORY'?2400:900})])));
+const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({impactPoint:'shared',lookTarget:e.category==='FOURTH_WALL_STORY'?'viewer':'break-point',exitGrammar:e.category==='FOURTH_WALL_STORY'?'FOURTH_WALL_RETURN':'EFFECT_DISSIPATE',faceSafeDuringReaction:true,beats:e.category==='FOURTH_WALL_STORY'?['warning','vibration','crack','break','hole','character','impact','shards','foreground','reaction','gag','return-through-hole','exit']:['warning','action','hold','aftermath'],zOrder:['crack','rear-frame','character','impact','front-frame','foreground-shards'],minimumHoldMs:e.category==='FOURTH_WALL_STORY'?2400:900})])));
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:EVENTS.map(x=>x.id),sceneRecipeCount:Object.keys(SCENE_RECIPES).length,assets:A.diagnostics()}}
 function resetForTest(){cancel('test-reset');variantBags.clear();diagnostics.played=0;diagnostics.canceled=0;diagnostics.microPlayed=0;diagnostics.storyPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_FOURTH_WALL_EVENTS=Object.freeze({
-  version:'1.3.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,sceneRecipes:SCENE_RECIPES,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
+  version:'1.4.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,sceneRecipes:SCENE_RECIPES,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
 });
 })();

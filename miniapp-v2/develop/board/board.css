@@ -801,6 +801,25 @@ body{
 }
 .fx-guided-ghost{filter:brightness(1.08)}
 .fx-cancel-ghost{z-index:6!important}
+.fx-foreground-shard{
+  position:fixed;
+  z-index:9;
+  display:block;
+  pointer-events:none;
+  clip-path:polygon(8% 18%,88% 0,100% 64%,36% 100%);
+  background:linear-gradient(145deg,#fff 0 20%,#a9c3cb 22% 58%,#586c73 60% 100%);
+  border:2px solid rgba(255,255,255,.88);
+  box-shadow:0 5px 0 rgba(19,31,35,.28);
+  will-change:transform,opacity;
+}
+.fx-impact-flash{
+  position:fixed;
+  inset:0;
+  z-index:11;
+  pointer-events:none;
+  background:radial-gradient(circle at var(--fx-x) var(--fx-y),#fff 0 8%,rgba(255,244,181,.92) 9% 22%,transparent 52%);
+  contain:strict;
+}
 
 @media (prefers-reduced-motion: reduce){
   .board-fx-layer *{

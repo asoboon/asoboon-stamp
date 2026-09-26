@@ -265,6 +265,32 @@ function animateElement(el,keyframes,options={}){
   return animation.finished.catch(()=>{});
 }
 function waitMs(ms){return new Promise(resolve=>setTimeout(resolve,M?M.ms(ms):ms))}
+function flashFrame(kind,rect,{duration=180}={}){
+  if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
+  const el=document.createElement('div');el.className='fx-impact-flash '+kind;fxLayer().appendChild(el);
+  el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
+  return animateElement(el,[{opacity:0},{opacity:.92,offset:.18},{opacity:.18,offset:.52},{opacity:0}],{duration,easing:'linear',fill:'forwards'}).finally(()=>el.remove());
+}
+function foregroundShards(rect,{count=7,duration=1250}={}){
+  if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
+  const layer=fxLayer(),cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
+  const total=Math.max(4,Math.min(8,count)),jobs=[];
+  for(let i=0;i<total;i++){
+    const el=document.createElement('i');el.className='fx-foreground-shard';
+    const angle=(-145+i*(290/Math.max(1,total-1)))*Math.PI/180;
+    const distance=Math.max(innerWidth,innerHeight)*(.34+(i%3)*.08),size=42+(i%4)*18;
+    Object.assign(el.style,{left:cx+'px',top:cy+'px',width:size+'px',height:Math.round(size*.58)+'px'});layer.appendChild(el);
+    const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
+    jobs.push(animateElement(el,[
+      {opacity:0,transform:'translate3d(-50%,-50%,0) rotate('+(i*19)+'deg) scale(.25)'},
+      {opacity:1,transform:'translate3d(calc(-50% + '+(dx*.18)+'px),calc(-50% + '+(dy*.18)+'px),0) rotate('+(i*31)+'deg) scale(1.12)',offset:.2},
+      {opacity:.94,transform:'translate3d(calc(-50% + '+(dx*.58)+'px),calc(-50% + '+(dy*.58)+'px),0) rotate('+(i*57)+'deg) scale(1)',offset:.62},
+      {opacity:0,transform:'translate3d(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px),0) rotate('+(i*88)+'deg) scale(.82)'}
+    ],{duration:duration+i*35,easing:'cubic-bezier(.14,.72,.18,1)',fill:'forwards'}).finally(()=>el.remove()));
+  }
+  return Promise.all(jobs);
+}
+function impactFreeze(ms=260){return waitMs(reduced?40:ms)}
 function specialScreen(kind,rect,{duration=1700,delay=0}={}){
   if(!rect||effectiveLevel()===0)return Promise.resolve();
   const el=document.createElement('div');
@@ -340,27 +366,30 @@ async function playCallAnimation({number,element,frame,rare}){
   const rect=rectFor(element,target);
   if(!rect)return;
   const lvl=effectiveLevel();
-  const screen=specialScreen('call',rect,{duration:lvl<=1?760:2300});
-  const intro=onomatopoeia('キタ！',rect,'call',{duration:lvl<=1?420:820});
-  const boom=onomatopoeia('ドン！',rect,'call',{giant:true,delay:lvl<=1?120:320,duration:lvl<=1?520:1420});
+  const screen=specialScreen('call',rect,{duration:lvl<=1?760:2700});
+  await Promise.all([onomatopoeia('キタ！',rect,'call',{duration:lvl<=1?420:760}),element?animateElement(element,[{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1.06)'}],{duration:lvl<=1?300:620,fill:'forwards'}):Promise.resolve()]);
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
-  await waitMs(lvl<=1?60:280);
+  await waitMs(lvl<=1?70:300);
+  const boom=onomatopoeia('ドォォン！！',rect,'call',{giant:true,duration:lvl<=1?560:1520});
   const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
-  const reaction=screenReaction('call',{duration:lvl<=1?320:860});
+  const reaction=screenReaction('call',{duration:lvl<=1?340:960});
+  const flash=flashFrame('call',rect,{duration:lvl<=1?90:180});
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
     {transform:'scale(1.055)'},
     {transform:'scale(1)'},
   ]:[
     {transform:'scale(1)'},
-    {transform:'scale(1.24)',offset:.22},
+    {transform:'scale(1.34)',offset:.22},
     {transform:'scale(.92)',offset:.4},
     {transform:'scale(1.12)',offset:.6},
     {transform:'scale(.98)',offset:.78},
     {transform:'scale(1)'},
-  ],{duration:lvl<=1?460:1580,easing:'cubic-bezier(.18,.92,.22,1)'}):Promise.resolve();
-  await Promise.all([screen,intro,boom,character,sourceFx,reaction,elementPulse]);
-  await waitMs(lvl<=1?60:360);
+  ],{duration:lvl<=1?520:1740,easing:'cubic-bezier(.18,.92,.22,1)'}):Promise.resolve();
+  await Promise.all([boom,sourceFx,reaction,flash,elementPulse]);
+  await impactFreeze(lvl<=1?50:300);
+  await character;
+  await Promise.all([screen,element?animateElement(element,[{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:lvl<=1?220:620,fill:'forwards'}):Promise.resolve()]);
 }
 async function playGuidedAnimation({element,frame}){
   const source=frame||currentFrame(element);
@@ -368,43 +397,45 @@ async function playGuidedAnimation({element,frame}){
   if(!rect)return;
   const lvl=effectiveLevel();
   const ghost=ghostFrom(source,'fx-guided-ghost');
-  const screen=specialScreen('guided',rect,{duration:lvl<=1?620:1900});
-  const swoosh=onomatopoeia('ビューン！',rect,'guided',{giant:true,delay:lvl<=1?80:260,duration:lvl<=1?480:1280});
-  await waitMs(lvl<=1?30:180);
+  const screen=specialScreen('guided',rect,{duration:lvl<=1?720:2650});
+  await onomatopoeia('ググッ…',rect,'guided',{duration:lvl<=1?300:620});
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
   const character=CHAR?.playStatusAccent?.('guided',{rect})||Promise.resolve();
-  const reaction=screenReaction('guided',{duration:lvl<=1?280:800});
+  const reaction=screenReaction('guided',{duration:lvl<=1?300:900});
+  const launch=onomatopoeia('シュッ！！',rect,'guided',{giant:true,duration:lvl<=1?420:980});
   let flight=Promise.resolve();
   if(ghost){
     flight=animateElement(ghost,lvl<=1?[
       {opacity:.9,transform:'translate3d(0,0,0) scale(1)'},
-      {opacity:0,transform:'translate3d(24px,-4px,0) scale(.96)'},
+      {opacity:1,transform:'translate3d(42vw,-3vh,0) scale(.9)'},
+      {opacity:0,transform:'translate3d(82vw,-5vh,0) scale(.76)'},
     ]:[
       {opacity:1,transform:'translate3d(0,0,0) rotate(0) scale(1)'},
       {opacity:1,transform:'translate3d(0,0,0) rotate(0) scale(1.06)',offset:.18},
       {opacity:1,transform:'translate3d(30px,-4px,0) rotate(1deg) scale(1.09)',offset:.34},
-      {opacity:.18,transform:'translate3d(66vw,-10vh,0) rotate(7deg) scale(.78)'},
-    ],{duration:lvl<=1?400:1360,easing:'cubic-bezier(.16,.72,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
+      {opacity:1,transform:'translate3d(72vw,-8vh,0) rotate(7deg) scale(.82)',offset:.88},
+      {opacity:0,transform:'translate3d(96vw,-10vh,0) rotate(9deg) scale(.7)'},
+    ],{duration:lvl<=1?460:1580,easing:'cubic-bezier(.16,.72,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
   const settle=element?animateElement(element,[
     {transform:'scale(1.08)'},
     {transform:'scale(1.02)',offset:.55},
     {transform:'scale(1)'},
   ],{duration:lvl<=1?340:1120,easing:'ease-out'}):Promise.resolve();
-  await Promise.all([screen,swoosh,flight,settle,sourceFx,character,reaction]);
-  await waitMs(lvl<=1?40:260);
+  await Promise.all([flight,settle,sourceFx,reaction,launch]);
+  await impactFreeze(lvl<=1?30:180);
+  await onomatopoeia('ビューン！！',rect,'guided',{giant:true,duration:lvl<=1?420:1040});
+  await Promise.all([screen,character]);
 }
 async function playHoldAnimation({element,frame}){
   const rect=rectFor(element,frame);
   if(!rect)return;
   const lvl=effectiveLevel();
-  const screen=specialScreen('hold',rect,{duration:lvl<=1?680:2350});
-  const screech=onomatopoeia('キキィーッ！',rect,'hold',{giant:true,duration:lvl<=1?520:1320});
-  const stopText=onomatopoeia('ピタッ！',rect,'hold',{giant:true,delay:lvl<=1?180:760,duration:lvl<=1?460:1160});
-  await waitMs(lvl<=1?30:180);
+  const screen=specialScreen('hold',rect,{duration:lvl<=1?760:2900});
+  const screech=onomatopoeia('キキキキィー！！',rect,'hold',{giant:true,duration:lvl<=1?560:1460});
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
   const character=CHAR?.playStatusAccent?.('hold',{rect})||Promise.resolve();
-  const reaction=screenReaction('hold',{duration:lvl<=1?300:920});
+  const reaction=screenReaction('hold',{duration:lvl<=1?340:1080});
   const motion=element?animateElement(element,lvl<=1?[
     {transform:'translateX(-4px)'},
     {transform:'translateX(7px)'},
@@ -417,8 +448,10 @@ async function playHoldAnimation({element,frame}){
     {transform:'translate3d(-4px,0,0) rotate(-.35deg)',offset:.76},
     {transform:'translate3d(0,0,0) rotate(0)'},
   ],{duration:lvl<=1?360:1280,easing:'cubic-bezier(.16,.86,.2,1)'}):Promise.resolve();
-  await Promise.all([screen,screech,stopText,motion,sourceFx,character,reaction]);
-  await waitMs(lvl<=1?50:360);
+  await Promise.all([screech,motion,sourceFx,reaction]);
+  await impactFreeze(lvl<=1?60:320);
+  await onomatopoeia('ピタッ！！',rect,'hold',{giant:true,duration:lvl<=1?480:1220});
+  await Promise.all([screen,character]);
 }
 async function playCancelAnimation({frame,element}){
   const source=frame||currentFrame(element);
@@ -427,13 +460,16 @@ async function playCancelAnimation({frame,element}){
   const lvl=effectiveLevel();
   const ghost=ghostFrom(source,'fx-cancel-ghost');
   if(ghost)attachCracks(ghost);
-  const screen=specialScreen('cancel',rect,{duration:lvl<=1?760:2700});
-  const warning=onomatopoeia('ミシ…',rect,'cancel',{duration:lvl<=1?420:900});
-  await waitMs(lvl<=1?80:520);
-  const breakText=onomatopoeia('バリン！',rect,'cancel',{giant:true,duration:lvl<=1?560:1560});
-  const reaction=screenReaction('cancel',{duration:lvl<=1?340:1060});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
+  const screen=specialScreen('cancel',rect,{duration:lvl<=1?820:3900});
+  await onomatopoeia('ミシ…',rect,'cancel',{duration:lvl<=1?440:940});
+  await impactFreeze(lvl<=1?50:420);
   const character=CHAR?.playStatusAccent?.('cancel',{rect})||Promise.resolve();
+  await waitMs(lvl<=1?80:520);
+  const breakText=onomatopoeia('バァァァリン！！',rect,'cancel',{giant:true,duration:lvl<=1?620:1780});
+  const reaction=screenReaction('cancel',{duration:lvl<=1?380:1240});
+  const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
+  const shards=foregroundShards(rect,{count:lvl<=1?4:6,duration:lvl<=1?620:1480});
+  const flash=flashFrame('cancel',rect,{duration:lvl<=1?100:210});
   let shatter=Promise.resolve();
   if(ghost){
     shatter=animateElement(ghost,lvl<=1?[
@@ -445,11 +481,15 @@ async function playCancelAnimation({frame,element}){
       {opacity:1,transform:'scale(1.07) rotate(-.7deg)',offset:.2},
       {opacity:1,transform:'scale(.99) rotate(.8deg)',offset:.38},
       {opacity:.52,transform:'scale(.94) rotate(2deg) translateY(9px)',offset:.62},
-      {opacity:0,transform:'scale(.76) rotate(5deg) translateY(42px)'},
-    ],{duration:lvl<=1?440:1540,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'}).finally(()=>ghost.remove());
+      {opacity:.16,transform:'scale(.76) rotate(5deg) translateY(42px)',offset:.78},
+      {opacity:0,transform:'scale(.7) rotate(6deg) translateY(64px)'},
+    ],{duration:lvl<=1?500:1720,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([screen,warning,breakText,reaction,sourceFx,character,shatter]);
-  await waitMs(lvl<=1?60:440);
+  await Promise.all([breakText,reaction,sourceFx,shatter,shards,flash]);
+  await impactFreeze(lvl<=1?60:340);
+  await character;
+  await onomatopoeia('ガシャン！',rect,'cancel',{giant:true,duration:lvl<=1?480:1120});
+  await screen;
 }
 function attachCracks(ghost){
   const crack=document.createElement('div');
