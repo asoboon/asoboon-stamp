@@ -124,6 +124,9 @@ export default {
         });
       }
       body.baseCreateEnabled = baseCreateEnabled;
+      body.nativeCancelEnabled = true;
+      body.crowdSnapshotFallbackEnabled = true;
+      body.lineReceptionStoreOnly = true;
       if (body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true) {
         body.createEnabled = false;
         body.createBlockedReason = body.serviceMessageHealthError
