@@ -318,6 +318,34 @@ jobs:
                       print(body[lo:hi].replace('\\n',' ')[:5000])
                       start=i+len(needle)
           PY
+      - name: Inspect AirWAIT create call-site fields
+        run: |
+          set -euo pipefail
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          needles=['CREATE_RESERVE','mailAuthToken','GET_RESERVE_INPUT','CREATE_MAIL_AUTH','waitTypeId','numPersonChild']
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try:
+                  body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
+              except Exception:
+                  continue
+              for needle in needles:
+                  pos=0; seen=0
+                  while seen<12:
+                      i=body.find(needle,pos)
+                      if i<0: break
+                      lo=max(0,i-1200); hi=min(len(body),i+1800)
+                      print('===',needle,'#',seen+1,'FROM',url,'===')
+                      print(body[lo:hi].replace('\\n',' ')[:3400])
+                      pos=i+len(needle); seen+=1
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
