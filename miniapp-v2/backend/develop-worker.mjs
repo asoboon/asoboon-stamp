@@ -737,7 +737,7 @@ function boardReservationState(row) {
   if (status === '3') return 'canceled';
   if (status === '2') return 'done';
   if (status === '1') return 'hold';
-  if (status === '4') return 'calling';
+  if (status === '4') return 'processing';
   if (status === '0' && isCalling) return 'calling';
   return 'waiting';
 }
