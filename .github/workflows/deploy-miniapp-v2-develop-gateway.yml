@@ -232,7 +232,7 @@ jobs:
           START_MS="$(date +%s%3N)"
           RESPONSE="$(curl --max-time 20 --fail-with-body --silent --show-error \
             -H 'Origin: https://asoboon.github.io' \
-            "$WORKER_URL/?action=boardStatus&live_check=\${GITHUB_SHA}")"
+            "$WORKER_URL/?action=boardStatus&live_check=${GITHUB_SHA}")"
           END_MS="$(date +%s%3N)"
           ELAPSED_MS="$((END_MS-START_MS))"
           printf '%s' "$RESPONSE" | node -e '
@@ -253,7 +253,7 @@ jobs:
               },null,2));
             });
           '
-          echo "boardStatus live latency: \${ELAPSED_MS}ms"
+          echo "boardStatus live latency: ${ELAPSED_MS}ms"
           if [ "$ELAPSED_MS" -gt 20000 ]; then
             echo "boardStatus exceeded 20s live budget" >&2
             exit 1
