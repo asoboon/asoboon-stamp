@@ -107,7 +107,7 @@ test('inactive next HOME exposes every required route on the stable navigator', 
   await expect(page.locator('.v38-fun')).toContainText('準備中');
 });
 
-test('next HOME renders five distinct reception states and keeps reservation facts readable', async ({ page }) => {
+test('next HOME renders six distinct reception states and keeps reservation facts readable', async ({ page }) => {
   await openNextHome(page);
   await page.evaluate(() => localStorage.setItem('asoboon_v2_current_reservation_develop_v1', JSON.stringify({
     receiptNo:'F123', businessDate:'2026-09-19', waitTypeId:'0042', adults:1, paidChildren:2, infants:1
@@ -120,6 +120,7 @@ test('next HOME renders five distinct reception states and keeps reservation fac
     [{ kind:'hold', receipt:'F123' }, '保留', '受付でご確認ください', /hold/],
     [{ kind:'guided', receipt:'F123' }, '案内済み', 'ご入場済みです', /guided/],
     [{ kind:'canceled', receipt:'F123', canceled:true }, '取り消し', '受付が取り消されました', /canceled/],
+    [{ kind:'closed', receipt:'F123' }, '受付終了', '本日の受付は終了しました', /closed/],
   ];
   for (const [detail,label,title,cls] of states) {
     await setStatus(page, detail);
