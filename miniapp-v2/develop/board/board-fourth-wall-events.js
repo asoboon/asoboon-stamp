@@ -142,26 +142,26 @@ async function breakoutStory(scope,event){
     if(shard)shards.push(shard);
   }
 
-  await wait(scope,180);
+  await wait(scope,420);
   await animate(scope,crack,[
     {opacity:0,transform:tr(crack,x,y,s*.35,cfg.rotate)},
     {opacity:1,offset:.4,transform:tr(crack,x,y,s*.78,cfg.rotate)},
     {opacity:.92,transform:tr(crack,x,y,s*.72,cfg.rotate)}
-  ],{duration:360,easing:'cubic-bezier(.16,.82,.2,1)',fill:'forwards'});
+  ],{duration:520,easing:'cubic-bezier(.16,.82,.2,1)',fill:'forwards'});
 
-  await wait(scope,180);
+  await wait(scope,420);
 
   await Promise.all([
     animate(scope,frameBack,[
       {opacity:0,transform:tr(frameBack,x,y,s*.42,cfg.rotate)},
       {opacity:1,offset:.42,transform:tr(frameBack,x,y,s*.92,cfg.rotate)},
       {opacity:.96,transform:tr(frameBack,x,y,s*.84,cfg.rotate)}
-    ],{duration:390,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
+    ],{duration:520,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
     animate(scope,frameFront,[
       {opacity:0,transform:tr(frameFront,x,y,s*.42,cfg.rotate)},
       {opacity:1,offset:.42,transform:tr(frameFront,x,y,s*.92,cfg.rotate)},
       {opacity:.98,transform:tr(frameFront,x,y,s*.84,cfg.rotate)}
-    ],{duration:390,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
+    ],{duration:520,easing:'cubic-bezier(.16,.9,.2,1)',fill:'forwards'}),
     animate(scope,impact,[
       {opacity:0,transform:tr(impact,x,y,s*.22,cfg.rotate)},
       {opacity:1,offset:.35,transform:tr(impact,x,y,s*.78,cfg.rotate)},
@@ -169,6 +169,7 @@ async function breakoutStory(scope,event){
     ],{duration:420,easing:'ease-out',fill:'forwards'}),
     shake(scope,.65)
   ]);
+  await wait(scope,260);
 
   const shardJobs=shards.map((shard,i)=>{
     const sx=i%2===0?-1:1,sy=i===0?-1:1;
@@ -185,17 +186,17 @@ async function breakoutStory(scope,event){
       {opacity:1,offset:.28,transform:tr(character,x,y-4,s*1.02,cfg.rotate)},
       {opacity:1,offset:.62,transform:tr(character,x,y,s*.94,cfg.rotate)},
       {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)}
-    ],{duration:620,easing:'cubic-bezier(.14,.82,.18,1)',fill:'forwards'})
+    ],{duration:900,easing:'cubic-bezier(.14,.82,.18,1)',fill:'forwards'})
   ]);
-  await wait(scope,760);
+  await wait(scope,1250);
   await Promise.all([
     animate(scope,character,[
       {opacity:1,transform:tr(character,x,y,s*.96,cfg.rotate)},
       {opacity:0,transform:tr(character,x,y+18,s*.72,cfg.rotate)}
-    ],{duration:460,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameBack,[{opacity:.96},{opacity:0}],{duration:480,easing:'ease-in',fill:'forwards'}),
-    animate(scope,frameFront,[{opacity:.98},{opacity:0}],{duration:480,easing:'ease-in',fill:'forwards'}),
-    animate(scope,crack,[{opacity:.9},{opacity:0}],{duration:520,easing:'ease-in',fill:'forwards'})
+    ],{duration:620,easing:'ease-in',fill:'forwards'}),
+    animate(scope,frameBack,[{opacity:.96},{opacity:0}],{duration:620,easing:'ease-in',fill:'forwards'}),
+    animate(scope,frameFront,[{opacity:.98},{opacity:0}],{duration:620,easing:'ease-in',fill:'forwards'}),
+    animate(scope,crack,[{opacity:.9},{opacity:0}],{duration:680,easing:'ease-in',fill:'forwards'})
   ]);
 }
 async function knockKnock(scope,event){
@@ -304,11 +305,11 @@ async function play(id){
   }
 }
 function cancel(reason='manual'){if(!currentScope)return false;diagnostics.canceled++;const s=currentScope;currentScope=null;currentId='';running=false;s.abort(reason);return true}
-const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({impactPoint:'shared',beats:e.category==='FOURTH_WALL_STORY'?['warning','vibration','crack','break','hole','character','impact','shards','foreground','reaction','gag','exit']:['warning','action','hold','aftermath'],zOrder:['crack','rear-frame','character','impact','front-frame','foreground-shards'],minimumHoldMs:e.category==='FOURTH_WALL_STORY'?1900:900})])));
+const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({impactPoint:'shared',beats:e.category==='FOURTH_WALL_STORY'?['warning','vibration','crack','break','hole','character','impact','shards','foreground','reaction','gag','exit']:['warning','action','hold','aftermath'],zOrder:['crack','rear-frame','character','impact','front-frame','foreground-shards'],minimumHoldMs:e.category==='FOURTH_WALL_STORY'?2400:900})])));
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:EVENTS.map(x=>x.id),sceneRecipeCount:Object.keys(SCENE_RECIPES).length,assets:A.diagnostics()}}
 function resetForTest(){cancel('test-reset');variantBags.clear();diagnostics.played=0;diagnostics.canceled=0;diagnostics.microPlayed=0;diagnostics.storyPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_FOURTH_WALL_EVENTS=Object.freeze({
-  version:'1.2.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,sceneRecipes:SCENE_RECIPES,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
+  version:'1.3.0',events:EVENTS,microEvents:MICRO_EVENTS,storyEvents:STORY_EVENTS,sceneRecipes:SCENE_RECIPES,play,cancel,isRunning:()=>running,getDiagnostics,resetForTest,playEventForTest:play
 });
 })();
