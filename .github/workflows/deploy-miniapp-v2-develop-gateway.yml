@@ -263,6 +263,38 @@ jobs:
             exit 1
           fi
 
+      - name: Inspect AirWAIT customer cancel API contract
+        run: |
+          set -euo pipefail
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          patterns=[
+            r'CANCEL_RESERVE[^,;}]{0,240}',
+            r'/WCSP/api/internal/stateless/[^\"\\\']*cancel[^\"\\\']*',
+            r'cancelReserve=function[^;]{0,1800}',
+            r'cancel.*reserve.*post\([^;]{0,1800}',
+            r'WAIT_DETAIL[^,;}]{0,400}',
+          ]
+          found=set()
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
+              except Exception: continue
+              for pat in patterns:
+                  for m in re.finditer(pat,body,re.I):
+                      snippet=body[max(0,m.start()-1200):min(len(body),m.end()+2200)].replace('\n',' ')
+                      key=(url,snippet[:3200])
+                      if key not in found:
+                          found.add(key)
+                          print('===',url,'===')
+                          print(snippet[:3200])
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
