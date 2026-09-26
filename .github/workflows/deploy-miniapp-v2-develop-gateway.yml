@@ -223,6 +223,21 @@ jobs:
             });
           '
 
+      - name: Show sanitized recent create diagnostics
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -H 'Origin: https://asoboon.github.io' \
+            "$WORKER_URL/?action=createDiagnostics&_=${GITHUB_SHA}")"
+          printf '%s' "$RESPONSE" | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s);
+              if(x.ok!==true) throw new Error("createDiagnostics unavailable");
+              console.log("Developing recent create diagnostics:");
+              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[]},null,2));
+            });
+          '
       - name: Verify Developing crowd diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
