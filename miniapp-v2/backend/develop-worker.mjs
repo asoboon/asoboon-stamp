@@ -14,6 +14,8 @@ import {
 } from './develop-service-message.js';
 
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
+const LINE_CHANNEL_ID = '2009884611';
+const AIRWAIT_ORIGIN = 'https://airwait.jp';
 const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_LAST_UPDATE = 'https://cl.airwait.jp/WCLP/api/external/stateless/store/getLastUpdDateStateless';
@@ -137,6 +139,7 @@ export default {
     let createPayload = null;
     let adoptPayload = null;
     let reservationStatusPayload = null;
+    let cancelReservationPayload = null;
     if (request.method === 'POST') {
       try {
         const postPayload = await readBody(request.clone());
@@ -144,10 +147,12 @@ export default {
         if (postAction === 'createReservation') createPayload = postPayload;
         if (postAction === 'adoptOfficialWebReception') adoptPayload = postPayload;
         if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
+        if (postAction === 'cancelReservation') cancelReservationPayload = postPayload;
       } catch {
         createPayload = null;
         adoptPayload = null;
         reservationStatusPayload = null;
+        cancelReservationPayload = null;
       }
     }
 
@@ -171,6 +176,12 @@ export default {
           notificationError,
         }, Number(e?.status || 503));
       }
+    }
+
+    if (cancelReservationPayload) {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
+      try { return json(request, await cancelReservationInMiniapp(env, cancelReservationPayload)); }
+      catch (e) { return json(request,{ok:false,canceled:false,error:safeError(e)},Number(e?.status||502)); }
     }
 
     let base = await gateway.fetch(request, env, ctx);
@@ -940,6 +951,118 @@ async function reconcileReservationStatus(request, env, base, payload) {
   }
 }
 
+async function fetchWithCancelTimeout(url,options={},timeoutMs=10000){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{return await fetch(url,{...options,signal:ctrl.signal})}
+  catch(e){if(e?.name==='AbortError')throw apiError('CANCEL_UPSTREAM_TIMEOUT',504);throw e}
+  finally{clearTimeout(timer)}
+}
+function htmlMetaContent(html,name){
+  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\async function fetchAllReservationsForReconcile(env) {');
+  const a=new RegExp('<meta[^>]+name=["\\\']'+escaped+'["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\']','i').exec(String(html||''));
+  const b=new RegExp('<meta[^>]+content=["\\\']([^"\\\']+)["\\\'][^>]+name=["\\\']'+escaped+'["\\\']','i').exec(String(html||''));
+  return String((a||b)?.[1]||'').replace(/&amp;/g,'&').replace(/&#x27;/g,"'").replace(/&quot;/g,'"');
+}
+function responseCookieHeader(response){
+  try{
+    const headers=response?.headers;
+    let values=[];
+    if(typeof headers?.getSetCookie==='function')values=headers.getSetCookie();
+    else{const raw=String(headers?.get('set-cookie')||'');if(raw)values=raw.split(/,(?=\s*[^;,=\s]+=)/)}
+    return values.map(v=>String(v||'').split(';')[0].trim()).filter(Boolean).join('; ');
+  }catch{return''}
+}
+async function verifyCancelLineUser(liffAccessToken){
+  const token=String(liffAccessToken||'').trim();
+  if(token.length<20||token.length>4096)throw apiError('LINE_ACCESS_TOKEN_REQUIRED',401);
+  const verifyUrl=new URL('https://api.line.me/oauth2/v2.1/verify');
+  verifyUrl.searchParams.set('access_token',token);
+  const vr=await fetchWithCancelTimeout(verifyUrl.toString(),{headers:{Accept:'application/json'}},8000);
+  let vd=null;try{vd=await vr.json()}catch{}
+  if(!vr.ok||String(vd?.client_id||'')!==LINE_CHANNEL_ID)throw apiError('LINE_ACCESS_TOKEN_INVALID',401);
+  const pr=await fetchWithCancelTimeout('https://api.line.me/v2/profile',{headers:{Authorization:'Bearer '+token,Accept:'application/json'}},8000);
+  let pd=null;try{pd=await pr.json()}catch{}
+  const userId=String(pd?.userId||'');
+  if(!pr.ok||!userId)throw apiError('LINE_PROFILE_INVALID',401);
+  return await sha256Hex(userId);
+}
+async function loadCancelShortUrl(env,session){
+  const row=await env.DB.prepare("SELECT c.request_id,rr.result_json FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.user_hash=? AND c.business_date=? AND c.reserve_id=? AND c.receipt_no=? AND c.state='CONFIRMED' LIMIT 1")
+    .bind(String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||'')).first();
+  let result={};try{result=row?.result_json?JSON.parse(String(row.result_json)):{};}catch{}
+  const raw=String(result?.shortUrl||'').trim();
+  if(!raw)throw apiError('CANCEL_CAPABILITY_UNAVAILABLE',409);
+  let u;try{u=new URL(raw)}catch{throw apiError('CANCEL_CAPABILITY_INVALID',409)}
+  const host=String(u.hostname||'').toLowerCase();
+  if(!['http:','https:'].includes(u.protocol)||!(host==='airwait.jp'||host.endsWith('.airwait.jp')))throw apiError('CANCEL_CAPABILITY_INVALID',409);
+  u.protocol='https:';
+  return u.toString();
+}
+async function currentReservationRow(env,receiptNo){
+  reconcileAllCache={savedAt:0,rows:[]};
+  reconcileAllInflight=null;
+  const rows=await fetchAllReservationsForReconcile(env);
+  return selectTicketMatch(rows,receiptNo).row||null;
+}
+async function cancelReservationInMiniapp(env,p){
+  if(!env?.DB)throw apiError('DB_NOT_CONFIGURED',503);
+  const rawToken=String(p?.sessionToken||'').trim();
+  if(rawToken.length<32||rawToken.length>256)throw apiError('CALLSTATUS_SESSION_REQUIRED',401);
+  const tokenHash=await sha256Hex(rawToken);
+  const now=Date.now();
+  const session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
+  if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
+  const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
+  if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
+
+  const before=await currentReservationRow(env,String(session.receipt_no||''));
+  const beforeState=reservationState(before);
+  if(beforeState==='canceled')return{ok:true,canceled:true,alreadyCanceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),checkedAt:Date.now()};
+  if(!['waiting','calling','hold'].includes(beforeState))throw apiError('CANCEL_NOT_ALLOWED_STATE_'+String(beforeState||'unknown').toUpperCase(),409);
+
+  const shortUrl=await loadCancelShortUrl(env,session);
+  const detailResponse=await fetchWithCancelTimeout(shortUrl,{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}},10000);
+  await detailResponse.text();
+  if(!detailResponse.ok)throw apiError('CANCEL_DETAIL_UNAVAILABLE',502);
+  const detailUrl=new URL(detailResponse.url);
+  const storeNo=String(detailUrl.searchParams.get('storeNo')||'');
+  const reserveId=String(detailUrl.searchParams.get('reserveId')||'');
+  const capability=String(detailUrl.searchParams.get('p')||'');
+  if(!storeNo||!reserveId||!capability)throw apiError('CANCEL_CAPABILITY_MISSING',409);
+  if(reserveId!==String(session.reserve_id||''))throw apiError('CANCEL_RESERVATION_MISMATCH',409);
+
+  const confirmUrl=new URL('/WCSP/cancel/confirm',AIRWAIT_ORIGIN);
+  confirmUrl.searchParams.set('storeNo',storeNo);
+  confirmUrl.searchParams.set('reserveId',reserveId);
+  confirmUrl.searchParams.set('p',capability);
+  const confirmResponse=await fetchWithCancelTimeout(confirmUrl.toString(),{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}},10000);
+  const confirmHtml=await confirmResponse.text();
+  if(!confirmResponse.ok||new URL(confirmResponse.url).pathname!=='/WCSP/cancel/confirm')throw apiError('CANCEL_CONFIRM_UNAVAILABLE',502);
+  const csrf=htmlMetaContent(confirmHtml,'_csrf');
+  if(!csrf)throw apiError('CANCEL_CSRF_UNAVAILABLE',502);
+  const cookie=responseCookieHeader(confirmResponse);
+
+  const completeUrl=new URL('/WCSP/cancel/complete',AIRWAIT_ORIGIN);
+  completeUrl.searchParams.set('queryStoreNo',storeNo);
+  const headers={Accept:'text/html,application/xhtml+xml','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Origin:AIRWAIT_ORIGIN,Referer:confirmUrl.toString(),'User-Agent':'Mozilla/5.0'};
+  if(cookie)headers.Cookie=cookie;
+  let postResponse=null,postError=null;
+  try{
+    postResponse=await fetchWithCancelTimeout(completeUrl.toString(),{method:'POST',redirect:'follow',headers,body:new URLSearchParams({storeNo,reserveId,p:capability,_csrf:csrf})},12000);
+    await postResponse.text();
+  }catch(e){postError=e}
+
+  await new Promise(resolve=>setTimeout(resolve,350));
+  const after=await currentReservationRow(env,String(session.receipt_no||''));
+  const afterState=reservationState(after);
+  if(afterState!=='canceled'){if(postError)throw apiError('CANCEL_RESULT_UNKNOWN',502);throw apiError('CANCEL_NOT_CONFIRMED_HTTP_'+String(postResponse?.status||0),502)}
+  try{
+    await env.DB.prepare("UPDATE v2_service_messages SET status='CANCELED',last_error='',updated_at=? WHERE business_date=? AND receipt_no=? AND notified_at=0")
+      .bind(Date.now(),String(session.business_date||''),String(session.receipt_no||'')).run();
+  }catch(e){console.warn('CANCEL_SERVICE_MESSAGE_UPDATE_FAILED',safeError(e))}
+  return{ok:true,canceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(after?.waitTypeId||session.wait_type_id||''),checkedAt:Date.now()};
+}
 async function fetchAllReservationsForReconcile(env) {
   const now = Date.now();
   if (reconcileAllCache.rows.length && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
