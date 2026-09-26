@@ -94,8 +94,13 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
+          const line=worker.split('\n').find(v=>v.includes("const escaped=String(name||'').replace("))||'';
+          if(!line.includes("'\\\\          node <<'NODE'
+          const fs=require('fs');
+          const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
           const expected=String.raw\`  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\$&');\`;
           if(!worker.includes(expected)) throw new Error('native cancel CSRF meta parser changed or corrupted');
+          NODE');")||line.includes('async function')) throw new Error('native cancel CSRF meta parser changed or corrupted');
           NODE
           ! grep -Fq 'airwait.jp' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'openWindow' miniapp-v2/shared/callstatus.js
