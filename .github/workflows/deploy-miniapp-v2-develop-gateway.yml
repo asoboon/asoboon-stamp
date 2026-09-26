@@ -346,6 +346,46 @@ jobs:
                       print(body[lo:hi].replace('\\n',' ')[:3400])
                       pos=i+len(needle); seen+=1
           PY
+      - name: Inspect AirWAIT public store auth settings
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess
+          base='https://airwait.jp/WCSP/api/internal/stateless/store/getStoreDetail'
+          no='AKR2298124918'
+          cases=[
+            ('GET',base+'?storeNo='+no,None),
+            ('POST_JSON',base+'?storeNo='+no,json.dumps({'storeNo':no})),
+          ]
+          for name,url,body in cases:
+            args=['curl','-L','--silent','--show-error','-A','Mozilla/5.0','-H','Accept: application/json','-w','\\n__HTTP__:%{http_code}']
+            if body is not None:
+              args += ['-H','Content-Type: application/json','--data',body]
+            args += [url]
+            try: out=subprocess.check_output(args,text=True,errors='ignore',timeout=25)
+            except Exception as e: print(name,'ERROR',e); continue
+            text,_,status=out.rpartition('\\n__HTTP__:')
+            print('---',name,'HTTP',status.strip(),'---')
+            try:
+              d=json.loads(text)
+              print('resultCode=',json.dumps(d.get('resultCode'),ensure_ascii=False))
+              inner=d.get('innerDto') or {}
+              # Print only configuration fields related to online/mail auth and wait-type behavior.
+              def walk(x,path=''):
+                if isinstance(x,dict):
+                  for k,v in x.items():
+                    p=(path+'.'+k).strip('.')
+                    if any(w in k.lower() for w in ['mail','online','auth','reserve','waittype','person','freeword','question']):
+                      if isinstance(v,(str,int,float,bool)) or v is None:
+                        print(p,'=',v)
+                    if isinstance(v,(dict,list)) and len(p.split('.'))<5: walk(v,p)
+                elif isinstance(x,list):
+                  for i,v in enumerate(x[:20]):
+                    if isinstance(v,(dict,list)): walk(v,path+'['+str(i)+']')
+              walk(inner)
+            except Exception:
+              print(text[:1000])
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
