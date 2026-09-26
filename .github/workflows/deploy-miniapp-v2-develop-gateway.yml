@@ -263,32 +263,50 @@ jobs:
             exit 1
           fi
 
-      - name: Inspect AirWAIT customer cancel API contract
+      - name: Dry-run native cancel capability
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DB_ID: ${{ steps.d1.outputs.database_id }}
         run: |
           set -euo pipefail
-          PAGE="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
-          CSP_URL="$(python3 - "$PAGE" <<'PY'
-          import re,sys
-          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
-          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
-          PY
-          )"
-          test -n "$CSP_URL"
-          JS="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
-          python3 - "$JS" <<'PY'
-          import re,sys
-          body=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          for needle in ['CancelReserve','CANCEL_COMPLETE','CANCEL_RESERVE','cancel/complete','cancel/confirm']:
-              positions=[m.start() for m in re.finditer(re.escape(needle),body,re.I)]
-              print('NEEDLE',needle,'COUNT',len(positions),'POS',positions[:30])
-              for pos in positions[:20]:
-                  sn=body[max(0,pos-2600):min(len(body),pos+5200)].replace('\n',' ')
-                  print('===',needle,'@',pos,'===')
-                  print(sn[:7800])
-          PY
+          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${DB_ID}/query"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+          OUT="$(mktemp)"
+          curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' \
+            --data '{"sql":"SELECT rr.result_json,c.reserve_id FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.state=''CONFIRMED'' ORDER BY c.updated_at DESC LIMIT 20"}' \
+            "$API" > "$OUT"
+          node --input-type=module - "$OUT" <<'NODE'
+          import fs from 'node:fs';
+          const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(x?.success!==true) throw new Error('D1 query failed');
+          const rows=(x.result||[]).flatMap(v=>Array.isArray(v?.results)?v.results:[]);
+          let candidate=null;
+          for(const row of rows){
+            let v={}; try{v=JSON.parse(String(row?.result_json||'{}'))}catch{}
+            const shortUrl=String(v?.shortUrl||'');
+            if(/^https?:\/\//.test(shortUrl)&&String(row?.reserve_id||'')){candidate={shortUrl,reserveId:String(row.reserve_id)};break}
+          }
+          if(!candidate){console.log('Native cancel dry-run skipped: no confirmed shortUrl candidate.');process.exit(0)}
+          const detail=await fetch(candidate.shortUrl,{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
+          const html=await detail.text();
+          if(!detail.ok) throw new Error('shortUrl detail unavailable');
+          const u=new URL(detail.url);
+          const storeNo=u.searchParams.get('storeNo')||'';
+          const reserveId=u.searchParams.get('reserveId')||'';
+          const p=u.searchParams.get('p')||'';
+          if(!storeNo||!reserveId||!p||reserveId!==candidate.reserveId) throw new Error('cancel capability missing');
+          const confirm=new URL('/WCSP/cancel/confirm','https://airwait.jp');
+          confirm.searchParams.set('storeNo',storeNo);
+          confirm.searchParams.set('reserveId',reserveId);
+          confirm.searchParams.set('p',p);
+          const cr=await fetch(confirm,{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
+          const ch=await cr.text();
+          if(!cr.ok||new URL(cr.url).pathname!=='/WCSP/cancel/confirm') throw new Error('cancel confirm unavailable');
+          const hasCsrf=/<meta[^>]+name=["']_csrf["'][^>]+content=["'][^"']+["']/i.test(ch)||/<input[^>]+name=["']_csrf["'][^>]+value=["'][^"']+["']/i.test(ch);
+          if(!hasCsrf) throw new Error('cancel CSRF unavailable');
+          console.log('Native cancel dry-run PASS: capability and CSRF are available; no cancellation was sent.');
+          NODE
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
