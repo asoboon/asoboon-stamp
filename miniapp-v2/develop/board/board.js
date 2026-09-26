@@ -135,7 +135,10 @@ function layoutGrid(){
     card.classList.toggle('near-band',dist===1);
   });
   const live=$('liveCaption');
-  if(live)live.textContent=callingRows.size?'ただいま呼出中 ▶':'呼出状況';
+  if(live){
+    const callingNumbers=state.rows.filter(r=>String(r?.state||'')==='calling').map(r=>String(r?.number||'').trim()).filter(Boolean);
+    live.textContent=callingNumbers.length===0?'呼出状況':callingNumbers.length===1?'ただいまご案内中 '+callingNumbers[0]:'ただいまご案内中 '+callingNumbers[0]+'〜'+callingNumbers[callingNumbers.length-1];
+  }
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -183,8 +186,8 @@ function renderStaticBoard(context,data){
     if(text)text.textContent='またあそびにきてね！';
     setConnection(true,'休館日');
   }else if(context.phase==='before'){
-    if(title)title.textContent='まもなく受付開始';
-    if(text)text.textContent='9:30から呼出状況を表示します。';
+    if(title)title.textContent='まもなく表示開始';
+    if(text)text.textContent='8:00から呼出状況を表示します。';
     setConnection(true,'営業開始前');
   }else if(context.phase==='ended'){
     if(title)title.textContent='本日のご案内は終了しました';
