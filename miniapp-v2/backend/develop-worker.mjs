@@ -134,15 +134,18 @@ export default {
     }
 
     let createPayload = null;
+    let adoptPayload = null;
     let reservationStatusPayload = null;
     if (request.method === 'POST') {
       try {
         const postPayload = await readBody(request.clone());
         const postAction = String(postPayload?.action || '');
         if (postAction === 'createReservation') createPayload = postPayload;
+        if (postAction === 'adoptOfficialWebReception') adoptPayload = postPayload;
         if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
       } catch {
         createPayload = null;
+        adoptPayload = null;
         reservationStatusPayload = null;
       }
     }
@@ -175,6 +178,24 @@ export default {
       queueObservedCallNotification(env, statusResponse, ctx);
       return statusResponse;
     }
+
+    if (adoptPayload) {
+      let body;
+      try { body = await base.clone().json(); }
+      catch { return base; }
+      if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
+      const handoffRequestId=String(adoptPayload?.handoffRequestId||'');
+      if(!handoffRequestId)return json(request,{ok:false,stored:false,error:'OFFICIAL_WEB_HANDOFF_REQUEST_ID_REQUIRED'},400);
+      try {
+        body.serviceMessage = await finalizeReservationNotification(env, { ...adoptPayload, requestId:handoffRequestId }, body);
+        body.notificationReady = body.serviceMessage?.ready === true;
+      } catch (e) {
+        body.serviceMessage = { ok:false, ready:false, status:'FINALIZE_PENDING', error:safeError(e) };
+        body.notificationReady = false;
+      }
+      return new Response(JSON.stringify(body), { status:base.status, headers:base.headers });
+    }
+
     if (!createPayload) return base;
 
     let body;
