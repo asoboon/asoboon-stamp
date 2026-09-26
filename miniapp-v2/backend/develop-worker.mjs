@@ -850,6 +850,39 @@ async function getBusinessDayProxy(value, env) {
   finally { if (businessDayInflight.get(date) === job) businessDayInflight.delete(date); }
 }
 
+const CALLSTATUS_CLOSE_BY_WAITTYPE=Object.freeze({
+  '0023':'17:00','0024':'17:00','0025':'17:00','0027':'17:00',
+  '0035':'17:00','0036':'17:00','0037':'17:00','0038':'17:00',
+  '0029':'18:00','0030':'18:00','0031':'18:00','0032':'18:00','0033':'18:00','0034':'18:00',
+  '0042':'19:00',
+});
+function closeEpochForReservation(businessDate,waitTypeId){
+  const date=normalizeDate(businessDate),hm=String(CALLSTATUS_CLOSE_BY_WAITTYPE[String(waitTypeId||'')]||'');
+  if(!date||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(hm))return 0;
+  const ms=Date.parse(date+'T'+hm+':00+09:00');
+  return Number.isFinite(ms)?ms:0;
+}
+function closedReservationFallback(body){
+  const closeAt=closeEpochForReservation(body?.businessDate,body?.waitTypeId);
+  if(!closeAt||Date.now()<closeAt)return null;
+  return{
+    ...body,
+    ok:true,
+    found:true,
+    state:'closed',
+    status:'closed',
+    isCalling:false,
+    aheadCount:null,
+    queueRank:null,
+    activeCount:0,
+    checkedAt:Date.now(),
+    syntheticTerminal:true,
+    terminalReason:'BUSINESS_DAY_CLOSED',
+    closedAt:closeAt,
+    reconciledBy:'business-close-fallback',
+  };
+}
+
 async function reconcileReservationStatus(request, env, base, payload) {
   let body;
   try { body = await base.clone().json(); }
@@ -864,11 +897,14 @@ async function reconcileReservationStatus(request, env, base, payload) {
     const candidate = match.row;
 
     if (!candidate) {
-      return new Response(JSON.stringify({
+      const closed=closedReservationFallback(body);
+      return new Response(JSON.stringify(closed||{
         ...body,
         reconcileTried:true,
         reconcileAmbiguous:match.ambiguous,
         reconcileCandidateCount:match.count,
+        reconcileExhaustive:true,
+        reconcileReason:rows.length===0?'AIRWAIT_DAY_LIST_EMPTY':'RECEIPT_NOT_IN_FULL_DAY_LIST',
       }), { status:base.status, headers:base.headers });
     }
 
@@ -878,6 +914,13 @@ async function reconcileReservationStatus(request, env, base, payload) {
         const tokenHash = await sha256Hex(String(payload.sessionToken).trim());
         await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
           .bind(candidateWaitTypeId, tokenHash).run();
+        try {
+          await env.DB.prepare(`UPDATE v2_user_day_claims SET wait_type_id=?,updated_at=?
+            WHERE business_date=? AND receipt_no=? AND state='CONFIRMED'`)
+            .bind(candidateWaitTypeId, Date.now(), String(body.businessDate || ''), String(body.receiptNo || '')).run();
+        } catch (e) {
+          console.warn('CALLSTATUS_RECONCILE_CLAIM_WAITTYPE_FAILED', safeError(e));
+        }
         try {
           await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
             WHERE business_date=? AND receipt_no=? AND notified_at=0`)
