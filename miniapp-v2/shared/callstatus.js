@@ -14,7 +14,7 @@ const POLL_FAR_MS=180000;
 const POLL_ERROR_MS=60000;
 const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
-let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0;
+let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0,lastStatus=null,cancelBusy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -36,10 +36,62 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div id="csQueue" class="cs-queue" hidden><div><small>あなたの前</small><strong id="csAhead">—</strong><span>組</span></div><div><small>現在の位置</small><strong id="csRank">—</strong><span id="csTotal">組中</span></div></div>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
+<div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
 <div id="csError" class="cs-error" hidden></div>
 <div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約5秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
+<div id="csCancelDialog" class="cs-cancel-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="csCancelTitle"><button class="cs-cancel-backdrop" type="button" data-cs-cancel-close aria-label="閉じる"></button><div class="cs-cancel-sheet"><div class="cs-cancel-mark">!</div><h3 id="csCancelTitle">受付をキャンセルしますか？</h3><p>受付番号 <strong id="csCancelReceipt">—</strong><br>キャンセルすると現在の順番は取り消され、元には戻せません。</p><button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセルする</button><button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button></div></div>
 </section>`}
+
+function updateCancelAction(state){
+  const area=$('csCancelArea'),button=$('csCancel');
+  if(!area)return;
+  const allowed=['waiting','calling','hold'].includes(String(state||''));
+  area.hidden=!allowed;
+  if(button){button.disabled=cancelBusy||!allowed;button.textContent=cancelBusy?'キャンセル処理中…':'受付をキャンセルする'}
+}
+function openCancelDialog(){
+  if(cancelBusy||!['waiting','calling','hold'].includes(String(lastStatus?.state||'')))return;
+  const dialog=$('csCancelDialog');if(!dialog)return;
+  const cached=cachedReservation();
+  if($('csCancelReceipt'))$('csCancelReceipt').textContent=String(lastStatus?.receiptNo||cached?.receiptNo||'—');
+  dialog.hidden=false;
+}
+function closeCancelDialog(){const dialog=$('csCancelDialog');if(dialog&&!cancelBusy)dialog.hidden=true}
+function friendlyCancelError(value){
+  const code=String(value||'');
+  if(/CANCEL_NOT_ALLOWED_STATE_DONE/.test(code))return'すでにご案内済みのためキャンセルできません。';
+  if(/CANCEL_NOT_ALLOWED_STATE_PROCESSING/.test(code))return'受付対応中のため、スタッフへお声がけください。';
+  if(/CANCEL_NOT_ALLOWED_STATE_CANCELED/.test(code))return'この受付はすでにキャンセルされています。';
+  if(/SESSION|LINE_ACCESS_TOKEN|LINE_PROFILE/.test(code))return'本人確認情報を更新します。ミニアプリを開き直してもう一度お試しください。';
+  if(/CAPABILITY|CSRF|CONFIRM|DETAIL/.test(code))return'キャンセル情報を確認できませんでした。少し時間をおいてもう一度お試しください。';
+  if(/RESULT_UNKNOWN|NOT_CONFIRMED|UPSTREAM_TIMEOUT/.test(code))return'キャンセル結果を確認できませんでした。受付状況を更新してご確認ください。';
+  return'キャンセルできませんでした。受付状況を更新してもう一度お試しください。';
+}
+async function cancelCurrentReservation(){
+  if(cancelBusy)return;
+  cancelBusy=true;updateCancelAction(lastStatus?.state);
+  const proceed=$('csCancelProceed');if(proceed){proceed.disabled=true;proceed.textContent='キャンセル処理中…'}
+  setError('');
+  try{
+    await waitForLine();
+    const session=await ensureSession();
+    if(!session)throw Error('CALLSTATUS_SESSION_REQUIRED');
+    const token=String(liff.getAccessToken?.()||'');
+    if(token.length<20)throw Error('LINE_ACCESS_TOKEN_REQUIRED');
+    const d=await gatewayPost('cancelReservation',{sessionToken:session.sessionToken,liffAccessToken:token});
+    if(!(d?.ok===true&&d?.canceled===true))throw Error(String(d?.error||'CANCEL_NOT_CONFIRMED'));
+    if($('csCancelDialog'))$('csCancelDialog').hidden=true;
+    const canceled={...lastStatus,...d,found:true,state:'canceled',receiptNo:String(d.receiptNo||session.receiptNo||''),checkedAt:Number(d.checkedAt||Date.now())};
+    lastStatus=canceled;
+    applyStatus(canceled);
+  }catch(e){setError(friendlyCancelError(e?.message||e))}
+  finally{
+    cancelBusy=false;
+    if(proceed){proceed.disabled=false;proceed.textContent='キャンセルする'}
+    updateCancelAction(lastStatus?.state);
+  }
+}
 
 function stateMeta(state,ahead){
   switch(String(state||'')){
@@ -82,6 +134,8 @@ function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeNa
 function shareHomeStatus(d){if(E.environment!=='develop')return;const cached=cachedReservation(),receipt=String(d?.receiptNo||cached?.receiptNo||'—'),checkedAt=Number(d?.checkedAt||Date.now());let status;if(!d?.found)status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};else if(d.state==='waiting'&&Number.isFinite(Number(d.aheadCount)))status={kind:'waiting',receipt,ahead:Number(d.aheadCount),checkedAt,source:'callstatus'};else if(d.state==='calling')status={kind:'calling',receipt,checkedAt,source:'callstatus'};else if(d.state==='hold')status={kind:'hold',receipt,checkedAt,source:'callstatus'};else if(['processing','done'].includes(String(d.state||'')))status={kind:'guided',receipt,checkedAt,source:'callstatus'};else if(d.state==='canceled')status={kind:'canceled',receipt,canceled:true,checkedAt,source:'callstatus'};else status={kind:'error',receipt,message:'受付状況を取得できません',checkedAt,source:'callstatus'};window.ASOBOON_HOME_STATUS_SNAPSHOT=status;writeJSON(HOME_SNAP_KEY,{receiptNo:receipt,businessDate:String(d?.businessDate||cached?.businessDate||''),savedAt:checkedAt,status});window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}))}
 function applyStatus(d){
   if(!d||!$('csState'))return;
+  lastStatus=d;
+  updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
@@ -212,6 +266,10 @@ function mountCallstatus(){
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
   if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
   $('csRefresh')?.addEventListener('click',()=>refreshStatus({manual:true}));
+  $('csCancel')?.addEventListener('click',openCancelDialog);
+  $('csCancelProceed')?.addEventListener('click',()=>void cancelCurrentReservation());
+  document.querySelectorAll('[data-cs-cancel-close]').forEach(el=>el.addEventListener('click',closeCancelDialog));
+  updateCancelAction('');
   queueMicrotask(()=>{if(gen===generation&&$('csState'))void refreshStatus()});
 }
 
@@ -247,7 +305,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.6.2-frontline-observe',
+  version:'1.7.0-native-cancel',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
