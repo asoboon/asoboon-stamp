@@ -877,7 +877,6 @@ test('source asset database locks approved sources and contextual use rules', as
   expect(db.runtime_event_rules.forbidden_standalone_character_assets).toEqual(expect.arrayContaining(['chiru_watch','chiru_exasperated','chiru_retort']));
   expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
   expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
-  expect(db.pattern_catalog.total_idle_patterns).toBe(24);
   expect(db.runtime_event_rules.shuffle_bag.slots).toBe(72);
   expect(db.pattern_catalog.total_idle_patterns).toBe(42);
   expect(db.counts.fourth_wall_implementation_assets).toBe(80);
