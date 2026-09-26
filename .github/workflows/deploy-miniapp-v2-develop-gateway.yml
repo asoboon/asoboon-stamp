@@ -166,6 +166,9 @@ jobs:
                   x.createEnabled!==true ||
                   x.createStoreNoFallbackEnabled!==true ||
                   x.officialWebHandoffEnabled!==false ||
+                  x.nativeCancelEnabled!==true ||
+                  x.crowdSnapshotFallbackEnabled!==true ||
+                  x.lineReceptionStoreOnly!==true ||
                   x.airwaitKeyConfigured!==true ||
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
@@ -260,34 +263,6 @@ jobs:
             exit 1
           fi
 
-      - name: Inspect AirWAIT public cancellation API routes
-        run: |
-          set -euo pipefail
-          PAGE="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
-          python3 - "$PAGE" <<'PY'
-          import re, subprocess, sys
-          from urllib.parse import urljoin
-          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
-          routes=set(); contexts=[]
-          for src in srcs:
-              url=urljoin('https://airwait.jp',src)
-              if not url.startswith('https://airwait.jp/'): continue
-              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
-              except Exception: continue
-              for m in re.finditer(r'[\"\\\'](\/WCSP\/api\/internal\/[^\"\\\']+)[\"\\\']',body):
-                  val=m.group(1)
-                  if re.search(r'cancel|reserve|waitDetail|status|update',val,re.I): routes.add(val)
-              for needle in ['/WCSP/cancel/confirm','CANCEL_RESERVE','CANCEL_COMPLETE']:
-                  for m in list(re.finditer(re.escape(needle),body))[:8]:
-                      i=m.start(); contexts.append((needle,url,body[max(0,i-3500):min(len(body),i+6500)].replace('\n',' ')))
-          print('AirWAIT cancel-related internal routes:')
-          for x in sorted(routes): print(x)
-          for needle,url,snip in contexts[:18]:
-              print('===',needle,'FROM',url,'===')
-              print(snip[:10000])
-          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
@@ -300,7 +275,7 @@ jobs:
               const x=JSON.parse(s);
               if(x.ok!==true) throw new Error("createDiagnostics unavailable");
               console.log("Developing recent create diagnostics:");
-              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[],cancelCapability:x.cancelCapability||{}},null,2));
+              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[]},null,2));
             });
           '
       - name: Verify Developing crowd diagnostics
