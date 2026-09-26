@@ -20,21 +20,19 @@ const SLOT_RULES=Object.freeze({
   web:Object.freeze({
     '平日':Object.freeze([
       Object.freeze({waitTypeId:'0023',label:'すぐ入場',detail:'受付後、順番にご案内します'}),
-      Object.freeze({waitTypeId:'0024',label:'10:00の回',detail:'10:00からのご入場枠'}),
-      Object.freeze({waitTypeId:'0025',label:'14:00から',detail:'14:00以降のご案内枠'}),
-      Object.freeze({waitTypeId:'0027',label:'14:00の回',detail:'14:00からのご入場枠'})
+      Object.freeze({waitTypeId:'0025',label:'14:00から',detail:'14:00以降のご案内枠'})
     ]),
     '平日特定日':Object.freeze([
-      Object.freeze({waitTypeId:'0036',label:'10:00の回',detail:'10:00からの3時間利用'}),
-      Object.freeze({waitTypeId:'0038',label:'13:30の回',detail:'13:30からの3時間利用'})
+      Object.freeze({waitTypeId:'0035',label:'10:00の回',detail:'10:00からの3時間利用'}),
+      Object.freeze({waitTypeId:'0037',label:'13:30の回',detail:'13:30からの3時間利用'})
     ]),
     '土日祝日':Object.freeze([
-      Object.freeze({waitTypeId:'0030',label:'10:00の回',detail:'10:00からの2時間30分利用'}),
-      Object.freeze({waitTypeId:'0032',label:'12:30の回',detail:'12:30からの2時間30分利用'}),
-      Object.freeze({waitTypeId:'0034',label:'15:00の回',detail:'15:00からの2時間30分利用'})
+      Object.freeze({waitTypeId:'0029',label:'10:00の回',detail:'10:00からの2時間30分利用'}),
+      Object.freeze({waitTypeId:'0031',label:'12:30の回',detail:'12:30からの2時間30分利用'}),
+      Object.freeze({waitTypeId:'0033',label:'15:00の回',detail:'15:00からの2時間30分利用'})
     ]),
     '休館':Object.freeze([])
-  })
+  }))
 });
 const PRICES=Object.freeze({adult:600,child:900,infantFirstWhenNoPaidChild:900,infantAdditional:0});
 function count(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.floor(n)):0}
@@ -48,7 +46,7 @@ function priceFor({adult=0,child=0,infant=0}={}){
   return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirstWhenNoPaidChild;
 }
 const RULES=Object.freeze({
-  version:'1.0.4',
+  version:'1.1.0-line-store-only',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:19,
   onsiteOpen:'09:30',
