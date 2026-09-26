@@ -957,6 +957,10 @@ async function reconcileReservationStatus(request, env, base, payload) {
     }), { status:base.status, headers:base.headers });
   } catch (e) {
     console.warn('CALLSTATUS_RECONCILE_FAILED', safeError(e));
+    const closed=closedReservationFallback(body);
+    if(closed){
+      return new Response(JSON.stringify({...closed,reconcileTried:true,reconcileReason:'RECONCILE_FAILED_AFTER_CLOSE'}),{status:base.status,headers:base.headers});
+    }
     return base;
   }
 }
