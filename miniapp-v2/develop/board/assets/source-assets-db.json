@@ -1,5 +1,5 @@
 {
-  "database_version": "1.5.0",
+  "database_version": "1.6.0",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
   "source_archive_verification": {
     "verified_on": "2026-09-26",
@@ -43,7 +43,8 @@
     "effects_total": 589,
     "approved_effects": 20,
     "fourth_wall_implementation_assets": 80,
-    "total_registered_source_assets": 709
+    "total_registered_source_assets": 709,
+    "runtime_idle_patterns": 49
   },
   "effect_inventory": {
     "motion": {
@@ -689,6 +690,28 @@
         "duo_oh_no"
       ],
       "logic": "仲良く決める→小さな失敗→2人とも『あっ』"
+    },
+    {
+      "id": "MEGA_SCREEN_TAKEOVER",
+      "beats": [
+        "pompon_smug",
+        "BOARD_TILT",
+        "pompon_shocked",
+        "chiru_retort",
+        "RETREAT"
+      ],
+      "logic": "巨大POMPONが画面を占拠→掲示板を傾ける→CHIRUに見つかって驚く→縮こまって退場"
+    },
+    {
+      "id": "MEGA_GREAT_CRASH",
+      "beats": [
+        "GIANT_BALL",
+        "pompon_cannot_stop",
+        "chiru_chase",
+        "FULL_SCREEN_IMPACT",
+        "duo_entangled"
+      ],
+      "logic": "巨大ボールとPOMPONが暴走→CHIRU参戦→全画面級衝突→2人でもつれる"
     }
   ],
   "runtime_event_rules": {
@@ -775,7 +798,9 @@
       "rare_story": 1,
       "fourth_wall_micro": 12,
       "fourth_wall_story": 14,
-      "guaranteed_unique_idle_patterns": 47
+      "guaranteed_unique_idle_patterns": 47,
+      "deprecated": true,
+      "used_by_runtime": false
     },
     "fourth_wall_rules": {
       "max_in_last_five": 2,
@@ -784,10 +809,35 @@
       "real_data_interrupts_immediately": true,
       "max_runtime_nodes_per_story": 8,
       "source_only": true
+    },
+    "scheduler": "show-director-v1",
+    "show_director": {
+      "arcs": [
+        "BALL_CHAOS",
+        "CHASE_COMEDY",
+        "FOURTH_WALL_MYSTERY"
+      ],
+      "beats_per_arc": 11,
+      "character_force_after_ms": 25000,
+      "mega_min_interval_ms": 90000,
+      "max_pure_fx_in_row": 1,
+      "uses_story_state": true,
+      "supports_callback": true,
+      "supports_aftermath": true,
+      "supports_quiet_beats": true,
+      "jackpot_events": [
+        "MEGA_GREAT_CRASH",
+        "MEGA_SCREEN_TAKEOVER",
+        "FW_KNOCK_KNOCK_POMPON",
+        "FW_REPAIR_REBREAK_DUO",
+        "FW_DUO_RACE_OUT",
+        "FW_DUO_SHARED_BREAK"
+      ],
+      "real_data_interrupts_immediately": true
     }
   },
   "pattern_catalog": {
-    "total_idle_patterns": 47,
+    "total_idle_patterns": 49,
     "source_fx": [
       "FX_MAGIC_STAR_PASS",
       "FX_SPARKLE_SWEEP",
@@ -850,6 +900,10 @@
       "FW_DUO_SIDE_BY_SIDE",
       "FW_KNOCK_KNOCK_POMPON",
       "FW_REPAIR_REBREAK_DUO"
+    ],
+    "mega_story": [
+      "MEGA_SCREEN_TAKEOVER",
+      "MEGA_GREAT_CRASH"
     ]
   },
   "fourth_wall_inventory": {
