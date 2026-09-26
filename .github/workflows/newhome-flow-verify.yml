@@ -228,11 +228,10 @@ jobs:
           grep -F 'DELETE FROM v2_user_day_claims' miniapp-v2/backend/develop-worker.mjs
           grep -F "DELETE FROM v2_request_results WHERE request_id=?" miniapp-v2/backend/develop-worker.mjs
           ! grep -Fq 'releaseCanceledDevelopTestClaim' miniapp-v2/backend/develop-worker.mjs
-          grep -F "if (waitTypeId !== CFG.DEVELOP_TEST_WAIT_TYPE_ID) {" miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "try { await incrementAttempt(env, hash, serverDate); }" miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }" miniapp-v2/backend/prepare-develop-test-runtime.mjs
+          ! grep -Fq "await incrementAttempt(env, hash, serverDate)" miniapp-v2/backend/develop-gateway.js
+          ! grep -Fq "try { await incrementAttempt(env, hash, serverDate); }" miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "catch (e) { await releaseUserClaim(env, hash, serverDate, requestId); throw e; }" develop-gateway.runtime.mjs
+          ! grep -Fq "await incrementAttempt(env, hash, serverDate)" develop-gateway.runtime.mjs
           ! grep -Fq "UPDATE v2_user_attempts" miniapp-v2/backend/develop-worker.mjs
 
       - name: Stale create must fail ambiguous instead of reopening create
