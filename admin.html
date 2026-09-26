@@ -2,33 +2,43 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#080b0d">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
 <title>ASOBooN｜ひみつの資料室</title>
-<link rel="stylesheet" href="./chief-story/app.css?v=20260926-03">
+<link rel="stylesheet" href="./chief-story/app.css?v=20260926-04">
 </head>
 <body>
 <section id="slidesPanel" class="slides-panel" aria-label="ASOBooN プレゼンテーション">
   <div id="presentationShell" class="presentation-shell">
-    <div class="slide-stage">
-      <img id="slideImage" class="slide-image" alt="ASOBooN プレゼンテーション">
+    <div id="slideStage" class="slide-stage">
+      <div id="zoomLayer" class="zoom-layer">
+        <img id="slideImage" class="slide-image" alt="ASOBooN プレゼンテーション" draggable="false">
+      </div>
       <div id="slideLoading" class="slide-loading">資料を読み込んでいます…</div>
     </div>
 
     <div class="slide-ui slide-ui-top">
       <a class="ui-pill" href="./home.html">← HOME</a>
-      <button id="openWords" class="ui-pill" type="button">ことば・資料集</button>
+      <div class="ui-actions">
+        <button id="zoomToggle" class="ui-pill" type="button" aria-label="スライドを拡大">⌕ 拡大</button>
+        <button id="openWords" class="ui-pill" type="button">ことば・資料集</button>
+      </div>
     </div>
 
     <div class="slide-ui slide-ui-bottom">
       <button id="prevSlide" class="nav-btn" type="button" aria-label="前のスライド">‹</button>
       <div class="slide-meta">
         <strong><span id="pageNow">1</span> / <span id="pageTotal">67</span></strong>
-        <small>左右にスワイプ</small>
+        <small id="gestureLabel">左右にスワイプ</small>
       </div>
       <button id="nextSlide" class="nav-btn" type="button" aria-label="次のスライド">›</button>
+    </div>
+
+    <div id="gestureHint" class="gesture-hint" hidden>
+      <strong>左右スワイプでページ移動</strong>
+      <span>ダブルタップ・ピンチで拡大できます</span>
     </div>
   </div>
 </section>
@@ -46,6 +56,6 @@
 </section>
 
 <script src="./chief-story/slides-data.js?v=20260926-03"></script>
-<script src="./chief-story/app.js?v=20260926-03"></script>
+<script src="./chief-story/app.js?v=20260926-04"></script>
 </body>
 </html>
