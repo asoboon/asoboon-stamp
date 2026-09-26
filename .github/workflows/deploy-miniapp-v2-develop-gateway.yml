@@ -536,6 +536,33 @@ jobs:
                           print('===',pat,'FROM',url,'===')
                           print(snippet[:7000])
           PY
+      - name: Inspect AirWAIT public create response fields
+        run: |
+          set -euo pipefail
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          python3 - "$PAGE" <<'PY'
+          import re, subprocess, sys
+          from urllib.parse import urljoin
+          page=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          srcs=re.findall(r'<script[^>]+src=[\"\\\']([^\"\\\']+)[\"\\\']',page,re.I)
+          pats=['waitDetailPath','responseData','reserveId','receiptNo','receiptNumber','number']
+          for src in srcs:
+              url=urljoin('https://airwait.jp',src)
+              if not url.startswith('https://airwait.jp/'): continue
+              try: body=subprocess.check_output(['curl','-L','--fail','--silent','--show-error','-A','Mozilla/5.0',url],text=True,errors='ignore',timeout=25)
+              except Exception: continue
+              if '/WCSP/api/internal/stateless/reserve/create' not in body: continue
+              for pat in pats:
+                  seen=0
+                  for m in re.finditer(re.escape(pat),body):
+                      i=m.start(); snippet=body[max(0,i-1800):min(len(body),i+2600)].replace('\n',' ')
+                      if 'reserve' not in snippet.lower(): continue
+                      print('===',pat,'#',seen+1,'FROM',url,'===')
+                      print(snippet[:4800])
+                      seen+=1
+                      if seen>=12: break
+          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
