@@ -134,7 +134,7 @@ jobs:
           const r=ctx.window.ASOBOON_V2_RULES;
           const ids=(type,mode)=>Array.from(r.slotsFor(type,mode),x=>x.waitTypeId);
           const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-          if(!same(ids('土日祝日','web'),['0030','0032','0034'])) throw new Error('weekend web slot IDs mismatch');
+          if(!same(ids('土日祝日','web'),['0029','0031','0033'])) throw new Error('weekend LINE slot IDs mismatch');
           if(!same(ids('土日祝日','onsite'),['0029','0031','0033'])) throw new Error('weekend onsite slot IDs mismatch');
           if(!same(ids('平日特定日','web'),['0036','0038'])) throw new Error('special weekday web slot IDs mismatch');
           if(!same(ids('平日特定日','onsite'),['0035','0037'])) throw new Error('special weekday onsite slot IDs mismatch');
@@ -208,21 +208,17 @@ jobs:
           grep -F "STORE_NO: 'AKR2298124918'" develop-gateway.runtime.mjs
           grep -F "storeNo: CFG.STORE_NO" develop-gateway.runtime.mjs
 
-      - name: WEB-only reception must preserve AirWAIT online pool and use official handoff
+      - name: LINE reception must use store-only AirWAIT slots with no outbound AirWAIT links
         run: |
           set -euo pipefail
-          grep -F "OFFICIAL_WEB_HANDOFF_TTL_MS" miniapp-v2/backend/develop-gateway.js
-          grep -F "v2_official_web_handoffs" miniapp-v2/backend/develop-gateway.js
-          grep -F "isOnlineOnlyWaitType(waitType?.usageDispType)" miniapp-v2/backend/develop-gateway.js
-          grep -F "adoptOfficialWebReception" miniapp-v2/backend/develop-gateway.js
-          grep -F "OFFICIAL_RECEIPT_NOT_NEW" miniapp-v2/backend/develop-gateway.js
-          grep -F "createIdentifier:'official-web-adoption'" miniapp-v2/backend/develop-gateway.js
-          grep -F "handoffRequired===true" miniapp-v2/shared/reception.js
-          grep -F "recOfficialReceipt" miniapp-v2/shared/reception.js
-          ! grep -Eq "0034[^\n]{0,80}0033|0032[^\n]{0,80}0031|0030[^\n]{0,80}0029" miniapp-v2/backend/develop-gateway.js
-          node miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "adoptOfficialWebReception" develop-gateway.runtime.mjs
-          grep -F "OFFICIAL_WEB_HANDOFF_TTL_MS" develop-gateway.runtime.mjs
+          grep -F "'土日祝日': Object.freeze(['0029', '0031', '0033'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "'平日特定日': Object.freeze(['0035', '0037'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "'平日': Object.freeze(['0023', '0025'])" miniapp-v2/backend/develop-gateway.js
+          grep -F "u === '02' || u === 'KeySTORE_RECEPTION_ONLY'" miniapp-v2/backend/develop-gateway.js
+          ! grep -F "handoffRequired:true" miniapp-v2/backend/develop-gateway.js
+          ! grep -F "recOfficialOpen" miniapp-v2/shared/reception.js
+          ! grep -F "airwait.jp/WCSP" miniapp-v2/shared/reception.js
+          ! grep -F "airwait.jp/WCSP" miniapp-v2/shared/callstatus.js
 
       - name: Sequential same-day reception only recycles terminal previous claim
         run: |
