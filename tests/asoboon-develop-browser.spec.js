@@ -111,7 +111,7 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 });
 
-test('Developing LINE reception exposes live WEB slots and no location UI', async ({ page }) => {
+test('Developing LINE reception exposes store reception slots only and no location UI', async ({ page }) => {
   await openHome(page, 'resolve');
   const rules = await page.evaluate(() => ({
     web: window.ASOBOON_V2_RULES.slotsFor('土日祝日','web').map(x=>x.waitTypeId),
@@ -121,8 +121,8 @@ test('Developing LINE reception exposes live WEB slots and no location UI', asyn
   }));
   expect(rules.web).toEqual(['0029','0031','0033']);
   expect(rules.onsite).toEqual(['0029','0031','0033']);
-  expect(rules.regularWeb).toEqual(['0023','0024','0025','0027']);
-  expect(rules.specialWeb).toEqual(['0036','0038']);
+  expect(rules.regularWeb).toEqual(['0023','0025']);
+  expect(rules.specialWeb).toEqual(['0035','0037']);
 
   await page.locator('[data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
@@ -130,12 +130,12 @@ test('Developing LINE reception exposes live WEB slots and no location UI', asyn
   await expect(page.locator('[data-rec-slot="0031"]')).toHaveCount(1);
   await expect(page.locator('[data-rec-slot="0033"]')).toHaveCount(1);
   await expect(page.locator('[data-rec-slot="0030"],[data-rec-slot="0032"],[data-rec-slot="0034"]')).toHaveCount(0);
-  await expect(page.locator('[data-rec-slot="0042"],[data-rec-slot="0029"],[data-rec-slot="0031"],[data-rec-slot="0033"]')).toHaveCount(0);
+  await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(0);
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
   await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
 });
 
-test('regular weekday LINE reception shows all four AirWAIT slots', async ({ page }) => {
+test('regular weekday LINE reception shows store reception slots only', async ({ page }) => {
   await installLiff(page, 'authenticated', {
     businessDay:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', closingTime:'17:00' },
     waitTypes:[
