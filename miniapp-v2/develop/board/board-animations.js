@@ -239,10 +239,16 @@ function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
   const el=document.createElement('div');
   el.className='fx-onomatopoeia '+kind+(giant?' giant':'');
   el.textContent=text;
-  const cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
-  el.style.left=clamp(cx,giant?window.innerWidth*.18:70,giant?window.innerWidth*.82:window.innerWidth-70)+'px';
-  el.style.top=clamp(cy,giant?window.innerHeight*.2:55,giant?window.innerHeight*.8:window.innerHeight-55)+'px';
+  el.style.visibility='hidden';
   overlayFxLayer().appendChild(el);
+  const measuredWidth=Math.min(innerWidth*.94,Math.max(70,el.offsetWidth||0));
+  const measuredHeight=Math.min(innerHeight*.32,Math.max(44,el.offsetHeight||0));
+  const fallback={x:rect.left+rect.width*.5,y:rect.top+rect.height*.5};
+  const placement=M?.chooseOverlayPlacement?.(rect,{width:measuredWidth,height:measuredHeight,giant})||fallback;
+  el.style.left=placement.x+'px';
+  el.style.top=placement.y+'px';
+  el.style.visibility='';
+  el.dataset.compositionGuard='v2';
   const rawDuration=duration??(reduced?360:(giant?1320:760));
   const animation=el.animate(giant?[
     {opacity:0,transform:'translate(-50%,-50%) scale(.22) rotate(-10deg)'},
@@ -282,9 +288,11 @@ function foregroundShards(rect,{count=7,duration=1250}={}){
   const total=Math.max(3,Math.min(cap,count)),jobs=[];
   for(let i=0;i<total;i++){
     const el=document.createElement('i');el.className='fx-foreground-shard';
-    const angle=(-145+i*(290/Math.max(1,total-1)))*Math.PI/180;
+    const baseAngle=(-145+i*(290/Math.max(1,total-1)))*Math.PI/180;
     const distance=Math.max(innerWidth,innerHeight)*(.34+(i%3)*.08),size=42+(i%4)*18;
+    const angle=M?.rerouteRay?.({x:cx,y:cy},baseAngle,distance,{radius:size*.62})??baseAngle;
     Object.assign(el.style,{left:cx+'px',top:cy+'px',width:size+'px',height:Math.round(size*.58)+'px'});layer.appendChild(el);
+    el.dataset.compositionGuard='v2';
     const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
     jobs.push(animateElement(el,[
       {opacity:0,transform:'translate3d(-50%,-50%,0) rotate('+(i*19)+'deg) scale(.25)'},
@@ -437,9 +445,9 @@ async function playHoldAnimation({element,frame}){
   if(!rect)return;
   const lvl=effectiveLevel();
   const screen=specialScreen('hold',rect,{duration:lvl<=1?760:2900});
+  const character=CHAR?.playStatusAccent?.('hold',{rect})||Promise.resolve();
   const screech=onomatopoeia('キキキキィー！！',rect,'hold',{giant:true,duration:lvl<=1?560:1460});
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
-  const character=CHAR?.playStatusAccent?.('hold',{rect})||Promise.resolve();
   const reaction=screenReaction('hold',{duration:lvl<=1?340:1080});
   const motion=element?animateElement(element,lvl<=1?[
     {transform:'translateX(-4px)'},
