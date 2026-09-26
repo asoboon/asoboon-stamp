@@ -263,7 +263,7 @@ jobs:
             exit 1
           fi
 
-      - name: Inspect AirWAIT CancelReserve module chain
+      - name: Inspect AirWAIT cancel-confirm link builder
         run: |
           set -euo pipefail
           PAGE="$(mktemp)"
@@ -275,44 +275,22 @@ jobs:
           print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
           PY
           )"
-          test -n "$CSP_URL"
           JS="$(mktemp)"
           curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
           python3 - "$JS" <<'PY'
           import re,sys
           src=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          # Known module 1214 body; walk to the following top-level module functions.
-          p=src.find('function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(1215);t.default=r.default}')
-          print('M1214',p)
-          if p<0: raise SystemExit(0)
-          cur=p
-          for mid in range(1214,1222):
-              if mid==1214:
-                  start=cur
-              else:
-                  # after previous function, skip commas/empty slots until next function(e,t,n){
-                  start=src.find('function(e,t,n){',cur)
-                  if start<0: break
-              i=start+src[start:].find('{')
-              depth=0; quote=None; esc=False; j=i
-              while j<len(src):
-                  c=src[j]
-                  if quote:
-                      if esc: esc=False
-                      elif c=='\\\\': esc=True
-                      elif c==quote: quote=None
-                  else:
-                      if c in ('\"',"'",'`'): quote=c
-                      elif c=='{': depth+=1
-                      elif c=='}':
-                          depth-=1
-                          if depth==0:
-                              j+=1; break
-                  j+=1
-              mod=src[start:j]
-              print(f'=== MODULE_CANDIDATE {mid} POS {start} LEN {len(mod)} ===')
-              print(mod[:24000])
-              cur=j
+          for pat in ['CANCEL_RESERVE+"?"','CANCEL_RESERVE+"?storeNo="','CANCEL_RESERVE','cancel/confirm?']:
+              pos=0; seen=0
+              while seen<20:
+                  i=src.find(pat,pos)
+                  if i<0: break
+                  sn=src[max(0,i-2200):min(len(src),i+4200)].replace('\n',' ')
+                  if 'reserveId' in sn or 'displayTicketNo' in sn or 'wait_detail' in sn:
+                      print('===',pat,'@',i,'===')
+                      print(sn[:6400])
+                      seen+=1
+                  pos=i+len(pat)
           PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
