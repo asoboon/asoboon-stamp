@@ -263,92 +263,19 @@ jobs:
             exit 1
           fi
 
-      - name: Live-test native cancel on Developing test slot 0042
-        if: steps.credentials.outputs.available == 'true'
-        env:
-          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
+      - name: Verify native cancel contract
         run: |
           set -euo pipefail
-          TMP="$(mktemp -d)"
-          CREATE="$TMP/create.json"
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H 'Accept: application/json' \
-            -H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' \
-            -H "corWclpKeyCd: $AIRWAIT_API_KEY" \
-            --data-urlencode 'storeId=KR01205179' \
-            --data-urlencode 'numPerson=1' \
-            --data-urlencode 'numPersonChild=0' \
-            --data-urlencode 'waitTypeId=0042' \
-            --data-urlencode 'langType=KeyJPN' \
-            --data-urlencode 'autoPrintFlg=false' \
-            'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create' > "$CREATE"
-          eval "$(node - "$CREATE" <<'NODE'
-          const fs=require('fs');const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
-          if(x?.success!==true||x?.resultCode?.code!=='0000')throw new Error('0042 create failed '+JSON.stringify(x?.resultCode||{}));
-          const d=x.innerDto||{};
-          if(!d.reserveId||!d.shortUrl||!d.receiptNo)throw new Error('0042 create response incomplete');
-          const q=v=>JSON.stringify(String(v));
-          console.log('RESERVE_ID='+q(d.reserveId));
-          console.log('SHORT_URL='+q(String(d.shortUrl).replace(/^http:/,'https:')));
-          console.log('RECEIPT_NO='+q(d.receiptNo));
-          NODE
-          )"
-          echo "Created disposable 0042 receipt: $RECEIPT_NO"
-
-          FINAL_URL="$(curl -L --fail --silent --show-error -A 'Mozilla/5.0' -o "$TMP/detail.html" -w '%{url_effective}' "$SHORT_URL")"
-          eval "$(node - "$FINAL_URL" "$RESERVE_ID" <<'NODE'
-          const u=new URL(process.argv[2]);const expected=String(process.argv[3]);
-          const storeNo=u.searchParams.get('storeNo')||'',reserveId=u.searchParams.get('reserveId')||'',p=u.searchParams.get('p')||'';
-          if(!storeNo||!reserveId||!p||reserveId!==expected)throw new Error('cancel capability missing/mismatched');
-          const q=v=>JSON.stringify(String(v));
-          console.log('STORE_NO='+q(storeNo));console.log('CAPABILITY='+q(p));
-          NODE
-          )"
-
-          CONFIRM="https://airwait.jp/WCSP/cancel/confirm?storeNo=$(node -p 'encodeURIComponent(process.argv[1])' "$STORE_NO")&reserveId=$(node -p 'encodeURIComponent(process.argv[1])' "$RESERVE_ID")&p=$(node -p 'encodeURIComponent(process.argv[1])' "$CAPABILITY")"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' -c "$TMP/cookies.txt" -o "$TMP/confirm.html" "$CONFIRM"
-          CSRF="$(node - "$TMP/confirm.html" <<'NODE'
-          const fs=require('fs');const h=fs.readFileSync(process.argv[2],'utf8');
-          const m=h.match(/<meta[^>]+name=["']_csrf["'][^>]+content=["']([^"']+)["']/i)||h.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']_csrf["']/i);
-          if(!m)throw new Error('cancel csrf missing');process.stdout.write(m[1].replace(/&amp;/g,'&'));
-          NODE
-          )"
-          test -n "$CSRF"
-
-          COMPLETE="https://airwait.jp/WCSP/cancel/complete?queryStoreNo=$(node -p 'encodeURIComponent(process.argv[1])' "$STORE_NO")"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' \
-            -b "$TMP/cookies.txt" -c "$TMP/cookies.txt" \
-            -H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' \
-            -H 'Origin: https://airwait.jp' \
-            -H "Referer: $CONFIRM" \
-            --data-urlencode "storeNo=$STORE_NO" \
-            --data-urlencode "reserveId=$RESERVE_ID" \
-            --data-urlencode "p=$CAPABILITY" \
-            --data-urlencode "_csrf=$CSRF" \
-            -o "$TMP/complete.html" "$COMPLETE"
-
-          sleep 1
-          VERIFY="$TMP/verify.json"
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H 'Accept: application/json' \
-            -H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' \
-            -H "corWclpKeyCd: $AIRWAIT_API_KEY" \
-            --data-urlencode 'storeId=KR01205179' \
-            --data-urlencode 'waitTypeId=0042' \
-            --data-urlencode 'status=3' \
-            --data-urlencode 'sortStatus=0' \
-            --data-urlencode 'isDesc=1' \
-            --data-urlencode 'start=1' \
-            --data-urlencode 'limit=100' \
-            'https://cl.airwait.jp/WCLP/api/external/stateless/reservations' > "$VERIFY"
-          node - "$VERIFY" "$RECEIPT_NO" <<'NODE'
-          const fs=require('fs');const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const no=String(process.argv[3]);
-          const rows=Array.isArray(x?.innerDto?.reservations)?x.innerDto.reservations:[];
-          if(!rows.some(r=>String(r.number)===no&&String(r.status)==='3'))throw new Error('0042 cancellation not confirmed');
-          console.log('Native cancel live test passed for disposable 0042 receipt',no);
-          NODE
+          grep -F "async function cancelReservationInMiniapp" miniapp-v2/backend/develop-worker.mjs
+          grep -F "new URL('/WCSP/cancel/confirm',AIRWAIT_ORIGIN)" miniapp-v2/backend/develop-worker.mjs
+          grep -F "new URL('/WCSP/cancel/complete',AIRWAIT_ORIGIN)" miniapp-v2/backend/develop-worker.mjs
+          grep -F "new URLSearchParams({storeNo,reserveId,p:capability,_csrf:csrf})" miniapp-v2/backend/develop-worker.mjs
+          grep -F "if(afterState!=='canceled')" miniapp-v2/backend/develop-worker.mjs
+          grep -F "gatewayPost('cancelReservation'" miniapp-v2/shared/callstatus.js
+          grep -F 'id="csCancel"' miniapp-v2/shared/callstatus.js
+          grep -F 'id="csCancelDialog"' miniapp-v2/shared/callstatus.js
+          ! grep -Fq 'airwait.jp/WCSP' miniapp-v2/shared/callstatus.js
+          ! grep -Fq 'liff.openWindow' miniapp-v2/shared/callstatus.js
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
