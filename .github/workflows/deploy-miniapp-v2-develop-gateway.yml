@@ -160,6 +160,7 @@ jobs:
                 const x=JSON.parse(s);
                 if(
                   x.ok!==true ||
+                  x.version!=="2.1.dev-store-no-fallback" ||
                   x.environment!=="official-develop" ||
                   x.baseCreateEnabled!==true ||
                   x.createEnabled!==true ||
