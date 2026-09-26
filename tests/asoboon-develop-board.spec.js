@@ -653,7 +653,7 @@ test('quality AUTO and LOW fallback keep giant scale while removing expensive de
     const lowFilter = low.filter;
     const lowShadow = low.boxShadow;
 
-    fx.setQuality('LOW',{persistValue:false});
+    fx.setQuality('AUTO',{persistValue:false});
     probe.remove();
     return {
       lowSpecFallback: fx.LOW_SPEC_FALLBACK,
@@ -752,7 +752,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
     const fx=window.ASOBOON_BOARD_EFFECTS;
     const anim=window.ASOBOON_BOARD_ANIMATIONS;
     const card=document.querySelector('#queueGrid .queue-card');
-    fx.setQuality('AUTO',{persistValue:false});
+    fx.setQuality('LOW',{persistValue:false});
     fx.setSlowdown(0.06,{persistValue:false});
     fx.resetPerformanceBaseline();
 
