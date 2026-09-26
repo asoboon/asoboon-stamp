@@ -163,7 +163,7 @@ test('WEB-only reception hands off to official AirWAIT then links receipt back t
         ok:true,stored:false,handoffRequired:true,
         handoffRequestId:post.get('requestId'),
         businessDate:'2026-09-19',operationalDate:'2026-09-19',waitTypeId:'0034',
-        officialUrl:'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
+        officialUrl:'https://airwait.jp/WCSP/reserve?storeNo=AKR2298124918&langType=KeyJPN',
         expiresAt:Date.parse('2026-09-19T03:15:00Z')
       })});
     }
