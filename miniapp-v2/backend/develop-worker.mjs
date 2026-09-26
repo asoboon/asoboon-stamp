@@ -1023,12 +1023,15 @@ async function fetchAllReservationsForReconcile(env) {
   const job = (async () => {
     const rows = [];
     let start = 1;
-    for (let page = 0; page < 20; page += 1) {
-      const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
+    let total = Infinity;
+    let page = 0;
+    const maxPages = 100; // up to 10,000 same-day records; receipt numbers can exceed 2,000.
+    while (rows.length < total && page < maxPages) {
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
       let r;
-      try {
-        r = await fetch(AIR_RESERVATIONS, {
+      try{
+        r=await fetch(AIR_RESERVATIONS,{
           method:'POST',
           headers:{
             Accept:'application/json',
@@ -1045,28 +1048,27 @@ async function fetchAllReservationsForReconcile(env) {
           cache:'no-store',
           signal:ctrl.signal,
         });
-      } catch (e) {
-        if (e?.name === 'AbortError') throw apiError('AIRWAIT_RECONCILE_TIMEOUT', 504);
+      }catch(e){
+        if(e?.name==='AbortError')throw apiError('AIRWAIT_RECONCILE_TIMEOUT',504);
         throw e;
-      } finally { clearTimeout(timer); }
-
+      }finally{clearTimeout(timer)}
       let d=null;try{d=await r.json()}catch{}
-      if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') {
-        throw apiError('AIRWAIT_RECONCILE_FAILED', 502);
-      }
-      const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
+      if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_RECONCILE_FAILED',502);
+      const part=Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[];
+      total=Math.max(0,Number(d?.innerDto?.count||part.length||0));
       rows.push(...part.map(x=>({
-        number:String(x?.number || ''),
-        waitTypeId:String(x?.waitTypeId || ''),
-        waitTypeName:String(x?.waitTypeName || ''),
-        status:String(x?.status || ''),
-        isCalling:String(x?.isCalling || '0'),
+        number:String(x?.number||''),
+        waitTypeId:String(x?.waitTypeId||''),
+        waitTypeName:String(x?.waitTypeName||''),
+        status:String(x?.status||''),
+        isCalling:String(x?.isCalling||'0'),
       })));
-      const total = Number(d?.innerDto?.count || part.length || 0);
-      if (!part.length || rows.length >= total) break;
-      start += part.length;
+      if(!part.length||rows.length>=total)break;
+      start+=part.length;
+      page+=1;
     }
-    reconcileAllCache = { savedAt:Date.now(), rows };
+    if(rows.length<total)throw apiError('AIRWAIT_RECONCILE_TRUNCATED',502);
+    reconcileAllCache={savedAt:Date.now(),rows};
     return rows;
   })();
 
