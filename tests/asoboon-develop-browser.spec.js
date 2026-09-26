@@ -152,6 +152,53 @@ test('regular weekday LINE reception shows all four AirWAIT slots', async ({ pag
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
 });
 
+test('WEB-only reception hands off to official AirWAIT then links receipt back to LINE', async ({ page }) => {
+  await installLiff(page, 'authenticated');
+  await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
+    const url=new URL(route.request().url());
+    const post=new URLSearchParams(route.request().postData()||'');
+    const action=url.searchParams.get('action')||post.get('action')||'';
+    if(action==='createReservation'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        ok:true,stored:false,handoffRequired:true,
+        handoffRequestId:post.get('requestId'),
+        businessDate:'2026-09-19',operationalDate:'2026-09-19',waitTypeId:'0034',
+        officialUrl:'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
+        expiresAt:Date.parse('2026-09-19T03:15:00Z')
+      })});
+    }
+    if(action==='adoptOfficialWebReception'){
+      expect(post.get('handoffRequestId')).toMatch(/^v2_/);
+      expect(post.get('waitTypeId')).toBe('0034');
+      expect(post.get('receiptNo')).toBe('9876');
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        ok:true,stored:true,adopted:true,businessDate:'2026-09-19',operationalDate:'2026-09-19',
+        waitTypeId:'0034',receiptNo:'9876',reserveId:'000000009876',shortUrl:'',notificationReady:true
+      })});
+    }
+    return route.fallback();
+  });
+  await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('[data-rec-slot="0034"]')).toBeVisible();
+  await page.locator('[data-rec-slot="0034"]').click();
+  await page.locator('#recAgree').check();
+  await expect(page.locator('#recSubmit')).toBeEnabled();
+  await page.locator('#recSubmit').click();
+
+  await expect(page.locator('.rec-official')).toBeVisible();
+  await expect(page.locator('.rec-official')).toContainText('AirWAIT公式画面で受付');
+  await expect(page.locator('#recOfficialOpen')).toBeVisible();
+  await page.locator('#recOfficialReceipt').fill('9876');
+  await page.locator('#recOfficialLink').click();
+
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_current_reservation_develop_v1')));
+  expect(saved.receiptNo).toBe('9876');
+  expect(saved.waitTypeId).toBe('0034');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_official_web_handoff_develop_v1'))).toBeNull();
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
+});
+
 test('Developing 0042 remains available only behind explicit dev mode', async ({ page }) => {
   await installLiff(page, 'authenticated');
   await page.goto(`${BASE}?view=reception&dev=0042`, { waitUntil: 'domcontentloaded' });
