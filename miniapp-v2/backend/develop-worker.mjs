@@ -331,37 +331,21 @@ async function getCreateDiagnostics(env) {
   }
 
   const liveWaitTypes=[];
-  let receipt2510={found:false};
   try{
     const rows=await fetchAllReservationsForReconcile(env);
     const agg=new Map();
     for(const row of rows){
       const id=String(row?.waitTypeId||'');
-      if(id){
-        const cur=agg.get(id)||{waitTypeId:id,waitTypeName:String(row?.waitTypeName||''),total:0,waiting:0,calling:0,hold:0,done:0,canceled:0,processing:0};
-        cur.total+=1;
-        const state=reservationState(row);
-        if(Object.prototype.hasOwnProperty.call(cur,state))cur[state]+=1;
-        agg.set(id,cur);
-      }
+      if(!id)continue;
+      const cur=agg.get(id)||{waitTypeId:id,waitTypeName:String(row?.waitTypeName||''),total:0,waiting:0,calling:0,hold:0,done:0,canceled:0,processing:0};
+      cur.total+=1;
+      const state=reservationState(row);
+      if(Object.prototype.hasOwnProperty.call(cur,state))cur[state]+=1;
+      agg.set(id,cur);
     }
     liveWaitTypes.push(...Array.from(agg.values()).sort((a,b)=>a.waitTypeId.localeCompare(b.waitTypeId)));
-    const m=selectTicketMatch(rows,'2510');
-    receipt2510=m.row?{
-      found:true,
-      number:String(m.row.number||''),
-      waitTypeId:String(m.row.waitTypeId||''),
-      waitTypeName:String(m.row.waitTypeName||''),
-      status:String(m.row.status||''),
-      isCalling:String(m.row.isCalling||'0'),
-      state:reservationState(m.row),
-      ambiguous:Boolean(m.ambiguous),
-      matchMode:String(m.mode||''),
-      scannedRows:rows.length,
-    }:{found:false,ambiguous:Boolean(m.ambiguous),candidateCount:Number(m.count||0),scannedRows:rows.length};
   }catch(e){
     liveWaitTypes.push({error:safeError(e)});
-    receipt2510={found:false,error:safeError(e)};
   }
 
   return {
@@ -372,7 +356,6 @@ async function getCreateDiagnostics(env) {
     legacy,
     confirmed,
     liveWaitTypes,
-    receipt2510,
   };
 }
 
