@@ -31,7 +31,7 @@ const EVENTS=Object.freeze([
 ]);
 
 let currentScope=null,running=false,currentId='';
-const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,lastEvent:null,history:[]};
+const diagnostics={played:0,canceled:0,cleanupRuns:0,callPlayed:0,ambientPlayed:0,statusAccents:0,duplicateSuppressions:0,lastEvent:null,history:[]};
 
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function tm(ms,mode='idle'){return Math.round(Number(ms||0)*(mode==='call'?CALL_PACE:IDLE_PACE))}
@@ -47,11 +47,46 @@ function scaleForStage(){
 function transform(x,y,scale=1,rotate=0,flip=1){
   return 'translate3d('+(x-128)+'px,'+(y-128)+'px,0) rotate('+rotate+'deg) scale('+(scale*flip)+','+scale+')';
 }
+const visibleCharactersByScope=new WeakMap();
+function characterOwner(name){
+  const key=String(name||'');
+  if(key.startsWith('duo_'))return'DUO';
+  if(key.startsWith('pompon_'))return'POMPON';
+  if(key.startsWith('chiru_'))return'CHIRU';
+  return'';
+}
+function suppressVisibleCharacter(el){
+  if(!el||!el.isConnected)return;
+  if(el.style.opacity!=='0')diagnostics.duplicateSuppressions+=1;
+  try{el.getAnimations?.().forEach(animation=>animation.cancel())}catch{}
+  el.style.opacity='0';
+  el.style.visibility='hidden';
+  el.dataset.pcSuppressed='1';
+}
+function registerCharacter(scope,el,name){
+  if(!scope||!el)return el;
+  const owner=characterOwner(name);if(!owner)return el;
+  let state=visibleCharactersByScope.get(scope);
+  if(!state){state={POMPON:null,CHIRU:null,DUO:null};visibleCharactersByScope.set(scope,state)}
+  if(owner==='DUO'){
+    suppressVisibleCharacter(state.POMPON);
+    suppressVisibleCharacter(state.CHIRU);
+    suppressVisibleCharacter(state.DUO);
+    state.POMPON=null;state.CHIRU=null;state.DUO=el;
+  }else{
+    suppressVisibleCharacter(state[owner]);
+    suppressVisibleCharacter(state.DUO);
+    state.DUO=null;
+    state[owner]=el;
+  }
+  el.dataset.pcOwner=owner;
+  return el;
+}
 function pose(scope,name,{x=0,y=0,scale=1,rotate=0,flip=1,opacity=1,layer='front',className=''}={}){
   const el=A.createCharacter(name,className);if(!el)return null;
   Object.assign(el.dataset,{sceneX:String(x),sceneY:String(y),sceneScale:String(scale),sceneRotate:String(rotate),sceneFlip:String(flip)});
   el.style.opacity=String(opacity);el.style.transform=transform(x,y,scale,rotate,flip);
-  return scope.add(el,layer);
+  return registerCharacter(scope,scope.add(el,layer),name);
 }
 function anchorPoint(el,key='CENTER'){
   const anchors=A.CHARACTER_ANCHORS?.[el?.dataset?.pcAsset]||{CENTER:[.5,.5]};
@@ -796,52 +831,105 @@ async function ambient(scope,id){
   }
 }
 async function statusAccent(scope,kind,{localX,localY}={}){
-  const r=rect(),s=scaleForStage(),x=clamp(localX||r.width*.5,100,r.width-100),y=clamp(localY||r.height*.55,100,r.height-100);
+  const r=rect(),s=scaleForStage(),x=clamp(localX||r.width*.5,120,r.width-120),y=clamp(localY||r.height*.55,130,r.height-130);
   if(kind==='guided'){
-    const e=fx(scope,'speed_lines','movement',{x,y,scale:s*.65,opacity:0});
-    await anim(scope,e,[
-      {opacity:0,transform:transform(x-70,y,s*.4)},
-      {opacity:.9,offset:.35,transform:transform(x,y,s*.72)},
-      {opacity:0,transform:transform(x+120,y-8,s*.9)},
-    ],{duration:430,easing:'ease-out',fill:'forwards'},'call');
+    const p=pose(scope,'pompon_dash',{x:x-r.width*.28,y:y+28,scale:s*1.08,opacity:0});
+    const e=fx(scope,'speed_lines','movement',{x:x-r.width*.16,y:y+34,scale:s*1.05,opacity:0,layer:'back'});
+    await Promise.all([
+      anim(scope,p,[
+        {opacity:0,transform:transform(x-r.width*.32,y+28,s*.9,-3)},
+        {opacity:1,offset:.2,transform:transform(x-r.width*.22,y+24,s*1.06,-1)},
+        {opacity:1,offset:.72,transform:transform(x+35,y+8,s*1.1,2)},
+        {opacity:0,transform:transform(x+r.width*.34,y-12,s*.96,5)},
+      ],{duration:760,easing:'cubic-bezier(.12,.76,.16,1)',fill:'forwards'},'call'),
+      anim(scope,e,[
+        {opacity:0,transform:transform(x-r.width*.28,y+36,s*.5)},
+        {opacity:.92,offset:.34,transform:transform(x-r.width*.08,y+26,s*1.02)},
+        {opacity:0,transform:transform(x+r.width*.25,y+4,s*1.32)},
+      ],{duration:720,easing:'ease-out',fill:'forwards'},'call')
+    ]);
+    await hold(scope,220,'call');
   }else if(kind==='hold'){
-    await popFx(scope,'dust_burst','impact',x-25,y+35,s*.58,0,'call');
+    const p=pose(scope,'pompon_brake',{x:x-75,y:y+48,scale:s*1.08,opacity:0});
+    await anim(scope,p,[
+      {opacity:0,transform:transform(x-145,y+48,s*.9,-4)},
+      {opacity:1,offset:.2,transform:transform(x-52,y+48,s*1.12,5)},
+      {opacity:1,offset:.68,transform:transform(x-84,y+46,s*1.08,-3)},
+      {opacity:1,transform:transform(x-72,y+46,s*1.08,0)},
+    ],{duration:760,easing:'cubic-bezier(.18,.88,.2,1)',fill:'forwards'},'call');
+    await Promise.all([
+      popFx(scope,'dust_burst','impact',x-66,y+80,s*.86,0,'call'),
+      shakeShell(scope,.5,'call')
+    ]);
+    await hold(scope,320,'call');
+    hide(p);
+    const c=pose(scope,'chiru_shocked',{x:x+120,y:y+44,scale:s*.92,opacity:0});
+    const alert=anchoredFx(scope,c,'HEAD','alert_red','alert',{dx:42,dy:-20,scale:s*.58,opacity:0});
+    await Promise.all([
+      anim(scope,c,[
+        {opacity:0,transform:transform(x+120,y+72,s*.76)},
+        {opacity:1,offset:.24,transform:transform(x+120,y+42,s*.94,-4)},
+        {opacity:1,offset:.82,transform:transform(x+120,y+42,s*.92,3)},
+        {opacity:0,transform:transform(x+120,y+60,s*.8)},
+      ],{duration:840,easing:'ease-out',fill:'forwards'},'call'),
+      anim(scope,alert,[{opacity:0},{opacity:1,offset:.3},{opacity:1,offset:.72},{opacity:0}],{duration:700,fill:'forwards'},'call')
+    ]);
+    await hold(scope,260,'call');
   }else if(kind==='cancel'){
-    await popFx(scope,'impact_starburst','impact',x,y,s*.62,-4,'call');
+    const p=pose(scope,'pompon_shocked',{x:x-105,y:y+48,scale:s*1.18,opacity:0});
+    const alert=anchoredFx(scope,p,'HEAD','exclamation','alert',{dx:48,dy:-24,scale:s*.64,opacity:0});
+    await Promise.all([
+      anim(scope,p,[
+        {opacity:0,transform:transform(x-105,y+82,s*.9,-7)},
+        {opacity:1,offset:.22,transform:transform(x-105,y+42,s*1.22,5)},
+        {opacity:1,offset:.84,transform:transform(x-105,y+42,s*1.18,-3)},
+        {opacity:0,transform:transform(x-140,y+64,s*.96,-8)},
+      ],{duration:920,easing:'cubic-bezier(.18,.86,.2,1)',fill:'forwards'},'call'),
+      anim(scope,alert,[{opacity:0},{opacity:1,offset:.25},{opacity:1,offset:.7},{opacity:0}],{duration:740,fill:'forwards'},'call')
+    ]);
+    await hold(scope,360,'call');
   }
 }
 async function callDelivery(scope,context={}){
   const r=rect(),s=scaleForStage();
-  const x=clamp(Number(context.localX)||r.width*.5,150,r.width-150),y=clamp(Number(context.localY)||r.height*.55,150,r.height-150);
+  const x=clamp(Number(context.localX)||r.width*.5,160,r.width-160),y=clamp(Number(context.localY)||r.height*.55,160,r.height-160);
   if(M.isReduced())return reducedEvent(scope,'CALL_DELIVERY',{localX:x,localY:y});
-  const p=pose(scope,'pompon_dash',{x:-160,y:y+20,scale:s*.88,opacity:0});
-  const speed=fx(scope,'speed_lines','movement',{x:x*.4,y:y+26,scale:s*.82,opacity:0,layer:'back'});
+  const p=pose(scope,'pompon_dash',{x:-190,y:y+26,scale:s*1.08,opacity:0});
+  const speed=fx(scope,'speed_lines','movement',{x:x*.36,y:y+30,scale:s*1.08,opacity:0,layer:'back'});
   await Promise.all([
     anim(scope,p,[
-      {opacity:0,transform:transform(-160,y+20,s*.78,-3)},
-      {opacity:1,offset:.16,transform:transform(-10,y+20,s*.88,-1)},
-      {opacity:1,transform:transform(x-150,y+12,s*.9,1)},
-    ],{duration:420,easing:'cubic-bezier(.1,.78,.18,1)',fill:'forwards'},'call'),
+      {opacity:0,transform:transform(-190,y+26,s*.9,-4)},
+      {opacity:1,offset:.16,transform:transform(-20,y+24,s*1.05,-1)},
+      {opacity:1,offset:.76,transform:transform(x-135,y+12,s*1.12,2)},
+      {opacity:1,transform:transform(x-118,y+10,s*1.08,1)},
+    ],{duration:560,easing:'cubic-bezier(.1,.78,.18,1)',fill:'forwards'},'call'),
     anim(scope,speed,[
-      {opacity:0,transform:transform(0,y+28,s*.4)},
-      {opacity:.88,offset:.35,transform:transform(x*.42,y+25,s*.8)},
-      {opacity:0,transform:transform(x-140,y+16,s*1.02)},
-    ],{duration:410,easing:'ease-out',fill:'forwards'},'call'),
+      {opacity:0,transform:transform(0,y+34,s*.45)},
+      {opacity:.92,offset:.32,transform:transform(x*.4,y+28,s*1.02)},
+      {opacity:0,transform:transform(x-120,y+14,s*1.36)},
+    ],{duration:540,easing:'ease-out',fill:'forwards'},'call'),
   ]);
+  await hold(scope,140,'call');
   hide(p);
-  await popFx(scope,'dust_burst','impact',x-80,y+38,s*.58,0,'call');
-  const retortX=x<r.width*.55?clamp(x+205,170,r.width-140):clamp(x-205,140,r.width-170);
+  await Promise.all([
+    popFx(scope,'dust_burst','impact',x-58,y+46,s*.92,0,'call'),
+    popFx(scope,'impact_burst','impact',x-18,y+6,s*.86,-4,'call')
+  ]);
+  await hold(scope,220,'call');
+  const retortX=x<r.width*.55?clamp(x+225,190,r.width-150):clamp(x-225,150,r.width-190);
   const flip=retortX>x?-1:1;
-  const c=pose(scope,'chiru_retort',{x:retortX,y:y+65,scale:s*.68,flip,opacity:0});
+  const c=pose(scope,'chiru_retort',{x:retortX,y:y+62,scale:s*.92,flip,opacity:0});
+  const alert=anchoredFx(scope,c,'HEAD','exclamation','alert',{dx:44,dy:-24,scale:s*.62,opacity:0});
   await Promise.all([
     anim(scope,c,[
-      {opacity:0,transform:transform(retortX,y+85,s*.6,0,flip)},
-      {opacity:1,offset:.28,transform:transform(retortX,y+65,s*.7,-2,flip)},
-      {opacity:1,offset:.74,transform:transform(retortX,y+65,s*.7,2,flip)},
-      {opacity:0,transform:transform(retortX,y+80,s*.62,0,flip)},
-    ],{duration:520,easing:'ease-out',fill:'forwards'},'call'),
-    popFx(scope,'exclamation','alert',x+12,y-90,s*.5,-3,'call'),
+      {opacity:0,transform:transform(retortX,y+92,s*.74,0,flip)},
+      {opacity:1,offset:.24,transform:transform(retortX,y+60,s*.94,-3,flip)},
+      {opacity:1,offset:.82,transform:transform(retortX,y+60,s*.92,3,flip)},
+      {opacity:0,transform:transform(retortX,y+84,s*.78,0,flip)},
+    ],{duration:880,easing:'ease-out',fill:'forwards'},'call'),
+    anim(scope,alert,[{opacity:0},{opacity:1,offset:.28},{opacity:1,offset:.7},{opacity:0}],{duration:760,fill:'forwards'},'call'),
   ]);
+  await hold(scope,380,'call');
 }
 
 const PLAYERS=Object.freeze({
@@ -914,11 +1002,11 @@ async function playCallDelivery({number='',rect:targetRect=null}={}){
   return play('CALL_DELIVERY',{number,localX:p.x,localY:p.y});
 }
 const SCENE_RECIPES=Object.freeze(Object.fromEntries(EVENTS.map(e=>[e.id,Object.freeze({cast:e.id.startsWith('CHIRU')?['CHIRU']:e.id.startsWith('DUO')||e.id==='PEEK_DISCOVERY'?['POMPON','CHIRU']:['POMPON'],actionZone:e.id.includes('PEEK')?'edges':'full-stage',beats:['anticipation','entrance','action','hold','incident','reaction','aftermath','exit'],anchors:['ENTRY_POINT','TRAIL_ORIGIN','IMPACT','FACE','HEAD'],zOrder:['rear-effect','character','front-effect'],minimumReactionHoldMs:e.category.includes('STORY')?780:520})])));
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length}}
-function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.lastEvent=null;diagnostics.history=[]}
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,reduced:M.isReduced(),assets:A.diagnostics(),idlePace:IDLE_PACE,sceneRecipeCount:Object.keys(SCENE_RECIPES).length,characterContinuity:'single-instance-per-character'}}
+function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'3.2.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  version:'3.3.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
   getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();
