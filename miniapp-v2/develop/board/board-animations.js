@@ -243,8 +243,11 @@ function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
   overlayFxLayer().appendChild(el);
   const measuredWidth=Math.min(innerWidth*.94,Math.max(70,el.offsetWidth||0));
   const measuredHeight=Math.min(innerHeight*.32,Math.max(44,el.offsetHeight||0));
+  const guardScale=giant?1.36:1.18;
+  const guardWidth=Math.min(innerWidth*.96,measuredWidth*guardScale);
+  const guardHeight=Math.min(innerHeight*.38,measuredHeight*guardScale);
   const fallback={x:rect.left+rect.width*.5,y:rect.top+rect.height*.5};
-  const placement=M?.chooseOverlayPlacement?.(rect,{width:measuredWidth,height:measuredHeight,giant})||fallback;
+  const placement=M?.chooseOverlayPlacement?.(rect,{width:guardWidth,height:guardHeight,giant})||fallback;
   el.style.left=placement.x+'px';
   el.style.top=placement.y+'px';
   el.style.visibility='';
