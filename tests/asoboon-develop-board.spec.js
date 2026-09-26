@@ -49,7 +49,7 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
     const url = new URL(route.request().url());
     if (url.searchParams.get('action') === 'boardStatus') {
       const body = sequence[Math.min(index, sequence.length - 1)];
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+      return route.fulfill({ status: body?.ok === false ? 503 : 200, contentType: 'application/json', body: JSON.stringify(body) });
     }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
@@ -190,6 +190,74 @@ test('initial board snapshot never fires status animations', async ({ page }) =>
   expect(d.played).toBe(0);
   expect(d.baselines).toBe(1);
   expect(h.pageErrors).toEqual([]);
+});
+
+test('calling caption clears when all rows are canceled or the board becomes inactive', async ({ page }) => {
+  const h = await installBoard(page, [
+    payload([{ number: '2551', state: 'calling', order: 1 }]),
+    payload([{ number: '2551', state: 'canceled', order: 1 }]),
+    payload([], { businessType: '休館' }),
+  ]);
+
+  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2551');
+  h.next();
+  await h.refresh();
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
+  await expect(page.locator('.queue-card')).toHaveCount(0);
+
+  h.next();
+  await h.refresh();
+  await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
+  await expect(page.locator('#emptyTitle')).toHaveText('本日は休館日です');
+});
+
+test('temporary API failure preserves readable data and automatically recovers', async ({ page }) => {
+  const first = payload([{ number: '2581', state: 'calling', order: 1 }]);
+  const recovered = payload([
+    { number: '2581', state: 'done', order: 1 },
+    { number: '2582', state: 'calling', order: 2 },
+  ]);
+  const h = await installBoard(page, [first, { ok:false, error:'TEST_OFFLINE' }, recovered]);
+
+  h.next();
+  await h.refresh();
+  await expect(page.locator('.queue-number')).toHaveText(['2581']);
+  await expect(page.locator('#connection')).toContainText('更新待機中');
+  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2581');
+
+  h.next();
+  await h.refresh();
+  await expect(page.locator('.queue-number')).toHaveText(['2581','2582']);
+  await expect(page.locator('#connection')).toContainText('10秒ごとに自動更新');
+  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 2582');
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('240 receptions fit a 1080x1920 portrait board without scrolling or overlap', async ({ page }) => {
+  await page.setViewportSize({ width:1080, height:1920 });
+  const rows = Array.from({ length:240 }, (_,i) => ({
+    number:String(3001+i),
+    state:i===119?'calling':i%17===0?'hold':i%11===0?'done':'waiting',
+    order:i+1,
+  }));
+  await installBoard(page, [payload(rows)]);
+  await expect(page.locator('.queue-card')).toHaveCount(240);
+  await expect(page.locator('#boardDiagnostics')).toBeHidden();
+  const layout = await page.evaluate(() => {
+    const grid=document.getElementById('queueGrid'),box=grid.getBoundingClientRect();
+    const cards=[...grid.querySelectorAll('.queue-card')];
+    return {
+      bodyScroll:document.documentElement.scrollHeight>innerHeight||document.documentElement.scrollWidth>innerWidth,
+      minFont:Math.min(...cards.map(x=>parseFloat(getComputedStyle(x.querySelector('.queue-number')).fontSize))),
+      outside:cards.filter(x=>{const r=x.getBoundingClientRect();return r.left<box.left-1||r.right>box.right+1||r.top<box.top-1||r.bottom>box.bottom+1}).length,
+      overlap:cards.some((x,i)=>{const a=x.getBoundingClientRect(),b=cards[i+1]?.getBoundingClientRect();return b&&a.top===b.top&&a.right>b.left+1}),
+    };
+  });
+  expect(layout.bodyScroll).toBe(false);
+  expect(layout.minFont).toBeGreaterThanOrEqual(12);
+  expect(layout.outside).toBe(0);
+  expect(layout.overlap).toBe(false);
+  await expect(page.locator('#liveCaption')).toHaveText('ただいまご案内中 3120');
 });
 
 test('call, guided, hold and cancel transitions fire only for the changed number', async ({ page }) => {
@@ -864,6 +932,9 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
 
 test('source asset database locks approved sources and contextual use rules', async () => {
   const db=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/assets/source-assets-db.json','utf8'));
+  expect(db.database_version).toBe('1.4.1');
+  expect(db.source_archive_verification.runtime_reads_source_archives).toBe(false);
+  expect(db.source_archive_verification.archives).toHaveLength(3);
   expect(db.runtime_policy.legacy_visual_assets_allowed).toBe(false);
   expect(db.runtime_policy.approved_sources).toEqual(expect.arrayContaining(['POMPON_CHIRU_assets_draft_40 2.zip','effects_pack_v2.zip']));
   expect(db.counts.characters).toBe(40);

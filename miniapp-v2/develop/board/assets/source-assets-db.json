@@ -1,6 +1,31 @@
 {
-  "database_version": "1.4.0",
+  "database_version": "1.4.1",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
+  "source_archive_verification": {
+    "verified_on": "2026-09-26",
+    "storage_root": "_source_assets/board",
+    "runtime_reads_source_archives": false,
+    "archives": [
+      {
+        "file": "POMPON_CHIRU_assets_draft_40 2.zip",
+        "sha256": "535212a3b6f04de57e577be89620cfe3ab4c23d435ebdd472e2554f24defd8cf",
+        "manifested_assets": 40,
+        "unmanifested_assets": 3
+      },
+      {
+        "file": "effects_pack_v2.zip",
+        "sha256": "3b82076b53bde7a960440b7804112a7d35fd5852eb7542c45345199d72b6c06b",
+        "manifested_assets": 589
+      },
+      {
+        "file": "fourth_wall_implementation_pack_v1.zip",
+        "sha256": "4e0185c3e85f3efe41e00dccc2d6a7a8fe6aa0b243dcd8270892c018a0db3fd4",
+        "implementation_assets": 80,
+        "reference_assets": 4,
+        "preview_assets": 7
+      }
+    ]
+  },
   "runtime_policy": {
     "approved_sources": [
       "POMPON_CHIRU_assets_draft_40 2.zip",

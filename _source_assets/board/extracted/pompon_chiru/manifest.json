@@ -1,0 +1,442 @@
+[
+  {
+    "name": "pompon_idle.png",
+    "size": [
+      1287,
+      1222
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_run.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_dash.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "pompon_brake.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "pompon_cannot_stop.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "pompon_peek.png",
+    "size": [
+      1145,
+      1374
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_shocked.png",
+    "size": [
+      1314,
+      1197
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_smug.png",
+    "size": [
+      1265,
+      1244
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_oops.png",
+    "size": [
+      1205,
+      1305
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_fly.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "pompon_wobble.png",
+    "size": [
+      1312,
+      1199
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_slide.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "pompon_trip.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_ballride.png",
+    "size": [
+      1145,
+      1374
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "pompon_proud_run.png",
+    "size": [
+      1362,
+      1155
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_idle.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_run.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_chase.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_brake.png",
+    "size": [
+      1323,
+      1189
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_peek.png",
+    "size": [
+      1378,
+      1142
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_watch.png",
+    "size": [
+      1352,
+      1163
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_shocked.png",
+    "size": [
+      1311,
+      1200
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_exasperated.png",
+    "size": [
+      1312,
+      1199
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_angry.png",
+    "size": [
+      1302,
+      1208
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_dodge.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_fly.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_wobble.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_sneak.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "chiru_sigh.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "chiru_retort.png",
+    "size": [
+      1312,
+      1199
+    ],
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "duo_chase.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_runaway_crash.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_surprised.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_boast_disbelief.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_failure_scold.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_fly.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_dodge.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_entangled.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_friendship_oops.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "duo_oh_no.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha_range": [
+      0,
+      254
+    ]
+  }
+]

@@ -4,6 +4,7 @@ const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
 const REFRESH_MS=10000;
+const REQUEST_TIMEOUT_MS=8000;
 const $=id=>document.getElementById(id);
 const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
 const BOARD_OPEN_MINUTE=8*60;
@@ -60,9 +61,15 @@ function statusMeta(kind){
 function visibleRows(rows){
   return (Array.isArray(rows)?rows:[]).filter(row=>String(row?.state||'')!=='canceled');
 }
+function updateLiveCaption(rows=[]){
+  const live=$('liveCaption');if(!live)return;
+  const callingNumbers=(Array.isArray(rows)?rows:[]).filter(r=>String(r?.state||'')==='calling').map(r=>String(r?.number||'').trim()).filter(Boolean);
+  live.textContent=callingNumbers.length===0?'呼出状況':callingNumbers.length===1?'ただいまご案内中 '+callingNumbers[0]:'ただいまご案内中 '+callingNumbers[0]+'〜'+callingNumbers[callingNumbers.length-1];
+}
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
   state.rows=visibleRows(rows);
+  updateLiveCaption(state.rows);
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
@@ -134,11 +141,6 @@ function layoutGrid(){
     card.classList.toggle('current-band',dist===0);
     card.classList.toggle('near-band',dist===1);
   });
-  const live=$('liveCaption');
-  if(live){
-    const callingNumbers=state.rows.filter(r=>String(r?.state||'')==='calling').map(r=>String(r?.number||'').trim()).filter(Boolean);
-    live.textContent=callingNumbers.length===0?'呼出状況':callingNumbers.length===1?'ただいまご案内中 '+callingNumbers[0]:'ただいまご案内中 '+callingNumbers[0]+'〜'+callingNumbers[callingNumbers.length-1];
-  }
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -154,7 +156,7 @@ function setSessionHeader(context,countText=''){
 }
 function updateDiagnostics(context,data){
   const el=$('boardDiagnostics');if(!el)return;
-  const debug=new URLSearchParams(location.search).get('debug')==='1'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
+  const debug=new URLSearchParams(location.search).get('debug')==='1';
   el.hidden=!debug;
   if(!debug)return;
   const director=DIRECTOR?.getDiagnostics?.()||null;
@@ -175,6 +177,7 @@ function updateDiagnostics(context,data){
 function renderStaticBoard(context,data){
   if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
   state.rows=[];state.lastColumns=0;
+  updateLiveCaption();
   const grid=$('queueGrid'),empty=$('emptyState');
   if(grid){grid.innerHTML='';grid.hidden=true;}
   if(empty)empty.hidden=false;
@@ -256,10 +259,11 @@ function renderPayload(data){
 }
 async function fetchBoard(){
   if(state.busy)return;state.busy=true;
+  const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),REQUEST_TIMEOUT_MS);
   try{
     if(!E.backendUrl||!/^https:\/\//.test(String(E.backendUrl)))throw Error('掲示板APIが設定されていません');
     const u=new URL(E.backendUrl);u.searchParams.set('action','boardStatus');u.searchParams.set('_',String(Date.now()));
-    const r=await fetch(u.toString(),{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}});
+    const r=await fetch(u.toString(),{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{Accept:'application/json'}});
     let d=null;try{d=await r.json()}catch{}
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
@@ -272,7 +276,7 @@ async function fetchBoard(){
       $('emptyTitle').textContent='呼出状況を確認しています';
       $('emptyText').textContent='通信が戻ると自動で表示します。';
     }
-  }finally{state.busy=false;}
+  }finally{clearTimeout(timeout);state.busy=false;}
 }
 function schedule(){clearInterval(state.timer);state.timer=setInterval(fetchBoard,REFRESH_MS);}
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
@@ -285,6 +289,8 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   preferredColumns,
   visibleRows,
   normalizeRows,
+  updateLiveCaption,
+  REQUEST_TIMEOUT_MS,
   refresh:fetchBoard,
   idle:()=>IDLE?.getDiagnostics?.()||null,
   director:()=>DIRECTOR?.getDiagnostics?.()||null,

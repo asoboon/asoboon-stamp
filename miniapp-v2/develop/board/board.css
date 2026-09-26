@@ -326,16 +326,16 @@ body{
   border-color:#fff1a9;
   box-shadow:0 5px 0 #9b7800,0 10px 16px rgba(0,0,0,.18);
 }
-.queue-card.current-band{transform:scale(1.035);z-index:4}
-.queue-card.near-band{transform:scale(1.014);z-index:2}
+.queue-card.current-band{z-index:4}
+.queue-card.near-band{z-index:2}
 .queue-card.current-band:not(.calling){border-color:#9ab0b6}
 .queue-grid.ultra-compact .queue-card{border-width:2px;border-radius:8px}
 .queue-grid.ultra-compact .number-wrap{padding:2px 4px}
 .queue-grid.ultra-compact .status-rail{min-height:13px;padding:1px 3px 2px;gap:3px;letter-spacing:0}
 .queue-grid.ultra-compact .status-label{display:none}
 .queue-grid.ultra-compact .status-icon{font-size:9px}
-.queue-grid.ultra-compact .queue-card.current-band{transform:scale(1.018)}
-.queue-grid.ultra-compact .queue-card.near-band{transform:scale(1.008)}
+.queue-grid.ultra-compact .queue-card.current-band,
+.queue-grid.ultra-compact .queue-card.near-band{transform:none}
 .empty-state{
   position:absolute;
   z-index:3;
