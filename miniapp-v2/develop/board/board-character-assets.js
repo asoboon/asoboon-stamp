@@ -15,6 +15,18 @@ const CHARACTERS=Object.freeze({
   duo_entangled:{col:0,row:5},duo_failure_scold:{col:1,row:5},duo_friendship_oops:{col:2,row:5},duo_oh_no:{col:3,row:5},duo_boast_disbelief:{col:4,row:5},
 });
 
+const CHARACTER_META=Object.freeze(Object.fromEntries(Object.keys(CHARACTERS).map(name=>[name,Object.freeze((()=>{
+  const directionalRight=new Set([
+    'pompon_dash','pompon_brake','pompon_cannot_stop','pompon_wobble','pompon_ballride','pompon_fly',
+    'chiru_watch','chiru_chase','chiru_dodge','chiru_retort','chiru_sneak','chiru_angry'
+  ]);
+  const duo=name.startsWith('duo_');
+  return{
+    nativeFacing:directionalRight.has(name)?'right':duo?'duo':'front',
+    flipSafe:directionalRight.has(name),
+    gazePolicy:duo?'internal-duo':directionalRight.has(name)?'target-aware':'front-or-scene-defined'
+  };
+})())])));
 const EFFECTS=Object.freeze({
   dust_streak:{col:0,row:0,source:'motion_part_005',semantic:'movement'},
   dust_impact:{col:1,row:0,source:'motion_part_008',semantic:'impact'},
@@ -91,10 +103,10 @@ function validatePairing(effectName,requiredSemantic){
   const allowed=EFFECT_RULES[String(requiredSemantic||'')];
   return Array.isArray(allowed)&&allowed.includes(String(effectName||''));
 }
-function diagnostics(){return{version:'3.2.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,anchorCount:Object.keys(CHARACTER_ANCHORS).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
+function diagnostics(){return{version:'3.3.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,anchorCount:Object.keys(CHARACTER_ANCHORS).length,characterMetaCount:Object.keys(CHARACTER_META).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
 
 window.ASOBOON_BOARD_CHARACTER_ASSETS=Object.freeze({
-  version:'3.2.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,CHARACTER_ANCHORS,
+  version:'3.3.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,CHARACTER_META,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,CHARACTER_ANCHORS,
   preloadCharacters,preloadEffects,preloadAll,createCharacter,createEffect,validatePairing,diagnostics,
 });
 })();

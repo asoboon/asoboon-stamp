@@ -421,7 +421,8 @@ body{
 
 /* Full-screen world layers: effects can fill the display, real information stays above. */
 .board-fx-back-layer,
-.board-fx-front-layer{
+.board-fx-front-layer,
+.board-fx-overlay-layer{
   position:absolute;
   inset:0;
   overflow:hidden;
@@ -430,6 +431,7 @@ body{
 }
 .board-fx-back-layer{z-index:6}
 .board-fx-front-layer{z-index:42}
+.board-fx-overlay-layer{z-index:60}
 .world-stage-wash{
   --world-color:#78e5ff;
   position:absolute;
@@ -811,6 +813,10 @@ body{
   border:2px solid rgba(255,255,255,.88);
   box-shadow:0 5px 0 rgba(19,31,35,.28);
   will-change:transform,opacity;
+}
+:root[data-board-quality="low"] .fx-foreground-shard{
+  box-shadow:none;
+  border-width:1px;
 }
 .fx-impact-flash{
   position:fixed;

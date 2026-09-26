@@ -187,7 +187,7 @@ async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kin
   }
 }
 
-function fxLayer(){
+function stageFxLayer(){
   let layer=document.getElementById('boardFxLayer');
   if(layer)return layer;
   layer=document.createElement('div');
@@ -196,6 +196,9 @@ function fxLayer(){
   layer.setAttribute('aria-hidden','true');
   (document.querySelector('.board')||document.body).appendChild(layer);
   return layer;
+}
+function overlayFxLayer(){
+  return M?.getLayer?.('overlay')||stageFxLayer();
 }
 function currentFrame(element){
   if(!element)return null;
@@ -228,7 +231,7 @@ function ghostFrom(frame,className=''){
   });
   ghost.style.setProperty('--number-size',frame.vars?.numberSize||'34px');
   ghost.style.setProperty('--state-size',frame.vars?.stateSize||'12px');
-  fxLayer().appendChild(ghost);
+  stageFxLayer().appendChild(ghost);
   return ghost;
 }
 function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
@@ -239,7 +242,7 @@ function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
   const cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
   el.style.left=clamp(cx,giant?window.innerWidth*.18:70,giant?window.innerWidth*.82:window.innerWidth-70)+'px';
   el.style.top=clamp(cy,giant?window.innerHeight*.2:55,giant?window.innerHeight*.8:window.innerHeight-55)+'px';
-  fxLayer().appendChild(el);
+  overlayFxLayer().appendChild(el);
   const rawDuration=duration??(reduced?360:(giant?1320:760));
   const animation=el.animate(giant?[
     {opacity:0,transform:'translate(-50%,-50%) scale(.22) rotate(-10deg)'},
@@ -267,14 +270,16 @@ function animateElement(el,keyframes,options={}){
 function waitMs(ms){return new Promise(resolve=>setTimeout(resolve,M?M.ms(ms):ms))}
 function flashFrame(kind,rect,{duration=180}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
-  const el=document.createElement('div');el.className='fx-impact-flash '+kind;fxLayer().appendChild(el);
+  const el=document.createElement('div');el.className='fx-impact-flash '+kind;overlayFxLayer().appendChild(el);
   el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
   return animateElement(el,[{opacity:0},{opacity:.92,offset:.18},{opacity:.18,offset:.52},{opacity:0}],{duration,easing:'linear',fill:'forwards'}).finally(()=>el.remove());
 }
 function foregroundShards(rect,{count=7,duration=1250}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
-  const layer=fxLayer(),cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
-  const total=Math.max(4,Math.min(8,count)),jobs=[];
+  const layer=overlayFxLayer(),cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
+  const quality=String(M?.getEffectiveQuality?.()||'HIGH').toUpperCase();
+  const cap=quality==='LOW'?4:quality==='MEDIUM'?5:8;
+  const total=Math.max(3,Math.min(cap,count)),jobs=[];
   for(let i=0;i<total;i++){
     const el=document.createElement('i');el.className='fx-foreground-shard';
     const angle=(-145+i*(290/Math.max(1,total-1)))*Math.PI/180;
@@ -297,7 +302,7 @@ function specialScreen(kind,rect,{duration=1700,delay=0}={}){
   el.className='fx-special-screen '+kind;
   el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');
   el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
-  fxLayer().appendChild(el);
+  stageFxLayer().appendChild(el);
   const frames=reduced?[
     {opacity:0},{opacity:.34,offset:.35},{opacity:0}
   ]:[

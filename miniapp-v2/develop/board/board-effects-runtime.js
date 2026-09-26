@@ -178,11 +178,12 @@ function resizeSharedCanvas(){
   sharedCanvas.style.width=innerWidth+'px';sharedCanvas.style.height=innerHeight+'px';
 }
 function getLayer(which='back'){
-  const id=which==='front'?'boardFxFrontLayer':'boardFxBackLayer';
+  const key=which==='overlay'?'overlay':which==='front'?'front':'back';
+  const id=key==='overlay'?'boardFxOverlayLayer':key==='front'?'boardFxFrontLayer':'boardFxBackLayer';
   let layer=document.getElementById(id);
   if(layer)return layer;
   layer=document.createElement('div');layer.id=id;
-  layer.className=which==='front'?'board-fx-front-layer':'board-fx-back-layer';
+  layer.className=key==='overlay'?'board-fx-overlay-layer':key==='front'?'board-fx-front-layer':'board-fx-back-layer';
   layer.setAttribute('aria-hidden','true');
   (document.querySelector('.board')||document.body).appendChild(layer);
   return layer;
@@ -262,7 +263,7 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.2.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
+  version:'2.3.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
