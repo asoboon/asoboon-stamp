@@ -93,6 +93,7 @@ export default {
       try {
         result = await createReservation(env, p, requestId);
       } catch (e) {
+        await recordCreateDiagnostic(env, p, e);
         result = {
           ok: false,
           stored: false,
@@ -186,6 +187,19 @@ async function ensureSchema(env) {
       value TEXT NOT NULL,
       updated_at INTEGER NOT NULL
     )`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_create_diagnostics (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at INTEGER NOT NULL,
+      business_date TEXT NOT NULL DEFAULT '',
+      wait_type_id TEXT NOT NULL DEFAULT '',
+      mode TEXT NOT NULL DEFAULT '',
+      upstream_http INTEGER NOT NULL DEFAULT 0,
+      result_code TEXT NOT NULL DEFAULT '',
+      error_key TEXT NOT NULL DEFAULT '',
+      airwait_message TEXT NOT NULL DEFAULT ''
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_create_diagnostics_created
+      ON v2_create_diagnostics(created_at)`),
   ]);
 }
 
@@ -404,7 +418,7 @@ async function createReservation(env, p, requestId) {
   const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';
   if (!res.ok && hasDefinitiveAirwaitError) {
     await releaseUserClaim(env, hash, serverDate, requestId);
-    throw airwaitResultError(resultCode);
+    throw airwaitResultError(resultCode, { httpStatus:res.status, message:airwaitResultMessage(d) });
   }
   if (!res.ok) {
     const amb = res.status >= 500;
@@ -415,7 +429,7 @@ async function createReservation(env, p, requestId) {
 
   if (d?.success !== true || resultCode !== '0000') {
     await releaseUserClaim(env, hash, serverDate, requestId);
-    throw airwaitResultError(resultCode);
+    throw airwaitResultError(resultCode, { httpStatus:res.status, message:airwaitResultMessage(d) });
   }
 
   const dto = d?.innerDto || {};
@@ -547,7 +561,7 @@ async function requestStatus(env, requestId) {
   catch { return { ok: false, found: false, error: 'REQUEST_RESULT_INVALID', version: CFG.VERSION }; }
 }
 
-function airwaitResultError(code) {
+function airwaitResultError(code, meta={}) {
   const c = String(code || 'NONE');
   const known = {
     '1000': 'AIRWAIT_INPUT_ERROR',
@@ -557,11 +571,47 @@ function airwaitResultError(code) {
     '3532': 'AIRWAIT_PEOPLE_OVER_LIMIT',
     '3537': 'AIRWAIT_RECEPTION_ENDED',
     '3539': 'AIRWAIT_UNAUTHORIZED_OPERATION',
+    '3556': 'AIRWAIT_WAIT_TYPE_UNUSED',
     '3557': 'AIRWAIT_OUTSIDE_RECEPTION_TIME',
     '3558': 'AIRWAIT_WAIT_TYPE_OUTSIDE_TIME',
     '3593': 'AIRWAIT_BELOW_MIN_PEOPLE',
+    '9999': 'AIRWAIT_SYSTEM_ERROR',
   };
-  return apiError(known[c] || `AIRWAIT_CREATE_ERROR_RC_${c}`, 400, false, c);
+  const e=apiError(known[c] || `AIRWAIT_CREATE_ERROR_RC_${c}`, 400, false, c);
+  e.airwaitHttp=Number(meta?.httpStatus||0);
+  e.airwaitMessage=String(meta?.message||'').replace(/[\r\n\t]+/g,' ').slice(0,300);
+  return e;
+}
+
+function airwaitResultMessage(d){
+  const candidates=[
+    d?.resultCode?.defaultMessage,
+    d?.resultCode?.message,
+    d?.defaultMessage,
+    d?.message,
+    Array.isArray(d?.messages)?d.messages.join(' '):'',
+  ];
+  return String(candidates.find(v=>String(v||'').trim())||'').replace(/[\r\n\t]+/g,' ').slice(0,300);
+}
+
+async function recordCreateDiagnostic(env,p,e){
+  if(!env?.DB)return;
+  try{
+    const now=Date.now();
+    const businessDate=normalizeDate(p?.operationalDate||'');
+    const waitTypeId=normalizeWaitType(p?.waitTypeId||'');
+    const mode=String(p?.mode||'').toLowerCase()==='onsite'?'onsite':'web';
+    const resultCode=String(e?.code||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40);
+    const errorKey=safeError(e).slice(0,120);
+    const airwaitMessage=String(e?.airwaitMessage||'').replace(/[\r\n\t]+/g,' ').slice(0,300);
+    await env.DB.prepare(`INSERT INTO v2_create_diagnostics
+      (created_at,business_date,wait_type_id,mode,upstream_http,result_code,error_key,airwait_message)
+      VALUES(?,?,?,?,?,?,?,?)`)
+      .bind(now,businessDate,waitTypeId,mode,Number(e?.airwaitHttp||0),resultCode,errorKey,airwaitMessage).run();
+    await env.DB.prepare('DELETE FROM v2_create_diagnostics WHERE created_at<?').bind(now-7*24*60*60*1000).run();
+  }catch(diagError){
+    console.warn('CREATE_DIAGNOSTIC_WRITE_FAILED',safeError(diagError));
+  }
 }
 
 function normalizeWaitType(v) { const s = String(v || '').trim(); return /^\d{4}$/.test(s) ? s : ''; }
