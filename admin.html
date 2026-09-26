@@ -2,44 +2,50 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f6f1e8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#080b0d">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
 <title>ASOBooN｜ひみつの資料室</title>
-<link rel="stylesheet" href="./chief-story/app.css?v=20260926-02">
+<link rel="stylesheet" href="./chief-story/app.css?v=20260926-03">
 </head>
 <body>
-<header class="topbar">
-  <a class="home-link" href="./home.html" aria-label="ASOBooN HOMEへ戻る">← HOME</a>
-  <div class="top-title">
-    <strong>ASOBooN ひみつの資料室</strong>
-    <small>横向き推奨｜左右にスワイプ</small>
+<section id="slidesPanel" class="slides-panel" aria-label="ASOBooN プレゼンテーション">
+  <div id="presentationShell" class="presentation-shell">
+    <div class="slide-stage">
+      <img id="slideImage" class="slide-image" alt="ASOBooN プレゼンテーション">
+      <div id="slideLoading" class="slide-loading">資料を読み込んでいます…</div>
+    </div>
+
+    <div class="slide-ui slide-ui-top">
+      <a class="ui-pill" href="./home.html">← HOME</a>
+      <button id="openWords" class="ui-pill" type="button">ことば・資料集</button>
+    </div>
+
+    <div class="slide-ui slide-ui-bottom">
+      <button id="prevSlide" class="nav-btn" type="button" aria-label="前のスライド">‹</button>
+      <div class="slide-meta">
+        <strong><span id="pageNow">1</span> / <span id="pageTotal">67</span></strong>
+        <small>左右にスワイプ</small>
+      </div>
+      <button id="nextSlide" class="nav-btn" type="button" aria-label="次のスライド">›</button>
+    </div>
   </div>
-  <div class="page-count"><span id="pageNow">1</span>/<span id="pageTotal">1</span></div>
-</header>
-<nav class="tabs" aria-label="表示切替">
-  <button class="tab active" type="button" data-tab="slides">スライド</button>
-  <button class="tab" type="button" data-tab="words">ことば・資料集</button>
-</nav>
-<main>
-  <section id="slidesPanel" class="panel active" aria-label="ASOBooNスライド">
-    <div id="slideTrack" class="slide-track" tabindex="0"></div>
-    <div class="pager">
-      <button id="prevSlide" type="button" aria-label="前のスライド">←</button>
-      <div id="dots" class="dots" aria-hidden="true"></div>
-      <button id="nextSlide" type="button" aria-label="次のスライド">→</button>
-    </div>
-  </section>
-  <section id="wordsPanel" class="panel" aria-label="用語集・資料集">
-    <div class="words-intro">
-      <p class="eyebrow">もっと知りたい人へ</p>
-      <h1>遊び場の裏側にある「ことば」を、やさしく。</h1>
-      <p>プレゼンに出てくる言葉や、ASOBooNの改善で使う考え方を、専門用語のまま終わらせずに説明しています。</p>
-    </div>
+</section>
+
+<section id="wordsPanel" class="words-panel" hidden>
+  <header class="words-header">
+    <button id="backToSlides" class="back-btn" type="button">← スライドへ戻る</button>
+    <p class="eyebrow">ASOBooN ひみつの資料室</p>
+    <h1>ことば・資料集</h1>
+    <p>プレゼンに出てくる言葉や、ASOBooNの裏側にある考え方を、やさしくまとめています。</p>
+  </header>
+  <main>
     <div id="wordGrid" class="word-grid"></div>
-    </section>
-</main>
-<script src="./chief-story/app.js?v=20260926-02"></script>
+  </main>
+</section>
+
+<script src="./chief-story/slides-data.js?v=20260926-03"></script>
+<script src="./chief-story/app.js?v=20260926-03"></script>
 </body>
 </html>
