@@ -33,8 +33,8 @@ const qwall = rows => '<div class="quote-wall">'+rows.map(q=>'<article class="qu
 const slides = [
   {k:"ASOBooN",t:"選ばれるための理由を、更新し続ける。",h:'<p class="lead">川口ハイウェイオアシスの親子の遊び場。<br>遊び・安全・スタッフ・仕組みを、少しずつアップデートしています。</p><div class="slide-footer">左右にスワイプしてご覧ください。</div>'},
   {k:"ABOUT",t:"ASOBooNって？",h:'<div class="slide-grid"><div class="mini-card"><b>2022.04.25 OPEN</b><span>川口ハイウェイオアシス内</span></div><div class="mini-card"><b>0歳〜小学6年生</b><span>親子で遊ぶ屋内外の遊び場</span></div><div class="mini-card"><b>ボーネルンド × 首都高速道路サービス</b><span>遊びの専門性と高速道路施設の新しい体験</span></div></div><p class="slide-footer">「遊具がある場所」だけではなく、親子の体験そのものを考えています。</p>'},
-  {k:"VOICE",t:"まず、施設全体へのアンケートです。",h:qwall(facilityQuotes)},
-  {k:"VOICE",t:"ちなみに、私個人に限って言えば。",h:qwall(personalQuotes)},
+  {k:"VOICE",t:"まず、施設全体へのアンケートです。",h:qwall(facilityQuotes)+'<p class="slide-footer">※利用者アンケートの自由記述（原文）です。個人の感想であり、安全性や効果を保証するものではありません。</p>'},
+  {k:"VOICE",t:"ちなみに、私個人に限って言えば。",h:qwall(personalQuotes)+'<p class="slide-footer">※利用者アンケートの自由記述（原文）です。</p>'},
   {k:"CHIEF",t:"チーフの仕事を、全部書き出してみた。",h:'<div class="big-number">96<small>の仕事</small></div><div class="pill-row"><span class="pill">受付</span><span class="pill">安全</span><span class="pill">スタッフ</span><span class="pill">売上</span><span class="pill">イベント</span><span class="pill">SNS</span><span class="pill">LINE</span><span class="pill">予約</span><span class="pill">行政・本社調整</span></div><p class="slide-footer">でも、大切にしてきたのは「仕事の数」ではありません。</p>'},
   {k:"BRAND",t:"何をもって、アソブーンらしさとするか。",h:'<p class="lead">ロゴや色だけではなく、<span class="accent">現場の一つひとつの判断</span>がブランドになる。</p><div class="slide-grid two"><div class="mini-card"><b>子どもへの関わり</b><span>止める？ 見守る？ 背中を押す？</span></div><div class="mini-card"><b>困りごとへの向き合い方</b><span>注意を増やす？ 環境を変える？</span></div></div>'},
   {k:"IDEA 01",t:"「注意する」より、環境を変える。",h:'<div class="slide-grid two"><div class="mini-card"><b>BEFORE</b><span>会計中に離れる／カード端末に触る<br>→「ここにいて」「触っちゃダメ」</span></div><div class="mini-card"><b>AFTER</b><span>触ってよいもの・気になるものを用意<br>→ 興味の向きを変える</span></div></div><p class="slide-footer">声かけだけで制御するより、自然に良い行動が生まれる環境を考える。</p>'},
