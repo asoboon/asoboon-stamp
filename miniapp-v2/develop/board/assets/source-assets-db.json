@@ -1,10 +1,11 @@
 {
-  "database_version": "1.3.0",
+  "database_version": "1.4.0",
   "purpose": "ASOBooN呼出状況掲示板 正規素材データベース",
   "runtime_policy": {
     "approved_sources": [
       "POMPON_CHIRU_assets_draft_40 2.zip",
-      "effects_pack_v2.zip"
+      "effects_pack_v2.zip",
+      "fourth_wall_implementation_pack_v1.zip"
     ],
     "legacy_visual_assets_allowed": false,
     "unreviewed_effects_allowed": false,
@@ -15,7 +16,9 @@
     "effect_clusters": 67,
     "effect_parts": 522,
     "effects_total": 589,
-    "approved_effects": 20
+    "approved_effects": 20,
+    "fourth_wall_implementation_assets": 80,
+    "total_registered_source_assets": 709
   },
   "effect_inventory": {
     "motion": {
@@ -738,18 +741,28 @@
       ]
     },
     "shuffle_bag": {
-      "slots": 48,
+      "slots": 72,
       "source_fx": 30,
       "pompon_cameo": 4,
       "chiru_cameo": 4,
       "pompon_story": 3,
       "duo_story": 6,
       "rare_story": 1,
-      "guaranteed_unique_idle_patterns": 24
+      "fourth_wall_micro": 12,
+      "fourth_wall_story": 12,
+      "guaranteed_unique_idle_patterns": 42
+    },
+    "fourth_wall_rules": {
+      "max_in_last_five": 2,
+      "micro_min_interval_ms": 20000,
+      "story_min_interval_ms": 45000,
+      "real_data_interrupts_immediately": true,
+      "max_runtime_nodes_per_story": 8,
+      "source_only": true
     }
   },
   "pattern_catalog": {
-    "total_idle_patterns": 24,
+    "total_idle_patterns": 42,
     "source_fx": [
       "FX_MAGIC_STAR_PASS",
       "FX_SPARKLE_SWEEP",
@@ -785,6 +798,50 @@
     ],
     "rare_story": [
       "BALL_RIDE_FAIL"
+    ],
+    "fourth_wall_micro": [
+      "FW_CRACK_CENTER",
+      "FW_CRACK_CORNER",
+      "FW_CRACK_CHAIN",
+      "FW_FRAME_PULSE",
+      "FW_SHARD_BURST",
+      "FW_FALSE_BREAK"
+    ],
+    "fourth_wall_story": [
+      "FW_POMPON_PAW",
+      "FW_POMPON_FEET_FIRST",
+      "FW_POMPON_FACE_POP",
+      "FW_POMPON_SIDE_BREAK",
+      "FW_POMPON_UPSIDE_DOWN",
+      "FW_POMPON_LOW_PEEK",
+      "FW_CHIRU_REACH_OUT",
+      "FW_CHIRU_BREAKOUT",
+      "FW_CHIRU_LOW_BREAK",
+      "FW_DUO_RACE_OUT",
+      "FW_DUO_SHARED_BREAK",
+      "FW_DUO_SIDE_BY_SIDE"
     ]
+  },
+  "fourth_wall_inventory": {
+    "source": "fourth_wall_implementation_pack_v1.zip",
+    "cracks": 12,
+    "break_frames": 12,
+    "glass_shards": 20,
+    "impacts": 24,
+    "pompon_breakout": 6,
+    "duo_breakout": 6,
+    "total_implementation_assets": 80,
+    "references": 4,
+    "previews": 7,
+    "layer_order": [
+      "board_ui",
+      "crack",
+      "break_frame_back",
+      "character",
+      "break_frame_front",
+      "glass_shards",
+      "impact"
+    ],
+    "rule": "実際の掲示板表示面そのものを第四の壁として扱い、モニターの絵は描かない"
   }
 }

@@ -838,3 +838,30 @@ body{
 @media (prefers-reduced-motion: reduce){
   .pc-sprite,.pc-giant-ball{will-change:opacity,transform}
 }
+
+
+/* Fourth-wall implementation pack: real board surface is the wall. */
+.fw-sprite{
+  position:absolute;
+  left:0;
+  top:0;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+  background-repeat:no-repeat;
+  will-change:transform,opacity;
+  contain:layout paint;
+  transform-origin:50% 50%;
+}
+.fw-crack{z-index:1}
+.fw-frame-back{z-index:2}
+.fw-character{z-index:3}
+.fw-frame-front{z-index:4}
+.fw-shard{z-index:5}
+.fw-impact{z-index:6}
+:root[data-board-quality="low"] .fw-sprite{
+  filter:none!important;
+}
+@media (prefers-reduced-motion: reduce){
+  .fw-shard{display:none!important}
+}

@@ -61,7 +61,7 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_SOURCE_EFFECTS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_SOURCE_EFFECTS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_FOURTH_WALL_ASSETS && window.ASOBOON_BOARD_FOURTH_WALL_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
   await page.evaluate(() => { window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}); window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false); });
 
   return {
@@ -744,19 +744,21 @@ test('POMPON and CHIRU optimized atlases are present and bounded for kiosk use',
   expect(assets).toContain("dizzy_spiral");
 });
 
-test('entertainment director uses a 48-slot shuffle bag and guarantees all 24 idle patterns once per cycle', async ({ page }) => {
+test('entertainment director uses a 72-slot shuffle bag and guarantees all 42 idle patterns once per cycle', async ({ page }) => {
   await installBoard(page, [payload([{ number:'8101', state:'waiting', order:1 }])]);
   const result = await page.evaluate(() => window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.simulateCycleForTest(12345));
-  expect(result.slots).toBe(48);
+  expect(result.slots).toBe(72);
   expect(result.counts.SOURCE_FX).toBe(30);
   expect(result.counts.POMPON_CAMEO).toBe(4);
   expect(result.counts.CHIRU_CAMEO).toBe(4);
   expect(result.counts.POMPON_STORY).toBe(3);
   expect(result.counts.DUO_STORY).toBe(6);
   expect(result.counts.RARE_STORY).toBe(1);
-  expect(result.characterRate).toBeCloseTo(18/48, 5);
+  expect(result.counts.FOURTH_WALL_MICRO).toBe(12);
+  expect(result.counts.FOURTH_WALL_STORY).toBe(12);
+  expect(result.characterRate).toBeCloseTo(30/72, 5);
   expect(result.uniqueSeen).toBe(result.totalPatterns);
-  expect(result.totalPatterns).toBe(24);
+  expect(result.totalPatterns).toBe(42);
   expect(result.missing).toEqual([]);
 });
 
@@ -835,7 +837,9 @@ test('character engine adds no RAF or canvas owners beyond the shared runtime', 
   const chars=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
   const director=fs.readFileSync('miniapp-v2/develop/board/board-entertainment-director.js','utf8');
   const sourcefx=fs.readFileSync('miniapp-v2/develop/board/board-source-effects.js','utf8');
-  for(const code of [assets,chars,director,sourcefx]){
+  const fourthAssets=fs.readFileSync('miniapp-v2/develop/board/board-fourth-wall-assets.js','utf8');
+  const fourthEvents=fs.readFileSync('miniapp-v2/develop/board/board-fourth-wall-events.js','utf8');
+  for(const code of [assets,chars,director,sourcefx,fourthAssets,fourthEvents]){
     expect(code).not.toContain('requestAnimationFrame(');
     expect(code).not.toMatch(/createElement\\(['"]canvas['"]\\)/);
   }
@@ -874,7 +878,11 @@ test('source asset database locks approved sources and contextual use rules', as
   expect(db.runtime_event_rules.source_fx_events).toEqual(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']);
   expect(db.stories.some(x=>x.id==='DUO_CHASE_CATCH')).toBe(true);
   expect(db.pattern_catalog.total_idle_patterns).toBe(24);
-  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(48);
+  expect(db.runtime_event_rules.shuffle_bag.slots).toBe(72);
+  expect(db.pattern_catalog.total_idle_patterns).toBe(42);
+  expect(db.counts.fourth_wall_implementation_assets).toBe(80);
+  expect(db.fourth_wall_inventory.total_implementation_assets).toBe(80);
+  expect(db.runtime_event_rules.fourth_wall_rules.source_only).toBe(true);
 });
 
 
@@ -967,4 +975,86 @@ test('all six source effect patterns play and clean up', async ({ page }) => {
     expect(result.tempNodes,id).toBe(0);
     expect(result.scopes,id).toBe(0);
   }
+});
+
+
+test('fourth-wall pack atlases are present and bounded for kiosk use', async () => {
+  const files=[
+    ['fw-cracks-atlas.webp',900000],
+    ['fw-frames-atlas.webp',1100000],
+    ['fw-shards-atlas.webp',900000],
+    ['fw-impacts-atlas.webp',1100000],
+    ['fw-pompon-atlas.webp',800000],
+    ['fw-duo-atlas.webp',850000],
+  ];
+  for(const [name,max] of files){
+    const stat=fs.statSync('miniapp-v2/develop/board/assets/'+name);
+    expect(stat.size,name).toBeGreaterThan(20000);
+    expect(stat.size,name).toBeLessThan(max);
+  }
+});
+
+test('all 18 fourth-wall patterns play, clean up and preserve ticket data', async ({ page }) => {
+  test.setTimeout(30000);
+  const h=await installBoard(page,[payload([
+    { number:'8701', state:'waiting', order:1 },
+    { number:'8702', state:'calling', order:2 },
+    { number:'8703', state:'hold', order:3 },
+  ])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.012,{persistValue:false});
+    window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.resetForTest();
+  });
+  const ids=await page.evaluate(() => window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.events.map(x=>x.id));
+  expect(ids).toHaveLength(18);
+  for(const id of ids){
+    const result=await page.evaluate(async eventId=>{
+      const fx=window.ASOBOON_BOARD_EFFECTS;
+      fx.resetPerformanceBaseline();
+      const played=await window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.playEventForTest(eventId);
+      return{
+        played,
+        running:window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.getDiagnostics().running,
+        runtime:fx.diagnostics(),
+        numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+        nodes:document.querySelectorAll('.fw-sprite').length,
+      };
+    },id);
+    expect(result.played.played,id).toBe(true);
+    expect(result.running,id).toBe(false);
+    expect(result.runtime.activeScopes,id).toBe(0);
+    expect(result.runtime.domDeltaPeak,id).toBeLessThanOrEqual(20);
+    expect(result.nodes,id).toBe(0);
+    expect(result.numbers,id).toEqual(['8701','8702','8703']);
+  }
+  expect(h.pageErrors).toEqual([]);
+});
+
+test('real data change immediately interrupts fourth-wall breakout and leaves no fragments', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8711',state:'waiting',order:1}])]);
+  await page.evaluate(() => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.5,{persistValue:false});
+    window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.resetForTest();
+    window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.resetForTest();
+    void window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.play('FW_DUO_SHARED_BREAK');
+  });
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.getDiagnostics().running)).toBe(true);
+  await page.evaluate(()=>window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.onRealChange());
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.getDiagnostics().running)).toBe(false);
+  await expect(page.locator('.fw-sprite')).toHaveCount(0);
+});
+
+test('fourth-wall scheduler prevents crowding and uses the new source pack only', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8721',state:'waiting',order:1}])]);
+  const state=await page.evaluate(()=>({
+    director:window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR.getConfig(),
+    fourth:window.ASOBOON_BOARD_FOURTH_WALL_EVENTS.getDiagnostics(),
+    assets:window.ASOBOON_BOARD_FOURTH_WALL_ASSETS.diagnostics(),
+  }));
+  expect(state.director.FOURTH_WALL_MICRO_MIN_MS).toBe(20000);
+  expect(state.director.FOURTH_WALL_STORY_MIN_MS).toBe(45000);
+  expect(state.director.MAX_FOURTH_IN_LAST_FIVE).toBe(2);
+  expect(state.fourth.events).toHaveLength(18);
+  expect(state.assets.totalImplementationAssets).toBe(80);
+  expect(state.assets.source).toBe('fourth_wall_implementation_pack_v1');
 });
