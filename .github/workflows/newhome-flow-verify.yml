@@ -91,8 +91,12 @@ jobs:
           grep -F 'async function cancelReservationInMiniapp' miniapp-v2/backend/develop-worker.mjs
           grep -F "/WCSP/cancel/confirm" miniapp-v2/backend/develop-worker.mjs
           grep -F "/WCSP/cancel/complete" miniapp-v2/backend/develop-worker.mjs
-          grep -F "const escaped=String(name||'').replace(/[.*+?^$()|[\\]\\\\]/g,'\\\\          grep -F "/WCSP/cancel/complete" miniapp-v2/backend/develop-worker.mjs
-');" miniapp-v2/backend/develop-worker.mjs
+          node <<'NODE'
+          const fs=require('fs');
+          const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
+          const expected=String.raw\`  const escaped=String(name||'').replace(/[.*+?^$()|[\]\\]/g,'\\$&');\`;
+          if(!worker.includes(expected)) throw new Error('native cancel CSRF meta parser changed or corrupted');
+          NODE
           ! grep -Fq 'airwait.jp' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'openWindow' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'window.open' miniapp-v2/shared/callstatus.js
