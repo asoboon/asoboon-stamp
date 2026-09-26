@@ -231,24 +231,29 @@ function ghostFrom(frame,className=''){
   fxLayer().appendChild(ghost);
   return ghost;
 }
-function onomatopoeia(text,rect,kind){
-  if(!rect||effectiveLevel()===0)return null;
+function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
+  if(!rect||effectiveLevel()===0)return Promise.resolve();
   const el=document.createElement('div');
-  el.className='fx-onomatopoeia '+kind;
+  el.className='fx-onomatopoeia '+kind+(giant?' giant':'');
   el.textContent=text;
-  const above=rect.top>82;
-  el.style.left=clamp(rect.left+rect.width*.5,70,window.innerWidth-70)+'px';
-  el.style.top=(above?rect.top-14:rect.bottom+18)+'px';
+  const cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
+  el.style.left=clamp(cx,giant?window.innerWidth*.18:70,giant?window.innerWidth*.82:window.innerWidth-70)+'px';
+  el.style.top=clamp(cy,giant?window.innerHeight*.2:55,giant?window.innerHeight*.8:window.innerHeight-55)+'px';
   fxLayer().appendChild(el);
-  const duration=(M?M.ms(reduced?360:720):(reduced?360:720));
-  const anim=el.animate([
+  const rawDuration=duration??(reduced?360:(giant?1320:760));
+  const animation=el.animate(giant?[
+    {opacity:0,transform:'translate(-50%,-50%) scale(.22) rotate(-10deg)'},
+    {opacity:1,transform:'translate(-50%,-50%) scale(1.34) rotate(4deg)',offset:.2},
+    {opacity:1,transform:'translate(-50%,-50%) scale(.98) rotate(-2deg)',offset:.46},
+    {opacity:1,transform:'translate(-50%,-50%) scale(1.04) rotate(0deg)',offset:.8},
+    {opacity:0,transform:'translate(-50%,-56%) scale(1.1) rotate(1deg)'},
+  ]:[
     {opacity:0,transform:'translate(-50%,-50%) scale(.55) rotate(-7deg)'},
     {opacity:1,transform:'translate(-50%,-50%) scale(1.18) rotate(3deg)',offset:.28},
-    {opacity:1,transform:'translate(-50%,-50%) scale(1) rotate(-1deg)',offset:.62},
+    {opacity:1,transform:'translate(-50%,-50%) scale(1) rotate(-1deg)',offset:.68},
     {opacity:0,transform:'translate(-50%,-62%) scale(1.04) rotate(0deg)'},
-  ],{duration,easing:'cubic-bezier(.2,.85,.28,1)',fill:'forwards'});
-  anim.finished.catch(()=>{}).finally(()=>el.remove());
-  return el;
+  ],{duration:M?M.ms(rawDuration):rawDuration,delay:M?M.ms(delay):delay,easing:'cubic-bezier(.2,.85,.28,1)',fill:'forwards'});
+  return animation.finished.catch(()=>{}).finally(()=>el.remove());
 }
 function animateElement(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
@@ -258,6 +263,55 @@ function animateElement(el,keyframes,options={}){
   if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=M?M.ms(opts.endDelay):opts.endDelay;
   const animation=el.animate(keyframes,opts);
   return animation.finished.catch(()=>{});
+}
+function waitMs(ms){return new Promise(resolve=>setTimeout(resolve,M?M.ms(ms):ms))}
+function specialScreen(kind,rect,{duration=1700,delay=0}={}){
+  if(!rect||effectiveLevel()===0)return Promise.resolve();
+  const el=document.createElement('div');
+  el.className='fx-special-screen '+kind;
+  el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');
+  el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
+  fxLayer().appendChild(el);
+  const frames=reduced?[
+    {opacity:0},{opacity:.34,offset:.35},{opacity:0}
+  ]:[
+    {opacity:0,transform:'scale(.985)'},
+    {opacity:.94,transform:'scale(1.012)',offset:.2},
+    {opacity:.76,transform:'scale(1)',offset:.72},
+    {opacity:0,transform:'scale(1.025)'}
+  ];
+  return animateElement(el,frames,{duration,delay,easing:'cubic-bezier(.18,.82,.2,1)',fill:'forwards'}).finally(()=>el.remove());
+}
+function screenReaction(kind,{duration=760}={}){
+  if(reduced||effectiveLevel()<2)return Promise.resolve();
+  const board=document.querySelector('.board');if(!board)return Promise.resolve();
+  diagnostics.screenShakes+=1;
+  const frames=kind==='guided'?[
+    {transform:'translate3d(0,0,0)'},
+    {transform:'translate3d(-12px,0,0) skewX(-.55deg)',offset:.28},
+    {transform:'translate3d(7px,0,0) skewX(.25deg)',offset:.58},
+    {transform:'translate3d(0,0,0)'}
+  ]:kind==='hold'?[
+    {transform:'translate3d(0,0,0)'},
+    {transform:'translate3d(15px,0,0)',offset:.22},
+    {transform:'translate3d(-9px,0,0)',offset:.43},
+    {transform:'translate3d(5px,0,0)',offset:.62},
+    {transform:'translate3d(0,0,0)'}
+  ]:kind==='cancel'?[
+    {transform:'translate3d(0,0,0) rotate(0)'},
+    {transform:'translate3d(-9px,3px,0) rotate(-.14deg)',offset:.2},
+    {transform:'translate3d(10px,-3px,0) rotate(.14deg)',offset:.38},
+    {transform:'translate3d(-6px,-2px,0) rotate(-.09deg)',offset:.58},
+    {transform:'translate3d(4px,2px,0) rotate(.05deg)',offset:.76},
+    {transform:'translate3d(0,0,0) rotate(0)'}
+  ]:[
+    {transform:'translate3d(0,0,0) scale(1)'},
+    {transform:'translate3d(0,9px,0) scale(.991)',offset:.24},
+    {transform:'translate3d(0,-5px,0) scale(1.005)',offset:.5},
+    {transform:'translate3d(0,2px,0) scale(.999)',offset:.74},
+    {transform:'translate3d(0,0,0) scale(1)'}
+  ];
+  return animateElement(board,frames,{duration,easing:'cubic-bezier(.2,.82,.2,1)'});
 }
 function shakeBoard(){
   if(reduced||effectiveLevel()<2)return Promise.resolve();
@@ -286,25 +340,27 @@ async function playCallAnimation({number,element,frame,rare}){
   const rect=rectFor(element,target);
   if(!rect)return;
   const lvl=effectiveLevel();
-  onomatopoeia('キタ！',rect,'call');
-  const particles=Promise.resolve();
-  const sourceFx=CHAR?.playCallDelivery?Promise.resolve():(SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve());
+  const screen=specialScreen('call',rect,{duration:lvl<=1?760:2300});
+  const intro=onomatopoeia('キタ！',rect,'call',{duration:lvl<=1?420:820});
+  const boom=onomatopoeia('ドン！',rect,'call',{giant:true,delay:lvl<=1?120:320,duration:lvl<=1?520:1420});
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
+  await waitMs(lvl<=1?60:280);
+  const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
+  const reaction=screenReaction('call',{duration:lvl<=1?320:860});
   const elementPulse=element?animateElement(element,lvl<=1?[
     {transform:'scale(1)'},
-    {transform:'scale(1.045)'},
+    {transform:'scale(1.055)'},
     {transform:'scale(1)'},
   ]:[
     {transform:'scale(1)'},
-    {transform:'scale(1.13)',offset:.34},
-    {transform:'scale(.96)',offset:.54},
-    {transform:'scale(1.055)',offset:.74},
+    {transform:'scale(1.24)',offset:.22},
+    {transform:'scale(.92)',offset:.4},
+    {transform:'scale(1.12)',offset:.6},
+    {transform:'scale(.98)',offset:.78},
     {transform:'scale(1)'},
-  ],{duration:lvl<=1?420:1120,delay:lvl<=1?0:260,easing:'cubic-bezier(.22,.9,.24,1)' }):Promise.resolve();
-
-  const flight=Promise.resolve();
-  if(!reduced&&lvl>=2)setTimeout(()=>{void shakeBoard()},M?M.ms(360):360);
-  await Promise.all([flight,particles,elementPulse,sourceFx,character]);
+  ],{duration:lvl<=1?460:1580,easing:'cubic-bezier(.18,.92,.22,1)'}):Promise.resolve();
+  await Promise.all([screen,intro,boom,character,sourceFx,reaction,elementPulse]);
+  await waitMs(lvl<=1?60:360);
 }
 async function playGuidedAnimation({element,frame}){
   const source=frame||currentFrame(element);
@@ -312,51 +368,57 @@ async function playGuidedAnimation({element,frame}){
   if(!rect)return;
   const lvl=effectiveLevel();
   const ghost=ghostFrom(source,'fx-guided-ghost');
-  onomatopoeia('ビューン！',rect,'guided');
-  const particles=Promise.resolve();
+  const screen=specialScreen('guided',rect,{duration:lvl<=1?620:1900});
+  const swoosh=onomatopoeia('ビューン！',rect,'guided',{giant:true,delay:lvl<=1?80:260,duration:lvl<=1?480:1280});
+  await waitMs(lvl<=1?30:180);
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
-  const useFilter=(M?.getEffectiveQuality?.()||'HIGH')==='HIGH';
-  const settle=element?animateElement(element,useFilter?[
-    {transform:'scale(1.04)',filter:'brightness(1.15)'},
-    {transform:'scale(1)',filter:'brightness(1)'},
-  ]:[
-    {transform:'scale(1.04)'},
-    {transform:'scale(1)'},
-  ],{duration:lvl<=1?300:900,easing:'ease-out'}):Promise.resolve();
+  const character=CHAR?.playStatusAccent?.('guided',{rect})||Promise.resolve();
+  const reaction=screenReaction('guided',{duration:lvl<=1?280:800});
   let flight=Promise.resolve();
   if(ghost){
     flight=animateElement(ghost,lvl<=1?[
-      {opacity:.85,transform:'translate3d(0,0,0) scale(1)'},
-      {opacity:0,transform:'translate3d(18px,-4px,0) scale(.96)'},
+      {opacity:.9,transform:'translate3d(0,0,0) scale(1)'},
+      {opacity:0,transform:'translate3d(24px,-4px,0) scale(.96)'},
     ]:[
       {opacity:1,transform:'translate3d(0,0,0) rotate(0) scale(1)'},
-      {opacity:1,transform:'translate3d(18px,-3px,0) rotate(1deg) scale(1.04)',offset:.18},
-      {opacity:.15,transform:'translate3d(58vw,-9vh,0) rotate(6deg) scale(.82)'},
-    ],{duration:lvl<=1?360:1050,easing:'cubic-bezier(.2,.7,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
+      {opacity:1,transform:'translate3d(0,0,0) rotate(0) scale(1.06)',offset:.18},
+      {opacity:1,transform:'translate3d(30px,-4px,0) rotate(1deg) scale(1.09)',offset:.34},
+      {opacity:.18,transform:'translate3d(66vw,-10vh,0) rotate(7deg) scale(.78)'},
+    ],{duration:lvl<=1?400:1360,easing:'cubic-bezier(.16,.72,.14,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([flight,particles,settle,sourceFx]);
+  const settle=element?animateElement(element,[
+    {transform:'scale(1.08)'},
+    {transform:'scale(1.02)',offset:.55},
+    {transform:'scale(1)'},
+  ],{duration:lvl<=1?340:1120,easing:'ease-out'}):Promise.resolve();
+  await Promise.all([screen,swoosh,flight,settle,sourceFx,character,reaction]);
+  await waitMs(lvl<=1?40:260);
 }
 async function playHoldAnimation({element,frame}){
   const rect=rectFor(element,frame);
   if(!rect)return;
   const lvl=effectiveLevel();
-  onomatopoeia('ピタッ！',rect,'hold');
-  const particles=Promise.resolve();
+  const screen=specialScreen('hold',rect,{duration:lvl<=1?680:2350});
+  const screech=onomatopoeia('キキィーッ！',rect,'hold',{giant:true,duration:lvl<=1?520:1320});
+  const stopText=onomatopoeia('ピタッ！',rect,'hold',{giant:true,delay:lvl<=1?180:760,duration:lvl<=1?460:1160});
+  await waitMs(lvl<=1?30:180);
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
+  const character=CHAR?.playStatusAccent?.('hold',{rect})||Promise.resolve();
+  const reaction=screenReaction('hold',{duration:lvl<=1?300:920});
   const motion=element?animateElement(element,lvl<=1?[
-    {transform:'translateX(0)'},
-    {transform:'translateX(4px)'},
-    {transform:'translateX(-3px)'},
+    {transform:'translateX(-4px)'},
+    {transform:'translateX(7px)'},
     {transform:'translateX(0)'},
   ]:[
+    {transform:'translate3d(-12px,0,0) rotate(-.7deg)'},
+    {transform:'translate3d(20px,0,0) rotate(1.2deg)',offset:.22},
+    {transform:'translate3d(-10px,0,0) rotate(-1deg)',offset:.4},
+    {transform:'translate3d(7px,0,0) rotate(.7deg)',offset:.58},
+    {transform:'translate3d(-4px,0,0) rotate(-.35deg)',offset:.76},
     {transform:'translate3d(0,0,0) rotate(0)'},
-    {transform:'translate3d(14px,0,0) rotate(1deg)',offset:.25},
-    {transform:'translate3d(-8px,0,0) rotate(-.8deg)',offset:.45},
-    {transform:'translate3d(6px,0,0) rotate(.6deg)',offset:.6},
-    {transform:'translate3d(-4px,0,0) rotate(-.35deg)',offset:.75},
-    {transform:'translate3d(0,0,0) rotate(0)'},
-  ],{duration:lvl<=1?320:1000,easing:'cubic-bezier(.2,.8,.25,1)'}):Promise.resolve();
-  await Promise.all([motion,particles,sourceFx]);
+  ],{duration:lvl<=1?360:1280,easing:'cubic-bezier(.16,.86,.2,1)'}):Promise.resolve();
+  await Promise.all([screen,screech,stopText,motion,sourceFx,character,reaction]);
+  await waitMs(lvl<=1?50:360);
 }
 async function playCancelAnimation({frame,element}){
   const source=frame||currentFrame(element);
@@ -365,23 +427,29 @@ async function playCancelAnimation({frame,element}){
   const lvl=effectiveLevel();
   const ghost=ghostFrom(source,'fx-cancel-ghost');
   if(ghost)attachCracks(ghost);
-  onomatopoeia('パリン！',rect,'cancel');
-  const particles=Promise.resolve();
+  const screen=specialScreen('cancel',rect,{duration:lvl<=1?760:2700});
+  const warning=onomatopoeia('ミシ…',rect,'cancel',{duration:lvl<=1?420:900});
+  await waitMs(lvl<=1?80:520);
+  const breakText=onomatopoeia('バリン！',rect,'cancel',{giant:true,duration:lvl<=1?560:1560});
+  const reaction=screenReaction('cancel',{duration:lvl<=1?340:1060});
   const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
+  const character=CHAR?.playStatusAccent?.('cancel',{rect})||Promise.resolve();
   let shatter=Promise.resolve();
   if(ghost){
     shatter=animateElement(ghost,lvl<=1?[
       {opacity:1,transform:'scale(1)'},
-      {opacity:.7,transform:'scale(1.02)'},
-      {opacity:0,transform:'scale(.96) translateY(8px)'},
+      {opacity:.72,transform:'scale(1.03)'},
+      {opacity:0,transform:'scale(.93) translateY(9px)'},
     ]:[
       {opacity:1,transform:'scale(1) rotate(0)'},
-      {opacity:1,transform:'scale(1.045) rotate(-.5deg)',offset:.26},
-      {opacity:.5,transform:'scale(.98) rotate(1deg) translateY(4px)',offset:.56},
-      {opacity:0,transform:'scale(.84) rotate(3deg) translateY(26px)'},
-    ],{duration:lvl<=1?380:1200,easing:'cubic-bezier(.2,.75,.22,1)',fill:'forwards'}).finally(()=>ghost.remove());
+      {opacity:1,transform:'scale(1.07) rotate(-.7deg)',offset:.2},
+      {opacity:1,transform:'scale(.99) rotate(.8deg)',offset:.38},
+      {opacity:.52,transform:'scale(.94) rotate(2deg) translateY(9px)',offset:.62},
+      {opacity:0,transform:'scale(.76) rotate(5deg) translateY(42px)'},
+    ],{duration:lvl<=1?440:1540,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
-  await Promise.all([shatter,particles,sourceFx]);
+  await Promise.all([screen,warning,breakText,reaction,sourceFx,character,shatter]);
+  await waitMs(lvl<=1?60:440);
 }
 function attachCracks(ghost){
   const crack=document.createElement('div');
@@ -499,7 +567,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.3.0',
+  version:'1.4.0',
   capture,
   observe,
   playStatusAnimation,
