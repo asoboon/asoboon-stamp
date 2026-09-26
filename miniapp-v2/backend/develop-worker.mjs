@@ -365,6 +365,18 @@ async function getCreateDiagnostics(env) {
       cancelCapability.hasCsrfMeta=/<meta[^>]+name=["']_csrf["'][^>]+content=["'][^"']+["']/i.test(html);
       cancelCapability.hasPageData=pagePos>=0;
       cancelCapability.versionCandidates=[...new Set(versionMatches)].slice(0,10);
+      if(cancelCapability.hasP&&cancelCapability.hasReserveId&&cancelCapability.hasStoreNo){
+        const confirmUrl=new URL('https://airwait.jp/WCSP/cancel/confirm');
+        confirmUrl.searchParams.set('storeNo',String(finalUrl.searchParams.get('storeNo')||''));
+        confirmUrl.searchParams.set('reserveId',String(finalUrl.searchParams.get('reserveId')||''));
+        confirmUrl.searchParams.set('p',String(finalUrl.searchParams.get('p')||''));
+        const confirmResponse=await fetch(confirmUrl.toString(),{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
+        const confirmHtml=await confirmResponse.text();
+        cancelCapability.confirmHttpStatus=confirmResponse.status;
+        cancelCapability.confirmFinalPath=new URL(confirmResponse.url).pathname;
+        cancelCapability.confirmHasCsrf=/<meta[^>]+name=["']_csrf["'][^>]+content=["'][^"']+["']/i.test(confirmHtml);
+        cancelCapability.confirmHasCancelForm=/\/WCSP\/cancel\/complete/i.test(confirmHtml)||/name=["']reserveId["']/i.test(confirmHtml);
+      }
     }else{
       cancelCapability.checked=true;
       cancelCapability.hasShortUrl=false;
