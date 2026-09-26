@@ -407,6 +407,7 @@ async function getCrowdRemaining(request, env, ctx) {
       detailedWaitType:row.detailedWaitType,
       reserveUnit:row.reserveUnit,
       slotKey:row.slotKey,
+      remaining:row.reserveUnit==='PERSON'&&Number.isSafeInteger(Number(row.remainingNum))?Number(row.remainingNum):null,
     })),
   };
 }
