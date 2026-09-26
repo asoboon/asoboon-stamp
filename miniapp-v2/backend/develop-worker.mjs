@@ -600,7 +600,7 @@ async function fetchBoardReservationsFresh(env){
   const first=await fetchBoardReservationPage(env,1);
   const total=Math.max(0,Number(first.count||0));
   const starts=[];
-  for(let start=101;start<=total&&starts.length<19;start+=100)starts.push(start);
+  for(let start=101;start<=total&&start<=99999;start+=100)starts.push(start);
   const pages=[first];
   for(let i=0;i<starts.length;i+=BOARD_PAGE_CONCURRENCY){
     const batch=starts.slice(i,i+BOARD_PAGE_CONCURRENCY);
