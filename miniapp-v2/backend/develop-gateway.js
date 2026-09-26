@@ -542,8 +542,8 @@ function isOnlineOnlyWaitType(usage) {
 async function fetchOfficialReservations(env, waitTypeId) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
   const rows=[];
-  let start=1;
-  for(let page=0;page<20;page+=1){
+  let start=1,total=Infinity,page=0;
+  while(rows.length<total&&start<=99999&&page<1000){
     const r=await fetch(CFG.AIR_RESERVATIONS,{
       method:'POST',
       headers:{
@@ -570,10 +570,12 @@ async function fetchOfficialReservations(env, waitTypeId) {
       status:String(x?.status||''),
       isCalling:String(x?.isCalling||'0'),
     })));
-    const total=Number(d?.innerDto?.count||part.length||0);
+    total=Number(d?.innerDto?.count||part.length||0);
     if(!part.length||rows.length>=total)break;
     start+=part.length;
+    page+=1;
   }
+  if(rows.length<total)throw apiError('AIRWAIT_OFFICIAL_RESERVATIONS_TRUNCATED',502);
   return rows;
 }
 
