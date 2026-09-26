@@ -408,8 +408,8 @@ async function issueChannelToken(env) {
 }
 
 async function fetchAirwaitReservations(env, waitTypeId) {
-  const out=[]; let start=1;
-  for (let page=0; page<20; page+=1) {
+  const out=[]; let start=1,total=Infinity,page=0;
+  while(out.length<total && start<=99999 && page<1000) {
     const params={storeId:SM.STORE_ID,sortStatus:'0',isDesc:'0',start:String(start),limit:'100'};
     if (normalizeWaitType(waitTypeId)) params.waitTypeId=normalizeWaitType(waitTypeId);
     const response=await fetchWithTimeout(SM.AIR_RESERVATIONS,{
@@ -420,11 +420,13 @@ async function fetchAirwaitReservations(env, waitTypeId) {
     try { data=JSON.parse(text); } catch { throw apiError('AIRWAIT_RESERVATIONS_INVALID_JSON',502,response.status>=500); }
     if(!response.ok||data?.success!==true||data?.resultCode?.code!=='0000') throw apiError(`AIRWAIT_RESERVATIONS_FAILED_${response.status}`,502);
     const part=Array.isArray(data?.innerDto?.reservations)?data.innerDto.reservations:[];
-    const total=Number(data?.innerDto?.count||part.length||0);
+    total=Number(data?.innerDto?.count||part.length||0);
     out.push(...part.map(x=>({number:String(x?.number||''),waitTypeId:normalizeWaitType(x?.waitTypeId),waitTypeName:String(x?.waitTypeName||''),status:String(x?.status||''),isCalling:String(x?.isCalling||'0')})));
     if(!part.length||out.length>=total) break;
     start+=part.length;
+    page+=1;
   }
+  if(out.length<total) throw apiError('AIRWAIT_RESERVATIONS_TRUNCATED',502);
   return out;
 }
 
