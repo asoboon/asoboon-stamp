@@ -263,76 +263,6 @@ jobs:
             exit 1
           fi
 
-      - name: Inspect AirWAIT customer cancel API contract
-        run: |
-          set -euo pipefail
-          PAGE="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
-          CSP_URL="$(python3 - "$PAGE" <<'PY'
-          import re,sys
-          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
-          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
-          PY
-          )"
-          test -n "$CSP_URL"
-          JS="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
-          MAP_URL="$(python3 - "$JS" "$CSP_URL" <<'PY'
-          import re,sys
-          from urllib.parse import urljoin
-          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          m=re.search(r'sourceMappingURL=([^\s*]+)',t)
-          print(urljoin(sys.argv[2],m.group(1).strip()) if m else '')
-          PY
-          )"
-          echo "CSP source map: ${MAP_URL:-none}"
-          if [ -n "$MAP_URL" ]; then
-            MAP="$(mktemp)"
-            curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$MAP_URL" > "$MAP"
-            python3 - "$MAP" <<'PY'
-          import json,re,sys
-          x=json.load(open(sys.argv[1],encoding='utf-8'))
-          sources=x.get('sources') or []
-          contents=x.get('sourcesContent') or []
-          print('source count',len(sources),'content count',len(contents))
-          for i,(name,body) in enumerate(zip(sources,contents)):
-              body=body or ''
-              if re.search(r'CancelReserve|cancel/confirm|cancel/complete|reserve/update|callStatus',body,re.I):
-                  print('=== SOURCE',i,name,'===')
-                  for needle in ['CancelReserve','cancel/confirm','cancel/complete','reserve/update','callStatus','version']:
-                      for m in list(re.finditer(re.escape(needle),body,re.I))[:10]:
-                          print(body[max(0,m.start()-1800):min(len(body),m.start()+3600)])
-          PY
-          else
-            echo 'No source map exposed'
-          fi
-      - name: Diagnose receipt 2510 across all AirWAIT statuses
-        env:
-          AIRWAIT_API_KEY: ${{ secrets.AIRWAIT_API_KEY }}
-        run: |
-          set -euo pipefail
-          node - <<'NODE'
-          const key=process.env.AIRWAIT_API_KEY||'';
-          if(!key){console.log('receipt diagnostic skipped: no key');process.exit(0)}
-          const endpoint='https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
-          const target='2510';
-          const same=(v)=>String(v||'').normalize('NFKC').toUpperCase().replace(/[\\s\\-ー]/g,'').replace(/^[FT]/,'').replace(/^0+(?=\\d)/,'')===target;
-          let start=1,total=Infinity,seen=0,found=[];
-          while(seen<total&&start<=10000){
-            const body=new URLSearchParams({storeId:'KR01205179',sortStatus:'0',isDesc:'1',start:String(start),limit:'100'});
-            const r=await fetch(endpoint,{method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',corWclpKeyCd:key},body});
-            const d=await r.json();
-            if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw new Error('AirWAIT diagnostic failed');
-            const rows=Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[];
-            total=Number(d?.innerDto?.count||rows.length||0);
-            for(const x of rows){if(same(x?.number))found.push({number:String(x?.number||''),waitTypeId:String(x?.waitTypeId||''),waitTypeName:String(x?.waitTypeName||''),status:String(x?.status||''),isCalling:String(x?.isCalling||'0')})}
-            seen+=rows.length;
-            if(found.length||!rows.length||seen>=total)break;
-            start+=rows.length;
-          }
-          console.log('receipt2510 total=',total,'scanned=',seen,'matches=',JSON.stringify(found));
-          NODE
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
@@ -345,7 +275,7 @@ jobs:
               const x=JSON.parse(s);
               if(x.ok!==true) throw new Error("createDiagnostics unavailable");
               console.log("Developing recent create diagnostics:");
-              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[],receipt2510:x.receipt2510||null},null,2));
+              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[]},null,2));
             });
           '
       - name: Verify Developing crowd diagnostics
