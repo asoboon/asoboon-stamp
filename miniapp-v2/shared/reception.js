@@ -70,11 +70,14 @@ ${locationBlock}
 function status(text,kind=''){const el=$('recStatus');if(!el)return;el.className='rec-status'+(kind?' '+kind:'');el.textContent=text}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
 function newRequestId(){try{return'v2_'+crypto.randomUUID()}catch{return'v2_'+Date.now()+'_'+Math.random().toString(36).slice(2)}}
-function readPending(){try{const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'null');if(!p||!p.requestId||Date.now()-Number(p.createdAt||0)>PENDING_TTL_MS){localStorage.removeItem(PENDING_KEY);return null}return p}catch{return null}}
+function readPending(){try{const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'null');if(!p||!p.requestId||Date.now()-Number(p.createdAt||0)>PENDING_TTL_MS){localStorage.removeItem(PENDING_KEY);return null}const phase=String(p.phase||'');if(!['prepared','dispatched','awaiting-result'].includes(phase)){localStorage.removeItem(PENDING_KEY);return null}return p}catch{try{localStorage.removeItem(PENDING_KEY)}catch{}return null}}
+function recoverablePending(){const p=readPending();if(!p)return null;if(!['dispatched','awaiting-result'].includes(String(p.phase||''))){try{localStorage.removeItem(PENDING_KEY)}catch{}return null}return p}
 function pendingFingerprint(body){return [body.operationalDate,body.mode,body.waitTypeId,body.adults,body.paidChildren,body.infants].map(v=>String(v??'')).join('|')}
-function requestIdFor(body){const fingerprint=pendingFingerprint(body),old=readPending();if(old?.fingerprint===fingerprint){if(!old.body){try{localStorage.setItem(PENDING_KEY,JSON.stringify({...old,body:{operationalDate:body.operationalDate,mode:body.mode,waitTypeId:body.waitTypeId,adults:body.adults,paidChildren:body.paidChildren,infants:body.infants}}))}catch{}}return String(old.requestId)}const requestId=newRequestId();try{localStorage.setItem(PENDING_KEY,JSON.stringify({requestId,fingerprint,body:{operationalDate:body.operationalDate,mode:body.mode,waitTypeId:body.waitTypeId,adults:body.adults,paidChildren:body.paidChildren,infants:body.infants},createdAt:Date.now()}))}catch{}return requestId}
+function pendingSnapshot(body){return{operationalDate:body.operationalDate,mode:body.mode,waitTypeId:body.waitTypeId,adults:body.adults,paidChildren:body.paidChildren,infants:body.infants}}
+function requestIdFor(body){const fingerprint=pendingFingerprint(body),old=readPending();if(old?.fingerprint===fingerprint){if(!old.body){try{localStorage.setItem(PENDING_KEY,JSON.stringify({...old,body:pendingSnapshot(body)}))}catch{}}return String(old.requestId)}const requestId=newRequestId();try{localStorage.setItem(PENDING_KEY,JSON.stringify({requestId,fingerprint,body:pendingSnapshot(body),phase:'prepared',createdAt:Date.now()}))}catch{}return requestId}
+function setPendingPhase(requestId,phase){try{const p=readPending();if(!p||String(p.requestId)!==String(requestId))return;localStorage.setItem(PENDING_KEY,JSON.stringify({...p,phase:String(phase),updatedAt:Date.now(),...(phase==='dispatched'?{dispatchedAt:Date.now()}:{} )}))}catch{}}
 function pendingBody(p=readPending()){if(!p)return null;if(p.body)return p.body;const a=String(p.fingerprint||'').split('|');if(a.length!==6)return null;return{operationalDate:a[0],mode:a[1],waitTypeId:a[2],adults:Number(a[3]),paidChildren:Number(a[4]),infants:Number(a[5])}}
-function clearPending(requestId=''){try{const p=readPending();if(!requestId||!p||String(p.requestId)===String(requestId))localStorage.removeItem(PENDING_KEY)}catch{}}
+function clearPending(requestId=''){try{const p=readPending();if(!requestId||!p||String(p.requestId)===String(requestId))localStorage.removeItem(PENDING_KEY)}catch{try{localStorage.removeItem(PENDING_KEY)}catch{}}}
 async function withTimeout(promise,ms,message){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})])}finally{clearTimeout(timer)}}
 
 async function fetchWithTimeout(url,options={},ms=GET_TIMEOUT_MS,message='通信がタイムアウトしました。'){
@@ -112,16 +115,20 @@ async function pollRequest(id){
 }
 
 async function post(action,body){
-  const id=action==='createReservation'?requestIdFor(body):newRequestId(),payload={action,requestId:id,...body};
+  const isCreate=action==='createReservation';
+  const id=isCreate?requestIdFor(body):newRequestId(),payload={action,requestId:id,...body};
   const options={method:'POST',mode:'cors',credentials:'omit',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))};
   let r;
+  if(isCreate)setPendingPhase(id,'dispatched');
   try{
     r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS,'受付送信の応答がタイムアウトしました。結果を確認します。');
   }catch{
+    if(isCreate)setPendingPhase(id,'awaiting-result');
     return await pollRequest(id);
   }
   let d=null;try{d=await r.json()}catch{}
   if(d&&r.status!==202)return{...d,_requestId:id};
+  if(isCreate)setPendingPhase(id,'awaiting-result');
   return await pollRequest(id);
 }
 
@@ -185,7 +192,7 @@ async function boot(){
 
   S.canCreate=Boolean(lineOK&&dayOK&&gatewayOK&&E.featureFlags?.receptionCreate===true&&healthSupportsOfficialDevelop(S.health));
   S.slots=buildSlots(S.waitTypes);if(DEVELOP_TEST_ONLY&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
-  const pending=readPending();
+  const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
@@ -242,5 +249,5 @@ async function submit(){
 
 function setMode(mode){S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
 function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
-window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.0.0-line-store-only',render,mount});
+window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.1.0-dispatch-proof',render,mount});
 })();
