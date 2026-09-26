@@ -67,6 +67,12 @@ export default {
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
 
+    if (request.method === 'GET' && action === 'createDiagnostics') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try { return json(request, await getCreateDiagnostics(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
     if (request.method === 'GET' && action === 'crowdRemaining') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getCrowdRemaining(request, env, ctx)); }
@@ -210,6 +216,63 @@ function queueObservedCallNotification(env, response, ctx) {
   const guarded = job.catch(e => console.warn('CALLSTATUS_IMMEDIATE_NOTIFY_FAILED', safeError(e)));
   if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(guarded);
   else void guarded;
+}
+
+async function getCreateDiagnostics(env) {
+  if (!env?.DB) throw apiError('DB_NOT_CONFIGURED',503);
+  const now=Date.now();
+  const since=now-24*60*60*1000;
+  const attempts=[];
+  try{
+    const r=await env.DB.prepare(`SELECT created_at,business_date,wait_type_id,mode,upstream_http,result_code,error_key,airwait_message
+      FROM v2_create_diagnostics WHERE created_at>=? ORDER BY created_at DESC LIMIT 20`).bind(since).all();
+    for(const row of Array.isArray(r?.results)?r.results:[]){
+      attempts.push({
+        source:'create-diagnostic',
+        createdAt:Number(row.created_at||0),
+        businessDate:String(row.business_date||''),
+        waitTypeId:String(row.wait_type_id||''),
+        mode:String(row.mode||''),
+        upstreamHttp:Number(row.upstream_http||0),
+        resultCode:String(row.result_code||''),
+        error:String(row.error_key||''),
+        airwaitMessage:String(row.airwait_message||'').slice(0,300),
+      });
+    }
+  }catch(e){
+    if(!/no such table/i.test(String(e?.message||e||''))) throw e;
+  }
+
+  const legacy=[];
+  try{
+    const r=await env.DB.prepare(`SELECT state,result_json,updated_at
+      FROM v2_request_results
+      WHERE action='createReservation' AND state IN ('REJECTED','AMBIGUOUS') AND updated_at>=?
+      ORDER BY updated_at DESC LIMIT 20`).bind(since).all();
+    for(const row of Array.isArray(r?.results)?r.results:[]){
+      let value={};
+      try{value=JSON.parse(String(row.result_json||'{}'))||{}}catch{}
+      legacy.push({
+        source:'request-result',
+        createdAt:Number(row.updated_at||0),
+        state:String(row.state||''),
+        ambiguous:Boolean(value?.ambiguous),
+        resultCode:String(value?.errorCode||'').slice(0,40),
+        error:String(value?.error||'').slice(0,120),
+        version:String(value?.version||'').slice(0,80),
+      });
+    }
+  }catch(e){
+    if(!/no such table/i.test(String(e?.message||e||''))) throw e;
+  }
+
+  return {
+    ok:true,
+    source:'Developing sanitized create diagnostics / no user identity',
+    fetchedAt:new Date().toISOString(),
+    attempts,
+    legacy,
+  };
 }
 
 async function getCrowdRemaining(request, env, ctx) {
