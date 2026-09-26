@@ -8,9 +8,9 @@ const LOCAL_INDEX = path.join(process.cwd(), 'miniapp-v2/develop/index.html');
 async function installNextHome(page, liffMode = 'resolve', statusFixture = null, options = {}) {
   const dayFixture = options.dayFixture || { ok:true, operationalDate:'2026-09-19', businessType:'土日祝日', durationLabel:'9:30〜18:00', closingTime:'18:00' };
   const crowdFixture = options.crowdFixture || [
-    { waitTypeId:'0030', waitTypeName:'10時ご入場枠', slotKey:'10:00', detailedWaitType:'10時ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:195 },
-    { waitTypeId:'0032', waitTypeName:'12時半ご入場枠', slotKey:'12:30', detailedWaitType:'12時半ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:71 },
-    { waitTypeId:'0034', waitTypeName:'15時ご入場枠', slotKey:'15:00', detailedWaitType:'15時ご入場枠', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:25 },
+    { waitTypeId:'0029', waitTypeName:'10時25分頃入場【土休日特定日】', slotKey:'10:00', detailedWaitType:'10時25分頃入場【土休日特定日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:195 },
+    { waitTypeId:'0031', waitTypeName:'12時50分頃入場【土休日特定日】', slotKey:'12:30', detailedWaitType:'12時50分頃入場【土休日特定日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:71 },
+    { waitTypeId:'0033', waitTypeName:'15時15分頃入場時間【土休日特定日】', slotKey:'15:00', detailedWaitType:'15時15分頃入場時間【土休日特定日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:25 },
   ];
   await page.addInitScript(() => {
     const RealDate = Date;
@@ -208,8 +208,8 @@ test('regular weekday HOME exposes LINE reception and 10:00 / 14:00 crowd estima
   await installNextHome(page, 'resolve', null, {
     dayFixture:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', durationLabel:'10:00〜17:00', closingTime:'17:00' },
     crowdFixture:[
-      { waitTypeId:'0024', waitTypeName:'10時ご入場枠【WEB平日】', slotKey:'10:00', detailedWaitType:'10時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:155 },
-      { waitTypeId:'0027', waitTypeName:'14時ご入場枠【WEB平日】', slotKey:'14:00', detailedWaitType:'14時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:85 },
+      { waitTypeId:'0023', waitTypeName:'すぐ入場受付【平日】', slotKey:'10:00', detailedWaitType:'すぐ入場受付【平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:155 },
+      { waitTypeId:'0025', waitTypeName:'14時から【平日】', slotKey:'14:00', detailedWaitType:'14時から【平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:85 },
     ],
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
