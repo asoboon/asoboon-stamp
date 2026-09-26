@@ -185,8 +185,6 @@ async function boot(){
 
   S.canCreate=Boolean(lineOK&&dayOK&&gatewayOK&&E.featureFlags?.receptionCreate===true&&healthSupportsOfficialDevelop(S.health));
   S.slots=buildSlots(S.waitTypes);if(DEVELOP_TEST_ONLY&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
-  const official=readOfficialHandoff();
-  if(official&&lineOK&&dayOK&&gatewayOK){showOfficialHandoff(official,{persist:false});return}
   const pending=readPending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
 
