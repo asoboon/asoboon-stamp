@@ -179,7 +179,7 @@ async function openReceptionWithPending(page, result) {
   await installLiff(page, 'authenticated');
   await page.addInitScript(pending => localStorage.setItem('asoboon_v2_pending_reception_develop_v1', JSON.stringify(pending)), {
     requestId:'v2_pending_12345678', fingerprint:'2026-09-19|web|0029|1|0|0',
-    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0029',adults:1,paidChildren:0,infants:0}, createdAt:Date.parse('2026-09-19T03:00:00Z')
+    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0029',adults:1,paidChildren:0,infants:0}, phase:'dispatched', createdAt:Date.parse('2026-09-19T03:00:00Z')
   });
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url=new URL(route.request().url());
@@ -189,6 +189,20 @@ async function openReceptionWithPending(page, result) {
   await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#recStatus')).toBeVisible();
 }
+
+test('app reopen discards legacy pending without dispatch proof', async ({page}) => {
+  await installLiff(page, 'authenticated');
+  await page.addInitScript(() => localStorage.setItem('asoboon_v2_pending_reception_develop_v1', JSON.stringify({
+    requestId:'v2_legacy_not_sent', fingerprint:'2026-09-19|web|0029|1|0|0',
+    body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0029',adults:1,paidChildren:0,infants:0},
+    createdAt:Date.parse('2026-09-19T03:00:00Z')
+  })));
+  await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
+  await expect(page.locator('[data-rec-check-result]')).toHaveCount(0);
+  await expect(page.locator('#recStatus')).not.toContainText('受付結果を再確認');
+  await expect(page.locator('#recStatus')).not.toContainText('新しい受付は行わないでください');
+});
 
 test('app reopen clears pending after deterministic REJECTED result', async ({page}) => {
   await openReceptionWithPending(page,{found:true,ok:false,ambiguous:false,error:'AIRWAIT_RECEPTION_ENDED'});
