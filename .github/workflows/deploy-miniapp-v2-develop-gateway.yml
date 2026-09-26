@@ -263,6 +263,50 @@ jobs:
             exit 1
           fi
 
+      - name: Inspect AirWAIT customer cancel API contract
+        run: |
+          set -euo pipefail
+          PAGE="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
+          CSP_URL="$(python3 - "$PAGE" <<'PY'
+          import re,sys
+          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
+          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
+          PY
+          )"
+          test -n "$CSP_URL"
+          JS="$(mktemp)"
+          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
+          MAP_URL="$(python3 - "$JS" "$CSP_URL" <<'PY'
+          import re,sys
+          from urllib.parse import urljoin
+          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          m=re.search(r'sourceMappingURL=([^\s*]+)',t)
+          print(urljoin(sys.argv[2],m.group(1).strip()) if m else '')
+          PY
+          )"
+          echo "CSP source map: ${MAP_URL:-none}"
+          if [ -n "$MAP_URL" ]; then
+            MAP="$(mktemp)"
+            curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$MAP_URL" > "$MAP"
+            python3 - "$MAP" <<'PY'
+          import json,re,sys
+          x=json.load(open(sys.argv[1],encoding='utf-8'))
+          sources=x.get('sources') or []
+          contents=x.get('sourcesContent') or []
+          print('source count',len(sources),'content count',len(contents))
+          for i,(name,body) in enumerate(zip(sources,contents)):
+              body=body or ''
+              if re.search(r'CancelReserve|cancel/confirm|cancel/complete|reserve/update|callStatus',body,re.I):
+                  print('=== SOURCE',i,name,'===')
+                  for needle in ['CancelReserve','cancel/confirm','cancel/complete','reserve/update','callStatus','version']:
+                      for m in list(re.finditer(re.escape(needle),body,re.I))[:10]:
+                          print(body[max(0,m.start()-1800):min(len(body),m.start()+3600)])
+          PY
+          else
+            echo 'No source map exposed'
+          fi
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
