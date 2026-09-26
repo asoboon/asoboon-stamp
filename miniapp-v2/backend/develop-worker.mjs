@@ -333,6 +333,46 @@ async function getCreateDiagnostics(env) {
     liveWaitTypes.push({error:safeError(e)});
   }
 
+  const cancelCapability={checked:false};
+  try{
+    const row=await env.DB.prepare(`SELECT c.request_id,c.reserve_id,rr.result_json
+      FROM v2_user_day_claims c
+      JOIN v2_request_results rr ON rr.request_id=c.request_id
+      WHERE c.state='CONFIRMED' AND c.reserve_id<>'' AND rr.action='createReservation'
+      ORDER BY c.updated_at DESC LIMIT 1`).first();
+    let value={};
+    try{value=row?.result_json?JSON.parse(String(row.result_json)):{};}catch{}
+    const rawUrl=String(value?.shortUrl||'').trim();
+    const parsed=rawUrl?new URL(rawUrl):null;
+    const host=String(parsed?.hostname||'').toLowerCase();
+    if(parsed&&['http:','https:'].includes(parsed.protocol)&&(host==='airwait.jp'||host.endsWith('.airwait.jp'))){
+      parsed.protocol='https:';
+      const response=await fetch(parsed.toString(),{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}});
+      const html=await response.text();
+      const finalUrl=new URL(response.url);
+      const pagePos=html.indexOf('PAGE_DATA');
+      const pageSnippet=pagePos>=0?html.slice(pagePos,Math.min(html.length,pagePos+12000)):'';
+      const versionMatches=[...pageSnippet.matchAll(/["']version["']\s*:\s*["']?(\d+)/g)].map(m=>Number(m[1])).filter(Number.isFinite);
+      cancelCapability.checked=true;
+      cancelCapability.hasShortUrl=true;
+      cancelCapability.httpStatus=response.status;
+      cancelCapability.finalPath=finalUrl.pathname;
+      cancelCapability.queryKeys=[...new Set([...finalUrl.searchParams.keys()])].sort();
+      cancelCapability.hasP=finalUrl.searchParams.has('p');
+      cancelCapability.hasReserveId=finalUrl.searchParams.has('reserveId');
+      cancelCapability.hasStoreNo=finalUrl.searchParams.has('storeNo');
+      cancelCapability.hasCsrfMeta=/<meta[^>]+name=["']_csrf["'][^>]+content=["'][^"']+["']/i.test(html);
+      cancelCapability.hasPageData=pagePos>=0;
+      cancelCapability.versionCandidates=[...new Set(versionMatches)].slice(0,10);
+    }else{
+      cancelCapability.checked=true;
+      cancelCapability.hasShortUrl=false;
+    }
+  }catch(e){
+    cancelCapability.checked=true;
+    cancelCapability.error=safeError(e);
+  }
+
   return {
     ok:true,
     source:'Developing sanitized create diagnostics / no user identity',
@@ -341,6 +381,7 @@ async function getCreateDiagnostics(env) {
     legacy,
     confirmed,
     liveWaitTypes,
+    cancelCapability,
   };
 }
 
