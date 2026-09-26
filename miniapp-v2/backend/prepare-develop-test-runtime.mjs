@@ -12,7 +12,7 @@ function replaceOnce(oldText, newText) {
   s = s.replace(oldText, newText);
 }
 
-replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.3.dev-official-web-handoff',");
+replaceOnce("  VERSION: '1.0.dev1',", "  VERSION: '2.4.dev-line-store-only',");
 replaceOnce(
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,",
   "  ONSITE_OPEN_MIN: 9 * 60 + 30,\n  DEVELOP_TEST_WAIT_TYPE_ID: '0042',\n  DEVELOP_TEST_AMBIGUOUS_RECYCLE_MS: 30 * 1000,\n  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,\n  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,"
@@ -22,8 +22,8 @@ replaceOnce(
   "    createEnabled: String(env.CREATE_ENABLED || '0') === '1',\n    developTestWaitTypeId: CFG.DEVELOP_TEST_WAIT_TYPE_ID,\n    callstatusEnabled: true,"
 );
 replaceOnce(
-  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {",
-  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action === 'recoverReservationSession') return out(request, await recoverReservationSession(env, p));\n      if (action === 'reservationStatus') return out(request, await reservationStatus(env, p));\n      if (!['createReservation','adoptOfficialWebReception'].includes(action)) {"
+  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action !== 'createReservation') {",
+  "      const p = await readBody(request);\n      const action = String(p.action || '');\n      if (action === 'recoverReservationSession') return out(request, await recoverReservationSession(env, p));\n      if (action === 'reservationStatus') return out(request, await reservationStatus(env, p));\n      if (action !== 'createReservation') {"
 );
 replaceOnce(
   "    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (\n      key TEXT PRIMARY KEY,\n      value TEXT NOT NULL,\n      updated_at INTEGER NOT NULL\n    )`),",
