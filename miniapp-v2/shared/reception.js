@@ -40,6 +40,7 @@ function friendlyError(value){const code=String(value||'');const map={
   AIRWAIT_PEOPLE_OVER_LIMIT:'この人数では受付できません。人数をご確認ください。',
   AIRWAIT_RECEPTION_ENDED:'本日の受付は終了しています。',
   AIRWAIT_UNAUTHORIZED_OPERATION:'受付システムに接続できません。時間をおいてもう一度お試しください。',
+  AIRWAIT_UNREGISTERED_DATA:'選択した受付枠を受付システムへ登録できませんでした。最新の受付状況を確認して、もう一度お試しください。',
   AIRWAIT_WAIT_TYPE_UNUSED:'選択した受付枠は現在利用できません。画面を開き直して最新の受付状況をご確認ください。',
   AIRWAIT_OUTSIDE_RECEPTION_TIME:'現在は受付時間外です。',
   AIRWAIT_WAIT_TYPE_OUTSIDE_TIME:'選択した回は現在受付時間外です。',
