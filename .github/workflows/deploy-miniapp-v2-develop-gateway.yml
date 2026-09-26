@@ -257,6 +257,8 @@ jobs:
                 evidence:String(v.evidence||""),
                 remaining:Number.isInteger(v.remaining)?v.remaining:null
               }));
+              console.log("Developing AirWAIT online reception status:");
+              console.log(JSON.stringify(x.onlineReception||{},null,2));
               console.log("Developing crowd slot diagnostics:");
               console.log(JSON.stringify(summary,null,2));
               if(Array.isArray(x.diagnostics)){
