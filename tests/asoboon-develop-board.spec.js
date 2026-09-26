@@ -29,7 +29,7 @@ function payload(rows, options = {}) {
   };
 }
 
-async function installBoard(page, sequence, { reducedMotion = false } = {}) {
+async function installBoard(page, sequence, { reducedMotion = false, cachedPayload = null } = {}) {
   let index = 0;
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(String(error)));
@@ -44,6 +44,14 @@ async function installBoard(page, sequence, { reducedMotion = false } = {}) {
       static now() { return fixed; }
     };
   });
+  if (cachedPayload) {
+    await page.addInitScript(value => {
+      localStorage.setItem('asoboon_call_board_last_good_v1', JSON.stringify({
+        savedAt: new Date('2026-09-19T00:29:30.000Z').valueOf(),
+        data: value,
+      }));
+    }, cachedPayload);
+  }
 
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url = new URL(route.request().url());
@@ -231,6 +239,57 @@ test('temporary API failure preserves readable data and automatically recovers',
   await expect(page.locator('#connection')).toContainText('10秒ごとに自動更新');
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
   expect(h.pageErrors).toEqual([]);
+});
+
+test('stale board payload remains visible with a clear update-waiting warning', async ({ page }) => {
+  const stale = {
+    ...payload([{ number:'2591', state:'calling', order:1 }]),
+    stale:true,
+    staleAgeMs:45000,
+    cacheSource:'snapshot-stale',
+  };
+  await installBoard(page, [stale]);
+  await expect(page.locator('.queue-number')).toHaveText(['2591']);
+  await expect(page.locator('#connection')).toContainText('前回の状況を表示中');
+  await expect(page.locator('#emptyTitle')).not.toHaveText('呼出状況を確認しています');
+});
+
+test('first-load API failure restores same-day browser snapshot instead of freezing on checking screen', async ({ page }) => {
+  const cached = payload([
+    { number:'2592', state:'waiting', order:1 },
+    { number:'2593', state:'calling', order:2 },
+  ]);
+  await installBoard(page, [{ ok:false, error:'AIRWAIT_BOARD_TIMEOUT' }], { cachedPayload:cached });
+  await expect(page.locator('.queue-number')).toHaveText(['2592','2593']);
+  await expect(page.locator('#connection')).toContainText('前回の状況を表示中');
+  await expect(page.locator('#emptyTitle')).not.toHaveText('呼出状況を確認しています');
+  const config=await page.evaluate(() => ({
+    timeout:window.ASOBOON_CALL_BOARD_TEST.REQUEST_TIMEOUT_MS,
+    cacheAge:window.ASOBOON_CALL_BOARD_TEST.BOARD_CACHE_MAX_AGE_MS,
+  }));
+  expect(config.timeout).toBe(20000);
+  expect(config.cacheAge).toBe(180000);
+});
+
+test('board backend uses AirWAIT last-update gating and persistent stale fallback', async () => {
+  const worker=fs.readFileSync('miniapp-v2/backend/develop-worker.mjs','utf8');
+  expect(worker).toContain('AIR_LAST_UPDATE');
+  expect(worker).toContain('fetchAirwaitLastUpdate');
+  expect(worker).toContain('readBoardSnapshotD1');
+  expect(worker).toContain('writeBoardSnapshotD1');
+  expect(worker).toContain('BOARD_SNAPSHOT_STALE_FALLBACK_MS = 3 * 60 * 1000');
+  expect(worker).toContain('BOARD_PAGE_CONCURRENCY = 4');
+  const start=worker.indexOf('async function getBoardStatus(env)');
+  const end=worker.indexOf('function boardSlotKey',start);
+  expect(start).toBeGreaterThan(-1);
+  expect(end).toBeGreaterThan(start);
+  const boardBlock=worker.slice(start,end);
+  expect(boardBlock).toContain('getBoardRows(env,businessDate,businessType)');
+  expect(boardBlock).not.toContain('fetchAllReservationsForReconcile(env)');
+  const workflow=fs.readFileSync('.github/workflows/deploy-miniapp-v2-develop-gateway.yml','utf8');
+  expect(workflow).toContain('Verify live boardStatus read path');
+  expect(workflow).toContain('action=boardStatus');
+  expect(workflow).toContain('curl --max-time 20');
 });
 
 test('240 receptions fit a 1080x1920 portrait board without scrolling or overlap', async ({ page }) => {
