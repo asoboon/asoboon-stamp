@@ -188,6 +188,147 @@ function getLayer(which='back'){
   (document.querySelector('.board')||document.body).appendChild(layer);
   return layer;
 }
+
+const compositionStats={snapshots:0,adjustments:0,textPlacements:0,rayReroutes:0};
+function compositionBoardRect(){
+  const r=document.querySelector('.board')?.getBoundingClientRect?.();
+  return r||{left:0,top:0,width:innerWidth,height:innerHeight,right:innerWidth,bottom:innerHeight};
+}
+function characterAnchorPoint(el,key='CENTER',space='viewport'){
+  if(!el?.getBoundingClientRect)return null;
+  const r=el.getBoundingClientRect();
+  if(!r.width||!r.height)return null;
+  const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+  const anchors=assets?.CHARACTER_ANCHORS?.[el.dataset?.pcAsset]||{CENTER:[.5,.5]};
+  const raw=anchors[key]||anchors.CENTER||[.5,.5];
+  const flip=Number(el.dataset?.sceneFlip)||1;
+  const nx=flip<0?1-Number(raw[0]):Number(raw[0]),ny=Number(raw[1]);
+  const viewport={x:r.left+r.width*nx,y:r.top+r.height*ny};
+  if(space!=='local')return viewport;
+  const board=compositionBoardRect();
+  return{x:viewport.x-board.left,y:viewport.y-board.top};
+}
+function safeRectForCharacter(el,kind='face',space='viewport'){
+  if(!el?.isConnected||el.dataset?.pcSuppressed==='1')return null;
+  const r=el.getBoundingClientRect?.();if(!r||!r.width||!r.height)return null;
+  const style=getComputedStyle(el);
+  if(style.visibility==='hidden'||style.display==='none')return null;
+  const board=compositionBoardRect();
+  if(r.right<board.left-80||r.left>board.right+80||r.bottom<board.top-80||r.top>board.bottom+80)return null;
+  const key=kind==='body'?'BODY':'FACE_SAFE';
+  const p=characterAnchorPoint(el,key,'viewport');if(!p)return null;
+  const width=Math.max(kind==='body'?72:44,r.width*(kind==='body'?.62:.34));
+  const height=Math.max(kind==='body'?90:38,r.height*(kind==='body'?.66:.28));
+  const out={left:p.x-width/2,top:p.y-height/2,width,height,right:p.x+width/2,bottom:p.y+height/2,asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||'')};
+  if(space!=='local')return out;
+  return{...out,left:out.left-board.left,right:out.right-board.left,top:out.top-board.top,bottom:out.bottom-board.top};
+}
+function compositionSnapshot(){
+  const characters=[];
+  document.querySelectorAll('.pc-character[data-pc-asset]').forEach(el=>{
+    const face=safeRectForCharacter(el,'face','viewport');
+    const body=safeRectForCharacter(el,'body','viewport');
+    if(face||body)characters.push({asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||''),face,body});
+  });
+  compositionStats.snapshots+=1;
+  return{characters,faces:characters.map(x=>x.face).filter(Boolean),bodies:characters.map(x=>x.body).filter(Boolean)};
+}
+function rectFromCenter(x,y,width,height){return{left:x-width/2,top:y-height/2,width,height,right:x+width/2,bottom:y+height/2}}
+function intersectionArea(a,b){
+  if(!a||!b)return 0;
+  const w=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));
+  const h=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+  return w*h;
+}
+function overlapRatio(a,b){
+  const inter=intersectionArea(a,b);if(!inter)return 0;
+  const aa=Math.max(1,a.width*a.height),ba=Math.max(1,b.width*b.height);
+  return inter/Math.min(aa,ba);
+}
+function clampCenter(point,width,height){
+  const margin=8;
+  return{
+    x:clamp(Number(point.x)||0,width/2+margin,Math.max(width/2+margin,innerWidth-width/2-margin)),
+    y:clamp(Number(point.y)||0,height/2+margin,Math.max(height/2+margin,innerHeight-height/2-margin))
+  };
+}
+function resolveEffectPoint(point,{width=90,height=90,phase='reaction'}={}){
+  const original=clampCenter(point,width,height),snap=compositionSnapshot();
+  const threshold=phase==='impact'?.46:.10,margin=phase==='impact'?3:12;
+  let current={...original},adjusted=false,before=0,after=0;
+  const scoreCandidate=(candidate)=>{
+    const box=rectFromCenter(candidate.x,candidate.y,width,height);
+    let overlap=0;
+    for(const face of snap.faces)overlap+=Math.max(0,overlapRatio(box,face)-threshold)*12000;
+    const travel=Math.hypot(candidate.x-original.x,candidate.y-original.y);
+    return overlap+travel*.7;
+  };
+  for(let pass=0;pass<2;pass++){
+    const box=rectFromCenter(current.x,current.y,width,height);
+    const hit=snap.faces.map(face=>({face,ratio:overlapRatio(box,face)})).sort((a,b)=>b.ratio-a.ratio)[0];
+    if(!hit||hit.ratio<=threshold){after=hit?.ratio||0;break}
+    if(pass===0)before=hit.ratio;
+    const f=hit.face;
+    const candidates=[
+      {x:f.left-width/2-margin,y:current.y},
+      {x:f.right+width/2+margin,y:current.y},
+      {x:current.x,y:f.top-height/2-margin},
+      {x:current.x,y:f.bottom+height/2+margin},
+    ].map(p=>clampCenter(p,width,height));
+    candidates.sort((a,b)=>scoreCandidate(a)-scoreCandidate(b));
+    current=candidates[0]||current;adjusted=true;
+  }
+  if(adjusted)compositionStats.adjustments+=1;
+  return{...current,adjusted,overlapBefore:before,overlapAfter:after};
+}
+function chooseOverlayPlacement(targetRect,{width=320,height=120,giant=false}={}){
+  const target=targetRect||{left:innerWidth*.4,top:innerHeight*.45,width:innerWidth*.2,height:innerHeight*.1,right:innerWidth*.6,bottom:innerHeight*.55};
+  const cx=target.left+target.width/2,cy=target.top+target.height/2;
+  const dx=Math.max(width*.32,Math.min(innerWidth*.23,260));
+  const dy=Math.max(height*.75,Math.min(innerHeight*.13,220));
+  const candidates=[
+    {x:cx,y:cy},
+    {x:cx-dx,y:cy-dy},{x:cx+dx,y:cy-dy},
+    {x:cx-dx,y:cy+dy},{x:cx+dx,y:cy+dy},
+    {x:cx,y:cy-dy*1.25},{x:cx,y:cy+dy*1.25},
+    {x:innerWidth*.5,y:innerHeight*.24},{x:innerWidth*.5,y:innerHeight*.76},
+  ].map(p=>clampCenter(p,width,height));
+  const snap=compositionSnapshot();
+  const targetBox={left:target.left,top:target.top,width:target.width,height:target.height,right:target.right??target.left+target.width,bottom:target.bottom??target.top+target.height};
+  const score=(p)=>{
+    const box=rectFromCenter(p.x,p.y,width,height);
+    let value=0;
+    for(const face of snap.faces)value+=overlapRatio(box,face)*18000;
+    for(const body of snap.bodies)value+=overlapRatio(box,body)*(giant?1600:900);
+    value+=overlapRatio(box,targetBox)*(giant?1300:700);
+    value+=Math.hypot(p.x-cx,p.y-cy)*.16;
+    return value;
+  };
+  candidates.sort((a,b)=>score(a)-score(b));
+  compositionStats.textPlacements+=1;
+  return{...(candidates[0]||{x:cx,y:cy}),faces:snap.faces.length};
+}
+function rayHitsFace(start,angle,distance,radius,faces){
+  const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
+  for(const t of [.18,.32,.48,.66,.82]){
+    const x=start.x+dx*t,y=start.y+dy*t;
+    for(const f of faces){
+      if(x>=f.left-radius&&x<=f.right+radius&&y>=f.top-radius&&y<=f.bottom+radius)return true;
+    }
+  }
+  return false;
+}
+function rerouteRay(start,angle,distance,{radius=28}={}){
+  const snap=compositionSnapshot(),offsets=[0,18,-18,36,-36,54,-54].map(v=>v*Math.PI/180);
+  let best=angle;
+  for(const off of offsets){
+    const candidate=angle+off;
+    if(!rayHitsFace(start,candidate,distance,radius,snap.faces)){best=candidate;break}
+  }
+  if(Math.abs(best-angle)>.001)compositionStats.rayReroutes+=1;
+  return best;
+}
+
 function createScope(label='effect',timeScale=1){
   const controller=new AbortController();
   const scopeScale=Math.max(.25,Math.min(3,Number(timeScale)||1));
@@ -235,7 +376,7 @@ function createScope(label='effect',timeScale=1){
   scopes.add(scope);return scope;
 }
 function abortAll(reason='abort-all'){for(const scope of [...scopes])scope.abort(reason)}
-function resetPerformanceBaseline(){baselineDomCount=document.getElementsByTagName('*').length;peakDomCount=baselineDomCount;maxFrameTasks=0;maxCanvasJobs=0;qualityChanges=0;longTasks=0;frameSamples=[];frameEma=16.7;fpsEma=60}
+function resetPerformanceBaseline(){baselineDomCount=document.getElementsByTagName('*').length;peakDomCount=baselineDomCount;maxFrameTasks=0;maxCanvasJobs=0;qualityChanges=0;longTasks=0;frameSamples=[];frameEma=16.7;fpsEma=60;compositionStats.snapshots=0;compositionStats.adjustments=0;compositionStats.textPlacements=0;compositionStats.rayReroutes=0}
 function diagnostics(){
   return{
     slowdown,defaultSlowdown:DEFAULT_SLOWDOWN,reduced,
@@ -247,7 +388,7 @@ function diagnostics(){
     maxFrameTasks,maxCanvasJobs,qualityChanges,
     activeTimers:[...scopes].reduce((n,x)=>n+(x.stats?.().timers||0),0),
     jsHeapUsed:performance.memory?.usedJSHeapSize||null,
-    scopes:[...scopes].map(x=>x.stats()),
+    scopes:[...scopes].map(x=>x.stats()),composition:{...compositionStats},
   };
 }
 
@@ -263,10 +404,11 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.3.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
+  version:'2.4.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
+  characterAnchorPoint,safeRectForCharacter,compositionSnapshot,resolveEffectPoint,chooseOverlayPlacement,rerouteRay,overlapRatio,
   sharedCanvas:ensureSharedCanvas,runCanvas,runFrameTask,resetPerformanceBaseline,diagnostics,
 });
 })();
