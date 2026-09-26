@@ -290,14 +290,19 @@ async function fetchBoard(){
     renderPayload(d);
   }catch(e){
     if(DIRECTOR?.onCommunicationError)DIRECTOR.onCommunicationError();else IDLE?.onCommunicationError?.();
+    let recoveredFromCache=false;
     if(!state.lastGoodAt){
       const cached=readLastGoodPayload();
       if(cached){
         renderPayload(cached);
-        setConnection(false,'前回の状況を表示中・更新待機中');
+        recoveredFromCache=true;
       }
     }
-    setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
+    if(recoveredFromCache){
+      setConnection(false,'前回の状況を表示中・更新待機中');
+    }else{
+      setConnection(false,state.lastGoodAt?'更新待機中':'接続確認中');
+    }
     if(!state.lastGoodAt){
       setSessionHeader({phase:'checking',slotLabel:'確認中',slotSuffix:'',detail:'呼出状況を確認しています'});
       $('emptyState').hidden=false;
