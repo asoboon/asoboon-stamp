@@ -4,6 +4,8 @@ const slides=Array.isArray(window.ASOBOON_PRESENTATION_SLIDES)?window.ASOBOON_PR
 const slidesPanel=document.getElementById('slidesPanel');
 const wordsPanel=document.getElementById('wordsPanel');
 const shell=document.getElementById('presentationShell');
+const stage=document.getElementById('slideStage');
+const zoomLayer=document.getElementById('zoomLayer');
 const img=document.getElementById('slideImage');
 const loading=document.getElementById('slideLoading');
 const nowEl=document.getElementById('pageNow');
@@ -12,28 +14,109 @@ const prev=document.getElementById('prevSlide');
 const next=document.getElementById('nextSlide');
 const openWords=document.getElementById('openWords');
 const backToSlides=document.getElementById('backToSlides');
+const zoomToggle=document.getElementById('zoomToggle');
+const gestureLabel=document.getElementById('gestureLabel');
+const gestureHint=document.getElementById('gestureHint');
+
+const MIN_SCALE=1;
+const DOUBLE_TAP_SCALE=1.8;
+const MAX_SCALE=3;
+const UI_HIDE_MS=3000;
+const HINT_KEY='asoboon:chief-story-gesture-hint-v1';
 
 let index=0;
-let startX=0,startY=0,startT=0;
-let changeTimer=0;
+let scale=1,panX=0,panY=0;
+let changeTimer=0,uiTimer=0,hintTimer=0;
+let lastTapAt=0,lastTapX=0,lastTapY=0;
+let gestureStart=null;
+let pinchStart=null;
+const pointers=new Map();
 
-function portraitViewport(){return innerHeight>innerWidth}
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+const portraitViewport=()=>innerHeight>innerWidth;
+
+function toLocalDelta(dx,dy){
+  return portraitViewport()?{x:dy,y:-dx}:{x:dx,y:dy};
+}
+function visualSwipeDelta(dx,dy){
+  return portraitViewport()?dy:dx;
+}
+function maxPan(){
+  const w=stage?.clientWidth||innerWidth;
+  const h=stage?.clientHeight||innerHeight;
+  return{x:Math.max(0,w*(scale-1)/2),y:Math.max(0,h*(scale-1)/2)};
+}
+function clampPan(){
+  const m=maxPan();
+  panX=clamp(panX,-m.x,m.x);
+  panY=clamp(panY,-m.y,m.y);
+}
+function applyTransform(animate=false){
+  clampPan();
+  zoomLayer.style.transition=animate?'transform .20s cubic-bezier(.2,.75,.25,1)':'none';
+  zoomLayer.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${scale})`;
+  shell.classList.toggle('is-zoomed',scale>1.001);
+  zoomToggle.textContent=scale>1.001?'全体表示':'⌕ 拡大';
+  zoomToggle.setAttribute('aria-label',scale>1.001?'スライドを全体表示に戻す':'スライドを拡大');
+  gestureLabel.textContent=scale>1.001?'ドラッグで移動':'左右にスワイプ';
+}
+function resetZoom(animate=false){
+  scale=1;panX=0;panY=0;applyTransform(animate);
+}
+function setZoom(nextScale,animate=false){
+  scale=clamp(nextScale,MIN_SCALE,MAX_SCALE);
+  if(scale<=1.001){scale=1;panX=0;panY=0;}
+  applyTransform(animate);
+}
+function toggleZoom(){
+  if(scale>1.001)resetZoom(true);
+  else{scale=DOUBLE_TAP_SCALE;panX=0;panY=0;applyTransform(true);}
+  showUI();
+}
+
+function showUI(){
+  shell.classList.remove('ui-hidden');
+  clearTimeout(uiTimer);
+  uiTimer=setTimeout(()=>{
+    if(pointers.size===0&&!gestureHint.hidden)shell.classList.remove('ui-hidden');
+    else if(pointers.size===0)shell.classList.add('ui-hidden');
+  },UI_HIDE_MS);
+}
+function revealHintOnce(){
+  let seen=false;
+  try{seen=localStorage.getItem(HINT_KEY)==='1';}catch{}
+  if(seen)return;
+  gestureHint.hidden=false;
+  shell.classList.remove('ui-hidden');
+  clearTimeout(hintTimer);
+  hintTimer=setTimeout(()=>{
+    gestureHint.hidden=true;
+    try{localStorage.setItem(HINT_KEY,'1');}catch{}
+    showUI();
+  },2600);
+}
+
 function preload(i){
   if(i<0||i>=slides.length)return;
   const p=new Image();p.src=slides[i];
 }
 function render(i,animate=true){
   if(!slides.length){
+    loading.hidden=false;
     loading.textContent='資料を読み込めませんでした。';
     prev.disabled=next.disabled=true;
     return;
   }
-  index=Math.max(0,Math.min(slides.length-1,i));
+  const target=clamp(i,0,slides.length-1);
+  resetZoom(false);
+  index=target;
   if(animate){
     img.classList.add('is-changing');
     clearTimeout(changeTimer);
     changeTimer=setTimeout(()=>img.classList.remove('is-changing'),150);
   }
+  loading.hidden=false;
+  loading.textContent='資料を読み込んでいます…';
   img.src=slides[index];
   img.alt='ASOBooN プレゼンテーション '+(index+1)+'枚目';
   nowEl.textContent=String(index+1);
@@ -41,45 +124,132 @@ function render(i,animate=true){
   prev.disabled=index===0;
   next.disabled=index===slides.length-1;
   preload(index-1);preload(index+1);
+  showUI();
 }
 img.addEventListener('load',()=>{loading.hidden=true;img.classList.remove('is-changing')});
 img.addEventListener('error',()=>{loading.hidden=false;loading.textContent='このスライドを表示できませんでした。'});
 
-function go(d){render(index+d,true)}
+function go(d){
+  const n=index+d;
+  if(n<0||n>=slides.length)return;
+  render(n,true);
+}
 prev.addEventListener('click',()=>go(-1));
 next.addEventListener('click',()=>go(1));
+zoomToggle.addEventListener('click',toggleZoom);
 
-shell.addEventListener('touchstart',e=>{
-  const t=e.changedTouches[0];if(!t)return;
-  startX=t.clientX;startY=t.clientY;startT=Date.now();
-},{passive:true});
-shell.addEventListener('touchend',e=>{
-  const t=e.changedTouches[0];if(!t)return;
-  const dx=t.clientX-startX,dy=t.clientY-startY;
-  const elapsed=Date.now()-startT;
-  if(elapsed>900)return;
-  // CSSで90度回しているportraitでは、見た目の左右スワイプ＝画面座標の上下移動。
-  const delta=portraitViewport()?dy:dx;
-  if(Math.abs(delta)<42)return;
-  // portraitを時計回り90度に回しているため、上方向が「次」、下方向が「前」。
-  go(delta<0?1:-1);
-},{passive:true});
+function pointFromEvent(e){return{x:e.clientX,y:e.clientY}}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function center(a,b){return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+function pointerValues(){return[...pointers.values()]}
 
-shell.addEventListener('pointerup',e=>{
-  if(e.pointerType==='touch')return;
-  // マウス/PCでは左右半分のクリックでも送れる。
+shell.addEventListener('pointerdown',e=>{
   if(e.target.closest('button,a'))return;
-  if(e.clientX<innerWidth*.42)go(-1);
-  else if(e.clientX>innerWidth*.58)go(1);
-});
+  e.preventDefault();
+  try{shell.setPointerCapture(e.pointerId);}catch{}
+  pointers.set(e.pointerId,pointFromEvent(e));
+  showUI();
+
+  if(pointers.size===1){
+    gestureStart={x:e.clientX,y:e.clientY,t:Date.now(),moved:false,lastX:e.clientX,lastY:e.clientY};
+    pinchStart=null;
+  }else if(pointers.size===2){
+    const [a,b]=pointerValues();
+    pinchStart={distance:Math.max(1,distance(a,b)),scale,center:center(a,b),panX,panY};
+    gestureStart=null;
+  }
+},{passive:false});
+
+shell.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;
+  e.preventDefault();
+  const prevPoint=pointers.get(e.pointerId);
+  const nextPoint=pointFromEvent(e);
+  pointers.set(e.pointerId,nextPoint);
+
+  if(pointers.size>=2){
+    const [a,b]=pointerValues();
+    if(!pinchStart){
+      pinchStart={distance:Math.max(1,distance(a,b)),scale,center:center(a,b),panX,panY};
+    }
+    const ratio=distance(a,b)/pinchStart.distance;
+    scale=clamp(pinchStart.scale*ratio,MIN_SCALE,MAX_SCALE);
+    const c=center(a,b);
+    const d=toLocalDelta(c.x-pinchStart.center.x,c.y-pinchStart.center.y);
+    panX=pinchStart.panX+d.x;
+    panY=pinchStart.panY+d.y;
+    if(scale<=1.001){scale=1;panX=0;panY=0;}
+    applyTransform(false);
+    return;
+  }
+
+  if(pointers.size===1&&gestureStart){
+    const dx=nextPoint.x-prevPoint.x,dy=nextPoint.y-prevPoint.y;
+    const total=Math.hypot(nextPoint.x-gestureStart.x,nextPoint.y-gestureStart.y);
+    if(total>5)gestureStart.moved=true;
+    if(scale>1.001){
+      const d=toLocalDelta(dx,dy);
+      panX+=d.x;panY+=d.y;
+      applyTransform(false);
+    }
+    gestureStart.lastX=nextPoint.x;gestureStart.lastY=nextPoint.y;
+  }
+},{passive:false});
+
+function finishPointer(e){
+  if(!pointers.has(e.pointerId))return;
+  const end=pointFromEvent(e);
+  const wasCount=pointers.size;
+  pointers.delete(e.pointerId);
+
+  if(wasCount>=2){
+    pinchStart=null;
+    if(pointers.size===1){
+      const p=pointerValues()[0];
+      gestureStart={x:p.x,y:p.y,t:Date.now(),moved:false,lastX:p.x,lastY:p.y};
+    }else gestureStart=null;
+    showUI();
+    return;
+  }
+
+  if(!gestureStart){showUI();return;}
+  const dx=end.x-gestureStart.x,dy=end.y-gestureStart.y;
+  const moved=Math.hypot(dx,dy);
+  const elapsed=Date.now()-gestureStart.t;
+
+  if(scale<=1.001&&elapsed<900&&Math.abs(visualSwipeDelta(dx,dy))>42&&moved>42){
+    const delta=visualSwipeDelta(dx,dy);
+    go(delta<0?1:-1);
+    gestureStart=null;
+    return;
+  }
+
+  if(moved<14&&elapsed<450){
+    const now=Date.now();
+    const doubleTap=now-lastTapAt<330&&Math.hypot(end.x-lastTapX,end.y-lastTapY)<34;
+    if(doubleTap){
+      lastTapAt=0;
+      toggleZoom();
+    }else{
+      lastTapAt=now;lastTapX=end.x;lastTapY=end.y;
+      showUI();
+    }
+  }else showUI();
+  gestureStart=null;
+}
+shell.addEventListener('pointerup',finishPointer,{passive:false});
+shell.addEventListener('pointercancel',finishPointer,{passive:false});
 
 addEventListener('keydown',e=>{
   if(wordsPanel.hidden===false)return;
   if(e.key==='ArrowLeft')go(-1);
   if(e.key==='ArrowRight')go(1);
+  if(e.key==='Escape'&&scale>1.001)resetZoom(true);
 });
+addEventListener('resize',()=>{clampPan();applyTransform(false)});
 
 function showWords(){
+  resetZoom(false);
   slidesPanel.hidden=true;
   wordsPanel.hidden=false;
   document.body.style.overflow='hidden';
@@ -89,7 +259,7 @@ function showSlides(){
   wordsPanel.hidden=true;
   slidesPanel.hidden=false;
   document.body.style.overflow='hidden';
-  requestAnimationFrame(()=>render(index,false));
+  requestAnimationFrame(()=>{render(index,false);showUI();});
 }
 openWords.addEventListener('click',showWords);
 backToSlides.addEventListener('click',showSlides);
@@ -117,4 +287,5 @@ grid.innerHTML=words.map(w=>'<article class="word-card"><div class="word-tag">'+
 
 totalEl.textContent=String(slides.length||0);
 render(0,false);
+revealHintOnce();
 })();
