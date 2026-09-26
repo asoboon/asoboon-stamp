@@ -28,6 +28,8 @@ const EVENTS=Object.freeze([
   Object.freeze({id:'DUO_RESCUE_RELAY',category:'DUO_STORY',story:'止まれないPOMPONを遠くからCHIRUが追う→救助成功→2人でもつれる'}),
   Object.freeze({id:'DUO_QUIET_PEEK_RETREAT',category:'DUO_STORY',story:'左右からそっと覗く→目が合って静止→気まずくゆっくり引っ込む'}),
   Object.freeze({id:'BALL_RIDE_FAIL',category:'RARE_STORY',story:'ボール成功→調子に乗る→飛ぶ→CHIRU回避→POMPONだけ画面外事故'}),
+  Object.freeze({id:'MEGA_SCREEN_TAKEOVER',category:'MEGA_STORY',story:'巨大POMPONが画面を占拠→掲示板を傾ける→CHIRUに見つかって縮こまる'}),
+  Object.freeze({id:'MEGA_GREAT_CRASH',category:'MEGA_STORY',story:'巨大ボールとPOMPONが暴走→CHIRU参戦→全画面級クラッシュ→2人でもつれる'}),
 ]);
 
 let currentScope=null,running=false,currentId='';
@@ -103,6 +105,12 @@ function fx(scope,name,semantic,{x=0,y=0,scale=1,rotate=0,opacity=1,layer='front
   return scope.add(el,layer);
 }
 function hide(el){if(el)el.style.opacity='0'}
+function stageProp(scope,className='pc-mega-prop',layer='front'){
+  const el=document.createElement('div');el.className=className;return scope.add(el,layer);
+}
+function stageBoard(){
+  return document.querySelector('.board');
+}
 function anim(scope,el,keyframes,options={},mode='idle'){
   if(!el)return Promise.resolve();
   const opts={...options};
@@ -155,6 +163,8 @@ async function reducedEvent(scope,id,context={}){
     DUO_OH_NO_ESCAPE:['duo_oh_no',r.width*.5,r.height*.63],
     DUO_FRIENDSHIP_OOPS:['duo_friendship_oops',r.width*.5,r.height*.64],
     BALL_RIDE_FAIL:['pompon_ballride',r.width*.5,r.height*.64],
+    MEGA_SCREEN_TAKEOVER:['pompon_smug',r.width*.5,r.height*.48],
+    MEGA_GREAT_CRASH:['duo_entangled',r.width*.52,r.height*.61],
     CALL_DELIVERY:['chiru_retort',clamp((context.localX||r.width*.5)+r.width*.18,150,r.width-150),clamp(context.localY||r.height*.55,150,r.height-150)],
   };
   const [name,x,y]=map[id]||map.POMPON_PEEK;
@@ -734,6 +744,114 @@ async function ballRideFail(scope){
     shakeShell(scope,.55),
   ]);
 }
+async function megaScreenTakeover(scope){
+  const r=rect(),s=scaleForStage(),board=stageBoard();
+  const wash=stageProp(scope,'pc-mega-wash takeover','back');
+  await anim(scope,wash,[{opacity:0},{opacity:.58,offset:.34},{opacity:.42,offset:.78},{opacity:0}],{duration:1800,easing:'ease-in-out',fill:'forwards'});
+  const p=pose(scope,'pompon_smug',{x:r.width*.5,y:r.height+210,scale:s*.92,opacity:0});
+  await anim(scope,p,[
+    {opacity:0,transform:transform(r.width*.5,r.height+210,s*.75,-2)},
+    {opacity:1,offset:.24,transform:transform(r.width*.5,r.height*.68,s*1.35,2)},
+    {opacity:1,offset:.68,transform:transform(r.width*.5,r.height*.48,s*2.28,-1)},
+    {opacity:1,transform:transform(r.width*.5,r.height*.46,s*2.18,1)},
+  ],{duration:980,easing:'cubic-bezier(.12,.82,.18,1)',fill:'forwards'});
+  await hold(scope,520);
+  if(board&&!M.isReduced()){
+    await anim(scope,board,[
+      {transform:'translate3d(0,0,0) rotate(0deg) scale(1)'},
+      {transform:'translate3d(-12px,8px,0) rotate(-1.2deg) scale(.992)',offset:.28},
+      {transform:'translate3d(14px,-5px,0) rotate(1.05deg) scale(.996)',offset:.55},
+      {transform:'translate3d(-6px,2px,0) rotate(-.4deg) scale(.999)',offset:.78},
+      {transform:'translate3d(0,0,0) rotate(0deg) scale(1)'},
+    ],{duration:620,easing:'cubic-bezier(.2,.8,.2,1)'});
+  }
+  hide(p);
+  const shocked=pose(scope,'pompon_shocked',{x:r.width*.5,y:r.height*.48,scale:s*2.08,opacity:0});
+  const alert=anchoredFx(scope,shocked,'HEAD','exclamation','alert',{dx:130,dy:-70,scale:s*1.15,opacity:0});
+  await Promise.all([
+    anim(scope,shocked,[
+      {opacity:0,transform:transform(r.width*.5,r.height*.5,s*1.72,-5)},
+      {opacity:1,offset:.2,transform:transform(r.width*.5,r.height*.45,s*2.15,5)},
+      {opacity:1,transform:transform(r.width*.5,r.height*.46,s*2.04,-2)},
+    ],{duration:620,easing:'cubic-bezier(.18,.88,.2,1)',fill:'forwards'}),
+    anim(scope,alert,[{opacity:0},{opacity:1,offset:.28},{opacity:1}],{duration:560,fill:'forwards'})
+  ]);
+  await hold(scope,480);
+  const c=pose(scope,'chiru_retort',{x:r.width*.82,y:r.height*.64,scale:s*1.18,flip:-1,opacity:0});
+  await anim(scope,c,[
+    {opacity:0,transform:transform(r.width+120,r.height*.7,s*.9,0,-1)},
+    {opacity:1,offset:.3,transform:transform(r.width*.84,r.height*.64,s*1.22,-4,-1)},
+    {opacity:1,transform:transform(r.width*.78,r.height*.62,s*1.18,2,-1)},
+  ],{duration:700,easing:'ease-out',fill:'forwards'});
+  await hold(scope,560);
+  await Promise.all([
+    anim(scope,shocked,[{opacity:1},{opacity:.96,offset:.2,transform:transform(r.width*.48,r.height*.53,s*1.6,-4)},{opacity:0,transform:transform(r.width*.38,r.height+210,s*.65,-8)}],{duration:920,easing:'cubic-bezier(.3,.1,.48,1)',fill:'forwards'}),
+    anim(scope,c,[{opacity:1},{opacity:1,offset:.58,transform:transform(r.width*.7,r.height*.62,s*1.16,0,-1)},{opacity:0,transform:transform(r.width*.64,r.height*.72,s*.92,2,-1)}],{duration:920,easing:'ease-in',fill:'forwards'}),
+    anim(scope,alert,[{opacity:1},{opacity:0}],{duration:420,fill:'forwards'})
+  ]);
+  await hold(scope,260);
+}
+async function megaGreatCrash(scope){
+  const r=rect(),s=scaleForStage(),impactX=r.width*.58,impactY=r.height*.57,board=stageBoard();
+  const wash=stageProp(scope,'pc-mega-wash crash','back');
+  const ball=stageProp(scope,'pc-giant-ball pc-mega-ball','back');
+  ball.style.opacity='0';ball.style.transform=transform(-220,r.height*.56,s*1.1,-12);
+  const p=pose(scope,'pompon_cannot_stop',{x:-170,y:r.height*.66,scale:s*1.12,opacity:0});
+  await Promise.all([
+    anim(scope,wash,[{opacity:0},{opacity:.42,offset:.25},{opacity:.3,offset:.76},{opacity:0}],{duration:2100,fill:'forwards'}),
+    anim(scope,ball,[
+      {opacity:0,transform:transform(-240,r.height*.57,s*.9,-12)},
+      {opacity:1,offset:.2,transform:transform(r.width*.18,r.height*.57,s*1.28,70)},
+      {opacity:1,offset:.72,transform:transform(impactX-60,impactY,s*1.72,240)},
+      {opacity:1,transform:transform(impactX,impactY,s*1.88,285)},
+    ],{duration:1050,easing:'cubic-bezier(.12,.74,.18,1)',fill:'forwards'}),
+    anim(scope,p,[
+      {opacity:0,transform:transform(-170,r.height*.68,s*.88,-4)},
+      {opacity:1,offset:.22,transform:transform(r.width*.2,r.height*.67,s*1.12,-2)},
+      {opacity:1,transform:transform(impactX-150,r.height*.64,s*1.18,8)},
+    ],{duration:980,easing:'cubic-bezier(.1,.76,.16,1)',fill:'forwards'})
+  ]);
+  await hold(scope,240);
+  const c=pose(scope,'chiru_chase',{x:r.width+150,y:r.height*.66,scale:s*1.08,flip:-1,opacity:0});
+  await anim(scope,c,[
+    {opacity:0,transform:transform(r.width+150,r.height*.68,s*.84,0,-1)},
+    {opacity:1,offset:.25,transform:transform(r.width*.82,r.height*.66,s*1.08,2,-1)},
+    {opacity:1,transform:transform(impactX+135,r.height*.62,s*1.14,-5,-1)},
+  ],{duration:720,easing:'cubic-bezier(.14,.74,.18,1)',fill:'forwards'});
+  await hold(scope,260);
+  hide(p);hide(c);
+  await Promise.all([
+    popFx(scope,'impact_starburst','impact',impactX,impactY,s*1.65,-4),
+    popFx(scope,'impact_burst','impact',impactX+20,impactY+25,s*1.5,5),
+    popFx(scope,'dust_impact','impact',impactX,impactY+80,s*1.4),
+    shakeShell(scope,1.25),
+    board&&!M.isReduced()?anim(scope,board,[
+      {transform:'translate3d(0,0,0)'},
+      {transform:'translate3d(-16px,8px,0) scale(.988)',offset:.2},
+      {transform:'translate3d(17px,-7px,0) scale(.992)',offset:.38},
+      {transform:'translate3d(-10px,-4px,0)',offset:.58},
+      {transform:'translate3d(7px,3px,0)',offset:.74},
+      {transform:'translate3d(0,0,0)'}
+    ],{duration:680,easing:'linear'}):Promise.resolve()
+  ]);
+  hide(ball);
+  await hold(scope,280);
+  const tangled=pose(scope,'duo_entangled',{x:impactX,y:impactY+55,scale:s*1.62,opacity:0});
+  const dizzy=anchoredFx(scope,tangled,'HEAD','dizzy_stars','aftermath',{scale:s*1.05,opacity:0});
+  await Promise.all([
+    anim(scope,tangled,[
+      {opacity:0,transform:transform(impactX,impactY+15,s*1.05,9)},
+      {opacity:1,offset:.24,transform:transform(impactX,impactY+55,s*1.68,-5)},
+      {opacity:1,transform:transform(impactX,impactY+55,s*1.62,2)},
+    ],{duration:620,easing:'cubic-bezier(.16,.86,.2,1)',fill:'forwards'}),
+    anim(scope,dizzy,[{opacity:0},{opacity:1,offset:.3},{opacity:.95}],{duration:600,fill:'forwards'})
+  ]);
+  await hold(scope,820);
+  await Promise.all([
+    anim(scope,tangled,[{opacity:1},{opacity:0,transform:transform(impactX+90,impactY+90,s*1.15,7)}],{duration:720,easing:'ease-in',fill:'forwards'}),
+    anim(scope,dizzy,[{opacity:.95},{opacity:0}],{duration:520,fill:'forwards'})
+  ]);
+}
 async function pomponWrongWayVictory(scope){
   const r=rect(),s=scaleForStage(),y=r.height*.62;
   const proud=pose(scope,'pompon_smug',{x:r.width+150,y,scale:s*1.12,flip:-1,opacity:0});
@@ -939,7 +1057,7 @@ const PLAYERS=Object.freeze({
   POMPON_WRONG_WAY_VICTORY:pomponWrongWayVictory,
   DUO_CHASE_CATCH:chaseCatch,PEEK_DISCOVERY:peekDiscovery,DUO_BOAST_DISBELIEF:duoBoastDisbelief,DUO_FAILURE_SCOLD:duoFailureScold,DUO_OH_NO_ESCAPE:duoOhNoEscape,DUO_FRIENDSHIP_OOPS:duoFriendshipOops,
   DUO_RESCUE_RELAY:duoRescueRelay,DUO_QUIET_PEEK_RETREAT:duoQuietPeekRetreat,
-  BALL_RIDE_FAIL:ballRideFail,CALL_DELIVERY:callDelivery,
+  BALL_RIDE_FAIL:ballRideFail,MEGA_SCREEN_TAKEOVER:megaScreenTakeover,MEGA_GREAT_CRASH:megaGreatCrash,CALL_DELIVERY:callDelivery,
 });
 
 async function runScoped(label,fn,context={},mode='idle'){
@@ -1006,7 +1124,7 @@ function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.cleanupRuns=0;diagnostics.callPlayed=0;diagnostics.ambientPlayed=0;diagnostics.statusAccents=0;diagnostics.duplicateSuppressions=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
 window.ASOBOON_BOARD_CHARACTER_EVENTS=Object.freeze({
-  version:'3.3.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
+  version:'4.0.0',events:EVENTS,sceneRecipes:SCENE_RECIPES,play,playRandom,playAmbientEffect,playStatusAccent,playCallDelivery,cancel,isRunning:()=>running,
   getDiagnostics,resetForTest,playEventForTest:async id=>play(id,{grid:document.getElementById('queueGrid')}),
 });
 })();
