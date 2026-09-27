@@ -12,9 +12,19 @@ function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function ms(v){return Math.round(Number(v||0)*PACE)}
 function boardRect(){const r=document.querySelector('.board')?.getBoundingClientRect?.();return r||{left:0,top:0,width:innerWidth,height:innerHeight,right:innerWidth,bottom:innerHeight}}
 function t(x,y,s=1,r=0,flip=1){return 'translate3d('+(x-128)+'px,'+(y-128)+'px,0) rotate('+r+'deg) scale('+(s*flip)+','+s+')'}
+function visualChannelForSemantic(semantic){
+  const key=String(semantic||'');
+  if(key==='impact')return'impact';
+  if(['alert','question','reaction','anger','aftermath','success'].includes(key))return'reaction';
+  return'secondary';
+}
 function add(scope,name,semantic,{x=0,y=0,scale=1,rotate=0,flip=1,opacity=1,layer='front'}={}){
   if(semantic&&!A.validatePairing?.(name,semantic))return null;
+  const channel=visualChannelForSemantic(semantic);
+  const priority=channel==='impact'?'primary':'secondary';
+  if(M.requestVisual&&!M.requestVisual(channel,{priority}))return null;
   const el=A.createEffect(name);if(!el)return null;
+  el.dataset.choreoChannel=channel;
   el.style.opacity=String(opacity);el.style.transform=t(x,y,scale,rotate,flip);
   return scope.add(el,layer);
 }
@@ -148,5 +158,5 @@ async function playStatusReaction(kind,{rect}={}){
 function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:[...MICRO_EVENTS],pace:PACE,sourcePolicy:'effects_pack_v2-only',semanticPolicy:'context-matched-only'}}
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.statusPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
-window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.1.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
+window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.2.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
 })();
