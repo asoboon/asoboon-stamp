@@ -131,8 +131,11 @@ jobs:
       - name: Lock sequential same-day reception and fresh LINE action boundary
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.4.dev7'" miniapp-v2/backend/develop-service-message.js
+          grep -F "VERSION: '2.5.dev-confirmation-chain'" miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageFreshActionReopenRequired: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'serviceMessageConfirmationUsesTokenChain: true' miniapp-v2/backend/develop-service-message.js
+          grep -F 'async function sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
+          grep -F 'confirmation = await sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
           grep -F "const definitiveBound = String(usage.status || '') === 'BOUND';" miniapp-v2/backend/develop-service-message.js
           grep -F 'releaseTerminalPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
           grep -F "if (!own || !['2','3'].includes(String(own.status || ''))) return false;" miniapp-v2/backend/develop-worker.mjs
