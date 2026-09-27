@@ -772,7 +772,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
       runtime:fx.diagnostics(),
       overlayZ:Number(getComputedStyle(overlay).zIndex)||0,
       frontZ:Number(getComputedStyle(front).zIndex)||0,
-      tempNodes:document.querySelectorAll('.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
+      tempNodes:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
       numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
     };
   });
