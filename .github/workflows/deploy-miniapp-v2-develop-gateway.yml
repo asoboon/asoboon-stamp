@@ -111,9 +111,7 @@ jobs:
             "vars": {
               "CREATE_ENABLED": "1",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
-              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}",
-              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "",
-              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{}"
+              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}"
             },
             "d1_databases": [
               {
@@ -162,7 +160,7 @@ jobs:
                 const x=JSON.parse(s);
                 if(
                   x.ok!==true ||
-                  x.version!=="2.6.dev-status-lifecycle" ||
+                  x.version!=="2.7.dev-cancel-lifecycle" ||
                   x.environment!=="official-develop" ||
                   x.baseCreateEnabled!==true ||
                   x.createEnabled!==true ||
@@ -176,7 +174,7 @@ jobs:
                   x.callstatusEnabled!==true ||
                   x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.5.dev-confirmation-chain" ||
+                  x.serviceMessageVersion!=="2.6.dev-three-pillar" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
@@ -187,7 +185,9 @@ jobs:
                   x.serviceMessageTerminalRescueEnabled!==true ||
                   x.serviceMessageReusableUnboundToken!==true ||
                   x.serviceMessageFreshActionReopenRequired!==true ||
-                  x.serviceMessageConfirmationUsesTokenChain!==true
+                  x.serviceMessageConfirmationUsesTokenChain!==true ||
+                  x.serviceMessageCancellationUsesTokenChain!==true ||
+                  x.serviceMessageThreePillarImplemented!==true
                 ) process.exit(1);
               });
             '; then
@@ -273,7 +273,12 @@ jobs:
           grep -F "new URL('/WCSP/cancel/confirm',AIRWAIT_ORIGIN)" miniapp-v2/backend/develop-worker.mjs
           grep -F "new URL('/WCSP/cancel/complete',AIRWAIT_ORIGIN)" miniapp-v2/backend/develop-worker.mjs
           grep -F "new URLSearchParams({storeNo,reserveId,p:capability,_csrf:csrf})" miniapp-v2/backend/develop-worker.mjs
-          grep -F "if(afterState!=='canceled')" miniapp-v2/backend/develop-worker.mjs
+          grep -F "fetchCancelHtmlWithCookieJar" miniapp-v2/backend/develop-worker.mjs
+          grep -F "waitForCanceledReservation" miniapp-v2/backend/develop-worker.mjs
+          grep -F "state='CANCELED'" miniapp-v2/backend/develop-worker.mjs
+          grep -F "sendCancellationNotification" miniapp-v2/backend/develop-worker.mjs
+          grep -F "serviceMessageThreePillarImplemented: true" miniapp-v2/backend/develop-service-message.js
+          grep -F "CREATE TABLE IF NOT EXISTS v2_service_cancellations" miniapp-v2/backend/develop-service-message.js
           grep -F "gatewayPost('cancelReservation'" miniapp-v2/shared/callstatus.js
           grep -F 'id="csCancel"' miniapp-v2/shared/callstatus.js
           grep -F 'id="csCancelDialog"' miniapp-v2/shared/callstatus.js
@@ -352,7 +357,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.credentials.outputs.available }}" = "true" ]; then
-            echo "Official Developing gateway deployed with terminal previous-reception recycle, immediate call observation, direct-guidance rescue, reusable unbound notification tokens, and 1-minute backup watcher."
+            echo "Official Developing gateway deployed with hardened native cancel, explicit canceled-claim lifecycle, three-pillar LINE notification engine, immediate status observation, and 1-minute backup watcher."
           else
             echo "Cloudflare deployment safely skipped; no production or Review resources were touched."
           fi
