@@ -37,6 +37,7 @@ async function installBoard(page, sequence, { reducedMotion = false, cachedPaylo
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
 
   await page.addInitScript(() => {
+    window.__ASOBOON_BOARD_TEST_TIMING__ = true;
     const RealDate = Date;
     const fixed = new RealDate('2026-09-19T00:30:00.000Z').valueOf(); // 09:30 JST -> 10:00 board
     window.Date = class extends RealDate {
@@ -146,11 +147,11 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260927-silent-giant-v2');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-silent-giant-v2'");
+  expect(buildFile.version).toBe('20260927-no-onomatopoeia-v3');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-no-onomatopoeia-v3'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=25');
-  expect(indexHtml).toContain('board.js?v=23');
+  expect(indexHtml).toContain('board-animations.js?v=26');
+  expect(indexHtml).toContain('board.js?v=24');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -160,14 +161,25 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(result).toMatchObject({changed:true,version:'future-build'});
 });
 
-test('current SPECIAL implementation contains no visible onomatopoeia strings', async () => {
-  const boardDir='miniapp-v2/develop/board';
-  const files=fs.readdirSync(boardDir).filter(name=>/\.(js|css|html)$/.test(name));
-  const source=files.map(name=>fs.readFileSync(boardDir+'/'+name,'utf8')).join('\n');
-  for(const word of ['ビューン','ドォォン','キキィ','ピタッ','バァァ','ガシャン','ミシ…','呼出！','ご案内！']){
-    expect(source).not.toContain(word);
+test('current SPECIAL implementation contains no onomatopoeia and legacy cached words are hard-hidden', async ({ page }) => {
+  const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  for(const word of ['ビューン','ドォォン','キキィ','ピタッ','バァァ','バリーン','ガシャン','ガシャーン','ミシ…','呼出！','ご案内！']){
+    expect(animations).not.toContain(word);
   }
-  expect(source).not.toContain('fx-onomatopoeia');
+  expect(animations).not.toContain('function onomatopoeia(');
+  expect(css).toContain('.fx-onomatopoeia,');
+  expect(css).toContain('display:none!important');
+
+  await installBoard(page,[payload([])]);
+  await page.evaluate(() => {
+    const legacy=document.createElement('div');
+    legacy.className='fx-onomatopoeia giant cancel';
+    legacy.textContent='ガシャーン！';
+    document.body.appendChild(legacy);
+  });
+  await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('display','none');
+  await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('visibility','hidden');
 });
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
@@ -468,6 +480,28 @@ test('reduced motion keeps transitions readable and disables screen shake', asyn
   expect(d.screenShakes).toBe(0);
   await expect(page.locator('.queue-card.calling .queue-number')).toHaveText('5101');
   expect(h.pageErrors).toEqual([]);
+});
+
+test('special status effects stay inside the 10-second refresh budget', async ({ page }) => {
+  const current = payload([{ number: '5901', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+
+  const d = await diagnostics(page);
+  expect(d.statusTimingMode).toBe('wall-clock');
+  expect(d.maxSpecialDurationMs).toBeLessThan(10000);
+  expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(2000);
+  expect(d.queueLimit).toBeLessThanOrEqual(8);
+  expect(d.statusBatchBudgetMs).toBeLessThan(10000);
+  expect(d.maxEstimatedStatusRuntimeMs).toBeLessThan(d.statusBatchBudgetMs);
+
+  const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  expect(status).toContain("rawTiming:true");
+  expect(status).toContain("call:Object.freeze({low:1500,high:4600})");
+  expect(status).toContain("guided:Object.freeze({low:1400,high:4200})");
+  expect(status).toContain("cancel:Object.freeze({low:1700,high:5200})");
+  expect(status).toContain("translate3d(0,0,0) scale(.985)");
+  expect(css).toMatch(/\.fx-pachinko-burst\{[\s\S]*?inset:0;/);
 });
 
 test('animation controls support OFF through level 3 and rare effects toggle', async ({ page }) => {
@@ -1206,10 +1240,10 @@ test('real status effects are silent full-screen number specials with long hold 
     expect(code).toContain(`runParticles('${kind}'`);
     expect(code).toContain(`pachinkoBurst('${kind}'`);
   }
-  expect(code).toContain("call:Object.freeze({low:3200,high:4600})");
-  expect(code).toContain("guided:Object.freeze({low:3000,high:4200})");
-  expect(code).toContain("hold:Object.freeze({low:3400,high:4800})");
-  expect(code).toContain("cancel:Object.freeze({low:3600,high:5200})");
+  expect(code).toContain("call:Object.freeze({low:1500,high:4600})");
+  expect(code).toContain("guided:Object.freeze({low:1400,high:4200})");
+  expect(code).toContain("hold:Object.freeze({low:1600,high:4800})");
+  expect(code).toContain("cancel:Object.freeze({low:1700,high:5200})");
   expect(code).not.toContain('onomatopoeia(');
   expect(code).not.toContain('specialTextRect(');
   expect(code).not.toContain('fx-special-number-kicker');

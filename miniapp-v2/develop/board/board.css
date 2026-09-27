@@ -743,6 +743,16 @@ body{
   contain:layout paint;
 }
 .fx-card-ghost:after{animation:none!important}
+/* SPECIAL hard guard: legacy cached scripts must never surface onomatopoeia or status-copy text. */
+.fx-onomatopoeia,
+.fx-special-number-kicker,
+.fx-special-number-status{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  content:none!important;
+}
+
 /* SPECIAL statuses: no character actors. The reception number itself is the star. */
 .fx-special-number{
   position:fixed;
@@ -874,7 +884,7 @@ body{
 
 .fx-pachinko-burst{
   position:fixed;
-  inset:-8%;
+  inset:0;
   z-index:6;
   pointer-events:none;
   opacity:0;
