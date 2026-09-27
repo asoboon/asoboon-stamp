@@ -140,6 +140,7 @@ export default {
       body.officialLineCancelOneToOneOnly = true;
       body.officialLineWebhookFastAck = true;
       body.officialLineReserveIdNormalizer = 'strict-12-digit';
+      body.officialLineCancelFlowVersion = '2.0-immediate-reply-then-push';
       if (body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true) {
         body.createEnabled = false;
         body.createBlockedReason = body.serviceMessageHealthError
@@ -1107,6 +1108,21 @@ async function replyOfficialLine(env,replyToken,messages){
   const text=await response.text();
   if(!response.ok)throw apiError('LINE_OA_REPLY_HTTP_'+response.status+' '+String(text||'').slice(0,160),502);
 }
+async function pushOfficialLine(env,userId,messages){
+  const token=String(env.LINE_OA_CHANNEL_ACCESS_TOKEN||'').trim();
+  const to=String(userId||'').trim();
+  if(!token)throw apiError('LINE_OA_CHANNEL_ACCESS_TOKEN_NOT_CONFIGURED',503);
+  if(!to)throw apiError('LINE_OA_PUSH_USER_REQUIRED',400);
+  const list=(Array.isArray(messages)?messages:[messages]).filter(Boolean).slice(0,5);
+  if(!list.length)return;
+  const response=await fetchWithCancelTimeout('https://api.line.me/v2/bot/message/push',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},
+    body:JSON.stringify({to,messages:list}),
+  },8000);
+  const text=await response.text();
+  if(!response.ok)throw apiError('LINE_OA_PUSH_HTTP_'+response.status+' '+String(text||'').slice(0,160),502);
+}
 function normalizeOfficialReserveId(value){
   const raw=String(value??'').normalize('NFKC').trim();
   if(!/^\d{1,12}$/.test(raw))return'';
@@ -1221,14 +1237,29 @@ async function processOfficialLineEvent(env,event){
     return;
   }
   if(intent==='cancel_execute'){
+    await replyOfficialLine(env,replyToken,{
+      type:'text',
+      text:`受付番号 ${claim.receipt_no} のキャンセル処理を開始しました。完了まで少しお待ちください。`
+    });
     try{
       const result=await cancelReservationForTrustedSession(env,claim,'manual');
       const suffix=result?.alreadyCanceled?'（すでにキャンセル済みでした）':'';
-      await replyOfficialLine(env,replyToken,{type:'text',text:`受付番号 ${claim.receipt_no} のキャンセルが完了しました。${suffix}`});
+      await pushOfficialLine(env,userId,{
+        type:'text',
+        text:`受付番号 ${claim.receipt_no} のキャンセルが完了しました。${suffix}`
+      });
     }catch(e){
       console.warn('OFFICIAL_LINE_CANCEL_FAILED',safeError(e));
-      await replyOfficialLine(env,replyToken,{type:'text',text:'キャンセルを完了できませんでした。受付状況をご確認のうえ、もう一度お試しください。'});
+      try{
+        await pushOfficialLine(env,userId,{
+          type:'text',
+          text:'キャンセルを完了できませんでした。受付は自動では消していません。もう一度お試しいただくか、スタッフへお声がけください。'
+        });
+      }catch(pushError){
+        console.warn('OFFICIAL_LINE_CANCEL_FAILURE_PUSH_FAILED',safeError(pushError));
+      }
     }
+    return;
   }
 }
 async function handleOfficialLineWebhook(request,env,ctx){
