@@ -83,6 +83,15 @@ jobs:
           grep -F "signal:ctrl.signal" miniapp-v2/shared/callstatus.js
           grep -F "呼出状況の確認がタイムアウトしました。" miniapp-v2/shared/callstatus.js
 
+      - name: Reception confirmation must preserve the call-notification token chain
+        run: |
+          set -euo pipefail
+          grep -F "async function sendReservationConfirmationIfConfigured" miniapp-v2/backend/develop-service-message.js
+          grep -F "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME" miniapp-v2/backend/develop-service-message.js
+          grep -F "serviceMessageConfirmationUsesTokenChain: true" miniapp-v2/backend/develop-service-message.js
+          grep -F "confirmation = await sendReservationConfirmationIfConfigured" miniapp-v2/backend/develop-service-message.js
+          grep -F "notification_token=?,remaining_count=?,expires_at=?,session_id=?,updated_at=?" miniapp-v2/backend/develop-service-message.js
+
       - name: Native cancel must stay inside the LINE miniapp
         run: |
           set -euo pipefail
@@ -339,7 +348,7 @@ jobs:
       - name: LINE notification must survive retries and terminal-state rescue
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.4.dev7'" miniapp-v2/backend/develop-service-message.js
+          grep -F "VERSION: '2.5.dev-confirmation-chain'" miniapp-v2/backend/develop-service-message.js
           grep -F 'adoptReusableNotificationClaim' miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageReusableUnboundToken: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-service-message.js
