@@ -142,6 +142,34 @@ async function waitForFxIdle(page) {
   await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
 }
 
+test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
+  const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
+  const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
+  const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
+  expect(buildFile.version).toBe('20260927-silent-giant-v2');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-silent-giant-v2'");
+  expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
+  expect(indexHtml).toContain('board-animations.js?v=25');
+  expect(indexHtml).toContain('board.js?v=23');
+
+  await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
+    await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
+  });
+  await installBoard(page,[payload([])]);
+  const result=await page.evaluate(()=>window.ASOBOON_CALL_BOARD_TEST.checkForBuildUpdate({reload:false}));
+  expect(result).toMatchObject({changed:true,version:'future-build'});
+});
+
+test('current SPECIAL implementation contains no visible onomatopoeia strings', async () => {
+  const boardDir='miniapp-v2/develop/board';
+  const files=fs.readdirSync(boardDir).filter(name=>/\.(js|css|html)$/.test(name));
+  const source=files.map(name=>fs.readFileSync(boardDir+'/'+name,'utf8')).join('\n');
+  for(const word of ['ビューン','ドォォン','キキィ','ピタッ','バァァ','ガシャン','ミシ…','呼出！','ご案内！']){
+    expect(source).not.toContain(word);
+  }
+  expect(source).not.toContain('fx-onomatopoeia');
+});
+
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
   await installBoard(page, [payload([])]);
   const result = await page.evaluate(() => {
