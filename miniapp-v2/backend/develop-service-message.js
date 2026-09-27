@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.6.dev-three-pillar',
+  VERSION: '2.7.dev-cancel-sources',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -32,6 +32,8 @@ export async function serviceHealth(env) {
   const confirmationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON);
   const cancellationTemplateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME));
   const cancellationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON);
+  const autoCancellationTemplateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_NAME));
+  const autoCancellationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_PARAMS_JSON);
   return {
     serviceMessageEnabled: true,
     serviceMessageVersion: SM.VERSION,
@@ -47,9 +49,14 @@ export async function serviceHealth(env) {
     serviceMessageCancellationTemplateConfigured: cancellationTemplateReady,
     serviceMessageCancellationTemplateParamsConfigured: cancellationParamsReady,
     serviceMessageCancellationReady: secretReady && cancellationTemplateReady && cancellationParamsReady,
+    serviceMessageManualCancellationReady: secretReady && cancellationTemplateReady && cancellationParamsReady,
+    serviceMessageAutoCancellationTemplateConfigured: autoCancellationTemplateReady,
+    serviceMessageAutoCancellationTemplateParamsConfigured: autoCancellationParamsReady,
+    serviceMessageAutoCancellationReady: secretReady && autoCancellationTemplateReady && autoCancellationParamsReady,
     serviceMessageCancellationUsesTokenChain: true,
+    serviceMessageCancelSourceSplit: true,
     serviceMessageThreePillarImplemented: true,
-    serviceMessageThreePillarReady: secretReady && templateReady && paramsReady && confirmationTemplateReady && confirmationParamsReady && cancellationTemplateReady && cancellationParamsReady,
+    serviceMessageThreePillarReady: secretReady && templateReady && paramsReady && confirmationTemplateReady && confirmationParamsReady && cancellationTemplateReady && cancellationParamsReady && autoCancellationTemplateReady && autoCancellationParamsReady,
     serviceMessageMandatoryBeforeCreate: true,
     serviceMessageCronEnabled: true,
     serviceMessageImmediateObservationEnabled: true,
@@ -294,8 +301,14 @@ export async function sendCancellationNotification(env, x) {
     return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
   }
 
-  const templateName = normalizeTemplateName(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME);
-  const paramsRaw = String(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON || '').trim();
+  const cancelSource = String(x?.cancelSource || 'airwait');
+  const isManualCancel = cancelSource === 'manual';
+  const templateName = normalizeTemplateName(isManualCancel
+    ? env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME
+    : env.SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_NAME);
+  const paramsRaw = String(isManualCancel
+    ? env.SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON
+    : env.SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_PARAMS_JSON || '').trim();
   const now = Date.now();
   await env.DB.prepare(`INSERT INTO v2_service_cancellations
     (business_date,reserve_id,receipt_no,request_id,cancel_source,status,last_error,last_http_status,sent_at,created_at,updated_at)
@@ -303,7 +316,7 @@ export async function sendCancellationNotification(env, x) {
     ON CONFLICT(business_date,reserve_id) DO UPDATE SET
       receipt_no=excluded.receipt_no,request_id=excluded.request_id,cancel_source=excluded.cancel_source,
       updated_at=excluded.updated_at`)
-    .bind(businessDate,reserveId,receiptNo,String(rec.request_id || ''),String(x?.cancelSource || 'airwait').slice(0,30),now,now).run();
+    .bind(businessDate,reserveId,receiptNo,String(rec.request_id || ''),cancelSource.slice(0,30),now,now).run();
 
   if (!templateName || !templateParamsValid(paramsRaw)) {
     await setCancellationError(env,{businessDate,reserveId},'NOT_CONFIGURED','CANCEL_TEMPLATE_NOT_CONFIGURED',0);
@@ -343,7 +356,7 @@ export async function sendCancellationNotification(env, x) {
     businessDate,
     slotLabel:waitTypeLabel(waitTypeId),
     callstatusUrl:SM.CALLSTATUS_URL,
-    cancelSource:String(x?.cancelSource || 'airwait'),
+    cancelSource,
   });
 
   let response;
