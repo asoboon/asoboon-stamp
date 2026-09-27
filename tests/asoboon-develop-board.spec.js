@@ -1273,6 +1273,151 @@ test('source status effects use the shared composition guard', async () => {
   expect(code).toContain("phase:semantic==='impact'?'impact':'reaction'");
 });
 
+test('choreography guard v3 tracks both faces in DUO sprites and pose-specific face zones', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8637',state:'waiting',order:1}])]);
+  const result=await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+    const duo=assets.createCharacter('duo_failure_scold');
+    duo.dataset.sceneFlip='1';
+    duo.dataset.pcOwner='DUO';
+    duo.style.opacity='1';
+    duo.style.transform='translate3d(300px,520px,0) scale(1)';
+    fx.getLayer('front').appendChild(duo);
+    const snap=fx.compositionSnapshot();
+    const faces=snap.faces.map(x=>({left:x.left,top:x.top,width:x.width,height:x.height,asset:x.asset}));
+    duo.remove();
+    return{
+      faces,
+      duoZones:assets.CHARACTER_VISUAL_ZONES.duo_failure_scold.faces,
+      dashZones:assets.CHARACTER_VISUAL_ZONES.pompon_dash.faces,
+      assetVersion:assets.version,
+    };
+  });
+  expect(result.assetVersion).toBe('3.4.0');
+  expect(result.duoZones).toHaveLength(2);
+  expect(result.faces).toHaveLength(2);
+  expect(result.faces.every(x=>x.asset==='duo_failure_scold')).toBe(true);
+  expect(result.dashZones[0][0]).toBeGreaterThan(0.6);
+});
+
+test('choreography guard v3 enforces per-beat visual budgets and reaction ownership', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8638',state:'waiting',order:1}])]);
+  const result=await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    fx.resetPerformanceBaseline();
+    fx.beginChoreography('budget-test',{budgets:{secondary:1,impact:1,reaction:1,typography:1,foreground:1,flash:1}});
+    fx.setChoreographyPhase('action','POMPON');
+    const first=fx.requestVisual('secondary',{priority:'secondary'});
+    const second=fx.requestVisual('secondary',{priority:'secondary'});
+    fx.setChoreographyPhase('reaction','CHIRU');
+    const third=fx.requestVisual('secondary',{priority:'secondary'});
+    const during={
+      phase:document.documentElement.dataset.boardChoreoPhase,
+      attention:document.documentElement.dataset.boardAttentionOwner,
+    };
+    const ended=fx.endChoreography('test-complete');
+    const diag=fx.diagnostics();
+    return{
+      first,second,third,during,ended,
+      active:diag.choreography.active,
+      last:diag.choreography.last,
+      stats:diag.choreography.stats,
+      phaseAttr:document.documentElement.hasAttribute('data-board-choreo-phase'),
+      attentionAttr:document.documentElement.hasAttribute('data-board-attention-owner'),
+    };
+  });
+  expect(result.first).toBe(true);
+  expect(result.second).toBe(false);
+  expect(result.third).toBe(true);
+  expect(result.during).toEqual({phase:'reaction',attention:'CHIRU'});
+  expect(result.active).toBeNull();
+  expect(result.phaseAttr).toBe(false);
+  expect(result.attentionAttr).toBe(false);
+  expect(result.stats.budgetDrops).toBe(1);
+  expect(result.stats.reactionWindows).toBe(1);
+  expect(result.last.history.map(x=>x.phase)).toEqual(expect.arrayContaining(['setup','action','reaction','end']));
+});
+
+test('adaptive manga typography uses choreography placement without covering live faces', async ({ page }) => {
+  await installBoard(page,[payload([{number:'8639',state:'waiting',order:1}])]);
+  const result=await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+    const p=assets.createCharacter('pompon_oops');
+    p.dataset.sceneFlip='1';
+    p.dataset.pcOwner='POMPON';
+    p.style.opacity='1';
+    p.style.transform='translate3d(410px,610px,0) scale(1.12)';
+    fx.getLayer('front').appendChild(p);
+    fx.resetPerformanceBaseline();
+    fx.beginChoreography('type-test');
+    fx.setChoreographyPhase('impact','TARGET');
+    const placement=fx.chooseTypographyPlacement({left:430,top:640,width:220,height:90,right:650,bottom:730},{width:620,height:230,giant:true});
+    const snap=fx.compositionSnapshot();
+    const face=snap.faces[0];
+    const box={
+      left:placement.x-620*placement.scale/2,
+      top:placement.y-230*placement.scale/2,
+      width:620*placement.scale,
+      height:230*placement.scale,
+      right:placement.x+620*placement.scale/2,
+      bottom:placement.y+230*placement.scale/2,
+    };
+    const overlap=fx.overlapRatio(box,face);
+    fx.endChoreography('test-complete');
+    p.remove();
+    return{placement,overlap,stats:fx.diagnostics().choreography.stats};
+  });
+  expect(result.placement.scale).toBeGreaterThanOrEqual(0.72);
+  expect(result.placement.scale).toBeLessThanOrEqual(1);
+  expect(result.overlap).toBeLessThanOrEqual(0.22);
+  expect(result.stats.adaptiveTypography).toBeGreaterThan(0);
+});
+
+test('CANCEL runs ordered attention beats and fully clears choreography state', async ({ page }) => {
+  test.setTimeout(15000);
+  await installBoard(page,[payload([{number:'8641',state:'waiting',order:1}])]);
+  const result=await page.evaluate(async()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    fx.setSlowdown(0.03,{persistValue:false});
+    fx.resetPerformanceBaseline();
+    const card=document.querySelector('#queueGrid .queue-card');
+    await window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'8641',kind:'cancel',fromStatus:'waiting',toStatus:'canceled',element:card,
+    });
+    const diag=fx.diagnostics();
+    return{
+      active:diag.choreography.active,
+      last:diag.choreography.last,
+      stats:diag.choreography.stats,
+      leftovers:document.querySelectorAll('.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
+      phaseAttr:document.documentElement.hasAttribute('data-board-choreo-phase'),
+    };
+  });
+  const phases=result.last.history.map(x=>x.phase);
+  expect(result.active).toBeNull();
+  expect(result.phaseAttr).toBe(false);
+  expect(result.leftovers).toBe(0);
+  expect(phases).toEqual(expect.arrayContaining(['omen','action','impact','reaction','aftermath','end']));
+  expect(phases.indexOf('omen')).toBeLessThan(phases.indexOf('action'));
+  expect(phases.indexOf('action')).toBeLessThan(phases.indexOf('impact'));
+  expect(phases.indexOf('impact')).toBeLessThan(phases.indexOf('reaction'));
+  expect(phases.indexOf('reaction')).toBeLessThan(phases.indexOf('aftermath'));
+  expect(result.stats.reactionWindows).toBeGreaterThanOrEqual(1);
+});
+
+test('character and source effects participate in choreography visual budgets', async () => {
+  const character=fs.readFileSync('miniapp-v2/develop/board/board-character-events.js','utf8');
+  const source=fs.readFileSync('miniapp-v2/develop/board/board-source-effects.js','utf8');
+  const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  expect(character).toContain("M.requestVisual(channel,{priority})");
+  expect(source).toContain("M.requestVisual(channel,{priority})");
+  expect(animations).toContain("M.requestVisual('typography',{priority:'primary'})");
+  expect(animations).toContain("M.requestVisual('foreground',{priority:'secondary'})");
+  expect(animations).toContain("choreoPhase('reaction','CHIRU')");
+});
+
 test('face-safe placement, target-aware gaze and CALL edge exits are active behavior', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8640',state:'waiting',order:1}])]);
