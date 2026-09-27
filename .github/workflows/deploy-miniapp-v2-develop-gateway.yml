@@ -111,7 +111,9 @@ jobs:
             "vars": {
               "CREATE_ENABLED": "1",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
-              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}"
+              "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}",
+              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "",
+              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{}"
             },
             "d1_databases": [
               {
@@ -174,7 +176,7 @@ jobs:
                   x.callstatusEnabled!==true ||
                   x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.4.dev7" ||
+                  x.serviceMessageVersion!=="2.5.dev-confirmation-chain" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
@@ -184,7 +186,8 @@ jobs:
                   x.serviceMessageImmediateObservationEnabled!==true ||
                   x.serviceMessageTerminalRescueEnabled!==true ||
                   x.serviceMessageReusableUnboundToken!==true ||
-                  x.serviceMessageFreshActionReopenRequired!==true
+                  x.serviceMessageFreshActionReopenRequired!==true ||
+                  x.serviceMessageConfirmationUsesTokenChain!==true
                 ) process.exit(1);
               });
             '; then
@@ -276,38 +279,6 @@ jobs:
           grep -F 'id="csCancelDialog"' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'airwait.jp/WCSP' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'liff.openWindow' miniapp-v2/shared/callstatus.js
-      - name: Inspect AirWAIT wait-detail and cancel data contract
-        run: |
-          set -euo pipefail
-          PAGE="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' 'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918' > "$PAGE"
-          CSP_URL="$(python3 - "$PAGE" <<'PY'
-          import re,sys
-          t=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          m=re.search(r'<script[^>]+src=[\"\\\']([^\"\\\']*csp\.js[^\"\\\']*)[\"\\\']',t,re.I)
-          print(('https://airwait.jp'+m.group(1)) if m and m.group(1).startswith('/') else (m.group(1) if m else ''))
-          PY
-          )"
-          test -n "$CSP_URL"
-          JS="$(mktemp)"
-          curl -L --fail --silent --show-error -A 'Mozilla/5.0' "$CSP_URL" > "$JS"
-          python3 - "$JS" <<'PY'
-          import re,sys
-          body=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          # Print API constants near all internal/stateless endpoints and any wait-detail fetchers.
-          endpoints=sorted(set(re.findall(r'[\"\\\'](/WCSP/api/internal/stateless/[^\"\\\']{1,220})[\"\\\']',body)))
-          print('INTERNAL_ENDPOINTS')
-          for e in endpoints: print(e)
-          needles=['waitDetail','WAIT_DETAIL','reserveId','version','cancel/confirm','cancel/complete']
-          for needle in needles:
-              pos=[m.start() for m in re.finditer(re.escape(needle),body,re.I)]
-              print('NEEDLE',needle,'COUNT',len(pos))
-              for p in pos[:25]:
-                  sn=body[max(0,p-1800):min(len(body),p+3500)].replace('\n',' ')
-                  if re.search(r'api|axios|post\(|get\(|reserveId|version|cancel',sn,re.I):
-                      print('===',needle,'@',p,'===')
-                      print(sn[:5200])
-          PY
       - name: Show sanitized recent create diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
