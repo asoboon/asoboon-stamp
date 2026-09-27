@@ -90,12 +90,28 @@ async function cancelCurrentReservation(){
     applyStatus(canceled);
   }catch(e){
     const raw=String(e?.message||e||'');
-    const friendly=friendlyCancelError(raw);
-    setError(friendly);
-    const err=$('csCancelError');
-    if(err){
-      err.hidden=false;
-      err.textContent=friendly+`\n確認コード：${raw.slice(0,120)}`;
+    let reconciled=false;
+    try{
+      await sleep(700);
+      const session=await ensureSession();
+      if(session){
+        const latest=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken});
+        if(latest?.found&&latest?.state==='canceled'){
+          if($('csCancelDialog'))$('csCancelDialog').hidden=true;
+          lastStatus=latest;
+          applyStatus(latest);
+          reconciled=true;
+        }
+      }
+    }catch{}
+    if(!reconciled){
+      const friendly=friendlyCancelError(raw);
+      setError(friendly);
+      const err=$('csCancelError');
+      if(err){
+        err.hidden=false;
+        err.textContent=friendly+`\n確認コード：${raw.slice(0,120)}`;
+      }
     }
   }
   finally{
