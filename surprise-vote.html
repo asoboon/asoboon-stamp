@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>今日のイベント投票｜ASOBooN</title>
   <meta name="description" content="100 ASOBooNを好きなイベントに投票しよう！">
-  <link rel="stylesheet" href="./surprise-vote.css?v=20260927-06">
-  <script src="./surprise-vote-config.js?v=20260927-06"></script>
-  <script src="./surprise-vote.js?v=20260927-06" defer></script>
+  <link rel="stylesheet" href="./surprise-vote.css?v=20260927-07">
+  <script src="./surprise-vote-config.js?v=20260927-07"></script>
+  <script src="./surprise-vote.js?v=20260927-07" defer></script>
 </head>
 <body>
   <main class="app">
@@ -102,6 +102,10 @@
       </section>
 
       <p class="notice">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により、変更または中止となる場合があります。</p>
+
+      <div style="text-align:center;padding:0 12px 8px">
+        <button class="action" id="demoResetBtn" type="button" hidden>テスト投票をリセット</button>
+      </div>
     </section>
 
     <section class="panel" id="resultState" hidden>
