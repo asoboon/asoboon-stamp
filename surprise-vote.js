@@ -1327,10 +1327,14 @@
         vote_end: end.toISOString(),
         max_points: 100,
         options: [
-          { id: 'c1', name: '宝探し', total: 8420 },
-          { id: 'c2', name: '巨大しゃぼん玉', total: 8210 },
-          { id: 'c3', name: 'ダンスタイム', total: 6840 },
-          { id: 'c4', name: 'ミニ運動会', total: 4120 }
+          { id: 'c1', name: 'パラバルーン（グリーン）', total: 0 },
+          { id: 'c2', name: 'パラバルーン（ボールプール）', total: 0 },
+          { id: 'c3', name: '宝探し', total: 0 },
+          { id: 'c4', name: 'だるまさんが隠れた', total: 0 },
+          { id: 'c5', name: 'ふわふわベッド', total: 0 },
+          { id: 'c6', name: '跳び箱', total: 0 },
+          { id: 'c7', name: '赤ちゃんイベント', total: 0 },
+          { id: 'c8', name: '鬼ごっこ', total: 0 }
         ]
       },
       user: {
