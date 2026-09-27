@@ -41,7 +41,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div id="csError" class="cs-error" hidden></div>
 <div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約5秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
-<div id="csCancelDialog" class="cs-cancel-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="csCancelTitle"><button class="cs-cancel-backdrop" type="button" data-cs-cancel-close aria-label="閉じる"></button><div class="cs-cancel-sheet"><div class="cs-cancel-mark">!</div><h3 id="csCancelTitle">受付をキャンセルしますか？</h3><p>受付番号 <strong id="csCancelReceipt">—</strong><br>キャンセルすると現在の順番は取り消され、元には戻せません。</p><button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセルする</button><button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button></div></div>
+<div id="csCancelDialog" class="cs-cancel-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="csCancelTitle"><button class="cs-cancel-backdrop" type="button" data-cs-cancel-close aria-label="閉じる"></button><div class="cs-cancel-sheet"><div class="cs-cancel-mark">!</div><h3 id="csCancelTitle">受付をキャンセルしますか？</h3><p>受付番号 <strong id="csCancelReceipt">—</strong><br>キャンセルすると現在の順番は取り消され、元には戻せません。</p><div id="csCancelError" class="cs-error" hidden></div><button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセルする</button><button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button></div></div>
 </section>`}
 
 function updateCancelAction(state){
@@ -56,6 +56,7 @@ function openCancelDialog(){
   const dialog=$('csCancelDialog');if(!dialog)return;
   const cached=cachedReservation();
   if($('csCancelReceipt'))$('csCancelReceipt').textContent=String(lastStatus?.receiptNo||cached?.receiptNo||'—');
+  const err=$('csCancelError');if(err){err.hidden=true;err.textContent=''}
   dialog.hidden=false;
 }
 function closeCancelDialog(){const dialog=$('csCancelDialog');if(dialog&&!cancelBusy)dialog.hidden=true}
@@ -87,7 +88,16 @@ async function cancelCurrentReservation(){
     const canceled={...lastStatus,...d,found:true,state:'canceled',receiptNo:String(d.receiptNo||session.receiptNo||''),checkedAt:Number(d.checkedAt||Date.now())};
     lastStatus=canceled;
     applyStatus(canceled);
-  }catch(e){setError(friendlyCancelError(e?.message||e))}
+  }catch(e){
+    const raw=String(e?.message||e||'');
+    const friendly=friendlyCancelError(raw);
+    setError(friendly);
+    const err=$('csCancelError');
+    if(err){
+      err.hidden=false;
+      err.textContent=friendly+`\n確認コード：${raw.slice(0,120)}`;
+    }
+  }
   finally{
     cancelBusy=false;
     if(proceed){proceed.disabled=false;proceed.textContent='キャンセルする'}
