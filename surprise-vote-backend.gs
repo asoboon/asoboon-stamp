@@ -55,6 +55,17 @@ const SURPRISE_VOTE_HEADERS = Object.freeze([
   'updated_at'
 ]);
 
+const SURPRISE_EVENT_OPTIONS = Object.freeze([
+  'パラバルーン（グリーン）',
+  'パラバルーン（ボールプール）',
+  '宝探し',
+  'だるまさんが隠れた',
+  'ふわふわベッド',
+  '跳び箱',
+  '赤ちゃんイベント',
+  '鬼ごっこ'
+]);
+
 const SURPRISE_TOTAL_HEADERS = Object.freeze([
   'event_id',
   'c1',
@@ -987,6 +998,15 @@ function setupSurpriseEventSheet_(sheet) {
     .setAllowInvalid(false)
     .build();
 
+  const candidateValidation = SpreadsheetApp
+    .newDataValidation()
+    .requireValueInList(
+      Array.from(SURPRISE_EVENT_OPTIONS),
+      true
+    )
+    .setAllowInvalid(false)
+    .build();
+
   const cancelValidation = SpreadsheetApp
     .newDataValidation()
     .requireValueInList(['OFF', 'ON'], true)
@@ -995,6 +1015,7 @@ function setupSurpriseEventSheet_(sheet) {
 
   sheet.getRange('B2:B1000').setDataValidation(timeValidation);
   sheet.getRange('C2:C1000').setDataValidation(onOffValidation);
+  sheet.getRange('D2:M1000').setDataValidation(candidateValidation);
   sheet.getRange('O2:O1000').setDataValidation(cancelValidation);
 
   sheet.setColumnWidth(1, 105);
@@ -1012,7 +1033,7 @@ function setupSurpriseEventSheet_(sheet) {
   sheet.getRange('A1').setNote('イベント開催日。1イベント回につき1行です。');
   sheet.getRange('B1').setNote('11:00 / 14:00 / 14:30 / 16:00 から選択。投票時間は自動設定されます。');
   sheet.getRange('C1').setNote('ONにした回だけ投票を公開します。');
-  sheet.getRange('D1').setNote('候補は2〜10件。空欄は表示されません。');
+  sheet.getRange('D1').setNote('候補は2〜10件。プルダウンから選択。空欄は表示されません。');
   sheet.getRange('N1').setNote('運営都合で結果を変更する場合、候補名または c1〜c10 を入力。通常は空欄。');
   sheet.getRange('O1').setNote('ONで該当回を即時中止します。通常はOFF。');
 
@@ -1036,7 +1057,7 @@ function setupSurpriseGuide_(spreadsheet) {
     ['開催日', 'イベントを行う日を入力します。'],
     ['開催時刻', '11:00 / 14:00 / 14:30 / 16:00 から選びます。投票時間は自動設定されます。'],
     ['開催', '準備ができた回だけ ON にします。OFF はHOMEに出ません。'],
-    ['候補1〜10', '2〜10件入力。空欄の候補はミニアプリに出ません。'],
+    ['候補1〜10', 'プルダウンから2〜10件選択。空欄の候補はミニアプリに出ません。'],
     ['結果上書き', '通常は空欄。運営都合で変更するときだけ候補名または c1〜c10 を入力します。'],
     ['中止', '通常OFF。当日中止する場合はONにします。'],
     ['', ''],
