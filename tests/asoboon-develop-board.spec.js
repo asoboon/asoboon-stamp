@@ -146,11 +146,11 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260927-silent-giant-v2');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-silent-giant-v2'");
+  expect(buildFile.version).toBe('20260927-no-onomatopoeia-v3');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-no-onomatopoeia-v3'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=25');
-  expect(indexHtml).toContain('board.js?v=23');
+  expect(indexHtml).toContain('board-animations.js?v=26');
+  expect(indexHtml).toContain('board.js?v=24');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -160,14 +160,25 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(result).toMatchObject({changed:true,version:'future-build'});
 });
 
-test('current SPECIAL implementation contains no visible onomatopoeia strings', async () => {
-  const boardDir='miniapp-v2/develop/board';
-  const files=fs.readdirSync(boardDir).filter(name=>/\.(js|css|html)$/.test(name));
-  const source=files.map(name=>fs.readFileSync(boardDir+'/'+name,'utf8')).join('\n');
-  for(const word of ['ビューン','ドォォン','キキィ','ピタッ','バァァ','ガシャン','ミシ…','呼出！','ご案内！']){
-    expect(source).not.toContain(word);
+test('current SPECIAL implementation contains no onomatopoeia and legacy cached words are hard-hidden', async ({ page }) => {
+  const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  for(const word of ['ビューン','ドォォン','キキィ','ピタッ','バァァ','バリーン','ガシャン','ガシャーン','ミシ…','呼出！','ご案内！']){
+    expect(animations).not.toContain(word);
   }
-  expect(source).not.toContain('fx-onomatopoeia');
+  expect(animations).not.toContain('function onomatopoeia(');
+  expect(css).toContain('.fx-onomatopoeia,');
+  expect(css).toContain('display:none!important');
+
+  await installBoard(page,[payload([])]);
+  await page.evaluate(() => {
+    const legacy=document.createElement('div');
+    legacy.className='fx-onomatopoeia giant cancel';
+    legacy.textContent='ガシャーン！';
+    document.body.appendChild(legacy);
+  });
+  await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('display','none');
+  await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('visibility','hidden');
 });
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
