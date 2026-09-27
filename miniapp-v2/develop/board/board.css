@@ -753,6 +753,113 @@ body{
   content:none!important;
 }
 
+/* Motion-only status grammar: no labels, no onomatopoeia, no character actors. */
+.fx-status-signature{
+  position:fixed;
+  inset:0;
+  z-index:7;
+  pointer-events:none;
+  overflow:hidden;
+  contain:strict;
+  opacity:0;
+  will-change:transform,opacity;
+}
+.fx-status-signature::before,
+.fx-status-signature::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+.fx-status-signature.call::before{
+  left:50%;
+  top:50%;
+  width:34vmin;
+  height:34vmin;
+  border:clamp(10px,1.5vw,22px) solid rgba(255,255,255,.94);
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:
+    0 0 0 8vmin rgba(255,233,132,.28),
+    0 0 0 18vmin rgba(255,174,46,.18),
+    0 0 0 31vmin rgba(255,255,255,.08);
+}
+.fx-status-signature.call::after{
+  inset:-20%;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.72) 0 .8deg,transparent .8deg 8deg);
+  mask-image:radial-gradient(circle at 50% 50%,transparent 0 18%,#000 36% 100%);
+}
+.fx-status-signature.guided::before{
+  inset:8% -18%;
+  background:
+    repeating-linear-gradient(100deg,
+      transparent 0 5.5vw,
+      rgba(255,255,255,.78) 5.6vw 6vw,
+      transparent 6.1vw 11vw);
+  transform:skewX(-18deg);
+}
+.fx-status-signature.guided::after{
+  left:-18%;
+  top:44%;
+  width:136%;
+  height:12%;
+  background:linear-gradient(90deg,transparent 0 2%,rgba(255,255,255,.08) 18%,rgba(255,255,255,.94) 49%,rgba(255,255,255,.2) 63%,transparent 94%);
+  transform:skewX(-16deg);
+  filter:blur(2px);
+}
+.fx-status-signature.hold::before{
+  left:-8%;
+  right:-8%;
+  top:47%;
+  height:clamp(18px,2.4vh,42px);
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,.95) 0 4.2vw,
+      transparent 4.3vw 7.4vw);
+  box-shadow:
+    0 -5vh 0 rgba(255,255,255,.13),
+    0 5vh 0 rgba(255,255,255,.13);
+}
+.fx-status-signature.hold::after{
+  left:50%;
+  top:50%;
+  width:min(86vw,950px);
+  height:min(42vh,620px);
+  transform:translate(-50%,-50%);
+  border-left:clamp(14px,2vw,28px) solid rgba(255,255,255,.92);
+  border-right:clamp(14px,2vw,28px) solid rgba(255,255,255,.92);
+  background:linear-gradient(90deg,rgba(255,255,255,.14),transparent 12% 88%,rgba(255,255,255,.14));
+}
+.fx-status-signature.cancel::before{
+  inset:0;
+  background:
+    linear-gradient(24deg,transparent 0 48.8%,rgba(255,255,255,.96) 49% 49.4%,transparent 49.6%),
+    linear-gradient(147deg,transparent 0 49.1%,rgba(255,255,255,.9) 49.3% 49.7%,transparent 49.9%),
+    linear-gradient(78deg,transparent 0 49.35%,rgba(255,255,255,.82) 49.5% 49.8%,transparent 50%),
+    linear-gradient(202deg,transparent 0 49.15%,rgba(255,255,255,.74) 49.3% 49.62%,transparent 49.8%);
+  filter:drop-shadow(0 0 5px rgba(255,255,255,.66));
+}
+.fx-status-signature.cancel::after{
+  left:50%;
+  top:50%;
+  width:20vmin;
+  height:20vmin;
+  transform:translate(-50%,-50%) rotate(18deg);
+  clip-path:polygon(50% 0,63% 36%,100% 22%,73% 51%,100% 78%,61% 66%,50% 100%,39% 66%,0 81%,28% 51%,0 23%,37% 36%);
+  border:clamp(7px,1vw,15px) solid rgba(255,255,255,.88);
+  background:rgba(255,255,255,.09);
+  box-shadow:0 0 46px rgba(255,255,255,.35);
+}
+:root[data-board-quality="low"] .fx-status-signature::after{
+  filter:none;
+  box-shadow:none;
+}
+@media (prefers-reduced-motion: reduce){
+  .fx-status-signature{
+    transform:none!important;
+  }
+}
+
 /* SPECIAL statuses: no character actors. The reception number itself is the star. */
 .fx-special-number{
   position:fixed;

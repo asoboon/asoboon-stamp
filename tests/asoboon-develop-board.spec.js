@@ -140,18 +140,18 @@ async function prepareIdleForTest(page, patch = {}) {
 async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
-  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
+  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
 }
 
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260927-no-onomatopoeia-v3');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-no-onomatopoeia-v3'");
+  expect(buildFile.version).toBe('20260927-effect-language-v4');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-effect-language-v4'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=26');
-  expect(indexHtml).toContain('board.js?v=24');
+  expect(indexHtml).toContain('board-animations.js?v=27');
+  expect(indexHtml).toContain('board.js?v=25');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -180,6 +180,40 @@ test('current SPECIAL implementation contains no onomatopoeia and legacy cached 
   });
   await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('display','none');
   await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('visibility','hidden');
+});
+
+test('CALL GUIDED HOLD and CANCEL use distinct motion-only signature layers', async ({ page }) => {
+  const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  for(const kind of ['call','guided','hold','cancel']){
+    expect(animations).toContain(`statusSignature('${kind}'`);
+    expect(css).toContain(`.fx-status-signature.${kind}::before`);
+  }
+  expect(css).toContain('.fx-status-signature.guided::after');
+  expect(css).toContain('.fx-status-signature.hold::after');
+  expect(css).toContain('.fx-status-signature.cancel::after');
+
+  await installBoard(page,[payload([{number:'5991',state:'waiting',order:1}])]);
+  await page.evaluate(() => {
+    window.__signatureProbe=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'5991',fromStatus:'waiting',toStatus:'calling',kind:'call',
+      element:document.querySelector('.queue-card')
+    });
+  });
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-status-signature.call'))),{timeout:2000}).toBe(true);
+  const probe=await page.evaluate(()=>{
+    const el=document.querySelector('.fx-status-signature.call');
+    return {
+      text:(el?.textContent||'').trim(),
+      childCount:el?.children.length||0,
+      ariaHidden:el?.getAttribute('aria-hidden')||''
+    };
+  });
+  expect(probe.text).toBe('');
+  expect(probe.childCount).toBe(0);
+  expect(probe.ariaHidden).toBe('true');
+  await page.evaluate(()=>window.__signatureProbe);
+  await expect(page.locator('.fx-status-signature')).toHaveCount(0);
 });
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
