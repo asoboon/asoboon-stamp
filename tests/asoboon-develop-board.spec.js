@@ -1238,10 +1238,10 @@ test('real status effects are silent full-screen number specials with long hold 
     expect(code).toContain(`runParticles('${kind}'`);
     expect(code).toContain(`pachinkoBurst('${kind}'`);
   }
-  expect(code).toContain("call:Object.freeze({low:3200,high:4600})");
-  expect(code).toContain("guided:Object.freeze({low:3000,high:4200})");
-  expect(code).toContain("hold:Object.freeze({low:3400,high:4800})");
-  expect(code).toContain("cancel:Object.freeze({low:3600,high:5200})");
+  expect(code).toContain("call:Object.freeze({low:1500,high:4600})");
+  expect(code).toContain("guided:Object.freeze({low:1400,high:4200})");
+  expect(code).toContain("hold:Object.freeze({low:1600,high:4800})");
+  expect(code).toContain("cancel:Object.freeze({low:1700,high:5200})");
   expect(code).not.toContain('onomatopoeia(');
   expect(code).not.toContain('specialTextRect(');
   expect(code).not.toContain('fx-special-number-kicker');
