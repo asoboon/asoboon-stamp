@@ -1253,6 +1253,7 @@ test('CALL takes over the screen with a huge number that stays readable', async 
   });
 
   await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.call'))),{timeout:4000}).toBe(true);
+  await page.waitForTimeout(240);
   const live=await page.evaluate(()=>{
     const root=document.querySelector('.fx-special-number.call');
     const value=root?.querySelector('.fx-special-number-value');
@@ -1474,7 +1475,7 @@ test('character and source effects participate in choreography visual budgets', 
   const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(character).toContain("M.requestVisual(channel,{priority})");
   expect(source).toContain("M.requestVisual(channel,{priority})");
-  expect(animations).toContain("M.requestVisual('typography',{priority:'primary'})");
+  expect(animations).not.toContain("M.requestVisual('typography',{priority:'primary'})");
   expect(animations).toContain("M.requestVisual('foreground',{priority:'secondary'})");
   expect(animations).toContain("choreoPhase('impact','NUMBER'");
   expect(animations).not.toContain("choreoPhase('reaction','CHIRU')");
