@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '1.0.0',
+  VERSION: '1.1.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -27,7 +27,6 @@ const SURPRISE_VOTE = Object.freeze({
 
 const SURPRISE_EVENT_HEADERS = Object.freeze([
   '開催日',
-  '営業区分',
   '開催時刻',
   '開催',
   '候補1',
@@ -72,41 +71,25 @@ const SURPRISE_TOTAL_HEADERS = Object.freeze([
 ]);
 
 const SURPRISE_SCHEDULES = Object.freeze({
-  '平日': Object.freeze({
-    '11:00': Object.freeze({
-      start: '08:00',
-      end: '10:45',
-      resultEnd: '11:30'
-    })
+  '11:00': Object.freeze({
+    start: '08:00',
+    end: '10:45',
+    resultEnd: '11:30'
   }),
-  '土日祝': Object.freeze({
-    '11:00': Object.freeze({
-      start: '08:00',
-      end: '10:45',
-      resultEnd: '11:30'
-    }),
-    '14:00': Object.freeze({
-      start: '11:30',
-      end: '13:45',
-      resultEnd: '14:30'
-    }),
-    '16:00': Object.freeze({
-      start: '14:30',
-      end: '15:45',
-      resultEnd: '16:30'
-    })
+  '14:00': Object.freeze({
+    start: '11:30',
+    end: '13:45',
+    resultEnd: '14:30'
   }),
-  '平日特定日': Object.freeze({
-    '11:00': Object.freeze({
-      start: '08:00',
-      end: '10:45',
-      resultEnd: '11:30'
-    }),
-    '14:30': Object.freeze({
-      start: '11:30',
-      end: '14:15',
-      resultEnd: '15:00'
-    })
+  '14:30': Object.freeze({
+    start: '11:30',
+    end: '14:15',
+    resultEnd: '15:00'
+  }),
+  '16:00': Object.freeze({
+    start: '14:30',
+    end: '15:45',
+    resultEnd: '16:30'
   })
 });
 
@@ -365,11 +348,8 @@ function loadSurpriseEvents_(now) {
     const date = normalizeSurpriseDate_(object['開催日']);
     if (!date || date !== today) return;
 
-    const businessType = String(object['営業区分'] || '').trim();
     const eventTime = normalizeSurpriseTime_(object['開催時刻']);
-    const schedule =
-      SURPRISE_SCHEDULES[businessType] &&
-      SURPRISE_SCHEDULES[businessType][eventTime];
+    const schedule = SURPRISE_SCHEDULES[eventTime];
 
     if (!schedule) return;
 
@@ -400,7 +380,6 @@ function loadSurpriseEvents_(now) {
       id: date.replace(/-/g, '') + '-' + eventTime.replace(':', ''),
       row: index + 2,
       date: date,
-      businessType: businessType,
       eventTime: eventTime,
       enabled: isSurpriseOn_(object['開催']),
       cancelled: isSurpriseOn_(object['中止']),
@@ -422,7 +401,6 @@ function publicSurpriseEvent_(event, options) {
   return {
     id: event.id,
     date: event.date,
-    business_type: event.businessType,
     event_time: event.eventTime,
     vote_start: formatIso_(event.start),
     vote_end: formatIso_(event.end),
@@ -662,9 +640,9 @@ function writeSurpriseDecision_(row, winnerId, type) {
   const sheet = getSurpriseSpreadsheet_()
     .getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
 
-  sheet.getRange(row, 18).setValue(winnerId);
-  sheet.getRange(row, 19).setValue(type);
-  sheet.getRange(row, 20).setValue(formatIso_(new Date()));
+  sheet.getRange(row, 17).setValue(winnerId);
+  sheet.getRange(row, 18).setValue(type);
+  sheet.getRange(row, 19).setValue(formatIso_(new Date()));
 }
 
 function parseSurpriseTargets_(raw) {
@@ -896,6 +874,8 @@ function setupSurpriseVoteSpreadsheet() {
 
   getSurpriseVoterSalt_();
 
+  migrateSurpriseEventSheet_(spreadsheet);
+
   const eventSheet = ensureSurpriseSheet_(
     spreadsheet,
     SURPRISE_VOTE.EVENT_SHEET,
@@ -932,6 +912,19 @@ function setupSurpriseVoteSpreadsheet() {
     spreadsheetId: spreadsheet.getId(),
     spreadsheetUrl: spreadsheet.getUrl()
   };
+}
+
+function migrateSurpriseEventSheet_(spreadsheet) {
+  const sheet = spreadsheet.getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
+
+  if (!sheet || sheet.getLastColumn() < 2) return;
+
+  const secondHeader = String(sheet.getRange(1, 2).getValue() || '').trim();
+
+  // v1.0 の「営業区分」列を削除。既存データは右側の列ごと安全に左へ移動する。
+  if (secondHeader === '営業区分') {
+    sheet.deleteColumn(2);
+  }
 }
 
 function ensureSurpriseSheet_(spreadsheet, name, headers) {
@@ -977,16 +970,7 @@ function setupSurpriseEventSheet_(sheet) {
   }
 
   sheet.getRange('A2:A1000').setNumberFormat('yyyy/mm/dd');
-  sheet.getRange('C2:C1000').setNumberFormat('@');
-
-  const typeValidation = SpreadsheetApp
-    .newDataValidation()
-    .requireValueInList(
-      ['平日', '土日祝', '平日特定日'],
-      true
-    )
-    .setAllowInvalid(false)
-    .build();
+  sheet.getRange('B2:B1000').setNumberFormat('@');
 
   const timeValidation = SpreadsheetApp
     .newDataValidation()
@@ -1009,34 +993,31 @@ function setupSurpriseEventSheet_(sheet) {
     .setAllowInvalid(false)
     .build();
 
-  sheet.getRange('B2:B1000').setDataValidation(typeValidation);
-  sheet.getRange('C2:C1000').setDataValidation(timeValidation);
-  sheet.getRange('D2:D1000').setDataValidation(onOffValidation);
-  sheet.getRange('P2:P1000').setDataValidation(cancelValidation);
+  sheet.getRange('B2:B1000').setDataValidation(timeValidation);
+  sheet.getRange('C2:C1000').setDataValidation(onOffValidation);
+  sheet.getRange('O2:O1000').setDataValidation(cancelValidation);
 
   sheet.setColumnWidth(1, 105);
-  sheet.setColumnWidth(2, 110);
-  sheet.setColumnWidth(3, 90);
-  sheet.setColumnWidth(4, 70);
+  sheet.setColumnWidth(2, 90);
+  sheet.setColumnWidth(3, 70);
 
-  for (let column = 5; column <= 14; column += 1) {
+  for (let column = 4; column <= 13; column += 1) {
     sheet.setColumnWidth(column, 145);
   }
 
-  sheet.setColumnWidth(15, 145);
-  sheet.setColumnWidth(16, 70);
-  sheet.setColumnWidth(17, 220);
+  sheet.setColumnWidth(14, 145);
+  sheet.setColumnWidth(15, 70);
+  sheet.setColumnWidth(16, 220);
 
   sheet.getRange('A1').setNote('イベント開催日。1イベント回につき1行です。');
-  sheet.getRange('B1').setNote('平日 / 土日祝 / 平日特定日から選択。');
-  sheet.getRange('C1').setNote('営業区分に対応するイベント時刻を選択。');
-  sheet.getRange('D1').setNote('ONにした回だけ投票を公開します。');
-  sheet.getRange('E1').setNote('候補は2〜10件。空欄は表示されません。');
-  sheet.getRange('O1').setNote('運営都合で結果を変更する場合、候補名または c1〜c10 を入力。通常は空欄。');
-  sheet.getRange('P1').setNote('ONで該当回を即時中止します。通常はOFF。');
+  sheet.getRange('B1').setNote('11:00 / 14:00 / 14:30 / 16:00 から選択。投票時間は自動設定されます。');
+  sheet.getRange('C1').setNote('ONにした回だけ投票を公開します。');
+  sheet.getRange('D1').setNote('候補は2〜10件。空欄は表示されません。');
+  sheet.getRange('N1').setNote('運営都合で結果を変更する場合、候補名または c1〜c10 を入力。通常は空欄。');
+  sheet.getRange('O1').setNote('ONで該当回を即時中止します。通常はOFF。');
 
   try {
-    sheet.hideColumns(18, 3);
+    sheet.hideColumns(17, 3);
   } catch (_) {}
 }
 
@@ -1053,19 +1034,16 @@ function setupSurpriseGuide_(spreadsheet) {
     ['ASOBooN サプライズイベント投票｜使い方', ''],
     ['基本', '1イベント回＝「イベント設定」シートの1行です。'],
     ['開催日', 'イベントを行う日を入力します。'],
-    ['営業区分', '平日 / 土日祝 / 平日特定日から選びます。'],
-    ['開催時刻', '11:00 / 14:00 / 14:30 / 16:00 から選びます。'],
+    ['開催時刻', '11:00 / 14:00 / 14:30 / 16:00 から選びます。投票時間は自動設定されます。'],
     ['開催', '準備ができた回だけ ON にします。OFF はHOMEに出ません。'],
     ['候補1〜10', '2〜10件入力。空欄の候補はミニアプリに出ません。'],
     ['結果上書き', '通常は空欄。運営都合で変更するときだけ候補名または c1〜c10 を入力します。'],
     ['中止', '通常OFF。当日中止する場合はONにします。'],
     ['', ''],
-    ['平日 11:00', '投票 08:00〜10:45 / 結果 10:45〜11:30'],
-    ['土日祝 11:00', '投票 08:00〜10:45 / 結果 10:45〜11:30'],
-    ['土日祝 14:00', '投票 11:30〜13:45 / 結果 13:45〜14:30'],
-    ['土日祝 16:00', '投票 14:30〜15:45 / 結果 15:45〜16:30'],
-    ['平日特定日 11:00', '投票 08:00〜10:45 / 結果 10:45〜11:30'],
-    ['平日特定日 14:30', '投票 11:30〜14:15 / 結果 14:15〜15:00'],
+    ['11:00', '投票 08:00〜10:45 / 結果 10:45〜11:30'],
+    ['14:00', '投票 11:30〜13:45 / 結果 13:45〜14:30'],
+    ['14:30', '投票 11:30〜14:15 / 結果 14:15〜15:00'],
+    ['16:00', '投票 14:30〜15:45 / 結果 15:45〜16:30'],
     ['', ''],
     ['注意文', '※イベント内容・開催時間は、当日の混雑状況や運営上の都合により、変更または中止となる場合があります。']
   ];
