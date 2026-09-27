@@ -1359,7 +1359,35 @@ async function cancelReservationInMiniapp(env,p){
   if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
   const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
   if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
-  return await cancelReservationForTrustedSession(env,session,'manual');
+  try{
+    return await cancelReservationForTrustedSession(env,session,'manual');
+  }catch(originalError){
+    try{
+      const live=await currentReservationRow(env,String(session.receipt_no||''));
+      if(reservationState(live)==='canceled'){
+        const notification=await finalizeCancellationState(
+          env,
+          session,
+          String(live?.waitTypeId||session.wait_type_id||''),
+          'airwait'
+        );
+        return{
+          ok:true,
+          canceled:true,
+          state:'canceled',
+          recoveredAfterError:true,
+          receiptNo:String(session.receipt_no||''),
+          businessDate:String(session.business_date||''),
+          waitTypeId:String(live?.waitTypeId||session.wait_type_id||''),
+          notification,
+          checkedAt:Date.now(),
+        };
+      }
+    }catch(reconcileError){
+      console.warn('MINIAPP_CANCEL_RECONCILE_FAILED',safeError(reconcileError));
+    }
+    throw originalError;
+  }
 }
 async function cancelReservationForTrustedSession(env,session,cancelSource='manual'){
   if(!env?.DB||!session?.user_hash||!session?.business_date||!session?.reserve_id||!session?.receipt_no){
