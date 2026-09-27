@@ -62,7 +62,8 @@
     completionText: $('completionText'),
     completionClose: $('completionClose'),
     burst: $('burst'),
-    milestone: $('milestone')
+    milestone: $('milestone'),
+    demoReset: $('demoResetBtn')
   };
 
   const state = {
@@ -1284,6 +1285,34 @@
       show('loading');
       refreshStatus(true);
     });
+
+    if (DEMO && els.demoReset) {
+      els.demoReset.hidden = false;
+      els.demoReset.addEventListener('click', () => {
+        try {
+          localStorage.removeItem(DEMO_STORAGE_KEY);
+        } catch (_) {}
+
+        state.alloc = {};
+        state.serverAlloc = {};
+        state.serverTotals = {};
+        state.localTotals = {};
+        state.used = 0;
+        state.remaining = Number(CFG.MAX_POINTS || 100);
+        state.combo = 0;
+        state.pendingTaps = 0;
+        state.dirty = false;
+        state.selected = '';
+        state.expired = false;
+        state.completionShown = false;
+
+        els.completion.classList.remove('show');
+        els.completion.setAttribute('aria-hidden', 'true');
+
+        show('loading');
+        refreshStatus(true);
+      });
+    }
 
     els.completionClose.addEventListener('click', hideCompletion);
 
