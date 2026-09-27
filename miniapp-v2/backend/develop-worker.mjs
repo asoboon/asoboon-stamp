@@ -11,6 +11,7 @@ import {
   serviceStatus,
   runServiceMessageWorker,
   sendObservedCallNotification,
+  sendCancellationNotification,
 } from './develop-service-message.js';
 
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
@@ -222,7 +223,7 @@ export default {
       body?.ok === true &&
       body?.stored === true &&
       body?.alreadyExists === true &&
-      await releaseTerminalPreviousClaim(env, createPayload, body)
+      await transitionCanceledPreviousClaim(env, createPayload, body)
     ) {
       const retryRequest = rebuildCreateRequest(request, createPayload);
       base = await gateway.fetch(retryRequest, env, ctx);
@@ -231,6 +232,7 @@ export default {
     }
 
     if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
+    if (body?.alreadyExists === true) return base;
 
     try {
       body.serviceMessage = await finalizeReservationNotification(env, createPayload, body);
@@ -970,6 +972,86 @@ function responseCookieHeader(response){
     return values.map(v=>String(v||'').split(';')[0].trim()).filter(Boolean).join('; ');
   }catch{return''}
 }
+function mergeCancelResponseCookies(jar,response){
+  const raw=responseCookieHeader(response);
+  if(!raw)return;
+  for(const pair of raw.split(/;\s*/)){
+    const eq=pair.indexOf('=');
+    if(eq<=0)continue;
+    const name=pair.slice(0,eq).trim();
+    const value=pair.slice(eq+1).trim();
+    if(name)jar.set(name,value);
+  }
+}
+
+function cancelCookieHeader(jar){
+  return Array.from(jar.entries()).map(([name,value])=>`${name}=${value}`).join('; ');
+}
+
+function assertAirwaitRedirectUrl(value){
+  let url;
+  try{url=new URL(String(value||''));}catch{throw apiError('CANCEL_REDIRECT_INVALID',502)}
+  const host=String(url.hostname||'').toLowerCase();
+  if(url.protocol!=='https:'||!(host==='airwait.jp'||host.endsWith('.airwait.jp')))throw apiError('CANCEL_REDIRECT_INVALID',502);
+  return url;
+}
+
+async function fetchCancelHtmlWithCookieJar(startUrl,timeoutMs=10000){
+  let current=assertAirwaitRedirectUrl(startUrl);
+  const jar=new Map();
+  for(let redirectCount=0;redirectCount<=8;redirectCount+=1){
+    const headers={Accept:'text/html,application/xhtml+xml','User-Agent':'Mozilla/5.0'};
+    const cookie=cancelCookieHeader(jar);
+    if(cookie)headers.Cookie=cookie;
+    const response=await fetchWithCancelTimeout(current.toString(),{redirect:'manual',headers},timeoutMs);
+    mergeCancelResponseCookies(jar,response);
+    if([301,302,303,307,308].includes(response.status)){
+      const location=String(response.headers.get('location')||'');
+      if(!location)throw apiError('CANCEL_REDIRECT_LOCATION_MISSING',502);
+      current=assertAirwaitRedirectUrl(new URL(location,current).toString());
+      continue;
+    }
+    const html=await response.text();
+    return{response,html,url:current.toString(),cookie:cancelCookieHeader(jar)};
+  }
+  throw apiError('CANCEL_TOO_MANY_REDIRECTS',502);
+}
+
+async function waitForCanceledReservation(env,receiptNo){
+  let row=null;
+  for(const delayMs of [350,650,1000,1500,2000]){
+    await new Promise(resolve=>setTimeout(resolve,delayMs));
+    row=await currentReservationRow(env,receiptNo);
+    if(reservationState(row)==='canceled')return row;
+  }
+  return row;
+}
+
+async function markCanceledUserClaim(env,session){
+  if(!env?.DB||!session)return;
+  await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
+    WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
+    .bind(Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||'')).run();
+}
+
+async function finalizeCancellationState(env,session,waitTypeId,cancelSource){
+  await markCanceledUserClaim(env,session);
+  let notification={ok:true,sent:false,reason:'NOT_ATTEMPTED'};
+  try{
+    notification=await sendCancellationNotification(env,{
+      businessDate:String(session.business_date||''),
+      receiptNo:String(session.receipt_no||''),
+      reserveId:String(session.reserve_id||''),
+      waitTypeId:String(waitTypeId||session.wait_type_id||''),
+      cancelSource:String(cancelSource||'airwait'),
+    });
+  }catch(e){
+    console.warn('CANCEL_NOTIFICATION_FAILED',safeError(e));
+    notification={ok:false,sent:false,error:safeError(e)};
+  }
+  return notification;
+}
+
 async function verifyCancelLineUser(liffAccessToken){
   const token=String(liffAccessToken||'').trim();
   if(token.length<20||token.length>4096)throw apiError('LINE_ACCESS_TOKEN_REQUIRED',401);
@@ -1015,7 +1097,10 @@ async function cancelReservationInMiniapp(env,p){
 
   const before=await currentReservationRow(env,String(session.receipt_no||''));
   const beforeState=reservationState(before);
-  if(beforeState==='canceled')return{ok:true,canceled:true,alreadyCanceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),checkedAt:Date.now()};
+  if(beforeState==='canceled'){
+    const notification=await finalizeCancellationState(env,session,String(before?.waitTypeId||session.wait_type_id||''),'airwait');
+    return{ok:true,canceled:true,alreadyCanceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(before?.waitTypeId||session.wait_type_id||''),notification,checkedAt:Date.now()};
+  }
   if(!['waiting','calling','hold'].includes(beforeState))throw apiError('CANCEL_NOT_ALLOWED_STATE_'+String(beforeState||'unknown').toUpperCase(),409);
 
   const shortUrl=await loadCancelShortUrl(env,session);
@@ -1033,32 +1118,32 @@ async function cancelReservationInMiniapp(env,p){
   confirmUrl.searchParams.set('storeNo',storeNo);
   confirmUrl.searchParams.set('reserveId',reserveId);
   confirmUrl.searchParams.set('p',capability);
-  const confirmResponse=await fetchWithCancelTimeout(confirmUrl.toString(),{redirect:'follow',headers:{Accept:'text/html','User-Agent':'Mozilla/5.0'}},10000);
-  const confirmHtml=await confirmResponse.text();
-  if(!confirmResponse.ok||new URL(confirmResponse.url).pathname!=='/WCSP/cancel/confirm')throw apiError('CANCEL_CONFIRM_UNAVAILABLE',502);
+  const confirm=await fetchCancelHtmlWithCookieJar(confirmUrl.toString(),10000);
+  const confirmResponse=confirm.response;
+  const confirmHtml=confirm.html;
+  if(!confirmResponse.ok||new URL(confirm.url).pathname!=='/WCSP/cancel/confirm')throw apiError('CANCEL_CONFIRM_UNAVAILABLE',502);
   const csrf=htmlMetaContent(confirmHtml,'_csrf');
   if(!csrf)throw apiError('CANCEL_CSRF_UNAVAILABLE',502);
-  const cookie=responseCookieHeader(confirmResponse);
 
   const completeUrl=new URL('/WCSP/cancel/complete',AIRWAIT_ORIGIN);
   completeUrl.searchParams.set('queryStoreNo',storeNo);
   const headers={Accept:'text/html,application/xhtml+xml','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Origin:AIRWAIT_ORIGIN,Referer:confirmUrl.toString(),'User-Agent':'Mozilla/5.0'};
-  if(cookie)headers.Cookie=cookie;
+  if(confirm.cookie)headers.Cookie=confirm.cookie;
   let postResponse=null,postError=null;
   try{
     postResponse=await fetchWithCancelTimeout(completeUrl.toString(),{method:'POST',redirect:'follow',headers,body:new URLSearchParams({storeNo,reserveId,p:capability,_csrf:csrf})},12000);
     await postResponse.text();
   }catch(e){postError=e}
 
-  await new Promise(resolve=>setTimeout(resolve,350));
-  const after=await currentReservationRow(env,String(session.receipt_no||''));
+  const after=await waitForCanceledReservation(env,String(session.receipt_no||''));
   const afterState=reservationState(after);
-  if(afterState!=='canceled'){if(postError)throw apiError('CANCEL_RESULT_UNKNOWN',502);throw apiError('CANCEL_NOT_CONFIRMED_HTTP_'+String(postResponse?.status||0),502)}
-  try{
-    await env.DB.prepare("UPDATE v2_service_messages SET status='CANCELED',last_error='',updated_at=? WHERE business_date=? AND receipt_no=? AND notified_at=0")
-      .bind(Date.now(),String(session.business_date||''),String(session.receipt_no||'')).run();
-  }catch(e){console.warn('CANCEL_SERVICE_MESSAGE_UPDATE_FAILED',safeError(e))}
-  return{ok:true,canceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(after?.waitTypeId||session.wait_type_id||''),checkedAt:Date.now()};
+  if(afterState!=='canceled'){
+    if(postError)throw apiError('CANCEL_RESULT_UNKNOWN',502);
+    throw apiError('CANCEL_NOT_CONFIRMED_HTTP_'+String(postResponse?.status||0),502);
+  }
+
+  const notification=await finalizeCancellationState(env,session,String(after?.waitTypeId||session.wait_type_id||''),'manual');
+  return{ok:true,canceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(after?.waitTypeId||session.wait_type_id||''),notification,checkedAt:Date.now()};
 }
 async function fetchAllReservationsForReconcile(env) {
   const now = Date.now();
@@ -1136,13 +1221,13 @@ function reservationState(row) {
   return 'unknown';
 }
 
-async function releaseTerminalPreviousClaim(env, createPayload, existing) {
+async function transitionCanceledPreviousClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
   try {
     const rows = await fetchAllReservationsForReconcile(env);
     const match = selectTicketMatch(rows, existing.receiptNo);
     const own = match.row;
-    if (!own || !['2','3'].includes(String(own.status || ''))) return false;
+    if (!own || String(own.status || '') !== '3') return false;
 
     const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
       FROM v2_user_day_claims
@@ -1155,28 +1240,26 @@ async function releaseTerminalPreviousClaim(env, createPayload, existing) {
       ).first();
     if (!claim?.user_hash || !claim?.request_id) return false;
 
-    const del = await env.DB.prepare(`DELETE FROM v2_user_day_claims
+    const changed = await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
       WHERE user_hash=? AND business_date=? AND request_id=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
       .bind(
+        Date.now(),
         String(claim.user_hash),
         String(claim.business_date),
         String(claim.request_id),
         String(claim.reserve_id),
         String(claim.receipt_no),
       ).run();
-    if (Number(del?.meta?.changes || 0) !== 1) return false;
+    if (Number(changed?.meta?.changes || 0) !== 1) return false;
 
-    await env.DB.batch([
-      env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?').bind(String(createPayload.requestId || '')),
-      env.DB.prepare('DELETE FROM v2_request_results WHERE request_id=?').bind(String(claim.request_id || '')),
-    ]);
+    await env.DB.prepare(`DELETE FROM v2_request_results WHERE request_id=? AND action='createReservation'`)
+      .bind(String(createPayload.requestId || '')).run();
     return true;
   } catch (e) {
-    console.warn('TERMINAL_PREVIOUS_CLAIM_RELEASE_FAILED', safeError(e));
+    console.warn('CANCELED_PREVIOUS_CLAIM_TRANSITION_FAILED', safeError(e));
     return false;
   }
 }
-
 async function fetchDevelopTestReservations(env, filters={}) {
   const rows = [];
   let start = 1,total=Infinity,page=0;
