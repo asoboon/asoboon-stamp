@@ -1283,7 +1283,7 @@ test('real status effects are silent full-screen number specials with long hold 
   expect(code).not.toContain('fx-special-number-kicker');
   expect(code).not.toContain('fx-special-number-status');
   expect(code).not.toContain('const CHAR=');
-  expect(code).toContain('foregroundShards(rect,{count:lvl<=1?4:6');
+  expect(code).toContain('foregroundShards(focusRect,{count:lvl<=1?4:6');
 });
 
 test('composition guard v2 uses live character rects and area overlap instead of stale scene points', async ({ page }) => {
