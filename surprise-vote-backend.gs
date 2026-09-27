@@ -365,10 +365,13 @@ function loadSurpriseEvents_(now) {
     if (!schedule) return;
 
     const options = [];
+    const seenOptionNames = new Set();
 
     for (let i = 1; i <= 10; i += 1) {
       const name = String(object['候補' + i] || '').trim();
-      if (!name) continue;
+      if (!name || seenOptionNames.has(name)) continue;
+
+      seenOptionNames.add(name);
 
       options.push({
         id: 'c' + i,
