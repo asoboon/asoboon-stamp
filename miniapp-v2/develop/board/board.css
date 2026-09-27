@@ -704,23 +704,23 @@ body{
 }
 .fx-special-screen.call{
   background:
-    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,244,153,.82) 0 5%,rgba(255,194,59,.42) 6% 18%,transparent 40%),
-    repeating-conic-gradient(from -8deg at var(--fx-x) var(--fx-y),rgba(255,255,255,.3) 0 3deg,transparent 3deg 11deg);
+    repeating-conic-gradient(from -8deg at var(--fx-x) var(--fx-y),rgba(255,255,255,.28) 0 3deg,transparent 3deg 11deg),
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,246,157,.9) 0 5%,rgba(255,180,38,.54) 6% 24%,rgba(120,19,0,.68) 48%,rgba(35,3,0,.88) 82%);
 }
 .fx-special-screen.guided{
   background:
-    linear-gradient(100deg,transparent 0 10%,rgba(120,229,255,.12) 18%,rgba(120,229,255,.55) 43%,rgba(255,255,255,.8) 49%,rgba(120,229,255,.38) 55%,transparent 82%),
-    repeating-linear-gradient(100deg,transparent 0 58px,rgba(255,255,255,.18) 59px 64px,transparent 65px 118px);
+    repeating-linear-gradient(100deg,transparent 0 58px,rgba(255,255,255,.22) 59px 66px,transparent 67px 118px),
+    linear-gradient(100deg,rgba(2,27,53,.82) 0 8%,rgba(120,229,255,.18) 18%,rgba(120,229,255,.68) 43%,rgba(255,255,255,.9) 49%,rgba(120,229,255,.5) 55%,rgba(2,27,53,.86) 86%);
 }
 .fx-special-screen.hold{
   background:
-    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,237,133,.7) 0 7%,rgba(255,198,49,.26) 8% 26%,transparent 50%),
-    repeating-linear-gradient(90deg,transparent 0 70px,rgba(255,226,105,.2) 71px 76px,transparent 77px 145px);
+    repeating-linear-gradient(90deg,rgba(29,23,4,.18) 0 64px,rgba(255,226,105,.28) 65px 73px,rgba(29,23,4,.18) 74px 142px),
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,243,141,.82) 0 8%,rgba(255,196,31,.42) 9% 30%,rgba(46,34,3,.82) 64%);
 }
 .fx-special-screen.cancel{
   background:
-    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.92) 0 3%,rgba(201,230,237,.38) 4% 15%,transparent 36%),
-    repeating-conic-gradient(from 4deg at var(--fx-x) var(--fx-y),rgba(230,246,250,.55) 0 1.1deg,transparent 1.1deg 13deg);
+    repeating-conic-gradient(from 4deg at var(--fx-x) var(--fx-y),rgba(230,246,250,.62) 0 1.1deg,transparent 1.1deg 13deg),
+    radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.96) 0 3%,rgba(201,230,237,.46) 4% 18%,rgba(54,70,78,.54) 38%,rgba(6,12,16,.88) 74%);
 }
 .fx-special-screen.cancel:before,
 .fx-special-screen.cancel:after{
@@ -775,6 +775,168 @@ body{
 .fx-onomatopoeia.guided{color:#78e5ff;-webkit-text-stroke-color:#176787}
 .fx-onomatopoeia.hold{color:#fff0a6;-webkit-text-stroke-color:#8c6900}
 .fx-onomatopoeia.cancel{color:#f5fbff;-webkit-text-stroke-color:#56666c}
+
+/* SPECIAL statuses: no character actors. The reception number itself is the star. */
+.fx-special-number{
+  position:fixed;
+  inset:0;
+  z-index:8;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(14px,2vh,34px);
+  overflow:hidden;
+  pointer-events:none;
+  text-align:center;
+  contain:layout paint;
+  will-change:transform,opacity;
+  isolation:isolate;
+}
+.fx-special-number::before{
+  content:"";
+  position:absolute;
+  inset:-18%;
+  z-index:-2;
+  opacity:.9;
+  background:
+    repeating-conic-gradient(from -5deg at 50% 50%,rgba(255,255,255,.20) 0 3deg,transparent 3deg 11deg),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.2) 0 8%,transparent 40%);
+}
+.fx-special-number::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:-1;
+  width:min(82vw,880px);
+  height:min(42vh,660px);
+  transform:translate(-50%,-50%);
+  border:clamp(7px,1vw,15px) solid rgba(255,255,255,.82);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 clamp(10px,1.4vw,22px) rgba(255,255,255,.16),
+    0 0 0 clamp(24px,3vw,48px) rgba(255,255,255,.07);
+}
+.fx-special-number-kicker,
+.fx-special-number-status{
+  position:relative;
+  z-index:2;
+  padding:.18em .72em;
+  border:3px solid currentColor;
+  border-radius:999px;
+  background:rgba(7,12,18,.72);
+  font-weight:1000;
+  letter-spacing:.08em;
+  line-height:1;
+  white-space:nowrap;
+}
+.fx-special-number-kicker{font-size:clamp(32px,4.8vw,78px)}
+.fx-special-number-status{font-size:clamp(24px,3.2vw,54px)}
+.fx-special-number-value{
+  position:relative;
+  z-index:2;
+  width:96vw;
+  font-size:clamp(180px,42vw,520px);
+  font-weight:1000;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+  line-height:.72;
+  letter-spacing:-.085em;
+  white-space:nowrap;
+  paint-order:stroke fill;
+  -webkit-text-stroke:clamp(7px,1.05vw,15px) #24160a;
+  text-shadow:
+    0 clamp(10px,1.4vw,22px) 0 rgba(0,0,0,.46),
+    0 0 clamp(18px,2.5vw,42px) rgba(255,255,255,.44);
+}
+.fx-special-number.call{
+  color:#fff3a6;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,211,67,.62) 0 13%,rgba(208,57,14,.76) 34%,rgba(68,9,0,.92) 72%),
+    linear-gradient(180deg,#7d1200,#210400);
+}
+.fx-special-number.call .fx-special-number-value{
+  color:#ffe34f;
+  -webkit-text-stroke-color:#8f2400;
+  text-shadow:0 16px 0 #5a1300,0 0 34px rgba(255,239,112,.8);
+}
+.fx-special-number.guided{
+  color:#d9f8ff;
+  background:
+    repeating-linear-gradient(102deg,transparent 0 58px,rgba(255,255,255,.12) 59px 65px,transparent 66px 118px),
+    radial-gradient(circle at 50% 50%,rgba(113,228,255,.5),rgba(20,112,157,.82) 42%,rgba(3,31,58,.94) 76%);
+}
+.fx-special-number.guided .fx-special-number-value{
+  color:#83ebff;
+  -webkit-text-stroke-color:#07577a;
+  text-shadow:0 16px 0 #063a59,0 0 32px rgba(113,228,255,.78);
+}
+.fx-special-number.hold{
+  color:#fff6b8;
+  background:
+    repeating-linear-gradient(135deg,rgba(255,213,53,.16) 0 24px,rgba(20,18,8,.12) 24px 48px),
+    radial-gradient(circle at 50% 50%,rgba(255,218,79,.55),rgba(134,93,4,.76) 39%,rgba(28,22,4,.96) 76%);
+}
+.fx-special-number.hold .fx-special-number-value{
+  color:#fff07a;
+  -webkit-text-stroke-color:#6e5000;
+  text-shadow:0 16px 0 #4b3600,0 0 32px rgba(255,229,91,.74);
+}
+.fx-special-number.cancel{
+  color:#eefbff;
+  background:
+    repeating-conic-gradient(from 3deg at 50% 50%,rgba(235,249,255,.14) 0 1deg,transparent 1deg 12deg),
+    radial-gradient(circle at 50% 50%,rgba(230,246,250,.48),rgba(61,83,94,.82) 38%,rgba(9,17,22,.97) 76%);
+}
+.fx-special-number.cancel .fx-special-number-value{
+  color:#f5fbff;
+  -webkit-text-stroke-color:#364a53;
+  text-shadow:0 16px 0 #1d2a30,0 0 34px rgba(220,246,255,.72);
+}
+
+.fx-pachinko-burst{
+  position:fixed;
+  inset:-8%;
+  z-index:6;
+  pointer-events:none;
+  opacity:0;
+  overflow:hidden;
+  contain:strict;
+  will-change:transform,opacity;
+}
+.fx-pachinko-burst::before,
+.fx-pachinko-burst::after{
+  content:"";
+  position:absolute;
+  inset:0;
+}
+.fx-pachinko-burst::before{
+  background:
+    repeating-conic-gradient(from -8deg at var(--fx-x,50vw) var(--fx-y,50vh),rgba(255,255,255,.34) 0 2.2deg,transparent 2.2deg 8deg);
+}
+.fx-pachinko-burst::after{
+  background:
+    radial-gradient(circle at var(--fx-x,50vw) var(--fx-y,50vh),
+      rgba(255,255,255,.96) 0 2%,
+      rgba(255,255,255,.22) 3% 14%,
+      transparent 15% 22%,
+      rgba(255,255,255,.88) 22.5% 24%,
+      transparent 24.5% 34%,
+      rgba(255,255,255,.24) 34.5% 36%,
+      transparent 36.5% 56%);
+}
+.fx-pachinko-burst.call{background:radial-gradient(circle at 50% 50%,rgba(255,215,67,.72),rgba(203,49,9,.36) 44%,transparent 72%)}
+.fx-pachinko-burst.guided{background:linear-gradient(100deg,transparent 4%,rgba(107,228,255,.54) 38%,rgba(255,255,255,.75) 49%,rgba(107,228,255,.38) 60%,transparent 92%)}
+.fx-pachinko-burst.hold{background:repeating-linear-gradient(90deg,transparent 0 62px,rgba(255,226,99,.28) 63px 70px,transparent 71px 130px)}
+.fx-pachinko-burst.cancel{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.9),rgba(177,216,228,.22) 28%,transparent 64%)}
+:root[data-board-quality="low"] .fx-special-number-value{
+  text-shadow:0 10px 0 rgba(0,0,0,.45);
+}
+:root[data-board-quality="low"] .fx-special-number::after{
+  box-shadow:none;
+  border-width:7px;
+}
 .fx-cracks{
   position:absolute;
   inset:0;
@@ -819,7 +981,7 @@ body{
   border-width:1px;
 }
 
-/* Choreography Guard v3: clear the foreground when the reaction face becomes the attention owner. */
+/* Choreography Guard v3: clear foreground clutter when the primary number needs a clean read. */
 :root[data-board-choreo-phase="reaction"] .fx-foreground-shard,
 :root[data-board-choreo-phase="reaction"] .fx-onomatopoeia.giant,
 :root[data-board-choreo-phase="reaction"] .fx-impact-flash{
