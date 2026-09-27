@@ -208,30 +208,56 @@ function characterAnchorPoint(el,key='CENTER',space='viewport'){
   const board=compositionBoardRect();
   return{x:viewport.x-board.left,y:viewport.y-board.top};
 }
-function safeRectForCharacter(el,kind='face',space='viewport'){
+function characterVisibilityRect(el){
   if(!el?.isConnected||el.dataset?.pcSuppressed==='1')return null;
   const r=el.getBoundingClientRect?.();if(!r||!r.width||!r.height)return null;
   const style=getComputedStyle(el);
-  if(style.visibility==='hidden'||style.display==='none')return null;
+  if(style.visibility==='hidden'||style.display==='none'||Number(style.opacity)===0)return null;
   const board=compositionBoardRect();
   if(r.right<board.left-80||r.left>board.right+80||r.bottom<board.top-80||r.top>board.bottom+80)return null;
-  const key=kind==='body'?'BODY':'FACE_SAFE';
-  const p=characterAnchorPoint(el,key,'viewport');if(!p)return null;
-  const width=Math.max(kind==='body'?72:44,r.width*(kind==='body'?.62:.34));
-  const height=Math.max(kind==='body'?90:38,r.height*(kind==='body'?.66:.28));
-  const out={left:p.x-width/2,top:p.y-height/2,width,height,right:p.x+width/2,bottom:p.y+height/2,asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||'')};
+  return r;
+}
+function normalizedVisualRect(el,zone,space='viewport',kind='face'){
+  const r=characterVisibilityRect(el);if(!r||!Array.isArray(zone))return null;
+  const board=compositionBoardRect(),flip=Number(el.dataset?.sceneFlip)||1;
+  const rawX=Number(zone[0]),ny=Number(zone[1]),nw=Number(zone[2]),nh=Number(zone[3]);
+  const nx=flip<0?1-rawX:rawX;
+  const width=Math.max(kind==='body'?72:36,r.width*nw);
+  const height=Math.max(kind==='body'?82:34,r.height*nh);
+  const x=r.left+r.width*nx,y=r.top+r.height*ny;
+  const out={left:x-width/2,top:y-height/2,width,height,right:x+width/2,bottom:y+height/2,asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||''),kind};
   if(space!=='local')return out;
   return{...out,left:out.left-board.left,right:out.right-board.left,top:out.top-board.top,bottom:out.bottom-board.top};
+}
+function safeRectsForCharacter(el,kind='face',space='viewport'){
+  const r=characterVisibilityRect(el);if(!r)return[];
+  const assets=window.ASOBOON_BOARD_CHARACTER_ASSETS;
+  const visual=assets?.CHARACTER_VISUAL_ZONES?.[el.dataset?.pcAsset];
+  if(kind==='body'){
+    if(visual?.body)return[normalizedVisualRect(el,visual.body,space,'body')].filter(Boolean);
+    const p=characterAnchorPoint(el,'BODY','viewport');if(!p)return[];
+    const zone=[(p.x-r.left)/r.width,(p.y-r.top)/r.height,.62,.66];
+    return[normalizedVisualRect(el,zone,space,'body')].filter(Boolean);
+  }
+  if(Array.isArray(visual?.faces)&&visual.faces.length){
+    return visual.faces.map(zone=>normalizedVisualRect(el,zone,space,'face')).filter(Boolean);
+  }
+  const p=characterAnchorPoint(el,'FACE_SAFE','viewport');if(!p)return[];
+  const zone=[(p.x-r.left)/r.width,(p.y-r.top)/r.height,.34,.28];
+  return[normalizedVisualRect(el,zone,space,'face')].filter(Boolean);
+}
+function safeRectForCharacter(el,kind='face',space='viewport'){
+  return safeRectsForCharacter(el,kind,space)[0]||null;
 }
 function compositionSnapshot(){
   const characters=[];
   document.querySelectorAll('.pc-character[data-pc-asset]').forEach(el=>{
-    const face=safeRectForCharacter(el,'face','viewport');
+    const faces=safeRectsForCharacter(el,'face','viewport');
     const body=safeRectForCharacter(el,'body','viewport');
-    if(face||body)characters.push({asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||''),face,body});
+    if(faces.length||body)characters.push({asset:String(el.dataset?.pcAsset||''),owner:String(el.dataset?.pcOwner||''),faces,face:faces[0]||null,body});
   });
   compositionStats.snapshots+=1;
-  return{characters,faces:characters.map(x=>x.face).filter(Boolean),bodies:characters.map(x=>x.body).filter(Boolean)};
+  return{characters,faces:characters.flatMap(x=>x.faces||[]),bodies:characters.map(x=>x.body).filter(Boolean)};
 }
 function rectFromCenter(x,y,width,height){return{left:x-width/2,top:y-height/2,width,height,right:x+width/2,bottom:y+height/2}}
 function intersectionArea(a,b){
@@ -329,6 +355,121 @@ function rerouteRay(start,angle,distance,{radius=28}={}){
   return best;
 }
 
+
+const CHOREO_DEFAULT_BUDGETS=Object.freeze({typography:1,foreground:1,impact:2,reaction:2,secondary:1,flash:1});
+const choreographyStats={begins:0,phases:0,reactionWindows:0,budgetDrops:0,adaptiveTypography:0};
+let choreography=null,lastChoreography=null;
+function choreographySnapshot(state=choreography){
+  if(!state)return null;
+  return{
+    scene:state.scene,
+    phase:state.phase,
+    attention:state.attention,
+    phaseSeq:state.phaseSeq,
+    budgets:{...state.budgets},
+    counts:{...state.counts},
+    dropped:{...state.dropped},
+    history:state.history.map(x=>({...x})),
+  };
+}
+function applyChoreographyState(){
+  const root=document.documentElement;
+  if(!choreography){
+    delete root.dataset.boardChoreoScene;
+    delete root.dataset.boardChoreoPhase;
+    delete root.dataset.boardAttentionOwner;
+    return;
+  }
+  root.dataset.boardChoreoScene=String(choreography.scene||'');
+  root.dataset.boardChoreoPhase=String(choreography.phase||'');
+  root.dataset.boardAttentionOwner=String(choreography.attention||'');
+}
+function beginChoreography(scene,{budgets={}}={}){
+  if(choreography)endChoreography('replaced');
+  choreography={
+    scene:String(scene||'scene'),
+    phase:'setup',
+    attention:'TARGET',
+    phaseSeq:0,
+    budgets:{...CHOREO_DEFAULT_BUDGETS,...budgets},
+    counts:{},
+    dropped:{},
+    history:[{phase:'setup',attention:'TARGET',at:performance.now()}],
+  };
+  choreographyStats.begins+=1;
+  applyChoreographyState();
+  return choreographySnapshot();
+}
+function setChoreographyPhase(phase,attention='TARGET',{budgets=null}={}){
+  if(!choreography)beginChoreography('implicit');
+  choreography.phase=String(phase||'beat');
+  choreography.attention=String(attention||'TARGET').toUpperCase();
+  choreography.phaseSeq+=1;
+  choreography.counts={};
+  if(budgets)choreography.budgets={...choreography.budgets,...budgets};
+  choreography.history.push({phase:choreography.phase,attention:choreography.attention,at:performance.now()});
+  choreography.history=choreography.history.slice(-24);
+  choreographyStats.phases+=1;
+  if(choreography.phase==='reaction'){
+    choreographyStats.reactionWindows+=1;
+  }
+  applyChoreographyState();
+  return choreographySnapshot();
+}
+function requestVisual(channel,{priority='secondary'}={}){
+  if(!choreography)return true;
+  const key=String(channel||'secondary');
+  const next=(choreography.counts[key]||0)+1;
+  const limit=Number(choreography.budgets[key]??choreography.budgets.secondary??1);
+  if(priority==='essential'||next<=limit){
+    choreography.counts[key]=next;
+    return true;
+  }
+  choreography.dropped[key]=(choreography.dropped[key]||0)+1;
+  choreographyStats.budgetDrops+=1;
+  return false;
+}
+function endChoreography(reason='complete'){
+  if(!choreography)return null;
+  choreography.history.push({phase:'end',attention:choreography.attention,reason,at:performance.now()});
+  lastChoreography=choreographySnapshot(choreography);
+  choreography=null;
+  applyChoreographyState();
+  return lastChoreography;
+}
+function chooseTypographyPlacement(targetRect,{width=320,height=120,giant=false}={}){
+  const target=targetRect||{left:innerWidth*.4,top:innerHeight*.45,width:innerWidth*.2,height:innerHeight*.1,right:innerWidth*.6,bottom:innerHeight*.55};
+  const cx=target.left+target.width/2,cy=target.top+target.height/2;
+  const snap=compositionSnapshot();
+  const scales=giant?[1,.9,.8,.72]:[1,.92,.84];
+  const targetBox={left:target.left,top:target.top,width:target.width,height:target.height,right:target.right??target.left+target.width,bottom:target.bottom??target.top+target.height};
+  let best=null;
+  for(const scale of scales){
+    const w=width*scale,h=height*scale;
+    const dx=Math.max(w*.32,Math.min(innerWidth*.23,260));
+    const dy=Math.max(h*.75,Math.min(innerHeight*.13,220));
+    const candidates=[
+      {x:cx,y:cy},
+      {x:cx-dx,y:cy-dy},{x:cx+dx,y:cy-dy},
+      {x:cx-dx,y:cy+dy},{x:cx+dx,y:cy+dy},
+      {x:cx,y:cy-dy*1.25},{x:cx,y:cy+dy*1.25},
+      {x:innerWidth*.5,y:innerHeight*.22},{x:innerWidth*.5,y:innerHeight*.78},
+    ].map(p=>clampCenter(p,w,h));
+    for(const p of candidates){
+      const box=rectFromCenter(p.x,p.y,w,h);
+      let faceOverlap=0,bodyOverlap=0;
+      for(const face of snap.faces)faceOverlap=Math.max(faceOverlap,overlapRatio(box,face));
+      for(const body of snap.bodies)bodyOverlap=Math.max(bodyOverlap,overlapRatio(box,body));
+      const targetOverlap=overlapRatio(box,targetBox);
+      const score=faceOverlap*26000+bodyOverlap*(giant?1800:1000)+targetOverlap*(giant?1600:800)+Math.hypot(p.x-cx,p.y-cy)*.12+(1-scale)*1900;
+      if(!best||score<best.score)best={...p,scale,score,faceOverlap,bodyOverlap,targetOverlap};
+    }
+  }
+  choreographyStats.adaptiveTypography+=1;
+  compositionStats.textPlacements+=1;
+  return best||{x:cx,y:cy,scale:1,score:0,faceOverlap:0,bodyOverlap:0,targetOverlap:0};
+}
+
 function createScope(label='effect',timeScale=1){
   const controller=new AbortController();
   const scopeScale=Math.max(.25,Math.min(3,Number(timeScale)||1));
@@ -376,7 +517,7 @@ function createScope(label='effect',timeScale=1){
   scopes.add(scope);return scope;
 }
 function abortAll(reason='abort-all'){for(const scope of [...scopes])scope.abort(reason)}
-function resetPerformanceBaseline(){baselineDomCount=document.getElementsByTagName('*').length;peakDomCount=baselineDomCount;maxFrameTasks=0;maxCanvasJobs=0;qualityChanges=0;longTasks=0;frameSamples=[];frameEma=16.7;fpsEma=60;compositionStats.snapshots=0;compositionStats.adjustments=0;compositionStats.textPlacements=0;compositionStats.rayReroutes=0}
+function resetPerformanceBaseline(){baselineDomCount=document.getElementsByTagName('*').length;peakDomCount=baselineDomCount;maxFrameTasks=0;maxCanvasJobs=0;qualityChanges=0;longTasks=0;frameSamples=[];frameEma=16.7;fpsEma=60;compositionStats.snapshots=0;compositionStats.adjustments=0;compositionStats.textPlacements=0;compositionStats.rayReroutes=0;choreographyStats.begins=0;choreographyStats.phases=0;choreographyStats.reactionWindows=0;choreographyStats.budgetDrops=0;choreographyStats.adaptiveTypography=0}
 function diagnostics(){
   return{
     slowdown,defaultSlowdown:DEFAULT_SLOWDOWN,reduced,
@@ -388,7 +529,7 @@ function diagnostics(){
     maxFrameTasks,maxCanvasJobs,qualityChanges,
     activeTimers:[...scopes].reduce((n,x)=>n+(x.stats?.().timers||0),0),
     jsHeapUsed:performance.memory?.usedJSHeapSize||null,
-    scopes:[...scopes].map(x=>x.stats()),composition:{...compositionStats},
+    scopes:[...scopes].map(x=>x.stats()),composition:{...compositionStats},choreography:{active:choreographySnapshot(),last:lastChoreography?{...lastChoreography,history:lastChoreography.history.map(x=>({...x}))}:null,stats:{...choreographyStats}},
   };
 }
 
@@ -404,11 +545,12 @@ document.addEventListener('visibilitychange',()=>{monitoring=!document.hidden;if
 applyEnvironment();scheduleLoop();
 
 window.ASOBOON_BOARD_EFFECTS=Object.freeze({
-  version:'2.4.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
+  version:'2.5.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
   isReduced:()=>reduced,getLayer,createScope,abortAll,
-  characterAnchorPoint,safeRectForCharacter,compositionSnapshot,resolveEffectPoint,chooseOverlayPlacement,rerouteRay,overlapRatio,
+  characterAnchorPoint,safeRectForCharacter,safeRectsForCharacter,compositionSnapshot,resolveEffectPoint,chooseOverlayPlacement,chooseTypographyPlacement,rerouteRay,overlapRatio,
+  beginChoreography,setChoreographyPhase,requestVisual,endChoreography,getChoreography:()=>choreographySnapshot(),
   sharedCanvas:ensureSharedCanvas,runCanvas,runFrameTask,resetPerformanceBaseline,diagnostics,
 });
 })();
