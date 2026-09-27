@@ -1,7 +1,6 @@
 (()=>{'use strict';
 const CFG=window.ASOBOON_SURPRISE_VOTE_CONFIG||{},root=document.getElementById('app');
 if(!root)return;
-const originals=new WeakMap();
 let currentMode='idle',currentEvent=null,refreshing=false,timer=null;
 
 function apiUrl(){return String(CFG.API_URL||'').trim()}
@@ -27,29 +26,28 @@ function jsonp(params){
   });
 }
 function helpNode(){return root.querySelector('.v38-help')}
-function storeOriginal(el){if(!originals.has(el))originals.set(el,el.innerHTML)}
-function restore(el){
-  storeOriginal(el);
-  if(el.dataset.surpriseMode==='idle')return;
-  el.innerHTML=originals.get(el)||'';
-  el.dataset.surpriseMode='idle';
-}
 function labelForEvent(){
   const t=String(currentEvent?.event_time||'').trim();
   return t?t+'開催予定':'今日のイベント';
 }
 function render(){
   const el=helpNode();if(!el)return;
-  storeOriginal(el);
-  if(!['voting','result'].includes(currentMode)){restore(el);return}
   const voting=currentMode==='voting';
+  const result=currentMode==='result';
+  const tone=voting?'is-voting':result?'is-result':'is-idle';
+  const badge=voting?'投票受付中':result?'結果発表':'イベント投票';
+  const sub=voting
+    ?'100 ASOBooNを好きなイベントに投票しよう！'
+    :result
+      ?labelForEvent()+'の結果を見よう！'
+      :'投票時間・結果はこちらから確認できます';
   el.dataset.surpriseMode=currentMode;
   el.innerHTML=
-    '<a class="v38-surprise-cta '+(voting?'is-voting':'is-result')+'" href="./surprise-vote.html">'+
-      '<span class="v38-surprise-badge">'+(voting?'投票受付中':'結果発表')+'</span>'+
+    '<a class="v38-surprise-cta '+tone+'" href="./surprise-vote.html">'+
+      '<span class="v38-surprise-badge">'+badge+'</span>'+
       '<span class="v38-surprise-copy">'+
-        '<strong>'+(voting?'今日のイベント投票':'今日のイベント結果')+'</strong>'+
-        '<small>'+(voting?'100 ASOBooNを好きなイベントに投票しよう！':labelForEvent()+'の結果を見よう！')+'</small>'+
+        '<strong>今日のイベント投票</strong>'+
+        '<small>'+sub+'</small>'+
       '</span>'+
       '<span class="v38-surprise-arrow" aria-hidden="true">›</span>'+
     '</a>';
