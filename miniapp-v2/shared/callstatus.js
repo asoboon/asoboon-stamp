@@ -336,7 +336,8 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.8.1-native-cancel-long-wait',
+  version:'1.8.0-terminal-resolution',
+  nativeCancelVersion:'1.1-long-wait',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
