@@ -772,7 +772,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
       runtime:fx.diagnostics(),
       overlayZ:Number(getComputedStyle(overlay).zIndex)||0,
       frontZ:Number(getComputedStyle(front).zIndex)||0,
-      tempNodes:document.querySelectorAll('.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
+      tempNodes:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
       numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
     };
   });
@@ -1055,7 +1055,7 @@ test('real data change immediately interrupts a running character story', async 
   expect(d.running).toBe(false);
 });
 
-test('a genuine call adds CALL_DELIVERY while the real calling number remains authoritative', async ({ page }) => {
+test('a genuine call triggers the number-first SPECIAL while the real calling number remains authoritative', async ({ page }) => {
   const h = await installBoard(page, [
     payload([{ number:'8401', state:'waiting', order:1 }]),
     payload([{ number:'8401', state:'calling', order:1 }]),
@@ -1066,9 +1066,9 @@ test('a genuine call adds CALL_DELIVERY while the real calling number remains au
   });
   h.next();
   await h.refresh();
-  await expect.poll(async () => (await characterDiagnostics(page)).callPlayed, { timeout:4000 }).toBeGreaterThanOrEqual(1);
+  await expect.poll(async () => page.evaluate(() => window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().played), { timeout:4000 }).toBeGreaterThanOrEqual(1);
+  expect((await characterDiagnostics(page)).callPlayed).toBe(0);
   await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
-  await waitForCharacterIdle(page);
   await waitForFxIdle(page);
   await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
   expect(h.pageErrors).toEqual([]);
@@ -1156,36 +1156,45 @@ test('character pacing is deliberately slower while call delivery stays separate
   expect(state.assets.effectRules.impact).not.toContain('sparkle_gold');
 });
 
-test('hold transition uses the special-event path without legacy world variables', async () => {
+test('hold transition is number-first and never invokes a character actor', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).not.toContain('Promise.all([motion,particles,world])');
   expect(code).toContain("specialScreen('hold'");
-  expect(code).toContain("playStatusAccent?.('hold'");
-  expect(code).toContain("onomatopoeia('キキキキィー！！'");
+  expect(code).toContain("specialNumberTakeover(number,'hold'");
+  expect(code).toContain("onomatopoeia('キキィーッ！！'");
   expect(code).toContain("onomatopoeia('ピタッ！！'");
+  expect(code).toContain("runParticles('hold'");
+  expect(code).not.toContain("playStatusAccent?.('hold'");
+  expect(code).not.toContain('playCallDelivery?.');
+  expect(code).not.toContain('const CHAR=');
   expect(code).toContain('impactFreeze(');
 });
 
 
-test('real status effects serialize as full-screen manga special events', async () => {
+test('real status effects are serialized number-first pachinko-style specials', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).toContain('const MAX_CONCURRENT=1;');
-  expect(code).not.toContain("const particles=runParticles('call'");
-  expect(code).not.toContain("const particles=runParticles('guided'");
-  expect(code).not.toContain("const particles=runParticles('hold'");
-  expect(code).not.toContain("const particles=runParticles('cancel'");
-  expect(code).toContain("onomatopoeia('キタ！'");
+  expect(code).toContain("specialNumberTakeover(number,'call'");
+  expect(code).toContain("specialNumberTakeover(number,'guided'");
+  expect(code).toContain("specialNumberTakeover(number,'hold'");
+  expect(code).toContain("specialNumberTakeover(number,'cancel'");
+  expect(code).toContain("runParticles('call'");
+  expect(code).toContain("runParticles('guided'");
+  expect(code).toContain("runParticles('hold'");
+  expect(code).toContain("runParticles('cancel'");
+  expect(code).toContain("onomatopoeia('呼出！'");
   expect(code).toContain("onomatopoeia('ドォォン！！'");
-  expect(code).toContain("onomatopoeia('シュッ！！'");
+  expect(code).toContain("onomatopoeia('ご案内！'");
   expect(code).toContain("onomatopoeia('ビューン！！'");
-  expect(code).toContain("onomatopoeia('キキキキィー！！'");
+  expect(code).toContain("onomatopoeia('キキィーッ！！'");
   expect(code).toContain("onomatopoeia('バァァァリン！！'");
   expect(code).toContain("onomatopoeia('ガシャン！'");
   expect(code).toContain('foregroundShards(rect,{count:lvl<=1?4:6');
-  expect(code).toContain("specialScreen('call'");
-  expect(code).toContain("specialScreen('guided'");
-  expect(code).toContain("specialScreen('hold'");
-  expect(code).toContain("specialScreen('cancel'");
+  expect(code).toContain("pachinkoBurst('call'");
+  expect(code).toContain("pachinkoBurst('guided'");
+  expect(code).toContain("pachinkoBurst('hold'");
+  expect(code).toContain("pachinkoBurst('cancel'");
+  expect(code).not.toContain('const CHAR=');
 });
 
 test('composition guard v2 uses live character rects and area overlap instead of stale scene points', async ({ page }) => {
@@ -1238,7 +1247,48 @@ test('composition guard v2 uses live character rects and area overlap instead of
   expect(result.composition.rayReroutes).toBeGreaterThan(0);
 });
 
-test('HOLD giant typography keeps reaction faces readable while animation is live', async ({ page }) => {
+test('CALL takes over the screen with the called reception number', async ({ page }) => {
+  test.setTimeout(15000);
+  await installBoard(page,[payload([{number:'8634',state:'waiting',order:1}])]);
+  await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    fx.setSlowdown(0.35,{persistValue:false});
+    const card=document.querySelector('#queueGrid .queue-card');
+    window.__callNumberPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'8634',kind:'call',fromStatus:'waiting',toStatus:'calling',element:card,
+    });
+  });
+
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.call'))),{timeout:4000}).toBe(true);
+  const live=await page.evaluate(()=>{
+    const root=document.querySelector('.fx-special-number.call');
+    const value=root?.querySelector('.fx-special-number-value');
+    const kicker=root?.querySelector('.fx-special-number-kicker');
+    const status=root?.querySelector('.fx-special-number-status');
+    const rect=value?.getBoundingClientRect();
+    return{
+      number:value?.textContent?.trim()||'',
+      kicker:kicker?.textContent?.trim()||'',
+      status:status?.textContent?.trim()||'',
+      fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
+      valueHeight:rect?.height||0,
+      characters:document.querySelectorAll('.pc-character').length,
+      burst:Boolean(document.querySelector('.fx-pachinko-burst.call')),
+    };
+  });
+  expect(live.number).toBe('8634');
+  expect(live.kicker).toBe('ただいま呼出中');
+  expect(live.status).toBe('ご案内します');
+  expect(live.fontSize).toBeGreaterThan(180);
+  expect(live.valueHeight).toBeGreaterThan(60);
+  expect(live.characters).toBe(0);
+  expect(live.burst).toBe(true);
+
+  await page.evaluate(()=>window.__callNumberPromise);
+  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-character')).toHaveCount(0);
+});
+
+test('HOLD shows the reception number as the main actor and never mounts a character', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8636',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
@@ -1250,20 +1300,24 @@ test('HOLD giant typography keeps reaction faces readable while animation is liv
     });
   });
 
-  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-onomatopoeia.giant')&&document.querySelector('.pc-character'))),{timeout:4000}).toBe(true);
-
-  const overlap=await page.evaluate(()=>{
-    const fx=window.ASOBOON_BOARD_EFFECTS;
-    const text=document.querySelector('.fx-onomatopoeia.giant');
-    const tr=text.getBoundingClientRect();
-    const t={left:tr.left,top:tr.top,width:tr.width,height:tr.height,right:tr.right,bottom:tr.bottom};
-    const faces=fx.compositionSnapshot().faces;
-    return faces.reduce((max,face)=>Math.max(max,fx.overlapRatio(t,face)),0);
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.hold'))),{timeout:4000}).toBe(true);
+  const live=await page.evaluate(()=>{
+    const el=document.querySelector('.fx-special-number.hold');
+    const value=el?.querySelector('.fx-special-number-value');
+    return{
+      number:value?.textContent?.trim()||'',
+      characters:document.querySelectorAll('.pc-character').length,
+      fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
+      width:value?.getBoundingClientRect().width||0,
+    };
   });
-  expect(overlap).toBeLessThanOrEqual(0.22);
+  expect(live.number).toBe('8636');
+  expect(live.characters).toBe(0);
+  expect(live.fontSize).toBeGreaterThan(150);
+  expect(live.width).toBeGreaterThan(500);
 
   await page.evaluate(()=>window.__holdCompositionPromise);
-  await expect(page.locator('.fx-onomatopoeia,.pc-sprite')).toHaveCount(0);
+  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.pc-sprite')).toHaveCount(0);
 });
 
 test('source status effects use the shared composition guard', async () => {
@@ -1375,7 +1429,7 @@ test('adaptive manga typography uses choreography placement without covering liv
   expect(result.stats.adaptiveTypography).toBeGreaterThan(0);
 });
 
-test('CANCEL runs ordered attention beats and fully clears choreography state', async ({ page }) => {
+test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter special', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8641',state:'waiting',order:1}])]);
   const result=await page.evaluate(async()=>{
@@ -1383,28 +1437,36 @@ test('CANCEL runs ordered attention beats and fully clears choreography state', 
     fx.setSlowdown(0.03,{persistValue:false});
     fx.resetPerformanceBaseline();
     const card=document.querySelector('#queueGrid .queue-card');
+    let characterPeak=0,numberPeak=0;
+    const observer=new MutationObserver(()=>{
+      characterPeak=Math.max(characterPeak,document.querySelectorAll('.pc-character').length);
+      numberPeak=Math.max(numberPeak,document.querySelectorAll('.fx-special-number.cancel').length);
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
     await window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
       number:'8641',kind:'cancel',fromStatus:'waiting',toStatus:'canceled',element:card,
     });
+    observer.disconnect();
     const diag=fx.diagnostics();
     return{
       active:diag.choreography.active,
       last:diag.choreography.last,
-      stats:diag.choreography.stats,
-      leftovers:document.querySelectorAll('.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
+      characterPeak,numberPeak,
+      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
       phaseAttr:document.documentElement.hasAttribute('data-board-choreo-phase'),
     };
   });
   const phases=result.last.history.map(x=>x.phase);
+  const owners=result.last.history.map(x=>x.attention).filter(Boolean);
   expect(result.active).toBeNull();
   expect(result.phaseAttr).toBe(false);
+  expect(result.characterPeak).toBe(0);
+  expect(result.numberPeak).toBeGreaterThan(0);
   expect(result.leftovers).toBe(0);
-  expect(phases).toEqual(expect.arrayContaining(['omen','action','impact','reaction','aftermath','end']));
-  expect(phases.indexOf('omen')).toBeLessThan(phases.indexOf('action'));
-  expect(phases.indexOf('action')).toBeLessThan(phases.indexOf('impact'));
-  expect(phases.indexOf('impact')).toBeLessThan(phases.indexOf('reaction'));
-  expect(phases.indexOf('reaction')).toBeLessThan(phases.indexOf('aftermath'));
-  expect(result.stats.reactionWindows).toBeGreaterThanOrEqual(1);
+  expect(phases).toEqual(expect.arrayContaining(['omen','impact','aftermath','end']));
+  expect(phases.indexOf('omen')).toBeLessThan(phases.indexOf('impact'));
+  expect(phases.indexOf('impact')).toBeLessThan(phases.indexOf('aftermath'));
+  expect(owners.every(x=>x==='NUMBER'||x==='TARGET')).toBe(true);
 });
 
 test('character and source effects participate in choreography visual budgets', async () => {
@@ -1415,7 +1477,50 @@ test('character and source effects participate in choreography visual budgets', 
   expect(source).toContain("M.requestVisual(channel,{priority})");
   expect(animations).toContain("M.requestVisual('typography',{priority:'primary'})");
   expect(animations).toContain("M.requestVisual('foreground',{priority:'secondary'})");
-  expect(animations).toContain("choreoPhase('reaction','CHIRU')");
+  expect(animations).toContain("choreoPhase('impact','NUMBER'");
+  expect(animations).not.toContain("choreoPhase('reaction','CHIRU')");
+  expect(animations).not.toContain("choreoPhase('action','POMPON')");
+});
+
+test('CALL GUIDED HOLD and CANCEL never use POMPON or CHIRU and preserve the real number list', async ({ page }) => {
+  test.setTimeout(20000);
+  await installBoard(page,[payload([
+    {number:'8650',state:'waiting',order:1},
+    {number:'8651',state:'waiting',order:2},
+  ])]);
+  const result=await page.evaluate(async()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    const anim=window.ASOBOON_BOARD_ANIMATIONS;
+    fx.setSlowdown(0.04,{persistValue:false});
+    let characterPeak=0,numberPeak=0,burstPeak=0;
+    const observer=new MutationObserver(()=>{
+      characterPeak=Math.max(characterPeak,document.querySelectorAll('.pc-character').length);
+      numberPeak=Math.max(numberPeak,document.querySelectorAll('.fx-special-number').length);
+      burstPeak=Math.max(burstPeak,document.querySelectorAll('.fx-pachinko-burst').length);
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+    const card=document.querySelector('#queueGrid .queue-card');
+    for(const kind of ['call','guided','hold','cancel']){
+      await anim.playStatusAnimation({
+        number:'8650',
+        kind,
+        fromStatus:'waiting',
+        toStatus:kind==='call'?'calling':kind==='guided'?'done':kind==='hold'?'hold':'canceled',
+        element:card,
+      });
+    }
+    observer.disconnect();
+    return{
+      characterPeak,numberPeak,burstPeak,
+      numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
+      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.pc-character').length,
+    };
+  });
+  expect(result.characterPeak).toBe(0);
+  expect(result.numberPeak).toBeGreaterThan(0);
+  expect(result.burstPeak).toBeGreaterThan(0);
+  expect(result.numbers).toEqual(['8650','8651']);
+  expect(result.leftovers).toBe(0);
 });
 
 test('face-safe placement, target-aware gaze and CALL edge exits are active behavior', async ({ page }) => {
