@@ -388,7 +388,8 @@ function animateElement(el,keyframes,options={}){
   const opts={...options};
   const rawTiming=Boolean(opts.rawTiming);
   delete opts.rawTiming;
-  const scale=value=>rawTiming?value:(M?M.ms(value):value);
+  const testTiming=Boolean(window.__ASOBOON_BOARD_TEST_TIMING__);
+  const scale=value=>(rawTiming&&!testTiming)?value:(M?M.ms(value):value);
   if(Number.isFinite(Number(opts.duration)))opts.duration=scale(opts.duration);
   if(Number.isFinite(Number(opts.delay)))opts.delay=scale(opts.delay);
   if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=scale(opts.endDelay);
@@ -396,7 +397,9 @@ function animateElement(el,keyframes,options={}){
   return animation.finished.catch(()=>{});
 }
 function waitMs(ms,{rawTiming=false}={}){
-  return new Promise(resolve=>setTimeout(resolve,rawTiming?ms:(M?M.ms(ms):ms)));
+  const testTiming=Boolean(window.__ASOBOON_BOARD_TEST_TIMING__);
+  const delay=(rawTiming&&!testTiming)?ms:(M?M.ms(ms):ms);
+  return new Promise(resolve=>setTimeout(resolve,delay));
 }
 function flashFrame(kind,rect,{duration=180}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
