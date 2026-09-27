@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.5.dev-confirmation-chain',
+  VERSION: '2.6.dev-three-pillar',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -30,6 +30,8 @@ export async function serviceHealth(env) {
   const paramsReady = templateParamsValid(env.SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON);
   const confirmationTemplateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME));
   const confirmationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON);
+  const cancellationTemplateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME));
+  const cancellationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON);
   return {
     serviceMessageEnabled: true,
     serviceMessageVersion: SM.VERSION,
@@ -42,6 +44,12 @@ export async function serviceHealth(env) {
     serviceMessageConfirmationTemplateParamsConfigured: confirmationParamsReady,
     serviceMessageConfirmationReady: secretReady && confirmationTemplateReady && confirmationParamsReady,
     serviceMessageConfirmationUsesTokenChain: true,
+    serviceMessageCancellationTemplateConfigured: cancellationTemplateReady,
+    serviceMessageCancellationTemplateParamsConfigured: cancellationParamsReady,
+    serviceMessageCancellationReady: secretReady && cancellationTemplateReady && cancellationParamsReady,
+    serviceMessageCancellationUsesTokenChain: true,
+    serviceMessageThreePillarImplemented: true,
+    serviceMessageThreePillarReady: secretReady && templateReady && paramsReady && confirmationTemplateReady && confirmationParamsReady && cancellationTemplateReady && cancellationParamsReady,
     serviceMessageMandatoryBeforeCreate: true,
     serviceMessageCronEnabled: true,
     serviceMessageImmediateObservationEnabled: true,
@@ -208,6 +216,18 @@ export async function sendObservedCallNotification(env, observation) {
   const businessDate = normalizeDate(observation?.businessDate);
   const receiptNo = normalizeReceipt(observation?.receiptNo);
   const observedWaitType = normalizeWaitType(observation?.waitTypeId);
+  const observedState = String(observation?.state || '');
+  const observedStatus = String(observation?.status || '');
+  if (businessDate && receiptNo && (observedState === 'canceled' || observedStatus === '3')) {
+    await markClaimCanceled(env, businessDate, receiptNo, String(observation?.reserveId || ''));
+    return await sendCancellationNotification(env, {
+      businessDate,
+      receiptNo,
+      reserveId:String(observation?.reserveId || ''),
+      waitTypeId:observedWaitType,
+      cancelSource:String(observation?.cancelSource || 'airwait'),
+    });
+  }
   if (!businessDate || !receiptNo || !isNotificationEligibleAirwait(observation)) {
     return { ok:true, sent:false, reason:'NOT_NOTIFICATION_ELIGIBLE', version:SM.VERSION };
   }
@@ -242,6 +262,172 @@ export async function sendObservedCallNotification(env, observation) {
   return { ok:true, ...result, version:SM.VERSION };
 }
 
+export async function sendCancellationNotification(env, x) {
+  await ensureServiceSchema(env);
+  const businessDate = normalizeDate(x?.businessDate);
+  const receiptNo = normalizeReceipt(x?.receiptNo);
+  const reserveIdInput = normalizeReserveId(x?.reserveId);
+  const waitTypeIdInput = normalizeWaitType(x?.waitTypeId);
+  if (!businessDate || !receiptNo) return { ok:false, sent:false, reason:'CANCEL_NOTIFICATION_DATA_INVALID', version:SM.VERSION };
+
+  let rec = null;
+  if (reserveIdInput) {
+    rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
+      .bind(businessDate,reserveIdInput).first();
+  }
+  if (!rec) {
+    rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND receipt_no=? ORDER BY updated_at DESC LIMIT 1')
+      .bind(businessDate,receiptNo).first();
+  }
+  if (!rec) return { ok:true, sent:false, reason:'SERVICE_ROW_NOT_FOUND', version:SM.VERSION };
+
+  const reserveId = normalizeReserveId(rec.reserve_id);
+  const waitTypeId = normalizeWaitType(waitTypeIdInput || rec.wait_type_id);
+  await markClaimCanceled(env, businessDate, receiptNo, reserveId);
+
+  const prior = await env.DB.prepare('SELECT status,sent_at FROM v2_service_cancellations WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(businessDate,reserveId).first();
+  if (String(prior?.status || '') === 'SENT' && Number(prior?.sent_at || 0) > 0) {
+    return { ok:true, sent:true, reused:true, status:'SENT', version:SM.VERSION };
+  }
+  if (String(prior?.status || '') === 'SEND_AMBIGUOUS') {
+    return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
+  }
+
+  const templateName = normalizeTemplateName(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME);
+  const paramsRaw = String(env.SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON || '').trim();
+  const now = Date.now();
+  await env.DB.prepare(`INSERT INTO v2_service_cancellations
+    (business_date,reserve_id,receipt_no,request_id,cancel_source,status,last_error,last_http_status,sent_at,created_at,updated_at)
+    VALUES(?,?,?,?,?,'READY','',0,0,?,?)
+    ON CONFLICT(business_date,reserve_id) DO UPDATE SET
+      receipt_no=excluded.receipt_no,request_id=excluded.request_id,cancel_source=excluded.cancel_source,
+      updated_at=excluded.updated_at`)
+    .bind(businessDate,reserveId,receiptNo,String(rec.request_id || ''),String(x?.cancelSource || 'airwait').slice(0,30),now,now).run();
+
+  if (!templateName || !templateParamsValid(paramsRaw)) {
+    await setCancellationError(env,{businessDate,reserveId},'NOT_CONFIGURED','CANCEL_TEMPLATE_NOT_CONFIGURED',0);
+    return { ok:true, sent:false, status:'NOT_CONFIGURED', version:SM.VERSION };
+  }
+  if (!String(rec.notification_token || '') || Number(rec.remaining_count || 0) <= 0 || Number(rec.expires_at || 0) <= Date.now()) {
+    await setCancellationError(env,{businessDate,reserveId},'TOKEN_NOT_SENDABLE','SERVICE_NOTIFICATION_TOKEN_EXPIRED_OR_EXHAUSTED',0);
+    return { ok:true, sent:false, status:'TOKEN_NOT_SENDABLE', version:SM.VERSION };
+  }
+
+  const previousStatus = String(rec.status || 'TOKEN_READY');
+  if (['CONFIRM_SEND_PENDING','CALL_SEND_PENDING','CANCEL_SEND_PENDING'].includes(previousStatus)) {
+    return { ok:true, sent:false, status:'BUSY', version:SM.VERSION };
+  }
+
+  const lock = await env.DB.prepare(`UPDATE v2_service_messages SET status='CANCEL_SEND_PENDING',updated_at=?
+    WHERE business_date=? AND reserve_id=? AND status=? AND notification_token=?`)
+    .bind(Date.now(),businessDate,reserveId,previousStatus,String(rec.notification_token || '')).run();
+  if (Number(lock?.meta?.changes || 0) !== 1) return { ok:true, sent:false, status:'BUSY', version:SM.VERSION };
+
+  await env.DB.prepare(`UPDATE v2_service_cancellations SET status='SEND_PENDING',last_error='',last_http_status=0,updated_at=?
+    WHERE business_date=? AND reserve_id=?`).bind(Date.now(),businessDate,reserveId).run();
+
+  let channelToken;
+  try {
+    channelToken = await issueChannelToken(env);
+  } catch (e) {
+    await restoreAfterCancellationFailure(env,{businessDate,reserveId},previousStatus);
+    await setCancellationError(env,{businessDate,reserveId},'SEND_RETRY',safeError(e),Number(e?.status || 0));
+    return { ok:true, sent:false, status:'SEND_RETRY', version:SM.VERSION };
+  }
+
+  const params = buildTemplateParamsFromRaw(paramsRaw,{
+    receiptNo,
+    reserveId,
+    waitTypeId,
+    businessDate,
+    slotLabel:waitTypeLabel(waitTypeId),
+    callstatusUrl:SM.CALLSTATUS_URL,
+    cancelSource:String(x?.cancelSource || 'airwait'),
+  });
+
+  let response;
+  try {
+    response = await fetchWithTimeout(SM.NOTIFIER_SEND,{
+      method:'POST',
+      headers:{Authorization:`Bearer ${channelToken}`,'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify({templateName,params,notificationToken:String(rec.notification_token)}),
+    },SM.EXTERNAL_TIMEOUT_MS);
+  } catch (e) {
+    await restoreAfterCancellationFailure(env,{businessDate,reserveId},previousStatus);
+    await setCancellationError(env,{businessDate,reserveId},'SEND_AMBIGUOUS',`NOTIFIER_SEND_NETWORK ${safeError(e)}`,0);
+    return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
+  }
+
+  const text = await response.text();
+  if (!response.ok) {
+    await restoreAfterCancellationFailure(env,{businessDate,reserveId},previousStatus);
+    const retry = response.status === 429;
+    const ambiguous = response.status >= 500;
+    const state = ambiguous ? 'SEND_AMBIGUOUS' : retry ? 'SEND_RETRY' : 'SEND_ERROR';
+    await setCancellationError(env,{businessDate,reserveId},state,`NOTIFIER_SEND_HTTP_${response.status} ${safeApiText(text)}`,response.status);
+    return { ok:true, sent:false, ambiguous, status:state, version:SM.VERSION };
+  }
+
+  let data;
+  try { data = JSON.parse(text); }
+  catch {
+    await restoreAfterCancellationFailure(env,{businessDate,reserveId},previousStatus);
+    await setCancellationError(env,{businessDate,reserveId},'SEND_AMBIGUOUS','NOTIFIER_SEND_200_INVALID_JSON',200);
+    return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
+  }
+
+  const nextToken = String(data?.notificationToken || '').trim();
+  const remainingCount = Number(data?.remainingCount || 0);
+  const expiresIn = Number(data?.expiresIn || 0);
+  if (remainingCount < 0 || (remainingCount > 0 && !nextToken)) {
+    await restoreAfterCancellationFailure(env,{businessDate,reserveId},previousStatus);
+    await setCancellationError(env,{businessDate,reserveId},'SEND_AMBIGUOUS','NOTIFIER_SEND_200_INVALID_TOKEN_CHAIN',200);
+    return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
+  }
+
+  const sentAt = Date.now();
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE v2_service_messages SET status='CANCEL_MESSAGE_SENT',last_error='',last_http_status=200,
+      notification_token=?,remaining_count=?,expires_at=?,session_id=?,next_retry_at=0,updated_at=?
+      WHERE business_date=? AND reserve_id=? AND status='CANCEL_SEND_PENDING'`)
+      .bind(nextToken,remainingCount,expiresIn>0?sentAt+expiresIn*1000:0,
+        String(data?.sessionId || rec.session_id || ''),sentAt,businessDate,reserveId),
+    env.DB.prepare(`UPDATE v2_service_cancellations SET status='SENT',last_error='',last_http_status=200,
+      sent_at=?,updated_at=? WHERE business_date=? AND reserve_id=?`)
+      .bind(sentAt,sentAt,businessDate,reserveId),
+  ]);
+  return { ok:true, sent:true, status:'SENT', remainingCount, version:SM.VERSION };
+}
+
+async function markClaimCanceled(env,businessDate,receiptNo,reserveId='') {
+  if (!env?.DB || !businessDate || !receiptNo) return;
+  const now = Date.now();
+  if (reserveId) {
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
+      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
+      .bind(now,businessDate,reserveId,receiptNo).run();
+    return;
+  }
+  await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
+    WHERE business_date=? AND receipt_no=? AND state='CONFIRMED'`)
+    .bind(now,businessDate,receiptNo).run();
+}
+
+async function restoreAfterCancellationFailure(env,x,previousStatus) {
+  try {
+    await env.DB.prepare(`UPDATE v2_service_messages SET status=?,updated_at=?
+      WHERE business_date=? AND reserve_id=? AND status='CANCEL_SEND_PENDING'`)
+      .bind(previousStatus,Date.now(),x.businessDate,x.reserveId).run();
+  } catch {}
+}
+
+async function setCancellationError(env,x,status,message,httpStatus=0) {
+  await env.DB.prepare(`UPDATE v2_service_cancellations SET status=?,last_error=?,last_http_status=?,updated_at=?
+    WHERE business_date=? AND reserve_id=?`)
+    .bind(String(status),String(message || '').slice(0,500),Number(httpStatus || 0),Date.now(),x.businessDate,x.reserveId).run();
+}
+
 export async function runServiceMessageWorker(env) {
   await ensureServiceSchema(env);
   await reconcileConfirmedClaims(env);
@@ -253,24 +439,24 @@ export async function runServiceMessageWorker(env) {
     .bind(now, now - SM.PENDING_STALE_MS).run();
 
   const rowsResult = await env.DB.prepare(`SELECT * FROM v2_service_messages
-    WHERE business_date=? AND notified_at=0 AND notification_token<>''
-      AND status IN ('TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING')
-      AND (next_retry_at=0 OR next_retry_at<=?)
-    ORDER BY created_at ASC LIMIT ${SM.CRON_SCAN_LIMIT}`).bind(jstDate(now), now).all();
-  const pending = Array.isArray(rowsResult?.results) ? rowsResult.results : [];
-  if (!pending.length) return { ok:true, checked:0, sent:0, reconciled:true, version:SM.VERSION };
+    WHERE business_date=? AND notification_token<>''
+    ORDER BY created_at ASC LIMIT ${SM.CRON_SCAN_LIMIT}`).bind(jstDate(now)).all();
+  const rows = Array.isArray(rowsResult?.results) ? rowsResult.results : [];
+  if (!rows.length) return { ok:true, checked:0, sent:0, callSent:0, cancelSent:0, reconciled:true, version:SM.VERSION };
+
   assertServiceConfig(env);
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
   const byWaitType = new Map();
-  for (const rec of pending) {
+  for (const rec of rows) {
     const wt = normalizeWaitType(rec.wait_type_id);
     if (wt && !byWaitType.has(wt)) byWaitType.set(wt, await fetchAirwaitReservations(env, wt));
   }
 
   let allRows = null;
-  let sent = 0;
-  for (let rec of pending) {
+  let callSent = 0;
+  let cancelSent = 0;
+  for (let rec of rows) {
     let match = selectTicketMatch(byWaitType.get(String(rec.wait_type_id)) || [], rec.receipt_no);
     if (!match.row && !match.ambiguous) {
       if (!allRows) allRows = await fetchAirwaitReservations(env, '');
@@ -278,22 +464,38 @@ export async function runServiceMessageWorker(env) {
       const correctedWaitType = normalizeWaitType(match.row?.waitTypeId);
       if (correctedWaitType && correctedWaitType !== String(rec.wait_type_id || '')) {
         await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
-          WHERE business_date=? AND reserve_id=? AND notified_at=0`)
+          WHERE business_date=? AND reserve_id=?`)
           .bind(correctedWaitType, Date.now(), rec.business_date, rec.reserve_id).run();
         rec = { ...rec, wait_type_id:correctedWaitType };
       }
     }
 
     const own = match.row;
+    if (own && String(own.status || '') === '3') {
+      await markClaimCanceled(env,String(rec.business_date || ''),String(rec.receipt_no || ''),String(rec.reserve_id || ''));
+      const result = await sendCancellationNotification(env,{
+        businessDate:String(rec.business_date || ''),
+        receiptNo:String(rec.receipt_no || ''),
+        reserveId:String(rec.reserve_id || ''),
+        waitTypeId:String(own.waitTypeId || rec.wait_type_id || ''),
+        cancelSource:'airwait',
+      });
+      if (result.sent && !result.reused) cancelSent += 1;
+      continue;
+    }
+
+    const callPending = Number(rec.notified_at || 0) === 0 &&
+      ['TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING'].includes(String(rec.status || ''));
+    if (!callPending) continue;
+
     const retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY';
     const notificationEligible = Boolean(own && isNotificationEligibleAirwait(own));
     if (!notificationEligible && !retryEvidence) continue;
     const result = await sendCallMessage(env, rec, own || { waitTypeName:'' });
-    if (result.sent) sent += 1;
+    if (result.sent) callSent += 1;
   }
-  return { ok:true, checked:pending.length, sent, reconciled:true, version:SM.VERSION };
+  return { ok:true, checked:rows.length, sent:callSent+cancelSent, callSent, cancelSent, reconciled:true, version:SM.VERSION };
 }
-
 async function reconcileConfirmedClaims(env) {
   const r = await env.DB.prepare(`SELECT c.*,u.receipt_no,u.reserve_id,u.wait_type_id AS confirmed_wait_type
     FROM v2_service_token_claims c
@@ -495,7 +697,7 @@ async function sendReservationConfirmationIfConfigured(env, x) {
   const nextToken=String(data?.notificationToken||'').trim();
   const remainingCount=Number(data?.remainingCount||0);
   const expiresIn=Number(data?.expiresIn||0);
-  if(!nextToken||remainingCount<0) {
+  if(remainingCount<0||(remainingCount>0&&!nextToken)) {
     await restoreAfterConfirmationFailure(env,x);
     await setConfirmationError(env,x,'SEND_AMBIGUOUS','NOTIFIER_SEND_200_INVALID_TOKEN_CHAIN',200);
     return { enabled:true, sent:false, status:'SEND_AMBIGUOUS', ambiguous:true };
@@ -607,6 +809,11 @@ async function ensureServiceSchema(env) {
       status TEXT NOT NULL,last_error TEXT NOT NULL DEFAULT '',last_http_status INTEGER NOT NULL DEFAULT 0,
       sent_at INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,
       PRIMARY KEY(business_date,reserve_id))`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_service_cancellations (
+      business_date TEXT NOT NULL,reserve_id TEXT NOT NULL,receipt_no TEXT NOT NULL,request_id TEXT NOT NULL DEFAULT '',
+      cancel_source TEXT NOT NULL DEFAULT 'airwait',status TEXT NOT NULL,last_error TEXT NOT NULL DEFAULT '',
+      last_http_status INTEGER NOT NULL DEFAULT 0,sent_at INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,PRIMARY KEY(business_date,reserve_id))`),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_receipt ON v2_service_messages(business_date,receipt_no)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_pending ON v2_service_messages(business_date,status,notified_at,next_retry_at)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_liff_usage_request ON v2_service_liff_token_usage(request_id)'),
