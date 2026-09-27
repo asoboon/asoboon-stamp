@@ -574,25 +574,33 @@ function rectFor(element,frame){
   }
   return frame?.rect||null;
 }
+function specialFocusRect(){
+  const width=Math.max(1,Math.min(innerWidth*.92,1120));
+  const height=Math.max(1,Math.min(innerHeight*.52,760));
+  const left=(innerWidth-width)*.5;
+  const top=(innerHeight-height)*.5;
+  return{left,top,width,height,right:left+width,bottom:top+height};
+}
 
 async function playCallAnimation({number,element,frame,rare}){
   const target=currentFrame(element)||frame;
-  const rect=rectFor(element,target);
-  if(!rect)return;
+  const sourceRect=rectFor(element,target);
+  if(!sourceRect)return;
+  const focusRect=specialFocusRect();
   const lvl=effectiveLevel(),duration=specialDuration('call',lvl);
 
   choreoPhase('anticipation','NUMBER');
-  const screen=specialScreen('call',rect,{duration:duration+360});
-  const burst=pachinkoBurst('call',rect,{duration:duration});
+  const screen=specialScreen('call',focusRect,{duration:duration+360});
+  const burst=pachinkoBurst('call',focusRect,{duration:duration});
   await waitMs(lvl<=1?100:260,{rawTiming:true});
 
   choreoPhase('impact','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'call',{duration});
   const signature=statusSignature('call',{duration});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
-  const particles=runParticles('call',rect,{rare,level:lvl,secondary:true});
+  const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect:sourceRect,level:lvl})||Promise.resolve();
+  const particles=runParticles('call',focusRect,{rare,level:lvl,secondary:true});
   const reaction=screenReaction('call',{duration:lvl<=1?420:920});
-  const flash=flashFrame('call',rect,{duration:lvl<=1?110:220});
+  const flash=flashFrame('call',focusRect,{duration:lvl<=1?110:220});
   await Promise.all([numberFx,signature,sourceFx,particles,reaction,flash,burst]);
 
   choreoPhase('aftermath','NUMBER');
@@ -601,41 +609,43 @@ async function playCallAnimation({number,element,frame,rare}){
 }
 async function playGuidedAnimation({number,element,frame}){
   const source=frame||currentFrame(element);
-  const rect=source?.rect||rectFor(element,source);
-  if(!rect)return;
+  const sourceRect=source?.rect||rectFor(element,source);
+  if(!sourceRect)return;
+  const focusRect=specialFocusRect();
   const lvl=effectiveLevel(),duration=specialDuration('guided',lvl);
 
   choreoPhase('anticipation','NUMBER');
-  const screen=specialScreen('guided',rect,{duration:duration+280});
-  const burst=pachinkoBurst('guided',rect,{duration:duration});
+  const screen=specialScreen('guided',focusRect,{duration:duration+280});
+  const burst=pachinkoBurst('guided',focusRect,{duration:duration});
   await waitMs(lvl<=1?80:220,{rawTiming:true});
 
   choreoPhase('action','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'guided',{duration});
   const signature=statusSignature('guided',{duration});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
-  const particles=runParticles('guided',rect,{level:lvl,secondary:true});
+  const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect:sourceRect,level:lvl})||Promise.resolve();
+  const particles=runParticles('guided',focusRect,{level:lvl,secondary:true});
   const reaction=screenReaction('guided',{duration:lvl<=1?420:900});
-  const flash=flashFrame('guided',rect,{duration:lvl<=1?90:180});
+  const flash=flashFrame('guided',focusRect,{duration:lvl<=1?90:180});
   await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
 
   choreoPhase('aftermath','NUMBER');
   await screen;
 }
 async function playHoldAnimation({number,element,frame}){
-  const rect=rectFor(element,frame);
-  if(!rect)return;
+  const sourceRect=rectFor(element,frame);
+  if(!sourceRect)return;
+  const focusRect=specialFocusRect();
   const lvl=effectiveLevel(),duration=specialDuration('hold',lvl);
 
   choreoPhase('action','NUMBER');
-  const screen=specialScreen('hold',rect,{duration:duration+320});
-  const burst=pachinkoBurst('hold',rect,{duration:duration});
+  const screen=specialScreen('hold',focusRect,{duration:duration+320});
+  const burst=pachinkoBurst('hold',focusRect,{duration:duration});
   const numberFx=specialNumberTakeover(number,'hold',{duration});
   const signature=statusSignature('hold',{duration});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
-  const particles=runParticles('hold',rect,{level:lvl,secondary:true});
+  const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect:sourceRect,level:lvl})||Promise.resolve();
+  const particles=runParticles('hold',focusRect,{level:lvl,secondary:true});
   const reaction=screenReaction('hold',{duration:lvl<=1?520:1180});
-  const flash=flashFrame('hold',rect,{duration:lvl<=1?90:170});
+  const flash=flashFrame('hold',focusRect,{duration:lvl<=1?90:170});
 
   await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
   choreoPhase('aftermath','NUMBER');
@@ -644,26 +654,27 @@ async function playHoldAnimation({number,element,frame}){
 }
 async function playCancelAnimation({number,frame,element}){
   const source=frame||currentFrame(element);
-  const rect=source?.rect||rectFor(element,source);
-  if(!rect)return;
+  const sourceRect=source?.rect||rectFor(element,source);
+  if(!sourceRect)return;
+  const focusRect=specialFocusRect();
   const lvl=effectiveLevel(),duration=specialDuration('cancel',lvl);
 
   choreoPhase('omen','NUMBER');
-  const screen=specialScreen('cancel',rect,{duration:duration+480});
-  const burst=pachinkoBurst('cancel',rect,{duration:duration});
+  const screen=specialScreen('cancel',focusRect,{duration:duration+480});
+  const burst=pachinkoBurst('cancel',focusRect,{duration:duration});
   await waitMs(lvl<=1?180:520,{rawTiming:true});
 
   choreoPhase('impact','NUMBER',{foreground:1,impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'cancel',{duration});
   const signature=statusSignature('cancel',{duration});
-  const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
-  const particles=runParticles('cancel',rect,{level:lvl,secondary:true});
+  const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect:sourceRect,level:lvl})||Promise.resolve();
+  const particles=runParticles('cancel',focusRect,{level:lvl,secondary:true});
   const reaction=screenReaction('cancel',{duration:lvl<=1?460:1160});
 
   // Let the giant number remain readable before the visual shatter arrives.
   await waitMs(lvl<=1?620:3300,{rawTiming:true});
-  const shards=foregroundShards(rect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
-  const flash=flashFrame('cancel',rect,{duration:lvl<=1?120:240});
+  const shards=foregroundShards(focusRect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
+  const flash=flashFrame('cancel',focusRect,{duration:lvl<=1?120:240});
   await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,shards,flash]);
 
   choreoPhase('aftermath','NUMBER');
@@ -785,7 +796,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.8.0',
+  version:'1.8.1',
   capture,
   observe,
   playStatusAnimation,
