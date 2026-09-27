@@ -1156,14 +1156,13 @@ test('character pacing is deliberately slower while call delivery stays separate
   expect(state.assets.effectRules.impact).not.toContain('sparkle_gold');
 });
 
-test('hold transition is number-first and never invokes a character actor', async () => {
+test('hold transition is silent, number-first and never invokes a character actor', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
-  expect(code).not.toContain('Promise.all([motion,particles,world])');
   expect(code).toContain("specialScreen('hold'");
   expect(code).toContain("specialNumberTakeover(number,'hold'");
-  expect(code).toContain("onomatopoeia('キキィーッ！！'");
-  expect(code).toContain("onomatopoeia('ピタッ！！'");
   expect(code).toContain("runParticles('hold'");
+  expect(code).not.toContain('function onomatopoeia(');
+  expect(code).not.toContain('fx-onomatopoeia');
   expect(code).not.toContain("playStatusAccent?.('hold'");
   expect(code).not.toContain('playCallDelivery?.');
   expect(code).not.toContain('const CHAR=');
@@ -1171,30 +1170,24 @@ test('hold transition is number-first and never invokes a character actor', asyn
 });
 
 
-test('real status effects are serialized number-first pachinko-style specials', async () => {
+test('real status effects are silent full-screen number specials with long hold times', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).toContain('const MAX_CONCURRENT=1;');
-  expect(code).toContain("specialNumberTakeover(number,'call'");
-  expect(code).toContain("specialNumberTakeover(number,'guided'");
-  expect(code).toContain("specialNumberTakeover(number,'hold'");
-  expect(code).toContain("specialNumberTakeover(number,'cancel'");
-  expect(code).toContain("runParticles('call'");
-  expect(code).toContain("runParticles('guided'");
-  expect(code).toContain("runParticles('hold'");
-  expect(code).toContain("runParticles('cancel'");
-  expect(code).toContain("onomatopoeia('呼出！'");
-  expect(code).toContain("onomatopoeia('ドォォン！！'");
-  expect(code).toContain("onomatopoeia('ご案内！'");
-  expect(code).toContain("onomatopoeia('ビューン！！'");
-  expect(code).toContain("onomatopoeia('キキィーッ！！'");
-  expect(code).toContain("onomatopoeia('バァァァリン！！'");
-  expect(code).toContain("onomatopoeia('ガシャン！'");
-  expect(code).toContain('foregroundShards(rect,{count:lvl<=1?4:6');
-  expect(code).toContain("pachinkoBurst('call'");
-  expect(code).toContain("pachinkoBurst('guided'");
-  expect(code).toContain("pachinkoBurst('hold'");
-  expect(code).toContain("pachinkoBurst('cancel'");
+  for(const kind of ['call','guided','hold','cancel']){
+    expect(code).toContain(`specialNumberTakeover(number,'${kind}'`);
+    expect(code).toContain(`runParticles('${kind}'`);
+    expect(code).toContain(`pachinkoBurst('${kind}'`);
+  }
+  expect(code).toContain("call:Object.freeze({low:3200,high:4600})");
+  expect(code).toContain("guided:Object.freeze({low:3000,high:4200})");
+  expect(code).toContain("hold:Object.freeze({low:3400,high:4800})");
+  expect(code).toContain("cancel:Object.freeze({low:3600,high:5200})");
+  expect(code).not.toContain('onomatopoeia(');
+  expect(code).not.toContain('specialTextRect(');
+  expect(code).not.toContain('fx-special-number-kicker');
+  expect(code).not.toContain('fx-special-number-status');
   expect(code).not.toContain('const CHAR=');
+  expect(code).toContain('foregroundShards(rect,{count:lvl<=1?4:6');
 });
 
 test('composition guard v2 uses live character rects and area overlap instead of stale scene points', async ({ page }) => {
@@ -1247,7 +1240,7 @@ test('composition guard v2 uses live character rects and area overlap instead of
   expect(result.composition.rayReroutes).toBeGreaterThan(0);
 });
 
-test('CALL takes over the screen with the called reception number', async ({ page }) => {
+test('CALL takes over the screen with a huge number that stays readable', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8634',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
@@ -1260,29 +1253,36 @@ test('CALL takes over the screen with the called reception number', async ({ pag
   });
 
   await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.call'))),{timeout:4000}).toBe(true);
+  await page.waitForTimeout(240);
   const live=await page.evaluate(()=>{
     const root=document.querySelector('.fx-special-number.call');
     const value=root?.querySelector('.fx-special-number-value');
-    const kicker=root?.querySelector('.fx-special-number-kicker');
-    const status=root?.querySelector('.fx-special-number-status');
     const rect=value?.getBoundingClientRect();
     return{
       number:value?.textContent?.trim()||'',
-      kicker:kicker?.textContent?.trim()||'',
-      status:status?.textContent?.trim()||'',
+      duration:Number(root?.dataset.specialDuration||0),
+      childCount:root?.children.length||0,
       fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
       valueHeight:rect?.height||0,
+      valueWidth:rect?.width||0,
       characters:document.querySelectorAll('.pc-character').length,
+      words:document.querySelectorAll('.fx-onomatopoeia,.fx-special-number-kicker,.fx-special-number-status').length,
       burst:Boolean(document.querySelector('.fx-pachinko-burst.call')),
     };
   });
   expect(live.number).toBe('8634');
-  expect(live.kicker).toBe('ただいま呼出中');
-  expect(live.status).toBe('ご案内します');
-  expect(live.fontSize).toBeGreaterThan(180);
-  expect(live.valueHeight).toBeGreaterThan(60);
+  expect(live.duration).toBe(4600);
+  expect(live.childCount).toBe(1);
+  expect(live.fontSize).toBeGreaterThan(240);
+  expect(live.valueHeight).toBeGreaterThan(180);
+  expect(live.valueWidth).toBeGreaterThan(900);
   expect(live.characters).toBe(0);
+  expect(live.words).toBe(0);
   expect(live.burst).toBe(true);
+
+  // At 0.35 test slowdown the 4.6s takeover lasts ~1.6s; it must still be visible well after impact.
+  await page.waitForTimeout(650);
+  await expect(page.locator('.fx-special-number.call')).toHaveCount(1);
 
   await page.evaluate(()=>window.__callNumberPromise);
   await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-character')).toHaveCount(0);
@@ -1313,11 +1313,11 @@ test('HOLD shows the reception number as the main actor and never mounts a chara
   });
   expect(live.number).toBe('8636');
   expect(live.characters).toBe(0);
-  expect(live.fontSize).toBeGreaterThan(150);
-  expect(live.width).toBeGreaterThan(500);
+  expect(live.fontSize).toBeGreaterThan(240);
+  expect(live.width).toBeGreaterThan(900);
 
   await page.evaluate(()=>window.__holdCompositionPromise);
-  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.pc-sprite')).toHaveCount(0);
+  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-sprite')).toHaveCount(0);
 });
 
 test('source status effects use the shared composition guard', async () => {
@@ -1475,7 +1475,7 @@ test('character and source effects participate in choreography visual budgets', 
   const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(character).toContain("M.requestVisual(channel,{priority})");
   expect(source).toContain("M.requestVisual(channel,{priority})");
-  expect(animations).toContain("M.requestVisual('typography',{priority:'primary'})");
+  expect(animations).not.toContain("M.requestVisual('typography',{priority:'primary'})");
   expect(animations).toContain("M.requestVisual('foreground',{priority:'secondary'})");
   expect(animations).toContain("choreoPhase('impact','NUMBER'");
   expect(animations).not.toContain("choreoPhase('reaction','CHIRU')");
@@ -1514,6 +1514,7 @@ test('CALL GUIDED HOLD and CANCEL never use POMPON or CHIRU and preserve the rea
       characterPeak,numberPeak,burstPeak,
       numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
       leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.pc-character').length,
+      wordPeak:document.querySelectorAll('.fx-onomatopoeia,.fx-special-number-kicker,.fx-special-number-status').length,
     };
   });
   expect(result.characterPeak).toBe(0);
@@ -1521,6 +1522,7 @@ test('CALL GUIDED HOLD and CANCEL never use POMPON or CHIRU and preserve the rea
   expect(result.burstPeak).toBeGreaterThan(0);
   expect(result.numbers).toEqual(['8650','8651']);
   expect(result.leftovers).toBe(0);
+  expect(result.wordPeak).toBe(0);
 });
 
 test('face-safe placement, target-aware gaze and CALL edge exits are active behavior', async ({ page }) => {
