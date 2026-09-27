@@ -81,11 +81,7 @@ async function cancelCurrentReservation(){
     if(!session)throw Error('CALLSTATUS_SESSION_REQUIRED');
     const token=String(liff.getAccessToken?.()||'');
     if(token.length<20)throw Error('LINE_ACCESS_TOKEN_REQUIRED');
-    const d=await gatewayPost(
-      'cancelReservation',
-      {sessionToken:session.sessionToken,liffAccessToken:token},
-      {timeoutMs:CANCEL_REQUEST_TIMEOUT_MS}
-    );
+    const d=await gatewayPost('cancelReservation',{sessionToken:session.sessionToken,liffAccessToken:token},{timeoutMs:CANCEL_REQUEST_TIMEOUT_MS});
     if(!(d?.ok===true&&d?.canceled===true))throw Error(String(d?.error||'CANCEL_NOT_CONFIRMED'));
     if($('csCancelDialog'))$('csCancelDialog').hidden=true;
     const canceled={...lastStatus,...d,found:true,state:'canceled',receiptNo:String(d.receiptNo||session.receiptNo||''),checkedAt:Number(d.checkedAt||Date.now())};
