@@ -49,6 +49,9 @@ function readRare(){
   }catch{return true}
 }
 function effectiveLevel(){return reduced?Math.min(level,1):level}
+function choreoPhase(phase,attention='TARGET',budgets=null){
+  return M?.setChoreographyPhase?.(phase,attention,budgets?{budgets}:{})||null;
+}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function rowKey(row,index){
   if(row?.__key)return String(row.__key);
@@ -177,12 +180,16 @@ async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kin
   diagnostics.history=diagnostics.history.slice(-30);
   diagnostics.activeFx+=1;
   const rare=resolvedKind==='call'&&rareEnabled&&effectiveLevel()>=3&&Math.random()<RARE_RATE;
+  M?.beginChoreography?.(resolvedKind,{
+    budgets:{typography:1,foreground:1,impact:2,reaction:2,secondary:1,flash:1}
+  });
   try{
     if(resolvedKind==='call')await playCallAnimation({number,element,frame,rare});
     else if(resolvedKind==='guided')await playGuidedAnimation({number,element,frame});
     else if(resolvedKind==='hold')await playHoldAnimation({number,element,frame});
     else if(resolvedKind==='cancel')await playCancelAnimation({number,element,frame});
   }finally{
+    M?.endChoreography?.('complete');
     diagnostics.activeFx=Math.max(0,diagnostics.activeFx-1);
   }
 }
@@ -236,6 +243,7 @@ function ghostFrom(frame,className=''){
 }
 function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
   if(!rect||effectiveLevel()===0)return Promise.resolve();
+  if(M?.requestVisual&&!M.requestVisual('typography',{priority:'primary'}))return Promise.resolve();
   const el=document.createElement('div');
   el.className='fx-onomatopoeia '+kind+(giant?' giant':'');
   el.textContent=text;
@@ -246,24 +254,28 @@ function onomatopoeia(text,rect,kind,{giant=false,delay=0,duration=null}={}){
   const guardScale=giant?1.36:1.18;
   const guardWidth=Math.min(innerWidth*.96,measuredWidth*guardScale);
   const guardHeight=Math.min(innerHeight*.38,measuredHeight*guardScale);
-  const fallback={x:rect.left+rect.width*.5,y:rect.top+rect.height*.5};
-  const placement=M?.chooseOverlayPlacement?.(rect,{width:guardWidth,height:guardHeight,giant})||fallback;
+  const fallback={x:rect.left+rect.width*.5,y:rect.top+rect.height*.5,scale:1};
+  const placement=M?.chooseTypographyPlacement?.(rect,{width:guardWidth,height:guardHeight,giant})||
+    M?.chooseOverlayPlacement?.(rect,{width:guardWidth,height:guardHeight,giant})||fallback;
+  const layoutScale=Math.max(.68,Math.min(1,Number(placement.scale)||1));
+  const ts=n=>Math.round(n*layoutScale*1000)/1000;
   el.style.left=placement.x+'px';
   el.style.top=placement.y+'px';
   el.style.visibility='';
-  el.dataset.compositionGuard='v2';
+  el.dataset.compositionGuard='v3';
+  el.dataset.choreoScale=String(layoutScale);
   const rawDuration=duration??(reduced?360:(giant?1320:760));
   const animation=el.animate(giant?[
-    {opacity:0,transform:'translate(-50%,-50%) scale(.22) rotate(-10deg)'},
-    {opacity:1,transform:'translate(-50%,-50%) scale(1.34) rotate(4deg)',offset:.2},
-    {opacity:1,transform:'translate(-50%,-50%) scale(.98) rotate(-2deg)',offset:.46},
-    {opacity:1,transform:'translate(-50%,-50%) scale(1.04) rotate(0deg)',offset:.8},
-    {opacity:0,transform:'translate(-50%,-56%) scale(1.1) rotate(1deg)'},
+    {opacity:0,transform:'translate(-50%,-50%) scale('+ts(.22)+') rotate(-10deg)'},
+    {opacity:1,transform:'translate(-50%,-50%) scale('+ts(1.34)+') rotate(4deg)',offset:.2},
+    {opacity:1,transform:'translate(-50%,-50%) scale('+ts(.98)+') rotate(-2deg)',offset:.46},
+    {opacity:1,transform:'translate(-50%,-50%) scale('+ts(1.04)+') rotate(0deg)',offset:.8},
+    {opacity:0,transform:'translate(-50%,-56%) scale('+ts(1.1)+') rotate(1deg)'},
   ]:[
-    {opacity:0,transform:'translate(-50%,-50%) scale(.55) rotate(-7deg)'},
-    {opacity:1,transform:'translate(-50%,-50%) scale(1.18) rotate(3deg)',offset:.28},
-    {opacity:1,transform:'translate(-50%,-50%) scale(1) rotate(-1deg)',offset:.68},
-    {opacity:0,transform:'translate(-50%,-62%) scale(1.04) rotate(0deg)'},
+    {opacity:0,transform:'translate(-50%,-50%) scale('+ts(.55)+') rotate(-7deg)'},
+    {opacity:1,transform:'translate(-50%,-50%) scale('+ts(1.18)+') rotate(3deg)',offset:.28},
+    {opacity:1,transform:'translate(-50%,-50%) scale('+ts(1)+') rotate(-1deg)',offset:.68},
+    {opacity:0,transform:'translate(-50%,-62%) scale('+ts(1.04)+') rotate(0deg)'},
   ],{duration:M?M.ms(rawDuration):rawDuration,delay:M?M.ms(delay):delay,easing:'cubic-bezier(.2,.85,.28,1)',fill:'forwards'});
   return animation.finished.catch(()=>{}).finally(()=>el.remove());
 }
@@ -279,12 +291,14 @@ function animateElement(el,keyframes,options={}){
 function waitMs(ms){return new Promise(resolve=>setTimeout(resolve,M?M.ms(ms):ms))}
 function flashFrame(kind,rect,{duration=180}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
+  if(M?.requestVisual&&!M.requestVisual('flash',{priority:'primary'}))return Promise.resolve();
   const el=document.createElement('div');el.className='fx-impact-flash '+kind;overlayFxLayer().appendChild(el);
   el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
   return animateElement(el,[{opacity:0},{opacity:.92,offset:.18},{opacity:.18,offset:.52},{opacity:0}],{duration,easing:'linear',fill:'forwards'}).finally(()=>el.remove());
 }
 function foregroundShards(rect,{count=7,duration=1250}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
+  if(M?.requestVisual&&!M.requestVisual('foreground',{priority:'secondary'}))return Promise.resolve();
   const layer=overlayFxLayer(),cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
   const quality=String(M?.getEffectiveQuality?.()||'HIGH').toUpperCase();
   const cap=quality==='LOW'?4:quality==='MEDIUM'?5:8;
@@ -295,7 +309,7 @@ function foregroundShards(rect,{count=7,duration=1250}={}){
     const distance=Math.max(innerWidth,innerHeight)*(.34+(i%3)*.08),size=42+(i%4)*18;
     const angle=M?.rerouteRay?.({x:cx,y:cy},baseAngle,distance,{radius:size*.62})??baseAngle;
     Object.assign(el.style,{left:cx+'px',top:cy+'px',width:size+'px',height:Math.round(size*.58)+'px'});layer.appendChild(el);
-    el.dataset.compositionGuard='v2';
+    el.dataset.compositionGuard='v3';
     const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
     jobs.push(animateElement(el,[
       {opacity:0,transform:'translate3d(-50%,-50%,0) rotate('+(i*19)+'deg) scale(.25)'},
@@ -382,10 +396,13 @@ async function playCallAnimation({number,element,frame,rare}){
   const rect=rectFor(element,target);
   if(!rect)return;
   const lvl=effectiveLevel();
+  choreoPhase('announce','TARGET');
   const screen=specialScreen('call',rect,{duration:lvl<=1?760:2700});
   await Promise.all([onomatopoeia('キタ！',rect,'call',{duration:lvl<=1?420:760}),element?animateElement(element,[{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1.06)'}],{duration:lvl<=1?300:620,fill:'forwards'}):Promise.resolve()]);
+  choreoPhase('action','POMPON');
   const character=CHAR?.playCallDelivery?.({number,rect,element,level:lvl,rare})||Promise.resolve();
   await waitMs(lvl<=1?70:300);
+  choreoPhase('impact','TARGET');
   const boom=onomatopoeia('ドォォン！！',rect,'call',{giant:true,duration:lvl<=1?560:1520});
   const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
   const reaction=screenReaction('call',{duration:lvl<=1?340:960});
@@ -403,8 +420,10 @@ async function playCallAnimation({number,element,frame,rare}){
     {transform:'scale(1)'},
   ],{duration:lvl<=1?520:1740,easing:'cubic-bezier(.18,.92,.22,1)'}):Promise.resolve();
   await Promise.all([boom,sourceFx,reaction,flash,elementPulse]);
+  choreoPhase('reaction','CHIRU');
   await impactFreeze(lvl<=1?50:300);
   await character;
+  choreoPhase('aftermath','TARGET');
   await Promise.all([screen,element?animateElement(element,[{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:lvl<=1?220:620,fill:'forwards'}):Promise.resolve()]);
 }
 async function playGuidedAnimation({element,frame}){
@@ -412,9 +431,11 @@ async function playGuidedAnimation({element,frame}){
   const rect=source?.rect||rectFor(element,source);
   if(!rect)return;
   const lvl=effectiveLevel();
+  choreoPhase('announce','TARGET');
   const ghost=ghostFrom(source,'fx-guided-ghost');
   const screen=specialScreen('guided',rect,{duration:lvl<=1?720:2650});
   await onomatopoeia('ググッ…',rect,'guided',{duration:lvl<=1?300:620});
+  choreoPhase('action','POMPON');
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
   const character=CHAR?.playStatusAccent?.('guided',{rect})||Promise.resolve();
   const reaction=screenReaction('guided',{duration:lvl<=1?300:900});
@@ -439,14 +460,17 @@ async function playGuidedAnimation({element,frame}){
     {transform:'scale(1)'},
   ],{duration:lvl<=1?340:1120,easing:'ease-out'}):Promise.resolve();
   await Promise.all([flight,settle,sourceFx,reaction,launch]);
+  choreoPhase('accent','TARGET');
   await impactFreeze(lvl<=1?30:180);
   await onomatopoeia('ビューン！！',rect,'guided',{giant:true,duration:lvl<=1?420:1040});
+  choreoPhase('reaction','CHIRU');
   await Promise.all([screen,character]);
 }
 async function playHoldAnimation({element,frame}){
   const rect=rectFor(element,frame);
   if(!rect)return;
   const lvl=effectiveLevel();
+  choreoPhase('impact','POMPON');
   const screen=specialScreen('hold',rect,{duration:lvl<=1?760:2900});
   const character=CHAR?.playStatusAccent?.('hold',{rect})||Promise.resolve();
   const screech=onomatopoeia('キキキキィー！！',rect,'hold',{giant:true,duration:lvl<=1?560:1460});
@@ -465,8 +489,10 @@ async function playHoldAnimation({element,frame}){
     {transform:'translate3d(0,0,0) rotate(0)'},
   ],{duration:lvl<=1?360:1280,easing:'cubic-bezier(.16,.86,.2,1)'}):Promise.resolve();
   await Promise.all([screech,motion,sourceFx,reaction]);
+  choreoPhase('accent','TARGET');
   await impactFreeze(lvl<=1?60:320);
   await onomatopoeia('ピタッ！！',rect,'hold',{giant:true,duration:lvl<=1?480:1220});
+  choreoPhase('reaction','CHIRU');
   await Promise.all([screen,character]);
 }
 async function playCancelAnimation({frame,element}){
@@ -474,13 +500,16 @@ async function playCancelAnimation({frame,element}){
   const rect=source?.rect||rectFor(element,source);
   if(!rect)return;
   const lvl=effectiveLevel();
+  choreoPhase('omen','TARGET');
   const ghost=ghostFrom(source,'fx-cancel-ghost');
   if(ghost)attachCracks(ghost);
   const screen=specialScreen('cancel',rect,{duration:lvl<=1?820:3900});
   await onomatopoeia('ミシ…',rect,'cancel',{duration:lvl<=1?440:940});
   await impactFreeze(lvl<=1?50:420);
+  choreoPhase('action','POMPON');
   const character=CHAR?.playStatusAccent?.('cancel',{rect})||Promise.resolve();
   await waitMs(lvl<=1?80:520);
+  choreoPhase('impact','TARGET');
   const breakText=onomatopoeia('バァァァリン！！',rect,'cancel',{giant:true,duration:lvl<=1?620:1780});
   const reaction=screenReaction('cancel',{duration:lvl<=1?380:1240});
   const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
@@ -502,8 +531,10 @@ async function playCancelAnimation({frame,element}){
     ],{duration:lvl<=1?500:1720,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards'}).finally(()=>ghost.remove());
   }
   await Promise.all([breakText,reaction,sourceFx,shatter,shards,flash]);
+  choreoPhase('reaction','CHIRU');
   await impactFreeze(lvl<=1?60:340);
   await character;
+  choreoPhase('aftermath','TARGET');
   await onomatopoeia('ガシャン！',rect,'cancel',{giant:true,duration:lvl<=1?480:1120});
   await screen;
 }
