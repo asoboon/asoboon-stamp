@@ -677,14 +677,14 @@ function runParticles(kind,rect,{rare=false,level:requested=3,secondary=false}={
   if(!scope)return Promise.resolve();
 
   const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-  const desired=lvl<=1?5:lvl===2?12:18;
-  const base=Math.max(4,Math.min(q.maxParticles,Math.round(desired*q.particleScale)));
+  const desired=lvl<=1?5:lvl===2?9:12;
+  const base=Math.max(4,Math.min(12,q.maxParticles,Math.round(desired*q.particleScale)));
   const particles=[];
   const palette=rare?['#ffd84f','#ff8b31','#71e4a0','#5ad7ff','#ff72ad']:['#ffd84f','#ff8b31','#73dda0','#ffffff'];
   const rand=(a,b)=>a+Math.random()*(b-a);
 
   if(kind==='call'){
-    const count=Math.min(q.maxParticles,base+(rare?4:0));
+    const count=Math.min(12,q.maxParticles,base+(rare?3:0));
     for(let i=0;i<count;i++){
       const a=rand(0,Math.PI*2),speed=rand(85,rare?280:220);
       particles.push({type:i%5===0?'star':i%4===0?'smoke':'dot',x:cx,y:cy,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-rand(0,45),size:rand(8,rare?18:15),color:palette[i%palette.length],rot:rand(0,Math.PI*2),spin:rand(-4,4)});
