@@ -113,9 +113,11 @@ jobs:
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
               "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}",
               "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "waiting_req_d_w_ja",
-              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{\"date\":\"{{businessDate}}\",\"name\":\"ご利用者さま\",\"count\":\"{{totalPeople}}人\",\"detail\":\"{{slotLabel}}\",\"number\":\"{{receiptNo}}\",\"address\":\"埼玉県川口市赤山501-1\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"{{entryUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\",\"shop_name\":\"ASOBooN\"}",
+              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{\"date\":\"{{businessDate}}\",\"count\":\"{{totalPeople}}人\",\"detail\":\"{{slotLabel}}\",\"number\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\",\"shop_name\":\"ASOBooN\"}",
               "SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME": "user_cancle_s_ja",
-              "SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON": "{\"number\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"{{callstatusUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\"}"
+              "SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON": "{\"number\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\"}",
+              "SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_NAME": "auto_cancel_d_ja",
+              "SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_PARAMS_JSON": "{\"date\":\"{{businessDate}}\",\"detail\":\"{{slotLabel}}\",\"number\":\"{{receiptNo}}\",\"shop_name\":\"ASOBooN\",\"cancel_reason\":\"{{cancelReason}}\",\"btn1_url\":\"{{callstatusUrl}}\"}"
             },
             "d1_databases": [
               {
@@ -132,6 +134,8 @@ jobs:
             if(!s.includes("yourturn_s_w_ja")) process.exit(1);
             if(!s.includes("waiting_req_d_w_ja")) process.exit(1);
             if(!s.includes("user_cancle_s_ja")) process.exit(1);
+            if(!s.includes("auto_cancel_d_ja")) process.exit(1);
+            if(!s.includes("{{cancelReason}}")) process.exit(1);
             if(!s.includes("{{receiptNo}}") || !s.includes("{{callstatusUrl}}")) process.exit(1);
             if(!s.includes("{{slotLabel}}") || !s.includes("{{totalPeople}}人")) process.exit(1);
             if(!s.includes("?view=entry")) process.exit(1);
@@ -181,7 +185,7 @@ jobs:
                   x.callstatusEnabled!==true ||
                   x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||
-                  x.serviceMessageVersion!=="2.7.dev-cancel-sources" ||
+                  x.serviceMessageVersion!=="2.8.dev-auto-cancel-reason" ||
                   x.serviceMessageChannelSecretConfigured!==true ||
                   x.serviceMessageTemplateConfigured!==true ||
                   x.serviceMessageTemplateParamsConfigured!==true ||
@@ -190,7 +194,9 @@ jobs:
                   x.serviceMessageConfirmationTemplateParamsConfigured!==true ||
                   x.serviceMessageConfirmationReady!==true ||
                   x.serviceMessageManualCancellationReady!==true ||
+                  x.serviceMessageAutoCancellationReady!==true ||
                   x.serviceMessageCancelSourceSplit!==true ||
+                  x.serviceMessageThreePillarReady!==true ||
                   x.serviceMessageMandatoryBeforeCreate!==true ||
                   x.serviceMessageCronEnabled!==true ||
                   x.serviceMessageImmediateObservationEnabled!==true ||
