@@ -37,6 +37,7 @@ async function installBoard(page, sequence, { reducedMotion = false, cachedPaylo
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
 
   await page.addInitScript(() => {
+    window.__ASOBOON_BOARD_TEST_TIMING__ = true;
     const RealDate = Date;
     const fixed = new RealDate('2026-09-19T00:30:00.000Z').valueOf(); // 09:30 JST -> 10:00 board
     window.Date = class extends RealDate {
