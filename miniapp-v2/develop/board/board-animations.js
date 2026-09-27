@@ -305,7 +305,6 @@ function specialNumberTakeover(number,kind,{label='',status='',duration=1600}={}
   sub.className='fx-special-number-status';
   sub.textContent=status;
   el.append(kicker,num,sub);
-  if(kind==='cancel')attachCracks(el);
   overlayFxLayer().appendChild(el);
 
   const low=reduced||effectiveLevel()<=1;
@@ -375,9 +374,6 @@ function pachinkoBurst(kind,rect,{duration=1150}={}){
   el.setAttribute('aria-hidden','true');
   el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');
   el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
-  const ring=document.createElement('i');
-  ring.className='fx-pachinko-ring';
-  el.appendChild(ring);
   overlayFxLayer().appendChild(el);
 
   const frames=reduced?[
@@ -390,14 +386,8 @@ function pachinkoBurst(kind,rect,{duration=1150}={}){
     {opacity:.9,transform:'scale(1)',offset:.56},
     {opacity:0,transform:'scale(1.14) rotate(2deg)'}
   ];
-  const main=animateElement(el,frames,{duration,easing:'cubic-bezier(.14,.8,.2,1)',fill:'forwards'});
-  const ringAnim=reduced?Promise.resolve():animateElement(ring,[
-    {opacity:0,transform:'translate(-50%,-50%) scale(.08)'},
-    {opacity:1,transform:'translate(-50%,-50%) scale(.58)',offset:.24},
-    {opacity:.92,transform:'translate(-50%,-50%) scale(1.08)',offset:.62},
-    {opacity:0,transform:'translate(-50%,-50%) scale(1.72)'}
-  ],{duration:Math.max(420,duration*.86),easing:'cubic-bezier(.1,.76,.14,1)',fill:'forwards'});
-  return Promise.all([main,ringAnim]).finally(()=>el.remove());
+  return animateElement(el,frames,{duration,easing:'cubic-bezier(.14,.8,.2,1)',fill:'forwards'})
+    .finally(()=>el.remove());
 }
 
 function animateElement(el,keyframes,options={}){
