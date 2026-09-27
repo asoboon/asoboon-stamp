@@ -917,37 +917,23 @@ body{
 }
 .fx-pachinko-burst::after{
   background:
-    radial-gradient(circle at var(--fx-x,50vw) var(--fx-y,50vh),rgba(255,255,255,.9) 0 2%,rgba(255,255,255,.24) 3% 14%,transparent 39%);
+    radial-gradient(circle at var(--fx-x,50vw) var(--fx-y,50vh),
+      rgba(255,255,255,.96) 0 2%,
+      rgba(255,255,255,.22) 3% 14%,
+      transparent 15% 22%,
+      rgba(255,255,255,.88) 22.5% 24%,
+      transparent 24.5% 34%,
+      rgba(255,255,255,.24) 34.5% 36%,
+      transparent 36.5% 56%);
 }
 .fx-pachinko-burst.call{background:radial-gradient(circle at 50% 50%,rgba(255,215,67,.72),rgba(203,49,9,.36) 44%,transparent 72%)}
 .fx-pachinko-burst.guided{background:linear-gradient(100deg,transparent 4%,rgba(107,228,255,.54) 38%,rgba(255,255,255,.75) 49%,rgba(107,228,255,.38) 60%,transparent 92%)}
 .fx-pachinko-burst.hold{background:repeating-linear-gradient(90deg,transparent 0 62px,rgba(255,226,99,.28) 63px 70px,transparent 71px 130px)}
 .fx-pachinko-burst.cancel{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.9),rgba(177,216,228,.22) 28%,transparent 64%)}
-.fx-pachinko-ring{
-  position:absolute;
-  left:var(--fx-x,50vw);
-  top:var(--fx-y,50vh);
-  width:min(72vmin,720px);
-  height:min(72vmin,720px);
-  border:clamp(8px,1vw,16px) double rgba(255,255,255,.92);
-  border-radius:50%;
-  box-shadow:0 0 0 9px rgba(255,255,255,.13),0 0 0 24px rgba(255,255,255,.06);
-  transform:translate(-50%,-50%) scale(.08);
-  will-change:transform,opacity;
-}
-.fx-pachinko-burst.call .fx-pachinko-ring{border-color:#ffe862}
-.fx-pachinko-burst.guided .fx-pachinko-ring{border-color:#82edff}
-.fx-pachinko-burst.hold .fx-pachinko-ring{border-color:#fff18d}
-.fx-pachinko-burst.cancel .fx-pachinko-ring{border-color:#eefcff}
-
 :root[data-board-quality="low"] .fx-special-number-value{
   text-shadow:0 10px 0 rgba(0,0,0,.45);
 }
 :root[data-board-quality="low"] .fx-special-number::after{
-  box-shadow:none;
-  border-width:7px;
-}
-:root[data-board-quality="low"] .fx-pachinko-ring{
   box-shadow:none;
   border-width:7px;
 }
