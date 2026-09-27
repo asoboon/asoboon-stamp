@@ -444,34 +444,38 @@ function getSurpriseVote_(eventId, voterHash) {
     };
   }
 
-  const rows = sheet
-    .getRange(2, 1, sheet.getLastRow() - 1, SURPRISE_VOTE_HEADERS.length)
-    .getValues();
+  const matches = sheet
+    .getRange(2, 2, sheet.getLastRow() - 1, 1)
+    .createTextFinder(voterHash)
+    .matchEntireCell(true)
+    .findAll();
 
-  for (let i = 0; i < rows.length; i += 1) {
-    if (
-      String(rows[i][0]) === eventId &&
-      String(rows[i][1]) === voterHash
-    ) {
-      let allocations = {};
+  for (let i = matches.length - 1; i >= 0; i -= 1) {
+    const rowNumber = matches[i].getRow();
+    const row = sheet
+      .getRange(rowNumber, 1, 1, SURPRISE_VOTE_HEADERS.length)
+      .getValues()[0];
 
-      try {
-        allocations = JSON.parse(String(rows[i][3] || '{}')) || {};
-      } catch (_) {
-        allocations = {};
-      }
+    if (String(row[0]) !== eventId) continue;
 
-      allocations = sanitizeSurpriseAllocations_(allocations);
+    let allocations = {};
 
-      return {
-        row: i + 2,
-        used: Math.min(
-          SURPRISE_VOTE.MAX_POINTS,
-          Math.max(0, Number(rows[i][2]) || sumSurpriseAllocations_(allocations))
-        ),
-        allocations: allocations
-      };
+    try {
+      allocations = JSON.parse(String(row[3] || '{}')) || {};
+    } catch (_) {
+      allocations = {};
     }
+
+    allocations = sanitizeSurpriseAllocations_(allocations);
+
+    return {
+      row: rowNumber,
+      used: Math.min(
+        SURPRISE_VOTE.MAX_POINTS,
+        Math.max(0, Number(row[2]) || sumSurpriseAllocations_(allocations))
+      ),
+      allocations: allocations
+    };
   }
 
   return {
@@ -520,21 +524,25 @@ function getSurpriseTotals_(eventId) {
 
   if (!sheet || sheet.getLastRow() < 2) return empty;
 
-  const rows = sheet
-    .getRange(2, 1, sheet.getLastRow() - 1, SURPRISE_TOTAL_HEADERS.length)
-    .getValues();
+  const match = sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, 1)
+    .createTextFinder(eventId)
+    .matchEntireCell(true)
+    .findNext();
 
-  for (let i = 0; i < rows.length; i += 1) {
-    if (String(rows[i][0]) === eventId) {
-      const totals = {};
+  if (match) {
+    const row = sheet
+      .getRange(match.getRow(), 1, 1, SURPRISE_TOTAL_HEADERS.length)
+      .getValues()[0];
 
-      for (let c = 1; c <= 10; c += 1) {
-        totals['c' + c] =
-          Math.max(0, Number(rows[i][c]) || 0);
-      }
+    const totals = {};
 
-      return totals;
+    for (let c = 1; c <= 10; c += 1) {
+      totals['c' + c] =
+        Math.max(0, Number(row[c]) || 0);
     }
+
+    return totals;
   }
 
   return empty;
@@ -548,16 +556,17 @@ function applySurpriseTotalDelta_(eventId, deltaByOption, now) {
   let current = null;
 
   if (sheet.getLastRow() >= 2) {
-    const rows = sheet
-      .getRange(2, 1, sheet.getLastRow() - 1, SURPRISE_TOTAL_HEADERS.length)
-      .getValues();
+    const match = sheet
+      .getRange(2, 1, sheet.getLastRow() - 1, 1)
+      .createTextFinder(eventId)
+      .matchEntireCell(true)
+      .findNext();
 
-    for (let i = 0; i < rows.length; i += 1) {
-      if (String(rows[i][0]) === eventId) {
-        rowNumber = i + 2;
-        current = rows[i];
-        break;
-      }
+    if (match) {
+      rowNumber = match.getRow();
+      current = sheet
+        .getRange(rowNumber, 1, 1, SURPRISE_TOTAL_HEADERS.length)
+        .getValues()[0];
     }
   }
 
@@ -958,7 +967,7 @@ function ensureSurpriseSheet_(spreadsheet, name, headers) {
 }
 
 function setupSurpriseEventSheet_(sheet) {
-  const maxRows = Math.max(500, sheet.getMaxRows());
+  const maxRows = Math.max(1000, sheet.getMaxRows());
 
   if (sheet.getMaxRows() < maxRows) {
     sheet.insertRowsAfter(
@@ -967,8 +976,8 @@ function setupSurpriseEventSheet_(sheet) {
     );
   }
 
-  sheet.getRange('A2:A500').setNumberFormat('yyyy/mm/dd');
-  sheet.getRange('C2:C500').setNumberFormat('@');
+  sheet.getRange('A2:A1000').setNumberFormat('yyyy/mm/dd');
+  sheet.getRange('C2:C1000').setNumberFormat('@');
 
   const typeValidation = SpreadsheetApp
     .newDataValidation()
@@ -1000,13 +1009,10 @@ function setupSurpriseEventSheet_(sheet) {
     .setAllowInvalid(false)
     .build();
 
-  sheet.getRange('B2:B500').setDataValidation(typeValidation);
-  sheet.getRange('C2:C500').setDataValidation(timeValidation);
-  sheet.getRange('D2:D500').setDataValidation(onOffValidation);
-  sheet.getRange('P2:P500').setDataValidation(cancelValidation);
-
-  fillBlankSurpriseDefaults_(sheet.getRange('D2:D500'), 'OFF');
-  fillBlankSurpriseDefaults_(sheet.getRange('P2:P500'), 'OFF');
+  sheet.getRange('B2:B1000').setDataValidation(typeValidation);
+  sheet.getRange('C2:C1000').setDataValidation(timeValidation);
+  sheet.getRange('D2:D1000').setDataValidation(onOffValidation);
+  sheet.getRange('P2:P1000').setDataValidation(cancelValidation);
 
   sheet.setColumnWidth(1, 105);
   sheet.setColumnWidth(2, 110);
@@ -1032,22 +1038,6 @@ function setupSurpriseEventSheet_(sheet) {
   try {
     sheet.hideColumns(18, 3);
   } catch (_) {}
-}
-
-function fillBlankSurpriseDefaults_(range, defaultValue) {
-  const values = range.getValues();
-  let changed = false;
-
-  for (let row = 0; row < values.length; row += 1) {
-    if (String(values[row][0] || '').trim() === '') {
-      values[row][0] = defaultValue;
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    range.setValues(values);
-  }
 }
 
 function setupSurpriseGuide_(spreadsheet) {
