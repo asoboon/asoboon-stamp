@@ -1063,7 +1063,6 @@ test('a genuine call triggers the number-first SPECIAL while the real calling nu
   await page.evaluate(() => {
     window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false});
     window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
-    window.ASOBOON_BOARD_ANIMATIONS.resetForTest();
   });
   h.next();
   await h.refresh();
