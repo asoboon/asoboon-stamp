@@ -412,6 +412,49 @@ function pachinkoBurst(kind,rect,{duration=1150}={}){
     .finally(()=>el.remove());
 }
 
+function statusSignature(kind,{duration=1800}={}){
+  if(effectiveLevel()===0)return Promise.resolve();
+  const el=document.createElement('div');
+  el.className='fx-status-signature '+String(kind||'call');
+  el.setAttribute('aria-hidden','true');
+  overlayFxLayer().appendChild(el);
+
+  const low=reduced||effectiveLevel()<=1;
+  const frames=low?[
+    {opacity:0,transform:'scale(.995)'},
+    {opacity:.72,transform:'scale(1)',offset:.18},
+    {opacity:.72,transform:'scale(1)',offset:.82},
+    {opacity:0,transform:'scale(1)',offset:1}
+  ]:kind==='guided'?[
+    {opacity:0,transform:'translate3d(-14vw,0,0) scaleX(.82)'},
+    {opacity:1,transform:'translate3d(0,0,0) scaleX(1)',offset:.16},
+    {opacity:.94,transform:'translate3d(9vw,0,0) scaleX(1.04)',offset:.72},
+    {opacity:0,transform:'translate3d(34vw,0,0) scaleX(1.16)',offset:1}
+  ]:kind==='hold'?[
+    {opacity:0,transform:'translate3d(-7vw,0,0) scaleX(1.06)'},
+    {opacity:1,transform:'translate3d(18px,0,0) scaleX(.98)',offset:.18},
+    {opacity:1,transform:'translate3d(-10px,0,0) scaleX(1.02)',offset:.28},
+    {opacity:.96,transform:'translate3d(4px,0,0) scaleX(.995)',offset:.38},
+    {opacity:.9,transform:'translate3d(0,0,0) scaleX(1)',offset:.78},
+    {opacity:0,transform:'translate3d(0,0,0) scaleX(1)',offset:1}
+  ]:kind==='cancel'?[
+    {opacity:0,transform:'scale(.96) rotate(0deg)'},
+    {opacity:.9,transform:'scale(1) rotate(0deg)',offset:.18},
+    {opacity:1,transform:'scale(1.015) rotate(.2deg)',offset:.68},
+    {opacity:.72,transform:'scale(.94) rotate(1.8deg)',offset:.84},
+    {opacity:0,transform:'scale(.74) rotate(5deg)',offset:1}
+  ]:[
+    {opacity:0,transform:'scale(.72)'},
+    {opacity:1,transform:'scale(1.08)',offset:.14},
+    {opacity:.98,transform:'scale(.98)',offset:.24},
+    {opacity:.9,transform:'scale(1)',offset:.72},
+    {opacity:0,transform:'scale(1.22)',offset:1}
+  ];
+
+  return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true})
+    .finally(()=>el.remove());
+}
+
 function animateElement(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
   const opts={...options};
@@ -545,11 +588,12 @@ async function playCallAnimation({number,element,frame,rare}){
 
   choreoPhase('impact','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'call',{duration});
+  const signature=statusSignature('call',{duration});
   const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect,level:lvl})||Promise.resolve();
   const particles=runParticles('call',rect,{rare,level:lvl,secondary:true});
   const reaction=screenReaction('call',{duration:lvl<=1?420:920});
   const flash=flashFrame('call',rect,{duration:lvl<=1?110:220});
-  await Promise.all([numberFx,sourceFx,particles,reaction,flash,burst]);
+  await Promise.all([numberFx,signature,sourceFx,particles,reaction,flash,burst]);
 
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?80:260);
@@ -568,11 +612,12 @@ async function playGuidedAnimation({number,element,frame}){
 
   choreoPhase('action','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'guided',{duration});
+  const signature=statusSignature('guided',{duration});
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect,level:lvl})||Promise.resolve();
   const particles=runParticles('guided',rect,{level:lvl,secondary:true});
   const reaction=screenReaction('guided',{duration:lvl<=1?420:900});
   const flash=flashFrame('guided',rect,{duration:lvl<=1?90:180});
-  await Promise.all([numberFx,burst,sourceFx,particles,reaction,flash]);
+  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
 
   choreoPhase('aftermath','NUMBER');
   await screen;
@@ -586,12 +631,13 @@ async function playHoldAnimation({number,element,frame}){
   const screen=specialScreen('hold',rect,{duration:duration+320});
   const burst=pachinkoBurst('hold',rect,{duration:duration});
   const numberFx=specialNumberTakeover(number,'hold',{duration});
+  const signature=statusSignature('hold',{duration});
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect,level:lvl})||Promise.resolve();
   const particles=runParticles('hold',rect,{level:lvl,secondary:true});
   const reaction=screenReaction('hold',{duration:lvl<=1?520:1180});
   const flash=flashFrame('hold',rect,{duration:lvl<=1?90:170});
 
-  await Promise.all([numberFx,burst,sourceFx,particles,reaction,flash]);
+  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?90:320);
   await screen;
@@ -609,6 +655,7 @@ async function playCancelAnimation({number,frame,element}){
 
   choreoPhase('impact','NUMBER',{foreground:1,impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'cancel',{duration});
+  const signature=statusSignature('cancel',{duration});
   const sourceFx=SOURCEFX?.playStatusReaction?.('cancel',{rect,level:lvl})||Promise.resolve();
   const particles=runParticles('cancel',rect,{level:lvl,secondary:true});
   const reaction=screenReaction('cancel',{duration:lvl<=1?460:1160});
@@ -617,7 +664,7 @@ async function playCancelAnimation({number,frame,element}){
   await waitMs(lvl<=1?620:3300,{rawTiming:true});
   const shards=foregroundShards(rect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
   const flash=flashFrame('cancel',rect,{duration:lvl<=1?120:240});
-  await Promise.all([numberFx,burst,sourceFx,particles,reaction,shards,flash]);
+  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,shards,flash]);
 
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?120:360);
@@ -738,7 +785,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.7.0',
+  version:'1.8.0',
   capture,
   observe,
   playStatusAnimation,
