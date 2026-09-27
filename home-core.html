@@ -4640,20 +4640,20 @@
           <button
             class="ticket"
             data-before-view="faq"
-            data-inside-view="faq"
+            data-inside-view="surpriseVote"
           >
             <span class="ticket-number">6</span>
             <svg class="ticket-icon">
               <use
                 data-before-use="#i-help"
-                data-inside-use="#i-help"
+                data-inside-use="#i-flag"
                 href="#i-help"
               ></use>
             </svg>
             <span
               class="ticket-title"
               data-before-label="よくある質問"
-              data-inside-label="よくある質問"
+              data-inside-label="イベント投票"
             >
               よくある質問
             </span>
@@ -5983,6 +5983,12 @@
             "./callstatus.html?v=569";
           const target = new URL(callUrl, location.href);
           location.href = target.toString();
+          return;
+        }
+
+        if (name === "surpriseVote") {
+          const target = new URL("./surprise-vote.html?v=20260927-04", location.href);
+          top.location.href = target.toString();
           return;
         }
 

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#10283f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>今日のイベント投票｜ASOBooN</title>
+  <meta name="description" content="100 ASOBooNを好きなイベントに投票しよう！">
+  <link rel="stylesheet" href="./surprise-vote.css?v=20260927-04">
+  <script src="./surprise-vote-config.js?v=20260927-04"></script>
+  <script src="./surprise-vote.js?v=20260927-04" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <a class="home-btn" id="homeLink" href="./home.html?mode=inside" target="_top" aria-label="ASOBooN HOMEへ戻る">←</a>
+      <div class="top-title">
+        <strong>今日のサプライズイベント</strong>
+        <small>100 ASOBooNを好きなイベントに投票しよう！</small>
+      </div>
+    </header>
+
+    <section class="panel" id="loadingState">
+      <div class="state-card">
+        <div class="icon" aria-hidden="true">🎪</div>
+        <h2>投票を確認しています</h2>
+        <p>今日のイベント情報を読み込んでいます。</p>
+      </div>
+    </section>
+
+    <section class="panel" id="idleState" hidden>
+      <div class="state-card">
+        <div class="icon" aria-hidden="true">🎈</div>
+        <h2 id="idleTitle">現在、投票はありません</h2>
+        <p id="idleText">開催中の投票がある時間に、館内HOMEからお入りください。</p>
+        <a class="action" href="./home.html?mode=inside" target="_top">ASOBooN HOMEへ戻る</a>
+      </div>
+    </section>
+
+    <section class="panel" id="errorState" hidden>
+      <div class="state-card">
+        <div class="icon" aria-hidden="true">⚠️</div>
+        <h2 id="errorTitle">投票を開けませんでした</h2>
+        <p id="errorText">通信状況をご確認のうえ、もう一度お試しください。</p>
+        <button class="action" id="retryBtn" type="button">もう一度確認する</button>
+      </div>
+    </section>
+
+    <section class="panel" id="voteState" hidden>
+      <header class="hero">
+        <div class="hero-kicker">TODAY'S SURPRISE</div>
+        <h1>今日のイベント投票</h1>
+        <p id="eventTimeLabel">次のイベントをみんなで決めよう！</p>
+      </header>
+
+      <div class="timebar" id="timebar">
+        <span>投票終了まで</span>
+        <strong id="countdown">--:--</strong>
+      </div>
+
+      <div class="wallet">
+        <div class="wallet-label">あなたの のこり</div>
+        <div class="wallet-value"><span id="remaining">100</span><small>ASOBooN</small></div>
+        <div class="wallet-meter" aria-hidden="true"><div class="wallet-fill" id="walletFill"></div></div>
+      </div>
+
+      <div class="active">
+        <div class="eyebrow">いま応援するイベント</div>
+        <h2 id="activeName">下からイベントを選んでね！</h2>
+        <div class="mine" id="activeMine">候補を選ぶとPUSHできます</div>
+      </div>
+
+      <div class="combo-wrap">
+        <div class="combo" id="combo">
+          <span id="comboValue">0</span><small>COMBO</small><span class="fever">FEVER!</span>
+        </div>
+      </div>
+
+      <div class="push-zone">
+        <button class="push-btn" id="pushBtn" type="button" disabled aria-label="選んだイベントへ1 ASOBooN投票">
+          <strong>PUSH!</strong>
+          <span>1 TAP = 1 ASOBooN</span>
+        </button>
+        <div class="tap-fx" id="tapFx" aria-hidden="true"></div>
+      </div>
+
+      <div class="sync" id="syncText" role="status">イベントを選んでください</div>
+
+      <div class="race" id="race">
+        <strong>どれに入れるかは自由！</strong>
+        <span>100を全部ひとつに入れても、分けてもOK</span>
+      </div>
+
+      <section class="candidate-area">
+        <div class="candidate-head">
+          <strong>投票先をえらぶ</strong>
+          <small>途中で何度でも切り替えOK</small>
+        </div>
+        <div class="candidates" id="candidates"></div>
+      </section>
+
+      <p class="notice">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により、変更または中止となる場合があります。</p>
+    </section>
+
+    <section class="panel" id="resultState" hidden>
+      <header class="hero">
+        <div class="hero-kicker">RESULT</div>
+        <h1>結果発表！</h1>
+        <p id="resultEventTime">本日のサプライズイベント</p>
+      </header>
+
+      <div class="result-winner">
+        <small>みんなの投票で決定！</small>
+        <h2 id="winnerName">結果を確認中</h2>
+        <strong id="winnerPoints">集計しています</strong>
+      </div>
+
+      <div class="result-list" id="resultList"></div>
+
+      <div style="text-align:center;padding:0 12px 8px">
+        <a class="action" href="./home.html?mode=inside" target="_top">ASOBooN HOMEへ戻る</a>
+      </div>
+
+      <p class="notice">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により、変更または中止となる場合があります。</p>
+    </section>
+  </main>
+
+  <div class="milestone" id="milestone" aria-hidden="true"></div>
+
+  <div class="completion" id="completion" aria-hidden="true">
+    <div class="burst" id="burst" aria-hidden="true"></div>
+    <div class="completion-card" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
+      <div class="max">100</div>
+      <h2 id="completionTitle">ASOBooN 投票完了！</h2>
+      <p id="completionText">100 ASOBooNをすべて投票しました！</p>
+      <button type="button" id="completionClose">投票結果を見る</button>
+    </div>
+  </div>
+</body>
+</html>
