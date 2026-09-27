@@ -7,6 +7,14 @@ const RARE_RATE=0.13;
 const MAX_CONCURRENT=1;
 const MAX_BATCH=8;
 const MAX_QUEUE=MAX_BATCH;
+const STATUS_BATCH_BUDGET_MS=9000;
+const STATUS_RUNTIME_ESTIMATE_MS=Object.freeze({
+  call:5200,
+  guided:4700,
+  hold:5300,
+  cancel:6300,
+  low:2200,
+});
 const STAGGER_MS=90;
 const LEVEL_KEY='asoboon_call_board_animation_level_v1';
 const RARE_KEY='asoboon_call_board_rare_enabled_v1';
@@ -154,20 +162,37 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind})),
   };
 }
+function eventEstimateMs(kind){
+  return effectiveLevel()<=1
+    ?STATUS_RUNTIME_ESTIMATE_MS.low
+    :(STATUS_RUNTIME_ESTIMATE_MS[kind]||STATUS_RUNTIME_ESTIMATE_MS.cancel);
+}
+function withinBatchBudget(evt,now=Date.now()){
+  const enqueuedAt=Number(evt?.enqueuedAt)||now;
+  const estimate=Number(evt?.estimatedMs)||eventEstimateMs(evt?.kind);
+  return Math.max(0,now-enqueuedAt)+estimate<=STATUS_BATCH_BUDGET_MS;
+}
 function pruneQueuedEvents(next){
   if(!queue.length)return;
   const before=queue.length;
   const latestByKey=new Map();
+  const now=Date.now();
   for(const evt of queue){
-    const now=next?.get?.(evt.key);
-    if(!now||now.state!==evt.toStatus)continue;
+    const current=next?.get?.(evt.key);
+    if(!current||current.state!==evt.toStatus||!withinBatchBudget(evt,now))continue;
     latestByKey.set(evt.key,evt);
   }
   queue=[...latestByKey.values()].slice(-MAX_QUEUE);
   diagnostics.dropped+=Math.max(0,before-queue.length);
 }
 function enqueue(evt){
-  const normalized={...evt,element:null};
+  const now=Date.now();
+  const normalized={
+    ...evt,
+    element:null,
+    enqueuedAt:Number(evt?.enqueuedAt)||now,
+    estimatedMs:Number(evt?.estimatedMs)||eventEstimateMs(evt?.kind),
+  };
   const duplicateIndex=queue.findIndex(x=>x.key===normalized.key);
   if(duplicateIndex>=0){
     queue[duplicateIndex]=normalized;
@@ -185,6 +210,10 @@ function enqueue(evt){
 function pump(){
   while(running<MAX_CONCURRENT&&queue.length){
     const evt=queue.shift();
+    if(!withinBatchBudget(evt)){
+      diagnostics.dropped+=1;
+      continue;
+    }
     const delay=running*STAGGER_MS;
     running+=1;
     setTimeout(()=>{
@@ -695,6 +724,8 @@ function getDiagnostics(){
     maxSpecialDurationMs:5200,
     maxReducedSpecialDurationMs:1700,
     queueLimit:MAX_QUEUE,
+    statusBatchBudgetMs:STATUS_BATCH_BUDGET_MS,
+    maxEstimatedStatusRuntimeMs:STATUS_RUNTIME_ESTIMATE_MS.cancel,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
     sharedCanvasCount:M?.diagnostics?.().sharedCanvasCount||0,
