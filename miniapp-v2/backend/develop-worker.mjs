@@ -346,10 +346,11 @@ async function getCreateDiagnostics(env) {
   }
 
   const liveWaitTypes=[];
+  let reconcileRows=[];
   try{
-    const rows=await fetchAllReservationsForReconcile(env);
+    reconcileRows=await fetchAllReservationsForReconcile(env);
     const agg=new Map();
-    for(const row of rows){
+    for(const row of reconcileRows){
       const id=String(row?.waitTypeId||'');
       if(!id)continue;
       const cur=agg.get(id)||{waitTypeId:id,waitTypeName:String(row?.waitTypeName||''),total:0,waiting:0,calling:0,hold:0,done:0,canceled:0,processing:0};
@@ -363,6 +364,37 @@ async function getCreateDiagnostics(env) {
     liveWaitTypes.push({error:safeError(e)});
   }
 
+  const cancelReadiness=[];
+  try{
+    const r=await env.DB.prepare(`SELECT c.business_date,c.wait_type_id,c.reserve_id,c.receipt_no,c.updated_at,rr.result_json
+      FROM v2_user_day_claims c
+      LEFT JOIN v2_request_results rr ON rr.request_id=c.request_id
+      WHERE c.state='CONFIRMED' AND c.updated_at>=?
+      ORDER BY c.updated_at DESC LIMIT 12`).bind(now-2*24*60*60*1000).all();
+    for(const row of Array.isArray(r?.results)?r.results:[]){
+      let result={};try{result=row?.result_json?JSON.parse(String(row.result_json)):{};}catch{}
+      const rawShort=String(result?.shortUrl||'').trim();
+      let shortHost='';try{shortHost=rawShort?new URL(rawShort).hostname:''}catch{}
+      const match=selectTicketMatch(reconcileRows,String(row?.receipt_no||''));
+      const liveState=reservationState(match?.row||null);
+      const reserve=String(row?.reserve_id||'');
+      cancelReadiness.push({
+        businessDate:String(row?.business_date||''),
+        waitTypeId:String(row?.wait_type_id||''),
+        updatedAt:Number(row?.updated_at||0),
+        reserveIdValid:/^\d{12}$/.test(reserve),
+        hasRequestResult:Boolean(row?.result_json),
+        hasShortUrl:Boolean(rawShort),
+        shortUrlHost:shortHost,
+        liveMatch:Boolean(match?.row),
+        liveState,
+        cancellable:['waiting','calling','hold'].includes(liveState),
+      });
+    }
+  }catch(e){
+    cancelReadiness.push({error:safeError(e)});
+  }
+
   return {
     ok:true,
     source:'Developing sanitized create diagnostics / no user identity',
@@ -371,6 +403,7 @@ async function getCreateDiagnostics(env) {
     legacy,
     confirmed,
     liveWaitTypes,
+    cancelReadiness,
   };
 }
 
