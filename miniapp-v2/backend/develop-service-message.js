@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.4.dev7',
+  VERSION: '2.5.dev-confirmation-chain',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -28,6 +28,8 @@ export async function serviceHealth(env) {
   const secretReady = Boolean(String(env.LINE_MINIAPP_CHANNEL_SECRET || '').trim());
   const templateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_TEMPLATE_NAME));
   const paramsReady = templateParamsValid(env.SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON);
+  const confirmationTemplateReady = Boolean(normalizeTemplateName(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME));
+  const confirmationParamsReady = templateParamsValid(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON);
   return {
     serviceMessageEnabled: true,
     serviceMessageVersion: SM.VERSION,
@@ -36,6 +38,10 @@ export async function serviceHealth(env) {
     serviceMessageTemplateConfigured: templateReady,
     serviceMessageTemplateParamsConfigured: paramsReady,
     serviceMessageReady: secretReady && templateReady && paramsReady,
+    serviceMessageConfirmationTemplateConfigured: confirmationTemplateReady,
+    serviceMessageConfirmationTemplateParamsConfigured: confirmationParamsReady,
+    serviceMessageConfirmationReady: secretReady && confirmationTemplateReady && confirmationParamsReady,
+    serviceMessageConfirmationUsesTokenChain: true,
     serviceMessageMandatoryBeforeCreate: true,
     serviceMessageCronEnabled: true,
     serviceMessageImmediateObservationEnabled: true,
@@ -168,7 +174,20 @@ export async function finalizeReservationNotification(env, p, result) {
   if (!claim || claim.status !== 'TOKEN_READY' || !claim.notification_token) throw apiError('SERVICE_TOKEN_CLAIM_NOT_READY', 500, true);
 
   await bindClaimToReservation(env, claim, { businessDate, receiptNo, reserveId, waitTypeId, requestId });
-  return { ok: true, ready: true, status: 'TOKEN_READY', remainingCount: Number(claim.remaining_count || 0), version: SM.VERSION };
+  const confirmation = await sendReservationConfirmationIfConfigured(env, {
+    businessDate, receiptNo, reserveId, waitTypeId, requestId,
+    adults:Number(p?.adults||0), paidChildren:Number(p?.paidChildren||0), infants:Number(p?.infants||0),
+  });
+  const row = await env.DB.prepare('SELECT remaining_count,status FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(businessDate,reserveId).first();
+  return {
+    ok: true,
+    ready: true,
+    status: String(row?.status || 'TOKEN_READY'),
+    remainingCount: Number(row?.remaining_count ?? claim.remaining_count ?? 0),
+    confirmation,
+    version: SM.VERSION,
+  };
 }
 
 export async function serviceStatus(env, params) {
@@ -383,6 +402,143 @@ async function sendCallMessage(env, rec, airwaitRow) {
   return { sent:true };
 }
 
+async function sendReservationConfirmationIfConfigured(env, x) {
+  const templateName=normalizeTemplateName(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME);
+  const paramsRaw=String(env.SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON||'').trim();
+  if(!templateName||!templateParamsValid(paramsRaw)) {
+    return { enabled:false, sent:false, status:'NOT_CONFIGURED' };
+  }
+
+  const existing=await env.DB.prepare('SELECT status,sent_at FROM v2_service_confirmations WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(x.businessDate,x.reserveId).first();
+  if(String(existing?.status||'')==='SENT'&&Number(existing?.sent_at||0)>0) {
+    return { enabled:true, sent:true, status:'SENT', reused:true };
+  }
+  if(String(existing?.status||'')==='SEND_AMBIGUOUS') {
+    return { enabled:true, sent:false, status:'SEND_AMBIGUOUS', ambiguous:true };
+  }
+
+  const rec=await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(x.businessDate,x.reserveId).first();
+  if(!rec||!String(rec.notification_token||'')||Number(rec.remaining_count||0)<=0||Number(rec.expires_at||0)<=Date.now()) {
+    return { enabled:true, sent:false, status:'TOKEN_NOT_SENDABLE' };
+  }
+
+  const now=Date.now();
+  await env.DB.prepare(`INSERT INTO v2_service_confirmations
+    (business_date,reserve_id,receipt_no,request_id,status,last_error,last_http_status,sent_at,created_at,updated_at)
+    VALUES(?,?,?,?, 'SEND_PENDING','',0,0,?,?)
+    ON CONFLICT(business_date,reserve_id) DO UPDATE SET
+      receipt_no=excluded.receipt_no,request_id=excluded.request_id,status='SEND_PENDING',
+      last_error='',last_http_status=0,updated_at=excluded.updated_at`)
+    .bind(x.businessDate,x.reserveId,x.receiptNo,x.requestId,now,now).run();
+
+  const claimed=await env.DB.prepare(`UPDATE v2_service_messages SET status='CONFIRM_SEND_PENDING',updated_at=?
+    WHERE business_date=? AND reserve_id=? AND notified_at=0 AND status='TOKEN_READY'`)
+    .bind(now,x.businessDate,x.reserveId).run();
+  if(Number(claimed?.meta?.changes||0)!==1) {
+    await setConfirmationError(env,x,'SEND_SKIPPED','SERVICE_ROW_NOT_READY',0);
+    return { enabled:true, sent:false, status:'SEND_SKIPPED' };
+  }
+
+  let channelToken;
+  try {
+    channelToken=await issueChannelToken(env);
+  } catch(e) {
+    await restoreAfterConfirmationFailure(env,x);
+    await setConfirmationError(env,x,'SEND_ERROR',safeError(e),Number(e?.status||0));
+    return { enabled:true, sent:false, status:'SEND_ERROR', error:safeError(e) };
+  }
+
+  const vars={
+    receiptNo:x.receiptNo,
+    reserveId:x.reserveId,
+    waitTypeId:x.waitTypeId,
+    businessDate:x.businessDate,
+    callstatusUrl:SM.CALLSTATUS_URL,
+    entryUrl:'https://miniapp.line.me/2009884611-bDgDzGrN?view=entry',
+    slotLabel:waitTypeLabel(x.waitTypeId),
+    totalPeople:Number(x.adults||0)+Number(x.paidChildren||0)+Number(x.infants||0),
+  };
+  const params=buildTemplateParamsFromRaw(paramsRaw,vars);
+
+  let response;
+  try {
+    response=await fetchWithTimeout(SM.NOTIFIER_SEND,{
+      method:'POST',
+      headers:{Authorization:`Bearer ${channelToken}`,'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify({templateName,params,notificationToken:String(rec.notification_token)}),
+    },SM.EXTERNAL_TIMEOUT_MS);
+  } catch(e) {
+    await restoreAfterConfirmationFailure(env,x);
+    await setConfirmationError(env,x,'SEND_AMBIGUOUS',`NOTIFIER_SEND_NETWORK ${safeError(e)}`,0);
+    return { enabled:true, sent:false, status:'SEND_AMBIGUOUS', ambiguous:true };
+  }
+
+  const text=await response.text();
+  if(!response.ok) {
+    await restoreAfterConfirmationFailure(env,x);
+    const ambiguous=response.status>=500;
+    await setConfirmationError(env,x,ambiguous?'SEND_AMBIGUOUS':'SEND_ERROR',
+      `NOTIFIER_SEND_HTTP_${response.status} ${safeApiText(text)}`,response.status);
+    return { enabled:true, sent:false, status:ambiguous?'SEND_AMBIGUOUS':'SEND_ERROR', ambiguous };
+  }
+
+  let data;
+  try { data=JSON.parse(text); }
+  catch {
+    await restoreAfterConfirmationFailure(env,x);
+    await setConfirmationError(env,x,'SEND_AMBIGUOUS','NOTIFIER_SEND_200_INVALID_JSON',200);
+    return { enabled:true, sent:false, status:'SEND_AMBIGUOUS', ambiguous:true };
+  }
+
+  const nextToken=String(data?.notificationToken||'').trim();
+  const remainingCount=Number(data?.remainingCount||0);
+  const expiresIn=Number(data?.expiresIn||0);
+  if(!nextToken||remainingCount<0) {
+    await restoreAfterConfirmationFailure(env,x);
+    await setConfirmationError(env,x,'SEND_AMBIGUOUS','NOTIFIER_SEND_200_INVALID_TOKEN_CHAIN',200);
+    return { enabled:true, sent:false, status:'SEND_AMBIGUOUS', ambiguous:true };
+  }
+
+  const sentAt=Date.now();
+  await env.DB.batch([
+    env.DB.prepare(`UPDATE v2_service_messages SET status='TOKEN_READY',last_error='',last_http_status=200,
+      notification_token=?,remaining_count=?,expires_at=?,session_id=?,updated_at=?
+      WHERE business_date=? AND reserve_id=? AND notified_at=0`)
+      .bind(nextToken,remainingCount,expiresIn>0?sentAt+expiresIn*1000:Number(rec.expires_at||0),
+        String(data?.sessionId||rec.session_id||''),sentAt,x.businessDate,x.reserveId),
+    env.DB.prepare(`UPDATE v2_service_confirmations SET status='SENT',last_error='',last_http_status=200,
+      sent_at=?,updated_at=? WHERE business_date=? AND reserve_id=?`)
+      .bind(sentAt,sentAt,x.businessDate,x.reserveId),
+  ]);
+  return { enabled:true, sent:true, status:'SENT', remainingCount };
+}
+
+async function restoreAfterConfirmationFailure(env,x){
+  try {
+    await env.DB.prepare(`UPDATE v2_service_messages SET status='TOKEN_READY',updated_at=?
+      WHERE business_date=? AND reserve_id=? AND notified_at=0 AND status='CONFIRM_SEND_PENDING'`)
+      .bind(Date.now(),x.businessDate,x.reserveId).run();
+  } catch {}
+}
+
+async function setConfirmationError(env,x,status,message,httpStatus=0){
+  await env.DB.prepare(`UPDATE v2_service_confirmations SET status=?,last_error=?,last_http_status=?,updated_at=?
+    WHERE business_date=? AND reserve_id=?`)
+    .bind(String(status),String(message||'').slice(0,500),Number(httpStatus||0),Date.now(),x.businessDate,x.reserveId).run();
+}
+
+function waitTypeLabel(waitTypeId){
+  const labels={
+    '0023':'すぐ入場','0025':'14:00から',
+    '0029':'10:00の回','0031':'12:30の回','0033':'15:00の回',
+    '0035':'10:00の回','0037':'13:30の回',
+    '0042':'入場不可テスト',
+  };
+  return String(labels[String(waitTypeId||'')]||String(waitTypeId||''));
+}
+
 async function issueChannelToken(env) {
   const secret = String(env.LINE_MINIAPP_CHANNEL_SECRET || '').trim();
   if (!secret) throw apiError('LINE_MINIAPP_CHANNEL_SECRET_NOT_CONFIGURED', 503);
@@ -446,6 +602,11 @@ async function ensureServiceSchema(env) {
       next_retry_at INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,PRIMARY KEY(business_date,reserve_id))`),
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_service_liff_token_usage (
       token_hash TEXT PRIMARY KEY,request_id TEXT NOT NULL,status TEXT NOT NULL,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_service_confirmations (
+      business_date TEXT NOT NULL,reserve_id TEXT NOT NULL,receipt_no TEXT NOT NULL,request_id TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL,last_error TEXT NOT NULL DEFAULT '',last_http_status INTEGER NOT NULL DEFAULT 0,
+      sent_at INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,
+      PRIMARY KEY(business_date,reserve_id))`),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_receipt ON v2_service_messages(business_date,receipt_no)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_messages_pending ON v2_service_messages(business_date,status,notified_at,next_retry_at)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_v2_service_liff_usage_request ON v2_service_liff_token_usage(request_id)'),
@@ -502,8 +663,11 @@ function templateParamsValid(raw){
   try { const x=JSON.parse(s); return Boolean(x&&typeof x==='object'&&!Array.isArray(x)); } catch { return false; }
 }
 function buildTemplateParams(env,vars){
-  const raw=String(env.SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON||'').trim(); let obj;
-  try { obj=JSON.parse(raw); } catch { throw apiError('SERVICE_MESSAGE_TEMPLATE_PARAMS_INVALID_JSON',500); }
+  return buildTemplateParamsFromRaw(String(env.SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON||'').trim(),vars);
+}
+function buildTemplateParamsFromRaw(raw,vars){
+  let obj;
+  try { obj=JSON.parse(String(raw||'')); } catch { throw apiError('SERVICE_MESSAGE_TEMPLATE_PARAMS_INVALID_JSON',500); }
   if(!obj||typeof obj!=='object'||Array.isArray(obj)) throw apiError('SERVICE_MESSAGE_TEMPLATE_PARAMS_NOT_OBJECT',500);
   const out={}; for(const [key,value] of Object.entries(obj).slice(0,30)){
     let text=String(value??''); for(const [name,replacement] of Object.entries(vars)) text=text.split(`{{${name}}}`).join(String(replacement??''));
