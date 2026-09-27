@@ -14,6 +14,7 @@ const POLL_FAR_MS=180000;
 const POLL_ERROR_MS=60000;
 const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
+const CANCEL_REQUEST_TIMEOUT_MS=60000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0,lastStatus=null,cancelBusy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
@@ -65,6 +66,7 @@ function friendlyCancelError(value){
   if(/CANCEL_NOT_ALLOWED_STATE_CANCELED/.test(code))return'この受付はすでにキャンセルされています。';
   if(/SESSION|LINE_ACCESS_TOKEN|LINE_PROFILE/.test(code))return'本人確認情報を更新します。ミニアプリを開き直してもう一度お試しください。';
   if(/CAPABILITY|CSRF|CONFIRM|DETAIL/.test(code))return'キャンセル情報を確認できませんでした。少し時間をおいてもう一度お試しください。';
+  if(/CANCEL_REQUEST_TIMEOUT/.test(code))return'キャンセル処理に時間がかかっています。受付は作り直さず、最新状況を確認してください。';
   if(/RESULT_UNKNOWN|NOT_CONFIRMED|UPSTREAM_TIMEOUT/.test(code))return'キャンセル結果を確認できませんでした。受付状況を更新してご確認ください。';
   return'キャンセルできませんでした。受付状況を更新してもう一度お試しください。';
 }
@@ -79,7 +81,11 @@ async function cancelCurrentReservation(){
     if(!session)throw Error('CALLSTATUS_SESSION_REQUIRED');
     const token=String(liff.getAccessToken?.()||'');
     if(token.length<20)throw Error('LINE_ACCESS_TOKEN_REQUIRED');
-    const d=await gatewayPost('cancelReservation',{sessionToken:session.sessionToken,liffAccessToken:token});
+    const d=await gatewayPost(
+      'cancelReservation',
+      {sessionToken:session.sessionToken,liffAccessToken:token},
+      {timeoutMs:CANCEL_REQUEST_TIMEOUT_MS}
+    );
     if(!(d?.ok===true&&d?.canceled===true))throw Error(String(d?.error||'CANCEL_NOT_CONFIRMED'));
     if($('csCancelDialog'))$('csCancelDialog').hidden=true;
     const canceled={...lastStatus,...d,found:true,state:'canceled',receiptNo:String(d.receiptNo||session.receiptNo||''),checkedAt:Number(d.checkedAt||Date.now())};
@@ -198,16 +204,17 @@ function applyStatus(d){
   const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent=nextPollMs?`待ち状況に応じて${pollLabel(nextPollMs)}に自動更新します。`:'この受付は自動更新を終了しました。'}
 }
 
-async function gatewayPost(action,body={}){
+async function gatewayPost(action,body={},options={}){
   if(!backendReady())throw Error('呼出状況Gatewayが設定されていません。');
   const payload={action,...body};
+  const timeoutMs=Math.max(1000,Number(options?.timeoutMs||REQUEST_TIMEOUT_MS));
   const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),REQUEST_TIMEOUT_MS);
+  const timer=setTimeout(()=>ctrl.abort(),timeoutMs);
   let r;
   try{
     r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))});
   }catch(e){
-    if(e?.name==='AbortError')throw Error('呼出状況の確認がタイムアウトしました。');
+    if(e?.name==='AbortError')throw Error(action==='cancelReservation'?'CANCEL_REQUEST_TIMEOUT':'呼出状況の確認がタイムアウトしました。');
     throw e;
   }finally{clearTimeout(timer)}
   let d=null;try{d=await r.json()}catch{}
@@ -333,7 +340,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState'))void refreshStatus({manual:true});
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.8.0-terminal-resolution',
+  version:'1.8.1-native-cancel-long-wait',
   render:pageHtml,
   mount:mountCallstatus,
   watchReception,
