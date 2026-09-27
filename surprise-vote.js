@@ -20,6 +20,7 @@
 
   const DEMO =
     new URLSearchParams(location.search).get('demo') === '1';
+  const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
 
   const reduced =
     !!window.matchMedia &&
@@ -852,11 +853,11 @@
 
   async function syncNow(finalAttempt = false) {
     if (DEMO) {
+      saveDemoAlloc(state.alloc);
       state.serverAlloc = copyAlloc(state.alloc);
       state.serverTotals = { ...state.localTotals };
       state.dirty = false;
       state.pendingTaps = 0;
-      savePending();
       setSync('投票を保存しました');
       return;
     }
@@ -1313,9 +1314,54 @@
     window.addEventListener('pagehide', savePending);
   }
 
+  function loadDemoAlloc() {
+    if (!DEMO) return {};
+    try {
+      const raw = JSON.parse(localStorage.getItem(DEMO_STORAGE_KEY) || '{}');
+      const alloc = copyAlloc(raw?.allocations || raw || {});
+      return sumAlloc(alloc) <= Number(CFG.MAX_POINTS || 100)
+        ? alloc
+        : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function saveDemoAlloc(alloc) {
+    if (!DEMO) return;
+    try {
+      localStorage.setItem(
+        DEMO_STORAGE_KEY,
+        JSON.stringify({
+          allocations: copyAlloc(alloc),
+          savedAt: Date.now()
+        })
+      );
+    } catch (_) {}
+  }
+
   function makeDemoStatus() {
     const now = new Date();
     const end = new Date(now.getTime() + 42 * 60 * 1000);
+    const allocations = loadDemoAlloc();
+    const used = Math.min(
+      Number(CFG.MAX_POINTS || 100),
+      sumAlloc(allocations)
+    );
+
+    const options = [
+      { id: 'c1', name: 'パラバルーン（グリーン）' },
+      { id: 'c2', name: 'パラバルーン（ボールプール）' },
+      { id: 'c3', name: '宝探し' },
+      { id: 'c4', name: 'だるまさんが隠れた' },
+      { id: 'c5', name: 'ふわふわベッド' },
+      { id: 'c6', name: '跳び箱' },
+      { id: 'c7', name: '赤ちゃんイベント' },
+      { id: 'c8', name: '鬼ごっこ' }
+    ].map(option => ({
+      ...option,
+      total: Number(allocations[option.id] || 0)
+    }));
 
     return {
       ok: true,
@@ -1326,21 +1372,13 @@
         event_time: '11:00',
         vote_end: end.toISOString(),
         max_points: 100,
-        options: [
-          { id: 'c1', name: 'パラバルーン（グリーン）', total: 0 },
-          { id: 'c2', name: 'パラバルーン（ボールプール）', total: 0 },
-          { id: 'c3', name: '宝探し', total: 0 },
-          { id: 'c4', name: 'だるまさんが隠れた', total: 0 },
-          { id: 'c5', name: 'ふわふわベッド', total: 0 },
-          { id: 'c6', name: '跳び箱', total: 0 },
-          { id: 'c7', name: '赤ちゃんイベント', total: 0 },
-          { id: 'c8', name: '鬼ごっこ', total: 0 }
-        ]
+        options
       },
       user: {
-        used: 0,
-        remaining: 100,
-        allocations: {}
+        used,
+        remaining:
+          Math.max(0, Number(CFG.MAX_POINTS || 100) - used),
+        allocations
       }
     };
   }
@@ -1356,29 +1394,12 @@
           Math.max(0, Number(raw) || 0);
       });
 
+    saveDemoAlloc(targets);
     const base = makeDemoStatus();
-    const options = base.event.options.map(option => ({
-      ...option,
-      total:
-        Number(option.total || 0) +
-        Number(targets[option.id] || 0)
-    }));
 
     return {
-      ok: true,
-      now: new Date().toISOString(),
-      mode: 'voting',
-      event: {
-        ...base.event,
-        options
-      },
-      options,
-      user: {
-        used: sumAlloc(targets),
-        remaining:
-          Math.max(0, Number(CFG.MAX_POINTS || 100) - sumAlloc(targets)),
-        allocations: targets
-      }
+      ...base,
+      options: base.event.options
     };
   }
 
