@@ -1,0 +1,48 @@
+
+.v38-home .v38-help .v38-surprise-cta{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-height:92px;
+  padding:14px 15px;
+  border:2px solid #d49d32;
+  border-radius:18px;
+  color:#fff8e2;
+  text-decoration:none;
+  box-shadow:0 8px 0 rgba(76,48,13,.16),0 14px 28px rgba(73,43,13,.16);
+  overflow:hidden;
+  position:relative;
+}
+.v38-home .v38-help .v38-surprise-cta.is-voting{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(255,222,101,.28),transparent 34%),
+    linear-gradient(145deg,#b84b2e,#7a251e);
+}
+.v38-home .v38-help .v38-surprise-cta.is-result{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(255,230,130,.25),transparent 34%),
+    linear-gradient(145deg,#76551d,#3f2e12);
+}
+.v38-home .v38-help .v38-surprise-badge{
+  display:inline-grid;
+  place-items:center;
+  min-width:66px;
+  height:36px;
+  padding:0 9px;
+  border:1px solid rgba(255,245,202,.54);
+  border-radius:999px;
+  background:rgba(24,17,8,.2);
+  font-size:.64rem;
+  font-weight:1000;
+  letter-spacing:.04em;
+}
+.v38-home .v38-help .v38-surprise-copy{display:grid;gap:3px;min-width:0}
+.v38-home .v38-help .v38-surprise-copy strong{font-size:1rem;line-height:1.2;font-weight:1000}
+.v38-home .v38-help .v38-surprise-copy small{font-size:.67rem;line-height:1.45;font-weight:850;color:#f7e8c2}
+.v38-home .v38-help .v38-surprise-arrow{font-size:2rem;line-height:1;font-weight:700}
+.v38-home .v38-help .v38-surprise-cta:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(76,48,13,.16),0 8px 18px rgba(73,43,13,.14)}
+@media(prefers-reduced-motion:reduce){
+  .v38-home .v38-help .v38-surprise-cta{transition:none!important}
+}
