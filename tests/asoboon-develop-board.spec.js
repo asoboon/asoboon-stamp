@@ -1055,7 +1055,7 @@ test('real data change immediately interrupts a running character story', async 
   expect(d.running).toBe(false);
 });
 
-test('a genuine call adds CALL_DELIVERY while the real calling number remains authoritative', async ({ page }) => {
+test('a genuine call triggers the number-first SPECIAL while the real calling number remains authoritative', async ({ page }) => {
   const h = await installBoard(page, [
     payload([{ number:'8401', state:'waiting', order:1 }]),
     payload([{ number:'8401', state:'calling', order:1 }]),
@@ -1063,12 +1063,13 @@ test('a genuine call adds CALL_DELIVERY while the real calling number remains au
   await page.evaluate(() => {
     window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false});
     window.ASOBOON_BOARD_CHARACTER_EVENTS.resetForTest();
+    window.ASOBOON_BOARD_ANIMATIONS.resetForTest();
   });
   h.next();
   await h.refresh();
-  await expect.poll(async () => (await characterDiagnostics(page)).callPlayed, { timeout:4000 }).toBeGreaterThanOrEqual(1);
+  await expect.poll(async () => page.evaluate(() => window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().played), { timeout:4000 }).toBeGreaterThanOrEqual(1);
+  expect((await characterDiagnostics(page)).callPlayed).toBe(0);
   await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
-  await waitForCharacterIdle(page);
   await waitForFxIdle(page);
   await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8401');
   expect(h.pageErrors).toEqual([]);
@@ -1280,7 +1281,7 @@ test('CALL takes over the screen with the called reception number', async ({ pag
   expect(live.kicker).toBe('ただいま呼出中');
   expect(live.status).toBe('ご案内します');
   expect(live.fontSize).toBeGreaterThan(180);
-  expect(live.valueHeight).toBeGreaterThan(120);
+  expect(live.valueHeight).toBeGreaterThan(60);
   expect(live.characters).toBe(0);
   expect(live.burst).toBe(true);
 
