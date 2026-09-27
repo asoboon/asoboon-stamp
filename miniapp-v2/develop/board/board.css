@@ -818,6 +818,14 @@ body{
   box-shadow:none;
   border-width:1px;
 }
+
+/* Choreography Guard v3: clear the foreground when the reaction face becomes the attention owner. */
+:root[data-board-choreo-phase="reaction"] .fx-foreground-shard,
+:root[data-board-choreo-phase="reaction"] .fx-onomatopoeia.giant,
+:root[data-board-choreo-phase="reaction"] .fx-impact-flash{
+  opacity:0!important;
+  transition:opacity 90ms linear!important;
+}
 .fx-impact-flash{
   position:fixed;
   inset:0;
