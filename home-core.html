@@ -518,6 +518,26 @@
       white-space:nowrap;
     }
 
+    .ticket.surprise-voting{
+      border-color:#ffd45f;
+      background:
+        radial-gradient(circle at 50% 0,rgba(255,220,92,.32),transparent 48%),
+        linear-gradient(155deg,#b54829,#6e201c)!important;
+      box-shadow:0 0 0 3px rgba(255,208,76,.16),0 7px 0 rgba(89,34,16,.22),0 11px 22px rgba(95,35,16,.2);
+    }
+    .ticket.surprise-result{
+      border-color:#f0c457;
+      background:
+        radial-gradient(circle at 50% 0,rgba(255,231,135,.28),transparent 48%),
+        linear-gradient(155deg,#76521d,#3e2c11)!important;
+      box-shadow:0 0 0 3px rgba(240,196,87,.14),0 7px 0 rgba(70,49,18,.2),0 11px 20px rgba(70,49,18,.18);
+    }
+    .ticket.surprise-voting .ticket-title,
+    .ticket.surprise-result .ticket-title{
+      white-space:normal;
+      text-shadow:0 2px 0 rgba(0,0,0,.22);
+    }
+
     .ticket-sub{display:none}
 
     .route-guide{
@@ -4639,6 +4659,8 @@
 
           <button
             class="ticket"
+            id="ticket6"
+            data-surprise-ticket="1"
             data-before-view="faq"
             data-inside-view="faq"
           >
@@ -5891,6 +5913,7 @@
   <div class="toast" id="toast"></div>
 
 
+  <script src="./surprise-vote-config.js"></script>
   <script>
     window.ASOBOON_CONFIG = {
       reservationUrl:
@@ -5912,7 +5935,16 @@
         "./boonrun/",
 
       congestionWidgetUrl:
-        "https://script.google.com/macros/s/AKfycby0YZHPyZzraq8FdBxcumDa6ad6GZbSkjzVF5h7Y3_uUdFsc5ezcDJEiTHGS-cbse-3/exec"
+        "https://script.google.com/macros/s/AKfycby0YZHPyZzraq8FdBxcumDa6ad6GZbSkjzVF5h7Y3_uUdFsc5ezcDJEiTHGS-cbse-3/exec",
+
+      surpriseVoteUrl:
+        "./surprise-vote.html",
+
+      surpriseVoteApiUrl:
+        (window.ASOBOON_SURPRISE_VOTE_CONFIG && window.ASOBOON_SURPRISE_VOTE_CONFIG.API_URL) || "",
+
+      surpriseVoteHomeRefreshMs:
+        (window.ASOBOON_SURPRISE_VOTE_CONFIG && window.ASOBOON_SURPRISE_VOTE_CONFIG.HOME_REFRESH_MS) || 60000
     };
   </script>
 
@@ -5937,6 +5969,16 @@
 
       const initialView =
         params.get("view") || "home";
+
+      const surpriseTicket =
+        document.getElementById("ticket6");
+
+      let surpriseVoteState = {
+        mode: "idle",
+        event: null
+      };
+
+      let surpriseVoteRefreshTimer = null;
 
       function notify(text) {
         toast.textContent = text;
@@ -6020,6 +6062,173 @@
         });
       }
 
+      function surpriseVoteJsonp(params) {
+        const apiUrl =
+          window.ASOBOON_CONFIG.surpriseVoteApiUrl;
+
+        if (!apiUrl) {
+          return Promise.resolve({
+            ok: true,
+            mode: "idle",
+            event: null
+          });
+        }
+
+        return new Promise((resolve, reject) => {
+          const callbackName =
+            "__asoboonSurpriseHome_" +
+            Date.now() + "_" +
+            Math.floor(Math.random() * 100000);
+
+          const script =
+            document.createElement("script");
+
+          const timer = setTimeout(() => {
+            cleanup();
+            reject(new Error("timeout"));
+          }, 8000);
+
+          function cleanup() {
+            clearTimeout(timer);
+            try {
+              delete window[callbackName];
+            } catch (_) {
+              window[callbackName] = undefined;
+            }
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
+          }
+
+          window[callbackName] = data => {
+            cleanup();
+            resolve(data);
+          };
+
+          script.onerror = () => {
+            cleanup();
+            reject(new Error("network"));
+          };
+
+          const query = new URLSearchParams({
+            ...params,
+            callback: callbackName,
+            _: String(Date.now())
+          });
+
+          script.src =
+            apiUrl +
+            (apiUrl.includes("?") ? "&" : "?") +
+            query.toString();
+
+          document.head.appendChild(script);
+        });
+      }
+
+      function renderSurpriseVoteTicket() {
+        if (!surpriseTicket) return;
+
+        surpriseTicket.classList.remove(
+          "surprise-voting",
+          "surprise-result"
+        );
+
+        const use =
+          surpriseTicket.querySelector("use");
+
+        const label =
+          surpriseTicket.querySelector(".ticket-title");
+
+        if (mode !== "inside") {
+          if (use) {
+            use.setAttribute(
+              "href",
+              use.dataset.beforeUse
+            );
+          }
+          if (label) {
+            label.textContent =
+              label.dataset.beforeLabel;
+          }
+          return;
+        }
+
+        if (surpriseVoteState.mode === "voting") {
+          surpriseTicket.classList.add(
+            "surprise-voting"
+          );
+          if (use) use.setAttribute("href", "#i-flag");
+          if (label) label.textContent = "イベント投票";
+          return;
+        }
+
+        if (surpriseVoteState.mode === "result") {
+          surpriseTicket.classList.add(
+            "surprise-result"
+          );
+          if (use) use.setAttribute("href", "#i-flag");
+          if (label) label.textContent = "結果発表！";
+          return;
+        }
+
+        if (use) {
+          use.setAttribute(
+            "href",
+            use.dataset.insideUse
+          );
+        }
+        if (label) {
+          label.textContent =
+            label.dataset.insideLabel;
+        }
+      }
+
+      async function refreshSurpriseVoteTicket() {
+        try {
+          const result =
+            await surpriseVoteJsonp({
+              action: "status"
+            });
+
+          if (result && result.ok) {
+            surpriseVoteState = {
+              mode: result.mode || "idle",
+              event: result.event || null
+            };
+          } else {
+            surpriseVoteState = {
+              mode: "idle",
+              event: null
+            };
+          }
+        } catch (_) {
+          // 投票API障害時も既存HOMEはFAQのまま使える。
+          surpriseVoteState = {
+            mode: "idle",
+            event: null
+          };
+        }
+
+        renderSurpriseVoteTicket();
+      }
+
+      function scheduleSurpriseVoteRefresh() {
+        clearInterval(surpriseVoteRefreshTimer);
+        refreshSurpriseVoteTicket();
+
+        surpriseVoteRefreshTimer =
+          setInterval(
+            refreshSurpriseVoteTicket,
+            Math.max(
+              15000,
+              Number(
+                window.ASOBOON_CONFIG
+                  .surpriseVoteHomeRefreshMs
+              ) || 60000
+            )
+          );
+      }
+
       function applyMode() {
         document.body.classList.toggle(
           "inside",
@@ -6053,6 +6262,8 @@
             label.textContent =
               label.dataset[mode + "Label"];
           });
+
+        renderSurpriseVoteTicket();
 
         document
           .querySelectorAll("[data-mode]")
@@ -6091,6 +6302,22 @@
         .querySelectorAll(".ticket")
         .forEach(ticket => {
           ticket.addEventListener("click", () => {
+            if (
+              mode === "inside" &&
+              ticket.dataset.surpriseTicket === "1" &&
+              (
+                surpriseVoteState.mode === "voting" ||
+                surpriseVoteState.mode === "result"
+              )
+            ) {
+              window.top.location.href =
+                new URL(
+                  window.ASOBOON_CONFIG.surpriseVoteUrl,
+                  window.top.location.href
+                ).toString();
+              return;
+            }
+
             showView(
               ticket.dataset[mode + "View"]
             );
@@ -7829,6 +8056,7 @@ const callStatusLink =
 
       applyMode();
       updateStatus();
+      scheduleSurpriseVoteRefresh();
 
       const initialParkingRoute =
         params.get("parking");
