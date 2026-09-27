@@ -470,6 +470,26 @@ test('reduced motion keeps transitions readable and disables screen shake', asyn
   expect(h.pageErrors).toEqual([]);
 });
 
+test('special status effects stay inside the 10-second refresh budget', async ({ page }) => {
+  const current = payload([{ number: '5901', state: 'waiting', order: 1 }]);
+  await installBoard(page, [current]);
+
+  const d = await diagnostics(page);
+  expect(d.statusTimingMode).toBe('wall-clock');
+  expect(d.maxSpecialDurationMs).toBeLessThan(10000);
+  expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(2000);
+  expect(d.queueLimit).toBeLessThanOrEqual(8);
+
+  const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  expect(status).toContain("rawTiming:true");
+  expect(status).toContain("call:Object.freeze({low:1500,high:4600})");
+  expect(status).toContain("guided:Object.freeze({low:1400,high:4200})");
+  expect(status).toContain("cancel:Object.freeze({low:1700,high:5200})");
+  expect(status).toContain("translate3d(0,0,0) scale(.985)");
+  expect(css).toMatch(/\.fx-pachinko-burst\{[\s\S]*?inset:0;/);
+});
+
 test('animation controls support OFF through level 3 and rare effects toggle', async ({ page }) => {
   const h = await installBoard(page, [
     payload([{ number: '6101', state: 'waiting', order: 1 }]),
