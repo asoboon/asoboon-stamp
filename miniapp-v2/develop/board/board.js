@@ -7,7 +7,7 @@ const REFRESH_MS=10000;
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20260927-no-onomatopoeia-v3';
+const BOARD_BUILD_ID='20260927-effect-language-v4';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
