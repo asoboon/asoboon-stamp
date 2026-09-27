@@ -4,7 +4,7 @@
  * This module is loaded only by the official Developing Worker wrapper.
  */
 const SM = Object.freeze({
-  VERSION: '2.7.dev-cancel-sources',
+  VERSION: '2.8.dev-auto-cancel-reason',
   CHANNEL_ID: '2009884611',
   STORE_ID: 'KR01205179',
   TZ: 'Asia/Tokyo',
@@ -301,8 +301,14 @@ export async function sendCancellationNotification(env, x) {
     return { ok:true, sent:false, ambiguous:true, status:'SEND_AMBIGUOUS', version:SM.VERSION };
   }
 
-  const cancelSource = String(x?.cancelSource || 'airwait');
-  const isManualCancel = cancelSource === 'manual';
+  const requestedCancelSource = String(x?.cancelSource || 'airwait');
+  const isManualCancel = requestedCancelSource === 'manual';
+  const calledAt = Number(rec.notified_at || 0);
+  const timeout30Confirmed = !isManualCancel && calledAt > 0 && Date.now() - calledAt >= 30 * 60 * 1000;
+  const cancelSource = isManualCancel ? 'manual' : timeout30Confirmed ? 'timeout30' : requestedCancelSource;
+  const cancelReason = timeout30Confirmed
+    ? '呼び出しから30分以上経過したため'
+    : '受付状況がキャンセルに変更されたため';
   const templateName = normalizeTemplateName(isManualCancel
     ? env.SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME
     : env.SERVICE_MESSAGE_AUTO_CANCEL_TEMPLATE_NAME);
@@ -357,6 +363,7 @@ export async function sendCancellationNotification(env, x) {
     slotLabel:waitTypeLabel(waitTypeId),
     callstatusUrl:SM.CALLSTATUS_URL,
     cancelSource,
+    cancelReason,
   });
 
   let response;
