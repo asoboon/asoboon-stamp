@@ -7,8 +7,10 @@ const REFRESH_MS=10000;
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
+const BOARD_BUILD_ID='20260927-silent-giant-v2';
+const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
-const state={timer:0,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
+const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
 const BOARD_OPEN_MINUTE=8*60;
 const CLOSE_MINUTES=Object.freeze({'平日':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
@@ -311,9 +313,41 @@ async function fetchBoard(){
     }
   }finally{clearTimeout(timeout);state.busy=false;}
 }
+async function checkForBuildUpdate({reload=true}={}){
+  if(state.buildCheckBusy||state.reloadRequested)return{changed:false,reason:state.reloadRequested?'reload-pending':'busy'};
+  state.buildCheckBusy=true;
+  try{
+    const u=new URL('./board-build.json',window.location.href);
+    u.searchParams.set('_',String(Date.now()));
+    const r=await fetch(u.toString(),{method:'GET',cache:'no-store',credentials:'same-origin',headers:{Accept:'application/json'}});
+    if(!r.ok)return{changed:false,reason:'http-'+r.status};
+    const data=await r.json().catch(()=>null);
+    const remote=String(data?.version||'').trim();
+    if(!remote||remote===BOARD_BUILD_ID)return{changed:false,version:remote||BOARD_BUILD_ID};
+    if(reload){
+      state.reloadRequested=true;
+      clearInterval(state.timer);
+      clearInterval(state.buildTimer);
+      const next=new URL(window.location.href);
+      next.searchParams.set('boardBuild',remote);
+      next.searchParams.set('_',String(Date.now()));
+      window.location.replace(next.toString());
+    }
+    return{changed:true,version:remote};
+  }catch(e){
+    return{changed:false,reason:String(e?.message||e||'build-check-failed')};
+  }finally{
+    state.buildCheckBusy=false;
+  }
+}
+function scheduleBuildChecks(){
+  clearInterval(state.buildTimer);
+  state.buildTimer=setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS);
+}
+
 function schedule(){clearInterval(state.timer);state.timer=setInterval(fetchBoard,REFRESH_MS);}
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){fetchBoard();void checkForBuildUpdate();}});
 window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   activeSlotKey,
   resolveBoardContext,
@@ -325,11 +359,14 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   updateLiveCaption,
   REQUEST_TIMEOUT_MS,
   BOARD_CACHE_MAX_AGE_MS,
+  BOARD_BUILD_ID,
+  BUILD_CHECK_MS,
+  checkForBuildUpdate,
   readLastGoodPayload,
   refresh:fetchBoard,
   idle:()=>IDLE?.getDiagnostics?.()||null,
   director:()=>DIRECTOR?.getDiagnostics?.()||null,
   characters:()=>window.ASOBOON_BOARD_CHARACTER_EVENTS?.getDiagnostics?.()||null,
 });
-fetchBoard();schedule();
+fetchBoard();schedule();scheduleBuildChecks();setTimeout(()=>{void checkForBuildUpdate();},2500);
 })();
