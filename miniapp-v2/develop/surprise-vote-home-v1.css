@@ -15,6 +15,11 @@
   overflow:hidden;
   position:relative;
 }
+.v38-home .v38-help .v38-surprise-cta.is-idle{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(255,230,150,.18),transparent 34%),
+    linear-gradient(145deg,#295a4d,#15392f);
+}
 .v38-home .v38-help .v38-surprise-cta.is-voting{
   background:
     radial-gradient(circle at 85% 10%,rgba(255,222,101,.28),transparent 34%),
