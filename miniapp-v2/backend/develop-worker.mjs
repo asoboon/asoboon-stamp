@@ -77,6 +77,10 @@ export default {
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
 
+    if (request.method === 'POST' && url.pathname === '/line-webhook') {
+      return await handleOfficialLineWebhook(request, env, ctx);
+    }
+
     if (request.method === 'GET' && action === 'createDiagnostics') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getCreateDiagnostics(env)); }
@@ -128,6 +132,12 @@ export default {
       body.nativeCancelEnabled = true;
       body.crowdSnapshotFallbackEnabled = true;
       body.lineReceptionStoreOnly = true;
+      body.officialLineCancelWebhookEnabled = true;
+      body.officialLineWebhookPath = '/line-webhook';
+      body.officialLineWebhookSecretConfigured = Boolean(String(env.LINE_OA_CHANNEL_SECRET || '').trim());
+      body.officialLineAccessTokenConfigured = Boolean(String(env.LINE_OA_CHANNEL_ACCESS_TOKEN || '').trim());
+      body.officialLineCancelReady = body.officialLineWebhookSecretConfigured && body.officialLineAccessTokenConfigured;
+      body.officialLineCancelOneToOneOnly = true;
       if (body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true) {
         body.createEnabled = false;
         body.createBlockedReason = body.serviceMessageHealthError
@@ -1052,6 +1062,186 @@ async function finalizeCancellationState(env,session,waitTypeId,cancelSource){
   return notification;
 }
 
+
+function currentJstDate(){
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'
+  }).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+function officialLineWaitTypeLabel(waitTypeId){
+  const id=String(waitTypeId||'');
+  for(const specs of Object.values(BOARD_SLOT_SPECS)){
+    for(const spec of specs){
+      if(Array.isArray(spec.waitTypeIds)&&spec.waitTypeIds.includes(id))return String(spec.label||'受付');
+    }
+  }
+  return id===DEVELOP_TEST_WAIT_TYPE_ID?'入場不可テスト':'本日の受付';
+}
+async function verifyOfficialLineSignature(rawBody,signature,secret){
+  const sec=String(secret||'').trim(), sig=String(signature||'').trim();
+  if(!sec||!sig)return false;
+  let provided;
+  try{provided=Uint8Array.from(atob(sig),c=>c.charCodeAt(0));}catch{return false}
+  const key=await crypto.subtle.importKey(
+    'raw',new TextEncoder().encode(sec),{name:'HMAC',hash:'SHA-256'},false,['sign']
+  );
+  const digest=new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(String(rawBody||''))));
+  if(provided.length!==digest.length)return false;
+  let diff=0;
+  for(let i=0;i<digest.length;i+=1)diff|=provided[i]^digest[i];
+  return diff===0;
+}
+async function replyOfficialLine(env,replyToken,messages){
+  const token=String(env.LINE_OA_CHANNEL_ACCESS_TOKEN||'').trim();
+  if(!token)throw apiError('LINE_OA_CHANNEL_ACCESS_TOKEN_NOT_CONFIGURED',503);
+  const list=(Array.isArray(messages)?messages:[messages]).filter(Boolean).slice(0,5);
+  if(!list.length)return;
+  const response=await fetchWithCancelTimeout('https://api.line.me/v2/bot/message/reply',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},
+    body:JSON.stringify({replyToken:String(replyToken||''),messages:list}),
+  },8000);
+  const text=await response.text();
+  if(!response.ok)throw apiError('LINE_OA_REPLY_HTTP_'+response.status+' '+String(text||'').slice(0,160),502);
+}
+async function loadOfficialLineClaim(env,userHash,businessDate='',reserveId=''){
+  if(!env?.DB)return null;
+  const user=String(userHash||'');
+  const date=normalizeDate(businessDate||'');
+  const reserve=normalizeReserveId(reserveId||'');
+  if(date&&reserve){
+    return await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id,state,updated_at
+      FROM v2_user_day_claims
+      WHERE user_hash=? AND business_date=? AND reserve_id=? AND state='CONFIRMED'
+      ORDER BY updated_at DESC LIMIT 1`).bind(user,date,reserve).first();
+  }
+  return await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id,state,updated_at
+    FROM v2_user_day_claims
+    WHERE user_hash=? AND business_date=? AND state='CONFIRMED'
+    ORDER BY updated_at DESC LIMIT 1`).bind(user,currentJstDate()).first();
+}
+function officialLinePostbackParams(data){
+  try{return new URLSearchParams(String(data||''));}catch{return new URLSearchParams()}
+}
+function officialLineStatusMessage(claim,state){
+  const receipt=String(claim?.receipt_no||'');
+  const slot=officialLineWaitTypeLabel(claim?.wait_type_id);
+  const stateLabel=state==='calling'?'呼び出し中':state==='hold'?'保留中':'受付中';
+  return{
+    type:'template',
+    altText:'現在の受付を確認しました',
+    template:{
+      type:'buttons',
+      title:'現在の受付',
+      text:`受付番号 ${receipt}\n${slot}\n状態：${stateLabel}`,
+      actions:[
+        {type:'postback',label:'キャンセルする',data:`asoboon=cancel_confirm&d=${claim.business_date}&r=${claim.reserve_id}`,displayText:'この受付をキャンセルしたい'},
+        {type:'postback',label:'やめる',data:'asoboon=cancel_abort',displayText:'キャンセルしない'},
+      ],
+    },
+  };
+}
+function officialLineConfirmMessage(claim){
+  const receipt=String(claim?.receipt_no||'');
+  return{
+    type:'template',
+    altText:'キャンセル確認',
+    template:{
+      type:'confirm',
+      text:`受付番号 ${receipt} をキャンセルしますか？`,
+      actions:[
+        {type:'postback',label:'キャンセルする',data:`asoboon=cancel_execute&d=${claim.business_date}&r=${claim.reserve_id}`,displayText:'キャンセルする'},
+        {type:'postback',label:'やめる',data:'asoboon=cancel_abort',displayText:'やめる'},
+      ],
+    },
+  };
+}
+async function officialLineActiveReservation(env,userHash){
+  const claim=await loadOfficialLineClaim(env,userHash);
+  if(!claim)return{claim:null,row:null,state:'none'};
+  const row=await currentReservationRow(env,String(claim.receipt_no||''));
+  const state=reservationState(row);
+  if(state==='canceled'){
+    await finalizeCancellationState(env,claim,String(row?.waitTypeId||claim.wait_type_id||''),'airwait');
+    return{claim,row,state};
+  }
+  return{claim,row,state};
+}
+async function processOfficialLineEvent(env,event){
+  if(String(event?.source?.type||'')!=='user')return;
+  const userId=String(event?.source?.userId||'');
+  const replyToken=String(event?.replyToken||'');
+  if(!userId||!replyToken)return;
+  const userHash=await sha256Hex(userId);
+
+  if(event?.type==='message'&&event?.message?.type==='text'){
+    const text=String(event.message.text||'').normalize('NFKC').trim();
+    if(!['受付確認・キャンセル','受付確認','キャンセル','キャンセルしたい'].includes(text))return;
+    const current=await officialLineActiveReservation(env,userHash);
+    if(!current.claim){
+      await replyOfficialLine(env,replyToken,{type:'text',text:'現在、有効な受付は見つかりませんでした。'});
+      return;
+    }
+    if(current.state==='canceled'){
+      await replyOfficialLine(env,replyToken,{type:'text',text:`受付番号 ${current.claim.receipt_no} はキャンセル済みです。`});
+      return;
+    }
+    if(!['waiting','calling','hold'].includes(current.state)){
+      await replyOfficialLine(env,replyToken,{type:'text',text:'現在の受付はキャンセルできる状態ではありません。'});
+      return;
+    }
+    await replyOfficialLine(env,replyToken,officialLineStatusMessage(current.claim,current.state));
+    return;
+  }
+
+  if(event?.type!=='postback')return;
+  const p=officialLinePostbackParams(event?.postback?.data);
+  const intent=String(p.get('asoboon')||'');
+  if(intent==='cancel_abort'){
+    await replyOfficialLine(env,replyToken,{type:'text',text:'キャンセルを中止しました。受付はそのままです。'});
+    return;
+  }
+  const businessDate=String(p.get('d')||'');
+  const reserveId=String(p.get('r')||'');
+  const claim=await loadOfficialLineClaim(env,userHash,businessDate,reserveId);
+  if(!claim){
+    await replyOfficialLine(env,replyToken,{type:'text',text:'対象の受付が見つかりません。すでにキャンセル済みの可能性があります。'});
+    return;
+  }
+  if(intent==='cancel_confirm'){
+    await replyOfficialLine(env,replyToken,officialLineConfirmMessage(claim));
+    return;
+  }
+  if(intent==='cancel_execute'){
+    try{
+      const result=await cancelReservationForTrustedSession(env,claim,'manual');
+      const suffix=result?.alreadyCanceled?'（すでにキャンセル済みでした）':'';
+      await replyOfficialLine(env,replyToken,{type:'text',text:`受付番号 ${claim.receipt_no} のキャンセルが完了しました。${suffix}`});
+    }catch(e){
+      console.warn('OFFICIAL_LINE_CANCEL_FAILED',safeError(e));
+      await replyOfficialLine(env,replyToken,{type:'text',text:'キャンセルを完了できませんでした。受付状況をご確認のうえ、もう一度お試しください。'});
+    }
+  }
+}
+async function handleOfficialLineWebhook(request,env,ctx){
+  const secret=String(env.LINE_OA_CHANNEL_SECRET||'').trim();
+  if(!secret)return new Response('LINE OA webhook secret not configured',{status:503});
+  const rawBody=await request.text();
+  const signature=String(request.headers.get('x-line-signature')||'');
+  if(!await verifyOfficialLineSignature(rawBody,signature,secret)){
+    return new Response('invalid signature',{status:401});
+  }
+  let payload;
+  try{payload=JSON.parse(rawBody||'{}')}catch{return new Response('invalid json',{status:400})}
+  const events=Array.isArray(payload?.events)?payload.events:[];
+  for(const event of events){
+    try{await processOfficialLineEvent(env,event)}
+    catch(e){console.warn('OFFICIAL_LINE_WEBHOOK_EVENT_FAILED',safeError(e))}
+  }
+  return new Response('OK',{status:200,headers:{'Content-Type':'text/plain;charset=UTF-8'}});
+}
+
 async function verifyCancelLineUser(liffAccessToken){
   const token=String(liffAccessToken||'').trim();
   if(token.length<20||token.length>4096)throw apiError('LINE_ACCESS_TOKEN_REQUIRED',401);
@@ -1094,7 +1284,12 @@ async function cancelReservationInMiniapp(env,p){
   if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
   const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
   if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
-
+  return await cancelReservationForTrustedSession(env,session,'manual');
+}
+async function cancelReservationForTrustedSession(env,session,cancelSource='manual'){
+  if(!env?.DB||!session?.user_hash||!session?.business_date||!session?.reserve_id||!session?.receipt_no){
+    throw apiError('CANCEL_TRUSTED_SESSION_INVALID',400);
+  }
   const before=await currentReservationRow(env,String(session.receipt_no||''));
   const beforeState=reservationState(before);
   if(beforeState==='canceled'){
@@ -1142,7 +1337,7 @@ async function cancelReservationInMiniapp(env,p){
     throw apiError('CANCEL_NOT_CONFIRMED_HTTP_'+String(postResponse?.status||0),502);
   }
 
-  const notification=await finalizeCancellationState(env,session,String(after?.waitTypeId||session.wait_type_id||''),'manual');
+  const notification=await finalizeCancellationState(env,session,String(after?.waitTypeId||session.wait_type_id||''),String(cancelSource||'manual'));
   return{ok:true,canceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(after?.waitTypeId||session.wait_type_id||''),notification,checkedAt:Date.now()};
 }
 async function fetchAllReservationsForReconcile(env) {
