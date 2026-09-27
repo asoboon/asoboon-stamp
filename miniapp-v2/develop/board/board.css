@@ -874,7 +874,7 @@ body{
 
 .fx-pachinko-burst{
   position:fixed;
-  inset:-8%;
+  inset:0;
   z-index:6;
   pointer-events:none;
   opacity:0;
