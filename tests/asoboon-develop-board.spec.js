@@ -1247,6 +1247,47 @@ test('composition guard v2 uses live character rects and area overlap instead of
   expect(result.composition.rayReroutes).toBeGreaterThan(0);
 });
 
+test('CALL takes over the screen with the called reception number', async ({ page }) => {
+  test.setTimeout(15000);
+  await installBoard(page,[payload([{number:'8634',state:'waiting',order:1}])]);
+  await page.evaluate(()=>{
+    const fx=window.ASOBOON_BOARD_EFFECTS;
+    fx.setSlowdown(0.35,{persistValue:false});
+    const card=document.querySelector('#queueGrid .queue-card');
+    window.__callNumberPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'8634',kind:'call',fromStatus:'waiting',toStatus:'calling',element:card,
+    });
+  });
+
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.call'))),{timeout:4000}).toBe(true);
+  const live=await page.evaluate(()=>{
+    const root=document.querySelector('.fx-special-number.call');
+    const value=root?.querySelector('.fx-special-number-value');
+    const kicker=root?.querySelector('.fx-special-number-kicker');
+    const status=root?.querySelector('.fx-special-number-status');
+    const rect=value?.getBoundingClientRect();
+    return{
+      number:value?.textContent?.trim()||'',
+      kicker:kicker?.textContent?.trim()||'',
+      status:status?.textContent?.trim()||'',
+      fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
+      valueHeight:rect?.height||0,
+      characters:document.querySelectorAll('.pc-character').length,
+      burst:Boolean(document.querySelector('.fx-pachinko-burst.call')),
+    };
+  });
+  expect(live.number).toBe('8634');
+  expect(live.kicker).toBe('ただいま呼出中');
+  expect(live.status).toBe('ご案内します');
+  expect(live.fontSize).toBeGreaterThan(180);
+  expect(live.valueHeight).toBeGreaterThan(120);
+  expect(live.characters).toBe(0);
+  expect(live.burst).toBe(true);
+
+  await page.evaluate(()=>window.__callNumberPromise);
+  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-character')).toHaveCount(0);
+});
+
 test('HOLD shows the reception number as the main actor and never mounts a character', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8636',state:'waiting',order:1}])]);
