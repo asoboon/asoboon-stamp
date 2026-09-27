@@ -743,49 +743,13 @@ body{
   contain:layout paint;
 }
 .fx-card-ghost:after{animation:none!important}
-.fx-onomatopoeia{
-  position:fixed;
-  z-index:7;
-  pointer-events:none;
-  white-space:nowrap;
-  transform:translate(-50%,-50%);
-  font-size:clamp(24px,3.3vw,56px);
-  line-height:.9;
-  font-weight:1000;
-  letter-spacing:-.08em;
-  color:#fff;
-  -webkit-text-stroke:3px #182226;
-  paint-order:stroke fill;
-  text-shadow:0 5px 0 rgba(0,0,0,.28),0 11px 24px rgba(0,0,0,.28);
-  will-change:transform,opacity;
-}
-.fx-onomatopoeia.giant{
-  z-index:10;
-  font-size:clamp(72px,14vw,230px);
-  line-height:.82;
-  letter-spacing:-.12em;
-  -webkit-text-stroke-width:clamp(5px,.7vw,10px);
-  text-shadow:
-    0 8px 0 rgba(0,0,0,.34),
-    0 18px 42px rgba(0,0,0,.42),
-    0 0 28px rgba(255,255,255,.22);
-  transform-origin:50% 50%;
-}
-.fx-onomatopoeia.call{color:#ffd84f;-webkit-text-stroke-color:#d34f18}
-.fx-onomatopoeia.guided{color:#78e5ff;-webkit-text-stroke-color:#176787}
-.fx-onomatopoeia.hold{color:#fff0a6;-webkit-text-stroke-color:#8c6900}
-.fx-onomatopoeia.cancel{color:#f5fbff;-webkit-text-stroke-color:#56666c}
-
 /* SPECIAL statuses: no character actors. The reception number itself is the star. */
 .fx-special-number{
   position:fixed;
   inset:0;
   z-index:8;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:clamp(14px,2vh,34px);
+  display:grid;
+  place-items:center;
   overflow:hidden;
   pointer-events:none;
   text-align:center;
@@ -809,8 +773,8 @@ body{
   left:50%;
   top:50%;
   z-index:-1;
-  width:min(82vw,880px);
-  height:min(42vh,660px);
+  width:min(96vw,1040px);
+  height:min(62vh,980px);
   transform:translate(-50%,-50%);
   border:clamp(7px,1vw,15px) solid rgba(255,255,255,.82);
   border-radius:50%;
@@ -818,38 +782,31 @@ body{
     0 0 0 clamp(10px,1.4vw,22px) rgba(255,255,255,.16),
     0 0 0 clamp(24px,3vw,48px) rgba(255,255,255,.07);
 }
-.fx-special-number-kicker,
-.fx-special-number-status{
-  position:relative;
-  z-index:2;
-  padding:.18em .72em;
-  border:3px solid currentColor;
-  border-radius:999px;
-  background:rgba(7,12,18,.72);
-  font-weight:1000;
-  letter-spacing:.08em;
-  line-height:1;
-  white-space:nowrap;
-}
-.fx-special-number-kicker{font-size:clamp(32px,4.8vw,78px)}
-.fx-special-number-status{font-size:clamp(24px,3.2vw,54px)}
 .fx-special-number-value{
   position:relative;
   z-index:2;
-  width:96vw;
-  font-size:clamp(180px,42vw,520px);
+  width:100vw;
+  font-size:clamp(240px,46vw,660px);
   font-weight:1000;
   font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum" 1;
-  line-height:.72;
-  letter-spacing:-.085em;
+  line-height:.66;
+  letter-spacing:-.13em;
   white-space:nowrap;
   paint-order:stroke fill;
-  -webkit-text-stroke:clamp(7px,1.05vw,15px) #24160a;
+  transform:scaleY(1.38);
+  transform-origin:center;
+  -webkit-text-stroke:clamp(8px,1.2vw,18px) #24160a;
   text-shadow:
-    0 clamp(10px,1.4vw,22px) 0 rgba(0,0,0,.46),
-    0 0 clamp(18px,2.5vw,42px) rgba(255,255,255,.44);
+    0 clamp(12px,1.7vw,26px) 0 rgba(0,0,0,.48),
+    0 0 clamp(22px,3vw,54px) rgba(255,255,255,.5);
 }
+.fx-special-number[data-digits="1"] .fx-special-number-value,
+.fx-special-number[data-digits="2"] .fx-special-number-value{font-size:clamp(360px,68vw,900px)}
+.fx-special-number[data-digits="3"] .fx-special-number-value{font-size:clamp(300px,56vw,760px)}
+.fx-special-number[data-digits="4"] .fx-special-number-value{font-size:clamp(260px,46vw,660px)}
+.fx-special-number[data-digits="5"] .fx-special-number-value{font-size:clamp(220px,36vw,540px)}
+.fx-special-number[data-digits="6"] .fx-special-number-value{font-size:clamp(190px,31vw,460px)}
 .fx-special-number.call{
   color:#fff3a6;
   background:
@@ -860,6 +817,11 @@ body{
   color:#ffe34f;
   -webkit-text-stroke-color:#8f2400;
   text-shadow:0 16px 0 #5a1300,0 0 34px rgba(255,239,112,.8);
+}
+.fx-special-number.call::before{
+  background:
+    repeating-conic-gradient(from -7deg at 50% 50%,rgba(255,255,255,.34) 0 2.2deg,transparent 2.2deg 8deg),
+    radial-gradient(circle at 50% 50%,rgba(255,244,138,.62) 0 9%,rgba(255,166,0,.16) 10% 31%,transparent 32% 58%);
 }
 .fx-special-number.guided{
   color:#d9f8ff;
@@ -872,6 +834,11 @@ body{
   -webkit-text-stroke-color:#07577a;
   text-shadow:0 16px 0 #063a59,0 0 32px rgba(113,228,255,.78);
 }
+.fx-special-number.guided::before{
+  background:
+    repeating-linear-gradient(102deg,transparent 0 48px,rgba(255,255,255,.3) 49px 56px,transparent 57px 108px),
+    linear-gradient(90deg,transparent 0 5%,rgba(138,237,255,.18) 42%,rgba(255,255,255,.34) 50%,rgba(138,237,255,.16) 58%,transparent 95%);
+}
 .fx-special-number.hold{
   color:#fff6b8;
   background:
@@ -883,6 +850,11 @@ body{
   -webkit-text-stroke-color:#6e5000;
   text-shadow:0 16px 0 #4b3600,0 0 32px rgba(255,229,91,.74);
 }
+.fx-special-number.hold::before{
+  background:
+    repeating-linear-gradient(135deg,rgba(255,226,87,.30) 0 26px,rgba(24,20,4,.04) 26px 52px),
+    radial-gradient(circle at 50% 50%,rgba(255,247,170,.4) 0 12%,transparent 46%);
+}
 .fx-special-number.cancel{
   color:#eefbff;
   background:
@@ -893,6 +865,11 @@ body{
   color:#f5fbff;
   -webkit-text-stroke-color:#364a53;
   text-shadow:0 16px 0 #1d2a30,0 0 34px rgba(220,246,255,.72);
+}
+.fx-special-number.cancel::before{
+  background:
+    repeating-conic-gradient(from 2deg at 50% 50%,rgba(243,252,255,.7) 0 .65deg,transparent .65deg 11deg),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.42) 0 4%,rgba(180,220,232,.12) 5% 22%,transparent 23% 60%);
 }
 
 .fx-pachinko-burst{
@@ -983,7 +960,6 @@ body{
 
 /* Choreography Guard v3: clear foreground clutter when the primary number needs a clean read. */
 :root[data-board-choreo-phase="reaction"] .fx-foreground-shard,
-:root[data-board-choreo-phase="reaction"] .fx-onomatopoeia.giant,
 :root[data-board-choreo-phase="reaction"] .fx-impact-flash{
   opacity:0!important;
   transition:opacity 90ms linear!important;
@@ -1001,10 +977,6 @@ body{
   .board-fx-layer *{
     animation-duration:.01ms!important;
     animation-iteration-count:1!important;
-  }
-  .fx-onomatopoeia{
-    font-size:clamp(20px,2.6vw,38px);
-    -webkit-text-stroke-width:2px;
   }
 }
 
