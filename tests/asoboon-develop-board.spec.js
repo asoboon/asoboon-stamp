@@ -147,11 +147,11 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260927-effect-language-v4');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-effect-language-v4'");
+  expect(buildFile.version).toBe('20260927-special-focus-v4-1');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-special-focus-v4-1'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=27');
-  expect(indexHtml).toContain('board.js?v=25');
+  expect(indexHtml).toContain('board-animations.js?v=28');
+  expect(indexHtml).toContain('board.js?v=26');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -1336,6 +1336,18 @@ test('composition guard v2 uses live character rects and area overlap instead of
   expect(result.composition.rayReroutes).toBeGreaterThan(0);
 });
 
+test('SPECIAL overlay effects focus on the giant-number stage rather than the source card', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  expect(code).toContain('function specialFocusRect()');
+  for(const kind of ['call','guided','hold','cancel']){
+    expect(code).toContain(`specialScreen('${kind}',focusRect`);
+    expect(code).toContain(`pachinkoBurst('${kind}',focusRect`);
+    expect(code).toContain(`runParticles('${kind}',focusRect`);
+  }
+  expect(code).toContain("foregroundShards(focusRect");
+  expect(code).toContain("SOURCEFX?.playStatusReaction?.('call',{rect:sourceRect");
+});
+
 test('CALL takes over the screen with a huge number that stays readable', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8634',state:'waiting',order:1}])]);
@@ -1364,6 +1376,10 @@ test('CALL takes over the screen with a huge number that stays readable', async 
       characters:document.querySelectorAll('.pc-character').length,
       words:document.querySelectorAll('.fx-onomatopoeia,.fx-special-number-kicker,.fx-special-number-status').length,
       burst:Boolean(document.querySelector('.fx-pachinko-burst.call')),
+      burstX:parseFloat(document.querySelector('.fx-pachinko-burst.call')?.style.getPropertyValue('--fx-x')||'0'),
+      burstY:parseFloat(document.querySelector('.fx-pachinko-burst.call')?.style.getPropertyValue('--fx-y')||'0'),
+      viewportX:innerWidth*.5,
+      viewportY:innerHeight*.5,
     };
   });
   expect(live.number).toBe('8634');
@@ -1375,6 +1391,8 @@ test('CALL takes over the screen with a huge number that stays readable', async 
   expect(live.characters).toBe(0);
   expect(live.words).toBe(0);
   expect(live.burst).toBe(true);
+  expect(Math.abs(live.burstX-live.viewportX)).toBeLessThan(2);
+  expect(Math.abs(live.burstY-live.viewportY)).toBeLessThan(2);
 
   // At 0.35 test slowdown the 4.6s takeover lasts ~1.6s; it must still be visible well after impact.
   await page.waitForTimeout(650);
