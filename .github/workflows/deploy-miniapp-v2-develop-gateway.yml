@@ -113,7 +113,7 @@ jobs:
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
               "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}",
               "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "waiting_req_d_w_ja",
-              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{\"date\":\"{{businessDate}}\",\"name\":\"ご利用者さま\",\"count\":\"{{totalPeople}}人\",\"detail\":\"{{slotLabel}}\",\"number\":\"{{receiptNo}}\",\"address\":\"埼玉県川口市赤山501-1\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"{{entryUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\",\"condition\":\"順番になりましたらLINEでお知らせします\",\"shop_name\":\"ASOBooN\"}",
+              "SERVICE_MESSAGE_CONFIRM_TEMPLATE_PARAMS_JSON": "{\"date\":\"{{businessDate}}\",\"name\":\"ご利用者さま\",\"count\":\"{{totalPeople}}人\",\"detail\":\"{{slotLabel}}\",\"number\":\"{{receiptNo}}\",\"address\":\"埼玉県川口市赤山501-1\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"{{entryUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\",\"shop_name\":\"ASOBooN\"}",
               "SERVICE_MESSAGE_CANCEL_TEMPLATE_NAME": "user_cancle_s_ja",
               "SERVICE_MESSAGE_CANCEL_TEMPLATE_PARAMS_JSON": "{\"number\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"{{callstatusUrl}}\",\"btn3_url\":\"{{callstatusUrl}}\",\"btn4_url\":\"{{callstatusUrl}}\"}"
             },
