@@ -491,6 +491,8 @@ test('special status effects stay inside the 10-second refresh budget', async ({
   expect(d.maxSpecialDurationMs).toBeLessThan(10000);
   expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(2000);
   expect(d.queueLimit).toBeLessThanOrEqual(8);
+  expect(d.statusBatchBudgetMs).toBeLessThan(10000);
+  expect(d.maxEstimatedStatusRuntimeMs).toBeLessThan(d.statusBatchBudgetMs);
 
   const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
