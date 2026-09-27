@@ -138,6 +138,8 @@ export default {
       body.officialLineAccessTokenConfigured = Boolean(String(env.LINE_OA_CHANNEL_ACCESS_TOKEN || '').trim());
       body.officialLineCancelReady = body.officialLineWebhookSecretConfigured && body.officialLineAccessTokenConfigured;
       body.officialLineCancelOneToOneOnly = true;
+      body.officialLineWebhookFastAck = true;
+      body.officialLineReserveIdNormalizer = 'strict-12-digit';
       if (body.serviceMessageMandatoryBeforeCreate === true && body.serviceMessageReady !== true) {
         body.createEnabled = false;
         body.createBlockedReason = body.serviceMessageHealthError
@@ -1105,11 +1107,16 @@ async function replyOfficialLine(env,replyToken,messages){
   const text=await response.text();
   if(!response.ok)throw apiError('LINE_OA_REPLY_HTTP_'+response.status+' '+String(text||'').slice(0,160),502);
 }
+function normalizeOfficialReserveId(value){
+  const raw=String(value??'').normalize('NFKC').trim();
+  if(!/^\d{1,12}$/.test(raw))return'';
+  return raw.padStart(12,'0');
+}
 async function loadOfficialLineClaim(env,userHash,businessDate='',reserveId=''){
   if(!env?.DB)return null;
   const user=String(userHash||'');
   const date=normalizeDate(businessDate||'');
-  const reserve=normalizeReserveId(reserveId||'');
+  const reserve=normalizeOfficialReserveId(reserveId||'');
   if(date&&reserve){
     return await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id,state,updated_at
       FROM v2_user_day_claims
@@ -1236,8 +1243,12 @@ async function handleOfficialLineWebhook(request,env,ctx){
   try{payload=JSON.parse(rawBody||'{}')}catch{return new Response('invalid json',{status:400})}
   const events=Array.isArray(payload?.events)?payload.events:[];
   for(const event of events){
-    try{await processOfficialLineEvent(env,event)}
-    catch(e){console.warn('OFFICIAL_LINE_WEBHOOK_EVENT_FAILED',safeError(e))}
+    const job=(async()=>{
+      try{await processOfficialLineEvent(env,event)}
+      catch(e){console.warn('OFFICIAL_LINE_WEBHOOK_EVENT_FAILED',safeError(e))}
+    })();
+    if(ctx?.waitUntil)ctx.waitUntil(job);
+    else await job;
   }
   return new Response('OK',{status:200,headers:{'Content-Type':'text/plain;charset=UTF-8'}});
 }
