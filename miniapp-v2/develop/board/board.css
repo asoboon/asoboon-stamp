@@ -794,7 +794,7 @@ body{
   letter-spacing:-.13em;
   white-space:nowrap;
   paint-order:stroke fill;
-  transform:scaleY(1.38);
+  transform:scaleY(1.58);
   transform-origin:center;
   -webkit-text-stroke:clamp(8px,1.2vw,18px) #24160a;
   text-shadow:
