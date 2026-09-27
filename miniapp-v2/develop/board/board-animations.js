@@ -6,6 +6,7 @@ const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
 const MAX_CONCURRENT=1;
 const MAX_BATCH=8;
+const MAX_QUEUE=MAX_BATCH;
 const STAGGER_MS=90;
 const LEVEL_KEY='asoboon_call_board_animation_level_v1';
 const RARE_KEY='asoboon_call_board_rare_enabled_v1';
@@ -131,6 +132,7 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
   }
   for(const key of previous.keys())if(!next.has(key))dataChangeCount+=1;
   previous=next;
+  pruneQueuedEvents(next);
 
   if(dataChangeCount>0&&typeof onBeforeRealChange==='function'){
     try{onBeforeRealChange({dataChangeCount,events})}catch{}
@@ -152,8 +154,31 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind})),
   };
 }
+function pruneQueuedEvents(next){
+  if(!queue.length)return;
+  const before=queue.length;
+  const latestByKey=new Map();
+  for(const evt of queue){
+    const now=next?.get?.(evt.key);
+    if(!now||now.state!==evt.toStatus)continue;
+    latestByKey.set(evt.key,evt);
+  }
+  queue=[...latestByKey.values()].slice(-MAX_QUEUE);
+  diagnostics.dropped+=Math.max(0,before-queue.length);
+}
 function enqueue(evt){
-  queue.push(evt);
+  const normalized={...evt,element:null};
+  const duplicateIndex=queue.findIndex(x=>x.key===normalized.key);
+  if(duplicateIndex>=0){
+    queue[duplicateIndex]=normalized;
+    diagnostics.dropped+=1;
+  }else{
+    if(queue.length>=MAX_QUEUE){
+      queue.shift();
+      diagnostics.dropped+=1;
+    }
+    queue.push(normalized);
+  }
   diagnostics.queued+=1;
   pump();
 }
@@ -163,11 +188,13 @@ function pump(){
     const delay=running*STAGGER_MS;
     running+=1;
     setTimeout(()=>{
-      playStatusAnimation(evt).catch(()=>{}).finally(()=>{
+      const liveElement=[...document.querySelectorAll('.queue-card[data-row-key]')]
+        .find(card=>String(card.dataset.rowKey||'')===String(evt.key||''))||null;
+      playStatusAnimation({...evt,element:liveElement}).catch(()=>{}).finally(()=>{
         running=Math.max(0,running-1);
         pump();
       });
-    },M?M.ms(delay):delay);
+    },delay);
   }
 }
 async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kind}={}){
@@ -241,10 +268,10 @@ function ghostFrom(frame,className=''){
   return ghost;
 }
 const SPECIAL_NUMBER_DURATION=Object.freeze({
-  call:Object.freeze({low:3200,high:4600}),
-  guided:Object.freeze({low:3000,high:4200}),
-  hold:Object.freeze({low:3400,high:4800}),
-  cancel:Object.freeze({low:3600,high:5200}),
+  call:Object.freeze({low:1500,high:4600}),
+  guided:Object.freeze({low:1400,high:4200}),
+  hold:Object.freeze({low:1600,high:4800}),
+  cancel:Object.freeze({low:1700,high:5200}),
 });
 function specialDuration(kind,lvl){
   const t=SPECIAL_NUMBER_DURATION[kind]||SPECIAL_NUMBER_DURATION.call;
@@ -270,11 +297,10 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
   const low=reduced||effectiveLevel()<=1;
   const frames=kind==='guided'
     ?(low?[
-      {opacity:0,transform:'translate3d(-12vw,18px,0) scale(.72)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1.04)',offset:.16},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.78},
-      {opacity:1,transform:'translate3d(16vw,-4px,0) scale(1.02)',offset:.88},
-      {opacity:0,transform:'translate3d(105vw,-24px,0) scale(.72)',offset:1}
+      {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.14},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.86},
+      {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'translate3d(-18vw,28px,0) scale(.58) skewX(-5deg)'},
       {opacity:1,transform:'translate3d(0,0,0) scale(1.12) skewX(1deg)',offset:.12},
@@ -285,12 +311,10 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
     ])
     :kind==='hold'
     ?(low?[
-      {opacity:0,transform:'translate3d(-16vw,0,0) scale(.74)'},
-      {opacity:1,transform:'translate3d(18px,0,0) scale(1.06)',offset:.16},
-      {opacity:1,transform:'translate3d(-8px,0,0) scale(.99)',offset:.24},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.34},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.9},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1.02)',offset:1}
+      {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.14},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.88},
+      {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'translate3d(-38vw,0,0) scale(.7) skewX(-7deg)'},
       {opacity:1,transform:'translate3d(48px,0,0) scale(1.18) skewX(2deg)',offset:.12},
@@ -303,12 +327,10 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
     ])
     :kind==='cancel'
     ?(low?[
-      {opacity:0,transform:'scale(.62) rotate(-2deg)'},
-      {opacity:1,transform:'scale(1.08) rotate(0)',offset:.15},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.28},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.76},
-      {opacity:.88,transform:'scale(.98) rotate(1deg)',offset:.86},
-      {opacity:0,transform:'scale(.62) rotate(7deg) translateY(70px)',offset:1}
+      {opacity:0,transform:'scale(.985)'},
+      {opacity:1,transform:'scale(1)',offset:.14},
+      {opacity:1,transform:'scale(1)',offset:.86},
+      {opacity:0,transform:'scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'scale(.42) rotate(-4deg)'},
       {opacity:1,transform:'scale(1.18) rotate(1deg)',offset:.11},
@@ -320,11 +342,10 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
       {opacity:0,transform:'scale(.58) rotate(8deg) translateY(110px)',offset:1}
     ])
     :(low?[
-      {opacity:0,transform:'scale(.52)'},
-      {opacity:1,transform:'scale(1.1)',offset:.16},
-      {opacity:1,transform:'scale(.99)',offset:.28},
-      {opacity:1,transform:'scale(1)',offset:.9},
-      {opacity:0,transform:'scale(1.035)',offset:1}
+      {opacity:0,transform:'scale(.985)'},
+      {opacity:1,transform:'scale(1)',offset:.14},
+      {opacity:1,transform:'scale(1)',offset:.88},
+      {opacity:0,transform:'scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'scale(.22) rotate(-4deg)'},
       {opacity:1,transform:'scale(1.2) rotate(1.4deg)',offset:.1},
@@ -335,7 +356,7 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
       {opacity:0,transform:'scale(1.04)',offset:1}
     ]);
 
-  return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards'})
+  return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true})
     .finally(()=>el.remove());
 }
 function pachinkoBurst(kind,rect,{duration=1150}={}){
@@ -358,26 +379,31 @@ function pachinkoBurst(kind,rect,{duration=1150}={}){
     {opacity:.9,transform:'scale(1)',offset:.56},
     {opacity:0,transform:'scale(1.14) rotate(2deg)'}
   ];
-  return animateElement(el,frames,{duration,easing:'cubic-bezier(.14,.8,.2,1)',fill:'forwards'})
+  return animateElement(el,frames,{duration,easing:'cubic-bezier(.14,.8,.2,1)',fill:'forwards',rawTiming:true})
     .finally(()=>el.remove());
 }
 
 function animateElement(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
   const opts={...options};
-  if(Number.isFinite(Number(opts.duration)))opts.duration=M?M.ms(opts.duration):opts.duration;
-  if(Number.isFinite(Number(opts.delay)))opts.delay=M?M.ms(opts.delay):opts.delay;
-  if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=M?M.ms(opts.endDelay):opts.endDelay;
+  const rawTiming=Boolean(opts.rawTiming);
+  delete opts.rawTiming;
+  const scale=value=>rawTiming?value:(M?M.ms(value):value);
+  if(Number.isFinite(Number(opts.duration)))opts.duration=scale(opts.duration);
+  if(Number.isFinite(Number(opts.delay)))opts.delay=scale(opts.delay);
+  if(Number.isFinite(Number(opts.endDelay)))opts.endDelay=scale(opts.endDelay);
   const animation=el.animate(keyframes,opts);
   return animation.finished.catch(()=>{});
 }
-function waitMs(ms){return new Promise(resolve=>setTimeout(resolve,M?M.ms(ms):ms))}
+function waitMs(ms,{rawTiming=false}={}){
+  return new Promise(resolve=>setTimeout(resolve,rawTiming?ms:(M?M.ms(ms):ms)));
+}
 function flashFrame(kind,rect,{duration=180}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
   if(M?.requestVisual&&!M.requestVisual('flash',{priority:'primary'}))return Promise.resolve();
   const el=document.createElement('div');el.className='fx-impact-flash '+kind;overlayFxLayer().appendChild(el);
   el.style.setProperty('--fx-x',(rect.left+rect.width*.5)+'px');el.style.setProperty('--fx-y',(rect.top+rect.height*.5)+'px');
-  return animateElement(el,[{opacity:0},{opacity:.92,offset:.18},{opacity:.18,offset:.52},{opacity:0}],{duration,easing:'linear',fill:'forwards'}).finally(()=>el.remove());
+  return animateElement(el,[{opacity:0},{opacity:.92,offset:.18},{opacity:.18,offset:.52},{opacity:0}],{duration,easing:'linear',fill:'forwards',rawTiming:true}).finally(()=>el.remove());
 }
 function foregroundShards(rect,{count=7,duration=1250}={}){
   if(reduced||effectiveLevel()<2||!rect)return Promise.resolve();
@@ -399,11 +425,11 @@ function foregroundShards(rect,{count=7,duration=1250}={}){
       {opacity:1,transform:'translate3d(calc(-50% + '+(dx*.18)+'px),calc(-50% + '+(dy*.18)+'px),0) rotate('+(i*31)+'deg) scale(1.12)',offset:.2},
       {opacity:.94,transform:'translate3d(calc(-50% + '+(dx*.58)+'px),calc(-50% + '+(dy*.58)+'px),0) rotate('+(i*57)+'deg) scale(1)',offset:.62},
       {opacity:0,transform:'translate3d(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px),0) rotate('+(i*88)+'deg) scale(.82)'}
-    ],{duration:duration+i*35,easing:'cubic-bezier(.14,.72,.18,1)',fill:'forwards'}).finally(()=>el.remove()));
+    ],{duration:duration+i*35,easing:'cubic-bezier(.14,.72,.18,1)',fill:'forwards',rawTiming:true}).finally(()=>el.remove()));
   }
   return Promise.all(jobs);
 }
-function impactFreeze(ms=260){return waitMs(reduced?40:ms)}
+function impactFreeze(ms=260){return waitMs(reduced?40:ms,{rawTiming:true})}
 function specialScreen(kind,rect,{duration=1700,delay=0}={}){
   if(!rect||effectiveLevel()===0)return Promise.resolve();
   const el=document.createElement('div');
@@ -419,7 +445,7 @@ function specialScreen(kind,rect,{duration=1700,delay=0}={}){
     {opacity:.76,transform:'scale(1)',offset:.72},
     {opacity:0,transform:'scale(1.025)'}
   ];
-  return animateElement(el,frames,{duration,delay,easing:'cubic-bezier(.18,.82,.2,1)',fill:'forwards'}).finally(()=>el.remove());
+  return animateElement(el,frames,{duration,delay,easing:'cubic-bezier(.18,.82,.2,1)',fill:'forwards',rawTiming:true}).finally(()=>el.remove());
 }
 function screenReaction(kind,{duration=760}={}){
   if(reduced||effectiveLevel()<2)return Promise.resolve();
@@ -450,7 +476,7 @@ function screenReaction(kind,{duration=760}={}){
     {transform:'translate3d(0,2px,0) scale(.999)',offset:.74},
     {transform:'translate3d(0,0,0) scale(1)'}
   ];
-  return animateElement(board,frames,{duration,easing:'cubic-bezier(.2,.82,.2,1)'});
+  return animateElement(board,frames,{duration,easing:'cubic-bezier(.2,.82,.2,1)',rawTiming:true});
 }
 function shakeBoard(){
   if(reduced||effectiveLevel()<2)return Promise.resolve();
@@ -464,7 +490,7 @@ function shakeBoard(){
     {transform:'translate3d(-2px,-1px,0)'},
     {transform:'translate3d(2px,1px,0)'},
     {transform:'translate3d(0,0,0)'},
-  ],{duration:170,easing:'linear'});
+  ],{duration:170,easing:'linear',rawTiming:true});
 }
 function rectFor(element,frame){
   if(element){
@@ -483,7 +509,7 @@ async function playCallAnimation({number,element,frame,rare}){
   choreoPhase('anticipation','NUMBER');
   const screen=specialScreen('call',rect,{duration:duration+360});
   const burst=pachinkoBurst('call',rect,{duration:duration});
-  await waitMs(lvl<=1?100:260);
+  await waitMs(lvl<=1?100:260,{rawTiming:true});
 
   choreoPhase('impact','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'call',{duration});
@@ -506,7 +532,7 @@ async function playGuidedAnimation({number,element,frame}){
   choreoPhase('anticipation','NUMBER');
   const screen=specialScreen('guided',rect,{duration:duration+280});
   const burst=pachinkoBurst('guided',rect,{duration:duration});
-  await waitMs(lvl<=1?80:220);
+  await waitMs(lvl<=1?80:220,{rawTiming:true});
 
   choreoPhase('action','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'guided',{duration});
@@ -547,7 +573,7 @@ async function playCancelAnimation({number,frame,element}){
   choreoPhase('omen','NUMBER');
   const screen=specialScreen('cancel',rect,{duration:duration+480});
   const burst=pachinkoBurst('cancel',rect,{duration:duration});
-  await waitMs(lvl<=1?180:520);
+  await waitMs(lvl<=1?180:520,{rawTiming:true});
 
   choreoPhase('impact','NUMBER',{foreground:1,impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'cancel',{duration});
@@ -556,7 +582,7 @@ async function playCancelAnimation({number,frame,element}){
   const reaction=screenReaction('cancel',{duration:lvl<=1?460:1160});
 
   // Let the giant number remain readable before the visual shatter arrives.
-  await waitMs(lvl<=1?1350:3300);
+  await waitMs(lvl<=1?620:3300,{rawTiming:true});
   const shards=foregroundShards(rect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
   const flash=flashFrame('cancel',rect,{duration:lvl<=1?120:240});
   await Promise.all([numberFx,burst,sourceFx,particles,reaction,shards,flash]);
@@ -662,6 +688,10 @@ function getDiagnostics(){
     statusAnimationsChecked:4,
     fullScreenStatusCount:SOURCEFX?4:0,
     slowdownCoverage:4,
+    statusTimingMode:'wall-clock',
+    maxSpecialDurationMs:5200,
+    maxReducedSpecialDurationMs:1700,
+    queueLimit:MAX_QUEUE,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
     sharedCanvasCount:M?.diagnostics?.().sharedCanvasCount||0,
@@ -674,7 +704,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.6.0',
+  version:'1.7.0',
   capture,
   observe,
   playStatusAnimation,
