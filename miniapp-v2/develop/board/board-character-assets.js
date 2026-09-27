@@ -72,6 +72,49 @@ const CHARACTER_ANCHORS=Object.freeze(Object.fromEntries(Object.keys(CHARACTERS)
   ...(name.startsWith('duo_')?{HEAD:[.5,.13],FACE:[.5,.25],HAND:[.76,.48],IMPACT:[.72,.56],TRAIL_ORIGIN:[.18,.7]}:{}),
 })])));
 
+
+const DEFAULT_VISUAL_ZONES=Object.freeze({
+  faces:Object.freeze([Object.freeze([.5,.26,.34,.28])]),
+  body:Object.freeze([.5,.54,.62,.66]),
+});
+function frozenVisual(faces,body){
+  return Object.freeze({
+    faces:Object.freeze(faces.map(z=>Object.freeze(z))),
+    body:Object.freeze(body),
+  });
+}
+function visualZonesFor(name){
+  if(name.startsWith('duo_')){
+    if(name==='duo_entangled')return frozenVisual([[.41,.31,.20,.20],[.68,.43,.20,.20]],[.5,.57,.9,.62]);
+    if(name==='duo_runaway_crash')return frozenVisual([[.40,.29,.20,.20],[.69,.38,.20,.20]],[.5,.57,.9,.6]);
+    if(name==='duo_chase')return frozenVisual([[.32,.39,.19,.19],[.66,.34,.21,.21]],[.5,.56,.9,.58]);
+    return frozenVisual([[.36,.34,.21,.21],[.66,.34,.21,.21]],[.5,.56,.88,.6]);
+  }
+  const overrides={
+    pompon_dash:[[[.67,.39,.27,.25]],[.5,.57,.9,.5]],
+    pompon_brake:[[[.50,.33,.27,.25]],[.5,.58,.78,.62]],
+    pompon_cannot_stop:[[[.55,.35,.28,.26]],[.5,.57,.8,.6]],
+    pompon_wobble:[[[.53,.33,.28,.26]],[.5,.56,.78,.62]],
+    pompon_ballride:[[[.53,.30,.27,.25]],[.5,.55,.78,.66]],
+    pompon_fly:[[[.55,.35,.27,.25]],[.5,.55,.8,.58]],
+    pompon_oops:[[[.54,.29,.27,.25]],[.5,.55,.72,.68]],
+    pompon_shocked:[[[.50,.39,.29,.27]],[.5,.58,.78,.62]],
+    chiru_watch:[[[.52,.36,.24,.23]],[.5,.57,.72,.7]],
+    chiru_chase:[[[.57,.39,.24,.23]],[.5,.58,.78,.64]],
+    chiru_dodge:[[[.54,.35,.24,.23]],[.5,.57,.78,.64]],
+    chiru_shocked:[[[.50,.31,.25,.24]],[.5,.57,.72,.68]],
+    chiru_retort:[[[.52,.30,.25,.24]],[.5,.57,.76,.68]],
+    chiru_sneak:[[[.52,.34,.24,.23]],[.5,.57,.76,.66]],
+    chiru_angry:[[[.52,.30,.25,.24]],[.5,.56,.74,.7]],
+    chiru_sigh:[[[.50,.31,.25,.24]],[.5,.56,.72,.7]],
+  };
+  const hit=overrides[name];
+  return hit?frozenVisual(hit[0],hit[1]):DEFAULT_VISUAL_ZONES;
+}
+const CHARACTER_VISUAL_ZONES=Object.freeze(Object.fromEntries(
+  Object.keys(CHARACTERS).map(name=>[name,visualZonesFor(name)])
+));
+
 let charPromise=null,effectPromise=null;
 const preloadState={characters:false,effects:false,characterErrors:0,effectErrors:0};
 
@@ -103,10 +146,10 @@ function validatePairing(effectName,requiredSemantic){
   const allowed=EFFECT_RULES[String(requiredSemantic||'')];
   return Array.isArray(allowed)&&allowed.includes(String(effectName||''));
 }
-function diagnostics(){return{version:'3.3.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,anchorCount:Object.keys(CHARACTER_ANCHORS).length,characterMetaCount:Object.keys(CHARACTER_META).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
+function diagnostics(){return{version:'3.4.0',characterAtlas:CHARACTER_ATLAS,effectAtlas:EFFECT_ATLAS,characterCount:Object.keys(CHARACTERS).length,effectCount:Object.keys(EFFECTS).length,anchorCount:Object.keys(CHARACTER_ANCHORS).length,characterMetaCount:Object.keys(CHARACTER_META).length,visualZoneCount:Object.keys(CHARACTER_VISUAL_ZONES).length,standaloneCharacters:[...STANDALONE_CHARACTERS],effectRules:Object.fromEntries(Object.entries(EFFECT_RULES).map(([k,v])=>[k,[...v]])),preload:{...preloadState},sourcePolicy:'new-source-only'}}
 
 window.ASOBOON_BOARD_CHARACTER_ASSETS=Object.freeze({
-  version:'3.3.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,CHARACTER_META,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,CHARACTER_ANCHORS,
+  version:'3.4.0',CHARACTER_ATLAS,EFFECT_ATLAS,CHARACTERS,CHARACTER_META,CHARACTER_VISUAL_ZONES,EFFECTS,EFFECT_RULES,STANDALONE_CHARACTERS,CHARACTER_ANCHORS,
   preloadCharacters,preloadEffects,preloadAll,createCharacter,createEffect,validatePairing,diagnostics,
 });
 })();
