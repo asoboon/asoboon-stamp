@@ -192,7 +192,17 @@ jobs:
               });
             '; then
               echo "$RESPONSE"
-              echo "Developing LINE notification and sequential same-day reception readiness are READY."
+              echo "Developing core notification engine and canceled-claim lifecycle are READY."
+              printf '%s' "$RESPONSE" | node -e '
+                let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+                  const x=JSON.parse(s);
+                  if(x.serviceMessageThreePillarReady===true){
+                    console.log("Three-pillar LINE templates are READY: reception confirmation / call / cancellation.");
+                  }else{
+                    console.log("::warning::Three-pillar engine is deployed, but LINE Developers templates are incomplete. confirmation="+Boolean(x.serviceMessageConfirmationReady)+" call="+Boolean(x.serviceMessageReady)+" cancellation="+Boolean(x.serviceMessageCancellationReady));
+                  }
+                });
+              '
               break
             fi
             if [ "$i" = "10" ]; then
