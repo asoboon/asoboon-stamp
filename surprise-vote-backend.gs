@@ -222,6 +222,15 @@ function apiSurpriseVote_(params) {
       throw new Error('このイベントは見つかりません。');
     }
 
+    if (!event.enabled || event.cancelled || event.options.length < 2) {
+      return {
+        ok: false,
+        mode: 'idle',
+        error: 'この投票は現在受付していません。',
+        now: formatIso_(now)
+      };
+    }
+
     if (event.phase !== 'voting') {
       return {
         ok: false,
@@ -996,8 +1005,8 @@ function setupSurpriseEventSheet_(sheet) {
   sheet.getRange('D2:D500').setDataValidation(onOffValidation);
   sheet.getRange('P2:P500').setDataValidation(cancelValidation);
 
-  sheet.getRange('D2:D500').setValue('OFF');
-  sheet.getRange('P2:P500').setValue('OFF');
+  fillBlankSurpriseDefaults_(sheet.getRange('D2:D500'), 'OFF');
+  fillBlankSurpriseDefaults_(sheet.getRange('P2:P500'), 'OFF');
 
   sheet.setColumnWidth(1, 105);
   sheet.setColumnWidth(2, 110);
@@ -1023,6 +1032,22 @@ function setupSurpriseEventSheet_(sheet) {
   try {
     sheet.hideColumns(18, 3);
   } catch (_) {}
+}
+
+function fillBlankSurpriseDefaults_(range, defaultValue) {
+  const values = range.getValues();
+  let changed = false;
+
+  for (let row = 0; row < values.length; row += 1) {
+    if (String(values[row][0] || '').trim() === '') {
+      values[row][0] = defaultValue;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    range.setValues(values);
+  }
 }
 
 function setupSurpriseGuide_(spreadsheet) {
