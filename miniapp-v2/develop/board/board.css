@@ -860,6 +860,182 @@ body{
   }
 }
 
+
+/* State finales: physical endings without words or character actors.
+   CALL breaks a shell, GUIDED exits through a one-way gate,
+   HOLD is mechanically clamped, CANCEL fractures into an empty center. */
+.fx-status-finale{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  pointer-events:none;
+  overflow:hidden;
+  contain:strict;
+  opacity:0;
+  will-change:transform,opacity;
+}
+.fx-status-finale::before,
+.fx-status-finale::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+
+/* CALL: only the surrounding shell breaks. The reception number survives. */
+.fx-status-finale.call::before{
+  left:50%;
+  top:50%;
+  width:min(72vw,760px);
+  height:min(44vh,660px);
+  transform:translate(-50%,-50%);
+  border:clamp(10px,1.5vw,22px) solid rgba(255,247,175,.96);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 clamp(16px,2.2vw,34px) rgba(255,203,58,.24),
+    0 0 70px rgba(255,194,33,.78);
+}
+.fx-status-finale.call::after{
+  inset:-16%;
+  background:
+    repeating-conic-gradient(from 4deg at 50% 50%,
+      transparent 0 5deg,
+      rgba(255,255,255,.58) 5.2deg 6deg,
+      transparent 6.2deg 13deg);
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 0 22%,#000 38% 100%);
+  mask-image:radial-gradient(circle at 50% 50%,transparent 0 22%,#000 38% 100%);
+}
+.fx-status-finale.call .fx-finale-piece{
+  position:fixed;
+  display:block;
+  pointer-events:none;
+  clip-path:polygon(6% 18%,88% 0,100% 58%,42% 100%);
+  background:linear-gradient(145deg,#fff9bf 0 18%,#ffd84f 20% 58%,#ff8b31 60% 100%);
+  border:2px solid rgba(255,255,255,.92);
+  box-shadow:0 0 18px rgba(255,210,62,.62);
+  will-change:transform,opacity;
+}
+
+/* GUIDED: the number leaves through a one-way light gate. */
+.fx-status-finale.guided::before{
+  right:-7vw;
+  top:50%;
+  width:clamp(90px,14vw,210px);
+  height:min(70vh,900px);
+  transform:translateY(-50%);
+  border:clamp(8px,1.1vw,16px) solid rgba(221,250,255,.92);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 clamp(14px,2vw,28px) rgba(113,228,255,.18),
+    0 0 64px rgba(113,228,255,.78);
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.72) 0 5%,rgba(83,213,248,.22) 25%,transparent 66%);
+}
+.fx-status-finale.guided::after{
+  left:42%;
+  right:-12%;
+  top:47%;
+  height:7%;
+  background:linear-gradient(90deg,transparent,rgba(117,231,255,.18) 18%,rgba(255,255,255,.9) 54%,rgba(117,231,255,.28) 76%,transparent);
+  transform:skewX(-15deg);
+  filter:blur(2px);
+}
+.fx-status-finale.guided .fx-finale-streak{
+  position:fixed;
+  display:block;
+  height:clamp(5px,.7vw,11px);
+  border-radius:999px;
+  transform-origin:left center;
+  background:linear-gradient(90deg,transparent,rgba(164,240,255,.76) 20%,#fff 66%,rgba(117,231,255,.24));
+  box-shadow:0 0 14px rgba(113,228,255,.64);
+  will-change:transform,opacity;
+}
+
+/* HOLD: nothing disappears; the number becomes physically locked in place. */
+.fx-status-finale.hold::before{
+  left:50%;
+  top:50%;
+  width:min(72vw,880px);
+  height:min(40vh,610px);
+  transform:translate(-50%,-50%);
+  border-top:clamp(7px,1vw,14px) solid rgba(255,245,156,.72);
+  border-bottom:clamp(7px,1vw,14px) solid rgba(255,245,156,.72);
+  box-shadow:0 0 34px rgba(255,219,71,.32);
+}
+.fx-status-finale.hold::after{
+  left:50%;
+  top:50%;
+  width:clamp(22px,2.6vw,42px);
+  height:clamp(22px,2.6vw,42px);
+  transform:translate(-50%,-50%) rotate(45deg);
+  border:clamp(5px,.7vw,10px) solid rgba(255,255,255,.94);
+  background:rgba(255,220,78,.36);
+  box-shadow:0 0 28px rgba(255,220,78,.72);
+}
+.fx-status-finale.hold .fx-finale-lock{
+  position:fixed;
+  display:block;
+  width:clamp(54px,8vw,112px);
+  border:clamp(6px,.8vw,12px) solid rgba(255,245,153,.94);
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(255,235,114,.92) 0 16px,
+      rgba(91,65,3,.92) 16px 32px);
+  box-shadow:
+    inset 0 0 0 5px rgba(255,255,255,.12),
+    0 0 28px rgba(255,209,51,.54);
+  will-change:transform,opacity;
+}
+.fx-status-finale.hold .fx-finale-lock.left{border-radius:0 24px 24px 0}
+.fx-status-finale.hold .fx-finale-lock.right{border-radius:24px 0 0 24px}
+
+/* CANCEL: the number's world fractures, debris leaves, and an empty center remains. */
+.fx-status-finale.cancel::before{
+  inset:-8%;
+  background:
+    linear-gradient(18deg,transparent 0 49.15%,rgba(245,253,255,.96) 49.3% 49.62%,transparent 49.8%),
+    linear-gradient(73deg,transparent 0 49.2%,rgba(225,247,255,.9) 49.36% 49.64%,transparent 49.8%),
+    linear-gradient(126deg,transparent 0 49.18%,rgba(245,253,255,.92) 49.34% 49.68%,transparent 49.84%),
+    linear-gradient(161deg,transparent 0 49.16%,rgba(199,232,241,.82) 49.32% 49.61%,transparent 49.78%),
+    linear-gradient(214deg,transparent 0 49.14%,rgba(245,253,255,.86) 49.3% 49.58%,transparent 49.76%);
+  filter:drop-shadow(0 0 5px rgba(255,255,255,.72));
+}
+.fx-status-finale.cancel::after{
+  left:50%;
+  top:50%;
+  width:min(42vw,460px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,
+      rgba(4,10,14,.98) 0 22%,
+      rgba(19,34,43,.94) 23% 34%,
+      rgba(176,218,230,.36) 36% 43%,
+      transparent 45%);
+  box-shadow:0 0 74px rgba(210,241,250,.28);
+}
+.fx-status-finale.cancel .fx-finale-piece{
+  position:fixed;
+  display:block;
+  pointer-events:none;
+  clip-path:polygon(7% 10%,96% 0,77% 48%,100% 86%,34% 100%,0 63%);
+  background:linear-gradient(145deg,#fff 0 15%,#c7e2e9 17% 52%,#607780 54% 100%);
+  border:2px solid rgba(248,253,255,.88);
+  box-shadow:0 5px 0 rgba(11,20,25,.28),0 0 12px rgba(220,246,255,.34);
+  will-change:transform,opacity;
+}
+:root[data-board-quality="low"] .fx-status-finale,
+:root[data-board-quality="low"] .fx-status-finale::before,
+:root[data-board-quality="low"] .fx-status-finale::after,
+:root[data-board-quality="low"] .fx-status-finale *{
+  box-shadow:none!important;
+  filter:none!important;
+}
+@media (prefers-reduced-motion: reduce){
+  .fx-status-finale{
+    transform:none!important;
+  }
+}
+
 /* SPECIAL statuses: no character actors. The reception number itself is the star. */
 .fx-special-number{
   position:fixed;
