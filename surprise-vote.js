@@ -1332,6 +1332,28 @@
     show('result');
   }
 
+  function formatUpcomingDate_(dateValue) {
+    const match = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return '';
+
+    const d = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+
+    const weekday = ['日','月','火','水','木','金','土'][d.getDay()];
+
+    return (
+      Number(match[2]) +
+      '/' +
+      Number(match[3]) +
+      '（' +
+      weekday +
+      '）'
+    );
+  }
+
   function updateUpcomingState() {
     if (state.mode !== 'idle' || !state.event?.vote_start) return;
 
@@ -1362,15 +1384,24 @@
       String(minutes).padStart(2, '0') + ':' +
       String(seconds).padStart(2, '0');
 
+    const prefix =
+      String(els.idleText.dataset.upcomingPrefix || '');
+
     els.idleText.textContent =
+      prefix +
       '投票は ' +
       new Date(start).toLocaleTimeString('ja-JP', {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'Asia/Tokyo'
       }) +
-      ' から！\n開始まで ' +
-      clock;
+      ' から！\n' +
+      '開始まで ' +
+      clock +
+      '\n\n' +
+      '100 ASOBooNを、やってみたいイベントに自由に投票！\n' +
+      '好きな1つに全部入れても、いくつかに分けてもOK。\n' +
+      'みんなの投票でサプライズイベントが決まります。';
   }
 
   function applyStatus(data, initial = false) {
@@ -1410,9 +1441,15 @@
     }
 
     if (data.mode === 'upcoming' && data.event) {
+      const dateText = formatUpcomingDate_(data.event.date);
       els.idleTitle.textContent =
+        '次回のサプライズ投票';
+
+      els.idleText.dataset.upcomingPrefix =
+        (dateText ? dateText + ' ' : '') +
         String(data.event.event_time || '') +
-        ' サプライズイベント';
+        ' 開催\n';
+
       show('idle');
       updateUpcomingState();
       return;
@@ -1420,15 +1457,21 @@
 
     if (data.mode === 'configuration_error') {
       els.idleTitle.textContent = 'イベント情報を準備しています';
+      els.idleText.dataset.upcomingPrefix = '';
       els.idleText.textContent =
         'ただいまスタッフが確認中です。少し時間をおいて、もう一度ご確認ください。';
       show('idle');
       return;
     }
 
-    els.idleTitle.textContent = '現在、投票はありません';
+    els.idleTitle.textContent = 'サプライズ投票';
+    els.idleText.dataset.upcomingPrefix = '';
     els.idleText.textContent =
-      '開催中の投票がある時間に、館内HOMEからお入りください。';
+      '現在、受付中の投票はありません。\n\n' +
+      '100 ASOBooNを、やってみたいイベントに自由に投票！\n' +
+      '好きな1つに全部入れても、いくつかに分けてもOK。\n' +
+      'みんなの投票でサプライズイベントが決まります。\n\n' +
+      '次回の開催をお楽しみに！';
     show('idle');
   }
 
