@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>今日のイベント投票｜ASOBooN</title>
   <meta name="description" content="100 ASOBooNを好きなイベントに投票しよう！">
-  <link rel="stylesheet" href="./surprise-vote.css?v=20260928-10">
-  <script src="./surprise-vote-config.js?v=20260928-10"></script>
-  <script src="./surprise-vote.js?v=20260928-10" defer></script>
+  <link rel="stylesheet" href="./surprise-vote.css?v=20260928-12">
+  <script src="./surprise-vote-config.js?v=20260928-12"></script>
+  <script src="./surprise-vote.js?v=20260928-12" defer></script>
 </head>
 <body>
   <main class="app">
@@ -138,8 +138,9 @@
     <div class="completion-card" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
       <div class="max">100</div>
       <h2 id="completionTitle">ASOBooN 投票完了！</h2>
-      <p id="completionText">100 ASOBooNをすべて投票しました！</p>
-      <button type="button" id="completionClose">投票結果を見る</button>
+      <p id="completionText">あなたの100 ASOBooN</p>
+      <div class="completion-summary" id="completionSummary" aria-label="あなたの投票内訳"></div>
+      <button type="button" id="completionClose">みんなの現在の結果を見る</button>
     </div>
   </div>
 </body>
