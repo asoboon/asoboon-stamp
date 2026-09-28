@@ -5977,6 +5977,18 @@
           name = "events";
         }
 
+        if (name === "events") {
+          const liffId =
+            window.ASOBOON_APP_CONFIG?.liffId ||
+            "2009888671-57TOefc3";
+          const target =
+            "https://miniapp.line.me/" +
+            encodeURIComponent(liffId) +
+            "/event-info.html?v=20260928-13";
+          top.location.href = target;
+          return;
+        }
+
         if (name === "call") {
           const callUrl =
             window.ASOBOON_CONFIG?.callStatusUrl ||
@@ -5993,7 +6005,7 @@
           const target =
             "https://miniapp.line.me/" +
             encodeURIComponent(liffId) +
-            "/surprise-vote.html?v=20260928-12";
+            "/surprise-vote.html?v=20260928-13";
           top.location.href = target;
           return;
         }
