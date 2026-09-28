@@ -1293,18 +1293,38 @@ function setupSurpriseEventSheet_(sheet) {
 
   const existingRules = sheet.getConditionalFormatRules();
 
-  const conflictRule = SpreadsheetApp
-    .newConditionalFormatRule()
-    .whenFormulaSatisfied(conflictFormula)
-    .setBackground('#ffe0dc')
-    .setFontColor('#9b1c1c')
-    .setRanges([sheet.getRange('A2:S1000')])
-    .build();
+  const hasConflictRule = existingRules.some(rule => {
+    try {
+      const condition = rule.getBooleanCondition();
+      if (!condition) return false;
 
-  sheet.setConditionalFormatRules([
-    ...existingRules,
-    conflictRule
-  ]);
+      const type = String(condition.getCriteriaType() || '');
+      const values = condition.getCriteriaValues() || [];
+      const formula = String(values[0] || '');
+
+      return (
+        type.indexOf('CUSTOM_FORMULA') >= 0 &&
+        formula === conflictFormula
+      );
+    } catch (_) {
+      return false;
+    }
+  });
+
+  if (!hasConflictRule) {
+    const conflictRule = SpreadsheetApp
+      .newConditionalFormatRule()
+      .whenFormulaSatisfied(conflictFormula)
+      .setBackground('#ffe0dc')
+      .setFontColor('#9b1c1c')
+      .setRanges([sheet.getRange('A2:S1000')])
+      .build();
+
+    sheet.setConditionalFormatRules([
+      ...existingRules,
+      conflictRule
+    ]);
+  }
 
   sheet.setColumnWidth(1, 105);
   sheet.setColumnWidth(2, 90);
