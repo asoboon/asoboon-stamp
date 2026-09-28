@@ -124,7 +124,22 @@
       const showStampHome =
         readRouteParam("stamp") === "home";
 
-      if (!spot && !showStampHome) {
+      // LIFF追加パスで開く旧HOME内のサブページを、
+      // スタンプ以外という理由でhome.htmlへ戻さない。
+      const rawLiffState =
+        decodeRepeatedly(
+          directParams.get("liff.state") || ""
+        );
+
+      const isSurpriseVoteRoute =
+        /(?:^|\/)surprise-vote\.html(?:[?#]|$)/i
+          .test(rawLiffState);
+
+      if (
+        !spot &&
+        !showStampHome &&
+        !isSurpriseVoteRoute
+      ) {
         location.replace(
           new URL(
             "./home.html",
