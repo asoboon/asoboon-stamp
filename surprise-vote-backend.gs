@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.1.0',
+  VERSION: '2.2.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -436,17 +436,109 @@ function findCurrentSurpriseEvent_(now) {
 function findNextSurpriseEvent_(now) {
   if (isAfterSurpriseDailyReset_(now)) return null;
 
-  return loadSurpriseEvents_(now)
+  const todayUpcoming = loadSurpriseEvents_(now)
+    .filter(event => event.enabled && !event.cancelled)
+    .filter(event => event.options.length >= 2)
+    .filter(event => event.start > now)
+    .sort((a, b) => a.start - b.start)[0];
+
+  if (todayUpcoming) return todayUpcoming;
+
+  return loadFutureSurpriseEvents_(now)
     .filter(event => event.enabled && !event.cancelled)
     .filter(event => event.options.length >= 2)
     .filter(event => event.start > now)
     .sort((a, b) => a.start - b.start)[0] || null;
 }
 
+function loadFutureSurpriseEvents_(now) {
+  const cache = CacheService.getScriptCache();
+  const today = Utilities.formatDate(
+    now,
+    SURPRISE_VOTE.TIMEZONE,
+    'yyyy-MM-dd'
+  );
+  const cacheKey = 'surprise:v2:future:' + today;
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) {
+        return parsed.map(definition =>
+          buildSurpriseEventFromDefinition_(definition, now)
+        );
+      }
+    } catch (_) {}
+  }
+
+  const sheet = getSurpriseSpreadsheet_()
+    .getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
+
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const values = sheet
+    .getRange(1, 1, sheet.getLastRow(), SURPRISE_EVENT_HEADERS.length)
+    .getValues();
+
+  const headers = values.shift();
+  const definitions = [];
+
+  values.forEach((row, index) => {
+    const object = {};
+    headers.forEach((header, column) => {
+      object[String(header)] = row[column];
+    });
+
+    const date = normalizeSurpriseDate_(object['開催日']);
+    if (!date || date <= today) return;
+
+    const definition = buildSurpriseDefinitionFromObject_(
+      object,
+      index + 2,
+      date
+    );
+
+    if (definition) {
+      definitions.push(definition);
+    }
+  });
+
+  definitions.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.eventTime.localeCompare(b.eventTime);
+  });
+
+  try {
+    cache.put(
+      cacheKey,
+      JSON.stringify(definitions),
+      SURPRISE_VOTE.EVENT_CACHE_SECONDS
+    );
+  } catch (_) {}
+
+  return definitions.map(definition =>
+    buildSurpriseEventFromDefinition_(definition, now)
+  );
+}
+
 function findSurpriseOverlapForEvent_(target, now) {
   if (!target) return null;
 
-  const events = loadSurpriseEvents_(now)
+  const today = Utilities.formatDate(
+    now,
+    SURPRISE_VOTE.TIMEZONE,
+    'yyyy-MM-dd'
+  );
+
+  const events = (
+    target.date === today
+      ? loadSurpriseEvents_(now)
+      : loadSurpriseEventDefinitions_(target.date)
+          .map(definition =>
+            buildSurpriseEventFromDefinition_(definition, now)
+          )
+  )
     .filter(event => event.enabled && !event.cancelled)
     .filter(event => event.options.length >= 2)
     .filter(event => event.id !== target.id);
@@ -484,36 +576,43 @@ function loadSurpriseEvents_(now) {
     'yyyy-MM-dd'
   );
 
-  return loadSurpriseEventDefinitions_(today).map(definition => {
-    const schedule = SURPRISE_SCHEDULES[definition.eventTime];
-    const start = parseSurpriseDateTime_(definition.date, schedule.start);
-    const end = parseSurpriseDateTime_(definition.date, schedule.end);
-    const settleEnd = new Date(
-      end.getTime() + SURPRISE_VOTE.SETTLE_SECONDS * 1000
-    );
-    const resultEnd = parseSurpriseDateTime_(
-      definition.date,
-      schedule.resultEnd
-    );
+  return loadSurpriseEventDefinitions_(today)
+    .map(definition =>
+      buildSurpriseEventFromDefinition_(definition, now)
+    )
+    .sort((a, b) => a.start - b.start);
+}
 
-    let phase = 'idle';
-    if (now >= start && now < end) {
-      phase = 'voting';
-    } else if (now >= end && now < settleEnd) {
-      phase = 'settling';
-    } else if (now >= settleEnd && now < resultEnd) {
-      phase = 'result';
-    }
+function buildSurpriseEventFromDefinition_(definition, now) {
+  const schedule = SURPRISE_SCHEDULES[definition.eventTime];
+  const start = parseSurpriseDateTime_(definition.date, schedule.start);
+  const end = parseSurpriseDateTime_(definition.date, schedule.end);
+  const settleEnd = new Date(
+    end.getTime() + SURPRISE_VOTE.SETTLE_SECONDS * 1000
+  );
+  const resultEnd = parseSurpriseDateTime_(
+    definition.date,
+    schedule.resultEnd
+  );
 
-    return {
-      ...definition,
-      start: start,
-      end: end,
-      settleEnd: settleEnd,
-      resultEnd: resultEnd,
-      phase: phase
-    };
-  }).sort((a, b) => a.start - b.start);
+  let phase = 'idle';
+
+  if (now >= start && now < end) {
+    phase = 'voting';
+  } else if (now >= end && now < settleEnd) {
+    phase = 'settling';
+  } else if (now >= settleEnd && now < resultEnd) {
+    phase = 'result';
+  }
+
+  return {
+    ...definition,
+    start: start,
+    end: end,
+    settleEnd: settleEnd,
+    resultEnd: resultEnd,
+    phase: phase
+  };
 }
 
 function loadSurpriseEventDefinitions_(today) {
@@ -549,35 +648,15 @@ function loadSurpriseEventDefinitions_(today) {
     const date = normalizeSurpriseDate_(object['開催日']);
     if (!date || date !== today) return;
 
-    const eventTime = normalizeSurpriseTime_(object['開催時刻']);
-    if (!SURPRISE_SCHEDULES[eventTime]) return;
+    const definition = buildSurpriseDefinitionFromObject_(
+      object,
+      index + 2,
+      date
+    );
 
-    const options = [];
-    const seenOptionNames = new Set();
-
-    for (let i = 1; i <= 10; i += 1) {
-      const name = String(object['候補' + i] || '').trim();
-      if (!name || seenOptionNames.has(name)) continue;
-
-      seenOptionNames.add(name);
-      options.push({
-        id: 'c' + i,
-        name: name
-      });
+    if (definition) {
+      definitions.push(definition);
     }
-
-    definitions.push({
-      id: date.replace(/-/g, '') + '-' + eventTime.replace(':', ''),
-      row: index + 2,
-      date: date,
-      eventTime: eventTime,
-      enabled: isSurpriseOn_(object['開催']),
-      cancelled: isSurpriseOn_(object['中止']),
-      override: String(object['結果上書き'] || '').trim(),
-      autoWinner: String(object['自動確定候補'] || '').trim(),
-      decisionType: String(object['確定種別'] || '').trim(),
-      options: options
-    });
   });
 
   try {
@@ -589,6 +668,38 @@ function loadSurpriseEventDefinitions_(today) {
   } catch (_) {}
 
   return definitions;
+}
+
+function buildSurpriseDefinitionFromObject_(object, row, date) {
+  const eventTime = normalizeSurpriseTime_(object['開催時刻']);
+  if (!SURPRISE_SCHEDULES[eventTime]) return null;
+
+  const options = [];
+  const seenOptionNames = new Set();
+
+  for (let i = 1; i <= 10; i += 1) {
+    const name = String(object['候補' + i] || '').trim();
+    if (!name || seenOptionNames.has(name)) continue;
+
+    seenOptionNames.add(name);
+    options.push({
+      id: 'c' + i,
+      name: name
+    });
+  }
+
+  return {
+    id: date.replace(/-/g, '') + '-' + eventTime.replace(':', ''),
+    row: row,
+    date: date,
+    eventTime: eventTime,
+    enabled: isSurpriseOn_(object['開催']),
+    cancelled: isSurpriseOn_(object['中止']),
+    override: String(object['結果上書き'] || '').trim(),
+    autoWinner: String(object['自動確定候補'] || '').trim(),
+    decisionType: String(object['確定種別'] || '').trim(),
+    options: options
+  };
 }
 
 function publicUpcomingSurpriseEvent_(event) {
@@ -1121,6 +1232,7 @@ function onEdit(e) {
     );
 
     cache.remove('surprise:v2:events:' + today);
+    cache.remove('surprise:v2:future:' + today);
 
     const rowDate = normalizeSurpriseDate_(
       sheet.getRange(e.range.getRow(), 1).getValue()
