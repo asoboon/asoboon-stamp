@@ -1336,13 +1336,13 @@
     const match = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) return '';
 
-    const d = new Date(
+    const d = new Date(Date.UTC(
       Number(match[1]),
       Number(match[2]) - 1,
       Number(match[3])
-    );
+    ));
 
-    const weekday = ['日','月','火','水','木','金','土'][d.getDay()];
+    const weekday = ['日','月','火','水','木','金','土'][d.getUTCDay()];
 
     return (
       Number(match[2]) +
