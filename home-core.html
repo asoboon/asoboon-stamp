@@ -5987,8 +5987,14 @@
         }
 
         if (name === "surpriseVote") {
-          const target = new URL("./surprise-vote.html?v=20260928-09", location.href);
-          top.location.href = target.toString();
+          const liffId =
+            window.ASOBOON_APP_CONFIG?.liffId ||
+            "2009888671-57TOefc3";
+          const target =
+            "https://miniapp.line.me/" +
+            encodeURIComponent(liffId) +
+            "/surprise-vote.html?v=20260928-10";
+          top.location.href = target;
           return;
         }
 
