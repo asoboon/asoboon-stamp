@@ -164,26 +164,42 @@ function apiSurpriseStatus_(params) {
     };
   }
 
-  const overlap = findSurpriseOverlap_(now);
-  if (overlap) {
-    return {
-      ok: true,
-      version: SURPRISE_VOTE.VERSION,
-      now: formatIso_(now),
-      mode: 'configuration_error',
-      event: null,
-      configuration_issue: 'OVERLAPPING_VOTE_WINDOWS',
-      message: 'イベント情報を準備しています。',
-      daily_reset: '18:00'
-    };
-  }
-
   const active = findCurrentSurpriseEvent_(now);
+
+  if (active) {
+    const overlap = findSurpriseOverlapForEvent_(active, now);
+    if (overlap) {
+      return {
+        ok: true,
+        version: SURPRISE_VOTE.VERSION,
+        now: formatIso_(now),
+        mode: 'configuration_error',
+        event: null,
+        configuration_issue: 'OVERLAPPING_VOTE_WINDOWS',
+        message: 'イベント情報を準備しています。',
+        daily_reset: '18:00'
+      };
+    }
+  }
 
   if (!active) {
     const upcoming = findNextSurpriseEvent_(now);
 
     if (upcoming) {
+      const overlap = findSurpriseOverlapForEvent_(upcoming, now);
+      if (overlap) {
+        return {
+          ok: true,
+          version: SURPRISE_VOTE.VERSION,
+          now: formatIso_(now),
+          mode: 'configuration_error',
+          event: null,
+          configuration_issue: 'OVERLAPPING_VOTE_WINDOWS',
+          message: 'イベント情報を準備しています。',
+          daily_reset: '18:00'
+        };
+      }
+
       return {
         ok: true,
         version: SURPRISE_VOTE.VERSION,
@@ -282,7 +298,13 @@ function apiSurpriseVote_(params) {
     };
   }
 
-  const overlap = findSurpriseOverlap_(now);
+  const event = findSurpriseEventById_(eventId, now);
+
+  if (!event) {
+    throw new Error('このイベントは見つかりません。');
+  }
+
+  const overlap = findSurpriseOverlapForEvent_(event, now);
   if (overlap) {
     return {
       ok: false,
@@ -291,12 +313,6 @@ function apiSurpriseVote_(params) {
       error: 'イベント情報を準備しています。',
       now: formatIso_(now)
     };
-  }
-
-  const event = findSurpriseEventById_(eventId, now);
-
-  if (!event) {
-    throw new Error('このイベントは見つかりません。');
   }
 
   if (!event.enabled || event.cancelled || event.options.length < 2) {
@@ -427,30 +443,29 @@ function findNextSurpriseEvent_(now) {
     .sort((a, b) => a.start - b.start)[0] || null;
 }
 
-function findSurpriseOverlap_(now) {
+function findSurpriseOverlapForEvent_(target, now) {
+  if (!target) return null;
+
   const events = loadSurpriseEvents_(now)
     .filter(event => event.enabled && !event.cancelled)
     .filter(event => event.options.length >= 2)
-    .sort((a, b) => a.start - b.start);
+    .filter(event => event.id !== target.id);
 
-  for (let i = 0; i < events.length; i += 1) {
-    for (let j = i + 1; j < events.length; j += 1) {
-      const a = events[i];
-      const b = events[j];
+  for (const other of events) {
+    const overlapStart = new Date(
+      Math.max(target.start.getTime(), other.start.getTime())
+    );
+    const overlapEnd = new Date(
+      Math.min(target.end.getTime(), other.end.getTime())
+    );
 
-      if (b.start >= a.end) break;
-
-      const overlapStart = new Date(Math.max(a.start.getTime(), b.start.getTime()));
-      const overlapEnd = new Date(Math.min(a.end.getTime(), b.end.getTime()));
-
-      if (overlapStart < overlapEnd) {
-        return {
-          first: a.id,
-          second: b.id,
-          overlapStart: overlapStart,
-          overlapEnd: overlapEnd
-        };
-      }
+    if (overlapStart < overlapEnd) {
+      return {
+        first: target.id,
+        second: other.id,
+        overlapStart: overlapStart,
+        overlapEnd: overlapEnd
+      };
     }
   }
 
@@ -1276,17 +1291,7 @@ function setupSurpriseEventSheet_(sheet) {
   const conflictFormula =
     '=AND($C2="ON",OR($B2="14:00",$B2="14:30"),COUNTIFS($A$2:$A$1000,$A2,$B$2:$B$1000,IF($B2="14:00","14:30","14:00"),$C$2:$C$1000,"ON")>0)';
 
-  const existingRules = sheet.getConditionalFormatRules()
-    .filter(rule => {
-      try {
-        const ranges = rule.getRanges();
-        return !ranges.some(range =>
-          range.getA1Notation() === 'A2:S1000'
-        );
-      } catch (_) {
-        return true;
-      }
-    });
+  const existingRules = sheet.getConditionalFormatRules();
 
   const conflictRule = SpreadsheetApp
     .newConditionalFormatRule()
