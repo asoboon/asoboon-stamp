@@ -1219,7 +1219,7 @@
     if (state.dirty) {
       savePending();
       setTimeout(() => {
-        syncNow(false).catch(() => {});
+        syncNow(data.mode === 'settling').catch(() => {});
       }, 120);
     } else {
       savePending();
@@ -1293,11 +1293,6 @@
           ? '最後の投票を保存しています…'
           : 'みんなの投票を集計しています…'
       );
-      if (state.dirty) {
-        setTimeout(() => {
-          syncNow(true).catch(() => {});
-        }, retryDelay());
-      }
       return;
     }
 
