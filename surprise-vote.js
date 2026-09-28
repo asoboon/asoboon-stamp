@@ -8,6 +8,8 @@
     HOME_URL: './home.html?mode=inside',
     POLL_INTERVAL_MIN_MS: 25000,
     POLL_INTERVAL_MAX_MS: 35000,
+    COMPLETED_POLL_INTERVAL_MIN_MS: 45000,
+    COMPLETED_POLL_INTERVAL_MAX_MS: 60000,
     SYNC_IDLE_MIN_MS: 1200,
     SYNC_IDLE_MAX_MS: 1800,
     SYNC_TAP_BATCH_MIN: 17,
@@ -69,6 +71,7 @@
     resultList: $('resultList'),
     completion: $('completion'),
     completionText: $('completionText'),
+    completionSummary: $('completionSummary'),
     completionClose: $('completionClose'),
     burst: $('burst'),
     milestone: $('milestone'),
@@ -99,6 +102,8 @@
     serverOffsetMs: 0,
     expired: false,
     completionShown: false,
+    rankVisible: false,
+    upcomingRefreshStarted: false,
     optionButtons: new Map()
   };
 
@@ -159,10 +164,18 @@
   }
 
   function pollDelay() {
-    return randomInt(
-      CFG.POLL_INTERVAL_MIN_MS || 25000,
-      CFG.POLL_INTERVAL_MAX_MS || 35000
-    );
+    const completed =
+      state.used >= Number(CFG.MAX_POINTS || 100);
+
+    return completed
+      ? randomInt(
+          CFG.COMPLETED_POLL_INTERVAL_MIN_MS || 45000,
+          CFG.COMPLETED_POLL_INTERVAL_MAX_MS || 60000
+        )
+      : randomInt(
+          CFG.POLL_INTERVAL_MIN_MS || 25000,
+          CFG.POLL_INTERVAL_MAX_MS || 35000
+        );
   }
 
   function retryDelay() {
@@ -304,25 +317,53 @@
     }, 760);
   }
 
+  function updatePowerStage() {
+    const used = Math.max(0, Number(state.used || 0));
+    let stage = '0';
+
+    if (used >= 100) stage = '100';
+    else if (used >= 90) stage = '90';
+    else if (used >= 75) stage = '75';
+    else if (used >= 50) stage = '50';
+    else if (used >= 25) stage = '25';
+
+    document.body.dataset.voteStage = stage;
+  }
+
+  function flashPowerStage(stage) {
+    if (reduced) return;
+    const app = document.querySelector('.app');
+    if (!app) return;
+
+    app.classList.remove('power-stage-hit');
+    app.dataset.powerHit = String(stage);
+    void app.offsetWidth;
+    app.classList.add('power-stage-hit');
+
+    setTimeout(() => {
+      app.classList.remove('power-stage-hit');
+    }, 900);
+  }
+
   function milestoneAfterTap() {
-    if ([10, 30, 50, 75].includes(state.combo)) {
-      const text =
-        state.combo === 50
-          ? '🔥 50 COMBO FEVER!'
-          : state.combo + ' COMBO!';
-      showMilestone(text);
-      vibrate(state.combo >= 50 ? [18, 18, 32] : [13, 15, 18]);
+    updatePowerStage();
+
+    if ([25, 50, 75, 90, 100].includes(state.used)) {
+      flashPowerStage(state.used);
+
+      if (state.used === 100) {
+        vibrate([30, 25, 55, 30, 95]);
+      } else if (state.used >= 75) {
+        vibrate([20, 18, 40]);
+      } else {
+        vibrate([14, 14, 24]);
+      }
     }
 
-    if (state.used === 90) {
-      showMilestone('あと10 ASOBooN！');
-      vibrate([18, 18, 30]);
-    } else if (state.used === 95) {
+    if (state.used === 95) {
       showMilestone('あと5！');
-      vibrate([18, 18, 35]);
     } else if (state.used === 99) {
       showMilestone('あと1！');
-      vibrate([22, 20, 42]);
     }
   }
 
@@ -625,7 +666,9 @@
 
     const rank = document.createElement('span');
     rank.className = 'candidate-rank';
-    rank.textContent = (ranks[option.id] || '-') + '位';
+    rank.textContent = state.rankVisible
+      ? (ranks[option.id] || '-') + '位'
+      : '？';
 
     const mine = document.createElement('span');
     mine.className = 'candidate-mine';
@@ -636,10 +679,11 @@
 
     const total = document.createElement('span');
     total.className = 'candidate-total';
-    total.textContent =
-      'みんな：' +
-      fmt(state.localTotals[option.id] || 0) +
-      ' ASOBooN';
+    total.textContent = state.rankVisible
+      ? 'みんな：' +
+        fmt(state.localTotals[option.id] || 0) +
+        ' ASOBooN'
+      : '100 ASOBooNを使い切ると公開';
 
     button.append(name, rank, mine, total);
     button.addEventListener('click', () => {
@@ -680,24 +724,38 @@
         state.selected === option.id
       );
 
-      refs.rank.textContent =
-        (ranks[option.id] || '-') + '位';
+      refs.rank.textContent = state.rankVisible
+        ? (ranks[option.id] || '-') + '位'
+        : '？';
+
+      refs.button.classList.toggle(
+        'rank-locked',
+        !state.rankVisible
+      );
 
       refs.mine.textContent =
         'あなた：' +
         fmt(state.alloc[option.id] || 0) +
         ' ASOBooN';
 
-      refs.total.textContent =
-        'みんな：' +
-        fmt(state.localTotals[option.id] || 0) +
-        ' ASOBooN';
+      refs.total.textContent = state.rankVisible
+        ? 'みんな：' +
+          fmt(state.localTotals[option.id] || 0) +
+          ' ASOBooN'
+        : '100 ASOBooNを使い切ると公開';
     });
 
     renderRace(ranks);
   }
 
   function renderRace(ranks = rankMap()) {
+    if (!state.rankVisible) {
+      els.race.innerHTML =
+        '<strong>まずは自分の100 ASOBooNを選ぼう！</strong>' +
+        '<span>みんなの順位は100 ASOBooNを使い切ると公開</span>';
+      return;
+    }
+
     const options = optionsFromEvent()
       .map(option => ({
         ...option,
@@ -759,6 +817,7 @@
 
     els.comboValue.textContent = state.combo;
     els.combo.classList.toggle('is-fever', state.combo >= 50);
+    updatePowerStage();
 
     const current = optionsFromEvent().find(
       option => option.id === state.selected
@@ -1157,6 +1216,9 @@
   function applyVotingStatus(data, initial = false) {
     state.event = data.event;
     state.expired = false;
+    state.rankVisible =
+      data.rank_visible === true ||
+      Number(data.user?.used || 0) >= Number(CFG.MAX_POINTS || 100);
 
     const serverAlloc =
       copyAlloc(data.user?.allocations || {});
@@ -1270,6 +1332,47 @@
     show('result');
   }
 
+  function updateUpcomingState() {
+    if (state.mode !== 'idle' || !state.event?.vote_start) return;
+
+    const start = Date.parse(state.event.vote_start);
+    if (!Number.isFinite(start)) return;
+
+    const remainingMs = start - serverNowMs();
+
+    if (remainingMs <= 0) {
+      if (!state.upcomingRefreshStarted) {
+        state.upcomingRefreshStarted = true;
+        setTimeout(() => {
+          refreshStatus(true).finally(() => {
+            state.upcomingRefreshStarted = false;
+          });
+        }, 250);
+      }
+      return;
+    }
+
+    const totalSec = Math.ceil(remainingMs / 1000);
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+
+    const clock =
+      (hours > 0 ? String(hours).padStart(2, '0') + ':' : '') +
+      String(minutes).padStart(2, '0') + ':' +
+      String(seconds).padStart(2, '0');
+
+    els.idleText.textContent =
+      '投票は ' +
+      new Date(start).toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Tokyo'
+      }) +
+      ' から！\n開始まで ' +
+      clock;
+  }
+
   function applyStatus(data, initial = false) {
     updateServerClock(data);
 
@@ -1299,9 +1402,27 @@
     state.event = data.event || null;
     state.expired = true;
     state.selected = '';
+    state.rankVisible = false;
 
     if (data.mode === 'result' && data.event) {
       renderResult(data);
+      return;
+    }
+
+    if (data.mode === 'upcoming' && data.event) {
+      els.idleTitle.textContent =
+        String(data.event.event_time || '') +
+        ' サプライズイベント';
+      show('idle');
+      updateUpcomingState();
+      return;
+    }
+
+    if (data.mode === 'configuration_error') {
+      els.idleTitle.textContent = 'イベント情報を準備しています';
+      els.idleText.textContent =
+        'ただいまスタッフが確認中です。少し時間をおいて、もう一度ご確認ください。';
+      show('idle');
       return;
     }
 
@@ -1367,7 +1488,32 @@
     state.completionShown = true;
 
     els.completionText.textContent =
-      '100 ASOBooNをすべて投票しました！';
+      'あなたの100 ASOBooN';
+
+    if (els.completionSummary) {
+      els.completionSummary.textContent = '';
+
+      optionsFromEvent()
+        .map(option => ({
+          name: option.name,
+          mine: Number(state.alloc[option.id] || 0)
+        }))
+        .filter(item => item.mine > 0)
+        .sort((a, b) => b.mine - a.mine)
+        .forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'completion-summary-row';
+
+          const name = document.createElement('span');
+          name.textContent = item.name;
+
+          const value = document.createElement('strong');
+          value.textContent = fmt(item.mine);
+
+          row.append(name, value);
+          els.completionSummary.appendChild(row);
+        });
+    }
 
     if (!reduced) burst();
 
@@ -1376,9 +1522,14 @@
     vibrate([30, 35, 60, 40, 110]);
   }
 
-  function hideCompletion() {
+  async function hideCompletion() {
     els.completion.classList.remove('show');
     els.completion.setAttribute('aria-hidden', 'true');
+
+    try {
+      await refreshStatus(true);
+    } catch (_) {}
+
     renderVote(false);
 
     window.scrollTo({
@@ -1441,7 +1592,10 @@
 
   function startTimers() {
     clearInterval(state.countdownTimer);
-    state.countdownTimer = setInterval(updateCountdown, 250);
+    state.countdownTimer = setInterval(() => {
+      updateCountdown();
+      updateUpcomingState();
+    }, 250);
 
     scheduleNextPoll();
 
@@ -1476,6 +1630,7 @@
         state.selected = '';
         state.expired = false;
         state.completionShown = false;
+        state.rankVisible = false;
 
         els.completion.classList.remove('show');
         els.completion.setAttribute('aria-hidden', 'true');
@@ -1599,6 +1754,7 @@
         max_points: 100,
         options
       },
+      rank_visible: used >= Number(CFG.MAX_POINTS || 100),
       user: {
         used,
         remaining:
