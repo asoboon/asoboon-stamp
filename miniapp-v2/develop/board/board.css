@@ -970,16 +970,7 @@ body{
   border-bottom:clamp(7px,1vw,14px) solid rgba(255,245,156,.72);
   box-shadow:0 0 34px rgba(255,219,71,.32);
 }
-.fx-status-finale.hold::after{
-  left:50%;
-  top:50%;
-  width:clamp(22px,2.6vw,42px);
-  height:clamp(22px,2.6vw,42px);
-  transform:translate(-50%,-50%) rotate(45deg);
-  border:clamp(5px,.7vw,10px) solid rgba(255,255,255,.94);
-  background:rgba(255,220,78,.36);
-  box-shadow:0 0 28px rgba(255,220,78,.72);
-}
+.fx-status-finale.hold::after{display:none}
 .fx-status-finale.hold .fx-finale-pin{
   position:fixed;
   display:block;
