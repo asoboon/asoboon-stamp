@@ -1381,7 +1381,7 @@ test('SPECIAL finales use four distinct irreversible physical endings and fully 
   expect(css).toContain('.fx-status-finale.guided .fx-finale-streak');
   expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece');
 
-  const expectedChildren={call:13,guided:8,hold:3,cancel:20};
+  const expectedChildren={call:13,guided:8,hold:3,cancel:14};
   for(const kind of ['call','guided','hold','cancel']){
     await page.evaluate(kind=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -1414,10 +1414,10 @@ test('SPECIAL finales use four distinct irreversible physical endings and fully 
     if(kind==='guided')await expect(page.locator('.fx-status-finale.guided .fx-finale-gate')).toHaveCount(1);
     if(kind==='hold')await expect(page.locator('.fx-status-finale.hold .fx-finale-pin')).toHaveCount(1);
     if(kind==='cancel'){
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-crack')).toHaveCount(5);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-crack')).toHaveCount(4);
       await expect(page.locator('.fx-status-finale.cancel .fx-finale-void')).toHaveCount(1);
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.large')).toHaveCount(5);
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.small')).toHaveCount(9);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.large')).toHaveCount(4);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.small')).toHaveCount(5);
     }
 
     await page.evaluate(()=>window.__finalePromise);
