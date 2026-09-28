@@ -1363,7 +1363,7 @@ test('SPECIAL overlay effects focus on the giant-number stage rather than the so
 });
 
 test('SPECIAL finales use four distinct irreversible physical endings and fully clean up', async ({ page }) => {
-  test.setTimeout(20000);
+  test.setTimeout(30000);
   await installBoard(page,[payload([{number:'8633',state:'waiting',order:1}])]);
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
@@ -1385,7 +1385,7 @@ test('SPECIAL finales use four distinct irreversible physical endings and fully 
   for(const kind of ['call','guided','hold','cancel']){
     await page.evaluate(kind=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
-      fx.setSlowdown(0.08,{persistValue:false});
+      fx.setSlowdown(0.35,{persistValue:false});
       const card=document.querySelector('#queueGrid .queue-card');
       window.__finalePromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
         number:'8633',kind,fromStatus:'waiting',
