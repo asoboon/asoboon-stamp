@@ -525,7 +525,20 @@ function loadFutureSurpriseEvents_(now) {
 function findSurpriseOverlapForEvent_(target, now) {
   if (!target) return null;
 
-  const events = loadSurpriseEvents_(now)
+  const today = Utilities.formatDate(
+    now,
+    SURPRISE_VOTE.TIMEZONE,
+    'yyyy-MM-dd'
+  );
+
+  const events = (
+    target.date === today
+      ? loadSurpriseEvents_(now)
+      : loadSurpriseEventDefinitions_(target.date)
+          .map(definition =>
+            buildSurpriseEventFromDefinition_(definition, now)
+          )
+  )
     .filter(event => event.enabled && !event.cancelled)
     .filter(event => event.options.length >= 2)
     .filter(event => event.id !== target.id);
