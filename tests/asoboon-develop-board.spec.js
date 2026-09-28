@@ -147,11 +147,11 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260927-special-focus-v4-1');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260927-special-focus-v4-1'");
+  expect(buildFile.version).toBe('20260928-readable-hold-v5');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-readable-hold-v5'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=28');
-  expect(indexHtml).toContain('board.js?v=26');
+  expect(indexHtml).toContain('board-animations.js?v=29');
+  expect(indexHtml).toContain('board.js?v=27');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -523,7 +523,7 @@ test('special status effects stay inside the 10-second refresh budget', async ({
   const d = await diagnostics(page);
   expect(d.statusTimingMode).toBe('wall-clock');
   expect(d.maxSpecialDurationMs).toBeLessThan(10000);
-  expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(2000);
+  expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(4500);
   expect(d.queueLimit).toBeLessThanOrEqual(8);
   expect(d.statusBatchBudgetMs).toBeLessThan(10000);
   expect(d.maxEstimatedStatusRuntimeMs).toBeLessThan(d.statusBatchBudgetMs);
@@ -531,11 +531,25 @@ test('special status effects stay inside the 10-second refresh budget', async ({
   const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   expect(status).toContain("rawTiming:true");
-  expect(status).toContain("call:Object.freeze({low:1500,high:4600})");
-  expect(status).toContain("guided:Object.freeze({low:1400,high:4200})");
-  expect(status).toContain("cancel:Object.freeze({low:1700,high:5200})");
+  expect(status).toContain("call:Object.freeze({low:3800,high:5800})");
+  expect(status).toContain("guided:Object.freeze({low:3600,high:5700})");
+  expect(status).toContain("cancel:Object.freeze({low:4200,high:6200})");
   expect(status).toContain("translate3d(0,0,0) scale(.985)");
   expect(css).toMatch(/\.fx-pachinko-burst\{[\s\S]*?inset:0;/);
+});
+
+test('SPECIAL timing prioritizes a long readable number hold before state-specific exit', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  expect(code).toContain("call:Object.freeze({low:3800,high:5800})");
+  expect(code).toContain("guided:Object.freeze({low:3600,high:5700})");
+  expect(code).toContain("hold:Object.freeze({low:4000,high:6000})");
+  expect(code).toContain("cancel:Object.freeze({low:4200,high:6200})");
+  expect(code).toContain("offset:.77");
+  expect(code).toContain("offset:.90");
+  expect(code).toContain("offset:.78");
+  expect(code).toContain("waitMs(lvl<=1?2800:4700");
+  expect(code).toContain("maxSpecialDurationMs:6200");
+  expect(code).toContain("maxReducedSpecialDurationMs:4200");
 });
 
 test('animation controls support OFF through level 3 and rare effects toggle', async ({ page }) => {
@@ -1274,10 +1288,10 @@ test('real status effects are silent full-screen number specials with long hold 
     expect(code).toContain(`runParticles('${kind}'`);
     expect(code).toContain(`pachinkoBurst('${kind}'`);
   }
-  expect(code).toContain("call:Object.freeze({low:1500,high:4600})");
-  expect(code).toContain("guided:Object.freeze({low:1400,high:4200})");
-  expect(code).toContain("hold:Object.freeze({low:1600,high:4800})");
-  expect(code).toContain("cancel:Object.freeze({low:1700,high:5200})");
+  expect(code).toContain("call:Object.freeze({low:3800,high:5800})");
+  expect(code).toContain("guided:Object.freeze({low:3600,high:5700})");
+  expect(code).toContain("hold:Object.freeze({low:4000,high:6000})");
+  expect(code).toContain("cancel:Object.freeze({low:4200,high:6200})");
   expect(code).not.toContain('onomatopoeia(');
   expect(code).not.toContain('specialTextRect(');
   expect(code).not.toContain('fx-special-number-kicker');
@@ -1383,7 +1397,7 @@ test('CALL takes over the screen with a huge number that stays readable', async 
     };
   });
   expect(live.number).toBe('8634');
-  expect(live.duration).toBe(4600);
+  expect(live.duration).toBe(5800);
   expect(live.childCount).toBe(1);
   expect(live.fontSize).toBeGreaterThan(240);
   expect(live.valueHeight).toBeGreaterThan(180);
@@ -1394,7 +1408,7 @@ test('CALL takes over the screen with a huge number that stays readable', async 
   expect(Math.abs(live.burstX-live.viewportX)).toBeLessThan(2);
   expect(Math.abs(live.burstY-live.viewportY)).toBeLessThan(2);
 
-  // At 0.35 test slowdown the 4.6s takeover lasts ~1.6s; it must still be visible well after impact.
+  // At 0.35 test slowdown the 5.8s takeover lasts ~2.0s; it must still be visible well after impact.
   await page.waitForTimeout(650);
   await expect(page.locator('.fx-special-number.call')).toHaveCount(1);
 
