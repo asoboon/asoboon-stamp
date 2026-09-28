@@ -6,9 +6,18 @@
     API_URL: '',
     LIFF_ID: '2009888671-57TOefc3',
     HOME_URL: './home.html?mode=inside',
-    POLL_INTERVAL_MS: 8000,
-    SYNC_IDLE_MS: 650,
-    SYNC_TAP_BATCH: 8,
+    POLL_INTERVAL_MIN_MS: 25000,
+    POLL_INTERVAL_MAX_MS: 35000,
+    SYNC_IDLE_MIN_MS: 1200,
+    SYNC_IDLE_MAX_MS: 1800,
+    SYNC_TAP_BATCH_MIN: 17,
+    SYNC_TAP_BATCH_MAX: 23,
+    RETRY_MIN_MS: 500,
+    RETRY_MAX_MS: 2000,
+    RESUME_REFRESH_STALE_MS: 10000,
+    INITIAL_JITTER_MAX_MS: 3000,
+    FINAL_SYNC_GRACE_MS: 20000,
+    DAILY_RESET_HOUR: 18,
     REQUEST_TIMEOUT_MS: 12000,
     MAX_POINTS: 100
   };
@@ -81,9 +90,12 @@
     dirty: false,
     syncing: false,
     pendingTaps: 0,
+    nextSyncTapTarget: 20,
     syncTimer: null,
     pollTimer: null,
     countdownTimer: null,
+    dailyResetTimer: null,
+    lastStatusAt: 0,
     serverOffsetMs: 0,
     expired: false,
     completionShown: false,
@@ -123,6 +135,103 @@
         return false;
       }
     }
+    return true;
+  }
+
+  function randomInt(min, max) {
+    const lo = Math.ceil(Number(min) || 0);
+    const hi = Math.floor(Number(max) || lo);
+    return lo + Math.floor(Math.random() * Math.max(1, hi - lo + 1));
+  }
+
+  function nextBatchTarget() {
+    return randomInt(
+      CFG.SYNC_TAP_BATCH_MIN || 17,
+      CFG.SYNC_TAP_BATCH_MAX || 23
+    );
+  }
+
+  function syncIdleDelay() {
+    return randomInt(
+      CFG.SYNC_IDLE_MIN_MS || 1200,
+      CFG.SYNC_IDLE_MAX_MS || 1800
+    );
+  }
+
+  function pollDelay() {
+    return randomInt(
+      CFG.POLL_INTERVAL_MIN_MS || 25000,
+      CFG.POLL_INTERVAL_MAX_MS || 35000
+    );
+  }
+
+  function retryDelay() {
+    return randomInt(
+      CFG.RETRY_MIN_MS || 500,
+      CFG.RETRY_MAX_MS || 2000
+    );
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
+  }
+
+  function finalSyncRemainingMs() {
+    const explicit = Date.parse(state.event?.settle_end || '');
+    if (Number.isFinite(explicit)) return explicit - serverNowMs();
+
+    const end = Date.parse(state.event?.vote_end || '');
+    if (!Number.isFinite(end)) return 0;
+    return end + Number(CFG.FINAL_SYNC_GRACE_MS || 20000) - serverNowMs();
+  }
+
+  function jstHour() {
+    try {
+      const hour = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Tokyo',
+        hour: '2-digit',
+        hour12: false
+      }).format(new Date(serverNowMs()));
+      return Number(hour) % 24;
+    } catch (_) {
+      return new Date(serverNowMs()).getHours();
+    }
+  }
+
+  function clearDailyPendingState() {
+    try {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i) || '';
+        if (key.startsWith('asoboon-surprise-pending-v1:')) {
+          keys.push(key);
+        }
+      }
+      keys.forEach(key => localStorage.removeItem(key));
+    } catch (_) {}
+  }
+
+  function enforceDailyReset() {
+    if (DEMO || jstHour() < Number(CFG.DAILY_RESET_HOUR || 18)) {
+      return false;
+    }
+
+    clearDailyPendingState();
+    state.event = null;
+    state.alloc = {};
+    state.serverAlloc = {};
+    state.serverTotals = {};
+    state.localTotals = {};
+    state.used = 0;
+    state.remaining = Number(CFG.MAX_POINTS || 100);
+    state.dirty = false;
+    state.pendingTaps = 0;
+    state.expired = true;
+    state.selected = '';
+
+    els.idleTitle.textContent = '本日のイベント投票は終了しました';
+    els.idleText.textContent = '投票は毎日18:00にリセットされます。';
+    show('idle');
     return true;
   }
 
@@ -821,14 +930,19 @@
 
       syncNow(true)
         .then(() => {
-          if (state.used >= Number(CFG.MAX_POINTS || 100)) {
+          if (
+            !state.dirty &&
+            state.used >= Number(CFG.MAX_POINTS || 100)
+          ) {
             showCompletion();
           }
         })
-        .catch(() => {
+        .catch(error => {
           setSync(
-            '通信が不安定です。投票内容は端末に保持しています',
-            true
+            error?.code === 'BUSY_RETRY'
+              ? '投票が集中しています。自動で保存を続けます…'
+              : '通信が不安定です。投票内容は端末に保持しています',
+            error?.code !== 'BUSY_RETRY'
           );
         });
     }
@@ -837,11 +951,12 @@
   function scheduleSync() {
     clearTimeout(state.syncTimer);
 
-    const nearDeadline = localRemainingMs() <= 15000;
+    const nearDeadline =
+      localRemainingMs() <= Number(CFG.FINAL_SYNC_GRACE_MS || 20000);
 
     if (
       nearDeadline ||
-      state.pendingTaps >= Number(CFG.SYNC_TAP_BATCH || 8)
+      state.pendingTaps >= state.nextSyncTapTarget
     ) {
       syncNow(false).catch(() => {});
       return;
@@ -849,7 +964,7 @@
 
     state.syncTimer = setTimeout(() => {
       syncNow(false).catch(() => {});
-    }, Number(CFG.SYNC_IDLE_MS || 650));
+    }, syncIdleDelay());
   }
 
   async function syncNow(finalAttempt = false) {
@@ -859,6 +974,7 @@
       state.serverTotals = { ...state.localTotals };
       state.dirty = false;
       state.pendingTaps = 0;
+      state.nextSyncTapTarget = nextBatchTarget();
       setSync('投票を保存しました');
       return;
     }
@@ -890,7 +1006,18 @@
       updateServerClock(data);
 
       if (!data?.ok) {
-        if (data?.mode && data.mode !== 'voting') {
+        if (data?.busy || data?.errorCode === 'BUSY_RETRY') {
+          const busy = new Error(data?.error || '投票が混み合っています。');
+          busy.code = 'BUSY_RETRY';
+          busy.retryAfterMs = Number(data?.retryAfterMs || retryDelay());
+          throw busy;
+        }
+
+        if (
+          data?.mode &&
+          data.mode !== 'voting' &&
+          data.mode !== 'settling'
+        ) {
           await refreshStatus(true);
           return;
         }
@@ -920,12 +1047,14 @@
       }
 
       state.serverAlloc = serverAlloc;
-      state.serverTotals = {};
 
-      (data.options || []).forEach(option => {
-        state.serverTotals[option.id] =
-          Number(option.total || 0);
-      });
+      if (Array.isArray(data.options) && data.options.length) {
+        state.serverTotals = {};
+        data.options.forEach(option => {
+          state.serverTotals[option.id] =
+            Number(option.total || 0);
+        });
+      }
 
       state.used = Math.min(
         Number(CFG.MAX_POINTS || 100),
@@ -953,6 +1082,10 @@
           )
         : 0;
 
+      if (!state.dirty) {
+        state.nextSyncTapTarget = nextBatchTarget();
+      }
+
       recalcLocalTotals();
       savePending();
       renderVote(false);
@@ -979,7 +1112,9 @@
       const message =
         String(error?.message || error);
 
-      if (/締切|終了|受付/.test(message)) {
+      if (error?.code === 'BUSY_RETRY') {
+        setSync('投票が集中しています。自動で保存を続けます…');
+      } else if (/締切|終了|受付/.test(message)) {
         state.expired = true;
         setSync('投票は締め切られました', true);
         setTimeout(() => refreshStatus(true), 250);
@@ -994,7 +1129,7 @@
             if (state.dirty) {
               syncNow(false).catch(() => {});
             }
-          }, 1500);
+          }, retryDelay());
         }
       }
 
@@ -1002,11 +1137,19 @@
     } finally {
       state.syncing = false;
 
-      if (state.dirty && !state.expired && !finalAttempt) {
+      const normalRetry =
+        state.dirty && !state.expired && !finalAttempt;
+
+      const finalRetry =
+        state.dirty &&
+        finalAttempt &&
+        finalSyncRemainingMs() > 0;
+
+      if (normalRetry || finalRetry) {
         clearTimeout(state.syncTimer);
         state.syncTimer = setTimeout(() => {
-          syncNow(false).catch(() => {});
-        }, 850);
+          syncNow(finalRetry).catch(() => {});
+        }, retryDelay());
       }
     }
   }
@@ -1139,6 +1282,25 @@
       return;
     }
 
+    if (data.mode === 'settling' && data.event) {
+      applyVotingStatus(data, initial);
+      state.expired = true;
+      els.pushBtn.disabled = true;
+      els.countdown.textContent = '集計中';
+      els.timebar.classList.add('urgent');
+      setSync(
+        state.dirty
+          ? '最後の投票を保存しています…'
+          : 'みんなの投票を集計しています…'
+      );
+      if (state.dirty) {
+        setTimeout(() => {
+          syncNow(true).catch(() => {});
+        }, retryDelay());
+      }
+      return;
+    }
+
     state.event = data.event || null;
     state.expired = true;
     state.selected = '';
@@ -1169,7 +1331,7 @@
       updateServerClock(data);
 
       if (
-        data?.mode === 'voting' &&
+        (data?.mode === 'voting' || data?.mode === 'settling') &&
         !state.voterKey
       ) {
         state.voterKey = await getVoterKey();
@@ -1184,6 +1346,7 @@
         state.mode === 'loading' ||
         state.event?.id !== data?.event?.id;
 
+      state.lastStatusAt = Date.now();
       applyStatus(data, initial);
     } catch (error) {
       if (state.mode === 'vote' && !force) {
@@ -1268,16 +1431,29 @@
     }, 1100);
   }
 
+  function scheduleNextPoll() {
+    clearTimeout(state.pollTimer);
+    state.pollTimer = setTimeout(async () => {
+      try {
+        if (!document.hidden && !enforceDailyReset()) {
+          await refreshStatus(false);
+        }
+      } finally {
+        scheduleNextPoll();
+      }
+    }, pollDelay());
+  }
+
   function startTimers() {
     clearInterval(state.countdownTimer);
     state.countdownTimer = setInterval(updateCountdown, 250);
 
-    clearInterval(state.pollTimer);
-    state.pollTimer = setInterval(() => {
-      if (!document.hidden) {
-        refreshStatus(false).catch(() => {});
-      }
-    }, Math.max(5000, Number(CFG.POLL_INTERVAL_MS || 8000)));
+    scheduleNextPoll();
+
+    clearInterval(state.dailyResetTimer);
+    state.dailyResetTimer = setInterval(() => {
+      enforceDailyReset();
+    }, 1000);
   }
 
   function bindEvents() {
@@ -1332,14 +1508,36 @@
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        refreshStatus(false);
+        if (
+          !enforceDailyReset() &&
+          Date.now() - state.lastStatusAt >
+            Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
+        ) {
+          refreshStatus(false).catch(() => {});
+        }
+        scheduleNextPoll();
       } else {
+        clearTimeout(state.pollTimer);
         savePending();
       }
     });
 
-    window.addEventListener('pageshow', () => refreshStatus(false));
-    window.addEventListener('online', () => refreshStatus(false));
+    window.addEventListener('pageshow', () => {
+      if (
+        !enforceDailyReset() &&
+        Date.now() - state.lastStatusAt >
+          Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
+      ) {
+        refreshStatus(false).catch(() => {});
+      }
+    });
+
+    window.addEventListener('online', () => {
+      if (!enforceDailyReset()) {
+        refreshStatus(false).catch(() => {});
+      }
+    });
+
     window.addEventListener('pagehide', savePending);
   }
 
@@ -1400,6 +1598,9 @@
         id: 'demo-1100',
         event_time: '11:00',
         vote_end: end.toISOString(),
+        settle_end: new Date(
+          end.getTime() + Number(CFG.FINAL_SYNC_GRACE_MS || 20000)
+        ).toISOString(),
         max_points: 100,
         options
       },
@@ -1435,6 +1636,7 @@
   async function init() {
     setHomeLinks();
     createFxPool();
+    state.nextSyncTapTarget = nextBatchTarget();
     bindEvents();
     startTimers();
     show('loading');
@@ -1443,6 +1645,14 @@
       if (!DEMO && !CFG.API_URL) {
         throw new Error(
           '投票APIが未設定です。surprise-vote-config.js に専用GASのURLを設定してください。'
+        );
+      }
+
+      if (enforceDailyReset()) return;
+
+      if (!DEMO) {
+        await sleep(
+          randomInt(0, Number(CFG.INITIAL_JITTER_MAX_MS || 3000))
         );
       }
 
