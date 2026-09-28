@@ -455,6 +455,129 @@ function statusSignature(kind,{duration=1800}={}){
     .finally(()=>el.remove());
 }
 
+
+function statusFinale(kind,rect,{delay=0,duration=1200}={}){
+  if(effectiveLevel()===0||!rect)return Promise.resolve();
+  const level=effectiveLevel();
+  const low=reduced||level<=1;
+  const layer=overlayFxLayer();
+  const el=document.createElement('div');
+  el.className='fx-status-finale '+String(kind||'call');
+  el.dataset.finalAct=String(kind||'call');
+  el.setAttribute('aria-hidden','true');
+  const cx=rect.left+rect.width*.5,cy=rect.top+rect.height*.5;
+  el.style.setProperty('--fx-x',cx+'px');
+  el.style.setProperty('--fx-y',cy+'px');
+  layer.appendChild(el);
+
+  if(low){
+    return animateElement(el,[
+      {opacity:0,transform:'scale(.995)'},
+      {opacity:.38,transform:'scale(1)',offset:.16},
+      {opacity:.38,transform:'scale(1)',offset:.84},
+      {opacity:0,transform:'scale(1)',offset:1}
+    ],{duration:Math.min(duration,1000),delay,easing:'ease-out',fill:'forwards',rawTiming:true}).finally(()=>el.remove());
+  }
+
+  const jobs=[];
+  const rootFrames=kind==='guided'?[
+    {opacity:0,transform:'translate3d(-3vw,0,0) scaleX(.94)'},
+    {opacity:1,transform:'translate3d(0,0,0) scaleX(1)',offset:.18},
+    {opacity:1,transform:'translate3d(4vw,0,0) scaleX(1.04)',offset:.72},
+    {opacity:0,transform:'translate3d(10vw,0,0) scaleX(1.12)',offset:1}
+  ]:kind==='hold'?[
+    {opacity:0,transform:'scaleX(1.08)'},
+    {opacity:1,transform:'scaleX(.99)',offset:.16},
+    {opacity:1,transform:'scaleX(1)',offset:.92},
+    {opacity:0,transform:'scaleX(1)',offset:1}
+  ]:kind==='cancel'?[
+    {opacity:0,transform:'scale(.985)'},
+    {opacity:1,transform:'scale(1.01)',offset:.16},
+    {opacity:1,transform:'scale(1)',offset:.72},
+    {opacity:0,transform:'scale(.92)',offset:1}
+  ]:[
+    {opacity:0,transform:'scale(.72)'},
+    {opacity:1,transform:'scale(1.06)',offset:.16},
+    {opacity:.94,transform:'scale(1)',offset:.48},
+    {opacity:0,transform:'scale(1.28)',offset:1}
+  ];
+  jobs.push(animateElement(el,rootFrames,{duration,delay,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true}));
+
+  if(kind==='call'){
+    const count=10;
+    for(let i=0;i<count;i++){
+      const piece=document.createElement('i');
+      piece.className='fx-finale-piece';
+      const angle=(-Math.PI/2)+(Math.PI*2*i/count);
+      const distance=Math.max(innerWidth,innerHeight)*(.20+(i%3)*.035);
+      const size=34+(i%4)*10;
+      Object.assign(piece.style,{left:cx+'px',top:cy+'px',width:size+'px',height:Math.round(size*.62)+'px'});
+      el.appendChild(piece);
+      const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance;
+      jobs.push(animateElement(piece,[
+        {opacity:0,transform:'translate3d(-50%,-50%,0) rotate('+(i*21)+'deg) scale(.18)'},
+        {opacity:1,transform:'translate3d(calc(-50% + '+(dx*.12)+'px),calc(-50% + '+(dy*.12)+'px),0) rotate('+(i*33)+'deg) scale(1.08)',offset:.18},
+        {opacity:.88,transform:'translate3d(calc(-50% + '+(dx*.56)+'px),calc(-50% + '+(dy*.56)+'px),0) rotate('+(i*72)+'deg) scale(.96)',offset:.56},
+        {opacity:0,transform:'translate3d(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px),0) rotate('+(i*118)+'deg) scale(.7)',offset:1}
+      ],{duration,delay,easing:'cubic-bezier(.12,.7,.18,1)',fill:'forwards',rawTiming:true}));
+    }
+  }else if(kind==='guided'){
+    for(let i=0;i<7;i++){
+      const streak=document.createElement('i');
+      streak.className='fx-finale-streak';
+      const y=cy+((i-3)*Math.max(34,rect.height*.09));
+      Object.assign(streak.style,{left:(cx-rect.width*.32)+'px',top:y+'px',width:(110+i*16)+'px'});
+      el.appendChild(streak);
+      jobs.push(animateElement(streak,[
+        {opacity:0,transform:'translate3d(-12vw,0,0) scaleX(.35)'},
+        {opacity:.92,transform:'translate3d(2vw,0,0) scaleX(1.1)',offset:.18},
+        {opacity:.86,transform:'translate3d(28vw,0,0) scaleX(1.7)',offset:.62},
+        {opacity:0,transform:'translate3d(86vw,0,0) scaleX(2.5)',offset:1}
+      ],{duration:duration-(i*24),delay:delay+(i*18),easing:'cubic-bezier(.08,.66,.12,1)',fill:'forwards',rawTiming:true}));
+    }
+  }else if(kind==='hold'){
+    for(const side of ['left','right']){
+      const lock=document.createElement('i');
+      lock.className='fx-finale-lock '+side;
+      lock.style.top=(cy-rect.height*.24)+'px';
+      lock.style.height=(rect.height*.48)+'px';
+      if(side==='left')lock.style.left=(cx-rect.width*.47)+'px';
+      else lock.style.right=(innerWidth-(cx+rect.width*.47))+'px';
+      el.appendChild(lock);
+      const enter=side==='left'?'translate3d(-34vw,0,0)':'translate3d(34vw,0,0)';
+      jobs.push(animateElement(lock,[
+        {opacity:0,transform:enter},
+        {opacity:1,transform:'translate3d(0,0,0)',offset:.14},
+        {opacity:1,transform:side==='left'?'translate3d(10px,0,0)':'translate3d(-10px,0,0)',offset:.2},
+        {opacity:1,transform:'translate3d(0,0,0)',offset:.26},
+        {opacity:1,transform:'translate3d(0,0,0)',offset:.94},
+        {opacity:0,transform:'translate3d(0,0,0)',offset:1}
+      ],{duration,delay,easing:'cubic-bezier(.08,.72,.18,1)',fill:'forwards',rawTiming:true}));
+    }
+  }else if(kind==='cancel'){
+    const count=14;
+    for(let i=0;i<count;i++){
+      const piece=document.createElement('i');
+      piece.className='fx-finale-piece';
+      const angle=(-Math.PI*.95)+(Math.PI*1.9*i/Math.max(1,count-1));
+      const distance=Math.max(innerWidth,innerHeight)*(.28+(i%4)*.055);
+      const size=32+(i%5)*11;
+      Object.assign(piece.style,{left:cx+'px',top:cy+'px',width:size+'px',height:Math.round(size*.7)+'px'});
+      el.appendChild(piece);
+      const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance+(i%3)*26;
+      jobs.push(animateElement(piece,[
+        {opacity:0,transform:'translate3d(-50%,-50%,0) rotate('+(i*17)+'deg) scale(.12)'},
+        {opacity:1,transform:'translate3d(calc(-50% + '+(dx*.08)+'px),calc(-50% + '+(dy*.08)+'px),0) rotate('+(i*39)+'deg) scale(1.18)',offset:.14},
+        {opacity:.98,transform:'translate3d(calc(-50% + '+(dx*.45)+'px),calc(-50% + '+(dy*.45)+'px),0) rotate('+(i*88)+'deg) scale(1)',offset:.48},
+        {opacity:.72,transform:'translate3d(calc(-50% + '+(dx*.76)+'px),calc(-50% + '+(dy*.76)+'px),0) rotate('+(i*132)+'deg) scale(.84)',offset:.76},
+        {opacity:0,transform:'translate3d(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px),0) rotate('+(i*176)+'deg) scale(.58)',offset:1}
+      ],{duration:duration+(i%3)*38,delay:delay+(i%4)*18,easing:'cubic-bezier(.1,.68,.16,1)',fill:'forwards',rawTiming:true}));
+    }
+  }
+
+  return Promise.all(jobs).finally(()=>el.remove());
+}
+
 function animateElement(el,keyframes,options={}){
   if(!el?.animate)return Promise.resolve();
   const opts={...options};
@@ -597,11 +720,12 @@ async function playCallAnimation({number,element,frame,rare}){
   choreoPhase('impact','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'call',{duration});
   const signature=statusSignature('call',{duration});
+  const finale=statusFinale('call',focusRect,{duration:lvl<=1?700:1050});
   const sourceFx=SOURCEFX?.playStatusReaction?.('call',{rect:sourceRect,level:lvl})||Promise.resolve();
   const particles=runParticles('call',focusRect,{rare,level:lvl,secondary:true});
   const reaction=screenReaction('call',{duration:lvl<=1?420:920});
   const flash=flashFrame('call',focusRect,{duration:lvl<=1?110:220});
-  await Promise.all([numberFx,signature,sourceFx,particles,reaction,flash,burst]);
+  await Promise.all([numberFx,signature,finale,sourceFx,particles,reaction,flash,burst]);
 
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?80:260);
@@ -622,11 +746,13 @@ async function playGuidedAnimation({number,element,frame}){
   choreoPhase('action','NUMBER',{impact:2,secondary:1,flash:1});
   const numberFx=specialNumberTakeover(number,'guided',{duration});
   const signature=statusSignature('guided',{duration});
+  const finaleDelay=Math.round(duration*(lvl<=1?.72:.71));
+  const finale=statusFinale('guided',focusRect,{delay:finaleDelay,duration:duration-finaleDelay});
   const sourceFx=SOURCEFX?.playStatusReaction?.('guided',{rect:sourceRect,level:lvl})||Promise.resolve();
   const particles=runParticles('guided',focusRect,{level:lvl,secondary:true});
   const reaction=screenReaction('guided',{duration:lvl<=1?420:900});
   const flash=flashFrame('guided',focusRect,{duration:lvl<=1?90:180});
-  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
+  await Promise.all([numberFx,signature,finale,burst,sourceFx,particles,reaction,flash]);
 
   choreoPhase('aftermath','NUMBER');
   await screen;
@@ -642,12 +768,14 @@ async function playHoldAnimation({number,element,frame}){
   const burst=pachinkoBurst('hold',focusRect,{duration:duration});
   const numberFx=specialNumberTakeover(number,'hold',{duration});
   const signature=statusSignature('hold',{duration});
+  const finaleDelay=lvl<=1?900:1500;
+  const finale=statusFinale('hold',focusRect,{delay:finaleDelay,duration:duration-finaleDelay});
   const sourceFx=SOURCEFX?.playStatusReaction?.('hold',{rect:sourceRect,level:lvl})||Promise.resolve();
   const particles=runParticles('hold',focusRect,{level:lvl,secondary:true});
   const reaction=screenReaction('hold',{duration:lvl<=1?520:1180});
   const flash=flashFrame('hold',focusRect,{duration:lvl<=1?90:170});
 
-  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,flash]);
+  await Promise.all([numberFx,signature,finale,burst,sourceFx,particles,reaction,flash]);
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?90:320);
   await screen;
@@ -673,9 +801,10 @@ async function playCancelAnimation({number,frame,element}){
 
   // Let the giant number remain readable before the visual shatter arrives.
   await waitMs(lvl<=1?2800:4700,{rawTiming:true});
+  const finale=statusFinale('cancel',focusRect,{duration:lvl<=1?900:1500});
   const shards=foregroundShards(focusRect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
   const flash=flashFrame('cancel',focusRect,{duration:lvl<=1?120:240});
-  await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,shards,flash]);
+  await Promise.all([numberFx,signature,finale,burst,sourceFx,particles,reaction,shards,flash]);
 
   choreoPhase('aftermath','NUMBER');
   await impactFreeze(lvl<=1?120:360);
@@ -796,7 +925,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.9.0',
+  version:'1.10.0',
   capture,
   observe,
   playStatusAnimation,
