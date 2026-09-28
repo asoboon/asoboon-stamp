@@ -310,9 +310,9 @@ backToSlides.addEventListener('click',showSlides);
 const words=[
   // まず、ASOBooNの遊びと関わり方の核
   {tag:'ASOBOON',name:'プレイリーディング',short:'子どもが主役のまま、遊びが広がるきっかけをつくる。',detail:'スタッフが答えを決めるのではなく、声かけや実演で遊びの入口をつくり、子どもが夢中になったら一歩引く関わり方です。',aso:'「提案する → 一緒に遊び込む → 子どもが自分で進めたら身を引く」というイメージです。'},
-  {tag:'PLAY',name:'リスキープレイ（Risky Play）',short:'少しドキドキする挑戦を、子ども自身が選ぶ遊び。',detail:'結果が完全には読めず、スピード・高さ・バランスなどに挑戦する遊びを指す考え方です。「危険を放置する」という意味ではありません。',aso:'挑戦を全部止めるのではなく、子どもが判断できる範囲か、大人が取り除くべき危険かを分けて考える材料にしています。'},
+  {tag:'PLAY',name:'リスキープレイ（Risky Play）',short:'少しドキドキする挑戦を、子ども自身が選ぶ遊び。',detail:'結果が完全には読めず、スピード・高さ・バランスなどに挑戦する遊びを指す考え方です。「危険を放置する」という意味ではありません。',benefit:'自分で「できる・できない」を考え、挑戦し、失敗して、もう一度試す経験につながります。自己効力感、レジリエンス、自分で危険を見極める判断力、自律性や感情調整など、いわゆる非認知能力につながる経験として捉えられます。',aso:'挑戦を全部止めるのではなく、子どもが判断できる範囲か、大人が取り除くべき危険かを分けて考える材料にしています。'},
   {tag:'SAFETY',name:'リスクとハザード（Risk / Hazard）',short:'見守れる挑戦と、取り除くべき危険を分けて考える。',detail:'遊びに内在する「リスク」と、事故につながり子ども自身では判断しにくい「ハザード」を区別して安全を考える考え方です。',aso:'安全確認を最優先にしながら、見守る・支える・止めるを判断します。'},
-  {tag:'LEARNING',name:'エデュテインメント（Edutainment）',short:'Education（教育）× Entertainment（楽しさ）。',detail:'楽しさや体験の中に学びを組み込み、遊びながら知る・考える・試すことにつなげる考え方です。',aso:'「勉強させる」より、夢中で遊んだ結果として気づきや学びが残る体験を目指します。'},
+  {tag:'LEARNING',name:'エデュテインメント（Edutainment）',short:'Education（教育）× Entertainment（楽しさ）。',detail:'楽しさや体験の中に学びを組み込み、遊びながら知る・考える・試すことにつなげる考え方です。',benefit:'「面白いからもっと知りたい」という好奇心や学ぶ意欲を引き出し、自分で選ぶ・試す・気づく・工夫する経験につながります。主体性、自己効力感、問題解決力、試行錯誤する力などを育むきっかけになります。',aso:'「勉強させる」より、夢中で遊んだ結果として気づきや学びが残る体験を目指します。'},
   {tag:'PRACTICE',name:'環境調整／リダイレクション',short:'「ダメ」と止める前に、環境や興味の向きを変える。',detail:'行動が起きてから注意するだけでなく、起きやすい状況そのものを整えたり、別の行動へ自然に注意を向けたりする考え方です。環境調整とリダイレクションは厳密には別の方法ですが、どちらも「注意だけに頼らない」ための実践です。',aso:'たとえば触ってほしくない物を注意し続けるのではなく、配置を変える、触ってよい物を用意する、別の遊びへ誘う。スタッフの注意力だけに頼らず、環境側でも事故や摩擦を減らします。'},
 
   // ここから下は、プレゼンの流れに沿って登場
@@ -333,7 +333,7 @@ const words=[
 ];
 
 const grid=document.getElementById('wordGrid');
-grid.innerHTML=words.map(w=>'<article class="word-card"><div class="word-tag">'+w.tag+'</div><h2>'+w.name+'</h2><p class="short">'+w.short+'</p><details><summary>もう少し詳しく</summary><p>'+w.detail+'</p><p><b>ASOBooNでは：</b>'+w.aso+'</p></details></article>').join('');
+grid.innerHTML=words.map(w=>'<article class="word-card"><div class="word-tag">'+w.tag+'</div><h2>'+w.name+'</h2><p class="short">'+w.short+'</p><details><summary>もう少し詳しく</summary><p>'+w.detail+'</p>'+(w.benefit?'<p><b>子どもへのメリット：</b>'+w.benefit+'</p>':'')+'<p><b>ASOBooNでは：</b>'+w.aso+'</p></details></article>').join('');
 
 totalEl.textContent=String(slides.length||0);
 render(0,false);
