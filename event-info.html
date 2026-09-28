@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+  <meta name="theme-color" content="#10283f">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <title>ASOBooN イベント情報</title>
+  <style>
+    :root{
+      --navy:#10283f;
+      --navy2:#071a2a;
+      --paper:#efe1bd;
+      --cream:#fffaf0;
+      --ink:#30271d;
+      --muted:#706657;
+      --gold:#efc65a;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink)}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% -10%,rgba(255,251,220,.95) 0 15%,transparent 42%),
+        linear-gradient(180deg,#e7d4a3,#f8edd4 48%,#dec18b);
+    }
+    .app{
+      width:min(100%,540px);
+      min-height:100vh;
+      margin:auto;
+      padding:max(12px,env(safe-area-inset-top)) 12px max(20px,env(safe-area-inset-bottom));
+    }
+    .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .home{
+      display:grid;place-items:center;width:46px;height:46px;flex:0 0 46px;
+      border:2px solid #091a25;border-radius:14px;
+      color:#fff3d3;text-decoration:none;font-size:1.25rem;font-weight:1000;
+      background:linear-gradient(180deg,#314c5a,#122c39);
+      box-shadow:0 5px 0 rgba(0,0,0,.16)
+    }
+    .title{
+      flex:1;padding:10px 13px;border-radius:15px;
+      background:rgba(255,251,239,.95);
+      border:2px solid rgba(100,70,30,.2);
+      box-shadow:0 7px 18px rgba(67,43,15,.1)
+    }
+    .title strong{display:block;color:var(--navy);font-size:1rem}
+    .title small{display:block;margin-top:2px;color:var(--muted);font-size:.68rem;font-weight:800}
+    .panel{
+      overflow:hidden;border:3px solid rgba(104,72,31,.32);border-radius:28px;
+      background:linear-gradient(180deg,var(--cream),var(--paper));
+      box-shadow:0 18px 48px rgba(40,27,10,.22)
+    }
+    .hero{
+      padding:18px 16px;text-align:center;color:#fff5da;
+      background:
+        radial-gradient(circle at 82% 8%,rgba(255,219,99,.22),transparent 30%),
+        linear-gradient(155deg,var(--navy),var(--navy2))
+    }
+    .hero small{font-size:.66rem;font-weight:1000;letter-spacing:.12em;color:#f4d57d}
+    .hero h1{margin:5px 0 4px;font-size:1.45rem}
+    .hero p{margin:0;color:#efe3c7;font-size:.76rem;line-height:1.55;font-weight:800}
+    .instagram{padding:14px}
+    .profile{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:10px;padding:11px 12px;border-radius:14px;background:#fffdf8;
+      border:2px solid rgba(121,84,35,.14)
+    }
+    .profile strong{font-size:.86rem;color:var(--navy)}
+    .profile a{color:#8a431f;font-size:.72rem;font-weight:1000;text-decoration:none}
+    .frame{
+      overflow:hidden;border-radius:18px;background:#fff;border:2px solid rgba(121,84,35,.17);
+      min-height:560px
+    }
+    .frame iframe{display:block;width:100%;height:620px;border:0;background:#fff}
+    .fallback{
+      padding:12px 12px 4px;text-align:center;color:var(--muted);font-size:.69rem;line-height:1.6;font-weight:800
+    }
+    .fallback a{color:#7e3d20;font-weight:1000}
+    .notice{padding:2px 15px 16px;color:#6e604d;font-size:.66rem;line-height:1.55;text-align:center;font-weight:800}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <a class="home" href="./home.html?mode=inside" aria-label="ASOBooN HOMEへ戻る">⌂</a>
+      <div class="title">
+        <strong>ASOBooN イベント情報</strong>
+        <small>今日のイベントをチェック</small>
+      </div>
+    </div>
+
+    <section class="panel">
+      <header class="hero">
+        <small>TODAY'S ADVENTURE</small>
+        <h1>イベント情報</h1>
+        <p>最新情報はASOBooN公式Instagramからご確認いただけます。</p>
+      </header>
+
+      <div class="instagram">
+        <div class="profile">
+          <strong>📷 ASOBooN 公式Instagram</strong>
+          <a href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener noreferrer">Instagramで見る ↗</a>
+        </div>
+
+        <div class="frame">
+          <iframe
+            title="ASOBooN公式Instagram"
+            src="https://www.instagram.com/asoboon425/embed"
+            loading="eager"
+            scrolling="no"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+          ></iframe>
+        </div>
+
+        <div class="fallback">
+          投稿が表示されない場合は、
+          <a href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener noreferrer">公式Instagram</a>
+          を開いてください。
+        </div>
+      </div>
+
+      <p class="notice">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により変更または中止となる場合があります。</p>
+    </section>
+  </main>
+</body>
+</html>
