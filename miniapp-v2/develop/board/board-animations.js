@@ -510,13 +510,13 @@ function statusFinale(kind,rect,{delay=0,duration=1200}={}){
       crack.style.left=cx+'px';
       crack.style.top=cy+'px';
       crack.style.width=Math.round(rect.width*(.18+i*.055))+'px';
-      crack.style.setProperty('--crack-angle',(-34+i*36)+'deg');
+      const crackAngle=(-34+i*36)+'deg';
       el.appendChild(crack);
       jobs.push(animateElement(crack,[
-        {opacity:0,transform:'rotate(var(--crack-angle)) scaleX(0)'},
-        {opacity:1,transform:'rotate(var(--crack-angle)) scaleX(1)',offset:.52},
-        {opacity:.9,transform:'rotate(var(--crack-angle)) scaleX(1)',offset:.78},
-        {opacity:0,transform:'rotate(var(--crack-angle)) scaleX(1.08)',offset:1}
+        {opacity:0,transform:'rotate('+crackAngle+') scaleX(0)'},
+        {opacity:1,transform:'rotate('+crackAngle+') scaleX(1)',offset:.52},
+        {opacity:.9,transform:'rotate('+crackAngle+') scaleX(1)',offset:.78},
+        {opacity:0,transform:'rotate('+crackAngle+') scaleX(1.08)',offset:1}
       ],{duration:Math.round(duration*.48),delay:delay+i*55,easing:'cubic-bezier(.18,.78,.2,1)',fill:'forwards',rawTiming:true}));
     }
     const count=10;
@@ -615,13 +615,13 @@ function statusFinale(kind,rect,{delay=0,duration=1200}={}){
       crack.style.left=cx+'px';
       crack.style.top=cy+'px';
       crack.style.width=Math.round(rect.width*(.23+(i%3)*.075))+'px';
-      crack.style.setProperty('--crack-angle',deg+'deg');
+      const crackAngle=deg+'deg';
       el.appendChild(crack);
       jobs.push(animateElement(crack,[
-        {opacity:0,transform:'rotate(var(--crack-angle)) scaleX(0)'},
-        {opacity:1,transform:'rotate(var(--crack-angle)) scaleX(1)',offset:.44},
-        {opacity:1,transform:'rotate(var(--crack-angle)) scaleX(1)',offset:.86},
-        {opacity:.15,transform:'rotate(var(--crack-angle)) scaleX(1.04)',offset:1}
+        {opacity:0,transform:'rotate('+crackAngle+') scaleX(0)'},
+        {opacity:1,transform:'rotate('+crackAngle+') scaleX(1)',offset:.44},
+        {opacity:1,transform:'rotate('+crackAngle+') scaleX(1)',offset:.86},
+        {opacity:.15,transform:'rotate('+crackAngle+') scaleX(1.04)',offset:1}
       ],{duration:430,delay:delay+i*72,easing:'cubic-bezier(.2,.72,.18,1)',fill:'forwards',rawTiming:true}));
     });
 
