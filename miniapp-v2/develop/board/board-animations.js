@@ -608,7 +608,7 @@ function statusFinale(kind,rect,{delay=0,duration=1200}={}){
       ],{duration,delay,easing:'cubic-bezier(.08,.72,.18,1)',fill:'forwards',rawTiming:true}));
     }
   }else if(kind==='cancel'){
-    const crackAngles=[-24,18,72,138,206];
+    const crackAngles=[-24,28,104,198];
     crackAngles.forEach((deg,i)=>{
       const crack=document.createElement('i');
       crack.className='fx-finale-crack cancel';
@@ -638,7 +638,7 @@ function statusFinale(kind,rect,{delay=0,duration=1200}={}){
       {opacity:0,transform:'translate3d(-50%,-50%,0) scale(1.18)',offset:1}
     ],{duration,delay,easing:'cubic-bezier(.14,.72,.18,1)',fill:'forwards',rawTiming:true}));
 
-    const largeCount=5;
+    const largeCount=4;
     for(let i=0;i<largeCount;i++){
       const piece=document.createElement('i');
       piece.className='fx-finale-piece large';
@@ -656,7 +656,7 @@ function statusFinale(kind,rect,{delay=0,duration=1200}={}){
       ],{duration:880+(i%2)*70,delay:delay+500+i*26,easing:'cubic-bezier(.1,.66,.16,1)',fill:'forwards',rawTiming:true}));
     }
 
-    const smallCount=9;
+    const smallCount=5;
     for(let i=0;i<smallCount;i++){
       const piece=document.createElement('i');
       piece.className='fx-finale-piece small';
