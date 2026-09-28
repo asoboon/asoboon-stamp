@@ -917,17 +917,14 @@ body{
 
 /* GUIDED: the number leaves through a one-way light gate. */
 .fx-status-finale.guided::before{
-  right:-7vw;
+  right:-10vw;
   top:50%;
-  width:clamp(90px,14vw,210px);
-  height:min(70vh,900px);
+  width:clamp(160px,22vw,320px);
+  height:min(76vh,980px);
   transform:translateY(-50%);
-  border:clamp(8px,1.1vw,16px) solid rgba(221,250,255,.92);
   border-radius:50%;
-  box-shadow:
-    0 0 0 clamp(14px,2vw,28px) rgba(113,228,255,.18),
-    0 0 64px rgba(113,228,255,.78);
-  background:radial-gradient(ellipse at center,rgba(255,255,255,.72) 0 5%,rgba(83,213,248,.22) 25%,transparent 66%);
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.38) 0 8%,rgba(83,213,248,.22) 28%,transparent 70%);
+  filter:blur(14px);
 }
 .fx-status-finale.guided::after{
   left:42%;
@@ -937,6 +934,19 @@ body{
   background:linear-gradient(90deg,transparent,rgba(117,231,255,.18) 18%,rgba(255,255,255,.9) 54%,rgba(117,231,255,.28) 76%,transparent);
   transform:skewX(-15deg);
   filter:blur(2px);
+}
+.fx-status-finale.guided .fx-finale-gate{
+  position:fixed;
+  display:block;
+  width:clamp(92px,13vw,190px);
+  border:clamp(8px,1.1vw,16px) solid rgba(226,251,255,.96);
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.72) 0 4%,rgba(93,218,250,.20) 26%,transparent 68%);
+  box-shadow:
+    0 0 0 clamp(14px,2vw,28px) rgba(113,228,255,.17),
+    0 0 66px rgba(113,228,255,.82);
+  transform-origin:center;
+  will-change:transform,opacity;
 }
 .fx-status-finale.guided .fx-finale-streak{
   position:fixed;
@@ -960,15 +970,18 @@ body{
   border-bottom:clamp(7px,1vw,14px) solid rgba(255,245,156,.72);
   box-shadow:0 0 34px rgba(255,219,71,.32);
 }
-.fx-status-finale.hold::after{
-  left:50%;
-  top:50%;
-  width:clamp(22px,2.6vw,42px);
-  height:clamp(22px,2.6vw,42px);
-  transform:translate(-50%,-50%) rotate(45deg);
-  border:clamp(5px,.7vw,10px) solid rgba(255,255,255,.94);
-  background:rgba(255,220,78,.36);
-  box-shadow:0 0 28px rgba(255,220,78,.72);
+.fx-status-finale.hold::after{display:none}
+.fx-status-finale.hold .fx-finale-pin{
+  position:fixed;
+  display:block;
+  width:clamp(28px,3.2vw,52px);
+  height:clamp(28px,3.2vw,52px);
+  border:clamp(6px,.8vw,11px) solid rgba(255,255,255,.96);
+  background:rgba(255,220,78,.44);
+  box-shadow:
+    0 0 0 8px rgba(255,221,79,.12),
+    0 0 32px rgba(255,220,78,.74);
+  will-change:transform,opacity;
 }
 .fx-status-finale.hold .fx-finale-lock{
   position:fixed;
@@ -990,28 +1003,39 @@ body{
 /* CANCEL: the number's world fractures, debris leaves, and an empty center remains. */
 .fx-status-finale.cancel::before{
   inset:-8%;
-  background:
-    linear-gradient(18deg,transparent 0 49.15%,rgba(245,253,255,.96) 49.3% 49.62%,transparent 49.8%),
-    linear-gradient(73deg,transparent 0 49.2%,rgba(225,247,255,.9) 49.36% 49.64%,transparent 49.8%),
-    linear-gradient(126deg,transparent 0 49.18%,rgba(245,253,255,.92) 49.34% 49.68%,transparent 49.84%),
-    linear-gradient(161deg,transparent 0 49.16%,rgba(199,232,241,.82) 49.32% 49.61%,transparent 49.78%),
-    linear-gradient(214deg,transparent 0 49.14%,rgba(245,253,255,.86) 49.3% 49.58%,transparent 49.76%);
-  filter:drop-shadow(0 0 5px rgba(255,255,255,.72));
+  background:radial-gradient(circle at 50% 50%,rgba(236,250,255,.16) 0 9%,rgba(136,190,207,.08) 16%,transparent 42%);
 }
-.fx-status-finale.cancel::after{
-  left:50%;
-  top:50%;
-  width:min(42vw,460px);
+.fx-status-finale.cancel::after{display:none}
+.fx-finale-crack{
+  position:fixed;
+  display:block;
+  height:clamp(4px,.45vw,8px);
+  border-radius:999px;
+  transform-origin:left center;
+  will-change:transform,opacity;
+}
+.fx-finale-crack.call{
+  background:linear-gradient(90deg,#fff9c7 0 18%,#ffd84f 42%,rgba(255,139,49,.12) 100%);
+  box-shadow:0 0 14px rgba(255,215,75,.7);
+}
+.fx-finale-crack.cancel{
+  background:linear-gradient(90deg,#fff 0 14%,#d8f1f8 44%,rgba(137,184,198,.06) 100%);
+  box-shadow:0 0 10px rgba(230,249,255,.76);
+}
+.fx-status-finale.cancel .fx-finale-void{
+  position:fixed;
+  display:block;
+  width:min(44vw,480px);
   aspect-ratio:1;
-  transform:translate(-50%,-50%);
   border-radius:50%;
   background:
     radial-gradient(circle,
-      rgba(4,10,14,.98) 0 22%,
-      rgba(19,34,43,.94) 23% 34%,
-      rgba(176,218,230,.36) 36% 43%,
-      transparent 45%);
-  box-shadow:0 0 74px rgba(210,241,250,.28);
+      rgba(3,8,12,.99) 0 28%,
+      rgba(17,30,38,.97) 29% 39%,
+      rgba(177,220,232,.34) 41% 47%,
+      transparent 49%);
+  box-shadow:0 0 78px rgba(209,242,251,.3);
+  will-change:transform,opacity;
 }
 .fx-status-finale.cancel .fx-finale-piece{
   position:fixed;
@@ -1023,6 +1047,17 @@ body{
   box-shadow:0 5px 0 rgba(11,20,25,.28),0 0 12px rgba(220,246,255,.34);
   will-change:transform,opacity;
 }
+.fx-status-finale.cancel .fx-finale-piece.large{
+  clip-path:polygon(5% 7%,93% 0,78% 37%,100% 79%,48% 100%,0 70%,19% 38%);
+  background:linear-gradient(145deg,#fff 0 12%,#bedbe4 14% 48%,#526872 50% 100%);
+  border-width:3px;
+}
+.fx-status-finale.cancel .fx-finale-piece.small{
+  clip-path:polygon(12% 0,100% 22%,72% 100%,0 72%);
+  border-width:1px;
+  box-shadow:0 3px 0 rgba(11,20,25,.22),0 0 8px rgba(220,246,255,.3);
+}
+
 :root[data-board-quality="low"] .fx-status-finale,
 :root[data-board-quality="low"] .fx-status-finale::before,
 :root[data-board-quality="low"] .fx-status-finale::after,

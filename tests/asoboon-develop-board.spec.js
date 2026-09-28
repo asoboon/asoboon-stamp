@@ -147,11 +147,11 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260928-irreversible-finales-v6');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-irreversible-finales-v6'");
+  expect(buildFile.version).toBe('20260928-story-beats-v7');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-story-beats-v7'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=30');
-  expect(indexHtml).toContain('board.js?v=28');
+  expect(indexHtml).toContain('board-animations.js?v=31');
+  expect(indexHtml).toContain('board.js?v=29');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -1381,7 +1381,7 @@ test('SPECIAL finales use four distinct irreversible physical endings and fully 
   expect(css).toContain('.fx-status-finale.guided .fx-finale-streak');
   expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece');
 
-  const expectedChildren={call:10,guided:7,hold:2,cancel:14};
+  const expectedChildren={call:13,guided:8,hold:3,cancel:14};
   for(const kind of ['call','guided','hold','cancel']){
     await page.evaluate(kind=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
@@ -1410,12 +1410,47 @@ test('SPECIAL finales use four distinct irreversible physical endings and fully 
     expect(live.finalAct).toBe(kind);
     expect(live.children).toBe(expectedChildren[kind]);
     expect(live.characters).toBe(0);
+    if(kind==='call')await expect(page.locator('.fx-status-finale.call .fx-finale-crack')).toHaveCount(3);
+    if(kind==='guided')await expect(page.locator('.fx-status-finale.guided .fx-finale-gate')).toHaveCount(1);
+    if(kind==='hold')await expect(page.locator('.fx-status-finale.hold .fx-finale-pin')).toHaveCount(1);
+    if(kind==='cancel'){
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-crack')).toHaveCount(4);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-void')).toHaveCount(1);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.large')).toHaveCount(4);
+      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.small')).toHaveCount(5);
+    }
 
     await page.evaluate(()=>window.__finalePromise);
     await expect(page.locator('.fx-status-finale')).toHaveCount(0);
   }
 
   await waitForFxIdle(page);
+});
+
+test('SPECIAL finales have anticipation, commitment and irreversible aftermath beats', async () => {
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+
+  expect(code).toContain("crack.className='fx-finale-crack call'");
+  expect(code).toContain("gate.className='fx-finale-gate'");
+  expect(code).toContain("pin.className='fx-finale-pin'");
+  expect(code).toContain("crack.className='fx-finale-crack cancel'");
+  expect(code).toContain("voidEl.className='fx-finale-void'");
+  expect(code).toContain("piece.className='fx-finale-piece large'");
+  expect(code).toContain("piece.className='fx-finale-piece small'");
+  expect(code).toContain("delay:delay+500+i*26");
+  expect(code).toContain("delay:delay+745+(i%4)*24");
+  expect(code).toContain("offset:.82");
+  expect(code).toContain("offset:.86");
+  expect(code).toContain("offset:.93");
+
+  expect(css).toContain('.fx-finale-crack.call');
+  expect(css).toContain('.fx-finale-crack.cancel');
+  expect(css).toContain('.fx-status-finale.guided .fx-finale-gate');
+  expect(css).toContain('.fx-status-finale.hold .fx-finale-pin');
+  expect(css).toContain('.fx-status-finale.cancel .fx-finale-void');
+  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece.large');
+  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece.small');
 });
 
 test('CALL takes over the screen with a huge number that stays readable', async ({ page }) => {
