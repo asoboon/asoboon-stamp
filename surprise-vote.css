@@ -206,3 +206,82 @@ button:focus-visible,a:focus-visible{outline:4px solid #64bfff;outline-offset:3p
   *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   .tap-fx,.burst{display:none!important}
 }
+
+
+/* Surprise Vote UX v3 */
+#idleText{white-space:pre-line}
+.candidate.rank-locked .candidate-rank{
+  background:#8b7b61;
+  color:#fff8e7;
+}
+.candidate.rank-locked .candidate-total{
+  color:#8c806e;
+}
+.completion-summary{
+  display:grid;
+  gap:7px;
+  margin:14px auto 2px;
+  max-width:330px;
+}
+.completion-summary-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:8px 10px;
+  border:1px solid rgba(83,60,27,.18);
+  border-radius:11px;
+  background:rgba(255,255,255,.52);
+  text-align:left;
+}
+.completion-summary-row span{
+  min-width:0;
+  overflow-wrap:anywhere;
+  color:#4c4031;
+  font-size:.72rem;
+  font-weight:900;
+}
+.completion-summary-row strong{
+  color:#9d3826;
+  font-size:.9rem;
+  font-variant-numeric:tabular-nums;
+}
+body[data-vote-stage="25"] .push-btn{
+  filter:saturate(1.08);
+}
+body[data-vote-stage="50"] .push-zone{
+  background:radial-gradient(circle at 50% 54%,rgba(255,212,81,.18),transparent 52%);
+}
+body[data-vote-stage="50"] .push-btn{
+  filter:saturate(1.14) brightness(1.03);
+}
+body[data-vote-stage="75"] .push-zone{
+  background:
+    radial-gradient(circle at 50% 54%,rgba(255,196,57,.27),transparent 48%),
+    radial-gradient(circle at 50% 42%,rgba(239,98,49,.12),transparent 68%);
+}
+body[data-vote-stage="75"] .push-btn{
+  filter:saturate(1.22) brightness(1.05);
+}
+body[data-vote-stage="90"] .push-btn{
+  animation:voteStage90Pulse 1.35s ease-in-out infinite;
+}
+body[data-vote-stage="100"] .push-btn{
+  filter:saturate(1.25) brightness(1.08);
+}
+.app.power-stage-hit .push-zone{
+  animation:votePowerFlash .8s ease both;
+}
+@keyframes votePowerFlash{
+  0%{filter:brightness(1)}
+  28%{filter:brightness(1.42)}
+  100%{filter:brightness(1)}
+}
+@keyframes voteStage90Pulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.025)}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-vote-stage="90"] .push-btn{animation:none!important}
+  .app.power-stage-hit .push-zone{animation:none!important}
+}
