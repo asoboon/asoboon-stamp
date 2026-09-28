@@ -140,18 +140,18 @@ async function prepareIdleForTest(page, patch = {}) {
 async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
-  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
+  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-status-finale,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
 }
 
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260928-readable-hold-v5');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-readable-hold-v5'");
+  expect(buildFile.version).toBe('20260928-irreversible-finales-v6');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-irreversible-finales-v6'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=29');
-  expect(indexHtml).toContain('board.js?v=27');
+  expect(indexHtml).toContain('board-animations.js?v=30');
+  expect(indexHtml).toContain('board.js?v=28');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -1360,6 +1360,62 @@ test('SPECIAL overlay effects focus on the giant-number stage rather than the so
   }
   expect(code).toContain("foregroundShards(focusRect");
   expect(code).toContain("SOURCEFX?.playStatusReaction?.('call',{rect:sourceRect");
+});
+
+test('SPECIAL finales use four distinct irreversible physical endings and fully clean up', async ({ page }) => {
+  test.setTimeout(20000);
+  await installBoard(page,[payload([{number:'8633',state:'waiting',order:1}])]);
+  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+
+  expect(code).toContain("function statusFinale(kind,rect");
+  expect(code).toContain("statusFinale('call'");
+  expect(code).toContain("statusFinale('guided'");
+  expect(code).toContain("statusFinale('hold'");
+  expect(code).toContain("statusFinale('cancel'");
+  expect(css).toContain('.fx-status-finale.call');
+  expect(css).toContain('.fx-status-finale.guided');
+  expect(css).toContain('.fx-status-finale.hold');
+  expect(css).toContain('.fx-status-finale.cancel');
+  expect(css).toContain('.fx-status-finale.hold .fx-finale-lock');
+  expect(css).toContain('.fx-status-finale.guided .fx-finale-streak');
+  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece');
+
+  const expectedChildren={call:10,guided:7,hold:2,cancel:14};
+  for(const kind of ['call','guided','hold','cancel']){
+    await page.evaluate(kind=>{
+      const fx=window.ASOBOON_BOARD_EFFECTS;
+      fx.setSlowdown(0.08,{persistValue:false});
+      const card=document.querySelector('#queueGrid .queue-card');
+      window.__finalePromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+        number:'8633',kind,fromStatus:'waiting',
+        toStatus:kind==='call'?'calling':kind==='guided'?'done':kind==='hold'?'hold':'canceled',
+        element:card,
+      });
+    },kind);
+
+    await expect.poll(async()=>page.evaluate(kind=>Boolean(document.querySelector('.fx-status-finale.'+kind)),kind),{timeout:4000}).toBe(true);
+    const live=await page.evaluate(kind=>{
+      const el=document.querySelector('.fx-status-finale.'+kind);
+      return{
+        text:el?.textContent||'',
+        aria:el?.getAttribute('aria-hidden')||'',
+        children:el?.children.length||0,
+        finalAct:el?.dataset.finalAct||'',
+        characters:document.querySelectorAll('.pc-character').length,
+      };
+    },kind);
+    expect(live.text).toBe('');
+    expect(live.aria).toBe('true');
+    expect(live.finalAct).toBe(kind);
+    expect(live.children).toBe(expectedChildren[kind]);
+    expect(live.characters).toBe(0);
+
+    await page.evaluate(()=>window.__finalePromise);
+    await expect(page.locator('.fx-status-finale')).toHaveCount(0);
+  }
+
+  await waitForFxIdle(page);
 });
 
 test('CALL takes over the screen with a huge number that stays readable', async ({ page }) => {
