@@ -135,10 +135,22 @@
         /(?:^|\/)surprise-vote\.html(?:[?#]|$)/i
           .test(rawLiffState);
 
+      // 旧HOMEのイベント投票はスタンプラリー画面を経由させない。
+      // LIFF追加パスを検出した時点で、描画前に投票ページへ即転送する。
+      if (isSurpriseVoteRoute) {
+        const target =
+          new URL(
+            "./surprise-vote.html?v=20260928-11",
+            location.href
+          );
+
+        location.replace(target.href);
+        return;
+      }
+
       if (
         !spot &&
-        !showStampHome &&
-        !isSurpriseVoteRoute
+        !showStampHome
       ) {
         location.replace(
           new URL(
