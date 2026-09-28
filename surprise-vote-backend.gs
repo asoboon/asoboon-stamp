@@ -179,7 +179,7 @@ function apiSurpriseStatus_(params) {
 
   const totals =
     active.phase === 'result'
-      ? getSurpriseTotalsFresh_(active.id)
+      ? getSurpriseFinalTotals_(active.id, now)
       : getSurpriseTotalsCached_(active.id);
 
   const options = active.options.map(option => ({
@@ -211,7 +211,6 @@ function apiSurpriseStatus_(params) {
   }
 
   if (active.phase === 'result') {
-    writeSurpriseTotalSnapshot_(active.id, totals, now);
     const winner = ensureSurpriseWinner_(active, totals);
     response.winner = winner
       ? {
@@ -614,6 +613,27 @@ function getSurpriseTotalsCached_(eventId) {
   return totals;
 }
 
+function getSurpriseFinalTotals_(eventId, now) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'surprise:v2:final:' + eventId;
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    try {
+      return Object.assign(emptySurpriseTotals_(), JSON.parse(cached));
+    } catch (_) {}
+  }
+
+  const totals = getSurpriseTotalsFresh_(eventId);
+
+  try {
+    cache.put(cacheKey, JSON.stringify(totals), 21600);
+  } catch (_) {}
+
+  writeSurpriseTotalSnapshot_(eventId, totals, now);
+  return totals;
+}
+
 function getSurpriseTotalsFresh_(eventId) {
   const sheet = getSurpriseSpreadsheet_()
     .getSheetByName(SURPRISE_VOTE.VOTE_SHEET);
@@ -648,6 +668,10 @@ function getSurpriseTotalsFresh_(eventId) {
 }
 
 function writeSurpriseTotalSnapshot_(eventId, totals, now) {
+  const cache = CacheService.getScriptCache();
+  const doneKey = 'surprise:v2:snapshot:' + eventId;
+  if (cache.get(doneKey)) return;
+
   const sheet = getSurpriseSpreadsheet_()
     .getSheetByName(SURPRISE_VOTE.TOTAL_SHEET);
 
@@ -674,6 +698,10 @@ function writeSurpriseTotalSnapshot_(eventId, totals, now) {
   } else {
     sheet.appendRow(row);
   }
+
+  try {
+    cache.put(doneKey, '1', 21600);
+  } catch (_) {}
 }
 
 function ensureSurpriseWinner_(event, totals) {
