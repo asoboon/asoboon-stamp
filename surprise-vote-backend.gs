@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.0.0',
+  VERSION: '2.1.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -120,7 +120,7 @@ function doGet(e) {
       payload = {
         ok: true,
         version: SURPRISE_VOTE.VERSION,
-        architecture: 'GAS_V2_CUMULATIVE_SINGLE_SOURCE',
+        architecture: 'GAS_V2_1_CUMULATIVE_SINGLE_SOURCE',
         dailyReset: '18:00',
         settleSeconds: SURPRISE_VOTE.SETTLE_SECONDS,
         eventCacheSeconds: SURPRISE_VOTE.EVENT_CACHE_SECONDS,
@@ -164,9 +164,36 @@ function apiSurpriseStatus_(params) {
     };
   }
 
+  const overlap = findSurpriseOverlap_(now);
+  if (overlap) {
+    return {
+      ok: true,
+      version: SURPRISE_VOTE.VERSION,
+      now: formatIso_(now),
+      mode: 'configuration_error',
+      event: null,
+      configuration_issue: 'OVERLAPPING_VOTE_WINDOWS',
+      message: 'イベント情報を準備しています。',
+      daily_reset: '18:00'
+    };
+  }
+
   const active = findCurrentSurpriseEvent_(now);
 
   if (!active) {
+    const upcoming = findNextSurpriseEvent_(now);
+
+    if (upcoming) {
+      return {
+        ok: true,
+        version: SURPRISE_VOTE.VERSION,
+        now: formatIso_(now),
+        mode: 'upcoming',
+        event: publicUpcomingSurpriseEvent_(upcoming),
+        daily_reset: '18:00'
+      };
+    }
+
     return {
       ok: true,
       version: SURPRISE_VOTE.VERSION,
@@ -177,15 +204,30 @@ function apiSurpriseStatus_(params) {
     };
   }
 
-  const totals =
-    active.phase === 'result'
-      ? getSurpriseFinalTotals_(active.id, now)
-      : getSurpriseTotalsCached_(active.id);
+  const voterKey = sanitizeVoterKey_(params.voterKey);
+  let vote = null;
+
+  if (voterKey) {
+    const voterHash = surpriseVoterHash_(voterKey);
+    vote = getSurpriseVote_(active.id, voterHash);
+  }
+
+  const revealTotals =
+    active.phase === 'result' ||
+    !!(vote && vote.used >= SURPRISE_VOTE.MAX_POINTS);
+
+  const totals = revealTotals
+    ? (
+        active.phase === 'result'
+          ? getSurpriseFinalTotals_(active.id, now)
+          : getSurpriseTotalsCached_(active.id)
+      )
+    : emptySurpriseTotals_();
 
   const options = active.options.map(option => ({
     id: option.id,
     name: option.name,
-    total: Number(totals[option.id] || 0)
+    total: revealTotals ? Number(totals[option.id] || 0) : null
   }));
 
   const eventPayload = publicSurpriseEvent_(active, options);
@@ -195,14 +237,11 @@ function apiSurpriseStatus_(params) {
     now: formatIso_(now),
     mode: active.phase,
     event: eventPayload,
+    rank_visible: revealTotals,
     daily_reset: '18:00'
   };
 
-  const voterKey = sanitizeVoterKey_(params.voterKey);
-  if (voterKey) {
-    const voterHash = surpriseVoterHash_(voterKey);
-    const vote = getSurpriseVote_(active.id, voterHash);
-
+  if (vote) {
     response.user = {
       used: vote.used,
       remaining: Math.max(0, SURPRISE_VOTE.MAX_POINTS - vote.used),
@@ -239,6 +278,17 @@ function apiSurpriseVote_(params) {
       mode: 'idle',
       errorCode: 'DAY_RESET',
       error: '本日の投票は終了しました。',
+      now: formatIso_(now)
+    };
+  }
+
+  const overlap = findSurpriseOverlap_(now);
+  if (overlap) {
+    return {
+      ok: false,
+      mode: 'configuration_error',
+      errorCode: 'OVERLAPPING_VOTE_WINDOWS',
+      error: 'イベント情報を準備しています。',
       now: formatIso_(now)
     };
   }
@@ -367,6 +417,46 @@ function findCurrentSurpriseEvent_(now) {
   return null;
 }
 
+function findNextSurpriseEvent_(now) {
+  if (isAfterSurpriseDailyReset_(now)) return null;
+
+  return loadSurpriseEvents_(now)
+    .filter(event => event.enabled && !event.cancelled)
+    .filter(event => event.options.length >= 2)
+    .filter(event => event.start > now)
+    .sort((a, b) => a.start - b.start)[0] || null;
+}
+
+function findSurpriseOverlap_(now) {
+  const events = loadSurpriseEvents_(now)
+    .filter(event => event.enabled && !event.cancelled)
+    .filter(event => event.options.length >= 2)
+    .sort((a, b) => a.start - b.start);
+
+  for (let i = 0; i < events.length; i += 1) {
+    for (let j = i + 1; j < events.length; j += 1) {
+      const a = events[i];
+      const b = events[j];
+
+      if (b.start >= a.end) break;
+
+      const overlapStart = new Date(Math.max(a.start.getTime(), b.start.getTime()));
+      const overlapEnd = new Date(Math.min(a.end.getTime(), b.end.getTime()));
+
+      if (overlapStart < overlapEnd) {
+        return {
+          first: a.id,
+          second: b.id,
+          overlapStart: overlapStart,
+          overlapEnd: overlapEnd
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 function findSurpriseEventById_(eventId, now) {
   return loadSurpriseEvents_(now)
     .find(event => event.id === eventId) || null;
@@ -484,6 +574,19 @@ function loadSurpriseEventDefinitions_(today) {
   } catch (_) {}
 
   return definitions;
+}
+
+function publicUpcomingSurpriseEvent_(event) {
+  return {
+    id: event.id,
+    date: event.date,
+    event_time: event.eventTime,
+    vote_start: formatIso_(event.start),
+    vote_end: formatIso_(event.end),
+    result_end: formatIso_(event.resultEnd),
+    max_points: SURPRISE_VOTE.MAX_POINTS,
+    options: []
+  };
 }
 
 function publicSurpriseEvent_(event, options) {
@@ -987,6 +1090,33 @@ function surpriseOutput_(payload, callback) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    const sheet = e.range.getSheet();
+    if (sheet.getName() !== SURPRISE_VOTE.EVENT_SHEET) return;
+    if (e.range.getRow() < 2) return;
+
+    const cache = CacheService.getScriptCache();
+    const today = Utilities.formatDate(
+      new Date(),
+      SURPRISE_VOTE.TIMEZONE,
+      'yyyy-MM-dd'
+    );
+
+    cache.remove('surprise:v2:events:' + today);
+
+    const rowDate = normalizeSurpriseDate_(
+      sheet.getRange(e.range.getRow(), 1).getValue()
+    );
+
+    if (rowDate) {
+      cache.remove('surprise:v2:events:' + rowDate);
+    }
+  } catch (_) {}
+}
+
 /**
  * 初回セットアップ。
  * このGASを紐づけた「専用」Googleスプレッドシート上で1回だけ実行してください。
@@ -1142,6 +1272,35 @@ function setupSurpriseEventSheet_(sheet) {
   sheet.getRange('D2:M1000').setDataValidation(candidateValidation);
   sheet.getRange('O2:O1000').setDataValidation(cancelValidation);
 
+  // 同じ日に14:00回と14:30回が両方ONなら目立たせる。
+  const conflictFormula =
+    '=AND($C2="ON",OR($B2="14:00",$B2="14:30"),COUNTIFS($A$2:$A$1000,$A2,$B$2:$B$1000,IF($B2="14:00","14:30","14:00"),$C$2:$C$1000,"ON")>0)';
+
+  const existingRules = sheet.getConditionalFormatRules()
+    .filter(rule => {
+      try {
+        const ranges = rule.getRanges();
+        return !ranges.some(range =>
+          range.getA1Notation() === 'A2:S1000'
+        );
+      } catch (_) {
+        return true;
+      }
+    });
+
+  const conflictRule = SpreadsheetApp
+    .newConditionalFormatRule()
+    .whenFormulaSatisfied(conflictFormula)
+    .setBackground('#ffe0dc')
+    .setFontColor('#9b1c1c')
+    .setRanges([sheet.getRange('A2:S1000')])
+    .build();
+
+  sheet.setConditionalFormatRules([
+    ...existingRules,
+    conflictRule
+  ]);
+
   sheet.setColumnWidth(1, 105);
   sheet.setColumnWidth(2, 90);
   sheet.setColumnWidth(3, 70);
@@ -1180,14 +1339,14 @@ function setupSurpriseGuide_(spreadsheet) {
     ['基本', '1イベント回＝「イベント設定」シートの1行です。'],
     ['開催日', 'イベントを行う日を入力します。'],
     ['開催時刻', '11:00 / 14:00 / 14:30 / 16:00 から選びます。投票時間は自動設定されます。'],
-    ['開催', '準備ができた回だけ ON にします。OFF はHOMEに出ません。'],
+    ['開催', '準備ができた回だけ ON にします。OFF はHOMEに出ません。設定変更はキャッシュを即時破棄します。'],
     ['候補1〜10', 'プルダウンから2〜10件選択。空欄の候補はミニアプリに出ません。'],
     ['結果上書き', '通常は空欄。運営都合で変更するときだけ候補名または c1〜c10 を入力します。'],
     ['中止', '通常OFF。当日中止する場合はONにします。'],
     ['', ''],
     ['11:00', '投票 08:00〜10:45 / 結果 10:45〜11:30'],
-    ['14:00', '投票 11:30〜13:45 / 結果 13:45〜14:30'],
-    ['14:30', '投票 11:30〜14:15 / 結果 14:15〜15:00'],
+    ['14:00', '投票 11:30〜13:45 / 結果 13:45〜14:30 ※14:30回と投票時間が重なるため同時ON不可'],
+    ['14:30', '投票 11:30〜14:15 / 結果 14:15〜15:00 ※14:00回と投票時間が重なるため同時ON不可'],
     ['16:00', '投票 14:30〜15:45 / 結果 15:45〜16:30'],
     ['', ''],
     ['注意文', '※イベント内容・開催時間は、当日の混雑状況や運営上の都合により、変更または中止となる場合があります。']
