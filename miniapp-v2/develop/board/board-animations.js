@@ -9,11 +9,11 @@ const MAX_BATCH=8;
 const MAX_QUEUE=MAX_BATCH;
 const STATUS_BATCH_BUDGET_MS=9000;
 const STATUS_RUNTIME_ESTIMATE_MS=Object.freeze({
-  call:5200,
-  guided:4700,
-  hold:5300,
-  cancel:6300,
-  low:2200,
+  call:6800,
+  guided:6500,
+  hold:6800,
+  cancel:7400,
+  low:4700,
 });
 const STAGGER_MS=90;
 const LEVEL_KEY='asoboon_call_board_animation_level_v1';
@@ -297,10 +297,10 @@ function ghostFrom(frame,className=''){
   return ghost;
 }
 const SPECIAL_NUMBER_DURATION=Object.freeze({
-  call:Object.freeze({low:1500,high:4600}),
-  guided:Object.freeze({low:1400,high:4200}),
-  hold:Object.freeze({low:1600,high:4800}),
-  cancel:Object.freeze({low:1700,high:5200}),
+  call:Object.freeze({low:3800,high:5800}),
+  guided:Object.freeze({low:3600,high:5700}),
+  hold:Object.freeze({low:4000,high:6000}),
+  cancel:Object.freeze({low:4200,high:6200}),
 });
 function specialDuration(kind,lvl){
   const t=SPECIAL_NUMBER_DURATION[kind]||SPECIAL_NUMBER_DURATION.call;
@@ -327,22 +327,22 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
   const frames=kind==='guided'
     ?(low?[
       {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.14},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.86},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.10},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
       {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'translate3d(-18vw,28px,0) scale(.58) skewX(-5deg)'},
       {opacity:1,transform:'translate3d(0,0,0) scale(1.12) skewX(1deg)',offset:.12},
       {opacity:1,transform:'translate3d(0,0,0) scale(.99)',offset:.22},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.76},
-      {opacity:1,transform:'translate3d(20vw,-5px,0) scale(1.02) skewX(-2deg)',offset:.86},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.77},
+      {opacity:1,transform:'translate3d(14vw,-3px,0) scale(1.015) skewX(-1.5deg)',offset:.86},
       {opacity:0,transform:'translate3d(108vw,-34px,0) scale(.64) skewX(-8deg)',offset:1}
     ])
     :kind==='hold'
     ?(low?[
       {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.14},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.88},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.10},
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
       {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'translate3d(-38vw,0,0) scale(.7) skewX(-7deg)'},
@@ -351,29 +351,29 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
       {opacity:1,transform:'translate3d(13px,0,0) scale(1.04)',offset:.23},
       {opacity:1,transform:'translate3d(-6px,0,0) scale(.995)',offset:.28},
       {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.34},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.91},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1.025)',offset:1}
+      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
+      {opacity:0,transform:'translate3d(0,0,0) scale(1.015)',offset:1}
     ])
     :kind==='cancel'
     ?(low?[
       {opacity:0,transform:'scale(.985)'},
-      {opacity:1,transform:'scale(1)',offset:.14},
-      {opacity:1,transform:'scale(1)',offset:.86},
+      {opacity:1,transform:'scale(1)',offset:.10},
+      {opacity:1,transform:'scale(1)',offset:.90},
       {opacity:0,transform:'scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'scale(.42) rotate(-4deg)'},
       {opacity:1,transform:'scale(1.18) rotate(1deg)',offset:.11},
       {opacity:1,transform:'scale(.98) rotate(-.6deg)',offset:.2},
       {opacity:1,transform:'scale(1) rotate(0)',offset:.3},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.74},
-      {opacity:1,transform:'scale(1.03) rotate(.6deg)',offset:.82},
-      {opacity:.68,transform:'scale(.9) rotate(3deg) translateY(22px)',offset:.91},
+      {opacity:1,transform:'scale(1) rotate(0)',offset:.78},
+      {opacity:1,transform:'scale(1.025) rotate(.5deg)',offset:.84},
+      {opacity:.68,transform:'scale(.9) rotate(3deg) translateY(22px)',offset:.92},
       {opacity:0,transform:'scale(.58) rotate(8deg) translateY(110px)',offset:1}
     ])
     :(low?[
       {opacity:0,transform:'scale(.985)'},
-      {opacity:1,transform:'scale(1)',offset:.14},
-      {opacity:1,transform:'scale(1)',offset:.88},
+      {opacity:1,transform:'scale(1)',offset:.10},
+      {opacity:1,transform:'scale(1)',offset:.90},
       {opacity:0,transform:'scale(1)',offset:1}
     ]:[
       {opacity:0,transform:'scale(.22) rotate(-4deg)'},
@@ -381,8 +381,8 @@ function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effect
       {opacity:1,transform:'scale(.94) rotate(-.6deg)',offset:.18},
       {opacity:1,transform:'scale(1.06) rotate(.3deg)',offset:.25},
       {opacity:1,transform:'scale(1) rotate(0)',offset:.32},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.9},
-      {opacity:0,transform:'scale(1.04)',offset:1}
+      {opacity:1,transform:'scale(1) rotate(0)',offset:.88},
+      {opacity:0,transform:'scale(1.025)',offset:1}
     ]);
 
   return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true})
@@ -672,7 +672,7 @@ async function playCancelAnimation({number,frame,element}){
   const reaction=screenReaction('cancel',{duration:lvl<=1?460:1160});
 
   // Let the giant number remain readable before the visual shatter arrives.
-  await waitMs(lvl<=1?620:3300,{rawTiming:true});
+  await waitMs(lvl<=1?2800:4700,{rawTiming:true});
   const shards=foregroundShards(focusRect,{count:lvl<=1?4:6,duration:lvl<=1?720:1440});
   const flash=flashFrame('cancel',focusRect,{duration:lvl<=1?120:240});
   await Promise.all([numberFx,signature,burst,sourceFx,particles,reaction,shards,flash]);
@@ -779,8 +779,8 @@ function getDiagnostics(){
     fullScreenStatusCount:SOURCEFX?4:0,
     slowdownCoverage:4,
     statusTimingMode:'wall-clock',
-    maxSpecialDurationMs:5200,
-    maxReducedSpecialDurationMs:1700,
+    maxSpecialDurationMs:6200,
+    maxReducedSpecialDurationMs:4200,
     queueLimit:MAX_QUEUE,
     statusBatchBudgetMs:STATUS_BATCH_BUDGET_MS,
     maxEstimatedStatusRuntimeMs:STATUS_RUNTIME_ESTIMATE_MS.cancel,
@@ -796,7 +796,7 @@ function resetForTest(){
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.8.1',
+  version:'1.9.0',
   capture,
   observe,
   playStatusAnimation,
