@@ -962,6 +962,32 @@ test('new-source effects stay quiet on load and only run when the show story rea
   await expect(page.locator('.pc-effect')).toHaveCount(0);
 });
 
+test('CALL wins priority when the same refresh also contains earlier Level B transitions', async ({ page }) => {
+  test.setTimeout(15000);
+  const h=await installBoard(page,[
+    payload([
+      {number:'7041',state:'waiting',order:1},
+      {number:'7042',state:'waiting',order:2},
+    ]),
+    payload([
+      {number:'7041',state:'done',order:1},
+      {number:'7042',state:'calling',order:2},
+    ]),
+  ]);
+  await page.evaluate(()=>{
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.03,{persistValue:false});
+    window.ASOBOON_BOARD_ANIMATIONS.resetForTest();
+  });
+  // Re-establish the baseline after reset, then apply one refresh containing GUIDED before CALL in row order.
+  await h.refresh();
+  h.next();
+  await h.refresh();
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().played),{timeout:6000}).toBeGreaterThanOrEqual(2);
+  await waitForFxIdle(page);
+  const order=await page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.map(x=>x.kind));
+  expect(order.slice(0,2)).toEqual(['call','guided']);
+});
+
 test('real call interrupts a running idle event and immediately wins priority', async ({ page }) => {
   const h = await installBoard(page, [
     payload([
