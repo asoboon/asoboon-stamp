@@ -1,7 +1,6 @@
 (()=>{'use strict';
 
 const M=window.ASOBOON_BOARD_EFFECTS;
-const SOURCEFX=window.ASOBOON_BOARD_SOURCE_EFFECTS||null;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
 const MAX_CONCURRENT=1;
@@ -432,6 +431,9 @@ async function playHoldCardFx({element,frame}={}){
     clampEl.className='fx-local-clamp '+side;
     clampEl.style.top=(bounds.cy-source.rect.height*.43)+'px';
     clampEl.style.height=(source.rect.height*.86)+'px';
+    clampEl.style.left=(side==='left'
+      ?bounds.cx-source.rect.width*.60
+      :bounds.cx+source.rect.width*.48)+'px';
     el.appendChild(clampEl);
     const start=side==='left'?'translate3d(-80px,0,0)':'translate3d(80px,0,0)';
     const bite=side==='left'?'translate3d(8px,0,0)':'translate3d(-8px,0,0)';
@@ -1168,14 +1170,17 @@ function getDiagnostics(){
     baselineSlot,
     globalSlowdown:M?.getSlowdown?.()||1,
     statusAnimationsChecked:4,
-    fullScreenStatusCount:SOURCEFX?4:0,
+    fullScreenStatusCount:1,
+    localStatusCount:3,
+    statusAssetPolicy:'generated-only',
+    statusWebpAssets:false,
     slowdownCoverage:4,
     statusTimingMode:'wall-clock',
-    maxSpecialDurationMs:6200,
-    maxReducedSpecialDurationMs:4200,
+    maxSpecialDurationMs:5800,
+    maxReducedSpecialDurationMs:3800,
     queueLimit:MAX_QUEUE,
     statusBatchBudgetMs:STATUS_BATCH_BUDGET_MS,
-    maxEstimatedStatusRuntimeMs:STATUS_RUNTIME_ESTIMATE_MS.cancel,
+    maxEstimatedStatusRuntimeMs:STATUS_RUNTIME_ESTIMATE_MS.call.high,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
     sharedCanvasCount:M?.diagnostics?.().sharedCanvasCount||0,
