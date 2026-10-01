@@ -914,6 +914,42 @@ function closedReservationFallback(body){
   };
 }
 
+async function authoritativeWaitTypeForSession(env,session,{tokenHash=''}={}){
+  if(!env?.DB||!session)return String(session?.wait_type_id||'');
+  let row=null;
+  try{
+    row=await env.DB.prepare(`SELECT c.request_id,c.wait_type_id AS claim_wait_type,t.wait_type_id AS token_wait_type
+      FROM v2_user_day_claims c
+      LEFT JOIN v2_service_token_claims t ON t.request_id=c.request_id
+      WHERE c.user_hash=? AND c.business_date=? AND c.reserve_id=? AND c.receipt_no=?
+      LIMIT 1`)
+      .bind(
+        String(session.user_hash||''),
+        String(session.business_date||''),
+        String(session.reserve_id||''),
+        String(session.receipt_no||'')
+      ).first();
+  }catch{}
+  const tokenWait=String(row?.token_wait_type||'');
+  const claimWait=String(row?.claim_wait_type||'');
+  const current=String(session?.wait_type_id||'');
+  const authoritative=/^\d{4}$/.test(tokenWait)?tokenWait:/^\d{4}$/.test(claimWait)?claimWait:current;
+  if(authoritative&&authoritative!==claimWait){
+    try{
+      await env.DB.prepare(`UPDATE v2_user_day_claims SET wait_type_id=?,updated_at=?
+        WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=?`)
+        .bind(authoritative,Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||'')).run();
+    }catch{}
+  }
+  if(authoritative&&tokenHash&&authoritative!==current){
+    try{
+      await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
+        .bind(authoritative,String(tokenHash)).run();
+    }catch{}
+  }
+  return authoritative||current;
+}
+
 async function reconcileReservationStatus(request, env, base, payload) {
   let body;
   try { body = await base.clone().json(); }
@@ -923,48 +959,39 @@ async function reconcileReservationStatus(request, env, base, payload) {
   if (!env?.AIRWAIT_API_KEY) return base;
 
   try {
+    const rawToken=String(payload?.sessionToken||'').trim();
+    const tokenHash=rawToken.length>=32?await sha256Hex(rawToken):'';
+    let session=null;
+    if(tokenHash&&env?.DB){
+      session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1')
+        .bind(tokenHash).first();
+    }
+    const authoritativeWaitTypeId=session
+      ? await authoritativeWaitTypeForSession(env,session,{tokenHash})
+      : String(body.waitTypeId||'');
+
     const rows = await fetchAllReservationsForReconcile(env);
-    const match = selectTicketMatch(rows, body.receiptNo);
+    const scopedRows=authoritativeWaitTypeId
+      ? rows.filter(r=>String(r?.waitTypeId||'')===authoritativeWaitTypeId)
+      : [];
+    const match = selectTicketMatch(scopedRows, body.receiptNo);
     const candidate = match.row;
 
     if (!candidate) {
-      const closed=closedReservationFallback(body);
+      const closed=closedReservationFallback({...body,waitTypeId:authoritativeWaitTypeId||String(body.waitTypeId||'')});
       return new Response(JSON.stringify(closed||{
         ...body,
+        waitTypeId:authoritativeWaitTypeId||String(body.waitTypeId||''),
         reconcileTried:true,
         reconcileAmbiguous:match.ambiguous,
         reconcileCandidateCount:match.count,
         reconcileExhaustive:true,
-        reconcileReason:rows.length===0?'AIRWAIT_DAY_LIST_EMPTY':'RECEIPT_NOT_IN_FULL_DAY_LIST',
+        reconcileReason:authoritativeWaitTypeId?'RECEIPT_NOT_IN_AUTHORITATIVE_WAIT_TYPE':'AUTHORITATIVE_WAIT_TYPE_UNAVAILABLE',
       }), { status:base.status, headers:base.headers });
     }
 
-    const candidateWaitTypeId = String(candidate.waitTypeId || '');
-    if (env.DB && candidateWaitTypeId && String(payload?.sessionToken || '').trim().length >= 32) {
-      try {
-        const tokenHash = await sha256Hex(String(payload.sessionToken).trim());
-        await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
-          .bind(candidateWaitTypeId, tokenHash).run();
-        try {
-          await env.DB.prepare(`UPDATE v2_user_day_claims SET wait_type_id=?,updated_at=?
-            WHERE business_date=? AND receipt_no=? AND state='CONFIRMED'`)
-            .bind(candidateWaitTypeId, Date.now(), String(body.businessDate || ''), String(body.receiptNo || '')).run();
-        } catch (e) {
-          console.warn('CALLSTATUS_RECONCILE_CLAIM_WAITTYPE_FAILED', safeError(e));
-        }
-        try {
-          await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
-            WHERE business_date=? AND receipt_no=? AND notified_at=0`)
-            .bind(candidateWaitTypeId, Date.now(), String(body.businessDate || ''), String(body.receiptNo || '')).run();
-        } catch (e) {
-          console.warn('CALLSTATUS_RECONCILE_SERVICE_WAITTYPE_FAILED', safeError(e));
-        }
-      } catch (e) {
-        console.warn('CALLSTATUS_RECONCILE_SESSION_UPDATE_FAILED', safeError(e));
-      }
-    }
-
-    const queueRows = rows.filter(r => String(r.waitTypeId || '') === candidateWaitTypeId);
+    const candidateWaitTypeId = String(candidate.waitTypeId || authoritativeWaitTypeId || '');
+    const queueRows = scopedRows;
     const active = queueRows.filter(r => ['0','1','4'].includes(String(r.status || '')));
     const activeIndex = active.findIndex(r => sameTicket(r.number, body.receiptNo));
     const aheadCount = activeIndex >= 0
@@ -974,7 +1001,7 @@ async function reconcileReservationStatus(request, env, base, payload) {
     return new Response(JSON.stringify({
       ...body,
       found:true,
-      waitTypeId:candidateWaitTypeId || String(body.waitTypeId || ''),
+      waitTypeId:candidateWaitTypeId,
       waitTypeName:String(candidate.waitTypeName || ''),
       status:String(candidate.status || ''),
       isCalling:String(candidate.isCalling || '0') === '1',
@@ -984,7 +1011,7 @@ async function reconcileReservationStatus(request, env, base, payload) {
       activeCount:active.length,
       checkedAt:Date.now(),
       reconcileTried:true,
-      reconciledBy:'all-wait-types-fallback',
+      reconciledBy:'authoritative-wait-type-only',
     }), { status:base.status, headers:base.headers });
   } catch (e) {
     console.warn('CALLSTATUS_RECONCILE_FAILED', safeError(e));
@@ -1063,11 +1090,11 @@ async function fetchCancelHtmlWithCookieJar(startUrl,timeoutMs=10000){
   throw apiError('CANCEL_TOO_MANY_REDIRECTS',502);
 }
 
-async function waitForCanceledReservation(env,receiptNo){
+async function waitForCanceledReservation(env,receiptNo,waitTypeId=''){
   let row=null;
   for(const delayMs of [350,650,1000,1500,2000]){
     await new Promise(resolve=>setTimeout(resolve,delayMs));
-    row=await currentReservationRow(env,receiptNo);
+    row=await currentReservationRow(env,receiptNo,waitTypeId);
     if(reservationState(row)==='canceled')return row;
   }
   return row;
@@ -1343,11 +1370,14 @@ async function loadCancelShortUrl(env,session){
   u.protocol='https:';
   return u.toString();
 }
-async function currentReservationRow(env,receiptNo){
+async function currentReservationRow(env,receiptNo,waitTypeId=''){
   reconcileAllCache={savedAt:0,rows:[]};
   reconcileAllInflight=null;
   const rows=await fetchAllReservationsForReconcile(env);
-  return selectTicketMatch(rows,receiptNo).row||null;
+  const scoped=String(waitTypeId||'')
+    ? rows.filter(r=>String(r?.waitTypeId||'')===String(waitTypeId))
+    : [];
+  return selectTicketMatch(scoped,receiptNo).row||null;
 }
 async function cancelReservationInMiniapp(env,p){
   if(!env?.DB)throw apiError('DB_NOT_CONFIGURED',503);
@@ -1359,11 +1389,13 @@ async function cancelReservationInMiniapp(env,p){
   if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
   const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
   if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
+  const authoritativeWaitTypeId=await authoritativeWaitTypeForSession(env,session,{tokenHash});
+  session={...session,wait_type_id:authoritativeWaitTypeId};
   try{
     return await cancelReservationForTrustedSession(env,session,'manual');
   }catch(originalError){
     try{
-      const live=await currentReservationRow(env,String(session.receipt_no||''));
+      const live=await currentReservationRow(env,String(session.receipt_no||''),String(session.wait_type_id||''));
       if(reservationState(live)==='canceled'){
         const notification=await finalizeCancellationState(
           env,
@@ -1393,7 +1425,7 @@ async function cancelReservationForTrustedSession(env,session,cancelSource='manu
   if(!env?.DB||!session?.user_hash||!session?.business_date||!session?.reserve_id||!session?.receipt_no){
     throw apiError('CANCEL_TRUSTED_SESSION_INVALID',400);
   }
-  const before=await currentReservationRow(env,String(session.receipt_no||''));
+  const before=await currentReservationRow(env,String(session.receipt_no||''),String(session.wait_type_id||''));
   const beforeState=reservationState(before);
   if(beforeState==='canceled'){
     const notification=await finalizeCancellationState(env,session,String(before?.waitTypeId||session.wait_type_id||''),'airwait');
@@ -1433,7 +1465,7 @@ async function cancelReservationForTrustedSession(env,session,cancelSource='manu
     await postResponse.text();
   }catch(e){postError=e}
 
-  const after=await waitForCanceledReservation(env,String(session.receipt_no||''));
+  const after=await waitForCanceledReservation(env,String(session.receipt_no||''),String(session.wait_type_id||''));
   const afterState=reservationState(after);
   if(afterState!=='canceled'){
     if(postError)throw apiError('CANCEL_RESULT_UNKNOWN',502);
