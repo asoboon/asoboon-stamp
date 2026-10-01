@@ -150,9 +150,10 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     grid?.querySelectorAll?.('.queue-card[data-row-key]').forEach(card=>cards.set(String(card.dataset.rowKey||''),card));
     for(const evt of events.slice(0,MAX_BATCH)){
       evt.element=cards.get(evt.key)||null;
-      enqueue(evt);
+      enqueue(evt,{deferPump:true});
     }
     if(events.length>MAX_BATCH)diagnostics.dropped+=events.length-MAX_BATCH;
+    pump();
   }
   return {
     baseline:false,
@@ -191,7 +192,7 @@ function pruneQueuedEvents(next){
   queue=sortStatusQueue([...latestByKey.values()]).slice(0,MAX_QUEUE);
   diagnostics.dropped+=Math.max(0,before-queue.length);
 }
-function enqueue(evt){
+function enqueue(evt,{deferPump=false}={}){
   const now=Date.now();
   const normalized={
     ...evt,
@@ -212,7 +213,7 @@ function enqueue(evt){
     diagnostics.dropped+=1;
   }
   diagnostics.queued+=1;
-  pump();
+  if(!deferPump)pump();
 }
 function pump(){
   while(running<MAX_CONCURRENT&&queue.length){
