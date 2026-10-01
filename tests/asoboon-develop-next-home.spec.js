@@ -84,7 +84,7 @@ async function setStatus(page, detail) {
 }
 
 const routes = [
-  ['[data-v7-view="reception"]', 'reception', null, /受付/],
+  ['#v38Hero [data-v7-view="reception"]', 'reception', null, /受付/],
   ['[data-v7-view="first"]:not([data-v7-panel])', 'first', null, /初めての方/],
   ['[data-v7-view="first"][data-v7-panel="price"]', 'first', 'price', /料金/],
   ['[data-v7-view="parking"]', 'parking', null, /駐車場/],
@@ -135,6 +135,7 @@ test('next HOME renders six distinct reception states and keeps reservation fact
     await expect(card).toContainText('おとな 1名');
     await expect(card).toContainText('こども 2名');
     await expect(card).toContainText('0〜5か月 1名');
+    if(detail.kind==='guided')await expect(page.locator('#v38Hero')).toContainText('次の回を受付する');
     if(detail.kind==='canceled')await expect(page.locator('#v38Hero')).toContainText('この受付はキャンセルされています。');
   }
 });
@@ -203,6 +204,15 @@ test('today section shows verified per-slot crowd estimates without acceptance c
   await expect(fifteen).toHaveClass(/crowd-very-high/);
   const text = await box.innerText();
   expect(text).not.toMatch(/受付できます|受付終了|満員|350名|310名/);
+});
+
+test('crowd card opens reception page', async ({ page }) => {
+  await openNextHome(page);
+  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+  await expect(card).toContainText('この回を受付');
+  await card.click();
+  await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('main.view')).toContainText('受付');
 });
 
 test('regular weekday HOME exposes LINE reception and 10:00 / 14:00 crowd estimates', async ({ page }) => {

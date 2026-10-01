@@ -161,6 +161,20 @@ test('same-day cancel then re-reception still works', async () => {
   assert.equal(claimRow(second.reserveId).state, 'CONFIRMED');
 });
 
+test('same-day completed visit can take a later slot while an active visit cannot duplicate', async () => {
+  const first = await create('Ualice', '0029', 'req-alice-active-0001');
+  const blocked = await create('Ualice', '0031', 'req-alice-active-duplicate-0001');
+  assert.equal(blocked.reserveId, first.reserveId, 'active reservation must remain the single current reservation');
+  assert.equal(world.reservations.length, 1);
+
+  world.row(first.reserveId).status = '2'; // AirWAIT done / 案内済み
+  advance();
+  const second = await create('Ualice', '0031', 'req-alice-after-done-0001');
+  assert.notEqual(second.reserveId, first.reserveId);
+  assert.equal(world.reservations.length, 2);
+  assert.equal(claimRow(second.reserveId).state, 'CONFIRMED');
+});
+
 // ---------------------------------------------------------------- requestId ownership / shortUrl
 
 test('create response and session recovery never expose the AirWAIT shortUrl', async () => {

@@ -64,7 +64,7 @@ async function openHome(page, mode) {
 }
 
 const routes = [
-  ['[data-v7-view="reception"]', 'reception', null, /受付/],
+  ['#v38Hero [data-v7-view="reception"]', 'reception', null, /受付/],
   ['[data-v7-view="first"]:not([data-v7-panel])', 'first', null, /初めての方/],
   ['[data-v7-view="first"][data-v7-panel="price"]', 'first', 'price', /料金/],
   ['[data-v7-view="parking"]', 'parking', null, /駐車場/],
@@ -124,7 +124,7 @@ test('Developing LINE reception exposes store reception slots only and no locati
   expect(rules.regularWeb).toEqual(['0023','0025']);
   expect(rules.specialWeb).toEqual(['0035','0037']);
 
-  await page.locator('[data-v7-view="reception"]').click();
+  await page.locator('#v38Hero [data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
   await expect(page.locator('[data-rec-slot="0029"]')).toHaveCount(1);
   await expect(page.locator('[data-rec-slot="0031"]')).toHaveCount(1);
@@ -165,7 +165,7 @@ test('Developing 0042 remains available only behind explicit dev mode', async ({
 
 test('legacy overlay never resurrects disabled Developing test slot', async ({ page }) => {
   await openHome(page, 'resolve');
-  await page.locator('[data-v7-view="reception"]').click();
+  await page.locator('#v38Hero [data-v7-view="reception"]').click();
   await expect.poll(() => new URL(page.url()).searchParams.get('view')).toBe('reception');
   await page.evaluate(() => {
     const slots = document.querySelector('#recSlots');
@@ -295,7 +295,7 @@ test('callstatus treats post-close missing AirWAIT rows as a closed terminal sta
 });
 
 for(const width of [320,375,390,430])test(`reception layout has no horizontal overflow at ${width}px`,async({page})=>{
-  await page.setViewportSize({width,height:900});await openHome(page,'resolve');await page.locator('[data-v7-view="reception"]').click();
+  await page.setViewportSize({width,height:900});await openHome(page,'resolve');await page.locator('#v38Hero [data-v7-view="reception"]').click();
   await expect(page.locator('#recSlots')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
 });
