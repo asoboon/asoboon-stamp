@@ -743,6 +743,181 @@ body{
   contain:layout paint;
 }
 .fx-card-ghost:after{animation:none!important}
+
+/* Level B status specials are intentionally local. CALL is the only fullscreen takeover. */
+.fx-local-status{
+  position:fixed;
+  z-index:11;
+  pointer-events:none;
+  overflow:hidden;
+  opacity:0;
+  contain:layout paint;
+  isolation:isolate;
+  border-radius:clamp(18px,2.4vw,34px);
+  will-change:opacity,transform;
+}
+.fx-local-status::before,
+.fx-local-status::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+
+/* GUIDED: card-local acceleration, residual light and one-way departure ring. */
+.fx-local-status.guided::before{
+  inset:8%;
+  background:
+    repeating-linear-gradient(100deg,
+      transparent 0 9%,
+      rgba(194,244,255,.72) 9.4% 10.2%,
+      transparent 10.6% 18%);
+  transform:skewX(-16deg);
+  -webkit-mask-image:radial-gradient(ellipse at var(--local-cx) var(--local-cy),#000 0 44%,transparent 78%);
+  mask-image:radial-gradient(ellipse at var(--local-cx) var(--local-cy),#000 0 44%,transparent 78%);
+}
+.fx-local-status.guided::after{
+  left:calc(var(--local-cx) + var(--card-w) * .28);
+  top:var(--local-cy);
+  width:calc(var(--card-w) * .72);
+  height:calc(var(--card-h) * 1.25);
+  transform:translate(-50%,-50%);
+  border:clamp(5px,.7vw,10px) solid rgba(218,249,255,.92);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 clamp(9px,1.2vw,18px) rgba(105,224,255,.13),
+    0 0 34px rgba(96,221,255,.58);
+}
+.fx-local-streak{
+  position:absolute;
+  display:block;
+  height:clamp(4px,.55vw,8px);
+  border-radius:999px;
+  transform-origin:left center;
+  background:linear-gradient(90deg,transparent,rgba(153,238,255,.84) 22%,#fff 58%,rgba(94,216,250,.12));
+  box-shadow:0 0 10px rgba(109,228,255,.48);
+  will-change:transform,opacity;
+}
+
+/* HOLD: local impact ring, clamps and sparks. */
+.fx-local-status.hold::before{
+  left:var(--local-cx);
+  top:var(--local-cy);
+  width:calc(var(--card-w) * 1.45);
+  height:calc(var(--card-h) * 1.75);
+  transform:translate(-50%,-50%);
+  border:clamp(5px,.7vw,10px) solid rgba(255,241,145,.82);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 clamp(10px,1.4vw,20px) rgba(255,214,58,.12),
+    0 0 30px rgba(255,213,48,.38);
+}
+.fx-local-status.hold::after{
+  left:var(--local-cx);
+  top:var(--local-cy);
+  width:calc(var(--card-w) * 1.9);
+  height:clamp(12px,1.6vh,22px);
+  transform:translate(-50%,-50%);
+  background:repeating-linear-gradient(90deg,
+    rgba(255,250,194,.92) 0 10%,
+    transparent 10% 17%);
+  box-shadow:0 -24px 0 rgba(255,235,117,.08),0 24px 0 rgba(255,235,117,.08);
+}
+.fx-local-clamp{
+  position:absolute;
+  display:block;
+  width:clamp(24px,3.4vw,44px);
+  border:clamp(4px,.55vw,8px) solid rgba(255,247,176,.96);
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(255,231,104,.96) 0 10px,
+      rgba(91,65,3,.96) 10px 20px);
+  box-shadow:0 0 20px rgba(255,206,39,.44);
+  will-change:transform,opacity;
+}
+.fx-local-clamp.left{border-radius:0 16px 16px 0}
+.fx-local-clamp.right{border-radius:16px 0 0 16px}
+.fx-local-spark{
+  position:absolute;
+  width:clamp(8px,1vw,13px);
+  height:clamp(8px,1vw,13px);
+  border-radius:50% 8% 50% 50%;
+  background:#fff3a1;
+  box-shadow:0 0 12px rgba(255,218,71,.82);
+  will-change:transform,opacity;
+}
+
+/* CANCEL: the card itself cracks and disintegrates; nothing takes over the screen. */
+.fx-local-status.cancel::before{
+  left:var(--local-cx);
+  top:var(--local-cy);
+  width:calc(var(--card-w) * 1.45);
+  aspect-ratio:1.35;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(234,249,255,.26) 0 18%,rgba(89,121,133,.12) 38%,transparent 70%);
+}
+.fx-local-status.cancel::after{
+  left:var(--local-cx);
+  top:var(--local-cy);
+  width:calc(var(--card-w) * .52);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(6,13,18,.82) 0 26%,rgba(48,71,81,.38) 42%,transparent 68%);
+  box-shadow:0 0 26px rgba(204,239,248,.22);
+}
+.fx-local-crack{
+  position:absolute;
+  display:block;
+  height:clamp(3px,.4vw,6px);
+  border-radius:999px;
+  transform-origin:left center;
+  background:linear-gradient(90deg,#fff 0 18%,#d4eef5 45%,rgba(115,157,170,.06));
+  box-shadow:0 0 8px rgba(236,250,255,.66);
+  will-change:transform,opacity;
+}
+.fx-local-shard{
+  position:absolute;
+  display:block;
+  clip-path:polygon(7% 8%,96% 0,79% 48%,100% 84%,37% 100%,0 65%);
+  background:linear-gradient(145deg,#fff 0 14%,#c5e0e8 16% 50%,#60747c 52% 100%);
+  border:1px solid rgba(247,253,255,.84);
+  box-shadow:0 3px 0 rgba(13,24,29,.24),0 0 8px rgba(220,246,255,.28);
+  will-change:transform,opacity;
+}
+.fx-local-shard.large{
+  border-width:2px;
+  clip-path:polygon(4% 8%,92% 0,80% 38%,100% 78%,50% 100%,0 70%,18% 37%);
+}
+.fx-local-shard.small{
+  clip-path:polygon(14% 0,100% 20%,72% 100%,0 74%);
+  box-shadow:0 2px 0 rgba(13,24,29,.18);
+}
+
+.fx-local-card-ghost{
+  pointer-events:none!important;
+  will-change:transform,opacity,filter;
+}
+
+/* Performance fallbacks keep the Level B meaning while stripping expensive decoration. */
+:root[data-board-quality="low"] .fx-local-status,
+:root[data-board-quality="low"] .fx-local-status::before,
+:root[data-board-quality="low"] .fx-local-status::after,
+:root[data-board-quality="low"] .fx-local-status *{
+  box-shadow:none!important;
+  filter:none!important;
+}
+@media (prefers-reduced-motion: reduce){
+  .fx-local-status::before,
+  .fx-local-status::after{
+    transform:none;
+  }
+  .fx-local-streak,
+  .fx-local-spark,
+  .fx-local-shard{
+    display:none!important;
+  }
+}
 /* SPECIAL hard guard: legacy cached scripts must never surface onomatopoeia or status-copy text. */
 .fx-onomatopoeia,
 .fx-special-number-kicker,
