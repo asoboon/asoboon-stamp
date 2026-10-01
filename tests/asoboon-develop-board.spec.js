@@ -140,18 +140,19 @@ async function prepareIdleForTest(page, patch = {}) {
 async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
-  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-status-finale,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
+  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-status-finale,.fx-local-status,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
 }
 
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260928-story-beats-v7');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-story-beats-v7'");
+  expect(buildFile.version).toBe('20261001-call-only-fullscreen-v8');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261001-call-only-fullscreen-v8'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=31');
-  expect(indexHtml).toContain('board.js?v=29');
+  expect(indexHtml).toContain('board-animations.js?v=32');
+  expect(indexHtml).toContain('board-source-effects.js?v=20');
+  expect(indexHtml).toContain('board.js?v=30');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -182,16 +183,17 @@ test('current SPECIAL implementation contains no onomatopoeia and legacy cached 
   await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('visibility','hidden');
 });
 
-test('CALL GUIDED HOLD and CANCEL use distinct motion-only signature layers', async ({ page }) => {
+test('CALL keeps the fullscreen signature while Level B uses local generated layers', async ({ page }) => {
   const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
-  for(const kind of ['call','guided','hold','cancel']){
-    expect(animations).toContain(`statusSignature('${kind}'`);
-    expect(css).toContain(`.fx-status-signature.${kind}::before`);
+
+  expect(animations).toContain("statusSignature('call'");
+  for(const kind of ['guided','hold','cancel']){
+    expect(animations).not.toContain(`statusSignature('${kind}'`);
+    expect(css).toContain(`.fx-local-status.${kind}`);
   }
-  expect(css).toContain('.fx-status-signature.guided::after');
-  expect(css).toContain('.fx-status-signature.hold::after');
-  expect(css).toContain('.fx-status-signature.cancel::after');
+  expect(css).toContain('.fx-status-signature.call::before');
+  expect(css).toContain('Hard safety guard: only CALL may ever take over the full screen');
 
   await installBoard(page,[payload([{number:'5991',state:'waiting',order:1}])]);
   await page.evaluate(() => {
@@ -213,7 +215,7 @@ test('CALL GUIDED HOLD and CANCEL use distinct motion-only signature layers', as
   expect(probe.childCount).toBe(0);
   expect(probe.ariaHidden).toBe('true');
   await page.evaluate(()=>window.__signatureProbe);
-  await expect(page.locator('.fx-status-signature')).toHaveCount(0);
+  await expect(page.locator('.fx-status-signature,.fx-local-status')).toHaveCount(0);
 });
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
@@ -522,34 +524,37 @@ test('special status effects stay inside the 10-second refresh budget', async ({
 
   const d = await diagnostics(page);
   expect(d.statusTimingMode).toBe('wall-clock');
-  expect(d.maxSpecialDurationMs).toBeLessThan(10000);
-  expect(d.maxReducedSpecialDurationMs).toBeLessThanOrEqual(4500);
+  expect(d.maxSpecialDurationMs).toBe(5800);
+  expect(d.maxReducedSpecialDurationMs).toBe(3800);
+  expect(d.fullScreenStatusCount).toBe(1);
+  expect(d.localStatusCount).toBe(3);
+  expect(d.statusAssetPolicy).toBe('generated-only');
+  expect(d.statusWebpAssets).toBe(false);
   expect(d.queueLimit).toBeLessThanOrEqual(8);
   expect(d.statusBatchBudgetMs).toBeLessThan(10000);
   expect(d.maxEstimatedStatusRuntimeMs).toBeLessThan(d.statusBatchBudgetMs);
 
   const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
-  expect(status).toContain("rawTiming:true");
   expect(status).toContain("call:Object.freeze({low:3800,high:5800})");
-  expect(status).toContain("guided:Object.freeze({low:3600,high:5700})");
-  expect(status).toContain("cancel:Object.freeze({low:4200,high:6200})");
-  expect(status).toContain("translate3d(0,0,0) scale(.985)");
+  expect(status).toContain("guided:Object.freeze({low:900,high:1500})");
+  expect(status).toContain("hold:Object.freeze({low:1000,high:1650})");
+  expect(status).toContain("cancel:Object.freeze({low:1050,high:1650})");
   expect(css).toMatch(/\.fx-pachinko-burst\{[\s\S]*?inset:0;/);
+  expect(css).toContain('.fx-local-status');
 });
 
-test('SPECIAL timing prioritizes a long readable number hold before state-specific exit', async () => {
+test('CALL keeps the long readable hold while Level B stays short and local', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).toContain("call:Object.freeze({low:3800,high:5800})");
-  expect(code).toContain("guided:Object.freeze({low:3600,high:5700})");
-  expect(code).toContain("hold:Object.freeze({low:4000,high:6000})");
-  expect(code).toContain("cancel:Object.freeze({low:4200,high:6200})");
-  expect(code).toContain("offset:.77");
-  expect(code).toContain("offset:.90");
-  expect(code).toContain("offset:.78");
-  expect(code).toContain("waitMs(lvl<=1?2800:4700");
-  expect(code).toContain("maxSpecialDurationMs:6200");
-  expect(code).toContain("maxReducedSpecialDurationMs:4200");
+  expect(code).toContain("guided:Object.freeze({low:900,high:1500})");
+  expect(code).toContain("hold:Object.freeze({low:1000,high:1650})");
+  expect(code).toContain("cancel:Object.freeze({low:1050,high:1650})");
+  expect(code).toContain("maxSpecialDurationMs:5800");
+  expect(code).toContain("maxReducedSpecialDurationMs:3800");
+  expect(code).toContain("fullScreenStatusCount:1");
+  expect(code).toContain("localStatusCount:3");
+  expect(code).toContain("statusWebpAssets:false");
 });
 
 test('animation controls support OFF through level 3 and rare effects toggle', async ({ page }) => {
@@ -639,7 +644,9 @@ test('fullscreen world audit covers every current idle event individually', asyn
   });
   expect(Object.keys(result.worldDiag.storyArcs)).toEqual(expect.arrayContaining(['orb','star','square','eye']));
   expect(result.statusDiag.statusAnimationsChecked).toBe(4);
-  expect(result.statusDiag.fullScreenStatusCount).toBe(4);
+  expect(result.statusDiag.fullScreenStatusCount).toBe(1);
+  expect(result.statusDiag.localStatusCount).toBe(3);
+  expect(result.statusDiag.statusWebpAssets).toBe(false);
   expect(result.statusDiag.slowdownCoverage).toBe(4);
   expect(result.idleDiag.auditCount).toBe(63);
   expect(result.idleDiag.fullScreenCount).toBe(63);
@@ -882,7 +889,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
       runtime:fx.diagnostics(),
       overlayZ:Number(getComputedStyle(overlay).zIndex)||0,
       frontZ:Number(getComputedStyle(front).zIndex)||0,
-      tempNodes:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.pc-sprite').length,
+      tempNodes:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.fx-card-ghost,.fx-local-status,.pc-sprite').length,
       numbers:[...document.querySelectorAll('#queueGrid .queue-number')].map(x=>x.textContent.trim()),
     };
   });
@@ -953,6 +960,32 @@ test('new-source effects stay quiet on load and only run when the show story rea
   await expect.poll(async () => (await sourceFxDiagnostics(page)).played, { timeout: 3000 }).toBe(1);
   await expect.poll(async () => (await sourceFxDiagnostics(page)).running, { timeout: 5000 }).toBe(false);
   await expect(page.locator('.pc-effect')).toHaveCount(0);
+});
+
+test('CALL wins priority when the same refresh also contains earlier Level B transitions', async ({ page }) => {
+  test.setTimeout(15000);
+  const h=await installBoard(page,[
+    payload([
+      {number:'7041',state:'waiting',order:1},
+      {number:'7042',state:'waiting',order:2},
+    ]),
+    payload([
+      {number:'7041',state:'done',order:1},
+      {number:'7042',state:'calling',order:2},
+    ]),
+  ]);
+  await page.evaluate(()=>{
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.03,{persistValue:false});
+    window.ASOBOON_BOARD_ANIMATIONS.resetForTest();
+  });
+  // Re-establish the baseline after reset, then apply one refresh containing GUIDED before CALL in row order.
+  await h.refresh();
+  h.next();
+  await h.refresh();
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().played),{timeout:6000}).toBeGreaterThanOrEqual(2);
+  await waitForFxIdle(page);
+  const order=await page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.map(x=>x.kind));
+  expect(order.slice(0,2)).toEqual(['call','guided']);
 });
 
 test('real call interrupts a running idle event and immediately wins priority', async ({ page }) => {
@@ -1208,7 +1241,7 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
   expect(state.director.legacyIdleInNormalRotation).toBe(false);
   expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','POMPON_STAR_SHOCK','POMPON_OOPS_QUESTION','CHIRU_PEEK','CHIRU_SNEAK','CHIRU_STAR_DODGE','CHIRU_ALERT_SHOCK','POMPON_BRAKE_FAIL','POMPON_SMUG_OOPS','POMPON_STAR_FLYBACK','DUO_CHASE_CATCH','DUO_BOAST_DISBELIEF','DUO_FAILURE_SCOLD','DUO_OH_NO_ESCAPE','DUO_FRIENDSHIP_OOPS']));
   expect(state.chars).not.toEqual(expect.arrayContaining(['POMPON_DASH_BY','CHIRU_WATCH','CHIRU_EXASPERATED']));
-  expect(state.sourceFx.sourcePolicy).toBe('effects_pack_v2-only');
+  expect(state.sourceFx.sourcePolicy).toBe('idle-only-effects_pack_v2');
   expect(state.sourceFx.semanticPolicy).toBe('context-matched-only');
   expect(state.sourceFx.events).toEqual(expect.arrayContaining(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']));
   expect(state.sourceFx.events).not.toEqual(expect.arrayContaining(['FX_DUST_BOUNCE','FX_OFFSCREEN_BONK','FX_STAR_POP']));
@@ -1261,43 +1294,45 @@ test('character pacing is deliberately slower while call delivery stays separate
   expect(state.chars.sceneRecipeCount).toBe(23);
   expect(state.assets.anchorCount).toBe(30);
   expect(state.sourceFx.pace).toBeGreaterThanOrEqual(1.3);
+  expect(state.sourceFx.statusAssetPolicy).toBe('generated-only');
+  expect(state.sourceFx.statusWebpAssets).toBe(false);
   expect(state.assets.effectRules.dodge).toEqual(expect.arrayContaining(['jump_arc','speed_slash']));
   expect(state.assets.effectRules.impact).not.toContain('jump_arc');
   expect(state.assets.effectRules.impact).not.toContain('sparkle_gold');
 });
 
-test('hold transition is silent, number-first and never invokes a character actor', async () => {
+test('HOLD is a loud local card special and never takes over the screen', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
-  expect(code).toContain("specialScreen('hold'");
-  expect(code).toContain("specialNumberTakeover(number,'hold'");
-  expect(code).toContain("runParticles('hold'");
-  expect(code).not.toContain('function onomatopoeia(');
-  expect(code).not.toContain('fx-onomatopoeia');
-  expect(code).not.toContain("playStatusAccent?.('hold'");
-  expect(code).not.toContain('playCallDelivery?.');
+  expect(code).toContain("playHoldCardFx({element,frame})");
+  expect(code).toContain("fx-local-clamp");
+  expect(code).toContain("fx-local-spark");
+  expect(code).not.toContain("specialNumberTakeover(number,'hold'");
+  expect(code).not.toContain("specialScreen('hold'");
+  expect(code).not.toContain("pachinkoBurst('hold'");
+  expect(code).not.toContain("SOURCEFX?.playStatusReaction?.('hold'");
   expect(code).not.toContain('const CHAR=');
-  expect(code).toContain('impactFreeze(');
 });
 
-
-test('real status effects are silent full-screen number specials with long hold times', async () => {
+test('CALL is the only fullscreen status; GUIDED HOLD and CANCEL are generated local specials', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   expect(code).toContain('const MAX_CONCURRENT=1;');
-  for(const kind of ['call','guided','hold','cancel']){
-    expect(code).toContain(`specialNumberTakeover(number,'${kind}'`);
-    expect(code).toContain(`runParticles('${kind}'`);
-    expect(code).toContain(`pachinkoBurst('${kind}'`);
+  expect(code).toContain("specialNumberTakeover(number,'call'");
+  expect(code).toContain("specialScreen('call'");
+  expect(code).toContain("pachinkoBurst('call'");
+  for(const kind of ['guided','hold','cancel']){
+    expect(code).not.toContain(`specialNumberTakeover(number,'${kind}'`);
+    expect(code).not.toContain(`specialScreen('${kind}',focusRect`);
+    expect(code).not.toContain(`pachinkoBurst('${kind}',focusRect`);
+    expect(code).toContain(`play${kind[0].toUpperCase()+kind.slice(1)}CardFx`);
   }
-  expect(code).toContain("call:Object.freeze({low:3800,high:5800})");
-  expect(code).toContain("guided:Object.freeze({low:3600,high:5700})");
-  expect(code).toContain("hold:Object.freeze({low:4000,high:6000})");
-  expect(code).toContain("cancel:Object.freeze({low:4200,high:6200})");
+  expect(code).not.toContain('SOURCEFX?.playStatusReaction?.');
+  expect(css).toContain('Hard safety guard: only CALL may ever take over the full screen');
+  expect(css).toContain('.fx-local-status.guided');
+  expect(css).toContain('.fx-local-status.hold');
+  expect(css).toContain('.fx-local-status.cancel');
   expect(code).not.toContain('onomatopoeia(');
-  expect(code).not.toContain('specialTextRect(');
-  expect(code).not.toContain('fx-special-number-kicker');
-  expect(code).not.toContain('fx-special-number-status');
   expect(code).not.toContain('const CHAR=');
-  expect(code).toContain('foregroundShards(focusRect,{count:lvl<=1?4:6');
 });
 
 test('composition guard v2 uses live character rects and area overlap instead of stale scene points', async ({ page }) => {
@@ -1350,107 +1385,82 @@ test('composition guard v2 uses live character rects and area overlap instead of
   expect(result.composition.rayReroutes).toBeGreaterThan(0);
 });
 
-test('SPECIAL overlay effects focus on the giant-number stage rather than the source card', async () => {
+test('CALL owns the giant-number stage while Level B stays bounded around its source card', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   expect(code).toContain('function specialFocusRect()');
-  for(const kind of ['call','guided','hold','cancel']){
-    expect(code).toContain(`specialScreen('${kind}',focusRect`);
-    expect(code).toContain(`pachinkoBurst('${kind}',focusRect`);
-    expect(code).toContain(`runParticles('${kind}',focusRect`);
-  }
-  expect(code).toContain("foregroundShards(focusRect");
-  expect(code).toContain("SOURCEFX?.playStatusReaction?.('call',{rect:sourceRect");
+  expect(code).toContain("specialScreen('call',focusRect");
+  expect(code).toContain("pachinkoBurst('call',focusRect");
+  expect(code).toContain("runParticles('call',focusRect");
+  expect(code).toContain("function localFxBounds(rect,{x=2.7,y=2.5}={})");
+  expect(code).toContain("localStatusStage('guided',source.rect)");
+  expect(code).toContain("localStatusStage('hold',source.rect)");
+  expect(code).toContain("localStatusStage('cancel',source.rect)");
+  expect(code).not.toContain("SOURCEFX?.playStatusReaction?.");
 });
 
-test('SPECIAL finales use four distinct irreversible physical endings and fully clean up', async ({ page }) => {
+test('Level B specials are loud, local, text-free and fully clean up', async ({ page }) => {
   test.setTimeout(30000);
   await installBoard(page,[payload([{number:'8633',state:'waiting',order:1}])]);
-  const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
-  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
 
-  expect(code).toContain("function statusFinale(kind,rect");
-  expect(code).toContain("statusFinale('call'");
-  expect(code).toContain("statusFinale('guided'");
-  expect(code).toContain("statusFinale('hold'");
-  expect(code).toContain("statusFinale('cancel'");
-  expect(css).toContain('.fx-status-finale.call');
-  expect(css).toContain('.fx-status-finale.guided');
-  expect(css).toContain('.fx-status-finale.hold');
-  expect(css).toContain('.fx-status-finale.cancel');
-  expect(css).toContain('.fx-status-finale.hold .fx-finale-lock');
-  expect(css).toContain('.fx-status-finale.guided .fx-finale-streak');
-  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece');
-
-  const expectedChildren={call:13,guided:8,hold:3,cancel:14};
-  for(const kind of ['call','guided','hold','cancel']){
+  for(const kind of ['guided','hold','cancel']){
     await page.evaluate(kind=>{
       const fx=window.ASOBOON_BOARD_EFFECTS;
       fx.setSlowdown(0.35,{persistValue:false});
       const card=document.querySelector('#queueGrid .queue-card');
-      window.__finalePromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      window.__localStatusPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
         number:'8633',kind,fromStatus:'waiting',
-        toStatus:kind==='call'?'calling':kind==='guided'?'done':kind==='hold'?'hold':'canceled',
+        toStatus:kind==='guided'?'done':kind==='hold'?'hold':'canceled',
         element:card,
       });
     },kind);
 
-    await expect.poll(async()=>page.evaluate(kind=>Boolean(document.querySelector('.fx-status-finale.'+kind)),kind),{timeout:4000}).toBe(true);
+    await expect.poll(async()=>page.evaluate(kind=>Boolean(document.querySelector('.fx-local-status.'+kind)),kind),{timeout:4000}).toBe(true);
     const live=await page.evaluate(kind=>{
-      const el=document.querySelector('.fx-status-finale.'+kind);
+      const el=document.querySelector('.fx-local-status.'+kind);
+      const card=document.querySelector('#queueGrid .queue-card');
+      const er=el?.getBoundingClientRect();
+      const cr=card?.getBoundingClientRect();
       return{
         text:el?.textContent||'',
         aria:el?.getAttribute('aria-hidden')||'',
-        children:el?.children.length||0,
-        finalAct:el?.dataset.finalAct||'',
+        width:er?.width||0,
+        height:er?.height||0,
+        cardWidth:cr?.width||0,
+        cardHeight:cr?.height||0,
+        giant:document.querySelectorAll('.fx-special-number.'+kind).length,
+        fullscreen:document.querySelectorAll('.fx-special-screen.'+kind+',.fx-pachinko-burst.'+kind+',.fx-status-finale.'+kind).length,
         characters:document.querySelectorAll('.pc-character').length,
       };
     },kind);
     expect(live.text).toBe('');
     expect(live.aria).toBe('true');
-    expect(live.finalAct).toBe(kind);
-    expect(live.children).toBe(expectedChildren[kind]);
+    expect(live.width).toBeLessThanOrEqual(live.cardWidth*2.71+2);
+    expect(live.height).toBeLessThanOrEqual(live.cardHeight*2.51+2);
+    expect(live.giant).toBe(0);
+    expect(live.fullscreen).toBe(0);
     expect(live.characters).toBe(0);
-    if(kind==='call')await expect(page.locator('.fx-status-finale.call .fx-finale-crack')).toHaveCount(3);
-    if(kind==='guided')await expect(page.locator('.fx-status-finale.guided .fx-finale-gate')).toHaveCount(1);
-    if(kind==='hold')await expect(page.locator('.fx-status-finale.hold .fx-finale-pin')).toHaveCount(1);
-    if(kind==='cancel'){
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-crack')).toHaveCount(4);
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-void')).toHaveCount(1);
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.large')).toHaveCount(4);
-      await expect(page.locator('.fx-status-finale.cancel .fx-finale-piece.small')).toHaveCount(5);
-    }
 
-    await page.evaluate(()=>window.__finalePromise);
-    await expect(page.locator('.fx-status-finale')).toHaveCount(0);
+    await page.evaluate(()=>window.__localStatusPromise);
+    await expect(page.locator('.fx-local-status,.fx-local-card-ghost')).toHaveCount(0);
   }
 
   await waitForFxIdle(page);
 });
 
-test('SPECIAL finales have anticipation, commitment and irreversible aftermath beats', async () => {
+test('Level B choreography stays distinct: departure, clamp and staged destruction', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
 
-  expect(code).toContain("crack.className='fx-finale-crack call'");
-  expect(code).toContain("gate.className='fx-finale-gate'");
-  expect(code).toContain("pin.className='fx-finale-pin'");
-  expect(code).toContain("crack.className='fx-finale-crack cancel'");
-  expect(code).toContain("voidEl.className='fx-finale-void'");
-  expect(code).toContain("piece.className='fx-finale-piece large'");
-  expect(code).toContain("piece.className='fx-finale-piece small'");
-  expect(code).toContain("delay:delay+500+i*26");
-  expect(code).toContain("delay:delay+745+(i%4)*24");
-  expect(code).toContain("offset:.82");
-  expect(code).toContain("offset:.86");
-  expect(code).toContain("offset:.93");
-
-  expect(css).toContain('.fx-finale-crack.call');
-  expect(css).toContain('.fx-finale-crack.cancel');
-  expect(css).toContain('.fx-status-finale.guided .fx-finale-gate');
-  expect(css).toContain('.fx-status-finale.hold .fx-finale-pin');
-  expect(css).toContain('.fx-status-finale.cancel .fx-finale-void');
-  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece.large');
-  expect(css).toContain('.fx-status-finale.cancel .fx-finale-piece.small');
+  expect(code).toContain("streak.className='fx-local-streak'");
+  expect(code).toContain("clampEl.className='fx-local-clamp '+side");
+  expect(code).toContain("spark.className='fx-local-spark'");
+  expect(code).toContain("crack.className='fx-local-crack'");
+  expect(code).toContain("piece.className='fx-local-shard '+(large?'large':'small')");
+  expect(css).toContain('.fx-local-status.guided::before');
+  expect(css).toContain('.fx-local-status.hold::before');
+  expect(css).toContain('.fx-local-status.cancel::before');
+  expect(css).toContain('.fx-local-shard.large');
+  expect(css).toContain('.fx-local-shard.small');
 });
 
 test('CALL takes over the screen with a huge number that stays readable', async ({ page }) => {
@@ -1507,7 +1517,7 @@ test('CALL takes over the screen with a huge number that stays readable', async 
   await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-character')).toHaveCount(0);
 });
 
-test('HOLD shows the reception number as the main actor and never mounts a character', async ({ page }) => {
+test('HOLD makes the card the local main actor and never mounts a character or giant number', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8636',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
@@ -1519,24 +1529,26 @@ test('HOLD shows the reception number as the main actor and never mounts a chara
     });
   });
 
-  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.hold'))),{timeout:4000}).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-local-status.hold'))),{timeout:4000}).toBe(true);
   const live=await page.evaluate(()=>{
-    const el=document.querySelector('.fx-special-number.hold');
-    const value=el?.querySelector('.fx-special-number-value');
+    const local=document.querySelector('.fx-local-status.hold');
+    const ghost=document.querySelector('.fx-local-card-ghost.fx-hold-ghost');
     return{
-      number:value?.textContent?.trim()||'',
+      local:Boolean(local),
+      ghostNumber:ghost?.querySelector('.queue-number')?.textContent?.trim()||'',
       characters:document.querySelectorAll('.pc-character').length,
-      fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
-      width:value?.getBoundingClientRect().width||0,
+      giant:document.querySelectorAll('.fx-special-number.hold').length,
+      clamps:document.querySelectorAll('.fx-local-status.hold .fx-local-clamp').length,
     };
   });
-  expect(live.number).toBe('8636');
+  expect(live.local).toBe(true);
+  expect(live.ghostNumber).toBe('8636');
   expect(live.characters).toBe(0);
-  expect(live.fontSize).toBeGreaterThan(240);
-  expect(live.width).toBeGreaterThan(900);
+  expect(live.giant).toBe(0);
+  expect(live.clamps).toBe(2);
 
   await page.evaluate(()=>window.__holdCompositionPromise);
-  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-sprite')).toHaveCount(0);
+  await expect(page.locator('.fx-local-status,.fx-local-card-ghost,.fx-special-number.hold,.pc-sprite')).toHaveCount(0);
 });
 
 test('source status effects use the shared composition guard', async () => {
@@ -1648,18 +1660,20 @@ test('adaptive manga typography uses choreography placement without covering liv
   expect(result.stats.adaptiveTypography).toBeGreaterThan(0);
 });
 
-test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter special', async ({ page }) => {
+test('CANCEL keeps TARGET as the local attention owner and fully clears the card shatter', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8641',state:'waiting',order:1}])]);
   const result=await page.evaluate(async()=>{
     const fx=window.ASOBOON_BOARD_EFFECTS;
-    fx.setSlowdown(0.03,{persistValue:false});
+    fx.setSlowdown(0.12,{persistValue:false});
     fx.resetPerformanceBaseline();
     const card=document.querySelector('#queueGrid .queue-card');
-    let characterPeak=0,numberPeak=0;
+    let characterPeak=0,localPeak=0,giantPeak=0,shardPeak=0;
     const observer=new MutationObserver(()=>{
       characterPeak=Math.max(characterPeak,document.querySelectorAll('.pc-character').length);
-      numberPeak=Math.max(numberPeak,document.querySelectorAll('.fx-special-number.cancel').length);
+      localPeak=Math.max(localPeak,document.querySelectorAll('.fx-local-status.cancel').length);
+      giantPeak=Math.max(giantPeak,document.querySelectorAll('.fx-special-number.cancel').length);
+      shardPeak=Math.max(shardPeak,document.querySelectorAll('.fx-local-status.cancel .fx-local-shard').length);
     });
     observer.observe(document.body,{childList:true,subtree:true});
     await window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
@@ -1670,8 +1684,8 @@ test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter sp
     return{
       active:diag.choreography.active,
       last:diag.choreography.last,
-      characterPeak,numberPeak,
-      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
+      characterPeak,localPeak,giantPeak,shardPeak,
+      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-local-status,.fx-card-ghost,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
       phaseAttr:document.documentElement.hasAttribute('data-board-choreo-phase'),
     };
   });
@@ -1680,12 +1694,13 @@ test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter sp
   expect(result.active).toBeNull();
   expect(result.phaseAttr).toBe(false);
   expect(result.characterPeak).toBe(0);
-  expect(result.numberPeak).toBeGreaterThan(0);
+  expect(result.localPeak).toBeGreaterThan(0);
+  expect(result.giantPeak).toBe(0);
+  expect(result.shardPeak).toBeGreaterThan(0);
   expect(result.leftovers).toBe(0);
-  expect(phases).toEqual(expect.arrayContaining(['omen','impact','aftermath','end']));
-  expect(phases.indexOf('omen')).toBeLessThan(phases.indexOf('impact'));
+  expect(phases).toEqual(expect.arrayContaining(['impact','aftermath','end']));
   expect(phases.indexOf('impact')).toBeLessThan(phases.indexOf('aftermath'));
-  expect(owners.every(x=>x==='NUMBER'||x==='TARGET')).toBe(true);
+  expect(owners.every(x=>x==='TARGET')).toBe(true);
 });
 
 test('character and source effects participate in choreography visual budgets', async () => {
