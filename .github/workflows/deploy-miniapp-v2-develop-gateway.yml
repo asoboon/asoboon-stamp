@@ -329,21 +329,23 @@ jobs:
           grep -F 'id="csCancelDialog"' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'airwait.jp/WCSP' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'liff.openWindow' miniapp-v2/shared/callstatus.js
-      - name: Show sanitized recent create diagnostics
+      - name: Verify protected diagnostics stay private
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
-          RESPONSE="$(curl --fail-with-body --silent --show-error \
-            -H 'Origin: https://asoboon.github.io' \
-            "$WORKER_URL/?action=createDiagnostics&_=${GITHUB_SHA}")"
-          printf '%s' "$RESPONSE" | node -e '
-            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-              const x=JSON.parse(s);
-              if(x.ok!==true) throw new Error("createDiagnostics unavailable");
-              console.log("Developing recent create diagnostics:");
-              console.log(JSON.stringify({attempts:x.attempts||[],legacy:x.legacy||[],confirmed:x.confirmed||[],liveWaitTypes:x.liveWaitTypes||[],cancelReadiness:x.cancelReadiness||[]},null,2));
-            });
-          '
+          for ACTION in createDiagnostics serviceMessageStatus; do
+            HTTP_CODE="$(curl --silent --show-error \
+              -o "/tmp/${ACTION}.json" \
+              -w '%{http_code}' \
+              -H 'Origin: https://asoboon.github.io' \
+              "$WORKER_URL/?action=${ACTION}&_=${GITHUB_SHA}")"
+            echo "${ACTION} HTTP: ${HTTP_CODE}"
+            if [ "$HTTP_CODE" != "404" ]; then
+              echo "${ACTION} must stay unavailable without diagnostics authentication" >&2
+              cat "/tmp/${ACTION}.json" >&2
+              exit 1
+            fi
+          done
       - name: Verify Developing crowd diagnostics
         if: steps.credentials.outputs.available == 'true'
         run: |
