@@ -28,7 +28,7 @@
     function childUrl(){
       const u=new URL(coreBase.href);
       u.search=location.search;
-      u.searchParams.set('_v','20261001-17');
+      u.searchParams.set('_v','20261001-18');
       u.hash=location.hash;
       return u.href;
     }
@@ -268,7 +268,7 @@
     function openFramePage(page){
       const routes={
         'event-info':'./event-info.html?v=20261001-17&embedded=1',
-        'surprise-vote':'./surprise-vote.html?v=20261001-17&embedded=1'
+        'surprise-vote':'./surprise-vote.html?v=20261001-18&embedded=1'
       };
       const target=routes[String(page||'')];
       if(!target)return;
