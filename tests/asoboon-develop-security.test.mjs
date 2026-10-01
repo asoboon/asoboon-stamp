@@ -167,11 +167,21 @@ test('same-day completed visit can take a later slot while an active visit canno
   assert.equal(blocked.reserveId, first.reserveId, 'active reservation must remain the single current reservation');
   assert.equal(world.reservations.length, 1);
 
+  const firstSession = await session('Ualice');
   world.row(first.reserveId).status = '2'; // AirWAIT done / 案内済み
+  const done = await status(firstSession.sessionToken);
+  assert.equal(done.state, 'done');
+  assert.equal(claimRow(first.reserveId).state, 'COMPLETED', 'observed done state must be persisted');
+
+  // Completed claims must remain recoverable even after AirWAIT stops listing the old row.
+  const recovered = await session('Ualice');
+  assert.equal(recovered.reserveId, first.reserveId);
+  world.reservations = world.reservations.filter(r => r.reserveId !== first.reserveId);
+
   advance();
   const second = await create('Ualice', '0031', 'req-alice-after-done-0001');
   assert.notEqual(second.reserveId, first.reserveId);
-  assert.equal(world.reservations.length, 2);
+  assert.equal(world.reservations.length, 1);
   assert.equal(claimRow(second.reserveId).state, 'CONFIRMED');
 });
 

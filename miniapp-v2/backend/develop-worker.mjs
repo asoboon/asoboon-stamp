@@ -225,6 +225,8 @@ export default {
     let base = await gateway.fetch(request, env, ctx);
     if (reservationStatusPayload) {
       const statusResponse = await reconcileReservationStatus(request, env, base, reservationStatusPayload);
+      try { await persistTerminalClaimFromStatus(env,reservationStatusPayload,statusResponse); }
+      catch(e){ console.warn('CALLSTATUS_TERMINAL_PERSIST_FAILED',safeError(e)); }
       queueObservedCallNotification(env, statusResponse, ctx);
       return statusResponse;
     }
@@ -1014,6 +1016,27 @@ async function authoritativeWaitTypeForSession(env,session,{tokenHash=''}={}){
     }catch{}
   }
   return authoritative||current;
+}
+
+async function persistTerminalClaimFromStatus(env,payload,response){
+  if(!env?.DB||!payload||!response?.ok)return false;
+  let body=null;try{body=await response.clone().json()}catch{return false}
+  const state=String(body?.state||'');
+  const nextState=state==='done'?'COMPLETED':state==='canceled'?'CANCELED':'';
+  if(!nextState||body?.found!==true)return false;
+  const rawToken=String(payload?.sessionToken||'').trim();
+  if(rawToken.length<32)return false;
+  const tokenHash=await sha256Hex(rawToken);
+  const session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1')
+    .bind(tokenHash).first();
+  if(!session||Number(session.expires_at||0)<=Date.now())return false;
+  if(body?.reserveId&&String(body.reserveId)!==String(session.reserve_id||''))return false;
+  if(body?.receiptNo&&String(body.receiptNo)!==String(session.receipt_no||''))return false;
+  const waitTypeId=String(body?.waitTypeId||session.wait_type_id||'');
+  const changed=await env.DB.prepare(`UPDATE v2_user_day_claims SET state=?,updated_at=?
+    WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
+    .bind(nextState,Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||''),waitTypeId).run();
+  return Number(changed?.meta?.changes||0)===1;
 }
 
 async function reconcileReservationStatus(request, env, base, payload) {
