@@ -1329,7 +1329,7 @@ async function verifyCancelLineUser(liffAccessToken){
   let pd=null;try{pd=await pr.json()}catch{}
   const userId=String(pd?.userId||'');
   if(!pr.ok||!userId)throw apiError('LINE_PROFILE_INVALID',401);
-  return await sha256Hex(userId);
+  return await sha256Hex(`${LINE_CHANNEL_ID}:${userId}`);
 }
 async function loadCancelShortUrl(env,session){
   const row=await env.DB.prepare("SELECT c.request_id,rr.result_json FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.user_hash=? AND c.business_date=? AND c.reserve_id=? AND c.receipt_no=? AND c.state='CONFIRMED' LIMIT 1")
