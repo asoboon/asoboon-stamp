@@ -398,7 +398,7 @@ async function reservationStatus(env, p) {
   } catch (e) {
     const rc = String(e?.code || '');
     if (storedWaitTypeId && rc === '3556') {
-      rows = await fetchAirwaitReservations(env, '');
+      rows = [];
       usedAllWaitTypesFallback = true;
     } else {
       throw e;
