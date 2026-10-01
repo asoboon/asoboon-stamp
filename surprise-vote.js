@@ -29,8 +29,15 @@
     ...(window.ASOBOON_SURPRISE_VOTE_CONFIG || {})
   });
 
+  const PAGE_PARAMS =
+    new URLSearchParams(location.search);
+
   const DEMO =
-    new URLSearchParams(location.search).get('demo') === '1';
+    PAGE_PARAMS.get('demo') === '1';
+
+  const EMBEDDED =
+    PAGE_PARAMS.get('embedded') === '1';
+
   const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
 
   const reduced =
@@ -269,7 +276,21 @@
 
   function setHomeLinks() {
     const url = CFG.HOME_URL || './home.html?mode=inside';
+
     document.querySelectorAll('a[href*="home.html"]').forEach(link => {
+      if (EMBEDDED && window.parent && window.parent !== window) {
+        link.href = '#';
+        link.target = '_self';
+        link.addEventListener('click', event => {
+          event.preventDefault();
+          window.parent.postMessage(
+            { type: 'asoboon:restore-home-frame' },
+            location.origin
+          );
+        });
+        return;
+      }
+
       link.href = url;
       link.target = '_top';
     });
@@ -438,6 +459,12 @@
 
   async function getVoterKey() {
     if (DEMO) return 'demo-voter';
+
+    // Embedded inside HOME: do not initialize the legacy stamp LIFF.
+    // This avoids LIFF-to-LIFF transitions and uses the stable device guest key.
+    if (EMBEDDED) {
+      return await sha256Hex('guest:' + getGuestId());
+    }
 
     if (CFG.LIFF_ID) {
       try {
