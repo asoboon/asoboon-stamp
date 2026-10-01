@@ -83,7 +83,7 @@
 <body>
   <main class="app">
     <div class="topbar">
-      <a class="home" href="./home.html?mode=inside" aria-label="ASOBooN HOMEへ戻る">⌂</a>
+      <a class="home" id="eventHomeLink" href="./home.html?mode=inside" aria-label="ASOBooN HOMEへ戻る">⌂</a>
       <div class="title">
         <strong>ASOBooN イベントカレンダー</strong>
         <small>今月のイベント予定をチェック</small>
@@ -124,5 +124,25 @@
       <p class="notice">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により変更または中止となる場合があります。</p>
     </section>
   </main>
+  <script>
+  (() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('embedded') !== '1') return;
+
+    const link = document.getElementById('eventHomeLink');
+    if (!link) return;
+
+    link.href = '#';
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          { type: 'asoboon:restore-home-frame' },
+          location.origin
+        );
+      }
+    });
+  })();
+  </script>
 </body>
 </html>
