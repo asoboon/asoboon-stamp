@@ -899,6 +899,27 @@ body{
   will-change:transform,opacity,filter;
 }
 
+/* Hard safety guard: only CALL may ever take over the full screen. */
+.fx-special-number.guided,
+.fx-special-number.hold,
+.fx-special-number.cancel,
+.fx-special-screen.guided,
+.fx-special-screen.hold,
+.fx-special-screen.cancel,
+.fx-pachinko-burst.guided,
+.fx-pachinko-burst.hold,
+.fx-pachinko-burst.cancel,
+.fx-status-signature.guided,
+.fx-status-signature.hold,
+.fx-status-signature.cancel,
+.fx-status-finale.guided,
+.fx-status-finale.hold,
+.fx-status-finale.cancel{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
+
 /* Performance fallbacks keep the Level B meaning while stripping expensive decoration. */
 :root[data-board-quality="low"] .fx-local-status,
 :root[data-board-quality="low"] .fx-local-status::before,
