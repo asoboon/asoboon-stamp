@@ -139,24 +139,13 @@ async function playRandom({recent=[]}={}){
 function cancel(reason='manual'){if(!currentScope)return false;diagnostics.canceled++;const s=currentScope;currentScope=null;running=false;currentId='';s.abort(reason);return true}
 function localPoint(rect){const b=boardRect();return{x:rect?rect.left-b.left+rect.width/2:b.width*.5,y:rect?rect.top-b.top+rect.height/2:b.height*.5}}
 
-async function playStatusReaction(kind,{rect}={}){
-  const scope=M.createScope('sourcefx-status:'+kind);diagnostics.statusPlayed++;
-  const p=localPoint(rect),x=p.x,y=p.y;
-  try{
-    if(kind==='call'){
-      await Promise.all([pop(scope,'dust_burst','impact',x-70,y+55,.58,0,440),pop(scope,'exclamation','alert',x+85,y-85,.48,3,500)]);
-    }else if(kind==='guided'){
-      const line=add(scope,'speed_lines','movement',{x,y,scale:.78,opacity:0});
-      await anim(scope,line,[{opacity:0,transform:t(x-40,y,.46)},{opacity:.88,offset:.28,transform:t(x+55,y,.82)},{opacity:0,transform:t(x+320,y-6,.62)}],{duration:520,easing:'cubic-bezier(.12,.74,.18,1)',fill:'forwards'});
-    }else if(kind==='hold'){
-      await Promise.all([pop(scope,'dust_burst','impact',x-20,y+45,.56,0,460),pop(scope,'alert_red','alert',x+78,y-80,.42,0,480)]);
-    }else if(kind==='cancel'){
-      await Promise.all([pop(scope,'impact_burst','impact',x,y,.72,0,480),pop(scope,'comic_star','impact',x+68,y-50,.42,7,500)]);
-    }
-  }finally{scope.cleanup()}
+async function playStatusReaction(kind){
+  diagnostics.statusPlayed++;
+  diagnostics.lastStatusSuppressed={kind:String(kind||''),at:Date.now()};
+  return{played:false,reason:'status-generated-only'};
 }
-function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:[...MICRO_EVENTS],pace:PACE,sourcePolicy:'effects_pack_v2-only',semanticPolicy:'context-matched-only'}}
+function getDiagnostics(){return{...diagnostics,history:diagnostics.history.map(x=>({...x})),running,currentId,events:[...MICRO_EVENTS],pace:PACE,sourcePolicy:'idle-only-effects_pack_v2',statusAssetPolicy:'generated-only',statusWebpAssets:false,semanticPolicy:'context-matched-only'}}
 function resetForTest(){cancel('test-reset');diagnostics.played=0;diagnostics.canceled=0;diagnostics.statusPlayed=0;diagnostics.cleanupRuns=0;diagnostics.lastEvent=null;diagnostics.history=[]}
 
-window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.2.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
+window.ASOBOON_BOARD_SOURCE_EFFECTS=Object.freeze({version:'3.3.0',events:MICRO_EVENTS,play,playRandom,playStatusReaction,cancel,isRunning:()=>running,getDiagnostics,resetForTest});
 })();
