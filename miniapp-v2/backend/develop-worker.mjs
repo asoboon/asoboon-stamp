@@ -1423,7 +1423,7 @@ async function cancelReservationInMiniapp(env,p){
   if(rawToken.length<32||rawToken.length>256)throw apiError('CALLSTATUS_SESSION_REQUIRED',401);
   const tokenHash=await sha256Hex(rawToken);
   const now=Date.now();
-  const session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
+  let session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1').bind(tokenHash).first();
   if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
   const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
   if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
