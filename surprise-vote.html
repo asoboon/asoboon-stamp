@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>今日のイベント投票｜ASOBooN</title>
   <meta name="description" content="100 ASOBooNを好きなイベントに投票しよう！">
-  <link rel="stylesheet" href="./surprise-vote.css?v=20261001-17">
-  <script src="./surprise-vote-config.js?v=20261001-17"></script>
-  <script src="./surprise-vote.js?v=20261001-17" defer></script>
+  <link rel="stylesheet" href="./surprise-vote.css?v=20261001-18">
+  <script src="./surprise-vote-config.js?v=20261001-18"></script>
+  <script src="./surprise-vote.js?v=20261001-18" defer></script>
 </head>
 <body>
   <main class="app">
@@ -105,6 +105,39 @@
 
       <div style="text-align:center;padding:0 12px 8px">
         <button class="action" id="demoResetBtn" type="button" hidden>テスト投票をリセット</button>
+      </div>
+    </section>
+
+    <section class="panel" id="standingsState" hidden>
+      <header class="hero standings-hero">
+        <div class="hero-kicker">LIVE</div>
+        <h1>現在の投票状況</h1>
+        <p>あなたの100 ASOBooN投票完了で公開！</p>
+      </header>
+
+      <div class="standings-alert">
+        <strong>途中経過です</strong>
+        <span>投票終了まで順位は変わります</span>
+      </div>
+
+      <div class="standings-timebar">
+        <span>投票終了まで</span>
+        <strong id="standingsCountdown">--:--</strong>
+      </div>
+
+      <div class="standings-list" id="standingsList" aria-live="polite"></div>
+
+      <div class="standings-meta">
+        <span id="standingsUpdated">最新状況を取得しました</span>
+        <button type="button" id="standingsRefresh">最新に更新</button>
+      </div>
+
+      <p class="standings-note">
+        ※表示は現在の途中経過です。最終結果は投票終了後に確定します。
+      </p>
+
+      <div class="standings-actions">
+        <a class="action" href="./home.html?mode=inside" target="_top">ASOBooN HOMEへ戻る</a>
       </div>
     </section>
 
