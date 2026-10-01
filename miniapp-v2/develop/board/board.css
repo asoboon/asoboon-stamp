@@ -776,10 +776,10 @@ body{
   mask-image:radial-gradient(ellipse at var(--local-cx) var(--local-cy),#000 0 44%,transparent 78%);
 }
 .fx-local-status.guided::after{
-  left:calc(var(--local-cx) + var(--card-w) * .28);
+  left:calc(var(--local-cx) + 14%);
   top:var(--local-cy);
-  width:calc(var(--card-w) * .72);
-  height:calc(var(--card-h) * 1.25);
+  width:27%;
+  height:54%;
   transform:translate(-50%,-50%);
   border:clamp(5px,.7vw,10px) solid rgba(218,249,255,.92);
   border-radius:50%;
@@ -802,8 +802,8 @@ body{
 .fx-local-status.hold::before{
   left:var(--local-cx);
   top:var(--local-cy);
-  width:calc(var(--card-w) * 1.45);
-  height:calc(var(--card-h) * 1.75);
+  width:54%;
+  height:70%;
   transform:translate(-50%,-50%);
   border:clamp(5px,.7vw,10px) solid rgba(255,241,145,.82);
   border-radius:50%;
@@ -814,7 +814,7 @@ body{
 .fx-local-status.hold::after{
   left:var(--local-cx);
   top:var(--local-cy);
-  width:calc(var(--card-w) * 1.9);
+  width:70%;
   height:clamp(12px,1.6vh,22px);
   transform:translate(-50%,-50%);
   background:repeating-linear-gradient(90deg,
@@ -859,7 +859,7 @@ body{
 .fx-local-status.cancel::after{
   left:var(--local-cx);
   top:var(--local-cy);
-  width:calc(var(--card-w) * .52);
+  width:20%;
   aspect-ratio:1;
   transform:translate(-50%,-50%);
   border-radius:50%;
