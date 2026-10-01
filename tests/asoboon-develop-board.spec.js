@@ -147,11 +147,12 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20260928-story-beats-v7');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20260928-story-beats-v7'");
+  expect(buildFile.version).toBe('20261001-call-only-fullscreen-v8');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261001-call-only-fullscreen-v8'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board-animations.js?v=31');
-  expect(indexHtml).toContain('board.js?v=29');
+  expect(indexHtml).toContain('board-animations.js?v=32');
+  expect(indexHtml).toContain('board-source-effects.js?v=20');
+  expect(indexHtml).toContain('board.js?v=30');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -1213,7 +1214,7 @@ test('normal entertainment rotation is new-source-only and legacy mystery reside
   expect(state.director.legacyIdleInNormalRotation).toBe(false);
   expect(state.chars).toEqual(expect.arrayContaining(['POMPON_PEEK','POMPON_SPARKLE_SMUG','POMPON_STAR_SHOCK','POMPON_OOPS_QUESTION','CHIRU_PEEK','CHIRU_SNEAK','CHIRU_STAR_DODGE','CHIRU_ALERT_SHOCK','POMPON_BRAKE_FAIL','POMPON_SMUG_OOPS','POMPON_STAR_FLYBACK','DUO_CHASE_CATCH','DUO_BOAST_DISBELIEF','DUO_FAILURE_SCOLD','DUO_OH_NO_ESCAPE','DUO_FRIENDSHIP_OOPS']));
   expect(state.chars).not.toEqual(expect.arrayContaining(['POMPON_DASH_BY','CHIRU_WATCH','CHIRU_EXASPERATED']));
-  expect(state.sourceFx.sourcePolicy).toBe('effects_pack_v2-only');
+  expect(state.sourceFx.sourcePolicy).toBe('idle-only-effects_pack_v2');
   expect(state.sourceFx.semanticPolicy).toBe('context-matched-only');
   expect(state.sourceFx.events).toEqual(expect.arrayContaining(['FX_MAGIC_STAR_PASS','FX_SPARKLE_SWEEP','FX_CARD_GLINT','FX_SPEED_PASS','FX_DUST_GUST','FX_MAGIC_TRAIL']));
   expect(state.sourceFx.events).not.toEqual(expect.arrayContaining(['FX_DUST_BOUNCE','FX_OFFSCREEN_BONK','FX_STAR_POP']));
