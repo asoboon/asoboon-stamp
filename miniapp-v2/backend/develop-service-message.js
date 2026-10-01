@@ -208,60 +208,57 @@ export async function finalizeReservationNotification(env, p, result) {
 export async function serviceStatus(env, params) {
   await ensureServiceSchema(env);
   const businessDate = normalizeDate(params?.businessDate || params?.date);
-  const receiptNo = normalizeReceipt(params?.receiptNo || params?.number);
-  if (!businessDate || !receiptNo) return { ok:false, found:false, error:'VALIDATION_ERROR', version:SM.VERSION };
+  // Diagnostics only (token-protected in the Worker). Keyed by reserveId, not receiptNo.
+  const reserveId = normalizeReserveId(params?.reserveId);
+  if (!businessDate || !reserveId) return { ok:false, found:false, error:'VALIDATION_ERROR', version:SM.VERSION };
   const row = await env.DB.prepare(`SELECT business_date,receipt_no,reserve_id,wait_type_id,status,last_error,last_http_status,
     remaining_count,expires_at,notified_at,next_retry_at,created_at,updated_at
-    FROM v2_service_messages WHERE business_date=? AND receipt_no=? ORDER BY updated_at DESC LIMIT 1`)
-    .bind(businessDate, receiptNo).first();
+    FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1`)
+    .bind(businessDate, reserveId).first();
   if (!row) return { ok:true, found:false, version:SM.VERSION };
   return publicRow(row);
 }
 
 export async function sendObservedCallNotification(env, observation) {
   await ensureServiceSchema(env);
+  // Identity rule: the service-message row is chosen by (business_date, reserve_id) only.
+  // receiptNo is a display number and may repeat across waitTypes, so it is only
+  // used as a consistency check, never as a lookup key.
   const businessDate = normalizeDate(observation?.businessDate);
   const receiptNo = normalizeReceipt(observation?.receiptNo);
+  const reserveId = normalizeReserveId(observation?.reserveId);
   const observedWaitType = normalizeWaitType(observation?.waitTypeId);
   const observedState = String(observation?.state || '');
   const observedStatus = String(observation?.status || '');
-  if (businessDate && receiptNo && (observedState === 'canceled' || observedStatus === '3')) {
-    await markClaimCanceled(env, businessDate, receiptNo, String(observation?.reserveId || ''));
+  if (!businessDate || !receiptNo || !reserveId) {
+    return { ok:true, sent:false, reason:'OBSERVATION_IDENTITY_INCOMPLETE', version:SM.VERSION };
+  }
+
+  const rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(businessDate, reserveId).first();
+  if (!rec) return { ok:true, sent:false, reason:'SERVICE_ROW_NOT_FOUND', version:SM.VERSION };
+  if (!sameIdentity(rec, { receiptNo, waitTypeId:observedWaitType })) {
+    console.warn('SERVICE_OBSERVATION_IDENTITY_MISMATCH', JSON.stringify({ businessDate, reserveIdTail:reserveId.slice(-4) }));
+    return { ok:true, sent:false, reason:'OBSERVATION_IDENTITY_MISMATCH', version:SM.VERSION };
+  }
+
+  if (observedState === 'canceled' || observedStatus === '3') {
+    await markClaimCanceled(env, businessDate, receiptNo, reserveId);
     return await sendCancellationNotification(env, {
       businessDate,
       receiptNo,
-      reserveId:String(observation?.reserveId || ''),
-      waitTypeId:observedWaitType,
+      reserveId,
+      waitTypeId:String(rec.wait_type_id || ''),
       cancelSource:String(observation?.cancelSource || 'airwait'),
     });
   }
-  if (!businessDate || !receiptNo || !isNotificationEligibleAirwait(observation)) {
+  if (!isNotificationEligibleAirwait(observation) || Number(rec.notified_at || 0) !== 0) {
     return { ok:true, sent:false, reason:'NOT_NOTIFICATION_ELIGIBLE', version:SM.VERSION };
-  }
-
-  let rec = await env.DB.prepare(`SELECT * FROM v2_service_messages
-    WHERE business_date=? AND receipt_no=? AND notified_at=0
-    ORDER BY updated_at DESC LIMIT 1`).bind(businessDate, receiptNo).first();
-
-  if (!rec) {
-    const pendingResult = await env.DB.prepare(`SELECT * FROM v2_service_messages
-      WHERE business_date=? AND notified_at=0 AND notification_token<>''
-      ORDER BY updated_at DESC LIMIT 500`).bind(businessDate).all();
-    const candidates = (Array.isArray(pendingResult?.results) ? pendingResult.results : []).map(x => ({ ...x, number:x.receipt_no }));
-    rec = selectTicketMatch(candidates, receiptNo).row;
-  }
-  if (!rec) return { ok:true, sent:false, reason:'SERVICE_ROW_NOT_FOUND', version:SM.VERSION };
-
-  if (observedWaitType && String(rec.wait_type_id || '') !== observedWaitType) {
-    await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
-      WHERE business_date=? AND reserve_id=? AND notified_at=0`)
-      .bind(observedWaitType, Date.now(), rec.business_date, rec.reserve_id).run();
-    rec = { ...rec, wait_type_id:observedWaitType };
   }
 
   const result = await sendCallMessage(env, rec, {
     number:receiptNo,
-    waitTypeId:observedWaitType || String(rec.wait_type_id || ''),
+    waitTypeId:String(rec.wait_type_id || ''),
     waitTypeName:String(observation?.waitTypeName || ''),
     status:String(observation?.status || ''),
     isCalling:String(observation?.isCalling === true ? '1' : observation?.isCalling || '0'),
@@ -275,21 +272,18 @@ export async function sendCancellationNotification(env, x) {
   const receiptNo = normalizeReceipt(x?.receiptNo);
   const reserveIdInput = normalizeReserveId(x?.reserveId);
   const waitTypeIdInput = normalizeWaitType(x?.waitTypeId);
-  if (!businessDate || !receiptNo) return { ok:false, sent:false, reason:'CANCEL_NOTIFICATION_DATA_INVALID', version:SM.VERSION };
+  // reserveId is mandatory: a cancellation is never resolved from receiptNo alone.
+  if (!businessDate || !receiptNo || !reserveIdInput) return { ok:false, sent:false, reason:'CANCEL_NOTIFICATION_DATA_INVALID', version:SM.VERSION };
 
-  let rec = null;
-  if (reserveIdInput) {
-    rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
-      .bind(businessDate,reserveIdInput).first();
-  }
-  if (!rec) {
-    rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND receipt_no=? ORDER BY updated_at DESC LIMIT 1')
-      .bind(businessDate,receiptNo).first();
-  }
+  const rec = await env.DB.prepare('SELECT * FROM v2_service_messages WHERE business_date=? AND reserve_id=? LIMIT 1')
+    .bind(businessDate,reserveIdInput).first();
   if (!rec) return { ok:true, sent:false, reason:'SERVICE_ROW_NOT_FOUND', version:SM.VERSION };
+  if (!sameIdentity(rec, { receiptNo, waitTypeId:waitTypeIdInput })) {
+    return { ok:true, sent:false, reason:'CANCEL_IDENTITY_MISMATCH', version:SM.VERSION };
+  }
 
   const reserveId = normalizeReserveId(rec.reserve_id);
-  const waitTypeId = normalizeWaitType(waitTypeIdInput || rec.wait_type_id);
+  const waitTypeId = normalizeWaitType(rec.wait_type_id);
   await markClaimCanceled(env, businessDate, receiptNo, reserveId);
 
   const prior = await env.DB.prepare('SELECT status,sent_at FROM v2_service_cancellations WHERE business_date=? AND reserve_id=? LIMIT 1')
@@ -421,17 +415,20 @@ export async function sendCancellationNotification(env, x) {
 }
 
 async function markClaimCanceled(env,businessDate,receiptNo,reserveId='') {
-  if (!env?.DB || !businessDate || !receiptNo) return;
-  const now = Date.now();
-  if (reserveId) {
-    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
-      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
-      .bind(now,businessDate,reserveId,receiptNo).run();
-    return;
-  }
+  // Never cancel by receiptNo alone: receipt numbers repeat across waitTypes.
+  const reserve = normalizeReserveId(reserveId);
+  if (!env?.DB || !businessDate || !receiptNo || !reserve) return;
   await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
-    WHERE business_date=? AND receipt_no=? AND state='CONFIRMED'`)
-    .bind(now,businessDate,receiptNo).run();
+    WHERE business_date=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
+    .bind(Date.now(),businessDate,reserve,receiptNo).run();
+}
+
+function sameIdentity(rec, { receiptNo='', waitTypeId='' } = {}) {
+  if (receiptNo && !sameTicket(rec?.receipt_no, receiptNo)) return false;
+  const stored = normalizeWaitType(rec?.wait_type_id);
+  const observed = normalizeWaitType(waitTypeId);
+  if (stored && observed && stored !== observed) return false;
+  return true;
 }
 
 async function restoreAfterCancellationFailure(env,x,previousStatus) {
@@ -467,37 +464,32 @@ export async function runServiceMessageWorker(env) {
   assertServiceConfig(env);
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
-  const byWaitType = new Map();
+  // AirWAIT is only ever consulted inside the reservation's own waitType.
+  // There is deliberately no cross-waitType fallback: the same receiptNo can
+  // belong to a different customer in another waitType.
+  const scoped = [];
   for (const rec of rows) {
-    const wt = normalizeWaitType(rec.wait_type_id);
-    if (wt && !byWaitType.has(wt)) byWaitType.set(wt, await fetchAirwaitReservations(env, wt));
+    const wt = normalizeWaitType(rec.wait_type_id) || await restoreWaitTypeFromClaim(env, rec);
+    if (!wt) continue;
+    scoped.push({ ...rec, wait_type_id:wt });
+  }
+  const byWaitType = new Map();
+  for (const rec of scoped) {
+    if (!byWaitType.has(rec.wait_type_id)) byWaitType.set(rec.wait_type_id, await fetchAirwaitReservations(env, rec.wait_type_id));
   }
 
-  let allRows = null;
   let callSent = 0;
   let cancelSent = 0;
-  for (let rec of rows) {
-    let match = selectTicketMatch(byWaitType.get(String(rec.wait_type_id)) || [], rec.receipt_no);
-    if (!match.row && !match.ambiguous) {
-      if (!allRows) allRows = await fetchAirwaitReservations(env, '');
-      match = selectTicketMatch(allRows, rec.receipt_no);
-      const correctedWaitType = normalizeWaitType(match.row?.waitTypeId);
-      if (correctedWaitType && correctedWaitType !== String(rec.wait_type_id || '')) {
-        await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
-          WHERE business_date=? AND reserve_id=?`)
-          .bind(correctedWaitType, Date.now(), rec.business_date, rec.reserve_id).run();
-        rec = { ...rec, wait_type_id:correctedWaitType };
-      }
-    }
-
-    const own = match.row;
+  for (const rec of scoped) {
+    const match = selectTicketMatch(byWaitType.get(rec.wait_type_id) || [], rec.receipt_no);
+    const own = match.row && normalizeWaitType(match.row.waitTypeId) === rec.wait_type_id ? match.row : null;
     if (own && String(own.status || '') === '3') {
       await markClaimCanceled(env,String(rec.business_date || ''),String(rec.receipt_no || ''),String(rec.reserve_id || ''));
       const result = await sendCancellationNotification(env,{
         businessDate:String(rec.business_date || ''),
         receiptNo:String(rec.receipt_no || ''),
         reserveId:String(rec.reserve_id || ''),
-        waitTypeId:String(own.waitTypeId || rec.wait_type_id || ''),
+        waitTypeId:rec.wait_type_id,
         cancelSource:'airwait',
       });
       if (result.sent && !result.reused) cancelSent += 1;
@@ -508,14 +500,32 @@ export async function runServiceMessageWorker(env) {
       ['TOKEN_READY','CALL_SEND_RETRY','TEMPLATE_NOT_CONFIGURED','CHANNEL_SECRET_MISSING'].includes(String(rec.status || ''));
     if (!callPending) continue;
 
+    // A retry also needs the reservation to still be visible in its own waitType.
+    if (!own) continue;
     const retryEvidence = String(rec.status || '') === 'CALL_SEND_RETRY';
-    const notificationEligible = Boolean(own && isNotificationEligibleAirwait(own));
-    if (!notificationEligible && !retryEvidence) continue;
-    const result = await sendCallMessage(env, rec, own || { waitTypeName:'' });
+    if (!isNotificationEligibleAirwait(own) && !retryEvidence) continue;
+    const result = await sendCallMessage(env, rec, own);
     if (result.sent) callSent += 1;
   }
   return { ok:true, checked:rows.length, sent:callSent+cancelSent, callSent, cancelSent, reconciled:true, version:SM.VERSION };
 }
+// A broken waitTypeId is restored only from data recorded at reception time
+// (the requestId's own claim), never from an AirWAIT observation.
+async function restoreWaitTypeFromClaim(env, rec) {
+  const requestId = normalizeRequestId(rec?.request_id);
+  const reserveId = normalizeReserveId(rec?.reserve_id);
+  if (!requestId || !reserveId) return '';
+  const claim = await env.DB.prepare(`SELECT wait_type_id FROM v2_user_day_claims
+    WHERE request_id=? AND business_date=? AND reserve_id=? LIMIT 1`)
+    .bind(requestId, String(rec.business_date || ''), reserveId).first();
+  const wt = normalizeWaitType(claim?.wait_type_id);
+  if (!wt) return '';
+  await env.DB.prepare(`UPDATE v2_service_messages SET wait_type_id=?,updated_at=?
+    WHERE business_date=? AND reserve_id=? AND request_id=? AND wait_type_id=''`)
+    .bind(wt, Date.now(), String(rec.business_date || ''), reserveId, requestId).run();
+  return wt;
+}
+
 async function reconcileConfirmedClaims(env) {
   const r = await env.DB.prepare(`SELECT c.*,u.receipt_no,u.reserve_id,u.wait_type_id AS confirmed_wait_type
     FROM v2_service_token_claims c
@@ -544,7 +554,8 @@ async function bindClaimToReservation(env, claim, x) {
       expires_at=CASE WHEN v2_service_messages.notified_at=0 THEN excluded.expires_at ELSE v2_service_messages.expires_at END,
       remaining_count=CASE WHEN v2_service_messages.notified_at=0 THEN excluded.remaining_count ELSE v2_service_messages.remaining_count END,
       session_id=CASE WHEN v2_service_messages.notified_at=0 THEN excluded.session_id ELSE v2_service_messages.session_id END,
-      updated_at=excluded.updated_at`)
+      updated_at=excluded.updated_at
+    WHERE v2_service_messages.request_id=excluded.request_id OR v2_service_messages.request_id=''`)
     .bind(x.businessDate,x.receiptNo,x.reserveId,x.waitTypeId,x.requestId,String(claim.notification_token),
       Number(claim.expires_at||0),Number(claim.remaining_count||0),String(claim.session_id||''),now,now).run();
   await env.DB.batch([

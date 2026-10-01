@@ -27,9 +27,9 @@ class LifecycleDB {
     return { bind(...args) { return {
       async run() {
         if (sql.includes('INSERT OR IGNORE INTO v2_request_results')) {
-          const [id, action, created, updated, expires] = args;
+          const [id, action, created, updated, expires, userHash=''] = args;
           if (db.requests.has(id)) return result(0);
-          db.requests.set(id, { request_id:id, action, state:'RECEIVED', result_json:'', expires_at:expires, created_at:created, updated_at:updated });
+          db.requests.set(id, { request_id:id, action, state:'RECEIVED', result_json:'', expires_at:expires, created_at:created, updated_at:updated, user_hash:userHash });
           return result(1);
         }
         if (sql.includes('UPDATE v2_request_results SET action=')) {
@@ -94,10 +94,12 @@ test('AirWAIT structured errors are deterministic while unknown create results s
 
 test('request and user claims follow confirmed, rejected, and ambiguous lifecycle without resend ownership', async () => {
   const DB=new LifecycleDB(),env={DB},id='request_12345678';
-  const first=await runtime.claimRequest(env,id,'createReservation');assert.equal(first.owner,true);assert.equal(first.cached,false);
+  const first=await runtime.claimRequest(env,id,'createReservation','owner-hash');assert.equal(first.owner,true);assert.equal(first.cached,false);
   await runtime.finalizeRequest(env,id,'createReservation',{ok:false,ambiguous:false,error:'AIRWAIT_RECEPTION_ENDED'});
-  const retry=await runtime.claimRequest(env,id,'createReservation');
+  const retry=await runtime.claimRequest(env,id,'createReservation','owner-hash');
   assert.equal(retry.owner,false);assert.equal(retry.cached,true);assert.equal(retry.result.error,'AIRWAIT_RECEPTION_ENDED');
+  const stranger=await runtime.claimRequest(env,id,'createReservation','other-hash');
+  assert.equal(stranger.forbidden,true);assert.equal(stranger.cached,false);assert.equal(stranger.result,undefined);
   assert.equal((await runtime.requestStatus(env,id)).found,true);
 
   const c=await runtime.claimUserDay(env,'user','2026-09-23','req_a_123456','0029');assert.equal(c.existing,false);

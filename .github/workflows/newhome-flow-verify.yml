@@ -11,6 +11,9 @@ on:
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
 
+permissions:
+  contents: read
+
 jobs:
   verify-newhome-flow:
     runs-on: ubuntu-latest

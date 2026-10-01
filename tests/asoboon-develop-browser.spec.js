@@ -182,8 +182,15 @@ async function openReceptionWithPending(page, result) {
     body:{operationalDate:'2026-09-19',mode:'web',waitTypeId:'0029',adults:1,paidChildren:0,infants:0}, phase:'dispatched', createdAt:Date.parse('2026-09-19T03:00:00Z')
   });
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
-    const url=new URL(route.request().url());
-    if(url.searchParams.get('action')==='requestStatus')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
+    const req=route.request();
+    if(req.method()==='POST'){
+      const body=Object.fromEntries(new URLSearchParams(req.postData()||''));
+      if(body.action==='requestStatus'){
+        if(String(body.liffAccessToken||'').length<20||body.requestId!=='v2_pending_12345678')return route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({ok:false,found:false})});
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
+      }
+    }
+    if(new URL(req.url()).searchParams.get('action')==='requestStatus')return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,found:false,error:'REQUEST_STATUS_REQUIRES_LINE_IDENTITY'})});
     return route.fallback();
   });
   await page.goto(`${BASE}?view=reception`,{waitUntil:'domcontentloaded'});

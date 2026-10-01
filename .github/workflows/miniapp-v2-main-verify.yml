@@ -17,6 +17,9 @@ on:
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -34,6 +37,20 @@ jobs:
           node --check miniapp-v2/backend/develop-worker.mjs
       - name: Developing reception lifecycle
         run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
+      - name: Security regression (same receiptNo across waitTypes, requestId ownership)
+        run: node --test tests/asoboon-develop-security.test.mjs
+      - name: Lock reserveId-based identity rules
+        run: |
+          set -euo pipefail
+          # Service messages are resolved by (business_date, reserve_id), never by receipt_no alone.
+          ! grep -n -F "WHERE business_date=? AND receipt_no=? AND notified_at=0" miniapp-v2/backend/develop-service-message.js
+          ! grep -n -F "WHERE business_date=? AND receipt_no=? ORDER BY updated_at DESC" miniapp-v2/backend/develop-service-message.js
+          ! grep -n -F "fetchAirwaitReservations(env, '')" miniapp-v2/backend/develop-service-message.js
+          # Browser never receives or stores the AirWAIT shortUrl.
+          ! grep -n -F 'shortUrl' miniapp-v2/shared/reception.js miniapp-v2/shared/callstatus.js
+          grep -F 'function publicResult(result)' miniapp-v2/backend/develop-gateway.js
+          grep -F "if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p));" miniapp-v2/backend/develop-gateway.js
+          grep -F 'assertCreateRequestOwner(env, createPayload)' miniapp-v2/backend/develop-worker.mjs
       - name: Lock infant pricing rule
         run: |
           set -euo pipefail
@@ -131,14 +148,14 @@ jobs:
       - name: Lock sequential same-day reception and fresh LINE action boundary
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.5.dev-confirmation-chain'" miniapp-v2/backend/develop-service-message.js
+          grep -E "VERSION: '2\.[5-9]\.dev-" miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageFreshActionReopenRequired: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageConfirmationUsesTokenChain: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'async function sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
           grep -F 'confirmation = await sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
           grep -F "const definitiveBound = String(usage.status || '') === 'BOUND';" miniapp-v2/backend/develop-service-message.js
-          grep -F 'releaseTerminalPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
-          grep -F "if (!own || !['2','3'].includes(String(own.status || ''))) return false;" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'transitionCanceledPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
+          grep -F "if (!own || String(own.status || '') !== '3') return false;" miniapp-v2/backend/develop-worker.mjs
           grep -F '同じ日にもう一度受付できます。新しい受付のLINE通知を準備するため' miniapp-v2/backend/develop-worker.mjs
           grep -F 'let r;' miniapp-v2/shared/reception.js
           grep -F "r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS" miniapp-v2/shared/reception.js

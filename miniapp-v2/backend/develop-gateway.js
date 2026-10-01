@@ -31,6 +31,10 @@ const CFG = Object.freeze({
   WAIT_TYPES_CACHE_MS: 10 * 60 * 1000,
   OFFICIAL_WEB_HANDOFF_TTL_MS: 15 * 60 * 1000,
   USER_ATTEMPT_LIMIT: 5,
+  RATE_WINDOW_MS: 10 * 60 * 1000,
+  CREATE_RATE_LIMIT: 6,
+  REQUEST_STATUS_RATE_LIMIT: 120,
+  SESSION_RATE_LIMIT: 30,
   FACILITY: Object.freeze({ lat: 35.84895, lng: 139.74345 }),
   GEOFENCE: Object.freeze({ radiusM: 500, maxAccuracyM: 200, maxAgeMs: 2 * 60 * 1000 }),
   AIR_WAIT_TYPES: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
@@ -70,13 +74,15 @@ export default {
       requireAllowedOrigin(request);
       if (!env.DB) throw apiError('DB_NOT_CONFIGURED', 503);
       await ensureSchema(env);
+      await ensureRequestOwnerColumn(env);
 
       const url = new URL(request.url);
       if (request.method === 'GET') {
         const action = String(url.searchParams.get('action') || 'health');
         if (action === 'health') return out(request, await health(env));
         if (action === 'waitTypes') return out(request, await getWaitTypes(env));
-        if (action === 'requestStatus') return out(request, await requestStatus(env, url.searchParams.get('requestId')));
+        // Results are only returned to the verified owner through POST requestStatus.
+        if (action === 'requestStatus') return out(request, { ok: false, found: false, error: 'REQUEST_STATUS_REQUIRES_LINE_IDENTITY', version: CFG.VERSION }, 401);
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 404);
       }
 
@@ -84,19 +90,27 @@ export default {
       const p = await readBody(request);
       const action = String(p.action || '');
       if (action !== 'createReservation') {
+        if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p));
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
       }
 
       const requestId = normalizeRequestId(p.requestId);
       if (!requestId) return out(request, { ok: false, error: 'REQUEST_ID_REQUIRED', version: CFG.VERSION }, 400);
 
-      const claim = await claimRequest(env, requestId, action);
-      if (claim.cached) return out(request, claim.result, 200);
+      // The idempotency key belongs to the LINE user who created it. Identity is
+      // verified before the request record is read, so a leaked requestId alone
+      // never reveals or re-binds someone else's reservation.
+      const line = await verifyLineUser(p.liffAccessToken);
+      const ownerHash = await userHash(line.userId);
+      const claim = await claimRequest(env, requestId, action, ownerHash);
+      if (claim.forbidden) return out(request, { ok: false, stored: false, error: 'REQUEST_OWNER_MISMATCH', version: CFG.VERSION }, 403);
+      if (claim.cached) return out(request, publicResult(claim.result), 200);
       if (!claim.owner) return out(request, { ok: true, pending: true, requestId, version: CFG.VERSION }, 202);
 
       let result;
       try {
-        result = await createReservation(env, p, requestId);
+        await enforceRateLimit(env, 'create', ownerHash, CFG.CREATE_RATE_LIMIT, CFG.RATE_WINDOW_MS);
+        result = await createReservation(env, p, requestId, line);
       } catch (e) {
         if (action === 'createReservation') await recordCreateDiagnostic(env, p, e);
         result = {
@@ -110,7 +124,7 @@ export default {
       }
 
       await finalizeRequest(env, requestId, action, result);
-      return out(request, result, result.ok ? 200 : Number(result.ambiguous ? 409 : 400));
+      return out(request, publicResult(result), result.ok ? 200 : Number(result.ambiguous ? 409 : 400));
     } catch (e) {
       return out(request, { ok: false, error: safeError(e), version: CFG.VERSION }, Number(e?.status || 500));
     }
@@ -205,6 +219,11 @@ async function ensureSchema(env) {
     )`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_create_diagnostics_created
       ON v2_create_diagnostics(created_at)`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_rate_limits (
+      key TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL
+    )`),
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_official_web_handoffs (
       request_id TEXT PRIMARY KEY,
       user_hash TEXT NOT NULL,
@@ -369,7 +388,7 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
   return w;
 }
 
-async function createReservation(env, p, requestId) {
+async function createReservation(env, p, requestId, verifiedLine = null) {
   if (String(env.CREATE_ENABLED || '0') !== '1') throw apiError('CREATE_DISABLED', 503);
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
@@ -386,8 +405,9 @@ async function createReservation(env, p, requestId) {
   const serverDate = operationalDate();
   if (!requestedDate || requestedDate !== serverDate) throw apiError('OPERATIONAL_DATE_MISMATCH', 400);
 
-  const line = await verifyLineUser(p.liffAccessToken);
+  const line = verifiedLine || await verifyLineUser(p.liffAccessToken);
   const hash = await userHash(line.userId);
+  if (waitTypeId === DEVELOP_TEST_SLOT_ID && !developTestSlotAllowed(env, hash)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
 
   const day = await getBusinessDay(serverDate);
   enforceReceptionHours(day, mode);
@@ -718,15 +738,16 @@ async function releaseUserClaim(env, hash, date, requestId) {
     .bind(hash, date, requestId).run();
 }
 
-async function claimRequest(env, requestId, action) {
+async function claimRequest(env, requestId, action, ownerHash = '') {
   const now = Date.now();
   const r = await env.DB.prepare(`INSERT OR IGNORE INTO v2_request_results
-    (request_id,action,state,result_json,ambiguous,created_at,updated_at,expires_at)
-    VALUES(?,?,'RECEIVED','',0,?,?,?)`)
-    .bind(requestId, action, now, now, now + CFG.REQUEST_PENDING_TTL_MS).run();
+    (request_id,action,state,result_json,ambiguous,created_at,updated_at,expires_at,user_hash)
+    VALUES(?,?,'RECEIVED','',0,?,?,?,?)`)
+    .bind(requestId, action, now, now, now + CFG.REQUEST_PENDING_TTL_MS, String(ownerHash || '')).run();
   if (Number(r?.meta?.changes || 0) === 1) return { owner: true, cached: false };
-  const row = await env.DB.prepare('SELECT state,result_json,expires_at FROM v2_request_results WHERE request_id=? LIMIT 1').bind(requestId).first();
+  const row = await env.DB.prepare('SELECT state,result_json,expires_at,user_hash FROM v2_request_results WHERE request_id=? LIMIT 1').bind(requestId).first();
   if (!row) return { owner: false, cached: false };
+  if (!(await requestOwnedBy(env, requestId, row, ownerHash))) return { owner: false, cached: false, forbidden: true };
   const state = String(row.state || '');
   if (['CONFIRMED','REJECTED','AMBIGUOUS','HANDOFF_PENDING'].includes(state) && row.result_json) {
     try { return { owner: false, cached: true, result: JSON.parse(String(row.result_json)) }; } catch {}
@@ -762,6 +783,80 @@ async function requestStatus(env, requestId) {
   if (!['CONFIRMED','REJECTED','AMBIGUOUS','HANDOFF_PENDING'].includes(state)) return { ok: true, found: false, pending: true, state, version: CFG.VERSION };
   try { return { found: true, ...JSON.parse(String(row.result_json || '{}')) }; }
   catch { return { ok: false, found: false, error: 'REQUEST_RESULT_INVALID', version: CFG.VERSION }; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Identity / ownership helpers (security audit 2026-10-01)               */
+/* ---------------------------------------------------------------------- */
+
+const DEVELOP_TEST_SLOT_ID = '0042';
+
+// 0042 is a Developing-only test slot. It must be enabled explicitly and can be
+// limited to specific LINE users (comma separated SHA256(channelId:userId)).
+function developTestSlotAllowed(env, hash) {
+  if (String(env?.DEVELOP_TEST_SLOT_ENABLED || '0') !== '1') return false;
+  const allow = String(env?.DEVELOP_TEST_USER_HASHES || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  return allow.length === 0 || allow.includes(String(hash || '').toLowerCase());
+}
+
+// shortUrl carries the AirWAIT cancel capability. It stays in D1 / Worker only.
+function publicResult(result) {
+  if (!result || typeof result !== 'object') return result;
+  const { shortUrl, ...rest } = result;
+  return rest;
+}
+
+let requestOwnerColumnReady = false;
+async function ensureRequestOwnerColumn(env) {
+  if (requestOwnerColumnReady) return;
+  const cols = await env.DB.prepare('PRAGMA table_info(v2_request_results)').all();
+  const names = new Set((Array.isArray(cols?.results) ? cols.results : []).map(c => String(c.name || '')));
+  if (!names.has('user_hash')) {
+    try { await env.DB.prepare("ALTER TABLE v2_request_results ADD COLUMN user_hash TEXT NOT NULL DEFAULT ''").run(); }
+    catch (e) { if (!/duplicate column/i.test(String(e?.message || e))) throw e; }
+  }
+  requestOwnerColumnReady = true;
+}
+
+// Owner of a requestId: recorded user_hash, or (rows created before this
+// column existed) the LINE user of the day claim created with that requestId.
+async function requestOwnedBy(env, requestId, row, ownerHash) {
+  const hash = String(ownerHash || '');
+  if (!hash) return false;
+  const recorded = String(row?.user_hash || '');
+  if (recorded) return recorded === hash;
+  const claim = await env.DB.prepare('SELECT user_hash FROM v2_user_day_claims WHERE request_id=? LIMIT 1').bind(requestId).first();
+  if (claim?.user_hash) return String(claim.user_hash) === hash;
+  // Legacy record without any owner: only a non-successful result may be shown.
+  let parsed = null;
+  try { parsed = row?.result_json ? JSON.parse(String(row.result_json)) : null; } catch {}
+  return parsed?.ok !== true;
+}
+
+async function requestStatusForUser(env, p) {
+  const id = normalizeRequestId(p?.requestId);
+  if (!id) return { ok: false, found: false, error: 'REQUEST_ID_REQUIRED', version: CFG.VERSION };
+  const line = await verifyLineUser(p?.liffAccessToken);
+  const hash = await userHash(line.userId);
+  await enforceRateLimit(env, 'requestStatus', hash, CFG.REQUEST_STATUS_RATE_LIMIT, CFG.RATE_WINDOW_MS);
+  const row = await env.DB.prepare('SELECT state,result_json,expires_at,user_hash FROM v2_request_results WHERE request_id=? LIMIT 1').bind(id).first();
+  if (!row) return { ok: true, found: false, version: CFG.VERSION };
+  if (!(await requestOwnedBy(env, id, row, hash))) return { ok: true, found: false, version: CFG.VERSION };
+  return publicResult(await requestStatus(env, id));
+}
+
+// Fixed-window per-user limiter in D1. Normal cancel -> same-day re-reception
+// stays far below these limits.
+async function enforceRateLimit(env, scope, hash, limit, windowMs) {
+  if (!env?.DB || !hash) return;
+  const now = Date.now();
+  const windowStart = Math.floor(now / windowMs) * windowMs;
+  const key = `${scope}:${hash}:${windowStart}`;
+  await env.DB.prepare(`INSERT INTO v2_rate_limits(key,count,expires_at) VALUES(?,1,?)
+    ON CONFLICT(key) DO UPDATE SET count=count+1`).bind(key, windowStart + windowMs).run();
+  const row = await env.DB.prepare('SELECT count FROM v2_rate_limits WHERE key=? LIMIT 1').bind(key).first();
+  if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM v2_rate_limits WHERE expires_at<?').bind(now).run();
+  if (Number(row?.count || 0) > limit) throw apiError('RATE_LIMITED', 429);
 }
 
 function airwaitResultError(code, meta={}) {

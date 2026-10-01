@@ -3,11 +3,16 @@ name: deploy-miniapp-v2-develop-gateway
 on:
   workflow_dispatch:
   push:
+    # Only main deploys. Feature branches must never reach the official Developing Worker.
+    branches:
+      - main
     paths:
       - 'miniapp-v2/backend/develop-gateway.js'
       - 'miniapp-v2/backend/prepare-develop-test-runtime.mjs'
       - 'miniapp-v2/backend/develop-worker.mjs'
       - 'miniapp-v2/backend/develop-service-message.js'
+      - 'tests/asoboon-develop-security.test.mjs'
+      - 'tests/helpers/develop-worker-harness.mjs'
       - '.github/workflows/deploy-miniapp-v2-develop-gateway.yml'
 
 permissions:
@@ -19,6 +24,9 @@ concurrency:
 
 jobs:
   deploy:
+    # push: main only. A feature branch can reach Developing only through a
+    # manual "Run workflow" (workflow_dispatch) chosen by a person.
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_ACCOUNT_ID: 7bb41607cf8c1585e9cf166d1609f8c1
@@ -94,6 +102,14 @@ jobs:
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
 
+      - name: Security regression tests (must pass before deploy)
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          node --test tests/asoboon-develop-reception-lifecycle.test.cjs
+          node --test tests/asoboon-develop-security.test.mjs
+          ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/shared
+
       - name: Build temporary Wrangler config
         if: steps.credentials.outputs.available == 'true'
         env:
@@ -110,6 +126,7 @@ jobs:
             "triggers": { "crons": ["* * * * *"] },
             "vars": {
               "CREATE_ENABLED": "1",
+              "DEVELOP_TEST_SLOT_ENABLED": "1",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
               "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884611-bDgDzGrN?view=entry\"}",
               "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "waiting_req_d_w_ja",
@@ -148,7 +165,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
-          npx --yes wrangler@4 deploy --config ./wrangler-v2-develop.tmp.jsonc
+          npx --yes wrangler@4.145.0 deploy --config ./wrangler-v2-develop.tmp.jsonc
 
       - name: Confirm secret handling
         if: steps.credentials.outputs.available == 'true'

@@ -258,7 +258,7 @@ async function recoverSession(){
   const d=await gatewayPost('recoverReservationSession',{liffAccessToken:token,businessDate:String(cached.businessDate||'')});
   if(!d?.ok)throw Error('受付情報の復元に失敗しました。');
   if(!d.found)return null;
-  const session={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),shortUrl:String(d.shortUrl||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};
+  const session={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};
   if(session.sessionToken.length<32)throw Error('呼出状況セッションを作成できませんでした。');
   writeJSON(SESSION_KEY,session);
   writeJSON(CALL_KEY,{businessDate:session.businessDate,receiptNo:session.receiptNo,waitTypeId:session.waitTypeId,cachedAt:Date.now()});

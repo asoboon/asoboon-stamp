@@ -32,6 +32,9 @@ on:
       - '.github/workflows/purple-verify.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -41,7 +44,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re, sys
+          import hashlib, re, sys
 
           purple = [p for p in Path('.').glob('purple-*') if p.is_file()]
           purple += [Path('staff-test-home.html'), Path('home-purple.html'), Path('home-purple.js'), Path('home-purple.css'), Path('callstatus-purple.html')]
@@ -59,7 +62,8 @@ jobs:
                       errors.append(f'{p}: contains {label}: {token}')
               if re.search(r'airwaitApiKey\s*[:=]', text, re.I):
                   errors.append(f'{p}: browser-side AirWAIT API key field is forbidden')
-              if re.search(r'\blYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI\b', text):
+              # Known AirWAIT key is matched by SHA-256 so the workflow never stores it in plaintext.
+              if any(hashlib.sha256(t.encode()).hexdigest() == '1c8bb895f35e059481afab4b23bd2ee101ec9558f17a1fff49f23cab11fc45df' for t in re.findall(r'[A-Za-z0-9]{32}', text)):
                   errors.append(f'{p}: known AirWAIT API key literal is forbidden')
 
           call = Path('purple-callstatus.html').read_text(errors='ignore')

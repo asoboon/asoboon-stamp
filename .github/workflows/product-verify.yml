@@ -20,6 +20,9 @@ on:
       - 'yoyaku-reservation-rc3.html'
       - 'yoyaku-test.html'
       - '.github/workflows/product-verify.yml'
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
