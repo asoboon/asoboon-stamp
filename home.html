@@ -28,7 +28,7 @@
     function childUrl(){
       const u=new URL(coreBase.href);
       u.search=location.search;
-      u.searchParams.set('_v','20261001-16');
+      u.searchParams.set('_v','20261001-17');
       u.hash=location.hash;
       return u.href;
     }
@@ -263,6 +263,33 @@
       bindSecret();
       applyBusinessDay();
       syncBusinessDay(false);
+    });
+
+    function openFramePage(page){
+      const routes={
+        'event-info':'./event-info.html?v=20261001-17&embedded=1',
+        'surprise-vote':'./surprise-vote.html?v=20261001-17&embedded=1'
+      };
+      const target=routes[String(page||'')];
+      if(!target)return;
+      frame.src=new URL(target,location.href).href;
+    }
+
+    function restoreHomeFrame(){
+      frame.src=childUrl();
+    }
+
+    window.addEventListener('message',event=>{
+      if(event.origin!==location.origin)return;
+      if(event.source!==frame.contentWindow)return;
+      const data=event.data||{};
+      if(data.type==='asoboon:open-frame-page'){
+        openFramePage(data.page);
+        return;
+      }
+      if(data.type==='asoboon:restore-home-frame'){
+        restoreHomeFrame();
+      }
     });
 
     frame.src=childUrl();

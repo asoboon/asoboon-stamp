@@ -5986,11 +5986,18 @@
         }
 
         if (name === "events") {
-          const target = new URL(
-            "./event-info.html?v=20261001-16",
-            location.href
-          );
-          top.location.href = target.toString();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(
+              {
+                type: "asoboon:open-frame-page",
+                page: "event-info"
+              },
+              location.origin
+            );
+          } else {
+            location.href =
+              "./event-info.html?v=20261001-17";
+          }
           return;
         }
 
@@ -6004,11 +6011,18 @@
         }
 
         if (name === "surpriseVote") {
-          const target = new URL(
-            "./surprise-vote.html?v=20261001-16",
-            location.href
-          );
-          top.location.href = target.toString();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(
+              {
+                type: "asoboon:open-frame-page",
+                page: "surprise-vote"
+              },
+              location.origin
+            );
+          } else {
+            location.href =
+              "./surprise-vote.html?v=20261001-17";
+          }
           return;
         }
 
