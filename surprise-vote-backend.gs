@@ -14,13 +14,16 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.2.0',
+  VERSION: '2.3.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
   VOTE_SHEET: '投票データ',
   TOTAL_SHEET: '集計',
   GUIDE_SHEET: '使い方',
+  BUSINESS_SPREADSHEET_ID: '1FLLNnxhCaYa87zMcMJrVo8fz8QDjHnvpcye0wdqn0Xg',
+  BUSINESS_SHEET: '営業日カレンダー',
+  BUSINESS_CACHE_SECONDS: 60,
   PROP_SPREADSHEET_ID: 'SURPRISE_SPREADSHEET_ID',
   PROP_VOTER_SALT: 'SURPRISE_VOTER_SALT',
   EVENT_CACHE_SECONDS: 30,
@@ -71,6 +74,20 @@ const SURPRISE_EVENT_OPTIONS = Object.freeze([
   '鬼ごっこ'
 ]);
 
+const SURPRISE_DEFAULT_OPTIONS = Object.freeze([
+  'パラバルーン（グリーン）',
+  'パラバルーン（ボールプール）',
+  '宝探し',
+  'だるまさんが隠れた'
+]);
+
+const SURPRISE_BUSINESS_TIMES = Object.freeze({
+  '平日': Object.freeze(['11:00']),
+  '平日特定日': Object.freeze(['11:00', '14:30']),
+  '土日祝日': Object.freeze(['11:00', '14:00', '16:00']),
+  '休館': Object.freeze([])
+});
+
 const SURPRISE_TOTAL_HEADERS = Object.freeze([
   'event_id',
   'c1',
@@ -120,7 +137,9 @@ function doGet(e) {
       payload = {
         ok: true,
         version: SURPRISE_VOTE.VERSION,
-        architecture: 'GAS_V2_1_CUMULATIVE_SINGLE_SOURCE',
+        architecture: 'GAS_V2_3_BUSINESS_CALENDAR_SOURCE',
+        businessCalendarSource: SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID,
+        businessCalendarSheet: SURPRISE_VOTE.BUSINESS_SHEET,
         dailyReset: '18:00',
         settleSeconds: SURPRISE_VOTE.SETTLE_SECONDS,
         eventCacheSeconds: SURPRISE_VOTE.EVENT_CACHE_SECONDS,
@@ -154,12 +173,16 @@ function apiSurpriseStatus_(params) {
   const now = new Date();
 
   if (isAfterSurpriseDailyReset_(now)) {
+    const upcomingAfterReset = findNextSurpriseEvent_(now);
+
     return {
       ok: true,
       version: SURPRISE_VOTE.VERSION,
       now: formatIso_(now),
-      mode: 'idle',
-      event: null,
+      mode: upcomingAfterReset ? 'upcoming' : 'idle',
+      event: upcomingAfterReset
+        ? publicUpcomingSurpriseEvent_(upcomingAfterReset)
+        : null,
       daily_reset: '18:00'
     };
   }
@@ -434,8 +457,6 @@ function findCurrentSurpriseEvent_(now) {
 }
 
 function findNextSurpriseEvent_(now) {
-  if (isAfterSurpriseDailyReset_(now)) return null;
-
   const todayUpcoming = loadSurpriseEvents_(now)
     .filter(event => event.enabled && !event.cancelled)
     .filter(event => event.options.length >= 2)
@@ -458,7 +479,7 @@ function loadFutureSurpriseEvents_(now) {
     SURPRISE_VOTE.TIMEZONE,
     'yyyy-MM-dd'
   );
-  const cacheKey = 'surprise:v2:future:' + today;
+  const cacheKey = 'surprise:v23:future:' + today;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -472,36 +493,28 @@ function loadFutureSurpriseEvents_(now) {
     } catch (_) {}
   }
 
-  const sheet = getSurpriseSpreadsheet_()
-    .getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
+  const calendar = loadSurpriseBusinessCalendar_()
+    .filter(day => day.date > today);
 
-  if (!sheet || sheet.getLastRow() < 2) return [];
-
-  const values = sheet
-    .getRange(1, 1, sheet.getLastRow(), SURPRISE_EVENT_HEADERS.length)
-    .getValues();
-
-  const headers = values.shift();
+  const overrides = loadSurpriseOverrideDefinitions_();
+  const overrideMap = indexSurpriseOverrides_(overrides);
   const definitions = [];
 
-  values.forEach((row, index) => {
-    const object = {};
-    headers.forEach((header, column) => {
-      object[String(header)] = row[column];
+  calendar.forEach(day => {
+    const times = surpriseTimesForBusinessType_(day.type);
+
+    times.forEach(eventTime => {
+      const base = buildAutoSurpriseDefinition_(
+        day.date,
+        eventTime,
+        day.type
+      );
+
+      const override = overrideMap[base.id] || null;
+      definitions.push(
+        mergeSurpriseDefinition_(base, override)
+      );
     });
-
-    const date = normalizeSurpriseDate_(object['開催日']);
-    if (!date || date <= today) return;
-
-    const definition = buildSurpriseDefinitionFromObject_(
-      object,
-      index + 2,
-      date
-    );
-
-    if (definition) {
-      definitions.push(definition);
-    }
   });
 
   definitions.sort((a, b) => {
@@ -615,9 +628,129 @@ function buildSurpriseEventFromDefinition_(definition, now) {
   };
 }
 
-function loadSurpriseEventDefinitions_(today) {
+function loadSurpriseEventDefinitions_(date) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v2:events:' + today;
+  const cacheKey = 'surprise:v23:events:' + date;
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+
+  const businessDay = getSurpriseBusinessDay_(date);
+
+  // DB未設定時だけ、既存のイベント設定を安全なフォールバックとして使う。
+  if (!businessDay) {
+    return loadSurpriseOverrideDefinitions_()
+      .filter(definition => definition.date === date);
+  }
+
+  const times = surpriseTimesForBusinessType_(businessDay.type);
+  const overrides = loadSurpriseOverrideDefinitions_();
+  const overrideMap = indexSurpriseOverrides_(overrides);
+
+  const definitions = times.map(eventTime => {
+    const base = buildAutoSurpriseDefinition_(
+      date,
+      eventTime,
+      businessDay.type
+    );
+
+    return mergeSurpriseDefinition_(
+      base,
+      overrideMap[base.id] || null
+    );
+  });
+
+  try {
+    cache.put(
+      cacheKey,
+      JSON.stringify(definitions),
+      SURPRISE_VOTE.EVENT_CACHE_SECONDS
+    );
+  } catch (_) {}
+
+  return definitions;
+}
+
+function loadSurpriseBusinessCalendar_() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'surprise:v23:business-calendar';
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+
+  const spreadsheet = SpreadsheetApp.openById(
+    SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID
+  );
+  const sheet = spreadsheet.getSheetByName(
+    SURPRISE_VOTE.BUSINESS_SHEET
+  );
+
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const values = sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, 3)
+    .getValues();
+
+  const calendar = values
+    .map(row => ({
+      date: normalizeSurpriseDate_(row[0]),
+      type: String(row[2] || '').trim()
+    }))
+    .filter(day => day.date && day.type);
+
+  try {
+    cache.put(
+      cacheKey,
+      JSON.stringify(calendar),
+      SURPRISE_VOTE.BUSINESS_CACHE_SECONDS
+    );
+  } catch (_) {}
+
+  return calendar;
+}
+
+function getSurpriseBusinessDay_(date) {
+  return loadSurpriseBusinessCalendar_()
+    .find(day => day.date === date) || null;
+}
+
+function surpriseTimesForBusinessType_(type) {
+  const times = SURPRISE_BUSINESS_TIMES[String(type || '').trim()];
+  return times ? Array.from(times) : [];
+}
+
+function buildAutoSurpriseDefinition_(date, eventTime, businessType) {
+  return {
+    id: date.replace(/-/g, '') + '-' + eventTime.replace(':', ''),
+    row: 0,
+    date: date,
+    eventTime: eventTime,
+    businessType: businessType,
+    enabled: true,
+    cancelled: false,
+    override: '',
+    autoWinner: '',
+    decisionType: '',
+    options: SURPRISE_DEFAULT_OPTIONS.map((name, index) => ({
+      id: 'c' + (index + 1),
+      name: name
+    }))
+  };
+}
+
+function loadSurpriseOverrideDefinitions_() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'surprise:v23:overrides';
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -646,7 +779,7 @@ function loadSurpriseEventDefinitions_(today) {
     });
 
     const date = normalizeSurpriseDate_(object['開催日']);
-    if (!date || date !== today) return;
+    if (!date) return;
 
     const definition = buildSurpriseDefinitionFromObject_(
       object,
@@ -654,9 +787,7 @@ function loadSurpriseEventDefinitions_(today) {
       date
     );
 
-    if (definition) {
-      definitions.push(definition);
-    }
+    if (definition) definitions.push(definition);
   });
 
   try {
@@ -668,6 +799,33 @@ function loadSurpriseEventDefinitions_(today) {
   } catch (_) {}
 
   return definitions;
+}
+
+function indexSurpriseOverrides_(definitions) {
+  const out = {};
+  (definitions || []).forEach(definition => {
+    if (!definition || !definition.id) return;
+    out[definition.id] = definition;
+  });
+  return out;
+}
+
+function mergeSurpriseDefinition_(base, override) {
+  if (!override) return base;
+
+  return {
+    ...base,
+    row: override.row || 0,
+    enabled: override.enabled,
+    cancelled: override.cancelled,
+    override: override.override,
+    autoWinner: override.autoWinner,
+    decisionType: override.decisionType,
+    options:
+      override.options && override.options.length >= 2
+        ? override.options
+        : base.options
+  };
 }
 
 function buildSurpriseDefinitionFromObject_(object, row, date) {
@@ -943,7 +1101,7 @@ function ensureSurpriseWinner_(event, totals) {
     );
 
     if (option) {
-      writeSurpriseDecision_(event.row, option.id, 'OVERRIDE');
+      persistSurpriseDecision_(event, option.id, 'OVERRIDE');
       return option;
     }
   }
@@ -967,12 +1125,18 @@ function ensureSurpriseWinner_(event, totals) {
   }
 
   try {
+    const row = ensureSurpriseDecisionRow_(event);
     const sheet = getSurpriseSpreadsheet_()
       .getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
 
-    const persistedId = String(sheet.getRange(event.row, 17).getValue() || '').trim();
+    const persistedId = String(
+      sheet.getRange(row, 17).getValue() || ''
+    ).trim();
+
     if (persistedId) {
-      const persisted = event.options.find(option => option.id === persistedId);
+      const persisted = event.options.find(
+        option => option.id === persistedId
+      );
       if (persisted) return persisted;
     }
 
@@ -982,7 +1146,7 @@ function ensureSurpriseWinner_(event, totals) {
         : tied[Math.floor(Math.random() * tied.length)];
 
     writeSurpriseDecision_(
-      event.row,
+      row,
       winner.id,
       tied.length > 1 ? 'AUTO_TIE_RANDOM' : 'AUTO'
     );
@@ -991,6 +1155,75 @@ function ensureSurpriseWinner_(event, totals) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function persistSurpriseDecision_(event, winnerId, type) {
+  const row = ensureSurpriseDecisionRow_(event);
+  writeSurpriseDecision_(row, winnerId, type);
+}
+
+function ensureSurpriseDecisionRow_(event) {
+  if (event.row && Number(event.row) >= 2) {
+    return Number(event.row);
+  }
+
+  const sheet = getSurpriseSpreadsheet_()
+    .getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
+
+  if (!sheet) {
+    throw new Error('イベント設定シートが見つかりません。');
+  }
+
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow >= 2) {
+    const values = sheet
+      .getRange(2, 1, lastRow - 1, 2)
+      .getValues();
+
+    for (let index = values.length - 1; index >= 0; index -= 1) {
+      const date = normalizeSurpriseDate_(values[index][0]);
+      const time = normalizeSurpriseTime_(values[index][1]);
+
+      if (
+        date === event.date &&
+        time === event.eventTime
+      ) {
+        return index + 2;
+      }
+    }
+  }
+
+  const row = [
+    event.date,
+    event.eventTime,
+    'ON'
+  ];
+
+  for (let i = 0; i < 10; i += 1) {
+    row.push(
+      event.options[i]
+        ? event.options[i].name
+        : ''
+    );
+  }
+
+  row.push('');
+  row.push('OFF');
+  row.push('DB自動生成イベント');
+  row.push('');
+  row.push('');
+  row.push('');
+
+  sheet.appendRow(row);
+
+  const newRow = sheet.getLastRow();
+
+  const cache = CacheService.getScriptCache();
+  cache.remove('surprise:v23:overrides');
+  cache.remove('surprise:v23:events:' + event.date);
+
+  return newRow;
 }
 
 function writeSurpriseDecision_(row, winnerId, type) {
@@ -1231,15 +1464,16 @@ function onEdit(e) {
       'yyyy-MM-dd'
     );
 
-    cache.remove('surprise:v2:events:' + today);
-    cache.remove('surprise:v2:future:' + today);
+    cache.remove('surprise:v23:events:' + today);
+    cache.remove('surprise:v23:future:' + today);
+    cache.remove('surprise:v23:overrides');
 
     const rowDate = normalizeSurpriseDate_(
       sheet.getRange(e.range.getRow(), 1).getValue()
     );
 
     if (rowDate) {
-      cache.remove('surprise:v2:events:' + rowDate);
+      cache.remove('surprise:v23:events:' + rowDate);
     }
   } catch (_) {}
 }
@@ -1450,9 +1684,9 @@ function setupSurpriseEventSheet_(sheet) {
   sheet.setColumnWidth(15, 70);
   sheet.setColumnWidth(16, 220);
 
-  sheet.getRange('A1').setNote('イベント開催日。1イベント回につき1行です。');
-  sheet.getRange('B1').setNote('11:00 / 14:00 / 14:30 / 16:00 から選択。投票時間は自動設定されます。');
-  sheet.getRange('C1').setNote('ONにした回だけ投票を公開します。');
+  sheet.getRange('A1').setNote('通常予定は営業日カレンダーから自動生成。ここは例外設定したい回の日付を入力します。');
+  sheet.getRange('B1').setNote('例外設定する回の開催時刻。11:00 / 14:00 / 14:30 / 16:00。');
+  sheet.getRange('C1').setNote('一致する自動生成回をON/OFFで例外設定します。');
   sheet.getRange('D1').setNote('候補は2〜10件。プルダウンから選択。空欄は表示されません。');
   sheet.getRange('N1').setNote('運営都合で結果を変更する場合、候補名または c1〜c10 を入力。通常は空欄。');
   sheet.getRange('O1').setNote('ONで該当回を即時中止します。通常はOFF。');
@@ -1473,10 +1707,10 @@ function setupSurpriseGuide_(spreadsheet) {
 
   const rows = [
     ['ASOBooN サプライズイベント投票｜使い方', ''],
-    ['基本', '1イベント回＝「イベント設定」シートの1行です。'],
-    ['開催日', 'イベントを行う日を入力します。'],
-    ['開催時刻', '11:00 / 14:00 / 14:30 / 16:00 から選びます。投票時間は自動設定されます。'],
-    ['開催', '準備ができた回だけ ON にします。OFF はHOMEに出ません。設定変更はキャッシュを即時破棄します。'],
+    ['基本', '通常の開催予定は「ASOBooN ミニアプリ運用設定」→「営業日カレンダー」から自動生成します。'],
+    ['営業区分', '平日＝11:00 / 平日特定日＝11:00・14:30 / 土日祝日＝11:00・14:00・16:00 / 休館＝開催なし。'],
+    ['イベント設定', '候補変更・中止・結果上書きなど、例外対応をしたい回だけ同じ開催日・開催時刻の行を編集します。'],
+    ['開催', 'イベント設定に一致する行がある場合、ON/OFFを例外設定として使用します。通常予定は営業日カレンダーが基準です。'],
     ['候補1〜10', 'プルダウンから2〜10件選択。空欄の候補はミニアプリに出ません。'],
     ['結果上書き', '通常は空欄。運営都合で変更するときだけ候補名または c1〜c10 を入力します。'],
     ['中止', '通常OFF。当日中止する場合はONにします。'],
