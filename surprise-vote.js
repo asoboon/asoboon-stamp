@@ -58,6 +58,11 @@
     retry: $('retryBtn'),
     vote: $('voteState'),
     result: $('resultState'),
+    standings: $('standingsState'),
+    standingsCountdown: $('standingsCountdown'),
+    standingsList: $('standingsList'),
+    standingsUpdated: $('standingsUpdated'),
+    standingsRefresh: $('standingsRefresh'),
     eventTime: $('eventTimeLabel'),
     timebar: $('timebar'),
     countdown: $('countdown'),
@@ -110,6 +115,7 @@
     expired: false,
     completionShown: false,
     rankVisible: false,
+    standingsOpen: false,
     upcomingRefreshStarted: false,
     optionButtons: new Map()
   };
@@ -256,7 +262,7 @@
   }
 
   function show(name) {
-    ['loading', 'idle', 'error', 'vote', 'result'].forEach(key => {
+    ['loading', 'idle', 'error', 'vote', 'standings', 'result'].forEach(key => {
       els[key].hidden = key !== name;
     });
     state.mode = name;
@@ -1241,6 +1247,11 @@
   }
 
   function applyVotingStatus(data, initial = false) {
+    const previousMode = state.mode;
+    const keepStandings =
+      state.standingsOpen ||
+      previousMode === 'standings';
+
     state.event = data.event;
     state.expired = false;
     state.rankVisible =
@@ -1298,12 +1309,33 @@
     recalcLocalTotals();
     chooseInitialCandidate();
 
-    state.completionShown =
+    const fullyCompleted =
       state.used >= Number(CFG.MAX_POINTS || 100);
 
-    show('vote');
-    renderVote(true);
-    updateCountdown();
+    state.completionShown = fullyCompleted;
+
+    const openCompletedOnLoad =
+      initial &&
+      previousMode === 'loading' &&
+      fullyCompleted &&
+      state.rankVisible &&
+      !state.dirty;
+
+    if (
+      fullyCompleted &&
+      state.rankVisible &&
+      !state.dirty &&
+      (keepStandings || openCompletedOnLoad)
+    ) {
+      state.standingsOpen = true;
+      show('standings');
+      renderStandings();
+      updateStandingsCountdown();
+    } else {
+      show('vote');
+      renderVote(true);
+      updateCountdown();
+    }
 
     if (state.dirty) {
       savePending();
@@ -1313,6 +1345,142 @@
     } else {
       savePending();
     }
+  }
+
+  function formatStandingsClock(ms) {
+    if (!Number.isFinite(ms)) return '--:--';
+    if (ms <= 0) return '終了';
+
+    const totalSec = Math.ceil(ms / 1000);
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+
+    return hours > 0
+      ? String(hours).padStart(2, '0') + ':' +
+        String(minutes).padStart(2, '0') + ':' +
+        String(seconds).padStart(2, '0')
+      : String(minutes).padStart(2, '0') + ':' +
+        String(seconds).padStart(2, '0');
+  }
+
+  function updateStandingsCountdown() {
+    if (!els.standingsCountdown || state.mode !== 'standings') return;
+
+    const remainingMs = localRemainingMs();
+    els.standingsCountdown.textContent =
+      formatStandingsClock(remainingMs);
+
+    els.standingsCountdown.classList.toggle(
+      'urgent',
+      Number.isFinite(remainingMs) &&
+      remainingMs > 0 &&
+      remainingMs <= 10 * 60 * 1000
+    );
+  }
+
+  function standingsUpdatedText() {
+    try {
+      return (
+        new Date(serverNowMs()).toLocaleTimeString(
+          'ja-JP',
+          {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Tokyo'
+          }
+        ) +
+        ' 更新'
+      );
+    } catch (_) {
+      return '最新状況を取得しました';
+    }
+  }
+
+  function renderStandings() {
+    if (
+      !state.event ||
+      !state.rankVisible ||
+      state.used < Number(CFG.MAX_POINTS || 100)
+    ) {
+      return false;
+    }
+
+    const ranks = rankMap();
+    const options = optionsFromEvent()
+      .map(option => ({
+        ...option,
+        total: Number(state.serverTotals[option.id] || 0),
+        mine: Number(state.alloc[option.id] || 0),
+        rank: ranks[option.id] || '-'
+      }))
+      .sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        return String(a.name).localeCompare(String(b.name), 'ja');
+      });
+
+    const leaderTotal = Math.max(
+      1,
+      ...options.map(option => option.total)
+    );
+
+    els.standingsList.textContent = '';
+
+    options.forEach(option => {
+      const row = document.createElement('article');
+      row.className =
+        'standings-row' +
+        (Number(option.rank) === 1 ? ' is-leader' : '') +
+        (option.mine > 0 ? ' has-mine' : '');
+
+      const head = document.createElement('div');
+      head.className = 'standings-row-head';
+
+      const rank = document.createElement('span');
+      rank.className = 'standings-rank';
+      rank.textContent = option.rank + '位';
+
+      const name = document.createElement('strong');
+      name.className = 'standings-name';
+      name.textContent = option.name;
+
+      const points = document.createElement('span');
+      points.className = 'standings-points';
+      points.textContent =
+        fmt(option.total) + ' ASOBooN';
+
+      head.append(rank, name, points);
+
+      const track = document.createElement('div');
+      track.className = 'standings-track';
+
+      const fill = document.createElement('div');
+      fill.className = 'standings-fill';
+      fill.style.width =
+        Math.max(
+          option.total > 0 ? 5 : 0,
+          Math.min(100, (option.total / leaderTotal) * 100)
+        ) + '%';
+
+      track.appendChild(fill);
+
+      const mine = document.createElement('div');
+      mine.className = 'standings-mine';
+      mine.textContent =
+        option.mine > 0
+          ? 'あなた：' + fmt(option.mine) + ' ASOBooN'
+          : 'あなたの投票：0';
+
+      row.append(head, track, mine);
+      els.standingsList.appendChild(row);
+    });
+
+    els.standingsUpdated.textContent =
+      standingsUpdatedText();
+
+    updateStandingsCountdown();
+    return true;
   }
 
   function renderResult(data) {
@@ -1461,8 +1629,10 @@
     state.expired = true;
     state.selected = '';
     state.rankVisible = false;
+    state.standingsOpen = false;
 
     if (data.mode === 'result' && data.event) {
+      state.standingsOpen = false;
       renderResult(data);
       return;
     }
@@ -1542,6 +1712,15 @@
         );
         return;
       }
+
+      if (state.mode === 'standings' && !force) {
+        if (els.standingsUpdated) {
+          els.standingsUpdated.textContent =
+            '更新に失敗しました。表示中の順位は直前の状況です。';
+        }
+        return;
+      }
+
       showError(error);
     }
   }
@@ -1556,6 +1735,10 @@
   function showCompletion() {
     if (state.completionShown) return;
     state.completionShown = true;
+
+    els.completionClose.disabled = false;
+    els.completionClose.textContent =
+      'みんなの現在の結果を見る';
 
     els.completionText.textContent =
       'あなたの100 ASOBooN';
@@ -1593,19 +1776,37 @@
   }
 
   async function hideCompletion() {
-    els.completion.classList.remove('show');
-    els.completion.setAttribute('aria-hidden', 'true');
+    const max = Number(CFG.MAX_POINTS || 100);
 
-    try {
-      await refreshStatus(true);
-    } catch (_) {}
+    els.completionClose.disabled = true;
+    els.completionClose.textContent = '最新状況を取得中…';
+    state.standingsOpen = true;
 
-    renderVote(false);
+    await refreshStatus(true);
 
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: reduced ? 'auto' : 'smooth'
-    });
+    if (
+      state.rankVisible &&
+      state.used >= max &&
+      !state.dirty &&
+      state.mode === 'standings'
+    ) {
+      els.completion.classList.remove('show');
+      els.completion.setAttribute('aria-hidden', 'true');
+      els.completionClose.disabled = false;
+      els.completionClose.textContent = 'みんなの現在の結果を見る';
+
+      window.scrollTo({
+        top: 0,
+        behavior: reduced ? 'auto' : 'smooth'
+      });
+      return;
+    }
+
+    state.standingsOpen = false;
+    els.completionClose.disabled = false;
+    els.completionClose.textContent = 'もう一度確認する';
+    els.completionText.textContent =
+      '投票は保存されています。現在の結果をもう一度確認してください。';
   }
 
   function burst() {
@@ -1664,6 +1865,7 @@
     clearInterval(state.countdownTimer);
     state.countdownTimer = setInterval(() => {
       updateCountdown();
+      updateStandingsCountdown();
       updateUpcomingState();
     }, 250);
 
@@ -1701,6 +1903,7 @@
         state.expired = false;
         state.completionShown = false;
         state.rankVisible = false;
+        state.standingsOpen = false;
 
         els.completion.classList.remove('show');
         els.completion.setAttribute('aria-hidden', 'true');
@@ -1711,6 +1914,28 @@
     }
 
     els.completionClose.addEventListener('click', hideCompletion);
+
+    if (els.standingsRefresh) {
+      els.standingsRefresh.addEventListener('click', async () => {
+        if (
+          state.used < Number(CFG.MAX_POINTS || 100) ||
+          !state.rankVisible
+        ) {
+          return;
+        }
+
+        els.standingsRefresh.disabled = true;
+        els.standingsRefresh.textContent = '更新中…';
+
+        try {
+          state.standingsOpen = true;
+          await refreshStatus(false);
+        } finally {
+          els.standingsRefresh.disabled = false;
+          els.standingsRefresh.textContent = '最新に更新';
+        }
+      });
+    }
 
     els.pushBtn.addEventListener('pointerdown', event => {
       if (event.pointerType !== 'mouse' || event.button === 0) {
