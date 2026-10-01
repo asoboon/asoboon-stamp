@@ -183,16 +183,17 @@ test('current SPECIAL implementation contains no onomatopoeia and legacy cached 
   await expect(page.locator('.fx-onomatopoeia')).toHaveCSS('visibility','hidden');
 });
 
-test('CALL GUIDED HOLD and CANCEL use distinct motion-only signature layers', async ({ page }) => {
+test('CALL keeps the fullscreen signature while Level B uses local generated layers', async ({ page }) => {
   const animations=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
-  for(const kind of ['call','guided','hold','cancel']){
-    expect(animations).toContain(`statusSignature('${kind}'`);
-    expect(css).toContain(`.fx-status-signature.${kind}::before`);
+
+  expect(animations).toContain("statusSignature('call'");
+  for(const kind of ['guided','hold','cancel']){
+    expect(animations).not.toContain(`statusSignature('${kind}'`);
+    expect(css).toContain(`.fx-local-status.${kind}`);
   }
-  expect(css).toContain('.fx-status-signature.guided::after');
-  expect(css).toContain('.fx-status-signature.hold::after');
-  expect(css).toContain('.fx-status-signature.cancel::after');
+  expect(css).toContain('.fx-status-signature.call::before');
+  expect(css).toContain('Hard safety guard: only CALL may ever take over the full screen');
 
   await installBoard(page,[payload([{number:'5991',state:'waiting',order:1}])]);
   await page.evaluate(() => {
@@ -214,7 +215,7 @@ test('CALL GUIDED HOLD and CANCEL use distinct motion-only signature layers', as
   expect(probe.childCount).toBe(0);
   expect(probe.ariaHidden).toBe('true');
   await page.evaluate(()=>window.__signatureProbe);
-  await expect(page.locator('.fx-status-signature')).toHaveCount(0);
+  await expect(page.locator('.fx-status-signature,.fx-local-status')).toHaveCount(0);
 });
 
 test('business-day routing covers weekday, special weekday, three-session days and closed days', async ({ page }) => {
@@ -1490,7 +1491,7 @@ test('CALL takes over the screen with a huge number that stays readable', async 
   await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-character')).toHaveCount(0);
 });
 
-test('HOLD shows the reception number as the main actor and never mounts a character', async ({ page }) => {
+test('HOLD makes the card the local main actor and never mounts a character or giant number', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8636',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
@@ -1502,24 +1503,26 @@ test('HOLD shows the reception number as the main actor and never mounts a chara
     });
   });
 
-  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-special-number.hold'))),{timeout:4000}).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-local-status.hold'))),{timeout:4000}).toBe(true);
   const live=await page.evaluate(()=>{
-    const el=document.querySelector('.fx-special-number.hold');
-    const value=el?.querySelector('.fx-special-number-value');
+    const local=document.querySelector('.fx-local-status.hold');
+    const ghost=document.querySelector('.fx-local-card-ghost.fx-hold-ghost');
     return{
-      number:value?.textContent?.trim()||'',
+      local:Boolean(local),
+      ghostNumber:ghost?.querySelector('.queue-number')?.textContent?.trim()||'',
       characters:document.querySelectorAll('.pc-character').length,
-      fontSize:value?parseFloat(getComputedStyle(value).fontSize):0,
-      width:value?.getBoundingClientRect().width||0,
+      giant:document.querySelectorAll('.fx-special-number.hold').length,
+      clamps:document.querySelectorAll('.fx-local-status.hold .fx-local-clamp').length,
     };
   });
-  expect(live.number).toBe('8636');
+  expect(live.local).toBe(true);
+  expect(live.ghostNumber).toBe('8636');
   expect(live.characters).toBe(0);
-  expect(live.fontSize).toBeGreaterThan(240);
-  expect(live.width).toBeGreaterThan(900);
+  expect(live.giant).toBe(0);
+  expect(live.clamps).toBe(2);
 
   await page.evaluate(()=>window.__holdCompositionPromise);
-  await expect(page.locator('.fx-special-number,.fx-pachinko-burst,.pc-sprite')).toHaveCount(0);
+  await expect(page.locator('.fx-local-status,.fx-local-card-ghost,.fx-special-number.hold,.pc-sprite')).toHaveCount(0);
 });
 
 test('source status effects use the shared composition guard', async () => {
@@ -1631,18 +1634,20 @@ test('adaptive manga typography uses choreography placement without covering liv
   expect(result.stats.adaptiveTypography).toBeGreaterThan(0);
 });
 
-test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter special', async ({ page }) => {
+test('CANCEL keeps TARGET as the local attention owner and fully clears the card shatter', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'8641',state:'waiting',order:1}])]);
   const result=await page.evaluate(async()=>{
     const fx=window.ASOBOON_BOARD_EFFECTS;
-    fx.setSlowdown(0.03,{persistValue:false});
+    fx.setSlowdown(0.12,{persistValue:false});
     fx.resetPerformanceBaseline();
     const card=document.querySelector('#queueGrid .queue-card');
-    let characterPeak=0,numberPeak=0;
+    let characterPeak=0,localPeak=0,giantPeak=0,shardPeak=0;
     const observer=new MutationObserver(()=>{
       characterPeak=Math.max(characterPeak,document.querySelectorAll('.pc-character').length);
-      numberPeak=Math.max(numberPeak,document.querySelectorAll('.fx-special-number.cancel').length);
+      localPeak=Math.max(localPeak,document.querySelectorAll('.fx-local-status.cancel').length);
+      giantPeak=Math.max(giantPeak,document.querySelectorAll('.fx-special-number.cancel').length);
+      shardPeak=Math.max(shardPeak,document.querySelectorAll('.fx-local-status.cancel .fx-local-shard').length);
     });
     observer.observe(document.body,{childList:true,subtree:true});
     await window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
@@ -1653,8 +1658,8 @@ test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter sp
     return{
       active:diag.choreography.active,
       last:diag.choreography.last,
-      characterPeak,numberPeak,
-      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-onomatopoeia,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
+      characterPeak,localPeak,giantPeak,shardPeak,
+      leftovers:document.querySelectorAll('.fx-special-number,.fx-pachinko-burst,.fx-local-status,.fx-card-ghost,.fx-foreground-shard,.fx-impact-flash,.pc-sprite').length,
       phaseAttr:document.documentElement.hasAttribute('data-board-choreo-phase'),
     };
   });
@@ -1663,12 +1668,13 @@ test('CANCEL keeps NUMBER as the attention owner and fully clears the shatter sp
   expect(result.active).toBeNull();
   expect(result.phaseAttr).toBe(false);
   expect(result.characterPeak).toBe(0);
-  expect(result.numberPeak).toBeGreaterThan(0);
+  expect(result.localPeak).toBeGreaterThan(0);
+  expect(result.giantPeak).toBe(0);
+  expect(result.shardPeak).toBeGreaterThan(0);
   expect(result.leftovers).toBe(0);
-  expect(phases).toEqual(expect.arrayContaining(['omen','impact','aftermath','end']));
-  expect(phases.indexOf('omen')).toBeLessThan(phases.indexOf('impact'));
+  expect(phases).toEqual(expect.arrayContaining(['impact','aftermath','end']));
   expect(phases.indexOf('impact')).toBeLessThan(phases.indexOf('aftermath'));
-  expect(owners.every(x=>x==='NUMBER'||x==='TARGET')).toBe(true);
+  expect(owners.every(x=>x==='TARGET')).toBe(true);
 });
 
 test('character and source effects participate in choreography visual budgets', async () => {
