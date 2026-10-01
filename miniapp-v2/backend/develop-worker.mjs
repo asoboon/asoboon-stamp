@@ -156,6 +156,7 @@ export default {
     let createPayload = null;
     let adoptPayload = null;
     let reservationStatusPayload = null;
+    let recoverReservationPayload = null;
     let cancelReservationPayload = null;
     if (request.method === 'POST') {
       try {
@@ -164,11 +165,13 @@ export default {
         if (postAction === 'createReservation') createPayload = postPayload;
         if (postAction === 'adoptOfficialWebReception') adoptPayload = postPayload;
         if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
+        if (postAction === 'recoverReservationSession') recoverReservationPayload = postPayload;
         if (postAction === 'cancelReservation') cancelReservationPayload = postPayload;
       } catch {
         createPayload = null;
         adoptPayload = null;
         reservationStatusPayload = null;
+        recoverReservationPayload = null;
         cancelReservationPayload = null;
       }
     }
@@ -199,6 +202,15 @@ export default {
       if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
       try { return json(request, await cancelReservationInMiniapp(env, cancelReservationPayload)); }
       catch (e) { return json(request,{ok:false,canceled:false,error:safeError(e)},Number(e?.status||502)); }
+    }
+
+    if (reservationStatusPayload) {
+      try { await repairReservationSessionWaitType(env,reservationStatusPayload); }
+      catch(e){ console.warn('CALLSTATUS_AUTHORITATIVE_WAITTYPE_REPAIR_FAILED',safeError(e)); }
+    }
+    if (recoverReservationPayload) {
+      try { await repairRecoveryClaimWaitType(env,recoverReservationPayload); }
+      catch(e){ console.warn('CALLSTATUS_RECOVERY_WAITTYPE_REPAIR_FAILED',safeError(e)); }
     }
 
     let base = await gateway.fetch(request, env, ctx);
@@ -912,6 +924,32 @@ function closedReservationFallback(body){
     closedAt:closeAt,
     reconciledBy:'business-close-fallback',
   };
+}
+
+async function repairReservationSessionWaitType(env,payload){
+  if(!env?.DB)return;
+  const rawToken=String(payload?.sessionToken||'').trim();
+  if(rawToken.length<32||rawToken.length>256)return;
+  const tokenHash=await sha256Hex(rawToken);
+  const session=await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1')
+    .bind(tokenHash).first();
+  if(!session)return;
+  await authoritativeWaitTypeForSession(env,session,{tokenHash});
+}
+async function repairRecoveryClaimWaitType(env,payload){
+  if(!env?.DB)return;
+  const userHash=await verifyCancelLineUser(payload?.liffAccessToken);
+  const date=normalizeDate(payload?.businessDate||'')||currentJstDate();
+  const row=await env.DB.prepare(`SELECT c.user_hash,c.business_date,c.reserve_id,c.receipt_no,c.wait_type_id,c.request_id,t.wait_type_id AS token_wait_type
+    FROM v2_user_day_claims c
+    LEFT JOIN v2_service_token_claims t ON t.request_id=c.request_id
+    WHERE c.user_hash=? AND c.business_date=? AND c.state='CONFIRMED'
+    ORDER BY c.updated_at DESC LIMIT 1`).bind(userHash,date).first();
+  const authoritative=String(row?.token_wait_type||'');
+  if(!row||!/^\d{4}$/.test(authoritative)||authoritative===String(row.wait_type_id||''))return;
+  await env.DB.prepare(`UPDATE v2_user_day_claims SET wait_type_id=?,updated_at=?
+    WHERE user_hash=? AND business_date=? AND request_id=? AND state='CONFIRMED'`)
+    .bind(authoritative,Date.now(),String(row.user_hash||''),String(row.business_date||''),String(row.request_id||'')).run();
 }
 
 async function authoritativeWaitTypeForSession(env,session,{tokenHash=''}={}){
