@@ -262,7 +262,7 @@ export default {
       body?.ok === true &&
       body?.stored === true &&
       body?.alreadyExists === true &&
-      await transitionCanceledPreviousClaim(env, createPayload, body)
+      await releaseTerminalPreviousClaim(env, createPayload, body)
     ) {
       const retryRequest = rebuildCreateRequest(request, createPayload);
       base = await gateway.fetch(retryRequest, env, ctx);
@@ -1610,9 +1610,9 @@ async function cancelReservationForTrustedSession(env,session,cancelSource='manu
   const notification=await finalizeCancellationState(env,session,String(after?.waitTypeId||session.wait_type_id||''),String(cancelSource||'manual'));
   return{ok:true,canceled:true,state:'canceled',receiptNo:String(session.receipt_no||''),businessDate:String(session.business_date||''),waitTypeId:String(after?.waitTypeId||session.wait_type_id||''),notification,checkedAt:Date.now()};
 }
-async function fetchAllReservationsForReconcile(env) {
+async function fetchAllReservationsForReconcile(env, { force=false }={}) {
   const now = Date.now();
-  if (reconcileAllCache.rows.length && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
+  if (!force && reconcileAllCache.rows.length && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
     return reconcileAllCache.rows;
   }
   if (reconcileAllInflight) return await reconcileAllInflight;
@@ -1686,15 +1686,17 @@ function reservationState(row) {
   return 'unknown';
 }
 
-async function transitionCanceledPreviousClaim(env, createPayload, existing) {
+async function releaseTerminalPreviousClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
   try {
     const waitTypeId = String(existing.waitTypeId || '');
     if (!/^\d{4}$/.test(waitTypeId) || !existing.reserveId) return false;
-    const rows = (await fetchAllReservationsForReconcile(env)).filter(r => String(r?.waitTypeId || '') === waitTypeId);
+    // A fresh AirWAIT read is required before releasing duplicate protection.
+    const rows = (await fetchAllReservationsForReconcile(env, { force:true }))
+      .filter(r => String(r?.waitTypeId || '') === waitTypeId);
     const match = selectTicketMatch(rows, existing.receiptNo);
     const own = match.row;
-    if (!own || String(own.status || '') !== '3') return false;
+    if (!own || !['2','3'].includes(String(own.status || ''))) return false;
 
     const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
       FROM v2_user_day_claims
@@ -1708,23 +1710,25 @@ async function transitionCanceledPreviousClaim(env, createPayload, existing) {
       ).first();
     if (!claim?.user_hash || !claim?.request_id) return false;
 
-    const changed = await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=?
-      WHERE user_hash=? AND business_date=? AND request_id=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'`)
+    const removed = await env.DB.prepare(`DELETE FROM v2_user_day_claims
+      WHERE user_hash=? AND business_date=? AND request_id=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
       .bind(
-        Date.now(),
         String(claim.user_hash),
         String(claim.business_date),
         String(claim.request_id),
         String(claim.reserve_id),
         String(claim.receipt_no),
+        String(claim.wait_type_id),
       ).run();
-    if (Number(changed?.meta?.changes || 0) !== 1) return false;
+    if (Number(removed?.meta?.changes || 0) !== 1) return false;
 
-    await env.DB.prepare(`DELETE FROM v2_request_results WHERE request_id=? AND action='createReservation'`)
+    // The first gateway pass cached alreadyExists under the new requestId.
+    // Drop only that cache entry so the retry can perform exactly one new create.
+    await env.DB.prepare(`DELETE FROM v2_request_results WHERE request_id=?`)
       .bind(String(createPayload.requestId || '')).run();
     return true;
   } catch (e) {
-    console.warn('CANCELED_PREVIOUS_CLAIM_TRANSITION_FAILED', safeError(e));
+    console.warn('TERMINAL_PREVIOUS_CLAIM_RELEASE_FAILED', safeError(e));
     return false;
   }
 }
