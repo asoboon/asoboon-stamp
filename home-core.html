@@ -5986,14 +5986,12 @@
         }
 
         if (name === "events") {
-          const liffId =
-            window.ASOBOON_APP_CONFIG?.liffId ||
-            "2009888671-57TOefc3";
           const target =
-            "https://miniapp.line.me/" +
-            encodeURIComponent(liffId) +
-            "/event-info.html?v=20260928-14";
-          top.location.href = target;
+            new URL(
+              "./event-info.html?v=20261001-16",
+              location.href
+            );
+          top.location.href = target.toString();
           return;
         }
 
@@ -6007,14 +6005,12 @@
         }
 
         if (name === "surpriseVote") {
-          const liffId =
-            window.ASOBOON_APP_CONFIG?.liffId ||
-            "2009888671-57TOefc3";
           const target =
-            "https://miniapp.line.me/" +
-            encodeURIComponent(liffId) +
-            "/surprise-vote.html?v=20260928-15";
-          top.location.href = target;
+            new URL(
+              "./surprise-vote.html?v=20261001-16",
+              location.href
+            );
+          top.location.href = target.toString();
           return;
         }
 
