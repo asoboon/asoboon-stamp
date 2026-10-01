@@ -98,6 +98,17 @@ async function gatewayGet(action,params={}){
   return d;
 }
 
+// requestStatus is answered only to the LINE user who owns the requestId.
+async function requestStatusFor(id){
+  if(!backendReady())throw Error('NEW_GATEWAY_NOT_CONFIGURED');
+  let token='';try{token=String(window.liff?.getAccessToken?.()||'')}catch{}
+  if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
+  const body=new URLSearchParams({action:'requestStatus',requestId:String(id||''),liffAccessToken:token});
+  const r=await fetchWithTimeout(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body},GET_TIMEOUT_MS,'受付状況の確認がタイムアウトしました。');
+  let d;try{d=await r.json()}catch{throw Error(`Gateway response invalid (${r.status})`)}
+  return d;
+}
+
 async function pollRequest(id){
   const deadline=Date.now()+POLL_DEADLINE_MS;
   const waits=[350,650,1000,1500,2200,3000,4000];
@@ -105,7 +116,7 @@ async function pollRequest(id){
   while(Date.now()<deadline){
     await sleep(waits[Math.min(i,waits.length-1)]);i+=1;
     try{
-      const r=await gatewayGet('requestStatus',{requestId:id});
+      const r=await requestStatusFor(id);
       if(r&&r.found)return{...r,_requestId:id};
     }catch{}
   }
@@ -210,7 +221,7 @@ async function boot(){
 }
 
 function saveConfirmed(rec){try{localStorage.setItem(CACHE_KEY,JSON.stringify({...rec,cachedAt:Date.now()}));localStorage.setItem(CALL_KEY,JSON.stringify({businessDate:rec.businessDate,receiptNo:String(rec.receiptNo),cachedAt:Date.now()}))}catch{}}
-function confirmedRecord(r,meta={}){const adults=Number(meta.adults??S.adult??1),paidChildren=Number(meta.paidChildren??S.child??0),infants=Number(meta.infants??S.infant??0),waitTypeId=String(r.waitTypeId||meta.waitTypeId||S.slot?.waitTypeId||''),slot=S.slots.find(x=>String(x.waitTypeId)===waitTypeId);return{reserveId:r.reserveId,receiptNo:r.receiptNo,shortUrl:String(r.shortUrl||''),businessDate:String(r.businessDate||meta.operationalDate||S.day?.operationalDate||''),businessType:String(S.day?.businessType||''),mode:String(meta.mode||S.mode||'web'),waitTypeId,waitTypeLabel:String(slot?.label||S.slot?.label||''),adults,paidChildren,infants,totalPeople:adults+paidChildren+infants,totalPrice:typeof R.priceFor==='function'?R.priceFor({adult:adults,child:paidChildren,infant:infants}):adults*600+paidChildren*900+(infants>0?900:0),source:'asoboon-miniapp-v2-develop'}}
+function confirmedRecord(r,meta={}){const adults=Number(meta.adults??S.adult??1),paidChildren=Number(meta.paidChildren??S.child??0),infants=Number(meta.infants??S.infant??0),waitTypeId=String(r.waitTypeId||meta.waitTypeId||S.slot?.waitTypeId||''),slot=S.slots.find(x=>String(x.waitTypeId)===waitTypeId);return{reserveId:r.reserveId,receiptNo:r.receiptNo,businessDate:String(r.businessDate||meta.operationalDate||S.day?.operationalDate||''),businessType:String(S.day?.businessType||''),mode:String(meta.mode||S.mode||'web'),waitTypeId,waitTypeLabel:String(slot?.label||S.slot?.label||''),adults,paidChildren,infants,totalPeople:adults+paidChildren+infants,totalPrice:typeof R.priceFor==='function'?R.priceFor({adult:adults,child:paidChildren,infant:infants}):adults*600+paidChildren*900+(infants>0?900:0),source:'asoboon-miniapp-v2-develop'}}
 function completeConfirmed(r,meta={}){const rec=confirmedRecord(r,meta);saveConfirmed(rec);clearPending(r?._requestId||readPending()?.requestId||'');S.locked=false;S.busy=false;S.recovering=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML=`<div class="rec-result"><strong>${esc(rec.receiptNo)}</strong><span>受付番号 / 受付が完了しました</span></div>`}status('受付が完了しました。呼出状況へ移動します。','ok');renderForm();if(typeof CTX?.go==='function')setTimeout(()=>CTX.go('callstatus',{replace:true}),250)}
 function bindAmbiguousRetry(requestId){const btn=$('recResult')?.querySelector?.('[data-rec-check-result]');if(btn)btn.addEventListener('click',()=>void recoverAmbiguous(requestId))}
 function showRecoveryPanel(requestId,title='受付結果を確認しています。',message='同じ受付の結果だけを再確認します。受付の再送はしません。'){const id=String(requestId||'');const result=$('recResult');if(!result)return;result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>'+esc(title)+'</strong><br>'+esc(message)+(id?'<button class="rec-retry" type="button" data-rec-check-result>受付結果を再確認</button>':'')+'</div>';if(id)bindAmbiguousRetry(id)}

@@ -82,7 +82,8 @@ export default {
     }
 
     if (request.method === 'GET' && action === 'createDiagnostics') {
-      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
       try { return json(request, await getCreateDiagnostics(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
@@ -106,7 +107,8 @@ export default {
     }
 
     if (request.method === 'GET' && action === 'serviceMessageStatus') {
-      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
       try { return json(request, await serviceStatus(env, Object.fromEntries(url.searchParams.entries()))); }
       catch (e) { return json(request, { ok:false, found:false, error:safeError(e) }, Number(e?.status || 500)); }
     }
@@ -177,6 +179,13 @@ export default {
     }
 
     if (createPayload && originAllowed(request)) {
+      // A requestId belongs to the LINE user who first used it. Check before a
+      // notification token is issued, so a replayed requestId can never attach
+      // another user's LINE token to an existing reservation.
+      try { await assertCreateRequestOwner(env, createPayload); }
+      catch (e) {
+        return json(request, { ok:false, stored:false, ambiguous:false, error:safeError(e) }, Number(e?.status || 403));
+      }
       try {
         await prepareReservationNotification(env, createPayload);
       } catch (e) {
@@ -274,6 +283,25 @@ export default {
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
   },
 };
+
+async function assertCreateRequestOwner(env, payload) {
+  if (!env?.DB) return;
+  const requestId = String(payload?.requestId || '').trim();
+  if (!/^[A-Za-z0-9_-]{8,120}$/.test(requestId)) return; // gateway rejects it with REQUEST_ID_REQUIRED
+  const hash = await verifyCancelLineUser(payload?.liffAccessToken);
+  let recorded = '';
+  try {
+    const row = await env.DB.prepare('SELECT * FROM v2_request_results WHERE request_id=? LIMIT 1').bind(requestId).first();
+    recorded = String(row?.user_hash || '');
+  } catch (e) { if (!/no such table/i.test(String(e?.message || e))) throw e; }
+  let claimed = '';
+  try {
+    const claim = await env.DB.prepare('SELECT user_hash FROM v2_user_day_claims WHERE request_id=? LIMIT 1').bind(requestId).first();
+    claimed = String(claim?.user_hash || '');
+  } catch (e) { if (!/no such table/i.test(String(e?.message || e))) throw e; }
+  const owner = recorded || claimed;
+  if (owner && owner !== hash) throw apiError('REQUEST_OWNER_MISMATCH', 403);
+}
 
 function queueObservedCallNotification(env, response, ctx) {
   const job = (async () => {
@@ -1039,6 +1067,7 @@ async function reconcileReservationStatus(request, env, base, payload) {
     return new Response(JSON.stringify({
       ...body,
       found:true,
+      reserveId:String(session?.reserve_id||body.reserveId||''),
       waitTypeId:candidateWaitTypeId,
       waitTypeName:String(candidate.waitTypeName || ''),
       status:String(candidate.status || ''),
@@ -1170,6 +1199,46 @@ function currentJstDate(){
   }).formatToParts(new Date()).map(x=>[x.type,x.value]));
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
+// Operational date with the 19:00 JST daily switch (same rule as reception).
+function currentOperationalDate(epoch=Date.now()){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'
+  }).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));
+  const dt=new Date(Date.UTC(+p.year,+p.month-1,+p.day+(+p.hour>=19?1:0),12));
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
+}
+async function lineUserHash(userId){
+  return await sha256Hex(`${LINE_CHANNEL_ID}:${String(userId||'')}`);
+}
+function timingSafeEqualText(a,b){
+  const x=new TextEncoder().encode(String(a||'')),y=new TextEncoder().encode(String(b||''));
+  if(x.length!==y.length||!x.length)return false;
+  let diff=0;for(let i=0;i<x.length;i+=1)diff|=x[i]^y[i];
+  return diff===0;
+}
+// Diagnostics are Developing-only and require an explicit secret. Origin is not authentication.
+function diagnosticsDenied(request,env){
+  const expected=String(env?.DEVELOP_DIAGNOSTICS_TOKEN||'').trim();
+  if(expected.length<32)return json(request,{ok:false,error:'NOT_FOUND'},404);
+  const provided=String(request.headers.get('X-ASOBooN-Diagnostics')||'').trim();
+  if(!timingSafeEqualText(provided,expected))return json(request,{ok:false,error:'DIAGNOSTICS_AUTH_REQUIRED'},401);
+  return null;
+}
+// Fixed-window per-user limiter stored in D1 (shared table with the gateway).
+let rateLimitTableReady=false;
+async function enforceUserRateLimit(env,scope,userHash,limit,windowMs){
+  if(!env?.DB||!userHash)return;
+  const now=Date.now(),windowStart=Math.floor(now/windowMs)*windowMs,key=`${scope}:${userHash}:${windowStart}`;
+  if(!rateLimitTableReady){
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_rate_limits (key TEXT PRIMARY KEY,count INTEGER NOT NULL,expires_at INTEGER NOT NULL)`).run();
+    rateLimitTableReady=true;
+  }
+  await env.DB.prepare(`INSERT INTO v2_rate_limits(key,count,expires_at) VALUES(?,1,?)
+    ON CONFLICT(key) DO UPDATE SET count=count+1`).bind(key,windowStart+windowMs).run();
+  const row=await env.DB.prepare('SELECT count FROM v2_rate_limits WHERE key=? LIMIT 1').bind(key).first();
+  if(Math.random()<0.02)await env.DB.prepare('DELETE FROM v2_rate_limits WHERE expires_at<?').bind(now).run();
+  if(Number(row?.count||0)>limit)throw apiError('RATE_LIMITED',429);
+}
 function officialLineWaitTypeLabel(waitTypeId){
   const id=String(waitTypeId||'');
   for(const specs of Object.values(BOARD_SLOT_SPECS)){
@@ -1240,7 +1309,7 @@ async function loadOfficialLineClaim(env,userHash,businessDate='',reserveId=''){
   return await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id,state,updated_at
     FROM v2_user_day_claims
     WHERE user_hash=? AND business_date=? AND state='CONFIRMED'
-    ORDER BY updated_at DESC LIMIT 1`).bind(user,currentJstDate()).first();
+    ORDER BY updated_at DESC LIMIT 1`).bind(user,currentOperationalDate()).first();
 }
 function officialLinePostbackParams(data){
   try{return new URLSearchParams(String(data||''));}catch{return new URLSearchParams()}
@@ -1281,7 +1350,7 @@ function officialLineConfirmMessage(claim){
 async function officialLineActiveReservation(env,userHash){
   const claim=await loadOfficialLineClaim(env,userHash);
   if(!claim)return{claim:null,row:null,state:'none'};
-  const row=await currentReservationRow(env,String(claim.receipt_no||''));
+  const row=await currentReservationRow(env,String(claim.receipt_no||''),String(claim.wait_type_id||''));
   const state=reservationState(row);
   if(state==='canceled'){
     await finalizeCancellationState(env,claim,String(row?.waitTypeId||claim.wait_type_id||''),'airwait');
@@ -1294,7 +1363,8 @@ async function processOfficialLineEvent(env,event){
   const userId=String(event?.source?.userId||'');
   const replyToken=String(event?.replyToken||'');
   if(!userId||!replyToken)return;
-  const userHash=await sha256Hex(userId);
+  // Same identity hash as reception and in-app cancel: SHA256(channelId:userId).
+  const userHash=await lineUserHash(userId);
 
   if(event?.type==='message'&&event?.message?.type==='text'){
     const text=String(event.message.text||'').normalize('NFKC').trim();
@@ -1394,7 +1464,7 @@ async function verifyCancelLineUser(liffAccessToken){
   let pd=null;try{pd=await pr.json()}catch{}
   const userId=String(pd?.userId||'');
   if(!pr.ok||!userId)throw apiError('LINE_PROFILE_INVALID',401);
-  return await sha256Hex(`${LINE_CHANNEL_ID}:${userId}`);
+  return await lineUserHash(userId);
 }
 async function loadCancelShortUrl(env,session){
   const row=await env.DB.prepare("SELECT c.request_id,rr.result_json FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.user_hash=? AND c.business_date=? AND c.reserve_id=? AND c.receipt_no=? AND c.state='CONFIRMED' LIMIT 1")
@@ -1427,6 +1497,7 @@ async function cancelReservationInMiniapp(env,p){
   if(!session||Number(session.expires_at||0)<=now)throw apiError('CALLSTATUS_SESSION_EXPIRED',401);
   const lineHash=await verifyCancelLineUser(p?.liffAccessToken);
   if(String(session.user_hash||'')!==lineHash)throw apiError('CANCEL_SESSION_USER_MISMATCH',403);
+  await enforceUserRateLimit(env,'cancel',lineHash,10,10*60*1000);
   const authoritativeWaitTypeId=await authoritativeWaitTypeForSession(env,session,{tokenHash});
   session={...session,wait_type_id:authoritativeWaitTypeId};
   try{
@@ -1592,19 +1663,22 @@ function reservationState(row) {
 async function transitionCanceledPreviousClaim(env, createPayload, existing) {
   if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
   try {
-    const rows = await fetchAllReservationsForReconcile(env);
+    const waitTypeId = String(existing.waitTypeId || '');
+    if (!/^\d{4}$/.test(waitTypeId) || !existing.reserveId) return false;
+    const rows = (await fetchAllReservationsForReconcile(env)).filter(r => String(r?.waitTypeId || '') === waitTypeId);
     const match = selectTicketMatch(rows, existing.receiptNo);
     const own = match.row;
     if (!own || String(own.status || '') !== '3') return false;
 
     const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
       FROM v2_user_day_claims
-      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND state='CONFIRMED'
+      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'
       LIMIT 1`)
       .bind(
         String(existing.businessDate || createPayload.operationalDate || ''),
         String(existing.reserveId || ''),
         String(existing.receiptNo || ''),
+        waitTypeId,
       ).first();
     if (!claim?.user_hash || !claim?.request_id) return false;
 

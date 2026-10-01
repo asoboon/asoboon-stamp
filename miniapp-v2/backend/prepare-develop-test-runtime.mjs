@@ -226,10 +226,11 @@ function randomOpaqueToken() {
 }
 
 function ticketParts(value) {
-  const k = String(value || '').normalize('NFKC').toUpperCase().replace(/[\\s\\-ー]/g, '');
-  const m = k.match(/^([FT]?)(\\d+)$/);
+  // String.raw: single backslashes here become real regex escapes in the runtime.
+  const k = String(value || '').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g, '');
+  const m = k.match(/^([FT]?)(\d+)$/);
   if (!m) return null;
-  return { prefix:m[1], digits:m[2].replace(/^0+(?=\\d)/, '') };
+  return { prefix:m[1], digits:m[2].replace(/^0+(?=\d)/, '') };
 }
 
 function ticketIdentity(value) {
@@ -270,24 +271,13 @@ function reservationState(row) {
 async function recoverReservationSession(env, p) {
   const line = await verifyLineUser(p.liffAccessToken);
   const hash = await userHash(line.userId);
+  await enforceRateLimit(env, 'session', hash, CFG.SESSION_RATE_LIMIT, CFG.RATE_WINDOW_MS);
   const requestedDate = normalizeDate(p.businessDate);
   const targetDate = requestedDate || operationalDate();
   const row = await env.DB.prepare("SELECT request_id,business_date,reserve_id,receipt_no,wait_type_id,updated_at FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND state='CONFIRMED' AND receipt_no<>'' AND reserve_id<>'' ORDER BY updated_at DESC LIMIT 1")
     .bind(hash, targetDate).first();
   if (!row) return { ok: true, found: false, version: CFG.VERSION };
-  let recoveredShortUrl = '';
-  try {
-    const resultRow = await env.DB.prepare('SELECT result_json FROM v2_request_results WHERE request_id=? LIMIT 1')
-      .bind(String(row.request_id || '')).first();
-    const result = resultRow?.result_json ? JSON.parse(String(resultRow.result_json)) : null;
-    const rawUrl = String(result?.shortUrl || '').trim();
-    const parsed = rawUrl ? new URL(rawUrl) : null;
-    const host = String(parsed?.hostname || '').toLowerCase();
-    if (parsed && ['http:','https:'].includes(parsed.protocol) && (host === 'airwait.jp' || host.endsWith('.airwait.jp'))) {
-      parsed.protocol = 'https:';
-      recoveredShortUrl = parsed.toString();
-    }
-  } catch {}
+  // The AirWAIT shortUrl (cancel capability) is never sent to the browser.
   const rawToken = randomOpaqueToken();
   const tokenHash = await sha256Hex(rawToken);
   const now = Date.now();
@@ -306,7 +296,6 @@ async function recoverReservationSession(env, p) {
     reserveId: String(row.reserve_id),
     receiptNo: String(row.receipt_no),
     waitTypeId: String(row.wait_type_id || ''),
-    shortUrl: recoveredShortUrl,
   };
 }
 
@@ -394,7 +383,10 @@ async function reservationStatus(env, p) {
   let rows;
   let usedAllWaitTypesFallback = false;
   try {
-    rows = await fetchAirwaitReservations(env, storedWaitTypeId);
+    // Only the reservation's own waitType is ever consulted (no all-waitType lookup).
+    rows = storedWaitTypeId
+      ? (await fetchAirwaitReservations(env, storedWaitTypeId)).filter(r => String(r.waitTypeId || '') === storedWaitTypeId)
+      : [];
   } catch (e) {
     const rc = String(e?.code || '');
     if (storedWaitTypeId && rc === '3556') {

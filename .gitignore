@@ -1,3 +1,4 @@
 node_modules/
 test-results/
 playwright-report/
+develop-gateway.runtime.mjs
