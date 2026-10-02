@@ -2172,7 +2172,13 @@
 
       if (!DEMO) {
         setTimeout(() => {
-          jsonp({ action: 'maintenance' }).catch(() => {});
+          jsonp({ action: 'maintenance' })
+            .then(data => {
+              if (data?.ok === true && data?.synced === true) {
+                setTimeout(() => refreshStatus(true).catch(() => {}), 180);
+              }
+            })
+            .catch(() => {});
         }, 600);
       }
     } catch (error) {
