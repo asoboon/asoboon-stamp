@@ -70,7 +70,7 @@ const routes = [
   ['[data-v7-view="parking"]', 'parking', null, /駐車場/],
   ['[data-v7-view="rules"]', 'rules', null, /館内ルール/],
   ['[data-v7-view="entry"]', 'entry', null, /一時退場/],
-  ['[data-v7-view="timeguide"]', 'timeguide', null, /利用時間/],
+  ['#v38Today', 'timeguide', null, /利用時間/],
 ];
 
 for (const mode of ['resolve', 'reject', 'pending', 'missing']) {

@@ -41,6 +41,10 @@ async function installNextHome(page, liffMode = 'resolve', statusFixture = null,
     if (url.searchParams.get('action') === 'crowdRemaining') {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok:true, slots:crowdFixture }) });
     }
+    if (url.searchParams.get('action') === 'surpriseVotePublicStatus') {
+      const body = options.surpriseFixture || { ok:true, mode:'idle', now:'2026-09-19T03:00:00.000Z' };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    }
     return route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"TEST_OFFLINE"}' });
   });
   await page.route('**/miniapp-v2/develop/env.js*', async route => {
@@ -90,7 +94,7 @@ const routes = [
   ['[data-v7-view="parking"]', 'parking', null, /駐車場/],
   ['[data-v7-view="rules"]', 'rules', null, /館内ルール/],
   ['[data-v7-view="entry"]', 'entry', null, /一時退場/],
-  ['#v38Today', 'timeguide', null, /利用時間/],
+  ['#v38TimeguideShortcut', 'timeguide', null, /利用時間/],
 ];
 
 test('inactive next HOME exposes every required route on the stable navigator', async ({ page }) => {
@@ -103,8 +107,38 @@ test('inactive next HOME exposes every required route on the stable navigator', 
     await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
     await expect(page.locator('.v38-home')).toBeVisible();
   }
-  await expect(page.locator('.v38-fun-card[disabled]')).toHaveCount(3);
-  await expect(page.locator('.v38-fun')).toContainText('準備中');
+  await expect(page.locator('.v38-calendar-card')).toContainText('今月のイベントを見る');
+  await expect(page.locator('.v38-calendar-card')).toHaveAttribute('href', './event-calendar.html');
+  await expect(page.locator('.v38-play-card')).toHaveCount(4);
+  await expect(page.locator('.v38-play')).toContainText('ブーンジャンプ');
+  await expect(page.locator('.v38-play')).toContainText('ブーンRUN');
+  await expect(page.locator('.v38-play')).toContainText('おみくじ');
+  await expect(page.locator('.v38-play')).toContainText('スタンプラリー');
+  await expect(page.locator('.v38-play-card').nth(0)).toHaveAttribute('href', '../../boonjump/');
+  await expect(page.locator('.v38-play-card').nth(1)).toHaveAttribute('href', '../../boonrun/');
+  await expect(page.locator('.v38-help')).toContainText('よくある質問・困ったとき');
+});
+
+test('event calendar is a dedicated Developing page and returns to the new HOME', async ({ page }) => {
+  await page.route('https://www.instagram.com/**', route => route.abort());
+  const url = new URL('event-calendar.html', BASE).href;
+  await page.goto(url, { waitUntil:'domcontentloaded' });
+  await expect(page.getByRole('heading', { name:'今月のイベント' })).toBeVisible();
+  await expect(page.getByRole('link', { name:'新HOMEへ戻る' })).toHaveAttribute('href', './?view=home');
+  await expect(page.locator('body')).not.toContainText('サプライズ投票');
+});
+
+test('surprise vote is a separate special section and never replaces event calendar or FAQ', async ({ page }) => {
+  await installNextHome(page, 'resolve', null, { surpriseFixture:{
+    ok:true, mode:'voting', now:'2026-09-19T03:00:00.000Z',
+    event:{ id:'20260919-1400', event_time:'14:00', vote_start:'2026-09-19T11:30:00+09:00', vote_end:'2026-09-19T13:45:00+09:00' }
+  }});
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await expect(page.locator('#v38Surprise')).toBeVisible();
+  await expect(page.locator('#v38Surprise')).toContainText('サプライズ投票 開催中');
+  await expect(page.locator('.v38-calendar-section')).toContainText('イベントカレンダー');
+  await expect(page.locator('.v38-help')).toContainText('よくある質問・困ったとき');
+  await expect(page.locator('#v38Surprise .v38-surprise-cta')).toHaveAttribute('href', './surprise-vote.html');
 });
 
 test('next HOME renders six distinct reception states and keeps reservation facts readable', async ({ page }) => {
@@ -345,7 +379,7 @@ for (const width of [320, 375, 390, 430]) {
     await expect(page.locator('.v38-action.primary')).toHaveCount(1);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(overflow).toBe(false);
-    const meaningfulSizes = await page.evaluate(() => [...document.querySelectorAll('.v38-hero p,.v38-action,.v38-today small,.v38-today strong,.v38-guide-card strong,.v38-guide-card small,.v38-fun-card strong,.v38-fun-card small')].map(el => parseFloat(getComputedStyle(el).fontSize)));
+    const meaningfulSizes = await page.evaluate(() => [...document.querySelectorAll('.v38-hero p,.v38-action,.v38-today small,.v38-today strong,.v38-guide-card strong,.v38-guide-card small,.v38-timeguide-cta strong,.v38-timeguide-cta em,.v38-calendar-card strong,.v38-calendar-card em,.v38-play-card strong,.v38-play-card small')].map(el => parseFloat(getComputedStyle(el).fontSize)));
     expect(Math.min(...meaningfulSizes)).toBeGreaterThanOrEqual(13);
     const wrappedTimes = await page.locator('#v38Slots time').evaluateAll(items => items.some(el => el.scrollHeight > el.clientHeight + 1));
     expect(wrappedTimes).toBe(false);
