@@ -107,6 +107,8 @@
     voterKeyPromise: null,
     identityReady: false,
     bootstrappedFromCache: false,
+    statusRetryTimer: null,
+    statusRetryCount: 0,
     selected: '',
     alloc: {},
     serverAlloc: {},
@@ -946,7 +948,7 @@
       .join(',');
   }
 
-  function jsonp(params) {
+  function jsonp(params, options = {}) {
     if (DEMO) {
       if (params.action === 'vote') {
         return Promise.resolve(makeDemoVoteResponse(params));
@@ -970,8 +972,10 @@
       let finished = false;
 
       const timer = setTimeout(() => {
-        finish(new Error('サーバーから返答がありません。'));
-      }, Number(CFG.REQUEST_TIMEOUT_MS || 12000));
+        const error = new Error('通信の確認に時間がかかっています。');
+        error.code = 'REQUEST_TIMEOUT';
+        finish(error);
+      }, Number(options.timeoutMs || CFG.REQUEST_TIMEOUT_MS || 12000));
 
       function finish(error, data) {
         if (finished) return;
@@ -1007,42 +1011,106 @@
     });
   }
 
-  async function publicStatusFast(params) {
+  async function fetchEdgePublicStatus(backendUrl, timeoutMs = 1800) {
+    const url = new URL(backendUrl);
+    url.searchParams.set('action', 'surpriseVotePublicStatus');
+    url.searchParams.set('_', String(Date.now()));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'omit',
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) throw new Error('edge status unavailable');
+      const data = await response.json();
+      if (!data || data.ok !== true) throw new Error('edge status invalid');
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function publicStatusFast(params = {}) {
     const backendUrl = String(window.ASOBOON_V2_ENV?.backendUrl || '').trim();
+
+    // A manually selected past/future session needs the GAS detail endpoint.
+    // The ordinary current view must stay on the fast public D1 snapshot even
+    // when this device already has a voterKey from an earlier visit.
     if (
       location.hostname !== 'asoboon.github.io' ||
       !backendUrl ||
-      params?.voterKey ||
       params?.eventId
     ) {
-      return await jsonp(params);
+      return await jsonp(params, { timeoutMs: 15000 });
     }
 
     try {
-      const url = new URL(backendUrl);
-      url.searchParams.set('action', 'surpriseVotePublicStatus');
-      url.searchParams.set('_', String(Date.now()));
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 1800);
-      try {
-        const response = await fetch(url.toString(), {
-          method: 'GET',
-          cache: 'no-store',
-          credentials: 'omit',
-          signal: controller.signal,
-          headers: { Accept: 'application/json' }
-        });
-        if (!response.ok) throw new Error('edge status unavailable');
-        const data = await response.json();
-        if (!data || data.ok !== true) throw new Error('edge status invalid');
-        return data;
-      } finally {
-        clearTimeout(timer);
-      }
+      return await fetchEdgePublicStatus(backendUrl, 1800);
     } catch (_) {
-      return await jsonp(params);
+      const cached = loadStatusCache();
+      if (cached) return cached;
+
+      await sleep(180);
+      try {
+        return await fetchEdgePublicStatus(backendUrl, 1800);
+      } catch (_) {
+        const error = new Error('通信を再確認しています。');
+        error.code = 'PUBLIC_STATUS_RETRY';
+        throw error;
+      }
     }
   }
+
+  function scheduleStatusRetry(delayMs = 1200) {
+    clearTimeout(state.statusRetryTimer);
+    state.statusRetryTimer = setTimeout(() => {
+      refreshStatus(false).catch(() => {});
+    }, Math.max(500, Number(delayMs || 1200)));
+  }
+
+  function keepVisibleWhileReconnecting() {
+    state.statusRetryCount += 1;
+    scheduleStatusRetry(Math.min(3500, 700 + state.statusRetryCount * 450));
+
+    if (state.mode === 'vote') {
+      setSync(
+        state.identityReady
+          ? '最新情報を確認中です。投票はそのまま続けられます'
+          : '投票状況を確認中です。画面はそのままでOKです'
+      );
+      return true;
+    }
+
+    if (state.mode === 'standings') {
+      if (els.standingsUpdated) {
+        els.standingsUpdated.textContent = '最新情報を再確認しています…';
+      }
+      return true;
+    }
+
+    if (state.mode !== 'loading' && state.mode !== 'error') {
+      return true;
+    }
+
+    if (state.mode === 'loading') {
+      const title = els.loading?.querySelector('h2');
+      const text = els.loading?.querySelector('p');
+      if (title) title.textContent = '投票を確認しています';
+      if (text) {
+        text.textContent = state.statusRetryCount >= 3
+          ? '通信を再確認しています。そのまま少しお待ちください。'
+          : '今日のイベント情報を読み込んでいます。';
+      }
+      return true;
+    }
+
+    return false;
+  }
+
 
   function updateServerClock(data) {
     const serverNow = Date.parse(data?.now || '');
@@ -2050,23 +2118,21 @@
     }
 
     try {
-      const params = { action: 'status' };
-      if (state.voterKey) params.voterKey = state.voterKey;
+      const publicParams = { action: 'status' };
       if (state.manualSession && state.selectedEventId) {
-        params.eventId = state.selectedEventId;
+        publicParams.eventId = state.selectedEventId;
       }
 
-      const requestedWithVoterKey = !!state.voterKey;
-      let data = await publicStatusFast(params);
+      let data = await publicStatusFast(publicParams);
       updateServerClock(data);
       saveStatusCache(data);
 
       const votingMode =
         data?.mode === 'voting' || data?.mode === 'settling';
 
-      if (votingMode && !requestedWithVoterKey) {
-        // Draw the event immediately from the public response. Personal
-        // remaining points are hydrated in the background before PUSH unlocks.
+      if (votingMode) {
+        // Always paint the public event first. A slow personal GAS lookup must
+        // never replace an already-usable screen with a server error.
         state.identityReady = false;
         const previewInitial =
           force ||
@@ -2075,22 +2141,39 @@
         state.lastStatusAt = Date.now();
         applyStatus(data, previewInitial);
 
-        const voterKey = await ensureVoterKey();
-        const personalParams = {
-          action: 'status',
-          voterKey
-        };
-        if (state.manualSession && state.selectedEventId) {
-          personalParams.eventId = state.selectedEventId;
-        }
+        try {
+          const voterKey = await ensureVoterKey();
+          const personalParams = {
+            action: 'status',
+            voterKey
+          };
+          if (state.manualSession && state.selectedEventId) {
+            personalParams.eventId = state.selectedEventId;
+          }
 
-        data = await jsonp(personalParams);
-        updateServerClock(data);
-        saveStatusCache(data);
-        state.identityReady = true;
-      } else {
-        state.identityReady = true;
+          const personal = await jsonp(personalParams, { timeoutMs: 15000 });
+          updateServerClock(personal);
+          saveStatusCache(personal);
+          state.identityReady = true;
+          state.statusRetryCount = 0;
+          clearTimeout(state.statusRetryTimer);
+          state.lastStatusAt = Date.now();
+          state.bootstrappedFromCache = false;
+          applyStatus(
+            personal,
+            force || state.event?.id !== personal?.event?.id
+          );
+        } catch (_) {
+          state.identityReady = false;
+          setSync('投票状況を確認中です。画面はそのままでOKです');
+          scheduleStatusRetry(1200);
+        }
+        return;
       }
+
+      state.identityReady = true;
+      state.statusRetryCount = 0;
+      clearTimeout(state.statusRetryTimer);
 
       const initial =
         force ||
@@ -2101,37 +2184,27 @@
       state.bootstrappedFromCache = false;
       applyStatus(data, initial);
     } catch (error) {
-      if (state.mode === 'vote' && !force) {
-        setSync(
-          state.identityReady
-            ? '最新状態の確認に失敗しました。投票は続けられます'
-            : '通信を確認中です。もう少しお待ちください',
-          true
-        );
-        return;
-      }
-
-      if (state.mode === 'standings' && !force) {
-        if (els.standingsUpdated) {
-          els.standingsUpdated.textContent =
-            '更新に失敗しました。表示中の順位は直前の状況です。';
-        }
-        return;
-      }
-
       if (state.bootstrappedFromCache && state.mode !== 'loading') {
+        scheduleStatusRetry(1400);
         return;
       }
 
+      if (keepVisibleWhileReconnecting()) return;
+
+      // Only a genuine configuration/programming failure reaches the full
+      // error panel. Ordinary timeouts are handled above by auto reconnect.
       showError(error);
     }
   }
 
+
   function showError(error) {
     show('error');
     els.errorTitle.textContent = '投票を開けませんでした';
-    els.errorText.textContent =
-      String(error?.message || error || '通信エラーが発生しました。');
+    const code = String(error?.code || '');
+    els.errorText.textContent = /TIMEOUT|RETRY|NETWORK|HTTP/.test(code)
+      ? '通信を確認できませんでした。もう一度お試しください。'
+      : String(error?.message || error || '通信を確認できませんでした。');
   }
 
   function showCompletion() {

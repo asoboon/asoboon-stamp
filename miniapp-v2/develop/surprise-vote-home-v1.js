@@ -63,7 +63,7 @@ function warmVoteStaticOnce(){
   return staticWarmPromise;
 }
 async function warmVoteStatic(){
-  const urls=['./surprise-vote.html','./surprise-vote.css?v=20261002-11','./env.js?v=20260926-09','./surprise-vote-config.js?v=20261002-11','./surprise-vote.js?v=20261002-11'];
+  const urls=['./surprise-vote.html','./surprise-vote.css?v=20261002-12','./env.js?v=20260926-09','./surprise-vote-config.js?v=20261002-12','./surprise-vote.js?v=20261002-12'];
   await Promise.allSettled(urls.map(url=>fetch(url,{method:'GET',cache:'force-cache',credentials:'same-origin'})));
 }
 async function warmVoteStatus(){
