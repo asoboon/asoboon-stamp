@@ -4,8 +4,8 @@
 
   const DEFAULTS = {
     API_URL: '',
-    LIFF_ID: '2009888671-57TOefc3',
-    HOME_URL: './home.html?mode=inside',
+    LIFF_ID: '2009884611-bDgDzGrN',
+    HOME_URL: './index.html',
     POLL_INTERVAL_MIN_MS: 25000,
     POLL_INTERVAL_MAX_MS: 35000,
     COMPLETED_POLL_INTERVAL_MIN_MS: 45000,
@@ -376,9 +376,9 @@
   }
 
   function setHomeLinks() {
-    const url = CFG.HOME_URL || './home.html?mode=inside';
+    const url = CFG.HOME_URL || './index.html';
 
-    document.querySelectorAll('a[href*="home.html"],a[href*="index.html"]').forEach(link => {
+    document.querySelectorAll('a[href*="index.html"]').forEach(link => {
       if (EMBEDDED && window.parent && window.parent !== window) {
         link.href = '#';
         link.target = '_self';
