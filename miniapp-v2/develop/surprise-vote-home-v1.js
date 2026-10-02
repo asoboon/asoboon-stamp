@@ -38,7 +38,7 @@ function render(data){
   const el=node();if(!el)return;
   const model=cardModel(data);if(!model){hide();return}
   el.hidden=false;el.dataset.surpriseMode=model.mode;lastMode=model.mode;
-  el.innerHTML=`<div class="v38-surprise-label"><h2>サプライズ投票</h2><small>今日だけの参加コンテンツ</small></div><a class="v38-surprise-cta is-${esc(model.mode)}" href="./surprise-vote.html"><span class="v38-surprise-badge">${esc(model.badge)}</span><span class="v38-surprise-copy"><strong>${esc(model.title)}</strong><small>${esc(model.sub)}</small><em>${esc(model.detail)}</em></span><span class="v38-surprise-arrow" aria-hidden="true">›</span></a>`;
+  el.innerHTML=`<div class="v38-surprise-label"><h2>サプライズ投票</h2><small>今日だけの参加コンテンツ</small></div><a class="v38-surprise-cta is-${esc(model.mode)}" href="./surprise-vote.html?v=20261002-13"><span class="v38-surprise-badge">${esc(model.badge)}</span><span class="v38-surprise-copy"><strong>${esc(model.title)}</strong><small>${esc(model.sub)}</small><em>${esc(model.detail)}</em></span><span class="v38-surprise-arrow" aria-hidden="true">›</span></a>`;
   bindCta(el.querySelector('.v38-surprise-cta'));
 }
 function bindCta(cta){
@@ -63,7 +63,7 @@ function warmVoteStaticOnce(){
   return staticWarmPromise;
 }
 async function warmVoteStatic(){
-  const urls=['./surprise-vote.html','./surprise-vote.css?v=20261002-12','./env.js?v=20260926-09','./surprise-vote-config.js?v=20261002-12','./surprise-vote.js?v=20261002-12'];
+  const urls=['./surprise-vote.html?v=20261002-13','./surprise-vote.css?v=20261002-13','./env.js?v=20260926-09','./surprise-vote-config.js?v=20261002-13','./surprise-vote.js?v=20261002-13'];
   await Promise.allSettled(urls.map(url=>fetch(url,{method:'GET',cache:'force-cache',credentials:'same-origin'})));
 }
 async function warmVoteStatus(){

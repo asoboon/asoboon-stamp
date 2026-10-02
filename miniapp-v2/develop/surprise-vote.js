@@ -2654,7 +2654,13 @@
         }, 1000);
       }
     } catch (error) {
-      if (!state.bootstrappedFromCache) showError(error);
+      const message = String(error?.message || error || '');
+      const configurationFailure = /投票APIが未設定|設定されていません/.test(message);
+      if (configurationFailure) {
+        showError(error);
+      } else {
+        keepVisibleWhileReconnecting();
+      }
     }
   }
 
