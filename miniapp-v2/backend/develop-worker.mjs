@@ -54,6 +54,9 @@ const BOARD_SLOT_SPECS = Object.freeze({
 });
 
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
+const SURPRISE_VOTE_PUBLIC_API = 'https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec';
+const SURPRISE_VOTE_PUBLIC_CACHE_MS = 5 * 60 * 1000;
+const SURPRISE_VOTE_PUBLIC_TIMEOUT_MS = 10 * 1000;
 const BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
 const BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
@@ -74,6 +77,8 @@ let reconcileAllCache = { savedAt:0, rows:[] };
 let reconcileAllInflight = null;
 const boardSnapshotMemory = new Map();
 const boardSnapshotInflight = new Map();
+let surpriseVotePublicMemory = { savedAt:0, data:null };
+let surpriseVotePublicInflight = null;
 const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -114,6 +119,12 @@ export default {
     if (request.method === 'GET' && action === 'boardStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getBoardStatus(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
+    if (request.method === 'GET' && action === 'surpriseVotePublicStatus') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try { return json(request, await getSurpriseVotePublicStatus(ctx)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -305,8 +316,105 @@ export default {
     env = withDevelopingServiceDefaults(env);
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
     ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
+    ctx.waitUntil(refreshSurpriseVotePublicStatus(ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
   },
 };
+
+function surpriseVotePublicCacheValid(data, savedAt=0) {
+  if (!data || data.ok !== true) return false;
+  const now = Date.now();
+  const age = now - Number(savedAt || 0);
+  if (age < 0 || age > SURPRISE_VOTE_PUBLIC_CACHE_MS) return false;
+
+  const event = data.event || {};
+  const start = Date.parse(event.vote_start || '');
+  const end = Date.parse(event.vote_end || '');
+  const settleEnd = Date.parse(event.settle_end || '');
+  const resultEnd = Date.parse(event.result_end || '');
+
+  if (data.mode === 'upcoming') return !Number.isFinite(start) || now < start;
+  if (data.mode === 'voting') {
+    return (!Number.isFinite(start) || now >= start) && (!Number.isFinite(end) || now < end);
+  }
+  if (data.mode === 'settling') {
+    return (!Number.isFinite(end) || now >= end) && (!Number.isFinite(settleEnd) || now < settleEnd);
+  }
+  if (data.mode === 'result') return !Number.isFinite(resultEnd) || now < resultEnd;
+  if (data.mode === 'idle') return age < 60 * 1000;
+  return age < 30 * 1000;
+}
+
+function surpriseVotePublicForClient(data, source) {
+  const out = JSON.parse(JSON.stringify(data || {}));
+  delete out.user;
+  out.now = new Date().toISOString();
+  out.edge_cache = source;
+  return out;
+}
+
+async function getSurpriseVotePublicStatus(ctx) {
+  if (surpriseVotePublicCacheValid(surpriseVotePublicMemory.data, surpriseVotePublicMemory.savedAt)) {
+    return surpriseVotePublicForClient(surpriseVotePublicMemory.data, 'memory');
+  }
+
+  const cacheKey = new Request('https://asoboon.internal/surprise-vote/public-status');
+  try {
+    const cached = await caches.default.match(cacheKey);
+    if (cached) {
+      const box = await cached.json();
+      if (surpriseVotePublicCacheValid(box?.data, box?.savedAt)) {
+        surpriseVotePublicMemory = { savedAt:Number(box.savedAt || Date.now()), data:box.data };
+        return surpriseVotePublicForClient(box.data, 'edge');
+      }
+    }
+  } catch {}
+
+  return await refreshSurpriseVotePublicStatus(ctx);
+}
+
+async function refreshSurpriseVotePublicStatus(ctx) {
+  if (surpriseVotePublicInflight) return await surpriseVotePublicInflight;
+
+  surpriseVotePublicInflight = (async()=>{
+    const url = new URL(SURPRISE_VOTE_PUBLIC_API);
+    url.searchParams.set('action','status');
+
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), SURPRISE_VOTE_PUBLIC_TIMEOUT_MS);
+    let data;
+    try {
+      const response = await fetch(url.toString(), {
+        method:'GET',
+        headers:{ Accept:'application/json' },
+        signal:controller.signal,
+      });
+      if (!response.ok) throw apiError(`SURPRISE_VOTE_HTTP_${response.status}`, 503);
+      data = await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (!data || data.ok !== true) throw apiError('SURPRISE_VOTE_PUBLIC_STATUS_INVALID', 503);
+    delete data.user;
+    const savedAt = Date.now();
+    surpriseVotePublicMemory = { savedAt, data };
+
+    try {
+      const cacheKey = new Request('https://asoboon.internal/surprise-vote/public-status');
+      const cacheResponse = new Response(JSON.stringify({ savedAt, data }), {
+        headers:{ 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'public, max-age=300' },
+      });
+      const job = caches.default.put(cacheKey, cacheResponse);
+      if (ctx?.waitUntil) ctx.waitUntil(job);
+      else await job;
+    } catch {}
+
+    return surpriseVotePublicForClient(data, 'origin');
+  })();
+
+  try { return await surpriseVotePublicInflight; }
+  finally { surpriseVotePublicInflight = null; }
+}
 
 async function assertCreateRequestOwner(env, payload) {
   if (!env?.DB) return;

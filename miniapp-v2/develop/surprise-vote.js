@@ -794,6 +794,43 @@
     });
   }
 
+  async function publicStatusFast(params) {
+    const backendUrl = String(window.ASOBOON_V2_ENV?.backendUrl || '').trim();
+    if (
+      location.hostname !== 'asoboon.github.io' ||
+      !backendUrl ||
+      params?.voterKey ||
+      params?.eventId
+    ) {
+      return await jsonp(params);
+    }
+
+    try {
+      const url = new URL(backendUrl);
+      url.searchParams.set('action', 'surpriseVotePublicStatus');
+      url.searchParams.set('_', String(Date.now()));
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 6500);
+      try {
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'omit',
+          signal: controller.signal,
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error('edge status unavailable');
+        const data = await response.json();
+        if (!data || data.ok !== true) throw new Error('edge status invalid');
+        return data;
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (_) {
+      return await jsonp(params);
+    }
+  }
+
   function updateServerClock(data) {
     const serverNow = Date.parse(data?.now || '');
     if (Number.isFinite(serverNow)) {
@@ -1801,7 +1838,7 @@
       }
 
       const requestedWithVoterKey = !!state.voterKey;
-      let data = await jsonp(params);
+      let data = await publicStatusFast(params);
       updateServerClock(data);
       saveStatusCache(data);
 
