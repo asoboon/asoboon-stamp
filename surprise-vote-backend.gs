@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.3.0',
+  VERSION: '2.3.1',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -140,6 +140,7 @@ function doGet(e) {
         architecture: 'GAS_V2_3_BUSINESS_CALENDAR_SOURCE',
         businessCalendarSource: SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID,
         businessCalendarSheet: SURPRISE_VOTE.BUSINESS_SHEET,
+        businessCalendarAuthoritative: true,
         dailyReset: '18:00',
         settleSeconds: SURPRISE_VOTE.SETTLE_SECONDS,
         eventCacheSeconds: SURPRISE_VOTE.EVENT_CACHE_SECONDS,
@@ -642,10 +643,10 @@ function loadSurpriseEventDefinitions_(date) {
 
   const businessDay = getSurpriseBusinessDay_(date);
 
-  // DB未設定時だけ、既存のイベント設定を安全なフォールバックとして使う。
+  // 営業日カレンダーを唯一の正本とする。
+  // DBに日付が無い場合は開催しない。イベント設定だけでは開催を生やさない。
   if (!businessDay) {
-    return loadSurpriseOverrideDefinitions_()
-      .filter(definition => definition.date === date);
+    return [];
   }
 
   const times = surpriseTimesForBusinessType_(businessDay.type);
