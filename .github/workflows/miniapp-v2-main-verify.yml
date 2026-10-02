@@ -157,8 +157,8 @@ jobs:
           grep -F 'async function sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
           grep -F 'confirmation = await sendReservationConfirmationIfConfigured' miniapp-v2/backend/develop-service-message.js
           grep -F "const definitiveBound = String(usage.status || '') === 'BOUND';" miniapp-v2/backend/develop-service-message.js
-          grep -F 'transitionCanceledPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
-          grep -F "if (!own || String(own.status || '') !== '3') return false;" miniapp-v2/backend/develop-worker.mjs
+          grep -F 'releaseTerminalPreviousClaim(env, createPayload, body)' miniapp-v2/backend/develop-worker.mjs
+          grep -F "if (!own || !['2','3'].includes(String(own.status || ''))) return false;" miniapp-v2/backend/develop-worker.mjs
           grep -F '同じ日にもう一度受付できます。新しい受付のLINE通知を準備するため' miniapp-v2/backend/develop-worker.mjs
           grep -F 'let r;' miniapp-v2/shared/reception.js
           grep -F "r=await fetchWithTimeout(E.backendUrl,options,POST_TIMEOUT_MS" miniapp-v2/shared/reception.js
