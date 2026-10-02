@@ -810,7 +810,7 @@
       url.searchParams.set('action', 'surpriseVotePublicStatus');
       url.searchParams.set('_', String(Date.now()));
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 6500);
+      const timer = setTimeout(() => controller.abort(), 1800);
       try {
         const response = await fetch(url.toString(), {
           method: 'GET',
@@ -2116,6 +2116,7 @@
       if (!document.hidden) {
         if (
           !enforceDailyReset() &&
+          state.mode !== 'loading' &&
           Date.now() - state.lastStatusAt >
             Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
         ) {
@@ -2131,6 +2132,7 @@
     window.addEventListener('pageshow', () => {
       if (
         !enforceDailyReset() &&
+        state.mode !== 'loading' &&
         Date.now() - state.lastStatusAt >
           Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
       ) {
@@ -2139,7 +2141,7 @@
     });
 
     window.addEventListener('online', () => {
-      if (!enforceDailyReset()) {
+      if (!enforceDailyReset() && state.mode !== 'loading') {
         refreshStatus(false).catch(() => {});
       }
     });

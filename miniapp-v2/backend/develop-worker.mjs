@@ -56,7 +56,9 @@ const BOARD_SLOT_SPECS = Object.freeze({
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const SURPRISE_VOTE_PUBLIC_API = 'https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec';
 const SURPRISE_VOTE_PUBLIC_CACHE_MS = 5 * 60 * 1000;
-const SURPRISE_VOTE_PUBLIC_TIMEOUT_MS = 10 * 1000;
+const SURPRISE_VOTE_PUBLIC_STALE_MS = 12 * 60 * 60 * 1000;
+const SURPRISE_VOTE_PUBLIC_TIMEOUT_MS = 25 * 1000;
+const SURPRISE_VOTE_PUBLIC_STATE_KEY = 'surprise_vote_public_status:v1';
 const BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
 const BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
 const EXTERNAL_READ_TIMEOUT_MS = 8 * 1000;
@@ -124,7 +126,7 @@ export default {
 
     if (request.method === 'GET' && action === 'surpriseVotePublicStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
-      try { return json(request, await getSurpriseVotePublicStatus(ctx)); }
+      try { return json(request, await getSurpriseVotePublicStatus(env, ctx)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -316,21 +318,20 @@ export default {
     env = withDevelopingServiceDefaults(env);
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
     ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
-    ctx.waitUntil(refreshSurpriseVotePublicStatus(ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
+    ctx.waitUntil(refreshSurpriseVotePublicStatus(env, ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
   },
 };
 
-function surpriseVotePublicCacheValid(data, savedAt=0) {
+function surpriseVotePublicPhaseSafe(data, savedAt=0, maxAge=SURPRISE_VOTE_PUBLIC_CACHE_MS) {
   if (!data || data.ok !== true) return false;
   const now = Date.now();
   const age = now - Number(savedAt || 0);
-  if (age < 0 || age > SURPRISE_VOTE_PUBLIC_CACHE_MS) return false;
+  if (age < 0 || age > maxAge) return false;
 
   const event = data.event || {};
   const start = Date.parse(event.vote_start || '');
   const end = Date.parse(event.vote_end || '');
   const settleEnd = Date.parse(event.settle_end || '');
-  const resultEnd = Date.parse(event.result_end || '');
 
   if (data.mode === 'upcoming') return !Number.isFinite(start) || now < start;
   if (data.mode === 'voting') {
@@ -339,9 +340,34 @@ function surpriseVotePublicCacheValid(data, savedAt=0) {
   if (data.mode === 'settling') {
     return (!Number.isFinite(end) || now >= end) && (!Number.isFinite(settleEnd) || now < settleEnd);
   }
-  if (data.mode === 'result') return !Number.isFinite(resultEnd) || now < resultEnd;
-  if (data.mode === 'idle') return age < 60 * 1000;
-  return age < 30 * 1000;
+  if (data.mode === 'result') {
+    // A finished result stays useful until the next round actually opens.
+    // result_end only controls the old "current phase" highlight; it must not
+    // force every later page view back to slow GAS reads.
+    const selectedStart = Date.parse(event.vote_start || '');
+    const laterStarts = (Array.isArray(data.day_events) ? data.day_events : [])
+      .map(item => Date.parse(item?.vote_start || ''))
+      .filter(value => Number.isFinite(value) && (!Number.isFinite(selectedStart) || value > selectedStart));
+    if (laterStarts.length && now >= Math.min(...laterStarts)) return false;
+
+    const date = String(event.date || '').trim();
+    const reset = String(data.daily_reset || '18:00').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date) && /^\d{2}:\d{2}$/.test(reset)) {
+      const resetAt = Date.parse(`${date}T${reset}:00+09:00`);
+      if (Number.isFinite(resetAt) && now >= resetAt) return false;
+    }
+    return true;
+  }
+  if (data.mode === 'idle') return age < Math.min(maxAge, 60 * 1000);
+  return age < Math.min(maxAge, 30 * 1000);
+}
+
+function surpriseVotePublicCacheValid(data, savedAt=0) {
+  return surpriseVotePublicPhaseSafe(data, savedAt, SURPRISE_VOTE_PUBLIC_CACHE_MS);
+}
+
+function surpriseVotePublicStaleUsable(data, savedAt=0) {
+  return surpriseVotePublicPhaseSafe(data, savedAt, SURPRISE_VOTE_PUBLIC_STALE_MS);
 }
 
 function surpriseVotePublicForClient(data, source) {
@@ -352,32 +378,94 @@ function surpriseVotePublicForClient(data, source) {
   return out;
 }
 
-async function getSurpriseVotePublicStatus(ctx) {
+async function readSurpriseVotePublicD1(env) {
+  if (!await ensureWorkerStateTable(env)) return null;
+  try {
+    const row = await env.DB.prepare(
+      'SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1'
+    ).bind(SURPRISE_VOTE_PUBLIC_STATE_KEY).first();
+    if (!row) return null;
+    const data = JSON.parse(String(row.value || ''));
+    if (!data || data.ok !== true) return null;
+    return { savedAt:Number(row.updated_at || 0), data };
+  } catch (e) {
+    console.warn('SURPRISE_VOTE_PUBLIC_D1_READ_FAILED', safeError(e));
+    return null;
+  }
+}
+
+async function writeSurpriseVotePublicD1(env, savedAt, data) {
+  if (!await ensureWorkerStateTable(env)) return;
+  try {
+    await env.DB.prepare(
+      'INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ' +
+      'ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at'
+    ).bind(
+      SURPRISE_VOTE_PUBLIC_STATE_KEY,
+      JSON.stringify(data),
+      Number(savedAt || Date.now())
+    ).run();
+  } catch (e) {
+    console.warn('SURPRISE_VOTE_PUBLIC_D1_WRITE_FAILED', safeError(e));
+  }
+}
+
+async function getSurpriseVotePublicStatus(env, ctx) {
   if (surpriseVotePublicCacheValid(surpriseVotePublicMemory.data, surpriseVotePublicMemory.savedAt)) {
     return surpriseVotePublicForClient(surpriseVotePublicMemory.data, 'memory');
   }
 
   const cacheKey = new Request('https://asoboon.internal/surprise-vote/public-status');
+  let edgeBox = null;
   try {
     const cached = await caches.default.match(cacheKey);
     if (cached) {
-      const box = await cached.json();
-      if (surpriseVotePublicCacheValid(box?.data, box?.savedAt)) {
-        surpriseVotePublicMemory = { savedAt:Number(box.savedAt || Date.now()), data:box.data };
-        return surpriseVotePublicForClient(box.data, 'edge');
+      edgeBox = await cached.json();
+      if (surpriseVotePublicCacheValid(edgeBox?.data, edgeBox?.savedAt)) {
+        surpriseVotePublicMemory = { savedAt:Number(edgeBox.savedAt || Date.now()), data:edgeBox.data };
+        return surpriseVotePublicForClient(edgeBox.data, 'edge');
       }
     }
   } catch {}
 
-  return await refreshSurpriseVotePublicStatus(ctx);
+  const d1 = await readSurpriseVotePublicD1(env);
+  if (d1 && surpriseVotePublicCacheValid(d1.data, d1.savedAt)) {
+    surpriseVotePublicMemory = { savedAt:d1.savedAt, data:d1.data };
+    return surpriseVotePublicForClient(d1.data, 'd1');
+  }
+
+  // Never make a visitor wait for a GAS cold start. If the snapshot is still
+  // semantically safe, serve it now and refresh it in the background.
+  const stale =
+    (d1 && surpriseVotePublicStaleUsable(d1.data, d1.savedAt) && d1) ||
+    (edgeBox && surpriseVotePublicStaleUsable(edgeBox.data, edgeBox.savedAt) && edgeBox) ||
+    (surpriseVotePublicStaleUsable(surpriseVotePublicMemory.data, surpriseVotePublicMemory.savedAt)
+      ? surpriseVotePublicMemory
+      : null);
+
+  if (stale) {
+    const refreshJob = refreshSurpriseVotePublicStatus(env, ctx)
+      .catch(e => console.warn('surprise-vote-public-refresh', safeError(e)));
+    if (ctx?.waitUntil) ctx.waitUntil(refreshJob);
+    surpriseVotePublicMemory = { savedAt:Number(stale.savedAt || 0), data:stale.data };
+    return surpriseVotePublicForClient(stale.data, 'stale');
+  }
+
+  // First-ever cache miss: start warming immediately, but fail fast so the
+  // browser can use its direct GAS fallback instead of waiting twice.
+  const warmJob = refreshSurpriseVotePublicStatus(env, ctx)
+    .catch(e => console.warn('surprise-vote-public-first-warm', safeError(e)));
+  if (ctx?.waitUntil) ctx.waitUntil(warmJob);
+  throw apiError('SURPRISE_VOTE_PUBLIC_WARMING', 503);
 }
 
-async function refreshSurpriseVotePublicStatus(ctx) {
+async function refreshSurpriseVotePublicStatus(env, ctx) {
   if (surpriseVotePublicInflight) return await surpriseVotePublicInflight;
 
   surpriseVotePublicInflight = (async()=>{
     const url = new URL(SURPRISE_VOTE_PUBLIC_API);
     url.searchParams.set('action','status');
+    url.searchParams.set('_',String(Date.now()));
 
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), SURPRISE_VOTE_PUBLIC_TIMEOUT_MS);
@@ -386,6 +474,7 @@ async function refreshSurpriseVotePublicStatus(ctx) {
       const response = await fetch(url.toString(), {
         method:'GET',
         headers:{ Accept:'application/json' },
+        cache:'no-store',
         signal:controller.signal,
       });
       if (!response.ok) throw apiError(`SURPRISE_VOTE_HTTP_${response.status}`, 503);
@@ -399,15 +488,18 @@ async function refreshSurpriseVotePublicStatus(ctx) {
     const savedAt = Date.now();
     surpriseVotePublicMemory = { savedAt, data };
 
+    const jobs = [writeSurpriseVotePublicD1(env, savedAt, data)];
     try {
       const cacheKey = new Request('https://asoboon.internal/surprise-vote/public-status');
       const cacheResponse = new Response(JSON.stringify({ savedAt, data }), {
         headers:{ 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'public, max-age=300' },
       });
-      const job = caches.default.put(cacheKey, cacheResponse);
-      if (ctx?.waitUntil) ctx.waitUntil(job);
-      else await job;
+      jobs.push(caches.default.put(cacheKey, cacheResponse));
     } catch {}
+
+    const persist = Promise.allSettled(jobs);
+    if (ctx?.waitUntil) ctx.waitUntil(persist);
+    else await persist;
 
     return surpriseVotePublicForClient(data, 'origin');
   })();
