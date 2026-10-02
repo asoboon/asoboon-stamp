@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.5.0',
+  VERSION: '2.6.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -29,6 +29,7 @@ const SURPRISE_VOTE = Object.freeze({
   PROP_VOTER_SALT: 'SURPRISE_VOTER_SALT',
   PROP_LAST_DAILY_SYNC: 'SURPRISE_LAST_DAILY_SYNC_DATE',
   PROP_BUSINESS_SNAPSHOT: 'SURPRISE_BUSINESS_CALENDAR_SNAPSHOT',
+  PROP_FINAL_TOTALS_PREFIX: 'SURPRISE_FINAL_TOTALS_',
   EVENT_CACHE_SECONDS: 30,
   TOTAL_CACHE_SECONDS: 10,
   LOCK_WAIT_MS: 900,
@@ -140,7 +141,7 @@ function doGet(e) {
       payload = {
         ok: true,
         version: SURPRISE_VOTE.VERSION,
-        architecture: 'GAS_V2_5_SNAPSHOT_DAILY_BOARD',
+        architecture: 'GAS_V2_6_FAST_STATUS',
         businessCalendarSource: SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID,
         businessCalendarSheet: SURPRISE_VOTE.BUSINESS_SHEET,
         businessCalendarAuthoritative: true,
@@ -321,7 +322,18 @@ function apiSurpriseStatus_(params) {
     now: formatIso_(now),
     mode: 'result',
     event: publicSurpriseEvent_(selected, options),
-    day_events: buildSurpriseDayEventSummaries_(todayEvents, now),
+    day_events: dayEvents.map(item =>
+      item.id === selected.id && winner
+        ? {
+            ...item,
+            winner: {
+              id: winner.id,
+              name: winner.name,
+              total: Number(totals[winner.id] || 0)
+            }
+          }
+        : item
+    ),
     selected_event_id: selected.id,
     rank_visible: true,
     winner: winner
@@ -357,14 +369,13 @@ function buildSurpriseDayEventSummaries_(events, now) {
       result_end: formatIso_(event.resultEnd)
     };
 
-    if (mode === 'result') {
-      const totals = getSurpriseFinalTotals_(event.id, now);
-      const winner = ensureSurpriseWinner_(event, totals);
+    if (mode === 'result' && event.autoWinner) {
+      const winner = event.options.find(option => option.id === event.autoWinner);
       if (winner) {
         summary.winner = {
           id: winner.id,
           name: winner.name,
-          total: Number(totals[winner.id] || 0)
+          total: null
         };
       }
     }
@@ -571,7 +582,7 @@ function loadFutureSurpriseEvents_(now) {
     SURPRISE_VOTE.TIMEZONE,
     'yyyy-MM-dd'
   );
-  const cacheKey = 'surprise:v25:future:' + today;
+  const cacheKey = 'surprise:v26:future:' + today;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -722,7 +733,7 @@ function buildSurpriseEventFromDefinition_(definition, now) {
 
 function loadSurpriseEventDefinitions_(date) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v25:events:' + date;
+  const cacheKey = 'surprise:v26:events:' + date;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -770,7 +781,7 @@ function loadSurpriseEventDefinitions_(date) {
 
 function loadSurpriseBusinessCalendar_() {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v25:business-calendar';
+  const cacheKey = 'surprise:v26:business-calendar';
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -862,7 +873,7 @@ function saveSurpriseBusinessCalendarSnapshot_(calendar, now) {
 
   try {
     CacheService.getScriptCache().put(
-      'surprise:v25:business-calendar',
+      'surprise:v26:business-calendar',
       json,
       SURPRISE_VOTE.BUSINESS_CACHE_SECONDS
     );
@@ -908,7 +919,7 @@ function buildAutoSurpriseDefinition_(date, eventTime, businessType) {
 
 function loadSurpriseOverrideDefinitions_() {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v25:overrides';
+  const cacheKey = 'surprise:v26:overrides';
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -1159,8 +1170,17 @@ function getSurpriseTotalsCached_(eventId) {
 }
 
 function getSurpriseFinalTotals_(eventId, now) {
+  const props = PropertiesService.getScriptProperties();
+  const propKey = SURPRISE_VOTE.PROP_FINAL_TOTALS_PREFIX + eventId;
+  const persisted = props.getProperty(propKey);
+  if (persisted) {
+    try {
+      return Object.assign(emptySurpriseTotals_(), JSON.parse(persisted));
+    } catch (_) {}
+  }
+
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v2:final:' + eventId;
+  const cacheKey = 'surprise:v26:final:' + eventId;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -1170,12 +1190,11 @@ function getSurpriseFinalTotals_(eventId, now) {
   }
 
   const totals = getSurpriseTotalsFresh_(eventId);
+  const json = JSON.stringify(totals);
 
-  try {
-    cache.put(cacheKey, JSON.stringify(totals), 21600);
-  } catch (_) {}
+  try { props.setProperty(propKey, json); } catch (_) {}
+  try { cache.put(cacheKey, json, 21600); } catch (_) {}
 
-  writeSurpriseTotalSnapshot_(eventId, totals, now);
   return totals;
 }
 
@@ -1250,6 +1269,12 @@ function writeSurpriseTotalSnapshot_(eventId, totals, now) {
 }
 
 function ensureSurpriseWinner_(event, totals) {
+  const savedWinnerId = String(event.autoWinner || '').trim();
+  if (savedWinnerId) {
+    const savedWinner = event.options.find(option => option.id === savedWinnerId);
+    if (savedWinner) return savedWinner;
+  }
+
   const override = String(event.override || '').trim();
 
   if (override) {
@@ -1382,8 +1407,8 @@ function ensureSurpriseDecisionRow_(event) {
   const newRow = sheet.getLastRow();
 
   const cache = CacheService.getScriptCache();
-  cache.remove('surprise:v25:overrides');
-  cache.remove('surprise:v25:events:' + event.date);
+  cache.remove('surprise:v26:overrides');
+  cache.remove('surprise:v26:events:' + event.date);
 
   return newRow;
 }
@@ -1614,12 +1639,24 @@ function surpriseOutput_(payload, callback) {
 function apiSurpriseMaintenance_() {
   const now = new Date();
   const synced = ensureSurpriseDailySheetSynced_(now);
+  try { persistSurpriseFinishedSnapshots_(now); } catch (_) {}
   return {
     ok: true,
     version: SURPRISE_VOTE.VERSION,
     synced: synced,
     now: formatIso_(now)
   };
+}
+
+function persistSurpriseFinishedSnapshots_(now) {
+  loadSurpriseEvents_(now)
+    .filter(event => event.enabled && !event.cancelled)
+    .filter(event => event.settleEnd <= now)
+    .forEach(event => {
+      const totals = getSurpriseFinalTotals_(event.id, now);
+      writeSurpriseTotalSnapshot_(event.id, totals, now);
+      ensureSurpriseWinner_(event, totals);
+    });
 }
 
 function ensureSurpriseDailySheetSynced_(now) {
@@ -1770,10 +1807,10 @@ function clearSurpriseScheduleCaches_() {
     SURPRISE_VOTE.TIMEZONE,
     'yyyy-MM-dd'
   );
-  cache.remove('surprise:v25:events:' + today);
-  cache.remove('surprise:v25:future:' + today);
-  cache.remove('surprise:v25:overrides');
-  cache.remove('surprise:v25:business-calendar');
+  cache.remove('surprise:v26:events:' + today);
+  cache.remove('surprise:v26:future:' + today);
+  cache.remove('surprise:v26:overrides');
+  cache.remove('surprise:v26:business-calendar');
 }
 
 function onEdit(e) {
@@ -1791,16 +1828,16 @@ function onEdit(e) {
       'yyyy-MM-dd'
     );
 
-    cache.remove('surprise:v25:events:' + today);
-    cache.remove('surprise:v25:future:' + today);
-    cache.remove('surprise:v25:overrides');
+    cache.remove('surprise:v26:events:' + today);
+    cache.remove('surprise:v26:future:' + today);
+    cache.remove('surprise:v26:overrides');
 
     const rowDate = normalizeSurpriseDate_(
       sheet.getRange(e.range.getRow(), 1).getValue()
     );
 
     if (rowDate) {
-      cache.remove('surprise:v25:events:' + rowDate);
+      cache.remove('surprise:v26:events:' + rowDate);
     }
   } catch (_) {}
 }

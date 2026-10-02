@@ -17,7 +17,8 @@
     RETRY_MIN_MS: 500,
     RETRY_MAX_MS: 2000,
     RESUME_REFRESH_STALE_MS: 10000,
-    INITIAL_JITTER_MAX_MS: 3000,
+    INITIAL_JITTER_MAX_MS: 0,
+    STATUS_CACHE_MAX_AGE_MS: 21600000,
     FINAL_SYNC_GRACE_MS: 20000,
     DAILY_RESET_HOUR: 18,
     REQUEST_TIMEOUT_MS: 30000,
@@ -39,6 +40,8 @@
     PAGE_PARAMS.get('embedded') === '1';
 
   const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
+  const STATUS_CACHE_KEY = 'asoboon-surprise-status-cache-v1';
+  const VOTER_SESSION_KEY = 'asoboon-surprise-voter-session-v1';
 
   const reduced =
     !!window.matchMedia &&
@@ -101,6 +104,9 @@
     selectedEventId: '',
     manualSession: false,
     voterKey: '',
+    voterKeyPromise: null,
+    identityReady: false,
+    bootstrappedFromCache: false,
     selected: '',
     alloc: {},
     serverAlloc: {},
@@ -148,6 +154,63 @@
       if (n > 0) out[key] = n;
     });
     return out;
+  }
+
+  function readSessionVoterKey() {
+    try {
+      return String(sessionStorage.getItem(VOTER_SESSION_KEY) || '').trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function writeSessionVoterKey(value) {
+    const key = String(value || '').trim();
+    if (!key) return;
+    try { sessionStorage.setItem(VOTER_SESSION_KEY, key); } catch (_) {}
+  }
+
+  function saveStatusCache(data) {
+    if (!data || data.ok !== true) return;
+    if (data.mode === 'settling' || data.mode === 'configuration_error') return;
+    try {
+      const safe = JSON.parse(JSON.stringify(data));
+      delete safe.user;
+      localStorage.setItem(
+        STATUS_CACHE_KEY,
+        JSON.stringify({ savedAt: Date.now(), data: safe })
+      );
+    } catch (_) {}
+  }
+
+  function loadStatusCache() {
+    try {
+      const box = JSON.parse(localStorage.getItem(STATUS_CACHE_KEY) || 'null');
+      if (!box || !box.data || box.data.ok !== true) return null;
+      const age = Date.now() - Number(box.savedAt || 0);
+      if (age < 0 || age > Number(CFG.STATUS_CACHE_MAX_AGE_MS || 21600000)) {
+        return null;
+      }
+
+      const data = box.data;
+      const now = Date.now();
+      const start = Date.parse(data?.event?.vote_start || '');
+      const end = Date.parse(data?.event?.vote_end || '');
+
+      if (data.mode === 'upcoming' && Number.isFinite(start) && now >= start) {
+        return null;
+      }
+      if (data.mode === 'voting' && Number.isFinite(end) && now >= end) {
+        return null;
+      }
+      if (data.mode === 'idle' && age > 5 * 60 * 1000) {
+        return null;
+      }
+
+      return data;
+    } catch (_) {
+      return null;
+    }
   }
 
   function sameAlloc(a, b) {
@@ -561,10 +624,15 @@
   async function getVoterKey() {
     if (DEMO) return 'demo-voter';
 
+    const sessionKey = readSessionVoterKey();
+    if (sessionKey) return sessionKey;
+
     // Embedded inside HOME: do not initialize the legacy stamp LIFF.
     // This avoids LIFF-to-LIFF transitions and uses the stable device guest key.
     if (EMBEDDED) {
-      return await sha256Hex('guest:' + getGuestId());
+      const key = await sha256Hex('guest:' + getGuestId());
+      writeSessionVoterKey(key);
+      return key;
     }
 
     if (CFG.LIFF_ID) {
@@ -575,9 +643,11 @@
         if (liff.isLoggedIn()) {
           const profile = await liff.getProfile();
           if (profile?.userId) {
-            return await sha256Hex(
+            const key = await sha256Hex(
               'line:' + String(profile.userId)
             );
+            writeSessionVoterKey(key);
+            return key;
           }
         }
       } catch (error) {
@@ -585,7 +655,24 @@
       }
     }
 
-    return await sha256Hex('guest:' + getGuestId());
+    const key = await sha256Hex('guest:' + getGuestId());
+    writeSessionVoterKey(key);
+    return key;
+  }
+
+  function ensureVoterKey() {
+    if (state.voterKey) return Promise.resolve(state.voterKey);
+    if (!state.voterKeyPromise) {
+      state.voterKeyPromise = getVoterKey()
+        .then(key => {
+          state.voterKey = String(key || '').trim();
+          return state.voterKey;
+        })
+        .finally(() => {
+          if (!state.voterKey) state.voterKeyPromise = null;
+        });
+    }
+    return state.voterKeyPromise;
   }
 
   function pendingStorageKey() {
@@ -913,11 +1000,14 @@
     }
 
     els.pushBtn.disabled =
+      !state.identityReady ||
       state.expired ||
       state.remaining <= 0 ||
       !state.selected;
 
-    if (state.remaining <= 0) {
+    if (!state.identityReady) {
+      setSync('投票状況を確認中…');
+    } else if (state.remaining <= 0) {
       setSync('100 ASOBooNをすべて投票しました');
     }
 
@@ -1024,6 +1114,7 @@
   function castVote() {
     if (
       state.mode !== 'vote' ||
+      !state.identityReady ||
       state.expired ||
       !state.selected ||
       state.remaining <= 0 ||
@@ -1697,6 +1788,7 @@
       const demo = makeDemoStatus(
         state.manualSession ? state.selectedEventId : ''
       );
+      state.identityReady = true;
       applyStatus(demo, state.mode === 'loading' || force);
       return;
     }
@@ -1708,18 +1800,40 @@
         params.eventId = state.selectedEventId;
       }
 
+      const requestedWithVoterKey = !!state.voterKey;
       let data = await jsonp(params);
       updateServerClock(data);
+      saveStatusCache(data);
 
-      if (
-        (data?.mode === 'voting' || data?.mode === 'settling') &&
-        !state.voterKey
-      ) {
-        state.voterKey = await getVoterKey();
-        data = await jsonp({
+      const votingMode =
+        data?.mode === 'voting' || data?.mode === 'settling';
+
+      if (votingMode && !requestedWithVoterKey) {
+        // Draw the event immediately from the public response. Personal
+        // remaining points are hydrated in the background before PUSH unlocks.
+        state.identityReady = false;
+        const previewInitial =
+          force ||
+          state.mode === 'loading' ||
+          state.event?.id !== data?.event?.id;
+        state.lastStatusAt = Date.now();
+        applyStatus(data, previewInitial);
+
+        const voterKey = await ensureVoterKey();
+        const personalParams = {
           action: 'status',
-          voterKey: state.voterKey
-        });
+          voterKey
+        };
+        if (state.manualSession && state.selectedEventId) {
+          personalParams.eventId = state.selectedEventId;
+        }
+
+        data = await jsonp(personalParams);
+        updateServerClock(data);
+        saveStatusCache(data);
+        state.identityReady = true;
+      } else {
+        state.identityReady = true;
       }
 
       const initial =
@@ -1728,11 +1842,14 @@
         state.event?.id !== data?.event?.id;
 
       state.lastStatusAt = Date.now();
+      state.bootstrappedFromCache = false;
       applyStatus(data, initial);
     } catch (error) {
       if (state.mode === 'vote' && !force) {
         setSync(
-          '順位の更新に失敗しました。投票は続けられます',
+          state.identityReady
+            ? '最新状態の確認に失敗しました。投票は続けられます'
+            : '通信を確認中です。もう少しお待ちください',
           true
         );
         return;
@@ -1743,6 +1860,10 @@
           els.standingsUpdated.textContent =
             '更新に失敗しました。表示中の順位は直前の状況です。';
         }
+        return;
+      }
+
+      if (state.bootstrappedFromCache && state.mode !== 'loading') {
         return;
       }
 
@@ -2163,26 +2284,43 @@
       if (enforceDailyReset()) return;
 
       if (!DEMO) {
-        await sleep(
-          randomInt(0, Number(CFG.INITIAL_JITTER_MAX_MS || 3000))
-        );
-      }
+        state.voterKey = readSessionVoterKey();
+        if (!state.voterKey) {
+          state.voterKeyPromise = ensureVoterKey();
+        }
 
-      await refreshStatus(true);
+        const cached = loadStatusCache();
+        if (cached) {
+          state.bootstrappedFromCache = true;
+          state.identityReady =
+            cached.mode !== 'voting' && cached.mode !== 'settling';
+          applyStatus(cached, true);
+        }
+
+        const jitter = Number(CFG.INITIAL_JITTER_MAX_MS || 0);
+        if (jitter > 0) {
+          await sleep(randomInt(0, jitter));
+        }
+
+        await refreshStatus(!cached);
+      } else {
+        state.identityReady = true;
+        await refreshStatus(true);
+      }
 
       if (!DEMO) {
         setTimeout(() => {
           jsonp({ action: 'maintenance' })
             .then(data => {
               if (data?.ok === true && data?.synced === true) {
-                setTimeout(() => refreshStatus(true).catch(() => {}), 180);
+                setTimeout(() => refreshStatus(false).catch(() => {}), 180);
               }
             })
             .catch(() => {});
-        }, 600);
+        }, 1000);
       }
     } catch (error) {
-      showError(error);
+      if (!state.bootstrappedFromCache) showError(error);
     }
   }
 
