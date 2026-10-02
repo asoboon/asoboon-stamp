@@ -17,10 +17,11 @@
     RETRY_MIN_MS: 500,
     RETRY_MAX_MS: 2000,
     RESUME_REFRESH_STALE_MS: 10000,
-    INITIAL_JITTER_MAX_MS: 3000,
+    INITIAL_JITTER_MAX_MS: 0,
+    STATUS_CACHE_MAX_AGE_MS: 21600000,
     FINAL_SYNC_GRACE_MS: 20000,
     DAILY_RESET_HOUR: 18,
-    REQUEST_TIMEOUT_MS: 12000,
+    REQUEST_TIMEOUT_MS: 30000,
     MAX_POINTS: 100
   };
 
@@ -39,6 +40,8 @@
     PAGE_PARAMS.get('embedded') === '1';
 
   const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
+  const STATUS_CACHE_KEY = 'asoboon-surprise-status-cache-v1';
+  const VOTER_SESSION_KEY = 'asoboon-surprise-voter-session-v1';
 
   const reduced =
     !!window.matchMedia &&
@@ -48,10 +51,13 @@
 
   const els = {
     homeLink: $('homeLink'),
+    sessionTabs: $('sessionTabs'),
     loading: $('loadingState'),
     idle: $('idleState'),
     idleTitle: $('idleTitle'),
     idleText: $('idleText'),
+    idleBadge: $('idleBadge'),
+    upcomingCandidates: $('upcomingCandidates'),
     error: $('errorState'),
     errorTitle: $('errorTitle'),
     errorText: $('errorText'),
@@ -80,6 +86,7 @@
     resultEventTime: $('resultEventTime'),
     winnerName: $('winnerName'),
     winnerPoints: $('winnerPoints'),
+    resultReason: $('resultReason'),
     resultList: $('resultList'),
     completion: $('completion'),
     completionText: $('completionText'),
@@ -93,7 +100,15 @@
   const state = {
     mode: 'loading',
     event: null,
+    dayEvents: [],
+    selectedEventId: '',
+    manualSession: false,
     voterKey: '',
+    voterKeyPromise: null,
+    identityReady: false,
+    bootstrappedFromCache: false,
+    statusRetryTimer: null,
+    statusRetryCount: 0,
     selected: '',
     alloc: {},
     serverAlloc: {},
@@ -102,6 +117,9 @@
     used: 0,
     remaining: Number(CFG.MAX_POINTS || 100),
     combo: 0,
+    comboLastTapAt: 0,
+    comboTier: 0,
+    comboTimer: null,
     dirty: false,
     syncing: false,
     pendingTaps: 0,
@@ -121,8 +139,13 @@
   };
 
   const fxPool = [];
+  const ringPool = [];
+  const sparkPool = [];
   let fxIndex = 0;
+  let ringIndex = 0;
+  let sparkIndex = 0;
   let milestoneTimer = null;
+  let audioCtx = null;
 
   function fmt(value) {
     return Math.max(0, Number(value) || 0)
@@ -141,6 +164,63 @@
       if (n > 0) out[key] = n;
     });
     return out;
+  }
+
+  function readSessionVoterKey() {
+    try {
+      return String(sessionStorage.getItem(VOTER_SESSION_KEY) || '').trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function writeSessionVoterKey(value) {
+    const key = String(value || '').trim();
+    if (!key) return;
+    try { sessionStorage.setItem(VOTER_SESSION_KEY, key); } catch (_) {}
+  }
+
+  function saveStatusCache(data) {
+    if (!data || data.ok !== true) return;
+    if (data.mode === 'settling' || data.mode === 'configuration_error') return;
+    try {
+      const safe = JSON.parse(JSON.stringify(data));
+      delete safe.user;
+      localStorage.setItem(
+        STATUS_CACHE_KEY,
+        JSON.stringify({ savedAt: Date.now(), data: safe })
+      );
+    } catch (_) {}
+  }
+
+  function loadStatusCache() {
+    try {
+      const box = JSON.parse(localStorage.getItem(STATUS_CACHE_KEY) || 'null');
+      if (!box || !box.data || box.data.ok !== true) return null;
+      const age = Date.now() - Number(box.savedAt || 0);
+      if (age < 0 || age > Number(CFG.STATUS_CACHE_MAX_AGE_MS || 21600000)) {
+        return null;
+      }
+
+      const data = box.data;
+      const now = Date.now();
+      const start = Date.parse(data?.event?.vote_start || '');
+      const end = Date.parse(data?.event?.vote_end || '');
+
+      if (data.mode === 'upcoming' && Number.isFinite(start) && now >= start) {
+        return null;
+      }
+      if (data.mode === 'voting' && Number.isFinite(end) && now >= end) {
+        return null;
+      }
+      if (data.mode === 'idle' && age > 5 * 60 * 1000) {
+        return null;
+      }
+
+      return data;
+    } catch (_) {
+      return null;
+    }
   }
 
   function sameAlloc(a, b) {
@@ -244,6 +324,10 @@
 
     clearDailyPendingState();
     state.event = null;
+    state.dayEvents = [];
+    state.selectedEventId = '';
+    state.manualSession = false;
+    if (els.sessionTabs) els.sessionTabs.hidden = true;
     state.alloc = {};
     state.serverAlloc = {};
     state.serverTotals = {};
@@ -268,6 +352,90 @@
     state.mode = name;
   }
 
+  function sessionModeLabel(item) {
+    if (item?.mode === 'voting') return '投票中';
+    if (item?.mode === 'settling') return '集計中';
+    if (item?.mode === 'result') return item?.winner?.name || '結果';
+    return 'このあと';
+  }
+
+  function renderSessionTabs() {
+    if (!els.sessionTabs) return;
+    const items = Array.isArray(state.dayEvents) ? state.dayEvents : [];
+    els.sessionTabs.textContent = '';
+
+    if (!items.length) {
+      els.sessionTabs.hidden = true;
+      return;
+    }
+
+    els.sessionTabs.hidden = false;
+    els.sessionTabs.style.setProperty('--session-count', String(items.length));
+
+    items.forEach(item => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className =
+        'session-tab session-' + String(item.mode || 'upcoming') +
+        (String(item.id) === String(state.selectedEventId) ? ' is-active' : '');
+      button.dataset.eventId = item.id;
+
+      const time = document.createElement('strong');
+      time.textContent = String(item.event_time || '');
+
+      const status = document.createElement('span');
+      status.textContent = sessionModeLabel(item);
+
+      button.append(time, status);
+      button.addEventListener('click', () => openSession(item.id));
+      els.sessionTabs.appendChild(button);
+    });
+  }
+
+  async function openSession(eventId) {
+    const id = String(eventId || '').trim();
+    if (!id || id === state.selectedEventId) return;
+    state.manualSession = true;
+    state.selectedEventId = id;
+    renderSessionTabs();
+    await refreshStatus(true);
+  }
+
+  function applyDayEvents(data) {
+    state.dayEvents = Array.isArray(data?.day_events)
+      ? data.day_events
+      : [];
+
+    const selected = String(
+      data?.selected_event_id ||
+      data?.event?.id ||
+      state.selectedEventId ||
+      ''
+    );
+
+    if (!state.manualSession || !state.selectedEventId) {
+      state.selectedEventId = selected;
+    } else if (selected === state.selectedEventId) {
+      state.selectedEventId = selected;
+    }
+
+    renderSessionTabs();
+  }
+
+  function renderUpcomingCandidates(event) {
+    if (!els.upcomingCandidates) return;
+    const options = Array.isArray(event?.options) ? event.options : [];
+    els.upcomingCandidates.textContent = '';
+    els.upcomingCandidates.hidden = !options.length;
+    els.upcomingCandidates.dataset.count = String(options.length);
+
+    options.forEach(option => {
+      const item = document.createElement('span');
+      item.textContent = option.name;
+      els.upcomingCandidates.appendChild(item);
+    });
+  }
+
   function setSync(text, error = false) {
     els.syncText.textContent = text;
     els.syncText.classList.toggle('error', error);
@@ -281,9 +449,9 @@
   }
 
   function setHomeLinks() {
-    const url = CFG.HOME_URL || './home.html?mode=inside';
+    const url = CFG.HOME_URL || './index.html';
 
-    document.querySelectorAll('a[href*="home.html"]').forEach(link => {
+    document.querySelectorAll('a[href*="index.html"]').forEach(link => {
       if (EMBEDDED && window.parent && window.parent !== window) {
         link.href = '#';
         link.target = '_self';
@@ -304,32 +472,223 @@
 
   function createFxPool() {
     if (reduced) return;
-    for (let i = 0; i < 14; i += 1) {
+
+    for (let i = 0; i < 18; i += 1) {
       const span = document.createElement('span');
       span.className = 'tap-plus';
       span.textContent = '+1';
       els.tapFx.appendChild(span);
       fxPool.push(span);
     }
+
+    for (let i = 0; i < 8; i += 1) {
+      const ring = document.createElement('span');
+      ring.className = 'tap-ring';
+      els.tapFx.appendChild(ring);
+      ringPool.push(ring);
+    }
+
+    for (let i = 0; i < 28; i += 1) {
+      const spark = document.createElement('span');
+      spark.className = 'tap-spark';
+      els.tapFx.appendChild(spark);
+      sparkPool.push(spark);
+    }
+  }
+
+  function comboTier(combo = state.combo) {
+    if (combo >= 50) return 5;
+    if (combo >= 30) return 4;
+    if (combo >= 15) return 3;
+    if (combo >= 5) return 2;
+    return combo > 0 ? 1 : 0;
+  }
+
+  function updateComboForTap() {
+    const now = performance.now();
+    state.combo += 1;
+    state.comboLastTapAt = now;
+    state.comboTier = comboTier(state.combo);
+    document.body.dataset.comboTier = String(state.comboTier);
+
+    clearTimeout(state.comboTimer);
+    state.comboTimer = setTimeout(() => {
+      if (state.remaining <= 0) return;
+      state.combo = 0;
+      state.comboTier = 0;
+      state.comboLastTapAt = 0;
+      document.body.dataset.comboTier = '0';
+      els.comboValue.textContent = '0';
+      els.combo.classList.remove('is-fever', 'pop');
+    }, 850);
+
+    if (state.combo === 5) showMilestone('5 COMBO！');
+    else if (state.combo === 15) showMilestone('15 COMBO！');
+    else if (state.combo === 30) showMilestone('30 COMBO！');
+    else if (state.combo === 50) showMilestone('FEVER！');
   }
 
   function spawnPlus() {
     if (reduced || !fxPool.length) return;
-    const span = fxPool[fxIndex++ % fxPool.length];
-    span.classList.remove('go');
-    span.style.setProperty(
-      '--dx',
-      Math.round((Math.random() - 0.5) * 100) + 'px'
-    );
-    void span.offsetWidth;
-    span.classList.add('go');
+    const count = state.comboTier >= 4 ? 2 : 1;
+
+    for (let i = 0; i < count; i += 1) {
+      const span = fxPool[fxIndex++ % fxPool.length];
+      span.classList.remove('go');
+      const dx = Math.round((Math.random() - 0.5) * (90 + state.comboTier * 18));
+      span.style.setProperty('--dx', dx + 'px');
+      span.style.setProperty('--dx-mid', Math.round(dx * .35) + 'px');
+      span.style.setProperty('--rot', Math.round((Math.random() - 0.5) * 32) + 'deg');
+      span.style.setProperty('--delay', i * 22 + 'ms');
+      void span.offsetWidth;
+      span.classList.add('go');
+    }
   }
 
-  function pulsePush() {
+  function spawnImpactFx() {
+    if (reduced) return;
+
+    if (ringPool.length) {
+      const ring = ringPool[ringIndex++ % ringPool.length];
+      ring.classList.remove('go');
+      ring.style.setProperty('--ring-end', String(1.12 * (1 + state.comboTier * .12)));
+      void ring.offsetWidth;
+      ring.classList.add('go');
+    }
+
+    const sparkCount = Math.min(2 + state.comboTier * 2, 12);
+    for (let i = 0; i < sparkCount; i += 1) {
+      if (!sparkPool.length) break;
+      const spark = sparkPool[sparkIndex++ % sparkPool.length];
+      const angle = (Math.PI * 2 * i) / sparkCount + Math.random() * 0.35;
+      const distance = 45 + Math.random() * (30 + state.comboTier * 12);
+      spark.classList.remove('go');
+      spark.style.setProperty('--sx', Math.round(Math.cos(angle) * distance) + 'px');
+      spark.style.setProperty('--sy', Math.round(Math.sin(angle) * distance) + 'px');
+      spark.style.setProperty('--ss', String(0.7 + Math.random() * 0.9));
+      void spark.offsetWidth;
+      spark.classList.add('go');
+    }
+  }
+
+  function animateTapTargets(optionId) {
+    if (reduced) return;
+
+    try {
+      els.pushBtn.animate(
+        [
+          { transform: 'translateY(7px) scale(.935)' },
+          { transform: 'translateY(-2px) scale(1.055)', offset: 0.48 },
+          { transform: 'translateY(0) scale(1)' }
+        ],
+        { duration: 125, easing: 'cubic-bezier(.2,.85,.25,1)' }
+      );
+
+      els.remaining.animate(
+        [
+          { transform: 'translateY(5px) scale(.82)', opacity: .62 },
+          { transform: 'translateY(-3px) scale(1.14)', opacity: 1, offset: .55 },
+          { transform: 'translateY(0) scale(1)', opacity: 1 }
+        ],
+        { duration: 150, easing: 'cubic-bezier(.2,.8,.2,1)' }
+      );
+
+      const refs = state.optionButtons.get(optionId);
+      refs?.button?.animate(
+        [
+          { transform: 'scale(.975)' },
+          { transform: 'scale(1.025)', offset: .52 },
+          { transform: 'scale(1)' }
+        ],
+        { duration: 145, easing: 'cubic-bezier(.2,.8,.2,1)' }
+      );
+      refs?.mine?.animate(
+        [
+          { transform: 'scale(.9)', opacity: .65 },
+          { transform: 'scale(1.16)', opacity: 1, offset: .5 },
+          { transform: 'scale(1)', opacity: 1 }
+        ],
+        { duration: 160, easing: 'ease-out' }
+      );
+    } catch (_) {}
+  }
+
+  function ensureAudio() {
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    try {
+      audioCtx = new AudioContextClass({ latencyHint: 'interactive' });
+      return audioCtx;
+    } catch (_) {
+      try {
+        audioCtx = new AudioContextClass();
+        return audioCtx;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  function tone(ctx, frequency, start, duration, volume, type = 'sine') {
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + duration + 0.012);
+    } catch (_) {}
+  }
+
+  function playTapSound({ milestone = false, finish = false } = {}) {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume()
+        .then(() => {
+          if (ctx.state === 'running') playTapSound({ milestone, finish });
+        })
+        .catch(() => {});
+      return;
+    }
+
+    const now = ctx.currentTime;
+    const tier = state.comboTier;
+    const step = Math.min(state.combo, 24) % 12;
+    const base = 235 + tier * 48 + step * 7;
+
+    tone(ctx, base, now, .055, .018 + tier * .003, tier >= 3 ? 'triangle' : 'sine');
+
+    if (milestone) {
+      tone(ctx, base * 1.5, now + .018, .095, .032, 'triangle');
+    }
+
+    if (finish) {
+      tone(ctx, 523.25, now, .18, .042, 'triangle');
+      tone(ctx, 659.25, now + .045, .2, .038, 'triangle');
+      tone(ctx, 783.99, now + .09, .24, .036, 'triangle');
+    }
+  }
+
+  function pulsePush(optionId) {
     els.pushBtn.classList.add('hit');
     setTimeout(() => els.pushBtn.classList.remove('hit'), 55);
     els.combo.classList.add('pop');
     setTimeout(() => els.combo.classList.remove('pop'), 85);
+
+    spawnImpactFx();
+    animateTapTargets(optionId);
+
     if (state.combo % 4 === 0) vibrate(7);
   }
 
@@ -375,10 +734,14 @@
   function milestoneAfterTap() {
     updatePowerStage();
 
-    if ([25, 50, 75, 90, 100].includes(state.used)) {
+    if ([10, 25, 50, 75, 90, 100].includes(state.used)) {
       flashPowerStage(state.used);
 
-      if (state.used === 100) {
+      const finish = state.used === 100;
+      playTapSound({ milestone: true, finish });
+
+      if (finish) {
+        showMilestone('100 ASOBooN！');
         vibrate([30, 25, 55, 30, 95]);
       } else if (state.used >= 75) {
         vibrate([20, 18, 40]);
@@ -387,7 +750,17 @@
       }
     }
 
-    if (state.used === 95) {
+    if (state.used === 10) {
+      showMilestone('10連打！');
+    } else if (state.used === 25) {
+      showMilestone('POWER UP！');
+    } else if (state.used === 50) {
+      showMilestone('HALF！');
+    } else if (state.used === 75) {
+      showMilestone('あと25！');
+    } else if (state.used === 90) {
+      showMilestone('LAST 10！');
+    } else if (state.used === 95) {
       showMilestone('あと5！');
     } else if (state.used === 99) {
       showMilestone('あと1！');
@@ -466,10 +839,15 @@
   async function getVoterKey() {
     if (DEMO) return 'demo-voter';
 
+    const sessionKey = readSessionVoterKey();
+    if (sessionKey) return sessionKey;
+
     // Embedded inside HOME: do not initialize the legacy stamp LIFF.
     // This avoids LIFF-to-LIFF transitions and uses the stable device guest key.
     if (EMBEDDED) {
-      return await sha256Hex('guest:' + getGuestId());
+      const key = await sha256Hex('guest:' + getGuestId());
+      writeSessionVoterKey(key);
+      return key;
     }
 
     if (CFG.LIFF_ID) {
@@ -480,9 +858,11 @@
         if (liff.isLoggedIn()) {
           const profile = await liff.getProfile();
           if (profile?.userId) {
-            return await sha256Hex(
+            const key = await sha256Hex(
               'line:' + String(profile.userId)
             );
+            writeSessionVoterKey(key);
+            return key;
           }
         }
       } catch (error) {
@@ -490,7 +870,24 @@
       }
     }
 
-    return await sha256Hex('guest:' + getGuestId());
+    const key = await sha256Hex('guest:' + getGuestId());
+    writeSessionVoterKey(key);
+    return key;
+  }
+
+  function ensureVoterKey() {
+    if (state.voterKey) return Promise.resolve(state.voterKey);
+    if (!state.voterKeyPromise) {
+      state.voterKeyPromise = getVoterKey()
+        .then(key => {
+          state.voterKey = String(key || '').trim();
+          return state.voterKey;
+        })
+        .finally(() => {
+          if (!state.voterKey) state.voterKeyPromise = null;
+        });
+    }
+    return state.voterKeyPromise;
   }
 
   function pendingStorageKey() {
@@ -551,7 +948,7 @@
       .join(',');
   }
 
-  function jsonp(params) {
+  function jsonp(params, options = {}) {
     if (DEMO) {
       if (params.action === 'vote') {
         return Promise.resolve(makeDemoVoteResponse(params));
@@ -575,8 +972,10 @@
       let finished = false;
 
       const timer = setTimeout(() => {
-        finish(new Error('サーバーから返答がありません。'));
-      }, Number(CFG.REQUEST_TIMEOUT_MS || 12000));
+        const error = new Error('通信の確認に時間がかかっています。');
+        error.code = 'REQUEST_TIMEOUT';
+        finish(error);
+      }, Number(options.timeoutMs || CFG.REQUEST_TIMEOUT_MS || 12000));
 
       function finish(error, data) {
         if (finished) return;
@@ -611,6 +1010,107 @@
       document.head.appendChild(script);
     });
   }
+
+  async function fetchEdgePublicStatus(backendUrl, timeoutMs = 1800) {
+    const url = new URL(backendUrl);
+    url.searchParams.set('action', 'surpriseVotePublicStatus');
+    url.searchParams.set('_', String(Date.now()));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'omit',
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) throw new Error('edge status unavailable');
+      const data = await response.json();
+      if (!data || data.ok !== true) throw new Error('edge status invalid');
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function publicStatusFast(params = {}) {
+    const backendUrl = String(CFG.PUBLIC_STATUS_URL || window.ASOBOON_V2_ENV?.backendUrl || '').trim();
+
+    // A manually selected past/future session needs the GAS detail endpoint.
+    // The ordinary current view must stay on the fast public D1 snapshot even
+    // when this device already has a voterKey from an earlier visit.
+    if (
+      (!CFG.PUBLIC_STATUS_URL && location.hostname !== 'asoboon.github.io') ||
+      !backendUrl ||
+      params?.eventId
+    ) {
+      return await jsonp(params, { timeoutMs: 15000 });
+    }
+
+    try {
+      return await fetchEdgePublicStatus(backendUrl, 1800);
+    } catch (_) {
+      const cached = loadStatusCache();
+      if (cached) return cached;
+
+      await sleep(180);
+      try {
+        return await fetchEdgePublicStatus(backendUrl, 1800);
+      } catch (_) {
+        const error = new Error('通信を再確認しています。');
+        error.code = 'PUBLIC_STATUS_RETRY';
+        throw error;
+      }
+    }
+  }
+
+  function scheduleStatusRetry(delayMs = 1200) {
+    clearTimeout(state.statusRetryTimer);
+    state.statusRetryTimer = setTimeout(() => {
+      refreshStatus(false).catch(() => {});
+    }, Math.max(500, Number(delayMs || 1200)));
+  }
+
+  function keepVisibleWhileReconnecting() {
+    state.statusRetryCount += 1;
+    scheduleStatusRetry(Math.min(3500, 700 + state.statusRetryCount * 450));
+
+    if (state.mode === 'vote') {
+      setSync(
+        state.identityReady
+          ? '最新情報を確認中です。投票はそのまま続けられます'
+          : '投票状況を確認中です。画面はそのままでOKです'
+      );
+      return true;
+    }
+
+    if (state.mode === 'standings') {
+      if (els.standingsUpdated) {
+        els.standingsUpdated.textContent = '最新情報を再確認しています…';
+      }
+      return true;
+    }
+
+    if (state.mode !== 'loading' && state.mode !== 'error') {
+      return true;
+    }
+
+    if (state.mode === 'loading') {
+      const title = els.loading?.querySelector('h2');
+      const text = els.loading?.querySelector('p');
+      if (title) title.textContent = '投票を確認しています';
+      if (text) {
+        text.textContent = state.statusRetryCount >= 3
+          ? '通信を再確認しています。そのまま少しお待ちください。'
+          : '今日のイベント情報を読み込んでいます。';
+      }
+      return true;
+    }
+
+    return false;
+  }
+
 
   function updateServerClock(data) {
     const serverNow = Date.parse(data?.now || '');
@@ -699,9 +1199,7 @@
 
     const rank = document.createElement('span');
     rank.className = 'candidate-rank';
-    rank.textContent = state.rankVisible
-      ? (ranks[option.id] || '-') + '位'
-      : '？';
+    rank.textContent = '？';
 
     const mine = document.createElement('span');
     mine.className = 'candidate-mine';
@@ -712,11 +1210,7 @@
 
     const total = document.createElement('span');
     total.className = 'candidate-total';
-    total.textContent = state.rankVisible
-      ? 'みんな：' +
-        fmt(state.localTotals[option.id] || 0) +
-        ' ASOBooN'
-      : '100 ASOBooNを使い切ると公開';
+    total.textContent = '結果は投票締切後に発表';
 
     button.append(name, rank, mine, total);
     button.addEventListener('click', () => {
@@ -757,13 +1251,11 @@
         state.selected === option.id
       );
 
-      refs.rank.textContent = state.rankVisible
-        ? (ranks[option.id] || '-') + '位'
-        : '？';
+      refs.rank.textContent = '？';
 
       refs.button.classList.toggle(
         'rank-locked',
-        !state.rankVisible
+        true
       );
 
       refs.mine.textContent =
@@ -771,66 +1263,16 @@
         fmt(state.alloc[option.id] || 0) +
         ' ASOBooN';
 
-      refs.total.textContent = state.rankVisible
-        ? 'みんな：' +
-          fmt(state.localTotals[option.id] || 0) +
-          ' ASOBooN'
-        : '100 ASOBooNを使い切ると公開';
+      refs.total.textContent = '結果は投票締切後に発表';
     });
 
     renderRace(ranks);
   }
 
-  function renderRace(ranks = rankMap()) {
-    if (!state.rankVisible) {
-      els.race.innerHTML =
-        '<strong>まずは自分の100 ASOBooNを選ぼう！</strong>' +
-        '<span>みんなの順位は100 ASOBooNを使い切ると公開</span>';
-      return;
-    }
-
-    const options = optionsFromEvent()
-      .map(option => ({
-        ...option,
-        total: Number(state.localTotals[option.id] || 0)
-      }))
-      .sort((a, b) => b.total - a.total);
-
-    const current = options.find(
-      option => option.id === state.selected
-    );
-
-    if (!current) {
-      els.race.innerHTML =
-        '<strong>どれに入れるかは自由！</strong>' +
-        '<span>100を全部ひとつに入れても、分けてもOK</span>';
-      return;
-    }
-
-    const first = options[0];
-    const second = options[1];
-
-    if (ranks[current.id] === 1) {
-      const gap = second
-        ? Math.max(0, current.total - second.total)
-        : 0;
-
-      els.race.innerHTML =
-        '<strong>🔥 現在1位！</strong>' +
-        '<span>2位と ' + fmt(gap) + ' ASOBooN差</span>';
-      return;
-    }
-
-    const diff =
-      Math.max(1, first.total - current.total + 1);
-
+  function renderRace() {
     els.race.innerHTML =
-      '<strong>みんなであと ' +
-      fmt(diff) +
-      ' ASOBooNで1位！</strong>' +
-      '<span>現在 ' +
-      (ranks[current.id] || '-') +
-      '位</span>';
+      '<strong>途中順位はヒミツ！</strong>' +
+      '<span>100 ASOBooNを好きに分けて投票。結果は締切後に一斉発表！</span>';
   }
 
   function renderVote(full = true) {
@@ -849,7 +1291,7 @@
       '%';
 
     els.comboValue.textContent = state.combo;
-    els.combo.classList.toggle('is-fever', state.combo >= 50);
+    els.combo.classList.toggle('is-fever', state.combo >= 15);
     updatePowerStage();
 
     const current = optionsFromEvent().find(
@@ -876,11 +1318,14 @@
     }
 
     els.pushBtn.disabled =
+      !state.identityReady ||
       state.expired ||
       state.remaining <= 0 ||
       !state.selected;
 
-    if (state.remaining <= 0) {
+    if (!state.identityReady) {
+      setSync('投票状況を確認中…');
+    } else if (state.remaining <= 0) {
       setSync('100 ASOBooNをすべて投票しました');
     }
 
@@ -894,7 +1339,12 @@
 
     if (state.selected !== id) {
       state.selected = id;
+      clearTimeout(state.comboTimer);
+      state.comboTimer = null;
       state.combo = 0;
+      state.comboLastTapAt = 0;
+      state.comboTier = 0;
+      document.body.dataset.comboTier = '0';
       vibrate(12);
       renderVote(false);
     }
@@ -968,7 +1418,7 @@
       '%';
 
     els.comboValue.textContent = state.combo;
-    els.combo.classList.toggle('is-fever', state.combo >= 50);
+    els.combo.classList.toggle('is-fever', state.combo >= 15);
 
     const current = optionsFromEvent().find(
       option => option.id === id
@@ -987,6 +1437,7 @@
   function castVote() {
     if (
       state.mode !== 'vote' ||
+      !state.identityReady ||
       state.expired ||
       !state.selected ||
       state.remaining <= 0 ||
@@ -1002,7 +1453,7 @@
 
     state.used += 1;
     state.remaining -= 1;
-    state.combo += 1;
+    updateComboForTap();
     state.pendingTaps += 1;
     state.dirty = true;
 
@@ -1010,8 +1461,9 @@
       Number(state.localTotals[id] || 0) + 1;
 
     savePending();
-    pulsePush();
+    pulsePush(id);
     spawnPlus();
+    playTapSound();
     renderFastAfterTap(id);
     milestoneAfterTap();
     scheduleSync();
@@ -1247,20 +1699,12 @@
   }
 
   function applyVotingStatus(data, initial = false) {
-    const previousMode = state.mode;
-    const keepStandings =
-      state.standingsOpen ||
-      previousMode === 'standings';
-
     state.event = data.event;
     state.expired = false;
-    state.rankVisible =
-      data.rank_visible === true ||
-      Number(data.user?.used || 0) >= Number(CFG.MAX_POINTS || 100);
+    state.rankVisible = false;
+    state.standingsOpen = false;
 
-    const serverAlloc =
-      copyAlloc(data.user?.allocations || {});
-
+    const serverAlloc = copyAlloc(data.user?.allocations || {});
     state.serverAlloc = serverAlloc;
 
     const pending = initial ? loadPending() : {};
@@ -1285,57 +1729,29 @@
 
     state.serverTotals = {};
     (data.event?.options || []).forEach(option => {
-      state.serverTotals[option.id] =
-        Number(option.total || 0);
+      state.serverTotals[option.id] = 0;
     });
 
     state.used = Math.min(
       Number(CFG.MAX_POINTS || 100),
       sumAlloc(state.alloc)
     );
-
     state.remaining = Math.max(
       0,
       Number(CFG.MAX_POINTS || 100) - state.used
     );
-
-    state.dirty =
-      !sameAlloc(state.alloc, state.serverAlloc);
-
+    state.dirty = !sameAlloc(state.alloc, state.serverAlloc);
     state.pendingTaps = state.dirty
       ? Math.max(0, state.used - sumAlloc(state.serverAlloc))
       : 0;
 
     recalcLocalTotals();
     chooseInitialCandidate();
+    state.completionShown = state.used >= Number(CFG.MAX_POINTS || 100);
 
-    const fullyCompleted =
-      state.used >= Number(CFG.MAX_POINTS || 100);
-
-    state.completionShown = fullyCompleted;
-
-    const openCompletedOnLoad =
-      initial &&
-      previousMode === 'loading' &&
-      fullyCompleted &&
-      state.rankVisible &&
-      !state.dirty;
-
-    if (
-      fullyCompleted &&
-      state.rankVisible &&
-      !state.dirty &&
-      (keepStandings || openCompletedOnLoad)
-    ) {
-      state.standingsOpen = true;
-      show('standings');
-      renderStandings();
-      updateStandingsCountdown();
-    } else {
-      show('vote');
-      renderVote(true);
-      updateCountdown();
-    }
+    show('vote');
+    renderVote(true);
+    updateCountdown();
 
     if (state.dirty) {
       savePending();
@@ -1486,10 +1902,27 @@
   function renderResult(data) {
     const event = data.event || {};
     const options = [...(event.options || [])]
-      .sort((a, b) => Number(b.total || 0) - Number(a.total || 0));
+      .map(option => ({ ...option, total: Number(option.total || 0) }))
+      .sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        return String(a.name).localeCompare(String(b.name), 'ja');
+      });
+    const totalPoints = options.reduce((sum, option) => sum + option.total, 0);
 
     els.resultEventTime.textContent =
       String(event.event_time || '') + ' 開催イベント';
+
+    const reason = String(data?.result_meta?.reason || 'normal');
+    if (els.resultReason) {
+      els.resultReason.textContent =
+        reason === 'tie'
+          ? '同点！最後はおまかせ抽選で決定！'
+          : reason === 'no_votes'
+            ? '投票がなかったので、おまかせ抽選！'
+            : reason === 'override'
+              ? '運営調整により決定'
+              : 'みんなの投票で決定！';
+    }
 
     if (data.winner) {
       els.winnerName.textContent = data.winner.name;
@@ -1497,30 +1930,44 @@
         fmt(data.winner.total) + ' ASOBooN';
     } else {
       els.winnerName.textContent = '結果を確認中';
-      els.winnerPoints.textContent =
-        'スタッフが確認しています';
+      els.winnerPoints.textContent = '集計しています';
     }
 
     els.resultList.textContent = '';
+    els.resultList.dataset.count = String(options.length);
 
     options.forEach((option, index) => {
       const row = document.createElement('div');
-      row.className = 'result-row';
+      row.className = 'result-row' + (index === 0 ? ' is-top' : '');
 
       const rank = document.createElement('span');
       rank.className = 'r';
       rank.textContent = (index + 1) + '位';
 
+      const nameWrap = document.createElement('span');
+      nameWrap.className = 'result-name-wrap';
+
       const name = document.createElement('span');
       name.className = 'n';
       name.textContent = option.name;
 
+      const track = document.createElement('span');
+      track.className = 'result-track';
+      const fill = document.createElement('span');
+      fill.className = 'result-fill';
+      const percentage = totalPoints > 0
+        ? Math.round((option.total / totalPoints) * 100)
+        : 0;
+      fill.style.width = percentage + '%';
+      track.appendChild(fill);
+      nameWrap.append(name, track);
+
       const points = document.createElement('span');
       points.className = 'p';
       points.textContent =
-        fmt(option.total) + ' ASOBooN';
+        fmt(option.total) + ' ASOBooN · ' + percentage + '%';
 
-      row.append(rank, name, points);
+      row.append(rank, nameWrap, points);
       els.resultList.appendChild(row);
     });
 
@@ -1556,10 +2003,10 @@
     if (!Number.isFinite(start)) return;
 
     const remainingMs = start - serverNowMs();
-
     if (remainingMs <= 0) {
       if (!state.upcomingRefreshStarted) {
         state.upcomingRefreshStarted = true;
+        state.manualSession = false;
         setTimeout(() => {
           refreshStatus(true).finally(() => {
             state.upcomingRefreshStarted = false;
@@ -1573,34 +2020,19 @@
     const hours = Math.floor(totalSec / 3600);
     const minutes = Math.floor((totalSec % 3600) / 60);
     const seconds = totalSec % 60;
-
     const clock =
       (hours > 0 ? String(hours).padStart(2, '0') + ':' : '') +
       String(minutes).padStart(2, '0') + ':' +
       String(seconds).padStart(2, '0');
 
-    const prefix =
-      String(els.idleText.dataset.upcomingPrefix || '');
-
     els.idleText.textContent =
-      prefix +
-      '投票は ' +
-      new Date(start).toLocaleTimeString('ja-JP', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Asia/Tokyo'
-      }) +
-      ' から！\n' +
-      '開始まで ' +
-      clock +
-      '\n\n' +
-      '100 ASOBooNを、やってみたいイベントに自由に投票！\n' +
-      '好きな1つに全部入れても、いくつかに分けてもOK。\n' +
-      'みんなの投票でサプライズイベントが決まります。';
+      '投票開始まで ' + clock + '\n' +
+      '候補を見ながら、どこに100 ASOBooNを入れるか考えてね！';
   }
 
   function applyStatus(data, initial = false) {
     updateServerClock(data);
+    applyDayEvents(data);
 
     if (!data?.ok) {
       throw new Error(data?.error || 'イベント情報を取得できませんでした。');
@@ -1639,20 +2071,21 @@
 
     if (data.mode === 'upcoming' && data.event) {
       const dateText = formatUpcomingDate_(data.event.date);
+      state.event = data.event;
+      if (els.idleBadge) els.idleBadge.textContent = 'このあと';
       els.idleTitle.textContent =
-        '次回のサプライズ投票';
-
-      els.idleText.dataset.upcomingPrefix =
         (dateText ? dateText + ' ' : '') +
         String(data.event.event_time || '') +
-        ' 開催\n';
-
+        ' のイベント';
+      renderUpcomingCandidates(data.event);
       show('idle');
       updateUpcomingState();
       return;
     }
 
     if (data.mode === 'configuration_error') {
+      if (els.upcomingCandidates) els.upcomingCandidates.hidden = true;
+      if (els.idleBadge) els.idleBadge.textContent = '確認中';
       els.idleTitle.textContent = 'イベント情報を準備しています';
       els.idleText.dataset.upcomingPrefix = '';
       els.idleText.textContent =
@@ -1661,6 +2094,8 @@
       return;
     }
 
+    if (els.upcomingCandidates) els.upcomingCandidates.hidden = true;
+    if (els.idleBadge) els.idleBadge.textContent = '本日のご案内';
     els.idleTitle.textContent = 'サプライズ投票';
     els.idleText.dataset.upcomingPrefix = '';
     els.idleText.textContent =
@@ -1674,28 +2109,71 @@
 
   async function refreshStatus(force = false) {
     if (DEMO) {
-      const demo = makeDemoStatus();
+      const demo = makeDemoStatus(
+        state.manualSession ? state.selectedEventId : ''
+      );
+      state.identityReady = true;
       applyStatus(demo, state.mode === 'loading' || force);
       return;
     }
 
     try {
-      const params = { action: 'status' };
-      if (state.voterKey) params.voterKey = state.voterKey;
-
-      let data = await jsonp(params);
-      updateServerClock(data);
-
-      if (
-        (data?.mode === 'voting' || data?.mode === 'settling') &&
-        !state.voterKey
-      ) {
-        state.voterKey = await getVoterKey();
-        data = await jsonp({
-          action: 'status',
-          voterKey: state.voterKey
-        });
+      const publicParams = { action: 'status' };
+      if (state.manualSession && state.selectedEventId) {
+        publicParams.eventId = state.selectedEventId;
       }
+
+      let data = await publicStatusFast(publicParams);
+      updateServerClock(data);
+      saveStatusCache(data);
+
+      const votingMode =
+        data?.mode === 'voting' || data?.mode === 'settling';
+
+      if (votingMode) {
+        // Always paint the public event first. A slow personal GAS lookup must
+        // never replace an already-usable screen with a server error.
+        state.identityReady = false;
+        const previewInitial =
+          force ||
+          state.mode === 'loading' ||
+          state.event?.id !== data?.event?.id;
+        state.lastStatusAt = Date.now();
+        applyStatus(data, previewInitial);
+
+        try {
+          const voterKey = await ensureVoterKey();
+          const personalParams = {
+            action: 'status',
+            voterKey
+          };
+          if (state.manualSession && state.selectedEventId) {
+            personalParams.eventId = state.selectedEventId;
+          }
+
+          const personal = await jsonp(personalParams, { timeoutMs: 15000 });
+          updateServerClock(personal);
+          saveStatusCache(personal);
+          state.identityReady = true;
+          state.statusRetryCount = 0;
+          clearTimeout(state.statusRetryTimer);
+          state.lastStatusAt = Date.now();
+          state.bootstrappedFromCache = false;
+          applyStatus(
+            personal,
+            force || state.event?.id !== personal?.event?.id
+          );
+        } catch (_) {
+          state.identityReady = false;
+          setSync('投票状況を確認中です。画面はそのままでOKです');
+          scheduleStatusRetry(1200);
+        }
+        return;
+      }
+
+      state.identityReady = true;
+      state.statusRetryCount = 0;
+      clearTimeout(state.statusRetryTimer);
 
       const initial =
         force ||
@@ -1703,33 +2181,30 @@
         state.event?.id !== data?.event?.id;
 
       state.lastStatusAt = Date.now();
+      state.bootstrappedFromCache = false;
       applyStatus(data, initial);
     } catch (error) {
-      if (state.mode === 'vote' && !force) {
-        setSync(
-          '順位の更新に失敗しました。投票は続けられます',
-          true
-        );
+      if (state.bootstrappedFromCache && state.mode !== 'loading') {
+        scheduleStatusRetry(1400);
         return;
       }
 
-      if (state.mode === 'standings' && !force) {
-        if (els.standingsUpdated) {
-          els.standingsUpdated.textContent =
-            '更新に失敗しました。表示中の順位は直前の状況です。';
-        }
-        return;
-      }
+      if (keepVisibleWhileReconnecting()) return;
 
+      // Only a genuine configuration/programming failure reaches the full
+      // error panel. Ordinary timeouts are handled above by auto reconnect.
       showError(error);
     }
   }
 
+
   function showError(error) {
     show('error');
     els.errorTitle.textContent = '投票を開けませんでした';
-    els.errorText.textContent =
-      String(error?.message || error || '通信エラーが発生しました。');
+    const code = String(error?.code || '');
+    els.errorText.textContent = /TIMEOUT|RETRY|NETWORK|HTTP/.test(code)
+      ? '通信を確認できませんでした。もう一度お試しください。'
+      : String(error?.message || error || '通信を確認できませんでした。');
   }
 
   function showCompletion() {
@@ -1738,10 +2213,10 @@
 
     els.completionClose.disabled = false;
     els.completionClose.textContent =
-      'みんなの現在の結果を見る';
+      '投票画面に戻る';
 
     els.completionText.textContent =
-      'あなたの100 ASOBooN';
+      'あなたの100 ASOBooNを受け付けました。結果は締切後に発表！';
 
     if (els.completionSummary) {
       els.completionSummary.textContent = '';
@@ -1776,37 +2251,15 @@
   }
 
   async function hideCompletion() {
-    const max = Number(CFG.MAX_POINTS || 100);
-
-    els.completionClose.disabled = true;
-    els.completionClose.textContent = '最新状況を取得中…';
-    state.standingsOpen = true;
-
-    await refreshStatus(true);
-
-    if (
-      state.rankVisible &&
-      state.used >= max &&
-      !state.dirty &&
-      state.mode === 'standings'
-    ) {
-      els.completion.classList.remove('show');
-      els.completion.setAttribute('aria-hidden', 'true');
-      els.completionClose.disabled = false;
-      els.completionClose.textContent = 'みんなの現在の結果を見る';
-
-      window.scrollTo({
-        top: 0,
-        behavior: reduced ? 'auto' : 'smooth'
-      });
-      return;
+    if (state.dirty) {
+      try { await syncNow(true); } catch (_) {}
     }
-
     state.standingsOpen = false;
+    els.completion.classList.remove('show');
+    els.completion.setAttribute('aria-hidden', 'true');
     els.completionClose.disabled = false;
-    els.completionClose.textContent = 'もう一度確認する';
-    els.completionText.textContent =
-      '投票は保存されています。現在の結果をもう一度確認してください。';
+    els.completionClose.textContent = '投票画面に戻る';
+    setSync('投票完了！結果は投票締切後に発表します');
   }
 
   function burst() {
@@ -1897,6 +2350,9 @@
         state.used = 0;
         state.remaining = Number(CFG.MAX_POINTS || 100);
         state.combo = 0;
+        state.comboLastTapAt = 0;
+        state.comboTier = 0;
+        document.body.dataset.comboTier = '0';
         state.pendingTaps = 0;
         state.dirty = false;
         state.selected = '';
@@ -1955,6 +2411,7 @@
       if (!document.hidden) {
         if (
           !enforceDailyReset() &&
+          state.mode !== 'loading' &&
           Date.now() - state.lastStatusAt >
             Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
         ) {
@@ -1970,6 +2427,7 @@
     window.addEventListener('pageshow', () => {
       if (
         !enforceDailyReset() &&
+        state.mode !== 'loading' &&
         Date.now() - state.lastStatusAt >
           Number(CFG.RESUME_REFRESH_STALE_MS || 10000)
       ) {
@@ -1978,7 +2436,7 @@
     });
 
     window.addEventListener('online', () => {
-      if (!enforceDailyReset()) {
+      if (!enforceDailyReset() && state.mode !== 'loading') {
         refreshStatus(false).catch(() => {});
       }
     });
@@ -2012,16 +2470,15 @@
     } catch (_) {}
   }
 
-  function makeDemoStatus() {
+  function makeDemoStatus(requestedEventId = '') {
     const now = new Date();
-    const end = new Date(now.getTime() + 42 * 60 * 1000);
     const allocations = loadDemoAlloc();
     const used = Math.min(
       Number(CFG.MAX_POINTS || 100),
       sumAlloc(allocations)
     );
 
-    const options = [
+    const baseOptions = [
       { id: 'c1', name: 'パラバルーン（グリーン）' },
       { id: 'c2', name: 'パラバルーン（ボールプール）' },
       { id: 'c3', name: '宝探し' },
@@ -2030,9 +2487,71 @@
       { id: 'c6', name: '跳び箱' },
       { id: 'c7', name: '赤ちゃんイベント' },
       { id: 'c8', name: '鬼ごっこ' }
-    ].map(option => ({
+    ];
+
+    const dayEvents = [
+      { id: 'demo-1100', event_time: '11:00', mode: 'result', winner: { name: '宝探し' } },
+      { id: 'demo-1400', event_time: '14:00', mode: 'voting' },
+      { id: 'demo-1600', event_time: '16:00', mode: 'upcoming' }
+    ];
+
+    const selectedId = requestedEventId || 'demo-1400';
+
+    if (selectedId === 'demo-1100') {
+      const totals = [1280, 910, 1680, 740, 540, 430, 260, 690];
+      const options = baseOptions.map((option, index) => ({
+        ...option,
+        total: totals[index]
+      }));
+      return {
+        ok: true,
+        now: now.toISOString(),
+        mode: 'result',
+        event: {
+          id: 'demo-1100',
+          date: '2026-10-03',
+          event_time: '11:00',
+          max_points: 100,
+          options
+        },
+        day_events: dayEvents,
+        selected_event_id: 'demo-1100',
+        rank_visible: true,
+        winner: { id: 'c3', name: '宝探し', total: 1680 },
+        result_meta: {
+          total_points: totals.reduce((a, b) => a + b, 0),
+          top_points: 1680,
+          tied_count: 1,
+          reason: 'normal'
+        }
+      };
+    }
+
+    if (selectedId === 'demo-1600') {
+      const start = new Date(now.getTime() + 35 * 60 * 1000);
+      return {
+        ok: true,
+        now: now.toISOString(),
+        mode: 'upcoming',
+        event: {
+          id: 'demo-1600',
+          date: '2026-10-03',
+          event_time: '16:00',
+          vote_start: start.toISOString(),
+          vote_end: new Date(start.getTime() + 75 * 60 * 1000).toISOString(),
+          max_points: 100,
+          options: baseOptions.map(option => ({ ...option, total: null }))
+        },
+        day_events: dayEvents,
+        selected_event_id: 'demo-1600',
+        rank_visible: false
+      };
+    }
+
+    const end = new Date(now.getTime() + 42 * 60 * 1000);
+    const options = baseOptions.map(option => ({
       ...option,
-      total: Number(allocations[option.id] || 0)
+      total: null
     }));
 
     return {
@@ -2040,8 +2559,9 @@
       now: now.toISOString(),
       mode: 'voting',
       event: {
-        id: 'demo-1100',
-        event_time: '11:00',
+        id: 'demo-1400',
+        date: '2026-10-03',
+        event_time: '14:00',
         vote_end: end.toISOString(),
         settle_end: new Date(
           end.getTime() + Number(CFG.FINAL_SYNC_GRACE_MS || 20000)
@@ -2049,11 +2569,12 @@
         max_points: 100,
         options
       },
-      rank_visible: used >= Number(CFG.MAX_POINTS || 100),
+      day_events: dayEvents,
+      selected_event_id: 'demo-1400',
+      rank_visible: false,
       user: {
         used,
-        remaining:
-          Math.max(0, Number(CFG.MAX_POINTS || 100) - used),
+        remaining: Math.max(0, Number(CFG.MAX_POINTS || 100) - used),
         allocations
       }
     };
@@ -2097,14 +2618,49 @@
       if (enforceDailyReset()) return;
 
       if (!DEMO) {
-        await sleep(
-          randomInt(0, Number(CFG.INITIAL_JITTER_MAX_MS || 3000))
-        );
+        state.voterKey = readSessionVoterKey();
+        if (!state.voterKey) {
+          state.voterKeyPromise = ensureVoterKey();
+        }
+
+        const cached = loadStatusCache();
+        if (cached) {
+          state.bootstrappedFromCache = true;
+          state.identityReady =
+            cached.mode !== 'voting' && cached.mode !== 'settling';
+          applyStatus(cached, true);
+        }
+
+        const jitter = Number(CFG.INITIAL_JITTER_MAX_MS || 0);
+        if (jitter > 0) {
+          await sleep(randomInt(0, jitter));
+        }
+
+        await refreshStatus(!cached);
+      } else {
+        state.identityReady = true;
+        await refreshStatus(true);
       }
 
-      await refreshStatus(true);
+      if (!DEMO) {
+        setTimeout(() => {
+          jsonp({ action: 'maintenance' })
+            .then(data => {
+              if (data?.ok === true && data?.synced === true) {
+                setTimeout(() => refreshStatus(false).catch(() => {}), 180);
+              }
+            })
+            .catch(() => {});
+        }, 1000);
+      }
     } catch (error) {
-      showError(error);
+      const message = String(error?.message || error || '');
+      const configurationFailure = /投票APIが未設定|設定されていません/.test(message);
+      if (configurationFailure) {
+        showError(error);
+      } else {
+        keepVisibleWhileReconnecting();
+      }
     }
   }
 
