@@ -62,6 +62,11 @@ const RECONCILE_CACHE_MS = 5 * 1000;
 const BOARD_BROWSER_TIMEOUT_BUDGET_MS = 20 * 1000;
 const BOARD_SNAPSHOT_STALE_FALLBACK_MS = 3 * 60 * 1000;
 const BOARD_PAGE_CONCURRENCY = 4;
+const CONCURRENCY_AUDIT_KEY = 'concurrency_integrity_snapshot_v1';
+const CONCURRENCY_AUDIT_LOOKBACK_MS = 10 * 60 * 1000;
+const CONCURRENCY_AUDIT_GRACE_MS = 2 * 60 * 1000;
+const CONCURRENCY_AUDIT_ROW_LIMIT = 5000;
+const CONCURRENCY_AUDIT_TARGET_CLIENTS = 300;
 const VALID_BUSINESS_TYPES = new Set(['平日','平日特定日','土日祝日','休館']);
 const businessDayCache = new Map();
 const businessDayInflight = new Map();
@@ -90,6 +95,13 @@ export default {
       const denied = diagnosticsDenied(request, env);
       if (denied) return denied;
       try { return json(request, await getCreateDiagnostics(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
+    if (request.method === 'GET' && action === 'concurrencyAudit') {
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
+      try { return json(request, await runConcurrencyIntegrityAudit(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -139,6 +151,10 @@ export default {
       body.nativeCancelEnabled = true;
       body.crowdSnapshotFallbackEnabled = true;
       body.lineReceptionStoreOnly = true;
+      body.concurrencyIntegrityAuditEnabled = true;
+      body.concurrencyIntegrityAuditTargetClients = CONCURRENCY_AUDIT_TARGET_CLIENTS;
+      body.concurrencyIntegrityAuditHotPathWrites = false;
+      body.concurrencyIntegrityAuditScheduledEveryMinute = true;
       body.officialLineCancelWebhookEnabled = true;
       body.officialLineWebhookPath = '/line-webhook';
       body.officialLineWebhookSecretConfigured = Boolean(String(env.LINE_OA_CHANNEL_SECRET || '').trim());
@@ -288,6 +304,7 @@ export default {
   async scheduled(event, env, ctx) {
     env = withDevelopingServiceDefaults(env);
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
+    ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
   },
 };
 
@@ -320,6 +337,189 @@ function queueObservedCallNotification(env, response, ctx) {
   const guarded = job.catch(e => console.warn('CALLSTATUS_IMMEDIATE_NOTIFY_FAILED', safeError(e)));
   if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(guarded);
   else void guarded;
+}
+
+function rollingPeak(timestamps, windowMs) {
+  const xs=(Array.isArray(timestamps)?timestamps:[]).map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+  let left=0,best=0;
+  for(let right=0;right<xs.length;right+=1){
+    while(left<=right&&xs[right]-xs[left]>=windowMs)left+=1;
+    best=Math.max(best,right-left+1);
+  }
+  return best;
+}
+
+function countStates(rows) {
+  const out={};
+  for(const row of Array.isArray(rows)?rows:[]){
+    const key=String(row?.state||'UNKNOWN');
+    out[key]=(out[key]||0)+1;
+  }
+  return out;
+}
+
+async function readConcurrencyIntegritySnapshot(env) {
+  if(!await ensureWorkerStateTable(env))return null;
+  const row=await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1')
+    .bind(CONCURRENCY_AUDIT_KEY).first();
+  if(!row)return null;
+  try{
+    const value=JSON.parse(String(row.value||''));
+    return value&&typeof value==='object'?{...value,snapshotAgeMs:Math.max(0,Date.now()-Number(row.updated_at||0))}:null;
+  }catch{return null}
+}
+
+async function runConcurrencyIntegrityAudit(env) {
+  if(!env?.DB)throw apiError('DB_NOT_CONFIGURED',503);
+  await ensureWorkerStateTable(env);
+  // Ensures notification tables exist. This is local D1 work only; no LINE/AirWAIT call.
+  await serviceHealth(env);
+
+  const now=Date.now();
+  const since=now-CONCURRENCY_AUDIT_LOOKBACK_MS;
+  const businessDate=currentOperationalDate(now);
+
+  let requestRows=[];
+  try{
+    const r=await env.DB.prepare(`SELECT request_id,user_hash,state,created_at,updated_at
+      FROM v2_request_results WHERE action='createReservation'
+      ORDER BY created_at DESC LIMIT ${CONCURRENCY_AUDIT_ROW_LIMIT}`).all();
+    requestRows=Array.isArray(r?.results)?r.results:[];
+  }catch(e){
+    if(!/no such column:\s*user_hash/i.test(String(e?.message||e)))throw e;
+    const r=await env.DB.prepare(`SELECT request_id,'' AS user_hash,state,created_at,updated_at
+      FROM v2_request_results WHERE action='createReservation'
+      ORDER BY created_at DESC LIMIT ${CONCURRENCY_AUDIT_ROW_LIMIT}`).all();
+    requestRows=Array.isArray(r?.results)?r.results:[];
+  }
+  const recentRequests=requestRows.filter(row=>Number(row?.created_at||0)>=since);
+
+  const claimsResult=await env.DB.prepare(`SELECT user_hash,business_date,request_id,state,receipt_no,reserve_id,wait_type_id,created_at,updated_at
+    FROM v2_user_day_claims WHERE business_date=?
+    ORDER BY created_at DESC LIMIT ${CONCURRENCY_AUDIT_ROW_LIMIT}`).bind(businessDate).all();
+  const claims=Array.isArray(claimsResult?.results)?claimsResult.results:[];
+
+  const messagesResult=await env.DB.prepare(`SELECT business_date,receipt_no,reserve_id,wait_type_id,request_id,status,notified_at,created_at,updated_at
+    FROM v2_service_messages WHERE business_date=?
+    ORDER BY created_at DESC LIMIT ${CONCURRENCY_AUDIT_ROW_LIMIT}`).bind(businessDate).all();
+  const messages=Array.isArray(messagesResult?.results)?messagesResult.results:[];
+
+  const confirmationsResult=await env.DB.prepare(`SELECT business_date,reserve_id,receipt_no,request_id,status,sent_at,created_at,updated_at
+    FROM v2_service_confirmations WHERE business_date=?
+    ORDER BY created_at DESC LIMIT ${CONCURRENCY_AUDIT_ROW_LIMIT}`).bind(businessDate).all();
+  const confirmations=Array.isArray(confirmationsResult?.results)?confirmationsResult.results:[];
+
+  const requestById=new Map(requestRows.map(row=>[String(row?.request_id||''),row]));
+  const messageByReserve=new Map(messages.map(row=>[String(row?.reserve_id||''),row]));
+  const confirmationByReserve=new Map(confirmations.map(row=>[String(row?.reserve_id||''),row]));
+  const reserveCounts=new Map();
+  const slotReceiptCounts=new Map();
+
+  const identity={
+    requestOwnerMismatch:0,
+    serviceBindingMismatch:0,
+    confirmationBindingMismatch:0,
+    duplicateReserveId:0,
+    duplicateSlotReceipt:0,
+  };
+  const delivery={
+    requestBindingMissing:0,
+    serviceBindingMissing:0,
+    confirmationMissing:0,
+    staleCreateInflight:0,
+  };
+
+  for(const claim of claims){
+    const userHash=String(claim?.user_hash||'');
+    const requestId=String(claim?.request_id||'');
+    const reserveId=String(claim?.reserve_id||'');
+    const receiptNo=String(claim?.receipt_no||'');
+    const waitTypeId=String(claim?.wait_type_id||'');
+    const state=String(claim?.state||'');
+    const age=Math.max(0,now-Number(claim?.created_at||claim?.updated_at||now));
+
+    if(reserveId)reserveCounts.set(reserveId,(reserveCounts.get(reserveId)||0)+1);
+    if(receiptNo&&waitTypeId){
+      const key=`${businessDate}|${waitTypeId}|${receiptNo}`;
+      slotReceiptCounts.set(key,(slotReceiptCounts.get(key)||0)+1);
+    }
+
+    const request=requestById.get(requestId);
+    if(request){
+      const owner=String(request?.user_hash||'');
+      if(owner&&userHash&&owner!==userHash)identity.requestOwnerMismatch+=1;
+    }else if(age>=CONCURRENCY_AUDIT_GRACE_MS){
+      delivery.requestBindingMissing+=1;
+    }
+
+    if(state==='CREATE_INFLIGHT'&&age>=CONCURRENCY_AUDIT_GRACE_MS)delivery.staleCreateInflight+=1;
+
+    if(reserveId&&receiptNo&&waitTypeId){
+      const message=messageByReserve.get(reserveId);
+      if(message){
+        if(String(message.request_id||'')!==requestId||String(message.receipt_no||'')!==receiptNo||String(message.wait_type_id||'')!==waitTypeId){
+          identity.serviceBindingMismatch+=1;
+        }
+      }else if(age>=CONCURRENCY_AUDIT_GRACE_MS&&['CONFIRMED','COMPLETED','CANCELED'].includes(state)){
+        delivery.serviceBindingMissing+=1;
+      }
+
+      const confirmation=confirmationByReserve.get(reserveId);
+      if(confirmation){
+        if(String(confirmation.request_id||'')!==requestId||String(confirmation.receipt_no||'')!==receiptNo){
+          identity.confirmationBindingMismatch+=1;
+        }
+      }else if(age>=CONCURRENCY_AUDIT_GRACE_MS&&['CONFIRMED','COMPLETED','CANCELED'].includes(state)){
+        delivery.confirmationMissing+=1;
+      }
+    }
+  }
+
+  identity.duplicateReserveId=[...reserveCounts.values()].filter(n=>n>1).length;
+  identity.duplicateSlotReceipt=[...slotReceiptCounts.values()].filter(n=>n>1).length;
+  const identityIssues=Object.values(identity).reduce((a,b)=>a+Number(b||0),0);
+  const deliveryIssues=Object.values(delivery).reduce((a,b)=>a+Number(b||0),0);
+  const recentTimes=recentRequests.map(row=>Number(row?.created_at||0));
+
+  const summary={
+    ok:identityIssues===0&&deliveryIssues===0,
+    status:identityIssues>0?'critical':deliveryIssues>0?'warning':'ok',
+    source:'D1 post-facto concurrency integrity audit; no user identity exposed',
+    auditedAt:new Date(now).toISOString(),
+    businessDate,
+    lookbackMs:CONCURRENCY_AUDIT_LOOKBACK_MS,
+    burst:{
+      targetConcurrentClients:CONCURRENCY_AUDIT_TARGET_CLIENTS,
+      createRequestsSeen:recentRequests.length,
+      peak1s:rollingPeak(recentTimes,1000),
+      peak5s:rollingPeak(recentTimes,5000),
+      peak30s:rollingPeak(recentTimes,30000),
+      requestStates:countStates(recentRequests),
+    },
+    bindings:{
+      claimsAudited:claims.length,
+      serviceRowsAudited:messages.length,
+      confirmationRowsAudited:confirmations.length,
+      claimStates:countStates(claims),
+    },
+    identityIntegrity:{ok:identityIssues===0,issueCount:identityIssues,...identity},
+    deliveryIntegrity:{ok:deliveryIssues===0,issueCount:deliveryIssues,...delivery},
+    sampleTruncated:{
+      requests:requestRows.length>=CONCURRENCY_AUDIT_ROW_LIMIT,
+      claims:claims.length>=CONCURRENCY_AUDIT_ROW_LIMIT,
+      messages:messages.length>=CONCURRENCY_AUDIT_ROW_LIMIT,
+      confirmations:confirmations.length>=CONCURRENCY_AUDIT_ROW_LIMIT,
+    },
+    hotPathWritesAdded:0,
+  };
+
+  await env.DB.prepare(`INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at`)
+    .bind(CONCURRENCY_AUDIT_KEY,JSON.stringify(summary),now).run();
+
+  if(identityIssues>0)console.error('CONCURRENCY_IDENTITY_INTEGRITY_CRITICAL',JSON.stringify(summary.identityIntegrity));
+  else if(deliveryIssues>0)console.warn('CONCURRENCY_DELIVERY_INTEGRITY_WARNING',JSON.stringify(summary.deliveryIntegrity));
+  return summary;
 }
 
 async function getCreateDiagnostics(env) {
@@ -442,6 +642,10 @@ async function getCreateDiagnostics(env) {
     cancelReadiness.push({error:safeError(e)});
   }
 
+  let concurrencyAudit=null;
+  try{concurrencyAudit=await runConcurrencyIntegrityAudit(env)}
+  catch(e){concurrencyAudit={ok:false,status:'unavailable',error:safeError(e)}}
+
   return {
     ok:true,
     source:'Developing sanitized create diagnostics / no user identity',
@@ -451,6 +655,7 @@ async function getCreateDiagnostics(env) {
     confirmed,
     liveWaitTypes,
     cancelReadiness,
+    concurrencyAudit,
   };
 }
 

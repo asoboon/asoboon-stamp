@@ -12,6 +12,7 @@ on:
       - 'miniapp-v2/backend/develop-worker.mjs'
       - 'miniapp-v2/backend/develop-service-message.js'
       - 'tests/asoboon-develop-security.test.mjs'
+      - 'tests/asoboon-develop-concurrency.test.mjs'
       - 'tests/helpers/develop-worker-harness.mjs'
       - '.github/workflows/deploy-miniapp-v2-develop-gateway.yml'
 
@@ -108,6 +109,7 @@ jobs:
           set -euo pipefail
           node --test tests/asoboon-develop-reception-lifecycle.test.cjs
           node --test tests/asoboon-develop-security.test.mjs
+          node --test tests/asoboon-develop-concurrency.test.mjs
           ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/shared
 
       - name: Build temporary Wrangler config
@@ -197,6 +199,10 @@ jobs:
                   x.nativeCancelEnabled!==true ||
                   x.crowdSnapshotFallbackEnabled!==true ||
                   x.lineReceptionStoreOnly!==true ||
+                  x.concurrencyIntegrityAuditEnabled!==true ||
+                  x.concurrencyIntegrityAuditTargetClients!==300 ||
+                  x.concurrencyIntegrityAuditHotPathWrites!==false ||
+                  x.concurrencyIntegrityAuditScheduledEveryMinute!==true ||
                   x.airwaitKeyConfigured!==true ||
                   x.developTestWaitTypeId!=="0042" ||
                   x.callstatusEnabled!==true ||
@@ -333,7 +339,7 @@ jobs:
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
-          for ACTION in createDiagnostics serviceMessageStatus; do
+          for ACTION in createDiagnostics serviceMessageStatus concurrencyAudit; do
             HTTP_CODE="$(curl --silent --show-error \
               -o "/tmp/${ACTION}.json" \
               -w '%{http_code}' \

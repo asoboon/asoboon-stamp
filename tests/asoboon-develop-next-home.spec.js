@@ -237,7 +237,7 @@ test('regular weekday HOME shows only immediate-entry crowd and ignores the 14:0
   await expect(box).toContainText('350名');
   await expect(box).toContainText('空いています');
   await expect(box.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
-  await expect(box).not.toContainText('0名');
+  await expect(box.locator('.v38-crowd-remaining')).toContainText('受付残り350名');
 });
 
 test('crowd no-data fallback is neutral and keeps reception actionable', async ({ page }) => {

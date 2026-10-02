@@ -39,6 +39,9 @@ jobs:
         run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
       - name: Security regression (same receiptNo across waitTypes, requestId ownership)
         run: node --test tests/asoboon-develop-security.test.mjs
+
+      - name: Developing 320-client concurrency regression
+        run: node --test tests/asoboon-develop-concurrency.test.mjs
       - name: Lock reserveId-based identity rules
         run: |
           set -euo pipefail
