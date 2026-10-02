@@ -4,6 +4,8 @@ if(!root)return;
 
 const STATUS_CACHE_KEY='asoboon-surprise-status-cache-v1';
 let warmStarted=false;
+let statusWarmPromise=null;
+let staticWarmPromise=null;
 
 function helpNode(){return root.querySelector('.v38-help')}
 
@@ -23,9 +25,34 @@ function render(){
 
   const cta=el.querySelector('.v38-surprise-cta');
   if(cta){
-    cta.addEventListener('pointerenter',()=>void warmVote(),{once:true,passive:true});
-    cta.addEventListener('touchstart',()=>void warmVote(),{once:true,passive:true});
+    cta.addEventListener('pointerenter',()=>void warmVoteStaticOnce(),{once:true,passive:true});
+    cta.addEventListener('touchstart',()=>void warmVoteStaticOnce(),{once:true,passive:true});
+    cta.addEventListener('click',async event=>{
+      if(hasWarmStatus())return;
+      event.preventDefault();
+      const href=cta.href;
+      const warm=warmVoteStatusOnce();
+      await Promise.race([warm,new Promise(resolve=>setTimeout(resolve,420))]);
+      location.href=href;
+    });
   }
+}
+
+function hasWarmStatus(){
+  try{
+    const box=JSON.parse(localStorage.getItem(STATUS_CACHE_KEY)||'null');
+    return !!(box&&box.data&&box.data.ok===true&&Date.now()-Number(box.savedAt||0)<5*60*1000);
+  }catch(_){return false}
+}
+
+function warmVoteStatusOnce(){
+  if(!statusWarmPromise)statusWarmPromise=warmVoteStatus().finally(()=>{statusWarmPromise=null});
+  return statusWarmPromise;
+}
+
+function warmVoteStaticOnce(){
+  if(!staticWarmPromise)staticWarmPromise=warmVoteStatic().finally(()=>{staticWarmPromise=null});
+  return staticWarmPromise;
 }
 
 async function warmVoteStatic(){
@@ -75,16 +102,18 @@ async function warmVoteStatus(){
 async function warmVote(){
   if(warmStarted)return;
   warmStarted=true;
-  await Promise.allSettled([warmVoteStatic(),warmVoteStatus()]);
+  // D1 snapshot is tiny and fast; start it immediately without blocking HOME.
+  void warmVoteStatusOnce();
+  // Static assets are larger, so keep them low-priority.
+  if('requestIdleCallback' in window){
+    requestIdleCallback(()=>void warmVoteStaticOnce(),{timeout:500});
+  }else{
+    setTimeout(()=>void warmVoteStaticOnce(),300);
+  }
 }
 
 function scheduleWarm(){
-  if(warmStarted)return;
-  if('requestIdleCallback' in window){
-    requestIdleCallback(()=>void warmVote(),{timeout:650});
-  }else{
-    setTimeout(()=>void warmVote(),450);
-  }
+  void warmVote();
 }
 
 window.addEventListener('asoboon:v2-route-rendered',()=>setTimeout(()=>{render();scheduleWarm()},0));
