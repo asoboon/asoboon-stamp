@@ -1,0 +1,136 @@
+name: deploy-surprise-vote-public-gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/backend/surprise-vote-public-gateway/**'
+      - 'tests/surprise-vote-public-gateway.test.mjs'
+      - '.github/workflows/deploy-surprise-vote-public-gateway.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: surprise-vote-public-gateway-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 7bb41607cf8c1585e9cf166d1609f8c1
+      WORKER_NAME: asoboon-surprise-vote-public-gateway
+      DB_NAME: asoboon-surprise-vote-public-db
+      WORKER_URL: https://asoboon-surprise-vote-public-gateway.asoboon425.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unit tests
+        run: |
+          set -euo pipefail
+          node --check app/backend/surprise-vote-public-gateway/worker.js
+          node --test tests/surprise-vote-public-gateway.test.mjs
+          ! grep -R -n -E 'AIRWAIT_API_KEY|LINE_MINIAPP_CHANNEL_SECRET|CHANNEL_SECRET' app/backend/surprise-vote-public-gateway
+
+      - name: Detect Cloudflare credentials
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN is not configured. Deployment skipped."
+          fi
+
+      - name: Set up Node
+        if: steps.credentials.outputs.available == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Ensure dedicated D1 database
+        if: steps.credentials.outputs.available == 'true'
+        id: d1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+          LIST_JSON="$(curl --fail-with-body --silent --show-error -H "$AUTH" "$API?per_page=100")"
+          DB_ID="$(printf '%s' "$LIST_JSON" | DB_NAME="$DB_NAME" node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+              const x=JSON.parse(s); if(x.success!==true) process.exit(2);
+              const r=(Array.isArray(x.result)?x.result:[]).find(v=>v&&v.name===process.env.DB_NAME);
+              process.stdout.write(r?String(r.uuid||""):"");
+            });
+          ')"
+          if [ -z "$DB_ID" ]; then
+            CREATE_JSON="$(curl --fail-with-body --silent --show-error -X POST -H "$AUTH" -H 'Content-Type: application/json' --data "{\"name\":\"${DB_NAME}\"}" "$API")"
+            DB_ID="$(printf '%s' "$CREATE_JSON" | node -e '
+              let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const x=JSON.parse(s); if(x.success!==true) process.exit(2);
+                process.stdout.write(String(x.result?.uuid||""));
+              });
+            ')"
+          fi
+          test -n "$DB_ID"
+          echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Build Wrangler config
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          DB_ID: ${{ steps.d1.outputs.database_id }}
+        run: |
+          cat > wrangler-surprise-vote-public.tmp.jsonc <<EOF2
+          {
+            "name": "$WORKER_NAME",
+            "main": "./app/backend/surprise-vote-public-gateway/worker.js",
+            "compatibility_date": "2026-10-02",
+            "workers_dev": true,
+            "keep_vars": true,
+            "triggers": { "crons": ["* * * * *"] },
+            "d1_databases": [{
+              "binding": "DB",
+              "database_name": "$DB_NAME",
+              "database_id": "$DB_ID"
+            }]
+          }
+          EOF2
+
+      - name: Deploy read-only public gateway
+        if: steps.credentials.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.145.0 deploy --config ./wrangler-surprise-vote-public.tmp.jsonc
+
+      - name: Warm and verify public status
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          HEALTH="$(curl --fail --silent --show-error -H 'Origin: https://asoboon.github.io' "$WORKER_URL/?action=health&_=$GITHUB_SHA")"
+          printf '%s' "$HEALTH" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s); if(x.ok!==true||x.architecture!=="SURPRISE_VOTE_PUBLIC_D1_V1") process.exit(1);});
+          '
+          STATUS="$(curl --fail --silent --show-error --max-time 40 -H 'Origin: https://asoboon.github.io' "$WORKER_URL/?action=status&_=$GITHUB_SHA")"
+          printf '%s' "$STATUS" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s); if(x.ok!==true||!x.mode) process.exit(1);});
+          '
+          sleep 2
+          START=$(date +%s%3N)
+          STATUS2="$(curl --fail --silent --show-error --max-time 5 -H 'Origin: https://asoboon.github.io' "$WORKER_URL/?action=status&_=warm-$GITHUB_SHA")"
+          END=$(date +%s%3N)
+          ELAPSED=$((END-START))
+          printf '%s' "$STATUS2" | node -e '
+            let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s); if(x.ok!==true||!["memory","d1","stale","origin","stale-origin-error"].includes(String(x.edge_cache||""))) process.exit(1);});
+          '
+          echo "Warm status response: ${ELAPSED}ms"
+          test "$ELAPSED" -lt 5000
