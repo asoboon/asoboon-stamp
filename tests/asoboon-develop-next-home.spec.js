@@ -209,8 +209,8 @@ test('regular weekday HOME shows only immediate-entry crowd and ignores the 14:0
   await installNextHome(page, 'resolve', null, {
     dayFixture:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', durationLabel:'10:00〜17:00', closingTime:'17:00' },
     crowdFixture:[
-      { waitTypeId:'0024', waitTypeName:'10時ご入場枠【WEB平日】', slotKey:'10:00', detailedWaitType:'10時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:155 },
-      { waitTypeId:'0027', waitTypeName:'14時ご入場枠【WEB平日】', slotKey:'14:00', detailedWaitType:'14時ご入場枠【WEB平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'exact-name', remaining:85 },
+      { waitTypeId:'0024', waitTypeName:'10時ご入場枠【WEB平日】', slotKey:'10:00', detailedWaitType:'すぐ入場受付【平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'alias-name', remaining:350 },
+      { waitTypeId:'0027', waitTypeName:'14時ご入場枠【WEB平日】', slotKey:'14:00', detailedWaitType:'14時から【平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'time-key', remaining:0 },
     ],
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
@@ -224,8 +224,25 @@ test('regular weekday HOME shows only immediate-entry crowd and ignores the 14:0
   await expect(box).not.toContainText('10:00回');
   await expect(box).not.toContainText('14:00回');
   await expect(box.locator('.v38-crowd-card')).toHaveCount(1);
-  await expect(box).toContainText('155名');
-  await expect(box).not.toContainText('85名');
+  await expect(box).toContainText('350名');
+  await expect(box).toContainText('空いています');
+  await expect(box.locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
+  await expect(box).not.toContainText('0名');
+});
+
+test('crowd no-data fallback is neutral and keeps reception actionable', async ({ page }) => {
+  await installNextHome(page, 'resolve', null, {
+    dayFixture:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', durationLabel:'10:00〜17:00', closingTime:'17:00' },
+    crowdFixture:[
+      { waitTypeId:'0024', waitTypeName:'10時ご入場枠【WEB平日】', slotKey:'10:00', detailedWaitType:'', reserveUnit:'', evidence:'NO_MATCH', matchMode:'none', remaining:null },
+      { waitTypeId:'0027', waitTypeName:'14時ご入場枠【WEB平日】', slotKey:'14:00', detailedWaitType:'14時から【平日】', reserveUnit:'PERSON', evidence:'PERSON', matchMode:'time-key', remaining:0 },
+    ],
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  const box=page.locator('#v38Slots');
+  await expect(box).toContainText('現在の混雑状況を更新しています');
+  await expect(box).not.toContainText('混雑情報を取得できません');
+  await expect(box.locator('[data-v7-view="reception"]')).toContainText('受付画面を見る');
 });
 
 test('waiting and calling use distinct semantic presentation', async ({ page }) => {

@@ -32,6 +32,11 @@ const CROWD_SLOT_KEYS = Object.freeze({
   '0036':'10:00',
   '0038':'13:30',
 });
+// AirWAIT getWaitInfo uses a display label for the weekday immediate-entry pool
+// instead of the waitType master name/time. Keep this read-only alias explicit.
+const CROWD_DETAIL_ALIASES = Object.freeze({
+  '0024':Object.freeze(['すぐ入場受付【平日】']),
+});
 const BOARD_SLOT_SPECS = Object.freeze({
   '平日':Object.freeze([
     Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
@@ -517,13 +522,33 @@ async function fetchCrowdRemainingFresh(request, env, ctx) {
     const waitTypeName=String(type?.waitTypeName||'');
     const expectedSlot=String(CROWD_SLOT_KEYS[waitTypeId]||slotKeyFromText(waitTypeName)||'');
     const exactMatches=details.filter(row=>norm(row.detailedWaitType)===norm(waitTypeName));
+    const aliasNames=Array.isArray(CROWD_DETAIL_ALIASES[waitTypeId])?CROWD_DETAIL_ALIASES[waitTypeId]:[];
+    const aliasMatches=aliasNames.length
+      ?details.filter(row=>aliasNames.some(name=>norm(row.detailedWaitType)===norm(name)))
+      :[];
     const slotMatches=expectedSlot?details.filter(row=>row.slotKey===expectedSlot):[];
-    const matchMode=exactMatches.length===1?'exact-name':exactMatches.length===0&&slotMatches.length===1?'time-key':'';
-    const matched=matchMode==='exact-name'?exactMatches[0]:matchMode==='time-key'?slotMatches[0]:null;
+    const matchMode=exactMatches.length===1
+      ?'exact-name'
+      :exactMatches.length===0&&aliasMatches.length===1
+        ?'alias-name'
+        :exactMatches.length===0&&aliasMatches.length===0&&slotMatches.length===1
+          ?'time-key'
+          :'';
+    const matched=matchMode==='exact-name'
+      ?exactMatches[0]
+      :matchMode==='alias-name'
+        ?aliasMatches[0]
+        :matchMode==='time-key'
+          ?slotMatches[0]
+          :null;
     const raw=matched?.remainingNum;
     const n=(typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw)))?Number(raw):NaN;
     const valid=matched?.reserveUnit==='PERSON'&&Number.isSafeInteger(n)&&n>=0&&n<=350;
-    const matchCount=exactMatches.length>0?exactMatches.length:slotMatches.length;
+    const matchCount=exactMatches.length>0
+      ?exactMatches.length
+      :aliasMatches.length>0
+        ?aliasMatches.length
+        :slotMatches.length;
     const evidence=!matched
       ?(matchCount>1?'AMBIGUOUS_MATCH':'NO_MATCH')
       :(valid?'PERSON':'UNVERIFIED_UNIT_OR_VALUE');
@@ -532,6 +557,7 @@ async function fetchCrowdRemainingFresh(request, env, ctx) {
       waitTypeName:waitTypeName.slice(0,120),
       expectedSlot,
       exactMatchCount:exactMatches.length,
+      aliasMatchCount:aliasMatches.length,
       slotMatchCount:slotMatches.length,
       matchMode:matchMode||'none',
       matchedName:String(matched?.detailedWaitType||'').slice(0,120),
