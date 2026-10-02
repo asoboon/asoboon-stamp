@@ -583,3 +583,137 @@ body{min-height:100dvh}
   #voteState .push-btn{width:155px}
   #voteState .push-zone{flex-basis:165px}
 }
+
+/* Surprise Vote GAME FEEL v5 — rapid-tap feedback */
+.wallet-value #remaining{display:inline-block;transform-origin:50% 70%;will-change:transform,opacity}
+.candidate-mine{display:inline-block;transform-origin:left center;will-change:transform,opacity}
+.push-zone{
+  isolation:isolate;
+  transition:background .18s ease,filter .18s ease;
+}
+.push-btn{
+  z-index:2;
+  will-change:transform,filter;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  user-select:none;
+}
+.push-btn:after{
+  content:"";
+  position:absolute;
+  inset:-12%;
+  z-index:-1;
+  border:3px solid rgba(255,214,85,.0);
+  border-radius:50%;
+  opacity:0;
+  transform:scale(.72);
+  pointer-events:none;
+}
+.tap-fx{z-index:3}
+.tap-plus{
+  will-change:transform,opacity;
+  animation-delay:var(--delay,0ms);
+}
+.tap-plus.go{animation:plusFly .48s cubic-bezier(.08,.82,.18,1) both}
+@keyframes plusFly{
+  0%{opacity:0;transform:translate(-50%,-15%) rotate(0) scale(.48)}
+  13%{opacity:1}
+  43%{opacity:1;transform:translate(calc(-50% + var(--dx-mid)),-88%) rotate(var(--rot,0deg)) scale(1.18)}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-175%) rotate(var(--rot,0deg)) scale(.92)}
+}
+.tap-ring{
+  position:absolute;
+  left:50%;top:50%;
+  width:46%;aspect-ratio:1;
+  border:4px solid rgba(255,236,150,.92);
+  border-radius:50%;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.42);
+  box-shadow:0 0 18px rgba(255,180,54,.5),inset 0 0 12px rgba(255,235,151,.26);
+  will-change:transform,opacity;
+}
+.tap-ring.go{animation:tapRingImpact .26s ease-out both}
+@keyframes tapRingImpact{
+  0%{opacity:.95;transform:translate(-50%,-50%) scale(.42)}
+  65%{opacity:.58}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(var(--ring-end,1.2))}
+}
+.tap-spark{
+  position:absolute;
+  left:50%;top:50%;
+  width:7px;height:7px;
+  margin:-3px 0 0 -3px;
+  border-radius:50%;
+  background:#fff4a9;
+  box-shadow:0 0 8px #ffb33c,0 0 13px rgba(255,93,40,.55);
+  opacity:0;
+  transform:translate(0,0) scale(.3);
+  will-change:transform,opacity;
+}
+.tap-spark.go{animation:tapSparkBurst .28s cubic-bezier(.08,.72,.2,1) both}
+@keyframes tapSparkBurst{
+  0%{opacity:1;transform:translate(0,0) scale(var(--ss,1))}
+  72%{opacity:.72}
+  100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(.2)}
+}
+
+/* Rapid streaks progressively wake the button up. */
+body[data-combo-tier="2"] .push-zone{
+  background:radial-gradient(circle at 50% 49%,rgba(255,207,87,.16),transparent 50%);
+}
+body[data-combo-tier="2"] .push-btn{filter:saturate(1.08) brightness(1.02)}
+body[data-combo-tier="3"] .push-zone{
+  background:
+    radial-gradient(circle at 50% 49%,rgba(255,205,70,.24),transparent 47%),
+    radial-gradient(circle at 50% 49%,rgba(235,76,43,.08),transparent 67%);
+}
+body[data-combo-tier="3"] .push-btn{filter:saturate(1.16) brightness(1.035)}
+body[data-combo-tier="4"] .push-zone{
+  background:
+    radial-gradient(circle at 50% 49%,rgba(255,215,72,.31),transparent 43%),
+    radial-gradient(circle at 50% 49%,rgba(238,75,40,.14),transparent 66%);
+}
+body[data-combo-tier="4"] .push-btn{
+  filter:saturate(1.25) brightness(1.055);
+  box-shadow:
+    inset 0 8px 0 rgba(255,255,255,.31),inset 0 -17px 0 rgba(69,9,9,.33),
+    0 15px 0 #68211b,0 24px 34px rgba(94,29,16,.31),0 0 28px rgba(255,177,48,.3);
+}
+body[data-combo-tier="5"] .push-zone{
+  background:
+    radial-gradient(circle at 50% 49%,rgba(255,226,95,.39),transparent 40%),
+    radial-gradient(circle at 50% 49%,rgba(239,74,38,.19),transparent 64%);
+}
+body[data-combo-tier="5"] .push-btn{
+  filter:saturate(1.34) brightness(1.075);
+  box-shadow:
+    inset 0 8px 0 rgba(255,255,255,.34),inset 0 -17px 0 rgba(69,9,9,.33),
+    0 15px 0 #68211b,0 24px 34px rgba(94,29,16,.31),0 0 38px rgba(255,177,48,.43);
+}
+body[data-combo-tier="3"] .combo,
+body[data-combo-tier="4"] .combo,
+body[data-combo-tier="5"] .combo{color:#bd3322;text-shadow:0 0 11px rgba(239,113,43,.2)}
+body[data-combo-tier="4"] .combo{transform:scale(1.06)}
+body[data-combo-tier="5"] .combo{transform:scale(1.1)}
+
+/* Last 10 taps feel progressively more urgent without blocking input. */
+body[data-vote-stage="90"] .wallet-value{color:#a52e24}
+body[data-vote-stage="90"] .push-zone:before{
+  content:"";
+  position:absolute;
+  inset:9% 17%;
+  z-index:0;
+  border:2px solid rgba(255,190,49,.4);
+  border-radius:50%;
+  animation:lastTenHalo 1.05s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes lastTenHalo{
+  0%,100%{opacity:.25;transform:scale(.88)}
+  50%{opacity:.75;transform:scale(1.08)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .tap-ring,.tap-spark{display:none!important}
+  body[data-vote-stage="90"] .push-zone:before{animation:none!important}
+}

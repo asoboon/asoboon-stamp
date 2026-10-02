@@ -115,6 +115,9 @@
     used: 0,
     remaining: Number(CFG.MAX_POINTS || 100),
     combo: 0,
+    comboLastTapAt: 0,
+    comboTier: 0,
+    comboTimer: null,
     dirty: false,
     syncing: false,
     pendingTaps: 0,
@@ -134,8 +137,13 @@
   };
 
   const fxPool = [];
+  const ringPool = [];
+  const sparkPool = [];
   let fxIndex = 0;
+  let ringIndex = 0;
+  let sparkIndex = 0;
   let milestoneTimer = null;
+  let audioCtx = null;
 
   function fmt(value) {
     return Math.max(0, Number(value) || 0)
@@ -462,32 +470,223 @@
 
   function createFxPool() {
     if (reduced) return;
-    for (let i = 0; i < 14; i += 1) {
+
+    for (let i = 0; i < 18; i += 1) {
       const span = document.createElement('span');
       span.className = 'tap-plus';
       span.textContent = '+1';
       els.tapFx.appendChild(span);
       fxPool.push(span);
     }
+
+    for (let i = 0; i < 8; i += 1) {
+      const ring = document.createElement('span');
+      ring.className = 'tap-ring';
+      els.tapFx.appendChild(ring);
+      ringPool.push(ring);
+    }
+
+    for (let i = 0; i < 28; i += 1) {
+      const spark = document.createElement('span');
+      spark.className = 'tap-spark';
+      els.tapFx.appendChild(spark);
+      sparkPool.push(spark);
+    }
+  }
+
+  function comboTier(combo = state.combo) {
+    if (combo >= 50) return 5;
+    if (combo >= 30) return 4;
+    if (combo >= 15) return 3;
+    if (combo >= 5) return 2;
+    return combo > 0 ? 1 : 0;
+  }
+
+  function updateComboForTap() {
+    const now = performance.now();
+    state.combo += 1;
+    state.comboLastTapAt = now;
+    state.comboTier = comboTier(state.combo);
+    document.body.dataset.comboTier = String(state.comboTier);
+
+    clearTimeout(state.comboTimer);
+    state.comboTimer = setTimeout(() => {
+      if (state.remaining <= 0) return;
+      state.combo = 0;
+      state.comboTier = 0;
+      state.comboLastTapAt = 0;
+      document.body.dataset.comboTier = '0';
+      els.comboValue.textContent = '0';
+      els.combo.classList.remove('is-fever', 'pop');
+    }, 850);
+
+    if (state.combo === 5) showMilestone('5 COMBO！');
+    else if (state.combo === 15) showMilestone('15 COMBO！');
+    else if (state.combo === 30) showMilestone('30 COMBO！');
+    else if (state.combo === 50) showMilestone('FEVER！');
   }
 
   function spawnPlus() {
     if (reduced || !fxPool.length) return;
-    const span = fxPool[fxIndex++ % fxPool.length];
-    span.classList.remove('go');
-    span.style.setProperty(
-      '--dx',
-      Math.round((Math.random() - 0.5) * 100) + 'px'
-    );
-    void span.offsetWidth;
-    span.classList.add('go');
+    const count = state.comboTier >= 4 ? 2 : 1;
+
+    for (let i = 0; i < count; i += 1) {
+      const span = fxPool[fxIndex++ % fxPool.length];
+      span.classList.remove('go');
+      const dx = Math.round((Math.random() - 0.5) * (90 + state.comboTier * 18));
+      span.style.setProperty('--dx', dx + 'px');
+      span.style.setProperty('--dx-mid', Math.round(dx * .35) + 'px');
+      span.style.setProperty('--rot', Math.round((Math.random() - 0.5) * 32) + 'deg');
+      span.style.setProperty('--delay', i * 22 + 'ms');
+      void span.offsetWidth;
+      span.classList.add('go');
+    }
   }
 
-  function pulsePush() {
+  function spawnImpactFx() {
+    if (reduced) return;
+
+    if (ringPool.length) {
+      const ring = ringPool[ringIndex++ % ringPool.length];
+      ring.classList.remove('go');
+      ring.style.setProperty('--ring-end', String(1.12 * (1 + state.comboTier * .12)));
+      void ring.offsetWidth;
+      ring.classList.add('go');
+    }
+
+    const sparkCount = Math.min(2 + state.comboTier * 2, 12);
+    for (let i = 0; i < sparkCount; i += 1) {
+      if (!sparkPool.length) break;
+      const spark = sparkPool[sparkIndex++ % sparkPool.length];
+      const angle = (Math.PI * 2 * i) / sparkCount + Math.random() * 0.35;
+      const distance = 45 + Math.random() * (30 + state.comboTier * 12);
+      spark.classList.remove('go');
+      spark.style.setProperty('--sx', Math.round(Math.cos(angle) * distance) + 'px');
+      spark.style.setProperty('--sy', Math.round(Math.sin(angle) * distance) + 'px');
+      spark.style.setProperty('--ss', String(0.7 + Math.random() * 0.9));
+      void spark.offsetWidth;
+      spark.classList.add('go');
+    }
+  }
+
+  function animateTapTargets(optionId) {
+    if (reduced) return;
+
+    try {
+      els.pushBtn.animate(
+        [
+          { transform: 'translateY(7px) scale(.935)' },
+          { transform: 'translateY(-2px) scale(1.055)', offset: 0.48 },
+          { transform: 'translateY(0) scale(1)' }
+        ],
+        { duration: 125, easing: 'cubic-bezier(.2,.85,.25,1)' }
+      );
+
+      els.remaining.animate(
+        [
+          { transform: 'translateY(5px) scale(.82)', opacity: .62 },
+          { transform: 'translateY(-3px) scale(1.14)', opacity: 1, offset: .55 },
+          { transform: 'translateY(0) scale(1)', opacity: 1 }
+        ],
+        { duration: 150, easing: 'cubic-bezier(.2,.8,.2,1)' }
+      );
+
+      const refs = state.optionButtons.get(optionId);
+      refs?.button?.animate(
+        [
+          { transform: 'scale(.975)' },
+          { transform: 'scale(1.025)', offset: .52 },
+          { transform: 'scale(1)' }
+        ],
+        { duration: 145, easing: 'cubic-bezier(.2,.8,.2,1)' }
+      );
+      refs?.mine?.animate(
+        [
+          { transform: 'scale(.9)', opacity: .65 },
+          { transform: 'scale(1.16)', opacity: 1, offset: .5 },
+          { transform: 'scale(1)', opacity: 1 }
+        ],
+        { duration: 160, easing: 'ease-out' }
+      );
+    } catch (_) {}
+  }
+
+  function ensureAudio() {
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    try {
+      audioCtx = new AudioContextClass({ latencyHint: 'interactive' });
+      return audioCtx;
+    } catch (_) {
+      try {
+        audioCtx = new AudioContextClass();
+        return audioCtx;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  function tone(ctx, frequency, start, duration, volume, type = 'sine') {
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + duration + 0.012);
+    } catch (_) {}
+  }
+
+  function playTapSound({ milestone = false, finish = false } = {}) {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume()
+        .then(() => {
+          if (ctx.state === 'running') playTapSound({ milestone, finish });
+        })
+        .catch(() => {});
+      return;
+    }
+
+    const now = ctx.currentTime;
+    const tier = state.comboTier;
+    const step = Math.min(state.combo, 24) % 12;
+    const base = 235 + tier * 48 + step * 7;
+
+    tone(ctx, base, now, .055, .018 + tier * .003, tier >= 3 ? 'triangle' : 'sine');
+
+    if (milestone) {
+      tone(ctx, base * 1.5, now + .018, .095, .032, 'triangle');
+    }
+
+    if (finish) {
+      tone(ctx, 523.25, now, .18, .042, 'triangle');
+      tone(ctx, 659.25, now + .045, .2, .038, 'triangle');
+      tone(ctx, 783.99, now + .09, .24, .036, 'triangle');
+    }
+  }
+
+  function pulsePush(optionId) {
     els.pushBtn.classList.add('hit');
     setTimeout(() => els.pushBtn.classList.remove('hit'), 55);
     els.combo.classList.add('pop');
     setTimeout(() => els.combo.classList.remove('pop'), 85);
+
+    spawnImpactFx();
+    animateTapTargets(optionId);
+
     if (state.combo % 4 === 0) vibrate(7);
   }
 
@@ -533,10 +732,14 @@
   function milestoneAfterTap() {
     updatePowerStage();
 
-    if ([25, 50, 75, 90, 100].includes(state.used)) {
+    if ([10, 25, 50, 75, 90, 100].includes(state.used)) {
       flashPowerStage(state.used);
 
-      if (state.used === 100) {
+      const finish = state.used === 100;
+      playTapSound({ milestone: true, finish });
+
+      if (finish) {
+        showMilestone('100 ASOBooN！');
         vibrate([30, 25, 55, 30, 95]);
       } else if (state.used >= 75) {
         vibrate([20, 18, 40]);
@@ -545,7 +748,17 @@
       }
     }
 
-    if (state.used === 95) {
+    if (state.used === 10) {
+      showMilestone('10連打！');
+    } else if (state.used === 25) {
+      showMilestone('POWER UP！');
+    } else if (state.used === 50) {
+      showMilestone('HALF！');
+    } else if (state.used === 75) {
+      showMilestone('あと25！');
+    } else if (state.used === 90) {
+      showMilestone('LAST 10！');
+    } else if (state.used === 95) {
       showMilestone('あと5！');
     } else if (state.used === 99) {
       showMilestone('あと1！');
@@ -1010,7 +1223,7 @@
       '%';
 
     els.comboValue.textContent = state.combo;
-    els.combo.classList.toggle('is-fever', state.combo >= 50);
+    els.combo.classList.toggle('is-fever', state.combo >= 15);
     updatePowerStage();
 
     const current = optionsFromEvent().find(
@@ -1058,7 +1271,12 @@
 
     if (state.selected !== id) {
       state.selected = id;
+      clearTimeout(state.comboTimer);
+      state.comboTimer = null;
       state.combo = 0;
+      state.comboLastTapAt = 0;
+      state.comboTier = 0;
+      document.body.dataset.comboTier = '0';
       vibrate(12);
       renderVote(false);
     }
@@ -1132,7 +1350,7 @@
       '%';
 
     els.comboValue.textContent = state.combo;
-    els.combo.classList.toggle('is-fever', state.combo >= 50);
+    els.combo.classList.toggle('is-fever', state.combo >= 15);
 
     const current = optionsFromEvent().find(
       option => option.id === id
@@ -1167,7 +1385,7 @@
 
     state.used += 1;
     state.remaining -= 1;
-    state.combo += 1;
+    updateComboForTap();
     state.pendingTaps += 1;
     state.dirty = true;
 
@@ -1175,8 +1393,9 @@
       Number(state.localTotals[id] || 0) + 1;
 
     savePending();
-    pulsePush();
+    pulsePush(id);
     spawnPlus();
+    playTapSound();
     renderFastAfterTap(id);
     milestoneAfterTap();
     scheduleSync();
@@ -2058,6 +2277,9 @@
         state.used = 0;
         state.remaining = Number(CFG.MAX_POINTS || 100);
         state.combo = 0;
+        state.comboLastTapAt = 0;
+        state.comboTier = 0;
+        document.body.dataset.comboTier = '0';
         state.pendingTaps = 0;
         state.dirty = false;
         state.selected = '';
