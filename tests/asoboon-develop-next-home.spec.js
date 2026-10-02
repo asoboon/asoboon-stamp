@@ -205,7 +205,7 @@ test('today section shows verified per-slot crowd estimates without acceptance c
   expect(text).not.toMatch(/受付できます|受付終了|満員|350名|310名/);
 });
 
-test('regular weekday HOME exposes LINE reception and 10:00 / 14:00 crowd estimates', async ({ page }) => {
+test('regular weekday HOME shows only immediate-entry crowd and ignores the 14:00 pool', async ({ page }) => {
   await installNextHome(page, 'resolve', null, {
     dayFixture:{ ok:true, operationalDate:'2026-09-19', businessType:'平日', durationLabel:'10:00〜17:00', closingTime:'17:00' },
     crowdFixture:[
@@ -220,11 +220,12 @@ test('regular weekday HOME exposes LINE reception and 10:00 / 14:00 crowd estima
   await expect(page.locator('#v38Hero')).not.toContainText('本日は現地受付です');
   const box=page.locator('#v38Slots');
   await expect(box).not.toContainText('準備中');
-  await expect(box).toContainText('10:00回');
-  await expect(box).toContainText('14:00回');
-  await expect(box.locator('.v38-crowd-card')).toHaveCount(2);
+  await expect(box).toContainText('すぐ入場');
+  await expect(box).not.toContainText('10:00回');
+  await expect(box).not.toContainText('14:00回');
+  await expect(box.locator('.v38-crowd-card')).toHaveCount(1);
   await expect(box).toContainText('155名');
-  await expect(box).toContainText('85名');
+  await expect(box).not.toContainText('85名');
 });
 
 test('waiting and calling use distinct semantic presentation', async ({ page }) => {
