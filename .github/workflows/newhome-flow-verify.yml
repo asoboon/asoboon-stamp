@@ -351,7 +351,7 @@ jobs:
       - name: LINE notification must survive retries and terminal-state rescue
         run: |
           set -euo pipefail
-          grep -F "VERSION: '2.5.dev-confirmation-chain'" miniapp-v2/backend/develop-service-message.js
+          grep -E "VERSION: '2\.[5-9]\.dev-" miniapp-v2/backend/develop-service-message.js
           grep -F 'adoptReusableNotificationClaim' miniapp-v2/backend/develop-service-message.js
           grep -F 'serviceMessageReusableUnboundToken: true' miniapp-v2/backend/develop-service-message.js
           grep -F 'sendObservedCallNotification' miniapp-v2/backend/develop-service-message.js
@@ -363,7 +363,7 @@ jobs:
           grep -F 'function isNotificationEligibleAirwait' miniapp-v2/backend/develop-service-message.js
           grep -F "return (status==='0'&&calling)||status==='2'||status==='4';" miniapp-v2/backend/develop-service-message.js
           grep -F "reason:'NOT_NOTIFICATION_ELIGIBLE'" miniapp-v2/backend/develop-service-message.js
-          grep -F 'notificationEligible = Boolean(own && isNotificationEligibleAirwait(own))' miniapp-v2/backend/develop-service-message.js
+          grep -F 'if (!isNotificationEligibleAirwait(own) && !retryEvidence) continue;' miniapp-v2/backend/develop-service-message.js
           grep -F 'AND (next_retry_at=0 OR next_retry_at<=?)' miniapp-v2/backend/develop-service-message.js
           grep -F "if (!(body?.ok === true && body?.found === true)) return;" miniapp-v2/backend/develop-worker.mjs
           ! grep -Fq "String(body?.status || '') === '0' && body?.isCalling === true" miniapp-v2/backend/develop-worker.mjs
