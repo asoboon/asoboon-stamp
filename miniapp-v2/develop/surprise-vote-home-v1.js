@@ -11,7 +11,7 @@ function jsonp(params){
     const cb='__asoboonSurpriseHome_'+Date.now()+'_'+Math.floor(Math.random()*100000);
     const script=document.createElement('script');
     let done=false;
-    const timeout=setTimeout(()=>finish(new Error('timeout')),8000);
+    const timeout=setTimeout(()=>finish(new Error('timeout')),Math.max(12000,Number(CFG.REQUEST_TIMEOUT_MS||20000)));
     function finish(err,data){
       if(done)return;done=true;clearTimeout(timeout);
       try{delete window[cb]}catch(_){window[cb]=undefined}

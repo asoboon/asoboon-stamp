@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.4.1',
+  VERSION: '2.4.2',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -1642,13 +1642,31 @@ function syncSurpriseEventSheetFromBusinessCalendar_() {
   });
 
   const rows = [...futureRows, ...pastRows];
+
+  const rowId = row => {
+    const date = normalizeSurpriseDate_(row && row[0]);
+    const time = normalizeSurpriseTime_(row && row[1]);
+    return date && time
+      ? date.replace(/-/g, '') + '-' + time.replace(':', '')
+      : '';
+  };
+
+  const currentOrder = existing.map(rowId).filter(Boolean);
+  const desiredOrder = rows.map(rowId).filter(Boolean);
+  const alreadyAligned =
+    currentOrder.length === desiredOrder.length &&
+    currentOrder.every((id, index) => id === desiredOrder[index]);
+
+  // Most days the sheet is already in the right order. Avoid a full rewrite on
+  // the first API request of the day unless the calendar/order actually changed.
+  if (alreadyAligned) return;
+
   const clearRows = Math.max(sheet.getLastRow() - 1, rows.length, 1);
   sheet.getRange(2, 1, clearRows, width).clearContent();
   if (rows.length) {
     sheet.getRange(2, 1, rows.length, width).setValues(rows);
   }
 
-  setupSurpriseEventSheet_(sheet);
   SpreadsheetApp.flush();
 }
 
