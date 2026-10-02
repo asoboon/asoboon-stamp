@@ -20,7 +20,7 @@
     INITIAL_JITTER_MAX_MS: 3000,
     FINAL_SYNC_GRACE_MS: 20000,
     DAILY_RESET_HOUR: 18,
-    REQUEST_TIMEOUT_MS: 20000,
+    REQUEST_TIMEOUT_MS: 30000,
     MAX_POINTS: 100
   };
 
@@ -2169,6 +2169,12 @@
       }
 
       await refreshStatus(true);
+
+      if (!DEMO) {
+        setTimeout(() => {
+          jsonp({ action: 'maintenance' }).catch(() => {});
+        }, 600);
+      }
     } catch (error) {
       showError(error);
     }

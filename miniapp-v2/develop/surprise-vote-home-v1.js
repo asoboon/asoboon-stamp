@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const CFG=window.ASOBOON_SURPRISE_VOTE_CONFIG||{},root=document.getElementById('app');
 if(!root)return;
-let currentMode='idle',currentEvent=null,refreshing=false,timer=null;
+let currentMode='idle',currentEvent=null,refreshing=false,timer=null,maintenanceStarted=false;
 
 function apiUrl(){return String(CFG.API_URL||'').trim()}
 function jsonp(params){
@@ -11,7 +11,7 @@ function jsonp(params){
     const cb='__asoboonSurpriseHome_'+Date.now()+'_'+Math.floor(Math.random()*100000);
     const script=document.createElement('script');
     let done=false;
-    const timeout=setTimeout(()=>finish(new Error('timeout')),Math.max(12000,Number(CFG.REQUEST_TIMEOUT_MS||20000)));
+    const timeout=setTimeout(()=>finish(new Error('timeout')),Math.max(12000,Number(CFG.REQUEST_TIMEOUT_MS||30000)));
     function finish(err,data){
       if(done)return;done=true;clearTimeout(timeout);
       try{delete window[cb]}catch(_){window[cb]=undefined}
@@ -46,7 +46,7 @@ function render(){
         ?labelForEvent()+'の結果を見よう！'
         :upcoming
           ?labelForEvent()+'の候補をチェック！'
-          :'今日の開催回・投票時間・結果を確認できます';
+          :'今日の開催回・投票時間・結果はこちら';
   el.dataset.surpriseMode=currentMode;
   el.innerHTML=
     '<a class="v38-surprise-cta '+tone+'" href="./surprise-vote.html">'+
@@ -72,6 +72,10 @@ async function refresh(){
     currentMode='idle';currentEvent=null;
   }finally{
     refreshing=false;render();
+    if(!maintenanceStarted){
+      maintenanceStarted=true;
+      setTimeout(()=>{jsonp({action:'maintenance'}).catch(()=>{})},600);
+    }
   }
 }
 function schedule(){

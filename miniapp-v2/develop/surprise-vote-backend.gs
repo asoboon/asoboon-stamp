@@ -14,7 +14,7 @@
  */
 
 const SURPRISE_VOTE = Object.freeze({
-  VERSION: '2.4.2',
+  VERSION: '2.5.0',
   TIMEZONE: 'Asia/Tokyo',
   MAX_POINTS: 100,
   EVENT_SHEET: 'イベント設定',
@@ -23,10 +23,12 @@ const SURPRISE_VOTE = Object.freeze({
   GUIDE_SHEET: '使い方',
   BUSINESS_SPREADSHEET_ID: '1FLLNnxhCaYa87zMcMJrVo8fz8QDjHnvpcye0wdqn0Xg',
   BUSINESS_SHEET: '営業日カレンダー',
-  BUSINESS_CACHE_SECONDS: 60,
+  BUSINESS_CACHE_SECONDS: 300,
+  BUSINESS_SNAPSHOT_DAYS: 90,
   PROP_SPREADSHEET_ID: 'SURPRISE_SPREADSHEET_ID',
   PROP_VOTER_SALT: 'SURPRISE_VOTER_SALT',
   PROP_LAST_DAILY_SYNC: 'SURPRISE_LAST_DAILY_SYNC_DATE',
+  PROP_BUSINESS_SNAPSHOT: 'SURPRISE_BUSINESS_CALENDAR_SNAPSHOT',
   EVENT_CACHE_SECONDS: 30,
   TOTAL_CACHE_SECONDS: 10,
   LOCK_WAIT_MS: 900,
@@ -138,7 +140,7 @@ function doGet(e) {
       payload = {
         ok: true,
         version: SURPRISE_VOTE.VERSION,
-        architecture: 'GAS_V2_4_DAILY_BOARD',
+        architecture: 'GAS_V2_5_SNAPSHOT_DAILY_BOARD',
         businessCalendarSource: SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID,
         businessCalendarSheet: SURPRISE_VOTE.BUSINESS_SHEET,
         businessCalendarAuthoritative: true,
@@ -153,6 +155,8 @@ function doGet(e) {
       payload = apiSurpriseStatus_(params);
     } else if (action === 'vote') {
       payload = apiSurpriseVote_(params);
+    } else if (action === 'maintenance') {
+      payload = apiSurpriseMaintenance_();
     } else {
       throw new Error('未対応のactionです。');
     }
@@ -173,7 +177,6 @@ function doGet(e) {
 
 function apiSurpriseStatus_(params) {
   const now = new Date();
-  try { ensureSurpriseDailySheetSynced_(now); } catch (_) {}
   const requestedEventId = String(params.eventId || '').trim();
   const voterKey = sanitizeVoterKey_(params.voterKey);
 
@@ -568,7 +571,7 @@ function loadFutureSurpriseEvents_(now) {
     SURPRISE_VOTE.TIMEZONE,
     'yyyy-MM-dd'
   );
-  const cacheKey = 'surprise:v24:future:' + today;
+  const cacheKey = 'surprise:v25:future:' + today;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -719,7 +722,7 @@ function buildSurpriseEventFromDefinition_(definition, now) {
 
 function loadSurpriseEventDefinitions_(date) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v24:events:' + date;
+  const cacheKey = 'surprise:v25:events:' + date;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -767,16 +770,44 @@ function loadSurpriseEventDefinitions_(date) {
 
 function loadSurpriseBusinessCalendar_() {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v24:business-calendar';
+  const cacheKey = 'surprise:v25:business-calendar';
   const cached = cache.get(cacheKey);
 
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed) && parsed.length) return parsed;
     } catch (_) {}
   }
 
+  const props = PropertiesService.getScriptProperties();
+  const snapshot = props.getProperty(
+    SURPRISE_VOTE.PROP_BUSINESS_SNAPSHOT
+  );
+
+  if (snapshot) {
+    try {
+      const parsed = JSON.parse(snapshot);
+      if (Array.isArray(parsed) && parsed.length) {
+        try {
+          cache.put(
+            cacheKey,
+            JSON.stringify(parsed),
+            SURPRISE_VOTE.BUSINESS_CACHE_SECONDS
+          );
+        } catch (_) {}
+        return parsed;
+      }
+    } catch (_) {}
+  }
+
+  // First-ever fallback only. Normal status calls read the persistent snapshot.
+  const calendar = loadSurpriseBusinessCalendarFromSource_();
+  saveSurpriseBusinessCalendarSnapshot_(calendar, new Date());
+  return trimSurpriseBusinessCalendarSnapshot_(calendar, new Date());
+}
+
+function loadSurpriseBusinessCalendarFromSource_() {
   const spreadsheet = SpreadsheetApp.openById(
     SURPRISE_VOTE.BUSINESS_SPREADSHEET_ID
   );
@@ -786,25 +817,63 @@ function loadSurpriseBusinessCalendar_() {
 
   if (!sheet || sheet.getLastRow() < 2) return [];
 
-  const values = sheet
+  return sheet
     .getRange(2, 1, sheet.getLastRow() - 1, 3)
-    .getValues();
-
-  const calendar = values
+    .getValues()
     .map(row => ({
       date: normalizeSurpriseDate_(row[0]),
       type: String(row[2] || '').trim()
     }))
-    .filter(day => day.date && day.type);
+    .filter(day => day.date && day.type)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function trimSurpriseBusinessCalendarSnapshot_(calendar, now) {
+  const base = now || new Date();
+  const start = new Date(base.getTime() - 24 * 60 * 60 * 1000);
+  const end = new Date(
+    base.getTime() +
+    Number(SURPRISE_VOTE.BUSINESS_SNAPSHOT_DAYS || 90) * 24 * 60 * 60 * 1000
+  );
+  const from = Utilities.formatDate(
+    start,
+    SURPRISE_VOTE.TIMEZONE,
+    'yyyy-MM-dd'
+  );
+  const to = Utilities.formatDate(
+    end,
+    SURPRISE_VOTE.TIMEZONE,
+    'yyyy-MM-dd'
+  );
+
+  return (calendar || [])
+    .filter(day => day.date >= from && day.date <= to)
+    .map(day => ({ date: day.date, type: day.type }));
+}
+
+function saveSurpriseBusinessCalendarSnapshot_(calendar, now) {
+  const snapshot = trimSurpriseBusinessCalendarSnapshot_(calendar, now);
+  const json = JSON.stringify(snapshot);
+
+  PropertiesService.getScriptProperties().setProperty(
+    SURPRISE_VOTE.PROP_BUSINESS_SNAPSHOT,
+    json
+  );
 
   try {
-    cache.put(
-      cacheKey,
-      JSON.stringify(calendar),
+    CacheService.getScriptCache().put(
+      'surprise:v25:business-calendar',
+      json,
       SURPRISE_VOTE.BUSINESS_CACHE_SECONDS
     );
   } catch (_) {}
 
+  return snapshot;
+}
+
+function refreshSurpriseBusinessCalendarSnapshot_(now) {
+  const calendar = loadSurpriseBusinessCalendarFromSource_();
+  saveSurpriseBusinessCalendarSnapshot_(calendar, now || new Date());
   return calendar;
 }
 
@@ -839,7 +908,7 @@ function buildAutoSurpriseDefinition_(date, eventTime, businessType) {
 
 function loadSurpriseOverrideDefinitions_() {
   const cache = CacheService.getScriptCache();
-  const cacheKey = 'surprise:v24:overrides';
+  const cacheKey = 'surprise:v25:overrides';
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -1313,8 +1382,8 @@ function ensureSurpriseDecisionRow_(event) {
   const newRow = sheet.getLastRow();
 
   const cache = CacheService.getScriptCache();
-  cache.remove('surprise:v24:overrides');
-  cache.remove('surprise:v24:events:' + event.date);
+  cache.remove('surprise:v25:overrides');
+  cache.remove('surprise:v25:events:' + event.date);
 
   return newRow;
 }
@@ -1542,6 +1611,17 @@ function surpriseOutput_(payload, callback) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function apiSurpriseMaintenance_() {
+  const now = new Date();
+  const synced = ensureSurpriseDailySheetSynced_(now);
+  return {
+    ok: true,
+    version: SURPRISE_VOTE.VERSION,
+    synced: synced,
+    now: formatIso_(now)
+  };
+}
+
 function ensureSurpriseDailySheetSynced_(now) {
   const today = Utilities.formatDate(
     now || new Date(),
@@ -1549,19 +1629,27 @@ function ensureSurpriseDailySheetSynced_(now) {
     'yyyy-MM-dd'
   );
   const props = PropertiesService.getScriptProperties();
-  if (props.getProperty(SURPRISE_VOTE.PROP_LAST_DAILY_SYNC) === today) {
-    return;
+  if (
+    props.getProperty(SURPRISE_VOTE.PROP_LAST_DAILY_SYNC) === today &&
+    props.getProperty(SURPRISE_VOTE.PROP_BUSINESS_SNAPSHOT)
+  ) {
+    return false;
   }
 
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(1200)) return;
 
   try {
-    if (props.getProperty(SURPRISE_VOTE.PROP_LAST_DAILY_SYNC) === today) {
-      return;
+    if (
+      props.getProperty(SURPRISE_VOTE.PROP_LAST_DAILY_SYNC) === today &&
+      props.getProperty(SURPRISE_VOTE.PROP_BUSINESS_SNAPSHOT)
+    ) {
+      return false;
     }
-    syncSurpriseEventSheetFromBusinessCalendar_();
+    const calendar = refreshSurpriseBusinessCalendarSnapshot_(now);
+    syncSurpriseEventSheetFromBusinessCalendar_(calendar);
     props.setProperty(SURPRISE_VOTE.PROP_LAST_DAILY_SYNC, today);
+    return true;
   } finally {
     lock.releaseLock();
   }
@@ -1569,7 +1657,8 @@ function ensureSurpriseDailySheetSynced_(now) {
 
 function surpriseDailyMaintenance() {
   const now = new Date();
-  syncSurpriseEventSheetFromBusinessCalendar_();
+  const calendar = refreshSurpriseBusinessCalendarSnapshot_(now);
+  syncSurpriseEventSheetFromBusinessCalendar_(calendar);
   PropertiesService.getScriptProperties().setProperty(
     SURPRISE_VOTE.PROP_LAST_DAILY_SYNC,
     Utilities.formatDate(now, SURPRISE_VOTE.TIMEZONE, 'yyyy-MM-dd')
@@ -1577,7 +1666,7 @@ function surpriseDailyMaintenance() {
   clearSurpriseScheduleCaches_();
 }
 
-function syncSurpriseEventSheetFromBusinessCalendar_() {
+function syncSurpriseEventSheetFromBusinessCalendar_(calendarInput) {
   const spreadsheet = getSurpriseSpreadsheet_();
   const sheet = spreadsheet.getSheetByName(SURPRISE_VOTE.EVENT_SHEET);
   if (!sheet) return;
@@ -1607,7 +1696,11 @@ function syncSurpriseEventSheetFromBusinessCalendar_() {
   });
 
   const futureRows = [];
-  loadSurpriseBusinessCalendar_()
+  const calendar = Array.isArray(calendarInput)
+    ? calendarInput
+    : loadSurpriseBusinessCalendar_();
+
+  calendar
     .filter(day => day.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date))
     .forEach(day => {
@@ -1677,10 +1770,10 @@ function clearSurpriseScheduleCaches_() {
     SURPRISE_VOTE.TIMEZONE,
     'yyyy-MM-dd'
   );
-  cache.remove('surprise:v24:events:' + today);
-  cache.remove('surprise:v24:future:' + today);
-  cache.remove('surprise:v24:overrides');
-  cache.remove('surprise:v24:business-calendar');
+  cache.remove('surprise:v25:events:' + today);
+  cache.remove('surprise:v25:future:' + today);
+  cache.remove('surprise:v25:overrides');
+  cache.remove('surprise:v25:business-calendar');
 }
 
 function onEdit(e) {
@@ -1698,16 +1791,16 @@ function onEdit(e) {
       'yyyy-MM-dd'
     );
 
-    cache.remove('surprise:v24:events:' + today);
-    cache.remove('surprise:v24:future:' + today);
-    cache.remove('surprise:v24:overrides');
+    cache.remove('surprise:v25:events:' + today);
+    cache.remove('surprise:v25:future:' + today);
+    cache.remove('surprise:v25:overrides');
 
     const rowDate = normalizeSurpriseDate_(
       sheet.getRange(e.range.getRow(), 1).getValue()
     );
 
     if (rowDate) {
-      cache.remove('surprise:v24:events:' + rowDate);
+      cache.remove('surprise:v25:events:' + rowDate);
     }
   } catch (_) {}
 }
@@ -1755,7 +1848,8 @@ function setupSurpriseVoteSpreadsheet() {
   );
 
   setupSurpriseEventSheet_(eventSheet);
-  syncSurpriseEventSheetFromBusinessCalendar_();
+  const businessCalendar = refreshSurpriseBusinessCalendarSnapshot_(new Date());
+  syncSurpriseEventSheetFromBusinessCalendar_(businessCalendar);
   setupSurpriseGuide_(spreadsheet);
 
   try {
@@ -1942,7 +2036,7 @@ function setupSurpriseGuide_(spreadsheet) {
 
   const rows = [
     ['ASOBooN サプライズイベント投票｜使い方', ''],
-    ['基本', '通常の開催予定は「ASOBooN ミニアプリ運用設定」→「営業日カレンダー」から自動生成し、その日の最初のアクセスで今日を先頭に自動同期します。'],
+    ['基本', '通常の開催予定は「ASOBooN ミニアプリ運用設定」→「営業日カレンダー」から自動生成し、毎日の自動メンテナンスで今日を先頭に同期します。'],
     ['営業区分', '平日＝14:00 / 平日特定日＝11:00・14:30 / 土日祝日＝11:00・14:00・16:00 / 休館＝開催なし。'],
     ['イベント設定', '開催日・開催時刻は自動生成。スタッフは候補変更・中止・結果上書きなど、必要な回だけ編集します。'],
     ['開催', '通常はONのままでOK。開催しない回だけOFFにします。営業区分と開催時刻は営業日カレンダーが基準です。'],
