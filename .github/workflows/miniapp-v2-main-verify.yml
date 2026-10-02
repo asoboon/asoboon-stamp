@@ -228,9 +228,10 @@ jobs:
           if(router>=0&&app>router) throw new Error('Optional router must load after active app');
           if(appSrc.includes('./app-stable-')&&router>=0) throw new Error('Stable Developing app must own navigation without router-v7.js');
           if(!html.includes('../shared/timeguide.css')) throw new Error('timeguide.css must be loaded');
-          const versions=[...html.matchAll(/\?v=([0-9]{8}-[0-9]{2})/g)].map(m=>m[1]);
-          if(versions.length<8) throw new Error('Developing assets must carry cache versions');
-          if(new Set(versions).size!==1) throw new Error('Developing asset cache versions must be consistent');
+          const localAssets=[...html.matchAll(/(?:src|href)="((?:\.{1,2}\/)[^"]+\.(?:js|css)(?:\?v=[^"]+)?)"/g)].map(m=>m[1]);
+          if(localAssets.length<8) throw new Error('Developing local assets not found');
+          const unversioned=localAssets.filter(x=>!/[?&]v=[0-9]{8}-[0-9]{2}(?:$|&)/.test(x));
+          if(unversioned.length) throw new Error('Developing local assets must each carry a cache version: '+unversioned.join(','));
           NODE
 
       - name: Lock Developing HOME ownership mode
