@@ -15,6 +15,8 @@ const CFG = Object.freeze({
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
   GAS_STATUS_URL: 'https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec',
   KEY: 'public_status',
+  MAINTENANCE_KEY: 'maintenance_status',
+  MAINTENANCE_INTERVAL_MS: 10 * 60 * 1000,
   FRESH_MS: 90 * 1000,
   NORMAL_MAX_AGE_MS: 5 * 60 * 1000,
   STALE_MAX_AGE_MS: 12 * 60 * 60 * 1000,
@@ -61,9 +63,19 @@ export default {
 
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(
-      refreshStatus(env).catch(error => {
-        console.warn('SURPRISE_VOTE_REFRESH_FAILED', safeError(error));
-      })
+      (async () => {
+        try {
+          await maybeRunMaintenance(env);
+        } catch (error) {
+          console.warn('SURPRISE_VOTE_MAINTENANCE_FAILED', safeError(error));
+        }
+
+        try {
+          await refreshStatus(env);
+        } catch (error) {
+          console.warn('SURPRISE_VOTE_REFRESH_FAILED', safeError(error));
+        }
+      })()
     );
   },
 };
@@ -184,6 +196,61 @@ async function publicStatus(env, ctx) {
 
   // First deploy / phase boundary with no safe snapshot: wait once for origin.
   return await refreshStatus(env);
+}
+
+async function maybeRunMaintenance(env) {
+  await ensureSchema(env);
+
+  const row = await env.DB.prepare(
+    'SELECT updated_at FROM surprise_vote_public_state WHERE key=? LIMIT 1'
+  ).bind(CFG.MAINTENANCE_KEY).first();
+
+  const lastAt = Number(row?.updated_at || 0);
+  const now = Date.now();
+  if (lastAt > 0 && now - lastAt < CFG.MAINTENANCE_INTERVAL_MS) {
+    return false;
+  }
+
+  const url = new URL(CFG.GAS_STATUS_URL);
+  url.searchParams.set('action', 'maintenance');
+  url.searchParams.set('_', String(now));
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CFG.ORIGIN_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw apiError(`MAINTENANCE_HTTP_${response.status}`, 503);
+    }
+
+    const data = await response.json();
+    if (!data || data.ok !== true) {
+      throw apiError('MAINTENANCE_INVALID', 503);
+    }
+
+    await env.DB.prepare(`
+      INSERT INTO surprise_vote_public_state(key,value,updated_at)
+      VALUES(?,?,?)
+      ON CONFLICT(key) DO UPDATE SET
+        value=excluded.value,
+        updated_at=excluded.updated_at
+    `).bind(
+      CFG.MAINTENANCE_KEY,
+      JSON.stringify({ ok: true, synced: Boolean(data.synced) }),
+      now
+    ).run();
+
+    return true;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function refreshStatus(env) {
