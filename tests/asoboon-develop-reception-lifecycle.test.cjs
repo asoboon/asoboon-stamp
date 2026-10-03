@@ -115,10 +115,10 @@ test('19:00 JST changes the operational date', () => {
   assert.equal(runtime.operationalDate(Date.parse('2026-09-23T10:00:00Z')),'2026-09-24');
 });
 
-test('LINE store-reception path is server-closed until exactly 09:30 JST', () => {
+test('LINE store-reception path is server-closed until exactly 09:25 JST', () => {
   const day={isClosed:false,closeMin:18*60};
-  assert.throws(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:29:59Z')),/WEB_NOT_OPEN_YET/);
-  assert.doesNotThrow(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:30:00Z')));
+  assert.throws(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:24:59Z')),/WEB_NOT_OPEN_YET/);
+  assert.doesNotThrow(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:25:00Z')));
 });
 
 test('TOKEN_READY notification claim is adopted by the next request after deterministic create failure', async () => {

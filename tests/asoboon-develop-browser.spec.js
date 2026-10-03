@@ -111,20 +111,20 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 });
 
-test('LINE store-reception is visible but cannot be taken before 09:30 JST', async ({ page }) => {
-  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:29:00.000Z' });
+test('LINE store-reception is visible but cannot be taken before 09:25 JST', async ({ page }) => {
+  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:24:00.000Z' });
   await page.goto(BASE, { waitUntil:'domcontentloaded' });
-  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:30から');
+  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:25から');
   await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
-  await expect(page.locator('#recStatus')).toContainText('LINE当日受付は9:30から');
+  await expect(page.locator('#recStatus')).toContainText('LINE当日受付は9:25から');
   await expect(page.locator('#recSlots')).toContainText('現地受付枠');
   await expect(page.locator('[data-rec-slot]')).toHaveCount(0);
   await expect(page.locator('#recSubmit')).toBeDisabled();
-  await expect(page.locator('#recSubmit')).toHaveText('受付は9:30から');
+  await expect(page.locator('#recSubmit')).toHaveText('受付は9:25から');
 });
 
-test('LINE store-reception opens at exactly 09:30 JST', async ({ page }) => {
-  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:30:00.000Z' });
+test('LINE store-reception opens at exactly 09:25 JST', async ({ page }) => {
+  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:25:00.000Z' });
   await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
   await expect(page.locator('[data-rec-slot="0029"]')).toHaveCount(1);
   await expect(page.locator('[data-rec-slot="0031"]')).toHaveCount(1);

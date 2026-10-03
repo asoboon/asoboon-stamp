@@ -46,11 +46,11 @@ function priceFor({adult=0,child=0,infant=0}={}){
   return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirstWhenNoPaidChild;
 }
 const RULES=Object.freeze({
-  version:'1.2.0-line-store-0930',
+  version:'1.2.1-line-store-0925',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:19,
-  lineReceptionOpen:'09:30',
-  onsiteOpen:'09:30',
+  lineReceptionOpen:'09:25',
+  onsiteOpen:'09:25',
   prices:PRICES,
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   slotRules:SLOT_RULES,

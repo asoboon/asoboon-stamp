@@ -139,12 +139,12 @@ jobs:
             grep -F '"CREATE_ENABLED": "0"' .github/workflows/deploy-miniapp-v2-develop-gateway.yml
             echo 'Developing create is safely disabled on both client and gateway deployment gates.'
           fi
-      - name: Lock LINE store reception at 09:30
+      - name: Lock LINE store reception at 09:25
         run: |
           set -euo pipefail
-          grep -F "lineReceptionOpen:'09:30'" miniapp-v2/shared/app-rules.js
-          grep -F 'WEB_OPEN_MIN: 9 * 60 + 30' miniapp-v2/backend/develop-gateway.js
-          grep -F "lineReceptionOpen: '09:30'" miniapp-v2/backend/develop-gateway.js
+          grep -F "lineReceptionOpen:'09:25'" miniapp-v2/shared/app-rules.js
+          grep -F 'WEB_OPEN_MIN: 9 * 60 + 25' miniapp-v2/backend/develop-gateway.js
+          grep -F "lineReceptionOpen: '09:25'" miniapp-v2/backend/develop-gateway.js
           grep -F 'lineReceptionUsesStoreOnly: true' miniapp-v2/backend/develop-gateway.js
           grep -F 'LINE当日受付は${lineReceptionOpenDisplay()}から' miniapp-v2/develop/home-v38.js
           grep -F 'lineReceptionOpenNow()' miniapp-v2/shared/reception.js

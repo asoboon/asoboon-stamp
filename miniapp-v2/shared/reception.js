@@ -32,9 +32,9 @@ const validPeople=()=>S.adult>=1&&S.child>=0&&S.infant>=0&&total()<=maxTotal()&&
 const fmtYen=n=>Number(n||0).toLocaleString('ja-JP')+'円';
 const fmtDate=v=>{const m=String(v||'').match(/^\d{4}-(\d{2})-(\d{2})$/);return m?`${+m[1]}月${+m[2]}日`:String(v||'')};
 function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
-function lineOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30')}
+function lineOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:25')}
 function lineOpenDisplay(){const m=lineOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineOpenClock()}
-function lineOpenMinutes(){const n=clockMinutes(lineOpenClock());return Number.isFinite(n)?n:570}
+function lineOpenMinutes(){const n=clockMinutes(lineOpenClock());return Number.isFinite(n)?n:565}
 function jstClock(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{hour:Number(p.hour),minute:Number(p.minute),second:Number(p.second)}}
 function lineReceptionOpenNow(){const n=jstClock();return n.hour*60+n.minute>=lineOpenMinutes()}
 function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),seconds=Math.max(1,(lineOpenMinutes()-(n.hour*60+n.minute))*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
@@ -42,8 +42,8 @@ function friendlyError(value){const code=String(value||'');const map={
   WAIT_TYPE_NOT_AVAILABLE:'選択した受付枠は現在利用できません。最新の受付状況を確認してください。',
   WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
   WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',
-  WEB_NOT_OPEN_YET:'LINE当日受付は9:30からです。受付開始までお待ちください。',
-  ONSITE_NOT_OPEN_YET:'現地受付は9:30からです。受付開始までお待ちください。',
+  WEB_NOT_OPEN_YET:'LINE当日受付は9:25からです。受付開始までお待ちください。',
+  ONSITE_NOT_OPEN_YET:'現地受付は9:25からです。受付開始までお待ちください。',
   RECEPTION_CLOSED_FOR_DAY:'本日の受付は終了しています。',
   CLOSED_DAY:'本日は休館日です。',
 

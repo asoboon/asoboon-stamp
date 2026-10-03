@@ -26,8 +26,8 @@ const CFG = Object.freeze({
   OPERATIONAL_CUTOFF_HOUR: 19,
   // Internal mode='web' is the LINE MINI App path. It intentionally uses
   // AirWAIT STORE_RECEPTION_ONLY waitTypes and opens with onsite reception.
-  WEB_OPEN_MIN: 9 * 60 + 30,
-  ONSITE_OPEN_MIN: 9 * 60 + 30,
+  WEB_OPEN_MIN: 9 * 60 + 25,
+  ONSITE_OPEN_MIN: 9 * 60 + 25,
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,
   REQUEST_RESULT_TTL_MS: 24 * 60 * 60 * 1000,
   WAIT_TYPES_CACHE_MS: 10 * 60 * 1000,
@@ -266,7 +266,7 @@ async function health(env) {
     allowedOrigin: CFG.ALLOWED_ORIGIN,
     browserHitsAirwait: false,
     operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
-    lineReceptionOpen: '09:30',
+    lineReceptionOpen: '09:25',
     lineReceptionUsesStoreOnly: true,
   };
 }
