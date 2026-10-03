@@ -199,6 +199,8 @@ jobs:
                   x.nativeCancelEnabled!==true ||
                   x.crowdSnapshotFallbackEnabled!==true ||
                   x.lineReceptionStoreOnly!==true ||
+                  x.lineReceptionOpen!=="09:30" ||
+                  x.lineReceptionUsesStoreOnly!==true ||
                   x.concurrencyIntegrityAuditEnabled!==true ||
                   x.concurrencyIntegrityAuditTargetClients!==300 ||
                   x.concurrencyIntegrityAuditHotPathWrites!==false ||

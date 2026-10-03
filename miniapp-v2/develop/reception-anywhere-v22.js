@@ -52,7 +52,7 @@ function patch(){
     const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
     if(slotTitle)slotTitle.hidden=false;
     const slotsBox=root.querySelector('#recSlots');if(slotsBox)slotsBox.hidden=false;
-    setText(root.querySelector('#recModeLabel'),'LINE受付');
+    setText(root.querySelector('#recModeLabel'),'LINE受付（現地受付枠）');
     return;
   }
   const test=moveTestSlot();

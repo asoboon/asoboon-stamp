@@ -14,14 +14,14 @@ async function installLiff(page, mode, fixtures = {}) {
     {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
     {waitTypeId:'0042',waitTypeName:'入場不可テスト',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}
   ];
-  await page.addInitScript(() => {
+  await page.addInitScript(iso => {
     const RealDate = Date;
-    const fixed = new RealDate('2026-09-19T03:00:00.000Z').valueOf();
+    const fixed = new RealDate(iso).valueOf();
     window.Date = class extends RealDate {
       constructor(...args) { super(...(args.length ? args : [fixed])); }
       static now() { return fixed; }
     };
-  });
+  }, fixtures.nowIso || '2026-09-19T03:00:00.000Z');
   await page.route('https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/**', async route => {
     const url = new URL(route.request().url());
     if (url.searchParams.get('action') === 'businessDay') {
@@ -111,6 +111,27 @@ test('rapid click, back/forward, focus and visibility do not lock navigation', a
   await expect(page.locator('.v35-home, .v37-home, .v38-home')).toBeVisible();
 });
 
+test('LINE store-reception is visible but cannot be taken before 09:30 JST', async ({ page }) => {
+  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:29:00.000Z' });
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:30から');
+  await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
+  await expect(page.locator('#recStatus')).toContainText('LINE当日受付は9:30から');
+  await expect(page.locator('#recSlots')).toContainText('現地受付枠');
+  await expect(page.locator('[data-rec-slot]')).toHaveCount(0);
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+  await expect(page.locator('#recSubmit')).toHaveText('受付は9:30から');
+});
+
+test('LINE store-reception opens at exactly 09:30 JST', async ({ page }) => {
+  await installLiff(page, 'authenticated', { nowIso:'2026-09-19T00:30:00.000Z' });
+  await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
+  await expect(page.locator('[data-rec-slot="0029"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0031"]')).toHaveCount(1);
+  await expect(page.locator('[data-rec-slot="0033"]')).toHaveCount(1);
+  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付（現地受付枠）');
+});
+
 test('Developing LINE reception exposes store reception slots only and no location UI', async ({ page }) => {
   await openHome(page, 'resolve');
   const rules = await page.evaluate(() => ({
@@ -132,7 +153,7 @@ test('Developing LINE reception exposes store reception slots only and no locati
   await expect(page.locator('[data-rec-slot="0030"],[data-rec-slot="0032"],[data-rec-slot="0034"]')).toHaveCount(0);
   await expect(page.locator('[data-rec-slot="0042"]')).toHaveCount(0);
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
-  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
+  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付（現地受付枠）');
 });
 
 test('regular weekday LINE reception shows store reception slots only', async ({ page }) => {
@@ -150,7 +171,7 @@ test('regular weekday LINE reception shows store reception slots only', async ({
     await expect(page.locator(`[data-rec-slot="${id}"]`)).toHaveCount(1);
   }
   await expect(page.locator('[data-rec-slot="0024"],[data-rec-slot="0027"]')).toHaveCount(0);
-  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付');
+  await expect(page.locator('#recModeLabel')).toHaveText('LINE受付（現地受付枠）');
   await expect(page.locator('#recLocation,#recLocationBtn,#recWeb,#recOnsite,.rec-methods')).toHaveCount(0);
 });
 

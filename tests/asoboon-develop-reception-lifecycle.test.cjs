@@ -11,7 +11,7 @@ before(() => {
   execFileSync(process.execPath, ['miniapp-v2/backend/prepare-develop-test-runtime.mjs']);
   let source = fs.readFileSync('develop-gateway.runtime.mjs', 'utf8');
   source = source.replace('export default {', 'globalThis.gateway = {');
-  source += '\nglobalThis.__receptionTest={SLOT_RULES,validateWaitType,operationalDate,airwaitResultError,claimRequest,finalizeRequest,requestStatus,claimUserDay,releaseUserClaim,markUserClaim};';
+  source += '\nglobalThis.__receptionTest={SLOT_RULES,validateWaitType,operationalDate,enforceReceptionHours,airwaitResultError,claimRequest,finalizeRequest,requestStatus,claimUserDay,releaseUserClaim,markUserClaim};';
   const context = { URL, URLSearchParams, Request, Response, Headers, TextEncoder, crypto, structuredClone, setTimeout, clearTimeout, console };
   vm.createContext(context);
   vm.runInContext(source, context);
@@ -113,6 +113,12 @@ test('request and user claims follow confirmed, rejected, and ambiguous lifecycl
 test('19:00 JST changes the operational date', () => {
   assert.equal(runtime.operationalDate(Date.parse('2026-09-23T09:59:59Z')),'2026-09-23');
   assert.equal(runtime.operationalDate(Date.parse('2026-09-23T10:00:00Z')),'2026-09-24');
+});
+
+test('LINE store-reception path is server-closed until exactly 09:30 JST', () => {
+  const day={isClosed:false,closeMin:18*60};
+  assert.throws(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:29:59Z')),/WEB_NOT_OPEN_YET/);
+  assert.doesNotThrow(()=>runtime.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-03T00:30:00Z')));
 });
 
 test('TOKEN_READY notification claim is adopted by the next request after deterministic create failure', async () => {

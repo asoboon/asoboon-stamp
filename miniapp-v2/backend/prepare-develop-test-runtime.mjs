@@ -39,8 +39,8 @@ replaceOnce(
 );
 
 replaceOnce(
-  "function enforceReceptionHours(day, mode) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);",
-  "function enforceReceptionHours(day, mode, waitTypeId) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);"
+  "function enforceReceptionHours(day, mode, epoch = Date.now()) {\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);",
+  "function enforceReceptionHours(day, mode, waitTypeId, epoch = Date.now()) {\n  if (waitTypeId === CFG.DEVELOP_TEST_WAIT_TYPE_ID) return;\n  if (day.isClosed) throw apiError('CLOSED_DAY', 400);"
 );
 
 replaceOnce(

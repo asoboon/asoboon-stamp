@@ -24,7 +24,9 @@ const CFG = Object.freeze({
   STORE_NO: 'AKR2298124918',
   TZ: 'Asia/Tokyo',
   OPERATIONAL_CUTOFF_HOUR: 19,
-  WEB_OPEN_MIN: 7 * 60,
+  // Internal mode='web' is the LINE MINI App path. It intentionally uses
+  // AirWAIT STORE_RECEPTION_ONLY waitTypes and opens with onsite reception.
+  WEB_OPEN_MIN: 9 * 60 + 30,
   ONSITE_OPEN_MIN: 9 * 60 + 30,
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,
   REQUEST_RESULT_TTL_MS: 24 * 60 * 60 * 1000,
@@ -264,6 +266,8 @@ async function health(env) {
     allowedOrigin: CFG.ALLOWED_ORIGIN,
     browserHitsAirwait: false,
     operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
+    lineReceptionOpen: '09:30',
+    lineReceptionUsesStoreOnly: true,
   };
 }
 
@@ -329,9 +333,9 @@ async function getBusinessDay(date) {
   return { operationalDate: date, businessType: type, ...rule };
 }
 
-function enforceReceptionHours(day, mode) {
+function enforceReceptionHours(day, mode, epoch = Date.now()) {
   if (day.isClosed) throw apiError('CLOSED_DAY', 400);
-  const min = currentMinute();
+  const min = currentMinute(epoch);
   const open = mode === 'onsite' ? CFG.ONSITE_OPEN_MIN : CFG.WEB_OPEN_MIN;
   if (min < open) throw apiError(mode === 'onsite' ? 'ONSITE_NOT_OPEN_YET' : 'WEB_NOT_OPEN_YET', 400);
   if (min >= Number(day.closeMin || 0)) throw apiError('RECEPTION_CLOSED_FOR_DAY', 400);
