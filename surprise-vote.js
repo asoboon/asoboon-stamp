@@ -106,6 +106,7 @@
     voterKey: '',
     voterKeyPromise: null,
     identityReady: false,
+    freshIdentity: false,
     bootstrappedFromCache: false,
     statusRetryTimer: null,
     statusRetryCount: 0,
@@ -827,10 +828,12 @@
     try {
       value = localStorage.getItem(key) || '';
       if (!value) {
+        state.freshIdentity = true;
         value = requestId();
         localStorage.setItem(key, value);
       }
     } catch (_) {
+      state.freshIdentity = true;
       value = requestId();
     }
     return value;
@@ -840,7 +843,10 @@
     if (DEMO) return 'demo-voter';
 
     const sessionKey = readSessionVoterKey();
-    if (sessionKey) return sessionKey;
+    if (sessionKey) {
+      state.freshIdentity = false;
+      return sessionKey;
+    }
 
     // Embedded inside HOME: do not initialize the legacy stamp LIFF.
     // This avoids LIFF-to-LIFF transitions and uses the stable device guest key.
@@ -2156,8 +2162,30 @@
           applyStatus(data, previewInitial);
         }
 
+        if (keepPersonalView && !force) {
+          return;
+        }
+
         try {
           const voterKey = await ensureVoterKey();
+
+          if (EMBEDDED && state.freshIdentity) {
+            state.freshIdentity = false;
+            state.identityReady = true;
+            state.statusRetryCount = 0;
+            clearTimeout(state.statusRetryTimer);
+            state.serverAlloc = {};
+            state.alloc = {};
+            state.used = 0;
+            state.remaining = Number(CFG.MAX_POINTS || 100);
+            state.dirty = false;
+            state.pendingTaps = 0;
+            recalcLocalTotals();
+            renderVote(false);
+            setSync('投票できます');
+            return;
+          }
+
           const personalParams = {
             action: 'status',
             voterKey
@@ -2659,17 +2687,6 @@
         await refreshStatus(true);
       }
 
-      if (!DEMO) {
-        setTimeout(() => {
-          jsonp({ action: 'maintenance' })
-            .then(data => {
-              if (data?.ok === true && data?.synced === true) {
-                setTimeout(() => refreshStatus(false).catch(() => {}), 180);
-              }
-            })
-            .catch(() => {});
-        }, 1000);
-      }
     } catch (error) {
       const message = String(error?.message || error || '');
       const configurationFailure = /投票APIが未設定|設定されていません/.test(message);
