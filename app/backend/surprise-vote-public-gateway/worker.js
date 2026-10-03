@@ -45,7 +45,7 @@ export default {
         });
       }
 
-      if (action === 'status') {
+      if (action === 'status' || action === 'surpriseVotePublicStatus') {
         return json(request, await publicStatus(env, ctx));
       }
 
