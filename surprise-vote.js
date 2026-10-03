@@ -2131,15 +2131,30 @@
         data?.mode === 'voting' || data?.mode === 'settling';
 
       if (votingMode) {
-        // Always paint the public event first. A slow personal GAS lookup must
-        // never replace an already-usable screen with a server error.
-        state.identityReady = false;
+        // Background public refreshes must never overwrite the already-known
+        // personal allocation. Otherwise the remaining ASOBooN briefly jumps
+        // back to 100 until the personal GAS response arrives.
+        const keepPersonalView =
+          data?.mode === 'voting' &&
+          state.mode === 'vote' &&
+          state.identityReady &&
+          String(state.event?.id || '') === String(data?.event?.id || '');
+
         const previewInitial =
           force ||
           state.mode === 'loading' ||
           state.event?.id !== data?.event?.id;
+
         state.lastStatusAt = Date.now();
-        applyStatus(data, previewInitial);
+
+        if (keepPersonalView) {
+          state.event = data.event;
+          applyDayEvents(data);
+          updateCountdown();
+        } else {
+          state.identityReady = false;
+          applyStatus(data, previewInitial);
+        }
 
         try {
           const voterKey = await ensureVoterKey();
@@ -2164,8 +2179,10 @@
             force || state.event?.id !== personal?.event?.id
           );
         } catch (_) {
-          state.identityReady = false;
-          setSync('投票状況を確認中です。画面はそのままでOKです');
+          if (!keepPersonalView) {
+            state.identityReady = false;
+            setSync('投票状況を確認中です。画面はそのままでOKです');
+          }
           scheduleStatusRetry(1200);
         }
         return;
