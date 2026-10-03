@@ -134,3 +134,61 @@ jobs:
           '
           echo "Warm status response: ${ELAPSED}ms"
           test "$ELAPSED" -lt 5000
+
+      - name: 100 concurrent public status smoke
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          node <<'NODE'
+          const total = 100;
+          const base = process.env.WORKER_URL;
+          const started = Date.now();
+
+          const results = await Promise.all(
+            Array.from({ length: total }, async (_, index) => {
+              const t0 = performance.now();
+              try {
+                const response = await fetch(
+                  base + '/?action=surpriseVotePublicStatus&_=load-' + Date.now() + '-' + index,
+                  {
+                    headers: { Origin: 'https://asoboon.github.io', Accept: 'application/json' },
+                    cache: 'no-store'
+                  }
+                );
+                const data = await response.json();
+                return {
+                  ok: response.status === 200 && data?.ok === true && Boolean(data?.mode),
+                  status: response.status,
+                  ms: performance.now() - t0
+                };
+              } catch (error) {
+                return { ok: false, status: 0, ms: performance.now() - t0, error: String(error) };
+              }
+            })
+          );
+
+          const times = results.map(item => item.ms).sort((a, b) => a - b);
+          const failed = results.filter(item => !item.ok);
+          const p50 = times[Math.floor(times.length * 0.50)];
+          const p95 = times[Math.min(times.length - 1, Math.floor(times.length * 0.95))];
+          const max = times[times.length - 1];
+
+          console.log(JSON.stringify({
+            total,
+            success: total - failed.length,
+            failed: failed.length,
+            wallMs: Date.now() - started,
+            p50Ms: Math.round(p50),
+            p95Ms: Math.round(p95),
+            maxMs: Math.round(max)
+          }));
+
+          if (failed.length) {
+            console.error(failed.slice(0, 5));
+            process.exit(1);
+          }
+
+          if (p95 > 5000) {
+            console.error('p95 too slow:', p95);
+            process.exit(1);
+          }
+          NODE
