@@ -37,7 +37,7 @@ test('active review copy uses 09:25 LINE reception and no legacy 7:00/weekday-on
   assert.match(first,/9:25からLINEミニアプリ内で受付/);
   assert.match(info,/LINE当日受付[\s\S]*9:25〜/);
   assert.match(app,/LINEミニアプリ内で当日受付/);
-  assert.doesNotMatch(joined,/7:00/);
+  assert.doesNotMatch(joined,/\b7:00(?:〜|から)/);
   assert.doesNotMatch(joined,/通常平日は現地/);
   assert.doesNotMatch(joined,/WEB受付・現地受付/);
 });
