@@ -6,7 +6,7 @@
 (()=>{'use strict';
 window.ASOBOON_V2_ENV=Object.freeze({
   environment:'production',
-  environmentLabel:'PRODUCTION PREVIEW',
+  environmentLabel:'OFFICIAL',
   storageNamespace:'production',
   channelId:'2009888671',
   liffId:'2009888671-57TOefc3',
@@ -15,6 +15,12 @@ window.ASOBOON_V2_ENV=Object.freeze({
   backendUrl:'',
   backendEnvironment:'official-production',
   lineStoreOnly:true,
+  officialHome:true,
+  operationalFallbacks:Object.freeze({
+    enabled:true,
+    receptionUrl:'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
+    callstatusUrl:'../../callstatus.html'
+  }),
   featureFlags:Object.freeze({
     reception:true,
     receptionCreate:false,
