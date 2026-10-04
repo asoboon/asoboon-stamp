@@ -3,7 +3,7 @@ const root=document.getElementById('app');
 if(!root)return;
 
 const ENV=window.ASOBOON_V2_ENV||{};
-const STATUS_CACHE_KEY='asoboon-surprise-status-cache-v1';
+const STATUS_CACHE_KEY='asoboon-surprise-status-cache-production-v1';
 const VOTE_PAGE_URL='./surprise-vote.html?v=20261002-13';
 let warmStarted=false;
 let statusWarmPromise=null;
