@@ -1,7 +1,10 @@
 /* ASOBooN LINE MINI App v2 / Developing play-time guide */
 (()=>{'use strict';
-const VERSION='1.0.1';
+const VERSION='1.1.0';
+const E=window.ASOBOON_V2_ENV||{};
 const D=window.ASOBOON_V2_BUSINESS_DAY||{};
+const STORAGE_NS=String(E.storageNamespace||E.environment||'develop').replace(/[^A-Za-z0-9_-]/g,'_');
+const HOME_RESULT_KEY=`asoboon_v2_timeguide_${STORAGE_NS}_v1`;
 const OPENING_TIME='10:00';
 let generation=0;
 const $=id=>document.getElementById(id);
@@ -26,6 +29,29 @@ function currentJst(){
   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
   return {date:`${parts.year}-${parts.month}-${parts.day}`,minutes:Number(parts.hour)*60+Number(parts.minute)};
 }
+function readSaved(day){
+  try{
+    const x=JSON.parse(localStorage.getItem(HOME_RESULT_KEY)||'null');
+    if(!x||String(x.businessDate||'')!==String(day?.operationalDate||''))return null;
+    const entry=String(x.entryTime||'');
+    return Number.isFinite(parseClock(entry))?x:null;
+  }catch{return null}
+}
+function saveForHome(day,inputValue,calc){
+  if(!day?.operationalDate||!calc?.ok)return;
+  const value={
+    businessDate:String(day.operationalDate),
+    entryTime:String(inputValue||''),
+    endTime:String(calc.endTime||''),
+    durationLabel:String(day.durationLabel||''),
+    closingTime:String(day.closingTime||''),
+    unlimited:Boolean(calc.unlimited),
+    limitedByClose:Boolean(calc.limitedByClose),
+    savedAt:Date.now()
+  };
+  try{localStorage.setItem(HOME_RESULT_KEY,JSON.stringify(value))}catch{}
+  window.dispatchEvent(new CustomEvent('asoboon:v2-timeguide-updated',{detail:value}));
+}
 function defaultEntry(day){
   const open=parseClock(OPENING_TIME),close=parseClock(day?.closingTime),now=currentJst();
   if(day?.operationalDate===now.date&&Number.isFinite(close)&&now.minutes>=open&&now.minutes<close){
@@ -49,7 +75,7 @@ function calculation(day,entryValue){
   return {ok:true,entry,close,duration,unlimited,end,endTime:formatClock(end),limitedByClose:!unlimited&&entry+duration>close};
 }
 
-function render(){return `<section class="page-card tg-page"><div class="page-head green"><small>PLAY TIME / DEVELOPING</small><h2>何時まであそべる？</h2></div><div class="page-body tg-body">
+function render(){return `<section class="page-card tg-page"><div class="page-head green"><small>PLAY TIME</small><h2>何時まであそべる？</h2></div><div class="page-body tg-body">
 <div id="tgStatus" class="tg-status loading"><span>営業カレンダーを確認しています…</span></div>
 <div id="tgDay" class="tg-day"><div><small>本日の営業</small><strong>確認中</strong></div><b>—</b></div>
 <label class="tg-input"><span>入場した時刻</span><input id="tgEntry" type="time" step="300" value="10:00" disabled></label>
@@ -64,14 +90,14 @@ function setStatus(text,kind='loading'){
   el.className=`tg-status ${kind}`;el.innerHTML=`<span>${String(text||'')}</span>`;
 }
 function renderCalculation(day){
-  const input=$('tgEntry'),result=$('tgResult');if(!input||!result)return;
+  const input=$('tgEntry'),result=$('tgResult');if(!input||!result)return null;
   const calc=calculation(day,input.value);
   if(!calc.ok){
     result.className='tg-result '+(calc.closed?'closed':'warn');
     result.querySelector('small').textContent=calc.closed?'本日の営業':'入力を確認してください';
     result.querySelector('strong').textContent=calc.closed?'休館日':'—';
     result.querySelector('p').textContent=calc.message;
-    return;
+    return calc;
   }
   result.className='tg-result ready';
   result.querySelector('small').textContent='利用終了の目安';
@@ -83,6 +109,7 @@ function renderCalculation(day){
   }else{
     result.querySelector('p').textContent=`${input.value}に入場した場合、${day.durationLabel}後の${calc.endTime}が終了目安です。`;
   }
+  return calc;
 }
 async function loadDay({force=false}={}){
   const gen=generation;
@@ -96,7 +123,7 @@ async function loadDay({force=false}={}){
     dayEl.innerHTML=`<div><small>${formatDate(day.operationalDate)} の営業</small><strong>${day.businessType}</strong></div><b>${day.isClosed?'休館':day.durationLabel}</b>`;
     if($('tgDuration'))$('tgDuration').textContent=day.isClosed?'—':day.durationLabel;
     if($('tgClose'))$('tgClose').textContent=day.closingTime||'—';
-    const input=$('tgEntry');input.disabled=Boolean(day.isClosed);input.value=defaultEntry(day);
+    const input=$('tgEntry');input.disabled=Boolean(day.isClosed);const saved=readSaved(day);input.value=saved?.entryTime||defaultEntry(day);
     window.__ASOBOON_V2_TIMEGUIDE_DAY=day;
     if(day.isClosed)setStatus('本日は休館日です。','closed');
     else setStatus('営業カレンダーから本日の利用時間を確認しました。','ok');
@@ -115,11 +142,16 @@ async function loadDay({force=false}={}){
 }
 function mount(){
   generation+=1;
-  $('tgEntry')?.addEventListener('input',()=>renderCalculation(window.__ASOBOON_V2_TIMEGUIDE_DAY));
+  $('tgEntry')?.addEventListener('input',()=>{
+    const day=window.__ASOBOON_V2_TIMEGUIDE_DAY;
+    const calc=renderCalculation(day);
+    const input=$('tgEntry');
+    if(calc?.ok&&input)saveForHome(day,input.value,calc);
+  });
   $('tgReload')?.addEventListener('click',()=>void loadDay({force:true}));
   void loadDay({force:true});
 }
 function unmount(){generation+=1;window.__ASOBOON_V2_TIMEGUIDE_DAY=null}
 
-window.ASOBOON_V2_TIMEGUIDE=Object.freeze({version:VERSION,render,mount,unmount,calculate:calculation});
+window.ASOBOON_V2_TIMEGUIDE=Object.freeze({version:VERSION,render,mount,unmount,calculate:calculation,storageKey:HOME_RESULT_KEY});
 })();
