@@ -51,6 +51,8 @@ jobs:
         run: node --test tests/asoboon-production-security.test.mjs
       - name: HOME layout and timeguide reflection regression
         run: node --test tests/asoboon-home-layout-timeguide.test.mjs
+      - name: Official HOME cutover regression
+        run: node --test tests/asoboon-home-cutover.test.mjs
       - name: Lock reserveId-based identity rules
         run: |
           set -euo pipefail
