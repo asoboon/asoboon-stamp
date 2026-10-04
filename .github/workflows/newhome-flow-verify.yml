@@ -237,22 +237,25 @@ jobs:
           grep -F 'const wt = await getWaitTypesForCreate(env);' develop-gateway.runtime.mjs
           grep -F 'getWaitTypes(env, { force:true })' develop-gateway.runtime.mjs
 
-      - name: AirWAIT create errors must preserve structured result codes
+      - name: AirWAIT create errors must fail closed unless explicitly allowlisted
         run: |
           set -euo pipefail
-          grep -F "const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';" miniapp-v2/backend/develop-gateway.js
-          grep -F "throw airwaitResultError(resultCode, { httpStatus:res.status, message:airwaitResultMessage(d) });" miniapp-v2/backend/develop-gateway.js
-          grep -F 'AIRWAIT_CREATE_HTTP_' miniapp-v2/backend/develop-gateway.js
-          grep -F '_RC_' miniapp-v2/backend/develop-gateway.js
+          grep -F "const DEFINITIVE_CREATE_REJECTION_CODES = new Set([" miniapp-v2/backend/develop-gateway.js
+          grep -F "function classifyAirwaitCreateResult(responseOk, httpStatus, d)" miniapp-v2/backend/develop-gateway.js
+          grep -F "if (createOutcome.kind === 'REJECTED')" miniapp-v2/backend/develop-gateway.js
+          grep -F "AIRWAIT_CREATE_RESULT_AMBIGUOUS_MANUAL_REVIEW" miniapp-v2/backend/develop-gateway.js
+          grep -F "await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');" miniapp-v2/backend/develop-gateway.js
           grep -F "'1000': 'AIRWAIT_INPUT_ERROR'" miniapp-v2/backend/develop-gateway.js
           grep -F "'3201': 'AIRWAIT_UNREGISTERED_DATA'" miniapp-v2/backend/develop-gateway.js
-          grep -F "'3509': 'AIRWAIT_PRINTER_NOT_FOUND'" miniapp-v2/backend/develop-gateway.js
+          ! grep -Fq "'9999': 'AIRWAIT_SYSTEM_ERROR'" miniapp-v2/backend/develop-gateway.js
+          ! grep -Fq "'3509': 'AIRWAIT_PRINTER_NOT_FOUND'" miniapp-v2/backend/develop-gateway.js
           grep -F "STORE_NO: 'AKR2298124918'" miniapp-v2/backend/develop-gateway.js
           grep -F "resultCode === '3201'" miniapp-v2/backend/develop-gateway.js
           grep -F "storeNo: CFG.STORE_NO" miniapp-v2/backend/develop-gateway.js
           grep -F "createIdentifier: usedStoreNoFallback ? 'storeNo-fallback' : 'storeId'" miniapp-v2/backend/develop-gateway.js
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
-          grep -F "const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';" develop-gateway.runtime.mjs
+          grep -F "const DEFINITIVE_CREATE_REJECTION_CODES = new Set([" develop-gateway.runtime.mjs
+          grep -F "AIRWAIT_CREATE_RESULT_AMBIGUOUS_MANUAL_REVIEW" develop-gateway.runtime.mjs
           grep -F "STORE_NO: 'AKR2298124918'" develop-gateway.runtime.mjs
           grep -F "storeNo: CFG.STORE_NO" develop-gateway.runtime.mjs
 
