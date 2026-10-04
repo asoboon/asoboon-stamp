@@ -82,12 +82,16 @@ test('0042 is a Developing-only exception while customer slots still enforce ava
   assert.throws(()=>runtime.validateWaitType([],{businessType:'土日祝日'},'web','0029'),/WAIT_TYPE_NOT_AVAILABLE/);
 });
 
-test('AirWAIT structured errors are deterministic while unknown create results stay ambiguous', () => {
+test('AirWAIT create retries use an explicit deterministic allowlist and unknown results stay ambiguous', () => {
   const deterministic=runtime.airwaitResultError('3537');
   assert.equal(deterministic.message,'AIRWAIT_RECEPTION_ENDED');
   assert.equal(deterministic.ambiguous,false);
   const source=fs.readFileSync('develop-gateway.runtime.mjs','utf8');
-  assert.match(source,/hasDefinitiveAirwaitError/);
+  assert.match(source,/DEFINITIVE_CREATE_REJECTION_CODES/);
+  assert.match(source,/classifyAirwaitCreateResult/);
+  assert.match(source,/'3537'/);
+  assert.doesNotMatch(source,/DEFINITIVE_CREATE_REJECTION_CODES[\\s\\S]{0,250}'9999'/);
+  assert.match(source,/AIRWAIT_CREATE_RESULT_AMBIGUOUS_MANUAL_REVIEW/);
   assert.match(source,/AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW/);
   assert.match(source,/AIRWAIT_CREATE_200_RESULT_AMBIGUOUS_MANUAL_REVIEW/);
 });
