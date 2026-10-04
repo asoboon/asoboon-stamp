@@ -5,6 +5,7 @@ on:
       - 'miniapp-v2/**'
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
+      - 'tests/asoboon-production-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -13,6 +14,7 @@ on:
       - 'miniapp-v2/**'
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
+      - 'tests/asoboon-production-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -43,6 +45,8 @@ jobs:
 
       - name: Developing 320-client concurrency regression
         run: node --test tests/asoboon-develop-concurrency.test.mjs
+      - name: Production security hardening regression
+        run: node --test tests/asoboon-production-security.test.mjs
       - name: Lock reserveId-based identity rules
         run: |
           set -euo pipefail
@@ -140,9 +144,13 @@ jobs:
           grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
           grep -F "CHANNEL_ID: '2009888671'" miniapp-v2/backend/production-gateway.js
           grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
-          ! grep -R -n -F '_develop_v1' miniapp-v2/production
-          ! grep -R -n -F '2009884611' miniapp-v2/production
-          ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production
+          ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js
+          ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js
+          ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production miniapp-v2/backend/production-gateway.js
+          ! grep -n -F 'DEVELOP_TEST_SLOT_ID' miniapp-v2/backend/production-gateway.js
+          ! grep -n -E "['\"]0042['\"]" miniapp-v2/backend/production-gateway.js
+          grep -F 'API_URL: ""' miniapp-v2/production/surprise-vote-config.js
+          grep -F 'LIFF_ID: "2009888671-57TOefc3"' miniapp-v2/production/surprise-vote-config.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/callstatus.js
       - name: Confirm controlled create gate pairing
@@ -166,7 +174,9 @@ jobs:
           set -euo pipefail
           grep -F "lineReceptionOpen:'09:25'" miniapp-v2/shared/app-rules.js
           grep -F 'WEB_OPEN_MIN: 9 * 60 + 25' miniapp-v2/backend/develop-gateway.js
+          grep -F 'WEB_OPEN_MIN: 9 * 60 + 25' miniapp-v2/backend/production-gateway.js
           grep -F "lineReceptionOpen: '09:25'" miniapp-v2/backend/develop-gateway.js
+          grep -F "lineReceptionOpen: '09:25'" miniapp-v2/backend/production-gateway.js
           grep -F 'lineReceptionUsesStoreOnly: true' miniapp-v2/backend/develop-gateway.js
           grep -F 'LINE当日受付は${lineReceptionOpenDisplay()}から' miniapp-v2/develop/home-v38.js
           grep -F 'lineReceptionOpenNow()' miniapp-v2/shared/reception.js
