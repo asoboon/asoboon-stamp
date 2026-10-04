@@ -3,7 +3,7 @@ const base=window.ASOBOON_V2_BUSINESS_DAY;
 if(!base||typeof base.getByDate!=='function')return;
 const TZ='Asia/Tokyo';
 const CUTOFF_HOUR=19;
-const CACHE_KEY='asoboon_miniapp_v2_business_day_v1';
+const CACHE_KEY='asoboon_miniapp_v2_business_day_production_v1';
 const FRESH_CACHE_MS=30*60*1000;
 const STALE_CACHE_MS=12*60*60*1000;
 const PRIMARY_WAIT_MS=5600;
@@ -29,20 +29,20 @@ function normalizePayload(payload,date,source){
   if(!rule)throw Error(`BUSINESS_DAY_TYPE_INVALID:${type||'(empty)'}`);
   const returned=normalizeDate(payload.operationalDate||payload.calendarDate||date);
   if(returned!==date)throw Error('BUSINESS_DAY_DATE_MISMATCH');
-  return Object.freeze({ok:true,version:String(base.version||'')+'+develop-cutoff19-v26',source,operationalDate:date,businessType:String(rule.businessType||type),isClosed:Boolean(rule.isClosed),durationMinutes:rule.durationMinutes,durationLabel:String(rule.durationLabel||''),closingTime:rule.closingTime??null,note:String(payload.note||''),weekday:String(payload.weekday||'')});
+  return Object.freeze({ok:true,version:String(base.version||'')+'+production-cutoff19-v26',source,operationalDate:date,businessType:String(rule.businessType||type),isClosed:Boolean(rule.isClosed),durationMinutes:rule.durationMinutes,durationLabel:String(rule.durationLabel||''),closingTime:rule.closingTime??null,note:String(payload.note||''),weekday:String(payload.weekday||'')});
 }
 function readCache(date,maxAge){
   try{
     const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'),v=x?.[date],savedAt=Number(v?.savedAt||0);
     if(!v||!savedAt||Date.now()-savedAt>maxAge)return null;
-    return normalizePayload(v.payload,date,maxAge>FRESH_CACHE_MS?'develop-stale-cache':'develop-cache');
+    return normalizePayload(v.payload,date,maxAge>FRESH_CACHE_MS?'production-stale-cache':'production-cache');
   }catch{return null}
 }
 function writeCache(date,payload){
   try{const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');x[date]={savedAt:Date.now(),payload};localStorage.setItem(CACHE_KEY,JSON.stringify(x))}catch{}
 }
 function remember(result){if(result?.ok){lastGood=result;lastGoodAt=Date.now()}return result}
-function memoryFallback(date){return lastGood?.ok&&String(lastGood.operationalDate||'')===date&&Date.now()-lastGoodAt<=FRESH_CACHE_MS?Object.freeze({...lastGood,source:'develop-memory-fallback'}):null}
+function memoryFallback(date){return lastGood?.ok&&String(lastGood.operationalDate||'')===date&&Date.now()-lastGoodAt<=FRESH_CACHE_MS?Object.freeze({...lastGood,source:'production-memory-fallback'}):null}
 function fetchJsonp(date){
   return new Promise((resolve,reject)=>{
     const api=String(base.apiUrl||'').trim();if(!/^https:\/\//.test(api)){reject(Error('BUSINESS_DAY_JSONP_UNAVAILABLE'));return}
@@ -54,7 +54,7 @@ function fetchJsonp(date){
   });
 }
 async function rescue(date){
-  const payload=await fetchJsonp(date),result=normalizePayload(payload,date,'develop-jsonp-rescue');writeCache(date,payload);return remember(result);
+  const payload=await fetchJsonp(date),result=normalizePayload(payload,date,'production-jsonp-rescue');writeCache(date,payload);return remember(result);
 }
 async function getByDate(value,options={}){
   const date=normalizeDate(value);if(!date)throw Error('BUSINESS_DAY_DATE_INVALID');
@@ -72,5 +72,5 @@ async function getByDate(value,options={}){
   }
 }
 async function getCurrent(options={}){return getByDate(operationalDate(),options)}
-window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+develop-cutoff19-v26',cutoffHour:CUTOFF_HOUR,operationalDate,getCurrent,getByDate});
+window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+production-cutoff19-v26',cutoffHour:CUTOFF_HOUR,operationalDate,getCurrent,getByDate});
 })();
