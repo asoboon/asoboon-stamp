@@ -147,13 +147,13 @@ test('board build marker matches runtime and stale builds are detected without r
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261004-call-signature-final-v9');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-call-signature-final-v9'");
+  expect(buildFile.version).toBe('20261004-brand-logo-green-v10');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-brand-logo-green-v10'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=34');
+  expect(indexHtml).toContain('board.css?v=35');
   expect(indexHtml).toContain('board-animations.js?v=33');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
-  expect(indexHtml).toContain('board.js?v=31');
+  expect(indexHtml).toContain('board.js?v=32');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
