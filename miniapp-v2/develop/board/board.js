@@ -3,6 +3,8 @@ const E=window.ASOBOON_V2_ENV||{};
 const FX=window.ASOBOON_BOARD_ANIMATIONS||null;
 const IDLE=window.ASOBOON_BOARD_IDLE_EVENTS||null;
 const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
+// Waiting-time show v2 drives idle entertainment; the legacy director remains loaded as fallback.
+const SHOW=window.ASOBOON_BOARD_SHOW||null;
 const REFRESH_MS=10000;
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
@@ -193,6 +195,7 @@ function updateDiagnostics(context,data){
   ].join(' / ');
 }
 function renderStaticBoard(context,data){
+  SHOW?.suspend(context?.phase||'inactive');
   if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
   state.rows=[];state.lastColumns=0;
   updateLiveCaption();
@@ -263,13 +266,13 @@ function renderPayload(data){
     rows:allRows,
     previousFrame,
     grid,
-    onBeforeRealChange:()=>{if(DIRECTOR?.onRealChange)DIRECTOR.onRealChange();else IDLE?.onRealChange?.()},
+    onBeforeRealChange:()=>{SHOW?.onRealChange();if(DIRECTOR?.onRealChange)DIRECTOR.onRealChange();else IDLE?.onRealChange?.()},
   })||{baseline:false,dataChangeCount:0};
 
   if(observation.baseline){
-    if(DIRECTOR?.onBaseline)DIRECTOR.onBaseline();else IDLE?.onBaseline?.();
+    if(SHOW)SHOW.onBaseline();else if(DIRECTOR?.onBaseline)DIRECTOR.onBaseline();else IDLE?.onBaseline?.();
   }else if(Number(observation.dataChangeCount||0)===0){
-    if(DIRECTOR?.onStableUpdate)void DIRECTOR.onStableUpdate({grid});else void IDLE?.onStableUpdate?.({grid});
+    if(SHOW)void SHOW.onStableUpdate({grid});else if(DIRECTOR?.onStableUpdate)void DIRECTOR.onStableUpdate({grid});else void IDLE?.onStableUpdate?.({grid});
   }
 
   state.lastGoodAt=Date.now();
@@ -291,6 +294,7 @@ async function fetchBoard(){
     if(!r.ok||d?.ok!==true)throw Error(String(d?.error||'呼出状況を取得できません'));
     renderPayload(d);
   }catch(e){
+    SHOW?.onCommunicationError();
     if(DIRECTOR?.onCommunicationError)DIRECTOR.onCommunicationError();else IDLE?.onCommunicationError?.();
     let recoveredFromCache=false;
     if(!state.lastGoodAt){
