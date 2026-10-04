@@ -3,7 +3,7 @@
  * Review-only simulation. Verifies Review LIFF identity and NEVER writes AirWAIT.
  */
 const CFG=Object.freeze({
-  VERSION:'1.0.review-sim',ENVIRONMENT:'official-review',CHANNEL_ID:'2009884613',
+  VERSION:'1.0.review-sim',ENVIRONMENT:'official-review',CHANNEL_ID:'2009884612',
   ALLOWED_ORIGIN:'https://asoboon.github.io',DEVELOP_PUBLIC:'https://asoboon-miniapp-v2-develop-gateway.asoboon425.workers.dev/',
   LINE_VERIFY:'https://api.line.me/oauth2/v2.1/verify',LINE_PROFILE:'https://api.line.me/v2/profile',
   SESSION_TTL_MS:2*60*60*1000,REQUEST_TTL_MS:24*60*60*1000
