@@ -16,7 +16,7 @@
  */
 
 const CFG = Object.freeze({
-  VERSION: '1.1.dev-security1',
+  VERSION: '1.0.dev1',
   ENVIRONMENT: 'official-develop',
   CHANNEL_ID: '2009884611',
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
