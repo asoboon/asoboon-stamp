@@ -16,10 +16,10 @@ async function getCurrent(options={}){
     if(r?.ok){lastGood=r;lastGoodAt=Date.now()}
     return r;
   }catch(err){
-    if(lastGood?.ok&&Date.now()-lastGoodAt<=MAX_FALLBACK_AGE)return Object.freeze({...lastGood,source:'develop-fallback'});
+    if(lastGood?.ok&&Date.now()-lastGoodAt<=MAX_FALLBACK_AGE)return Object.freeze({...lastGood,source:'production-fallback'});
     try{
       const cached=await base.getCurrent({force:false});
-      if(cached?.ok){lastGood=cached;lastGoodAt=Date.now();return Object.freeze({...cached,source:'develop-cache-fallback'})}
+      if(cached?.ok){lastGood=cached;lastGoodAt=Date.now();return Object.freeze({...cached,source:'production-cache-fallback'})}
     }catch{}
     throw err;
   }
@@ -30,5 +30,5 @@ async function getByDate(value,options={}){
   try{return await Promise.race([base.getByDate(value,{force:true}),sleep(3500)])}
   catch(err){return base.getByDate(value,{force:false}).catch(()=>{throw err})}
 }
-window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+develop-resilience-v23',getCurrent,getByDate});
+window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+production-resilience-v23',getCurrent,getByDate});
 })();
