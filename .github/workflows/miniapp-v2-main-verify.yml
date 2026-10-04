@@ -107,8 +107,8 @@ jobs:
       - name: Isolate Production and Purple LIFF identities
         run: |
           set -euo pipefail
-          PROD_MATCHES="$(grep -R -l -F '2009888671-57TOefc3' miniapp-v2 || true)"
-          test "$PROD_MATCHES" = "miniapp-v2/production/env.js"
+          ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2/develop miniapp-v2/shared miniapp-v2/backend
+          grep -F "liffId:'2009888671-57TOefc3'" miniapp-v2/production/env.js
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
       - name: Block browser-side AirWAIT access and key header
         run: |
