@@ -429,7 +429,7 @@ async function playStatusAnimation({number,numbers,fromStatus,toStatus,element,f
   }
 }
 
-function stageFxLayer(){function stageFxLayer(){
+function stageFxLayer(){
   let layer=document.getElementById('boardFxLayer');
   if(layer)return layer;
   layer=document.createElement('div');
@@ -787,7 +787,7 @@ function specialNumberTakeover(numbers,kind='call',{duration,stableMs}={}){
   return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true})
     .finally(()=>el.remove());
 }
-function pachinkoBurst(kind,rect,{duration=1150}={}){function pachinkoBurst(kind,rect,{duration=1150}={}){
+function pachinkoBurst(kind,rect,{duration=1150}={}){
   if(effectiveLevel()===0||!rect)return Promise.resolve();
   M?.requestVisual?.('secondary',{priority:'essential'});
   const el=document.createElement('div');
