@@ -82,13 +82,13 @@ body{
   align-self:center;
   padding:10px 14px 9px;
   border-radius:14px;
-  background:var(--asoboon-orange);
+  background:var(--sign-green-2);
   color:#fff;
   font-size:30px;
   line-height:1;
   font-weight:950;
   letter-spacing:-.045em;
-  box-shadow:0 6px 16px rgba(255,109,31,.28);
+  box-shadow:0 6px 16px rgba(37,131,86,.32);
 }
 .board-name{
   align-self:end;
