@@ -991,7 +991,7 @@ function callCharge(focusRect,{duration=400}={}){
   ],{duration:duration-i*70,delay:i*70,easing:'cubic-bezier(.5,0,.9,.4)',fill:'both',rawTiming:true}));
   return Promise.all(jobs).finally(()=>el.remove());
 }
-function pachinkoBurst(kind,rect,{duration=1150,delay=0}={}){function pachinkoBurst(kind,rect,{duration=1150}={}){
+function pachinkoBurst(kind,rect,{duration=1150,delay=0}={}){
   if(effectiveLevel()===0||!rect)return Promise.resolve();
   M?.requestVisual?.('secondary',{priority:'essential'});
   const el=document.createElement('div');
