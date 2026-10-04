@@ -146,6 +146,7 @@ async function waitForFxIdle(page) {
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
+  const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
   expect(buildFile.version).toBe('20261004-brand-logo-green-v10');
   expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-brand-logo-green-v10'");
