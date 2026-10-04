@@ -3,8 +3,8 @@
 This directory is the certification-review candidate. It is isolated from the customer-facing legacy HOME, Developing, and Production.
 
 ## LINE Review identity
-- Review channel candidate: `2009884613`
-- Review LIFF: `2009884613-ELc6kolf`
+- Review channel candidate: `2009884612`
+- Review LIFF: `2009884612-hhM4k4GP`
 - Endpoint to configure in LINE Developers: `https://asoboon.github.io/asoboon-stamp/miniapp-v2/review/`
 - Review Worker: `asoboon-miniapp-v2-review-gateway`
 - Review D1: `asoboon-miniapp-v2-review-db`
