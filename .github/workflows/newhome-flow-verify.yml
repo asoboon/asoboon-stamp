@@ -66,7 +66,9 @@ jobs:
       - name: Reception operation id must survive ambiguous retries
         run: |
           set -euo pipefail
-          grep -F "PENDING_KEY='asoboon_v2_pending_reception_develop_v1'" miniapp-v2/shared/reception.js
+          grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
+          grep -F 'asoboon_v2_pending_reception_${STORAGE_NS}_v1' miniapp-v2/shared/reception.js
+          ! grep -Fq "PENDING_KEY='asoboon_v2_pending_reception_develop_v1'" miniapp-v2/shared/reception.js
           grep -F 'requestIdFor(body)' miniapp-v2/shared/reception.js
           grep -F 'pendingFingerprint(body)' miniapp-v2/shared/reception.js
           grep -F 'notificationAmbiguous' miniapp-v2/shared/reception.js
