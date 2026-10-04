@@ -69,5 +69,5 @@ test('review candidate asset cache points to the updated review UI',()=>{
 
 test('known Review LIFF candidate is retained in repository for console verification',()=>{
   const index=read('index.html');
-  assert.match(index,/2009884613-ELc6kolf/);
+  assert.match(index,/2009884612-hhM4k4GP/);
 });
