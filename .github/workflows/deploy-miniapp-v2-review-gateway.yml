@@ -35,7 +35,7 @@ jobs:
           node --input-type=module --check < miniapp-v2/backend/review-gateway.js
           grep -F "reviewWritesAirwait:false" miniapp-v2/backend/review-gateway.js
           ! grep -Fq 'AIRWAIT_API_KEY' miniapp-v2/backend/review-gateway.js
-          grep -F "liffId:'2009884613-ELc6kolf'" miniapp-v2/review/env.js
+          grep -F "liffId:'2009884612-hhM4k4GP'" miniapp-v2/review/env.js
           grep -F "environment:'review'" miniapp-v2/review/env.js
           grep -F "storageNamespace:'review'" miniapp-v2/review/env.js
       - name: Ensure Review D1 database
