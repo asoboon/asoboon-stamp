@@ -477,10 +477,14 @@ test('multiple changes update data immediately while effects are safely queued',
   await expect(page.locator('.queue-card').nth(1)).toHaveClass(/hold/);
   await expect(page.locator('.queue-card').nth(2)).toHaveClass(/done/);
 
-  await expect.poll(async () => (await diagnostics(page)).history.length, { timeout: 3500 }).toBe(4);
+  // CALL consumes the dominant budget. CANCEL still fits; HOLD would cross 9s,
+  // so HOLD and every remaining lower-priority Level B effect are intentionally skipped.
+  await expect.poll(async () => (await diagnostics(page)).history.length, { timeout: 3500 }).toBe(2);
   await waitForFxIdle(page);
   const d = await diagnostics(page);
-  expect(d.history.map(x => x.kind).sort()).toEqual(['call', 'cancel', 'guided', 'hold']);
+  expect(d.history.map(x => x.kind)).toEqual(['call', 'cancel']);
+  expect(d.skippedLevelB).toBeGreaterThanOrEqual(2);
+  expect(d.budgetClosedBatches).toBeGreaterThanOrEqual(1);
   expect(d.running).toBe(0);
   expect(d.activeFx).toBe(0);
   expect(h.pageErrors).toEqual([]);
