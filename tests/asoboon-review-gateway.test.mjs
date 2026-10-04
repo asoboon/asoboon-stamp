@@ -8,7 +8,7 @@ const mod=await import(pathToFileURL(process.cwd()+'/miniapp-v2/backend/review-g
 const T=mod.__reviewTest;
 
 test('Review gateway is isolated and can never write AirWAIT',()=>{
-  assert.equal(T.channelId,'2009884613');
+  assert.equal(T.channelId,'2009884612');
   assert.equal(T.health({DB:{}}).environment,'official-review');
   assert.equal(T.health({DB:{}}).reviewSimulation,true);
   assert.equal(T.health({DB:{}}).reviewWritesAirwait,false);
@@ -44,8 +44,8 @@ test('Review frontend uses Review LIFF, Review storage and Review gateway',()=>{
   const env=fs.readFileSync('miniapp-v2/review/env.js','utf8');
   assert.match(env,/environment:'review'/);
   assert.match(env,/storageNamespace:'review'/);
-  assert.match(env,/channelId:'2009884613'/);
-  assert.match(env,/liffId:'2009884613-ELc6kolf'/);
+  assert.match(env,/channelId:'2009884612'/);
+  assert.match(env,/liffId:'2009884612-hhM4k4GP'/);
   assert.match(env,/asoboon-miniapp-v2-review-gateway/);
   assert.doesNotMatch(env,/2009884611|bDgDzGrN|develop-gateway/);
 });
