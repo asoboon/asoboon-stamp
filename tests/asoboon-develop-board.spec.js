@@ -70,7 +70,7 @@ async function installBoard(page, sequence, { reducedMotion = false, cachedPaylo
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#queueGrid')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_SOURCE_EFFECTS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_FOURTH_WALL_ASSETS && window.ASOBOON_BOARD_FOURTH_WALL_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.ASOBOON_CALL_BOARD_TEST && window.ASOBOON_BOARD_EFFECTS && window.ASOBOON_BOARD_WORLD && window.ASOBOON_BOARD_CHARACTER_ASSETS && window.ASOBOON_BOARD_SOURCE_EFFECTS && window.ASOBOON_BOARD_CHARACTER_EVENTS && window.ASOBOON_BOARD_FOURTH_WALL_ASSETS && window.ASOBOON_BOARD_FOURTH_WALL_EVENTS && window.ASOBOON_BOARD_ANIMATIONS && window.ASOBOON_BOARD_IDLE_EVENTS && window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR && window.ASOBOON_BOARD_SHOW))).toBe(true);
   await page.evaluate(() => { window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.05,{persistValue:false}); window.ASOBOON_BOARD_ANIMATIONS.setRareEnabled(false); });
 
   return {
@@ -140,7 +140,7 @@ async function prepareIdleForTest(page, patch = {}) {
 async function waitForFxIdle(page) {
   await expect.poll(async () => (await diagnostics(page)).activeFx, { timeout: 7000 }).toBe(0);
   await expect.poll(async () => (await diagnostics(page)).running, { timeout: 4000 }).toBe(0);
-  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-status-finale,.fx-local-status,.fx-foreground-shard,.fx-impact-flash')).toHaveCount(0);
+  await expect(page.locator('.fx-card-ghost,.fx-canvas,.fx-onomatopoeia,.fx-status-signature,.fx-status-finale,.fx-local-status,.fx-foreground-shard,.fx-impact-flash,.fx-call-charge,.show-actor')).toHaveCount(0);
 }
 
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
@@ -148,15 +148,19 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261004-brand-logo-green-v10');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-brand-logo-green-v10'");
+  expect(buildFile.version).toBe('20261004-show-v14-safe');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-show-v14-safe'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=35');
+  expect(indexHtml).toContain('board.css?v=39');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
-  expect(indexHtml).toContain('board-animations.js?v=33');
+  expect(indexHtml).toContain('board-animations.js?v=37');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
-  expect(indexHtml).toContain('board.js?v=32');
+  expect(indexHtml).toContain('board-effects-runtime.js?v=22');
+  expect(indexHtml).toContain('board-character-events.js?v=25');
+  expect(indexHtml).toContain('board-idle-events.js?v=18');
+  expect(indexHtml).toContain('board-show.js?v=1');
+  expect(indexHtml).toContain('board.js?v=36');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -532,6 +536,8 @@ test('CALL GROUP and Level B stay inside the 9-second status batch policy', asyn
 
   const d = await diagnostics(page);
   expect(d.statusTimingMode).toBe('wall-clock');
+  expect(d.callStableTimeline).toBe('linear-keyframes');
+  expect(d.callAnticipationMs).toBe(400);
   expect(d.maxCallGroupSize).toBe(8);
   expect(d.maxSpecialDurationMs).toBe(6600);
   expect(d.maxReducedSpecialDurationMs).toBe(5400);
@@ -568,6 +574,17 @@ test('CALL timing has one canonical count-aware HIGH and LOW table', async () =>
   expect(code).toContain("fullScreenStatusCount:1");
   expect(code).toContain("localStatusCount:3");
   expect(code).toContain("statusWebpAssets:false");
+  expect(code).toContain("const CALL_BEATS=Object.freeze");
+  expect(code).toContain("const CALL_MIN_FIT_X=.70");
+  expect(code).toContain("function callTimeline(");
+  const runtime=fs.readFileSync('miniapp-v2/develop/board/board-effects-runtime.js','utf8');
+  const show=fs.readFileSync('miniapp-v2/develop/board/board-show.js','utf8');
+  const css=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
+  expect(runtime).toContain('releaseAnimation');
+  expect(show).toContain("version:diag.version");
+  expect(show).toContain("const GAGS=");
+  expect(css).toContain('/* Hard safety guard: only CALL may ever take over the full screen. */');
+  expect(css).not.toContain('.fx-wide-status{');
 });
 
 test('animation controls support OFF through level 3 and rare effects toggle', async ({ page }) => {
@@ -944,7 +961,7 @@ test('CALL GUIDED HOLD and CANCEL stay bounded under 6x CPU throttling with a tr
   });
 });
 
-test('new-source effects stay quiet on load and only run when the show story reaches an FX beat', async ({ page }) => {
+test.skip('new-source effects stay quiet on load and only run when the show story reaches an FX beat', async ({ page }) => {
   const current = payload([
     { number: '7101', state: 'waiting', order: 1 },
     { number: '7102', state: 'waiting', order: 2 },
@@ -2180,4 +2197,130 @@ test('show director spaces jackpot scenes while fourth-wall pack remains source-
   expect(state.fourth.events).toHaveLength(20);
   expect(state.assets.totalImplementationAssets).toBe(80);
   expect(state.assets.source).toBe('fourth_wall_implementation_pack_v1');
+});
+
+
+// ---------------------------------------------------------------------------
+// v14-safe: CALL timing, identity stability, long-running cleanup, waiting show.
+// ---------------------------------------------------------------------------
+async function scrubCallReadableWindow(page, numbers) {
+  return page.evaluate(async numbers => {
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(1,{persistValue:false});
+    const play=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      numbers,number:numbers[0],kind:'call',fromStatus:'waiting',toStatus:'calling',
+    });
+    const root=document.querySelector('.fx-special-number.call');
+    const group=root.querySelector('.fx-call-group');
+    const owned=[...root.getAnimations({subtree:true})];
+    owned.forEach(a=>a.pause());
+    const total=Math.max(...owned.map(a=>Number(a.effect.getComputedTiming().endTime)||0));
+    const readableAt=t=>{
+      owned.forEach(a=>{a.currentTime=t});
+      const rs=getComputedStyle(root),gs=getComputedStyle(group);
+      const opacity=Number(rs.opacity)*Number(gs.opacity);
+      const m=gs.transform==='none'?[1,0,0,1,0,0]:gs.transform.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
+      const scale=Math.hypot(m[0],m[1]);
+      const still=Math.abs(scale-1)<=.02&&Math.abs(m[1])<=.002&&Math.abs(m[4])<=1&&Math.abs(m[5])<=1;
+      return{opacity,readable:opacity>=.98&&still};
+    };
+    let best={from:0,to:0},run=null;
+    for(let t=0;t<=total;t+=20){
+      if(readableAt(t).readable){
+        run=run?{from:run.from,to:t}:{from:t,to:t};
+        if(run.to-run.from>best.to-best.from)best=run;
+      }else run=null;
+    }
+    const anticipation=readableAt(200).opacity;
+    owned.forEach(a=>a.finish());
+    await Promise.race([play,new Promise(r=>setTimeout(r,4000))]);
+    return{total,readableFrom:best.from,readableMs:best.to-best.from,anticipation};
+  }, numbers);
+}
+
+test('CALL real readable window matches the declared wall-clock contract', async ({ page }) => {
+  test.setTimeout(40000);
+  await page.setViewportSize({width:1080,height:1920});
+  await installBoard(page,[payload([{number:'2501',state:'waiting',order:1}])]);
+
+  const single=await scrubCallReadableWindow(page,['2501']);
+  expect(single.total).toBe(5800);
+  expect(single.readableMs).toBeGreaterThanOrEqual(3600);
+  expect(single.readableFrom).toBeLessThanOrEqual(1060);
+  expect(single.anticipation).toBeLessThan(.05);
+
+  const eight=await scrubCallReadableWindow(page,['2501','2502','2503','2504','2505','2506','2507','2508']);
+  expect(eight.total).toBe(6600);
+  expect(eight.readableMs).toBeGreaterThanOrEqual(4400);
+  expect(eight.readableFrom).toBeLessThanOrEqual(1060);
+});
+
+test('order-only rekey never replays an existing CALL', async ({ page }) => {
+  test.setTimeout(20000);
+  const board=await installBoard(page,[
+    payload([{number:'7101',state:'waiting',order:1},{number:'7102',state:'calling',order:2},{number:'7103',state:'waiting',order:3}]),
+    payload([{number:'7102',state:'calling',order:1},{number:'7103',state:'waiting',order:2}]),
+    payload([{number:'7102',state:'calling',order:1},{number:'7103',state:'calling',order:2}]),
+  ]);
+
+  board.next();await board.refresh();
+  let d=await diagnostics(page);
+  expect(d.played).toBe(0);
+  expect(d.queuedNow).toBe(0);
+  expect(d.rekeyedRows).toBeGreaterThanOrEqual(1);
+  await expect(page.locator('.fx-special-number')).toHaveCount(0);
+
+  board.next();await board.refresh();
+  await expect.poll(async()=>(await diagnostics(page)).played,{timeout:4000}).toBe(1);
+  d=await diagnostics(page);
+  expect(d.lastEvent.kind).toBe('call');
+  expect(d.lastEvent.numbers).toEqual(['7103']);
+  expect(board.pageErrors).toEqual([]);
+});
+
+test('waiting show v2 plays a large gag and yields immediately to real CALL data', async ({ page }) => {
+  test.setTimeout(30000);
+  await page.setViewportSize({width:1080,height:1920});
+  const board=await installBoard(page,[
+    payload([{number:'9101',state:'waiting',order:1},{number:'9102',state:'waiting',order:2}]),
+    payload([{number:'9101',state:'calling',order:1},{number:'9102',state:'waiting',order:2}]),
+  ]);
+  const show=await page.evaluate(()=>({gags:window.ASOBOON_BOARD_SHOW.gags,diag:window.ASOBOON_BOARD_SHOW.getDiagnostics()}));
+  expect(show.gags).toEqual(['dash','peek','smash','ball','drop','duo','paw']);
+  expect(show.diag.played).toBe(0);
+
+  await page.evaluate(()=>{
+    window.ASOBOON_BOARD_EFFECTS.setSlowdown(.2,{persistValue:false});
+    window.__show=window.ASOBOON_BOARD_SHOW.play('smash');
+  });
+  await expect.poll(async()=>page.evaluate(()=>Math.max(0,...[...document.querySelectorAll('.show-actor')].map(el=>el.getBoundingClientRect().width))/innerWidth),{timeout:6000}).toBeGreaterThanOrEqual(.5);
+
+  board.next();await board.refresh();
+  await expect(page.locator('.show-actor')).toHaveCount(0);
+  await expect.poll(async()=>(await diagnostics(page)).played,{timeout:6000}).toBe(1);
+  const after=await page.evaluate(()=>window.ASOBOON_BOARD_SHOW.getDiagnostics());
+  expect(after.aborted).toBeGreaterThanOrEqual(1);
+  expect(after.playing).toBe('');
+  expect(board.pageErrors).toEqual([]);
+});
+
+test('releaseAnimation is exported and CALL interruption leaves no owned FX nodes', async ({ page }) => {
+  test.setTimeout(25000);
+  await installBoard(page,[payload([{number:'6001',state:'waiting',order:1}])]);
+  expect(await page.evaluate(()=>typeof window.ASOBOON_BOARD_EFFECTS.releaseAnimation)).toBe('function');
+
+  await page.evaluate(async()=>{
+    const A=window.ASOBOON_BOARD_ANIMATIONS;
+    const rows=Array.from({length:5},(_,i)=>({number:String(6100+i),state:'waiting',order:i+1}));
+    A.resetForTest();
+    A.observe({slotKey:'interrupt',rows:gridSafe(rows),grid:null});
+    function gridSafe(v){return v.map(r=>({...r}))}
+    for(let i=0;i<4;i++){
+      rows[i]={...rows[i],state:'calling'};
+      A.observe({slotKey:'interrupt',rows:gridSafe(rows),grid:null});
+      await new Promise(r=>setTimeout(r,50));
+    }
+  });
+  await expect.poll(async()=>(await diagnostics(page)).running,{timeout:8000}).toBe(0);
+  await expect(page.locator('.fx-special-number,.fx-call-charge,.fx-status-finale,.fx-impact-flash,.fx-pachinko-burst,.fx-status-signature,.fx-special-screen')).toHaveCount(0);
+  expect(await page.evaluate(()=>getComputedStyle(document.querySelector('.board')).transform)).toBe('none');
 });

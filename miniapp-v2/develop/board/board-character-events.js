@@ -60,7 +60,7 @@ function characterOwner(name){
 function suppressVisibleCharacter(el){
   if(!el||!el.isConnected)return;
   if(el.style.opacity!=='0')diagnostics.duplicateSuppressions+=1;
-  try{el.getAnimations?.().forEach(animation=>animation.cancel())}catch{}
+  try{el.getAnimations?.().forEach(animation=>{if(M?.releaseAnimation)M.releaseAnimation(animation);else animation.cancel()})}catch{}
   el.style.opacity='0';
   el.style.visibility='hidden';
   el.dataset.pcSuppressed='1';
