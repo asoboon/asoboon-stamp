@@ -146,14 +146,17 @@ async function waitForFxIdle(page) {
 test('board build marker matches runtime and stale builds are detected without reload', async ({ page }) => {
   const buildFile=JSON.parse(fs.readFileSync('miniapp-v2/develop/board/board-build.json','utf8'));
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
+  const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261004-call-signature-final-v9');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-call-signature-final-v9'");
+  expect(buildFile.version).toBe('20261004-brand-logo-green-v10');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-brand-logo-green-v10'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=34');
+  expect(indexHtml).toContain('board.css?v=35');
+  expect(boardCss).toContain('background:var(--sign-green-2);');
+  expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
   expect(indexHtml).toContain('board-animations.js?v=33');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
-  expect(indexHtml).toContain('board.js?v=31');
+  expect(indexHtml).toContain('board.js?v=32');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -1674,7 +1677,8 @@ test('CALL takes over the screen with a stable readable signature number', async
   await installBoard(page,[payload([{number:'F99999',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
     const fx=window.ASOBOON_BOARD_EFFECTS;
-    fx.setSlowdown(0.05,{persistValue:false});
+    // Keep this one visual-readability test slow enough to observe the stable window reliably.
+    fx.setSlowdown(0.20,{persistValue:false});
     const card=document.querySelector('#queueGrid .queue-card');
     window.__callNumberPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
       number:'F99999',kind:'call',fromStatus:'waiting',toStatus:'calling',element:card,
@@ -1709,7 +1713,12 @@ test('CALL takes over the screen with a stable readable signature number', async
   expect(live.words).toBe(0);
   expect(live.burst).toBe(true);
 
-  await page.waitForTimeout(90);
+  await expect.poll(async()=>page.evaluate(()=>{
+    const root=document.querySelector('.fx-special-number.call');
+    if(!root)return 0;
+    return Number(getComputedStyle(root).opacity);
+  }),{timeout:1800,intervals:[40,60,80]}).toBeGreaterThanOrEqual(.98);
+
   const stable=await page.evaluate(()=>{
     const root=document.querySelector('.fx-special-number.call');
     if(!root)return null;
