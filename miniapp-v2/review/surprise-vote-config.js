@@ -7,8 +7,8 @@
  * 既存の受付・呼出・ランキングGASとは分離します。
  */
 window.ASOBOON_SURPRISE_VOTE_CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec",
-  LIFF_ID: "2009884611-bDgDzGrN",
+  API_URL: "",
+  LIFF_ID: "2009884613-ELc6kolf",
   HOME_URL: "./index.html",
   POLL_INTERVAL_MIN_MS: 25000,
   POLL_INTERVAL_MAX_MS: 35000,

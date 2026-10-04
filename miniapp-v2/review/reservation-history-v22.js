@@ -1,8 +1,8 @@
 (()=>{'use strict';
-const CURRENT='asoboon_v2_current_reservation_develop_v1';
-const CALL='asoboon_v2_callstatus_develop_v1';
-const HISTORY='asoboon_v2_receipt_history_develop_v1';
-const LAST='asoboon_v2_last_receipt_develop_v1';
+const CURRENT='asoboon_v2_current_reservation_review_v1';
+const CALL='asoboon_v2_callstatus_review_v1';
+const HISTORY='asoboon_v2_receipt_history_review_v1';
+const LAST='asoboon_v2_last_receipt_review_v1';
 const MAX=20;
 const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch{return false}};

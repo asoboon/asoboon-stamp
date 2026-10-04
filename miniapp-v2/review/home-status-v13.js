@@ -1,9 +1,9 @@
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{};
-const RES_KEY='asoboon_v2_current_reservation_develop_v1';
-const CALL_KEY='asoboon_v2_callstatus_develop_v1';
-const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
-const SNAP_KEY='asoboon_v2_home_status_develop_v1';
+const RES_KEY='asoboon_v2_current_reservation_review_v1';
+const CALL_KEY='asoboon_v2_callstatus_review_v1';
+const SESSION_KEY='asoboon_v2_callstatus_session_review_v1';
+const SNAP_KEY='asoboon_v2_home_status_review_v1';
 const TIMEOUT_MS=8000;
 const SNAP_MAX_AGE_MS=10*60*1000;
 let timer=0,running=false,pendingRefresh=false,seq=0;

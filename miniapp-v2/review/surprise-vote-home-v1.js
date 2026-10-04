@@ -4,7 +4,7 @@ if(!root)return;
 
 const ENV=window.ASOBOON_V2_ENV||{};
 const STATUS_CACHE_KEY='asoboon-surprise-status-cache-v1';
-const VOTE_PAGE_URL='./surprise-vote.html?v=20261002-13';
+const VOTE_PAGE_URL='./surprise-vote.html?demo=1&v=20261002-13';
 let warmStarted=false;
 let statusWarmPromise=null;
 let staticWarmPromise=null;

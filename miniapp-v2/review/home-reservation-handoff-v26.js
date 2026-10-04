@@ -1,6 +1,6 @@
 (()=>{'use strict';
-const RES_KEY='asoboon_v2_current_reservation_develop_v1';
-const SNAP_KEY='asoboon_v2_home_status_develop_v1';
+const RES_KEY='asoboon_v2_current_reservation_review_v1';
+const SNAP_KEY='asoboon_v2_home_status_review_v1';
 const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
 const remove=key=>{try{localStorage.removeItem(key)}catch{}};
 const view=()=>String(new URLSearchParams(location.search).get('view')||'home');

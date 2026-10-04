@@ -162,7 +162,7 @@ function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 
 function shareHomeStatus(d){
-  if(E.environment!=='develop')return;
+  if(!['develop','review'].includes(String(E.environment||'')))return;
   const cached=cachedReservation();
   const receipt=String(d?.receiptNo||cached?.receiptNo||'—');
   const checkedAt=Number(d?.checkedAt||Date.now());

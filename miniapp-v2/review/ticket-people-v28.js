@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const root=document.getElementById('app');if(!root)return;
-const RES_KEY='asoboon_v2_current_reservation_develop_v1';
-const LAST_KEY='asoboon_v2_last_receipt_develop_v1';
+const RES_KEY='asoboon_v2_current_reservation_review_v1';
+const LAST_KEY='asoboon_v2_last_receipt_review_v1';
 let queued=false;
 const readJSON=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const read=()=>{const cur=readJSON(RES_KEY);if(cur?.receiptNo)return cur;const last=readJSON(LAST_KEY);return last?.receiptNo?last:null};

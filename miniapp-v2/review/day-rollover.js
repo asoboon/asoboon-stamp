@@ -1,11 +1,11 @@
 (()=>{'use strict';
 const KEYS=Object.freeze({
-  reservation:'asoboon_v2_current_reservation_develop_v1',
-  call:'asoboon_v2_callstatus_develop_v1',
-  session:'asoboon_v2_callstatus_session_develop_v1',
-  pending:'asoboon_v2_pending_reception_develop_v1',
-  snapshot:'asoboon_v2_home_status_develop_v1',
-  last:'asoboon_v2_last_receipt_develop_v1'
+  reservation:'asoboon_v2_current_reservation_review_v1',
+  call:'asoboon_v2_callstatus_review_v1',
+  session:'asoboon_v2_callstatus_session_review_v1',
+  pending:'asoboon_v2_pending_reception_review_v1',
+  snapshot:'asoboon_v2_home_status_review_v1',
+  last:'asoboon_v2_last_receipt_review_v1'
 });
 const TZ='Asia/Tokyo';
 const CUTOFF_HOUR=19;

@@ -1,7 +1,7 @@
 (()=>{'use strict';
-const RES_KEY='asoboon_v2_current_reservation_develop_v1';
-const CALL_KEY='asoboon_v2_callstatus_develop_v1';
-const SNAP_KEY='asoboon_v2_home_status_develop_v1';
+const RES_KEY='asoboon_v2_current_reservation_review_v1';
+const CALL_KEY='asoboon_v2_callstatus_review_v1';
+const SNAP_KEY='asoboon_v2_home_status_review_v1';
 const MAX_AGE=10*60*1000;
 const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
 const cached=read(RES_KEY)||read(CALL_KEY)||null;

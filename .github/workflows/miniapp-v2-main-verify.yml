@@ -34,12 +34,13 @@ jobs:
       - name: Browser JavaScript syntax
         run: |
           set -euo pipefail
-          find miniapp-v2/develop miniapp-v2/production miniapp-v2/shared -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          find miniapp-v2/develop miniapp-v2/production miniapp-v2/review miniapp-v2/shared -type f -name '*.js' -print0 | xargs -0 -n1 node --check
       - name: Worker module syntax
         run: |
           set -euo pipefail
           node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
           node --input-type=module --check < miniapp-v2/backend/production-gateway.js
+          node --input-type=module --check < miniapp-v2/backend/review-gateway.js
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
       - name: Developing reception lifecycle
@@ -57,6 +58,8 @@ jobs:
         run: node --test tests/asoboon-home-cutover.test.mjs
       - name: LINE Review readiness regression
         run: node --test tests/asoboon-review-readiness.test.mjs
+      - name: Review simulation gateway regression
+        run: node --test tests/asoboon-review-gateway.test.mjs
       - name: Lock reserveId-based identity rules
         run: |
           set -euo pipefail
