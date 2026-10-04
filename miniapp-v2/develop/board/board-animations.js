@@ -699,19 +699,21 @@ async function playCancelCardFx({element,frame}={}){
 function fitCallGroupNumbers(el){
   if(!el)return;
   const count=Math.max(1,Number(el.dataset.callCount)||1);
-  const targetVh=count===1?24:count<=4?12:7.4;
-  const minVh=count===1?14:count<=4?12:7;
   const values=[...el.querySelectorAll('.fx-special-number-value')];
   for(const value of values){
     const cell=value.closest('.fx-call-cell');
     if(!cell)continue;
+    const chars=String(value.textContent||'').length;
+    const targetVh=count===1
+      ?(chars<=4?24:chars===5?17:chars===6?14.5:14)
+      :(count<=4?12.2:7.4);
+    const minVh=chars>6?0:(count===1?14:count<=4?12:7);
     value.style.fontSize=(innerHeight*targetVh/100)+'px';
     value.style.setProperty('--call-fit-x','1');
     let rect=value.getBoundingClientRect(),cellRect=cell.getBoundingClientRect();
     const maxWidth=Math.max(1,cellRect.width*.92);
     if(rect.width>maxWidth){
       const xScale=maxWidth/rect.width;
-      const chars=String(value.textContent||'').length;
       if(chars<=6&&xScale>=.82){
         value.style.setProperty('--call-fit-x',String(xScale));
       }else{
@@ -723,6 +725,7 @@ function fitCallGroupNumbers(el){
     value.dataset.renderHeightVh=String(rect.height/Math.max(1,innerHeight)*100);
     value.dataset.renderWidthRatio=String(rect.width/Math.max(1,cell.getBoundingClientRect().width));
     value.dataset.minHeightVh=String(minVh);
+    value.dataset.guaranteedChars=String(chars<=6);
   }
 }
 function specialNumberTakeover(numbers,kind='call',{duration,stableMs}={}){
