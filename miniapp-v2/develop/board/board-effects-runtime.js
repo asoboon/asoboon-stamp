@@ -60,6 +60,13 @@ function persist(){
   }catch{}
 }
 function ms(base){return Math.max(1,(Math.max(0,Number(base)||0))*slowdown)}
+// Stop an animation early without retaining the cancelled Animation target subtree.
+function releaseAnimation(animation){
+  if(!animation)return;
+  try{animation.effect?.updateTiming?.({fill:'none'})}catch{}
+  try{animation.finish()}
+  catch{try{animation.cancel();animation.effect=null}catch{}}
+}
 function effectiveQualityName(){
   if(reduced)return'LOW';
   return qualityMode==='AUTO'?autoQuality:qualityMode;
@@ -505,7 +512,7 @@ function createScope(label='effect',timeScale=1){
     abort(reason='aborted'){if(!controller.signal.aborted)controller.abort(reason);scope.cleanup()},
     cleanup(){
       if(cleaned)return;cleaned=true;
-      for(const animation of animations){try{animation.cancel()}catch{}}animations.clear();
+      for(const animation of animations)releaseAnimation(animation);animations.clear();
       for(const timer of timers)clearTimeout(timer);timers.clear();
       for(const task of [...frameTasks])if(task.scope===scope){frameTasks.delete(task);task.resolve?.()}
       for(const job of [...canvasJobs])if(job.scope===scope){canvasJobs.delete(job);job.resolve?.()}
@@ -548,7 +555,7 @@ window.ASOBOON_BOARD_EFFECTS=Object.freeze({
   version:'2.5.0',DEFAULT_SLOWDOWN,LOW_SPEC_FALLBACK,QUALITY_MODES,
   ms,setSlowdown,getSlowdown:()=>slowdown,
   setQuality,getQuality:()=>qualityMode,getEffectiveQuality:()=>effectiveQualityName(),quality,
-  isReduced:()=>reduced,getLayer,createScope,abortAll,
+  isReduced:()=>reduced,getLayer,createScope,abortAll,releaseAnimation,
   characterAnchorPoint,safeRectForCharacter,safeRectsForCharacter,compositionSnapshot,resolveEffectPoint,chooseOverlayPlacement,chooseTypographyPlacement,rerouteRay,overlapRatio,
   beginChoreography,setChoreographyPhase,requestVisual,endChoreography,getChoreography:()=>choreographySnapshot(),
   sharedCanvas:ensureSharedCanvas,runCanvas,runFrameTask,resetPerformanceBaseline,diagnostics,
