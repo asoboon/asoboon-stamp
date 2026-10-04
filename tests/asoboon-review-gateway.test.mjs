@@ -13,7 +13,7 @@ test('Review gateway is isolated and can never write AirWAIT',()=>{
   assert.equal(T.health({DB:{}}).reviewSimulation,true);
   assert.equal(T.health({DB:{}}).reviewWritesAirwait,false);
   assert.equal(T.health({DB:{}}).createEnabled,true);
-  assert.doesNotMatch(source,/AIRWAIT_API_KEY|reserve\/create|WCLP\/api\/20160600\/external\/stateless\/reserve/);
+  assert.doesNotMatch(source,/AIRWAIT_API_KEY|reserve\/create|WCLP\/api\/20160600\/external\/stateless\/reserve|develop-gateway/);
 });
 
 test('Review wait types are store-only and exclude Developing 0042',()=>{
@@ -27,6 +27,17 @@ test('Review people validation rejects coercion, decimals and unsafe values',()=
     assert.throws(()=>T.strictInt(value,0,10));
   }
   assert.equal(T.strictInt('3',0,10),3);
+});
+
+
+test('Review crowd status is simulated and always renders the three review time slots',()=>{
+  const crowd=T.reviewCrowdStatus();
+  assert.equal(crowd.ok,true);
+  assert.equal(crowd.reviewSimulation,true);
+  assert.equal(crowd.businessType,'土日祝日');
+  assert.deepEqual(crowd.slots.map(x=>x.waitTypeId),['0030','0032','0034']);
+  assert.ok(crowd.slots.every(x=>x.reserveUnit==='PERSON'&&x.evidence==='PERSON'&&x.matchMode==='exact-name'));
+  assert.deepEqual(crowd.slots.map(x=>x.slotKey),['10:00','12:30','15:00']);
 });
 
 test('Review business day and surprise vote are deterministic simulations',()=>{
