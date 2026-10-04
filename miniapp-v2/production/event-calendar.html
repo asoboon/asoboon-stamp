@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#f4f0e7">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
+<title>イベントカレンダー｜ASOBooN</title>
+<style>
+:root{--ink:#17242a;--muted:#657178;--navy:#294a6d;--paper:#faf8f3;--line:#dedbd4;--gold:#b4872e}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink);background:linear-gradient(180deg,#faf8f3,#f2eee6)}
+body{padding:max(12px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))}.app{width:min(100%,480px);margin:auto}.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}.back{display:grid;width:46px;height:46px;place-items:center;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--ink);text-decoration:none;font-size:24px;font-weight:800;box-shadow:0 6px 16px rgba(23,36,42,.07)}.top div{min-width:0}.top strong{display:block;font-size:19px;font-weight:950}.top small{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:700}
+.hero{padding:19px;border:1px solid #dbc88f;border-radius:24px;background:linear-gradient(145deg,#fffdf7,#f7efd9);box-shadow:0 12px 26px rgba(81,62,22,.08)}.eyebrow{color:var(--gold);font-size:10px;font-weight:950;letter-spacing:.13em}.hero h1{margin:5px 0 4px;font-size:30px;line-height:1.08;letter-spacing:-.04em}.hero p{margin:0;color:#625b4d;font-size:13px;line-height:1.6;font-weight:650}.month{display:inline-flex;margin-top:12px;padding:6px 9px;border-radius:999px;background:var(--navy);color:#fff;font-size:12px;font-weight:900}
+.panel{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:22px;background:#fff}.profile{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 12px}.profile strong{font-size:14px}.profile a{color:#7b5520;font-size:12px;font-weight:900;text-decoration:none}.frame{min-height:560px;overflow:hidden;border:1px solid #e7e3dc;border-radius:17px;background:#f6f6f4}.frame iframe{display:block;width:100%;height:620px;border:0;background:#fff}.fallback{margin:12px 2px 0;color:var(--muted);font-size:11px;line-height:1.6;text-align:center;font-weight:700}.fallback a{color:#7b5520;font-weight:900}.note{margin:14px 6px 0;color:#726b60;font-size:10px;line-height:1.55;text-align:center;font-weight:700}
+@media(max-width:350px){body{padding-inline:10px}.hero h1{font-size:27px}.frame{min-height:500px}.frame iframe{height:560px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top"><a class="back" href="./?view=home" aria-label="新HOMEへ戻る">‹</a><div><strong>イベントカレンダー</strong><small>ASOBooNの開催予定</small></div></header>
+  <section class="hero"><div class="eyebrow">イベント予定</div><h1>今月のイベント</h1><p>ASOBooN公式Instagramのイベント情報を、ここからまとめて確認できます。</p><span class="month" id="monthLabel">今月</span></section>
+  <section class="panel">
+    <div class="profile"><strong>ASOBooN 公式Instagram</strong><a href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener noreferrer">Instagramで開く ↗</a></div>
+    <div class="frame"><iframe title="ASOBooN公式Instagram イベント情報" src="https://www.instagram.com/asoboon425/embed" loading="eager" scrolling="no" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+    <p class="fallback">投稿が表示されない場合は、<a href="https://www.instagram.com/asoboon425/" target="_blank" rel="noopener noreferrer">公式Instagram</a>をご確認ください。</p>
+  </section>
+  <p class="note">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により変更または中止となる場合があります。</p>
+</main>
+<script>(()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'long'}).formatToParts(new Date()).map(x=>[x.type,x.value]));const el=document.getElementById('monthLabel');if(el)el.textContent=`${p.year}年${p.month}月`})();</script>
+</body>
+</html>

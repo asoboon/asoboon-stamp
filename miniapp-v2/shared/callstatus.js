@@ -1,10 +1,11 @@
-/* ASOBooN LINE MINI App v2 / Developing same-app call status */
+/* ASOBooN LINE MINI App v2 / same-app call status */
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{};
-const CACHE_KEY='asoboon_v2_current_reservation_develop_v1';
-const CALL_KEY='asoboon_v2_callstatus_develop_v1';
-const SESSION_KEY='asoboon_v2_callstatus_session_develop_v1';
-const HOME_SNAP_KEY='asoboon_v2_home_status_develop_v1';
+const STORAGE_NS=String(E.storageNamespace||E.environment||'develop').replace(/[^a-z0-9_-]/gi,'_');
+const CACHE_KEY=`asoboon_v2_current_reservation_${STORAGE_NS}_v1`;
+const CALL_KEY=`asoboon_v2_callstatus_${STORAGE_NS}_v1`;
+const SESSION_KEY=`asoboon_v2_callstatus_session_${STORAGE_NS}_v1`;
+const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
 const POLL_FRONT_MS=5000;

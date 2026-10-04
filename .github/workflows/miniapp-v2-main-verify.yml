@@ -28,11 +28,12 @@ jobs:
       - name: Browser JavaScript syntax
         run: |
           set -euo pipefail
-          find miniapp-v2/develop miniapp-v2/shared -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          find miniapp-v2/develop miniapp-v2/production miniapp-v2/shared -type f -name '*.js' -print0 | xargs -0 -n1 node --check
       - name: Worker module syntax
         run: |
           set -euo pipefail
           node --input-type=module --check < miniapp-v2/backend/develop-gateway.js
+          node --input-type=module --check < miniapp-v2/backend/production-gateway.js
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
       - name: Developing reception lifecycle
@@ -103,16 +104,17 @@ jobs:
           ! grep -Fq '.getDay(' miniapp-v2/shared/timeguide.js
           grep -F 'D.getCurrent({force})' miniapp-v2/shared/timeguide.js
           grep -F 'Math.min(entry+duration,close)' miniapp-v2/shared/timeguide.js
-      - name: Block legacy and Purple LIFF dependencies
+      - name: Isolate Production and Purple LIFF identities
         run: |
           set -euo pipefail
-          ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2
+          PROD_MATCHES="$(grep -R -l -F '2009888671-57TOefc3' miniapp-v2 || true)"
+          test "$PROD_MATCHES" = "miniapp-v2/production/env.js"
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
       - name: Block browser-side AirWAIT access and key header
         run: |
           set -euo pipefail
-          ! grep -R -n -F 'cl.airwait.jp' miniapp-v2/develop miniapp-v2/shared
-          ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/shared
+          ! grep -R -n -F 'cl.airwait.jp' miniapp-v2/develop miniapp-v2/production miniapp-v2/shared
+          ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/production miniapp-v2/shared
       - name: Block old HOME dependencies
         run: |
           set -euo pipefail
@@ -123,6 +125,26 @@ jobs:
           grep -F "channelId:'2009884611'" miniapp-v2/develop/env.js
           grep -F "liffId:'2009884611-bDgDzGrN'" miniapp-v2/develop/env.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/'" miniapp-v2/develop/env.js
+
+      - name: Lock Production dark launch isolation
+        run: |
+          set -euo pipefail
+          grep -F "environment:'production'" miniapp-v2/production/env.js
+          grep -F "storageNamespace:'production'" miniapp-v2/production/env.js
+          grep -F "channelId:'2009888671'" miniapp-v2/production/env.js
+          grep -F "liffId:'2009888671-57TOefc3'" miniapp-v2/production/env.js
+          grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'" miniapp-v2/production/env.js
+          grep -F "backendUrl:''" miniapp-v2/production/env.js
+          grep -F "lineStoreOnly:true" miniapp-v2/production/env.js
+          grep -F "receptionCreate:false" miniapp-v2/production/env.js
+          grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
+          grep -F "CHANNEL_ID: '2009888671'" miniapp-v2/backend/production-gateway.js
+          grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
+          ! grep -R -n -F '_develop_v1' miniapp-v2/production
+          ! grep -R -n -F '2009884611' miniapp-v2/production
+          ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production
+          grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
+          grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/callstatus.js
       - name: Confirm controlled create gate pairing
         run: |
           set -euo pipefail
@@ -203,8 +225,8 @@ jobs:
           grep -F 'mount:mountCallstatus' miniapp-v2/shared/callstatus.js
           grep -F 'watchReception' miniapp-v2/shared/callstatus.js
           ! grep -Fq 'observer.observe(document.documentElement' miniapp-v2/shared/callstatus.js
-          grep -F "CACHE_KEY='asoboon_v2_current_reservation_develop_v1'" miniapp-v2/shared/callstatus.js
-          grep -F "CALL_KEY='asoboon_v2_callstatus_develop_v1'" miniapp-v2/shared/callstatus.js
+          grep -F 'asoboon_v2_current_reservation_${STORAGE_NS}_v1' miniapp-v2/shared/callstatus.js
+          grep -F 'asoboon_v2_callstatus_${STORAGE_NS}_v1' miniapp-v2/shared/callstatus.js
       - name: Lock play-time guide as a first-class Developing route
         run: |
           set -euo pipefail

@@ -1,0 +1,13 @@
+.v27-first-page .pv7-head{background:linear-gradient(145deg,#286d43,#2f7d4a)}
+.v27-first-head h1{max-width:12em}
+.v27-flow{display:grid;gap:0;margin:0 0 14px}
+.v27-step{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:start;padding:15px 14px;border:1px solid #ddd8cf;border-radius:18px;background:#fff}
+.v27-step.reception{border-left:5px solid #f08026}.v27-step.waiting{border-left:5px solid #3689cd}.v27-step.called{border-left:5px solid #2f7d4a}
+.v27-num{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#30363b;color:#fff;font-size:.76rem;font-weight:1000;letter-spacing:.02em}
+.v27-step.reception .v27-num{background:#f08026}.v27-step.waiting .v27-num{background:#3689cd}.v27-step.called .v27-num{background:#2f7d4a}
+.v27-step-copy{min-width:0}.v27-kicker{display:inline-flex;padding:3px 7px;border-radius:999px;background:#f2f0eb;color:#6e716e;font-size:.53rem;font-weight:950}.v27-step h2{margin:6px 0 4px;color:#22282d;font-size:.96rem;line-height:1.25}.v27-step strong{display:block;color:#313b40;font-size:.68rem;line-height:1.45}.v27-step p{margin:5px 0 0;color:#697174;font-size:.6rem;line-height:1.6;font-weight:700}
+.v27-arrow{display:grid;place-items:center;height:24px;color:#9a978f;font-size:.9rem;font-weight:1000}
+.v27-finish{display:flex;align-items:center;justify-content:center;gap:7px;margin:2px 0 14px;padding:11px;border-radius:14px;background:#edf5ef;color:#46604e;font-size:.58rem;font-weight:900}.v27-finish b{color:#8a938c}.v27-finish strong{color:#2f7d4a;font-size:.68rem}
+.v27-basic{display:grid;grid-template-columns:1fr 1.35fr;gap:8px;margin:0 0 14px}.v27-basic>div{padding:10px 11px;border-radius:13px;background:#f5f3ee}.v27-basic small{display:block;color:#858078;font-size:.5rem;font-weight:850}.v27-basic strong{display:block;margin-top:3px;color:#33393c;font-size:.6rem;line-height:1.45}
+.v27-primary{margin-top:2px}
+@media(max-width:360px){.v27-step{grid-template-columns:40px minmax(0,1fr);gap:9px;padding:13px 11px}.v27-num{width:36px;height:36px;border-radius:11px;font-size:.68rem}.v27-step h2{font-size:.88rem}.v27-basic{grid-template-columns:1fr}.v27-finish{gap:5px;font-size:.54rem}}
