@@ -151,6 +151,8 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-brand-logo-green-v10'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
   expect(indexHtml).toContain('board.css?v=35');
+  expect(boardCss).toContain('background:var(--sign-green-2);');
+  expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
   expect(indexHtml).toContain('board-animations.js?v=33');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
   expect(indexHtml).toContain('board.js?v=32');
