@@ -131,14 +131,21 @@ function levelBDuration(kind,lvl=effectiveLevel()){
   const t=LOCAL_STATUS_DURATION[kind]||LOCAL_STATUS_DURATION.guided;
   return lvl<=1?t.low:t.high;
 }
-function abortActiveLevelB(reason='call-preempt'){
-  if(!activeKind||activeKind==='call')return false;
+function abortActiveForCall(reason='call-preempt'){
+  if(!activeKind)return false;
+  const interrupted=activeKind;
   activeRunId+=1;
-  document.querySelectorAll('.fx-local-status,.fx-local-card-ghost').forEach(el=>{
-    try{el.getAnimations?.().forEach(a=>a.cancel())}catch{}
+  try{M?.abortAll?.('status-'+String(reason||'call-preempt'))}catch{}
+  document.querySelectorAll(
+    '.fx-local-status,.fx-local-card-ghost,.fx-special-number.call,.fx-special-screen.call,'+
+    '.fx-pachinko-burst.call,.fx-status-signature.call,.fx-status-finale.call,.fx-impact-flash.call,.fx-foreground-shard'
+  ).forEach(el=>{
+    try{el.getAnimations?.({subtree:true}).forEach(a=>a.cancel())}catch{}
     el.remove();
   });
-  diagnostics.interruptedLevelB+=1;
+  if(interrupted==='call')diagnostics.interruptedCall=(diagnostics.interruptedCall||0)+1;
+  else diagnostics.interruptedLevelB+=1;
+  activeKind='';
   diagnostics.lastInterruptReason=String(reason||'call-preempt');
   return true;
 }
@@ -197,9 +204,6 @@ function planRefreshEvents(events=[]){
     acceptedLevelB+=1;
     spent+=estimate;
   }
-  if(levelB.length>remainingSlots&&acceptedLevelB>=remainingSlots){
-    diagnostics.skippedLevelB+=Math.max(0,levelB.length-acceptedLevelB);
-  }
   return{planned,spent,budgetClosed,calls:calls.length};
 }
 function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
@@ -222,6 +226,19 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     const before=previous.get(key);
     if(!before){
       dataChangeCount+=1;
+      if(now.state==='calling'){
+        events.push({
+          id:++sequence,
+          key,
+          number:now.number,
+          order:now.order,
+          fromStatus:'absent',
+          toStatus:'calling',
+          kind:'call',
+          frame:null,
+          grid,
+        });
+      }
       continue;
     }
     if(before.state!==now.state||before.order!==now.order||before.number!==now.number)dataChangeCount+=1;
@@ -250,7 +267,7 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
   if(document.visibilityState!=='hidden'&&effectiveLevel()>0){
     const hasNewCall=events.some(x=>x.kind==='call');
     if(hasNewCall){
-      abortActiveLevelB('new-call');
+      abortActiveForCall('new-call');
       const oldLevelB=queue.filter(x=>x.kind!=='call').length;
       if(oldLevelB){
         diagnostics.skippedLevelB+=oldLevelB;
@@ -1340,7 +1357,7 @@ function getDiagnostics(){
 function resetForTest(){
   initialized=false;baselineSlot='';previous=new Map();queue.length=0;running=0;sequence=0;activeKind='';activeRunId+=1;
   diagnostics.played=0;diagnostics.queued=0;diagnostics.dropped=0;diagnostics.activeFx=0;diagnostics.screenShakes=0;diagnostics.baselines=0;
-  diagnostics.skippedLevelB=0;diagnostics.interruptedLevelB=0;diagnostics.budgetClosedBatches=0;diagnostics.callGroupSize=0;diagnostics.overflowCallCount=0;
+  diagnostics.skippedLevelB=0;diagnostics.interruptedLevelB=0;diagnostics.interruptedCall=0;diagnostics.budgetClosedBatches=0;diagnostics.callGroupSize=0;diagnostics.overflowCallCount=0;
   diagnostics.lastEvent=null;diagnostics.history=[];
   document.getElementById('boardFxLayer')?.remove();
 }
