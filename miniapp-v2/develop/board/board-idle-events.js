@@ -190,7 +190,7 @@ function wait(ms,signal){
   });
 }
 function cleanup(){
-  for(const animation of activeAnimations){try{animation.cancel()}catch{}}
+  for(const animation of activeAnimations){try{if(M?.releaseAnimation)M.releaseAnimation(animation);else animation.cancel()}catch{}}
   activeAnimations.clear();
   for(const timer of activeTimers)clearTimeout(timer);
   activeTimers.clear();
