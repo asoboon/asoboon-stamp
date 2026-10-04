@@ -6,13 +6,25 @@ const RARE_RATE=0.13;
 const MAX_CONCURRENT=1;
 const MAX_BATCH=8;
 const MAX_QUEUE=MAX_BATCH;
+const MAX_CALL_GROUP=8;
 const STATUS_BATCH_BUDGET_MS=9000;
 const STATUS_PRIORITY=Object.freeze({call:4,cancel:3,hold:2,guided:1});
+const CALL_GROUP_TIMING=Object.freeze({
+  high:Object.freeze({
+    single:Object.freeze({total:5800,stable:3600}),
+    medium:Object.freeze({total:6200,stable:4000}),
+    large:Object.freeze({total:6600,stable:4400}),
+  }),
+  low:Object.freeze({
+    single:Object.freeze({total:4600,stable:3500}),
+    medium:Object.freeze({total:5000,stable:3800}),
+    large:Object.freeze({total:5400,stable:4100}),
+  }),
+});
 const STATUS_RUNTIME_ESTIMATE_MS=Object.freeze({
-  call:Object.freeze({low:4700,high:6800}),
-  guided:Object.freeze({low:1100,high:1750}),
-  hold:Object.freeze({low:1200,high:1900}),
-  cancel:Object.freeze({low:1200,high:2000}),
+  guided:Object.freeze({low:900,high:1500}),
+  hold:Object.freeze({low:1000,high:1650}),
+  cancel:Object.freeze({low:1050,high:1650}),
 });
 const STAGGER_MS=90;
 const LEVEL_KEY='asoboon_call_board_animation_level_v1';
@@ -26,6 +38,8 @@ let previous=new Map();
 let queue=[];
 let running=0;
 let sequence=0;
+let activeKind='';
+let activeRunId=0;
 const diagnostics={
   played:0,
   queued:0,
@@ -33,6 +47,11 @@ const diagnostics={
   activeFx:0,
   screenShakes:0,
   baselines:0,
+  skippedLevelB:0,
+  interruptedLevelB:0,
+  budgetClosedBatches:0,
+  callGroupSize:0,
+  overflowCallCount:0,
   lastEvent:null,
   history:[],
 };
@@ -101,6 +120,88 @@ function transitionKind(fromStatus,toStatus){
   if(toStatus==='hold'&&fromStatus!=='hold')return'hold';
   return'';
 }
+function callGroupBucket(count){
+  return count<=1?'single':count<=4?'medium':'large';
+}
+function callGroupTiming(count,lvl=effectiveLevel()){
+  const mode=(reduced||lvl<=1)?'low':'high';
+  return CALL_GROUP_TIMING[mode][callGroupBucket(Math.max(1,count))];
+}
+function levelBDuration(kind,lvl=effectiveLevel()){
+  const t=LOCAL_STATUS_DURATION[kind]||LOCAL_STATUS_DURATION.guided;
+  return lvl<=1?t.low:t.high;
+}
+function abortActiveLevelB(reason='call-preempt'){
+  if(!activeKind||activeKind==='call')return false;
+  activeRunId+=1;
+  document.querySelectorAll('.fx-local-status,.fx-local-card-ghost').forEach(el=>{
+    try{el.getAnimations?.().forEach(a=>a.cancel())}catch{}
+    el.remove();
+  });
+  diagnostics.interruptedLevelB+=1;
+  diagnostics.lastInterruptReason=String(reason||'call-preempt');
+  return true;
+}
+function planRefreshEvents(events=[]){
+  const calls=events.filter(x=>x.kind==='call').sort((a,b)=>(a.order||0)-(b.order||0));
+  const levelB=events.filter(x=>x.kind!=='call').sort((a,b)=>{
+    const p=(STATUS_PRIORITY[b.kind]||0)-(STATUS_PRIORITY[a.kind]||0);
+    return p||((a.order||0)-(b.order||0));
+  });
+
+  const planned=[];
+  let spent=0;
+  let budgetClosed=false;
+
+  if(calls.length){
+    const members=calls.slice(0,MAX_CALL_GROUP);
+    const overflow=Math.max(0,calls.length-members.length);
+    const timing=callGroupTiming(members.length);
+    diagnostics.callGroupSize=members.length;
+    diagnostics.overflowCallCount+=overflow;
+    planned.push({
+      id:++sequence,
+      key:'call-group:'+sequence,
+      kind:'call',
+      number:members[0]?.number||'',
+      numbers:members.map(x=>x.number),
+      members,
+      fromStatus:'mixed',
+      toStatus:'calling',
+      order:Math.min(...members.map(x=>Number(x.order)||0)),
+      frame:members[0]?.frame||null,
+      grid:members[0]?.grid||null,
+      estimatedMs:timing.total,
+      stableMs:timing.stable,
+      overflowCallCount:overflow,
+    });
+    spent+=timing.total;
+  }
+
+  const remainingSlots=Math.max(0,MAX_BATCH-planned.length);
+  let acceptedLevelB=0;
+  for(let i=0;i<levelB.length;i++){
+    const evt=levelB[i];
+    if(acceptedLevelB>=remainingSlots||budgetClosed){
+      diagnostics.skippedLevelB+=1;
+      continue;
+    }
+    const estimate=levelBDuration(evt.kind);
+    if(spent+estimate>STATUS_BATCH_BUDGET_MS){
+      budgetClosed=true;
+      diagnostics.budgetClosedBatches+=1;
+      diagnostics.skippedLevelB+=levelB.length-i;
+      break;
+    }
+    planned.push({...evt,estimatedMs:estimate});
+    acceptedLevelB+=1;
+    spent+=estimate;
+  }
+  if(levelB.length>remainingSlots&&acceptedLevelB>=remainingSlots){
+    diagnostics.skippedLevelB+=Math.max(0,levelB.length-acceptedLevelB);
+  }
+  return{planned,spent,budgetClosed,calls:calls.length};
+}
 function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
   const next=snapshot(rows);
   const slot=String(slotKey||'');
@@ -130,6 +231,7 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
       id:++sequence,
       key,
       number:now.number,
+      order:now.order,
       fromStatus:before.state,
       toStatus:now.state,
       kind,
@@ -146,13 +248,27 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
   }
 
   if(document.visibilityState!=='hidden'&&effectiveLevel()>0){
+    const hasNewCall=events.some(x=>x.kind==='call');
+    if(hasNewCall){
+      abortActiveLevelB('new-call');
+      const oldLevelB=queue.filter(x=>x.kind!=='call').length;
+      if(oldLevelB){
+        diagnostics.skippedLevelB+=oldLevelB;
+        queue=queue.filter(x=>x.kind==='call');
+      }
+    }
+
     const cards=new Map();
     grid?.querySelectorAll?.('.queue-card[data-row-key]').forEach(card=>cards.set(String(card.dataset.rowKey||''),card));
-    for(const evt of events.slice(0,MAX_BATCH)){
-      evt.element=cards.get(evt.key)||null;
+    const batch=planRefreshEvents(events);
+    for(const evt of batch.planned){
+      if(evt.kind==='call'){
+        evt.members=evt.members.map(m=>({...m,element:cards.get(m.key)||null}));
+      }else{
+        evt.element=cards.get(evt.key)||null;
+      }
       enqueue(evt,{deferPump:true});
     }
-    if(events.length>MAX_BATCH)diagnostics.dropped+=events.length-MAX_BATCH;
     pump();
   }
   return {
@@ -162,9 +278,13 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
     events:events.map(({number,fromStatus,toStatus,kind})=>({number,fromStatus,toStatus,kind})),
   };
 }
-function eventEstimateMs(kind){
-  const t=STATUS_RUNTIME_ESTIMATE_MS[kind]||STATUS_RUNTIME_ESTIMATE_MS.cancel;
-  return effectiveLevel()<=1?t.low:t.high;
+function eventEstimateMs(evtOrKind){
+  if(typeof evtOrKind==='object'&&evtOrKind?.kind==='call'){
+    const count=Math.max(1,evtOrKind?.numbers?.length||1);
+    return callGroupTiming(count).total;
+  }
+  const kind=typeof evtOrKind==='string'?evtOrKind:evtOrKind?.kind;
+  return levelBDuration(kind);
 }
 function sortStatusQueue(list=queue){
   list.sort((a,b)=>{
@@ -175,8 +295,9 @@ function sortStatusQueue(list=queue){
   return list;
 }
 function withinBatchBudget(evt,now=Date.now()){
+  if(evt?.kind==='call')return true;
   const enqueuedAt=Number(evt?.enqueuedAt)||now;
-  const estimate=Number(evt?.estimatedMs)||eventEstimateMs(evt?.kind);
+  const estimate=Number(evt?.estimatedMs)||eventEstimateMs(evt);
   return Math.max(0,now-enqueuedAt)+estimate<=STATUS_BATCH_BUDGET_MS;
 }
 function pruneQueuedEvents(next){
@@ -185,6 +306,18 @@ function pruneQueuedEvents(next){
   const latestByKey=new Map();
   const now=Date.now();
   for(const evt of queue){
+    if(evt.kind==='call'&&Array.isArray(evt.members)){
+      const members=evt.members.filter(m=>next?.get?.(m.key)?.state==='calling');
+      if(!members.length)continue;
+      evt.members=members;
+      evt.numbers=members.map(m=>m.number);
+      evt.number=evt.numbers[0]||'';
+      const timing=callGroupTiming(evt.numbers.length);
+      evt.estimatedMs=timing.total;
+      evt.stableMs=timing.stable;
+      latestByKey.set(evt.key,evt);
+      continue;
+    }
     const current=next?.get?.(evt.key);
     if(!current||current.state!==evt.toStatus||!withinBatchBudget(evt,now))continue;
     latestByKey.set(evt.key,evt);
@@ -198,7 +331,7 @@ function enqueue(evt,{deferPump=false}={}){
     ...evt,
     element:null,
     enqueuedAt:Number(evt?.enqueuedAt)||now,
-    estimatedMs:Number(evt?.estimatedMs)||eventEstimateMs(evt?.kind),
+    estimatedMs:Number(evt?.estimatedMs)||eventEstimateMs(evt),
   };
   const duplicateIndex=queue.findIndex(x=>x.key===normalized.key);
   if(duplicateIndex>=0){
@@ -209,8 +342,9 @@ function enqueue(evt,{deferPump=false}={}){
   }
   sortStatusQueue(queue);
   if(queue.length>MAX_QUEUE){
-    queue.length=MAX_QUEUE;
-    diagnostics.dropped+=1;
+    const removed=queue.splice(MAX_QUEUE);
+    diagnostics.dropped+=removed.length;
+    diagnostics.skippedLevelB+=removed.filter(x=>x.kind!=='call').length;
   }
   diagnostics.queued+=1;
   if(!deferPump)pump();
@@ -219,26 +353,46 @@ function pump(){
   while(running<MAX_CONCURRENT&&queue.length){
     const evt=queue.shift();
     if(!withinBatchBudget(evt)){
+      if(evt.kind!=='call')diagnostics.skippedLevelB+=1;
       diagnostics.dropped+=1;
       continue;
     }
-    const delay=running*STAGGER_MS;
     running+=1;
     setTimeout(()=>{
-      const liveElement=[...document.querySelectorAll('.queue-card[data-row-key]')]
-        .find(card=>String(card.dataset.rowKey||'')===String(evt.key||''))||null;
+      let liveElement=null;
+      if(evt.kind==='call'){
+        const first=evt.members?.[0];
+        if(first){
+          liveElement=[...document.querySelectorAll('.queue-card[data-row-key]')]
+            .find(card=>String(card.dataset.rowKey||'')===String(first.key||''))||null;
+        }
+      }else{
+        liveElement=[...document.querySelectorAll('.queue-card[data-row-key]')]
+          .find(card=>String(card.dataset.rowKey||'')===String(evt.key||''))||null;
+      }
       playStatusAnimation({...evt,element:liveElement}).catch(()=>{}).finally(()=>{
         running=Math.max(0,running-1);
         pump();
       });
-    },delay);
+    },0);
   }
 }
-async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kind}={}){
+async function playStatusAnimation({number,numbers,fromStatus,toStatus,element,frame,kind,stableMs}={}){
   const resolvedKind=kind||transitionKind(String(fromStatus||''),String(toStatus||''));
   if(!resolvedKind||effectiveLevel()===0)return;
+  const runId=++activeRunId;
+  activeKind=resolvedKind;
+  const callNumbers=resolvedKind==='call'
+    ?(Array.isArray(numbers)&&numbers.length?numbers:[number]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP)
+    :[];
   diagnostics.played+=1;
-  diagnostics.lastEvent={number:String(number||''),kind:resolvedKind,fromStatus:String(fromStatus||''),toStatus:String(toStatus||'')};
+  diagnostics.lastEvent={
+    number:String(number||callNumbers[0]||''),
+    numbers:[...callNumbers],
+    kind:resolvedKind,
+    fromStatus:String(fromStatus||''),
+    toStatus:String(toStatus||'')
+  };
   diagnostics.history.push({...diagnostics.lastEvent,at:Date.now()});
   diagnostics.history=diagnostics.history.slice(-30);
   diagnostics.activeFx+=1;
@@ -247,17 +401,18 @@ async function playStatusAnimation({number,fromStatus,toStatus,element,frame,kin
     budgets:{typography:1,foreground:1,impact:2,reaction:2,secondary:1,flash:1}
   });
   try{
-    if(resolvedKind==='call')await playCallAnimation({number,element,frame,rare});
+    if(resolvedKind==='call')await playCallAnimation({numbers:callNumbers,element,frame,rare,stableMs});
     else if(resolvedKind==='guided')await playGuidedAnimation({number,element,frame});
     else if(resolvedKind==='hold')await playHoldAnimation({number,element,frame});
     else if(resolvedKind==='cancel')await playCancelAnimation({number,element,frame});
   }finally{
     M?.endChoreography?.('complete');
+    if(activeRunId===runId)activeKind='';
     diagnostics.activeFx=Math.max(0,diagnostics.activeFx-1);
   }
 }
 
-function stageFxLayer(){
+function stageFxLayer(){function stageFxLayer(){
   let layer=document.getElementById('boardFxLayer');
   if(layer)return layer;
   layer=document.createElement('div');
@@ -304,20 +459,13 @@ function ghostFrom(frame,className=''){
   stageFxLayer().appendChild(ghost);
   return ghost;
 }
-const SPECIAL_NUMBER_DURATION=Object.freeze({
-  call:Object.freeze({low:3800,high:5800}),
-  guided:Object.freeze({low:3600,high:5700}),
-  hold:Object.freeze({low:4000,high:6000}),
-  cancel:Object.freeze({low:4200,high:6200}),
-});
 const LOCAL_STATUS_DURATION=Object.freeze({
   guided:Object.freeze({low:900,high:1500}),
   hold:Object.freeze({low:1000,high:1650}),
   cancel:Object.freeze({low:1050,high:1650}),
 });
 function localStatusDuration(kind,lvl){
-  const t=LOCAL_STATUS_DURATION[kind]||LOCAL_STATUS_DURATION.guided;
-  return lvl<=1?t.low:t.high;
+  return levelBDuration(kind,lvl);
 }
 function localFxBounds(rect,{x=2.7,y=2.5}={}){
   const width=Math.max(rect.width,Math.min(innerWidth,rect.width*x));
@@ -531,93 +679,95 @@ async function playCancelCardFx({element,frame}={}){
   el.remove();
 }
 
-function specialDuration(kind,lvl){
-  const t=SPECIAL_NUMBER_DURATION[kind]||SPECIAL_NUMBER_DURATION.call;
-  return lvl<=1?t.low:t.high;
+function fitCallGroupNumbers(el){
+  if(!el)return;
+  const count=Math.max(1,Number(el.dataset.callCount)||1);
+  const targetVh=count===1?24:count<=4?12:7.4;
+  const minVh=count===1?14:count<=4?12:7;
+  const values=[...el.querySelectorAll('.fx-special-number-value')];
+  for(const value of values){
+    const cell=value.closest('.fx-call-cell');
+    if(!cell)continue;
+    value.style.fontSize=(innerHeight*targetVh/100)+'px';
+    value.style.setProperty('--call-fit-x','1');
+    let rect=value.getBoundingClientRect(),cellRect=cell.getBoundingClientRect();
+    const maxWidth=Math.max(1,cellRect.width*.92);
+    if(rect.width>maxWidth){
+      const xScale=maxWidth/rect.width;
+      const chars=String(value.textContent||'').length;
+      if(chars<=6&&xScale>=.82){
+        value.style.setProperty('--call-fit-x',String(xScale));
+      }else{
+        const nextPx=Math.max(10,(innerHeight*targetVh/100)*xScale);
+        value.style.fontSize=nextPx+'px';
+      }
+    }
+    rect=value.getBoundingClientRect();
+    value.dataset.renderHeightVh=String(rect.height/Math.max(1,innerHeight)*100);
+    value.dataset.renderWidthRatio=String(rect.width/Math.max(1,cell.getBoundingClientRect().width));
+    value.dataset.minHeightVh=String(minVh);
+  }
 }
-function specialNumberTakeover(number,kind,{duration=specialDuration(kind,effectiveLevel())}={}){
-  const value=String(number||'').trim();
-  if(!value||effectiveLevel()===0)return Promise.resolve();
+function specialNumberTakeover(numbers,kind='call',{duration,stableMs}={}){
+  const values=(Array.isArray(numbers)?numbers:[numbers]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP);
+  if(!values.length||effectiveLevel()===0)return Promise.resolve();
+  const timing=callGroupTiming(values.length);
+  duration=Number(duration)||timing.total;
+  stableMs=Number(stableMs)||timing.stable;
   M?.requestVisual?.('number',{priority:'essential'});
+
   const el=document.createElement('div');
-  el.className='fx-special-number '+String(kind||'call');
-  el.dataset.specialNumber=value;
-  el.dataset.digits=String(Math.max(1,Math.min(6,value.length)));
+  el.className='fx-special-number call';
+  el.dataset.callCount=String(values.length);
   el.dataset.specialDuration=String(duration);
+  el.dataset.stableReadableMs=String(stableMs);
+  el.dataset.callLayout=values.length===1?'1x1':values.length===2?'1x2':values.length<=4?'1x'+values.length:values.length<=6?'2x3':'2x4';
   el.setAttribute('aria-hidden','true');
 
-  const num=document.createElement('div');
-  num.className='fx-special-number-value';
-  num.textContent=value;
-  el.appendChild(num);
+  const group=document.createElement('div');
+  group.className='fx-call-group';
+  for(const raw of values){
+    const cell=document.createElement('div');
+    cell.className='fx-call-cell';
+    const num=document.createElement('div');
+    num.className='fx-special-number-value';
+    num.textContent=raw;
+    num.dataset.chars=String(raw.length);
+    cell.appendChild(num);
+    group.appendChild(cell);
+  }
+  el.appendChild(group);
   overlayFxLayer().appendChild(el);
+  fitCallGroupNumbers(el);
 
   const low=reduced||effectiveLevel()<=1;
-  const frames=kind==='guided'
-    ?(low?[
-      {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.10},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
-    ]:[
-      {opacity:0,transform:'translate3d(-18vw,28px,0) scale(.58) skewX(-5deg)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1.12) skewX(1deg)',offset:.12},
-      {opacity:1,transform:'translate3d(0,0,0) scale(.99)',offset:.22},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.77},
-      {opacity:1,transform:'translate3d(14vw,-3px,0) scale(1.015) skewX(-1.5deg)',offset:.86},
-      {opacity:0,transform:'translate3d(108vw,-34px,0) scale(.64) skewX(-8deg)',offset:1}
-    ])
-    :kind==='hold'
-    ?(low?[
-      {opacity:0,transform:'translate3d(0,0,0) scale(.985)'},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.10},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1)',offset:1}
-    ]:[
-      {opacity:0,transform:'translate3d(-38vw,0,0) scale(.7) skewX(-7deg)'},
-      {opacity:1,transform:'translate3d(48px,0,0) scale(1.18) skewX(2deg)',offset:.12},
-      {opacity:1,transform:'translate3d(-24px,0,0) scale(.96)',offset:.18},
-      {opacity:1,transform:'translate3d(13px,0,0) scale(1.04)',offset:.23},
-      {opacity:1,transform:'translate3d(-6px,0,0) scale(.995)',offset:.28},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.34},
-      {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:.90},
-      {opacity:0,transform:'translate3d(0,0,0) scale(1.015)',offset:1}
-    ])
-    :kind==='cancel'
-    ?(low?[
-      {opacity:0,transform:'scale(.985)'},
-      {opacity:1,transform:'scale(1)',offset:.10},
-      {opacity:1,transform:'scale(1)',offset:.90},
-      {opacity:0,transform:'scale(1)',offset:1}
-    ]:[
-      {opacity:0,transform:'scale(.42) rotate(-4deg)'},
-      {opacity:1,transform:'scale(1.18) rotate(1deg)',offset:.11},
-      {opacity:1,transform:'scale(.98) rotate(-.6deg)',offset:.2},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.3},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.82},
-      {opacity:1,transform:'scale(1.02) rotate(.45deg)',offset:.86},
-      {opacity:.68,transform:'scale(.9) rotate(3deg) translateY(22px)',offset:.93},
-      {opacity:0,transform:'scale(.58) rotate(8deg) translateY(110px)',offset:1}
-    ])
-    :(low?[
-      {opacity:0,transform:'scale(.985)'},
-      {opacity:1,transform:'scale(1)',offset:.10},
-      {opacity:1,transform:'scale(1)',offset:.90},
-      {opacity:0,transform:'scale(1)',offset:1}
-    ]:[
-      {opacity:0,transform:'scale(.22) rotate(-4deg)'},
-      {opacity:1,transform:'scale(1.2) rotate(1.4deg)',offset:.1},
-      {opacity:1,transform:'scale(.94) rotate(-.6deg)',offset:.18},
-      {opacity:1,transform:'scale(1.06) rotate(.3deg)',offset:.25},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.32},
-      {opacity:1,transform:'scale(1) rotate(0)',offset:.88},
-      {opacity:0,transform:'scale(1.025)',offset:1}
-    ]);
+  const introMs=low?500:1300;
+  const outroMs=Math.max(400,duration-introMs-stableMs);
+  const stableStart=clamp(introMs/duration,.05,.45);
+  const stableEnd=clamp((duration-outroMs)/duration,stableStart+.2,.95);
+  el.dataset.stableStart=String(stableStart);
+  el.dataset.stableEnd=String(stableEnd);
+
+  const frames=low?[
+    {opacity:0,transform:'translate3d(0,0,0) scale(.975)',offset:0},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:stableStart},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1)',offset:stableEnd},
+    {opacity:0,transform:'translate3d(0,0,0) scale(1.012)',offset:1}
+  ]:[
+    {opacity:0,transform:'translate3d(0,22px,0) scale(.30) rotate(-2.2deg)',offset:0},
+    {opacity:1,transform:'translate3d(0,-4px,0) scale(1.14) rotate(.7deg)',offset:Math.max(.06,stableStart*.48)},
+    {opacity:1,transform:'translate3d(0,1px,0) scale(.965) rotate(-.22deg)',offset:Math.max(.1,stableStart*.70)},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1.028) rotate(.08deg)',offset:Math.max(.13,stableStart*.84)},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1) rotate(0)',offset:stableStart},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1) rotate(0)',offset:stableEnd},
+    {opacity:1,transform:'translate3d(0,0,0) scale(1.012) rotate(0)',offset:Math.min(.98,stableEnd+(1-stableEnd)*.35)},
+    {opacity:0,transform:'translate3d(0,0,0) scale(1.025) rotate(0)',offset:1}
+  ];
 
   return animateElement(el,frames,{duration,easing:'cubic-bezier(.16,.82,.18,1)',fill:'forwards',rawTiming:true})
     .finally(()=>el.remove());
 }
-function pachinkoBurst(kind,rect,{duration=1150}={}){
+function pachinkoBurst(kind,rect,{duration=1150}={}){function pachinkoBurst(kind,rect,{duration=1150}={}){
   if(effectiveLevel()===0||!rect)return Promise.resolve();
   M?.requestVisual?.('secondary',{priority:'essential'});
   const el=document.createElement('div');
@@ -1036,30 +1186,28 @@ function specialFocusRect(){
   return{left,top,width,height,right:left+width,bottom:top+height};
 }
 
-async function playCallAnimation({number,element,frame,rare}){
-  const target=currentFrame(element)||frame;
-  const sourceRect=rectFor(element,target);
-  if(!sourceRect)return;
+async function playCallAnimation({numbers,element,frame,rare,stableMs}){
+  const values=(Array.isArray(numbers)?numbers:[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP);
+  if(!values.length)return;
   const focusRect=specialFocusRect();
-  const lvl=effectiveLevel(),duration=specialDuration('call',lvl);
+  const lvl=effectiveLevel();
+  const timing=callGroupTiming(values.length,lvl);
+  const duration=timing.total;
+  stableMs=Number(stableMs)||timing.stable;
 
   choreoPhase('anticipation','NUMBER');
-  const screen=specialScreen('call',focusRect,{duration:duration+360});
-  const burst=pachinkoBurst('call',focusRect,{duration:duration});
-  await waitMs(lvl<=1?100:260,{rawTiming:true});
+  const screen=specialScreen('call',focusRect,{duration});
+  const numberFx=specialNumberTakeover(values,'call',{duration,stableMs});
+  const burst=pachinkoBurst('call',focusRect,{duration:Math.min(1280,duration)});
+  const signature=statusSignature('call',{duration});
+  const finale=statusFinale('call',focusRect,{duration:lvl<=1?520:900});
+  const particles=runParticles('call',focusRect,{rare,level:lvl,secondary:true});
+  const reaction=screenReaction('call',{duration:lvl<=1?280:820});
+  const flash=flashFrame('call',focusRect,{duration:lvl<=1?90:190});
 
   choreoPhase('impact','NUMBER',{impact:2,secondary:1,flash:1});
-  const numberFx=specialNumberTakeover(number,'call',{duration});
-  const signature=statusSignature('call',{duration});
-  const finale=statusFinale('call',focusRect,{duration:lvl<=1?700:1050});
-  const particles=runParticles('call',focusRect,{rare,level:lvl,secondary:true});
-  const reaction=screenReaction('call',{duration:lvl<=1?420:920});
-  const flash=flashFrame('call',focusRect,{duration:lvl<=1?110:220});
-  await Promise.all([numberFx,signature,finale,particles,reaction,flash,burst]);
-
+  await Promise.all([screen,numberFx,burst,signature,finale,particles,reaction,flash]);
   choreoPhase('aftermath','NUMBER');
-  await impactFreeze(lvl<=1?80:260);
-  await screen;
 }
 async function playGuidedAnimation({element,frame}){
   choreoPhase('action','TARGET',{impact:1,secondary:1,flash:0});
@@ -1177,24 +1325,28 @@ function getDiagnostics(){
     statusWebpAssets:false,
     slowdownCoverage:4,
     statusTimingMode:'wall-clock',
-    maxSpecialDurationMs:5800,
-    maxReducedSpecialDurationMs:3800,
+    maxCallGroupSize:MAX_CALL_GROUP,
+    maxSpecialDurationMs:6600,
+    maxReducedSpecialDurationMs:5400,
     queueLimit:MAX_QUEUE,
     statusBatchBudgetMs:STATUS_BATCH_BUDGET_MS,
-    maxEstimatedStatusRuntimeMs:STATUS_RUNTIME_ESTIMATE_MS.call.high,
+    maxEstimatedStatusRuntimeMs:6600,
+    activeKind,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
     sharedCanvasCount:M?.diagnostics?.().sharedCanvasCount||0,
   };
 }
 function resetForTest(){
-  initialized=false;baselineSlot='';previous=new Map();queue.length=0;running=0;sequence=0;
-  diagnostics.played=0;diagnostics.queued=0;diagnostics.dropped=0;diagnostics.activeFx=0;diagnostics.screenShakes=0;diagnostics.baselines=0;diagnostics.lastEvent=null;diagnostics.history=[];
+  initialized=false;baselineSlot='';previous=new Map();queue.length=0;running=0;sequence=0;activeKind='';activeRunId+=1;
+  diagnostics.played=0;diagnostics.queued=0;diagnostics.dropped=0;diagnostics.activeFx=0;diagnostics.screenShakes=0;diagnostics.baselines=0;
+  diagnostics.skippedLevelB=0;diagnostics.interruptedLevelB=0;diagnostics.budgetClosedBatches=0;diagnostics.callGroupSize=0;diagnostics.overflowCallCount=0;
+  diagnostics.lastEvent=null;diagnostics.history=[];
   document.getElementById('boardFxLayer')?.remove();
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.12.0',
+  version:'1.13.0',
   capture,
   observe,
   playStatusAnimation,
