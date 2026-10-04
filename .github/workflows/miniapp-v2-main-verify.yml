@@ -6,6 +6,7 @@ on:
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
+      - 'tests/asoboon-home-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -15,6 +16,7 @@ on:
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
+      - 'tests/asoboon-home-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/miniapp-v2-main-verify.yml'
@@ -47,6 +49,8 @@ jobs:
         run: node --test tests/asoboon-develop-concurrency.test.mjs
       - name: Production security hardening regression
         run: node --test tests/asoboon-production-security.test.mjs
+      - name: HOME layout and timeguide reflection regression
+        run: node --test tests/asoboon-home-layout-timeguide.test.mjs
       - name: Lock reserveId-based identity rules
         run: |
           set -euo pipefail
