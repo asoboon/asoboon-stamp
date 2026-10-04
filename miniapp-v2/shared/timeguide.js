@@ -37,6 +37,10 @@ function readSaved(day){
     return Number.isFinite(parseClock(entry))?x:null;
   }catch{return null}
 }
+function clearForHome(){
+  try{localStorage.removeItem(HOME_RESULT_KEY)}catch{}
+  window.dispatchEvent(new CustomEvent('asoboon:v2-timeguide-updated',{detail:null}));
+}
 function saveForHome(day,inputValue,calc){
   if(!day?.operationalDate||!calc?.ok)return;
   const value={
@@ -147,6 +151,7 @@ function mount(){
     const calc=renderCalculation(day);
     const input=$('tgEntry');
     if(calc?.ok&&input)saveForHome(day,input.value,calc);
+    else clearForHome();
   });
   $('tgReload')?.addEventListener('click',()=>void loadDay({force:true}));
   void loadDay({force:true});
