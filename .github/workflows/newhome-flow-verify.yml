@@ -202,7 +202,8 @@ jobs:
           set -euo pipefail
           grep -F "'平日': Object.freeze(['0023', '0025'])" miniapp-v2/backend/develop-gateway.js
           ! grep -Fq "WEB_NOT_AVAILABLE_FOR_REGULAR_WEEKDAY" miniapp-v2/backend/develop-gateway.js
-          grep -F "const DEVELOP_LINE_ONLY=E.environment==='develop';" miniapp-v2/shared/reception.js
+          grep -F "const LINE_STORE_ONLY=E.lineStoreOnly===true||E.environment==='develop';" miniapp-v2/shared/reception.js
+          ! grep -Fq "const DEVELOP_LINE_ONLY=E.environment==='develop';" miniapp-v2/shared/reception.js
           grep -F "get('dev')==='0042'" miniapp-v2/shared/reception.js
           grep -F "const TEST_WAIT_TYPE_ID='0042';" miniapp-v2/develop/reception-anywhere-v22.js
           grep -F "get('dev')==='0042'" miniapp-v2/develop/reception-anywhere-v22.js
