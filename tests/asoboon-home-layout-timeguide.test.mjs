@@ -41,8 +41,8 @@ for(const env of ['develop','production']){
 test('cache keys load the new HOME/timeguide code',()=>{
   const dev=read('miniapp-v2/develop/index.html');
   const prod=read('miniapp-v2/production/index.html');
-  for(const s of [dev,prod]){
-    assert.match(s,/shared\/timeguide\.js\?v=20261004-02/);
-    assert.match(s,/home-v38\.js\?v=20261004-02/);
-  }
+  assert.match(dev,/shared\/timeguide\.js\?v=20261004-02/);
+  assert.match(dev,/home-v38\.js\?v=20261004-02/);
+  assert.match(prod,/shared\/timeguide\.js\?v=20261004-02/);
+  assert.match(prod,/home-v38\.js\?v=20261004-03/);
 });
