@@ -16,7 +16,7 @@
  */
 
 const CFG = Object.freeze({
-  VERSION: '1.0.prod-dark1',
+  VERSION: '1.1.prod-security1',
   ENVIRONMENT: 'official-production',
   CHANNEL_ID: '2009888671',
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
@@ -35,11 +35,15 @@ const CFG = Object.freeze({
   OFFICIAL_WEB_HANDOFF_TTL_MS: 15 * 60 * 1000,
   USER_ATTEMPT_LIMIT: 5,
   RATE_WINDOW_MS: 10 * 60 * 1000,
-  CREATE_RATE_LIMIT: 6,
-  REQUEST_STATUS_RATE_LIMIT: 120,
-  SESSION_RATE_LIMIT: 30,
-  FACILITY: Object.freeze({ lat: 35.84895, lng: 139.74345 }),
-  GEOFENCE: Object.freeze({ radiusM: 500, maxAccuracyM: 200, maxAgeMs: 2 * 60 * 1000 }),
+  RATE_LIMITS: Object.freeze({
+    create: Object.freeze({ user: 4, ip: 20 }),
+    requestStatus: Object.freeze({ user: 120, ip: 300 }),
+    waitTypes: Object.freeze({ ip: 60 }),
+    businessDay: Object.freeze({ ip: 60 }),
+    cancelReservation: Object.freeze({ user: 10, ip: 30 }),
+    reservationStatus: Object.freeze({ user: 180, ip: 360 }),
+    crowd: Object.freeze({ ip: 120 }),
+  }),
   AIR_WAIT_TYPES: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
   AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',
   AIR_RESERVATIONS: 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations',
@@ -83,7 +87,10 @@ export default {
       if (request.method === 'GET') {
         const action = String(url.searchParams.get('action') || 'health');
         if (action === 'health') return out(request, await health(env));
-        if (action === 'waitTypes') return out(request, await getWaitTypes(env));
+        if (action === 'waitTypes') {
+          await enforceRequestRateLimit(env, request, 'waitTypes');
+          return out(request, await getWaitTypes(env));
+        }
         // Results are only returned to the verified owner through POST requestStatus.
         if (action === 'requestStatus') return out(request, { ok: false, found: false, error: 'REQUEST_STATUS_REQUIRES_LINE_IDENTITY', version: CFG.VERSION }, 401);
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 404);
@@ -93,7 +100,7 @@ export default {
       const p = await readBody(request);
       const action = String(p.action || '');
       if (action !== 'createReservation') {
-        if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p));
+        if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p, request));
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
       }
 
@@ -112,7 +119,7 @@ export default {
 
       let result;
       try {
-        await enforceRateLimit(env, 'create', ownerHash, CFG.CREATE_RATE_LIMIT, CFG.RATE_WINDOW_MS);
+        await enforceRequestRateLimit(env, request, 'create', ownerHash);
         result = await createReservation(env, p, requestId, line);
       } catch (e) {
         if (action === 'createReservation') await recordCreateDiagnostic(env, p, e);
@@ -260,7 +267,7 @@ async function health(env) {
     productionCreateArmed: CFG.PRODUCTION_CREATE_ARMED,
     acceptedClientIds: [CFG.CHANNEL_ID],
     createRequiresVerifiedLiff: true,
-    createEnabled: CFG.PRODUCTION_CREATE_ARMED && String(env.CREATE_ENABLED || '0') === '1',
+    createEnabled: productionCreateEnabled(env),
     dbConfigured: Boolean(env.DB),
     airwaitKeyConfigured: Boolean(env.AIRWAIT_API_KEY),
     storeId: CFG.STORE_ID,
@@ -271,6 +278,7 @@ async function health(env) {
     operationalCutoffHour: CFG.OPERATIONAL_CUTOFF_HOUR,
     lineReceptionOpen: '09:25',
     lineReceptionUsesStoreOnly: true,
+    rateLimitScopes: Object.keys(CFG.RATE_LIMITS),
   };
 }
 
@@ -379,10 +387,8 @@ async function getWaitTypes(env, { force = false } = {}) {
   return { ok: true, cached: false, waitTypes, version: CFG.VERSION };
 }
 
-function usageMatchesMode(usage, mode) {
+function usageMatchesMode(usage) {
   const u = String(usage || '');
-  if (!u || u === '01' || u === 'KeyALL') return true;
-  if (mode === 'web') return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
   return u === '02' || u === 'KeySTORE_RECEPTION_ONLY';
 }
 
@@ -396,15 +402,16 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
 }
 
 async function createReservation(env, p, requestId, verifiedLine = null) {
-  if (!CFG.PRODUCTION_CREATE_ARMED || String(env.CREATE_ENABLED || '0') !== '1') throw apiError('CREATE_DISABLED', 503);
+  if (!productionCreateEnabled(env)) throw apiError('CREATE_DISABLED', 503);
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
-  const mode = String(p.mode || '').toLowerCase() === 'onsite' ? 'onsite' : 'web';
-  const adults = intInRange(p.adults, 1, 10);
-  const paidChildren = intInRange(p.paidChildren, 0, 10);
-  const infants = intInRange(p.infants, 0, 10);
-  const total = adults + paidChildren + infants;
-  if (total < 1 || total > 10 || paidChildren + infants > adults * 3) throw apiError('PEOPLE_VALIDATION_ERROR', 400);
+  // Production LINE reception is always the store-reception path.
+  // Client-supplied mode/location fields are untrusted and intentionally ignored.
+  const mode = 'web';
+  const adults = strictIntField(p.adults, 'adults', 1, 10);
+  const paidChildren = strictIntField(p.paidChildren, 'paidChildren', 0, 10);
+  const infants = strictIntField(p.infants, 'infants', 0, 10);
+  validatePartySize(adults, paidChildren, infants);
   const waitTypeId = normalizeWaitType(p.waitTypeId);
   if (!waitTypeId) throw apiError('WAIT_TYPE_REQUIRED', 400);
 
@@ -414,11 +421,9 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
 
   const line = verifiedLine || await verifyLineUser(p.liffAccessToken);
   const hash = await userHash(line.userId);
-  if (waitTypeId === DEVELOP_TEST_SLOT_ID && !developTestSlotAllowed(env, hash)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
 
   const day = await getBusinessDay(serverDate);
   enforceReceptionHours(day, mode);
-  if (mode === 'onsite') validateLocation(p);
 
   const wt = await getWaitTypes(env, { force: true });
   const waitType = validateWaitType(wt.waitTypes, day, mode, waitTypeId);
@@ -456,10 +461,8 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
   let d;
   try { d = JSON.parse(text); }
   catch {
-    const amb = res.ok || res.status >= 500;
-    if (amb) await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
-    else await releaseUserClaim(env, hash, serverDate, requestId);
-    throw apiError(amb ? 'AIRWAIT_CREATE_RESPONSE_AMBIGUOUS_MANUAL_REVIEW' : 'AIRWAIT_CREATE_INVALID_RESPONSE', 502, amb);
+    await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
+    throw apiError('AIRWAIT_CREATE_RESPONSE_AMBIGUOUS_MANUAL_REVIEW', 502, true);
   }
 
   let resultCode = String(d?.resultCode?.code || '');
@@ -498,10 +501,8 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
     let retryData;
     try { retryData = JSON.parse(retryText); }
     catch {
-      const amb = retryRes.ok || retryRes.status >= 500;
-      if (amb) await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
-      else await releaseUserClaim(env, hash, serverDate, requestId);
-      const e=apiError(amb ? 'AIRWAIT_CREATE_STORENO_RESPONSE_AMBIGUOUS_MANUAL_REVIEW' : 'AIRWAIT_CREATE_STORENO_INVALID_RESPONSE',502,amb);
+      await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
+      const e=apiError('AIRWAIT_CREATE_STORENO_RESPONSE_AMBIGUOUS_MANUAL_REVIEW',502,true);
       e.airwaitHttp=Number(retryRes.status||0);
       e.airwaitIdentifier='storeNo';
       throw e;
@@ -513,21 +514,17 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
     usedStoreNoFallback = true;
   }
 
-  const hasDefinitiveAirwaitError = d?.success === false && resultCode && resultCode !== '0000';
-  if (!res.ok && hasDefinitiveAirwaitError) {
+  const createOutcome = classifyAirwaitCreateResult(res.ok, res.status, d);
+  if (createOutcome.kind === 'REJECTED') {
     await releaseUserClaim(env, hash, serverDate, requestId);
     throw airwaitResultError(resultCode, { httpStatus:res.status, message:airwaitResultMessage(d) });
   }
-  if (!res.ok) {
-    const amb = res.status >= 500;
-    if (amb) await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
-    else await releaseUserClaim(env, hash, serverDate, requestId);
-    throw apiError(`AIRWAIT_CREATE_HTTP_${res.status}_RC_${resultCode || 'NONE'}`, res.status, amb, resultCode);
-  }
-
-  if (d?.success !== true || resultCode !== '0000') {
-    await releaseUserClaim(env, hash, serverDate, requestId);
-    throw airwaitResultError(resultCode, { httpStatus:res.status, message:airwaitResultMessage(d) });
+  if (createOutcome.kind !== 'SUCCESS') {
+    await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
+    const e=apiError('AIRWAIT_CREATE_RESULT_AMBIGUOUS_MANUAL_REVIEW', 502, true, resultCode);
+    e.airwaitHttp=Number(res.status||0);
+    e.airwaitMessage=airwaitResultMessage(d);
+    throw e;
   }
 
   const dto = d?.innerDto || {};
@@ -681,16 +678,6 @@ async function adoptOfficialWebReception(env,p,requestId){
   };
 }
 
-function validateLocation(p) {
-  const lat = Number(p.latitude), lng = Number(p.longitude), accuracy = Number(p.accuracy), ts = Number(p.locationTimestamp);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(accuracy) || !Number.isFinite(ts)) throw apiError('LOCATION_REQUIRED', 400);
-  const age = Date.now() - ts;
-  if (age < -30_000 || age > CFG.GEOFENCE.maxAgeMs) throw apiError('LOCATION_STALE', 400);
-  if (accuracy < 0 || accuracy > CFG.GEOFENCE.maxAccuracyM) throw apiError('LOCATION_ACCURACY_TOO_LOW', 400);
-  const distance = distanceM(CFG.FACILITY.lat, CFG.FACILITY.lng, lat, lng);
-  if (distance > CFG.GEOFENCE.radiusM) throw apiError('OUTSIDE_ONSITE_GEOFENCE', 403);
-}
-
 async function incrementAttempt(env, hash, date) {
   const now = Date.now();
   await env.DB.prepare(`INSERT INTO v2_user_attempts(user_hash,business_date,attempt_count,updated_at) VALUES(?,?,1,?)
@@ -796,16 +783,6 @@ async function requestStatus(env, requestId) {
 /* Identity / ownership helpers (security audit 2026-10-01)               */
 /* ---------------------------------------------------------------------- */
 
-const DEVELOP_TEST_SLOT_ID = '0042';
-
-// 0042 is a Developing-only test slot. It must be enabled explicitly and can be
-// limited to specific LINE users (comma separated SHA256(channelId:userId)).
-function developTestSlotAllowed(env, hash) {
-  if (String(env?.DEVELOP_TEST_SLOT_ENABLED || '0') !== '1') return false;
-  const allow = String(env?.DEVELOP_TEST_USER_HASHES || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
-  return allow.length === 0 || allow.includes(String(hash || '').toLowerCase());
-}
-
 // shortUrl carries the AirWAIT cancel capability. It stays in D1 / Worker only.
 function publicResult(result) {
   if (!result || typeof result !== 'object') return result;
@@ -840,20 +817,20 @@ async function requestOwnedBy(env, requestId, row, ownerHash) {
   return parsed?.ok !== true;
 }
 
-async function requestStatusForUser(env, p) {
+async function requestStatusForUser(env, p, request) {
   const id = normalizeRequestId(p?.requestId);
   if (!id) return { ok: false, found: false, error: 'REQUEST_ID_REQUIRED', version: CFG.VERSION };
   const line = await verifyLineUser(p?.liffAccessToken);
   const hash = await userHash(line.userId);
-  await enforceRateLimit(env, 'requestStatus', hash, CFG.REQUEST_STATUS_RATE_LIMIT, CFG.RATE_WINDOW_MS);
+  await enforceRequestRateLimit(env, request, 'requestStatus', hash);
   const row = await env.DB.prepare('SELECT state,result_json,expires_at,user_hash FROM v2_request_results WHERE request_id=? LIMIT 1').bind(id).first();
   if (!row) return { ok: true, found: false, version: CFG.VERSION };
   if (!(await requestOwnedBy(env, id, row, hash))) return { ok: true, found: false, version: CFG.VERSION };
   return publicResult(await requestStatus(env, id));
 }
 
-// Fixed-window per-user limiter in D1. Normal cancel -> same-day re-reception
-// stays far below these limits.
+// Fixed-window limiter in D1. Production scopes are separated by action and
+// enforced against LINE-user identity and/or Cloudflare's connection IP.
 async function enforceRateLimit(env, scope, hash, limit, windowMs) {
   if (!env?.DB || !hash) return;
   const now = Date.now();
@@ -866,12 +843,44 @@ async function enforceRateLimit(env, scope, hash, limit, windowMs) {
   if (Number(row?.count || 0) > limit) throw apiError('RATE_LIMITED', 429);
 }
 
+async function requestIpHash(request) {
+  const ip=String(request?.headers?.get?.('CF-Connecting-IP')||'').trim() || 'missing';
+  return sha256Hex(`ip:${ip}`);
+}
+
+async function enforceRequestRateLimit(env, request, scope, userHash='') {
+  const policy=CFG.RATE_LIMITS[scope]||{};
+  if(policy.user&&userHash) await enforceRateLimit(env,`${scope}:user`,userHash,Number(policy.user),CFG.RATE_WINDOW_MS);
+  if(policy.ip){
+    const ipHash=await requestIpHash(request);
+    await enforceRateLimit(env,`${scope}:ip`,ipHash,Number(policy.ip),CFG.RATE_WINDOW_MS);
+  }
+}
+
+const DEFINITIVE_CREATE_REJECTION_CODES = new Set([
+  '1000','3201','3527','3528','3532','3537','3539','3556','3557','3558','3593'
+]);
+
+function isDefinitiveCreateRejection(d, code) {
+  return d?.success === false && DEFINITIVE_CREATE_REJECTION_CODES.has(String(code||''));
+}
+
+function classifyAirwaitCreateResult(responseOk, httpStatus, d) {
+  const code=String(d?.resultCode?.code||'');
+  if(responseOk===true && d?.success===true && code==='0000') return {kind:'SUCCESS',code,httpStatus:Number(httpStatus||0)};
+  if(isDefinitiveCreateRejection(d,code)) return {kind:'REJECTED',code,httpStatus:Number(httpStatus||0)};
+  return {kind:'AMBIGUOUS',code,httpStatus:Number(httpStatus||0)};
+}
+
+function productionCreateEnabled(env) {
+  return CFG.PRODUCTION_CREATE_ARMED === true && String(env?.CREATE_ENABLED||'0') === '1';
+}
+
 function airwaitResultError(code, meta={}) {
   const c = String(code || 'NONE');
   const known = {
     '1000': 'AIRWAIT_INPUT_ERROR',
     '3201': 'AIRWAIT_UNREGISTERED_DATA',
-    '3509': 'AIRWAIT_PRINTER_NOT_FOUND',
     '3527': 'AIRWAIT_NO_TICKETS_TODAY',
     '3528': 'AIRWAIT_RECEPTION_UNAVAILABLE',
     '3532': 'AIRWAIT_PEOPLE_OVER_LIMIT',
@@ -881,7 +890,6 @@ function airwaitResultError(code, meta={}) {
     '3557': 'AIRWAIT_OUTSIDE_RECEPTION_TIME',
     '3558': 'AIRWAIT_WAIT_TYPE_OUTSIDE_TIME',
     '3593': 'AIRWAIT_BELOW_MIN_PEOPLE',
-    '9999': 'AIRWAIT_SYSTEM_ERROR',
   };
   const e=apiError(known[c] || `AIRWAIT_CREATE_ERROR_RC_${c}`, 400, false, c);
   e.airwaitHttp=Number(meta?.httpStatus||0);
@@ -906,7 +914,7 @@ async function recordCreateDiagnostic(env,p,e){
     const now=Date.now();
     const businessDate=normalizeDate(p?.operationalDate||'');
     const waitTypeId=normalizeWaitType(p?.waitTypeId||'');
-    const mode=String(p?.mode||'').toLowerCase()==='onsite'?'onsite':'web';
+    const mode='line-store';
     const resultCode=String(e?.code||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40);
     const errorKey=safeError(e).slice(0,120);
     const airwaitMessage=String(e?.airwaitMessage||'').replace(/[\r\n\t]+/g,' ').slice(0,300);
@@ -925,9 +933,40 @@ function normalizeReceipt(v) { const m = String(v ?? '').normalize('NFKC').trim(
 function normalizeReserveId(v) { const s = String(v ?? '').normalize('NFKC').trim(); return /^\d{1,12}$/.test(s) ? s.padStart(12,'0') : ''; }
 function normalizeRequestId(v) { const s = String(v || '').trim(); return /^[A-Za-z0-9_-]{8,120}$/.test(s) ? s : ''; }
 function normalizeDate(v) { const s=String(v||'').trim().replace(/\//g,'-'),m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return'';const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d,12));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()+1!==mo||dt.getUTCDate()!==d)return'';return`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-function intInRange(v,min,max){const n=Number(v);return Number.isInteger(n)&&n>=min&&n<=max?n:min-1;}
-function distanceM(a,b,c,d){const R=6371000,rad=x=>x*Math.PI/180,x=rad(c-a),y=rad(d-b),q=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 2*R*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));}
+function strictIntField(v,label,min,max){
+  let n;
+  if(typeof v==='number'){
+    if(!Number.isSafeInteger(v)) throw apiError('PEOPLE_VALIDATION_ERROR',400);
+    n=v;
+  }else if(typeof v==='string'&&/^(0|[1-9]\d*)$/.test(v)){
+    n=Number(v);
+  }else{
+    throw apiError('PEOPLE_VALIDATION_ERROR',400);
+  }
+  if(!Number.isSafeInteger(n)||n<min||n>max) throw apiError('PEOPLE_VALIDATION_ERROR',400);
+  return n;
+}
+function validatePartySize(adults,paidChildren,infants){
+  const total=adults+paidChildren+infants;
+  if(adults<1||total<1||total>10||paidChildren+infants>adults*3) throw apiError('PEOPLE_VALIDATION_ERROR',400);
+  return total;
+}
 async function sha256Hex(text){const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(text||'')));return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');}
 async function safeJson(response,label){const text=await response.text();try{return JSON.parse(text)}catch{throw apiError(`${label}_INVALID_JSON`,502,response.status>=500)}}
 function apiError(message,status=500,ambiguous=false,code=''){const e=new Error(String(message||'UNKNOWN_ERROR'));e.status=status;e.ambiguous=Boolean(ambiguous);e.code=String(code||'');return e;}
 function safeError(e){return String(e?.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500);}
+
+export const __securityTest = Object.freeze({
+  productionCreateEnabled,
+  strictIntField,
+  validatePartySize,
+  operationalDate,
+  enforceReceptionHours,
+  isDefinitiveCreateRejection,
+  classifyAirwaitCreateResult,
+  rateLimits: CFG.RATE_LIMITS,
+  claimRequest,
+  claimUserDay,
+  finalizeRequest,
+  requestOwnedBy,
+});
