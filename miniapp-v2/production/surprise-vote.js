@@ -4,7 +4,7 @@
 
   const DEFAULTS = {
     API_URL: '',
-    LIFF_ID: '2009884611-bDgDzGrN',
+    LIFF_ID: '2009888671-57TOefc3',
     HOME_URL: './index.html',
     POLL_INTERVAL_MIN_MS: 25000,
     POLL_INTERVAL_MAX_MS: 35000,
@@ -39,9 +39,9 @@
   const EMBEDDED =
     PAGE_PARAMS.get('embedded') === '1';
 
-  const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
-  const STATUS_CACHE_KEY = 'asoboon-surprise-status-cache-v1';
-  const VOTER_SESSION_KEY = 'asoboon-surprise-voter-session-v1';
+  const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-production-v2';
+  const STATUS_CACHE_KEY = 'asoboon-surprise-status-cache-production-v1';
+  const VOTER_SESSION_KEY = 'asoboon-surprise-voter-session-production-v1';
 
   const reduced =
     !!window.matchMedia &&
@@ -309,7 +309,7 @@
       const keys = [];
       for (let i = 0; i < localStorage.length; i += 1) {
         const key = localStorage.key(i) || '';
-        if (key.startsWith('asoboon-surprise-pending-v1:')) {
+        if (key.startsWith('asoboon-surprise-pending-production-v1:')) {
           keys.push(key);
         }
       }
@@ -822,7 +822,7 @@
   }
 
   function getGuestId() {
-    const key = 'asoboon-surprise-vote-guest-v1';
+    const key = 'asoboon-surprise-vote-guest-production-v1';
     let value = '';
     try {
       value = localStorage.getItem(key) || '';
@@ -893,7 +893,7 @@
   function pendingStorageKey() {
     if (!state.event?.id || !state.voterKey) return '';
     return (
-      'asoboon-surprise-pending-v1:' +
+      'asoboon-surprise-pending-production-v1:' +
       state.event.id + ':' +
       state.voterKey.slice(0, 18)
     );
