@@ -29,7 +29,7 @@ html,body{overflow-x:hidden}
 .topbar,.brand,.status,.parts-grid,.part-card{min-width:0}
 .counter{flex:0 0 auto;margin-left:10px}
 .brand h1{max-width:100%;white-space:nowrap}
-@media(max-width:460px){.counter{min-width:74px;padding:7px 10px}.counter strong{font-size:28px}.brand h1{font-size:34px}.garage{padding-left:12px;padding-right:12px}.parts-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.part-card{min-height:62px;padding-left:4px;padding-right:4px}}
+@media(max-width:520px){.counter{min-width:74px;padding:7px 10px}.counter strong{font-size:28px}.brand h1{font-size:34px}.garage{padding-left:12px;padding-right:12px}.parts-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.part-card{min-height:62px;padding-left:4px;padding-right:4px}}
 
 /* v8 aligned-car polish */
 .machine-flash .garage{animation:garageFlash .75s ease-out}
