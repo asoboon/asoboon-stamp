@@ -1,0 +1,8 @@
+station,part_or_action,nfc_url,qr_url
+01,engine,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=engine&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=engine&src=qr
+02,wheel,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=wheel&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=wheel&src=qr
+03,headlight,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=headlight&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=headlight&src=qr
+04,fin,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=fin&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=fin&src=qr
+05,grille,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=grille&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=grille&src=qr
+06,key,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=key&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?part=key&src=qr
+07,engine_start,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?station=engine&src=nfc,https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/?station=engine&src=qr
