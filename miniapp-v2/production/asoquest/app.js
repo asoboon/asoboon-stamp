@@ -1,9 +1,9 @@
-/* ASOQUEST v5 — one-day, serverless, image-asset-free LINE MINI App lane.
+/* ASOQUEST v6 — one-day, serverless, image-asset-free LINE MINI App lane.
    Existing stamp rally and official home are intentionally untouched. */
 (() => {
   'use strict';
 
-  const CONFIG = { TOTAL: 6, STORAGE_PREFIX: 'asoquest:v5', TIME_ZONE: 'Asia/Tokyo' };
+  const CONFIG = { TOTAL: 6, STORAGE_PREFIX: 'asoquest:v6', TIME_ZONE: 'Asia/Tokyo' };
   const PARTS = [
     { id:'engine',    no:'01', name:'エンジン' },
     { id:'wheel',     no:'02', name:'タイヤ' },
@@ -51,7 +51,8 @@
 
   function readRoute(){
     const p=new URLSearchParams(location.search);
-    const partId=String(p.get('part')||'').trim().toLowerCase();
+    let partId=String(p.get('part')||'').trim().toLowerCase();
+    if(partId==='light') partId='headlight';
     const station=String(p.get('station')||'').trim().toLowerCase();
     return {partId:PART_IDS.has(partId)?partId:'',station:station==='engine'?'engine':''};
   }
@@ -73,7 +74,7 @@
     state.completed=Boolean(saved.completed);
   }
   function saveState(extra={}){
-    localStorage.setItem(state.storageKey,JSON.stringify({version:5,date:japanDateKey(),acquired:[...state.acquired],completed:Boolean(state.completed),updatedAt:new Date().toISOString(),lastSource:state.source,...extra}));
+    localStorage.setItem(state.storageKey,JSON.stringify({version:6,date:japanDateKey(),acquired:[...state.acquired],completed:Boolean(state.completed),updatedAt:new Date().toISOString(),lastSource:state.source,...extra}));
   }
   function collectPart(id){
     const already=state.acquired.includes(id);
