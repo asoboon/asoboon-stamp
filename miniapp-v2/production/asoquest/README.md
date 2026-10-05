@@ -1,18 +1,27 @@
-# ASOQUEST v4 — LINE MINI App lane
+# ASOQUEST v5 — image-asset-free LINE MINI App lane
 
-ASOBooN公式LINEミニアプリ配下で動く、1日完結の館内クエストです。現行スタンプラリーとは独立しています。
+ASOBooN公式LINEミニアプリ配下で動く1日完結の館内クエストです。既存スタンプラリーと公式ホームは変更しません。
 
+## Architecture
 - GAS / DBなし
-- localStorageのみ（Asia/Tokyo日付で自動リセット）
+- localStorageのみ（Asia/Tokyoの日付単位）
 - NFC / QR共通
-- 6パーツ + ENGINE START
-- 画像素材なし（CSS + inline SVG）
-- 1959年型アメリカンクラシックカーを意識したロング＆フィン形状
+- 外部画像素材なし
+- HTML + CSS + inline SVG + JavaScript
+- 1950年代アメリカンクラシック高級車の時代感を参考にしたオリジナル車体
+- ブランドロゴ、クレスト、メーカーエンブレム不使用
 
-## Official LINE MINI App
-- LIFF ID: `2009888671-57TOefc3`
-- Endpoint: `https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/`
-- ASOQUEST web path: `https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/`
-- Permanent link: `https://miniapp.line.me/2009888671-57TOefc3/asoquest/`
+## Parts
+1. ENGINE
+2. WHEEL
+3. HEADLIGHT
+4. FIN
+5. GRILLE
+6. KEY
+7. ENGINE START
 
-NFC/QR用URLは `station_urls.csv` を参照してください。
+## URLs
+- Web: https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/
+- LINE MINI App: https://miniapp.line.me/2009888671-57TOefc3/asoquest/
+
+NFC用URLは station_urls.csv を参照。
