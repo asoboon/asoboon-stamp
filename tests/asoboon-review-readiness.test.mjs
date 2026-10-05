@@ -29,6 +29,17 @@ test('Developing review candidate keeps all core functions inside MINI App v2',(
   assert.match(worker,/postAction === 'createReservation'/);
 });
 
+test('Developing play content exposes BOON BLOCK v23 without changing Review scope',()=>{
+  const develop=read('miniapp-v2/develop/home-v38.js');
+  const review=read('miniapp-v2/review/home-v38.js');
+  const index=read('miniapp-v2/develop/index.html');
+  assert.match(develop,/BOON BLOCK/);
+  assert.match(develop,/https:\/\/asoboon\.github\.io\/asoboon-3d\/boon-block-next\/\?v=23/);
+  assert.match(develop,/BOON BLOCK','ブロックを動かしてジャングル攻略'[^\n]*'is-new'/);
+  assert.doesNotMatch(review,/boon-block-next|BOON BLOCK/);
+  assert.match(index,/home-v38\.js\?v=20261005-01/);
+});
+
 test('active review copy uses 09:25 LINE reception and no legacy 7:00/weekday-onsite wording',()=>{
   const first=read('miniapp-v2/develop/first-v27.js');
   const info=read('miniapp-v2/develop/pages-final-v33.js');
