@@ -12,3 +12,11 @@
 .engine-card{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:14px 17px;border-radius:19px;background:linear-gradient(145deg,#1e2933,#131c24);border:1px solid #53636f;box-shadow:0 16px 38px rgba(0,0,0,.22)}.engine-card.ready{border-color:#f0c657}.engine-card small{display:block;color:#96a5b0;letter-spacing:.18em;font-size:8px;font-weight:1000}.engine-card strong{display:block;margin-top:2px;font-size:22px}.engine-card span{display:block;margin-top:2px;color:#aeb9c2;font-size:10px}footer{text-align:center;padding-top:14px}footer button{border:1px solid #52616d;border-radius:999px;background:#17222b;color:#dbe3e8;padding:9px 15px;font-weight:800}footer small{display:block;margin-top:8px;color:#687884;font-size:9px}
 .overlay{position:fixed;z-index:50;inset:0;display:grid;place-items:center;padding:22px;background:rgba(6,10,14,.77);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:.2s}.overlay.show{opacity:1;pointer-events:auto}.modal{width:min(100%,380px);padding:27px 23px;border-radius:25px;text-align:center;background:linear-gradient(145deg,#293640,#18222a);border:1px solid rgba(255,224,151,.32)}.modal small{color:#f0c55b;font-weight:1000;letter-spacing:.2em}.modal h2{font-size:34px;margin:8px 0}.modal p{color:#cbd4db}.modal button{width:100%;border:0;border-radius:14px;padding:13px;margin-top:12px;background:linear-gradient(#ffe17a,#eeb943);color:#242016;font-weight:1000}
 @media(max-width:390px){.brand h1{font-size:36px}.car-stage{margin-bottom:-29px}.part-card{min-height:66px}}
+
+/* v7.1 narrow-screen containment */
+html,body{overflow-x:hidden}
+.app{max-width:100%;overflow:hidden}
+.topbar,.brand,.status,.parts-grid,.part-card{min-width:0}
+.counter{flex:0 0 auto;margin-left:10px}
+.brand h1{max-width:100%;white-space:nowrap}
+@media(max-width:460px){.counter{min-width:74px;padding:7px 10px}.counter strong{font-size:28px}.brand h1{font-size:34px}.garage{padding-left:12px;padding-right:12px}.parts-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.part-card{padding-left:3px;padding-right:3px}}
