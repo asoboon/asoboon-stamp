@@ -37,7 +37,17 @@ test('Developing play content exposes BOON BLOCK v23 without changing Review sco
   assert.match(develop,/https:\/\/asoboon\.github\.io\/asoboon-3d\/boon-block-next\/\?v=23/);
   assert.match(develop,/BOON BLOCK','ブロックを動かしてジャングル攻略'[^\n]*'is-new'/);
   assert.doesNotMatch(review,/boon-block-next|BOON BLOCK/);
-  assert.match(index,/home-v38\.js\?v=20261005-01/);
+  assert.match(index,/home-v38\.js\?v=20261005-02/);
+});
+
+test('Developing play cards are explicitly allowed through the route escape guard',()=>{
+  const home=read('miniapp-v2/develop/home-v38.js');
+  const app=read('miniapp-v2/develop/app-stable-v36.js');
+  assert.match(home,/function playLink[^\n]*data-external="1"/);
+  assert.match(app,/if\(!a\|\|a\.hasAttribute\('data-external'\)\)return/);
+  for(const label of ['BOON BLOCK','ブーンジャンプ','ブーンRUN','おみくじ','スタンプラリー']){
+    assert.match(home,new RegExp(label));
+  }
 });
 
 test('active review copy uses 09:25 LINE reception and no legacy 7:00/weekday-onsite wording',()=>{
