@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "canvas": {"width": 800, "height": 600},
+  "format": "webp",
+  "layers": [
+    {"file":"car_base.webp","role":"base","always":true},
+    {"file":"wheel_rear.webp","part":"wheel","z":20},
+    {"file":"wheel_front.webp","part":"wheel","z":21},
+    {"file":"grille.webp","part":"grille","z":30},
+    {"file":"headlight.webp","part":"headlight","z":31},
+    {"file":"fin.webp","part":"fin","z":32},
+    {"file":"engine_fx.webp","part":"engine","mode":"acquisition_fx","z":70},
+    {"file":"key_fx.webp","part":"key","mode":"acquisition_fx","z":71},
+    {"file":"complete_fx.webp","mode":"complete_fx","z":80}
+  ]
+}
