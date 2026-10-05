@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#111c25">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>アソクエ v7 preview</title>
+  <link rel="stylesheet" href="./style.css?v=7">
+</head>
+<body>
+<main class="app">
+  <section class="garage">
+    <div class="garage-bg" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+    <header class="topbar">
+      <div class="brand"><small>ASOQUEST</small><h1>アソクエ</h1></div>
+      <div class="counter"><strong id="countTop">0</strong><span>/6</span></div>
+    </header>
+    <div class="mission"><span>ORIGINAL CLASSIC GARAGE</span><b id="machineState">MACHINE OFFLINE</b></div>
+
+    <div id="carStage" class="car-stage" aria-label="パーツで完成するクラシックカー">
+      <div id="assetWaiting" class="asset-waiting"><strong>WEBP LAYER PREVIEW</strong><span>素材パック待機中</span></div>
+      <div id="carLayers" class="car-layers">
+        <img class="layer base" src="./assets/car_base.webp" alt="" data-critical>
+        <img class="layer part-layer wheel rear" src="./assets/wheel_rear.webp" alt="" data-part-layer="wheel" data-critical>
+        <img class="layer part-layer wheel front" src="./assets/wheel_front.webp" alt="" data-part-layer="wheel" data-critical>
+        <img class="layer part-layer" src="./assets/grille.webp" alt="" data-part-layer="grille" data-critical>
+        <img class="layer part-layer" src="./assets/headlight.webp" alt="" data-part-layer="headlight" data-critical>
+        <img class="layer part-layer" src="./assets/fin.webp" alt="" data-part-layer="fin" data-critical>
+        <img id="engineFx" class="layer fx-layer" src="./assets/engine_fx.webp" alt="" data-critical>
+        <img id="keyFx" class="layer fx-layer" src="./assets/key_fx.webp" alt="" data-critical>
+        <img id="completeFx" class="layer complete-layer" src="./assets/complete_fx.webp" alt="" data-critical>
+      </div>
+      <div id="carPulse" class="car-pulse"></div>
+    </div>
+
+    <section class="status">
+      <div class="status-top"><span>PARTS</span><b id="partsCount">0 / 6</b></div>
+      <div id="segments" class="segments"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="partsGrid" class="parts-grid"></div>
+    </section>
+    <div class="guide"><strong id="headline">6つのパーツを見つけよう！</strong><span id="subline">館内を探して、スマホをタッチ。</span></div>
+  </section>
+
+  <section id="engineCard" class="engine-card locked">
+    <div><small>ENGINE START</small><strong id="engineTitle">LOCKED</strong><span id="engineHint">パーツを6こ集めると起動できます</span></div>
+    <b id="engineLock">🔒</b>
+  </section>
+
+  <footer><button id="resetPreview" type="button">プレビューを0/6に戻す</button><small>v7 staging — 本番スタンプラリーには影響しません</small></footer>
+</main>
+
+<div id="overlay" class="overlay" aria-hidden="true">
+  <div class="modal"><small id="overlayKicker">PART GET!</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose">つぎへ</button></div>
+</div>
+<script src="./app.js?v=7"></script>
+</body>
+</html>
