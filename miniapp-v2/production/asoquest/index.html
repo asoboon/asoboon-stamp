@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#16222d" />
+  <meta name="theme-color" content="#15232e" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0" />
   <title>アソクエ | ASOQUEST</title>
-  <link rel="stylesheet" href="./style.css?v=5" />
+  <link rel="stylesheet" href="./style.css?v=6" />
 </head>
 <body>
   <main id="app" class="app" aria-live="polite">
@@ -15,11 +15,11 @@
       <div class="garageScenery" aria-hidden="true">
         <div class="ceilingGrid"></div>
         <span class="lamp lamp1"></span><span class="lamp lamp2"></span><span class="lamp lamp3"></span>
-        <span class="warmCone cone1"></span><span class="warmCone cone2"></span><span class="warmCone cone3"></span>
+        <span class="lightCone cone1"></span><span class="lightCone cone2"></span><span class="lightCone cone3"></span>
         <span class="lift post1"></span><span class="lift post2"></span>
         <span class="toolWall left"></span><span class="toolWall right"></span>
         <span class="toolChest"></span><span class="blueTube"></span>
-        <span class="floorLine f1"></span><span class="floorLine f2"></span>
+        <span class="floorGlow"></span>
       </div>
 
       <header class="topbar">
@@ -31,156 +31,202 @@
       </header>
 
       <div class="heroTitle">
-        <span>AMERICAN CLASSIC GARAGE</span>
+        <span>ORIGINAL CLASSIC GARAGE</span>
         <strong id="machineState">MACHINE OFFLINE</strong>
       </div>
 
       <div id="carStage" class="carStage" data-count="0">
-        <svg class="carSvg" viewBox="0 0 1000 430" role="img" aria-label="1950年代アメリカンクラシックカー風のオリジナルマシン">
+        <svg class="carSvg" viewBox="0 0 1100 520" role="img" aria-label="アソクエ専用オリジナルクラシックGT">
           <defs>
-            <linearGradient id="bodyPaint" x1="0" y1="0" x2=".9" y2="1">
+            <linearGradient id="bodyPaint" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#fffdf3"/>
-              <stop offset=".27" stop-color="#f7f0df"/>
-              <stop offset=".56" stop-color="#e7e5dd"/>
-              <stop offset=".82" stop-color="#cdd4d9"/>
-              <stop offset="1" stop-color="#9da9b1"/>
+              <stop offset=".22" stop-color="#f8f1df"/>
+              <stop offset=".51" stop-color="#e5e6e3"/>
+              <stop offset=".74" stop-color="#c8d0d5"/>
+              <stop offset="1" stop-color="#9ba8b1"/>
+            </linearGradient>
+            <linearGradient id="bodyTop" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fffef8"/>
+              <stop offset=".55" stop-color="#ece8de"/>
+              <stop offset="1" stop-color="#bbc5cc"/>
             </linearGradient>
             <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#162431"/>
-              <stop offset=".45" stop-color="#3b6c89"/>
-              <stop offset=".72" stop-color="#1c3749"/>
-              <stop offset="1" stop-color="#0c151b"/>
+              <stop offset="0" stop-color="#17344a"/>
+              <stop offset=".38" stop-color="#42799a"/>
+              <stop offset=".68" stop-color="#1f455d"/>
+              <stop offset="1" stop-color="#0b1821"/>
             </linearGradient>
             <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#ffffff"/>
-              <stop offset=".16" stop-color="#78848e"/>
-              <stop offset=".34" stop-color="#f9fcff"/>
-              <stop offset=".55" stop-color="#98a3ab"/>
-              <stop offset=".73" stop-color="#f7fbff"/>
-              <stop offset="1" stop-color="#66727b"/>
+              <stop offset="0" stop-color="#fdfefe"/>
+              <stop offset=".15" stop-color="#687681"/>
+              <stop offset=".33" stop-color="#f8fbff"/>
+              <stop offset=".5" stop-color="#88959f"/>
+              <stop offset=".67" stop-color="#f9fcff"/>
+              <stop offset=".84" stop-color="#7e8a94"/>
+              <stop offset="1" stop-color="#dce4e9"/>
+            </linearGradient>
+            <linearGradient id="grilleChrome" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f6fbff"/>
+              <stop offset=".5" stop-color="#76828b"/>
+              <stop offset="1" stop-color="#eef3f6"/>
             </linearGradient>
             <radialGradient id="headGlow">
-              <stop offset="0" stop-color="#fffbd6" stop-opacity="1"/>
-              <stop offset=".25" stop-color="#ffe183" stop-opacity=".95"/>
-              <stop offset=".52" stop-color="#ffc24f" stop-opacity=".58"/>
-              <stop offset="1" stop-color="#ff9a32" stop-opacity="0"/>
+              <stop offset="0" stop-color="#fffde2" stop-opacity="1"/>
+              <stop offset=".26" stop-color="#ffe68d" stop-opacity=".98"/>
+              <stop offset=".55" stop-color="#ffc052" stop-opacity=".54"/>
+              <stop offset="1" stop-color="#ff9634" stop-opacity="0"/>
             </radialGradient>
             <radialGradient id="engineGlow">
-              <stop offset="0" stop-color="#ffce63" stop-opacity=".82"/>
-              <stop offset=".55" stop-color="#ff8b35" stop-opacity=".26"/>
-              <stop offset="1" stop-color="#ff8b35" stop-opacity="0"/>
+              <stop offset="0" stop-color="#ffd979" stop-opacity=".82"/>
+              <stop offset=".5" stop-color="#f59b43" stop-opacity=".28"/>
+              <stop offset="1" stop-color="#f59b43" stop-opacity="0"/>
             </radialGradient>
-            <filter id="carShadow" x="-30%" y="-40%" width="170%" height="220%">
-              <feDropShadow dx="0" dy="22" stdDeviation="16" flood-color="#000" flood-opacity=".42"/>
+            <filter id="carShadow" x="-25%" y="-35%" width="165%" height="205%">
+              <feDropShadow dx="0" dy="25" stdDeviation="18" flood-color="#000" flood-opacity=".43"/>
             </filter>
-            <filter id="partGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <filter id="partGlow" x="-120%" y="-120%" width="340%" height="340%">
               <feGaussianBlur stdDeviation="7" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
 
-          <ellipse class="floorShadow" cx="507" cy="352" rx="417" ry="48"/>
+          <ellipse class="floorShadow" cx="569" cy="422" rx="448" ry="52"/>
 
           <g class="classicCar" filter="url(#carShadow)">
-            <!-- Long, low original 1950s American luxury silhouette; no brand marks -->
-            <path class="bodyShell" d="M55 283
-              C65 250 103 225 168 211
-              L333 178
-              C372 142 421 116 479 102
-              C551 84 670 87 735 111
-              C779 127 816 151 846 183
-              L908 169
-              L948 127
-              L958 210
-              C980 225 992 249 991 281
-              L966 308
-              C938 318 901 322 853 322
-              L166 322
-              C102 322 68 309 55 283 Z"/>
+            <!-- ORIGINAL 1950s-inspired 3/4 luxury GT silhouette -->
+            <path class="bodySide" d="M236 257
+              C323 228 414 205 518 192
+              C596 182 722 180 817 193
+              C875 201 929 222 970 251
+              L1021 238
+              L1054 190
+              L1060 279
+              C1077 294 1085 316 1080 344
+              L1054 371
+              C1009 383 950 388 875 390
+              L344 390
+              C293 387 253 376 228 356
+              C211 342 202 326 205 307
+              C207 289 217 271 236 257Z"/>
+            <path class="hoodTop" d="M126 300
+              C155 270 197 250 249 240
+              L529 187
+              C578 179 637 175 706 176
+              L654 232
+              C572 238 474 246 369 260
+              L192 291Z"/>
+            <path class="frontFender" d="M92 313
+              C104 286 129 265 166 252
+              C202 240 245 239 282 250
+              L347 273
+              L332 366
+              C273 381 185 383 116 365
+              C91 358 76 344 77 329
+              C78 323 83 317 92 313Z"/>
+            <path class="roofShell" d="M522 189
+              C567 138 627 111 699 105
+              C774 99 855 116 913 151
+              C940 168 960 188 976 211
+              L875 220
+              C832 191 780 176 721 175
+              C650 173 589 180 522 189Z"/>
+            <path class="windshield" d="M565 186
+              C601 145 649 124 704 119
+              L716 174
+              C661 173 611 178 565 186Z"/>
+            <path class="sideGlass" d="M724 118
+              C782 119 841 135 885 162
+              C910 177 930 194 945 213
+              L871 219
+              C827 190 778 177 721 175Z"/>
+            <path class="glassDivider" d="M719 117 L720 176"/>
+            <path class="rearGlassDivider" d="M871 162 L870 219"/>
 
-            <path class="glass" d="M394 175
-              C425 141 466 117 514 106
-              C566 94 650 95 703 110
-              C746 122 784 145 814 178
-              L621 180 Z"/>
-            <path class="glassDivider" d="M621 103 L612 180"/>
-            <path class="beltChrome" d="M134 251 C330 241 602 240 884 252"/>
-            <path class="rockerChrome" d="M181 311 C388 316 701 316 883 308"/>
-            <path class="hoodCrease" d="M136 222 C250 202 352 188 455 183"/>
-            <path class="doorLine" d="M618 182 C632 222 634 268 621 310"/>
-            <path class="rearQuarterLine" d="M813 181 C844 214 860 258 862 310"/>
+            <!-- original fins -->
+            <path class="finBase" d="M916 222 L1000 208 L1052 166 L1058 260 L993 281 Z"/>
+            <path class="finBlade" d="M958 217 L1048 173"/>
+            <path class="finLamp" d="M1013 207 L1045 195 L1056 213 L1023 227 Z"/>
 
-            <!-- Giant fin + bullet lamp; generic, no emblem -->
-            <path class="finBase" d="M833 190 L917 169 L948 128 L955 211 L893 230 Z"/>
-            <path class="finChrome" d="M858 191 L944 151"/>
-            <path class="finLamp" d="M920 169 L951 158 L959 171 L929 184 Z"/>
+            <!-- body lines -->
+            <path class="beltChrome" d="M183 301 C405 279 684 271 1000 284"/>
+            <path class="lowerChrome" d="M333 365 C542 375 785 375 970 362"/>
+            <path class="hoodCrease" d="M151 282 C286 254 423 224 563 201"/>
+            <path class="doorLine" d="M716 177 C730 233 732 302 720 373"/>
+            <path class="rearQuarterLine" d="M884 220 C917 258 933 307 931 365"/>
+            <path class="doorHandle" d="M824 249 h34"/>
+            <path class="mirror" d="M620 177 q-18-24-39-2 q4 18 31 18Z"/>
 
-            <!-- Front grille and bumper -->
-            <path class="grilleBase" d="M65 246 C115 226 205 223 294 232 L289 289 C222 305 125 306 64 288 Z"/>
-            <g class="grilleMesh" data-part="grille">
-              <path d="M84 243 H278 M80 255 H284 M78 267 H286 M79 279 H281"/>
-              <path d="M101 236 V294 M126 232 V298 M151 230 V300 M176 229 V301 M201 229 V301 M226 230 V299 M251 233 V296 M276 236 V291"/>
+            <!-- FRONT FACE in perspective -->
+            <path class="frontMask" d="M84 304
+              C113 284 154 278 202 281
+              L335 292
+              L329 350
+              C263 365 170 366 99 351
+              C79 347 68 338 69 327
+              C70 318 75 310 84 304Z"/>
+            <path class="grilleFrame" d="M101 304 L315 309 L308 345 L96 343 Z"/>
+            <g class="grilleMesh carPart" data-part="grille">
+              <path d="M108 311 L305 316 M105 321 L307 326 M102 332 L305 337"/>
+              <path d="M122 306 L118 346 M148 307 L145 348 M174 308 L172 349 M200 309 L199 349 M226 310 L226 349 M252 311 L253 348 M278 312 L280 347"/>
             </g>
-            <path class="frontBumper" d="M52 292 C112 319 216 321 306 293"/>
-            <ellipse class="bumperBullet" cx="86" cy="303" rx="27" ry="16"/>
-            <ellipse class="bumperBullet" cx="289" cy="300" rx="28" ry="16"/>
+            <path class="frontBumper" d="M70 348 C135 375 249 378 337 351"/>
+            <ellipse class="bumperBullet" cx="91" cy="357" rx="29" ry="17"/>
+            <ellipse class="bumperBullet" cx="322" cy="357" rx="29" ry="17"/>
 
-            <!-- quad headlights -->
-            <g class="headlightHardware">
-              <circle cx="108" cy="241" r="23"/><circle cx="158" cy="238" r="23"/>
-              <circle cx="220" cy="237" r="23"/><circle cx="270" cy="240" r="23"/>
+            <!-- quad lamps integrated into face -->
+            <g class="lampPods">
+              <ellipse cx="129" cy="298" rx="28" ry="25"/>
+              <ellipse cx="188" cy="300" rx="28" ry="25"/>
+              <ellipse cx="250" cy="303" rx="28" ry="25"/>
+              <ellipse cx="306" cy="307" rx="27" ry="24"/>
             </g>
             <g class="carPart headlightPart" data-part="headlight">
-              <circle class="headGlow" cx="108" cy="241" r="54"/>
-              <circle class="headGlow" cx="158" cy="238" r="54"/>
-              <circle class="headGlow" cx="220" cy="237" r="54"/>
-              <circle class="headGlow" cx="270" cy="240" r="54"/>
+              <circle class="headGlow" cx="129" cy="298" r="58"/>
+              <circle class="headGlow" cx="188" cy="300" r="58"/>
+              <circle class="headGlow" cx="250" cy="303" r="58"/>
+              <circle class="headGlow" cx="306" cy="307" r="55"/>
             </g>
 
-            <!-- wheels -->
+            <!-- Wheels: larger front wheel to sell perspective -->
             <g class="carPart wheelPart" data-part="wheel">
-              <g transform="translate(287 315)">
-                <circle class="tire" r="70"/><circle class="whitewall" r="55"/><circle class="rim" r="42"/><circle class="hub" r="12"/>
-                <path class="spokes" d="M0-34V34M-34 0H34M-24-24L24 24M24-24L-24 24M-12-32L12 32M12-32L-12 32"/>
+              <g transform="translate(381 372)">
+                <circle class="tire" r="74"/><circle class="whitewall" r="58"/><circle class="rim" r="43"/><circle class="hub" r="12"/>
+                <path class="spokes" d="M0-35V35M-35 0H35M-25-25L25 25M25-25L-25 25M-12-33L12 33M12-33L-12 33"/>
               </g>
-              <g transform="translate(781 315)">
-                <circle class="tire" r="70"/><circle class="whitewall" r="55"/><circle class="rim" r="42"/><circle class="hub" r="12"/>
-                <path class="spokes" d="M0-34V34M-34 0H34M-24-24L24 24M24-24L-24 24M-12-32L12 32M12-32L-12 32"/>
+              <g transform="translate(895 371)">
+                <circle class="tire" r="61"/><circle class="whitewall" r="48"/><circle class="rim" r="36"/><circle class="hub" r="10"/>
+                <path class="spokes" d="M0-29V29M-29 0H29M-21-21L21 21M21-21L-21 21M-10-27L10 27M10-27L-10 27"/>
               </g>
             </g>
 
-            <!-- engine under hood -->
+            <!-- engine lives beneath long hood -->
             <g class="carPart enginePart" data-part="engine">
-              <ellipse class="engineGlow" cx="399" cy="238" rx="94" ry="60"/>
-              <path class="engineBlock" d="M350 222 h74 l16 14 v42 h-103 v-42 Z"/>
-              <path class="engineLines" d="M357 235h68M357 247h76M357 259h68M372 216v-12h31v12"/>
+              <ellipse class="engineGlow" cx="489" cy="286" rx="112" ry="68"/>
+              <path class="engineBlock" d="M438 263 h83 l18 15 v46 h-118 v-47 Z"/>
+              <path class="engineLines" d="M449 277h76M449 290h85M449 303h76M468 256v-14h34v14"/>
             </g>
 
-            <!-- key / ignition -->
+            <!-- ignition/key -->
             <g class="carPart keyPart" data-part="key">
-              <circle class="keyRing" cx="666" cy="241" r="12"/>
-              <path class="keyShaft" d="M676 251 l25 24 h19 v-10 h-10 v-9 h-11 l-17-17"/>
+              <circle class="keyRing" cx="788" cy="268" r="12"/>
+              <path class="keyShaft" d="M798 278 l25 24 h21 v-10 h-11 v-9 h-12 l-17-17"/>
             </g>
 
-            <!-- fin highlight is a collectible visual layer -->
+            <!-- fin unlock highlight -->
             <g class="carPart finPart" data-part="fin">
-              <path class="finHighlight" d="M836 188 L916 168 L947 130"/>
-              <path class="finHighlight" d="M923 169 L952 160"/>
+              <path class="finHighlight" d="M920 220 L998 207 L1051 168"/>
+              <path class="finHighlight" d="M1016 207 L1047 195"/>
             </g>
-
-            <path class="mirror" d="M383 177 q-17-24-37-4 q4 18 29 18 Z"/>
-            <path class="mirror" d="M646 179 q19-23 38-2 q-4 18-29 17 Z"/>
-            <path class="doorHandle" d="M716 208 h30"/>
           </g>
 
-          <path class="groundReflection" d="M118 387 C316 354 711 354 899 387 C702 422 321 424 118 387 Z"/>
+          <path class="groundReflection" d="M125 456 C357 418 797 420 1019 455 C797 493 355 496 125 456 Z"/>
         </svg>
         <div id="carPulse" class="carPulse" aria-hidden="true"></div>
       </div>
 
       <section class="questPanel" aria-label="アソクエ進捗">
         <div class="progressStrip">
-          <div><span>PARTS</span><b id="partsCount">0 / 6</b></div>
+          <div class="progressCopy"><span>PARTS</span><b id="partsCount">0 / 6</b></div>
           <div id="segmentBar" class="segmentBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div id="partsGrid" class="partsGrid"></div>
@@ -216,6 +262,6 @@
   <div id="completeOverlay" class="overlay completeOverlay" aria-hidden="true"><div class="ignition"><p class="ignitionSmall">ALL PARTS READY</p><div class="gauge"><span id="gaugeNeedle"></span></div><h2 id="completeTitle">ENGINE START</h2><p id="completeText">マシンを起動中…</p><div id="clearMark" class="clearMark">ASOQUEST<br><b>CLEAR!</b></div><button id="completeClose" type="button">アソクエにもどる</button></div></div>
   <div id="errorOverlay" class="overlay errorOverlay" aria-hidden="true"><div class="errorCard"><p>ASOQUEST ERROR</p><h2 id="errorTitle">読み込めませんでした</h2><p id="errorText">ブラウザの設定をご確認ください。</p><button id="errorRetry" type="button">もう一度</button></div></div>
 
-  <script src="./app.js?v=5"></script>
+  <script src="./app.js?v=6"></script>
 </body>
 </html>
