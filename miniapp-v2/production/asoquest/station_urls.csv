@@ -1,0 +1,8 @@
+station,type,url
+01,wheel,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=wheel&src=nfc
+02,steering,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=steering&src=nfc
+03,battery,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=battery&src=nfc
+04,engine,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=engine&src=nfc
+05,light,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=light&src=nfc
+06,key,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?part=key&src=nfc
+07,engine_start,https://miniapp.line.me/2009888671-57TOefc3/asoquest/?station=engine&src=nfc
