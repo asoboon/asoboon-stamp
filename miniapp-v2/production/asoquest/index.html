@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#26384a" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0" />
+  <title>アソクエ | ASOQUEST</title>
+  <link rel="stylesheet" href="./style.css?v=4" />
+</head>
+<body>
+  <main id="app" class="app" aria-live="polite">
+    <section class="garageHero machinePanel" aria-label="アソクエ ガレージ">
+      <div class="garageCeiling" aria-hidden="true">
+        <span class="beam b1"></span><span class="beam b2"></span>
+        <span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span>
+      </div>
+      <div class="garageWall" aria-hidden="true">
+        <span class="wallPanel p1"></span><span class="wallPanel p2"></span><span class="wallPanel p3"></span>
+        <span class="toolChest"></span><span class="shelf"></span><span class="neonLine"></span>
+      </div>
+      <div class="garageGlow" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <div class="brandLockup">
+          <p>ASOQUEST</p>
+          <h1>アソクエ</h1>
+        </div>
+        <div id="progressBadge" class="progressBadge"><b>0</b><span>/ 6</span></div>
+      </header>
+
+      <div class="heroTitle">
+        <span>CLASSIC GARAGE MISSION</span>
+        <strong id="machineState">MACHINE OFFLINE</strong>
+      </div>
+
+      <div id="carStage" class="carStage" data-count="0">
+        <div class="spotlight warm"></div>
+        <div class="spotlight cool"></div>
+        <svg class="carSvg" viewBox="0 0 920 430" role="img" aria-label="集めたパーツで完成していく1959年型アメリカンクラシックカー">
+          <defs>
+            <linearGradient id="paint" x1="0" y1="0" x2="0.95" y2="1">
+              <stop offset="0" stop-color="#fffef8"/>
+              <stop offset="0.34" stop-color="#f8f3e7"/>
+              <stop offset="0.68" stop-color="#ddd9cf"/>
+              <stop offset="1" stop-color="#b8c0c8"/>
+            </linearGradient>
+            <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#172331"/>
+              <stop offset="0.58" stop-color="#365a72"/>
+              <stop offset="1" stop-color="#0d151c"/>
+            </linearGradient>
+            <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="0.24" stop-color="#707b84"/>
+              <stop offset="0.48" stop-color="#f8fbff"/>
+              <stop offset="0.72" stop-color="#7d8790"/>
+              <stop offset="1" stop-color="#dce4ea"/>
+            </linearGradient>
+            <radialGradient id="lampGlow">
+              <stop offset="0" stop-color="#fffbd7" stop-opacity="1"/>
+              <stop offset="0.35" stop-color="#ffd15d" stop-opacity=".96"/>
+              <stop offset="1" stop-color="#ff9736" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="13" flood-color="#000" flood-opacity=".42"/></filter>
+            <filter id="goldGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <ellipse class="floorShadow" cx="462" cy="344" rx="365" ry="50"/>
+          <g filter="url(#softShadow)" class="classicCar">
+            <path class="bodyShell" d="M64 279 C78 248 108 229 166 215 L286 188 C327 151 374 125 432 108 C492 91 594 91 655 108 C706 123 751 154 784 194 L840 184 L873 155 L879 213 C900 226 910 247 909 277 L886 306 L812 319 L142 319 C100 319 70 308 64 279Z"/>
+            <path class="hoodLine" d="M144 222 C254 199 360 188 480 187"/>
+            <path class="roofGlass" d="M349 179 C386 134 429 112 486 104 L594 105 C641 114 683 143 717 183 L558 184 L349 179Z"/>
+            <path class="windowDivider" d="M558 108 L548 183"/>
+            <path class="doorLine" d="M557 185 C568 224 570 266 558 310"/>
+            <path class="rearLine" d="M720 184 C755 216 770 258 774 309"/>
+            <path d="M122 252 C328 245 582 244 823 256" fill="none" stroke="url(#chrome)" stroke-width="8" stroke-linecap="round"/>
+            <path d="M796 199 L862 169 L868 220 L832 230Z" fill="url(#paint)" stroke="#cfd4d8" stroke-width="3"/>
+            <path d="M836 183 L866 174" fill="none" stroke="#ee3d32" stroke-width="7" stroke-linecap="round"/>
+            <path class="frontGrille" d="M82 251 C125 232 196 229 274 235 L266 286 C210 302 129 302 78 288Z"/>
+            <path d="M99 247 H252 M95 258 H260 M91 269 H264 M111 237 V290 M133 234 V294 M155 232 V296 M177 231 V297 M199 232 V296 M221 233 V293 M243 235 V289" fill="none" stroke="#aeb7be" stroke-width="2.2" opacity=".82"/>
+            <path class="bumper" d="M68 292 C120 313 210 314 282 292 M770 309 C824 316 874 304 900 283"/>
+            <ellipse cx="92" cy="300" rx="24" ry="14" fill="url(#chrome)" stroke="#626b73" stroke-width="2"/>
+            <ellipse cx="271" cy="298" rx="25" ry="15" fill="url(#chrome)" stroke="#626b73" stroke-width="2"/>
+            <circle class="frontLamp left" cx="115" cy="245" r="22"/>
+            <circle class="frontLamp right" cx="161" cy="240" r="22"/>
+            <circle class="frontLamp left" cx="214" cy="238" r="22"/>
+            <circle class="frontLamp right" cx="258" cy="241" r="22"/>
+            <path class="amberLamp" d="M283 261 h35 q8 0 8 8 q0 8-8 8 h-39Z"/>
+            <path class="mirror m1" d="M333 180 q-17-24 -36-4 q4 18 28 18Z"/>
+            <path class="mirror m2" d="M574 181 q19-22 37-2 q-4 18-29 17Z"/>
+            <path class="doorHandle" d="M645 211 h31"/>
+            <path class="fenderVent" d="M315 231 h44 M317 240 h34"/>
+            <g class="part part-wheel" data-part="wheel">
+              <circle class="tire" cx="264" cy="314" r="69"/><circle cx="264" cy="314" r="53" fill="none" stroke="#f7f1df" stroke-width="11"/><circle class="wheelFace" cx="264" cy="314" r="40"/><circle class="hub" cx="264" cy="314" r="13"/>
+              <g class="spokes" transform="translate(264 314)"><path d="M0-31V31M-31 0H31M-22-22L22 22M22-22L-22 22"/></g>
+              <circle class="tire" cx="733" cy="314" r="69"/><circle cx="733" cy="314" r="53" fill="none" stroke="#f7f1df" stroke-width="11"/><circle class="wheelFace" cx="733" cy="314" r="40"/><circle class="hub" cx="733" cy="314" r="13"/>
+              <g class="spokes" transform="translate(733 314)"><path d="M0-31V31M-31 0H31M-22-22L22 22M22-22L-22 22"/></g>
+            </g>
+            <g class="part part-steering" data-part="steering"><circle class="steeringRim" cx="511" cy="164" r="28"/><circle class="steeringHub" cx="511" cy="164" r="7"/><path class="steeringSpoke" d="M511 164 L511 188 M511 164 L488 150 M511 164 L534 150"/></g>
+            <g class="part part-battery" data-part="battery"><rect class="underPart" x="431" y="237" width="62" height="34" rx="7"/><path class="underPartLine" d="M446 254h32M462 243v22"/></g>
+            <g class="part part-engine" data-part="engine"><rect class="underPart" x="346" y="224" width="80" height="47" rx="10"/><path class="underPartLine" d="M360 238h52M360 249h52M360 260h52"/></g>
+            <g class="part part-light" data-part="light"><circle class="lightGlow" cx="115" cy="245" r="48"/><circle class="lightGlow" cx="161" cy="240" r="48"/><circle class="lightGlow" cx="214" cy="238" r="48"/><circle class="lightGlow" cx="258" cy="241" r="48"/></g>
+            <g class="part part-key" data-part="key"><circle class="keyRing" cx="624" cy="246" r="12"/><path class="keyShaft" d="M635 256l24 24h18v-10h-10v-9h-11l-17-17"/></g>
+          </g>
+          <path class="groundReflection" d="M118 379 C300 350 625 349 832 379 C657 417 301 419 118 379Z"/>
+        </svg>
+        <div id="carPulse" class="carPulse" aria-hidden="true"></div>
+      </div>
+
+      <div class="machineMessage">
+        <p id="headline">6つのパーツを見つけよう！</p>
+        <p id="subline">館内を探して、スマホをタッチ。</p>
+      </div>
+    </section>
+
+    <section class="progressPanel" aria-label="パーツ進捗">
+      <div class="progressTop">
+        <div><span>PARTS</span><b id="partsCount">0 / 6</b></div>
+        <small>COLLECTION STATUS</small>
+      </div>
+      <div class="segmentBar" id="segmentBar" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </section>
+
+    <section class="parts" aria-label="パーツ一覧">
+      <div id="partsGrid" class="partsGrid"></div>
+    </section>
+
+    <section id="engineCard" class="engineCard locked" aria-label="エンジン始動状況">
+      <div class="engineArt" aria-hidden="true">
+        <svg viewBox="0 0 120 90"><path d="M23 39h18V26h16v10h19l8 9h15v25H84l-8 8H37l-7-8H19V49h4Z"/><path d="M42 46h30M42 55h30M42 64h30"/><circle cx="92" cy="57" r="9"/></svg>
+        <span class="lockGlyph">⌁</span>
+      </div>
+      <div class="engineCopy">
+        <p class="engineLabel">ENGINE START</p>
+        <strong id="engineTitle">LOCKED</strong>
+        <small id="engineHint">パーツを6こ集めると起動できます</small>
+      </div>
+      <span id="engineLock" class="engineLock">🔒</span>
+    </section>
+
+    <footer class="footer">
+      <button id="refreshBtn" type="button" class="ghostButton">進み具合を更新</button>
+      <p>NFCが反応しないときは、同じスポットのQRコードをスマホのカメラで読み取ってください。</p>
+    </footer>
+  </main>
+
+  <div id="loading" class="overlay loadingOverlay show" aria-hidden="false"><div class="loaderCore"></div><p id="loadingLabel">アソクエを起動しています</p></div>
+  <div id="resultOverlay" class="overlay resultOverlay" aria-hidden="true"><div class="resultCard"><p id="resultKicker" class="resultKicker">PART GET!</p><strong id="resultTitle">タイヤ</strong><p id="resultText">マシンにパーツがついた！</p><button id="resultClose" type="button">つぎへ</button></div></div>
+  <div id="shortageOverlay" class="overlay shortageOverlay" aria-hidden="true"><div class="shortageCard"><p>ENGINE START</p><h2>まだ足りない！</h2><div class="missingCount"><b id="missingNumber">6</b><span>こ</span></div><strong>あと <span id="missingInline">6</span>こ あつめよう！</strong><button id="shortageClose" type="button">パーツを探す</button></div></div>
+  <div id="completeOverlay" class="overlay completeOverlay" aria-hidden="true"><div class="speedLines" aria-hidden="true"></div><div class="ignition"><p class="ignitionSmall">ALL PARTS READY</p><div class="gauge"><span id="gaugeNeedle"></span></div><h2 id="completeTitle">ENGINE START</h2><p id="completeText">マシンを起動中…</p><div id="clearMark" class="clearMark">ASOQUEST<br><b>CLEAR!</b></div><button id="completeClose" type="button">アソクエにもどる</button></div></div>
+  <div id="errorOverlay" class="overlay errorOverlay" aria-hidden="true"><div class="errorCard"><p>ASOQUEST ERROR</p><h2 id="errorTitle">読み込めませんでした</h2><p id="errorText">ブラウザの設定をご確認ください。</p><button id="errorRetry" type="button">もう一度</button></div></div>
+  <script src="./app.js?v=3"></script>
+</body>
+</html>
