@@ -1,0 +1,1 @@
+Place the nine 800x600 transparent WebP files listed in ../asset-manifest.json in this directory.\n
