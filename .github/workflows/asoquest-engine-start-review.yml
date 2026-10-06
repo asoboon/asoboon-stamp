@@ -46,7 +46,7 @@ jobs:
         env:
           ASOQUEST_BASE_URL: http://127.0.0.1:4173/miniapp-v2/production/asoquest/
           ASOQUEST_QA_DIR: qa-out
-        run: npx playwright test tests/asoquest-engine-start-visual.spec.js --project=chromium --workers=1 --reporter=line
+        run: npx playwright test tests/asoquest-engine-start-visual.spec.js --workers=1 --reporter=line
 
       - name: Upload QA packet
         if: always()
