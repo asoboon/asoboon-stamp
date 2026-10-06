@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111c25">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>アソクエ | ASOQUEST</title>
-  <link rel="stylesheet" href="./style.css?v=11">
+  <link rel="stylesheet" href="./style.css?v=12">
 </head>
 <body>
 <main class="app">
@@ -50,9 +50,28 @@
   <footer class="support-note"><small>NFCが反応しないときは、同じスポットのQRコードを読み取ってください。</small></footer>
 </main>
 
+<div id="ignitionSequence" class="ignition-sequence" aria-hidden="true">
+  <div class="ignition-speedlines" aria-hidden="true"></div>
+  <div class="ignition-flare" aria-hidden="true"></div>
+  <div class="ignition-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div id="ignitionParticles" class="ignition-particles" aria-hidden="true"></div>
+  <div class="ignition-copy">
+    <small>ENGINE START</small>
+    <strong id="ignitionCount">3</strong>
+    <h2 id="ignitionTitle">IGNITION</h2>
+    <p id="ignitionSub">マシンを起動しています</p>
+  </div>
+  <div id="ignitionFinal" class="ignition-final">
+    <small>MISSION COMPLETE</small>
+    <h2>アソクエ クリア！</h2>
+    <p>マシン完成！ ミッションクリア！</p>
+    <button id="ignitionClose" type="button">完成マシンを見る</button>
+  </div>
+</div>
+
 <div id="overlay" class="overlay" aria-hidden="true">
   <div class="modal"><small id="overlayKicker">パーツゲット！</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose">つぎへ</button></div>
 </div>
-<script src="./app.js?v=16"></script>
+<script src="./app.js?v=17"></script>
 </body>
 </html>
