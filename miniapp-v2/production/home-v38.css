@@ -108,3 +108,135 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-timeguide-cta:focus-visible,.v38-calendar-card:focus-visible,.v38-play-card:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}.v38-timeguide-cta:active,.v38-calendar-card:active,.v38-play-card:active{transform:translateY(1px)}
 @media(max-width:370px){.v38-timeguide-cta,.v38-calendar-card{grid-template-columns:46px minmax(0,1fr) 18px;padding:13px}.v38-timeguide-cta>.v38-quick-icon,.v38-calendar-icon{width:46px;height:46px}.v38-timeguide-cta strong,.v38-calendar-card strong{font-size:18px}.v38-play{padding:13px}.v38-play-grid{grid-template-columns:1fr}.v38-play-card{min-height:72px}}
 @media(prefers-reduced-motion:reduce){.v38-timeguide-cta,.v38-calendar-card,.v38-play-card{transition:none!important}}
+
+
+/* v41 ASOQUEST featured card — no image asset, keep HOME lightweight */
+.v38-asoquest-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) auto 18px;
+  align-items:center;
+  gap:11px;
+  min-height:116px;
+  margin:2px 0 13px;
+  padding:27px 14px 14px;
+  overflow:hidden;
+  border:1px solid #b99548;
+  border-radius:20px;
+  color:#fff7df;
+  text-decoration:none;
+  background:
+    radial-gradient(circle at 88% 18%,rgba(255,211,105,.17),transparent 28%),
+    linear-gradient(145deg,#243743,#111d26 67%,#0d171e);
+  box-shadow:0 10px 24px rgba(17,29,38,.16);
+}
+.v38-asoquest-card:before{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:36%;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(71,137,166,.08));
+}
+.v38-asoquest-card>svg{
+  position:relative;
+  width:18px;
+  color:#f0cc71;
+}
+.v38-asoquest-badge{
+  position:absolute;
+  left:13px;
+  top:9px;
+  padding:4px 8px;
+  border:1px solid rgba(255,222,137,.38);
+  border-radius:999px;
+  background:rgba(8,15,20,.46);
+  color:#ffe29a;
+  font-size:9px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.08em;
+}
+.v38-asoquest-icon{
+  position:relative;
+  display:grid;
+  width:52px;
+  height:52px;
+  place-items:center;
+  border:1px solid rgba(255,221,137,.48);
+  border-radius:16px;
+  color:#ffe091;
+  background:linear-gradient(145deg,#334c59,#1a2932);
+  box-shadow:inset 0 0 18px rgba(255,214,111,.05);
+}
+.v38-asoquest-icon svg{width:30px;height:30px}
+.v38-asoquest-copy{position:relative;min-width:0}
+.v38-asoquest-copy>small{
+  display:block;
+  color:#d8b761;
+  font-size:9px;
+  line-height:1.1;
+  font-weight:1000;
+  letter-spacing:.18em;
+}
+.v38-asoquest-copy>strong{
+  display:block;
+  margin-top:2px;
+  color:#fff9e9;
+  font-size:21px;
+  line-height:1.12;
+  font-weight:950;
+  letter-spacing:-.025em;
+}
+.v38-asoquest-copy>em{
+  display:block;
+  margin-top:5px;
+  color:#cfdae0;
+  font-size:11px;
+  line-height:1.42;
+  font-style:normal;
+  font-weight:650;
+}
+.v38-asoquest-progress{
+  position:relative;
+  min-width:64px;
+  padding:8px 7px;
+  border:1px solid rgba(255,220,128,.28);
+  border-radius:13px;
+  background:rgba(7,13,18,.38);
+  text-align:center;
+}
+.v38-asoquest-progress>b{
+  display:block;
+  color:#ffdb77;
+  font-size:17px;
+  line-height:1;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.v38-asoquest-progress>small{
+  display:block;
+  margin-top:4px;
+  color:#b9c7cf;
+  font-size:8px;
+  line-height:1.2;
+  font-weight:800;
+  white-space:nowrap;
+}
+.v38-asoquest-card:active{transform:translateY(1px)}
+.v38-asoquest-card:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}
+@media(max-width:390px){
+  .v38-asoquest-card{grid-template-columns:48px minmax(0,1fr) 58px 14px;gap:8px;padding-inline:11px}
+  .v38-asoquest-icon{width:48px;height:48px}
+  .v38-asoquest-copy>strong{font-size:19px}
+  .v38-asoquest-copy>em{font-size:10px}
+  .v38-asoquest-progress{min-width:58px;padding-inline:5px}
+  .v38-asoquest-progress>b{font-size:15px}
+  .v38-asoquest-progress>small{font-size:7px}
+}
+@media(max-width:350px){
+  .v38-asoquest-card{grid-template-columns:44px minmax(0,1fr) 52px 12px}
+  .v38-asoquest-icon{width:44px;height:44px}
+  .v38-asoquest-copy>em{display:none}
+  .v38-asoquest-progress{min-width:52px}
+}
