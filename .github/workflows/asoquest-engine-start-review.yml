@@ -1,0 +1,61 @@
+name: ASOQUEST ENGINE START review QA
+
+on:
+  push:
+    branches:
+      - asoquest-engine-start-final-review
+    paths:
+      - 'miniapp-v2/production/asoquest/**'
+      - 'tests/asoquest-engine-start-visual.spec.js'
+      - '.github/workflows/asoquest-engine-start-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start isolated static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/asoquest-http.log 2>&1 &
+          echo $! >/tmp/asoquest-http.pid
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:4173/miniapp-v2/production/asoquest/ >/dev/null && exit 0
+            sleep 0.5
+          done
+          cat /tmp/asoquest-http.log
+          exit 1
+
+      - name: Run visual QA
+        env:
+          ASOQUEST_BASE_URL: http://127.0.0.1:4173/miniapp-v2/production/asoquest/
+          ASOQUEST_QA_DIR: qa-out
+        run: npx playwright test tests/asoquest-engine-start-visual.spec.js --project=chromium --workers=1 --reporter=line
+
+      - name: Upload QA packet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asoquest-engine-start-qa
+          path: |
+            qa-out/**
+            playwright-report/**
+            test-results/**
+          if-no-files-found: warn
+          retention-days: 7
