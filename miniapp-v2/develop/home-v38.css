@@ -108,3 +108,22 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-timeguide-cta:focus-visible,.v38-calendar-card:focus-visible,.v38-play-card:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}.v38-timeguide-cta:active,.v38-calendar-card:active,.v38-play-card:active{transform:translateY(1px)}
 @media(max-width:370px){.v38-timeguide-cta,.v38-calendar-card{grid-template-columns:46px minmax(0,1fr) 18px;padding:13px}.v38-timeguide-cta>.v38-quick-icon,.v38-calendar-icon{width:46px;height:46px}.v38-timeguide-cta strong,.v38-calendar-card strong{font-size:18px}.v38-play{padding:13px}.v38-play-grid{grid-template-columns:1fr}.v38-play-card{min-height:72px}}
 @media(prefers-reduced-motion:reduce){.v38-timeguide-cta,.v38-calendar-card,.v38-play-card{transition:none!important}}
+
+
+/* ASOQUEST card in Developing new HOME */
+.v38-play-card.quest{
+  border-color:#c8a756;
+  background:linear-gradient(145deg,#243743,#121e27);
+  color:#fff7df;
+  box-shadow:0 7px 18px rgba(17,29,38,.12);
+}
+.v38-play-card.quest .v38-play-icon{
+  color:#f2cf73;
+  background:rgba(255,255,255,.08);
+  box-shadow:inset 0 0 0 1px rgba(255,220,130,.18);
+}
+.v38-play-card.quest small{color:#cfdae0;opacity:1}
+.v38-play-card.quest.is-new:after{
+  background:#f2c85f;
+  color:#30260d;
+}
