@@ -43,7 +43,16 @@ ASOBooN公式LINEミニアプリ内で動く、1日完結の館内クエスト�
 - Web: https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/
 - LINE MINI App: https://miniapp.line.me/2009888671-57TOefc3/asoquest/
 
-NFC用URLは station_urls.csv を参照。QR版は src=nfc を src=qr に置き換えます。
+NFC用URLは station_urls.csv、QR用URLは station_urls_qr.csv を参照（`?aq=…&src=nfc|qr` 形式。Developing LIFFのiPhone実機で到達確認済み）。
+
+### Deep link 受信側 (`miniapp-v2/shared/asoquest-deeplink.js`)
+- LINE Mini App の endpoint (`…/production/` または `…/develop/`) の `<head>` 先頭で、`liff.init()` と HOME 描画より前に同期実行され、ASOQUEST へ `location.replace` する。
+- 受理する形式: `?aq=engine|wheel|headlight|fin|grille|key|start&src=nfc|qr`（`liff.state` 経由・直接どちらも可）と、旧形式 `/asoquest/?part=…` / `?station=engine`。
+- `station_urls.csv`(NFC) / `station_urls_qr.csv`(QR) が現行。旧形式 `/asoquest/?part=…` で書き込み済みのタグも引き続き受理される。
+- 診断: URLに `&debug=asoquest` を付けると自動遷移を止めて診断パネルを表示（トークン類はマスク、ログは sessionStorage のみ）。
+- Developing の ASOQUEST は production の ASOQUEST と同一オリジンのため localStorage を共有する。テスト前に `asoquest:v9:*` を消すこと。
+- shared script を変更したら `index.html` の `?v=` を更新すること（Production / Developing 共用）。
+- 緊急 rollback は `index.html` の `asoquest-deeplink.js` の1行を外すだけ（`ASOBOON_ASOQUEST_HANDOFF` 未設定となり従来の `initLiff` に戻る）。
 
 ## Daily reset
 - リセット時刻: 毎日19:00 JST

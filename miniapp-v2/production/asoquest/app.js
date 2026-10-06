@@ -65,13 +65,15 @@ function save(){
     activeCycle=cycle;
     state={acquired:[],complete:false};
   }
-  localStorage.setItem(storageKey(),JSON.stringify({
-    acquired:state.acquired,
-    complete:state.complete,
-    cycle:activeCycle,
-    resetHourJst:RESET_HOUR_JST,
-    updatedAt:new Date().toISOString()
-  }));
+  try{
+    localStorage.setItem(storageKey(),JSON.stringify({
+      acquired:state.acquired,
+      complete:state.complete,
+      cycle:activeCycle,
+      resetHourJst:RESET_HOUR_JST,
+      updatedAt:new Date().toISOString()
+    }));
+  }catch(e){}
 }
 function cleanupOldProgress(){
   try{
