@@ -5,6 +5,7 @@ const IDS=new Set(PARTS.map(function(x){return x.id;}));
 const RESET_HOUR_JST=19;
 const STORAGE_PREFIX='asoquest:v9:';
 let activeCycle=resetCycleKey();
+let resetTimer=null;
 let state={acquired:[],complete:false};
 const $=function(id){return document.getElementById(id);};
 
@@ -16,7 +17,8 @@ document.addEventListener('DOMContentLoaded',async function(){
   if(route.part) collect(route.part);
   if(route.engine) engineCheck();
   render();
-  window.setInterval(checkResetBoundary,15000);
+  scheduleNextReset();
+  window.setInterval(checkResetBoundary,60000);
 });
 $('overlayClose').addEventListener('click',function(){
   $('overlay').classList.remove('show','clear-mode');
@@ -81,6 +83,21 @@ function cleanupOldProgress(){
       }
     }
   }catch(e){}
+}
+function millisecondsUntilNextReset(now){
+  const nowMs=(now||new Date()).getTime();
+  const jst=new Date(nowMs+9*60*60*1000);
+  const y=jst.getUTCFullYear(),m=jst.getUTCMonth(),d=jst.getUTCDate();
+  let target=Date.UTC(y,m,d,RESET_HOUR_JST-9,0,0,0);
+  if(target<=nowMs) target+=24*60*60*1000;
+  return Math.max(0,target-nowMs);
+}
+function scheduleNextReset(){
+  if(resetTimer) window.clearTimeout(resetTimer);
+  resetTimer=window.setTimeout(function(){
+    checkResetBoundary();
+    scheduleNextReset();
+  },millisecondsUntilNextReset()+100);
 }
 function checkResetBoundary(){
   const cycle=resetCycleKey();
