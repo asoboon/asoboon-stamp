@@ -109,15 +109,17 @@ test('inactive next HOME exposes every required route on the stable navigator', 
   }
   await expect(page.locator('.v38-calendar-card')).toContainText('今月のイベントを見る');
   await expect(page.locator('.v38-calendar-card')).toHaveAttribute('href', './event-calendar.html');
-  await expect(page.locator('.v38-play-card')).toHaveCount(5);
+  await expect(page.locator('.v38-play-card')).toHaveCount(6);
+  await expect(page.locator('.v38-play')).toContainText('ASOQUEST');
   await expect(page.locator('.v38-play')).toContainText('BOON BLOCK');
   await expect(page.locator('.v38-play')).toContainText('ブーンジャンプ');
   await expect(page.locator('.v38-play')).toContainText('ブーンRUN');
   await expect(page.locator('.v38-play')).toContainText('おみくじ');
   await expect(page.locator('.v38-play')).toContainText('スタンプラリー');
-  await expect(page.locator('.v38-play-card').nth(0)).toHaveAttribute('href', 'https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
-  await expect(page.locator('.v38-play-card').nth(1)).toHaveAttribute('href', '../../boonjump/');
-  await expect(page.locator('.v38-play-card').nth(2)).toHaveAttribute('href', '../../boonrun/');
+  await expect(page.locator('.v38-play-card').nth(0)).toHaveAttribute('href', '../production/asoquest/');
+  await expect(page.locator('.v38-play-card').nth(1)).toHaveAttribute('href', 'https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
+  await expect(page.locator('.v38-play-card').nth(2)).toHaveAttribute('href', '../../boonjump/');
+  await expect(page.locator('.v38-play-card').nth(3)).toHaveAttribute('href', '../../boonrun/');
   await expect(page.locator('.v38-help')).toContainText('よくある質問・困ったとき');
 });
 
