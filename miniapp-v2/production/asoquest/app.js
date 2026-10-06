@@ -3,17 +3,20 @@
 const PARTS=[{id:'engine',name:'エンジン',no:'01'},{id:'wheel',name:'タイヤ',no:'02'},{id:'headlight',name:'ライト',no:'03'},{id:'fin',name:'フィン',no:'04'},{id:'grille',name:'グリル',no:'05'},{id:'key',name:'キー',no:'06'}];
 const IDS=new Set(PARTS.map(function(x){return x.id;}));
 const RESET_HOUR_JST=19;
-const STORAGE='asoquest:v9:'+resetCycleKey();
+const STORAGE_PREFIX='asoquest:v9:';
+let activeCycle=resetCycleKey();
 let state={acquired:[],complete:false};
 const $=function(id){return document.getElementById(id);};
 
 document.addEventListener('DOMContentLoaded',async function(){
   await detectAssets();
+  cleanupOldProgress();
   load();
   const route=readRoute();
   if(route.part) collect(route.part);
   if(route.engine) engineCheck();
   render();
+  window.setInterval(checkResetBoundary,15000);
 });
 $('overlayClose').addEventListener('click',function(){
   $('overlay').classList.remove('show','clear-mode');
@@ -42,8 +45,52 @@ function resetCycleKey(now){
   const prev=new Date(Date.UTC(y,m-1,day)-86400000);
   return String(prev.getUTCFullYear()).padStart(4,'0')+'-'+String(prev.getUTCMonth()+1).padStart(2,'0')+'-'+String(prev.getUTCDate()).padStart(2,'0');
 }
-function load(){try{const s=JSON.parse(localStorage.getItem(STORAGE)||'{}');state.acquired=Array.isArray(s.acquired)?Array.from(new Set(s.acquired.filter(function(x){return IDS.has(x);}))) : [];state.complete=!!s.complete;}catch(e){}}
-function save(){localStorage.setItem(STORAGE,JSON.stringify({acquired:state.acquired,complete:state.complete,cycle:resetCycleKey(),resetHourJst:RESET_HOUR_JST,updatedAt:new Date().toISOString()}));}
+function storageKey(){return STORAGE_PREFIX+activeCycle;}
+function load(){
+  activeCycle=resetCycleKey();
+  try{
+    const s=JSON.parse(localStorage.getItem(storageKey())||'{}');
+    state.acquired=Array.isArray(s.acquired)?Array.from(new Set(s.acquired.filter(function(x){return IDS.has(x);}))) : [];
+    state.complete=!!s.complete;
+  }catch(e){
+    state={acquired:[],complete:false};
+  }
+}
+function save(){
+  const cycle=resetCycleKey();
+  if(cycle!==activeCycle){
+    activeCycle=cycle;
+    state={acquired:[],complete:false};
+  }
+  localStorage.setItem(storageKey(),JSON.stringify({
+    acquired:state.acquired,
+    complete:state.complete,
+    cycle:activeCycle,
+    resetHourJst:RESET_HOUR_JST,
+    updatedAt:new Date().toISOString()
+  }));
+}
+function cleanupOldProgress(){
+  try{
+    const current=STORAGE_PREFIX+resetCycleKey();
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(!k) continue;
+      if((k.startsWith('asoquest:v8:')||k.startsWith(STORAGE_PREFIX))&&k!==current){
+        localStorage.removeItem(k);
+      }
+    }
+  }catch(e){}
+}
+function checkResetBoundary(){
+  const cycle=resetCycleKey();
+  if(cycle===activeCycle) return;
+  activeCycle=cycle;
+  state={acquired:[],complete:false};
+  cleanupOldProgress();
+  cleanUrl();
+  render();
+}
 function readRoute(){const p=new URLSearchParams(location.search);let part=(p.get('part')||'').toLowerCase();if(part==='light')part='headlight';return{part:IDS.has(part)?part:'',engine:(p.get('station')||'').toLowerCase()==='engine'};}
 function cleanUrl(){const u=new URL(location.href);['part','station','src','source'].forEach(function(k){u.searchParams.delete(k);});history.replaceState(null,'',u);}
 function collect(id){const found=PARTS.find(function(x){return x.id===id;});if(!found)return;const fresh=!state.acquired.includes(id);if(fresh){state.acquired.push(id);save();fxFor(id);pulse();}show(fresh?'PART GET!':'ALREADY FOUND',found.name,fresh?(state.acquired.length===6?'これで6つそろった！':'マシンにパーツがついた！'):'このパーツはもう見つけているよ！');}
