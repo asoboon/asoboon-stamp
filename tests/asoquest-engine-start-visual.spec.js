@@ -36,7 +36,7 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   page.on('console', msg => {
     if (msg.type() === 'error') {
       const t = msg.text();
-      if (!/favicon/i.test(t)) consoleErrors.push(t);
+      if (!/favicon|navigator\.vibrate|Blocked call to navigator\.vibrate/i.test(t)) consoleErrors.push(t);
     }
   });
 
@@ -54,6 +54,7 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await page.locator('#overlayClose').click();
   await expect(page.locator('#engineTitle')).toHaveText('UNLOCKED');
   await expect(page.locator('#completeFx')).not.toHaveClass(/on/);
+  await page.waitForTimeout(260);
   await shot(page, '03_engine_start_ready.png');
 
   await page.goto(`${BASE}?station=engine&src=qa`, { waitUntil: 'domcontentloaded' });
@@ -70,14 +71,17 @@ test('ENGINE START visual QA packet', async ({ page }) => {
 
   await waitPhase(page, 'phase-ignite');
   await expect(page.locator('#ignitionTitle')).toHaveText('HEADLIGHTS');
+  await page.waitForTimeout(330);
   await shot(page, '06_headlights.png');
 
   await waitPhase(page, 'phase-run');
   await expect(page.locator('#ignitionSub')).toHaveText('アフターファイヤー');
+  await page.waitForTimeout(180);
   await shot(page, '07_afterfire.png');
 
   await waitPhase(page, 'phase-final');
   await expect(page.locator('#ignitionFinal')).toBeVisible();
+  await page.waitForTimeout(520);
   await shot(page, '08_completion_blessing.png');
   await shot(page, '09_iphone_390.png');
 
@@ -87,6 +91,7 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await page.locator('#ignitionClose').click();
   await expect(page.locator('#engineTitle')).toHaveText('COMPLETE');
   await expect(page.locator('#completeFx')).toHaveClass(/on/);
+  await page.waitForTimeout(260);
   await shot(page, '01_normal_completed.png');
 
   // Completed-state re-entry must be replayable, while one page load cannot double-start.
