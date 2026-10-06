@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded',function(){
   scheduleNextReset();
   window.setInterval(checkResetBoundary,60000);
 });
+$('ignitionClose').addEventListener('click',closeIgnitionSequence);
 $('overlayClose').addEventListener('click',function(){
   $('overlay').classList.remove('show','clear-mode');
   if($('completeFx'))$('completeFx').classList.remove('celebrate');
@@ -137,17 +138,81 @@ function engineCheck(){
   state.complete=true;
   save();
   ensureCompleteAsset();
+  render();
+  runIgnitionSequence();
+}
+function runIgnitionSequence(){
+  const seq=$('ignitionSequence');
+  if(!seq){
+    document.body.classList.add('machine-flash');
+    if($('completeFx'))$('completeFx').classList.add('on','celebrate');
+    pulse();
+    show('MISSION COMPLETE','アソクエ クリア！','マシン完成！ ミッションクリア！','clear');
+    return;
+  }
+  seq.classList.remove('show','phase-2','phase-1','phase-ignite','phase-run','phase-final');
+  $('ignitionCount').textContent='3';
+  $('ignitionTitle').textContent='IGNITION';
+  $('ignitionSub').textContent='マシンを起動しています';
+  buildIgnitionParticles();
+  document.body.classList.add('ignition-active');
+  void seq.offsetWidth;
+  seq.classList.add('show');
+  try{if(navigator.vibrate)navigator.vibrate([40,80,40]);}catch(e){}
+
+  setTimeout(function(){
+    if(!seq.classList.contains('show'))return;
+    seq.classList.add('phase-2');
+    $('ignitionCount').textContent='2';
+  },650);
+  setTimeout(function(){
+    if(!seq.classList.contains('show'))return;
+    seq.classList.add('phase-1');
+    $('ignitionCount').textContent='1';
+    try{if(navigator.vibrate)navigator.vibrate([55,70,55]);}catch(e){}
+  },1250);
+  setTimeout(function(){
+    if(!seq.classList.contains('show'))return;
+    seq.classList.add('phase-ignite');
+    $('ignitionCount').textContent='';
+    $('ignitionTitle').textContent='ENGINE START';
+    $('ignitionSub').textContent='IGNITION!';
+    document.body.classList.add('machine-flash','machine-running');
+    if($('completeFx'))$('completeFx').classList.add('on','celebrate');
+    pulse();
+    try{if(navigator.vibrate)navigator.vibrate([85,35,120,35,180,45,220]);}catch(e){}
+  },1900);
+  setTimeout(function(){
+    if(!seq.classList.contains('show'))return;
+    seq.classList.add('phase-run');
+    $('ignitionTitle').textContent='FULL POWER';
+    $('ignitionSub').textContent='マシン完成！';
+  },2750);
+  setTimeout(function(){
+    if(!seq.classList.contains('show'))return;
+    seq.classList.add('phase-final');
+  },3850);
+}
+function buildIgnitionParticles(){
+  const root=$('ignitionParticles');
+  if(!root)return;
+  root.innerHTML='';
+  for(let i=0;i<26;i++){
+    const p=document.createElement('i');
+    p.style.setProperty('--x',String((i*37)%101)+'%');
+    p.style.setProperty('--d',String(0.55+(i%7)*0.08)+'s');
+    p.style.setProperty('--delay',String((i%9)*0.035)+'s');
+    p.style.setProperty('--size',String(2+(i%4))+'px');
+    root.appendChild(p);
+  }
+}
+function closeIgnitionSequence(){
+  const seq=$('ignitionSequence');
+  if(seq)seq.classList.remove('show','phase-2','phase-1','phase-ignite','phase-run','phase-final');
+  document.body.classList.remove('ignition-active','machine-running');
   document.body.classList.add('machine-flash');
   if($('completeFx'))$('completeFx').classList.add('on','celebrate');
-  pulse();
-  try{if(navigator.vibrate)navigator.vibrate([60,35,90,35,160]);}catch(e){}
-  show('ENGINE START','エンジン始動！','マシンが動き出した！','clear');
-  setTimeout(function(){
-    if(!$('overlay').classList.contains('show'))return;
-    $('overlayKicker').textContent='MISSION COMPLETE';
-    $('overlayTitle').textContent='アソクエ クリア！';
-    $('overlayText').textContent='マシン完成！ ミッションクリア！';
-  },850);
+  cleanUrl();
 }
 function render(){
   const n=state.acquired.length;
