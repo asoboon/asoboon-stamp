@@ -221,7 +221,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
 test('ASOQUEST save() cannot block the UI when storage fails (try/catch around setItem)', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   assert.match(js, /try\{\s*localStorage\.setItem\(storageKey\(\)/);
-  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=18/);
+  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=19/);
 });
 
 test('LIFF ids are not mixed between environments', () => {
@@ -269,8 +269,8 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="rpmValue"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=13/);
-  assert.match(html, /app\.js\?v=18/);
+  assert.match(html, /style\.css\?v=14/);
+  assert.match(html, /app\.js\?v=19/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
   assert.match(js, /function clearIgnitionTimers\(/);
@@ -280,9 +280,13 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(js, /'FULL POWER','アフターファイヤー','6\.9'/);
   assert.match(js, /ENGINE STARTが解放された！/);
   assert.match(js, /completeFx'\)\)\$\('completeFx'\)\.classList\.toggle\('on',state\.complete\)/);
-  assert.match(css, /v13 tachometer \/ afterfire review candidate/);
-  assert.match(css, /hero-afterfire--blue/);
-  assert.match(css, /hero-headlight-beam/);
+  assert.match(css, /v14 approved FX pack final art direction/);
+  assert.match(html, /assets\/engine-start-fx\/garage_base\.webp/);
+  assert.match(html, /assets\/engine-start-fx\/afterfire_left_blue\.png/);
+  assert.match(html, /STAMP RALLY COMPLETE/);
+  assert.match(html, /<h1>スタンプラリー<\/h1>/);
+  assert.match(css, /approvedBlueAfterfire/);
+  assert.match(css, /approvedIgnitionFlash/);
   assert.match(css, /prefers-reduced-motion:reduce/);
 });
 
@@ -303,4 +307,24 @@ test('ENGINE START review candidate has five distinct visual phases and restart 
   assert.match(js, /clearIgnitionTimers\(\)/);
   assert.match(js, /queueIgnition\(function\(\)\{/);
   assert.match(js, /4450\)/);
+});
+
+
+test('approved ENGINE START FX pack is complete and user-visible branding is Stamp Rally', () => {
+  const fs = require('node:fs');
+  const base = 'miniapp-v2/production/asoquest/assets/engine-start-fx';
+  const expected = [
+    'garage_base.webp','garage_ignition_glow.webp','garage_complete_glow.webp',
+    'headlight_left_glow.png','headlight_right_glow.png',
+    'afterfire_left_blue.png','afterfire_right_blue.png',
+    'afterfire_left_orange.png','afterfire_right_orange.png',
+    'exhaust_glow_left.png','exhaust_glow_right.png','floor_reflection_glow.png',
+    'complete_aura.png','ignition_flash.png','spark_burst.png'
+  ];
+  for (const name of expected) assert.equal(fs.existsSync(`${base}/${name}`), true, name);
+  const html = read('miniapp-v2/production/asoquest/index.html');
+  const js = read('miniapp-v2/production/asoquest/app.js');
+  assert.doesNotMatch(html, /<h1>アソクエ<\/h1>/);
+  assert.match(html, /<h1>スタンプラリー<\/h1>/);
+  assert.match(js, /スタンプラリー クリア！/);
 });
