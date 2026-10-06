@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#111c25">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>アソクエ | ASOQUEST</title>
-  <link rel="stylesheet" href="./style.css?v=12">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111c25'/%3E%3Cpath d='M15 38h34l-4-13H20z' fill='%23ffd76c'/%3E%3Ccircle cx='22' cy='42' r='6' fill='%23fff3d5'/%3E%3Ccircle cx='42' cy='42' r='6' fill='%23fff3d5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css?v=13">
 </head>
 <body>
 <main class="app">
@@ -50,18 +51,36 @@
   <footer class="support-note"><small>NFCが反応しないときは、同じスポットのQRコードを読み取ってください。</small></footer>
 </main>
 
-<div id="ignitionSequence" class="ignition-sequence" aria-hidden="true">
+<div id="ignitionSequence" class="ignition-sequence" aria-hidden="true" data-phase="idle">
+  <div class="ignition-garage" aria-hidden="true">
+    <i class="garage-lamp garage-lamp--left"></i>
+    <i class="garage-lamp garage-lamp--center"></i>
+    <i class="garage-lamp garage-lamp--right"></i>
+    <i class="garage-floor"></i>
+  </div>
   <div class="ignition-speedlines" aria-hidden="true"></div>
   <div class="ignition-flare" aria-hidden="true"></div>
   <div class="ignition-rings" aria-hidden="true"><i></i><i></i><i></i></div>
   <div id="ignitionParticles" class="ignition-particles" aria-hidden="true"></div>
+
+  <div class="tachometer" aria-hidden="true">
+    <div class="tachometer-dial">
+      <i class="tachometer-redzone"></i>
+      <i class="tachometer-needle"></i>
+      <i class="tachometer-hub"></i>
+      <span class="tachometer-label">RPM ×1000</span>
+      <strong id="rpmValue">0.8</strong>
+    </div>
+  </div>
+
   <div id="ignitionCarHero" class="ignition-car-hero" aria-hidden="true"></div>
+
   <div class="ignition-copy">
     <small>ENGINE START</small>
-    <strong id="ignitionCount">3</strong>
-    <h2 id="ignitionTitle">IGNITION</h2>
-    <p id="ignitionSub">マシンを起動しています</p>
+    <h2 id="ignitionTitle">ENGINE START</h2>
+    <p id="ignitionSub">始動</p>
   </div>
+
   <div id="ignitionFinal" class="ignition-final">
     <small>MISSION COMPLETE</small>
     <h2>アソクエ クリア！</h2>
@@ -73,6 +92,6 @@
 <div id="overlay" class="overlay" aria-hidden="true">
   <div class="modal"><small id="overlayKicker">パーツゲット！</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose">つぎへ</button></div>
 </div>
-<script src="./app.js?v=17"></script>
+<script src="./app.js?v=18"></script>
 </body>
 </html>
