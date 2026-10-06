@@ -155,6 +155,7 @@ function runIgnitionSequence(){
   $('ignitionTitle').textContent='IGNITION';
   $('ignitionSub').textContent='マシンを起動しています';
   buildIgnitionParticles();
+  buildIgnitionCarHero();
   document.body.classList.add('ignition-active');
   void seq.offsetWidth;
   seq.classList.add('show');
@@ -200,11 +201,27 @@ function buildIgnitionParticles(){
   for(let i=0;i<26;i++){
     const p=document.createElement('i');
     p.style.setProperty('--x',String((i*37)%101)+'%');
+    p.style.setProperty('--dx',String((i%2?-1:1)*(22+(i%6)*9))+'vw');
     p.style.setProperty('--d',String(0.55+(i%7)*0.08)+'s');
     p.style.setProperty('--delay',String((i%9)*0.035)+'s');
     p.style.setProperty('--size',String(2+(i%4))+'px');
     root.appendChild(p);
   }
+}
+function buildIgnitionCarHero(){
+  const hero=$('ignitionCarHero');
+  const source=$('carLayers');
+  if(!hero||!source)return;
+  hero.innerHTML='';
+  const clone=source.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(function(el){el.removeAttribute('id');});
+  clone.querySelectorAll('img').forEach(function(img){
+    if(!img.getAttribute('src')&&img.dataset.src)img.setAttribute('src',img.dataset.src);
+    if(img.dataset.partLayer&&state.acquired.includes(img.dataset.partLayer))img.classList.add('on');
+  });
+  clone.querySelectorAll('.complete-layer').forEach(function(el){el.classList.add('on');});
+  hero.appendChild(clone);
 }
 function closeIgnitionSequence(){
   const seq=$('ignitionSequence');
