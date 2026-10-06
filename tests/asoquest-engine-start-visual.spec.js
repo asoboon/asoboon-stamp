@@ -65,22 +65,26 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await shot(page, '04_tachometer_start.png');
 
   await waitPhase(page, 'phase-1');
-  await expect(page.locator('#ignitionTitle')).toHaveText('HIGH RPM');
+  await expect(page.locator('#ignitionTitle')).toHaveText('');
   await expect(page.locator('#rpmValue')).toHaveText('7.8');
   await shot(page, '05_high_rpm.png');
 
   await waitPhase(page, 'phase-ignite');
-  await expect(page.locator('#ignitionTitle')).toHaveText('HEADLIGHTS');
+  await expect(page.locator('#ignitionTitle')).toHaveText('');
   await page.waitForTimeout(330);
+  await expect(page.locator('.headlight-left')).toHaveCSS('opacity', '0.96');
   await shot(page, '06_headlights.png');
 
   await waitPhase(page, 'phase-run');
-  await expect(page.locator('#ignitionSub')).toHaveText('アフターファイヤー');
+  await expect(page.locator('#ignitionTitle')).toHaveText('FULL POWER');
   await page.waitForTimeout(180);
+  const blueAfterfireOpacity = await page.locator('.afterfire-blue-left').evaluate(el => Number(getComputedStyle(el).opacity));
+  expect(blueAfterfireOpacity).toBeGreaterThan(0.2);
   await shot(page, '07_afterfire.png');
 
   await waitPhase(page, 'phase-final');
   await expect(page.locator('#ignitionFinal')).toBeVisible();
+  await expect(page.locator('#ignitionFinal h2')).toHaveText('クリア！');
   await page.waitForTimeout(520);
   await shot(page, '08_completion_blessing.png');
   await shot(page, '09_iphone_390.png');
@@ -110,6 +114,8 @@ test('ENGINE START visual QA packet', async ({ page }) => {
     viewportLineLike: '390x780',
     phases: ['phase-2','phase-1','phase-ignite','phase-run','phase-final'],
     sixthPartMessage: 'ENGINE STARTが解放された！',
+    userVisibleName: 'スタンプラリー',
+    approvedFxPack: true,
     completedReplay: true,
     reducedMotionSemanticCompletion: true,
     pageErrors,
