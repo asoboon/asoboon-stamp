@@ -37,3 +37,64 @@ html,body{overflow-x:hidden}
 .overlay.clear-mode{background:radial-gradient(circle at 50% 45%,rgba(255,201,72,.22),rgba(6,10,14,.86) 48%,rgba(6,10,14,.96))}
 .overlay.clear-mode .modal{border-color:#f4cc64;box-shadow:0 0 45px rgba(255,204,87,.18),0 28px 70px rgba(0,0,0,.44)}
 .overlay.clear-mode .modal h2{color:#ffe07a;text-shadow:0 0 22px rgba(255,210,94,.28)}
+
+
+/* v12 ENGINE START cinematic finale */
+body.ignition-active{overflow:hidden}
+.ignition-sequence{position:fixed;z-index:120;inset:0;display:grid;place-items:center;overflow:hidden;background:
+radial-gradient(circle at 50% 44%,rgba(255,203,84,.10),transparent 24%),
+linear-gradient(180deg,#060b0f 0%,#091119 58%,#020507 100%);
+opacity:0;pointer-events:none;transition:opacity .18s ease}
+.ignition-sequence.show{opacity:1;pointer-events:auto}
+.ignition-copy{position:relative;z-index:8;width:min(86vw,440px);text-align:center;transform:translateY(-1vh)}
+.ignition-copy small{display:block;color:#e0b84f;font-size:11px;font-weight:1000;letter-spacing:.38em;text-indent:.38em}
+.ignition-copy strong{display:block;margin-top:13px;font-size:clamp(88px,26vw,142px);line-height:.86;font-weight:1000;font-style:italic;letter-spacing:-.08em;color:#fff3bf;text-shadow:0 0 18px rgba(255,210,84,.54),0 0 70px rgba(255,166,35,.25);transform:scale(1);transition:transform .16s ease,opacity .16s ease}
+.ignition-copy h2{margin:12px 0 0;font-size:clamp(32px,10vw,54px);line-height:.92;font-weight:1000;font-style:italic;letter-spacing:-.04em;color:#f8fbff;text-shadow:0 0 16px rgba(255,255,255,.12)}
+.ignition-copy p{margin:9px 0 0;color:#9eabb5;font-size:12px;font-weight:900;letter-spacing:.08em}
+.ignition-rings{position:absolute;z-index:2;width:min(72vw,420px);aspect-ratio:1;border-radius:50%;filter:drop-shadow(0 0 18px rgba(255,193,57,.13))}
+.ignition-rings i{position:absolute;inset:0;border:1px solid rgba(255,218,117,.2);border-radius:50%;animation:ignitionRing 1.4s linear infinite}
+.ignition-rings i:nth-child(2){inset:12%;animation-duration:1.05s;animation-direction:reverse;border-style:dashed}
+.ignition-rings i:nth-child(3){inset:27%;animation-duration:.8s;border-width:2px;border-color:rgba(255,232,161,.28)}
+@keyframes ignitionRing{to{transform:rotate(360deg)}}
+.ignition-flare{position:absolute;z-index:4;inset:0;background:#fff;opacity:0;pointer-events:none}
+.ignition-speedlines{position:absolute;z-index:3;inset:-30%;opacity:0;transform:scale(.65);background:
+repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,213,100,0) 0deg 4deg,rgba(255,213,100,.28) 4.4deg 4.8deg,rgba(255,213,100,0) 5.2deg 9deg);
+mask-image:radial-gradient(circle at center,transparent 0 18%,#000 34% 100%)}
+.ignition-particles{position:absolute;z-index:6;inset:0;pointer-events:none}
+.ignition-particles i{position:absolute;left:var(--x);bottom:33%;width:var(--size);height:var(--size);border-radius:50%;background:#ffd96c;box-shadow:0 0 9px #ffb52d;opacity:0}
+.ignition-sequence.phase-2 .ignition-copy strong,.ignition-sequence.phase-1 .ignition-copy strong{animation:ignitionCount .22s ease-out}
+@keyframes ignitionCount{0%{transform:scale(1.28);opacity:.2}100%{transform:scale(1);opacity:1}}
+.ignition-sequence.phase-ignite .ignition-flare{animation:ignitionFlash .7s ease-out}
+.ignition-sequence.phase-ignite .ignition-rings{animation:ringBlast .85s ease-out both}
+.ignition-sequence.phase-ignite .ignition-copy{animation:copyPunch .55s cubic-bezier(.12,.72,.2,1.2)}
+.ignition-sequence.phase-ignite .ignition-copy h2{color:#ffe37f;text-shadow:0 0 16px #ffbe39,0 0 48px rgba(255,145,0,.5)}
+.ignition-sequence.phase-ignite .ignition-copy strong{opacity:0}
+.ignition-sequence.phase-ignite .ignition-speedlines{animation:speedBurst 1.4s ease-out forwards}
+.ignition-sequence.phase-ignite .ignition-particles i{animation:sparkFly var(--d) ease-out var(--delay) forwards}
+@keyframes ignitionFlash{0%{opacity:0}12%{opacity:.95}24%{opacity:.18}42%{opacity:.7}100%{opacity:0}}
+@keyframes ringBlast{0%{transform:scale(.72);opacity:.45}46%{transform:scale(1.06);opacity:1}100%{transform:scale(1.35);opacity:.12}}
+@keyframes copyPunch{0%{transform:scale(.82)}52%{transform:scale(1.09)}100%{transform:scale(1)}}
+@keyframes speedBurst{0%{opacity:0;transform:scale(.58) rotate(0)}18%{opacity:.78}100%{opacity:0;transform:scale(1.15) rotate(5deg)}}
+@keyframes sparkFly{0%{transform:translate(0,0) scale(.4);opacity:0}16%{opacity:1}100%{transform:translate(calc((50% - var(--x))*1.6),-42vh) scale(0);opacity:0}}
+.ignition-sequence.phase-run{background:
+radial-gradient(circle at 50% 46%,rgba(255,181,44,.22),transparent 30%),
+linear-gradient(180deg,#081018 0%,#121b22 57%,#05080a 100%)}
+.ignition-sequence.phase-run .ignition-copy{animation:engineRun .22s linear 4}
+.ignition-sequence.phase-run .ignition-copy small{color:#fff1bd}
+@keyframes engineRun{0%,100%{transform:translate(0,-1vh)}25%{transform:translate(-2px,-1vh)}75%{transform:translate(2px,-1vh)}}
+.ignition-final{position:absolute;z-index:10;left:50%;top:50%;width:min(88vw,430px);transform:translate(-50%,-44%) scale(.92);opacity:0;text-align:center;pointer-events:none;transition:opacity .42s ease,transform .48s cubic-bezier(.16,.84,.24,1)}
+.ignition-final small{display:block;color:#f0c55b;font-size:11px;font-weight:1000;letter-spacing:.28em;text-indent:.28em}
+.ignition-final h2{margin:8px 0 5px;font-size:clamp(38px,11vw,58px);line-height:.98;color:#ffe17a;text-shadow:0 0 28px rgba(255,189,56,.36)}
+.ignition-final p{margin:0;color:#edf3f6;font-size:15px;font-weight:900}
+.ignition-final button{width:min(100%,330px);margin-top:24px;border:1px solid rgba(255,238,177,.7);border-radius:16px;padding:14px 18px;background:linear-gradient(#ffe47d,#eeb847);color:#211b0e;font-size:15px;font-weight:1000;box-shadow:0 12px 36px rgba(255,187,56,.18)}
+.ignition-sequence.phase-final .ignition-copy,.ignition-sequence.phase-final .ignition-rings{opacity:0;transition:opacity .3s ease}
+.ignition-sequence.phase-final .ignition-final{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.machine-running .garage{animation:machineAlive .14s linear 7}
+.machine-running .car-layers{animation:carLaunchGlow 1.3s cubic-bezier(.18,.74,.18,1) both}
+.machine-running .car-stage{animation:carStageKick 1.15s ease-out}
+@keyframes machineAlive{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes carLaunchGlow{0%{filter:drop-shadow(0 18px 18px rgba(0,0,0,.25)) brightness(1)}28%{filter:drop-shadow(0 0 34px rgba(255,201,72,.65)) brightness(1.42)}100%{filter:drop-shadow(0 18px 18px rgba(0,0,0,.25)) brightness(1.05)}}
+@keyframes carStageKick{0%{transform:scale(.97)}38%{transform:scale(1.035)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){
+  .ignition-rings i,.ignition-sequence.phase-ignite .ignition-speedlines,.ignition-sequence.phase-ignite .ignition-particles i,.machine-running .garage,.machine-running .car-layers,.machine-running .car-stage{animation:none!important}
+}
