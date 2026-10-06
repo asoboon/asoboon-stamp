@@ -2,7 +2,8 @@
 'use strict';
 const PARTS=[{id:'engine',name:'エンジン',no:'01'},{id:'wheel',name:'タイヤ',no:'02'},{id:'headlight',name:'ライト',no:'03'},{id:'fin',name:'フィン',no:'04'},{id:'grille',name:'グリル',no:'05'},{id:'key',name:'キー',no:'06'}];
 const IDS=new Set(PARTS.map(function(x){return x.id;}));
-const STORAGE='asoquest:v8:'+japanDay();
+const RESET_HOUR_JST=19;
+const STORAGE='asoquest:v9:'+resetCycleKey();
 let state={acquired:[],complete:false};
 const $=function(id){return document.getElementById(id);};
 
@@ -21,9 +22,28 @@ $('overlayClose').addEventListener('click',function(){
   cleanUrl();
 });
 
-function japanDay(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo'}).format(new Date());}
+function resetCycleKey(now){
+  const d=now||new Date();
+  const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone:'Asia/Tokyo',
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit',
+    hour:'2-digit',
+    hour12:false
+  }).formatToParts(d);
+  const get=function(type){return parts.find(function(p){return p.type===type;})?.value||'';};
+  const y=Number(get('year')),m=Number(get('month')),day=Number(get('day'));
+  let hour=Number(get('hour'));
+  if(hour===24) hour=0;
+  if(hour>=RESET_HOUR_JST){
+    return String(y).padStart(4,'0')+'-'+String(m).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+  }
+  const prev=new Date(Date.UTC(y,m-1,day)-86400000);
+  return String(prev.getUTCFullYear()).padStart(4,'0')+'-'+String(prev.getUTCMonth()+1).padStart(2,'0')+'-'+String(prev.getUTCDate()).padStart(2,'0');
+}
 function load(){try{const s=JSON.parse(localStorage.getItem(STORAGE)||'{}');state.acquired=Array.isArray(s.acquired)?Array.from(new Set(s.acquired.filter(function(x){return IDS.has(x);}))) : [];state.complete=!!s.complete;}catch(e){}}
-function save(){localStorage.setItem(STORAGE,JSON.stringify({acquired:state.acquired,complete:state.complete,date:japanDay(),updatedAt:new Date().toISOString()}));}
+function save(){localStorage.setItem(STORAGE,JSON.stringify({acquired:state.acquired,complete:state.complete,cycle:resetCycleKey(),resetHourJst:RESET_HOUR_JST,updatedAt:new Date().toISOString()}));}
 function readRoute(){const p=new URLSearchParams(location.search);let part=(p.get('part')||'').toLowerCase();if(part==='light')part='headlight';return{part:IDS.has(part)?part:'',engine:(p.get('station')||'').toLowerCase()==='engine'};}
 function cleanUrl(){const u=new URL(location.href);['part','station','src','source'].forEach(function(k){u.searchParams.delete(k);});history.replaceState(null,'',u);}
 function collect(id){const found=PARTS.find(function(x){return x.id===id;});if(!found)return;const fresh=!state.acquired.includes(id);if(fresh){state.acquired.push(id);save();fxFor(id);pulse();}show(fresh?'PART GET!':'ALREADY FOUND',found.name,fresh?(state.acquired.length===6?'これで6つそろった！':'マシンにパーツがついた！'):'このパーツはもう見つけているよ！');}
