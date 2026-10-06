@@ -221,7 +221,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
 test('ASOQUEST save() cannot block the UI when storage fails (try/catch around setItem)', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   assert.match(js, /try\{\s*localStorage\.setItem\(storageKey\(\)/);
-  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=17/);
+  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=18/);
 });
 
 test('LIFF ids are not mixed between environments', () => {
@@ -265,14 +265,42 @@ test('ENGINE START finale markup and controller stay wired', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   const css = read('miniapp-v2/production/asoquest/style.css');
   assert.match(html, /id="ignitionSequence"/);
+  assert.match(html, /class="tachometer"/);
+  assert.match(html, /id="rpmValue"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=12/);
-  assert.match(html, /app\.js\?v=17/);
+  assert.match(html, /style\.css\?v=13/);
+  assert.match(html, /app\.js\?v=18/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
-  assert.match(js, /phase-ignite/);
-  assert.match(js, /phase-final/);
-  assert.match(css, /v12 ENGINE START cinematic finale/);
-  assert.match(css, /ignitionCarReveal/);
+  assert.match(js, /function clearIgnitionTimers\(/);
+  assert.match(js, /if\(ignitionRunning\)return/);
+  assert.match(js, /'HIGH RPM','回転上昇','7\.8'/);
+  assert.match(js, /'HEADLIGHTS','ライト点灯','8\.2'/);
+  assert.match(js, /'FULL POWER','アフターファイヤー','6\.9'/);
+  assert.match(js, /ENGINE STARTが解放された！/);
+  assert.match(js, /completeFx'\)\)\$\('completeFx'\)\.classList\.toggle\('on',state\.complete\)/);
+  assert.match(css, /v13 tachometer \/ afterfire review candidate/);
+  assert.match(css, /hero-afterfire--blue/);
+  assert.match(css, /hero-headlight-beam/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+});
+
+
+test('6/6 unlock stays restrained before ENGINE START', () => {
+  const js = read('miniapp-v2/production/asoquest/app.js');
+  assert.match(js, /state\.acquired\.length===6\?'ENGINE STARTが解放された！'/);
+  assert.match(js, /classList\.toggle\('on',state\.complete\)/);
+  assert.doesNotMatch(js, /state\.acquired\.length===6\?'パーツが全部そろった！'/);
+});
+
+test('ENGINE START review candidate has five distinct visual phases and restart safety', () => {
+  const js = read('miniapp-v2/production/asoquest/app.js');
+  for (const phase of ['phase-2','phase-1','phase-ignite','phase-run','phase-final']) {
+    assert.match(js, new RegExp(phase.replace('-', '\\-')));
+  }
+  assert.match(js, /ignitionRunning=false/);
+  assert.match(js, /clearIgnitionTimers\(\)/);
+  assert.match(js, /queueIgnition\(function\(\)\{/);
+  assert.match(js, /4450\)/);
 });
