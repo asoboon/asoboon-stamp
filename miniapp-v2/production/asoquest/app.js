@@ -9,14 +9,15 @@ let resetTimer=null;
 let state={acquired:[],complete:false};
 const $=function(id){return document.getElementById(id);};
 
-document.addEventListener('DOMContentLoaded',async function(){
-  await detectAssets();
+document.addEventListener('DOMContentLoaded',function(){
   cleanupOldProgress();
   load();
+  hydrateAcquiredAssets();
   const route=readRoute();
   if(route.part) collect(route.part);
   if(route.engine) engineCheck();
   render();
+  document.body.classList.add('assets-ready');
   scheduleNextReset();
   window.setInterval(checkResetBoundary,60000);
 });
@@ -110,7 +111,20 @@ function checkResetBoundary(){
 }
 function readRoute(){const p=new URLSearchParams(location.search);let part=(p.get('part')||'').toLowerCase();if(part==='light')part='headlight';return{part:IDS.has(part)?part:'',engine:(p.get('station')||'').toLowerCase()==='engine'};}
 function cleanUrl(){const u=new URL(location.href);['part','station','src','source'].forEach(function(k){u.searchParams.delete(k);});history.replaceState(null,'',u);}
-function collect(id){const found=PARTS.find(function(x){return x.id===id;});if(!found)return;const fresh=!state.acquired.includes(id);if(fresh){state.acquired.push(id);save();fxFor(id);pulse();}show(fresh?'パーツゲット！':'ゲット済み！',found.name,fresh?(state.acquired.length===6?'パーツが全部そろった！':'マシンにパーツが追加された！'):'このパーツはもう集めてあるよ！');}
+function collect(id){
+  const found=PARTS.find(function(x){return x.id===id;});
+  if(!found)return;
+  const fresh=!state.acquired.includes(id);
+  ensurePartAssets(id);
+  if(fresh){
+    state.acquired.push(id);
+    save();
+    fxFor(id);
+    pulse();
+    if(state.acquired.length===6) ensureCompleteAsset();
+  }
+  show(fresh?'パーツゲット！':'ゲット済み！',found.name,fresh?(state.acquired.length===6?'パーツが全部そろった！':'マシンにパーツが追加された！'):'このパーツはもう集めてあるよ！');
+}
 function engineCheck(){
   const missing=6-state.acquired.length;
   if(missing>0){
@@ -120,6 +134,7 @@ function engineCheck(){
   }
   state.complete=true;
   save();
+  ensureCompleteAsset();
   document.body.classList.add('machine-flash');
   if($('completeFx'))$('completeFx').classList.add('on','celebrate');
   pulse();
@@ -136,7 +151,11 @@ function render(){
   const n=state.acquired.length;
   $('countTop').textContent=n;$('partsCount').textContent=n+' / 6';
   document.querySelectorAll('#segments i').forEach(function(e,i){e.classList.toggle('on',i<n);});
-  document.querySelectorAll('[data-part-layer]').forEach(function(e){e.classList.toggle('on',state.acquired.includes(e.dataset.partLayer));});
+  document.querySelectorAll('[data-part-layer]').forEach(function(e){
+    const on=state.acquired.includes(e.dataset.partLayer);
+    if(on) ensureImage(e);
+    e.classList.toggle('on',on);
+  });
   $('partsGrid').innerHTML=PARTS.map(function(p){const on=state.acquired.includes(p.id);return '<div class="part-card '+(on?'on':'')+'">'+(on?'<i class="check">✓</i>':'')+'<strong>'+p.name+'</strong><small>'+(on?'GET':'???')+' · '+p.no+'</small></div>';}).join('');
   const ready=n===6;$('engineCard').classList.toggle('ready',ready);
   $('engineTitle').textContent=state.complete?'COMPLETE':ready?'UNLOCKED':'LOCKED';
@@ -156,5 +175,19 @@ function show(k,t,msg,mode){
   $('overlay').classList.toggle('clear-mode',mode==='clear');
   $('overlay').classList.add('show');
 }
-async function detectAssets(){const urls=Array.from(document.querySelectorAll('img[data-critical]')).map(function(i){return i.getAttribute('src');});const results=await Promise.all(urls.map(function(src){return new Promise(function(resolve){const i=new Image();i.onload=function(){resolve(true);};i.onerror=function(){resolve(false);};i.src=src+(src.includes('?')?'&probe=1':'?probe=1');});}));if(results.every(Boolean))document.body.classList.add('assets-ready');}
+function ensureImage(img){
+  if(!img||img.getAttribute('src')) return;
+  const src=img.dataset.src;
+  if(src) img.setAttribute('src',src);
+}
+function ensurePartAssets(id){
+  document.querySelectorAll('[data-part-layer="'+id+'"]').forEach(ensureImage);
+}
+function ensureCompleteAsset(){
+  ensureImage($('completeFx'));
+}
+function hydrateAcquiredAssets(){
+  state.acquired.forEach(ensurePartAssets);
+  if(state.acquired.length===6||state.complete) ensureCompleteAsset();
+}
 })();
