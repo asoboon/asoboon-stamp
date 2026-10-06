@@ -111,3 +111,185 @@ linear-gradient(180deg,#081018 0%,#121b22 57%,#05080a 100%)}
 .ignition-sequence.phase-final .ignition-car-hero{opacity:.42;transform:translate(-50%,-50%) scale(1.06);filter:drop-shadow(0 0 42px rgba(255,196,65,.36)) brightness(.78);transition:opacity .35s ease,transform .6s ease,filter .45s ease}
 @keyframes ignitionCarReveal{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:brightness(3) blur(5px)}24%{opacity:1;filter:brightness(1.8) blur(0)}62%{transform:translate(-50%,-50%) scale(1.05)}100%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:drop-shadow(0 24px 24px rgba(0,0,0,.45)) brightness(1.06)}}
 @keyframes ignitionCarIdle{0%,100%{transform:translate(-50%,-50%) translateX(0) scale(1)}25%{transform:translate(-50%,-50%) translateX(-1.5px) scale(1)}75%{transform:translate(-50%,-50%) translateX(1.5px) scale(1)}}
+
+
+/* v13 tachometer / afterfire review candidate */
+.ignition-sequence{
+  background:#070c11;
+  isolation:isolate;
+}
+.ignition-garage{
+  position:absolute;z-index:0;inset:0;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 19%,rgba(255,218,139,.18),transparent 21%),
+    radial-gradient(circle at 12% 28%,rgba(74,171,230,.10),transparent 24%),
+    linear-gradient(180deg,#182630 0 54%,#111b22 54% 61%,#080d11 61% 100%);
+}
+.ignition-garage:before{
+  content:"";position:absolute;inset:0 0 39%;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 16%,rgba(255,255,255,.035) 16.2% 16.5%),
+    linear-gradient(90deg,rgba(0,0,0,.20),transparent 20% 80%,rgba(0,0,0,.20));
+  box-shadow:inset 0 -1px rgba(255,230,165,.10);
+}
+.ignition-garage:after{
+  content:"";position:absolute;left:-18%;right:-18%;bottom:-31%;height:72%;
+  transform:perspective(500px) rotateX(61deg);
+  transform-origin:50% 0;
+  background:
+    linear-gradient(90deg,transparent 49.6%,rgba(255,211,109,.13) 49.8% 50.2%,transparent 50.4%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 72px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 48px);
+  opacity:.72;
+}
+.garage-lamp{
+  position:absolute;top:-5px;width:5px;height:41px;background:#0a0e12;
+}
+.garage-lamp:after{
+  content:"";position:absolute;left:50%;top:34px;width:64px;height:14px;
+  transform:translateX(-50%);border-radius:50%;
+  background:#fff0bc;
+  box-shadow:0 0 18px 7px rgba(255,218,117,.78),0 0 76px 31px rgba(255,182,57,.16);
+}
+.garage-lamp--left{left:18%}.garage-lamp--center{left:50%;top:-12px}.garage-lamp--right{right:17%}
+.garage-floor{position:absolute;left:8%;right:8%;bottom:8%;height:16%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,204,97,.09),rgba(0,0,0,.22) 53%,transparent 72%);filter:blur(7px)}
+
+.tachometer{
+  position:absolute;z-index:5;left:50%;top:31%;width:min(47vw,210px);aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  opacity:.95;transition:opacity .25s ease,transform .4s cubic-bezier(.2,.7,.2,1);
+}
+.tachometer-dial{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,#111a21 0 48%,transparent 49%),
+    conic-gradient(from 220deg,
+      rgba(255,220,121,.72) 0 2deg,transparent 2deg 13deg,
+      rgba(255,220,121,.58) 13deg 15deg,transparent 15deg 26deg,
+      rgba(255,220,121,.58) 26deg 28deg,transparent 28deg 39deg,
+      rgba(255,220,121,.58) 39deg 41deg,transparent 41deg 52deg,
+      rgba(255,220,121,.58) 52deg 54deg,transparent 54deg 65deg,
+      rgba(255,220,121,.58) 65deg 67deg,transparent 67deg 78deg,
+      rgba(255,220,121,.58) 78deg 80deg,transparent 80deg 91deg,
+      rgba(255,220,121,.58) 91deg 93deg,transparent 93deg 104deg,
+      #ff6a3b 104deg 108deg,transparent 108deg 244deg);
+  border:1px solid rgba(255,224,157,.34);
+  box-shadow:inset 0 0 0 7px rgba(255,255,255,.025),inset 0 0 32px rgba(255,192,62,.08),0 0 31px rgba(255,187,54,.12);
+}
+.tachometer-dial:before{
+  content:"0   1   2   3   4   5   6   7   8";
+  position:absolute;left:13%;right:13%;top:25%;font-size:8px;font-weight:900;
+  letter-spacing:.14em;color:#bec9d1;white-space:pre-wrap;text-align:center;opacity:.68;
+}
+.tachometer-redzone{
+  position:absolute;z-index:2;inset:8%;border-radius:50%;
+  background:conic-gradient(from 220deg,transparent 0 103deg,rgba(255,70,33,.42) 103deg 125deg,transparent 125deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 68%,#000 69% 76%,transparent 77%);
+  mask:radial-gradient(circle,transparent 0 68%,#000 69% 76%,transparent 77%);
+}
+.tachometer-needle{
+  position:absolute;z-index:4;left:50%;top:20%;width:3px;height:31%;
+  border-radius:3px;background:linear-gradient(#ffefad,#ffb52e);
+  box-shadow:0 0 8px rgba(255,186,49,.72);
+  transform-origin:50% 100%;transform:translateX(-50%) rotate(-112deg);
+  transition:transform .72s cubic-bezier(.16,.82,.18,1.06);
+}
+.tachometer-hub{position:absolute;z-index:5;left:50%;top:50%;width:13px;height:13px;border-radius:50%;transform:translate(-50%,-50%);background:#ffcf59;box-shadow:0 0 12px rgba(255,200,71,.62)}
+.tachometer-label{position:absolute;left:0;right:0;top:62%;text-align:center;font-size:7px;font-weight:1000;letter-spacing:.16em;color:#8998a4}
+.tachometer strong{position:absolute;left:0;right:0;top:69%;text-align:center;font-size:20px;color:#fff1b9;font-variant-numeric:tabular-nums;text-shadow:0 0 13px rgba(255,201,72,.35)}
+
+.ignition-copy{
+  position:absolute;z-index:9;top:max(8%,calc(env(safe-area-inset-top) + 10px));left:50%;
+  width:min(88vw,430px);transform:translateX(-50%);text-align:center;
+}
+.ignition-copy small{font-size:9px;letter-spacing:.35em}
+.ignition-copy h2{margin:5px 0 0;font-size:clamp(31px,9.8vw,52px);line-height:.94}
+.ignition-copy p{margin-top:6px;font-size:12px;color:#c7d0d7}
+
+.ignition-car-hero{
+  z-index:7;left:49%;top:63%;width:min(94vw,690px);
+  transform:translate(-50%,-50%) scale(.90);opacity:.94;
+  filter:drop-shadow(0 26px 25px rgba(0,0,0,.54));
+  transition:opacity .35s ease,transform .55s cubic-bezier(.16,.78,.2,1),filter .35s ease;
+}
+.ignition-car-hero .persistent-fx{opacity:.10!important;transition:opacity .35s ease,filter .35s ease}
+.ignition-car-hero .complete-layer{opacity:0!important;transition:opacity .45s ease,filter .45s ease}
+.hero-runtime-fx{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.hero-headlight-beam{
+  position:absolute;z-index:8;left:-20%;top:39%;width:34%;height:26%;
+  transform-origin:100% 50%;transform:skewX(-10deg) scaleX(.7);
+  background:linear-gradient(90deg,transparent,rgba(255,245,202,.08) 25%,rgba(255,246,204,.44) 100%);
+  clip-path:polygon(0 10%,100% 42%,100% 58%,0 90%);
+  filter:blur(3px);opacity:0;
+}
+.hero-headlight-core{
+  position:absolute;z-index:9;left:8.2%;top:47.5%;width:5.4%;height:10%;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0 21%,#ffe59a 22% 43%,rgba(255,200,72,.15) 70%,transparent 72%);
+  box-shadow:0 0 16px rgba(255,231,151,.92),0 0 42px rgba(255,192,62,.58);
+  opacity:0;
+}
+.hero-afterfire{
+  position:absolute;z-index:10;left:93.5%;top:60%;width:18%;height:13%;
+  transform-origin:0 50%;opacity:0;
+  clip-path:polygon(0 36%,26% 13%,100% 50%,27% 88%,0 64%);
+}
+.hero-afterfire--blue{background:linear-gradient(90deg,#f5ffff 0 8%,#8eefff 20%,#34a9ff 52%,rgba(35,106,255,.06) 100%);filter:drop-shadow(0 0 8px rgba(63,196,255,.82))}
+.hero-afterfire--orange{top:57.5%;width:13%;height:18%;background:linear-gradient(90deg,#fff3b0 0 7%,#ffc54b 25%,#ff7a23 58%,rgba(255,69,18,.02) 100%);filter:drop-shadow(0 0 9px rgba(255,125,32,.72))}
+.hero-floor-glow{
+  position:absolute;z-index:-1;left:15%;right:5%;bottom:-6%;height:34%;
+  border-radius:50%;background:radial-gradient(ellipse,rgba(255,205,91,.36),rgba(255,170,43,.09) 46%,transparent 72%);
+  filter:blur(7px);opacity:0;
+}
+
+.ignition-sequence.phase-2 .tachometer-needle{transform:translateX(-50%) rotate(-77deg)}
+.ignition-sequence.phase-2 .tachometer{transform:translate(-50%,-50%) scale(1.03)}
+.ignition-sequence.phase-1 .tachometer-needle{transform:translateX(-50%) rotate(76deg)}
+.ignition-sequence.phase-1 .tachometer-dial{box-shadow:inset 0 0 0 7px rgba(255,255,255,.025),inset 0 0 35px rgba(255,104,46,.12),0 0 38px rgba(255,130,47,.20)}
+.ignition-sequence.phase-1 .ignition-car-hero .persistent-fx{opacity:.42!important;filter:brightness(1.35) saturate(1.12)}
+.ignition-sequence.phase-ignite .tachometer-needle{transform:translateX(-50%) rotate(101deg)}
+.ignition-sequence.phase-ignite .hero-headlight-beam{animation:headlightBeamOn .62s ease-out forwards}
+.ignition-sequence.phase-ignite .hero-headlight-core{animation:headlightCoreOn .55s ease-out forwards}
+.ignition-sequence.phase-ignite .hero-floor-glow{opacity:.55;transition:opacity .4s ease}
+.ignition-sequence.phase-ignite .ignition-flare{animation:ignitionFlash .55s ease-out}
+.ignition-sequence.phase-run .tachometer-needle{animation:tachoRevBounce .42s ease-in-out 2 alternate}
+.ignition-sequence.phase-run .hero-headlight-beam,.ignition-sequence.phase-run .hero-headlight-core{opacity:1}
+.ignition-sequence.phase-run .hero-afterfire--blue{animation:afterfireBlue .34s cubic-bezier(.12,.8,.2,1) 2}
+.ignition-sequence.phase-run .hero-afterfire--orange{animation:afterfireOrange .30s cubic-bezier(.12,.8,.2,1) .12s 2}
+.ignition-sequence.phase-run .hero-floor-glow{opacity:.72}
+.ignition-sequence.phase-run .ignition-car-hero{animation:ignitionCarIdle .16s linear 6}
+.ignition-sequence.phase-final .tachometer-needle{transform:translateX(-50%) rotate(-82deg);transition-duration:.8s}
+.ignition-sequence.phase-final .tachometer{opacity:.22;transform:translate(-50%,-50%) scale(.92)}
+.ignition-sequence.phase-final .ignition-car-hero{
+  opacity:.48;transform:translate(-50%,-50%) scale(1.035);
+  filter:drop-shadow(0 0 43px rgba(255,194,61,.37)) brightness(.87);
+}
+.ignition-sequence.phase-final .ignition-car-hero .complete-layer{opacity:.78!important;filter:brightness(1.2)}
+.ignition-sequence.phase-final .hero-headlight-beam,.ignition-sequence.phase-final .hero-headlight-core{opacity:.72}
+.ignition-sequence.phase-final .hero-floor-glow{opacity:.9}
+.ignition-sequence.phase-final .ignition-final{z-index:12}
+
+@keyframes headlightBeamOn{
+  0%{opacity:0;transform:skewX(-10deg) scaleX(.2)}
+  24%{opacity:1}
+  100%{opacity:.92;transform:skewX(-10deg) scaleX(1)}
+}
+@keyframes headlightCoreOn{0%{opacity:0;transform:scale(.5)}42%{opacity:1;transform:scale(1.3)}100%{opacity:1;transform:scale(1)}}
+@keyframes afterfireBlue{0%,100%{opacity:0;transform:scaleX(.12)}18%{opacity:1}56%{opacity:.95;transform:scaleX(1.05)}}
+@keyframes afterfireOrange{0%,100%{opacity:0;transform:scaleX(.10)}24%{opacity:.96}60%{opacity:.82;transform:scaleX(.92)}}
+@keyframes tachoRevBounce{0%{transform:translateX(-50%) rotate(72deg)}100%{transform:translateX(-50%) rotate(101deg)}}
+
+@media(max-width:390px){
+  .tachometer{top:31%;width:46vw}
+  .ignition-car-hero{top:64%;width:97vw}
+  .ignition-copy h2{font-size:32px}
+  .ignition-copy p{font-size:11px}
+}
+@media(max-height:730px){
+  .tachometer{top:30%;width:min(42vw,175px)}
+  .ignition-car-hero{top:64%;width:min(88vw,620px)}
+  .ignition-final{top:48%}
+}
+@media(prefers-reduced-motion:reduce){
+  .tachometer-needle,.tachometer,.ignition-car-hero,.hero-headlight-beam,.hero-headlight-core,.hero-afterfire,.hero-floor-glow{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
