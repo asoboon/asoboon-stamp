@@ -169,7 +169,7 @@ function runIgnitionSequence(){
     document.body.classList.add('machine-flash');
     if($('completeFx'))$('completeFx').classList.add('on','celebrate');
     pulse();
-    show('MISSION COMPLETE','アソクエ クリア！','マシン完成！ ミッションクリア！','clear');
+    show('MISSION COMPLETE','スタンプラリー クリア！','マシン完成！','clear');
     ignitionRunning=false;
     return;
   }
@@ -193,35 +193,35 @@ function runIgnitionSequence(){
     if(!seq.classList.contains('show'))return;
     setIgnitionPhase(seq,'phase-2','ENGINE START','始動','1.4');
     try{if(navigator.vibrate)navigator.vibrate([45,45,60]);}catch(e){}
-  },180);
+  },260);
 
   queueIgnition(function(){
     if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-1','HIGH RPM','回転上昇','7.8');
+    setIgnitionPhase(seq,'phase-1','','','7.8');
     document.body.classList.add('machine-running');
     try{if(navigator.vibrate)navigator.vibrate([55,28,70,28,90]);}catch(e){}
-  },1150);
+  },1280);
 
   queueIgnition(function(){
     if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-ignite','HEADLIGHTS','ライト点灯','8.2');
+    setIgnitionPhase(seq,'phase-ignite','','','8.2');
     document.body.classList.add('machine-flash');
     pulse();
     try{if(navigator.vibrate)navigator.vibrate([70,35,110]);}catch(e){}
-  },2250);
+  },2280);
 
   queueIgnition(function(){
     if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-run','FULL POWER','アフターファイヤー','6.9');
+    setIgnitionPhase(seq,'phase-run','FULL POWER','','6.9');
     try{if(navigator.vibrate)navigator.vibrate([95,45,95,45,145]);}catch(e){}
-  },3150);
+  },3180);
 
   queueIgnition(function(){
     if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-final','MISSION COMPLETE','マシン完成！','1.3');
+    setIgnitionPhase(seq,'phase-final','','','1.3');
     if($('completeFx'))$('completeFx').classList.add('on','celebrate');
     try{if(navigator.vibrate)navigator.vibrate([40,30,80,35,150]);}catch(e){}
-  },4450);
+  },4480);
 }
 function buildIgnitionParticles(){
   const root=$('ignitionParticles');
@@ -251,11 +251,6 @@ function buildIgnitionCarHero(){
   });
   clone.querySelectorAll('.complete-layer').forEach(function(el){el.classList.remove('on','celebrate');});
   hero.appendChild(clone);
-
-  const fx=document.createElement('div');
-  fx.className='hero-runtime-fx';
-  fx.innerHTML='<i class="hero-headlight-beam"></i><i class="hero-headlight-core"></i><i class="hero-afterfire hero-afterfire--blue"></i><i class="hero-afterfire hero-afterfire--orange"></i><i class="hero-floor-glow"></i>';
-  hero.appendChild(fx);
 }
 function closeIgnitionSequence(){
   clearIgnitionTimers();
@@ -285,8 +280,8 @@ function render(){
   $('engineHint').textContent=state.complete?'エンジン始動成功！':ready?'ENGINE STARTへ行こう！':'あと'+(6-n)+'こ集めると起動できます';
   $('engineLock').textContent=state.complete?'🏁':ready?'⚡':'🔒';
   $('machineState').textContent=state.complete?'MISSION COMPLETE':ready?'起動準備OK！':n?'組み立て中':'マシン未完成';
-  $('headline').textContent=state.complete?'アソクエ クリア！':ready?'パーツが全部そろった！':n?'あと'+(6-n)+'こ！':'6つのパーツを集めて、マシンを完成させよう！';
-  $('subline').textContent=state.complete?'マシン完成！ ミッションクリア！':ready?'最後の「ENGINE START」へ！':'館内のスポットを探して、スマホでチェック！';
+  $('headline').textContent=state.complete?'スタンプラリー クリア！':ready?'パーツが全部そろった！':n?'あと'+(6-n)+'こ！':'6つのパーツを集めて、マシンを完成させよう！';
+  $('subline').textContent=state.complete?'マシン完成！':ready?'最後の「ENGINE START」へ！':'館内のスポットを探して、スマホでチェック！';
   if($('completeFx'))$('completeFx').classList.toggle('on',state.complete);
 }
 function fxFor(id){const el=id==='engine'?$('engineFx'):id==='key'?$('keyFx'):null;if(!el)return;el.classList.remove('fire');requestAnimationFrame(function(){el.classList.add('fire');});}
