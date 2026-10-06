@@ -11,6 +11,7 @@ const PROD_ENDPOINT = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/produc
 const DEV_ENDPOINT = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/';
 const PROD_ASOQUEST = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/';
 const LIFF_ID = '2009888671-57TOefc3';
+const FIELD_LIFF_ID = '2009884613-ELc6kolf';
 
 /* Verbatim port of LIFF SDK (static.line-scdn.net/liff/edge/2/sdk.js) decodeState(), used by liff.init()
  * to compute the URL it location.replace()s to when `liff.state` is present. */
@@ -232,7 +233,7 @@ test('station_urls.csv (NFC) and station_urls_qr.csv are the 7 aq-form URLs', ()
   const order = [...PARTS, 'start'];
   for (const [file, src] of [['station_urls.csv', 'nfc'], ['station_urls_qr.csv', 'qr']]) {
     const rows = read(`miniapp-v2/production/asoquest/${file}`).trim().split('\n').slice(1).map(l => l.split(',')[2]);
-    assert.deepEqual(rows, order.map(k => `https://miniapp.line.me/${LIFF_ID}/?aq=${k}&src=${src}`));
+    assert.deepEqual(rows, order.map(k => `https://miniapp.line.me/${FIELD_LIFF_ID}/?aq=${k}&src=${src}`));
   }
 });
 
