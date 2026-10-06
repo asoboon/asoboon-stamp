@@ -275,9 +275,9 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(js, /function buildIgnitionCarHero\(/);
   assert.match(js, /function clearIgnitionTimers\(/);
   assert.match(js, /if\(ignitionRunning\)return/);
-  assert.match(js, /'HIGH RPM','回転上昇','7\.8'/);
-  assert.match(js, /'HEADLIGHTS','ライト点灯','8\.2'/);
-  assert.match(js, /'FULL POWER','アフターファイヤー','6\.9'/);
+  assert.match(js, /'phase-1','','','7\.8'/);
+  assert.match(js, /'phase-ignite','','','8\.2'/);
+  assert.match(js, /'phase-run','FULL POWER','','6\.9'/);
   assert.match(js, /ENGINE STARTが解放された！/);
   assert.match(js, /completeFx'\)\)\$\('completeFx'\)\.classList\.toggle\('on',state\.complete\)/);
   assert.match(css, /v14 approved FX pack final art direction/);
@@ -306,7 +306,7 @@ test('ENGINE START review candidate has five distinct visual phases and restart 
   assert.match(js, /ignitionRunning=false/);
   assert.match(js, /clearIgnitionTimers\(\)/);
   assert.match(js, /queueIgnition\(function\(\)\{/);
-  assert.match(js, /4450\)/);
+  assert.match(js, /4480\)/);
 });
 
 
