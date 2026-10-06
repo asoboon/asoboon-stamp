@@ -235,3 +235,25 @@ test('station_urls.csv (NFC) and station_urls_qr.csv are the 7 aq-form URLs', ()
     assert.deepEqual(rows, order.map(k => `https://miniapp.line.me/${LIFF_ID}/?aq=${k}&src=${src}`));
   }
 });
+
+
+test('Production facility home.html wires ASOQUEST bridge before legacy HOME', () => {
+  const html = read('home.html');
+  const iCharset = html.search(/<meta charset/i);
+  const iBridge = html.indexOf('miniapp-v2/shared/asoquest-deeplink.js?v=20261006-03');
+  const iLegacyConfig = html.indexOf('./app/core/app-config.js');
+  const iFrame = html.indexOf('<iframe id="miniappCore"');
+  assert.ok(iCharset >= 0 && iBridge > iCharset, 'bridge must be after charset');
+  assert.ok(iBridge < iLegacyConfig, 'bridge must run before legacy HOME config');
+  assert.ok(iBridge < iFrame, 'bridge must run before legacy HOME iframe');
+});
+
+test('ASOQUEST field URL packs use official Production facility LIFF 2009884613-ELc6kolf', () => {
+  const nfc = read('miniapp-v2/production/asoquest/station_urls.csv');
+  const qr = read('miniapp-v2/production/asoquest/station_urls_qr.csv');
+  for (const csv of [nfc, qr]) {
+    assert.match(csv, /https:\/\/miniapp\.line\.me\/2009884613-ELc6kolf\/\?aq=engine/);
+    assert.match(csv, /\?aq=start&src=/);
+    assert.doesNotMatch(csv, /2009888671-57TOefc3/);
+  }
+});
