@@ -72,6 +72,57 @@ function bindAppEvents(){
 }
 function bind(){bindAppEvents();bindModule()}
 function render(){cleanupModules();document.title='ASOBooN 新HOME｜LINEミニアプリ';root.innerHTML=shell();bind();window.dispatchEvent(new CustomEvent('asoboon:v2-route-rendered',{detail:{view:state.view,mode:state.mode}}))}
+function handoffAsoquestAfterLiff(){
+  try{
+    const current=new URL(location.href);
+    const endpoint=new URL(E.endpoint||location.href,location.href);
+    let routePath='';
+    let routeParams=new URLSearchParams();
+
+    const endpointPath=endpoint.pathname.replace(/\/+$/,'');
+    if(current.pathname.startsWith(endpointPath)){
+      routePath=current.pathname.slice(endpointPath.length)||'/';
+      routeParams=new URLSearchParams(current.search);
+    }
+
+    const rawState=current.searchParams.get('liff.state');
+    if(rawState){
+      let decoded=rawState;
+      try{decoded=decodeURIComponent(rawState)}catch{}
+      try{
+        const stateUrl=new URL(decoded,'https://asoboon.invalid/');
+        if(!routePath||routePath==='/'){
+          routePath=stateUrl.pathname;
+          routeParams=new URLSearchParams(stateUrl.search);
+        }
+      }catch{}
+    }
+
+    const aq=routeParams.get('aq')||current.searchParams.get('aq');
+    const isAsoquest=/^\/?asoquest\/?$/i.test(String(routePath||''));
+    if(!isAsoquest&&!aq)return false;
+
+    const target=new URL(
+      E.environment==='develop'?'../production/asoquest/':'./asoquest/',
+      endpoint
+    );
+
+    const part=(routeParams.get('part')||aq||'').toLowerCase();
+    const station=(routeParams.get('station')||'').toLowerCase();
+    const src=(routeParams.get('src')||current.searchParams.get('src')||'').toLowerCase();
+
+    const allowedParts=new Set(['engine','wheel','headlight','fin','grille','key','light']);
+    if(allowedParts.has(part))target.searchParams.set('part',part);
+    if(station==='engine'||aq==='start')target.searchParams.set('station','engine');
+    if(src==='nfc'||src==='qr')target.searchParams.set('src',src);
+
+    location.replace(target.href);
+    return true;
+  }catch(e){
+    console.error('DEVELOP_ASOQUEST_HANDOFF_FAILED',e);
+    return false;
+  }
+}
 function canonicalizeAfterLiff(){try{readRoute();const p=q(),extra={};if(p.get('panel'))extra.panel=p.get('panel');if(p.get('dev'))extra.dev=p.get('dev');const canonical=routeUrl(state.view,extra);if(location.href!==canonical)history.replaceState({asoboonV2:true},'',canonical)}catch{state.bootError='DEVELOP_ENDPOINT_INVALID'}}
 async function initLiff(){
   if(!E.liffId||!window.liff){state.booting=false;state.bootError='LIFF_SDK_NOT_READY';readRoute();window.dispatchEvent(new CustomEvent('asoboon:v2-liff-ready',{detail:lineState()}));render();return}
@@ -83,6 +134,7 @@ async function initLiff(){
     ]);
     state.liffReady=true;
     state.inClient=Boolean(liff.isInClient());
+    if(handoffAsoquestAfterLiff())return;
     canonicalizeAfterLiff();
     if(liff.isLoggedIn()){
       try{const p=await liff.getProfile();state.displayName=String(p?.displayName||'')}catch{}
