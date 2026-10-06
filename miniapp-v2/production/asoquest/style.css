@@ -293,3 +293,41 @@ linear-gradient(180deg,#081018 0%,#121b22 57%,#05080a 100%)}
 @media(prefers-reduced-motion:reduce){
   .tachometer-needle,.tachometer,.ignition-car-hero,.hero-headlight-beam,.hero-headlight-core,.hero-afterfire,.hero-floor-glow{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+
+
+/* v13.1 final visual-QA tuning: let headlights/afterfire read clearly */
+.ignition-sequence.phase-ignite .ignition-speedlines{
+  animation:none!important;
+  opacity:.07!important;
+  transform:scale(.96)!important;
+}
+.hero-afterfire{
+  mix-blend-mode:screen;
+  filter:saturate(1.12);
+}
+.hero-afterfire--blue{
+  left:88.5%;top:56.5%;width:28%;height:18%;
+  filter:drop-shadow(0 0 10px rgba(63,196,255,.96)) drop-shadow(0 0 20px rgba(40,120,255,.42));
+}
+.hero-afterfire--orange{
+  left:90.5%;top:57.5%;width:22%;height:19%;
+  filter:drop-shadow(0 0 10px rgba(255,125,32,.90)) drop-shadow(0 0 18px rgba(255,72,18,.32));
+}
+.ignition-sequence.phase-run .hero-afterfire--blue{
+  animation:afterfireBlueFinal .38s cubic-bezier(.12,.8,.2,1) 2;
+}
+.ignition-sequence.phase-run .hero-afterfire--orange{
+  animation:afterfireOrangeFinal .34s cubic-bezier(.12,.8,.2,1) .10s 2;
+}
+@keyframes afterfireBlueFinal{
+  0%,100%{opacity:0;transform:scaleX(.08) scaleY(.72)}
+  16%{opacity:1}
+  48%{opacity:1;transform:scaleX(1.08) scaleY(1.06)}
+  72%{opacity:.66;transform:scaleX(.78) scaleY(.88)}
+}
+@keyframes afterfireOrangeFinal{
+  0%,100%{opacity:0;transform:scaleX(.06) scaleY(.68)}
+  18%{opacity:.96}
+  52%{opacity:.94;transform:scaleX(1.02) scaleY(1.04)}
+  74%{opacity:.56;transform:scaleX(.72) scaleY(.86)}
+}
