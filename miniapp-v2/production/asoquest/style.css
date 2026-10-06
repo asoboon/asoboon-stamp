@@ -842,3 +842,52 @@ body.mission-complete .car-stage .complete-layer.on{
   .ignition-sequence.phase-run .engine-start-scene{left:48%;width:112vw}
   .ignition-sequence.phase-final .engine-start-scene{left:48%;width:116vw}
 }
+
+
+/* v14.2 cinematic garage extension + full-car framing */
+.ignition-sequence::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-5%;
+  background:url("./assets/engine-start-fx/garage_base.webp?v=1") center/cover no-repeat;
+  filter:blur(16px) brightness(.34) saturate(.82);
+  transform:scale(1.09);
+  opacity:.78;
+  transition:background-image .18s linear,filter .35s ease,opacity .35s ease;
+}
+.ignition-sequence::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 53%,transparent 18%,rgba(3,6,8,.24) 52%,rgba(3,6,8,.74) 100%),
+    linear-gradient(180deg,rgba(3,6,8,.36),transparent 28%,transparent 72%,rgba(3,6,8,.48));
+}
+.ignition-sequence.phase-2::before,
+.ignition-sequence.phase-1::before,
+.ignition-sequence.phase-ignite::before,
+.ignition-sequence.phase-run::before{
+  background-image:url("./assets/engine-start-fx/garage_ignition_glow.webp?v=1");
+  filter:blur(15px) brightness(.38) saturate(.92);
+}
+.ignition-sequence.phase-final::before{
+  background-image:url("./assets/engine-start-fx/garage_complete_glow.webp?v=1");
+  filter:blur(14px) brightness(.48) saturate(.98);
+  opacity:.88;
+}
+.ignition-sequence.phase-run .engine-start-scene{
+  left:48%;
+  width:min(106vw,900px);
+}
+.ignition-sequence.phase-final .engine-start-scene{
+  left:50%;
+  top:48%;
+  width:min(106vw,920px);
+}
+@media(max-width:430px){
+  .ignition-sequence.phase-run .engine-start-scene{left:48%;width:106vw}
+  .ignition-sequence.phase-final .engine-start-scene{left:50%;width:106vw}
+}
