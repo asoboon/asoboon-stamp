@@ -41,9 +41,9 @@ ASOBooN公式LINEミニアプリ内で動く、1日完結の館内クエスト�
 
 ## URLs
 - Web: https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/
-- LINE MINI App: https://miniapp.line.me/2009888671-57TOefc3/asoquest/
+- LINE MINI App entry: https://miniapp.line.me/2009884613-ELc6kolf/\n  - Production endpoint is currently `home.html`; `?aq=...` is intercepted there before the legacy HOME paints and handed off to ASOQUEST.
 
-NFC用URLは station_urls.csv、QR用URLは station_urls_qr.csv を参照（`?aq=…&src=nfc|qr` 形式。Developing LIFFのiPhone実機で到達確認済み）。
+NFC用URLは station_urls.csv、QR用URLは station_urls_qr.csv を参照（Production facility LIFF `2009884613-ELc6kolf` の `?aq=…&src=nfc|qr` 形式。Developing LIFFのiPhone実機で到達確認済み）。
 
 ### Deep link 受信側 (`miniapp-v2/shared/asoquest-deeplink.js`)
 - LINE Mini App の endpoint (`…/production/` または `…/develop/`) の `<head>` 先頭で、`liff.init()` と HOME 描画より前に同期実行され、ASOQUEST へ `location.replace` する。
