@@ -19,7 +19,7 @@ ASOBooN公式LINEミニアプリ内で動く、1日完結の館内クエスト�
 ## Architecture
 - GAS / DBなし
 - localStorageのみ
-- Asia/Tokyoの日付単位で1日完結
+- 毎日19:00（Asia/Tokyo）に進捗を自動リセット
 - NFC / QR共通
 - HTML + CSS + JavaScript
 - 透明WebPレイヤーで車が完成していく方式
@@ -44,3 +44,9 @@ ASOBooN公式LINEミニアプリ内で動く、1日完結の館内クエスト�
 - LINE MINI App: https://miniapp.line.me/2009888671-57TOefc3/asoquest/
 
 NFC用URLは station_urls.csv を参照。QR版は src=nfc を src=qr に置き換えます。
+
+## Daily reset
+- リセット時刻: 毎日19:00 JST
+- 18:59:59までは前サイクル
+- 19:00:00から新サイクル（0/6）
+- 画面を開いたまま19:00を跨いだ場合も自動リセット
