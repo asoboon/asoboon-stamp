@@ -331,3 +331,24 @@ linear-gradient(180deg,#081018 0%,#121b22 57%,#05080a 100%)}
   52%{opacity:.94;transform:scaleX(1.02) scaleY(1.04)}
   74%{opacity:.56;transform:scaleX(.72) scaleY(.86)}
 }
+
+
+/* v13.2 keep phase copy centered inside the mobile safe area */
+.ignition-sequence.phase-ignite .ignition-copy{
+  transform:translateX(-50%);
+  animation:copyPunchCentered .55s cubic-bezier(.12,.72,.2,1.2);
+}
+.ignition-sequence.phase-run .ignition-copy{
+  transform:translateX(-50%);
+  animation:engineRunCentered .22s linear 4;
+}
+@keyframes copyPunchCentered{
+  0%{transform:translateX(-50%) scale(.82)}
+  52%{transform:translateX(-50%) scale(1.06)}
+  100%{transform:translateX(-50%) scale(1)}
+}
+@keyframes engineRunCentered{
+  0%,100%{transform:translateX(-50%)}
+  25%{transform:translateX(calc(-50% - 2px))}
+  75%{transform:translateX(calc(-50% + 2px))}
+}
