@@ -22,14 +22,14 @@
       <div id="assetWaiting" class="asset-waiting"><strong>LOADING MACHINE</strong><span>マシンを準備しています</span></div>
       <div id="carLayers" class="car-layers">
         <img class="layer base" src="./assets/car_base.webp?v=3" alt="" data-critical>
-        <img class="layer part-layer wheel rear" src="./assets/wheel_rear.webp?v=3" alt="" data-part-layer="wheel" data-critical>
-        <img class="layer part-layer wheel front" src="./assets/wheel_front.webp?v=3" alt="" data-part-layer="wheel" data-critical>
-        <img class="layer part-layer" src="./assets/grille.webp?v=3" alt="" data-part-layer="grille" data-critical>
-        <img class="layer part-layer" src="./assets/headlight.webp?v=3" alt="" data-part-layer="headlight" data-critical>
-        <img class="layer part-layer" src="./assets/fin.webp?v=3" alt="" data-part-layer="fin" data-critical>
-        <img id="engineFx" class="layer persistent-fx" src="./assets/engine_fx.webp?v=3" alt="" data-part-layer="engine" data-critical>
-        <img id="keyFx" class="layer persistent-fx" src="./assets/key_fx.webp?v=3" alt="" data-part-layer="key" data-critical>
-        <img id="completeFx" class="layer complete-layer" src="./assets/complete_fx.webp?v=3" alt="" data-critical>
+        <img class="layer part-layer wheel rear" data-src="./assets/wheel_rear.webp?v=3" alt="" data-part-layer="wheel">
+        <img class="layer part-layer wheel front" data-src="./assets/wheel_front.webp?v=3" alt="" data-part-layer="wheel">
+        <img class="layer part-layer" data-src="./assets/grille.webp?v=3" alt="" data-part-layer="grille">
+        <img class="layer part-layer" data-src="./assets/headlight.webp?v=3" alt="" data-part-layer="headlight">
+        <img class="layer part-layer" data-src="./assets/fin.webp?v=3" alt="" data-part-layer="fin">
+        <img id="engineFx" class="layer persistent-fx" data-src="./assets/engine_fx.webp?v=3" alt="" data-part-layer="engine">
+        <img id="keyFx" class="layer persistent-fx" data-src="./assets/key_fx.webp?v=3" alt="" data-part-layer="key">
+        <img id="completeFx" class="layer complete-layer" data-src="./assets/complete_fx.webp?v=3" alt="">
       </div>
       <div id="carPulse" class="car-pulse"></div>
     </div>
@@ -53,6 +53,6 @@
 <div id="overlay" class="overlay" aria-hidden="true">
   <div class="modal"><small id="overlayKicker">パーツゲット！</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose">つぎへ</button></div>
 </div>
-<script src="./app.js?v=14"></script>
+<script src="./app.js?v=15"></script>
 </body>
 </html>
