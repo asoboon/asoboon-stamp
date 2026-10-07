@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#111c25">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>スタンプラリー | ASOBooN</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111c25'/%3E%3Cpath d='M15 38h34l-4-13H20z' fill='%23ffd76c'/%3E%3Ccircle cx='22' cy='42' r='6' fill='%23fff3d5'/%3E%3Ccircle cx='42' cy='42' r='6' fill='%23fff3d5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css?v=14">
+</head>
+<body>
+<main class="app">
+  <section class="garage">
+    <div class="garage-bg" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+    <header class="topbar">
+      <div class="brand"><small>ASOBooN STAMP RALLY</small><h1>スタンプラリー</h1></div>
+      <div class="counter"><strong id="countTop">0</strong><span>/6</span></div>
+    </header>
+    <div class="mission"><span>MACHINE PARTS</span><b id="machineState">マシン未完成</b></div>
+
+    <div id="carStage" class="car-stage" aria-label="パーツで完成するクラシックカー">
+      <div id="assetWaiting" class="asset-waiting"><strong>LOADING MACHINE</strong><span>マシンを準備しています</span></div>
+      <div id="carLayers" class="car-layers">
+        <img class="layer base" src="../../production/asoquest/assets/car_base.webp?v=3" alt="" data-critical>
+        <img class="layer part-layer wheel rear" data-src="../../production/asoquest/assets/wheel_rear.webp?v=3" alt="" data-part-layer="wheel">
+        <img class="layer part-layer wheel front" data-src="../../production/asoquest/assets/wheel_front.webp?v=3" alt="" data-part-layer="wheel">
+        <img class="layer part-layer" data-src="../../production/asoquest/assets/grille.webp?v=3" alt="" data-part-layer="grille">
+        <img class="layer part-layer" data-src="../../production/asoquest/assets/headlight.webp?v=3" alt="" data-part-layer="headlight">
+        <img class="layer part-layer" data-src="../../production/asoquest/assets/fin.webp?v=3" alt="" data-part-layer="fin">
+        <img id="engineFx" class="layer persistent-fx" data-src="../../production/asoquest/assets/engine_fx.webp?v=3" alt="" data-part-layer="engine">
+        <img id="keyFx" class="layer persistent-fx" data-src="../../production/asoquest/assets/key_fx.webp?v=3" alt="" data-part-layer="key">
+        <img id="completeFx" class="layer complete-layer" data-src="../../production/asoquest/assets/complete_fx.webp?v=3" alt="">
+      </div>
+      <div id="carPulse" class="car-pulse"></div>
+    </div>
+
+    <section class="status">
+      <div class="status-top"><span>PARTS</span><b id="partsCount">0 / 6</b></div>
+      <div id="segments" class="segments"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="partsGrid" class="parts-grid"></div>
+    </section>
+    <div class="guide"><strong id="headline">6つのパーツを集めて、マシンを完成させよう！</strong><span id="subline">館内のスポットを探して、スマホでチェック！</span></div>
+  </section>
+
+  <section id="engineCard" class="engine-card locked">
+    <div><small>ENGINE START</small><strong id="engineTitle">LOCKED</strong><span id="engineHint">パーツを6こ集めると起動できます</span></div>
+    <b id="engineLock">🔒</b>
+  </section>
+
+  <footer class="support-note"><small>NFCが反応しないときは、同じスポットのQRコードを読み取ってください。</small></footer>
+</main>
+
+<div id="ignitionSequence" class="ignition-sequence" aria-hidden="true" data-phase="idle">
+  <div class="ignition-speedlines" aria-hidden="true"></div>
+  <div id="ignitionParticles" class="ignition-particles" aria-hidden="true"></div>
+
+  <div id="engineStartScene" class="engine-start-scene" aria-hidden="true">
+    <div class="engine-scene-bg">
+      <img class="engine-scene-layer bg-base" src="./assets/engine-start-fx/garage_base.webp?v=1" alt="">
+      <img class="engine-scene-layer bg-ignition" src="./assets/engine-start-fx/garage_ignition_glow.webp?v=1" alt="">
+      <img class="engine-scene-layer bg-complete" src="./assets/engine-start-fx/garage_complete_glow.webp?v=1" alt="">
+    </div>
+
+    <img class="engine-scene-layer fx complete-aura" src="./assets/engine-start-fx/complete_aura.png?v=1" alt="">
+    <img class="engine-scene-layer fx floor-reflection" src="./assets/engine-start-fx/floor_reflection_glow.png?v=1" alt="">
+
+    <div id="ignitionCarHero" class="ignition-car-hero"></div>
+
+    <img class="engine-scene-layer fx headlight headlight-left" src="./assets/engine-start-fx/headlight_left_glow.png?v=1" alt="">
+    <img class="engine-scene-layer fx headlight headlight-right" src="./assets/engine-start-fx/headlight_right_glow.png?v=1" alt="">
+    <img class="engine-scene-layer fx exhaust-glow exhaust-left" src="./assets/engine-start-fx/exhaust_glow_left.png?v=1" alt="">
+    <img class="engine-scene-layer fx exhaust-glow exhaust-right" src="./assets/engine-start-fx/exhaust_glow_right.png?v=1" alt="">
+
+    <img class="engine-scene-layer fx afterfire afterfire-blue-left" src="./assets/engine-start-fx/afterfire_left_blue.png?v=1" alt="">
+    <img class="engine-scene-layer fx afterfire afterfire-blue-right" src="./assets/engine-start-fx/afterfire_right_blue.png?v=1" alt="">
+    <img class="engine-scene-layer fx afterfire afterfire-orange-left" src="./assets/engine-start-fx/afterfire_left_orange.png?v=1" alt="">
+    <img class="engine-scene-layer fx afterfire afterfire-orange-right" src="./assets/engine-start-fx/afterfire_right_orange.png?v=1" alt="">
+
+    <img class="engine-scene-layer fx ignition-flash-asset" src="./assets/engine-start-fx/ignition_flash.png?v=1" alt="">
+    <img class="engine-scene-layer fx spark-burst-asset" src="./assets/engine-start-fx/spark_burst.png?v=1" alt="">
+
+    <div class="tachometer" aria-hidden="true">
+      <div class="tachometer-dial">
+        <i class="tachometer-redzone"></i>
+        <i class="tachometer-needle"></i>
+        <i class="tachometer-hub"></i>
+        <span class="tachometer-label">RPM ×1000</span>
+        <strong id="rpmValue">0.8</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="ignition-copy">
+    <small>ENGINE START</small>
+    <h2 id="ignitionTitle">ENGINE START</h2>
+    <p id="ignitionSub">始動</p>
+  </div>
+
+  <div id="ignitionFinal" class="ignition-final">
+    <small>STAMP RALLY COMPLETE</small>
+    <h2>クリア！</h2>
+    <p>マシン完成！</p>
+    <button id="ignitionClose" type="button">完成マシンを見る</button>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" aria-hidden="true">
+  <div class="modal"><small id="overlayKicker">パーツゲット！</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose">つぎへ</button></div>
+</div>
+<script src="./app.js?v=19"></script>
+</body>
+</html>

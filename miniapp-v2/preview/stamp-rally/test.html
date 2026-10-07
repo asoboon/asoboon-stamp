@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>スタンプラリー テストプレイ</title>
+<style>
+body{margin:0;background:#0b1116;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif}
+main{max-width:520px;margin:auto;padding:22px 16px 40px}
+h1{font-size:28px;margin:0 0 6px}p{color:#b8c4cc;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+a,button{appearance:none;border:1px solid #596875;background:#152029;color:#fff;border-radius:15px;padding:16px 10px;text-decoration:none;font-weight:900;text-align:center;font-size:15px}
+a.start{grid-column:1/-1;background:linear-gradient(#ffe07a,#e6ad34);color:#211a0c;border:0}
+button{grid-column:1/-1;background:#30191a;border-color:#714347}
+small{display:block;color:#7f919d;margin-top:18px;line-height:1.5}
+</style>
+</head>
+<body><main>
+<h1>スタンプラリー<br>テストプレイ</h1>
+<p>実機確認用の隔離プレビューです。下の順番で6パーツを取得して、最後にENGINE STARTを押してください。</p>
+<div class="grid">
+<a class="start" href="./">① まず画面を見る</a>
+<a href="./?part=engine&src=test">② エンジン</a>
+<a href="./?part=wheel&src=test">③ タイヤ</a>
+<a href="./?part=headlight&src=test">④ ライト</a>
+<a href="./?part=fin&src=test">⑤ フィン</a>
+<a href="./?part=grille&src=test">⑥ グリル</a>
+<a href="./?part=key&src=test">⑦ キー</a>
+<a class="start" href="./?station=engine&src=test">⑧ ENGINE START</a>
+<button type="button" onclick="resetTest()">進捗を0/6にリセット</button>
+</div>
+<small>※テスト用ストレージは本番と分離済み。Productionの進捗には触れません。</small>
+<script>
+function resetTest(){
+  for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith('stamp-rally:test:v1:'))localStorage.removeItem(k);}
+  alert('0/6にリセットしました');
+}
+</script>
+</main></body></html>
