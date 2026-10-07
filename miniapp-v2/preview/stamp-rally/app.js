@@ -1,13 +1,26 @@
+[Reading 350 lines from start (total: 350 lines, 0 remaining)]
+
 (() => {
 'use strict';
 const PARTS=[{id:'engine',name:'エンジン',no:'01'},{id:'wheel',name:'タイヤ',no:'02'},{id:'headlight',name:'ライト',no:'03'},{id:'fin',name:'フィン',no:'04'},{id:'grille',name:'グリル',no:'05'},{id:'key',name:'キー',no:'06'}];
 const IDS=new Set(PARTS.map(function(x){return x.id;}));
 const RESET_HOUR_JST=19;
-const STORAGE_PREFIX='stamp-rally:test:v1:';
+const STORAGE_PREFIX='stamp-rally:test:v2:';
 let activeCycle=resetCycleKey();
 let resetTimer=null;
 let ignitionRunning=false;
 let ignitionTimers=[];
+const IGNITION_PHASES=['phase-2','phase-1','phase-ignite','phase-run','phase-blackout','phase-reveal','phase-final'];
+/* ms from sequence start. Finale rhythm: FULL POWER -> short FLASH -> BLACKOUT -> SILHOUETTE/LIGHT REVEAL -> HERO -> COPY */
+const IGNITION_TIMELINE={
+  normal:{p2:260,p1:1280,ignite:2280,run:3180,flash:3920,blackout:4080,reveal:4730,final:6580},
+  reduced:{p2:200,p1:700,ignite:1200,run:1700,flash:0,blackout:2300,reveal:2650,final:3500}
+};
+function ignitionTimeline(){
+  let reduced=false;
+  try{reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+  return reduced?IGNITION_TIMELINE.reduced:IGNITION_TIMELINE.normal;
+}
 let state={acquired:[],complete:false};
 const $=function(id){return document.getElementById(id);};
 
@@ -152,7 +165,8 @@ function queueIgnition(fn,ms){
   ignitionTimers.push(window.setTimeout(fn,ms));
 }
 function setIgnitionPhase(seq,phase,title,sub,rpm){
-  ['phase-2','phase-1','phase-ignite','phase-run','phase-final'].forEach(function(c){seq.classList.remove(c);});
+  IGNITION_PHASES.forEach(function(c){seq.classList.remove(c);});
+  seq.classList.remove('is-flash');
   if(phase)seq.classList.add(phase);
   seq.dataset.phase=phase||'idle';
   if(title!==undefined)$('ignitionTitle').textContent=title;
@@ -174,7 +188,7 @@ function runIgnitionSequence(){
     return;
   }
 
-  seq.classList.remove('show','phase-2','phase-1','phase-ignite','phase-run','phase-final');
+  seq.classList.remove.apply(seq.classList,['show','is-flash'].concat(IGNITION_PHASES));
   seq.dataset.phase='idle';
   $('ignitionTitle').textContent='ENGINE START';
   $('ignitionSub').textContent='始動';
@@ -189,39 +203,65 @@ function runIgnitionSequence(){
   seq.classList.add('show');
   try{if(navigator.vibrate)navigator.vibrate([35,65,35]);}catch(e){}
 
-  queueIgnition(function(){
-    if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-2','ENGINE START','始動','1.4');
-    try{if(navigator.vibrate)navigator.vibrate([45,45,60]);}catch(e){}
-  },260);
+  const T=ignitionTimeline();
+  const alive=function(){return seq.classList.contains('show');};
 
   queueIgnition(function(){
-    if(!seq.classList.contains('show'))return;
+    if(!alive())return;
+    setIgnitionPhase(seq,'phase-2','ENGINE START','始動','1.4');
+    try{if(navigator.vibrate)navigator.vibrate([45,45,60]);}catch(e){}
+  },T.p2);
+
+  queueIgnition(function(){
+    if(!alive())return;
     setIgnitionPhase(seq,'phase-1','','','7.8');
     document.body.classList.add('machine-running');
     try{if(navigator.vibrate)navigator.vibrate([55,28,70,28,90]);}catch(e){}
-  },1280);
+  },T.p1);
 
   queueIgnition(function(){
-    if(!seq.classList.contains('show'))return;
+    if(!alive())return;
     setIgnitionPhase(seq,'phase-ignite','','','8.2');
     document.body.classList.add('machine-flash');
     pulse();
     try{if(navigator.vibrate)navigator.vibrate([70,35,110]);}catch(e){}
-  },2280);
+  },T.ignite);
 
+  /* FULL POWER: the loud peak */
   queueIgnition(function(){
-    if(!seq.classList.contains('show'))return;
+    if(!alive())return;
     setIgnitionPhase(seq,'phase-run','FULL POWER','','6.9');
     try{if(navigator.vibrate)navigator.vibrate([95,45,95,45,145]);}catch(e){}
-  },3180);
+  },T.run);
 
+  /* A very short impact flash (not a white screen) */
+  if(T.flash){
+    queueIgnition(function(){
+      if(!alive())return;
+      seq.classList.add('is-flash');
+    },T.flash);
+  }
+
+  /* BLACKOUT: drop everything - text, tachometer, lights, afterfire, garage */
   queueIgnition(function(){
-    if(!seq.classList.contains('show'))return;
-    setIgnitionPhase(seq,'phase-final','','','1.3');
+    if(!alive())return;
+    setIgnitionPhase(seq,'phase-blackout','','','');
+  },T.blackout);
+
+  /* SILHOUETTE -> LIGHT REVEAL -> COMPLETE HERO (staged by CSS delays inside phase-reveal) */
+  queueIgnition(function(){
+    if(!alive())return;
+    setIgnitionPhase(seq,'phase-reveal','','','');
     if($('completeFx'))$('completeFx').classList.add('on','celebrate');
-    try{if(navigator.vibrate)navigator.vibrate([40,30,80,35,150]);}catch(e){}
-  },4480);
+    try{if(navigator.vibrate)navigator.vibrate([30,60,45]);}catch(e){}
+  },T.reveal);
+
+  /* FINAL COPY after the car has been admired */
+  queueIgnition(function(){
+    if(!alive())return;
+    setIgnitionPhase(seq,'phase-final','','','1.3');
+    try{if(navigator.vibrate)navigator.vibrate([40,30,80]);}catch(e){}
+  },T.final);
 }
 function buildIgnitionParticles(){
   const root=$('ignitionParticles');
@@ -257,7 +297,7 @@ function closeIgnitionSequence(){
   ignitionRunning=false;
   const seq=$('ignitionSequence');
   if(seq){
-    seq.classList.remove('show','phase-2','phase-1','phase-ignite','phase-run','phase-final');
+    seq.classList.remove.apply(seq.classList,['show','is-flash'].concat(IGNITION_PHASES));
     seq.dataset.phase='idle';
   }
   document.body.classList.remove('ignition-active','machine-running');
@@ -283,6 +323,7 @@ function render(){
   $('headline').textContent=state.complete?'スタンプラリー クリア！':ready?'パーツが全部そろった！':n?'あと'+(6-n)+'こ！':'6つのパーツを集めて、マシンを完成させよう！';
   $('subline').textContent=state.complete?'マシン完成！':ready?'最後の「ENGINE START」へ！':'館内のスポットを探して、スマホでチェック！';
   if($('completeFx'))$('completeFx').classList.toggle('on',state.complete);
+  document.body.classList.toggle('mission-complete',!!state.complete);
 }
 function fxFor(id){const el=id==='engine'?$('engineFx'):id==='key'?$('keyFx'):null;if(!el)return;el.classList.remove('fire');requestAnimationFrame(function(){el.classList.add('fire');});}
 function pulse(){const p=$('carPulse');p.classList.remove('fire');requestAnimationFrame(function(){p.classList.add('fire');});try{if(navigator.vibrate)navigator.vibrate([35,25,70,30,100]);}catch(e){}}
@@ -309,3 +350,5 @@ function hydrateAcquiredAssets(){
   if(state.acquired.length===6||state.complete) ensureCompleteAsset();
 }
 })();
+
+[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]
