@@ -269,7 +269,7 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="rpmValue"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=14/);
+  assert.match(html, /style\.css\?v=15/);
   assert.match(html, /app\.js\?v=19/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
@@ -327,4 +327,14 @@ test('approved ENGINE START FX pack is complete and user-visible branding is Sta
   assert.doesNotMatch(html, /<h1>アソクエ<\/h1>/);
   assert.match(html, /<h1>スタンプラリー<\/h1>/);
   assert.match(js, /スタンプラリー クリア！/);
+});
+
+
+test('engine/key/completion states remain visibly distinct', () => {
+  const css = read('miniapp-v2/production/asoquest/style.css');
+  assert.match(css, /v14\.3 unmistakable engine-key-complete states/);
+  assert.match(css, /#engineFx\.persistent-fx\.on\{[\s\S]*?opacity:\.52!important/);
+  assert.match(css, /#keyFx\.persistent-fx\.on\{[\s\S]*?opacity:\.62!important/);
+  assert.match(css, /garage_complete_glow\.webp/);
+  assert.match(css, /body\.mission-complete \.car-stage \.complete-layer\.on\{[\s\S]*?opacity:\.62!important/);
 });
