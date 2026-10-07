@@ -1,5 +1,3 @@
-[Reading 350 lines from start (total: 350 lines, 0 remaining)]
-
 (() => {
 'use strict';
 const PARTS=[{id:'engine',name:'エンジン',no:'01'},{id:'wheel',name:'タイヤ',no:'02'},{id:'headlight',name:'ライト',no:'03'},{id:'fin',name:'フィン',no:'04'},{id:'grille',name:'グリル',no:'05'},{id:'key',name:'キー',no:'06'}];
@@ -350,5 +348,3 @@ function hydrateAcquiredAssets(){
   if(state.acquired.length===6||state.complete) ensureCompleteAsset();
 }
 })();
-
-[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]

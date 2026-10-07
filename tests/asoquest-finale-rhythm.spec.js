@@ -1,5 +1,3 @@
-[Reading 210 lines from start (total: 210 lines, 0 remaining)]
-
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -210,5 +208,3 @@ test('reduced motion keeps the rhythm (power -> short dark -> car -> clear) with
   expect(await op(page, '#ignitionSequence .ignition-car-hero .car-layers')).toBeGreaterThan(0.98);
   expect(await op(page, '.afterfire-orange-left')).toBeLessThan(0.02);
 });
-
-[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]
