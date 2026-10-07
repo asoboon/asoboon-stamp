@@ -42,6 +42,16 @@ test('ENGINE START visual QA packet', async ({ page }) => {
 
   for (let i = 0; i < PARTS.length; i++) {
     await collectPart(page, PARTS[i]);
+
+    if (PARTS[i] === 'engine') {
+      await page.locator('#overlayClose').click();
+      await page.waitForTimeout(350);
+      const engineOpacity = await page.locator('#engineFx').evaluate(el => Number(getComputedStyle(el).opacity));
+      expect(engineOpacity).toBeGreaterThan(0.45);
+      await shot(page, '02a_engine_visible.png');
+      continue;
+    }
+
     if (i < PARTS.length - 1) {
       await page.locator('#overlayClose').click();
     }
@@ -50,8 +60,12 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await expect(page.locator('#overlayTitle')).toHaveText('キー');
   await expect(page.locator('#overlayText')).toHaveText('ENGINE STARTが解放された！');
   await shot(page, '02_sixth_part_acquired.png');
-
   await page.locator('#overlayClose').click();
+  await page.waitForTimeout(350);
+  const keyOpacity = await page.locator('#keyFx').evaluate(el => Number(getComputedStyle(el).opacity));
+  expect(keyOpacity).toBeGreaterThan(0.5);
+  await shot(page, '02b_key_visible.png');
+
   await expect(page.locator('#engineTitle')).toHaveText('UNLOCKED');
   await expect(page.locator('#completeFx')).not.toHaveClass(/on/);
   await page.waitForTimeout(260);
@@ -96,7 +110,11 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await page.locator('#ignitionClose').click();
   await expect(page.locator('#engineTitle')).toHaveText('COMPLETE');
   await expect(page.locator('#completeFx')).toHaveClass(/on/);
-  await page.waitForTimeout(260);
+  await page.waitForTimeout(320);
+  const completeOpacity = await page.locator('#completeFx').evaluate(el => Number(getComputedStyle(el).opacity));
+  expect(completeOpacity).toBeGreaterThan(0.4);
+  const completeBackground = await page.locator('#carStage').evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(completeBackground).toContain('garage_complete_glow.webp');
   await shot(page, '01_normal_completed.png');
 
   // Completed-state re-entry must be replayable, while one page load cannot double-start.
@@ -117,6 +135,9 @@ test('ENGINE START visual QA packet', async ({ page }) => {
     sixthPartMessage: 'ENGINE STARTが解放された！',
     userVisibleName: 'スタンプラリー',
     approvedFxPack: true,
+    engineVisualPersistent: true,
+    keyVisualPersistent: true,
+    completedVisualDistinct: true,
     completedReplay: true,
     reducedMotionSemanticCompletion: true,
     pageErrors,
