@@ -13,7 +13,8 @@
 window.ASOBOON_RECEPTION_CONFIG = Object.freeze({
 
   // AirWAIT
-  airwaitApiKey: "lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",
+  airwaitApiKey: "",
+  airwaitDirectBrowserAccessDisabled: true,
 
   // AirWAIT 指定コード
   airwaitStoreId: "KR01205179",

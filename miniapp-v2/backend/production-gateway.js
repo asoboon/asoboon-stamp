@@ -40,6 +40,7 @@ const CFG = Object.freeze({
   CREATE_RATE_LIMIT: 6,
   REQUEST_STATUS_RATE_LIMIT: 120,
   SESSION_RATE_LIMIT: 30,
+  RESERVATION_STATUS_RATE_LIMIT: 180,
   RATE_LIMITS: Object.freeze({
     create: Object.freeze({ user: 6, ip: 300 }),
     requestStatus: Object.freeze({ user: 120, ip: 1000 }),
@@ -952,6 +953,7 @@ async function reservationStatus(env, p) {
   const session = await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1')
     .bind(tokenHash).first();
   if (!session || Number(session.expires_at || 0) <= now) throw apiError('CALLSTATUS_SESSION_EXPIRED', 401);
+  await enforceRateLimit(env,'reservationStatus',String(session.user_hash||''),CFG.RESERVATION_STATUS_RATE_LIMIT,CFG.RATE_WINDOW_MS);
 
   const storedWaitTypeId = String(session.wait_type_id || '');
   let rows;

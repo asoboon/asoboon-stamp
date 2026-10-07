@@ -3,6 +3,16 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'home.html'
+      - 'home-core.html'
+      - 'callstatus.html'
+      - 'callstatus-core.html'
+      - 'autocall-config*.js'
+      - 'airwait-*.html'
+      - 'yobidashi.html'
+      - 'jizen-yoyaku.html'
+      - 'cancel-admin.html'
+      - 'tests/asoboon-repo-secret-scan.test.mjs'
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
@@ -16,6 +26,16 @@ on:
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'home.html'
+      - 'home-core.html'
+      - 'callstatus.html'
+      - 'callstatus-core.html'
+      - 'autocall-config*.js'
+      - 'airwait-*.html'
+      - 'yobidashi.html'
+      - 'jizen-yoyaku.html'
+      - 'cancel-admin.html'
+      - 'tests/asoboon-repo-secret-scan.test.mjs'
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
@@ -58,6 +78,8 @@ jobs:
         run: node --test tests/asoboon-develop-concurrency.test.mjs
       - name: Production security and full lifecycle regression
         run: node --test tests/asoboon-production-security.test.mjs tests/asoboon-production-worker-security.test.mjs tests/asoboon-production-api-contract.test.mjs
+      - name: Repository credential exposure regression
+        run: node --test tests/asoboon-repo-secret-scan.test.mjs
       - name: Install Production browser test dependencies
         run: npm ci
       - name: Install Chromium for Production E2E

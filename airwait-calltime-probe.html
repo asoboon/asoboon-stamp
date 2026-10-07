@@ -398,20 +398,9 @@ footer{padding:16px 5px 0;color:#71858f;text-align:center;font-size:.62rem}
   }
 
   async function loadOfficialScript() {
-    const script = document.createElement("script");
-    script.src = "https://airwait.jp/js/corporate/airwait.js";
-    script.setAttribute("data-airwait","key:lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI");
-    script.charset = "utf-8";
-    script.onload = () => {
-      officialScriptLoaded = true;
-      record("official-script",{status:"loaded",url:script.src});
-      renderReport();
-    };
-    script.onerror = () => {
-      record("official-script-error",{url:script.src});
-      renderReport();
-    };
-    document.body.appendChild(script);
+    officialScriptLoaded=false;
+    record("official-script-disabled",{status:"disabled",reason:"公開ブラウザへAirWAIT認証情報を配置しない運用へ移行"});
+    renderReport();
   }
 
   $("copyReport").addEventListener("click", async()=>{

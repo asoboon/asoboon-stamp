@@ -40,11 +40,7 @@
 <script src="./calltime-config.js"></script>
 <script>
 (()=>{"use strict";
-const API_KEY="lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI";
-const STORE_ID="KR01205179";
-const RES_API="https://cl.airwait.jp/WCLP/api/external/stateless/reservations";
-const LAST_API="https://cl.airwait.jp/WCLP/api/external/stateless/store/getLastUpdDateStateless";
-const WAITINFO_API="https://airwait.jp/WCSP/api/external/stateless/store/getWaitInfo";
+const READ_PROXY="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/";
 const SECRET_KEY="asoboon_calltime_staff_secret_v2";
 const MONITOR_KEY="asoboon_calltime_monitor_id_v2";
 const QUEUE_KEY="asoboon_calltime_pending_v2";
@@ -85,9 +81,10 @@ function scheduleAutoResume(reason){
   state.startRetryTimer=setTimeout(()=>{state.startRetryTimer=0;start(true)},Number(CFG.autoResumeRetryMs||5000));
   log(`自動復帰待ち: ${reason}`)
 }
-async function lastInfo(){const u=new URL(LAST_API);u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("_",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});const d=await r.json();if(!r.ok||!apiOK(d))throw Error(d?.resultCode?.defaultMessage||`lastUpd HTTP ${r.status}`);const x=d?.innerDto||{};if(!normalizeDateTime(x.currentDate))throw Error("AirWait currentDate missing");return{lastUpdDate:normalizeDateTime(x.lastUpdDate)||String(x.lastUpdDate||""),currentDate:normalizeDateTime(x.currentDate),clockSource:"lastUpd"}}
-async function waitInfoClock(){const u=new URL(WAITINFO_API);u.searchParams.set("limit","1");u.searchParams.set("key",API_KEY);u.searchParams.set("storeId",STORE_ID);u.searchParams.set("domain",location.hostname);u.searchParams.set("timestamp",Date.now());const r=await fetch(u,{cache:"no-store",credentials:"omit"});const d=await r.json();if(!r.ok||!apiOK(d))throw Error(`waitInfo HTTP ${r.status}`);const t=normalizeDateTime(d?.innerDto?.timestamp);if(!t)throw Error("waitInfo timestamp missing");return{lastUpdDate:"",currentDate:t,clockSource:"waitInfo"}}
-async function page(start=1){const r=await fetch(`${RES_API}?key=${encodeURIComponent(API_KEY)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},body:new URLSearchParams({storeId:STORE_ID,sortStatus:"0",isDesc:"0",start:String(start),limit:"100"}),cache:"no-store",credentials:"omit"});const d=await r.json();if(!r.ok||!apiOK(d))throw Error(d?.resultCode?.defaultMessage||`reservations HTTP ${r.status}`);return{count:Number(d?.innerDto?.count||0),rows:d?.innerDto?.reservations||[]}}
+async function proxyGet(action,params={}){const u=new URL(READ_PROXY);u.searchParams.set("action",action);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v)));u.searchParams.set("_",String(Date.now()));const r=await fetch(u,{cache:"no-store",credentials:"omit",headers:{Accept:"application/json"}});let d=null;try{d=await r.json()}catch{}if(!r.ok||d?.ok!==true)throw Error(d?.error||`proxy HTTP ${r.status}`);return d}
+async function lastInfo(){const d=await proxyGet("legacyLastUpdate");const lastUpdDate=normalizeDateTime(d.lastUpdDate)||String(d.lastUpdDate||"");const currentDate=normalizeDateTime(d.currentDate)||new Date().toISOString();return{lastUpdDate,currentDate,clockSource:"proxy"}}
+async function waitInfoClock(){const d=await proxyGet("legacyWaitInfo");const t=normalizeDateTime(d?.timestamp)||new Date().toISOString();return{lastUpdDate:"",currentDate:t,clockSource:"proxy"}}
+async function page(start=1){const d=await proxyGet("legacyReservations",{start,limit:100});return{count:Number(d?.count||0),rows:Array.isArray(d?.rows)?d.rows:[]}}
 async function allRows(){const f=await page(1),a=[...f.rows];let s=101,guard=0;while(a.length<f.count&&s<=5000&&guard++<50){const p=await page(s);if(!p.rows.length)break;a.push(...p.rows);s+=p.rows.length}return a}
 function jsonp(params,timeout=7000){return new Promise((resolve,reject)=>{if(!configured())return reject(Error("Apps Script URL未設定"));const cb=`__asoboon_${Date.now()}_${Math.random().toString(36).slice(2)}`,u=new URL(String(CFG.webAppUrl));Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,String(v??"")));u.searchParams.set("callback",cb);u.searchParams.set("_",Date.now());const s=document.createElement("script");let done=false;const finish=(err,val)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){}s.remove();err?reject(err):resolve(val)};window[cb]=v=>finish(null,v);s.src=u.toString();s.onerror=()=>finish(Error("GAS通信失敗"));document.head.appendChild(s);const t=setTimeout(()=>finish(Error("GASタイムアウト")),timeout)})}
 async function backendHealth(){try{const d=await jsonp({action:"health"});state.backendOk=!!d?.ok;$('backendState').textContent=d?.ok?"接続OK":"エラー";$('backendState').className=d?.ok?"good":"bad";return state.backendOk}catch(e){state.backendOk=false;$('backendState').textContent="未接続";$('backendState').className="bad";log(e.message);return false}}

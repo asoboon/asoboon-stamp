@@ -126,8 +126,7 @@ export default {
 
     if (request.method === 'GET' && action === 'surpriseVotePublicStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
-      try { return json(request, await getSurpriseVotePublicStatus(env, ctx)); }
-      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+      return json(request, developVoteStatus());
     }
 
     if (request.method === 'GET' && action === 'businessDay') {
@@ -318,9 +317,13 @@ export default {
     env = withDevelopingServiceDefaults(env);
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
     ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
-    ctx.waitUntil(refreshSurpriseVotePublicStatus(env, ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
   },
 };
+
+function developVoteStatus(){
+  const now=Date.now(),start=new Date(now-5*60*1000).toISOString(),end=new Date(now+60*60*1000).toISOString();
+  return{ok:true,version:'develop-vote-sim-v1',developSimulation:true,mode:'voting',selected_event_id:'develop-1400',event:{id:'develop-1400',date:currentJstDate(),event_time:'14:00',vote_start:start,vote_end:end,options:[{id:'parachute',name:'パラバルーン'},{id:'treasure',name:'宝探し'},{id:'hide',name:'だるまさんが隠れた'},{id:'vault',name:'跳び箱'}]},day_events:[{id:'develop-1100',event_time:'11:00',mode:'result',winner:{name:'宝探し'}},{id:'develop-1400',event_time:'14:00',mode:'voting'},{id:'develop-1600',event_time:'16:00',mode:'upcoming'}],daily_reset:'18:00'};
+}
 
 function surpriseVotePublicPhaseSafe(data, savedAt=0, maxAge=SURPRISE_VOTE_PUBLIC_CACHE_MS) {
   if (!data || data.ok !== true) return false;

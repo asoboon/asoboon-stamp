@@ -105,6 +105,22 @@ test('Production vote uses the dedicated live backend while Review remains write
   assert.match(review,/API_URL:\s*""/);
 });
 
+test('surprise vote environments are isolated: Developing/Review simulate, Production alone uses live GAS',()=>{
+  const devCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','develop','surprise-vote-config.js'),'utf8');
+  const devJs=fs.readFileSync(path.join(here,'..','miniapp-v2','develop','surprise-vote.js'),'utf8');
+  const devWorker=fs.readFileSync(path.join(here,'..','miniapp-v2','backend','develop-worker.mjs'),'utf8');
+  const prodCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','production','surprise-vote-config.js'),'utf8');
+  const prodJs=fs.readFileSync(path.join(here,'..','miniapp-v2','production','surprise-vote.js'),'utf8');
+  const reviewCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','review','surprise-vote-config.js'),'utf8');
+  assert.match(devCfg,/API_URL:\s*""/);
+  assert.match(devJs,/const DEMO = true/);
+  assert.match(devWorker,/return json\(request, developVoteStatus\(\)\)/);
+  assert.doesNotMatch(devWorker,/ctx\.waitUntil\(refreshSurpriseVotePublicStatus/);
+  assert.match(prodCfg,/API_URL:\s*"https:\/\/script\.google\.com\/macros\/s\//);
+  assert.match(prodJs,/const DEMO = false/);
+  assert.match(reviewCfg,/API_URL:\s*""/);
+});
+
 test('Production create remains hard-disabled even if CREATE_ENABLED=1',()=>{
   assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'1'}),false);
   assert.match(gatewaySource,/PRODUCTION_CREATE_ARMED:\s*false/);

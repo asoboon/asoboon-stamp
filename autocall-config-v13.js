@@ -4,7 +4,8 @@
  * callingMethodType 00=通常呼出 / 01=窓口呼出 / 02=両方
  */
 window.ASOBOON_RECEPTION_CONFIG = Object.freeze({
-  airwaitApiKey: "lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI",
+  airwaitApiKey: "",
+  airwaitDirectBrowserAccessDisabled: true,
   airwaitStoreId: "KR01205179",
   ledgerWebAppUrl: "https://script.google.com/macros/s/AKfycbzpU0Tkz8U-HRxH0iFdjxZ3ZajkRkVRO4cFsG1dWA16RQfKbyJEtxP0tgPwjj_yrk8eNw/exec",
 

@@ -98,6 +98,9 @@ const PRODUCTION_IP_RATE_LIMITS = Object.freeze({
   crowdRemaining:1000,
   boardStatus:1000,
   surpriseVotePublicStatus:1000,
+  legacyReservations:1200,
+  legacyLastUpdate:1200,
+  legacyWaitInfo:1200,
 });
 
 export default {
@@ -126,6 +129,13 @@ export default {
       const denied = diagnosticsDenied(request, env);
       if (denied) return denied;
       try { return json(request, await runConcurrencyIntegrityAudit(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
+    if (request.method === 'GET' && action === 'ambiguousClaims') {
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
+      try { return json(request, await listAmbiguousClaims(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
@@ -160,6 +170,19 @@ export default {
       catch (e) { return json(request, { ok:false, found:false, error:safeError(e) }, Number(e?.status || 500)); }
     }
 
+    if (request.method === 'GET' && action === 'legacyReservations') {
+      try { return json(request, await legacyReservations(env, url)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+    if (request.method === 'GET' && action === 'legacyLastUpdate') {
+      try { return json(request, await legacyLastUpdate(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+    if (request.method === 'GET' && action === 'legacyWaitInfo') {
+      try { return json(request, await legacyWaitInfo(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
     if (request.method === 'GET' && (action === 'health' || !action)) {
       const base = await gateway.fetch(request, env, ctx);
       let body;
@@ -182,6 +205,7 @@ export default {
       body.apiActions = Array.from(new Set([
         ...(Array.isArray(body.apiActions) ? body.apiActions : []),
         'crowdRemaining','boardStatus','surpriseVotePublicStatus','businessDay',
+        'legacyReservations','legacyLastUpdate','legacyWaitInfo',
         'serviceMessageStatus','cancelReservation','adoptOfficialWebReception',
       ]));
       body.crowdSnapshotFallbackEnabled = true;
@@ -196,6 +220,8 @@ export default {
       body.officialLineAccessTokenConfigured = Boolean(String(env.LINE_OA_CHANNEL_ACCESS_TOKEN || '').trim());
       body.officialLineCancelReady = body.officialLineWebhookSecretConfigured && body.officialLineAccessTokenConfigured;
       body.officialLineCancelOneToOneOnly = true;
+      body.ambiguousOpsEnabled = true;
+      body.ambiguousOpsRequiresDiagnosticsSecret = true;
       body.officialLineWebhookFastAck = true;
       body.officialLineReserveIdNormalizer = 'strict-12-digit';
       body.officialLineCancelFlowVersion = '2.0-immediate-reply-then-push';
@@ -238,6 +264,13 @@ export default {
         try { await enforceRequestIpRateLimit(env, request, postAction); }
         catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||429)); }
       }
+    }
+
+    if (postAction === 'resolveAmbiguousClaim') {
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
+      try { return json(request, await resolveAmbiguousClaim(env, await readBody(request.clone()))); }
+      catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||400)); }
     }
 
     if (createPayload && originAllowed(request)) {
@@ -1222,6 +1255,93 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+async function legacyReservations(env, url) {
+  if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  const startRaw=Number(url?.searchParams?.get('start')||1);
+  const limitRaw=Number(url?.searchParams?.get('limit')||100);
+  const start=Number.isSafeInteger(startRaw)&&startRaw>=1&&startRaw<=99999?startRaw:1;
+  const limit=Number.isSafeInteger(limitRaw)&&limitRaw>=1&&limitRaw<=100?limitRaw:100;
+  const requestedWaitType=String(url?.searchParams?.get('waitTypeId')||'').trim();
+  const waitTypeId=/^\d{4}$/.test(requestedWaitType)?requestedWaitType:'';
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+  let r;
+  try{
+    r=await fetch(AIR_RESERVATIONS,{
+      method:'POST',
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+        corWclpKeyCd:env.AIRWAIT_API_KEY,
+      },
+      body:new URLSearchParams({
+        storeId:'KR01205179',
+        ...(waitTypeId?{waitTypeId}:{}),
+        sortStatus:'0',
+        isDesc:'0',
+        start:String(start),
+        limit:String(limit),
+      }),
+      cache:'no-store',
+      signal:ctrl.signal,
+    });
+  }catch(e){
+    if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_TIMEOUT',504);
+    throw e;
+  }finally{clearTimeout(timer)}
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_FAILED',502);
+  const rows=(Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[]).map(x=>({
+    number:String(x?.number||''),
+    waitTypeId:String(x?.waitTypeId||''),
+    waitTypeName:String(x?.waitTypeName||''),
+    status:String(x?.status||''),
+    isCalling:String(x?.isCalling||'0'),
+  }));
+  return {ok:true,count:Number(d?.innerDto?.count||rows.length||0),rows,source:'production-read-proxy'};
+}
+
+async function legacyLastUpdate(env) {
+  if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  const u=new URL(AIR_LAST_UPDATE);
+  u.searchParams.set('storeId','KR01205179');
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),Math.min(EXTERNAL_READ_TIMEOUT_MS,5000));
+  let r;
+  try{
+    r=await fetch(u,{method:'GET',headers:{Accept:'application/json',corWclpKeyCd:env.AIRWAIT_API_KEY},cache:'no-store',signal:ctrl.signal});
+  }catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_TIMEOUT',504);throw e}
+  finally{clearTimeout(timer)}
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_FAILED',502);
+  const x=d?.innerDto||{};
+  return {ok:true,lastUpdDate:String(x?.lastUpdDate||''),currentDate:String(x?.currentDate||''),source:'production-read-proxy'};
+}
+
+async function legacyWaitInfo(env) {
+  if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  const u=new URL(AIR_WAIT_INFO);
+  u.searchParams.set('key',env.AIRWAIT_API_KEY);
+  u.searchParams.set('storeId','KR01205179');
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+  let r;
+  try{r=await fetch(u,{method:'GET',cache:'no-store',signal:ctrl.signal})}
+  catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_WAITINFO_TIMEOUT',504);throw e}
+  finally{clearTimeout(timer)}
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok||!(d?.success===true||d?.resultCode?.code==='0000'))throw apiError('AIRWAIT_LEGACY_WAITINFO_FAILED',502);
+  const store=d?.innerDto?.stores?.[0]||{};
+  const waitDetails=(Array.isArray(store?.waitDetails)?store.waitDetails:[]).map(x=>({
+    waitTypeId:String(x?.waitTypeId||''),
+    waitTypeName:String(x?.waitTypeName||x?.detailedWaitType||''),
+    detailedWaitType:String(x?.detailedWaitType||''),
+    remainingNum:Number.isFinite(Number(x?.remainingNum))?Number(x.remainingNum):null,
+    waitingCount:Number.isFinite(Number(x?.waitingCount))?Number(x.waitingCount):null,
+  }));
+  return {ok:true,timestamp:String(d?.innerDto?.timestamp||''),store:{storeName:String(store?.storeName||'ASOBooN'),waitDetails},source:'production-read-proxy'};
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const businessDate=tokyoCalendarDate();
@@ -1691,6 +1811,40 @@ function currentOperationalDate(epoch=Date.now()){
 async function lineUserHash(userId){
   return await sha256Hex(`${LINE_CHANNEL_ID}:${String(userId||'')}`);
 }
+function opsRequestId(v){const s=String(v||'').trim();return /^[A-Za-z0-9_-]{8,120}$/.test(s)?s:''}
+function opsReserveId(v){const s=String(v||'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):''}
+function opsReceipt(v){const s=String(v||'').normalize('NFKC').trim().toUpperCase();return /^[FT]?\d{1,12}$/.test(s)?s:''}
+function opsWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:''}
+async function listAmbiguousClaims(env){
+  const q=await env.DB.prepare(`SELECT request_id,business_date,wait_type_id,created_at,updated_at FROM v2_user_day_claims WHERE state='AMBIGUOUS' ORDER BY updated_at DESC LIMIT 100`).all();
+  const rows=Array.isArray(q?.results)?q.results:[];
+  return{ok:true,claims:rows.map(r=>({requestId:String(r.request_id||''),businessDate:String(r.business_date||''),waitTypeId:String(r.wait_type_id||''),createdAt:Number(r.created_at||0),updatedAt:Number(r.updated_at||0)}))};
+}
+async function resolveAmbiguousClaim(env,p){
+  const requestId=opsRequestId(p?.requestId);if(!requestId)throw apiError('REQUEST_ID_REQUIRED',400);
+  const resolution=String(p?.resolution||'').trim();
+  const row=await env.DB.prepare(`SELECT user_hash,business_date,request_id,state,wait_type_id FROM v2_user_day_claims WHERE request_id=? LIMIT 1`).bind(requestId).first();
+  if(!row)throw apiError('AMBIGUOUS_CLAIM_NOT_FOUND',404);
+  if(String(row.state||'')!=='AMBIGUOUS')throw apiError('CLAIM_NOT_AMBIGUOUS',409);
+  const now=Date.now();
+  let audit;
+  if(resolution==='release'){
+    if(String(p?.confirmation||'')!=='CONFIRMED_NO_AIRWAIT_RESERVATION')throw apiError('AMBIGUOUS_RELEASE_CONFIRMATION_REQUIRED',400);
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=? WHERE request_id=? AND state='AMBIGUOUS'`).bind(now,requestId).run();
+    audit={resolution:'release',businessDate:String(row.business_date||''),waitTypeId:String(row.wait_type_id||''),resolvedAt:now};
+  }else if(resolution==='confirm'){
+    if(String(p?.confirmation||'')!=='CONFIRMED_AIRWAIT_RESERVATION')throw apiError('AMBIGUOUS_CONFIRM_CONFIRMATION_REQUIRED',400);
+    const reserveId=opsReserveId(p?.reserveId),receiptNo=opsReceipt(p?.receiptNo),waitTypeId=opsWaitType(p?.waitTypeId);
+    if(!reserveId||!receiptNo||!waitTypeId)throw apiError('AMBIGUOUS_CONFIRM_DATA_REQUIRED',400);
+    if(String(row.wait_type_id||'')&&String(row.wait_type_id)!==waitTypeId)throw apiError('AMBIGUOUS_WAIT_TYPE_MISMATCH',409);
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CONFIRMED',reserve_id=?,receipt_no=?,wait_type_id=?,updated_at=? WHERE request_id=? AND state='AMBIGUOUS'`).bind(reserveId,receiptNo,waitTypeId,now,requestId).run();
+    audit={resolution:'confirm',businessDate:String(row.business_date||''),waitTypeId,reserveId,receiptNo,resolvedAt:now};
+  }else throw apiError('AMBIGUOUS_RESOLUTION_INVALID',400);
+  await ensureWorkerStateTable(env);
+  await env.DB.prepare(`INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at`).bind('ambiguous_resolution:'+requestId,JSON.stringify(audit),now).run();
+  return{ok:true,requestId,resolution:audit.resolution,resolvedAt:now};
+}
+
 function requestIpAddress(request){
   const cf=String(request?.headers?.get?.('CF-Connecting-IP')||'').trim();
   if(cf)return cf;

@@ -53,6 +53,7 @@ jobs:
           node --input-type=module --check < miniapp-v2/backend/production-worker.mjs
           node --input-type=module --check < miniapp-v2/backend/production-service-message.js
           node --test tests/asoboon-production-security.test.mjs tests/asoboon-production-worker-security.test.mjs tests/asoboon-production-api-contract.test.mjs
+          node --test tests/asoboon-repo-secret-scan.test.mjs
           grep -F 'createReservation:300' miniapp-v2/backend/production-worker.mjs
           grep -F 'AIRWAIT_CREATE_STORENO_TIMEOUT' miniapp-v2/backend/production-gateway.js
           grep -F 'AIRWAIT_OFFICIAL_RESERVATIONS_TIMEOUT' miniapp-v2/backend/production-gateway.js

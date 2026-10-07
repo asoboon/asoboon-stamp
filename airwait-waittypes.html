@@ -122,11 +122,7 @@
   </main>
 
 <script>
-const AIRWAIT = {
-  apiKey: 'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
-  storeId: 'KR01205179',
-  waitTypeUrl: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get'
-};
+const AIRWAIT = { proxyUrl:'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/' };
 
 const $ = id => document.getElementById(id);
 
@@ -159,29 +155,7 @@ function usageLabel(v){
   return map[s] || `不明 (${s})`;
 }
 
-async function postForm(url, payload){
-  const body = new URLSearchParams(payload);
-
-  const res = await fetch(`${url}?key=${encodeURIComponent(AIRWAIT.apiKey)}`, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
-    },
-    body
-  });
-
-  const text = await res.text();
-
-  if(!res.ok){
-    throw new Error(`HTTP ${res.status}\n${text.slice(0,500)}`);
-  }
-
-  try{
-    return JSON.parse(text);
-  }catch{
-    throw new Error(`JSONとして読めませんでした。\n${text.slice(0,500)}`);
-  }
-}
+async function loadProxy(){const u=new URL(AIRWAIT.proxyUrl);u.searchParams.set('action','waitTypes');u.searchParams.set('_',String(Date.now()));const res=await fetch(u,{method:'GET',cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});let data=null;try{data=await res.json()}catch{}if(!res.ok||data?.ok!==true)throw new Error(data?.error||`HTTP ${res.status}`);return data}
 
 async function loadWaitTypes(){
   $('loadBtn').disabled = true;
@@ -191,22 +165,11 @@ async function loadWaitTypes(){
   $('raw').hidden = true;
 
   try{
-    const data = await postForm(AIRWAIT.waitTypeUrl, {
-      storeId: AIRWAIT.storeId
-    });
+    const data = await loadProxy();
 
     $('raw').textContent = JSON.stringify(data,null,2);
 
-    const code = String(data?.resultCode?.code ?? '');
-    if(code !== '0000' || data?.success !== true){
-      throw new Error(
-        `${code || 'ERROR'}：${data?.resultCode?.defaultMessage || '取得失敗'}`
-      );
-    }
-
-    const list = Array.isArray(data?.innerDto?.waitTypeList)
-      ? data.innerDto.waitTypeList
-      : [];
+    const list = Array.isArray(data?.waitTypes) ? data.waitTypes : [];
 
     const tests = list.filter(x =>
       String(x.waitTypeName || '').includes('テスト')

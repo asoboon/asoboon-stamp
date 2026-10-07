@@ -284,6 +284,24 @@ test('create IP abuse is rejected before any LINE/AirWAIT outbound request', asy
   assert.equal(world.reservations.length,0);
 });
 
+test('reservationStatus is rate limited per owning LINE user, not only by shared IP',async()=>{
+  const created=await create('Ustatuslimit','0029','req-status-limit-0001');
+  const recovered=await session('Ustatuslimit');
+  const userHash=createHash('sha256').update('2009884613:Ustatuslimit').digest('hex');
+  const windowMs=10*60*1000;
+  const windowStart=Math.floor(NOON_JST/windowMs)*windowMs;
+  db.db.prepare(`CREATE TABLE IF NOT EXISTS v2_rate_limits (key TEXT PRIMARY KEY,count INTEGER NOT NULL,expires_at INTEGER NOT NULL)`).run();
+  db.db.prepare(`INSERT OR REPLACE INTO v2_rate_limits(key,count,expires_at) VALUES(?,?,?)`).run(
+    `reservationStatus:${userHash}:${windowStart}`,180,windowStart+windowMs
+  );
+  const before=world.calls.length;
+  const r=await call(worker,env,{body:{action:'reservationStatus',sessionToken:recovered.sessionToken}});
+  assert.equal(r.status,429,JSON.stringify(r.data));
+  assert.equal(r.data?.error,'RATE_LIMITED');
+  assert.equal(world.calls.length,before,'rate limit must stop before AirWAIT status read');
+  assert.ok(created.reserveId);
+});
+
 test('session issuance is rate limited per LINE user', async () => {
   await create('Ualice', '0029');
   let limited = false;
@@ -309,4 +327,52 @@ test('official LINE webhook finds the reservation with the unified identity hash
   assert.equal(res.status, 200);
   const text = JSON.stringify(world.replies);
   assert.match(text, new RegExp(`受付番号 ${a.receiptNo}`));
+});
+
+
+test('AMBIGUOUS operations are diagnostics-gated and release requires explicit AirWAIT confirmation',async()=>{
+  const opsEnv={...env,PRODUCTION_DIAGNOSTICS_TOKEN:DIAG_TOKEN};
+  await call(worker,opsEnv,{method:'GET',query:{action:'health'}});
+  const userId='Uambiguous';
+  const userHash=createHash('sha256').update('2009884613:'+userId).digest('hex');
+  db.db.prepare(`INSERT INTO v2_user_day_claims(user_hash,business_date,request_id,state,receipt_no,reserve_id,wait_type_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)`).run(
+    userHash,DAY,'req-ambiguous-0001','AMBIGUOUS','','','0029',NOON_JST,NOON_JST
+  );
+  const denied=await call(worker,env,{method:'GET',query:{action:'ambiguousClaims'}});
+  assert.ok([401,403,404].includes(denied.status));
+  const listed=await call(worker,opsEnv,{method:'GET',query:{action:'ambiguousClaims'},headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN}});
+  assert.equal(listed.status,200,JSON.stringify(listed.data));
+  assert.equal(listed.data?.claims?.[0]?.requestId,'req-ambiguous-0001');
+  assert.equal(listed.data?.claims?.[0]?.userHash,undefined);
+  const missingAck=await call(worker,opsEnv,{headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN},body:{action:'resolveAmbiguousClaim',requestId:'req-ambiguous-0001',resolution:'release'}});
+  assert.equal(missingAck.status,400);
+  assert.equal(missingAck.data?.error,'AMBIGUOUS_RELEASE_CONFIRMATION_REQUIRED');
+  const released=await call(worker,opsEnv,{headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN},body:{action:'resolveAmbiguousClaim',requestId:'req-ambiguous-0001',resolution:'release',confirmation:'CONFIRMED_NO_AIRWAIT_RESERVATION'}});
+  assert.equal(released.status,200,JSON.stringify(released.data));
+  assert.equal(released.data?.resolution,'release');
+  assert.equal(db.db.prepare(`SELECT state FROM v2_user_day_claims WHERE request_id=?`).get('req-ambiguous-0001').state,'CANCELED');
+  const retried=await create(userId,'0031','req-ambiguous-retry-0001');
+  assert.equal(retried.ok,true);
+  const reopened=db.db.prepare(`SELECT state,wait_type_id FROM v2_user_day_claims WHERE user_hash=? AND business_date=?`).get(userHash,DAY);
+  assert.equal(reopened.state,'CONFIRMED');
+  assert.equal(reopened.wait_type_id,'0031');
+});
+
+test('AMBIGUOUS confirm requires full reservation identity and preserves waitType ownership',async()=>{
+  const opsEnv={...env,PRODUCTION_DIAGNOSTICS_TOKEN:DIAG_TOKEN};
+  await call(worker,opsEnv,{method:'GET',query:{action:'health'}});
+  const userId='UambiguousConfirm';
+  const userHash=createHash('sha256').update('2009884613:'+userId).digest('hex');
+  db.db.prepare(`INSERT INTO v2_user_day_claims(user_hash,business_date,request_id,state,receipt_no,reserve_id,wait_type_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)`).run(
+    userHash,DAY,'req-ambiguous-confirm-0001','AMBIGUOUS','','','0029',NOON_JST,NOON_JST
+  );
+  const incomplete=await call(worker,opsEnv,{headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN},body:{action:'resolveAmbiguousClaim',requestId:'req-ambiguous-confirm-0001',resolution:'confirm',confirmation:'CONFIRMED_AIRWAIT_RESERVATION'}});
+  assert.equal(incomplete.status,400);
+  const mismatch=await call(worker,opsEnv,{headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN},body:{action:'resolveAmbiguousClaim',requestId:'req-ambiguous-confirm-0001',resolution:'confirm',confirmation:'CONFIRMED_AIRWAIT_RESERVATION',reserveId:'123456789012',receiptNo:'F12',waitTypeId:'0031'}});
+  assert.equal(mismatch.status,409);
+  assert.equal(mismatch.data?.error,'AMBIGUOUS_WAIT_TYPE_MISMATCH');
+  const confirmed=await call(worker,opsEnv,{headers:{'X-ASOBooN-Diagnostics':DIAG_TOKEN},body:{action:'resolveAmbiguousClaim',requestId:'req-ambiguous-confirm-0001',resolution:'confirm',confirmation:'CONFIRMED_AIRWAIT_RESERVATION',reserveId:'123456789012',receiptNo:'F12',waitTypeId:'0029'}});
+  assert.equal(confirmed.status,200,JSON.stringify(confirmed.data));
+  const row=db.db.prepare(`SELECT state,reserve_id,receipt_no,wait_type_id FROM v2_user_day_claims WHERE request_id=?`).get('req-ambiguous-confirm-0001');
+  assert.deepEqual({...row},{state:'CONFIRMED',reserve_id:'123456789012',receipt_no:'F12',wait_type_id:'0029'});
 });

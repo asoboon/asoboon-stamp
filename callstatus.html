@@ -49,7 +49,7 @@ function hardenCoreNetwork(){
 
 syncLocalState();
 frame.addEventListener('load',()=>{hardenCoreNetwork();syncLocalState()});
-frame.src='./callstatus-core.html?v=575&wrap=1';
+frame.src='./callstatus-core.html?v=576&wrap=1';
 document.getElementById('cancelOpen').addEventListener('click',()=>{if(!readCancelable())return;location.href='./cancel.html'});
 window.addEventListener('focus',syncLocalState);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncLocalState()});

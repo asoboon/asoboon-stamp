@@ -136,3 +136,33 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await page.locator('.v38-calendar-card').click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/event-calendar.html');
 });
+
+
+test('legacy customer callstatus preserves UI while reading only through Production proxy',async({page})=>{
+  const directAirwait=[];
+  const proxyActions=[];
+  page.on('request',req=>{
+    const u=req.url();
+    if(/(?:cl\.airwait\.jp|airwait\.jp\/WCSP\/api)/.test(u))directAirwait.push(u);
+  });
+  await page.route('**/calltime-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.ASOBOON_CALLTIME_CONFIG={};'}));
+  await page.route('**/asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/**',async route=>{
+    const u=new URL(route.request().url());
+    const action=u.searchParams.get('action')||'';
+    proxyActions.push(action);
+    if(action==='legacyReservations')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,count:2,rows:[
+      {number:'1001',waitTypeId:'0029',waitTypeName:'10:00の回',status:'0',isCalling:'0'},
+      {number:'1002',waitTypeId:'0029',waitTypeName:'10:00の回',status:'0',isCalling:'0'}
+    ]})});
+    if(action==='legacyWaitInfo')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,store:{storeName:'ASOBooN',waitDetails:[]}})});
+    if(action==='legacyLastUpdate')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,lastUpdDate:'',currentDate:''})});
+    return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({ok:false,error:'UNKNOWN_ACTION'})});
+  });
+  await page.goto('http://127.0.0.1:4173/callstatus-core.html?wrap=1&proxy_e2e=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#numberInput').fill('1001');
+  await page.locator('#numberSubmit').click();
+  await expect(page.locator('#personalSection')).toBeVisible({timeout:10000});
+  await expect(page.locator('#bigNumber')).toHaveText('1001');
+  expect(proxyActions).toContain('legacyReservations');
+  expect(directAirwait).toEqual([]);
+});

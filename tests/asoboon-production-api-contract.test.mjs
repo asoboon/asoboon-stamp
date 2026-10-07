@@ -72,6 +72,49 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(vote.data?.ok,true);
 });
 
+test('legacy compatibility reads are sanitized server-side and never expose AirWAIT credentials',async()=>{
+  world.setNextNumber('0029',12);
+  const created=await call(worker,env,{body:{
+    action:'createReservation',requestId:'req-legacy-proxy-0001',mode:'web',adults:1,paidChildren:0,infants:0,
+    waitTypeId:'0029',operationalDate:DAY,liffAccessToken:world.issueLiffToken('Ulegacy'),
+  }});
+  assert.equal(created.data?.ok,true,JSON.stringify(created.data));
+
+  const reservations=await call(worker,env,{method:'GET',query:{action:'legacyReservations',start:'1',limit:'100'}});
+  assert.equal(reservations.status,200,JSON.stringify(reservations.data));
+  assert.equal(reservations.data?.ok,true);
+  assert.ok(Array.isArray(reservations.data?.rows));
+  assert.equal(reservations.data.rows[0]?.number,'12');
+  assert.deepEqual(Object.keys(reservations.data.rows[0]).sort(),['isCalling','number','status','waitTypeId','waitTypeName'].sort());
+
+  const last=await call(worker,env,{method:'GET',query:{action:'legacyLastUpdate'}});
+  assert.equal(last.status,200,JSON.stringify(last.data));
+  assert.equal(last.data?.ok,true);
+  assert.ok(Object.hasOwn(last.data,'lastUpdDate'));
+
+  const wait=await call(worker,env,{method:'GET',query:{action:'legacyWaitInfo'}});
+  assert.equal(wait.status,200,JSON.stringify(wait.data));
+  assert.equal(wait.data?.ok,true);
+  assert.ok(Array.isArray(wait.data?.store?.waitDetails));
+  if(wait.data.store.waitDetails.length){
+    assert.deepEqual(Object.keys(wait.data.store.waitDetails[0]).sort(),['detailedWaitType','remainingNum','waitingCount','waitTypeId','waitTypeName'].sort());
+  }
+
+  const serialized=JSON.stringify({reservations:reservations.data,last:last.data,wait:wait.data});
+  assert.doesNotMatch(serialized,/AIRWAIT_API_KEY|corWclpKeyCd|apiKey|shortUrl|reserveId/i);
+  assert.doesNotMatch(serialized,/test-airwait-key/);
+});
+
+test('legacy compatibility reads fail closed when the Worker AirWAIT secret is absent',async()=>{
+  const locked={...env,AIRWAIT_API_KEY:''};
+  for(const action of ['legacyReservations','legacyLastUpdate','legacyWaitInfo']){
+    const r=await call(worker,locked,{method:'GET',query:{action}});
+    assert.equal(r.status,503,`${action}: ${JSON.stringify(r.data)}`);
+    assert.equal(r.data?.ok,false);
+    assert.equal(r.data?.error,'AIRWAIT_KEY_NOT_CONFIGURED');
+  }
+});
+
 test('diagnostic/service status remains secret-gated in Production',async()=>{
   for(const action of ['createDiagnostics','concurrencyAudit','serviceMessageStatus']){
     const denied=await call(worker,env,{method:'GET',query:{action}});

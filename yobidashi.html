@@ -102,11 +102,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#17191c;color:#dce1e7
 <script>
 'use strict';
 
-const AIRWAIT = Object.freeze({
-  key:'lYwyf5yYCOSpQjg9xAJ9Fp80phVvYDHI',
-  storeId:'KR01205179',
-  reservationsUrl:'https://cl.airwait.jp/WCLP/api/external/stateless/reservations'
-});
+const AIRWAIT = Object.freeze({proxyUrl:'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/'});
 
 const STORAGE_KEY='asoboon_current_reservation_v2';
 const $=id=>document.getElementById(id);
@@ -153,27 +149,11 @@ function stateLabel(status){
   }[String(status)] || `不明 (${status})`;
 }
 async function fetchPage(r,start){
-  const response=await fetch(
-    `${AIRWAIT.reservationsUrl}?key=${encodeURIComponent(AIRWAIT.key)}`,
-    {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
-      body:new URLSearchParams({
-        storeId:AIRWAIT.storeId,
-        waitTypeId:String(r.waitTypeId),
-        sortStatus:'0',
-        isDesc:'0',
-        start:String(start),
-        limit:'100'
-      })
-    }
-  );
-
-  const text=await response.text();
-  let data;
-  try{ data=JSON.parse(text); }
-  catch{ throw new Error(`JSON以外の応答（HTTP ${response.status}）`); }
-
+  const u=new URL(AIRWAIT.proxyUrl);u.searchParams.set('action','legacyReservations');u.searchParams.set('waitTypeId',String(r.waitTypeId||''));u.searchParams.set('start',String(start||1));u.searchParams.set('limit','100');u.searchParams.set('_',String(Date.now()));
+  const response=await fetch(u,{method:'GET',cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
+  let d=null;try{d=await response.json()}catch{}
+  if(!response.ok||d?.ok!==true)throw new Error(d?.error||`呼出状況API HTTP ${response.status}`);
+  const data={success:true,resultCode:{code:'0000'},innerDto:{count:Number(d?.count||0),reservations:Array.isArray(d?.rows)?d.rows:[]}};
   $('raw').textContent=JSON.stringify(data,null,2);
   return data;
 }
