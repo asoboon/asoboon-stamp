@@ -4,22 +4,28 @@ import fs from 'node:fs';
 
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('official customer HOME is rolled back to the legacy HOME during review preparation',()=>{
+test('official customer HOME remains legacy by default while Production preview is opt-in only',()=>{
   const s=read('home.html');
   assert.match(s,/ASOBooN 冒険基地ナビ/);
   assert.match(s,/\.\/home-core\.html/);
   assert.match(s,/airwait\.jp\/WCSP\/storeDetail\?storeNo=AKR2298124918/);
-  assert.doesNotMatch(s,/\.\/miniapp-v2\/production\//);
+  assert.match(s,/production_preview/);
+  assert.match(s,/const PRODUCTION_HOME_LIVE=false/);
+  assert.match(s,/ASOBOON_PRODUCTION_SHELL=PRODUCTION_HOME_LIVE\|\|preview/);
+  assert.match(s,/production-shell-loader\.js/);
+  assert.match(s,/preview=direct\.get\('production_preview'\)==='1'\|\|state\.get\('production_preview'\)==='1'/);
 });
 
-test('legacy rollback copy remains available',()=>{
-  const s=read('home-legacy-20261004.html');
+test('certified rollback snapshot preserves ASOQUEST bridge and legacy customer HOME',()=>{
+  const s=read('home-legacy-certified-20261007.html');
+  assert.match(s,/asoquest-deeplink\.js/);
+  assert.match(s,/2009884613-ELc6kolf/);
   assert.match(s,/\.\/home-core\.html/);
   assert.match(s,/ASOBooN 冒険基地ナビ/);
   assert.match(s,/airwait\.jp\/WCSP\/storeDetail\?storeNo=AKR2298124918/);
 });
 
-test('Production candidate stays isolated and reception creation remains hard locked',()=>{
+test('Production candidate remains hard locked until explicit final activation',()=>{
   const env=read('miniapp-v2/production/env.js');
   const gateway=read('miniapp-v2/backend/production-gateway.js');
   assert.match(env,/environment:'production'/);
@@ -28,12 +34,20 @@ test('Production candidate stays isolated and reception creation remains hard lo
   assert.match(gateway,/PRODUCTION_CREATE_ARMED:\s*false/);
 });
 
-test('Production candidate is not referenced by the official customer entry point',()=>{
-  const home=read('home.html');
-  assert.doesNotMatch(home,/miniapp-v2\/production/);
+test('Production surprise vote uses the live dedicated backend but never enables demo mode',()=>{
+  const config=read('miniapp-v2/production/surprise-vote-config.js');
+  const vote=read('miniapp-v2/production/surprise-vote.js');
+  assert.match(config,/API_URL:\s*"https:\/\/script\.google\.com\/macros\/s\//);
+  assert.match(config,/LIFF_ID:\s*"2009884613-ELc6kolf"/);
+  assert.match(vote,/const DEMO = false/);
 });
 
-test('Production surprise vote stays fail-closed while Developing is prepared for review',()=>{
-  const vote=read('miniapp-v2/production/surprise-vote-config.js');
-  assert.match(vote,/API_URL:\s*""/);
+test('user-reachable legacy pages no longer initialize the retired Production LIFF',()=>{
+  const files=['index.html','stamp.html','setumei.html','surprise-vote-config.js','surprise-vote.js','app/core/app-config.js'];
+  for(const file of files){
+    const s=read(file);
+    assert.doesNotMatch(s,/2009888671|57TOefc3/,file);
+  }
+  assert.match(read('index.html'),/2009884613-ELc6kolf/);
+  assert.match(read('stamp.html'),/2009884613-ELc6kolf/);
 });

@@ -213,7 +213,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
     assert.ok(iCharset >= 0 && iDl > iCharset, `${env}: after charset`);
     assert.ok(iDl < iCss && iDl < iSdk && iDl < iEnv && iDl < iApp, `${env}: deeplink script order`);
     assert.ok(html.indexOf('</head>') > iDl, `${env}: in <head>`);
-    assert.match(html, /app-stable-v36\.js\?v=20261006-03/);
+    assert.match(html, /app-stable-v36\.js\?v=(?:20261006-03|20261007-02)/);
     assert.match(html, /asoquest-deeplink\.js\?v=20261006-02/);
   }
 });

@@ -4,11 +4,14 @@ import fs from 'node:fs';
 
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('official customer HOME remains the legacy HOME during review preparation',()=>{
+test('official customer HOME stays legacy by default after certification while Production preview remains opt-in',()=>{
   const s=read('home.html');
   assert.match(s,/ASOBooN 冒険基地ナビ/);
   assert.match(s,/\.\/home-core\.html/);
-  assert.doesNotMatch(s,/\.\/miniapp-v2\/production\//);
+  assert.match(s,/const PRODUCTION_HOME_LIVE=false/);
+  assert.match(s,/production_preview/);
+  assert.match(s,/production-shell-loader\.js/);
+  assert.match(s,/if\(window\.ASOBOON_PRODUCTION_SHELL\)return/);
 });
 
 test('Developing review candidate keeps all core functions inside MINI App v2',()=>{

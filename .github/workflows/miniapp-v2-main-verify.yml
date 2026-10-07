@@ -6,6 +6,8 @@ on:
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
+      - 'tests/asoboon-production-*.spec.js'
+      - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
       - 'package.json'
@@ -17,6 +19,8 @@ on:
       - 'tests/asoboon-develop-*.spec.js'
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
+      - 'tests/asoboon-production-*.spec.js'
+      - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
       - 'package.json'
@@ -43,6 +47,8 @@ jobs:
           node --input-type=module --check < miniapp-v2/backend/review-gateway.js
           node --check miniapp-v2/backend/develop-service-message.js
           node --check miniapp-v2/backend/develop-worker.mjs
+          node --check miniapp-v2/backend/production-service-message.js
+          node --check miniapp-v2/backend/production-worker.mjs
       - name: Developing reception lifecycle
         run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
       - name: Security regression (same receiptNo across waitTypes, requestId ownership)
@@ -50,8 +56,14 @@ jobs:
 
       - name: Developing 320-client concurrency regression
         run: node --test tests/asoboon-develop-concurrency.test.mjs
-      - name: Production security hardening regression
-        run: node --test tests/asoboon-production-security.test.mjs
+      - name: Production security and full lifecycle regression
+        run: node --test tests/asoboon-production-security.test.mjs tests/asoboon-production-worker-security.test.mjs tests/asoboon-production-api-contract.test.mjs
+      - name: Install Production browser test dependencies
+        run: npm ci
+      - name: Install Chromium for Production E2E
+        run: npx playwright install --with-deps chromium
+      - name: Production browser E2E
+        run: npm run test:miniapp-production
       - name: HOME layout and timeguide reflection regression
         run: node --test tests/asoboon-home-layout-timeguide.test.mjs
       - name: Official HOME cutover regression
@@ -124,7 +136,7 @@ jobs:
       - name: Isolate Production and Purple LIFF identities
         run: |
           set -euo pipefail
-          ! grep -R -n -F '2009884613-ELc6kolf' miniapp-v2/develop miniapp-v2/shared miniapp-v2/backend
+          ! grep -R -n -F '2009884613-ELc6kolf' miniapp-v2/develop miniapp-v2/shared miniapp-v2/backend/develop-gateway.js miniapp-v2/backend/develop-worker.mjs miniapp-v2/backend/develop-service-message.js
           grep -F "liffId:'2009884613-ELc6kolf'" miniapp-v2/production/env.js
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
       - name: Block browser-side AirWAIT access and key header
@@ -132,10 +144,12 @@ jobs:
           set -euo pipefail
           ! grep -R -n -F 'cl.airwait.jp' miniapp-v2/develop miniapp-v2/production miniapp-v2/shared
           ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/develop miniapp-v2/production miniapp-v2/shared
-      - name: Block old HOME dependencies
+      - name: Block legacy core-page dependencies while preserving certified Production endpoint
         run: |
           set -euo pipefail
-          ! grep -R -n -E '(\.\./)+home\.html|/home\.html|home-core\.html|callstatus-core\.html' miniapp-v2
+          ! grep -R -n -E 'home-core\.html|callstatus-core\.html' miniapp-v2
+          ! grep -R -n -E '(\.\./)+home\.html' miniapp-v2
+          grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/home.html'" miniapp-v2/production/env-facility.js
       - name: Confirm Developing identity is isolated
         run: |
           set -euo pipefail
@@ -157,12 +171,21 @@ jobs:
           grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
           grep -F "CHANNEL_ID: '2009884613'" miniapp-v2/backend/production-gateway.js
           grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
-          ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js
-          ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js
-          ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production miniapp-v2/backend/production-gateway.js
-          ! grep -n -F 'DEVELOP_TEST_SLOT_ID' miniapp-v2/backend/production-gateway.js
-          ! grep -n -E "['\"]0042['\"]" miniapp-v2/backend/production-gateway.js
-          grep -F 'API_URL: ""' miniapp-v2/production/surprise-vote-config.js
+          ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          ! grep -R -n -F '2009884612' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          ! grep -R -n -E "DEVELOP_TEST|['\"]0042['\"]" miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          grep -F "const LINE_CHANNEL_ID = '2009884613'" miniapp-v2/backend/production-worker.mjs
+          grep -F "CHANNEL_ID: '2009884613'" miniapp-v2/backend/production-service-message.js
+          grep -F 'https://miniapp.line.me/2009884613-ELc6kolf?view=callstatus' miniapp-v2/backend/production-service-message.js
+          grep -F 'createReservation:300' miniapp-v2/backend/production-worker.mjs
+          grep -F 'AIRWAIT_CREATE_STORENO_TIMEOUT' miniapp-v2/backend/production-gateway.js
+          grep -F 'AIRWAIT_OFFICIAL_RESERVATIONS_TIMEOUT' miniapp-v2/backend/production-gateway.js
+          grep -F 'API_URL: "https://script.google.com/macros/s/' miniapp-v2/production/surprise-vote-config.js
+          grep -F 'const DEMO = false' miniapp-v2/production/surprise-vote.js
+          grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/home.html'" miniapp-v2/production/env-facility.js
+          grep -F 'const PRODUCTION_HOME_LIVE=false' home.html
           grep -F 'LIFF_ID: "2009884613-ELc6kolf"' miniapp-v2/production/surprise-vote-config.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/callstatus.js
@@ -334,10 +357,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Click every Developing HOME route under LIFF failures
+      - name: Browser E2E for Developing and Production HOME
         run: |
           set -euo pipefail
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/asoboon-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           npm run test:miniapp-develop -- --reporter=line --workers=1
+          npm run test:miniapp-production -- --reporter=line --workers=1

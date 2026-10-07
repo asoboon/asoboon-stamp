@@ -44,5 +44,5 @@ test('cache keys load the new HOME/timeguide code',()=>{
   assert.match(dev,/shared\/timeguide\.js\?v=20261004-02/);
   assert.match(dev,/home-v38\.js\?v=20261006-01/);
   assert.match(prod,/shared\/timeguide\.js\?v=20261004-02/);
-  assert.match(prod,/home-v38\.js\?v=20261007-01/);
+  assert.match(prod,/home-v38\.js\?v=20261007-02/);
 });
