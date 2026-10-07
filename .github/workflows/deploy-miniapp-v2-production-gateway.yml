@@ -64,7 +64,7 @@ jobs:
           ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F '2009884612' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F 'asoboon-miniapp-v2-develop-gateway' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
-          ! grep -R -n -E "DEVELOP_TEST|['\"]0042['\"]" miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
+          ! grep -R -n -E "DEVELOP_TEST|['\"]0042['\"]|dev=0042|DEVELOPING ONLY" miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F 'corWclpKeyCd' miniapp-v2/production miniapp-v2/shared
 
       - name: Install Production browser test dependencies
@@ -174,6 +174,8 @@ jobs:
                   x.officialProductionEnabled!==true ||
                   x.productionCreateArmed!==false ||
                   x.createEnabled!==false ||
+                  x.dbConfigured!==true ||
+                  x.airwaitKeyConfigured!==true ||
                   x.createRequiresVerifiedLiff!==true ||
                   !Array.isArray(x.acceptedClientIds) ||
                   !x.acceptedClientIds.includes("2009884613") ||
@@ -181,7 +183,12 @@ jobs:
                   x.lineReceptionUsesStoreOnly!==true ||
                   x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||
+                  x.serviceMessageReady!==true ||
+                  x.serviceMessageThreePillarReady!==true ||
                   x.serviceMessageMandatoryBeforeCreate!==true ||
+                  x.officialLineWebhookSecretConfigured!==true ||
+                  x.officialLineAccessTokenConfigured!==true ||
+                  x.officialLineCancelReady!==true ||
                   x.nativeCancelEnabled!==true ||
                   !Array.isArray(x.apiActions) ||
                   !["crowdRemaining","businessDay","reservationStatus","recoverReservationSession","cancelReservation","surpriseVotePublicStatus","createReservation","requestStatus"].every(v=>x.apiActions.includes(v)) ||

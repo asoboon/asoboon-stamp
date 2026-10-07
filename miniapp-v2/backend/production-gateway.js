@@ -427,7 +427,7 @@ function validateWaitType(waitTypes, day, mode, waitTypeId) {
   return w;
 }
 
-function productionCreateEnabled(env) {
+export function productionCreateEnabled(env) {
   return CFG.PRODUCTION_CREATE_ARMED === true && String(env?.CREATE_ENABLED || '0') === '1';
 }
 

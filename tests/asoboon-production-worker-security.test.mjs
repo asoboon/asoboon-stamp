@@ -224,6 +224,27 @@ test('replaying another user\'s requestId cannot read or re-bind their reservati
   assert.deepEqual(callMessages().map(m => world.recipientOf(m)), ['Ualice']);
 });
 
+test('hard-OFF create performs zero LINE notifier and zero AirWAIT write calls', async () => {
+  const hardDb = new FakeD1();
+  const hardWorld = new FakeWorld();
+  globalThis.fetch = (input, init) => hardWorld.fetch(input, init);
+  const hardWorker = (await import(prepareRuntime({ armed:false }))).default;
+  const hardEnv = baseEnv(hardDb, { CREATE_ENABLED:'1' });
+  const token = hardWorld.issueLiffToken('Uhardoff');
+  const before = hardWorld.calls.length;
+  const r = await call(hardWorker, hardEnv, { body: {
+    action:'createReservation', requestId:'req-hard-off-0001', mode:'web', adults:1, paidChildren:0, infants:0,
+    waitTypeId:'0029', operationalDate:DAY, liffAccessToken:token,
+  }});
+  assert.equal(r.status,503);
+  assert.equal(r.data?.error,'CREATE_DISABLED');
+  assert.equal(hardWorld.calls.length,before,'hard OFF must stop before LINE verify/notifier/AirWAIT');
+  assert.equal(hardWorld.reservations.length,0);
+  const serviceTables = hardDb.rows("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'v2_service_%'");
+  assert.deepEqual(serviceTables,[],'hard OFF must not create service-message claim tables');
+  globalThis.fetch = (input, init) => world.fetch(input, init);
+});
+
 // ---------------------------------------------------------------- diagnostics / rate limit
 
 test('diagnostic endpoints are not available with Origin alone', async () => {

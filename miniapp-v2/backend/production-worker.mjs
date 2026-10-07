@@ -3,7 +3,7 @@
  * LINE call notification is mandatory before AirWAIT reservation creation.
  * Official Production only. Developing/Review identities are not imported into runtime behavior.
  */
-import gateway from './production-gateway.js';
+import gateway, { productionCreateEnabled } from './production-gateway.js';
 import {
   serviceHealth,
   prepareReservationNotification,
@@ -80,6 +80,9 @@ const boardSnapshotMemory = new Map();
 const boardSnapshotInflight = new Map();
 let surpriseVotePublicMemory = { savedAt:0, data:null };
 let surpriseVotePublicInflight = null;
+const LEGACY_READ_CACHE_MS = 4000;
+const legacyReadMemory = new Map();
+const legacyReadInflight = new Map();
 const PRODUCTION_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
 const PRODUCTION_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
@@ -98,9 +101,9 @@ const PRODUCTION_IP_RATE_LIMITS = Object.freeze({
   crowdRemaining:1000,
   boardStatus:1000,
   surpriseVotePublicStatus:1000,
-  legacyReservations:1200,
-  legacyLastUpdate:1200,
-  legacyWaitInfo:1200,
+  legacyReservations:12000,
+  legacyLastUpdate:12000,
+  legacyWaitInfo:12000,
 });
 
 export default {
@@ -171,14 +174,17 @@ export default {
     }
 
     if (request.method === 'GET' && action === 'legacyReservations') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
       try { return json(request, await legacyReservations(env, url)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
     if (request.method === 'GET' && action === 'legacyLastUpdate') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
       try { return json(request, await legacyLastUpdate(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
     if (request.method === 'GET' && action === 'legacyWaitInfo') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
       try { return json(request, await legacyWaitInfo(env)); }
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
@@ -274,6 +280,12 @@ export default {
     }
 
     if (createPayload && originAllowed(request)) {
+      // Production hard gate must run before LINE notifier-token preparation.
+      // When reception creation is disabled, this path performs zero LINE/AirWAIT
+      // outbound calls and creates no notification claim.
+      if (!productionCreateEnabled(env)) {
+        return json(request, { ok:false, stored:false, ambiguous:false, error:'CREATE_DISABLED' }, 503);
+      }
       // A requestId belongs to the LINE user who first used it. Check before a
       // notification token is issued, so a replayed requestId can never attach
       // another user's LINE token to an existing reservation.
@@ -1255,6 +1267,20 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+async function legacyCached(key, loader) {
+  const now=Date.now();
+  const hit=legacyReadMemory.get(key);
+  if(hit&&now-hit.savedAt<LEGACY_READ_CACHE_MS)return{...hit.value,cached:true,cacheSource:'memory'};
+  if(legacyReadInflight.has(key))return await legacyReadInflight.get(key);
+  const job=(async()=>{
+    const value=await loader();
+    legacyReadMemory.set(key,{savedAt:Date.now(),value});
+    return{...value,cached:false,cacheSource:'origin'};
+  })();
+  legacyReadInflight.set(key,job);
+  try{return await job}finally{if(legacyReadInflight.get(key)===job)legacyReadInflight.delete(key)}
+}
+
 async function legacyReservations(env, url) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
   const startRaw=Number(url?.searchParams?.get('start')||1);
@@ -1263,83 +1289,52 @@ async function legacyReservations(env, url) {
   const limit=Number.isSafeInteger(limitRaw)&&limitRaw>=1&&limitRaw<=100?limitRaw:100;
   const requestedWaitType=String(url?.searchParams?.get('waitTypeId')||'').trim();
   const waitTypeId=/^\d{4}$/.test(requestedWaitType)?requestedWaitType:'';
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
-  let r;
-  try{
-    r=await fetch(AIR_RESERVATIONS,{
-      method:'POST',
-      headers:{
-        Accept:'application/json',
-        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
-        corWclpKeyCd:env.AIRWAIT_API_KEY,
-      },
-      body:new URLSearchParams({
-        storeId:'KR01205179',
-        ...(waitTypeId?{waitTypeId}:{}),
-        sortStatus:'0',
-        isDesc:'0',
-        start:String(start),
-        limit:String(limit),
-      }),
-      cache:'no-store',
-      signal:ctrl.signal,
-    });
-  }catch(e){
-    if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_TIMEOUT',504);
-    throw e;
-  }finally{clearTimeout(timer)}
-  let d=null;try{d=await r.json()}catch{}
-  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_FAILED',502);
-  const rows=(Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[]).map(x=>({
-    number:String(x?.number||''),
-    waitTypeId:String(x?.waitTypeId||''),
-    waitTypeName:String(x?.waitTypeName||''),
-    status:String(x?.status||''),
-    isCalling:String(x?.isCalling||'0'),
-  }));
-  return {ok:true,count:Number(d?.innerDto?.count||rows.length||0),rows,source:'production-read-proxy'};
+  const key=`reservations:${waitTypeId}:${start}:${limit}`;
+  return await legacyCached(key,async()=>{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+    let r;
+    try{
+      r=await fetch(AIR_RESERVATIONS,{
+        method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',corWclpKeyCd:env.AIRWAIT_API_KEY},
+        body:new URLSearchParams({storeId:'KR01205179',...(waitTypeId?{waitTypeId}:{}),sortStatus:'0',isDesc:'0',start:String(start),limit:String(limit)}),
+        cache:'no-store',signal:ctrl.signal,
+      });
+    }catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_TIMEOUT',504);throw e}
+    finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_FAILED',502);
+    const rows=(Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[]).map(x=>({number:String(x?.number||''),waitTypeId:String(x?.waitTypeId||''),waitTypeName:String(x?.waitTypeName||''),status:String(x?.status||''),isCalling:String(x?.isCalling||'0')}));
+    return{ok:true,count:Number(d?.innerDto?.count||rows.length||0),rows,source:'production-read-proxy'};
+  });
 }
 
 async function legacyLastUpdate(env) {
   if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
-  const u=new URL(AIR_LAST_UPDATE);
-  u.searchParams.set('storeId','KR01205179');
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),Math.min(EXTERNAL_READ_TIMEOUT_MS,5000));
-  let r;
-  try{
-    r=await fetch(u,{method:'GET',headers:{Accept:'application/json',corWclpKeyCd:env.AIRWAIT_API_KEY},cache:'no-store',signal:ctrl.signal});
-  }catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_TIMEOUT',504);throw e}
-  finally{clearTimeout(timer)}
-  let d=null;try{d=await r.json()}catch{}
-  if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_FAILED',502);
-  const x=d?.innerDto||{};
-  return {ok:true,lastUpdDate:String(x?.lastUpdDate||''),currentDate:String(x?.currentDate||''),source:'production-read-proxy'};
+  return await legacyCached('lastUpdate',async()=>{
+    const u=new URL(AIR_LAST_UPDATE);u.searchParams.set('storeId','KR01205179');
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),Math.min(EXTERNAL_READ_TIMEOUT_MS,5000));
+    let r;try{r=await fetch(u,{method:'GET',headers:{Accept:'application/json',corWclpKeyCd:env.AIRWAIT_API_KEY},cache:'no-store',signal:ctrl.signal})}
+    catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_TIMEOUT',504);throw e}finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_FAILED',502);
+    const x=d?.innerDto||{};return{ok:true,lastUpdDate:String(x?.lastUpdDate||''),currentDate:String(x?.currentDate||''),source:'production-read-proxy'};
+  });
 }
 
 async function legacyWaitInfo(env) {
   if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
-  const u=new URL(AIR_WAIT_INFO);
-  u.searchParams.set('key',env.AIRWAIT_API_KEY);
-  u.searchParams.set('storeId','KR01205179');
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
-  let r;
-  try{r=await fetch(u,{method:'GET',cache:'no-store',signal:ctrl.signal})}
-  catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_WAITINFO_TIMEOUT',504);throw e}
-  finally{clearTimeout(timer)}
-  let d=null;try{d=await r.json()}catch{}
-  if(!r.ok||!(d?.success===true||d?.resultCode?.code==='0000'))throw apiError('AIRWAIT_LEGACY_WAITINFO_FAILED',502);
-  const store=d?.innerDto?.stores?.[0]||{};
-  const waitDetails=(Array.isArray(store?.waitDetails)?store.waitDetails:[]).map(x=>({
-    waitTypeId:String(x?.waitTypeId||''),
-    waitTypeName:String(x?.waitTypeName||x?.detailedWaitType||''),
-    detailedWaitType:String(x?.detailedWaitType||''),
-    remainingNum:Number.isFinite(Number(x?.remainingNum))?Number(x.remainingNum):null,
-    waitingCount:Number.isFinite(Number(x?.waitingCount))?Number(x.waitingCount):null,
-  }));
-  return {ok:true,timestamp:String(d?.innerDto?.timestamp||''),store:{storeName:String(store?.storeName||'ASOBooN'),waitDetails},source:'production-read-proxy'};
+  return await legacyCached('waitInfo',async()=>{
+    const u=new URL(AIR_WAIT_INFO);u.searchParams.set('key',env.AIRWAIT_API_KEY);u.searchParams.set('storeId','KR01205179');
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+    let r;try{r=await fetch(u,{method:'GET',cache:'no-store',signal:ctrl.signal})}
+    catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_WAITINFO_TIMEOUT',504);throw e}finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||!(d?.success===true||d?.resultCode?.code==='0000'))throw apiError('AIRWAIT_LEGACY_WAITINFO_FAILED',502);
+    const store=d?.innerDto?.stores?.[0]||{};
+    const waitDetails=(Array.isArray(store?.waitDetails)?store.waitDetails:[]).map(x=>({waitTypeId:String(x?.waitTypeId||''),waitTypeName:String(x?.waitTypeName||x?.detailedWaitType||''),detailedWaitType:String(x?.detailedWaitType||''),remainingNum:Number.isFinite(Number(x?.remainingNum))?Number(x.remainingNum):null,waitingCount:Number.isFinite(Number(x?.waitingCount))?Number(x.waitingCount):null}));
+    return{ok:true,timestamp:String(d?.innerDto?.timestamp||''),store:{storeName:String(store?.storeName||'ASOBooN'),waitDetails},source:'production-read-proxy'};
+  });
 }
 
 async function getBoardStatus(env) {

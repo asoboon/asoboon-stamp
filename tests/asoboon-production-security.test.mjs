@@ -236,6 +236,17 @@ function scanProductionText(file,text){
   return violations;
 }
 
+test('Production browser tree contains no Developing-only 0042 test UI',()=>{
+  const prodDir=path.join(here,'..','miniapp-v2','production');
+  const files=[];
+  const walk=dir=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(?:js|html|css)$/.test(ent.name))files.push(p);}};
+  walk(prodDir);
+  for(const file of files){
+    const text=fs.readFileSync(file,'utf8');
+    assert.doesNotMatch(text,/['\"]0042['\"]|dev=0042|DEVELOPING ONLY/,path.relative(path.join(here,'..'),file));
+  }
+});
+
 test('Production tree has no Developing identity/state and scanner proves its negative fixture',()=>{
   const prodDir=path.join(here,'..','miniapp-v2','production');
   const files=[];

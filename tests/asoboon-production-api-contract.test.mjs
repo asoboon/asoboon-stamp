@@ -105,6 +105,32 @@ test('legacy compatibility reads are sanitized server-side and never expose AirW
   assert.doesNotMatch(serialized,/test-airwait-key/);
 });
 
+test('legacy compatibility reads require official GitHub Pages origin and collapse duplicate upstream reads',async()=>{
+  mock.timers.tick(5000); // expire any cache warmed by the previous test
+  const deniedBefore=world.calls.length;
+  for(const action of ['legacyReservations','legacyLastUpdate','legacyWaitInfo']){
+    const denied=await call(worker,env,{method:'GET',query:{action},origin:'https://evil.example'});
+    assert.equal(denied.status,403,`${action}: ${JSON.stringify(denied.data)}`);
+    assert.equal(denied.data?.error,'ORIGIN_NOT_ALLOWED');
+  }
+  assert.equal(world.calls.length,deniedBefore,'denied origin must not reach AirWAIT');
+
+  const countCalls=needle=>world.calls.filter(x=>x.includes(needle)).length;
+  const beforeReservations=countCalls('/stateless/reservations');
+  const a=await call(worker,env,{method:'GET',query:{action:'legacyReservations',start:'1',limit:'100'}});
+  const b=await call(worker,env,{method:'GET',query:{action:'legacyReservations',start:'1',limit:'100'}});
+  assert.equal(a.status,200);assert.equal(b.status,200);
+  assert.equal(countCalls('/stateless/reservations')-beforeReservations,1,'duplicate reservation reads should share a 4s cache');
+  assert.equal(b.data?.cached,true);
+
+  const beforeWaitInfo=countCalls('/getWaitInfo');
+  const w1=await call(worker,env,{method:'GET',query:{action:'legacyWaitInfo'}});
+  const w2=await call(worker,env,{method:'GET',query:{action:'legacyWaitInfo'}});
+  assert.equal(w1.status,200);assert.equal(w2.status,200);
+  assert.equal(countCalls('/getWaitInfo')-beforeWaitInfo,1,'duplicate waitInfo reads should share a 4s cache');
+  assert.equal(w2.data?.cached,true);
+});
+
 test('legacy compatibility reads fail closed when the Worker AirWAIT secret is absent',async()=>{
   const locked={...env,AIRWAIT_API_KEY:''};
   for(const action of ['legacyReservations','legacyLastUpdate','legacyWaitInfo']){
