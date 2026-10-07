@@ -20,20 +20,20 @@ small{display:block;color:#7f919d;margin-top:18px;line-height:1.5}
 <h1>スタンプラリー<br>テストプレイ</h1>
 <p>実機確認用の隔離プレビューです。下の順番で6パーツを取得して、最後にENGINE STARTを押してください。</p>
 <div class="grid">
-<a class="start" href="./">① まず画面を見る</a>
-<a href="./?part=engine&src=test">② エンジン</a>
-<a href="./?part=wheel&src=test">③ タイヤ</a>
-<a href="./?part=headlight&src=test">④ ライト</a>
-<a href="./?part=fin&src=test">⑤ フィン</a>
-<a href="./?part=grille&src=test">⑥ グリル</a>
-<a href="./?part=key&src=test">⑦ キー</a>
-<a class="start" href="./?station=engine&src=test">⑧ ENGINE START</a>
+<a class="start" href="./?v=blackout16">① まず画面を見る</a>
+<a href="./?part=engine&src=test&v=blackout16">② エンジン</a>
+<a href="./?part=wheel&src=test&v=blackout16">③ タイヤ</a>
+<a href="./?part=headlight&src=test&v=blackout16">④ ライト</a>
+<a href="./?part=fin&src=test&v=blackout16">⑤ フィン</a>
+<a href="./?part=grille&src=test&v=blackout16">⑥ グリル</a>
+<a href="./?part=key&src=test&v=blackout16">⑦ キー</a>
+<a class="start" href="./?station=engine&src=test&v=blackout16">⑧ ENGINE START</a>
 <button type="button" onclick="resetTest()">進捗を0/6にリセット</button>
 </div>
 <small>※テスト用ストレージは本番と分離済み。Productionの進捗には触れません。</small>
 <script>
 function resetTest(){
-  for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith('stamp-rally:test:v1:'))localStorage.removeItem(k);}
+  for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith('stamp-rally:test:'))localStorage.removeItem(k);}
   alert('0/6にリセットしました');
 }
 </script>
