@@ -33,13 +33,12 @@
   const PAGE_PARAMS =
     new URLSearchParams(location.search);
 
-  const DEMO =
-    PAGE_PARAMS.get('demo') === '1';
+  const DEMO = true; // Developing is permanently isolated from Production vote data.
 
   const EMBEDDED =
     PAGE_PARAMS.get('embedded') === '1';
 
-  const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-v2';
+  const DEMO_STORAGE_KEY = 'asoboon-surprise-demo-develop-v3';
   const STATUS_CACHE_KEY = 'asoboon-surprise-status-cache-v1';
   const VOTER_SESSION_KEY = 'asoboon-surprise-voter-session-v1';
 

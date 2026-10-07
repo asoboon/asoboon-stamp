@@ -11,7 +11,7 @@ window.ASOBOON_V2_ENV=Object.freeze({
   channelId:'2009884613',
   liffId:'2009884613-ELc6kolf',
   liffUrl:'https://miniapp.line.me/2009884613-ELc6kolf',
-  endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/',
+  endpoint:'https://asoboon.github.io/asoboon-stamp/home.html',
   assetBase:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/',
   siteBase:'https://asoboon.github.io/asoboon-stamp/',
   backendUrl:'',
@@ -21,7 +21,7 @@ window.ASOBOON_V2_ENV=Object.freeze({
   operationalFallbacks:Object.freeze({
     enabled:true,
     receptionUrl:'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
-    callstatusUrl:'../../callstatus.html'
+    callstatusUrl:'https://asoboon.github.io/asoboon-stamp/callstatus.html'
   }),
   featureFlags:Object.freeze({
     reception:true,

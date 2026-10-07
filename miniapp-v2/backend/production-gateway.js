@@ -1,5 +1,5 @@
 /**
- * ASOBooN MINI App v2 - Official Production Gateway (dark launch)
+ * ASOBooN MINI App v2 - Official Production Gateway
  * Environment: official Production only (Channel ID 2009884613)
  *
  * Secrets (Cloudflare Worker Secrets):
@@ -16,7 +16,7 @@
  */
 
 const CFG = Object.freeze({
-  VERSION: '1.1.prod-security1',
+  VERSION: '3.0.prod-complete-dark',
   ENVIRONMENT: 'official-production',
   CHANNEL_ID: '2009884613',
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
@@ -29,20 +29,26 @@ const CFG = Object.freeze({
   WEB_OPEN_MIN: 9 * 60 + 25,
   ONSITE_OPEN_MIN: 9 * 60 + 25,
   PRODUCTION_CREATE_ARMED: false,
+  CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,
+  STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,
   REQUEST_RESULT_TTL_MS: 24 * 60 * 60 * 1000,
   WAIT_TYPES_CACHE_MS: 10 * 60 * 1000,
   OFFICIAL_WEB_HANDOFF_TTL_MS: 15 * 60 * 1000,
   USER_ATTEMPT_LIMIT: 5,
   RATE_WINDOW_MS: 10 * 60 * 1000,
+  CREATE_RATE_LIMIT: 6,
+  REQUEST_STATUS_RATE_LIMIT: 120,
+  SESSION_RATE_LIMIT: 30,
+  RESERVATION_STATUS_RATE_LIMIT: 180,
   RATE_LIMITS: Object.freeze({
-    create: Object.freeze({ user: 4, ip: 20 }),
-    requestStatus: Object.freeze({ user: 120, ip: 300 }),
-    waitTypes: Object.freeze({ ip: 60 }),
-    businessDay: Object.freeze({ ip: 60 }),
-    cancelReservation: Object.freeze({ user: 10, ip: 30 }),
-    reservationStatus: Object.freeze({ user: 180, ip: 360 }),
-    crowd: Object.freeze({ ip: 120 }),
+    create: Object.freeze({ user: 6, ip: 300 }),
+    requestStatus: Object.freeze({ user: 120, ip: 1000 }),
+    waitTypes: Object.freeze({ ip: 600 }),
+    businessDay: Object.freeze({ ip: 600 }),
+    cancelReservation: Object.freeze({ user: 20, ip: 600 }),
+    reservationStatus: Object.freeze({ user: 180, ip: 1200 }),
+    crowd: Object.freeze({ ip: 1000 }),
   }),
   AIR_WAIT_TYPES: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/wait/type/get',
   AIR_CREATE: 'https://cl.airwait.jp/WCLP/api/20160600/external/stateless/reserve/create',
@@ -87,10 +93,7 @@ export default {
       if (request.method === 'GET') {
         const action = String(url.searchParams.get('action') || 'health');
         if (action === 'health') return out(request, await health(env));
-        if (action === 'waitTypes') {
-          await enforceRequestRateLimit(env, request, 'waitTypes');
-          return out(request, await getWaitTypes(env));
-        }
+        if (action === 'waitTypes') return out(request, await getWaitTypes(env));
         // Results are only returned to the verified owner through POST requestStatus.
         if (action === 'requestStatus') return out(request, { ok: false, found: false, error: 'REQUEST_STATUS_REQUIRES_LINE_IDENTITY', version: CFG.VERSION }, 401);
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 404);
@@ -99,8 +102,10 @@ export default {
       if (request.method !== 'POST') return out(request, { ok: false, error: 'METHOD_NOT_ALLOWED', version: CFG.VERSION }, 405);
       const p = await readBody(request);
       const action = String(p.action || '');
+      if (action === 'recoverReservationSession') return out(request, await recoverReservationSession(env, p));
+      if (action === 'reservationStatus') return out(request, await reservationStatus(env, p));
       if (action !== 'createReservation') {
-        if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p, request));
+        if (action === 'requestStatus') return out(request, await requestStatusForUser(env, p));
         return out(request, { ok: false, error: 'UNKNOWN_ACTION', version: CFG.VERSION }, 400);
       }
 
@@ -119,7 +124,7 @@ export default {
 
       let result;
       try {
-        await enforceRequestRateLimit(env, request, 'create', ownerHash);
+        await enforceRateLimit(env, 'create', ownerHash, CFG.CREATE_RATE_LIMIT, CFG.RATE_WINDOW_MS);
         result = await createReservation(env, p, requestId, line);
       } catch (e) {
         if (action === 'createReservation') await recordCreateDiagnostic(env, p, e);
@@ -178,8 +183,10 @@ async function readBody(request) {
   return Object.fromEntries(new URLSearchParams(await request.text()));
 }
 
+let gatewaySchemaReady = null;
 async function ensureSchema(env) {
-  await env.DB.batch([
+  if (gatewaySchemaReady) return await gatewaySchemaReady;
+  gatewaySchemaReady = env.DB.batch([
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_request_results (
       request_id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
@@ -211,6 +218,20 @@ async function ensureSchema(env) {
       updated_at INTEGER NOT NULL,
       PRIMARY KEY(user_hash,business_date)
     )`),
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_reservation_sessions (
+      token_hash TEXT PRIMARY KEY,
+      user_hash TEXT NOT NULL,
+      business_date TEXT NOT NULL,
+      reserve_id TEXT NOT NULL,
+      receipt_no TEXT NOT NULL,
+      wait_type_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_reservation_sessions_user
+      ON v2_reservation_sessions(user_hash,business_date,expires_at)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_v2_reservation_sessions_expires
+      ON v2_reservation_sessions(expires_at)`),
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS v2_system_state (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
@@ -254,7 +275,8 @@ async function ensureSchema(env) {
       ON v2_official_web_handoffs(user_hash,business_date,expires_at)`),
     env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_v2_official_web_handoffs_receipt
       ON v2_official_web_handoffs(business_date,receipt_no) WHERE receipt_no<>''`),
-  ]);
+  ]).catch(e => { gatewaySchemaReady = null; throw e; });
+  return await gatewaySchemaReady;
 }
 
 async function health(env) {
@@ -262,12 +284,12 @@ async function health(env) {
     ok: true,
     version: CFG.VERSION,
     environment: CFG.ENVIRONMENT,
-    officialDevelopEnabled: false,
     officialProductionEnabled: true,
-    productionCreateArmed: CFG.PRODUCTION_CREATE_ARMED,
+    productionCreateArmed: CFG.PRODUCTION_CREATE_ARMED === true,
     acceptedClientIds: [CFG.CHANNEL_ID],
     createRequiresVerifiedLiff: true,
     createEnabled: productionCreateEnabled(env),
+    callstatusEnabled: true,
     dbConfigured: Boolean(env.DB),
     airwaitKeyConfigured: Boolean(env.AIRWAIT_API_KEY),
     storeId: CFG.STORE_ID,
@@ -279,6 +301,10 @@ async function health(env) {
     lineReceptionOpen: '09:25',
     lineReceptionUsesStoreOnly: true,
     rateLimitScopes: Object.keys(CFG.RATE_LIMITS),
+    apiActions: [
+      'health','waitTypes','requestStatus','createReservation',
+      'recoverReservationSession','reservationStatus',
+    ],
   };
 }
 
@@ -288,7 +314,7 @@ async function verifyLineUser(accessToken) {
 
   const verifyUrl = new URL(CFG.LINE_VERIFY);
   verifyUrl.searchParams.set('access_token', token);
-  const vr = await fetch(verifyUrl, { headers: { Accept: 'application/json' } });
+  const vr = await fetchWithHardTimeout(verifyUrl, { headers: { Accept: 'application/json' } }, 8000, 'LINE_VERIFY_TIMEOUT');
   const v = await safeJson(vr, 'LINE_VERIFY');
   if (!vr.ok) throw apiError('LINE_TOKEN_VERIFY_FAILED', 401);
   if (String(v.client_id || '') !== CFG.CHANNEL_ID) throw apiError('LINE_CHANNEL_MISMATCH', 403);
@@ -296,9 +322,9 @@ async function verifyLineUser(accessToken) {
   const scopes = new Set(String(v.scope || '').split(/\s+/).filter(Boolean));
   if (!scopes.has('profile')) throw apiError('LINE_PROFILE_SCOPE_REQUIRED', 403);
 
-  const pr = await fetch(CFG.LINE_PROFILE, {
+  const pr = await fetchWithHardTimeout(CFG.LINE_PROFILE, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-  });
+  }, 8000, 'LINE_PROFILE_TIMEOUT');
   const profile = await safeJson(pr, 'LINE_PROFILE');
   if (!pr.ok || !profile?.userId) throw apiError('LINE_PROFILE_FAILED', 401);
   return { userId: String(profile.userId), clientId: String(v.client_id), expiresIn: Number(v.expires_in) };
@@ -333,7 +359,7 @@ async function getBusinessDay(date) {
   u.searchParams.set('action', 'current');
   u.searchParams.set('date', date);
   u.searchParams.set('_', String(Date.now()));
-  const r = await fetch(u, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+  const r = await fetchWithHardTimeout(u, { headers: { Accept: 'application/json' }, cache: 'no-store' }, 8000, 'BUSINESS_CALENDAR_TIMEOUT');
   const d = await safeJson(r, 'BUSINESS_CALENDAR');
   if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE', 503);
   const type = String(d.businessType || '').normalize('NFKC').trim();
@@ -344,7 +370,7 @@ async function getBusinessDay(date) {
   return { operationalDate: date, businessType: type, ...rule };
 }
 
-function enforceReceptionHours(day, mode, epoch = Date.now()) {
+function enforceReceptionHours(day, mode, waitTypeId, epoch = Date.now()) {
   if (day.isClosed) throw apiError('CLOSED_DAY', 400);
   const min = currentMinute(epoch);
   const open = mode === 'onsite' ? CFG.ONSITE_OPEN_MIN : CFG.WEB_OPEN_MIN;
@@ -363,7 +389,7 @@ async function getWaitTypes(env, { force = false } = {}) {
     }
   }
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
-  const r = await fetch(CFG.AIR_WAIT_TYPES, {
+  const r = await fetchWithHardTimeout(CFG.AIR_WAIT_TYPES, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -371,7 +397,7 @@ async function getWaitTypes(env, { force = false } = {}) {
       corWclpKeyCd: env.AIRWAIT_API_KEY,
     },
     body: new URLSearchParams({ storeId: CFG.STORE_ID }),
-  });
+  }, 8000, 'AIRWAIT_WAIT_TYPES_TIMEOUT');
   const d = await safeJson(r, 'AIRWAIT_WAIT_TYPES');
   if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') throw apiError('AIRWAIT_WAIT_TYPES_FAILED', 502);
   const raw = Array.isArray(d?.innerDto?.waitTypeList) ? d.innerDto.waitTypeList : [];
@@ -393,20 +419,22 @@ function usageMatchesMode(usage) {
 }
 
 function validateWaitType(waitTypes, day, mode, waitTypeId) {
-  const allowed = SLOT_RULES[mode]?.[day.businessType] || [];
+  const allowed = SLOT_RULES.web?.[day.businessType] || [];
   if (!allowed.includes(waitTypeId)) throw apiError('WAIT_TYPE_NOT_ALLOWED_FOR_DAY', 400);
   const w = waitTypes.find(x => x.waitTypeId === waitTypeId);
   if (!w || w.dispFlg === false) throw apiError('WAIT_TYPE_NOT_AVAILABLE', 400);
-  if (!usageMatchesMode(w.usageDispType, mode)) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
+  if (!usageMatchesMode(w.usageDispType, 'web')) throw apiError('WAIT_TYPE_MODE_MISMATCH', 400);
   return w;
+}
+
+export function productionCreateEnabled(env) {
+  return CFG.PRODUCTION_CREATE_ARMED === true && String(env?.CREATE_ENABLED || '0') === '1';
 }
 
 async function createReservation(env, p, requestId, verifiedLine = null) {
   if (!productionCreateEnabled(env)) throw apiError('CREATE_DISABLED', 503);
   if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
 
-  // Production LINE reception is always the store-reception path.
-  // Client-supplied mode/location fields are untrusted and intentionally ignored.
   const mode = 'web';
   const adults = strictIntField(p.adults, 'adults', 1, 10);
   const paidChildren = strictIntField(p.paidChildren, 'paidChildren', 0, 10);
@@ -421,11 +449,10 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
 
   const line = verifiedLine || await verifyLineUser(p.liffAccessToken);
   const hash = await userHash(line.userId);
+  const day = await getBusinessDayCachedForCreate(env, serverDate);
+  enforceReceptionHours(day, mode, waitTypeId);
 
-  const day = await getBusinessDay(serverDate);
-  enforceReceptionHours(day, mode);
-
-  const wt = await getWaitTypes(env, { force: true });
+  const wt = await getWaitTypesForCreate(env);
   const waitType = validateWaitType(wt.waitTypes, day, mode, waitTypeId);
 
   const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);
@@ -436,7 +463,7 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
 
   let res;
   try {
-    res = await fetch(CFG.AIR_CREATE, {
+    res = await fetchWithHardTimeout(CFG.AIR_CREATE, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -451,7 +478,7 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
         langType: 'KeyJPN',
         autoPrintFlg: 'false',
       }),
-    });
+    }, 20000, 'AIRWAIT_CREATE_TIMEOUT', true);
   } catch {
     await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
     throw apiError('AIRWAIT_CREATE_NETWORK_AMBIGUOUS_MANUAL_REVIEW', 502, true);
@@ -474,7 +501,7 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
   if (d?.success === false && resultCode === '3201' && CFG.STORE_NO) {
     let retryRes;
     try {
-      retryRes = await fetch(CFG.AIR_CREATE, {
+      retryRes = await fetchWithHardTimeout(CFG.AIR_CREATE, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -489,7 +516,7 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
           langType: 'KeyJPN',
           autoPrintFlg: 'false',
         }),
-      });
+      }, 20000, 'AIRWAIT_CREATE_STORENO_TIMEOUT', true);
     } catch {
       await markUserClaim(env, hash, serverDate, 'AMBIGUOUS');
       const e=apiError('AIRWAIT_CREATE_STORENO_NETWORK_AMBIGUOUS_MANUAL_REVIEW',502,true);
@@ -568,7 +595,7 @@ async function fetchOfficialReservations(env, waitTypeId) {
   const rows=[];
   let start=1,total=Infinity,page=0;
   while(rows.length<total&&start<=99999&&page<1000){
-    const r=await fetch(CFG.AIR_RESERVATIONS,{
+    const r=await fetchWithHardTimeout(CFG.AIR_RESERVATIONS,{
       method:'POST',
       headers:{
         Accept:'application/json',
@@ -584,7 +611,7 @@ async function fetchOfficialReservations(env, waitTypeId) {
         limit:'100',
       }),
       cache:'no-store',
-    });
+    }, 8000, 'AIRWAIT_OFFICIAL_RESERVATIONS_TIMEOUT');
     const d=await safeJson(r,'AIRWAIT_OFFICIAL_RESERVATIONS');
     if(!r.ok||d?.success!==true||String(d?.resultCode?.code||'')!=='0000') throw apiError('AIRWAIT_OFFICIAL_RESERVATIONS_FAILED',502);
     const part=Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[];
@@ -678,6 +705,329 @@ async function adoptOfficialWebReception(env,p,requestId){
   };
 }
 
+
+async function fetchWithHardTimeout(url, options={}, ms=8000, label='EXTERNAL_TIMEOUT', ambiguous=false) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...options, signal:ctrl.signal }); }
+  catch (e) {
+    if (e?.name === 'AbortError') throw apiError(label, 504, ambiguous);
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+
+let createWaitTypesCache = { savedAt:0, value:null };
+let createWaitTypesInflight = null;
+const CREATE_WAIT_TYPES_CACHE_MS = 5 * 1000;
+
+async function getWaitTypesForCreate(env) {
+  const now = Date.now();
+  if (createWaitTypesCache.value && now - createWaitTypesCache.savedAt < CREATE_WAIT_TYPES_CACHE_MS) {
+    return createWaitTypesCache.value;
+  }
+  if (createWaitTypesInflight) return await createWaitTypesInflight;
+  const job = getWaitTypes(env, { force:true }).then(value => {
+    createWaitTypesCache = { savedAt:Date.now(), value };
+    return value;
+  });
+  createWaitTypesInflight = job;
+  try { return await job; }
+  finally { if (createWaitTypesInflight === job) createWaitTypesInflight = null; }
+}
+
+const createBusinessDayCache = new Map();
+const createBusinessDayInflight = new Map();
+const CREATE_BUSINESS_DAY_CACHE_MS = 30 * 60 * 1000;
+const CREATE_BUSINESS_DAY_STALE_FALLBACK_MS = 12 * 60 * 60 * 1000;
+
+function parseBusinessDayCacheRow(row,date){
+  if(!row)return null;
+  try{
+    const value=JSON.parse(String(row.value||''));
+    const rule=BUSINESS_RULES[value?.businessType];
+    if(value?.operationalDate!==date||!rule)return null;
+    return{savedAt:Number(row.updated_at||0),value:{...value,...rule}};
+  }catch{return null}
+}
+
+async function getBusinessDayCachedForCreate(env, date) {
+  const now = Date.now();
+  const mem = createBusinessDayCache.get(date);
+  if (mem && now - mem.savedAt < CREATE_BUSINESS_DAY_CACHE_MS) return mem.value;
+  if (createBusinessDayInflight.has(date)) return await createBusinessDayInflight.get(date);
+
+  const dbKey = 'business_day:' + date;
+  const dbRow = await env.DB.prepare('SELECT value,updated_at FROM v2_system_state WHERE key=? LIMIT 1').bind(dbKey).first();
+  const stored=parseBusinessDayCacheRow(dbRow,date);
+  if (stored && now-stored.savedAt < CREATE_BUSINESS_DAY_CACHE_MS) {
+    createBusinessDayCache.set(date,stored);
+    return stored.value;
+  }
+
+  const job = (async () => {
+    try{
+      const value = await getBusinessDay(date);
+      const savedAt=Date.now();
+      createBusinessDayCache.set(date, { savedAt, value });
+      await env.DB.prepare(
+        'INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at'
+      ).bind(dbKey, JSON.stringify(value), savedAt).run();
+      return value;
+    }catch(e){
+      const memoryFallback=createBusinessDayCache.get(date);
+      if(memoryFallback&&Date.now()-memoryFallback.savedAt<CREATE_BUSINESS_DAY_STALE_FALLBACK_MS)return memoryFallback.value;
+      if(stored&&Date.now()-stored.savedAt<CREATE_BUSINESS_DAY_STALE_FALLBACK_MS){
+        createBusinessDayCache.set(date,stored);
+        return stored.value;
+      }
+      throw e;
+    }
+  })();
+  createBusinessDayInflight.set(date, job);
+  try { return await job; }
+  finally { if (createBusinessDayInflight.get(date) === job) createBusinessDayInflight.delete(date); }
+}
+
+
+const callstatusAirwaitCache = new Map();
+const callstatusAirwaitInflight = new Map();
+const CALLSTATUS_AIRWAIT_CACHE_MS = 5 * 1000;
+const CALLSTATUS_AIRWAIT_TIMEOUT_MS = 8 * 1000;
+
+function randomOpaqueToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function ticketParts(value) {
+  // String.raw: single backslashes here become real regex escapes in the runtime.
+  const k = String(value || '').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g, '');
+  const m = k.match(/^([FT]?)(\d+)$/);
+  if (!m) return null;
+  return { prefix:m[1], digits:m[2].replace(/^0+(?=\d)/, '') };
+}
+
+function ticketIdentity(value) {
+  const p = ticketParts(value);
+  return p ? p.prefix + p.digits : '';
+}
+
+function sameTicket(number, receiptNo) {
+  const a = ticketParts(number), b = ticketParts(receiptNo);
+  if (!a || !b || !a.digits || !b.digits || a.digits !== b.digits) return false;
+  if (a.prefix && b.prefix && a.prefix !== b.prefix) return false;
+  return true;
+}
+
+function selectTicketMatch(rows, receiptNo) {
+  const list = Array.isArray(rows) ? rows : [];
+  const target = ticketIdentity(receiptNo);
+  const exact = target ? list.filter(r => ticketIdentity(r?.number) === target) : [];
+  if (exact.length === 1) return { row:exact[0], ambiguous:false, count:1, mode:'exact' };
+  if (exact.length > 1) return { row:null, ambiguous:true, count:exact.length, mode:'exact' };
+  const loose = list.filter(r => sameTicket(r?.number, receiptNo));
+  if (loose.length === 1) return { row:loose[0], ambiguous:false, count:1, mode:'compatible' };
+  return { row:null, ambiguous:loose.length > 1, count:loose.length, mode:'compatible' };
+}
+
+function reservationState(row) {
+  const status = String(row?.status || '');
+  const isCalling = String(row?.isCalling || '') === '1';
+  if (status === '3') return 'canceled';
+  if (status === '2') return 'done';
+  if (status === '4') return 'processing';
+  if (status === '1') return 'hold';
+  if (status === '0' && isCalling) return 'calling';
+  if (status === '0') return 'waiting';
+  return 'unknown';
+}
+
+async function recoverReservationSession(env, p) {
+  const line = await verifyLineUser(p.liffAccessToken);
+  const hash = await userHash(line.userId);
+  await enforceRateLimit(env, 'session', hash, CFG.SESSION_RATE_LIMIT, CFG.RATE_WINDOW_MS);
+  const requestedDate = normalizeDate(p.businessDate);
+  const targetDate = requestedDate || operationalDate();
+  const row = await env.DB.prepare("SELECT request_id,business_date,reserve_id,receipt_no,wait_type_id,updated_at FROM v2_user_day_claims WHERE user_hash=? AND business_date=? AND state IN ('CONFIRMED','COMPLETED') AND receipt_no<>'' AND reserve_id<>'' ORDER BY updated_at DESC LIMIT 1")
+    .bind(hash, targetDate).first();
+  if (!row) return { ok: true, found: false, version: CFG.VERSION };
+  // The AirWAIT shortUrl (cancel capability) is never sent to the browser.
+  const rawToken = randomOpaqueToken();
+  const tokenHash = await sha256Hex(rawToken);
+  const now = Date.now();
+  const expiresAt = now + CFG.CALLSTATUS_SESSION_TTL_MS;
+  await env.DB.prepare('DELETE FROM v2_reservation_sessions WHERE expires_at<?').bind(now).run();
+  await env.DB.prepare('INSERT INTO v2_reservation_sessions(token_hash,user_hash,business_date,reserve_id,receipt_no,wait_type_id,created_at,expires_at) VALUES(?,?,?,?,?,?,?,?)')
+    .bind(tokenHash, hash, String(row.business_date), String(row.reserve_id), String(row.receipt_no), String(row.wait_type_id || ''), now, expiresAt).run();
+
+  return {
+    ok: true,
+    found: true,
+    version: CFG.VERSION,
+    sessionToken: rawToken,
+    expiresAt,
+    businessDate: String(row.business_date),
+    reserveId: String(row.reserve_id),
+    receiptNo: String(row.receipt_no),
+    waitTypeId: String(row.wait_type_id || ''),
+  };
+}
+
+async function fetchAirwaitReservationsUncached(env, waitTypeId) {
+  if (!env.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
+  const rows = [];
+  let start = 1;
+  let total = Infinity;
+  let page = 0;
+  while (rows.length < total && start <= 99999 && page < 1000) {
+    const body = new URLSearchParams({
+      storeId: CFG.STORE_ID,
+      sortStatus: '0',
+      isDesc: '0',
+      start: String(start),
+      limit: '100',
+    });
+    if (waitTypeId) body.set('waitTypeId', String(waitTypeId));
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CALLSTATUS_AIRWAIT_TIMEOUT_MS);
+    let r;
+    try {
+      r = await fetch(CFG.AIR_RESERVATIONS, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          corWclpKeyCd: env.AIRWAIT_API_KEY,
+        },
+        body,
+        cache: 'no-store',
+        signal: ctrl.signal,
+      });
+    } catch (e) {
+      if (e?.name === 'AbortError') throw apiError('AIRWAIT_RESERVATIONS_TIMEOUT', 504);
+      throw e;
+    } finally { clearTimeout(timer); }
+    const d = await safeJson(r, 'AIRWAIT_RESERVATIONS');
+    if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') {
+      const rc = String(d?.resultCode?.code || 'NONE');
+      throw apiError('AIRWAIT_RESERVATIONS_FAILED_HTTP_' + r.status + '_RC_' + rc, 502, false, rc);
+    }
+    const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
+    total = Number(d?.innerDto?.count || part.length || 0);
+    rows.push(...part.map(x => ({
+      number: String(x?.number || ''),
+      waitTypeId: normalizeWaitType(x?.waitTypeId) || String(x?.waitTypeId || ''),
+      waitTypeName: String(x?.waitTypeName || ''),
+      status: String(x?.status || ''),
+      isCalling: String(x?.isCalling || '0'),
+    })));
+    if (!part.length || rows.length >= total) break;
+    start += part.length;
+    page += 1;
+  }
+  if (rows.length < total) throw apiError('AIRWAIT_RESERVATIONS_TRUNCATED', 502);
+  return rows;
+}
+
+async function fetchAirwaitReservations(env, waitTypeId) {
+  const key = String(waitTypeId || 'ALL');
+  const now = Date.now();
+  const cached = callstatusAirwaitCache.get(key);
+  if (cached && now - cached.savedAt < CALLSTATUS_AIRWAIT_CACHE_MS) return cached.rows;
+  if (callstatusAirwaitInflight.has(key)) return await callstatusAirwaitInflight.get(key);
+  const job = fetchAirwaitReservationsUncached(env, waitTypeId).then(rows => {
+    callstatusAirwaitCache.set(key, { savedAt: Date.now(), rows });
+    return rows;
+  });
+  callstatusAirwaitInflight.set(key, job);
+  try { return await job; }
+  finally { if (callstatusAirwaitInflight.get(key) === job) callstatusAirwaitInflight.delete(key); }
+}
+
+async function reservationStatus(env, p) {
+  const rawToken = String(p.sessionToken || '').trim();
+  if (rawToken.length < 32 || rawToken.length > 256) throw apiError('CALLSTATUS_SESSION_REQUIRED', 401);
+  const tokenHash = await sha256Hex(rawToken);
+  const now = Date.now();
+  const session = await env.DB.prepare('SELECT user_hash,business_date,reserve_id,receipt_no,wait_type_id,expires_at FROM v2_reservation_sessions WHERE token_hash=? LIMIT 1')
+    .bind(tokenHash).first();
+  if (!session || Number(session.expires_at || 0) <= now) throw apiError('CALLSTATUS_SESSION_EXPIRED', 401);
+  await enforceRateLimit(env,'reservationStatus',String(session.user_hash||''),CFG.RESERVATION_STATUS_RATE_LIMIT,CFG.RATE_WINDOW_MS);
+
+  const storedWaitTypeId = String(session.wait_type_id || '');
+  let rows;
+  let usedAllWaitTypesFallback = false;
+  try {
+    // Only the reservation's own waitType is ever consulted (no all-waitType lookup).
+    rows = storedWaitTypeId
+      ? (await fetchAirwaitReservations(env, storedWaitTypeId)).filter(r => String(r.waitTypeId || '') === storedWaitTypeId)
+      : [];
+  } catch (e) {
+    const rc = String(e?.code || '');
+    if (storedWaitTypeId && rc === '3556') {
+      rows = [];
+      usedAllWaitTypesFallback = true;
+    } else {
+      throw e;
+    }
+  }
+
+  const ownMatch = selectTicketMatch(rows, session.receipt_no);
+  const own = ownMatch.row;
+  if (!own) {
+    return {
+      ok: true,
+      found: false,
+      version: CFG.VERSION,
+      businessDate: String(session.business_date),
+      receiptNo: String(session.receipt_no),
+      waitTypeId: storedWaitTypeId,
+      checkedAt: now,
+      reconcileTried: usedAllWaitTypesFallback,
+      reconcileReason: usedAllWaitTypesFallback ? 'STALE_WAIT_TYPE_3556' : '',
+      reconcileAmbiguous: Boolean(ownMatch.ambiguous),
+      reconcileCandidateCount: Number(ownMatch.count || 0),
+    };
+  }
+
+  const effectiveWaitTypeId = String(own.waitTypeId || storedWaitTypeId || '');
+  if (usedAllWaitTypesFallback && effectiveWaitTypeId && effectiveWaitTypeId !== storedWaitTypeId) {
+    await env.DB.prepare('UPDATE v2_reservation_sessions SET wait_type_id=? WHERE token_hash=?')
+      .bind(effectiveWaitTypeId, tokenHash).run();
+  }
+
+  const queueRows = effectiveWaitTypeId
+    ? rows.filter(r => String(r.waitTypeId || '') === effectiveWaitTypeId)
+    : rows;
+  const active = queueRows.filter(r => ['0', '1', '4'].includes(String(r.status || '')));
+  const ownIdentity = ticketIdentity(own.number);
+  const activeIndex = active.findIndex(r => ticketIdentity(r.number) === ownIdentity);
+  const aheadCount = activeIndex >= 0
+    ? active.slice(0, activeIndex).filter(r => ['0', '4'].includes(String(r.status || ''))).length
+    : null;
+
+  return {
+    ok: true,
+    found: true,
+    version: CFG.VERSION,
+    businessDate: String(session.business_date),
+    receiptNo: String(session.receipt_no),
+    reserveId: String(session.reserve_id),
+    waitTypeId: effectiveWaitTypeId,
+    waitTypeName: String(own.waitTypeName || ''),
+    status: String(own.status || ''),
+    isCalling: String(own.isCalling || '0') === '1',
+    state: reservationState(own),
+    aheadCount,
+    queueRank: activeIndex >= 0 ? activeIndex + 1 : null,
+    activeCount: active.length,
+    checkedAt: now,
+    reconciledBy: usedAllWaitTypesFallback ? 'all-wait-types-after-3556' : '',
+  };
+}
+
+
 async function incrementAttempt(env, hash, date) {
   const now = Date.now();
   await env.DB.prepare(`INSERT INTO v2_user_attempts(user_hash,business_date,attempt_count,updated_at) VALUES(?,?,1,?)
@@ -717,6 +1067,17 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
       receiptNo: String(row.receipt_no), reserveId: String(row.reserve_id),
       waitTypeId: String(row.wait_type_id || ''), shortUrl: '',
     }};
+  }
+  if (state === 'CANCELED' || state === 'COMPLETED') {
+    const reopened = await env.DB.prepare("UPDATE v2_user_day_claims SET request_id=?,state='CREATE_INFLIGHT',receipt_no='',reserve_id='',wait_type_id=?,created_at=?,updated_at=? WHERE user_hash=? AND business_date=? AND state IN ('CANCELED','COMPLETED')")
+      .bind(requestId, waitTypeId, now, now, hash, date).run();
+    if (Number(reopened?.meta?.changes || 0) === 1) return { existing:false, reopenedTerminal:true };
+    return await claimUserDay(env, hash, date, requestId, waitTypeId);
+  }
+  if (state === 'CREATE_INFLIGHT' && Number(row.updated_at || 0) < now - CFG.STALE_CREATE_INFLIGHT_MS) {
+    await env.DB.prepare("UPDATE v2_user_day_claims SET state='AMBIGUOUS',updated_at=? WHERE user_hash=? AND business_date=? AND request_id=? AND state='CREATE_INFLIGHT'")
+      .bind(Date.now(), hash, date, String(row.request_id || '')).run();
+    throw apiError('STALE_CREATE_INFLIGHT_REQUIRES_MANUAL_REVIEW', 409, true);
   }
   const e = apiError(state === 'AMBIGUOUS' ? 'EXISTING_AMBIGUOUS_RECEPTION_REQUIRES_MANUAL_REVIEW' : 'ACTIVE_RECEPTION_ALREADY_IN_PROGRESS', 409, state === 'AMBIGUOUS');
   throw e;
@@ -817,20 +1178,20 @@ async function requestOwnedBy(env, requestId, row, ownerHash) {
   return parsed?.ok !== true;
 }
 
-async function requestStatusForUser(env, p, request) {
+async function requestStatusForUser(env, p) {
   const id = normalizeRequestId(p?.requestId);
   if (!id) return { ok: false, found: false, error: 'REQUEST_ID_REQUIRED', version: CFG.VERSION };
   const line = await verifyLineUser(p?.liffAccessToken);
   const hash = await userHash(line.userId);
-  await enforceRequestRateLimit(env, request, 'requestStatus', hash);
+  await enforceRateLimit(env, 'requestStatus', hash, CFG.REQUEST_STATUS_RATE_LIMIT, CFG.RATE_WINDOW_MS);
   const row = await env.DB.prepare('SELECT state,result_json,expires_at,user_hash FROM v2_request_results WHERE request_id=? LIMIT 1').bind(id).first();
   if (!row) return { ok: true, found: false, version: CFG.VERSION };
   if (!(await requestOwnedBy(env, id, row, hash))) return { ok: true, found: false, version: CFG.VERSION };
   return publicResult(await requestStatus(env, id));
 }
 
-// Fixed-window limiter in D1. Production scopes are separated by action and
-// enforced against LINE-user identity and/or Cloudflare's connection IP.
+// Fixed-window per-user limiter in D1. Normal cancel -> same-day re-reception
+// stays far below these limits.
 async function enforceRateLimit(env, scope, hash, limit, windowMs) {
   if (!env?.DB || !hash) return;
   const now = Date.now();
@@ -841,20 +1202,6 @@ async function enforceRateLimit(env, scope, hash, limit, windowMs) {
   const row = await env.DB.prepare('SELECT count FROM v2_rate_limits WHERE key=? LIMIT 1').bind(key).first();
   if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM v2_rate_limits WHERE expires_at<?').bind(now).run();
   if (Number(row?.count || 0) > limit) throw apiError('RATE_LIMITED', 429);
-}
-
-async function requestIpHash(request) {
-  const ip=String(request?.headers?.get?.('CF-Connecting-IP')||'').trim() || 'missing';
-  return sha256Hex(`ip:${ip}`);
-}
-
-async function enforceRequestRateLimit(env, request, scope, userHash='') {
-  const policy=CFG.RATE_LIMITS[scope]||{};
-  if(policy.user&&userHash) await enforceRateLimit(env,`${scope}:user`,userHash,Number(policy.user),CFG.RATE_WINDOW_MS);
-  if(policy.ip){
-    const ipHash=await requestIpHash(request);
-    await enforceRateLimit(env,`${scope}:ip`,ipHash,Number(policy.ip),CFG.RATE_WINDOW_MS);
-  }
 }
 
 const DEFINITIVE_CREATE_REJECTION_CODES = new Set([
@@ -870,10 +1217,6 @@ function classifyAirwaitCreateResult(responseOk, httpStatus, d) {
   if(responseOk===true && d?.success===true && code==='0000') return {kind:'SUCCESS',code,httpStatus:Number(httpStatus||0)};
   if(isDefinitiveCreateRejection(d,code)) return {kind:'REJECTED',code,httpStatus:Number(httpStatus||0)};
   return {kind:'AMBIGUOUS',code,httpStatus:Number(httpStatus||0)};
-}
-
-function productionCreateEnabled(env) {
-  return CFG.PRODUCTION_CREATE_ARMED === true && String(env?.CREATE_ENABLED||'0') === '1';
 }
 
 function airwaitResultError(code, meta={}) {
@@ -914,7 +1257,7 @@ async function recordCreateDiagnostic(env,p,e){
     const now=Date.now();
     const businessDate=normalizeDate(p?.operationalDate||'');
     const waitTypeId=normalizeWaitType(p?.waitTypeId||'');
-    const mode='line-store';
+    const mode='web';
     const resultCode=String(e?.code||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40);
     const errorKey=safeError(e).slice(0,120);
     const airwaitMessage=String(e?.airwaitMessage||'').replace(/[\r\n\t]+/g,' ').slice(0,300);
@@ -929,7 +1272,7 @@ async function recordCreateDiagnostic(env,p,e){
 }
 
 function normalizeWaitType(v) { const s = String(v || '').trim(); return /^\d{4}$/.test(s) ? s : ''; }
-function normalizeReceipt(v) { const m = String(v ?? '').normalize('NFKC').trim().toUpperCase().match(/^[FT]?(\d{1,12})$/); return m ? m[1].replace(/^0+(?=\d)/,'') : ''; }
+function normalizeReceipt(v) { const k=String(v??'').normalize('NFKC').trim().toUpperCase(); const m=k.match(/^([FT]?)(\d{1,12})$/); return m ? m[1]+m[2].replace(/^0+(?=\d)/,'') : ''; }
 function normalizeReserveId(v) { const s = String(v ?? '').normalize('NFKC').trim(); return /^\d{1,12}$/.test(s) ? s.padStart(12,'0') : ''; }
 function normalizeRequestId(v) { const s = String(v || '').trim(); return /^[A-Za-z0-9_-]{8,120}$/.test(s) ? s : ''; }
 function normalizeDate(v) { const s=String(v||'').trim().replace(/\//g,'-'),m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return'';const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d,12));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()+1!==mo||dt.getUTCDate()!==d)return'';return`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
@@ -956,6 +1299,7 @@ async function safeJson(response,label){const text=await response.text();try{ret
 function apiError(message,status=500,ambiguous=false,code=''){const e=new Error(String(message||'UNKNOWN_ERROR'));e.status=status;e.ambiguous=Boolean(ambiguous);e.code=String(code||'');return e;}
 function safeError(e){return String(e?.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500);}
 
+
 export const __securityTest = Object.freeze({
   productionCreateEnabled,
   strictIntField,
@@ -966,10 +1310,10 @@ export const __securityTest = Object.freeze({
   validateWaitType,
   isDefinitiveCreateRejection,
   classifyAirwaitCreateResult,
-  rateLimits: CFG.RATE_LIMITS,
   claimRequest,
   claimUserDay,
   markUserClaim,
   finalizeRequest,
   requestOwnedBy,
+  rateLimits: CFG.RATE_LIMITS,
 });

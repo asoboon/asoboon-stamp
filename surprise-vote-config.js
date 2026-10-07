@@ -2,7 +2,7 @@
 window.ASOBOON_SURPRISE_VOTE_CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec",
   PUBLIC_STATUS_URL: "https://asoboon-surprise-vote-public-gateway.asoboon425.workers.dev/",
-  LIFF_ID: "2009888671-57TOefc3",
+  LIFF_ID: "2009884613-ELc6kolf",
   HOME_URL: "./home.html?mode=inside",
   POLL_INTERVAL_MIN_MS: 25000,
   POLL_INTERVAL_MAX_MS: 35000,

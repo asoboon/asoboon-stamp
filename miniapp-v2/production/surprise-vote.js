@@ -33,8 +33,7 @@
   const PAGE_PARAMS =
     new URLSearchParams(location.search);
 
-  const DEMO =
-    PAGE_PARAMS.get('demo') === '1';
+  const DEMO = false; // Production never enters Review/demo mode.
 
   const EMBEDDED =
     PAGE_PARAMS.get('embedded') === '1';

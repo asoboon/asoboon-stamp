@@ -92,7 +92,33 @@ test('Current and next Production HOME expose the corporate privacy policy from 
   assert.match(legacy,/運営：株式会社コマーム/);
   assert.match(nextHome,url);
   assert.match(nextHome,/運営：株式会社コマーム/);
+  assert.match(nextHome,/ASOBooN事務局 048-420-9780/);
+  assert.match(nextHome,/href=\"tel:0484209780\" data-external=\"1\"/);
+  assert.match(nextHome,/v38-calendar-card[^>]*data-external=\"1\"/);
   assert.match(nextHome,/data-external=\"1\"/);
+});
+
+test('Production vote uses the dedicated live backend while Review remains write-isolated',()=>{
+  const prod=fs.readFileSync(path.join(here,'..','miniapp-v2','production','surprise-vote-config.js'),'utf8');
+  const review=fs.readFileSync(path.join(here,'..','miniapp-v2','review','surprise-vote-config.js'),'utf8');
+  assert.match(prod,/API_URL:\s*"https:\/\/script\.google\.com\/macros\/s\/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I\/exec"/);
+  assert.match(review,/API_URL:\s*""/);
+});
+
+test('surprise vote environments are isolated: Developing/Review simulate, Production alone uses live GAS',()=>{
+  const devCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','develop','surprise-vote-config.js'),'utf8');
+  const devJs=fs.readFileSync(path.join(here,'..','miniapp-v2','develop','surprise-vote.js'),'utf8');
+  const devWorker=fs.readFileSync(path.join(here,'..','miniapp-v2','backend','develop-worker.mjs'),'utf8');
+  const prodCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','production','surprise-vote-config.js'),'utf8');
+  const prodJs=fs.readFileSync(path.join(here,'..','miniapp-v2','production','surprise-vote.js'),'utf8');
+  const reviewCfg=fs.readFileSync(path.join(here,'..','miniapp-v2','review','surprise-vote-config.js'),'utf8');
+  assert.match(devCfg,/API_URL:\s*""/);
+  assert.match(devJs,/const DEMO = true/);
+  assert.match(devWorker,/return json\(request, developVoteStatus\(\)\)/);
+  assert.doesNotMatch(devWorker,/ctx\.waitUntil\(refreshSurpriseVotePublicStatus/);
+  assert.match(prodCfg,/API_URL:\s*"https:\/\/script\.google\.com\/macros\/s\//);
+  assert.match(prodJs,/const DEMO = false/);
+  assert.match(reviewCfg,/API_URL:\s*""/);
 });
 
 test('Production create remains hard-disabled even if CREATE_ENABLED=1',()=>{
@@ -148,8 +174,8 @@ test('different requestIds from one LINE user cannot create concurrent user-day 
 
 test('09:24:59 is rejected and 09:25:00 is accepted in JST',()=>{
   const day={isClosed:false,closeMin:18*60};
-  assert.throws(()=>T.enforceReceptionHours(day,'web',Date.parse('2026-10-04T00:24:59Z')),/WEB_NOT_OPEN_YET/);
-  assert.doesNotThrow(()=>T.enforceReceptionHours(day,'web',Date.parse('2026-10-04T00:25:00Z')));
+  assert.throws(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:24:59Z')),/WEB_NOT_OPEN_YET/);
+  assert.doesNotThrow(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:25:00Z')));
 });
 
 test('operational date rolls exactly at 19:00 JST',()=>{
@@ -189,6 +215,7 @@ test('rate-limit policies are action-separated and create is the strictest write
   const p=T.rateLimits;
   for(const scope of ['create','cancelReservation','reservationStatus','businessDay','waitTypes','crowd','requestStatus']) assert.ok(p[scope],scope);
   assert.ok(p.create.user < p.requestStatus.user);
+  assert.ok(p.create.ip >= 300,'shared-network create IP cap must not be the old 20/10min bottleneck');
   assert.ok(p.create.ip < p.reservationStatus.ip);
   assert.notDeepEqual(p.create,p.cancelReservation);
   assert.notDeepEqual(p.waitTypes,p.crowd);
@@ -200,7 +227,6 @@ function scanProductionText(file,text){
     ['develop-storage',/_develop_v1/],
     ['develop-channel',/2009884611/],
     ['develop-gateway',/asoboon-miniapp-v2-develop-gateway/],
-    ['develop-vote-api',/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/],
     ['develop-test-symbol',/DEVELOP_TEST_SLOT_ID/],
     ['legacy-production-channel',/2009888671/],
     ['legacy-production-liff',/57TOefc3/],
@@ -210,12 +236,25 @@ function scanProductionText(file,text){
   return violations;
 }
 
+test('Production browser tree contains no Developing-only 0042 test UI',()=>{
+  const prodDir=path.join(here,'..','miniapp-v2','production');
+  const files=[];
+  const walk=dir=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(?:js|html|css)$/.test(ent.name))files.push(p);}};
+  walk(prodDir);
+  for(const file of files){
+    const text=fs.readFileSync(file,'utf8');
+    assert.doesNotMatch(text,/['\"]0042['\"]|dev=0042|DEVELOPING ONLY/,path.relative(path.join(here,'..'),file));
+  }
+});
+
 test('Production tree has no Developing identity/state and scanner proves its negative fixture',()=>{
   const prodDir=path.join(here,'..','miniapp-v2','production');
   const files=[];
   const walk=dir=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(?:js|html|md)$/.test(ent.name))files.push(p);}};
   walk(prodDir);
   files.push(gatewayPath);
+  files.push(path.join(here,'..','miniapp-v2','backend','production-worker.mjs'));
+  files.push(path.join(here,'..','miniapp-v2','backend','production-service-message.js'));
   const violations=files.flatMap(file=>scanProductionText(path.relative(path.join(here,'..'),file),fs.readFileSync(file,'utf8')));
   assert.deepEqual(violations,[]);
   assert.ok(scanProductionText('fixture.js',"const bad='2009884611';").length>0,'negative fixture must be detected');

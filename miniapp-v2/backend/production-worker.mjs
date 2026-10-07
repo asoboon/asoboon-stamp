@@ -1,9 +1,9 @@
 /**
- * ASOBooN MINI App v2 - Developing Worker wrapper
+ * ASOBooN MINI App v2 - Production Worker wrapper
  * LINE call notification is mandatory before AirWAIT reservation creation.
- * Official Developing only. Review/Published are not imported or modified.
+ * Official Production only. Developing/Review identities are not imported into runtime behavior.
  */
-import gateway from '../../develop-gateway.runtime.mjs';
+import gateway, { productionCreateEnabled } from './production-gateway.js';
 import {
   serviceHealth,
   prepareReservationNotification,
@@ -12,12 +12,11 @@ import {
   runServiceMessageWorker,
   sendObservedCallNotification,
   sendCancellationNotification,
-} from './develop-service-message.js';
+} from './production-service-message.js';
 
 const ALLOWED_ORIGIN = 'https://asoboon.github.io';
-const LINE_CHANNEL_ID = '2009884611';
+const LINE_CHANNEL_ID = '2009884613';
 const AIRWAIT_ORIGIN = 'https://airwait.jp';
-const DEVELOP_TEST_WAIT_TYPE_ID = '0042';
 const AIR_RESERVATIONS = 'https://cl.airwait.jp/WCLP/api/external/stateless/reservations';
 const AIR_LAST_UPDATE = 'https://cl.airwait.jp/WCLP/api/external/stateless/store/getLastUpdDateStateless';
 const AIR_WAIT_INFO = 'https://airwait.jp/WCSP/api/20160600/external/stateless/store/getWaitInfo';
@@ -81,18 +80,42 @@ const boardSnapshotMemory = new Map();
 const boardSnapshotInflight = new Map();
 let surpriseVotePublicMemory = { savedAt:0, data:null };
 let surpriseVotePublicInflight = null;
-const DEVELOPING_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
-const DEVELOPING_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
+const LEGACY_READ_CACHE_MS = 4000;
+const legacyReadMemory = new Map();
+const legacyReadInflight = new Map();
+const PRODUCTION_SERVICE_TEMPLATE_NAME = 'yourturn_s_w_ja';
+const PRODUCTION_SERVICE_TEMPLATE_PARAMS = JSON.stringify({
   turn:'{{receiptNo}}',
   btn1_url:'{{callstatusUrl}}',
-  btn2_url:'https://miniapp.line.me/2009884611-bDgDzGrN?view=entry',
+  btn2_url:'https://miniapp.line.me/2009884613-ELc6kolf?view=entry',
+});
+const PRODUCTION_IP_RATE_WINDOW_MS = 10 * 60 * 1000;
+const PRODUCTION_IP_RATE_LIMITS = Object.freeze({
+  createReservation:300,
+  requestStatus:1000,
+  recoverReservationSession:1200,
+  reservationStatus:1200,
+  cancelReservation:600,
+  waitTypes:600,
+  businessDay:600,
+  crowdRemaining:1000,
+  boardStatus:1000,
+  surpriseVotePublicStatus:1000,
+  legacyReservations:12000,
+  legacyLastUpdate:12000,
+  legacyWaitInfo:12000,
 });
 
 export default {
   async fetch(request, env, ctx) {
-    env = withDevelopingServiceDefaults(env);
+    env = withProductionServiceDefaults(env);
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
+
+    if (request.method === 'GET' && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, action)) {
+      try { await enforceRequestIpRateLimit(env, request, action); }
+      catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||429)); }
+    }
 
     if (request.method === 'POST' && url.pathname === '/line-webhook') {
       return await handleOfficialLineWebhook(request, env, ctx);
@@ -112,6 +135,13 @@ export default {
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
+    if (request.method === 'GET' && action === 'ambiguousClaims') {
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
+      try { return json(request, await listAmbiguousClaims(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+
     if (request.method === 'GET' && action === 'crowdRemaining') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getCrowdRemaining(request, env, ctx)); }
@@ -126,7 +156,8 @@ export default {
 
     if (request.method === 'GET' && action === 'surpriseVotePublicStatus') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
-      return json(request, developVoteStatus());
+      try { return json(request, await getSurpriseVotePublicStatus(env, ctx)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
     if (request.method === 'GET' && action === 'businessDay') {
@@ -140,6 +171,22 @@ export default {
       if (denied) return denied;
       try { return json(request, await serviceStatus(env, Object.fromEntries(url.searchParams.entries()))); }
       catch (e) { return json(request, { ok:false, found:false, error:safeError(e) }, Number(e?.status || 500)); }
+    }
+
+    if (request.method === 'GET' && action === 'legacyReservations') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
+      try { return json(request, await legacyReservations(env, url)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+    if (request.method === 'GET' && action === 'legacyLastUpdate') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
+      try { return json(request, await legacyLastUpdate(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
+    }
+    if (request.method === 'GET' && action === 'legacyWaitInfo') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
+      try { return json(request, await legacyWaitInfo(env)); }
+      catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
     if (request.method === 'GET' && (action === 'health' || !action)) {
@@ -161,6 +208,12 @@ export default {
       }
       body.baseCreateEnabled = baseCreateEnabled;
       body.nativeCancelEnabled = true;
+      body.apiActions = Array.from(new Set([
+        ...(Array.isArray(body.apiActions) ? body.apiActions : []),
+        'crowdRemaining','boardStatus','surpriseVotePublicStatus','businessDay',
+        'legacyReservations','legacyLastUpdate','legacyWaitInfo',
+        'serviceMessageStatus','cancelReservation','adoptOfficialWebReception',
+      ]));
       body.crowdSnapshotFallbackEnabled = true;
       body.lineReceptionStoreOnly = true;
       body.concurrencyIntegrityAuditEnabled = true;
@@ -173,6 +226,8 @@ export default {
       body.officialLineAccessTokenConfigured = Boolean(String(env.LINE_OA_CHANNEL_ACCESS_TOKEN || '').trim());
       body.officialLineCancelReady = body.officialLineWebhookSecretConfigured && body.officialLineAccessTokenConfigured;
       body.officialLineCancelOneToOneOnly = true;
+      body.ambiguousOpsEnabled = true;
+      body.ambiguousOpsRequiresDiagnosticsSecret = true;
       body.officialLineWebhookFastAck = true;
       body.officialLineReserveIdNormalizer = 'strict-12-digit';
       body.officialLineCancelFlowVersion = '2.0-immediate-reply-then-push';
@@ -193,25 +248,44 @@ export default {
     let reservationStatusPayload = null;
     let recoverReservationPayload = null;
     let cancelReservationPayload = null;
+    let postAction = '';
     if (request.method === 'POST') {
       try {
         const postPayload = await readBody(request.clone());
-        const postAction = String(postPayload?.action || '');
+        postAction = String(postPayload?.action || '');
         if (postAction === 'createReservation') createPayload = postPayload;
         if (postAction === 'adoptOfficialWebReception') adoptPayload = postPayload;
         if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
         if (postAction === 'recoverReservationSession') recoverReservationPayload = postPayload;
         if (postAction === 'cancelReservation') cancelReservationPayload = postPayload;
       } catch {
+        postAction = '';
         createPayload = null;
         adoptPayload = null;
         reservationStatusPayload = null;
         recoverReservationPayload = null;
         cancelReservationPayload = null;
       }
+      if (postAction && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, postAction)) {
+        try { await enforceRequestIpRateLimit(env, request, postAction); }
+        catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||429)); }
+      }
+    }
+
+    if (postAction === 'resolveAmbiguousClaim') {
+      const denied = diagnosticsDenied(request, env);
+      if (denied) return denied;
+      try { return json(request, await resolveAmbiguousClaim(env, await readBody(request.clone()))); }
+      catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||400)); }
     }
 
     if (createPayload && originAllowed(request)) {
+      // Production hard gate must run before LINE notifier-token preparation.
+      // When reception creation is disabled, this path performs zero LINE/AirWAIT
+      // outbound calls and creates no notification claim.
+      if (!productionCreateEnabled(env)) {
+        return json(request, { ok:false, stored:false, ambiguous:false, error:'CREATE_DISABLED' }, 503);
+      }
       // A requestId belongs to the LINE user who first used it. Check before a
       // notification token is issued, so a replayed requestId can never attach
       // another user's LINE token to an existing reservation.
@@ -314,16 +388,12 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    env = withDevelopingServiceDefaults(env);
+    env = withProductionServiceDefaults(env);
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
     ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
+    ctx.waitUntil(refreshSurpriseVotePublicStatus(env, ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
   },
 };
-
-function developVoteStatus(){
-  const now=Date.now(),start=new Date(now-5*60*1000).toISOString(),end=new Date(now+60*60*1000).toISOString();
-  return{ok:true,version:'develop-vote-sim-v1',developSimulation:true,mode:'voting',selected_event_id:'develop-1400',event:{id:'develop-1400',date:currentJstDate(),event_time:'14:00',vote_start:start,vote_end:end,options:[{id:'parachute',name:'パラバルーン'},{id:'treasure',name:'宝探し'},{id:'hide',name:'だるまさんが隠れた'},{id:'vault',name:'跳び箱'}]},day_events:[{id:'develop-1100',event_time:'11:00',mode:'result',winner:{name:'宝探し'}},{id:'develop-1400',event_time:'14:00',mode:'voting'},{id:'develop-1600',event_time:'16:00',mode:'upcoming'}],daily_reset:'18:00'};
-}
 
 function surpriseVotePublicPhaseSafe(data, savedAt=0, maxAge=SURPRISE_VOTE_PUBLIC_CACHE_MS) {
   if (!data || data.ok !== true) return false;
@@ -851,7 +921,7 @@ async function getCreateDiagnostics(env) {
 
   return {
     ok:true,
-    source:'Developing sanitized create diagnostics / no user identity',
+    source:'Production sanitized create diagnostics / no user identity',
     fetchedAt:new Date().toISOString(),
     attempts,
     legacy,
@@ -1197,6 +1267,76 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+async function legacyCached(key, loader) {
+  const now=Date.now();
+  const hit=legacyReadMemory.get(key);
+  if(hit&&now-hit.savedAt<LEGACY_READ_CACHE_MS)return{...hit.value,cached:true,cacheSource:'memory'};
+  if(legacyReadInflight.has(key))return await legacyReadInflight.get(key);
+  const job=(async()=>{
+    const value=await loader();
+    legacyReadMemory.set(key,{savedAt:Date.now(),value});
+    return{...value,cached:false,cacheSource:'origin'};
+  })();
+  legacyReadInflight.set(key,job);
+  try{return await job}finally{if(legacyReadInflight.get(key)===job)legacyReadInflight.delete(key)}
+}
+
+async function legacyReservations(env, url) {
+  if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  const startRaw=Number(url?.searchParams?.get('start')||1);
+  const limitRaw=Number(url?.searchParams?.get('limit')||100);
+  const start=Number.isSafeInteger(startRaw)&&startRaw>=1&&startRaw<=99999?startRaw:1;
+  const limit=Number.isSafeInteger(limitRaw)&&limitRaw>=1&&limitRaw<=100?limitRaw:100;
+  const requestedWaitType=String(url?.searchParams?.get('waitTypeId')||'').trim();
+  const waitTypeId=/^\d{4}$/.test(requestedWaitType)?requestedWaitType:'';
+  const key=`reservations:${waitTypeId}:${start}:${limit}`;
+  return await legacyCached(key,async()=>{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+    let r;
+    try{
+      r=await fetch(AIR_RESERVATIONS,{
+        method:'POST',headers:{Accept:'application/json','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',corWclpKeyCd:env.AIRWAIT_API_KEY},
+        body:new URLSearchParams({storeId:'KR01205179',...(waitTypeId?{waitTypeId}:{}),sortStatus:'0',isDesc:'0',start:String(start),limit:String(limit)}),
+        cache:'no-store',signal:ctrl.signal,
+      });
+    }catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_TIMEOUT',504);throw e}
+    finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_RESERVATIONS_FAILED',502);
+    const rows=(Array.isArray(d?.innerDto?.reservations)?d.innerDto.reservations:[]).map(x=>({number:String(x?.number||''),waitTypeId:String(x?.waitTypeId||''),waitTypeName:String(x?.waitTypeName||''),status:String(x?.status||''),isCalling:String(x?.isCalling||'0')}));
+    return{ok:true,count:Number(d?.innerDto?.count||rows.length||0),rows,source:'production-read-proxy'};
+  });
+}
+
+async function legacyLastUpdate(env) {
+  if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  return await legacyCached('lastUpdate',async()=>{
+    const u=new URL(AIR_LAST_UPDATE);u.searchParams.set('storeId','KR01205179');
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),Math.min(EXTERNAL_READ_TIMEOUT_MS,5000));
+    let r;try{r=await fetch(u,{method:'GET',headers:{Accept:'application/json',corWclpKeyCd:env.AIRWAIT_API_KEY},cache:'no-store',signal:ctrl.signal})}
+    catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_TIMEOUT',504);throw e}finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||d?.success!==true||d?.resultCode?.code!=='0000')throw apiError('AIRWAIT_LEGACY_LAST_UPDATE_FAILED',502);
+    const x=d?.innerDto||{};return{ok:true,lastUpdDate:String(x?.lastUpdDate||''),currentDate:String(x?.currentDate||''),source:'production-read-proxy'};
+  });
+}
+
+async function legacyWaitInfo(env) {
+  if(!env?.AIRWAIT_API_KEY)throw apiError('AIRWAIT_KEY_NOT_CONFIGURED',503);
+  return await legacyCached('waitInfo',async()=>{
+    const u=new URL(AIR_WAIT_INFO);u.searchParams.set('key',env.AIRWAIT_API_KEY);u.searchParams.set('storeId','KR01205179');
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),EXTERNAL_READ_TIMEOUT_MS);
+    let r;try{r=await fetch(u,{method:'GET',cache:'no-store',signal:ctrl.signal})}
+    catch(e){if(e?.name==='AbortError')throw apiError('AIRWAIT_LEGACY_WAITINFO_TIMEOUT',504);throw e}finally{clearTimeout(timer)}
+    let d=null;try{d=await r.json()}catch{}
+    if(!r.ok||!(d?.success===true||d?.resultCode?.code==='0000'))throw apiError('AIRWAIT_LEGACY_WAITINFO_FAILED',502);
+    const store=d?.innerDto?.stores?.[0]||{};
+    const waitDetails=(Array.isArray(store?.waitDetails)?store.waitDetails:[]).map(x=>({waitTypeId:String(x?.waitTypeId||''),waitTypeName:String(x?.waitTypeName||x?.detailedWaitType||''),detailedWaitType:String(x?.detailedWaitType||''),remainingNum:Number.isFinite(Number(x?.remainingNum))?Number(x.remainingNum):null,waitingCount:Number.isFinite(Number(x?.waitingCount))?Number(x.waitingCount):null}));
+    return{ok:true,timestamp:String(d?.innerDto?.timestamp||''),store:{storeName:String(store?.storeName||'ASOBooN'),waitDetails},source:'production-read-proxy'};
+  });
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const businessDate=tokyoCalendarDate();
@@ -1328,7 +1468,7 @@ async function getBusinessDayProxy(value, env) {
       if (returned !== date || !VALID_BUSINESS_TYPES.has(businessType)) throw apiError('BUSINESS_CALENDAR_INVALID',503);
       const valueOut = {
         ok:true,
-        source:'develop-worker-cache',
+        source:'production-worker-cache',
         operationalDate:date,
         calendarDate:date,
         businessType,
@@ -1361,7 +1501,6 @@ const CALLSTATUS_CLOSE_BY_WAITTYPE=Object.freeze({
   '0023':'17:00','0024':'17:00','0025':'17:00','0027':'17:00',
   '0035':'17:00','0036':'17:00','0037':'17:00','0038':'17:00',
   '0029':'18:00','0030':'18:00','0031':'18:00','0032':'18:00','0033':'18:00','0034':'18:00',
-  '0042':'19:00',
 });
 function closeEpochForReservation(businessDate,waitTypeId){
   const date=normalizeDate(businessDate),hm=String(CALLSTATUS_CLOSE_BY_WAITTYPE[String(waitTypeId||'')]||'');
@@ -1667,15 +1806,64 @@ function currentOperationalDate(epoch=Date.now()){
 async function lineUserHash(userId){
   return await sha256Hex(`${LINE_CHANNEL_ID}:${String(userId||'')}`);
 }
+function opsRequestId(v){const s=String(v||'').trim();return /^[A-Za-z0-9_-]{8,120}$/.test(s)?s:''}
+function opsReserveId(v){const s=String(v||'').normalize('NFKC').trim();return /^\d{1,12}$/.test(s)?s.padStart(12,'0'):''}
+function opsReceipt(v){const s=String(v||'').normalize('NFKC').trim().toUpperCase();return /^[FT]?\d{1,12}$/.test(s)?s:''}
+function opsWaitType(v){const s=String(v||'').trim();return /^\d{4}$/.test(s)?s:''}
+async function listAmbiguousClaims(env){
+  const q=await env.DB.prepare(`SELECT request_id,business_date,wait_type_id,created_at,updated_at FROM v2_user_day_claims WHERE state='AMBIGUOUS' ORDER BY updated_at DESC LIMIT 100`).all();
+  const rows=Array.isArray(q?.results)?q.results:[];
+  return{ok:true,claims:rows.map(r=>({requestId:String(r.request_id||''),businessDate:String(r.business_date||''),waitTypeId:String(r.wait_type_id||''),createdAt:Number(r.created_at||0),updatedAt:Number(r.updated_at||0)}))};
+}
+async function resolveAmbiguousClaim(env,p){
+  const requestId=opsRequestId(p?.requestId);if(!requestId)throw apiError('REQUEST_ID_REQUIRED',400);
+  const resolution=String(p?.resolution||'').trim();
+  const row=await env.DB.prepare(`SELECT user_hash,business_date,request_id,state,wait_type_id FROM v2_user_day_claims WHERE request_id=? LIMIT 1`).bind(requestId).first();
+  if(!row)throw apiError('AMBIGUOUS_CLAIM_NOT_FOUND',404);
+  if(String(row.state||'')!=='AMBIGUOUS')throw apiError('CLAIM_NOT_AMBIGUOUS',409);
+  const now=Date.now();
+  let audit;
+  if(resolution==='release'){
+    if(String(p?.confirmation||'')!=='CONFIRMED_NO_AIRWAIT_RESERVATION')throw apiError('AMBIGUOUS_RELEASE_CONFIRMATION_REQUIRED',400);
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CANCELED',updated_at=? WHERE request_id=? AND state='AMBIGUOUS'`).bind(now,requestId).run();
+    audit={resolution:'release',businessDate:String(row.business_date||''),waitTypeId:String(row.wait_type_id||''),resolvedAt:now};
+  }else if(resolution==='confirm'){
+    if(String(p?.confirmation||'')!=='CONFIRMED_AIRWAIT_RESERVATION')throw apiError('AMBIGUOUS_CONFIRM_CONFIRMATION_REQUIRED',400);
+    const reserveId=opsReserveId(p?.reserveId),receiptNo=opsReceipt(p?.receiptNo),waitTypeId=opsWaitType(p?.waitTypeId);
+    if(!reserveId||!receiptNo||!waitTypeId)throw apiError('AMBIGUOUS_CONFIRM_DATA_REQUIRED',400);
+    if(String(row.wait_type_id||'')&&String(row.wait_type_id)!==waitTypeId)throw apiError('AMBIGUOUS_WAIT_TYPE_MISMATCH',409);
+    await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CONFIRMED',reserve_id=?,receipt_no=?,wait_type_id=?,updated_at=? WHERE request_id=? AND state='AMBIGUOUS'`).bind(reserveId,receiptNo,waitTypeId,now,requestId).run();
+    audit={resolution:'confirm',businessDate:String(row.business_date||''),waitTypeId,reserveId,receiptNo,resolvedAt:now};
+  }else throw apiError('AMBIGUOUS_RESOLUTION_INVALID',400);
+  await ensureWorkerStateTable(env);
+  await env.DB.prepare(`INSERT INTO v2_system_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at`).bind('ambiguous_resolution:'+requestId,JSON.stringify(audit),now).run();
+  return{ok:true,requestId,resolution:audit.resolution,resolvedAt:now};
+}
+
+function requestIpAddress(request){
+  const cf=String(request?.headers?.get?.('CF-Connecting-IP')||'').trim();
+  if(cf)return cf;
+  const forwarded=String(request?.headers?.get?.('X-Forwarded-For')||'').split(',')[0].trim();
+  return forwarded;
+}
+async function enforceRequestIpRateLimit(env,request,scope){
+  const limit=Number(PRODUCTION_IP_RATE_LIMITS[String(scope||'')]||0);
+  if(!limit||!env?.DB)return;
+  const ip=requestIpAddress(request);
+  if(!ip)return;
+  const hash=await sha256Hex('ip:'+ip);
+  await enforceUserRateLimit(env,'ip:'+String(scope||''),hash,limit,PRODUCTION_IP_RATE_WINDOW_MS);
+}
+
 function timingSafeEqualText(a,b){
   const x=new TextEncoder().encode(String(a||'')),y=new TextEncoder().encode(String(b||''));
   if(x.length!==y.length||!x.length)return false;
   let diff=0;for(let i=0;i<x.length;i+=1)diff|=x[i]^y[i];
   return diff===0;
 }
-// Diagnostics are Developing-only and require an explicit secret. Origin is not authentication.
+// Production diagnostics require an explicit secret. Origin is not authentication.
 function diagnosticsDenied(request,env){
-  const expected=String(env?.DEVELOP_DIAGNOSTICS_TOKEN||'').trim();
+  const expected=String(env?.PRODUCTION_DIAGNOSTICS_TOKEN||'').trim();
   if(expected.length<32)return json(request,{ok:false,error:'NOT_FOUND'},404);
   const provided=String(request.headers.get('X-ASOBooN-Diagnostics')||'').trim();
   if(!timingSafeEqualText(provided,expected))return json(request,{ok:false,error:'DIAGNOSTICS_AUTH_REQUIRED'},401);
@@ -1703,7 +1891,7 @@ function officialLineWaitTypeLabel(waitTypeId){
       if(Array.isArray(spec.waitTypeIds)&&spec.waitTypeIds.includes(id))return String(spec.label||'受付');
     }
   }
-  return id===DEVELOP_TEST_WAIT_TYPE_ID?'入場不可テスト':'本日の受付';
+  return '本日の受付';
 }
 async function verifyOfficialLineSignature(rawBody,signature,secret){
   const sec=String(secret||'').trim(), sig=String(signature||'').trim();
@@ -2163,48 +2351,6 @@ async function releaseTerminalPreviousClaim(env, createPayload, existing) {
     return false;
   }
 }
-async function fetchDevelopTestReservations(env, filters={}) {
-  const rows = [];
-  let start = 1,total=Infinity,page=0;
-  while(rows.length<total&&start<=99999&&page<1000) {
-    const params = {
-      storeId:'KR01205179',
-      waitTypeId:DEVELOP_TEST_WAIT_TYPE_ID,
-      sortStatus:'0',
-      isDesc:'1',
-      start:String(start),
-      limit:'100',
-      ...filters,
-    };
-    const ctrl = new AbortController();
-    const timer = setTimeout(()=>ctrl.abort(), EXTERNAL_READ_TIMEOUT_MS);
-    let r;
-    try {
-      r = await fetch(AIR_RESERVATIONS, {
-        method:'POST',
-        headers:{
-          Accept:'application/json',
-          'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
-          corWclpKeyCd:env.AIRWAIT_API_KEY,
-        },
-        body:new URLSearchParams(params),
-        cache:'no-store',
-        signal:ctrl.signal,
-      });
-    } catch(e){ if(e?.name==='AbortError') return []; throw e; }
-    finally { clearTimeout(timer); }
-    let d=null;try{d=await r.json()}catch{}
-    if (!r.ok || d?.success !== true || d?.resultCode?.code !== '0000') return [];
-    const part = Array.isArray(d?.innerDto?.reservations) ? d.innerDto.reservations : [];
-    rows.push(...part.map(x=>({number:String(x?.number||''),status:String(x?.status||'')})));
-    total = Number(d?.innerDto?.count || part.length || 0);
-    if (!part.length || rows.length >= total) break;
-    start += part.length;
-    page += 1;
-  }
-  return rows;
-}
-
 function ticketParts(value) {
   const k=String(value||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
   const m=k.match(/^([FT]?)(\d+)$/);
@@ -2247,13 +2393,13 @@ function rebuildCreateRequest(original, payload) {
   });
 }
 
-function withDevelopingServiceDefaults(env) {
-  // Developing owns this contract. Stale non-secret dashboard/workflow vars must
+function withProductionServiceDefaults(env) {
+  // Production owns this contract. Stale non-secret dashboard/workflow vars must
   // never override the verified template name, placeholders, or in-app routes.
   return {
     ...env,
-    SERVICE_MESSAGE_TEMPLATE_NAME: DEVELOPING_SERVICE_TEMPLATE_NAME,
-    SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON: DEVELOPING_SERVICE_TEMPLATE_PARAMS,
+    SERVICE_MESSAGE_TEMPLATE_NAME: PRODUCTION_SERVICE_TEMPLATE_NAME,
+    SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON: PRODUCTION_SERVICE_TEMPLATE_PARAMS,
   };
 }
 async function readBody(request) {
