@@ -124,8 +124,8 @@ jobs:
       - name: Isolate Production and Purple LIFF identities
         run: |
           set -euo pipefail
-          ! grep -R -n -F '2009888671-57TOefc3' miniapp-v2/develop miniapp-v2/shared miniapp-v2/backend
-          grep -F "liffId:'2009888671-57TOefc3'" miniapp-v2/production/env.js
+          ! grep -R -n -F '2009884613-ELc6kolf' miniapp-v2/develop miniapp-v2/shared miniapp-v2/backend
+          grep -F "liffId:'2009884613-ELc6kolf'" miniapp-v2/production/env.js
           ! grep -R -n -F '2011467470-Gk5C3lWf' miniapp-v2
       - name: Block browser-side AirWAIT access and key header
         run: |
@@ -148,14 +148,14 @@ jobs:
           set -euo pipefail
           grep -F "environment:'production'" miniapp-v2/production/env.js
           grep -F "storageNamespace:'production'" miniapp-v2/production/env.js
-          grep -F "channelId:'2009888671'" miniapp-v2/production/env.js
-          grep -F "liffId:'2009888671-57TOefc3'" miniapp-v2/production/env.js
+          grep -F "channelId:'2009884613'" miniapp-v2/production/env.js
+          grep -F "liffId:'2009884613-ELc6kolf'" miniapp-v2/production/env.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'" miniapp-v2/production/env.js
           grep -F "backendUrl:''" miniapp-v2/production/env.js
           grep -F "lineStoreOnly:true" miniapp-v2/production/env.js
           grep -F "receptionCreate:false" miniapp-v2/production/env.js
           grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
-          grep -F "CHANNEL_ID: '2009888671'" miniapp-v2/backend/production-gateway.js
+          grep -F "CHANNEL_ID: '2009884613'" miniapp-v2/backend/production-gateway.js
           grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
           ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js
           ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js
@@ -163,7 +163,7 @@ jobs:
           ! grep -n -F 'DEVELOP_TEST_SLOT_ID' miniapp-v2/backend/production-gateway.js
           ! grep -n -E "['\"]0042['\"]" miniapp-v2/backend/production-gateway.js
           grep -F 'API_URL: ""' miniapp-v2/production/surprise-vote-config.js
-          grep -F 'LIFF_ID: "2009888671-57TOefc3"' miniapp-v2/production/surprise-vote-config.js
+          grep -F 'LIFF_ID: "2009884613-ELc6kolf"' miniapp-v2/production/surprise-vote-config.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/callstatus.js
       - name: Confirm controlled create gate pairing

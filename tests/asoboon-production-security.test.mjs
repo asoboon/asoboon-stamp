@@ -75,6 +75,26 @@ function expectPeopleReject(value,min=0,max=10){
   assert.throws(()=>T.strictIntField(value,'field',min,max),/PEOPLE_VALIDATION_ERROR/);
 }
 
+test('Certified Production identity is the console-confirmed 2009884613 LIFF',()=>{
+  const env=fs.readFileSync(path.join(here,'..','miniapp-v2','production','env.js'),'utf8');
+  assert.match(env,/channelId:'2009884613'/);
+  assert.match(env,/liffId:'2009884613-ELc6kolf'/);
+  assert.match(gatewaySource,/CHANNEL_ID:\s*'2009884613'/);
+  assert.doesNotMatch(env,/2009888671|57TOefc3/);
+  assert.doesNotMatch(gatewaySource,/2009888671|57TOefc3/);
+});
+
+test('Current and next Production HOME expose the corporate privacy policy from the top page',()=>{
+  const legacy=fs.readFileSync(path.join(here,'..','home-core.html'),'utf8');
+  const nextHome=fs.readFileSync(path.join(here,'..','miniapp-v2','production','home-v38.js'),'utf8');
+  const url=/https:\/\/comaam\.jp\/privacy-policy\//;
+  assert.match(legacy,url);
+  assert.match(legacy,/運営：株式会社コマーム/);
+  assert.match(nextHome,url);
+  assert.match(nextHome,/運営：株式会社コマーム/);
+  assert.match(nextHome,/data-external=\"1\"/);
+});
+
 test('Production create remains hard-disabled even if CREATE_ENABLED=1',()=>{
   assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'1'}),false);
   assert.match(gatewaySource,/PRODUCTION_CREATE_ARMED:\s*false/);
@@ -182,6 +202,8 @@ function scanProductionText(file,text){
     ['develop-gateway',/asoboon-miniapp-v2-develop-gateway/],
     ['develop-vote-api',/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/],
     ['develop-test-symbol',/DEVELOP_TEST_SLOT_ID/],
+    ['legacy-production-channel',/2009888671/],
+    ['legacy-production-liff',/57TOefc3/],
   ];
   for(const [name,re] of rules) if(re.test(text)) violations.push(file+':'+name);
   if(file.endsWith('production-gateway.js')&&/['"]0042['"]/.test(text)) violations.push(file+':develop-test-slot');

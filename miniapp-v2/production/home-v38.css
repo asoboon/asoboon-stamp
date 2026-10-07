@@ -108,3 +108,6 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-timeguide-cta:focus-visible,.v38-calendar-card:focus-visible,.v38-play-card:focus-visible{outline:3px solid rgba(50,127,174,.3);outline-offset:2px}.v38-timeguide-cta:active,.v38-calendar-card:active,.v38-play-card:active{transform:translateY(1px)}
 @media(max-width:370px){.v38-timeguide-cta,.v38-calendar-card{grid-template-columns:46px minmax(0,1fr) 18px;padding:13px}.v38-timeguide-cta>.v38-quick-icon,.v38-calendar-icon{width:46px;height:46px}.v38-timeguide-cta strong,.v38-calendar-card strong{font-size:18px}.v38-play{padding:13px}.v38-play-grid{grid-template-columns:1fr}.v38-play-card{min-height:72px}}
 @media(prefers-reduced-motion:reduce){.v38-timeguide-cta,.v38-calendar-card,.v38-play-card{transition:none!important}}
+
+.v38-legal{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:22px 4px 8px;padding:12px 8px;border-top:1px solid #e4ddd0;color:#6b675f;font-size:11px;line-height:1.45;text-align:center}
+.v38-legal span{font-weight:750}.v38-legal a{color:#315f79;font-weight:900;text-decoration:underline;text-underline-offset:2px}

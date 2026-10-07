@@ -37,7 +37,7 @@ test('Developing play content exposes BOON BLOCK v23 without changing Review sco
   assert.match(develop,/https:\/\/asoboon\.github\.io\/asoboon-3d\/boon-block-next\/\?v=23/);
   assert.match(develop,/BOON BLOCK','ブロックを動かしてジャングル攻略'[^\n]*'is-new'/);
   assert.doesNotMatch(review,/boon-block-next|BOON BLOCK/);
-  assert.match(index,/home-v38\.js\?v=20261005-02/);
+  assert.match(index,/home-v38\.js\?v=20261006-01/);
 });
 
 test('Developing play cards are explicitly allowed through the route escape guard',()=>{
@@ -82,9 +82,18 @@ test('access colors are general-road blue and highway green',()=>{
 
 test('review candidate asset cache points to the updated review UI',()=>{
   const s=read('miniapp-v2/develop/index.html');
-  for(const name of ['first-v27.css','parking-v24.css','entry-v25.css','app-stable-v36.js','reception-v7.js','first-v27.js','pages-final-v33.js']){
+  const expected={
+    'first-v27.css':'20261004-06',
+    'parking-v24.css':'20261004-06',
+    'entry-v25.css':'20261004-06',
+    'app-stable-v36.js':'20261006-03',
+    'reception-v7.js':'20261004-06',
+    'first-v27.js':'20261004-06',
+    'pages-final-v33.js':'20261004-06',
+  };
+  for(const [name,version] of Object.entries(expected)){
     const escaped=name.replace(/[.*+?^$()|[\]\\]/g,'\\$&');
-    assert.match(s,new RegExp(escaped+'\\?v=20261004-06'));
+    assert.match(s,new RegExp(escaped+'\\?v='+version));
   }
 });
 

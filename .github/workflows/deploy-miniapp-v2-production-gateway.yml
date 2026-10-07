@@ -141,6 +141,8 @@ jobs:
                   x.productionCreateArmed!==false ||
                   x.createEnabled!==false ||
                   x.createRequiresVerifiedLiff!==true ||
+                  !Array.isArray(x.acceptedClientIds) ||
+                  !x.acceptedClientIds.includes("2009884613") ||
                   x.lineReceptionOpen!=="09:25" ||
                   x.lineReceptionUsesStoreOnly!==true ||
                   x.operationalCutoffHour!==19 ||

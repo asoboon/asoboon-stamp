@@ -35,6 +35,6 @@ No manufacturer logo, crest, emblem or model badge should be added.
 https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest-v7/
 
 ## Staging LINE URL
-https://miniapp.line.me/2009888671-57TOefc3/asoquest-v7/
+https://miniapp.line.me/2009884613-ELc6kolf/asoquest-v7/
 
 After visual QA, migrate v7 into /asoquest/ and update NFC/QR station URLs to the final path.

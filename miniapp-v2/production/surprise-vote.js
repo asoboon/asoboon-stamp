@@ -4,7 +4,7 @@
 
   const DEFAULTS = {
     API_URL: '',
-    LIFF_ID: '2009888671-57TOefc3',
+    LIFF_ID: '2009884613-ELc6kolf',
     HOME_URL: './index.html',
     POLL_INTERVAL_MIN_MS: 25000,
     POLL_INTERVAL_MAX_MS: 35000,

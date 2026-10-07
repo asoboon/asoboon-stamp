@@ -10,7 +10,7 @@ const read = p => fs.readFileSync(p, 'utf8');
 const PROD_ENDPOINT = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/';
 const DEV_ENDPOINT = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/';
 const PROD_ASOQUEST = 'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/';
-const LIFF_ID = '2009888671-57TOefc3';
+const LIFF_ID = '2009884613-ELc6kolf';
 const FIELD_LIFF_ID = '2009884613-ELc6kolf';
 
 /* Verbatim port of LIFF SDK (static.line-scdn.net/liff/edge/2/sdk.js) decodeState(), used by liff.init()
@@ -84,7 +84,7 @@ test('doubly-encoded liff.state is tolerated', () => {
 });
 
 test('liff.state may sit next to other LIFF params (liff.referrer, liffClientId, ...)', () => {
-  const s = `?liffClientId=2009888671&liffRedirectUri=${encodeURIComponent('https://x/y')}&liff.state=${encodeURIComponent('?aq=key&src=nfc')}&liff.referrer=`;
+  const s = `?liffClientId=2009884613&liffRedirectUri=${encodeURIComponent('https://x/y')}&liff.state=${encodeURIComponent('?aq=key&src=nfc')}&liff.referrer=`;
   assert.equal(DL.parse(s).part, 'key');
 });
 
@@ -170,7 +170,7 @@ test('boot(): slow navigation never reveals HOME; after 8s a retry/HOME screen i
 test('debug snapshot masks tokens and never stores the hash', () => {
   const secret = 'SECRET123';
   const st = encodeURIComponent(`?aq=engine&code=${secret}&access_token=${secret}`);
-  const w = { location: Object.assign(new URL(`${PROD_ENDPOINT}?liff.state=${st}&code=${secret}&liffClientId=2009888671#access_token=${secret}`), {}), navigator: { userAgent: 'x' } };
+  const w = { location: Object.assign(new URL(`${PROD_ENDPOINT}?liff.state=${st}&code=${secret}&liffClientId=2009884613#access_token=${secret}`), {}), navigator: { userAgent: 'x' } };
   const snap = JSON.stringify(DL.snapshot(w, 'test'));
   assert.ok(!snap.includes(secret), snap);
   assert.match(snap, /"hashLength":\d+/);
@@ -225,7 +225,7 @@ test('ASOQUEST save() cannot block the UI when storage fails (try/catch around s
 });
 
 test('LIFF ids are not mixed between environments', () => {
-  assert.match(read('miniapp-v2/production/env.js'), /liffId:'2009888671-57TOefc3'/);
+  assert.match(read('miniapp-v2/production/env.js'), /liffId:'2009884613-ELc6kolf'/);
   assert.match(read('miniapp-v2/develop/env.js'), /liffId:'2009884611-bDgDzGrN'/);
 });
 

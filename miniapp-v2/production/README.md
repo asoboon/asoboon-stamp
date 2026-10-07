@@ -4,7 +4,7 @@ This directory is a **non-public promotion candidate** for the official LINE MIN
 
 Safety gates currently in force:
 
-- Official Production LIFF identity: `2009888671-57TOefc3`.
+- Official Production LIFF identity: `2009884613-ELc6kolf`.
 - Storage namespace is `production`; Developing browser state is not reused.
 - LINE reception uses AirWAIT **STORE_RECEPTION_ONLY** slot IDs and opens at **09:25 JST**.
 - `receptionCreate:false` in browser config.

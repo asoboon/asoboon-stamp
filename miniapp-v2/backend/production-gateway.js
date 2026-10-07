@@ -1,6 +1,6 @@
 /**
  * ASOBooN MINI App v2 - Official Production Gateway (dark launch)
- * Environment: official Production only (Channel ID 2009888671)
+ * Environment: official Production only (Channel ID 2009884613)
  *
  * Secrets (Cloudflare Worker Secrets):
  *   AIRWAIT_API_KEY
@@ -18,7 +18,7 @@
 const CFG = Object.freeze({
   VERSION: '1.1.prod-security1',
   ENVIRONMENT: 'official-production',
-  CHANNEL_ID: '2009888671',
+  CHANNEL_ID: '2009884613',
   ALLOWED_ORIGIN: 'https://asoboon.github.io',
   STORE_ID: 'KR01205179',
   STORE_NO: 'AKR2298124918',
