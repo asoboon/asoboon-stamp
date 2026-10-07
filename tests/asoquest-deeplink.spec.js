@@ -1,5 +1,3 @@
-[Reading 255 lines from start (total: 255 lines, 0 remaining)]
-
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -255,5 +253,3 @@ test.describe('debug mode (?debug=asoquest)', () => {
     await expect(page.locator('#aqDebugPanel')).toHaveCount(0);
   });
 });
-
-[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]

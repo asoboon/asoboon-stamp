@@ -1,5 +1,3 @@
-[Reading 355 lines from start (total: 355 lines, 0 remaining)]
-
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -355,5 +353,3 @@ test('engine/key/completion states remain visibly distinct', () => {
   assert.match(css, /garage_complete_glow\.webp/);
   assert.match(css, /body\.mission-complete \.car-stage \.complete-layer\.on\{[\s\S]*?opacity:\.62!important/);
 });
-
-[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]
