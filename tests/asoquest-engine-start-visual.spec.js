@@ -1,3 +1,5 @@
+[Reading 165 lines from start (total: 165 lines, 0 remaining)]
+
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -97,15 +99,31 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   expect(blueAfterfireOpacity).toBeGreaterThan(0.2);
   await shot(page, '07_afterfire.png');
 
+  await shot(page, '07_full_power.png');
+
+  await waitPhase(page, 'phase-blackout');
+  await page.waitForTimeout(120);
+  await shot(page, '08_blackout.png');
+
+  await waitPhase(page, 'phase-reveal');
+  await page.waitForTimeout(90);
+  await shot(page, '09_silhouette.png');
+  await page.waitForTimeout(430);
+  await shot(page, '10_light_reveal.png');
+  await page.waitForTimeout(900);
+  await shot(page, '11_complete_hero.png');
+
   await waitPhase(page, 'phase-final');
   await expect(page.locator('#ignitionFinal')).toBeVisible();
-  await expect(page.locator('#ignitionFinal h2')).toHaveText('クリア！');
-  await page.waitForTimeout(520);
-  await shot(page, '08_completion_blessing.png');
-  await shot(page, '09_iphone_390.png');
+  await expect(page.locator('#ignitionFinal h2')).toHaveText('スタンプラリー クリア！');
+  await expect(page.locator('#ignitionFinal p')).toHaveText('マシン完成！');
+  await page.waitForTimeout(650);
+  await shot(page, '12_final_copy.png');
+  await shot(page, '13_iphone_390.png');
 
   await page.setViewportSize({ width: 390, height: 780 });
-  await shot(page, '10_line_inapp_390.png');
+  await page.waitForTimeout(250);
+  await shot(page, '14_line_inapp_390.png');
 
   await page.locator('#ignitionClose').click();
   await expect(page.locator('#engineTitle')).toHaveText('COMPLETE');
@@ -131,7 +149,7 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   const runtime = {
     viewportPrimary: '390x844',
     viewportLineLike: '390x780',
-    phases: ['phase-2','phase-1','phase-ignite','phase-run','phase-final'],
+    phases: ['phase-2','phase-1','phase-ignite','phase-run','phase-blackout','phase-reveal','phase-final'],
     sixthPartMessage: 'ENGINE STARTが解放された！',
     userVisibleName: 'スタンプラリー',
     approvedFxPack: true,
@@ -147,3 +165,5 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
+
+[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]

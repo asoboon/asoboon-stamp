@@ -1,3 +1,5 @@
+[Reading 255 lines from start (total: 255 lines, 0 remaining)]
+
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -89,7 +91,7 @@ test('second hop (direct endpoint ?aq=) also works', async ({ page }) => {
   await expect(overlay(page).title).toHaveText('フィン', { timeout: 8000 });
 });
 
-test('ENGINE START via deep link: 0/6 -> あと6こ; 6/6 -> CLEAR; duplicates do not count', async ({ page }) => {
+test('ENGINE START via deep link: 0/6 -> あと6こ; 6/6 -> finale CLEAR; duplicates do not count', async ({ page }) => {
   await setup(page);
   await page.goto(li('?aq=start&src=nfc'), { waitUntil: 'commit' });
   const o = overlay(page);
@@ -106,15 +108,16 @@ test('ENGINE START via deep link: 0/6 -> あと6こ; 6/6 -> CLEAR; duplicates do
 
   for (const [id] of PARTS.slice(1)) {
     await page.goto(li(`?aq=${id}&src=qr`), { waitUntil: 'commit' });
-    await expect(o.kicker).toHaveText('パーツゲット！', { timeout: 8000 });
+    await expect(o.kicker).toHaveText(/パーツゲット！/, { timeout: 8000 });
   }
   await expect(page.locator('#partsCount')).toHaveText('6 / 6');
 
+  /* 6/6: ENGINE START now plays the cinematic finale (power -> blackout -> reveal -> copy) */
   await page.goto(li('?aq=start&src=nfc'), { waitUntil: 'commit' });
-  await expect(o.kicker).toHaveText('ENGINE START', { timeout: 8000 });
-  await expect(o.title).toHaveText('エンジン始動！');
+  await expect(page.locator('#ignitionSequence')).toHaveClass(/show/, { timeout: 8000 });
+  await expect(page.locator('#ignitionSequence')).toHaveAttribute('data-phase', 'phase-final', { timeout: 15000 });
+  await expect(page.locator('#ignitionFinal h2')).toHaveText('スタンプラリー クリア！');
   await expect(page.locator('#engineTitle')).toHaveText('COMPLETE');
-  await expect(o.title).toHaveText('アソクエ クリア！', { timeout: 3000 });
   /* re-access after clear stays clear */
   await page.goto(li('?aq=start&src=nfc'), { waitUntil: 'commit' });
   await expect(page.locator('#engineTitle')).toHaveText('COMPLETE', { timeout: 8000 });
@@ -176,12 +179,11 @@ test.describe('router / HOME regression', () => {
     expect(await page.evaluate(() => sessionStorage.getItem('liffInit'))).toBe('1');
     expect(await page.evaluate(() => window.ASOBOON_ASOQUEST_HANDOFF)).toBeUndefined();
   });
-  test('Developing HOME keeps BOON BLOCK + ASOQUEST + existing contents', async ({ page }) => {
+  test('Developing HOME keeps BOON BLOCK + Stamp Rally + existing contents', async ({ page }) => {
     await setup(page);
     await page.goto(DEV);
     const body = page.locator('body');
     await expect(body).toContainText('BOON BLOCK');
-    await expect(body).toContainText('ASOQUEST');
     for (const t of ['ブーンジャンプ', 'ブーンRUN', 'おみくじ', 'スタンプラリー']) await expect(body).toContainText(t);
   });
   test('Developing ?view=reception / callstatus / timeguide / rules still route in-app', async ({ page }) => {
@@ -253,3 +255,5 @@ test.describe('debug mode (?debug=asoquest)', () => {
     await expect(page.locator('#aqDebugPanel')).toHaveCount(0);
   });
 });
+
+[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]

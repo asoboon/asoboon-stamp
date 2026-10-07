@@ -1,3 +1,5 @@
+[Reading 355 lines from start (total: 355 lines, 0 remaining)]
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -221,7 +223,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
 test('ASOQUEST save() cannot block the UI when storage fails (try/catch around setItem)', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   assert.match(js, /try\{\s*localStorage\.setItem\(storageKey\(\)/);
-  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=19/);
+  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=\d+/);
 });
 
 test('LIFF ids are not mixed between environments', () => {
@@ -269,8 +271,8 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="rpmValue"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=15/);
-  assert.match(html, /app\.js\?v=19/);
+  assert.match(html, /style\.css\?v=16/);
+  assert.match(html, /app\.js\?v=20/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
   assert.match(js, /function clearIgnitionTimers\(/);
@@ -283,7 +285,10 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(css, /v14 approved FX pack final art direction/);
   assert.match(html, /assets\/engine-start-fx\/garage_base\.webp/);
   assert.match(html, /assets\/engine-start-fx\/afterfire_left_blue\.png/);
-  assert.match(html, /STAMP RALLY COMPLETE/);
+  assert.match(html, /<h2>スタンプラリー クリア！<\/h2>/);
+  assert.match(html, /<p>マシン完成！<\/p>/);
+  assert.doesNotMatch(html, /STAMP RALLY COMPLETE/);
+  assert.match(html, /reveal-spot-1/);
   assert.match(html, /<h1>スタンプラリー<\/h1>/);
   assert.match(css, /approvedBlueAfterfire/);
   assert.match(css, /approvedIgnitionFlash/);
@@ -298,17 +303,29 @@ test('6/6 unlock stays restrained before ENGINE START', () => {
   assert.doesNotMatch(js, /state\.acquired\.length===6\?'パーツが全部そろった！'/);
 });
 
-test('ENGINE START review candidate has five distinct visual phases and restart safety', () => {
+test('ENGINE START finale has seven distinct phases (blackout + reveal) and restart safety', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
-  for (const phase of ['phase-2','phase-1','phase-ignite','phase-run','phase-final']) {
+  const css = read('miniapp-v2/production/asoquest/style.css');
+  for (const phase of ['phase-2','phase-1','phase-ignite','phase-run','phase-blackout','phase-reveal','phase-final']) {
     assert.match(js, new RegExp(phase.replace('-', '\\-')));
+    assert.match(css, new RegExp('\\.' + phase + '\\b'));
   }
   assert.match(js, /ignitionRunning=false/);
   assert.match(js, /clearIgnitionTimers\(\)/);
+  assert.match(js, /if\(ignitionRunning\)return/);
   assert.match(js, /queueIgnition\(function\(\)\{/);
-  assert.match(js, /4480\)/);
+  // finale rhythm: flash is short, blackout 0.5-0.8s, car is shown >=1.5s before the copy
+  const m = js.match(/normal:\{p2:(\d+),p1:(\d+),ignite:(\d+),run:(\d+),flash:(\d+),blackout:(\d+),reveal:(\d+),final:(\d+)\}/);
+  assert.ok(m, 'normal timeline present');
+  const [, , , , run, flash, blackout, reveal, final] = m.map(Number);
+  assert.ok(blackout - flash >= 100 && blackout - flash <= 220, 'flash 0.1-0.2s');
+  assert.ok(reveal - blackout >= 500 && reveal - blackout <= 800, 'blackout 0.5-0.8s');
+  assert.ok(final - reveal >= 1500, 'hero admired before copy');
+  assert.ok(run < flash && flash < blackout && blackout < reveal && reveal < final);
+  assert.match(js, /mission-complete/, 'completed garage state is applied by JS (was CSS-only)');
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.doesNotMatch(css.slice(css.indexOf('v15 finale rhythm')), /\bfilter\s*:[^;]*blur\([^)]*\)[^;]*;[^}]*animation/);
 });
-
 
 test('approved ENGINE START FX pack is complete and user-visible branding is Stamp Rally', () => {
   const fs = require('node:fs');
@@ -338,3 +355,5 @@ test('engine/key/completion states remain visibly distinct', () => {
   assert.match(css, /garage_complete_glow\.webp/);
   assert.match(css, /body\.mission-complete \.car-stage \.complete-layer\.on\{[\s\S]*?opacity:\.62!important/);
 });
+
+[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]
