@@ -1,3 +1,5 @@
+[Reading 1000 lines from start (total: 1149 lines, 149 remaining)]
+
 :root{--gold:#ffd76c;--cream:#fff3d5;--line:#536471;--bg:#0e171e;font-family:Inter,"Noto Sans JP","Hiragino Kaku Gothic ProN",system-ui,sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#f7fbff}body{min-height:100dvh}.app{width:min(100%,720px);margin:auto;padding:0 12px 34px}
 .garage{position:relative;overflow:hidden;margin:0 -12px 14px;padding:max(16px,env(safe-area-inset-top)) 14px 18px;background:radial-gradient(circle at 50% 35%,rgba(255,220,142,.16),transparent 34%),linear-gradient(#1d2d39,#17242e 72%,#111b23);box-shadow:inset 0 0 0 1px rgba(255,232,177,.09)}
@@ -955,3 +957,48 @@ body.mission-complete .car-stage #keyFx.persistent-fx.on{
   #keyFx.persistent-fx.on{opacity:.68!important}
   body.mission-complete .car-stage .complete-layer.on{opacity:.66!important}
 }
+
+
+/* v15 finale rhythm
+ * FULL POWER -> FLASH(0.16s) -> BLACKOUT(0.65s) -> SILHOUETTE -> LIGHT REVEAL -> COMPLETE HERO -> COPY
+ * Everything below animates opacity only (cheap on iPhone / LINE WebView). The earlier rules pin several
+ * properties with !important, so animated properties are placed on elements that have no such pin
+ * (.car-layers opacity, FX layers, bg layers) and overrides repeat a class to out-rank them. */
+
+/* ceiling spot lights (CSS only, no new assets) */
+.reveal-spot{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  mix-blend-mode:screen;
+}
+.reveal-spot-1{background:radial-gradient(ellipse 34% 60% at 30% 0%,rgba(255,244,216,.60),rgba(255,226,170,.20) 46%,transparent 74%)}
+.reveal-spot-2{background:radial-gradient(ellipse 34% 60% at 70% 0%,rgba(255,244,216,.60),rgba(255,226,170,.20) 46%,transparent 74%)}
+
+/* the finale scene sits in its final frame already while hidden, so nothing slides during the reveal */
+.ignition-sequence.phase-blackout .engine-start-scene,
+.ignition-sequence.phase-reveal .engine-start-scene,
+.ignition-sequence.phase-final .engine-start-scene{
+  left:50%;
+  top:48%;
+  width:min(106vw,920px);
+  transition:none;
+  filter:drop-shadow(0 24px 30px rgba(0,0,0,.46));
+}
+
+/* FLASH: a short impact, never a held white screen */
+.ignition-sequence.is-flash::after{
+  background:radial-gradient(ellipse at 50% 56%,rgba(255,255,255,.80),rgba(255,240,205,.30) 46%,transparent 78%);
+  animation:finaleFlashVeil .16s ease-out both;
+}
+.ignition-sequence.is-flash .engine-start-scene .ignition-flash-asset{
+  opacity:1;
+  animation:finaleFlashAsset .16s ease-out both;
+}
+@keyframes finaleFlashVeil{0%{opacity:0}22%{opacity:.85}100%{opacity:0}}
+@keyframes finaleFlashAsset{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+
+[executed on device: ikegamiryuusukenoMacBook-Air.local (f424c449-4795-4c08-b192-30c07117f2c8)]
