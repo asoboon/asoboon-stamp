@@ -28,7 +28,7 @@ const CFG = Object.freeze({
   // AirWAIT STORE_RECEPTION_ONLY waitTypes and opens with onsite reception.
   WEB_OPEN_MIN: 9 * 60 + 25,
   ONSITE_OPEN_MIN: 9 * 60 + 25,
-  PRODUCTION_CREATE_ARMED: false,
+  PRODUCTION_CREATE_ARMED: true,
   CALLSTATUS_SESSION_TTL_MS: 12 * 60 * 60 * 1000,
   STALE_CREATE_INFLIGHT_MS: 2 * 60 * 1000,
   REQUEST_PENDING_TTL_MS: 10 * 60 * 1000,

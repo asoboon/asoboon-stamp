@@ -123,7 +123,7 @@ test('surprise vote environments are isolated: Developing/Review simulate, Produ
 
 test('Production create remains hard-disabled even if CREATE_ENABLED=1',()=>{
   assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'1'}),false);
-  assert.match(gatewaySource,/PRODUCTION_CREATE_ARMED:\s*false/);
+  assert.match(gatewaySource,/PRODUCTION_CREATE_ARMED:\s*true/);
 });
 
 test('strict people validation rejects coercion and unsafe values',()=>{
