@@ -116,4 +116,9 @@ output(`${dir}/index.html`,index);
 // The vote page also needs a fresh environment cache key at Production promotion.
 output(`${dir}/surprise-vote.html`,read(`${dir}/surprise-vote.html`).replace(/\.\/env\.js\?v=[^"'\s]+/,`./env.js?v=${envHash(`${dir}/env.js`)}`));
 const original=[...sources.styles,...sources.scripts,...routeStyles,...routeScripts].map(read);
-console.log(JSON.stringify({sourceFiles:original.length,bundleFiles:4,sourceBytes:original.reduce((n,s)=>n+Buffer.byteLength(s),0),initialBytes:Buffer.byteLength(js+css),deferredBytes:Buffer.byteLength(routeJs+routeCss),separateGzipBytes:original.reduce((n,s)=>n+gzipSync(s).length,0),initialGzipBytes:gzipSync(js).length+gzipSync(css).length,deferredGzipBytes:gzipSync(routeJs).length+gzipSync(routeCss).length,check},null,2));
+const initialBytes=Buffer.byteLength(js+css);
+const deferredBytes=Buffer.byteLength(routeJs+routeCss);
+const initialGzipBytes=gzipSync(js).length+gzipSync(css).length;
+const deferredGzipBytes=gzipSync(routeJs).length+gzipSync(routeCss).length;
+if(initialBytes>140000||initialGzipBytes>40000)throw Error(`Production HOME bundle budget exceeded: ${initialBytes} bytes / ${initialGzipBytes} gzip bytes (limits 140000 / 40000).`);
+console.log(JSON.stringify({sourceFiles:original.length,bundleFiles:4,sourceBytes:original.reduce((n,s)=>n+Buffer.byteLength(s),0),initialBytes,deferredBytes,separateGzipBytes:original.reduce((n,s)=>n+gzipSync(s).length,0),initialGzipBytes,deferredGzipBytes,check},null,2));
