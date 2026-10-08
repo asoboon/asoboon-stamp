@@ -137,7 +137,7 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
     if(u.searchParams.get('action')!=='businessDay'||!date)return route.fulfill({status:404,body:'{}'});
     requested.push(date);
     const weekday=new Date(date+'T12:00:00Z').getUTCDay();
-    const businessType=date==='2026-10-10'||weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
+    const businessType=date==='2026-10-10'?'休館':date==='2026-10-08'?'平日特定日':weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test'})});
   });
   await page.goto('http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html',{waitUntil:'domcontentloaded'});
@@ -145,6 +145,11 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   await expect(page.locator('[data-date="2026-10-02"]')).toHaveClass(/past/);
   await expect(page.locator('[data-date="2026-10-06"]')).toContainText('休館');
   await expect(page.locator('[data-date="2026-10-10"]')).toContainText('休館');
+  await expect(page.locator('[data-date="2026-10-08"]')).toContainText('平日特定日');
+  await expect(page.locator('[data-date="2026-10-08"]')).toHaveClass(/type-special/);
+  await expect(page.locator('[data-date="2026-10-09"]')).toContainText('平日');
+  await expect(page.locator('[data-date="2026-10-11"]')).toContainText('土日祝日');
+  await expect(page.locator('[data-date="2026-10-11"]')).toHaveClass(/type-weekend/);
   await expect(page.locator('#bcStatus')).toContainText('営業日API');
   expect(requested.length).toBeLessThanOrEqual(29);
   await page.locator('#bcNext').click();
