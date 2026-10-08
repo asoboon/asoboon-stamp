@@ -13,7 +13,13 @@ const hash=s=>createHash('sha256').update(s).digest('hex').slice(0,12);
 const envHash=p=>hash(read(p).trim());
 const check=process.argv.includes('--check');
 function output(path,text){
-  if(check){if(read(path)!==text)throw Error(`Stale production build: ${path}. Run node miniapp-v2/build-production.mjs`)}
+  if(check){
+    const existing=read(path);
+    if(existing!==text){
+      let first=0;while(first<existing.length&&first<text.length&&existing[first]===text[first])first++;
+      throw Error(`Stale production build: ${path}. expectedChars=${text.length} actualChars=${existing.length} firstDiff=${first} expected=${JSON.stringify(text.slice(first,first+40))} actual=${JSON.stringify(existing.slice(first,first+40))}. Run node miniapp-v2/build-production.mjs`);
+    }
+  }
   else writeFileSync(resolve(root,path),text);
 }
 function browserSource(p){
