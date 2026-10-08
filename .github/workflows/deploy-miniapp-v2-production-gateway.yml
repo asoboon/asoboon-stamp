@@ -57,7 +57,7 @@ jobs:
           grep -F 'createReservation:300' miniapp-v2/backend/production-worker.mjs
           grep -F 'AIRWAIT_CREATE_STORENO_TIMEOUT' miniapp-v2/backend/production-gateway.js
           grep -F 'AIRWAIT_OFFICIAL_RESERVATIONS_TIMEOUT' miniapp-v2/backend/production-gateway.js
-          grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
+          grep -F "PRODUCTION_CREATE_ARMED: true" miniapp-v2/backend/production-gateway.js
           grep -F "backendUrl:''" miniapp-v2/production/env.js
           grep -F "receptionCreate:false" miniapp-v2/production/env.js
           ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
@@ -172,7 +172,7 @@ jobs:
                   x.version!=="3.0.prod-complete-dark" ||
                   x.environment!=="official-production" ||
                   x.officialProductionEnabled!==true ||
-                  x.productionCreateArmed!==false ||
+                  x.productionCreateArmed!==true ||
                   x.createEnabled!==false ||
                   x.dbConfigured!==true ||
                   x.airwaitKeyConfigured!==true ||

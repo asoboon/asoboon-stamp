@@ -192,7 +192,7 @@ jobs:
           grep -F "receptionCreate:false" miniapp-v2/production/env.js
           grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
           grep -F "CHANNEL_ID: '2009884613'" miniapp-v2/backend/production-gateway.js
-          grep -F "PRODUCTION_CREATE_ARMED: false" miniapp-v2/backend/production-gateway.js
+          grep -F "PRODUCTION_CREATE_ARMED: true" miniapp-v2/backend/production-gateway.js
           ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F '2009884612' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
