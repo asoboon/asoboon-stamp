@@ -150,6 +150,9 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   await expect(page.locator('[data-date="2026-10-09"]')).toContainText('平日');
   await expect(page.locator('[data-date="2026-10-11"]')).toContainText('土日祝日');
   await expect(page.locator('[data-date="2026-10-11"]')).toHaveClass(/type-weekend/);
+  await expect(page.locator('[data-date="2026-10-08"]')).toHaveCSS('background-color','rgb(244, 249, 255)');
+  await expect(page.locator('[data-date="2026-10-09"]')).toHaveCSS('background-color','rgb(239, 249, 245)');
+  await expect(page.locator('[data-date="2026-10-11"]')).toHaveCSS('background-color','rgb(255, 248, 233)');
   await expect(page.locator('#bcStatus')).toContainText('営業日API');
   expect(requested.length).toBeLessThanOrEqual(29);
   await page.locator('#bcNext').click();
