@@ -268,8 +268,49 @@ async function getByDate(value,options={}){
     }
   }
 }
+async function getMonth(monthValue,{fromDate='',force=false}={}){
+  const month=String(monthValue||'').trim();
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('BUSINESS_MONTH_INVALID');
+  const [year,monthNumber]=month.split('-').map(Number);
+  const lastDay=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
+  const first=`${month}-01`;
+  const start=fromDate?normalizeDate(fromDate):first;
+  if(!start||start.slice(0,7)!==month)throw Error('BUSINESS_MONTH_INVALID');
+  const dates=Array.from({length:lastDay-Number(start.slice(8,10))+1},(_,i)=>`${month}-${String(Number(start.slice(8,10))+i).padStart(2,'0')}`);
+  const byDate=new Map(),failed=new Set();
+  const endpoint=String(window.ASOBOON_V2_ENV?.backendUrl||'').trim();
+  try{
+    if(!/^https:\/\//.test(endpoint))throw Error('BUSINESS_MONTH_GATEWAY_UNAVAILABLE');
+    const u=new URL(endpoint);u.searchParams.set('action','businessDays');u.searchParams.set('month',month);u.searchParams.set('from',start);
+    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);
+    let response,payload;
+    try{response=await fetch(u,{cache:'no-store',credentials:'omit',signal:ctrl.signal,headers:{Accept:'application/json'}});payload=await response.json()}
+    finally{clearTimeout(timer)}
+    if(!response.ok||payload?.ok!==true||!Array.isArray(payload.days))throw Error('BUSINESS_MONTH_GATEWAY_ERROR');
+    for(const item of payload.days){
+      const date=normalizeDate(item?.operationalDate||item?.calendarDate||'');
+      if(!date||date.slice(0,7)!==month||!dates.includes(date))continue;
+      try{byDate.set(date,normalizePayload(item,date,String(item?.source||payload.source||'production-batch')))}catch{failed.add(date)}
+    }
+    for(const date of payload.failedDates||[])if(dates.includes(date))failed.add(date);
+    for(const date of dates)if(!byDate.has(date))failed.add(date);
+  }catch(_){
+    dates.forEach(date=>failed.add(date));
+  }
+  let cursor=0;
+  const retry=[...failed];
+  const workers=Array.from({length:Math.min(4,retry.length)},async()=>{
+    while(cursor<retry.length){
+      const date=retry[cursor++];
+      try{const value=await getByDate(date,{force});if(value?.ok&&value.operationalDate===date){byDate.set(date,value);failed.delete(date)}}catch{}
+    }
+  });
+  await Promise.all(workers);
+  return{ok:true,month,days:[...byDate.values()].sort((a,b)=>a.operationalDate.localeCompare(b.operationalDate)),failedDates:[...failed].sort(),complete:failed.size===0};
+}
+
 async function getCurrent(options={}){return getByDate(operationalDate(),options)}
-window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+production-cutoff19-v26',cutoffHour:CUTOFF_HOUR,operationalDate,getCurrent,getByDate});
+window.ASOBOON_V2_BUSINESS_DAY=Object.freeze({...base,version:String(base.version||'')+'+production-cutoff19-v26',cutoffHour:CUTOFF_HOUR,operationalDate,getCurrent,getByDate,getMonth});
 })();
 
 ;/* miniapp-v2/shared/app-rules.js */
