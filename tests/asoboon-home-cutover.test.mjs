@@ -25,13 +25,13 @@ test('certified rollback snapshot preserves ASOQUEST bridge and legacy customer 
   assert.match(s,/airwait\.jp\/WCSP\/storeDetail\?storeNo=AKR2298124918/);
 });
 
-test('Production candidate remains hard locked until explicit final activation',()=>{
+test('Production candidate remains dark while Worker is armed behind runtime gate',()=>{
   const env=read('miniapp-v2/production/env.js');
   const gateway=read('miniapp-v2/backend/production-gateway.js');
   assert.match(env,/environment:'production'/);
   assert.match(env,/backendUrl:''/);
   assert.match(env,/receptionCreate:false/);
-  assert.match(gateway,/PRODUCTION_CREATE_ARMED:\s*false/);
+  assert.match(gateway,/PRODUCTION_CREATE_ARMED:\s*true/);
 });
 
 test('Production surprise vote uses the live dedicated backend but never enables demo mode',()=>{
