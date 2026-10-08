@@ -13,6 +13,7 @@ async function installProduction(page,{status=null}={}){
   await page.route('**/miniapp-v2/production/env.js*',async route=>{
     let env=fs.readFileSync('miniapp-v2/production/env.js','utf8');
     env=env
+      .replace("assetBase:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'",`assetBase:'${BASE}'`)
       .replace("endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'",`endpoint:'${BASE}'`)
       .replace("backendUrl:''",`backendUrl:'${GATEWAY}'`)
       .replace('receptionCreate:false','receptionCreate:true')

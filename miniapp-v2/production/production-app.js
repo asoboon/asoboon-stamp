@@ -1,4 +1,4 @@
-/* Route-only modules load after the user opens a non-HOME screen. */
+/* Load page-only code after the user leaves HOME. */
 (()=>{'use strict';
 let pending=null;
 window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
@@ -8,8 +8,9 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   let cssDone=false,jsDone=false,failed=false;
   const finish=()=>{if(!failed&&cssDone&&jsDone)resolve()};
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
-  const link=document.createElement('link');link.rel='stylesheet';link.href='./production-routes.css?v=a2b270a2c442';link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src='./production-routes.js?v=8d81fd72ee3f';script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
+  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=a2b270a2c442',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=8d81fd72ee3f',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
