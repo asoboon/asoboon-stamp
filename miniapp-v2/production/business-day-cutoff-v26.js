@@ -29,7 +29,7 @@ function normalizePayload(payload,date,source){
   if(!rule)throw Error(`BUSINESS_DAY_TYPE_INVALID:${type||'(empty)'}`);
   const returned=normalizeDate(payload.operationalDate||payload.calendarDate||date);
   if(returned!==date)throw Error('BUSINESS_DAY_DATE_MISMATCH');
-  return Object.freeze({ok:true,version:String(base.version||'')+'+production-cutoff19-v26',source,operationalDate:date,businessType:String(rule.businessType||type),isClosed:Boolean(rule.isClosed),durationMinutes:rule.durationMinutes,durationLabel:String(rule.durationLabel||''),closingTime:rule.closingTime??null,note:String(payload.note||''),weekday:String(payload.weekday||'')});
+  return Object.freeze({ok:true,version:String(base.version||'')+'+production-cutoff19-v26',source,operationalDate:date,businessType:String(rule.businessType||type),isClosed:Boolean(rule.isClosed),durationMinutes:rule.durationMinutes,durationLabel:String(rule.durationLabel||''),closingTime:rule.closingTime??null,note:String(payload.note||''),weekday:String(payload.weekday||''),stale:Boolean(payload.stale||/stale|fallback/i.test(source)),fetchedAt:Number(payload.cachedAt||payload.fetchedAt||0)});
 }
 function readCache(date,maxAge){
   try{
