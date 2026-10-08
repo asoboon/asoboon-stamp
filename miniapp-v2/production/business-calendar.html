@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#f4f0e7">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>営業日カレンダー｜ASOBooN</title>
-<link rel="stylesheet" href="./business-calendar.css?v=1">
+<link rel="stylesheet" href="./business-calendar.css?v=2">
 <script defer src="./env-facility.js"></script>
 <script defer src="../shared/business-day.js"></script>
 <script defer src="./business-day-resilience-v23.js"></script>
 <script defer src="./business-day-cutoff-v26.js"></script>
-<script defer src="./business-calendar.js?v=1"></script>
+<script defer src="./business-calendar.js?v=2"></script>
 </head>
 <body>
 <main class="bc-page">
@@ -21,7 +21,7 @@
     <div class="bc-monthbar"><button id="bcPrev" class="bc-month-arrow" type="button" aria-label="前の月">‹</button><h2 id="bcMonth" aria-live="polite">読み込み中</h2><button id="bcNext" class="bc-month-arrow" type="button" aria-label="次の月">›</button></div>
     <div class="bc-weekdays" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="weekend">土</span><span class="weekend">日</span></div>
     <div id="bcGrid" class="bc-grid" aria-label="日付"></div>
-    <div class="bc-legend"><span><i class="open"></i>営業日</span><span><i class="closed"></i>休館日</span><span><i class="today"></i>今日</span></div>
+    <div class="bc-legend" aria-label="営業区分の色分け"><span><i class="type-weekday"></i>平日</span><span><i class="type-special"></i>平日特定日</span><span><i class="type-weekend"></i>土日祝日</span><span><i class="closed"></i>休館</span><span><i class="today"></i>今日</span></div>
   </section>
   <p id="bcStatus" class="bc-status" role="status" aria-live="polite">営業予定を確認しています…</p>
   <section id="bcDetail" class="bc-detail" aria-live="polite"><h2>日付を選択してください</h2></section>
