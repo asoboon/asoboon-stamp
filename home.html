@@ -9,7 +9,7 @@
   <script>
   (()=>{
     'use strict';
-    const PRODUCTION_HOME_LIVE=false;
+    const PRODUCTION_HOME_LIVE=true;
     function paramsFromLiffState(){
       const raw=new URLSearchParams(location.search).get('liff.state');
       if(!raw)return new URLSearchParams();
@@ -40,7 +40,7 @@
   <script>
   if(window.ASOBOON_PRODUCTION_SHELL){
     const s=document.createElement('script');
-    s.src='./miniapp-v2/production/production-shell-loader.js?v=20261007-02';
+    s.src='./miniapp-v2/production/production-shell-loader.js?v=20261008-live-01';
     s.async=false;
     document.head.appendChild(s);
   }

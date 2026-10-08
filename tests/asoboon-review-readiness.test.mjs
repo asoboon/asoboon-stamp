@@ -4,11 +4,11 @@ import fs from 'node:fs';
 
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('official customer HOME stays legacy by default after certification while Production preview remains opt-in',()=>{
+test('official customer HOME activates Production without changing the certified endpoint',()=>{
   const s=read('home.html');
   assert.match(s,/ASOBooN 冒険基地ナビ/);
   assert.match(s,/\.\/home-core\.html/);
-  assert.match(s,/const PRODUCTION_HOME_LIVE=false/);
+  assert.match(s,/const PRODUCTION_HOME_LIVE=true/);
   assert.match(s,/production_preview/);
   assert.match(s,/production-shell-loader\.js/);
   assert.match(s,/if\(window\.ASOBOON_PRODUCTION_SHELL\)return/);

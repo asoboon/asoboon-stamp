@@ -36,6 +36,11 @@ async function installProduction(page,{status=null}={}){
     ]});
     if(action==='surpriseVotePublicStatus')return json({ok:true,mode:'idle',now:'2026-10-03T12:00:00+09:00'});
     if(action==='recoverReservationSession')return json({ok:true,found:false});
+    if(action==='waitTypes')return json({ok:true,waitTypes:[
+      {waitTypeId:'0029',waitTypeName:'10:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0031',waitTypeName:'12:30の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0033',waitTypeName:'15:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+    ]});
     if(action==='reservationStatus'&&status)return json(status);
     return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'TEST_NOT_IMPLEMENTED',action})});
   });
@@ -98,6 +103,19 @@ test('Production storage namespace stays isolated from Developing and Review',as
   expect(source).toContain('asoboon_v2_current_reservation_production_v1');
   expect(source).toContain("storageNamespace:'production'");
   expect(source).not.toMatch(/_develop_v1|_review_v1|2009884611|2009884612/);
+});
+
+test('Production HOME reception stays in the MINI App and never redirects to AirWAIT',async({page})=>{
+  const airwaitRequests=[];
+  page.on('request',request=>{if(new URL(request.url()).hostname==='airwait.jp')airwaitRequests.push(request.url())});
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="reception"]').first().click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSubmit')).toBeVisible();
+  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(airwaitRequests).toEqual([]);
 });
 
 test('official home.html preview boots Production on the exact LIFF endpoint path',async({page})=>{

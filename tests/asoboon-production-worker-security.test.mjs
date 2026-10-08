@@ -247,6 +247,20 @@ test('hard-OFF create performs zero LINE notifier and zero AirWAIT write calls',
 
 // ---------------------------------------------------------------- diagnostics / rate limit
 
+test('runtime OFF stops armed Production before notification tokens or AirWAIT creates', async () => {
+  const before=world.calls.length;
+  const r=await call(worker,baseEnv(db,{CREATE_ENABLED:'0'}),{body:{
+    action:'createReservation',requestId:'req-runtime-off-0001',mode:'web',
+    adults:1,paidChildren:0,infants:0,waitTypeId:'0029',operationalDate:DAY,
+    liffAccessToken:world.issueLiffToken('Uruntimeoff'),
+  }});
+  assert.equal(r.status,503);
+  assert.equal(r.data?.error,'CREATE_DISABLED');
+  assert.equal(world.calls.length,before);
+  assert.equal(world.reservations.length,0);
+  assert.deepEqual(db.rows("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'v2_service_%'"),[]);
+});
+
 test('diagnostic endpoints are not available with Origin alone', async () => {
   for (const action of ['createDiagnostics', 'serviceMessageStatus']) {
     const r = await call(worker, env, { method: 'GET', query: { action, businessDate: DAY, receiptNo: '12' } });
