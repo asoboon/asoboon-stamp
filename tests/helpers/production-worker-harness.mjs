@@ -166,9 +166,9 @@ export class FakeWorld {
 export function prepareRuntime({ armed = true } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'asoboon-production-test-'));
   let gateway = readFileSync(resolve('miniapp-v2/backend/production-gateway.js'), 'utf8');
-  const gate = "PRODUCTION_CREATE_ARMED: false";
-  if (!gateway.includes(gate)) throw new Error('Production hard gate marker not found');
-  if (armed) gateway = gateway.replace(gate, "PRODUCTION_CREATE_ARMED: true");
+  const gate = /PRODUCTION_CREATE_ARMED: (?:true|false)/;
+  if (!gate.test(gateway)) throw new Error('Production hard gate marker not found');
+  gateway = gateway.replace(gate, `PRODUCTION_CREATE_ARMED: ${armed}`);
   writeFileSync(join(dir, 'production-gateway.mjs'), gateway);
   writeFileSync(join(dir, 'production-service-message.mjs'), readFileSync(resolve('miniapp-v2/backend/production-service-message.js'), 'utf8'));
   let worker = readFileSync(resolve('miniapp-v2/backend/production-worker.mjs'), 'utf8');
