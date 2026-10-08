@@ -121,8 +121,11 @@ test('surprise vote environments are isolated: Developing/Review simulate, Produ
   assert.match(reviewCfg,/API_URL:\s*""/);
 });
 
-test('Production create remains hard-disabled even if CREATE_ENABLED=1',()=>{
-  assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'1'}),false);
+test('Production activation requires the explicit runtime create gate and defaults to OFF',()=>{
+  assert.equal(T.productionCreateEnabled({}),false);
+  assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'0'}),false);
+  assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'true'}),false);
+  assert.equal(T.productionCreateEnabled({CREATE_ENABLED:'1'}),true);
   assert.match(gatewaySource,/PRODUCTION_CREATE_ARMED:\s*true/);
 });
 
