@@ -89,7 +89,7 @@ test('Production play content has six working escape-guard exceptions and no ret
     const card=cards.filter({hasText:label}).first();
     await expect(card).toHaveAttribute('data-external','1');
   }
-  await expect(cards.filter({hasText:'ASOQUEST'}).first()).toHaveAttribute('href','https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/');
+  await expect(cards.filter({hasText:'ASOQUEST'}).first()).toHaveAttribute('href',new URL('asoquest/',BASE).href);
   await expect(cards.filter({hasText:'BOON BLOCK'}).first()).toHaveAttribute('href','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
   expect(await page.content()).not.toMatch(/2009888671|57TOefc3/);
 });
