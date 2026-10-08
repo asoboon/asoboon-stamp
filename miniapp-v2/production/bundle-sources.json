@@ -1,13 +1,15 @@
 {
   "styles": [
     "miniapp-v2/shared/app.css",
-    "miniapp-v2/shared/reception.css",
-    "miniapp-v2/shared/callstatus.css",
-    "miniapp-v2/shared/timeguide.css",
     "miniapp-v2/production/home-v7.css",
     "miniapp-v2/production/home-v7-polish.css",
     "miniapp-v2/production/home-v38.css",
-    "miniapp-v2/production/surprise-vote-home-v1.css",
+    "miniapp-v2/production/surprise-vote-home-v1.css"
+  ],
+  "routeStyles": [
+    "miniapp-v2/shared/reception.css",
+    "miniapp-v2/shared/callstatus.css",
+    "miniapp-v2/shared/timeguide.css",
     "miniapp-v2/production/reception-v7.css",
     "miniapp-v2/production/reception-people-v26.css",
     "miniapp-v2/production/pages-v7.css",
@@ -27,9 +29,6 @@
     "miniapp-v2/production/business-day-resilience-v23.js",
     "miniapp-v2/production/business-day-cutoff-v26.js",
     "miniapp-v2/shared/app-rules.js",
-    "miniapp-v2/shared/reception.js",
-    "miniapp-v2/shared/callstatus.js",
-    "miniapp-v2/shared/timeguide.js",
     "miniapp-v2/production/app-stable-v36.js",
     "miniapp-v2/production/reservation-history-v22.js",
     "miniapp-v2/production/home-prime-v13.js",
@@ -37,7 +36,12 @@
     "miniapp-v2/production/surprise-vote-home-v1.js",
     "miniapp-v2/production/home-handoff-v14.js",
     "miniapp-v2/production/home-status-v13.js",
-    "miniapp-v2/production/home-reservation-handoff-v26.js",
+    "miniapp-v2/production/home-reservation-handoff-v26.js"
+  ],
+  "routeScripts": [
+    "miniapp-v2/shared/reception.js",
+    "miniapp-v2/shared/callstatus.js",
+    "miniapp-v2/shared/timeguide.js",
     "miniapp-v2/production/reception-v7.js",
     "miniapp-v2/production/reception-people-v26.js",
     "miniapp-v2/production/reception-anywhere-v22.js",

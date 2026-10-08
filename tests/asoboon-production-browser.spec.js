@@ -47,9 +47,13 @@ async function installProduction(page,{status=null}={}){
 }
 
 test('Production new HOME renders all core routes and legal information',async({page})=>{
+  const deferredRequests=[];
+  page.on('request',request=>{if(request.url().includes('/production-routes.'))deferredRequests.push(request.url())});
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('.v38-home')).toBeVisible();
+  expect(await page.evaluate(()=>window.ASOBOON_V2_ROUTE_ASSETS_READY||false)).toBe(false);
+  expect(deferredRequests).toEqual([]);
   await expect(page.locator('#v38Hero')).toContainText('当日受付');
   await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
   await expect(page.locator('.v38-legal')).toContainText('株式会社コマーム');
@@ -68,6 +72,8 @@ test('Production new HOME renders all core routes and legal information',async({
   for(const [selector,view] of routes){
     await page.locator(selector).first().click();
     await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe(view);
+    await expect.poll(()=>page.evaluate(()=>window.ASOBOON_V2_ROUTE_ASSETS_READY||false)).toBe(true);
+    expect(deferredRequests).toHaveLength(2);
     await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
     await expect(page.locator('.v38-home')).toBeVisible();
   }

@@ -6,7 +6,7 @@ This directory is a non-production staging lane. Existing /asoquest/ remains unt
 Replace the code-drawn car with aligned transparent WebP layers made from the approved original car artwork.
 
 ## Required assets (all 800x600 transparent WebP)
-Place under ./assets/
+Reuse the byte-identical canonical pack under ../asoquest/assets/.
 - car_base.webp
 - wheel_front.webp
 - wheel_rear.webp
