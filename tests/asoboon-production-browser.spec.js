@@ -56,7 +56,7 @@ test('Production new HOME renders all core routes and legal information',async({
   await expect(page.locator('.v38-legal')).toContainText('ASOBooN事務局 048-420-9780');
   await expect(page.locator('.v38-legal a[href^="tel:"]')).toHaveAttribute('href','tel:0484209780');
   await expect(page.locator('.v38-legal a[href^="https://comaam.jp"]')).toHaveAttribute('href','https://comaam.jp/privacy-policy/');
-  await expect(page.locator('.v38-calendar-card')).toHaveAttribute('data-external','1');
+  await expect(page.locator('.v38-calendar-card').first()).toHaveAttribute('data-external','1');
 
   const routes=[
     ['[data-v7-view="first"]:not([data-v7-panel])','first'],
