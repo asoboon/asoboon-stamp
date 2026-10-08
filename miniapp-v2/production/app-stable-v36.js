@@ -85,7 +85,17 @@ function bindAppEvents(){
   },true);
 }
 function bind(){bindAppEvents();bindModule()}
+let routeAssetsLoadPromise=null;
 function render(){
+  if(state.view!=='home'&&!window.ASOBOON_V2_ROUTE_ASSETS_READY){
+    if(!routeAssetsLoadPromise){
+      root.innerHTML='<section role="status" class="page-card"><div class="page-body"><p>画面を準備しています…</p></div></section>';
+      routeAssetsLoadPromise=(window.ASOBOON_V2_ENSURE_ROUTE_ASSETS?window.ASOBOON_V2_ENSURE_ROUTE_ASSETS():Promise.reject(Error('ROUTE_ASSET_LOADER_MISSING')))
+        .then(()=>{window.ASOBOON_V2_ROUTE_ASSETS_READY=true;routeAssetsLoadPromise=null;render()})
+        .catch(e=>{console.error('PRODUCTION_ROUTE_ASSETS_LOAD_FAILED',e);routeAssetsLoadPromise=null;root.innerHTML='<section class="page-card"><div class="page-body"><h2>画面を読み込めませんでした</h2><p>通信状態を確認して、もう一度お試しください。</p><a href="">再読み込み</a></div></section>'});
+    }
+    return;
+  }
   cleanupModules();
   const fallback=operationalFallback(state.view);
   if(fallback&&state.view!=='home'){

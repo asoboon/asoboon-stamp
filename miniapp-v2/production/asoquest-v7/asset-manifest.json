@@ -2,6 +2,7 @@
   "version": 1,
   "canvas": {"width": 800, "height": 600},
   "format": "webp",
+  "assetBase": "../asoquest/assets/",
   "layers": [
     {"file":"car_base.webp","role":"base","always":true},
     {"file":"wheel_rear.webp","part":"wheel","z":20},
