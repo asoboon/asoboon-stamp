@@ -62,6 +62,7 @@ export class FakeWorld {
     this.pushes = [];                // LINE OA pushes
     this.calls = [];                 // every outbound URL
     this.businessType = '土日祝日';
+    this.businessDayFailures = new Set();
   }
   issueLiffToken(userId) {
     this.tokenCounter += 1;
@@ -110,6 +111,7 @@ export class FakeWorld {
         return json({ ok:true, mode:'idle', event:null, day_events:[], daily_reset:'18:00' });
       }
       const date = url.searchParams.get('date');
+      if (this.businessDayFailures.has(date)) return json({ ok:false, error:'TEST_CALENDAR_UNAVAILABLE' },503);
       return json({ ok: true, businessType: this.businessType, operationalDate: date, calendarDate:date, weekday:'土', note:'' });
     }
     if (url.pathname.endsWith('/wait/type/get')) {

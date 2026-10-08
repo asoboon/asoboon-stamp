@@ -70,6 +70,30 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(day.status,200,JSON.stringify(day.data));
   assert.equal(day.data?.businessType,'土日祝日');
 
+  const month=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'}});
+  assert.equal(month.status,200,JSON.stringify(month.data));
+  assert.equal(month.data?.ok,true);
+  assert.equal(month.data?.complete,true);
+  assert.deepEqual(month.data?.failedDates,[]);
+  assert.equal(month.data?.days?.length,29);
+  assert.equal(month.data?.days?.[0]?.operationalDate,'2026-10-03');
+  assert.equal(month.data?.days?.at(-1)?.operationalDate,'2026-10-31');
+
+  world.businessDayFailures.add('2026-11-05');
+  const partial=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-11',from:'2026-11-01'}});
+  assert.equal(partial.status,200,JSON.stringify(partial.data));
+  assert.equal(partial.data?.complete,false);
+  assert.deepEqual(partial.data?.failedDates,['2026-11-05']);
+  assert.equal(partial.data?.days?.length,29);
+
+  const invalid=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-11-01'}});
+  assert.equal(invalid.status,400);
+  const outside=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-09'}});
+  assert.equal(outside.status,400);
+  assert.equal(outside.data?.error,'BUSINESS_MONTH_OUT_OF_RANGE');
+
+
+
   const crowd=await call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
   assert.equal(crowd.status,200,JSON.stringify(crowd.data));
   assert.equal(crowd.data?.ok,true);
@@ -88,6 +112,19 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   const vote=await call(worker,env,{method:'GET',query:{action:'surpriseVotePublicStatus'}});
   assert.equal(vote.status,200,JSON.stringify(vote.data));
   assert.equal(vote.data?.ok,true);
+});
+
+test('business-day batches are IP-limited and restricted to the current and next month',async()=>{
+  const headers={'CF-Connecting-IP':'198.51.100.23'};
+  for(let i=0;i<12;i++){
+    const r=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'},headers});
+    assert.equal(r.status,200,`request ${i+1}: ${JSON.stringify(r.data)}`);
+  }
+  const limited=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'},headers});
+  assert.equal(limited.status,429,JSON.stringify(limited.data));
+  const outside=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-09'},headers:{'CF-Connecting-IP':'198.51.100.24'}});
+  assert.equal(outside.status,400,JSON.stringify(outside.data));
+  assert.equal(outside.data?.error,'BUSINESS_MONTH_OUT_OF_RANGE');
 });
 
 test('legacy compatibility reads are sanitized server-side and never expose AirWAIT credentials',async()=>{
