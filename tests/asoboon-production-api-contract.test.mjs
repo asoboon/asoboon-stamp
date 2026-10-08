@@ -42,6 +42,24 @@ test('Production health exposes certified identity and service-message fail-clos
   assert.equal(r.data?.nativeCancelEnabled,true);
 });
 
+test('disabled official-web adoption is not advertised and cannot link a reservation or notify LINE',async()=>{
+  const health=await call(worker,env,{method:'GET',query:{action:'health'}});
+  assert.equal(health.data?.officialWebHandoffEnabled,false);
+  assert.ok(!health.data?.apiActions?.includes('adoptOfficialWebReception'));
+
+  const outboundBefore=world.calls.length;
+  const r=await call(worker,env,{body:{
+    action:'adoptOfficialWebReception',requestId:'req-disabled-adoption-0001',
+    handoffRequestId:'req-disabled-handoff-0001',operationalDate:DAY,
+    waitTypeId:'0029',receiptNo:'12',liffAccessToken:world.issueLiffToken('Uadopt'),
+  }});
+  assert.equal(r.status,400,JSON.stringify(r.data));
+  assert.equal(r.data?.error,'UNKNOWN_ACTION');
+  assert.equal(world.calls.length,outboundBefore,'unsupported adoption must not call LINE or AirWAIT');
+  assert.equal(db.rows('SELECT * FROM v2_user_day_claims').length,0);
+  assert.equal(db.rows('SELECT * FROM v2_service_messages').length,0);
+});
+
 test('all read APIs required by the new HOME resolve through Production Worker',async()=>{
   const waitTypes=await call(worker,env,{method:'GET',query:{action:'waitTypes'}});
   assert.equal(waitTypes.status,200,JSON.stringify(waitTypes.data));

@@ -212,7 +212,7 @@ export default {
         ...(Array.isArray(body.apiActions) ? body.apiActions : []),
         'crowdRemaining','boardStatus','surpriseVotePublicStatus','businessDay',
         'legacyReservations','legacyLastUpdate','legacyWaitInfo',
-        'serviceMessageStatus','cancelReservation','adoptOfficialWebReception',
+        'serviceMessageStatus','cancelReservation',
       ]));
       body.crowdSnapshotFallbackEnabled = true;
       body.lineReceptionStoreOnly = true;
@@ -244,7 +244,6 @@ export default {
     }
 
     let createPayload = null;
-    let adoptPayload = null;
     let reservationStatusPayload = null;
     let recoverReservationPayload = null;
     let cancelReservationPayload = null;
@@ -254,14 +253,12 @@ export default {
         const postPayload = await readBody(request.clone());
         postAction = String(postPayload?.action || '');
         if (postAction === 'createReservation') createPayload = postPayload;
-        if (postAction === 'adoptOfficialWebReception') adoptPayload = postPayload;
         if (postAction === 'reservationStatus') reservationStatusPayload = postPayload;
         if (postAction === 'recoverReservationSession') recoverReservationPayload = postPayload;
         if (postAction === 'cancelReservation') cancelReservationPayload = postPayload;
       } catch {
         postAction = '';
         createPayload = null;
-        adoptPayload = null;
         reservationStatusPayload = null;
         recoverReservationPayload = null;
         cancelReservationPayload = null;
@@ -336,23 +333,6 @@ export default {
       catch(e){ console.warn('CALLSTATUS_TERMINAL_PERSIST_FAILED',safeError(e)); }
       queueObservedCallNotification(env, statusResponse, ctx);
       return statusResponse;
-    }
-
-    if (adoptPayload) {
-      let body;
-      try { body = await base.clone().json(); }
-      catch { return base; }
-      if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
-      const handoffRequestId=String(adoptPayload?.handoffRequestId||'');
-      if(!handoffRequestId)return json(request,{ok:false,stored:false,error:'OFFICIAL_WEB_HANDOFF_REQUEST_ID_REQUIRED'},400);
-      try {
-        body.serviceMessage = await finalizeReservationNotification(env, { ...adoptPayload, requestId:handoffRequestId }, body);
-        body.notificationReady = body.serviceMessage?.ready === true;
-      } catch (e) {
-        body.serviceMessage = { ok:false, ready:false, status:'FINALIZE_PENDING', error:safeError(e) };
-        body.notificationReady = false;
-      }
-      return new Response(JSON.stringify(body), { status:base.status, headers:base.headers });
     }
 
     if (!createPayload) return base;
