@@ -1,15 +1,27 @@
-# ASOBooN MINI App v2 Production dark launch
+# ASOBooN official Production activation
 
-This directory is a **non-public promotion candidate** for the official LINE MINI App.
+Certified LINE identity: `2009884613-ELc6kolf`. The existing endpoint remains `https://asoboon.github.io/asoboon-stamp/home.html`.
 
-Safety gates currently in force:
+This release connects both Production entries to the dedicated Production Worker, keeps reception inside the MINI App, and opens STORE_RECEPTION_ONLY reception at 09:25 JST. No Developing/Review Worker, database, LIFF identity or storage is reused.
 
-- Official Production LIFF identity: `2009884613-ELc6kolf`.
-- Storage namespace is `production`; Developing browser state is not reused.
-- LINE reception uses AirWAIT **STORE_RECEPTION_ONLY** slot IDs and opens at **09:25 JST**.
-- `receptionCreate:false` in browser config.
-- `backendUrl:''`; no Production Worker is connected from the browser.
-- `production-gateway.js` has `PRODUCTION_CREATE_ARMED:false`, so creation remains blocked even if deployed with `CREATE_ENABLED=1`.
-- Existing `home.html` / official LIFF endpoint is not changed by this commit.
+## Release order
 
-Promotion requires a dedicated Production Worker, dedicated D1, AirWAIT secret, official Production LINE service-message secret/config, end-to-end create/call/cancel tests, then an explicit final route cutover.
+1. Configure dedicated Production secrets outside source/browser code: `AIRWAIT_API_KEY` (a newly issued value; do not reuse the historically exposed key), `LINE_MINIAPP_CHANNEL_SECRET`, `LINE_OA_CHANNEL_SECRET`, `LINE_OA_CHANNEL_ACCESS_TOKEN`, `PRODUCTION_DIAGNOSTICS_TOKEN`.
+2. Confirm the approved Production Service Message templates match the deploy configuration.
+3. Verify the current Production Worker health reports D1, AirWAIT, notification three-pillar and official LINE cancel readiness.
+4. Deploy the release with `deploy-miniapp-v2-production-gateway`, `mode=live`. The live preflight refuses activation when required dependencies are missing. `mode=dark` keeps runtime `CREATE_ENABLED=0`.
+5. Verify health `createEnabled=true`, then confirm the unchanged certified LINE entry opens the new HOME and reception does not redirect to AirWAIT.
+6. Use one staff-controlled real LINE reception to check confirmation, call notification, cancellation and same-day re-reception.
+
+The source arm is enabled for this explicitly authorized release; runtime `CREATE_ENABLED` still defaults to OFF. Mandatory LINE notification preparation remains before any AirWAIT create. Failed/ambiguous results never trigger an automatic duplicate create.
+
+## Lightweight build
+
+Run `node miniapp-v2/build-production.mjs` after editing any file listed in `bundle-sources.json`. Commit the generated JS, CSS, index and loader together. CI runs the same command with `--check` to reject stale bundles.
+
+The build preserves script order and the CSS cascade, consolidating 46 source files into two application bundles. The LINE SDK and environment configuration remain separate. Generated content hashes update cache keys on both the certified HOME and the vote page. At this revision, gzip size is approximately 80 KB instead of 107 KB for separately compressed source files; actual transfer depends on the host's compression. Vote-page resources load when used, rather than on every HOME visit.
+
+## Rollback
+
+Set Worker runtime `CREATE_ENABLED=0` to stop reception before any LINE/AirWAIT create. Restore `PRODUCTION_HOME_LIVE=false` in `home.html`, or use the retained `home-legacy-certified-20261007.html` snapshot to restore the prior HOME. Keep the certified LINE endpoint unchanged. Re-run `mode=dark` only when all existing readiness checks pass.
+

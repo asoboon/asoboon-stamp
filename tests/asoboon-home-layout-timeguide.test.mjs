@@ -43,6 +43,9 @@ test('cache keys load the new HOME/timeguide code',()=>{
   const prod=read('miniapp-v2/production/index.html');
   assert.match(dev,/shared\/timeguide\.js\?v=20261004-02/);
   assert.match(dev,/home-v38\.js\?v=20261006-01/);
-  assert.match(prod,/shared\/timeguide\.js\?v=20261004-02/);
-  assert.match(prod,/home-v38\.js\?v=20261007-02/);
+  assert.match(prod,/production-app\.js\?v=[a-f0-9]{12}/);
+  const bundle=read('miniapp-v2/production/production-app.js');
+  assert.match(bundle,/miniapp-v2\/shared\/timeguide\.js/);
+  assert.match(bundle,/miniapp-v2\/production\/home-v38\.js/);
 });
+

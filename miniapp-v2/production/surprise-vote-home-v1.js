@@ -60,19 +60,14 @@ function warmVoteStatusOnce(){
   return statusWarmPromise;
 }
 function warmVoteStaticOnce(){
-  if(!staticWarmPromise)staticWarmPromise=warmVoteStatic().finally(()=>{staticWarmPromise=null});
+  if(!staticWarmPromise)staticWarmPromise=warmVoteStatic();
   return staticWarmPromise;
 }
 async function warmVoteStatic(){
-  const base=new URL(String(ENV.assetBase||'./'),location.href);
-  const urls=[
-    'surprise-vote.html?v=20261007-02',
-    'surprise-vote.css?v=20261002-13',
-    'env.js?v=20261007-01',
-    'surprise-vote-config.js?v=20261002-13',
-    'surprise-vote.js?v=20261002-13',
-  ].map(path=>new URL(path,base).href);
-  await Promise.allSettled(urls.map(url=>fetch(url,{method:'GET',cache:'force-cache',credentials:'same-origin'})));
+  if(navigator.connection?.saveData)return;
+  // Warm only the document, and only after the user touches or points at the vote.
+  // Its CSS, JS and LINE config are loaded when the vote actually opens.
+  await Promise.allSettled([fetch(VOTE_PAGE_URL,{method:'GET',cache:'force-cache',credentials:'same-origin'})]);
 }
 async function warmVoteStatus(){
   const backend=String(ENV.backendUrl||'').trim();
@@ -91,7 +86,7 @@ async function warmVoteStatus(){
   }catch(_){return null}finally{clearTimeout(timer)}
 }
 async function refresh(){
-  if(loading||document.hidden)return;
+  if(loading||document.hidden||!node())return;
   const cached=cachedStatus();if(cached)render(cached);
   loading=true;
   try{
@@ -103,8 +98,6 @@ async function warmVote(){
   if(warmStarted)return;
   warmStarted=true;
   void refresh();
-  if('requestIdleCallback' in window)requestIdleCallback(()=>void warmVoteStaticOnce(),{timeout:500});
-  else setTimeout(()=>void warmVoteStaticOnce(),300);
 }
 function scheduleWarm(){void warmVote()}
 function startRefreshTimer(){clearInterval(refreshTimer);refreshTimer=setInterval(()=>void refresh(),30000)}
@@ -113,3 +106,4 @@ window.addEventListener('asoboon:v8-home-status',()=>setTimeout(()=>void refresh
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh()});
 setTimeout(()=>{void refresh();scheduleWarm();startRefreshTimer()},0);
 })();
+

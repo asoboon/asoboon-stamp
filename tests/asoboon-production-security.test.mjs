@@ -262,3 +262,17 @@ test('Production tree has no Developing identity/state and scanner proves its ne
   assert.deepEqual(violations,[]);
   assert.ok(scanProductionText('fixture.js',"const bad='2009884611';").length>0,'negative fixture must be detected');
 });
+
+
+test('Production bundle strips Developing test-slot markers',()=>{
+  const bundle=fs.readFileSync(path.join(here,'..','miniapp-v2','production','production-app.js'),'utf8');
+  assert.doesNotMatch(bundle,/DEVELOP_TEST|Developingテスト|['"]0042['"]|dev=0042/);
+});
+
+test('Live release workflow rolls creation back if post-deploy verification fails',()=>{
+  const workflow=fs.readFileSync(path.join(here,'..','.github','workflows','deploy-miniapp-v2-production-gateway.yml'),'utf8');
+  assert.match(workflow,/id: deploy/);
+  assert.match(workflow,/steps\.deploy\.outputs\.attempted == 'true'/);
+  assert.match(workflow,/steps\.verify_health\.outcome != 'success'/);
+  assert.match(workflow,/CREATE_ENABLED="0"/);
+});
