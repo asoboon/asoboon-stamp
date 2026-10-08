@@ -10,6 +10,7 @@ const dir='miniapp-v2/production';
 const read=p=>readFileSync(resolve(root,p),'utf8');
 const sources=JSON.parse(read(`${dir}/bundle-sources.json`));
 const hash=s=>createHash('sha256').update(s).digest('hex').slice(0,12);
+const envHash=p=>hash(read(p).trim());
 const check=process.argv.includes('--check');
 function output(path,text){
   if(check){if(read(path)!==text)throw Error(`Stale production build: ${path}. Run node miniapp-v2/build-production.mjs`)}
@@ -48,7 +49,7 @@ root.style.display='block';
 root.innerHTML='<div role="status" style="padding:24px;text-align:center;font-family:system-ui,sans-serif;color:#344">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=${hash(css)}';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
-const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=${hash(read(`${dir}/env-facility.js`))}','./miniapp-v2/production/production-app.js?v=${hash(js)}'];
+const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:'))return; // The app already handles an unavailable LIFF SDK.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
@@ -70,7 +71,7 @@ const index=`<!doctype html>
 <title>ASOBooN｜公式LINEミニアプリ</title>
 <link rel="stylesheet" href="./production-app.css?v=${hash(css)}">
 <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script defer src="./env.js?v=${hash(read(`${dir}/env.js`))}"></script>
+<script defer src="./env.js?v=${envHash(`${dir}/env.js`)}"></script>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
 </head>
 <body data-asoboon-app="miniapp-v2" data-environment="production">
@@ -80,6 +81,6 @@ const index=`<!doctype html>
 `;
 output(`${dir}/index.html`,index);
 // The vote page also needs a fresh environment cache key at Production promotion.
-output(`${dir}/surprise-vote.html`,read(`${dir}/surprise-vote.html`).replace(/\.\/env\.js\?v=[^"'\s]+/,`./env.js?v=${hash(read(`${dir}/env.js`))}`));
+output(`${dir}/surprise-vote.html`,read(`${dir}/surprise-vote.html`).replace(/\.\/env\.js\?v=[^"'\s]+/,`./env.js?v=${envHash(`${dir}/env.js`)}`));
 const original=[...sources.styles,...sources.scripts].map(read);
 console.log(JSON.stringify({sourceFiles:original.length,bundleFiles:2,sourceBytes:original.reduce((n,s)=>n+Buffer.byteLength(s),0),bundleBytes:Buffer.byteLength(js+css),separateGzipBytes:original.reduce((n,s)=>n+gzipSync(s).length,0),bundleGzipBytes:gzipSync(js).length+gzipSync(css).length,check},null,2));
