@@ -166,6 +166,19 @@ export default {
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
+    if (request.method === 'GET' && action === 'businessDays') {
+      if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
+      try {
+        return json(request, await getBusinessDaysProxy(
+          url.searchParams.get('month'),
+          url.searchParams.get('from'),
+          env,
+        ));
+      } catch (e) {
+        return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503));
+      }
+    }
+
     if (request.method === 'GET' && action === 'serviceMessageStatus') {
       const denied = diagnosticsDenied(request, env);
       if (denied) return denied;
@@ -210,7 +223,7 @@ export default {
       body.nativeCancelEnabled = true;
       body.apiActions = Array.from(new Set([
         ...(Array.isArray(body.apiActions) ? body.apiActions : []),
-        'crowdRemaining','boardStatus','surpriseVotePublicStatus','businessDay',
+        'crowdRemaining','boardStatus','surpriseVotePublicStatus','businessDay','businessDays',
         'legacyReservations','legacyLastUpdate','legacyWaitInfo',
         'serviceMessageStatus','cancelReservation',
       ]));
@@ -1475,6 +1488,36 @@ async function getBusinessDayProxy(value, env) {
   businessDayInflight.set(date,job);
   try { return await job; }
   finally { if (businessDayInflight.get(date) === job) businessDayInflight.delete(date); }
+}
+
+function businessMonthDates(monthValue, fromValue='') {
+  const month=String(monthValue||'').trim();
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw apiError('BUSINESS_MONTH_INVALID',400);
+  const [year,monthNumber]=month.split('-').map(Number);
+  const first=normalizeDate(`${month}-01`);
+  const lastDay=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
+  const start=fromValue?normalizeDate(fromValue):first;
+  if(!first||!start||start.slice(0,7)!==month) throw apiError('BUSINESS_MONTH_INVALID',400);
+  return Array.from({length:lastDay-Number(start.slice(8,10))+1},(_,i)=>{
+    const day=Number(start.slice(8,10))+i;
+    return `${month}-${String(day).padStart(2,'0')}`;
+  });
+}
+async function getBusinessDaysProxy(month,from,env){
+  const dates=businessMonthDates(month,from);
+  const days=[],failedDates=[];
+  let cursor=0;
+  const workers=Array.from({length:Math.min(8,dates.length)},async()=>{
+    while(cursor<dates.length){
+      const date=dates[cursor++];
+      try{days.push(await getBusinessDayProxy(date,env))}
+      catch(_){failedDates.push(date)}
+    }
+  });
+  await Promise.all(workers);
+  days.sort((a,b)=>String(a.operationalDate).localeCompare(String(b.operationalDate)));
+  failedDates.sort();
+  return{ok:true,month,source:'production-worker-batch',days,failedDates,complete:failedDates.length===0};
 }
 
 const CALLSTATUS_CLOSE_BY_WAITTYPE=Object.freeze({

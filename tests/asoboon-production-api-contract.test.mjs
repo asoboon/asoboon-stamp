@@ -70,6 +70,26 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(day.status,200,JSON.stringify(day.data));
   assert.equal(day.data?.businessType,'土日祝日');
 
+  const month=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'}});
+  assert.equal(month.status,200,JSON.stringify(month.data));
+  assert.equal(month.data?.ok,true);
+  assert.equal(month.data?.complete,true);
+  assert.deepEqual(month.data?.failedDates,[]);
+  assert.equal(month.data?.days?.length,29);
+  assert.equal(month.data?.days?.[0]?.operationalDate,'2026-10-03');
+  assert.equal(month.data?.days?.at(-1)?.operationalDate,'2026-10-31');
+
+  world.businessDayFailures.add('2026-11-05');
+  const partial=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-11',from:'2026-11-01'}});
+  assert.equal(partial.status,200,JSON.stringify(partial.data));
+  assert.equal(partial.data?.complete,false);
+  assert.deepEqual(partial.data?.failedDates,['2026-11-05']);
+  assert.equal(partial.data?.days?.length,29);
+
+  const invalid=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-11-01'}});
+  assert.equal(invalid.status,400);
+
+
   const crowd=await call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
   assert.equal(crowd.status,200,JSON.stringify(crowd.data));
   assert.equal(crowd.data?.ok,true);

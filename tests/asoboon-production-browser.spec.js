@@ -140,12 +140,17 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   const requested=[];
   await installCertifiedProduction(page);
   await page.route(GATEWAY+'**',async route=>{
-    const u=new URL(route.request().url()),date=u.searchParams.get('date');
-    if(u.searchParams.get('action')!=='businessDay'||!date)return route.fulfill({status:404,body:'{}'});
-    requested.push(date);
-    const weekday=new Date(date+'T12:00:00Z').getUTCDay();
-    const businessType=date==='2026-10-10'?'休館':date==='2026-10-08'?'平日特定日':weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test'})});
+    const u=new URL(route.request().url()),month=u.searchParams.get('month'),start=u.searchParams.get('from');
+    if(u.searchParams.get('action')!=='businessDays'||!month||!start)return route.fulfill({status:404,body:'{}'});
+    const [year,monthNumber]=month.split('-').map(Number),last=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
+    const dates=Array.from({length:last-Number(start.slice(8,10))+1},(_,i)=>`${month}-${String(Number(start.slice(8,10))+i).padStart(2,'0')}`);
+    requested.push(...dates);
+    const days=dates.map(date=>{
+      const weekday=new Date(date+'T12:00:00Z').getUTCDay();
+      const businessType=date==='2026-10-10'?'休館':date==='2026-10-08'?'平日特定日':weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
+      return{ok:true,operationalDate:date,calendarDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test'};
+    });
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,month,days,failedDates:[],complete:true,source:'test-batch'})});
   });
   await page.goto('http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#bcMonth')).toHaveText('2026年 10月');
@@ -161,7 +166,7 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   await expect(page.locator('[data-date="2026-10-09"]')).toHaveCSS('background-color','rgb(239, 249, 245)');
   await expect(page.locator('[data-date="2026-10-11"]')).toHaveCSS('background-color','rgb(255, 248, 233)');
   await expect(page.locator('#bcStatus')).toContainText('営業日API');
-  expect(requested.length).toBeLessThanOrEqual(29);
+  expect(requested.length).toBe(29);
   await page.locator('#bcNext').click();
   await expect(page.locator('#bcMonth')).toHaveText('2026年 11月');
   await expect(page.locator('[data-date="2026-11-03"]')).toContainText('休館');
