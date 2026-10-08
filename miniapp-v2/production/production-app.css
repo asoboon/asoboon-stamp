@@ -91,6 +91,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:4px solid rgba(
 .rec-official-link button{flex:0 0 auto;min-height:48px;padding:0 13px;border:0;border-radius:13px;background:#2f825f;color:#fff;font-weight:1000}
 .rec-official>p{margin:11px 2px 0;color:#687b84;font-size:.6rem;line-height:1.55;font-weight:720}
 @media(max-width:360px){.rec-official-link{display:grid}.rec-official-link button{width:100%}}
+.rec-disclaimer{padding:12px;border:1px solid #ead8b6;border-radius:13px;background:#fffaf0;color:#4c463a}.rec-disclaimer h3{margin:0 0 6px;font-size:.72rem;color:#594324}.rec-disclaimer p{margin:0;font-size:.62rem;line-height:1.55}.rec-disclaimer ul{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:8px 0 0;padding-left:18px;font-size:.62rem;line-height:1.5}.rec-disclaimer li:last-child{grid-column:1/-1}@media(max-width:360px){.rec-disclaimer ul{grid-template-columns:1fr}}
 
 /* miniapp-v2/shared/callstatus.css */
 .cs-body{padding:14px}.cs-top{display:grid;grid-template-columns:12px 1fr;column-gap:8px;align-items:center;padding:11px 12px;border:1px solid #d8e3e8;border-radius:14px;background:#f7fafb}.cs-top strong{font-size:.76rem}.cs-top small{grid-column:2;color:#6d7a82;font-size:.61rem;line-height:1.45;font-weight:760}.cs-live-dot{width:9px;height:9px;border-radius:50%;background:#9aa7af;box-shadow:0 0 0 4px rgba(154,167,175,.12)}.cs-top.ok .cs-live-dot{background:var(--green);box-shadow:0 0 0 4px rgba(50,135,75,.12)}.cs-top.warn .cs-live-dot{background:var(--orange);box-shadow:0 0 0 4px rgba(240,128,38,.14)}

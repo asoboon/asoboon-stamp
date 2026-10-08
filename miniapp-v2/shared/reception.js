@@ -75,7 +75,8 @@ ${locationBlock}
 </div>
 <div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${DEVELOP_TEST_ONLY?'Developingテスト':'LINE受付（現地受付枠）'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
 <div id="recPeopleMsg" class="rec-status ok">この人数で受付できます。</div>
-<label class="rec-agree"><input id="recAgree" type="checkbox"><span>受付内容を確認しました。</span></label>
+<section class="rec-disclaimer" aria-labelledby="recDisclaimerTitle"><h3 id="recDisclaimerTitle">ご利用にあたって</h3><p>ご利用にあたりお客様ご自身に関する以下の項目について施設では責任を負いかねますので、あらかじめお知らせいたします。</p><ul><li>施設内での怪我、事故</li><li>お荷物の紛失、盗難</li><li>お客様同士のトラブル</li><li>施設内での衣服の汚れ</li><li>施設ご利用後の感染症罹患</li></ul></section>
+<label class="rec-agree"><input id="recAgree" type="checkbox"><span>受付内容とご利用にあたっての案内を確認しました。</span></label>
 <button id="recSubmit" class="rec-submit" type="button" disabled>受付確定（確認待ち）</button>
 <div id="recResult" hidden></div>
 </div></div></section>`}

@@ -56,7 +56,7 @@ test('Production new HOME renders all core routes and legal information',async({
   await expect(page.locator('.v38-legal')).toContainText('ASOBooN事務局 048-420-9780');
   await expect(page.locator('.v38-legal a[href^="tel:"]')).toHaveAttribute('href','tel:0484209780');
   await expect(page.locator('.v38-legal a[href^="https://comaam.jp"]')).toHaveAttribute('href','https://comaam.jp/privacy-policy/');
-  await expect(page.locator('.v38-calendar-card')).toHaveAttribute('data-external','1');
+  await expect(page.locator('.v38-calendar-card').first()).toHaveAttribute('data-external','1');
 
   const routes=[
     ['[data-v7-view="first"]:not([data-v7-panel])','first'],
@@ -118,6 +118,41 @@ test('Production HOME reception stays in the MINI App and never redirects to Air
   expect(airwaitRequests).toEqual([]);
 });
 
+test('Production reception shows the supplied facility-use notice before confirmation',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="reception"]').first().click();
+  const notice=page.locator('.rec-disclaimer');
+  await expect(notice).toContainText('施設では責任を負いかねます');
+  for(const item of ['施設内での怪我、事故','お荷物の紛失、盗難','お客様同士のトラブル','施設内での衣服の汚れ','施設ご利用後の感染症罹患'])await expect(notice).toContainText(item);
+  await expect(page.locator('.rec-agree')).toContainText('ご利用にあたっての案内を確認しました');
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+});
+
+test('business calendar shows API dates, fixed weekdays and faded past days',async({page})=>{
+  const requested=[];
+  await installCertifiedProduction(page);
+  await page.route(GATEWAY+'**',async route=>{
+    const u=new URL(route.request().url()),date=u.searchParams.get('date');
+    if(u.searchParams.get('action')!=='businessDay'||!date)return route.fulfill({status:404,body:'{}'});
+    requested.push(date);
+    const weekday=new Date(date+'T12:00:00Z').getUTCDay();
+    const businessType=date==='2026-10-10'||weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test'})});
+  });
+  await page.goto('http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#bcMonth')).toHaveText('2026年 10月');
+  await expect(page.locator('[data-date="2026-10-02"]')).toHaveClass(/past/);
+  await expect(page.locator('[data-date="2026-10-06"]')).toContainText('休館');
+  await expect(page.locator('[data-date="2026-10-10"]')).toContainText('休館');
+  await expect(page.locator('#bcStatus')).toContainText('営業日API');
+  expect(requested.length).toBeLessThanOrEqual(29);
+  await page.locator('#bcNext').click();
+  await expect(page.locator('#bcMonth')).toHaveText('2026年 11月');
+  await expect(page.locator('[data-date="2026-11-03"]')).toContainText('休館');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBeTruthy();
+});
+
 async function installCertifiedProduction(page){
   await installProduction(page);
   await page.route('**/miniapp-v2/production/env-facility.js*',async route=>{
@@ -157,8 +192,13 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
   await expect.poll(()=>new URL(page.url()).searchParams.get('production_preview')).toBe('1');
   await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
-  await expect(page.locator('.v38-calendar-card')).toHaveAttribute('data-external','1');
-  await page.locator('.v38-calendar-card').click();
+  await page.locator('.v38-business-calendar-section .v38-calendar-card').click();
+  await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/business-calendar.html');
+  await expect(page.getByRole('heading',{name:'営業日カレンダー'})).toBeVisible();
+  await page.locator('.bc-back').click();
+  await expect(page.locator('.v38-home')).toBeVisible();
+  await expect(page.locator('.v38-calendar-card').first()).toHaveAttribute('data-external','1');
+  await page.locator('.v38-calendar-section:not(.v38-business-calendar-section) .v38-calendar-card').click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/event-calendar.html');
 });
 
