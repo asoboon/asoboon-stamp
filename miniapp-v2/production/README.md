@@ -15,6 +15,13 @@ This release connects both Production entries to the dedicated Production Worker
 
 The source arm is enabled for this explicitly authorized release; runtime `CREATE_ENABLED` still defaults to OFF. Mandatory LINE notification preparation remains before any AirWAIT create. Failed/ambiguous results never trigger an automatic duplicate create.
 
+## Lightweight build
+
+Run `node miniapp-v2/build-production.mjs` after editing any file listed in `bundle-sources.json`. Commit the generated JS, CSS, index and loader together. CI runs the same command with `--check` to reject stale bundles.
+
+The build preserves script order and the CSS cascade, consolidating 46 source files into two application bundles. The LINE SDK and environment configuration remain separate. Generated content hashes update cache keys on both the certified HOME and the vote page. At this revision, gzip size is approximately 80 KB instead of 107 KB for separately compressed source files; actual transfer depends on the host's compression. Vote-page resources load when used, rather than on every HOME visit.
+
 ## Rollback
 
 Set Worker runtime `CREATE_ENABLED=0` to stop reception before any LINE/AirWAIT create. Restore `PRODUCTION_HOME_LIVE=false` in `home.html`, or use the retained `home-legacy-certified-20261007.html` snapshot to restore the prior HOME. Keep the certified LINE endpoint unchanged. Re-run `mode=dark` only when all existing readiness checks pass.
+

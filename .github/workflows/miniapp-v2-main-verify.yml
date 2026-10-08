@@ -55,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify Production bundles are current
+        run: node miniapp-v2/build-production.mjs --check
       - name: Browser JavaScript syntax
         run: |
           set -euo pipefail
