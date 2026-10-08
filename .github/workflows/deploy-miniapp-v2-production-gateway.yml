@@ -172,14 +172,17 @@ jobs:
           node -e 'const x=JSON.parse(require("fs").readFileSync("./wrangler-v2-production.tmp.jsonc","utf8"));if(x.vars.CREATE_ENABLED!==process.env.PRODUCTION_CREATE_ENABLED)process.exit(1)'
 
       - name: Deploy Production gateway
+        id: deploy
         if: steps.credentials.outputs.available == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
+          echo "attempted=true" >> "$GITHUB_OUTPUT"
           npx --yes wrangler@4.145.0 deploy --config ./wrangler-v2-production.tmp.jsonc
 
       - name: Verify Production health and paired release gates
+        id: verify_health
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -227,4 +230,28 @@ jobs:
             sleep 3
           done
           echo "Production Worker release health check failed." >&2
+          exit 1
+      - name: Roll back Production create gate after failed live verification
+        if: always() && github.event.inputs.mode == 'live' && steps.deploy.outputs.attempted == 'true' && steps.verify_health.outcome != 'success'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          node -e 'const fs=require("fs");const p="./wrangler-v2-production.tmp.jsonc";const x=JSON.parse(fs.readFileSync(p,"utf8"));x.vars.CREATE_ENABLED="0";fs.writeFileSync("./wrangler-v2-production-rollback.tmp.jsonc",JSON.stringify(x,null,2));'
+          npx --yes wrangler@4.145.0 deploy --config ./wrangler-v2-production-rollback.tmp.jsonc
+          for i in 1 2 3 4 5 6 7 8; do
+            RESPONSE="$(curl --fail --silent --show-error -H 'Origin: https://asoboon.github.io' "$WORKER_URL/?action=health&_=${GITHUB_SHA}-rollback-${i}" || true)"
+            if [ -n "$RESPONSE" ] && printf '%s' "$RESPONSE" | node -e '
+              let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const x=JSON.parse(s);
+                if(x.ok!==true||x.version!=="3.0.prod-complete-dark"||x.productionCreateArmed!==true||x.createEnabled!==false||x.dbConfigured!==true||x.airwaitKeyConfigured!==true||x.serviceMessageThreePillarReady!==true||x.officialLineCancelReady!==true)process.exit(1);
+              });
+            '; then
+              echo "$RESPONSE"
+              echo "Production create gate rolled back to OFF."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Production create rollback health check failed." >&2
           exit 1

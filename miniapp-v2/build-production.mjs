@@ -22,7 +22,9 @@ function browserSource(p){
     // Shared source supports Developing's test slot; Production cannot activate it.
     const marker=/^const DEVELOP_TEST_ONLY=[^\n]+;$/m;
     if(!marker.test(text))throw Error('Reception test-slot declaration changed; review Production specialization');
-    text=text.replace(marker,'const DEVELOP_TEST_ONLY=false;');
+    text=text.replace(marker,'const PRODUCTION_TEST_DISABLED=false;');
+    text=text.replaceAll('DEVELOP_TEST_ONLY','PRODUCTION_TEST_DISABLED');
+    text=text.replace(/Developingテスト/g,'テスト');
   }
   return text.trim();
 }

@@ -336,7 +336,7 @@ const SUBMIT_WATCHDOG_MS=120000;
 const PENDING_TTL_MS=24*60*60*1000;
 let LINE_OPEN_TIMER=0;
 const LINE_STORE_ONLY=E.lineStoreOnly===true||E.environment==='develop';
-const DEVELOP_TEST_ONLY=false;
+const PRODUCTION_TEST_DISABLED=false;
 const S={
   mode:'web',day:null,waitTypes:null,slots:[],slot:null,
   adult:1,child:0,infant:0,agree:false,location:null,
@@ -395,7 +395,7 @@ ${locationBlock}
 <div class="rec-person"><span><strong>こども</strong><small>6か月〜小6 / 900円</small></span><div class="rec-stepper"><button type="button" data-rec-k="child" data-rec-d="-1">−</button><output id="recChild">0</output><button type="button" data-rec-k="child" data-rec-d="1">＋</button></div></div>
 <div class="rec-person"><span><strong>0〜5か月</strong><small>1人目900円 / 2人目以降無料</small></span><div class="rec-stepper"><button type="button" data-rec-k="infant" data-rec-d="-1">−</button><output id="recInfant">0</output><button type="button" data-rec-k="infant" data-rec-d="1">＋</button></div></div>
 </div>
-<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${DEVELOP_TEST_ONLY?'Developingテスト':'LINE受付（現地受付枠）'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
+<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${PRODUCTION_TEST_DISABLED?'テスト':'LINE受付（現地受付枠）'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
 <div id="recPeopleMsg" class="rec-status ok">この人数で受付できます。</div>
 <label class="rec-agree"><input id="recAgree" type="checkbox"><span>受付内容を確認しました。</span></label>
 <button id="recSubmit" class="rec-submit" type="button" disabled>受付確定（確認待ち）</button>
@@ -488,14 +488,14 @@ async function waitForLine(){let st=lineState();if(st.booting||!st.liffReady){aw
 function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!=='develop'||!t.waitTypeId)return null;return{waitTypeId:String(t.waitTypeId),label:String(t.label||'入場不可テスト'),detail:String(t.detail||'Developing専用テスト枠'),developTest:true}}
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
 function usageAllowed(actual,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);return !u||u==='01'||u==='02'||u==='KeyALL'||u==='KeySTORE_RECEPTION_ONLY'}
-function buildSlots(waitTypes){const test=developTestRule(),configured=DEVELOP_TEST_ONLY?(test?[test]:[]):[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])];return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(rule.developTest){if(!usageAllowed(actual,{developTest:true}))return null;return{...rule,actual}}if(actual.dispFlg===false||!usageAllowed(actual))return null;return{...rule,actual}}).filter(Boolean)}
+function buildSlots(waitTypes){const test=developTestRule(),configured=PRODUCTION_TEST_DISABLED?(test?[test]:[]):[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])];return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(rule.developTest){if(!usageAllowed(actual,{developTest:true}))return null;return{...rule,actual}}if(actual.dispFlg===false||!usageAllowed(actual))return null;return{...rule,actual}}).filter(Boolean)}
 function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日の現地受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
 function locationOk(){return LINE_STORE_ONLY||S.mode!=='onsite'||Boolean(S.location?.ok)}
 
 function renderForm(){
   if(!$('recAdult'))return;
   $('recAdult').textContent=S.adult;$('recChild').textContent=S.child;$('recInfant').textContent=S.infant;
-  $('recModeLabel').textContent=DEVELOP_TEST_ONLY?'Developingテスト':S.mode==='web'?'LINE受付（現地受付枠）':'現地受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
+  $('recModeLabel').textContent=PRODUCTION_TEST_DISABLED?'テスト':S.mode==='web'?'LINE受付（現地受付枠）':'現地受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
   $('recWeb')?.classList.toggle('active',S.mode==='web');$('recOnsite')?.classList.toggle('active',S.mode==='onsite');if($('recLocation'))$('recLocation').hidden=S.mode!=='onsite';
   const peopleOK=validPeople(),msg=$('recPeopleMsg');msg.className='rec-status '+(peopleOK?'ok':'bad');msg.textContent=peopleOK?'この人数で受付できます。':`保護者1名につきお子さま3名まで、1組合計${maxTotal()}名までです。`;
   document.querySelectorAll('[data-rec-k]').forEach(b=>{const k=b.dataset.recK,d=+b.dataset.recD;if(d<0)b.disabled=k==='adult'?S.adult<=1||kids()>(S.adult-1)*kidsPerAdult():S[k]<=0;else b.disabled=total()>=maxTotal()||(k!=='adult'&&kids()>=S.adult*kidsPerAdult())});
@@ -537,18 +537,18 @@ async function boot(){
   }
 
   S.canCreate=Boolean(lineOK&&dayOK&&gatewayOK&&E.featureFlags?.receptionCreate===true&&healthSupportsOfficialDevelop(S.health));
-  S.slots=buildSlots(S.waitTypes);if(DEVELOP_TEST_ONLY&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
+  S.slots=buildSlots(S.waitTypes);if(PRODUCTION_TEST_DISABLED&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
   const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
-  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、現地受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
+  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!PRODUCTION_TEST_DISABLED){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、現地受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
   if(!lineOK){status(String(lineResult.reason?.message||lineResult.reason||'LINE接続を確認できません。'),'bad');return}
   if(!gatewayOK){status(`受付枠を取得できませんでした。${String(gatewayResult.reason?.message||gatewayResult.reason||'')}`,'bad');return}
   if(!dayOK){status(hasTest?'営業区分を取得できません。🧪「入場不可テスト」は表示確認できますが、受付確定は安全のため停止しています。':'営業区分を取得できません。受付確定は安全のため停止しています。','warn');return}
-  if(DEVELOP_TEST_ONLY&&!S.slots.length){status('Developingテスト枠を確認できません。受付は送信していません。','bad');return}
-  if(DEVELOP_TEST_ONLY&&S.canCreate&&hasTest){status('🧪 「入場不可テスト」で受付動作を確認できます。','ok');return}
-  if(S.day?.isClosed&&hasTest){status('本日は休館日です。🧪 Developingテスト枠のみ確認できます。','warn');return}
+  if(PRODUCTION_TEST_DISABLED&&!S.slots.length){status('テスト枠を確認できません。受付は送信していません。','bad');return}
+  if(PRODUCTION_TEST_DISABLED&&S.canCreate&&hasTest){status('🧪 「入場不可テスト」で受付動作を確認できます。','ok');return}
+  if(S.day?.isClosed&&hasTest){status('本日は休館日です。🧪 テスト枠のみ確認できます。','warn');return}
   if(S.day?.isClosed){status('本日は休館日です。','warn');return}
   if(!S.slots.length){status(S.mode==='web'?'現在受付できるLINE受付枠がありません。AirWAITの受付状況をご確認ください。':'現在受付できる枠がありません。AirWAITの受付状況をご確認ください。','warn');return}
   if(S.canCreate&&hasTest){status('🧪 Developing：利用可能なテスト枠を選んで実受付テストできます。','warn');return}
@@ -562,12 +562,12 @@ function completeConfirmed(r,meta={}){const rec=confirmedRecord(r,meta);saveConf
 function bindAmbiguousRetry(requestId){const btn=$('recResult')?.querySelector?.('[data-rec-check-result]');if(btn)btn.addEventListener('click',()=>void recoverAmbiguous(requestId))}
 function showRecoveryPanel(requestId,title='受付結果を確認しています。',message='同じ受付の結果だけを再確認します。受付の再送はしません。'){const id=String(requestId||'');const result=$('recResult');if(!result)return;result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>'+esc(title)+'</strong><br>'+esc(message)+(id?'<button class="rec-retry" type="button" data-rec-check-result>受付結果を再確認</button>':'')+'</div>';if(id)bindAmbiguousRetry(id)}
 function lockAmbiguous(requestId=''){const id=String(requestId||readPending()?.requestId||'');S.locked=true;S.busy=false;showRecoveryPanel(id,'受付結果を確認しています。新しい受付は行わないでください。','同じ受付の結果だけを再確認します。受付の再送はしません。');status('受付結果を安全に確認しています。新しい受付は行わないでください。','warn');renderForm();if(id)setTimeout(()=>void recoverAmbiguous(id),250)}
-async function recoverAmbiguous(requestId){const id=String(requestId||'');if(!id||S.recovering)return;S.recovering=true;showRecoveryPanel(id,'前回の受付結果を確認しています。','新しい受付は行わず、同じ受付の結果だけを確認しています。');status('前回の受付結果を再確認しています。新しい受付は行わないでください。','warn');try{const r=await pollRequest(id);if(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId){completeConfirmed(r,pendingBody());return}if(r?.found&&r?.ambiguous===true){if(DEVELOP_TEST_ONLY&&String(pendingBody()?.waitTypeId||'')===String(E.developTestWaitType?.waitTypeId||'')){clearPending(id);S.locked=false;S.busy=false;showRecoveryPanel('','前回のテスト受付は確定できませんでした。','Developingテストのため、もう一度受付を試せます。');status('前回のテスト受付は確定できませんでした。もう一度お試しください。','warn');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付処理を確認しています。','同じ受付の結果確認を続けています。新しい受付は作らないでください。');status('受付処理の確認に時間がかかっています。新しい受付は行わないでください。','warn');renderForm();return}if(r?.found&&r?.ambiguous!==true&&r?.ok===false){clearPending(id);S.locked=false;S.busy=false;status(friendlyError(r?.error||'受付は成立していません。内容を確認してもう一度お試しください。'),'bad');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付結果を自動で確定できませんでした。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('受付結果を自動で確定できませんでした。下の「受付結果を再確認」をお試しください。','bad');renderForm()}catch{S.locked=true;showRecoveryPanel(id,'まだ受付結果を確認できません。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('まだ受付結果を確認できません。下の「受付結果を再確認」をお試しください。','warn');renderForm()}finally{S.recovering=false;bindAmbiguousRetry(id)}}
+async function recoverAmbiguous(requestId){const id=String(requestId||'');if(!id||S.recovering)return;S.recovering=true;showRecoveryPanel(id,'前回の受付結果を確認しています。','新しい受付は行わず、同じ受付の結果だけを確認しています。');status('前回の受付結果を再確認しています。新しい受付は行わないでください。','warn');try{const r=await pollRequest(id);if(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId){completeConfirmed(r,pendingBody());return}if(r?.found&&r?.ambiguous===true){if(PRODUCTION_TEST_DISABLED&&String(pendingBody()?.waitTypeId||'')===String(E.developTestWaitType?.waitTypeId||'')){clearPending(id);S.locked=false;S.busy=false;showRecoveryPanel('','前回のテスト受付は確定できませんでした。','テストのため、もう一度受付を試せます。');status('前回のテスト受付は確定できませんでした。もう一度お試しください。','warn');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付処理を確認しています。','同じ受付の結果確認を続けています。新しい受付は作らないでください。');status('受付処理の確認に時間がかかっています。新しい受付は行わないでください。','warn');renderForm();return}if(r?.found&&r?.ambiguous!==true&&r?.ok===false){clearPending(id);S.locked=false;S.busy=false;status(friendlyError(r?.error||'受付は成立していません。内容を確認してもう一度お試しください。'),'bad');renderForm();return}S.locked=true;showRecoveryPanel(id,'受付結果を自動で確定できませんでした。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('受付結果を自動で確定できませんでした。下の「受付結果を再確認」をお試しください。','bad');renderForm()}catch{S.locked=true;showRecoveryPanel(id,'まだ受付結果を確認できません。','新しい受付は行わず、下のボタンから同じ受付結果を再確認してください。');status('まだ受付結果を確認できません。下の「受付結果を再確認」をお試しください。','warn');renderForm()}finally{S.recovering=false;bindAmbiguousRetry(id)}}
 function lockNotificationAmbiguous(requestId){clearPending(requestId);S.locked=true;S.busy=false;const result=$('recResult');if(result){result.hidden=false;result.innerHTML='<div class="rec-lock"><strong>LINE呼出通知の準備結果を確認できませんでした。</strong><br>AirWAITへの受付送信は行っていません。ミニアプリをいったん完全に閉じて、開き直してから受付してください。</div>'}status('LINE通知の準備結果が不明です。再送せず、ミニアプリを開き直してください。','bad');renderForm()}
 
 async function submit(){
   if($('recSubmit')?.disabled||S.busy||S.locked||!S.slot||!S.day||!S.canCreate)return;
-  if(!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){status(`LINE当日受付は${lineOpenDisplay()}からです。受付開始までお待ちください。`,'warn');renderForm();scheduleLineOpen();return}
+  if(!lineReceptionOpenNow()&&!PRODUCTION_TEST_DISABLED){status(`LINE当日受付は${lineOpenDisplay()}からです。受付開始までお待ちください。`,'warn');renderForm();scheduleLineOpen();return}
   const seq=++S.submitSeq;
   S.busy=true;status('受付内容を最終確認しています…','warn');renderForm();
   const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);
