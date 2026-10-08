@@ -1,8 +1,4 @@
-/* ASOBooN LINE MINI App v2 / Production dark launch
- * Public identifiers only. Secrets never belong in browser code.
- * Reception creation remains intentionally disabled until the dedicated
- * Production Worker + D1 + LINE service-message path passes promotion gates.
- */
+/* Official Production reception. Public identifiers only; runtime CREATE_ENABLED remains the server-side release/rollback gate. */
 (()=>{'use strict';
 window.ASOBOON_V2_ENV=Object.freeze({
   environment:'production',
@@ -14,20 +10,20 @@ window.ASOBOON_V2_ENV=Object.freeze({
   endpoint:'https://asoboon.github.io/asoboon-stamp/home.html',
   assetBase:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/',
   siteBase:'https://asoboon.github.io/asoboon-stamp/',
-  backendUrl:'',
+  backendUrl:'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/',
   backendEnvironment:'official-production',
   lineStoreOnly:true,
   officialHome:true,
   operationalFallbacks:Object.freeze({
-    enabled:true,
+    enabled:false,
     receptionUrl:'https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918',
     callstatusUrl:'https://asoboon.github.io/asoboon-stamp/callstatus.html'
   }),
   featureFlags:Object.freeze({
     reception:true,
-    receptionCreate:false,
+    receptionCreate:true,
     callstatus:true,
-    serviceMessage:false,
+    serviceMessage:true,
     timeguide:true,
     firstGuide:true,
     entryGuide:true,

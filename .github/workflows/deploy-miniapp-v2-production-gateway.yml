@@ -2,6 +2,12 @@ name: deploy-miniapp-v2-production-gateway
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Production release mode (live requires ready secrets and notifications)
+        type: choice
+        options: [dark, live]
+        default: dark
 
 permissions:
   contents: read
@@ -19,6 +25,7 @@ jobs:
       WORKER_NAME: asoboon-miniapp-v2-production-gateway
       DB_NAME: asoboon-miniapp-v2-production-db
       WORKER_URL: https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev
+      PRODUCTION_CREATE_ENABLED: ${{ github.event.inputs.mode == 'live' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -58,8 +65,8 @@ jobs:
           grep -F 'AIRWAIT_CREATE_STORENO_TIMEOUT' miniapp-v2/backend/production-gateway.js
           grep -F 'AIRWAIT_OFFICIAL_RESERVATIONS_TIMEOUT' miniapp-v2/backend/production-gateway.js
           grep -F "PRODUCTION_CREATE_ARMED: true" miniapp-v2/backend/production-gateway.js
-          grep -F "backendUrl:''" miniapp-v2/production/env.js
-          grep -F "receptionCreate:false" miniapp-v2/production/env.js
+          grep -F "backendUrl:'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/'" miniapp-v2/production/env.js
+          grep -F "receptionCreate:true" miniapp-v2/production/env.js
           ! grep -R -n -F '_develop_v1' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F '2009884611' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
           ! grep -R -n -F '2009884612' miniapp-v2/production miniapp-v2/backend/production-gateway.js miniapp-v2/backend/production-worker.mjs miniapp-v2/backend/production-service-message.js
@@ -78,6 +85,21 @@ jobs:
       - name: Production browser E2E before deploy
         if: steps.credentials.outputs.available == 'true'
         run: npm run test:miniapp-production
+
+      - name: Require ready Production dependencies before live activation
+        if: github.event.inputs.mode == 'live'
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 15 \
+            -H 'Origin: https://asoboon.github.io' "$WORKER_URL/?action=health" > /tmp/production-preflight.json
+          node -e '
+            const x=JSON.parse(require("fs").readFileSync("/tmp/production-preflight.json","utf8"));
+            const required=["ok","dbConfigured","airwaitKeyConfigured","serviceMessageReady","serviceMessageThreePillarReady","officialLineCancelReady"];
+            const missing=required.filter(k=>x[k]!==true);
+            if(x.environment!=="official-production"||!x.acceptedClientIds?.includes("2009884613"))missing.push("certifiedProductionIdentity");
+            if(missing.length){console.error("Production activation blocked:",missing.join(", "));process.exit(1)}
+            console.log("Production dependencies ready; paired runtime gate may be activated.");
+          '
 
       - name: Ensure dedicated Production D1 database
         if: steps.credentials.outputs.available == 'true'
@@ -113,7 +135,7 @@ jobs:
           echo "database_id=$DB_ID" >> "$GITHUB_OUTPUT"
           echo "Dedicated Production D1 ready: $DB_NAME"
 
-      - name: Build locked Production Wrangler config
+      - name: Build Production Wrangler config for selected release mode
         if: steps.credentials.outputs.available == 'true'
         env:
           DB_ID: ${{ steps.d1.outputs.database_id }}
@@ -128,7 +150,7 @@ jobs:
             "keep_vars": true,
             "triggers": { "crons": ["* * * * *"] },
             "vars": {
-              "CREATE_ENABLED": "0",
+              "CREATE_ENABLED": "$PRODUCTION_CREATE_ENABLED",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
               "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884613-ELc6kolf?view=entry\"}",
               "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "waiting_req_d_w_ja",
@@ -147,10 +169,9 @@ jobs:
             ]
           }
           EOF
-          grep -F '"CREATE_ENABLED": "0"' ./wrangler-v2-production.tmp.jsonc
-          ! grep -Fq '"CREATE_ENABLED": "1"' ./wrangler-v2-production.tmp.jsonc
+          node -e 'const x=JSON.parse(require("fs").readFileSync("./wrangler-v2-production.tmp.jsonc","utf8"));if(x.vars.CREATE_ENABLED!==process.env.PRODUCTION_CREATE_ENABLED)process.exit(1)'
 
-      - name: Deploy locked Production gateway
+      - name: Deploy Production gateway
         if: steps.credentials.outputs.available == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -158,7 +179,7 @@ jobs:
           set -euo pipefail
           npx --yes wrangler@4.145.0 deploy --config ./wrangler-v2-production.tmp.jsonc
 
-      - name: Verify Production dark health
+      - name: Verify Production health and paired release gates
         if: steps.credentials.outputs.available == 'true'
         run: |
           set -euo pipefail
@@ -173,7 +194,7 @@ jobs:
                   x.environment!=="official-production" ||
                   x.officialProductionEnabled!==true ||
                   x.productionCreateArmed!==true ||
-                  x.createEnabled!==false ||
+                  x.createEnabled!==(process.env.PRODUCTION_CREATE_ENABLED==="1") ||
                   x.dbConfigured!==true ||
                   x.airwaitKeyConfigured!==true ||
                   x.createRequiresVerifiedLiff!==true ||
@@ -200,10 +221,10 @@ jobs:
               });
             '; then
               echo "$RESPONSE"
-              echo "Production dark Worker is live with reception creation locked."
+              echo "Production Worker verified; CREATE_ENABLED=$PRODUCTION_CREATE_ENABLED."
               exit 0
             fi
             sleep 3
           done
-          echo "Production dark Worker health check failed." >&2
+          echo "Production Worker release health check failed." >&2
           exit 1

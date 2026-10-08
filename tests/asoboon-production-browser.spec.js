@@ -20,7 +20,7 @@ async function installProduction(page,{status=null}={}){
     await route.fulfill({status:200,contentType:'application/javascript',body:env});
   });
   await page.route('https://static.line-scdn.net/**',async route=>{
-    await route.fulfill({status:200,contentType:'application/javascript',body:`window.liff={isInClient:()=>true,isLoggedIn:()=>true,init:()=>Promise.resolve(),getAccessToken:()=>"prod_test_access_token_abcdefghijklmnopqrstuvwxyz",getProfile:()=>Promise.resolve({userId:"Uprod",displayName:"Production Test"})};`});
+    await route.fulfill({status:200,contentType:'application/javascript',body:`window.liff={isInClient:()=>true,isLoggedIn:()=>true,init:opts=>{window.__productionLiffId=opts.liffId;window.__productionLiffInitCount=(window.__productionLiffInitCount||0)+1;return Promise.resolve()},getAccessToken:()=>"prod_test_access_token_abcdefghijklmnopqrstuvwxyz",getProfile:()=>Promise.resolve({userId:"Uprod",displayName:"Production Test"})};`});
   });
   await page.route('https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/**',async route=>{
     const u=new URL(route.request().url());
@@ -36,6 +36,11 @@ async function installProduction(page,{status=null}={}){
     ]});
     if(action==='surpriseVotePublicStatus')return json({ok:true,mode:'idle',now:'2026-10-03T12:00:00+09:00'});
     if(action==='recoverReservationSession')return json({ok:true,found:false});
+    if(action==='waitTypes')return json({ok:true,waitTypes:[
+      {waitTypeId:'0029',waitTypeName:'10:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0031',waitTypeName:'12:30の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0033',waitTypeName:'15:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+    ]});
     if(action==='reservationStatus'&&status)return json(status);
     return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'TEST_NOT_IMPLEMENTED',action})});
   });
@@ -100,9 +105,20 @@ test('Production storage namespace stays isolated from Developing and Review',as
   expect(source).not.toMatch(/_develop_v1|_review_v1|2009884611|2009884612/);
 });
 
-test('official home.html preview boots Production on the exact LIFF endpoint path',async({page})=>{
-  const localRequests=[];
-  page.on('request',request=>{try{const u=new URL(request.url());if(u.origin==='http://127.0.0.1:4173')localRequests.push(u.pathname+u.search)}catch{}});
+test('Production HOME reception stays in the MINI App and never redirects to AirWAIT',async({page})=>{
+  const airwaitRequests=[];
+  page.on('request',request=>{if(new URL(request.url()).hostname==='airwait.jp')airwaitRequests.push(request.url())});
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="reception"]').first().click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSubmit')).toBeVisible();
+  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(airwaitRequests).toEqual([]);
+});
+
+async function installCertifiedProduction(page){
   await installProduction(page);
   await page.route('**/miniapp-v2/production/env-facility.js*',async route=>{
     let env=fs.readFileSync('miniapp-v2/production/env-facility.js','utf8');
@@ -115,11 +131,20 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
       .replace('serviceMessage:false','serviceMessage:true');
     await route.fulfill({status:200,contentType:'application/javascript',body:env});
   });
+}
+
+test('official home.html preview boots Production on the exact LIFF endpoint path',async({page})=>{
+  const localRequests=[];
+  page.on('request',request=>{try{const u=new URL(request.url());if(u.origin==='http://127.0.0.1:4173')localRequests.push(u.pathname+u.search)}catch{}});
+  await installCertifiedProduction(page);
   await page.goto('http://127.0.0.1:4173/home.html?production_preview=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('.v38-home')).toBeVisible({timeout:15000});
   await page.waitForTimeout(900);
-  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/surprise-vote.html'))).toBeTruthy();
-  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/env.js'))).toBeTruthy();
+  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/surprise-vote.html'))).toBeFalsy();
+  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/surprise-vote.js'))).toBeFalsy();
+  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/env-facility.js'))).toBeTruthy();
+  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/production-app.js'))).toBeTruthy();
+  expect(localRequests.some(x=>x.startsWith('/miniapp-v2/production/home-v38.js'))).toBeFalsy();
   expect(localRequests.some(x=>x.startsWith('/surprise-vote.html'))).toBeFalsy();
   expect(localRequests.some(x=>x.startsWith('/surprise-vote.js'))).toBeFalsy();
   expect(localRequests.some(x=>x.startsWith('/surprise-vote-config.js'))).toBeFalsy();
@@ -135,6 +160,31 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await expect(page.locator('.v38-calendar-card')).toHaveAttribute('data-external','1');
   await page.locator('.v38-calendar-card').click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/event-calendar.html');
+});
+
+test('certified HOME loads bundled assets once and keeps the official LINE identity on small and large screens',async({page})=>{
+  const requests=[],errors=[];
+  page.on('request',r=>requests.push(r.url()));
+  page.on('pageerror',e=>errors.push(e.message));
+  await installCertifiedProduction(page);
+  await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'networkidle'});
+  await expect(page.locator('.v38-home')).toBeVisible();
+  expect(await page.evaluate(()=>window.__productionLiffId)).toBe('2009884613-ELc6kolf');
+  expect(await page.evaluate(()=>window.__productionLiffInitCount)).toBe(1);
+  expect(requests.filter(x=>/production-app\.js\?/.test(x))).toHaveLength(1);
+  expect(requests.filter(x=>/production-app\.css\?/.test(x))).toHaveLength(1);
+  expect(requests.filter(x=>/surprise-vote\.(?:html|js|css)|\/app\/core\//.test(x))).toHaveLength(0);
+  for(const width of [320,390,768]){
+    await page.setViewportSize({width,height:844});
+    await expect(page.locator('.v38-home')).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBeTruthy();
+  }
+  await page.locator('[data-v7-view="reception"]').first().click();
+  await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSubmit')).toBeVisible();
+  expect(requests.some(x=>x.startsWith('https://airwait.jp/'))).toBeFalsy();
+  expect(errors).toEqual([]);
 });
 
 
@@ -166,3 +216,4 @@ test('legacy customer callstatus preserves UI while reading only through Product
   expect(proxyActions).toContain('legacyReservations');
   expect(directAirwait).toEqual([]);
 });
+

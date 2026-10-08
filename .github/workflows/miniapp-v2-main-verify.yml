@@ -55,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify Production bundles are current
+        run: node miniapp-v2/build-production.mjs --check
       - name: Browser JavaScript syntax
         run: |
           set -euo pipefail
@@ -179,7 +181,7 @@ jobs:
           grep -F "liffId:'2009884611-bDgDzGrN'" miniapp-v2/develop/env.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/develop/'" miniapp-v2/develop/env.js
 
-      - name: Lock Production dark launch isolation
+      - name: Lock Production live reception isolation
         run: |
           set -euo pipefail
           grep -F "environment:'production'" miniapp-v2/production/env.js
@@ -187,9 +189,9 @@ jobs:
           grep -F "channelId:'2009884613'" miniapp-v2/production/env.js
           grep -F "liffId:'2009884613-ELc6kolf'" miniapp-v2/production/env.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'" miniapp-v2/production/env.js
-          grep -F "backendUrl:''" miniapp-v2/production/env.js
+          grep -F "backendUrl:'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/'" miniapp-v2/production/env.js
           grep -F "lineStoreOnly:true" miniapp-v2/production/env.js
-          grep -F "receptionCreate:false" miniapp-v2/production/env.js
+          grep -F "receptionCreate:true" miniapp-v2/production/env.js
           grep -F "ENVIRONMENT: 'official-production'" miniapp-v2/backend/production-gateway.js
           grep -F "CHANNEL_ID: '2009884613'" miniapp-v2/backend/production-gateway.js
           grep -F "PRODUCTION_CREATE_ARMED: true" miniapp-v2/backend/production-gateway.js
@@ -207,7 +209,7 @@ jobs:
           grep -F 'API_URL: "https://script.google.com/macros/s/' miniapp-v2/production/surprise-vote-config.js
           grep -F 'const DEMO = false' miniapp-v2/production/surprise-vote.js
           grep -F "endpoint:'https://asoboon.github.io/asoboon-stamp/home.html'" miniapp-v2/production/env-facility.js
-          grep -F 'const PRODUCTION_HOME_LIVE=false' home.html
+          grep -F 'const PRODUCTION_HOME_LIVE=true' home.html
           grep -F 'LIFF_ID: "2009884613-ELc6kolf"' miniapp-v2/production/surprise-vote-config.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/reception.js
           grep -F "const STORAGE_NS=String(E.storageNamespace||E.environment||'develop')" miniapp-v2/shared/callstatus.js
