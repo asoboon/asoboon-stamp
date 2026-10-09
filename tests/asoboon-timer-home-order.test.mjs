@@ -20,3 +20,9 @@ test('Production route and shared navigation call the feature アソブーンタ
  }
  assert.doesNotMatch(read('miniapp-v2/shared/timeguide.js'),/<h2>何時まであそべる？<\/h2>/);
 });
+
+test('admitted guests receive the renamed timer shortcut too',()=>{
+ const home=read('miniapp-v2/production/home-v38.js');
+ assert.match(home,/action\('timeguide','アソブーンタイマー'\)/);
+ assert.doesNotMatch(home,/action\('timeguide','何時まで遊べる'\)/);
+});

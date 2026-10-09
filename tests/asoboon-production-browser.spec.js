@@ -616,3 +616,22 @@ test('ASOBooN Timer keeps its name and highlights the expected finish time when 
   await expect(timer.locator('[data-timeguide-summary]')).toContainText('12:30入場');
   await expect(timer.locator('[data-timeguide-summary]')).toContainText('2時間30分');
 });
+
+
+test('Admitted guests see アソブーンタイマー rather than the retired time-guide shortcut name',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{
+    window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+      detail:{kind:'guided',receipt:'F123',checkedAt:Date.now(),source:'live'}
+    }));
+  });
+  const hero=page.locator('#v38Hero');
+  await expect(hero).toHaveClass(/guided/);
+  const timer=hero.locator('[data-v7-view="timeguide"]');
+  await expect(timer).toBeVisible();
+  await expect(timer).toContainText('アソブーンタイマー');
+  await expect(timer).not.toContainText('何時まで遊べる');
+  await timer.click();
+  await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
+});
