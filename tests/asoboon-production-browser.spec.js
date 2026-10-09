@@ -574,3 +574,64 @@ test('AirWAIT text link opens the configured WEB reception externally on user ta
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
   expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
 });
+
+test('Production HOME prioritizes ASOBooN Timer before the business calendar',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.v38-home')).toBeVisible();
+  const timer=page.locator('#v38TimeguideShortcut');
+  const calendar=page.locator('.v38-business-calendar-section');
+  await expect(timer.locator('[data-timeguide-title]')).toHaveText('アソブーンタイマー');
+  await expect(calendar).toContainText('営業日カレンダー');
+  const positions=await page.evaluate(()=>{
+    const t=document.querySelector('#v38TimeguideShortcut').getBoundingClientRect();
+    const c=document.querySelector('.v38-business-calendar-section').getBoundingClientRect();
+    return {timerTop:t.top,calendarTop:c.top,overflow:document.documentElement.scrollWidth>innerWidth};
+  });
+  expect(positions.timerTop).toBeLessThan(positions.calendarTop);
+  expect(positions.overflow).toBe(false);
+  await timer.click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
+  await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
+  await expect(page.locator('#tgEntry')).toBeVisible();
+  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await expect(calendar).toBeVisible();
+});
+
+test('ASOBooN Timer keeps its name and highlights the expected finish time when a result is saved',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.v38-home')).toBeVisible();
+  await expect(page.locator('#v38Today strong').first()).toContainText('土日祝日');
+  await page.evaluate(()=>{
+    localStorage.setItem('asoboon_v2_timeguide_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',entryTime:'12:30',endTime:'15:00',durationLabel:'2時間30分'
+    }));
+    window.dispatchEvent(new Event('asoboon:v2-timeguide-updated'));
+  });
+  const timer=page.locator('#v38TimeguideShortcut');
+  await expect(timer).toHaveClass(/has-timeguide-result/);
+  await expect(timer.locator('[data-timeguide-eyebrow]')).toHaveText('アソブーンタイマー');
+  await expect(timer.locator('[data-timeguide-title]')).toHaveText('15:00まで遊べる');
+  await expect(timer.locator('[data-timeguide-summary]')).toContainText('12:30入場');
+  await expect(timer.locator('[data-timeguide-summary]')).toContainText('2時間30分');
+});
+
+
+test('Admitted guests see アソブーンタイマー rather than the retired time-guide shortcut name',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{
+    window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+      detail:{kind:'guided',receipt:'F123',checkedAt:Date.now(),source:'live'}
+    }));
+  });
+  const hero=page.locator('#v38Hero');
+  await expect(hero).toHaveClass(/guided/);
+  const timer=hero.locator('[data-v7-view="timeguide"]');
+  await expect(timer).toBeVisible();
+  await expect(timer).toContainText('アソブーンタイマー');
+  await expect(timer).not.toContainText('何時まで遊べる');
+  await timer.click();
+  await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
+});

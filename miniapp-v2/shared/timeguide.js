@@ -79,7 +79,7 @@ function calculation(day,entryValue){
   return {ok:true,entry,close,duration,unlimited,end,endTime:formatClock(end),limitedByClose:!unlimited&&entry+duration>close};
 }
 
-function render(){return `<section class="page-card tg-page"><div class="page-head green"><small>PLAY TIME</small><h2>何時まであそべる？</h2></div><div class="page-body tg-body">
+function render(){return `<section class="page-card tg-page"><div class="page-head green"><small>PLAY TIME</small><h2>アソブーンタイマー</h2></div><div class="page-body tg-body">
 <div id="tgStatus" class="tg-status loading"><span>営業カレンダーを確認しています…</span></div>
 <div id="tgDay" class="tg-day"><div><small>本日の営業</small><strong>確認中</strong></div><b>—</b></div>
 <label class="tg-input"><span>入場した時刻</span><input id="tgEntry" type="time" step="300" value="10:00" disabled></label>

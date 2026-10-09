@@ -24,7 +24,7 @@ const CONFIG=Object.freeze({
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   labels:Object.freeze({
     before:'来場前',inside:'館内',
-    reception:'当日受付',callstatus:'呼出状況',timeguide:'何時まであそべる？'
+    reception:'当日受付',callstatus:'呼出状況',timeguide:'アソブーンタイマー'
   })
 });
 window.ASOBOON_V2_COMMON=CONFIG;
