@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const BASE='http://127.0.0.1:4173/miniapp-v2/production/';
 const GATEWAY='https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/';
 
-async function installProduction(page,{status=null}={}){
-  await page.addInitScript(()=>{
+async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00.000Z'}={}){
+  await page.addInitScript(iso=>{
     const RealDate=Date;
-    const fixed=new RealDate('2026-10-03T03:00:00.000Z').valueOf();
+    const fixed=new RealDate(iso).valueOf();
     window.Date=class extends RealDate{constructor(...args){super(...(args.length?args:[fixed]))}static now(){return fixed}};
-  });
+  },clockIso);
   await page.route('**/miniapp-v2/production/env.js*',async route=>{
     let env=fs.readFileSync('miniapp-v2/production/env.js','utf8');
     env=env
@@ -500,4 +500,77 @@ test('Production HOME does not show yesterday receipt or saved calling after the
   await expect(page.locator('#v38Hero')).not.toContainText('Y888');
   expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_current_reservation_production_v1'))).toBeNull();
   expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
+});
+
+test('Production HOME shows compact 9:25 MINI App and 7:00 WEB reception hours with optional AirWAIT link',async({page})=>{
+  const externalRequests=[];
+  page.on('request',req=>{if(new URL(req.url()).hostname==='airwait.jp')externalRequests.push(req.url())});
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero')).toHaveClass(/open/);
+  const note=page.locator('#v38Hero .v38-reception-hours');
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('LINEミニアプリ');
+  await expect(note).toContainText('9:25から');
+  await expect(note).toContainText('WEB受付');
+  await expect(note).toContainText('7:00から');
+  const link=note.locator('a.v38-airwait-link');
+  await expect(link).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
+  await expect(link).toHaveAttribute('target','_blank');
+  await expect(link).toHaveAttribute('rel',/noopener noreferrer/);
+  await expect(link).toHaveAttribute('data-external','1');
+  const metrics=await note.evaluate(el=>({fontSize:getComputedStyle(el).fontSize,overflow:document.documentElement.scrollWidth>window.innerWidth}));
+  expect(Number.parseFloat(metrics.fontSize)).toBeLessThanOrEqual(13);
+  expect(metrics.overflow).toBe(false);
+  for(const width of [320,375,390,430]){
+    await page.setViewportSize({width,height:844});
+    await expect(note).toBeVisible();
+    await expect(link).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+  }
+  expect(externalRequests).toEqual([]);
+  await page.locator('#v38Hero [data-v7-view="reception"]').click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  expect(externalRequests).toEqual([]);
+});
+
+test('WEB reservation link remains discoverable before 9:25 without opening MINI reception early',async({page})=>{
+  await installProduction(page,{clockIso:'2026-10-02T23:00:00.000Z'}); // 08:00 JST
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero')).toHaveClass(/before/);
+  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:25から');
+  const note=page.locator('#v38Hero .v38-reception-hours');
+  await expect(note).toContainText('9:25から');
+  await expect(note).toContainText('7:00から');
+  await expect(note.locator('a')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
+  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+});
+
+test('WEB reservation invitation disappears when a reservation already exists',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+    detail:{kind:'waiting',receipt:'F321',ahead:6,source:'live',checkedAt:Date.now()}
+  })));
+  await expect(page.locator('#v38Hero')).toHaveClass(/waiting/);
+  await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
+});
+
+
+test('AirWAIT text link opens the configured WEB reception externally on user tap only',async({page})=>{
+  await installProduction(page);
+  await page.context().route('https://airwait.jp/**',route=>route.fulfill({
+    status:200,contentType:'text/html;charset=utf-8',body:'<!doctype html><html><title>AirWAIT mock</title><body>WEB reception</body></html>'
+  }));
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  const link=page.locator('#v38Hero .v38-airwait-link');
+  await expect(link).toBeVisible();
+  const popupPromise=page.waitForEvent('popup');
+  await link.click();
+  const popup=await popupPromise;
+  await expect.poll(()=>popup.url()).toContain('airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
+  await popup.close();
+  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
+  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
 });
