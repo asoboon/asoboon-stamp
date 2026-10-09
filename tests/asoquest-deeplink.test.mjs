@@ -269,7 +269,7 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="rpmValue"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=16/);
+  assert.match(html, /style\.css\?v=17/);
   assert.match(html, /app\.js\?v=20/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
@@ -284,6 +284,8 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /assets\/engine-start-fx\/garage_base\.webp/);
   assert.match(html, /assets\/engine-start-fx\/afterfire_left_blue\.png/);
   assert.match(html, /<h2>スタンプラリー クリア！<\/h2>/);
+  assert.match(html, /スタッフに見せてね！/);
+  assert.match(html, /この画面がクリアのしるしです/);
   assert.match(html, /<p>マシン完成！<\/p>/);
   assert.doesNotMatch(html, /STAMP RALLY COMPLETE/);
   assert.match(html, /reveal-spot-1/);
