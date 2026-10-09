@@ -292,6 +292,14 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-pending-indicator{width:9px;height:9px;flex-shrink:0;margin-top:6px;border-radius:50%;background:#327fae;box-shadow:0 0 0 4px #dbeaf4}
 .v38-hero.pending .v38-action{margin-top:13px}
 
+
+/* Small, secondary guidance underneath the main same-app reception button. */
+.v38-reception-hours{display:grid;gap:5px;margin-top:13px;padding-top:11px;border-top:1px solid #dfe5e0;color:#4b5d61;font-size:12px;line-height:1.5}
+.v38-reception-hours>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px}
+.v38-reception-hours strong{color:#233b39;font-size:12px;font-weight:850}
+.v38-reception-hours .v38-airwait-link{justify-self:start;display:inline-block;margin-top:2px;color:#17639a;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.v38-reception-hours .v38-airwait-link:focus-visible{outline:3px solid #1769e0;outline-offset:3px;border-radius:3px}
+
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
 .v38-surprise-section{padding:0}
