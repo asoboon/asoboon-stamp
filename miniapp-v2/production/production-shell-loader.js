@@ -7,7 +7,7 @@ root.style.display='block';
 root.innerHTML='<div role="status" style="padding:24px;text-align:center;font-family:system-ui,sans-serif;color:#344">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=1aa7d0d4f5e9';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
-const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=c360d5bc1ec9'];
+const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=12bcd43d3252'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:'))return; // The app already handles an unavailable LIFF SDK.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
