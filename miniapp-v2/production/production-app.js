@@ -543,18 +543,24 @@ archiveCurrent();setTimeout(()=>archiveCurrent(),500);setTimeout(()=>archiveCurr
 
 ;/* miniapp-v2/production/home-prime-v13.js */
 (()=>{'use strict';
+// Render ONLY the locally saved receipt immediately. Cached call states are
+// intentionally not shown on a new load; they may be stale or unsafe.
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
 const CALL_KEY='asoboon_v2_callstatus_production_v1';
-const SNAP_KEY='asoboon_v2_home_status_production_v1';
-const MAX_AGE=10*60*1000;
 const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
-const cached=read(RES_KEY)||read(CALL_KEY)||null;
-const snap=read(SNAP_KEY);
-if(!cached?.receiptNo||!snap?.status)return;
-if(String(snap.receiptNo||'')!==String(cached.receiptNo||''))return;
-if(cached.businessDate&&String(snap.businessDate||'')!==String(cached.businessDate||''))return;
-if(Date.now()-Number(snap.savedAt||0)>MAX_AGE)return;
-const status={...snap.status,source:'cache',checkedAt:Number(snap.savedAt||Date.now())};
+function cachedReservation(){
+  const today=String(window.ASOBOON_V2_OPERATIONAL_DATE||'');
+  if(!today)return null; // Day rollover owns the 19:00 JST boundary.
+  for(const item of [read(RES_KEY),read(CALL_KEY)]){
+    if(item?.receiptNo&&String(item.businessDate||'')===today)return item;
+  }
+  return null;
+}
+// Discard legacy cached states such as 'calling'; only the receipt remains authoritative locally.
+try{localStorage.removeItem('asoboon_v2_home_status_production_v1')}catch{}
+const cached=cachedReservation();
+if(!cached)return;
+const status={kind:'pending',receipt:String(cached.receiptNo),source:'local',checkedAt:Date.now()};
 window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
 const announce=()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(announce);else setTimeout(announce,0);
@@ -599,7 +605,7 @@ function reservationInfo(receipt=''){let rec=null;try{rec=JSON.parse(localStorag
 function peopleBreakdown(rec){if(!rec)return'—';const a=Number(rec.adults),c=Number(rec.paidChildren),i=Number(rec.infants);if(![a,c,i].every(Number.isFinite))return'—';const parts=[`おとな ${a}名`];if(c>0)parts.push(`こども ${c}名`);if(i>0)parts.push(`0〜5か月 ${i}名`);return parts.join('・')}
 function reservationCard(receipt=''){const rec=reservationInfo(receipt),number=String(receipt||rec?.receiptNo||'—'),date=fmtDate(rec?.businessDate||'—'),people=peopleBreakdown(rec);return `<div class="v38-reservation-card" aria-label="受付情報"><div class="v38-reservation-item receipt"><small>受付番号</small><strong>${esc(number)}</strong></div><div class="v38-reservation-item"><small>利用日</small><strong>${esc(date)}</strong></div><div class="v38-reservation-item people"><small>人数内訳</small><strong>${esc(people)}</strong></div></div>`}
 function stateLabel(text){return `<div class="v38-state-label">${esc(text)}</div>`}
-function heroMarkup(data={}){const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number(data.ahead);if(!Number.isFinite(n))return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>待ち人数を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','受付番号を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','何時まで遊べる')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${action('first','利用案内へ')}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
+function heroMarkup(data={}){const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='pending'&&receipt)return{kind:'pending',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><div class="v38-pending-eyebrow">保存済みの受付番号</div><div class="v38-pending-number">${esc(receipt)}</div><p class="v38-pending-status" role="status"><span class="v38-pending-indicator" aria-hidden="true"></span>最新の呼出状況を確認しています…</p>${action('callstatus','呼出状況を確認する')}</div>`};if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number(data.ahead);if(!Number.isFinite(n))return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>待ち人数を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','受付番号を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','何時まで遊べる')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${action('first','利用案内へ')}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
 function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)return;const v=heroMarkup(data),sig=JSON.stringify([v.kind,data.receipt,data.ahead,data.canceled,data.message,day?.operationalDate,day?.closingTime,dayError]);if(sig===lastHero&&el.dataset.rendered==='1')return;lastHero=sig;el.dataset.rendered='1';el.className=`v38-hero ${v.kind}`;el.innerHTML=v.html;document.body.classList.remove('v38-state-waiting','v38-state-calling','v38-state-guided','v38-state-hold','v38-state-canceled','v38-state-closed');const theme=String(v.kind).split(/\s+/)[0];if(['waiting','calling','guided','hold','canceled','closed'].includes(theme))document.body.classList.add(`v38-state-${theme}`);}
 function patchToday(){const box=root.querySelector('#v38Today');if(!box)return;const labels=box.querySelectorAll('small'),vals=box.querySelectorAll('strong');if(day){setText(vals[0],day.isClosed?'休館':day.businessType||'—');setText(vals[1],day.isClosed?'—':day.durationLabel||'—');setText(vals[2],day.isClosed?'—':day.closingTime||'—');box.classList.toggle('closed',Boolean(day.isClosed));return}setText(vals[0],dayError?'取得できません':T.loading);setText(vals[1],'—');setText(vals[2],'—')}
 function readTimeguideResult(){try{return JSON.parse(localStorage.getItem(TIMEGUIDE_KEY)||'null')}catch{return null}}
@@ -752,7 +758,6 @@ const CALL_KEY='asoboon_v2_callstatus_production_v1';
 const SESSION_KEY='asoboon_v2_callstatus_session_production_v1';
 const SNAP_KEY='asoboon_v2_home_status_production_v1';
 const TIMEOUT_MS=8000;
-const SNAP_MAX_AGE_MS=10*60*1000;
 let timer=0,running=false,pendingRefresh=false,seq=0;
 const currentView=()=>String(new URLSearchParams(location.search).get('view')||'home');
 const readJSON=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
@@ -762,15 +767,97 @@ const emit=detail=>{window.ASOBOON_HOME_STATUS_SNAPSHOT=detail;window.dispatchEv
 function stop(){seq+=1;running=false;pendingRefresh=false;if(timer){clearTimeout(timer);timer=0}}
 function schedule(ms){if(timer){clearTimeout(timer);timer=0}if(!ms||currentView()!=='home'||document.visibilityState!=='visible')return;timer=setTimeout(()=>{timer=0;void refresh()},ms)}
 function delayFor(d){const s=String(d?.state||'');if(s==='calling')return 15000;if(['done','canceled','closed'].includes(s))return 0;if(['hold','processing'].includes(s))return 60000;if(s==='waiting'){const n=Number(d.aheadCount);if(Number.isFinite(n)&&n<=1)return 5000;if(Number.isFinite(n)&&n<=5)return 15000;if(Number.isFinite(n)&&n<=10)return 30000;if(Number.isFinite(n)&&n<=20)return 60000;return 180000}return 30000}
-function cachedReservation(){return readJSON(RES_KEY)||readJSON(CALL_KEY)||null}
+function cachedReservation(){
+ const today=String(window.ASOBOON_V2_OPERATIONAL_DATE||'');
+ if(!today)return null;
+ for(const value of [readJSON(RES_KEY),readJSON(CALL_KEY)]){
+  if(value?.receiptNo&&String(value.businessDate||'')===today)return value;
+ }
+ return null;
+}
+function provisional(cached){
+ return {kind:'pending',receipt:String(cached.receiptNo),source:'local',checkedAt:Date.now()};
+}
+function matchesCurrent(cached,status){
+ return status?.source==='live'&&String(status.receipt||'')===String(cached.receiptNo)&&['waiting','calling','hold','guided','canceled','closed','error'].includes(String(status.kind||''));
+}
 function validSession(cached){const s=readJSON(SESSION_KEY);if(!s?.sessionToken)return null;if(Number(s.expiresAt||0)<=Date.now()+15000)return null;if(cached?.receiptNo&&String(s.receiptNo||'')!==String(cached.receiptNo||''))return null;if(cached?.businessDate&&String(s.businessDate||'')!==String(cached.businessDate||''))return null;return s}
-function validSnapshot(cached){const snap=readJSON(SNAP_KEY);if(!snap?.status||!cached?.receiptNo)return null;if(String(snap.receiptNo||'')!==String(cached.receiptNo||''))return null;if(cached.businessDate&&String(snap.businessDate||'')!==String(cached.businessDate||''))return null;if(Date.now()-Number(snap.savedAt||0)>SNAP_MAX_AGE_MS)return null;return{...snap.status,source:'cache',checkedAt:Number(snap.savedAt||Date.now())}}
-function saveSnapshot(cached,status){if(!cached?.receiptNo||!status||status.kind==='sync')return;const clean={...status,source:'live'};writeJSON(SNAP_KEY,{receiptNo:String(cached.receiptNo),businessDate:String(cached.businessDate||''),savedAt:Number(status.checkedAt||Date.now()),status:clean})}
 async function post(action,body={}){const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),TIMEOUT_MS);try{const r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries({action,...body}).map(([k,v])=>[k,String(v??'')]))});let d=null;try{d=await r.json()}catch{}if(!r.ok)throw Error(String(d?.error||`HTTP ${r.status}`));return d||{}}finally{clearTimeout(t)}}
+async function waitForLiff(){
+ if(window.liff?.isLoggedIn?.()&&String(window.liff.getAccessToken?.()||'').length>=20)return;
+ await Promise.race([
+  new Promise(resolve=>window.addEventListener('asoboon:v2-liff-ready',resolve,{once:true})),
+  new Promise(resolve=>setTimeout(resolve,6500))
+ ]);
+}
 async function recover(cached){if(!window.liff||!liff.isInClient?.()||!liff.isLoggedIn?.())return null;const token=String(liff.getAccessToken?.()||'');if(token.length<20)return null;const d=await post('recoverReservationSession',{liffAccessToken:token,businessDate:String(cached?.businessDate||'')});if(!d?.ok||!d.found)return null;const s={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};if(s.sessionToken.length<32)return null;writeJSON(SESSION_KEY,s);writeJSON(CALL_KEY,{businessDate:s.businessDate,receiptNo:s.receiptNo,waitTypeId:s.waitTypeId,cachedAt:Date.now()});return s}
 function normalize(d,cached){const receipt=String(d?.receiptNo||cached?.receiptNo||'—');const checkedAt=Number(d?.checkedAt||Date.now());if(!d?.found)return{kind:'sync',receipt,message:'受付状況を照合しています',checkedAt,source:'live'};const s=String(d.state||'');if(s==='waiting'){const ahead=Number(d.aheadCount);return{kind:'waiting',receipt,ahead:Number.isFinite(ahead)?ahead:null,checkedAt,source:'live'}}if(s==='calling')return{kind:'calling',receipt,checkedAt,source:'live'};if(s==='hold')return{kind:'hold',receipt,checkedAt,source:'live'};if(['processing','done'].includes(s))return{kind:'guided',receipt,checkedAt,source:'live'};if(s==='canceled')return{kind:'canceled',receipt,canceled:true,checkedAt,source:'live'};if(s==='closed')return{kind:'closed',receipt,checkedAt,source:'live'};return{kind:'sync',receipt,message:'受付状況を確認しています',checkedAt,source:'live'}}
-async function refresh(){if(currentView()!=='home')return;if(running){pendingRefresh=true;return}running=true;pendingRefresh=false;const my=++seq;try{const cached=cachedReservation();if(!cached?.receiptNo){removeKey(SNAP_KEY);emit({kind:'none',source:'live',checkedAt:Date.now()});return}const snap=validSnapshot(cached);if(snap)emit(snap);else if(!window.ASOBOON_HOME_STATUS_SNAPSHOT)emit({kind:'sync',receipt:String(cached.receiptNo),message:'読み込み中',source:'live',checkedAt:Date.now()});let session=validSession(cached);if(!session){removeKey(SESSION_KEY);session=await recover(cached)}if(my!==seq||currentView()!=='home')return;if(!session){if(!snap)emit({kind:'error',receipt:String(cached.receiptNo),message:'受付状況を取得できません',source:'live',checkedAt:Date.now()});schedule(30000);return}let d;try{d=await post('reservationStatus',{sessionToken:session.sessionToken})}catch(e){if(/SESSION/i.test(String(e?.message||''))){removeKey(SESSION_KEY);session=await recover(cached);if(session)d=await post('reservationStatus',{sessionToken:session.sessionToken});else throw e}else throw e}if(my!==seq||currentView()!=='home')return;const n=normalize(d,cached);emit(n);saveSnapshot(cached,n);schedule(delayFor(d))}catch{if(my===seq&&currentView()==='home'){const cached=cachedReservation(),snap=validSnapshot(cached);if(snap)emit(snap);else emit({kind:'error',receipt:String(cached?.receiptNo||'—'),message:'受付状況を取得できません',source:'live',checkedAt:Date.now()});schedule(30000)}}finally{if(my===seq){running=false;if(pendingRefresh&&currentView()==='home'){pendingRefresh=false;queueMicrotask(()=>void refresh())}}}}
-function prime(){const cached=cachedReservation();if(!cached?.receiptNo){window.ASOBOON_HOME_STATUS_SNAPSHOT={kind:'none',source:'live',checkedAt:Date.now()};return}const snap=validSnapshot(cached);if(snap)window.ASOBOON_HOME_STATUS_SNAPSHOT=snap}
+async function refresh(){
+ if(currentView()!=='home')return;
+ if(running){pendingRefresh=true;return}
+ running=true;pendingRefresh=false;const my=++seq;
+ try{
+  const cached=cachedReservation();
+  if(!cached?.receiptNo){
+   removeKey(SNAP_KEY);
+   emit({kind:'none',source:'live',checkedAt:Date.now()});
+   return;
+  }
+  // Never present a saved call state as current. A known receipt is enough
+  // while the backend verifies whether the visitor is waiting, called, etc.
+  if(!matchesCurrent(cached,window.ASOBOON_HOME_STATUS_SNAPSHOT))emit(provisional(cached));
+  let session=validSession(cached);
+  if(!session){removeKey(SESSION_KEY);await waitForLiff();if(my!==seq||currentView()!=='home')return;session=await recover(cached)}
+  if(my!==seq||currentView()!=='home')return;
+  if(!session){
+   emit({kind:'error',receipt:String(cached.receiptNo),source:'live',checkedAt:Date.now()});
+   schedule(30000);return;
+  }
+  let d;
+  try{d=await post('reservationStatus',{sessionToken:session.sessionToken})}
+  catch(e){
+   if(/SESSION/i.test(String(e?.message||''))){
+    removeKey(SESSION_KEY);
+    session=await recover(cached);
+    if(session)d=await post('reservationStatus',{sessionToken:session.sessionToken});
+    else throw e;
+   }else throw e;
+  }
+  if(my!==seq||currentView()!=='home')return;
+  // Ignore delayed replies for a receipt that was replaced meanwhile.
+  const current=cachedReservation();
+  if(!current?.receiptNo||String(current.receiptNo)!==String(cached.receiptNo)){
+   pendingRefresh=true;return;
+  }
+  const n=normalize(d,cached);
+  emit(n);
+  schedule(delayFor(d));
+ }catch{
+  if(my===seq&&currentView()==='home'){
+   const cached=cachedReservation();
+   if(cached?.receiptNo)emit({kind:'error',receipt:String(cached.receiptNo),source:'live',checkedAt:Date.now()});
+   else emit({kind:'none',source:'live',checkedAt:Date.now()});
+   schedule(30000);
+  }
+ }finally{
+  if(my===seq){
+   running=false;
+   if(pendingRefresh&&currentView()==='home'){
+    pendingRefresh=false;
+    queueMicrotask(()=>void refresh());
+   }
+  }
+ }
+}
+function prime(){
+ const cached=cachedReservation();
+ if(!cached?.receiptNo){
+  window.ASOBOON_HOME_STATUS_SNAPSHOT={kind:'none',source:'live',checkedAt:Date.now()};
+  return;
+ }
+ if(matchesCurrent(cached,window.ASOBOON_HOME_STATUS_SNAPSHOT))return;
+ window.ASOBOON_HOME_STATUS_SNAPSHOT=provisional(cached);
+}
 function start(){stop();prime();if(currentView()==='home')setTimeout(()=>void refresh(),0)}
 prime();
 window.addEventListener('popstate',()=>setTimeout(start,0));
@@ -797,10 +884,10 @@ function sameLiveStatus(rec,status){
 function provisional(rec,force=false){
   if(!rec?.receiptNo)return null;
   const current=window.ASOBOON_HOME_STATUS_SNAPSHOT||null;
-  if(!force&&sameLiveStatus(rec,current))return current;
+  if(!force&&(sameLiveStatus(rec,current)||(current?.kind==='pending'&&String(current.receipt||'')===String(rec.receiptNo))))return current;
   const stored=read(SNAP_KEY);
   if(stored?.receiptNo&&String(stored.receiptNo)!==String(rec.receiptNo))remove(SNAP_KEY);
-  const status={kind:'sync',receipt:String(rec.receiptNo),message:'受付は完了しています。最新の順番を確認しています…',source:'local',checkedAt:Date.now()};
+  const status={kind:'pending',receipt:String(rec.receiptNo),source:'local',checkedAt:Date.now()};
   window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
   return status;
