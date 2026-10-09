@@ -628,6 +628,7 @@ async function fetchCrowd(force=false){if(crowdLoading)return;if(!force&&crowdSl
 async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||'')))await fetchCrowd(force);else{crowdSlots=null;crowdError='';crowdAt=0}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};if(currentView()==='home'){lastHero='';mount()}});window.addEventListener('asoboon:v2-timeguide-updated',()=>{if(currentView()==='home')patchTimeguideShortcut()});window.addEventListener('asoboon:v2-route-rendered',()=>{lastHero='';mount()});window.addEventListener('focus',()=>{if(currentView()==='home')void refreshDay(false)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentView()==='home')void refreshDay(false)});mount();void refreshDay(false);
 })();
+
 ;/* miniapp-v2/production/surprise-vote-home-v1.js */
 (()=>{'use strict';
 const root=document.getElementById('app');
