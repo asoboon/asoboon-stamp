@@ -209,11 +209,11 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
     assert.match(js, /ASOBOON_ASOQUEST_HANDOFF/);
     const html = read(`miniapp-v2/${env}/index.html`);
     const iCharset = html.search(/<meta charset/i), iDl = html.indexOf('asoquest-deeplink.js');
-    const iCss = html.indexOf('<link rel="stylesheet"'), iSdk = html.indexOf('liff/edge/2/sdk.js'), iEnv = html.indexOf('./env.js'), iApp = html.indexOf('app-stable-v36.js');
+    const iCss = html.indexOf('<link rel="stylesheet"'), iSdk = html.indexOf('liff/edge/2/sdk.js'), iEnv = html.indexOf('./env.js'), iApp = html.indexOf(env === 'production' ? 'production-app.js' : 'app-stable-v36.js');
     assert.ok(iCharset >= 0 && iDl > iCharset, `${env}: after charset`);
     assert.ok(iDl < iCss && iDl < iSdk && iDl < iEnv && iDl < iApp, `${env}: deeplink script order`);
     assert.ok(html.indexOf('</head>') > iDl, `${env}: in <head>`);
-    assert.match(html, /app-stable-v36\.js\?v=(?:20261006-03|20261007-02)/);
+    assert.match(html, env === 'production' ? /production-app\.js\?v=[a-f0-9]{12}/ : /app-stable-v36\.js\?v=(?:20261006-03|20261007-02)/);
     assert.match(html, /asoquest-deeplink\.js\?v=20261006-02/);
   }
 });
@@ -221,7 +221,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
 test('ASOQUEST save() cannot block the UI when storage fails (try/catch around setItem)', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   assert.match(js, /try\{\s*localStorage\.setItem\(storageKey\(\)/);
-  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=17/);
+  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=21/);
 });
 
 test('LIFF ids are not mixed between environments', () => {
@@ -267,12 +267,12 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="ignitionSequence"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=12/);
-  assert.match(html, /app\.js\?v=17/);
+  assert.match(html, /style\.css\?v=17/);
+  assert.match(html, /app\.js\?v=21/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
   assert.match(js, /phase-ignite/);
   assert.match(js, /phase-final/);
-  assert.match(css, /v12 ENGINE START cinematic finale/);
-  assert.match(css, /ignitionCarReveal/);
+  assert.match(css, /v14 approved FX pack final art direction/);
+  assert.match(css, /engine-start-scene/);
 });

@@ -8,6 +8,17 @@
   <meta http-equiv="Expires" content="0" />
 
   <title>ASOBooN スタンプラリー</title>
+  <script>
+    // Retired four-spot page: hand old QR links to the official six-part rally before LIFF starts.
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const target = new URL("./miniapp-v2/production/asoquest/", location.href);
+      if (params.has("spot") || /spot_0[1-4]/.test(params.get("liff.state") || "")) {
+        target.searchParams.set("legacy", "spot");
+      }
+      location.replace(target.href);
+    })();
+  </script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
