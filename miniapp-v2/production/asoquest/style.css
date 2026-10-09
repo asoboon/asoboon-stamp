@@ -997,3 +997,93 @@ body.mission-complete .car-stage #keyFx.persistent-fx.on{
 }
 @keyframes finaleFlashVeil{0%{opacity:0}22%{opacity:.85}100%{opacity:0}}
 @keyframes finaleFlashAsset{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+
+/* v17 result staff handoff */
+.ignition-final .result-kicker{
+  display:block;
+  margin-bottom:4px;
+  color:#f3c85a;
+  font-size:9px;
+  font-weight:1000;
+  letter-spacing:.22em;
+  text-indent:.22em;
+}
+.ignition-final .result-machine{
+  margin:0;
+  font-size:14px;
+  font-weight:1000;
+  color:#edf3f6;
+}
+.result-staff-card{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  width:min(100%,360px);
+  margin:14px auto 0;
+  padding:13px 14px;
+  border:1px solid rgba(255,225,140,.82);
+  border-radius:17px;
+  background:
+    linear-gradient(135deg,rgba(255,220,110,.18),rgba(255,174,45,.10)),
+    rgba(9,14,18,.88);
+  box-shadow:
+    0 0 0 1px rgba(255,193,55,.12) inset,
+    0 10px 30px rgba(0,0,0,.26),
+    0 0 22px rgba(255,190,55,.16);
+  text-align:left;
+}
+.result-staff-icon{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:linear-gradient(#ffe883,#f1b637);
+  color:#20170a;
+  font-size:21px;
+  font-weight:1000;
+  box-shadow:0 0 18px rgba(255,199,70,.34);
+}
+.result-staff-card div{min-width:0}
+.result-staff-card strong{
+  display:block;
+  color:#fff4c6;
+  font-size:clamp(18px,5.5vw,23px);
+  line-height:1.05;
+  font-weight:1000;
+  letter-spacing:-.03em;
+}
+.result-staff-card em{
+  display:block;
+  margin-top:5px;
+  color:#cbd6dc;
+  font-size:10px;
+  font-style:normal;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.ignition-sequence.phase-final .result-staff-card{
+  animation:staffCardReveal .5s cubic-bezier(.16,.84,.22,1) .28s both;
+}
+@keyframes staffCardReveal{
+  0%{opacity:0;transform:translateY(8px) scale(.97)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(max-width:390px){
+  .result-staff-card{margin-top:11px;padding:11px 12px}
+  .result-staff-icon{width:36px;height:36px;font-size:19px}
+  .result-staff-card strong{font-size:18px}
+  .result-staff-card em{font-size:9px}
+  .ignition-final button{margin-top:10px}
+}
+@media(max-height:730px){
+  .result-staff-card{margin-top:8px;padding:9px 11px}
+  .result-staff-icon{width:34px;height:34px}
+  .result-staff-card strong{font-size:17px}
+  .result-staff-card em{margin-top:3px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ignition-sequence.phase-final .result-staff-card{animation:none!important}
+}
