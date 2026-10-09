@@ -4,16 +4,17 @@ import fs from 'node:fs';
 
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('official customer HOME boots Production on the unchanged certified endpoint',()=>{
+test('official customer HOME boots only Production on its certified LIFF endpoint',()=>{
   const s=read('home.html');
-  assert.match(s,/ASOBooN 冒険基地ナビ/);
-  assert.match(s,/\.\/home-core\.html/);
-  assert.match(s,/airwait\.jp\/WCSP\/storeDetail\?storeNo=AKR2298124918/);
+  assert.match(s,/<title>ASOBooN｜公式LINEミニアプリ<\/title>/);
+  assert.match(s,/asoquest-deeplink\.js/);
   assert.match(s,/production_preview/);
   assert.match(s,/const PRODUCTION_HOME_LIVE=true/);
   assert.match(s,/ASOBOON_PRODUCTION_SHELL=PRODUCTION_HOME_LIVE\|\|preview/);
   assert.match(s,/production-shell-loader\.js/);
   assert.match(s,/preview=direct\.get\('production_preview'\)==='1'\|\|state\.get\('production_preview'\)==='1'/);
+  assert.doesNotMatch(s,/<iframe|\.\/home-core\.html|\.\/app\/core\/|setInterval\(/);
+  assert.match(read('miniapp-v2/production/env-facility.js'),/airwait\.jp\/WCSP\/storeDetail\?storeNo=AKR2298124918/);
 });
 
 test('certified rollback snapshot preserves ASOQUEST bridge and legacy customer HOME',()=>{

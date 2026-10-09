@@ -238,15 +238,14 @@ test('station_urls.csv (NFC) and station_urls_qr.csv are the 7 aq-form URLs', ()
 });
 
 
-test('Production facility home.html wires ASOQUEST bridge before legacy HOME', () => {
+test('Production facility home.html runs ASOQUEST bridge before its sole Production app entry', () => {
   const html = read('home.html');
   const iCharset = html.search(/<meta charset/i);
   const iBridge = html.indexOf('miniapp-v2/shared/asoquest-deeplink.js?v=20261006-03');
-  const iLegacyConfig = html.indexOf('./app/core/app-config.js');
-  const iFrame = html.indexOf('<iframe id="miniappCore"');
+  const iLoader = html.indexOf('production-shell-loader.js');
   assert.ok(iCharset >= 0 && iBridge > iCharset, 'bridge must be after charset');
-  assert.ok(iBridge < iLegacyConfig, 'bridge must run before legacy HOME config');
-  assert.ok(iBridge < iFrame, 'bridge must run before legacy HOME iframe');
+  assert.ok(iBridge < iLoader, 'bridge must run before Production HOME');
+  assert.doesNotMatch(html,/<iframe|\.\/home-core\.html|\.\/app\/core\//);
 });
 
 test('ASOQUEST field URL packs use official Production facility LIFF 2009884613-ELc6kolf', () => {

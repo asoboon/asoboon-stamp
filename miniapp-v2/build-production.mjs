@@ -79,7 +79,7 @@ if(window.ASOBOON_PRODUCTION_SHELL!==true||window.ASOBOON_ASOQUEST_HANDOFF)retur
 const root=document.getElementById('app');if(!root)return;
 document.body.dataset.asoboonApp='miniapp-v2';document.body.dataset.environment='production';
 root.style.display='block';
-root.innerHTML='<div role="status" style="padding:24px;text-align:center;font-family:system-ui,sans-serif;color:#344">ASOBooNを読み込み中…</div>';
+if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=${hash(css)}';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
 const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}'];
