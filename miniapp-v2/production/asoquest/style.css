@@ -111,3 +111,988 @@ linear-gradient(180deg,#081018 0%,#121b22 57%,#05080a 100%)}
 .ignition-sequence.phase-final .ignition-car-hero{opacity:.42;transform:translate(-50%,-50%) scale(1.06);filter:drop-shadow(0 0 42px rgba(255,196,65,.36)) brightness(.78);transition:opacity .35s ease,transform .6s ease,filter .45s ease}
 @keyframes ignitionCarReveal{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:brightness(3) blur(5px)}24%{opacity:1;filter:brightness(1.8) blur(0)}62%{transform:translate(-50%,-50%) scale(1.05)}100%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:drop-shadow(0 24px 24px rgba(0,0,0,.45)) brightness(1.06)}}
 @keyframes ignitionCarIdle{0%,100%{transform:translate(-50%,-50%) translateX(0) scale(1)}25%{transform:translate(-50%,-50%) translateX(-1.5px) scale(1)}75%{transform:translate(-50%,-50%) translateX(1.5px) scale(1)}}
+
+
+/* v13 tachometer / afterfire review candidate */
+.ignition-sequence{
+  background:#070c11;
+  isolation:isolate;
+}
+.ignition-garage{
+  position:absolute;z-index:0;inset:0;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 19%,rgba(255,218,139,.18),transparent 21%),
+    radial-gradient(circle at 12% 28%,rgba(74,171,230,.10),transparent 24%),
+    linear-gradient(180deg,#182630 0 54%,#111b22 54% 61%,#080d11 61% 100%);
+}
+.ignition-garage:before{
+  content:"";position:absolute;inset:0 0 39%;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 16%,rgba(255,255,255,.035) 16.2% 16.5%),
+    linear-gradient(90deg,rgba(0,0,0,.20),transparent 20% 80%,rgba(0,0,0,.20));
+  box-shadow:inset 0 -1px rgba(255,230,165,.10);
+}
+.ignition-garage:after{
+  content:"";position:absolute;left:-18%;right:-18%;bottom:-31%;height:72%;
+  transform:perspective(500px) rotateX(61deg);
+  transform-origin:50% 0;
+  background:
+    linear-gradient(90deg,transparent 49.6%,rgba(255,211,109,.13) 49.8% 50.2%,transparent 50.4%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 72px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 48px);
+  opacity:.72;
+}
+.garage-lamp{
+  position:absolute;top:-5px;width:5px;height:41px;background:#0a0e12;
+}
+.garage-lamp:after{
+  content:"";position:absolute;left:50%;top:34px;width:64px;height:14px;
+  transform:translateX(-50%);border-radius:50%;
+  background:#fff0bc;
+  box-shadow:0 0 18px 7px rgba(255,218,117,.78),0 0 76px 31px rgba(255,182,57,.16);
+}
+.garage-lamp--left{left:18%}.garage-lamp--center{left:50%;top:-12px}.garage-lamp--right{right:17%}
+.garage-floor{position:absolute;left:8%;right:8%;bottom:8%;height:16%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,204,97,.09),rgba(0,0,0,.22) 53%,transparent 72%);filter:blur(7px)}
+
+.tachometer{
+  position:absolute;z-index:5;left:50%;top:31%;width:min(47vw,210px);aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  opacity:.95;transition:opacity .25s ease,transform .4s cubic-bezier(.2,.7,.2,1);
+}
+.tachometer-dial{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,#111a21 0 48%,transparent 49%),
+    conic-gradient(from 220deg,
+      rgba(255,220,121,.72) 0 2deg,transparent 2deg 13deg,
+      rgba(255,220,121,.58) 13deg 15deg,transparent 15deg 26deg,
+      rgba(255,220,121,.58) 26deg 28deg,transparent 28deg 39deg,
+      rgba(255,220,121,.58) 39deg 41deg,transparent 41deg 52deg,
+      rgba(255,220,121,.58) 52deg 54deg,transparent 54deg 65deg,
+      rgba(255,220,121,.58) 65deg 67deg,transparent 67deg 78deg,
+      rgba(255,220,121,.58) 78deg 80deg,transparent 80deg 91deg,
+      rgba(255,220,121,.58) 91deg 93deg,transparent 93deg 104deg,
+      #ff6a3b 104deg 108deg,transparent 108deg 244deg);
+  border:1px solid rgba(255,224,157,.34);
+  box-shadow:inset 0 0 0 7px rgba(255,255,255,.025),inset 0 0 32px rgba(255,192,62,.08),0 0 31px rgba(255,187,54,.12);
+}
+.tachometer-dial:before{
+  content:"0   1   2   3   4   5   6   7   8";
+  position:absolute;left:13%;right:13%;top:25%;font-size:8px;font-weight:900;
+  letter-spacing:.14em;color:#bec9d1;white-space:pre-wrap;text-align:center;opacity:.68;
+}
+.tachometer-redzone{
+  position:absolute;z-index:2;inset:8%;border-radius:50%;
+  background:conic-gradient(from 220deg,transparent 0 103deg,rgba(255,70,33,.42) 103deg 125deg,transparent 125deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 68%,#000 69% 76%,transparent 77%);
+  mask:radial-gradient(circle,transparent 0 68%,#000 69% 76%,transparent 77%);
+}
+.tachometer-needle{
+  position:absolute;z-index:4;left:50%;top:20%;width:3px;height:31%;
+  border-radius:3px;background:linear-gradient(#ffefad,#ffb52e);
+  box-shadow:0 0 8px rgba(255,186,49,.72);
+  transform-origin:50% 100%;transform:translateX(-50%) rotate(-112deg);
+  transition:transform .72s cubic-bezier(.16,.82,.18,1.06);
+}
+.tachometer-hub{position:absolute;z-index:5;left:50%;top:50%;width:13px;height:13px;border-radius:50%;transform:translate(-50%,-50%);background:#ffcf59;box-shadow:0 0 12px rgba(255,200,71,.62)}
+.tachometer-label{position:absolute;left:0;right:0;top:62%;text-align:center;font-size:7px;font-weight:1000;letter-spacing:.16em;color:#8998a4}
+.tachometer strong{position:absolute;left:0;right:0;top:69%;text-align:center;font-size:20px;color:#fff1b9;font-variant-numeric:tabular-nums;text-shadow:0 0 13px rgba(255,201,72,.35)}
+
+.ignition-copy{
+  position:absolute;z-index:9;top:max(8%,calc(env(safe-area-inset-top) + 10px));left:50%;
+  width:min(88vw,430px);transform:translateX(-50%);text-align:center;
+}
+.ignition-copy small{font-size:9px;letter-spacing:.35em}
+.ignition-copy h2{margin:5px 0 0;font-size:clamp(31px,9.8vw,52px);line-height:.94}
+.ignition-copy p{margin-top:6px;font-size:12px;color:#c7d0d7}
+
+.ignition-car-hero{
+  z-index:7;left:49%;top:63%;width:min(94vw,690px);
+  transform:translate(-50%,-50%) scale(.90);opacity:.94;
+  filter:drop-shadow(0 26px 25px rgba(0,0,0,.54));
+  transition:opacity .35s ease,transform .55s cubic-bezier(.16,.78,.2,1),filter .35s ease;
+}
+.ignition-car-hero .persistent-fx{opacity:.10!important;transition:opacity .35s ease,filter .35s ease}
+.ignition-car-hero .complete-layer{opacity:0!important;transition:opacity .45s ease,filter .45s ease}
+.hero-runtime-fx{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.hero-headlight-beam{
+  position:absolute;z-index:8;left:-20%;top:39%;width:34%;height:26%;
+  transform-origin:100% 50%;transform:skewX(-10deg) scaleX(.7);
+  background:linear-gradient(90deg,transparent,rgba(255,245,202,.08) 25%,rgba(255,246,204,.44) 100%);
+  clip-path:polygon(0 10%,100% 42%,100% 58%,0 90%);
+  filter:blur(3px);opacity:0;
+}
+.hero-headlight-core{
+  position:absolute;z-index:9;left:8.2%;top:47.5%;width:5.4%;height:10%;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0 21%,#ffe59a 22% 43%,rgba(255,200,72,.15) 70%,transparent 72%);
+  box-shadow:0 0 16px rgba(255,231,151,.92),0 0 42px rgba(255,192,62,.58);
+  opacity:0;
+}
+.hero-afterfire{
+  position:absolute;z-index:10;left:93.5%;top:60%;width:18%;height:13%;
+  transform-origin:0 50%;opacity:0;
+  clip-path:polygon(0 36%,26% 13%,100% 50%,27% 88%,0 64%);
+}
+.hero-afterfire--blue{background:linear-gradient(90deg,#f5ffff 0 8%,#8eefff 20%,#34a9ff 52%,rgba(35,106,255,.06) 100%);filter:drop-shadow(0 0 8px rgba(63,196,255,.82))}
+.hero-afterfire--orange{top:57.5%;width:13%;height:18%;background:linear-gradient(90deg,#fff3b0 0 7%,#ffc54b 25%,#ff7a23 58%,rgba(255,69,18,.02) 100%);filter:drop-shadow(0 0 9px rgba(255,125,32,.72))}
+.hero-floor-glow{
+  position:absolute;z-index:-1;left:15%;right:5%;bottom:-6%;height:34%;
+  border-radius:50%;background:radial-gradient(ellipse,rgba(255,205,91,.36),rgba(255,170,43,.09) 46%,transparent 72%);
+  filter:blur(7px);opacity:0;
+}
+
+.ignition-sequence.phase-2 .tachometer-needle{transform:translateX(-50%) rotate(-77deg)}
+.ignition-sequence.phase-2 .tachometer{transform:translate(-50%,-50%) scale(1.03)}
+.ignition-sequence.phase-1 .tachometer-needle{transform:translateX(-50%) rotate(76deg)}
+.ignition-sequence.phase-1 .tachometer-dial{box-shadow:inset 0 0 0 7px rgba(255,255,255,.025),inset 0 0 35px rgba(255,104,46,.12),0 0 38px rgba(255,130,47,.20)}
+.ignition-sequence.phase-1 .ignition-car-hero .persistent-fx{opacity:.42!important;filter:brightness(1.35) saturate(1.12)}
+.ignition-sequence.phase-ignite .tachometer-needle{transform:translateX(-50%) rotate(101deg)}
+.ignition-sequence.phase-ignite .hero-headlight-beam{animation:headlightBeamOn .62s ease-out forwards}
+.ignition-sequence.phase-ignite .hero-headlight-core{animation:headlightCoreOn .55s ease-out forwards}
+.ignition-sequence.phase-ignite .hero-floor-glow{opacity:.55;transition:opacity .4s ease}
+.ignition-sequence.phase-ignite .ignition-flare{animation:ignitionFlash .55s ease-out}
+.ignition-sequence.phase-run .tachometer-needle{animation:tachoRevBounce .42s ease-in-out 2 alternate}
+.ignition-sequence.phase-run .hero-headlight-beam,.ignition-sequence.phase-run .hero-headlight-core{opacity:1}
+.ignition-sequence.phase-run .hero-afterfire--blue{animation:afterfireBlue .34s cubic-bezier(.12,.8,.2,1) 2}
+.ignition-sequence.phase-run .hero-afterfire--orange{animation:afterfireOrange .30s cubic-bezier(.12,.8,.2,1) .12s 2}
+.ignition-sequence.phase-run .hero-floor-glow{opacity:.72}
+.ignition-sequence.phase-run .ignition-car-hero{animation:ignitionCarIdle .16s linear 6}
+.ignition-sequence.phase-final .tachometer-needle{transform:translateX(-50%) rotate(-82deg);transition-duration:.8s}
+.ignition-sequence.phase-final .tachometer{opacity:.22;transform:translate(-50%,-50%) scale(.92)}
+.ignition-sequence.phase-final .ignition-car-hero{
+  opacity:.48;transform:translate(-50%,-50%) scale(1.035);
+  filter:drop-shadow(0 0 43px rgba(255,194,61,.37)) brightness(.87);
+}
+.ignition-sequence.phase-final .ignition-car-hero .complete-layer{opacity:.78!important;filter:brightness(1.2)}
+.ignition-sequence.phase-final .hero-headlight-beam,.ignition-sequence.phase-final .hero-headlight-core{opacity:.72}
+.ignition-sequence.phase-final .hero-floor-glow{opacity:.9}
+.ignition-sequence.phase-final .ignition-final{z-index:12}
+
+@keyframes headlightBeamOn{
+  0%{opacity:0;transform:skewX(-10deg) scaleX(.2)}
+  24%{opacity:1}
+  100%{opacity:.92;transform:skewX(-10deg) scaleX(1)}
+}
+@keyframes headlightCoreOn{0%{opacity:0;transform:scale(.5)}42%{opacity:1;transform:scale(1.3)}100%{opacity:1;transform:scale(1)}}
+@keyframes afterfireBlue{0%,100%{opacity:0;transform:scaleX(.12)}18%{opacity:1}56%{opacity:.95;transform:scaleX(1.05)}}
+@keyframes afterfireOrange{0%,100%{opacity:0;transform:scaleX(.10)}24%{opacity:.96}60%{opacity:.82;transform:scaleX(.92)}}
+@keyframes tachoRevBounce{0%{transform:translateX(-50%) rotate(72deg)}100%{transform:translateX(-50%) rotate(101deg)}}
+
+@media(max-width:390px){
+  .tachometer{top:31%;width:46vw}
+  .ignition-car-hero{top:64%;width:97vw}
+  .ignition-copy h2{font-size:32px}
+  .ignition-copy p{font-size:11px}
+}
+@media(max-height:730px){
+  .tachometer{top:30%;width:min(42vw,175px)}
+  .ignition-car-hero{top:64%;width:min(88vw,620px)}
+  .ignition-final{top:48%}
+}
+@media(prefers-reduced-motion:reduce){
+  .tachometer-needle,.tachometer,.ignition-car-hero,.hero-headlight-beam,.hero-headlight-core,.hero-afterfire,.hero-floor-glow{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+
+
+/* v13.1 final visual-QA tuning: let headlights/afterfire read clearly */
+.ignition-sequence.phase-ignite .ignition-speedlines{
+  animation:none!important;
+  opacity:.07!important;
+  transform:scale(.96)!important;
+}
+.hero-afterfire{
+  mix-blend-mode:screen;
+  filter:saturate(1.12);
+}
+.hero-afterfire--blue{
+  left:88.5%;top:56.5%;width:28%;height:18%;
+  filter:drop-shadow(0 0 10px rgba(63,196,255,.96)) drop-shadow(0 0 20px rgba(40,120,255,.42));
+}
+.hero-afterfire--orange{
+  left:90.5%;top:57.5%;width:22%;height:19%;
+  filter:drop-shadow(0 0 10px rgba(255,125,32,.90)) drop-shadow(0 0 18px rgba(255,72,18,.32));
+}
+.ignition-sequence.phase-run .hero-afterfire--blue{
+  animation:afterfireBlueFinal .38s cubic-bezier(.12,.8,.2,1) 2;
+}
+.ignition-sequence.phase-run .hero-afterfire--orange{
+  animation:afterfireOrangeFinal .34s cubic-bezier(.12,.8,.2,1) .10s 2;
+}
+@keyframes afterfireBlueFinal{
+  0%,100%{opacity:0;transform:scaleX(.08) scaleY(.72)}
+  16%{opacity:1}
+  48%{opacity:1;transform:scaleX(1.08) scaleY(1.06)}
+  72%{opacity:.66;transform:scaleX(.78) scaleY(.88)}
+}
+@keyframes afterfireOrangeFinal{
+  0%,100%{opacity:0;transform:scaleX(.06) scaleY(.68)}
+  18%{opacity:.96}
+  52%{opacity:.94;transform:scaleX(1.02) scaleY(1.04)}
+  74%{opacity:.56;transform:scaleX(.72) scaleY(.86)}
+}
+
+
+/* v13.2 keep phase copy centered inside the mobile safe area */
+.ignition-sequence.phase-ignite .ignition-copy{
+  transform:translateX(-50%);
+  animation:copyPunchCentered .55s cubic-bezier(.12,.72,.2,1.2);
+}
+.ignition-sequence.phase-run .ignition-copy{
+  transform:translateX(-50%);
+  animation:engineRunCentered .22s linear 4;
+}
+@keyframes copyPunchCentered{
+  0%{transform:translateX(-50%) scale(.82)}
+  52%{transform:translateX(-50%) scale(1.06)}
+  100%{transform:translateX(-50%) scale(1)}
+}
+@keyframes engineRunCentered{
+  0%,100%{transform:translateX(-50%)}
+  25%{transform:translateX(calc(-50% - 2px))}
+  75%{transform:translateX(calc(-50% + 2px))}
+}
+
+
+/* v14 approved FX pack final art direction */
+.brand small{letter-spacing:.22em}
+.brand h1{font-size:clamp(30px,9vw,40px);letter-spacing:-.045em}
+
+.car-stage{
+  overflow:hidden;
+  border-radius:18px;
+  background:
+    linear-gradient(rgba(8,13,17,.04),rgba(8,13,17,.10)),
+    url("./assets/engine-start-fx/garage_base.webp?v=1") center/cover no-repeat;
+  box-shadow:inset 0 0 0 1px rgba(255,225,157,.10);
+}
+.car-stage:after{z-index:0}
+.car-stage .car-layers{z-index:2}
+.car-stage .asset-waiting{z-index:3}
+.car-stage .car-pulse{z-index:4}
+
+/* 6/6 stays restrained. Completion glow belongs to the actual finish, not unlock. */
+body:not(.mission-complete) .car-stage .complete-layer{
+  opacity:0!important;
+  animation:none!important;
+}
+body.mission-complete .car-stage .complete-layer.on{
+  opacity:.20;
+  animation:completePulse 3.2s ease-in-out infinite;
+}
+
+/* Full-canvas approved art stack. Every asset is 1200x367 and shares one origin. */
+.ignition-sequence{
+  background:#05080b;
+}
+.ignition-speedlines{
+  opacity:0!important;
+  animation:none!important;
+}
+.engine-start-scene{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:57%;
+  width:min(120vw,980px);
+  aspect-ratio:1200/367;
+  transform:translate(-50%,-50%);
+  overflow:visible;
+  isolation:isolate;
+  filter:drop-shadow(0 24px 34px rgba(0,0,0,.50));
+  transition:
+    width .55s cubic-bezier(.16,.78,.2,1),
+    top .55s cubic-bezier(.16,.78,.2,1),
+    filter .35s ease;
+}
+.engine-scene-bg,
+.engine-scene-layer,
+.engine-start-scene .ignition-car-hero{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+.engine-scene-layer{
+  object-fit:contain;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.engine-scene-bg{
+  z-index:0;
+  overflow:hidden;
+}
+.engine-scene-bg .engine-scene-layer{object-fit:cover}
+.engine-scene-bg .bg-base{opacity:1}
+.engine-scene-bg .bg-ignition,
+.engine-scene-bg .bg-complete{
+  opacity:0;
+  transition:opacity .38s ease;
+}
+
+.engine-start-scene .complete-aura{z-index:1;opacity:0}
+.engine-start-scene .floor-reflection{z-index:2;opacity:0}
+.engine-start-scene .ignition-car-hero{
+  z-index:3;
+  left:0!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  width:100%!important;
+  height:100%!important;
+  transform:none!important;
+  opacity:1!important;
+  filter:none!important;
+  animation:none!important;
+  aspect-ratio:auto;
+}
+.engine-start-scene .ignition-car-hero .car-layers{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  filter:drop-shadow(0 15px 17px rgba(0,0,0,.34));
+  transform:none!important;
+  animation:none!important;
+}
+.engine-start-scene .ignition-car-hero .layer{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.engine-start-scene .ignition-car-hero .part-layer{
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+}
+.engine-start-scene .ignition-car-hero .persistent-fx{
+  opacity:.08!important;
+  transform:none!important;
+  filter:none!important;
+  mix-blend-mode:screen;
+}
+.engine-start-scene .ignition-car-hero .complete-layer{
+  opacity:0!important;
+  transform:none!important;
+  animation:none!important;
+}
+
+.engine-start-scene .fx{
+  z-index:5;
+  opacity:0;
+  mix-blend-mode:screen;
+  transition:opacity .24s ease;
+}
+.engine-start-scene .headlight{z-index:6}
+.engine-start-scene .afterfire,
+.engine-start-scene .exhaust-glow{z-index:7}
+.engine-start-scene .ignition-flash-asset,
+.engine-start-scene .spark-burst-asset{z-index:8}
+
+/* The tachometer owns the opening beat, then gets out of the car's way. */
+.engine-start-scene .tachometer{
+  position:absolute;
+  z-index:10;
+  left:50%;
+  top:-118%;
+  width:min(58vw,250px);
+  aspect-ratio:1;
+  transform:translateX(-50%) scale(.88);
+  opacity:0;
+  transition:opacity .22s ease,transform .38s cubic-bezier(.16,.82,.18,1.04);
+}
+.engine-start-scene .tachometer-dial{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,#10181e 0 48%,transparent 49%),
+    conic-gradient(from 220deg,
+      rgba(255,222,132,.76) 0 2deg,transparent 2deg 13deg,
+      rgba(255,222,132,.58) 13deg 15deg,transparent 15deg 26deg,
+      rgba(255,222,132,.58) 26deg 28deg,transparent 28deg 39deg,
+      rgba(255,222,132,.58) 39deg 41deg,transparent 41deg 52deg,
+      rgba(255,222,132,.58) 52deg 54deg,transparent 54deg 65deg,
+      rgba(255,222,132,.58) 65deg 67deg,transparent 67deg 78deg,
+      rgba(255,222,132,.58) 78deg 80deg,transparent 80deg 91deg,
+      rgba(255,222,132,.58) 91deg 93deg,transparent 93deg 104deg,
+      #ff6536 104deg 126deg,transparent 126deg 244deg);
+  border:1px solid rgba(255,226,164,.40);
+  box-shadow:
+    inset 0 0 0 8px rgba(255,255,255,.024),
+    inset 0 0 36px rgba(255,189,55,.08),
+    0 0 42px rgba(255,184,49,.18),
+    0 18px 42px rgba(0,0,0,.42);
+}
+.engine-start-scene .tachometer-redzone{
+  position:absolute;
+  inset:8%;
+  border-radius:50%;
+  background:conic-gradient(from 220deg,transparent 0 103deg,rgba(255,65,30,.48) 103deg 126deg,transparent 126deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 68%,#000 69% 77%,transparent 78%);
+  mask:radial-gradient(circle,transparent 0 68%,#000 69% 77%,transparent 78%);
+}
+.engine-start-scene .tachometer-needle{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  top:19%;
+  width:3px;
+  height:32%;
+  border-radius:3px;
+  background:linear-gradient(#fff2bd,#ffad26);
+  box-shadow:0 0 9px rgba(255,185,39,.82);
+  transform-origin:50% 100%;
+  transform:translateX(-50%) rotate(-112deg);
+  transition:transform .66s cubic-bezier(.14,.86,.18,1.04);
+}
+.engine-start-scene .tachometer-hub{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:50%;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:#ffd15c;
+  box-shadow:0 0 13px rgba(255,197,59,.7);
+}
+.engine-start-scene .tachometer-label{
+  position:absolute;
+  left:0;
+  right:0;
+  top:62%;
+  text-align:center;
+  font-size:8px;
+  font-weight:1000;
+  letter-spacing:.16em;
+  color:#91a0ab;
+}
+.engine-start-scene .tachometer strong{
+  position:absolute;
+  left:0;
+  right:0;
+  top:69%;
+  text-align:center;
+  font-size:22px;
+  color:#fff1b9;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 14px rgba(255,198,64,.38);
+}
+
+/* Minimal copy: visuals carry the story. */
+.ignition-sequence .ignition-copy{
+  position:absolute;
+  z-index:12;
+  left:50%;
+  top:max(calc(env(safe-area-inset-top) + 12px),4vh);
+  width:min(90vw,520px);
+  transform:translateX(-50%)!important;
+  text-align:center;
+}
+.ignition-sequence .ignition-copy small{
+  font-size:9px;
+  letter-spacing:.34em;
+}
+.ignition-sequence .ignition-copy h2{
+  min-height:1em;
+  margin:5px 0 0;
+  font-size:clamp(30px,9vw,48px);
+  line-height:.95;
+}
+.ignition-sequence .ignition-copy p{
+  min-height:1.1em;
+  margin:5px 0 0;
+}
+.ignition-sequence.phase-1 .ignition-copy h2,
+.ignition-sequence.phase-1 .ignition-copy p,
+.ignition-sequence.phase-ignite .ignition-copy h2,
+.ignition-sequence.phase-ignite .ignition-copy p{
+  opacity:0;
+}
+.ignition-sequence.phase-run .ignition-copy{
+  transform:translateX(-50%)!important;
+  animation:none!important;
+}
+.ignition-sequence.phase-run .ignition-copy h2{
+  color:#fff0b5;
+  text-shadow:0 0 24px rgba(255,190,53,.34);
+}
+
+/* START */
+.ignition-sequence.phase-2 .engine-scene-bg .bg-ignition{opacity:.32}
+.ignition-sequence.phase-2 .tachometer{
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+}
+.ignition-sequence.phase-2 .tachometer-needle{transform:translateX(-50%) rotate(-69deg)}
+.ignition-sequence.phase-2 .ignition-flash-asset{
+  opacity:.46;
+  animation:approvedIgnitionFlash .56s ease-out;
+}
+
+/* HIGH RPM */
+.ignition-sequence.phase-1 .engine-scene-bg .bg-ignition{opacity:.58}
+.ignition-sequence.phase-1 .tachometer{
+  opacity:1;
+  transform:translateX(-50%) scale(1.035);
+}
+.ignition-sequence.phase-1 .tachometer-needle{transform:translateX(-50%) rotate(98deg)}
+.ignition-sequence.phase-1 .floor-reflection{opacity:.26}
+.ignition-sequence.phase-1 .exhaust-glow{opacity:.22}
+
+/* HEADLIGHTS: no white-screen flash; light originates from the car. */
+.ignition-sequence.phase-ignite .engine-scene-bg .bg-ignition{opacity:1}
+.ignition-sequence.phase-ignite .tachometer{
+  opacity:.28;
+  transform:translateX(-50%) scale(.92);
+}
+.ignition-sequence.phase-ignite .tachometer-needle{transform:translateX(-50%) rotate(107deg)}
+.ignition-sequence.phase-ignite .floor-reflection{opacity:.48}
+.ignition-sequence.phase-ignite .headlight{opacity:.96}
+.ignition-sequence.phase-ignite .exhaust-glow{opacity:.42}
+.ignition-sequence.phase-ignite .ignition-flash-asset{
+  opacity:.52;
+  animation:approvedIgnitionFlash .64s ease-out;
+}
+.ignition-sequence.phase-ignite .ignition-car-hero .persistent-fx{opacity:.16!important}
+
+/* FULL POWER: the tachometer exits, exhaust becomes the beat. */
+.ignition-sequence.phase-run .engine-scene-bg .bg-ignition{opacity:1}
+.ignition-sequence.phase-run .tachometer{
+  opacity:0;
+  transform:translateX(-50%) scale(.88);
+}
+.ignition-sequence.phase-run .floor-reflection{opacity:.62}
+.ignition-sequence.phase-run .headlight{opacity:1}
+.ignition-sequence.phase-run .exhaust-glow{opacity:.84}
+.ignition-sequence.phase-run .afterfire-blue-left,
+.ignition-sequence.phase-run .afterfire-blue-right{
+  opacity:1;
+  animation:approvedBlueAfterfire .56s cubic-bezier(.12,.8,.2,1) 2;
+  filter:brightness(1.85) saturate(1.35) drop-shadow(0 0 7px rgba(76,188,255,.72));
+}
+.ignition-sequence.phase-run .ignition-car-hero .car-layers{
+  animation:approvedEngineIdle .15s linear 6!important;
+}
+
+/* COMPLETION: car stays bright and dominant; environment celebrates around it. */
+.ignition-sequence.phase-final .engine-start-scene{
+  top:49%;
+  width:min(128vw,1040px);
+  filter:drop-shadow(0 0 38px rgba(255,192,58,.24)) drop-shadow(0 27px 36px rgba(0,0,0,.44));
+}
+.ignition-sequence.phase-final .engine-scene-bg .bg-ignition{opacity:.12}
+.ignition-sequence.phase-final .engine-scene-bg .bg-complete{opacity:1}
+.ignition-sequence.phase-final .floor-reflection{opacity:.86}
+.ignition-sequence.phase-final .complete-aura{opacity:.72}
+.ignition-sequence.phase-final .headlight{opacity:.92}
+.ignition-sequence.phase-final .exhaust-glow{opacity:.54}
+.ignition-sequence.phase-final .afterfire-blue-left,
+.ignition-sequence.phase-final .afterfire-blue-right{opacity:0}
+.ignition-sequence.phase-final .afterfire-orange-left,
+.ignition-sequence.phase-final .afterfire-orange-right{
+  opacity:.9;
+  animation:approvedOrangeAfterfire .62s cubic-bezier(.12,.8,.2,1) 1;
+  filter:brightness(1.28) saturate(1.16) drop-shadow(0 0 6px rgba(255,143,51,.58));
+}
+.ignition-sequence.phase-final .spark-burst-asset{
+  opacity:.82;
+  animation:approvedSparkReward .9s ease-out;
+}
+.ignition-sequence.phase-final .ignition-car-hero .complete-layer{
+  opacity:.16!important;
+}
+.ignition-sequence.phase-final .ignition-car-hero .persistent-fx{
+  opacity:.10!important;
+}
+.ignition-sequence.phase-final .ignition-copy{
+  opacity:0;
+  transition:opacity .20s ease;
+}
+
+.ignition-sequence .ignition-final{
+  z-index:14;
+  top:auto;
+  bottom:max(calc(env(safe-area-inset-bottom) + 12px),2.4vh);
+  width:min(90vw,430px);
+  transform:translate(-50%,12px) scale(.96);
+  opacity:0;
+  padding:12px 12px 0;
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(6,10,13,0),rgba(6,10,13,.70) 34%,rgba(6,10,13,.90));
+  text-shadow:0 2px 14px rgba(0,0,0,.55);
+}
+.ignition-sequence.phase-final .ignition-final{
+  opacity:1;
+  transform:translate(-50%,0) scale(1);
+}
+.ignition-final small{
+  font-size:9px;
+  letter-spacing:.22em;
+}
+.ignition-final h2{
+  margin:4px 0 2px;
+  font-size:clamp(34px,10vw,48px);
+  line-height:1;
+  white-space:nowrap;
+}
+.ignition-final p{
+  margin:0;
+  font-size:13px;
+}
+.ignition-final button{
+  margin-top:12px;
+  padding:11px 16px;
+}
+
+/* Approved pack replaces the legacy synthetic flare/particles as primary effects. */
+.ignition-sequence.phase-ignite .ignition-particles i{opacity:.18}
+.ignition-sequence.phase-final .ignition-particles i{opacity:0}
+
+@keyframes approvedIgnitionFlash{
+  0%{opacity:0}
+  14%{opacity:.84}
+  42%{opacity:.28}
+  100%{opacity:0}
+}
+@keyframes approvedBlueAfterfire{
+  0%,100%{opacity:0;filter:brightness(1.5)}
+  18%{opacity:1}
+  48%{opacity:1;filter:brightness(2) saturate(1.42)}
+  74%{opacity:.58}
+}
+@keyframes approvedOrangeAfterfire{
+  0%,100%{opacity:0}
+  20%{opacity:.96}
+  52%{opacity:.92}
+  78%{opacity:.48}
+}
+@keyframes approvedSparkReward{
+  0%{opacity:0;transform:scale(.92)}
+  28%{opacity:.92;transform:scale(1.02)}
+  100%{opacity:.58;transform:scale(1)}
+}
+@keyframes approvedEngineIdle{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-1.3px)}
+  75%{transform:translateX(1.3px)}
+}
+
+@media(max-width:430px){
+  .engine-start-scene{top:58%;width:120vw}
+  .engine-start-scene .tachometer{top:-122%;width:58vw}
+  .ignition-sequence.phase-final .engine-start-scene{top:48%;width:130vw}
+  .ignition-sequence .ignition-copy{top:max(calc(env(safe-area-inset-top) + 9px),2.5vh)}
+  .ignition-sequence .ignition-final{width:94vw}
+}
+@media(max-height:730px){
+  .engine-start-scene{top:59%;width:112vw}
+  .engine-start-scene .tachometer{top:-106%;width:min(50vw,210px)}
+  .ignition-sequence.phase-final .engine-start-scene{top:47%;width:118vw}
+  .ignition-final button{margin-top:8px;padding:9px 14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .engine-start-scene *,
+  .ignition-final,
+  .ignition-copy{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+
+/* v14.1 final visual polish */
+.ignition-sequence.phase-ignite .engine-start-scene .headlight{
+  opacity:1!important;
+  filter:brightness(1.38) saturate(1.08) drop-shadow(0 0 7px rgba(255,224,145,.62));
+}
+.ignition-sequence.phase-run .engine-start-scene{
+  left:48%;
+  width:min(112vw,940px);
+}
+.ignition-sequence.phase-run .engine-start-scene .afterfire-blue-left,
+.ignition-sequence.phase-run .engine-start-scene .afterfire-blue-right{
+  opacity:1!important;
+  filter:brightness(2.1) saturate(1.48) drop-shadow(0 0 9px rgba(67,186,255,.88))!important;
+}
+.ignition-sequence.phase-final .engine-start-scene{
+  left:48%;
+  top:49%;
+  width:min(116vw,980px);
+}
+.ignition-sequence.phase-final .engine-start-scene .tachometer{
+  opacity:0!important;
+  visibility:hidden!important;
+}
+.ignition-sequence.phase-final .engine-start-scene .ignition-car-hero .car-layers{
+  filter:drop-shadow(0 18px 20px rgba(0,0,0,.34)) brightness(1.06)!important;
+}
+.ignition-sequence.phase-final .engine-start-scene .afterfire-orange-left,
+.ignition-sequence.phase-final .engine-start-scene .afterfire-orange-right{
+  opacity:.96!important;
+  filter:brightness(1.48) saturate(1.28) drop-shadow(0 0 8px rgba(255,138,42,.72))!important;
+}
+@media(max-width:430px){
+  .ignition-sequence.phase-run .engine-start-scene{left:48%;width:112vw}
+  .ignition-sequence.phase-final .engine-start-scene{left:48%;width:116vw}
+}
+
+
+/* v14.2 cinematic garage extension + full-car framing */
+.ignition-sequence::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-5%;
+  background:url("./assets/engine-start-fx/garage_base.webp?v=1") center/cover no-repeat;
+  filter:blur(16px) brightness(.34) saturate(.82);
+  transform:scale(1.09);
+  opacity:.78;
+  transition:background-image .18s linear,filter .35s ease,opacity .35s ease;
+}
+.ignition-sequence::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 53%,transparent 18%,rgba(3,6,8,.24) 52%,rgba(3,6,8,.74) 100%),
+    linear-gradient(180deg,rgba(3,6,8,.36),transparent 28%,transparent 72%,rgba(3,6,8,.48));
+}
+.ignition-sequence.phase-2::before,
+.ignition-sequence.phase-1::before,
+.ignition-sequence.phase-ignite::before,
+.ignition-sequence.phase-run::before{
+  background-image:url("./assets/engine-start-fx/garage_ignition_glow.webp?v=1");
+  filter:blur(15px) brightness(.38) saturate(.92);
+}
+.ignition-sequence.phase-final::before{
+  background-image:url("./assets/engine-start-fx/garage_complete_glow.webp?v=1");
+  filter:blur(14px) brightness(.48) saturate(.98);
+  opacity:.88;
+}
+.ignition-sequence.phase-run .engine-start-scene{
+  left:48%;
+  width:min(106vw,900px);
+}
+.ignition-sequence.phase-final .engine-start-scene{
+  left:50%;
+  top:48%;
+  width:min(106vw,920px);
+}
+@media(max-width:430px){
+  .ignition-sequence.phase-run .engine-start-scene{left:48%;width:106vw}
+  .ignition-sequence.phase-final .engine-start-scene{left:50%;width:106vw}
+}
+
+
+/* v14.3 unmistakable engine-key-complete states */
+/* Engine and key must remain visibly installed after the acquisition animation. */
+#engineFx.persistent-fx.on{
+  opacity:.52!important;
+  filter:brightness(1.22) saturate(1.08) drop-shadow(0 0 9px rgba(255,192,72,.28))!important;
+}
+#keyFx.persistent-fx.on{
+  opacity:.62!important;
+  filter:brightness(1.34) saturate(1.14) drop-shadow(0 0 10px rgba(255,210,92,.38))!important;
+}
+#engineFx.persistent-fx.on.fire{
+  animation:engineInstallVisible 1.45s cubic-bezier(.16,.8,.2,1) both!important;
+}
+#keyFx.persistent-fx.on.fire{
+  animation:keyInstallVisible 1.35s cubic-bezier(.16,.84,.2,1.08) both!important;
+}
+@keyframes engineInstallVisible{
+  0%{opacity:0;filter:brightness(1) saturate(1)}
+  24%{opacity:.96;filter:brightness(1.75) saturate(1.18) drop-shadow(0 0 20px rgba(255,190,54,.72))}
+  58%{opacity:.70;filter:brightness(1.42) saturate(1.12) drop-shadow(0 0 14px rgba(255,190,54,.48))}
+  100%{opacity:.52;filter:brightness(1.22) saturate(1.08) drop-shadow(0 0 9px rgba(255,192,72,.28))}
+}
+@keyframes keyInstallVisible{
+  0%{opacity:0;transform:scale(.78);filter:brightness(1)}
+  30%{opacity:1;transform:scale(1.06);filter:brightness(1.85) saturate(1.24) drop-shadow(0 0 24px rgba(255,216,98,.85))}
+  62%{opacity:.78;transform:scale(.98);filter:brightness(1.50) saturate(1.18) drop-shadow(0 0 16px rgba(255,216,98,.58))}
+  100%{opacity:.62;transform:scale(1);filter:brightness(1.34) saturate(1.14) drop-shadow(0 0 10px rgba(255,210,92,.38))}
+}
+
+/* Completion must alter the entire visual state, not just add a faint sparkle. */
+body.mission-complete .car-stage{
+  background:
+    url("./assets/engine-start-fx/complete_aura.png?v=1") center/100% 100% no-repeat,
+    url("./assets/engine-start-fx/floor_reflection_glow.png?v=1") center/100% 100% no-repeat,
+    url("./assets/engine-start-fx/garage_complete_glow.webp?v=1") center/cover no-repeat!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,225,157,.24),
+    0 0 0 1px rgba(255,202,82,.16),
+    0 0 36px rgba(255,190,56,.20);
+}
+body.mission-complete .car-stage .complete-layer.on{
+  opacity:.62!important;
+  filter:brightness(1.26) saturate(1.12) drop-shadow(0 0 12px rgba(255,214,102,.34));
+  animation:completeStateVisible 2.6s ease-in-out infinite!important;
+}
+body.mission-complete .car-stage #engineFx.persistent-fx.on{
+  opacity:.58!important;
+}
+body.mission-complete .car-stage #keyFx.persistent-fx.on{
+  opacity:.68!important;
+}
+@keyframes completeStateVisible{
+  0%,100%{opacity:.48;filter:brightness(1.12) saturate(1.05) drop-shadow(0 0 8px rgba(255,214,102,.24))}
+  50%{opacity:.72;filter:brightness(1.38) saturate(1.16) drop-shadow(0 0 18px rgba(255,214,102,.48))}
+}
+
+/* On very small screens the persistent state still has to be readable. */
+@media(max-width:390px){
+  #engineFx.persistent-fx.on{opacity:.58!important}
+  #keyFx.persistent-fx.on{opacity:.68!important}
+  body.mission-complete .car-stage .complete-layer.on{opacity:.66!important}
+}
+
+
+/* v15 finale rhythm
+ * FULL POWER -> FLASH(0.16s) -> BLACKOUT(0.65s) -> SILHOUETTE -> LIGHT REVEAL -> COMPLETE HERO -> COPY
+ * Everything below animates opacity only (cheap on iPhone / LINE WebView). The earlier rules pin several
+ * properties with !important, so animated properties are placed on elements that have no such pin
+ * (.car-layers opacity, FX layers, bg layers) and overrides repeat a class to out-rank them. */
+
+/* ceiling spot lights (CSS only, no new assets) */
+.reveal-spot{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  mix-blend-mode:screen;
+}
+.reveal-spot-1{background:radial-gradient(ellipse 34% 60% at 30% 0%,rgba(255,244,216,.60),rgba(255,226,170,.20) 46%,transparent 74%)}
+.reveal-spot-2{background:radial-gradient(ellipse 34% 60% at 70% 0%,rgba(255,244,216,.60),rgba(255,226,170,.20) 46%,transparent 74%)}
+
+/* the finale scene sits in its final frame already while hidden, so nothing slides during the reveal */
+.ignition-sequence.phase-blackout .engine-start-scene,
+.ignition-sequence.phase-reveal .engine-start-scene,
+.ignition-sequence.phase-final .engine-start-scene{
+  left:50%;
+  top:48%;
+  width:min(106vw,920px);
+  transition:none;
+  filter:drop-shadow(0 24px 30px rgba(0,0,0,.46));
+}
+
+/* FLASH: a short impact, never a held white screen */
+.ignition-sequence.is-flash::after{
+  background:radial-gradient(ellipse at 50% 56%,rgba(255,255,255,.80),rgba(255,240,205,.30) 46%,transparent 78%);
+  animation:finaleFlashVeil .16s ease-out both;
+}
+.ignition-sequence.is-flash .engine-start-scene .ignition-flash-asset{
+  opacity:1;
+  animation:finaleFlashAsset .16s ease-out both;
+}
+@keyframes finaleFlashVeil{0%{opacity:0}22%{opacity:.85}100%{opacity:0}}
+@keyframes finaleFlashAsset{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+/* v16: complete the approved finale rhythm.
+ * Each stage changes opacity/visibility only; the car stays in the final frame. */
+.ignition-sequence.phase-blackout{
+  background:#000!important;
+}
+.ignition-sequence.phase-blackout::before,
+.ignition-sequence.phase-blackout::after,
+.ignition-sequence.phase-blackout .reveal-spot,
+.ignition-sequence.phase-blackout .ignition-particles{opacity:0!important}
+.ignition-sequence.phase-blackout .ignition-copy,
+.ignition-sequence.phase-blackout .engine-start-scene .tachometer,
+.ignition-sequence.phase-blackout #ignitionFinal{visibility:hidden!important;opacity:0!important}
+.ignition-sequence.phase-blackout .engine-start-scene .fx,
+.ignition-sequence.phase-blackout .engine-start-scene .engine-scene-layer,
+.ignition-sequence.phase-blackout .engine-start-scene .engine-scene-bg img{opacity:0!important}
+.ignition-sequence.phase-blackout .engine-start-scene .ignition-car-hero .car-layers{opacity:0!important}
+
+/* After darkness: silhouette first, garage light second, completed car last. */
+.ignition-sequence.phase-reveal{
+  background:#010305!important;
+}
+.ignition-sequence.phase-reveal .ignition-copy,
+.ignition-sequence.phase-reveal .engine-start-scene .tachometer,
+.ignition-sequence.phase-reveal #ignitionFinal{visibility:hidden!important;opacity:0!important}
+.ignition-sequence.phase-reveal .engine-start-scene .ignition-car-hero .car-layers{
+  opacity:1;
+  animation:finaleCarGradualLight 1.48s ease-out both!important;
+}
+.ignition-sequence.phase-reveal .engine-scene-bg .bg-base{
+  animation:finaleGarageLight 1.36s ease-out both;
+}
+.ignition-sequence.phase-reveal .engine-scene-bg .bg-ignition,
+.ignition-sequence.phase-reveal .engine-scene-bg .bg-complete{
+  animation:finaleGarageGlow 1.35s ease-out both;
+}
+.ignition-sequence.phase-reveal .engine-start-scene .headlight,
+.ignition-sequence.phase-reveal .engine-start-scene .floor-reflection,
+.ignition-sequence.phase-reveal .engine-start-scene .complete-aura,
+.ignition-sequence.phase-reveal .engine-start-scene .exhaust-glow{
+  animation:finaleLightsUp .95s ease-out .36s both;
+}
+.ignition-sequence.phase-reveal .reveal-spot-1{
+  animation:finaleSpotOn 1.05s ease-out .38s both;
+}
+.ignition-sequence.phase-reveal .reveal-spot-2{
+  animation:finaleSpotOn 1.05s ease-out .58s both;
+}
+.ignition-sequence.phase-reveal .engine-start-scene .afterfire-orange-left,
+.ignition-sequence.phase-reveal .engine-start-scene .afterfire-orange-right{
+  animation:finaleOrangeBeat .65s ease-out .81s both;
+}
+@keyframes finaleCarGradualLight{
+  0%{filter:brightness(.055) drop-shadow(0 12px 13px #000)}
+  32%{filter:brightness(.13) drop-shadow(0 12px 13px #000)}
+  70%{filter:brightness(.75) drop-shadow(0 14px 17px rgba(0,0,0,.45))}
+  100%{filter:brightness(1.08) drop-shadow(0 16px 19px rgba(0,0,0,.38))}
+}
+@keyframes finaleGarageLight{0%{opacity:0}32%{opacity:.08}72%{opacity:.70}100%{opacity:1}}
+@keyframes finaleGarageGlow{0%{opacity:0}34%{opacity:.10}75%{opacity:.46}100%{opacity:.72}}
+@keyframes finaleLightsUp{0%{opacity:0}20%{opacity:.16}70%{opacity:.72}100%{opacity:.92}}
+@keyframes finaleSpotOn{0%{opacity:0}30%{opacity:.15}75%{opacity:.65}100%{opacity:.82}}
+@keyframes finaleOrangeBeat{0%,100%{opacity:0}40%{opacity:.88}75%{opacity:.50}}
+
+/* Final copy appears only after the hero reveal. Avoid static afterfire leftovers. */
+.ignition-sequence.phase-final .ignition-copy{
+  visibility:hidden!important;
+}
+.ignition-sequence.phase-final .engine-start-scene .fx.afterfire-orange-left,
+.ignition-sequence.phase-final .engine-start-scene .fx.afterfire-orange-right,
+.ignition-sequence.phase-final .engine-start-scene .fx.afterfire-blue-left,
+.ignition-sequence.phase-final .engine-start-scene .fx.afterfire-blue-right,
+.ignition-sequence.phase-final .engine-start-scene .fx.spark-burst-asset{
+  opacity:0!important;
+  animation:none!important;
+}
+.ignition-sequence.phase-final .engine-start-scene .ignition-car-hero .car-layers{
+  opacity:1!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .ignition-sequence.phase-reveal .engine-start-scene *,
+  .ignition-sequence.phase-reveal .reveal-spot{
+    animation-delay:0ms!important;
+    animation-duration:.01ms!important;
+  }
+}
+
+/* BLACKOUT must be instantaneous; a lingering .24s FX fade leaks visible pixels. */
+.ignition-sequence.phase-blackout .engine-start-scene .fx,
+.ignition-sequence.phase-blackout .engine-start-scene .engine-scene-layer,
+.ignition-sequence.phase-blackout .engine-start-scene .ignition-car-hero .car-layers{
+  transition:none!important;
+  animation:none!important;
+}
+/* A restrained parked-car glow after the bright headlight beat. */
+.ignition-sequence.phase-final .engine-start-scene .fx.headlight-left,
+.ignition-sequence.phase-final .engine-start-scene .fx.headlight-right{
+  opacity:.34!important;
+}

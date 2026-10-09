@@ -80,16 +80,16 @@ test('Production new HOME renders all core routes and legal information',async({
   }
 });
 
-test('Production play content has six working escape-guard exceptions and no retired LIFF URLs',async({page})=>{
+test('Production play content features one new stamp rally and four other games without retired LIFF URLs',async({page})=>{
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   const cards=page.locator('.v38-play-card');
-  await expect(cards).toHaveCount(6);
-  for(const label of ['ASOQUEST','BOON BLOCK','ブーンジャンプ','ブーンRUN','おみくじ','スタンプラリー']){
+  await expect(cards).toHaveCount(5);
+  for(const label of ['スタンプラリー','BOON BLOCK','ブーンジャンプ','ブーンRUN','おみくじ']){
     const card=cards.filter({hasText:label}).first();
     await expect(card).toHaveAttribute('data-external','1');
   }
-  await expect(cards.filter({hasText:'ASOQUEST'}).first()).toHaveAttribute('href',new URL('asoquest/',BASE).href);
+  await expect(cards.filter({hasText:'スタンプラリー'}).first()).toHaveAttribute('href',new URL('asoquest/',BASE).href);
   await expect(cards.filter({hasText:'BOON BLOCK'}).first()).toHaveAttribute('href','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
   expect(await page.content()).not.toMatch(/2009888671|57TOefc3/);
 });
@@ -277,3 +277,25 @@ test('legacy customer callstatus preserves UI while reading only through Product
   expect(directAirwait).toEqual([]);
 });
 
+
+test('retired four-spot stamp URLs lead to the new six-part rally instead of the old GAS screen',async({page})=>{
+  await page.goto('http://127.0.0.1:4173/index.html?stamp=home');
+  await expect(page).toHaveURL(/\/miniapp-v2\/production\/asoquest\/$/);
+  await expect(page.getByRole('heading',{name:'スタンプラリー'}).first()).toBeVisible();
+
+  await page.goto('http://127.0.0.1:4173/index.html?spot=spot_01');
+  await expect(page).toHaveURL(/\/miniapp-v2\/production\/asoquest\/\?legacy=spot$/);
+  await expect(page.locator('#overlay')).toHaveClass(/show/);
+  await expect(page.locator('#overlayTitle')).toHaveText('新しい6か所を探そう');
+});
+
+test('the official HOME LIFF deep-link bridge acquires six-part stamps via QR and NFC',async({page})=>{
+  await page.goto('http://127.0.0.1:4173/home.html?aq=wheel&src=qr');
+  await expect(page).toHaveURL(/\/miniapp-v2\/production\/asoquest\/\?part=wheel&src=qr$/);
+  await expect(page.locator('#overlayTitle')).toHaveText('タイヤ');
+  await expect(page.locator('#partsCount')).toHaveText('1 / 6');
+  await page.goto('http://127.0.0.1:4173/home.html?liff.state='+encodeURIComponent('?aq=engine&src=nfc'));
+  await expect(page).toHaveURL(/\/miniapp-v2\/production\/asoquest\/\?part=engine&src=nfc$/);
+  await expect(page.locator('#overlayTitle')).toHaveText('エンジン');
+  await expect(page.locator('#partsCount')).toHaveText('2 / 6');
+});

@@ -126,3 +126,7 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 }
 .v38-play-card.quest small{color:#cfdae0;opacity:1}
 .v38-play-card.quest.is-new:after{background:#f2c85f;color:#30260d}
+
+/* The six-part Stamp Rally is the single, featured play entry. */
+.v38-play-card.quest{grid-column:1/-1;min-height:92px}
+@media(max-width:370px){.v38-play-card.quest{grid-column:auto}}

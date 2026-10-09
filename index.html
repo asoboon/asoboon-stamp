@@ -144,9 +144,11 @@
         return;
       }
 
-      // スタンプ取得 / スタンプ一覧は、元のindex.html本体をそのまま使う。
+      // 旧4スポット版は終了。旧ブックマーク・掲示QRからも新6パーツ版へ案内する。
       if (spot || showStampHome) {
-        document.documentElement.style.visibility = "visible";
+        const target = new URL("./miniapp-v2/production/asoquest/", location.href);
+        if (spot) target.searchParams.set("legacy", "spot");
+        location.replace(target.href);
         return;
       }
 
