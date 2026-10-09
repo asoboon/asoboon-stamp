@@ -299,3 +299,51 @@ test('the official HOME LIFF deep-link bridge acquires six-part stamps via QR an
   await expect(page.locator('#overlayTitle')).toHaveText('エンジン');
   await expect(page.locator('#partsCount')).toHaveText('2 / 6');
 });
+
+test('NFC/QR stamp -> rally HOME -> official MINI App HOME -> rally preserves acquired parts',async({page})=>{
+  await installProduction(page);
+  await page.setViewportSize({width:390,height:780});
+  const site='http://127.0.0.1:4173/';
+  const rally=site+'miniapp-v2/production/asoquest/';
+  await page.goto(site+'home.html?aq=engine&src=nfc');
+  await expect(page.locator('#overlayTitle')).toHaveText('エンジン');
+  await expect(page.getByRole('button',{name:'スタンプラリーへ戻る'})).toBeVisible();
+  await page.getByRole('button',{name:'スタンプラリーへ戻る'}).click();
+  await expect(page.locator('#overlay')).not.toHaveClass(/show/);
+  await expect(page).toHaveURL(rally);
+  await expect(page.locator('#partsCount')).toHaveText('1 / 6');
+  const home=page.getByRole('link',{name:'ミニアプリのホームへ戻る'});
+  await expect(home).toBeVisible();
+  await expect(home).toHaveAttribute('href','../../../home.html');
+  expect((await home.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  await home.click();
+  await expect(page).toHaveURL(site+'home.html');
+  await expect(page.locator('.v38-home')).toBeVisible();
+
+  // Production uses the same origin; rewrite its absolute GitHub Pages URL
+  // to this localhost fixture so localStorage can be checked across both screens.
+  const card=page.locator('.v38-play-card').filter({hasText:'スタンプラリー'});
+  await expect(card).toHaveAttribute('href','https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/');
+  await card.evaluate((a,url)=>{a.href=url;},rally);
+  await card.click();
+  await expect(page).toHaveURL(rally);
+  await expect(page.locator('#partsCount')).toHaveText('1 / 6');
+});
+
+test('ENGINE START clear returns to rally HOME without losing completed machine',async({page})=>{
+  const site='http://127.0.0.1:4173/';
+  const rally=site+'miniapp-v2/production/asoquest/';
+  for(const part of ['engine','wheel','headlight','fin','grille','key']){
+    await page.goto(rally+'?part='+part+'&src=qr');
+    await expect(page.locator('#overlayTitle')).toHaveText(/エンジン|タイヤ|ライト|フィン|グリル|キー/);
+    await page.getByRole('button',{name:'スタンプラリーへ戻る'}).click();
+  }
+  await expect(page.locator('#partsCount')).toHaveText('6 / 6');
+  await page.goto(rally+'?station=engine&src=qr');
+  await expect(page.locator('#ignitionSequence')).toHaveClass(/phase-final/,{timeout:11000});
+  await page.getByRole('button',{name:'スタンプラリーへ戻る'}).click();
+  await expect(page.locator('#ignitionSequence')).not.toHaveClass(/show/);
+  await expect(page).toHaveURL(rally);
+  await expect(page.locator('#partsCount')).toHaveText('6 / 6');
+  await expect(page.locator('#headline')).toHaveText('スタンプラリー クリア！');
+});

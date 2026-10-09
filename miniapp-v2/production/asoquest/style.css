@@ -1096,3 +1096,36 @@ body.mission-complete .car-stage #keyFx.persistent-fx.on{
 .ignition-sequence.phase-final .engine-start-scene .fx.headlight-right{
   opacity:.34!important;
 }
+
+
+/* v18: visitor navigation, independent of browser history/LIFF entry method. */
+.rally-navigation{
+  position:relative;
+  z-index:5;
+  display:flex;
+  padding:8px 0;
+}
+.rally-home-link{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  min-height:44px;
+  padding:9px 14px;
+  border:1px solid rgba(255,215,108,.45);
+  border-radius:13px;
+  background:#1a2934;
+  color:#fff3d5;
+  font-size:13px;
+  line-height:1.4;
+  font-weight:850;
+  text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.rally-home-link span{font-size:20px;line-height:1}
+.rally-home-link:focus-visible,
+#overlayClose:focus-visible,
+#ignitionClose:focus-visible{
+  outline:3px solid #f2c55f;
+  outline-offset:3px;
+}
+.rally-home-link:active{background:#263947}

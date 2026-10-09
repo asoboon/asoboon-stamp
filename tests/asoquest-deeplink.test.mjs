@@ -221,7 +221,7 @@ test('static wiring: temp handoffAsoquestAfterLiff removed; script is first in <
 test('ASOQUEST save() cannot block the UI when storage fails (try/catch around setItem)', () => {
   const js = read('miniapp-v2/production/asoquest/app.js');
   assert.match(js, /try\{\s*localStorage\.setItem\(storageKey\(\)/);
-  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=21/);
+  assert.match(read('miniapp-v2/production/asoquest/index.html'), /app\.js\?v=22/);
 });
 
 test('LIFF ids are not mixed between environments', () => {
@@ -267,8 +267,8 @@ test('ENGINE START finale markup and controller stay wired', () => {
   assert.match(html, /id="ignitionSequence"/);
   assert.match(html, /id="ignitionCarHero"/);
   assert.match(html, /id="ignitionClose"/);
-  assert.match(html, /style\.css\?v=17/);
-  assert.match(html, /app\.js\?v=21/);
+  assert.match(html, /style\.css\?v=18/);
+  assert.match(html, /app\.js\?v=22/);
   assert.match(js, /function runIgnitionSequence\(/);
   assert.match(js, /function buildIgnitionCarHero\(/);
   assert.match(js, /phase-ignite/);
