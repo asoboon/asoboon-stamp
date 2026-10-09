@@ -181,7 +181,7 @@ function runIgnitionSequence(){
     document.body.classList.add('machine-flash');
     if($('completeFx'))$('completeFx').classList.add('on','celebrate');
     pulse();
-    show('MISSION COMPLETE','スタンプラリー クリア！','マシン完成！','clear');
+    show('MISSION COMPLETE','スタンプラリー クリア！','マシン完成！ スタッフにこの画面を見せてね！','clear');
     ignitionRunning=false;
     return;
   }
