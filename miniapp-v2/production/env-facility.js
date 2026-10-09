@@ -28,7 +28,7 @@ window.ASOBOON_V2_ENV=Object.freeze({
     firstGuide:true,
     entryGuide:true,
     rules:true,
-    stamp:false,
+    stamp:true,
     omikuji:false,
     game:false,
     parking:true
