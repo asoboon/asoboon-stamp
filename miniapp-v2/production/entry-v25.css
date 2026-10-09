@@ -81,3 +81,15 @@
  .v25-entry-page .entry-needed h2{font-size:20px}
 }
 @media(prefers-reduced-motion:reduce){.v25-entry-page .entry-choice{transition:none}}
+/* v27: Back-to-choices is a primary wayfinding action, never a pale text link. */
+.v25-entry-page .entry-back{
+ display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;
+ margin:0 0 20px;padding:14px 16px;border:2px solid #1054b7;border-radius:15px;
+ background:#1769e0;color:#fff;font-size:16px;font-weight:950;line-height:1.4;
+ letter-spacing:.015em;box-shadow:0 4px 0 #0d4499,0 8px 16px rgba(17,81,174,.18);
+ -webkit-tap-highlight-color:transparent;
+}
+.v25-entry-page .entry-back:hover{background:#105ac4;color:#fff}
+.v25-entry-page .entry-back:active{background:#0d4fae;transform:translateY(2px);box-shadow:0 2px 0 #0d4499}
+.v25-entry-page .entry-back:focus-visible{outline:3px solid #f6b82c;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.v25-entry-page .entry-back{transition:none}}
