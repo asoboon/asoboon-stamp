@@ -283,6 +283,15 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-play-card.quest{grid-column:1/-1;min-height:92px}
 @media(max-width:370px){.v38-play-card.quest{grid-column:auto}}
 
+/* Receipt-first HOME: immediate local identifier, no guessed calling state. */
+.v38-hero.pending{border:2px solid #a9c4d8;background:linear-gradient(145deg,#fff,#f1f8fd)}
+.v38-hero.pending .v38-hero-icon{background:#e1eff9;color:#215e84}
+.v38-pending-eyebrow{color:#32546b;font-size:13px;font-weight:850;letter-spacing:.025em}
+.v38-pending-number{margin:5px 0 10px;color:#183f5b;font-size:clamp(34px,10vw,48px);font-weight:950;letter-spacing:-.055em;line-height:1.1;overflow-wrap:anywhere}
+.v38-hero .v38-pending-status{display:flex;align-items:flex-start;gap:9px;margin-top:8px;color:#3a5261;font-size:14px;font-weight:750;line-height:1.5}
+.v38-pending-indicator{width:9px;height:9px;flex-shrink:0;margin-top:6px;border-radius:50%;background:#327fae;box-shadow:0 0 0 4px #dbeaf4}
+.v38-hero.pending .v38-action{margin-top:13px}
+
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
 .v38-surprise-section{padding:0}

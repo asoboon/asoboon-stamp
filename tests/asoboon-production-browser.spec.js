@@ -425,3 +425,79 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
+
+test('Production HOME shows locally saved receipt before delayed call-status and never flashes cached calling',async({page})=>{
+  await installProduction(page);
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      sessionToken:'s'.repeat(40),receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',expiresAt:4102444800000
+    }));
+    localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
+      receiptNo:'F321',businessDate:'2026-10-03',savedAt:Date.now(),
+      status:{kind:'calling',receipt:'F321',source:'live',checkedAt:Date.now()}
+    }));
+  });
+  let release,started;
+  const held=new Promise(resolve=>{release=resolve});
+  const requested=new Promise(resolve=>{started=resolve});
+  await page.route(GATEWAY+'**',async route=>{
+    const action=new URLSearchParams(route.request().postData()||'').get('action');
+    if(action!=='reservationStatus')return route.fallback();
+    started();
+    await held;
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      ok:true,found:true,state:'waiting',receiptNo:'F321',businessDate:'2026-10-03',aheadCount:6,checkedAt:Date.now()
+    })});
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero')).toHaveClass(/pending/);
+  await expect(page.locator('.v38-pending-number')).toHaveText('F321');
+  await expect(page.locator('.v38-pending-status')).toContainText('最新の呼出状況を確認しています');
+  await expect(page.locator('#v38Hero')).not.toContainText('ご入場可能です');
+  await expect(page.locator('#v38Hero')).not.toContainText('呼出中');
+  await requested;
+  await expect(page.locator('#v38Hero')).toHaveClass(/pending/);
+  expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
+  release();
+  await expect(page.locator('#v38Hero')).toHaveClass(/waiting/);
+  await expect(page.locator('#v38Hero')).toContainText('F321');
+  await expect(page.locator('.v38-ahead')).toContainText('6');
+});
+
+test('Production HOME preserves cached receipt when online status fails',async({page})=>{
+  await installProduction(page);
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:1,infants:0
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      sessionToken:'t'.repeat(40),receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030',expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero')).toHaveClass(/error/);
+  await expect(page.locator('#v38Hero')).toContainText('受付状況を取得できません');
+  await expect(page.locator('#v38Hero')).toContainText('E777');
+  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+});
+
+test('Production HOME does not show yesterday receipt or saved calling after the 19:00 JST rollover',async({page})=>{
+  await installProduction(page);
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      receiptNo:'Y888',businessDate:'2026-10-02',waitTypeId:'0030'
+    }));
+    localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
+      receiptNo:'Y888',businessDate:'2026-10-02',savedAt:Date.now(),
+      status:{kind:'calling',receipt:'Y888'}
+    }));
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Hero')).toContainText('当日受付');
+  await expect(page.locator('#v38Hero')).not.toContainText('Y888');
+  expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_current_reservation_production_v1'))).toBeNull();
+  expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
+});

@@ -13,10 +13,10 @@ function sameLiveStatus(rec,status){
 function provisional(rec,force=false){
   if(!rec?.receiptNo)return null;
   const current=window.ASOBOON_HOME_STATUS_SNAPSHOT||null;
-  if(!force&&sameLiveStatus(rec,current))return current;
+  if(!force&&(sameLiveStatus(rec,current)||(current?.kind==='pending'&&String(current.receipt||'')===String(rec.receiptNo))))return current;
   const stored=read(SNAP_KEY);
   if(stored?.receiptNo&&String(stored.receiptNo)!==String(rec.receiptNo))remove(SNAP_KEY);
-  const status={kind:'sync',receipt:String(rec.receiptNo),message:'受付は完了しています。最新の順番を確認しています…',source:'local',checkedAt:Date.now()};
+  const status={kind:'pending',receipt:String(rec.receiptNo),source:'local',checkedAt:Date.now()};
   window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
   return status;
