@@ -1114,7 +1114,9 @@ function show(id){
  const back=(id==='returnAll'||id==='returnAdult'||id==='returnUnknown')?'return':'menu';
  panel.innerHTML='<button type="button" class="entry-back" data-entry-choice="'+back+'">← '+(back==='return'?'持ち物を選び直す':'4つの選択肢へ戻る')+'</button>'+content[id];
  panel.querySelector('h2')?.focus({preventScroll:true});
- panel.scrollIntoView({block:'start',behavior:'auto'});
+ // The shared MINI App header is sticky. Align at document top instead of
+ // scrolling the detail beneath that header.
+ window.scrollTo({top:0,behavior:'auto'});
 }
 root.addEventListener('click',e=>{const button=e.target.closest?.('[data-entry-choice]');if(button&&route()==='entry')show(button.dataset.entryChoice)});
 function patch(){queued=false;if(route()!=='entry')return;const main=root.querySelector('main.view');if(!main||main.querySelector('.v25-entry-page'))return;main.innerHTML=page();main.dataset.pv7Key='entry'}

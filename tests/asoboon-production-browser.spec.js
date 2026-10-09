@@ -389,6 +389,8 @@ test('Entry guide: yellow holder and family receipt procedures, safety warnings 
   await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
 
   await page.locator('[data-entry-choice="all"]').click();
+  // The native sticky MINI App header must never cover the guide heading.
+  expect(await page.evaluate(()=>window.scrollY)).toBe(0);
   await expect(page.locator('.entry-needed h2')).toHaveText('レシートを保管');
   await expect(page.locator('.entry-checklist li')).toHaveCount(3);
   await expect(page.locator('.entry-checklist li').last()).toContainText('赤・黄色すべてのホルダーを返却');
