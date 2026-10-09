@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded',function(){
 $('ignitionClose').addEventListener('click',closeIgnitionSequence);
 $('overlayClose').addEventListener('click',function(){
   $('overlay').classList.remove('show','clear-mode');
+  $('overlay').setAttribute('aria-hidden','true');
   if($('completeFx'))$('completeFx').classList.remove('celebrate');
   document.body.classList.remove('machine-flash');
   cleanUrl();
@@ -200,6 +201,7 @@ function runIgnitionSequence(){
   document.body.classList.remove('machine-running');
   void seq.offsetWidth;
   seq.classList.add('show');
+  seq.setAttribute('aria-hidden','false');
   try{if(navigator.vibrate)navigator.vibrate([35,65,35]);}catch(e){}
 
   const T=ignitionTimeline();
@@ -298,6 +300,7 @@ function closeIgnitionSequence(){
   if(seq){
     seq.classList.remove.apply(seq.classList,['show','is-flash'].concat(IGNITION_PHASES));
     seq.dataset.phase='idle';
+    seq.setAttribute('aria-hidden','true');
   }
   document.body.classList.remove('ignition-active','machine-running');
   document.body.classList.add('machine-flash');
@@ -332,6 +335,7 @@ function show(k,t,msg,mode){
   $('overlayText').textContent=msg;
   $('overlay').classList.toggle('clear-mode',mode==='clear');
   $('overlay').classList.add('show');
+  $('overlay').setAttribute('aria-hidden','false');
 }
 function ensureImage(img){
   if(!img||img.getAttribute('src')) return;

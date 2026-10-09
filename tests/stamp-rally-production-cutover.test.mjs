@@ -64,3 +64,17 @@ test('Official facility LIFF and NFC/QR routing remain unchanged',()=>{
       assert.ok(csv.includes('https://miniapp.line.me/2009884613-ELc6kolf/?aq='+id+'&src='+source));
   }
 });
+
+test('Both return paths are explicit and work without navigating browser history',()=>{
+  const html=read(base+'index.html');
+  const css=read(base+'style.css');
+  const js=read(base+'app.js');
+  assert.match(html,/id="overlayClose" type="button">スタンプラリーへ戻る<\/button>/);
+  assert.match(html,/id="ignitionClose" type="button">スタンプラリーへ戻る<\/button>/);
+  assert.match(html,/id="miniappHomeLink" class="rally-home-link" href="\.\.\/\.\.\/\.\.\/home\.html"/);
+  assert.match(css,/\.rally-home-link/);
+  assert.match(js,/setAttribute\('aria-hidden','false'\)/);
+  assert.match(js,/setAttribute\('aria-hidden','true'\)/);
+  assert.match(js,/history\.replaceState\(null,'',u\)/);
+  assert.match(js,/localStorage\.setItem\(storageKey\(\)/);
+});
