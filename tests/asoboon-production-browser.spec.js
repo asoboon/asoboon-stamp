@@ -347,3 +347,79 @@ test('ENGINE START clear returns to rally HOME without losing completed machine'
   await expect(page.locator('#partsCount')).toHaveText('6 / 6');
   await expect(page.locator('#headline')).toHaveText('スタンプラリー クリア！');
 });
+
+test('Entry guide: four clear cards, large targets, photo-free illustrations on mobile',async({page})=>{
+  await installProduction(page);
+  for(const width of [320,375,390,430]){
+    await page.setViewportSize({width,height:844});
+    await page.goto(BASE,{waitUntil:'domcontentloaded'});
+    await page.locator('[data-v7-view="entry"]').first().click();
+    await expect(page.locator('.v25-entry-page')).toBeVisible();
+    await expect(page.locator('#entryChoices .entry-choice')).toHaveCount(4);
+    for(const text of ['大人だけ出る','全員で出る','再入場する','今日は帰る']){
+      await expect(page.locator('#entryChoices .entry-choice').filter({hasText:text})).toBeVisible();
+    }
+    const measures=await page.evaluate(()=>{
+      const cards=[...document.querySelectorAll('#entryChoices .entry-choice')];
+      return{
+        overflow:document.documentElement.scrollWidth>window.innerWidth,
+        imageCount:document.querySelectorAll('.v25-entry-page img, .v25-entry-page picture').length,
+        allLarge:cards.every(card=>card.getBoundingClientRect().height>=90&&card.getBoundingClientRect().width>=120),
+        columns:getComputedStyle(document.querySelector('#entryChoices')).gridTemplateColumns.split(' ').length
+      };
+    });
+    expect(measures.overflow).toBe(false);
+    expect(measures.imageCount).toBe(0);
+    expect(measures.allLarge).toBe(true);
+    expect(measures.columns).toBe(width<=350?1:2);
+  }
+});
+
+test('Entry guide: yellow holder and family receipt procedures, safety warnings and back',async({page})=>{
+  await installProduction(page);
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="entry"]').first().click();
+
+  await page.locator('[data-entry-choice="adult"]').click();
+  await expect(page.locator('.entry-needed h2')).toHaveText('黄色ホルダー');
+  await expect(page.locator('.entry-warning')).toContainText('お子さまだけを館内に残すことはできません');
+  await expect(page.locator('.entry-checklist li')).toHaveCount(3);
+  await expect(page.locator('.entry-note')).toContainText('一時退場中も利用時間は進みます');
+  await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
+
+  await page.locator('[data-entry-choice="all"]').click();
+  await expect(page.locator('.entry-needed h2')).toHaveText('レシートを保管');
+  await expect(page.locator('.entry-checklist li')).toHaveCount(3);
+  await expect(page.locator('.entry-checklist li').last()).toContainText('赤・黄色すべてのホルダーを返却');
+  await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
+
+  await page.locator('[data-entry-choice="exit"]').click();
+  await expect(page.locator('.entry-checklist li')).toHaveCount(2);
+  await expect(page.locator('.entry-warning')).toContainText('また戻って遊ぶ予定なら');
+  await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
+  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await expect(page.locator('.v38-home')).toBeVisible();
+});
+
+test('Entry guide: returning with receipt / yellow holder / neither, then reselect',async({page})=>{
+  await installProduction(page);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="entry"]').first().click();
+  await page.locator('[data-entry-choice="return"]').click();
+  await expect(page.locator('.entry-return-options button')).toHaveCount(3);
+
+  await page.locator('[data-entry-choice="returnAll"]').click();
+  await expect(page.locator('.entry-needed h2')).toHaveText('レシートを提示');
+  await page.getByRole('button',{name:'持ち物を選び直す'}).click();
+
+  await page.locator('[data-entry-choice="returnAdult"]').click();
+  await expect(page.locator('.entry-needed h2')).toHaveText('黄色ホルダーを提示');
+  await page.getByRole('button',{name:'持ち物を選び直す'}).click();
+
+  await page.locator('[data-entry-choice="returnUnknown"]').click();
+  await expect(page.locator('.entry-warning')).toContainText('入口のスタッフが状況を確認');
+  await page.getByRole('button',{name:'持ち物を選び直す'}).click();
+  await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
+  await expect(page.locator('#entryChoices')).toBeVisible();
+});
