@@ -635,3 +635,62 @@ test('Admitted guests see アソブーンタイマー rather than the retired ti
   await timer.click();
   await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
 });
+
+test('Official HOME never inserts the retired prototype, including while LIFF initializes',async({page})=>{
+  const network=[];
+  page.on('request',req=>network.push(new URL(req.url()).pathname));
+  await page.addInitScript(()=>{
+    window.__retiredHomeWrites=[];
+    const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+    if(!descriptor)return;
+    Object.defineProperty(Element.prototype,'innerHTML',{
+      configurable:true,enumerable:descriptor.enumerable,
+      get(){return descriptor.get.call(this)},
+      set(value){
+        if(this.id==='app'&&/hero-kicker|mode-toggle|fun-grid|flow-grid|ASOBooN NEW HOME/.test(String(value))){
+          window.__retiredHomeWrites.push(String(value).slice(0,150));
+        }
+        return descriptor.set.call(this,value);
+      }
+    });
+  });
+  await installCertifiedProduction(page);
+  await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.v38-home')).toBeVisible({timeout:15000});
+  expect(await page.evaluate(()=>window.__retiredHomeWrites)).toEqual([]);
+  expect(await page.locator('iframe,#miniappCore,.hero-kicker,.mode-toggle,.fun-grid,.flow-grid').count()).toBe(0);
+  expect(network.filter(x=>x==='/home-core.html'||x.startsWith('/app/core/'))).toEqual([]);
+  const timer=page.locator('#v38TimeguideShortcut');
+  await expect(timer).toContainText('アソブーンタイマー');
+  await timer.click();
+  await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
+  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await expect(page.locator('.v38-home')).toBeVisible();
+  expect(await page.evaluate(()=>window.__retiredHomeWrites)).toEqual([]);
+});
+
+test('Slow app startup shows only the small neutral boot indicator, never old HOME cards',async({page})=>{
+  await installCertifiedProduction(page);
+  let release,requestStarted;
+  const gate=new Promise(resolve=>release=resolve);
+  const requestReady=new Promise(resolve=>requestStarted=resolve);
+  await page.route('**/miniapp-v2/production/production-app.js?*',async route=>{
+    requestStarted();
+    await gate;
+    await route.continue();
+  });
+  const navigation=page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+  await requestReady;
+  const pending=await page.evaluate(()=>({
+    loader:document.querySelector('.asoboon-boot')?.innerText||'',
+    old:document.querySelectorAll('.hero-kicker,.mode-toggle,.fun-grid,.flow-grid,#miniappCore,iframe').length,
+    iframeRequests:performance.getEntriesByType('resource').filter(x=>x.name.includes('home-core.html')).length
+  }));
+  expect(pending.loader).toContain('ASOBooNを読み込み中');
+  expect(pending.old).toBe(0);
+  expect(pending.iframeRequests).toBe(0);
+  release();
+  await navigation;
+  await expect(page.locator('.v38-home')).toBeVisible({timeout:15000});
+  await expect(page.locator('.asoboon-boot')).toHaveCount(0);
+});

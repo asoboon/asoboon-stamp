@@ -77,9 +77,11 @@ test('Review hides optional games for the first certification scope',()=>{
   assert.match(home,/id="v38Surprise"/);
 });
 
-test('customer-facing legacy HOME is untouched by Review',()=>{
+test('official Production HOME has no Review route and certified rollback retains legacy HOME',()=>{
   const home=fs.readFileSync('home.html','utf8');
-  assert.match(home,/ASOBooN 冒険基地ナビ/);
-  assert.match(home,/\.\/home-core\.html/);
-  assert.doesNotMatch(home,/miniapp-v2\/review/);
+  const rollback=fs.readFileSync('home-legacy-certified-20261007.html','utf8');
+  assert.match(home,/production-shell-loader\.js/);
+  assert.doesNotMatch(home,/miniapp-v2\/review|\.\/home-core\.html/);
+  assert.match(rollback,/ASOBooN 冒険基地ナビ/);
+  assert.match(rollback,/\.\/home-core\.html/);
 });

@@ -4,14 +4,13 @@ import fs from 'node:fs';
 
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('official customer HOME activates Production without changing the certified endpoint',()=>{
+test('official customer HOME activates only the certified Production shell',()=>{
   const s=read('home.html');
-  assert.match(s,/ASOBooN 冒険基地ナビ/);
-  assert.match(s,/\.\/home-core\.html/);
+  assert.match(s,/<title>ASOBooN｜公式LINEミニアプリ<\/title>/);
   assert.match(s,/const PRODUCTION_HOME_LIVE=true/);
   assert.match(s,/production_preview/);
   assert.match(s,/production-shell-loader\.js/);
-  assert.match(s,/if\(window\.ASOBOON_PRODUCTION_SHELL\)return/);
+  assert.doesNotMatch(s,/<iframe|\.\/home-core\.html|\.\/app\/core/);
 });
 
 test('Developing review candidate keeps all core functions inside MINI App v2',()=>{
