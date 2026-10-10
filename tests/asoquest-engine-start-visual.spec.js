@@ -115,6 +115,8 @@ test('ENGINE START visual QA packet', async ({ page }) => {
   await expect(page.locator('#ignitionFinal')).toBeVisible();
   await expect(page.locator('#ignitionFinal h2')).toHaveText('スタンプラリー クリア！');
   await expect(page.locator('#ignitionFinal p')).toHaveText('マシン完成！');
+  await expect(page.locator('.result-staff-card strong')).toHaveText('スタッフに見せてね！');
+  await expect(page.locator('.result-staff-card em')).toHaveText('この画面がクリアのしるしです');
   await page.waitForTimeout(650);
   await shot(page, '12_final_copy.png');
   await shot(page, '13_iphone_390.png');
