@@ -710,6 +710,7 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   for(const [time,web,onsite] of [['10:00',195,117],['12:30',71,44],['15:00',25,8]]){
     const card=box.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-remaining-title')).toHaveText('受付残り');
+    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'名.*現地受付の残り'+onsite+'名'));
     await expect(card.locator('.v38-crowd-channel--web')).toContainText('WEB受付');
     await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('現地受付');
@@ -739,7 +740,7 @@ test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false 
         {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:60},
         {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:80},
         {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'GROUP',remaining:7},
-        {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:-1}
+        {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:0}
       ]
     })});
   });
@@ -749,6 +750,7 @@ test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false 
     const card=page.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('確認中');
     await expect(card.locator('.v38-crowd-channel--onsite')).not.toContainText('0名');
+    await expect(card).toHaveAttribute('aria-label',/現地受付の残り確認中/);
   }
   await expect(page.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('.v38-crowd-channel--web strong')).toHaveText('0名');
 });

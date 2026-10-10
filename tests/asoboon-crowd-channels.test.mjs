@@ -9,6 +9,7 @@ test('Onsite pool is derived only from explicitly named AirWAIT store labels, no
  assert.match(home,/matched\.length!==1/);
  assert.match(home,/reserveUnit!=='PERSON'/);
  assert.match(home,/safePeople\(matched\[0\]\.remaining\)/);
+ assert.match(home,/return n===0\?null:n/);
  assert.match(home,/slot\.matchMode!=='exact-name'/);
 });
 test('Reuse only existing API observedDetails, cache safely and never make an extra gateway call',()=>{
