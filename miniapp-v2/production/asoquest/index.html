@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>スタンプラリー | ASOBooN</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111c25'/%3E%3Cpath d='M15 38h34l-4-13H20z' fill='%23ffd76c'/%3E%3Ccircle cx='22' cy='42' r='6' fill='%23fff3d5'/%3E%3Ccircle cx='42' cy='42' r='6' fill='%23fff3d5'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css?v=18">
+  <link rel="stylesheet" href="./style.css?v=19">
 </head>
 <body>
 <main class="app">
@@ -105,9 +105,17 @@
     <p id="ignitionSub">始動</p>
   </div>
 
-  <div id="ignitionFinal" class="ignition-final">
+  <div id="ignitionFinal" class="ignition-final" role="status" aria-live="polite">
+    <small class="result-kicker">STAMP RALLY COMPLETE</small>
     <h2>スタンプラリー クリア！</h2>
-    <p>マシン完成！</p>
+    <p class="result-machine">マシン完成！</p>
+    <div class="result-staff-card">
+      <span class="result-staff-icon" aria-hidden="true">★</span>
+      <div>
+        <strong>スタッフに見せてね！</strong>
+        <em>この画面がクリアのしるしです</em>
+      </div>
+    </div>
     <button id="ignitionClose" type="button">スタンプラリーへ戻る</button>
   </div>
 </div>
@@ -115,6 +123,6 @@
 <div id="overlay" class="overlay" aria-hidden="true">
   <div class="modal"><small id="overlayKicker">パーツゲット！</small><h2 id="overlayTitle">パーツ</h2><p id="overlayText"></p><button id="overlayClose" type="button">スタンプラリーへ戻る</button></div>
 </div>
-<script src="./app.js?v=22"></script>
+<script src="./app.js?v=23"></script>
 </body>
 </html>
