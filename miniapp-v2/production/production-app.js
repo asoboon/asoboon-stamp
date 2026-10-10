@@ -580,13 +580,20 @@ const resolveHref=(base,path)=>{try{return new URL(String(path||''),new URL(base
 const assetHref=path=>resolveHref(ASSET_BASE,path);
 const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=30*60*1000;
+// Verified AirWAIT onsite type names: match exactly, never by clock time.
+const ONSITE_CROWD_NAMES=Object.freeze({
+  '平日':Object.freeze({'0024':'すぐ入場受付【平日】'}),
+  '平日特定日':Object.freeze({'0036':'10時15分から【平日特定日】','0038':'13時45分から【平日特定日】'}),
+  '土日祝日':Object.freeze({'0030':'10時25分頃入場【土休日特定日】','0032':'12時50分頃入場【土休日特定日】','0034':'15時15分頃入場時間【土休日特定日】'})
+});
+
 const COPY={ja:{loading:'読み込み中',today:'今日のASOBooN',hours:'利用時間',close:'閉館',guide:'利用案内',fun:'ASOBooNを楽しむ',first:'初めての方',firstSub:'受付から入場まで',price:'料金',priceSub:'大人600円・子ども900円',parking:'アクセス',parkingSub:'駐車場・行き方',rules:'館内ルール',rulesSub:'遊ぶ前に確認',entry:'一時退場・再入場',entrySub:'外出するときはこちら',game:'ミニゲーム',fortune:'おみくじ',stamp:'スタンプ',soon:'準備中'}};
 const T=COPY.ja,icons={calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h2M14 14h2M8 17h2"/>',play:'<path d="M7 5v14l11-7z"/>',ticket:'<path d="M5 7.5A2.5 2.5 0 0 0 7.5 5h9A2.5 2.5 0 0 0 19 7.5v1a2.5 2.5 0 0 0 0 5v1A2.5 2.5 0 0 0 16.5 17h-9A2.5 2.5 0 0 0 5 14.5v-1a2.5 2.5 0 0 0 0-5z"/><path d="M12 7v10"/>',queue:'<circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><path d="M3.5 18c.5-3.5 2-5 4.5-5s4 1.5 4.5 5M12 14c1-.8 2-1 3.3-1 2.7 0 4.3 1.6 4.7 5"/>',bell:'<path d="M6 16h12l-1.5-2v-3a4.5 4.5 0 0 0-9 0v3zM10 19h4"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',person:'<circle cx="12" cy="8" r="3"/><path d="M6 20c.4-4 2.4-6 6-6s5.6 2 6 6"/>',yen:'<path d="m7 5 5 7 5-7M8 12h8M8 15h8M12 12v7"/>',parking:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>',check:'<path d="M7 4h10v16H7zM9 9l1.5 1.5L14 7M9 15h6"/>',door:'<path d="M5 20V4h11v16M9 12h10M16 9l3 3-3 3"/>',game:'<path d="M7 9h10l3 7a2 2 0 0 1-3 2l-2-2H9l-2 2a2 2 0 0 1-3-2zM8 12v3M6.5 13.5h3M16 12h.01M18 14h.01"/>',fortune:'<path d="M7 4h10v16H7zM9 7h6M10 11h4M9 16h6"/>',stamp:'<path d="M8 12h8l2 5H6zM9 20h6M9 12l1-7h4l1 7"/>',quest:'<path d="M5 15h14l-1.5-5.5h-2.2L13.8 7h-4L8.2 9.5H6.5z"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M9 9.5h5.8M4 13h2M18 13h2"/>',alert:'<path d="M12 4 3.5 19h17zM12 9v4M12 16h.01"/>',arrow:'<path d="m9 6 6 6-6 6"/>'};
 const svg=k=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${icons[k]||icons.check}</svg>`;
 // Crowd display is intentionally independent from LINE reception slot rules.
 // Keep the AirWAIT ONLINE_RECEPTION_ONLY pool here; never sync this with app-rules reception IDs.
 const CROWD_SETTINGS=Object.freeze({CAPACITY:350,CROWD_BASE:310,IDS:Object.freeze({'平日':Object.freeze(['0024']),'平日特定日':Object.freeze(['0036','0038']),'土日祝日':Object.freeze(['0030','0032','0034'])}),LEVELS:Object.freeze([{max:39,label:'空いています'},{max:59,label:'比較的空いています'},{max:79,label:'やや混雑'},{max:94,label:'混雑しています'},{max:100,label:'かなり混雑しています'}])});
-let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdError='',crowdAt=0,crowdLoading=false;
+let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdDetails=[],crowdError='',crowdAt=0,crowdLoading=false;
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
 function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
@@ -636,14 +643,88 @@ function patchTimeguideShortcut(){
   setText(eyebrow,'アソブーンタイマー');setText(title,end+'まで遊べる');setText(summary,detail);card.classList.add('has-timeguide-result');
 }
 function readCrowdCache(){try{const x=JSON.parse(localStorage.getItem(CROWD_CACHE_KEY)||'null');if(!x||!Array.isArray(x.slots)||!x.slots.length||Date.now()-Number(x.savedAt||0)>CROWD_CACHE_MAX_AGE_MS)return null;if(day&&String(x.operationalDate||'')!==String(day.operationalDate||''))return null;return x}catch{return null}}
-function writeCrowdCache(slots){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:Date.now()}))}catch{}}
+function writeCrowdCache(slots,details){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:Date.now()}))}catch{}}
 function crowdMetric(value){const n=Number(value);if(!Number.isSafeInteger(n)||n<0||n>CROWD_SETTINGS.CAPACITY)return null;const current=Math.max(CROWD_SETTINGS.CAPACITY-n,0),percent=Math.min(100,Math.floor(current/CROWD_SETTINGS.CROWD_BASE*100));const tone=percent<=39?'low':percent<=59?'light':percent<=79?'mid':percent<=94?'high':'very-high';return{percent,level:CROWD_SETTINGS.LEVELS.find(x=>percent<=x.max)?.label||'かなり混雑しています',tone}}
 function crowdTime(name){const m=String(name||'').normalize('NFKC').match(/^(\d{1,2})時(半|(?:([0-5]?\d)分)?)/);if(!m)return'';const hour=Number(m[1]),minute=m[2]==='半'?30:Number(m[3]||0);return hour<=23?`${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`:''}
-function validCrowdSlots(){const ids=new Set(CROWD_SETTINGS.IDS[String(day?.businessType||'')]||[]);return(Array.isArray(crowdSlots)?crowdSlots:[]).filter(x=>ids.has(String(x?.waitTypeId||''))&&x?.reserveUnit==='PERSON'&&x?.evidence==='PERSON'&&['exact-name','alias-name','time-key'].includes(String(x?.matchMode||''))&&crowdMetric(x?.remaining)&&(String(x?.slotKey||'')||crowdTime(x?.waitTypeName)))}
-function renderSlots(){const box=root.querySelector('#v38Slots');if(!box)return;if(!day||dayError||day.isClosed){box.innerHTML=dayError?'<h3>本日の混雑状況</h3><p class="v38-slots-error">混雑情報を取得できません</p>':'';return}if(crowdLoading&&!crowdSlots){box.innerHTML='<h3>本日の混雑状況</h3><p class="v38-slots-note">混雑情報を取得しています…</p>';return}const slots=validCrowdSlots();if(crowdError||!slots.length){box.innerHTML='<h3>本日の混雑状況</h3><p class="v38-slots-note">現在の混雑状況を更新しています。受付画面から最新状況をご確認いただけます。</p>'+action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'受付画面を見る');return}const receptionOpen=availability().type==='open',rows=slots.map(slot=>{const m=crowdMetric(slot.remaining),time=String(slot.slotKey||'')||crowdTime(slot.waitTypeName),label=String(day?.businessType||'')==='平日'?'すぐ入場':`${time}回`,goLabel=RECEPTION_FALLBACK_ACTIVE?'WEB受付へ':receptionOpen?'この回を受付':`受付は${lineReceptionOpenDisplay()}から`;return `<button class="v38-crowd-card crowd-${m.tone}" type="button" data-v7-view="reception" data-v7-slot="${esc(time)}" aria-label="${esc(label)}の混雑状況。受付画面へ進む"><div class="v38-crowd-head"><time>${esc(label)}</time><span>混雑目安</span></div><div class="v38-crowd-value"><strong>${m.percent}<small>%</small></strong><em>${esc(m.level)}</em></div><div class="v38-crowd-remaining"><span>受付残り</span><strong>${slot.remaining}<small>名</small></strong></div><div class="v38-crowd-track" role="progressbar" aria-label="${esc(label)}の混雑目安" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}"><span style="width:${m.percent}%"></span></div><div class="v38-crowd-go"><span>${esc(goLabel)}</span>${svg('arrow')}</div></button>`}).join('');box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">受付状況をもとにした目安です。館内の滞在人数ではありません。</p><div class="v38-crowd-list">${rows}</div>`}
+function safePeople(value){
+if(typeof value!=='number'&&!(typeof value==='string'&&/^\d+$/.test(value)))return null;
+const n=Number(value);
+return Number.isSafeInteger(n)&&n>=0&&n<=CROWD_SETTINGS.CAPACITY?n:null;
+}
+function normCrowdName(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').trim()}
+function onsiteRemaining(webId){
+const label=ONSITE_CROWD_NAMES[String(day?.businessType||'')]?.[String(webId||'')];
+if(!label||!Array.isArray(crowdDetails))return null;
+const matched=crowdDetails.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
+if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
+const n=safePeople(matched[0].remaining);
+// Worker coerces missing values to zero, so onsite zero is unverified.
+return n===0?null:n;
+}
+function verifiedWebRemaining(slot){
+if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON')return null;
+// AirWAIT's time-key match could belong to a different pool or day.
+// Only its independently verified WEB wait-type name is authoritative.
+if(slot.matchMode!=='exact-name')return null;
+return safePeople(slot.remaining);
+}
+function validCrowdSlots(){
+const ids=CROWD_SETTINGS.IDS[String(day?.businessType||'')]||[];
+return ids.map(id=>{
+const matched=(Array.isArray(crowdSlots)?crowdSlots:[]).filter(x=>String(x?.waitTypeId||'')===id);
+const slot=matched.length===1?matched[0]:null;
+const web=verifiedWebRemaining(slot);
+const onsite=onsiteRemaining(id);
+if(web===null&&onsite===null)return null;
+return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00' })[id],web,onsite};
+}).filter(Boolean);
+}
+function remainingMarkup(label,value,channel){
+return `<div class="v38-crowd-channel v38-crowd-channel--${channel}" aria-label="${label}の受付残り">
+<span>${label}</span>
+<strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`${value}<small>名</small>`}</strong>
+</div>`;
+}
+function renderSlots(){
+const box=root.querySelector('#v38Slots');
+if(!box)return;
+if(!day||dayError||day.isClosed){
+box.innerHTML=dayError?'<h3>本日の混雑状況</h3><p class="v38-slots-error">混雑情報を取得できません</p>':'';
+return;
+}
+if(crowdLoading&&!crowdSlots){
+box.innerHTML='<h3>本日の混雑状況</h3><p class="v38-slots-note">混雑情報を取得しています…</p>';
+return;
+}
+const slots=validCrowdSlots();
+if(crowdError||!slots.length){
+box.innerHTML='<h3>本日の混雑状況</h3><p class="v38-slots-note">現在の混雑状況を更新しています。受付画面から最新状況をご確認いただけます。</p>'+action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'受付画面を見る');
+return;
+}
+const receptionOpen=availability().type==='open';
+const rows=slots.map(slot=>{
+const m=slot.web===null?null:crowdMetric(slot.web);
+const label=String(day?.businessType||'')==='平日'?'すぐ入場':`${slot.time}回`;
+const goLabel=RECEPTION_FALLBACK_ACTIVE?'WEB受付へ':receptionOpen?'この回を受付':`受付は${lineReceptionOpenDisplay()}から`;
+const crowdTitle=m?`${m.percent}<small>%</small>`:'<span class="v38-crowd-unverified">確認中</span>';
+const crowdLevel=m?esc(m.level):'WEB枠の数値を確認中';
+const spoken=value=>value===null?'確認中':value+'名';
+const track=m?`<div class="v38-crowd-track" role="progressbar" aria-label="${esc(label)}のWEB枠の混雑目安" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}"><span style="width:${m.percent}%"></span></div>`:'';
+return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。現地受付の残り${spoken(slot.onsite)}。受付画面へ進む">
+<div class="v38-crowd-head"><time>${esc(label)}</time><span>WEB枠の混雑目安</span></div>
+<div class="v38-crowd-value"><strong>${crowdTitle}</strong><em>${crowdLevel}</em></div>
+<div class="v38-crowd-remaining" aria-label="WEB受付と現地受付の残り人数">
+<div class="v38-crowd-remaining-title">受付残り</div>
+<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web')}${remainingMarkup('現地受付',slot.onsite,'onsite')}</div>
+</div>
+${track}<div class="v38-crowd-go"><span>${esc(goLabel)}</span>${svg('arrow')}</div>
+</button>`;
+}).join('');
+box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">WEB・現地それぞれの受付残りです。混雑目安はWEB枠を基準とし、館内の滞在人数ではありません。</p><div class="v38-crowd-list">${rows}</div>`;
+}
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');const brand=document.querySelector('.brand small');setText(brand,'川口ハイウェイオアシス');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
-async function fetchCrowd(force=false){if(crowdLoading)return;if(!force&&crowdSlots&&!crowdError&&Date.now()-crowdAt<60000)return;crowdLoading=true;crowdError='';if(currentView()==='home')renderSlots();const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);try{const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');const response=await fetch(url,{cache:'no-store',signal:controller.signal});const data=await response.json();if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)throw Error(String(data?.error||'CROWD_UNAVAILABLE'));crowdSlots=data.slots;crowdAt=Date.now();crowdError='';writeCrowdCache(crowdSlots)}catch(e){const cached=readCrowdCache();if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdAt=Number(cached.savedAt||0)}crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE')}finally{clearTimeout(timer);crowdLoading=false;if(currentView()==='home')renderSlots()}}
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||'')))await fetchCrowd(force);else{crowdSlots=null;crowdError='';crowdAt=0}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+async function fetchCrowd(force=false){if(crowdLoading)return;if(!force&&crowdSlots&&!crowdError&&Date.now()-crowdAt<60000)return;crowdLoading=true;crowdError='';if(currentView()==='home')renderSlots();const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);try{const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');const response=await fetch(url,{cache:'no-store',signal:controller.signal});const data=await response.json();if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)throw Error(String(data?.error||'CROWD_UNAVAILABLE'));crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];crowdAt=Date.now();crowdError='';writeCrowdCache(crowdSlots,crowdDetails)}catch(e){const cached=readCrowdCache();if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=Number(cached.savedAt||0)}crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE')}finally{clearTimeout(timer);crowdLoading=false;if(currentView()==='home')renderSlots()}}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||'')))await fetchCrowd(force);else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};if(currentView()==='home'){lastHero='';mount()}});window.addEventListener('asoboon:v2-timeguide-updated',()=>{if(currentView()==='home')patchTimeguideShortcut()});window.addEventListener('asoboon:v2-route-rendered',()=>{lastHero='';mount()});window.addEventListener('focus',()=>{if(currentView()==='home')void refreshDay(false)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentView()==='home')void refreshDay(false)});mount();void refreshDay(false);
 })();
 
