@@ -117,7 +117,7 @@ test('LINE store-reception is visible but cannot be taken before 09:25 JST', asy
   await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:25から');
   await page.goto(`${BASE}?view=reception`, { waitUntil:'domcontentloaded' });
   await expect(page.locator('#recStatus')).toContainText('LINE当日受付は9:25から');
-  await expect(page.locator('#recSlots')).toContainText('現地受付枠');
+  await expect(page.locator('#recSlots')).toContainText('LINE受付枠');
   await expect(page.locator('[data-rec-slot]')).toHaveCount(0);
   await expect(page.locator('#recSubmit')).toBeDisabled();
   await expect(page.locator('#recSubmit')).toHaveText('受付は9:25から');

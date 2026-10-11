@@ -44,7 +44,7 @@ function friendlyError(value){const code=String(value||'');const map={
   WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
   WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',
   WEB_NOT_OPEN_YET:'LINE当日受付は9:25からです。受付開始までお待ちください。',
-  ONSITE_NOT_OPEN_YET:'現地受付は9:25からです。受付開始までお待ちください。',
+  ONSITE_NOT_OPEN_YET:'LINE受付は9:25からです。受付開始までお待ちください。',
   RECEPTION_CLOSED_FOR_DAY:'本日の受付は終了しています。',
   CLOSED_DAY:'本日は休館日です。',
 
@@ -62,7 +62,7 @@ function friendlyError(value){const code=String(value||'');const map={
   AIRWAIT_SYSTEM_ERROR:'受付システム側で一時的なエラーが発生しました。受付は成立していません。時間をおいてもう一度お試しください。',
 };if(/^AIRWAIT_CREATE_ERROR_RC_/.test(code))return '受付システムから確認できないエラーが返されました。受付は成立していません。画面を開き直してもう一度お試しください。';return map[code]||code||'受付を確定できませんでした。'};
 
-function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>現地受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">現地受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / 現地受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
+function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>LINE受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">LINE受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / LINE受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と受付環境を確認しています…</div>
 ${methodBlock}
 <div id="recDay" class="rec-day"><span><small>営業区分</small><strong>確認中</strong></span><b>—</b></div>
@@ -73,7 +73,7 @@ ${locationBlock}
 <div class="rec-person"><span><strong>こども</strong><small>6か月〜小6 / 900円</small></span><div class="rec-stepper"><button type="button" data-rec-k="child" data-rec-d="-1">−</button><output id="recChild">0</output><button type="button" data-rec-k="child" data-rec-d="1">＋</button></div></div>
 <div class="rec-person"><span><strong>0〜5か月</strong><small>1人目900円 / 2人目以降無料</small></span><div class="rec-stepper"><button type="button" data-rec-k="infant" data-rec-d="-1">−</button><output id="recInfant">0</output><button type="button" data-rec-k="infant" data-rec-d="1">＋</button></div></div>
 </div>
-<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${DEVELOP_TEST_ONLY?'Developingテスト':'LINE受付（現地受付枠）'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
+<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${DEVELOP_TEST_ONLY?'Developingテスト':'LINE受付'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
 <div id="recPeopleMsg" class="rec-status ok">この人数で受付できます。</div>
 <section class="rec-disclaimer" aria-labelledby="recDisclaimerTitle"><h3 id="recDisclaimerTitle">ご利用にあたって</h3><p>ご利用にあたりお客様ご自身に関する以下の項目について施設では責任を負いかねますので、あらかじめお知らせいたします。</p><ul><li>施設内での怪我、事故</li><li>お荷物の紛失、盗難</li><li>お客様同士のトラブル</li><li>施設内での衣服の汚れ</li><li>施設ご利用後の感染症罹患</li></ul></section>
 <label class="rec-agree"><input id="recAgree" type="checkbox"><span>受付内容とご利用にあたっての案内を確認しました。</span></label>
@@ -168,13 +168,13 @@ function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!==
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
 function usageAllowed(actual,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);return !u||u==='01'||u==='02'||u==='KeyALL'||u==='KeySTORE_RECEPTION_ONLY'}
 function buildSlots(waitTypes){const test=developTestRule(),configured=DEVELOP_TEST_ONLY?(test?[test]:[]):[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])];return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(rule.developTest){if(!usageAllowed(actual,{developTest:true}))return null;return{...rule,actual}}if(actual.dispFlg===false||!usageAllowed(actual))return null;return{...rule,actual}}).filter(Boolean)}
-function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日の現地受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
+function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日のLINE受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
 function locationOk(){return LINE_STORE_ONLY||S.mode!=='onsite'||Boolean(S.location?.ok)}
 
 function renderForm(){
   if(!$('recAdult'))return;
   $('recAdult').textContent=S.adult;$('recChild').textContent=S.child;$('recInfant').textContent=S.infant;
-  $('recModeLabel').textContent=DEVELOP_TEST_ONLY?'Developingテスト':S.mode==='web'?'LINE受付（現地受付枠）':'現地受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
+  $('recModeLabel').textContent=DEVELOP_TEST_ONLY?'Developingテスト':S.mode==='web'?'LINE受付':'LINE受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
   $('recWeb')?.classList.toggle('active',S.mode==='web');$('recOnsite')?.classList.toggle('active',S.mode==='onsite');if($('recLocation'))$('recLocation').hidden=S.mode!=='onsite';
   const peopleOK=validPeople(),msg=$('recPeopleMsg');msg.className='rec-status '+(peopleOK?'ok':'bad');msg.textContent=peopleOK?'この人数で受付できます。':`保護者1名につきお子さま3名まで、1組合計${maxTotal()}名までです。`;
   document.querySelectorAll('[data-rec-k]').forEach(b=>{const k=b.dataset.recK,d=+b.dataset.recD;if(d<0)b.disabled=k==='adult'?S.adult<=1||kids()>(S.adult-1)*kidsPerAdult():S[k]<=0;else b.disabled=total()>=maxTotal()||(k!=='adult'&&kids()>=S.adult*kidsPerAdult())});
@@ -183,7 +183,7 @@ function renderForm(){
 }
 
 function distanceM(a,b,c,d){const Rm=6371000,rad=x=>x*Math.PI/180,x=rad(c-a),y=rad(d-b),q=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 2*Rm*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
-async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocationBtn');if(!navigator.geolocation){txt.textContent='この端末では位置情報を利用できません。';return}btn.disabled=true;txt.textContent='現在地を確認しています…';try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:10000,maximumAge:0}));const g=R.geofence||{},lat=+p.coords.latitude,lng=+p.coords.longitude,accuracy=+p.coords.accuracy,age=Math.max(0,Date.now()-Number(p.timestamp||Date.now())),distance=distanceM(+g.lat,+g.lng,lat,lng),ok=distance<=Number(g.radiusM||500)&&accuracy<=Number(g.maxAccuracyM||200)&&age<=Number(g.maxAgeMs||120000);S.location={ok,lat,lng,accuracy,timestamp:Number(p.timestamp||Date.now()),distance};txt.textContent=ok?`現在地OK：施設から約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`:`現地受付の範囲外です：距離 約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`;txt.style.color=ok?'#286143':'#87362f'}catch{S.location=null;txt.textContent='位置情報を確認できませんでした。位置情報の許可を確認してください。'}finally{btn.disabled=false;renderForm()}}
+async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocationBtn');if(!navigator.geolocation){txt.textContent='この端末では位置情報を利用できません。';return}btn.disabled=true;txt.textContent='現在地を確認しています…';try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:10000,maximumAge:0}));const g=R.geofence||{},lat=+p.coords.latitude,lng=+p.coords.longitude,accuracy=+p.coords.accuracy,age=Math.max(0,Date.now()-Number(p.timestamp||Date.now())),distance=distanceM(+g.lat,+g.lng,lat,lng),ok=distance<=Number(g.radiusM||500)&&accuracy<=Number(g.maxAccuracyM||200)&&age<=Number(g.maxAgeMs||120000);S.location={ok,lat,lng,accuracy,timestamp:Number(p.timestamp||Date.now()),distance};txt.textContent=ok?`現在地OK：施設から約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`:`LINE受付の範囲外です：距離 約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`;txt.style.color=ok?'#286143':'#87362f'}catch{S.location=null;txt.textContent='位置情報を確認できませんでした。位置情報の許可を確認してください。'}finally{btn.disabled=false;renderForm()}}
 
 async function boot(){
   try{localStorage.removeItem(`asoboon_v2_official_web_handoff_${STORAGE_NS}_v1`)}catch{}
@@ -219,7 +219,7 @@ async function boot(){
   S.slots=buildSlots(S.waitTypes);if(DEVELOP_TEST_ONLY&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
   const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
-  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、現地受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
+  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、LINE受付をご利用いただけます。`,'warn');scheduleLineOpen();return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
   if(!lineOK){status(String(lineResult.reason?.message||lineResult.reason||'LINE接続を確認できません。'),'bad');return}

@@ -1,0 +1,167 @@
+/* Official ASOBooN call status: unmistakable state across the entire viewport.
+   This CSS is loaded only with the route bundle, not on initial HOME. */
+body.v7-callstatus-active[data-call-tone]{
+  --cs-tone-bg:#d4dae0;--cs-tone-soft:#edf0f3;--cs-tone-surface:#f9fafb;
+  --cs-tone-border:#7d8b99;--cs-tone-accent:#5a6774;--cs-tone-deep:#354250;
+  --cs-tone-ink:#24313e;--cs-tone-glow:rgba(76,91,105,.25);
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--cs-tone-bg) 0%,var(--cs-tone-bg) 44%,var(--cs-tone-soft) 100%);
+  transition:background-color .18s ease
+}
+body.v7-callstatus-active[data-call-tone="waiting"]{
+  --cs-tone-bg:#bdc5cf;--cs-tone-soft:#e0e5eb;--cs-tone-surface:#f0f3f6;
+  --cs-tone-border:#778797;--cs-tone-accent:#627080;--cs-tone-deep:#344251;
+  --cs-tone-ink:#24313d;--cs-tone-glow:rgba(80,94,111,.26)
+}
+body.v7-callstatus-active[data-call-tone="calling"]{
+  --cs-tone-bg:#88bcfb;--cs-tone-soft:#cee6ff;--cs-tone-surface:#e6f3ff;
+  --cs-tone-border:#1367cb;--cs-tone-accent:#1268d6;--cs-tone-deep:#064a9c;
+  --cs-tone-ink:#083e7a;--cs-tone-glow:rgba(18,104,214,.32)
+}
+body.v7-callstatus-active[data-call-tone="guided"]{
+  --cs-tone-bg:#9eddb1;--cs-tone-soft:#d5f1de;--cs-tone-surface:#e9f9ed;
+  --cs-tone-border:#1e8b4f;--cs-tone-accent:#16854a;--cs-tone-deep:#0e6036;
+  --cs-tone-ink:#15502f;--cs-tone-glow:rgba(22,133,74,.29)
+}
+body.v7-callstatus-active[data-call-tone="canceled"]{
+  --cs-tone-bg:#f5a5a2;--cs-tone-soft:#ffdad7;--cs-tone-surface:#fff0ed;
+  --cs-tone-border:#c32b39;--cs-tone-accent:#b82937;--cs-tone-deep:#861d29;
+  --cs-tone-ink:#742027;--cs-tone-glow:rgba(184,41,55,.30)
+}
+body.v7-callstatus-active[data-call-tone="hold"]{
+  --cs-tone-bg:#e5d7ad;--cs-tone-soft:#f7efda;--cs-tone-surface:#fff8e9;
+  --cs-tone-border:#9b741d;--cs-tone-accent:#947019;--cs-tone-deep:#705014;
+  --cs-tone-ink:#624b17;--cs-tone-glow:rgba(155,116,29,.24)
+}
+body.v7-callstatus-active[data-call-tone]::before{
+  opacity:.42;
+  background:radial-gradient(circle at 85% 16%,rgba(255,255,255,.35),transparent 40%),
+    repeating-linear-gradient(120deg,rgba(255,255,255,.08) 0 2px,transparent 2px 32px);
+}
+body.v7-callstatus-active[data-call-tone] .topbar{
+  background:linear-gradient(180deg,var(--cs-tone-bg) 0%,var(--cs-tone-bg) 66%,transparent);
+}
+body.v7-callstatus-active[data-call-tone] .topbar::after{color:var(--cs-tone-ink)}
+body.v7-callstatus-active[data-call-tone] .topbar .iconbtn{
+  background:var(--cs-tone-deep);color:#fff;
+  box-shadow:0 5px 12px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-page{
+  position:relative;
+  border:3px solid var(--cs-tone-border);
+  background:var(--cs-tone-soft);
+  box-shadow:0 14px 32px var(--cs-tone-glow);
+}
+body.v7-callstatus-active[data-call-tone] .cs-page::before{
+  content:"";position:absolute;inset:0 0 auto;height:7px;
+  background:var(--cs-tone-accent);z-index:1;pointer-events:none
+}
+body.v7-callstatus-active[data-call-tone] .cs-body{
+  padding-top:19px;
+  background:linear-gradient(180deg,var(--cs-tone-soft),var(--cs-tone-surface));
+}
+body.v7-callstatus-active[data-call-tone] .cs-tone-banner{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;min-height:103px;margin-bottom:12px;padding:14px 12px;
+  border:2px solid var(--cs-tone-deep);border-radius:18px;
+  background:linear-gradient(135deg,var(--cs-tone-accent),var(--cs-tone-deep));
+  color:#fff;text-align:center;
+  box-shadow:0 9px 19px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-tone-banner strong{
+  display:block;color:#fff;font-size:clamp(27px,8.5vw,40px);
+  font-weight:1000;line-height:1.1;letter-spacing:.03em
+}
+body.v7-callstatus-active[data-call-tone] .cs-tone-banner span{
+  font-size:13px;font-weight:900;line-height:1.5;color:#fff
+}
+body.v7-callstatus-active[data-call-tone] .cs-top{
+  border:1px solid var(--cs-tone-border);
+  background:var(--cs-tone-surface)
+}
+body.v7-callstatus-active[data-call-tone] .cs-top strong{color:var(--cs-tone-deep)}
+body.v7-callstatus-active[data-call-tone] .cs-top.ok .cs-live-dot{
+  background:var(--cs-tone-accent);box-shadow:0 0 0 4px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-state{
+  border:2px solid var(--cs-tone-border);
+  background:linear-gradient(180deg,var(--cs-tone-surface),var(--cs-tone-soft));
+  box-shadow:0 6px 16px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-state strong{
+  color:var(--cs-tone-deep);font-size:clamp(20px,6vw,26px)
+}
+body.v7-callstatus-active[data-call-tone] .cs-state p{color:var(--cs-tone-ink)}
+body.v7-callstatus-active[data-call-tone] .cs-queue>div{
+  border:2px solid var(--cs-tone-border);background:var(--cs-tone-surface)
+}
+body.v7-callstatus-active[data-call-tone] .cs-queue strong{color:var(--cs-tone-deep)}
+body.v7-callstatus-active[data-call-tone] .cs-refresh{
+  background:linear-gradient(135deg,var(--cs-tone-accent),var(--cs-tone-deep));
+  box-shadow:0 7px 14px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-ticket{
+  border-color:var(--cs-tone-border);background:var(--cs-tone-surface)
+}
+body.v7-callstatus-active[data-call-tone] .cs-note{background:var(--cs-tone-surface);color:var(--cs-tone-ink)}
+body.v7-callstatus-active[data-call-tone] .cs-note strong{color:var(--cs-tone-deep)}
+body.v7-callstatus-active[data-call-tone] .cs-forecast{
+  border-color:var(--cs-tone-border);
+  background:linear-gradient(150deg,var(--cs-tone-surface),var(--cs-tone-soft))
+}
+body.v7-callstatus-active[data-call-tone] .cs-forecast-head,
+body.v7-callstatus-active[data-call-tone] .cs-forecast-main,
+body.v7-callstatus-active[data-call-tone] .cs-forecast-point,
+body.v7-callstatus-active[data-call-tone] .cs-forecast-note{color:var(--cs-tone-ink)}
+body.v7-callstatus-active[data-call-tone] .cs-forecast-main strong{color:var(--cs-tone-deep)}
+body.v7-callstatus-active[data-call-tone] .cs-forecast-point.end,
+body.v7-callstatus-active[data-call-tone] .cs-forecast-head small{color:var(--cs-tone-deep)}
+body.v7-callstatus-active[data-call-tone] .cs-forecast-point.end .cs-forecast-dot{
+  border-color:var(--cs-tone-accent);background:var(--cs-tone-accent)
+}
+body.v7-callstatus-active[data-call-tone] .cs-forecast-flow-line{background:var(--cs-tone-border)}
+/* The START LIGHTS indicate status without conflicting red/green lights. */
+body.v7-callstatus-active[data-call-tone="waiting"] .v33-start-panel{
+  border-color:#788797;background:linear-gradient(180deg,#f4f6f8,#dce2e8)
+}
+body.v7-callstatus-active[data-call-tone="waiting"] .v33-lamp.on.red i{
+  background:#95a0ad;box-shadow:0 0 12px rgba(119,135,151,.5)
+}
+body.v7-callstatus-active[data-call-tone="calling"] .v33-start-panel.calling{
+  border:3px solid #1268d6;background:linear-gradient(180deg,#ebf6ff,#c2dfff)
+}
+body.v7-callstatus-active[data-call-tone="calling"] .v33-lamp.on.green i{
+  background:#2785f5;box-shadow:0 0 17px rgba(18,104,214,.66)
+}
+body.v7-callstatus-active[data-call-tone="calling"] .v33-go,
+body.v7-callstatus-active[data-call-tone="calling"] .v33-start-panel.calling h2{
+  color:#0959ba
+}
+body.v7-callstatus-active[data-call-tone] .cs-page.v33-compact-active .cs-ticket .v17-pass{
+  border-color:var(--cs-tone-border);box-shadow:0 4px 13px var(--cs-tone-glow)
+}
+body.v7-callstatus-active[data-call-tone] .cs-page.v33-compact-active .cs-ticket .v17-number{
+  color:var(--cs-tone-deep)
+}
+@media(max-width:350px){
+  body.v7-callstatus-active[data-call-tone] .cs-tone-banner{min-height:92px;padding:13px 9px}
+  body.v7-callstatus-active[data-call-tone] .cs-tone-banner span{font-size:12px}
+  body.v7-callstatus-active[data-call-tone] .cs-body{padding-left:11px;padding-right:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.v7-callstatus-active[data-call-tone]{transition:none}
+}
+/* The ticket badge follows AirWAIT state; "LIVE" green must not survive cancellation. */
+body.v7-callstatus-active[data-call-tone] .cs-page .v17-valid{
+  background:var(--cs-tone-accent);color:#fff;border-color:var(--cs-tone-border);
+  font-size:.62rem;letter-spacing:.025em;white-space:nowrap
+}
+body.v7-callstatus-active[data-call-tone="canceled"] .cs-page .v17-valid{
+  background:#b82937!important;color:#fff!important;border-color:#b82937!important
+}
+body.v7-callstatus-active[data-call-tone="calling"] .cs-page .v17-valid{
+  background:#1268d6!important;color:#fff!important;border-color:#1268d6!important
+}
+body.v7-callstatus-active[data-call-tone="guided"] .cs-page .v17-valid{
+  background:#16854a!important;color:#fff!important;border-color:#16854a!important
+}
