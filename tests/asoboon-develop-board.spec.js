@@ -343,12 +343,15 @@ test('weekend holiday board uses 5-second refresh only in the three requested wi
       weekday:T.refreshIntervalMs(new Date('2026-10-12T00:55:00.000Z'),'平日'),
       specialWeekday:T.refreshIntervalMs(new Date('2026-10-12T00:55:00.000Z'),'平日特定日'),
       alias:T.refreshIntervalMs(new Date('2026-10-11T00:55:00.000Z'),'土日祝'),
+      aliasCanonical:T.canonicalBusinessType('土日祝'),
+      aliasSlot:T.resolveBoardContext(new Date('2026-10-11T00:55:00.000Z'),'土日祝').slotKey,
     };
   });
   expect(values).toEqual({
     before1:10000,start1:5000,end1Before:5000,end1:10000,
     start2:5000,end2:10000,start3:5000,end3Before:5000,end3:10000,
     weekday:10000,specialWeekday:10000,alias:5000,
+    aliasCanonical:'土日祝日',aliasSlot:'10:00',
   });
 });
 
@@ -365,6 +368,17 @@ test('weekend holiday scheduler lands exactly on a fast-refresh boundary', async
   expect(values.intoMorning).toBe(3000);
   expect(values.outMorning).toBe(2000);
   expect(values.normal).toBe(10000);
+});
+
+test('poll scheduler remains start-to-start instead of waiting for fetch completion', async () => {
+  const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
+  const scheduleStart=boardCode.indexOf('function schedule(){');
+  const scheduleEnd=boardCode.indexOf("window.addEventListener('resize'",scheduleStart);
+  const body=boardCode.slice(scheduleStart,scheduleEnd);
+  expect(body).toContain('state.timer=setTimeout(()=>{');
+  expect(body.indexOf('schedule();')).toBeGreaterThan(-1);
+  expect(body.indexOf('void fetchBoard();')).toBeGreaterThan(body.indexOf('schedule();'));
+  expect(body).not.toContain('await fetchBoard()');
 });
 
 test('connection label reports 5-second auto refresh during a weekend fast window', async ({ page }) => {
