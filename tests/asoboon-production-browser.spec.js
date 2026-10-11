@@ -916,7 +916,8 @@ for(const status of [
   {state:'waiting',tone:'waiting',label:'順番を',rgb:'rgb(219, 224, 228)',ink:'rgb(52, 69, 84)'},
   {state:'calling',tone:'calling',label:'入場できます',rgb:'rgb(215, 236, 255)',ink:'rgb(19, 89, 152)'},
   {state:'done',tone:'done',label:'ご案内済み',rgb:'rgb(216, 244, 220)',ink:'rgb(23, 101, 58)'},
-  {state:'canceled',tone:'canceled',label:'取消',rgb:'rgb(255, 224, 223)',ink:'rgb(165, 35, 41)'}
+  {state:'canceled',tone:'canceled',label:'取消',rgb:'rgb(255, 224, 223)',ink:'rgb(165, 35, 41)'},
+  {state:'closed',tone:'loading',label:'本日の受付は終了',rgb:'rgb(242, 240, 233)',ink:'rgb(85, 85, 76)'}
 ]){
   test('LINE call screen uses full-page '+status.tone+' verified status colors without stale foreground',async({page})=>{
     const stamp=Date.parse('2026-10-03T03:00:00.000Z');

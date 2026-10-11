@@ -376,7 +376,7 @@ const CALL_VISUAL_TONES=['waiting','calling','done','canceled','hold','loading']
 function setCallVisualTone(state){
  const code=String(state||'');
  const tone=code==='waiting'?'waiting':code==='calling'?'calling':
-   ['done','processing','closed'].includes(code)?'done':code==='canceled'?'canceled':
+   ['done','processing'].includes(code)?'done':code==='canceled'?'canceled':
    code==='hold'?'hold':'loading';
  const page=$('csState')?.closest('.cs-page');
  if(page)page.dataset.callTone=tone;

@@ -12,6 +12,7 @@ test('The four audience-facing status categories have separate page-wide palette
  assert.match(css,/background:var\(--tone-bg\)!important/);
  assert.match(js,/setCallVisualTone\(d.found\?d.state:'loading'\)/);
  assert.match(js,/function unmount\(\)\{clearCallVisualTone\(\)/);
+ assert.doesNotMatch(js,/\['done','processing','closed'\]/);
 });
 test('LINE wording replaces onsite reception in visitor-facing production features',()=>{
  for(const x of [home,rec])assert.ok(!x.includes('現地受付'));
