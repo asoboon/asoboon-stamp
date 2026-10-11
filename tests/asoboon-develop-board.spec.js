@@ -148,19 +148,19 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261004-show-v14-safe');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261004-show-v14-safe'");
+  expect(buildFile.version).toBe('20261011-sequential-call-fast-refresh-v15');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261011-sequential-call-fast-refresh-v15'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
   expect(indexHtml).toContain('board.css?v=39');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
-  expect(indexHtml).toContain('board-animations.js?v=37');
+  expect(indexHtml).toContain('board-animations.js?v=38');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
   expect(indexHtml).toContain('board-effects-runtime.js?v=22');
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=36');
+  expect(indexHtml).toContain('board.js?v=37');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -323,6 +323,53 @@ test('temporary API failure preserves readable data and automatically recovers',
   await expect(page.locator('#connection')).toContainText('10秒ごとに自動更新');
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
   expect(h.pageErrors).toEqual([]);
+});
+
+test('weekend holiday board uses 5-second refresh only in the three requested windows', async ({ page }) => {
+  await installBoard(page,[payload([])]);
+  const values=await page.evaluate(()=>{
+    const T=window.ASOBOON_CALL_BOARD_TEST;
+    const ms=iso=>T.refreshIntervalMs(new Date(iso),'土日祝日');
+    return{
+      before1:ms('2026-10-11T00:54:59.000Z'), // 09:54:59 JST
+      start1:ms('2026-10-11T00:55:00.000Z'),  // 09:55:00
+      end1Before:ms('2026-10-11T01:24:59.000Z'), // 10:24:59
+      end1:ms('2026-10-11T01:25:00.000Z'), // 10:25:00
+      start2:ms('2026-10-11T03:25:00.000Z'), // 12:25:00
+      end2:ms('2026-10-11T03:55:00.000Z'), // 12:55:00
+      start3:ms('2026-10-11T05:50:00.000Z'), // 14:50:00
+      end3Before:ms('2026-10-11T06:19:59.000Z'), // 15:19:59
+      end3:ms('2026-10-11T06:20:00.000Z'), // 15:20:00
+      weekday:T.refreshIntervalMs(new Date('2026-10-12T00:55:00.000Z'),'平日'),
+      specialWeekday:T.refreshIntervalMs(new Date('2026-10-12T00:55:00.000Z'),'平日特定日'),
+      alias:T.refreshIntervalMs(new Date('2026-10-11T00:55:00.000Z'),'土日祝'),
+    };
+  });
+  expect(values).toEqual({
+    before1:10000,start1:5000,end1Before:5000,end1:10000,
+    start2:5000,end2:10000,start3:5000,end3Before:5000,end3:10000,
+    weekday:10000,specialWeekday:10000,alias:5000,
+  });
+});
+
+test('weekend holiday scheduler lands exactly on a fast-refresh boundary', async ({ page }) => {
+  await installBoard(page,[payload([])]);
+  const values=await page.evaluate(()=>{
+    const T=window.ASOBOON_CALL_BOARD_TEST;
+    return{
+      intoMorning:T.nextRefreshDelayMs(new Date('2026-10-11T00:54:57.000Z'),'土日祝日'),
+      outMorning:T.nextRefreshDelayMs(new Date('2026-10-11T01:24:58.000Z'),'土日祝日'),
+      normal:T.nextRefreshDelayMs(new Date('2026-10-11T02:00:00.000Z'),'土日祝日'),
+    };
+  });
+  expect(values.intoMorning).toBe(3000);
+  expect(values.outMorning).toBe(2000);
+  expect(values.normal).toBe(10000);
+});
+
+test('connection label reports 5-second auto refresh during a weekend fast window', async ({ page }) => {
+  await installBoard(page,[payload([])],{fixedIso:'2026-10-11T00:55:00.000Z'});
+  await expect(page.locator('#connection')).toContainText('5秒ごとに自動更新');
 });
 
 test('stale board payload remains visible with a clear update-waiting warning', async ({ page }) => {
