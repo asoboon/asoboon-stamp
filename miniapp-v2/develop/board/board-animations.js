@@ -372,7 +372,9 @@ function enqueue(evt,{deferPump=false}={}){
     enqueuedAt:Number(evt?.enqueuedAt)||now,
     estimatedMs:Number(evt?.estimatedMs)||eventEstimateMs(evt),
   };
-  const duplicateIndex=queue.findIndex(x=>x.key===normalized.key);
+  // Different transitions for the same ticket may legitimately coexist:
+  // an observed CALL must play before a later GUIDED/HOLD/CANCEL transition.
+  const duplicateIndex=queue.findIndex(x=>x.key===normalized.key&&x.kind===normalized.kind);
   if(duplicateIndex>=0){
     queue[duplicateIndex]=normalized;
     diagnostics.dropped+=1;
