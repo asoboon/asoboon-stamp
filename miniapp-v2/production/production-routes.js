@@ -254,9 +254,9 @@ async function submit(){
   S.busy=true;status('受付内容を最終確認しています…','warn');renderForm();
   const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);
   try{
-    const latest=await withTimeout(D.getCurrent({force:true}),10000,'営業カレンダーの再確認がタイムアウトしました。受付は送信していません。');
-    if(seq!==S.submitSeq||S.locked)return;
-    if(latest.operationalDate!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度確認してください。');
+    const today=typeof D.operationalDate==='function'?D.operationalDate():'';
+    if(!today||today!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度受付画面を開いてください。');
+    if(S.day.isClosed)throw Error('本日は休館日です。');
     if(!LINE_STORE_ONLY&&S.mode==='onsite'&&!locationOk())throw Error('現在地の確認が必要です。');
     const token=String(liff.getAccessToken()||'');
     if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
@@ -280,6 +280,67 @@ async function submit(){
 function setMode(mode){S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
 function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
 window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.1.0-dispatch-proof',render,mount});
+})();
+
+;/* miniapp-v2/shared/call-forecast.js */
+/* ASOBooN call-time reference forecast. Not an official admission appointment.
+   Deliberately uses only a verified reservationStatus response; no extra calls. */
+(()=>{'use strict';
+const ROUNDS=Object.freeze({
+ '0029':{start:'10:00',cutoff:'12:00'},
+ '0031':{start:'12:30',cutoff:'14:30'},
+ '0033':{start:'15:00'},
+ '0035':{start:'10:00',cutoff:'13:00'},
+ '0037':{start:'13:30'},
+ '0025':{start:'14:00'}
+});
+function pace(rank,total){
+ if(!Number.isFinite(rank)||rank<=0)return 0;
+ const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));
+ if(r<=20)return r/20*5;
+ if(r<=60)return 5+(r-20)/10*5;
+ return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5;
+}
+function parseClock(value){
+ const m=/^(\d{1,2}):(\d{2})$/.exec(String(value||''));
+ return m?Number(m[1])*60+Number(m[2]):null;
+}
+function jstNow(epoch){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+  timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
+  hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+ }).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));
+ return {date:parts.year+'-'+parts.month+'-'+parts.day,minutes:Number(parts.hour)*60+Number(parts.minute)};
+}
+function fmt(minutes){
+ const n=Math.min(1439,Math.max(0,Math.round(minutes/5)*5));
+ return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+}
+function predict(status,nowEpoch=Date.now()){
+ if(status?.ok!==true||status.found!==true||status.state!=='waiting')return null;
+ const round=ROUNDS[String(status.waitTypeId||'')];
+ if(!round)return null; // Includes immediate reception: no forecast.
+ const ahead=status.aheadCount,rank=status.queueRank,total=status.activeCount;
+ if(!Number.isSafeInteger(ahead)||ahead<0||!Number.isSafeInteger(rank)||rank<=0
+    ||!Number.isSafeInteger(total)||total<rank)return null;
+ const checked=Number(status.checkedAt);
+ if(!Number.isFinite(checked)||checked<=0||Math.abs(nowEpoch-checked)>3*60*1000)return null;
+ const now=jstNow(checked);
+ if(String(status.businessDate||'')!==now.date)return null;
+ const start=parseClock(round.start),cutoff=parseClock(round.cutoff);
+ if(start===null||(cutoff!==null&&now.minutes>=cutoff))return null;
+ const prestart=now.minutes<start;
+ const estimated=prestart
+  ?start+pace(rank,total)
+  :now.minutes+pace(ahead+1,Math.max(total,ahead+1));
+ if(cutoff!==null&&estimated>cutoff)return null;
+ return Object.freeze({
+  start:round.start,clock:fmt(estimated),prestart,
+  soon:!prestart&&ahead<=2,ahead,
+  method:'reference-queue-pace',checkedAt:checked
+ });
+}
+window.ASOBOON_V2_CALL_FORECAST=Object.freeze({predict});
 })();
 
 ;/* miniapp-v2/shared/callstatus.js */
@@ -321,6 +382,16 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-ticket"><small>あなたの受付番号</small><strong id="csReceipt">—</strong><span>番</span><div id="csWaitType" class="cs-waittype">受付枠を確認中</div></div>
 <div id="csState" class="cs-state loading"><div class="cs-state-icon">⏳</div><strong id="csTitle">状況を確認中</strong><p id="csMessage">LINE本人確認と受付情報を安全に照合しています。</p></div>
 <div id="csQueue" class="cs-queue" hidden><div><small>あなたの前</small><strong id="csAhead">—</strong><span>組</span></div><div><small>現在の位置</small><strong id="csRank">—</strong><span id="csTotal">組中</span></div></div>
+<section id="csForecast" class="cs-forecast" hidden aria-label="呼出時刻の参考目安">
+  <div class="cs-forecast-head"><span>🕒 あなたの呼出時刻の目安</span><small id="csForecastMode">順番からの参考予測</small></div>
+  <div class="cs-forecast-main"><strong id="csForecastClock">—</strong><span id="csForecastSuffix">ごろ</span></div>
+  <div class="cs-forecast-flow">
+    <div class="cs-forecast-point"><span class="cs-forecast-dot"></span><small id="csForecastStart">呼出開始</small></div>
+    <div class="cs-forecast-flow-line" aria-hidden="true">➜</div>
+    <div class="cs-forecast-point end"><span class="cs-forecast-dot"></span><small id="csForecastTarget">あなたの目安</small></div>
+  </div>
+  <p id="csForecastNote" class="cs-forecast-note">順番からの参考予測です。実際の呼出時刻は前後します。</p>
+</section>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
@@ -420,6 +491,22 @@ function stateMeta(state,ahead){
   }
 }
 
+function updateCallForecast(data){
+ const el=$('csForecast');
+ if(!el)return;
+ const result=window.ASOBOON_V2_CALL_FORECAST?.predict?.(data)||null;
+ el.hidden=!result;
+ if(!result)return;
+ const write=(id,value)=>{const node=$(id);if(node)node.textContent=value};
+ write('csForecastClock',result.soon?'まもなく':result.clock);
+ write('csForecastSuffix',result.soon?'':'ごろ');
+ write('csForecastMode',result.prestart?'呼出開始前・順番からの目安':'待ち組数からの参考目安');
+ write('csForecastStart','呼出開始 '+result.start);
+ write('csForecastTarget',result.soon?'まもなく':'あなた '+result.clock+'ごろ');
+ write('csForecastNote',result.prestart
+  ?'この回の呼出開始時刻と受付順から計算した参考予測です。実際の呼出は前後します。'
+  :'現在の待ち組数をもとにした参考予測です。実際の進行で前後します。LINEの呼出通知・最新状況をご確認ください。');
+}
 function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
@@ -477,6 +564,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
   const cached=cachedReservation();
@@ -592,7 +680,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -600,6 +688,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;

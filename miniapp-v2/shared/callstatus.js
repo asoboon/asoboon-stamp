@@ -36,6 +36,16 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-ticket"><small>あなたの受付番号</small><strong id="csReceipt">—</strong><span>番</span><div id="csWaitType" class="cs-waittype">受付枠を確認中</div></div>
 <div id="csState" class="cs-state loading"><div class="cs-state-icon">⏳</div><strong id="csTitle">状況を確認中</strong><p id="csMessage">LINE本人確認と受付情報を安全に照合しています。</p></div>
 <div id="csQueue" class="cs-queue" hidden><div><small>あなたの前</small><strong id="csAhead">—</strong><span>組</span></div><div><small>現在の位置</small><strong id="csRank">—</strong><span id="csTotal">組中</span></div></div>
+<section id="csForecast" class="cs-forecast" hidden aria-label="呼出時刻の参考目安">
+  <div class="cs-forecast-head"><span>🕒 あなたの呼出時刻の目安</span><small id="csForecastMode">順番からの参考予測</small></div>
+  <div class="cs-forecast-main"><strong id="csForecastClock">—</strong><span id="csForecastSuffix">ごろ</span></div>
+  <div class="cs-forecast-flow">
+    <div class="cs-forecast-point"><span class="cs-forecast-dot"></span><small id="csForecastStart">呼出開始</small></div>
+    <div class="cs-forecast-flow-line" aria-hidden="true">➜</div>
+    <div class="cs-forecast-point end"><span class="cs-forecast-dot"></span><small id="csForecastTarget">あなたの目安</small></div>
+  </div>
+  <p id="csForecastNote" class="cs-forecast-note">順番からの参考予測です。実際の呼出時刻は前後します。</p>
+</section>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
@@ -135,6 +145,22 @@ function stateMeta(state,ahead){
   }
 }
 
+function updateCallForecast(data){
+ const el=$('csForecast');
+ if(!el)return;
+ const result=window.ASOBOON_V2_CALL_FORECAST?.predict?.(data)||null;
+ el.hidden=!result;
+ if(!result)return;
+ const write=(id,value)=>{const node=$(id);if(node)node.textContent=value};
+ write('csForecastClock',result.soon?'まもなく':result.clock);
+ write('csForecastSuffix',result.soon?'':'ごろ');
+ write('csForecastMode',result.prestart?'呼出開始前・順番からの目安':'待ち組数からの参考目安');
+ write('csForecastStart','呼出開始 '+result.start);
+ write('csForecastTarget',result.soon?'まもなく':'あなた '+result.clock+'ごろ');
+ write('csForecastNote',result.prestart
+  ?'この回の呼出開始時刻と受付順から計算した参考予測です。実際の呼出は前後します。'
+  :'現在の待ち組数をもとにした参考予測です。実際の進行で前後します。LINEの呼出通知・最新状況をご確認ください。');
+}
 function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
@@ -192,6 +218,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
   const cached=cachedReservation();
@@ -307,7 +334,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -315,6 +342,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;

@@ -251,9 +251,9 @@ async function submit(){
   S.busy=true;status('受付内容を最終確認しています…','warn');renderForm();
   const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);
   try{
-    const latest=await withTimeout(D.getCurrent({force:true}),10000,'営業カレンダーの再確認がタイムアウトしました。受付は送信していません。');
-    if(seq!==S.submitSeq||S.locked)return;
-    if(latest.operationalDate!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度確認してください。');
+    const today=typeof D.operationalDate==='function'?D.operationalDate():'';
+    if(!today||today!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度受付画面を開いてください。');
+    if(S.day.isClosed)throw Error('本日は休館日です。');
     if(!LINE_STORE_ONLY&&S.mode==='onsite'&&!locationOk())throw Error('現在地の確認が必要です。');
     const token=String(liff.getAccessToken()||'');
     if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
