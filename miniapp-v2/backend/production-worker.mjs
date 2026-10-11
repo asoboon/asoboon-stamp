@@ -52,6 +52,14 @@ const BOARD_SLOT_SPECS = Object.freeze({
   '休館':Object.freeze([]),
 });
 
+// AirWAIT gives a store-wide, time-ordered reservation list. Each admission round
+// has two internal wait types (LINE/store and WEB). A single wait type is NOT the
+// visitor's real place in line. These pairings are confirmed by the AirWAIT master.
+const CALLSTATUS_COMBINED_ROUNDS = Object.freeze({
+  '平日':Object.freeze([Object.freeze(['0023','0024']),Object.freeze(['0025','0027'])]),
+  '平日特定日':Object.freeze([Object.freeze(['0035','0036']),Object.freeze(['0037','0038'])]),
+  '土日祝日':Object.freeze([Object.freeze(['0029','0030']),Object.freeze(['0031','0032']),Object.freeze(['0033','0034'])])
+});
 const BUSINESS_CALENDAR_API = 'https://script.google.com/macros/s/AKfycbwxuGMi8rxbD9RkNPSLc3VE6w2F3xcUQh8TS8UpMRAIiCCN5wUhUG05smSkMZFZ_1OVNw/exec';
 const SURPRISE_VOTE_PUBLIC_API = 'https://script.google.com/macros/s/AKfycbx2feW0JIP2aPmS2FX62D07etcaZE4Iq3FtqViLtpp0lsk0Z9aw3YuBQa94gtpH5Z3I/exec';
 const SURPRISE_VOTE_PUBLIC_CACHE_MS = 5 * 60 * 1000;
@@ -343,10 +351,11 @@ export default {
     let base = await gateway.fetch(request, env, ctx);
     if (reservationStatusPayload) {
       const statusResponse = await reconcileReservationStatus(request, env, base, reservationStatusPayload);
-      try { await persistTerminalClaimFromStatus(env,reservationStatusPayload,statusResponse); }
+      const combinedResponse = await attachCombinedCallPosition(env,statusResponse);
+      try { await persistTerminalClaimFromStatus(env,reservationStatusPayload,combinedResponse); }
       catch(e){ console.warn('CALLSTATUS_TERMINAL_PERSIST_FAILED',safeError(e)); }
-      queueObservedCallNotification(env, statusResponse, ctx);
-      return statusResponse;
+      queueObservedCallNotification(env, combinedResponse, ctx);
+      return combinedResponse;
     }
 
     if (!createPayload) return base;
@@ -1640,6 +1649,79 @@ async function persistTerminalClaimFromStatus(env,payload,response){
     WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
     .bind(nextState,Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||''),waitTypeId).run();
   return Number(changed?.meta?.changes||0)===1;
+}
+
+// The base gateway has already authenticated an opaque, owner-bound call-status
+// session and resolved the exact ticket within its authoritative wait type.
+// This routine changes queue *position only*, never identity, admission status,
+// token, notification or cancellation. The store-wide board feed is also used by
+// the old combined queue display and is cached/coalesced across visitors.
+async function attachCombinedCallPosition(env,response) {
+  if (!response?.ok) return response;
+  let body;
+  try { body=await response.clone().json(); } catch { return response; }
+  if (!(body?.ok===true && body?.found===true)) return response;
+  if (!['waiting','calling','hold'].includes(String(body.state||''))) return response;
+
+  const unverifiable=reason=>new Response(JSON.stringify({
+    ...body,
+    aheadCount:null,
+    queueRank:null,
+    activeCount:null,
+    queueScope:'unverified',
+    queueReason:reason,
+  }),{status:response.status,headers:response.headers});
+
+  const ownType=String(body.waitTypeId||'');
+  let businessType='',round=null;
+  for(const [type,pairs] of Object.entries(CALLSTATUS_COMBINED_ROUNDS)){
+    const pair=pairs.find(ids=>ids.includes(ownType));
+    if(pair){businessType=type;round=pair;break}
+  }
+  if(!round)return unverifiable('ROUND_NOT_MAPPED');
+  if(String(body.businessDate||'')!==currentJstDate())return unverifiable('BUSINESS_DATE_NOT_CURRENT');
+
+  try {
+    // Reuse the existing, authenticated board snapshot for near-front polling.
+    // This avoids a separate AirWAIT last-update query per visitor during bursts.
+    const key=String(body.businessDate)+'::'+businessType;
+    const cachedBoard=boardSnapshotMemory.get(key);
+    const board=(cachedBoard&&Date.now()-Number(cachedBoard.savedAt||0)<5000&&
+      Array.isArray(cachedBoard.rows))
+      ? {rows:cachedBoard.rows,stale:false}
+      : await getBoardRows(env,String(body.businessDate),businessType);
+    if(board.stale===true||!Array.isArray(board.rows)||!board.rows.length)
+      return unverifiable('COMBINED_BOARD_NOT_FRESH');
+    // AirWAIT sorts by reception time across WEB and LINE when waitTypeId
+    // is omitted. Keep that order; sorting numbers is unsafe (F/T prefixes).
+    const roundRows=board.rows.filter(r=>round.includes(String(r.waitTypeId||'')));
+    const identity=roundRows.map(r=>String(r.waitTypeId||'')+'|'+String(r.number||''));
+    if(new Set(identity).size!==identity.length)return unverifiable('DUPLICATE_ROUND_TICKETS');
+    const matches=roundRows.filter(r=>String(r.waitTypeId||'')===ownType && sameTicket(r.number,body.receiptNo));
+    if(matches.length!==1)return unverifiable('AUTHORITATIVE_TICKET_NOT_IN_BOARD');
+    // Do not use a stale board row with a different official status.
+    const self=matches[0];
+    if(String(self.status||'')!==String(body.status||'') ||
+       (String(body.status)==='0' && (String(self.isCalling||'0')==='1')!==Boolean(body.isCalling)))
+      return unverifiable('BOARD_AND_STATUS_DIFFER');
+
+    const ordered=roundRows.filter(r=>String(r.status||'')!=='3');
+    const i=ordered.indexOf(self);
+    if(i<0)return unverifiable('TICKET_NOT_IN_ACTIVE_ROUND');
+    const ahead=ordered.slice(0,i).filter(r=>['0','4'].includes(String(r.status||''))).length;
+    return new Response(JSON.stringify({
+      ...body,
+      aheadCount:ahead,
+      queueRank:i+1,
+      activeCount:ordered.length,
+      queueScope:'combined-web-line',
+      queueSources:['WEB受付','LINE受付'],
+      queueCheckedAt:Date.now(),
+    }),{status:response.status,headers:response.headers});
+  }catch(e){
+    console.warn('CALLSTATUS_COMBINED_QUEUE_UNAVAILABLE',safeError(e));
+    return unverifiable('COMBINED_QUEUE_UNAVAILABLE');
+  }
 }
 
 async function reconcileReservationStatus(request, env, base, payload) {
