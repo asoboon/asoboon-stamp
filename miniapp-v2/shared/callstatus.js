@@ -180,10 +180,11 @@ function delayForStatus(d){
   if(['calling','done','canceled','closed'].includes(state))return 0;
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
-    const ahead=Number(d.aheadCount);
-    if(Number.isFinite(ahead)&&ahead<=1)return POLL_FRONT_MS;
-    if(Number.isFinite(ahead)&&ahead<=5)return POLL_NEAR_MS;
-    if(Number.isFinite(ahead)&&ahead<=20)return POLL_MID_MS;
+    const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
+    if(ahead===null)return POLL_RECONCILE_MS;
+    if(ahead!==null&&ahead<=1)return POLL_FRONT_MS;
+    if(ahead!==null&&ahead<=5)return POLL_NEAR_MS;
+    if(ahead!==null&&ahead<=20)return POLL_MID_MS;
     return POLL_FAR_MS;
   }
   return POLL_ERROR_MS;
@@ -209,7 +210,7 @@ function shareHomeStatus(d){
   if(!d?.found){
     status={kind:'sync',receipt,message:'受付状況を照合しています',checkedAt,source:'callstatus'};
   }else if(d.state==='waiting'){
-    const ahead=Number(d.aheadCount);
+    const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
     status={kind:'waiting',receipt,ahead:Number.isFinite(ahead)?ahead:null,checkedAt,source:'callstatus'};
   }else if(d.state==='calling'){
     status={kind:'calling',receipt,checkedAt,source:'callstatus'};
@@ -256,12 +257,17 @@ function applyStatus(d){
   notFoundStreak=0;
   setError('');
   nextPollMs=delayForStatus(d);
-  const ahead=Number.isFinite(Number(d.aheadCount))?Number(d.aheadCount):null;
+  const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
+  const aheadLabel=$('csAhead')?.parentElement?.querySelector('small');
+  if(aheadLabel)aheadLabel.textContent=d.queueScope==='combined-web-line'?'あなたの前（WEB＋LINE）':d.queueScope==='unverified'?'待ち順を確認中':'あなたの前';
   const m=stateMeta(d.state,ahead),box=$('csState');
   if(box)box.className='cs-state '+m.cls;
   const icon=box?.querySelector?.('.cs-state-icon');if(icon)icon.textContent=m.icon;
   if($('csTitle'))$('csTitle').textContent=m.title;
-  if($('csMessage'))$('csMessage').textContent=m.msg;
+  if($('csMessage'))$('csMessage').textContent=
+    d.state==='waiting'&&d.queueScope==='unverified'
+      ?'WEB受付とLINE受付の待ち順を確認しています。受付番号は保持されています。'
+      :m.msg;
   const showQueue=d.state==='waiting'||d.state==='calling';
   if($('csQueue'))$('csQueue').hidden=!showQueue;
   if(showQueue){if($('csAhead'))$('csAhead').textContent=ahead??'—';if($('csRank'))$('csRank').textContent=d.queueRank??'—';if($('csTotal'))$('csTotal').textContent=` / ${d.activeCount??'—'}組中`}
