@@ -6,13 +6,19 @@ const DIRECTOR=window.ASOBOON_BOARD_ENTERTAINMENT_DIRECTOR||null;
 // Waiting-time show v2 drives idle entertainment; the legacy director remains loaded as fallback.
 const SHOW=window.ASOBOON_BOARD_SHOW||null;
 const REFRESH_MS=10000;
+const FAST_REFRESH_MS=5000;
+const FAST_REFRESH_WINDOWS=Object.freeze([
+  Object.freeze([9*60*60+55*60,10*60*60+25*60]),
+  Object.freeze([12*60*60+25*60,12*60*60+55*60]),
+  Object.freeze([14*60*60+50*60,15*60*60+20*60]),
+]);
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
 const BOARD_BUILD_ID='20261004-show-v14-safe';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
-const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false};
+const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
 const BOARD_OPEN_MINUTE=8*60;
 const CLOSE_MINUTES=Object.freeze({'平日':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
@@ -24,6 +30,27 @@ function tokyoParts(date=new Date()){
 function tokyoDateKey(date=new Date()){
   const t=tokyoParts(date),pad=v=>String(v).padStart(2,'0');
   return String(t.year)+'-'+pad(t.month)+'-'+pad(t.day);
+}
+function isWeekendHolidayType(businessType=''){
+  const type=String(businessType||'');
+  return type==='土日祝日'||type==='土日祝';
+}
+function refreshIntervalMs(date=new Date(),businessType=state.businessType){
+  if(!isWeekendHolidayType(businessType))return REFRESH_MS;
+  const t=tokyoParts(date),sec=t.hour*3600+t.minute*60+t.second;
+  return FAST_REFRESH_WINDOWS.some(([start,end])=>sec>=start&&sec<end)?FAST_REFRESH_MS:REFRESH_MS;
+}
+function nextRefreshDelayMs(date=new Date(),businessType=state.businessType){
+  const current=refreshIntervalMs(date,businessType);
+  if(!isWeekendHolidayType(businessType))return current;
+  const t=tokyoParts(date),sec=t.hour*3600+t.minute*60+t.second;
+  let boundary=Infinity;
+  for(const [start,end] of FAST_REFRESH_WINDOWS){
+    if(sec<start)boundary=Math.min(boundary,start-sec);
+    else if(sec<end)boundary=Math.min(boundary,end-sec);
+  }
+  if(!Number.isFinite(boundary))return current;
+  return Math.max(1000,Math.min(current,boundary*1000));
 }
 function resolveBoardContext(date=new Date(),businessType=''){
   const type=String(businessType||''),t=tokyoParts(date),m=t.hour*60+t.minute;
@@ -280,7 +307,8 @@ function renderPayload(data){
     setConnection(false,'前回の状況を表示中・更新待機中');
   }else{
     saveLastGoodPayload(data);
-    setConnection(true,'10秒ごとに自動更新');
+    state.refreshMs=refreshIntervalMs(new Date(),context.businessType);
+    setConnection(true,(state.refreshMs===FAST_REFRESH_MS?'5秒':'10秒')+'ごとに自動更新');
   }
 }
 async function fetchBoard(){
@@ -330,7 +358,7 @@ async function checkForBuildUpdate({reload=true}={}){
     if(!remote||remote===BOARD_BUILD_ID)return{changed:false,version:remote||BOARD_BUILD_ID};
     if(reload){
       state.reloadRequested=true;
-      clearInterval(state.timer);
+      clearTimeout(state.timer);
       clearInterval(state.buildTimer);
       const next=new URL(window.location.href);
       next.searchParams.set('boardBuild',remote);
@@ -349,7 +377,15 @@ function scheduleBuildChecks(){
   state.buildTimer=setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS);
 }
 
-function schedule(){clearInterval(state.timer);state.timer=setInterval(fetchBoard,REFRESH_MS);}
+function schedule(){
+  clearTimeout(state.timer);
+  const delay=nextRefreshDelayMs(new Date(),state.businessType);
+  state.refreshMs=refreshIntervalMs(new Date(),state.businessType);
+  state.timer=setTimeout(async()=>{
+    await fetchBoard();
+    schedule();
+  },delay);
+}
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){fetchBoard();void checkForBuildUpdate();}});
 window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
@@ -361,6 +397,11 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   visibleRows,
   normalizeRows,
   updateLiveCaption,
+  refreshIntervalMs,
+  nextRefreshDelayMs,
+  REFRESH_MS,
+  FAST_REFRESH_MS,
+  FAST_REFRESH_WINDOWS,
   REQUEST_TIMEOUT_MS,
   BOARD_CACHE_MAX_AGE_MS,
   BOARD_BUILD_ID,
@@ -372,5 +413,5 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   director:()=>DIRECTOR?.getDiagnostics?.()||null,
   characters:()=>window.ASOBOON_BOARD_CHARACTER_EVENTS?.getDiagnostics?.()||null,
 });
-fetchBoard();schedule();scheduleBuildChecks();setTimeout(()=>{void checkForBuildUpdate();},2500);
+void fetchBoard().finally(schedule);scheduleBuildChecks();setTimeout(()=>{void checkForBuildUpdate();},2500);
 })();
