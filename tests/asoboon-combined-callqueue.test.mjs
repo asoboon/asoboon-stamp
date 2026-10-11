@@ -164,3 +164,41 @@ test('missing queue data must never be converted to zero or presented as an ETA'
  assert.match(workerSource,/String\(self\.status\|\|''\)!==String\(body\.status\|\|''\)/);
  assert.match(workerSource,/String\(r\.status\|\|''\)!=='3'/);
 });
+
+test('ordinary weekday immediate LINE is NOT combined with unrelated WEB 10:00 tickets',async()=>{
+  const weekdayDate='2026-10-05';
+  mock.timers.setTime(Date.parse('2026-10-05T03:00:00Z'));
+  db.clear();
+  world.reset();
+  env=baseEnv(db);
+  world.businessType='平日';
+  world.reservations.push(
+    {number:'8001',waitTypeId:'0024',waitTypeName:'10時ご入場枠【WEB平日】',status:'0',isCalling:'0',reserveId:'web10-a'},
+    {number:'9001',waitTypeId:'0023',waitTypeName:'すぐ入場受付【平日】',status:'0',isCalling:'0',reserveId:'line-immediate-a'}
+  );
+  world.setNextNumber('0023',9002);
+  const created=await call(worker,env,{body:{
+    action:'createReservation',requestId:'req-weekday-separate-9002-1',
+    mode:'web',adults:1,paidChildren:0,infants:0,
+    waitTypeId:'0023',operationalDate:weekdayDate,
+    liffAccessToken:world.issueLiffToken('Uweekday9002')
+  }});
+  assert.equal(created.status,200,JSON.stringify(created.data));
+  assert.equal(created.data.receiptNo,'9002');
+  const session=await call(worker,env,{body:{
+    action:'recoverReservationSession',businessDate:weekdayDate,
+    liffAccessToken:world.issueLiffToken('Uweekday9002')
+  }});
+  const status=await call(worker,env,{body:{
+    action:'reservationStatus',sessionToken:session.data.sessionToken
+  }});
+  assert.equal(status.status,200,JSON.stringify(status.data));
+  assert.equal(status.data?.state,'waiting');
+  assert.equal(status.data?.aheadCount,1,'WEB 10:00 must not count as ahead of immediate LINE');
+  assert.equal(status.data?.queueRank,2);
+  assert.equal(status.data?.activeCount,2);
+  assert.equal(status.data?.queueScope,'single-channel');
+  assert.deepEqual(status.data?.queueSources,['LINE受付']);
+  const source=readFileSync('miniapp-v2/production/home-v38.js','utf8');
+  assert.doesNotMatch(source,/WEB＋LINE合算 ·/,'HOME must not misleadingly label a single-channel queue as combined');
+});

@@ -1731,8 +1731,8 @@ async function attachCombinedCallPosition(env,response,ctx) {
       aheadCount:ahead,
       queueRank:i+1,
       activeCount:ordered.length,
-      queueScope:'combined-web-line',
-      queueSources:['WEB受付','LINE受付'],
+      queueScope:round.length>1?'combined-web-line':'single-channel',
+      queueSources:round.length>1?['WEB受付','LINE受付']:[ownType==='0024'?'WEB受付':'LINE受付'],
       queueCheckedAt:Date.now(),
     }),{status:response.status,headers:response.headers});
   }catch(e){
