@@ -840,6 +840,7 @@ test('Call status displays a large call-time reference and route from scheduled 
   });
   await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#csForecast')).toBeVisible();
+  await expect(page.locator('.v33-start-eta')).toHaveCount(0);
   await expect(page.locator('#csForecastClock')).toHaveText('15:20');
   await expect(page.locator('#csForecastStart')).toHaveText('呼出開始 15:00');
   await expect(page.locator('#csForecastTarget')).toContainText('15:20ごろ');
