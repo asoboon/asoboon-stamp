@@ -368,7 +368,7 @@ test('weekend holiday scheduler lands exactly on a fast-refresh boundary', async
 });
 
 test('connection label reports 5-second auto refresh during a weekend fast window', async ({ page }) => {
-  await installBoard(page,[payload([])],{fixedIso:'2026-10-11T00:55:00.000Z'});
+  await installBoard(page,[payload([],{businessDate:'2026-10-11'})],{fixedIso:'2026-10-11T00:55:00.000Z'});
   await expect(page.locator('#connection')).toContainText('5秒ごとに自動更新');
 });
 
