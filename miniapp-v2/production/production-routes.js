@@ -527,6 +527,7 @@ function delayForStatus(d){
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
     const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
+    if(ahead===null)return POLL_RECONCILE_MS;
     if(ahead!==null&&ahead<=1)return POLL_FRONT_MS;
     if(ahead!==null&&ahead<=5)return POLL_NEAR_MS;
     if(ahead!==null&&ahead<=20)return POLL_MID_MS;

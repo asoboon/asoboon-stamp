@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=3e0144809305',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=3ad8ca8eafe3',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=ec079ceb910d',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -861,7 +861,7 @@ const removeKey=key=>{try{localStorage.removeItem(key)}catch{}};
 const emit=detail=>{window.ASOBOON_HOME_STATUS_SNAPSHOT=detail;window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail}))};
 function stop(){seq+=1;running=false;pendingRefresh=false;if(timer){clearTimeout(timer);timer=0}}
 function schedule(ms){if(timer){clearTimeout(timer);timer=0}if(!ms||currentView()!=='home'||document.visibilityState!=='visible')return;timer=setTimeout(()=>{timer=0;void refresh()},ms)}
-function delayFor(d){const s=String(d?.state||'');if(s==='calling')return 15000;if(['done','canceled','closed'].includes(s))return 0;if(['hold','processing'].includes(s))return 60000;if(s==='waiting'){const n=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;if(n!==null&&n<=1)return 5000;if(Number.isFinite(n)&&n<=5)return 15000;if(Number.isFinite(n)&&n<=10)return 30000;if(Number.isFinite(n)&&n<=20)return 60000;return 180000}return 30000}
+function delayFor(d){const s=String(d?.state||'');if(s==='calling')return 15000;if(['done','canceled','closed'].includes(s))return 0;if(['hold','processing'].includes(s))return 60000;if(s==='waiting'){const n=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;if(n===null)return 10000;if(n!==null&&n<=1)return 5000;if(Number.isFinite(n)&&n<=5)return 15000;if(Number.isFinite(n)&&n<=10)return 30000;if(Number.isFinite(n)&&n<=20)return 60000;return 180000}return 30000}
 function cachedReservation(){
  const today=String(window.ASOBOON_V2_OPERATIONAL_DATE||'');
  if(!today)return null;

@@ -1,7 +1,7 @@
 import {test,before,mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {FakeD1,FakeWorld,prepareRuntime,baseEnv,call} from './helpers/production-worker-harness.mjs';
+import {FakeD1,FakeWorld,prepareRuntime,baseEnv,call,WORKER_URL,ORIGIN} from './helpers/production-worker-harness.mjs';
 
 const DAY='2026-10-03',NOW=Date.parse('2026-10-03T03:00:00Z');
 let worker,db,world,env;
@@ -98,6 +98,48 @@ test('2510 case: combine AirWAIT WEB and LINE reception within 15:00 slot, prese
  }finally{
   globalThis.fetch=(input,init)=>world.fetch(input,init);
  }
+
+ // Regression: a SLOW global board refresh cannot delay the visitor's
+ // authenticated receipt or call status beyond the 8s HOME timeout.
+ mock.timers.tick(10_000);
+ const pending=[];
+ globalThis.fetch=async(input,init)=>{
+   const url=new URL(typeof input==='string'?input:input.url||String(input));
+   if(url.pathname.endsWith('/store/getLastUpdDateStateless')){
+     await new Promise(resolve=>setTimeout(resolve,2650));
+     return new Response(JSON.stringify({
+       success:true,resultCode:{code:'0000'},
+       innerDto:{lastUpdDate:'2026-10-03T12:00:20+09:00'}
+     }),{status:200,headers:{'Content-Type':'application/json'}});
+   }
+   return world.fetch(input,init);
+ };
+ try {
+   const req=new Request(WORKER_URL,{
+     method:'POST',
+     headers:{Origin:ORIGIN,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+     body:new URLSearchParams({
+       action:'reservationStatus',sessionToken:session.data.sessionToken
+     }).toString()
+   });
+   const ctx={waitUntil(job){pending.push(Promise.resolve(job))}};
+   const started=performance.now();
+   const response=await worker.fetch(req,env,ctx);
+   const elapsed=performance.now()-started;
+   const data=await response.json();
+   assert.ok(elapsed<2400,'unverified response should return under 2.4s, was '+elapsed.toFixed(0)+'ms');
+   assert.equal(response.status,200);
+   assert.equal(data.found,true);
+   assert.equal(data.state,'waiting');
+   assert.equal(data.receiptNo,'2510');
+   assert.equal(data.queueScope,'unverified');
+   assert.equal(data.queueReason,'COMBINED_BOARD_TIMEOUT_OR_ERROR');
+   assert.equal(data.aheadCount,null);
+   assert.ok(pending.length>=1,'background board refresh must be retained');
+ }finally{
+   await Promise.allSettled(pending);
+   globalThis.fetch=(input,init)=>world.fetch(input,init);
+ }
 });
 
 test('missing queue data must never be converted to zero or presented as an ETA',()=>{
@@ -110,6 +152,10 @@ test('missing queue data must never be converted to zero or presented as an ETA'
   assert.doesNotMatch(s,/const ahead=Number\(d\.aheadCount\)/);
  }
  assert.match(homeMarkup,/Number.isSafeInteger\(data\.ahead\)/);
+ assert.match(callJS,/if\(ahead===null\)return POLL_RECONCILE_MS/);
+ assert.match(homeJS,/if\(n===null\)return 10000/);
+ assert.match(workerSource,/callstatusCombinedWebLine = true/);
+ assert.match(workerSource,/callstatusCombinedQueueSoftDeadlineMs = 1800/);
  assert.match(workerSource,/queueScope:'unverified'/);
  assert.match(workerSource,/aheadCount:null/);
  assert.match(workerSource,/board\.stale===true/);

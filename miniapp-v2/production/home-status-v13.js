@@ -13,7 +13,7 @@ const removeKey=key=>{try{localStorage.removeItem(key)}catch{}};
 const emit=detail=>{window.ASOBOON_HOME_STATUS_SNAPSHOT=detail;window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail}))};
 function stop(){seq+=1;running=false;pendingRefresh=false;if(timer){clearTimeout(timer);timer=0}}
 function schedule(ms){if(timer){clearTimeout(timer);timer=0}if(!ms||currentView()!=='home'||document.visibilityState!=='visible')return;timer=setTimeout(()=>{timer=0;void refresh()},ms)}
-function delayFor(d){const s=String(d?.state||'');if(s==='calling')return 15000;if(['done','canceled','closed'].includes(s))return 0;if(['hold','processing'].includes(s))return 60000;if(s==='waiting'){const n=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;if(n!==null&&n<=1)return 5000;if(Number.isFinite(n)&&n<=5)return 15000;if(Number.isFinite(n)&&n<=10)return 30000;if(Number.isFinite(n)&&n<=20)return 60000;return 180000}return 30000}
+function delayFor(d){const s=String(d?.state||'');if(s==='calling')return 15000;if(['done','canceled','closed'].includes(s))return 0;if(['hold','processing'].includes(s))return 60000;if(s==='waiting'){const n=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;if(n===null)return 10000;if(n!==null&&n<=1)return 5000;if(Number.isFinite(n)&&n<=5)return 15000;if(Number.isFinite(n)&&n<=10)return 30000;if(Number.isFinite(n)&&n<=20)return 60000;return 180000}return 30000}
 function cachedReservation(){
  const today=String(window.ASOBOON_V2_OPERATIONAL_DATE||'');
  if(!today)return null;

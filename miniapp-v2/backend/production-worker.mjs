@@ -238,6 +238,8 @@ export default {
       ]));
       body.crowdSnapshotFallbackEnabled = true;
       body.lineReceptionStoreOnly = true;
+      body.callstatusCombinedWebLine = true;
+      body.callstatusCombinedQueueSoftDeadlineMs = 1800;
       body.concurrencyIntegrityAuditEnabled = true;
       body.concurrencyIntegrityAuditTargetClients = CONCURRENCY_AUDIT_TARGET_CLIENTS;
       body.concurrencyIntegrityAuditHotPathWrites = false;
@@ -351,7 +353,7 @@ export default {
     let base = await gateway.fetch(request, env, ctx);
     if (reservationStatusPayload) {
       const statusResponse = await reconcileReservationStatus(request, env, base, reservationStatusPayload);
-      const combinedResponse = await attachCombinedCallPosition(env,statusResponse);
+      const combinedResponse = await attachCombinedCallPosition(env,statusResponse,ctx);
       try { await persistTerminalClaimFromStatus(env,reservationStatusPayload,combinedResponse); }
       catch(e){ console.warn('CALLSTATUS_TERMINAL_PERSIST_FAILED',safeError(e)); }
       queueObservedCallNotification(env, combinedResponse, ctx);
@@ -1656,7 +1658,7 @@ async function persistTerminalClaimFromStatus(env,payload,response){
 // This routine changes queue *position only*, never identity, admission status,
 // token, notification or cancellation. The store-wide board feed is also used by
 // the old combined queue display and is cached/coalesced across visitors.
-async function attachCombinedCallPosition(env,response) {
+async function attachCombinedCallPosition(env,response,ctx) {
   if (!response?.ok) return response;
   let body;
   try { body=await response.clone().json(); } catch { return response; }
@@ -1689,7 +1691,22 @@ async function attachCombinedCallPosition(env,response) {
     const board=(cachedBoard&&Date.now()-Number(cachedBoard.savedAt||0)<5000&&
       Array.isArray(cachedBoard.rows))
       ? {rows:cachedBoard.rows,stale:false}
-      : await getBoardRows(env,String(body.businessDate),businessType);
+      : await (async()=>{
+          // Reception-status clients have an 8-10s hard timeout. Budget at most
+          // 1.8s *additional* for cross-channel position. Continue warming the
+          // shared board cache in the background, but return authoritative
+          // receipt/call state immediately with an unverified position.
+          const job=getBoardRows(env,String(body.businessDate),businessType)
+            .catch(e=>{console.warn('CALLSTATUS_COMBINED_BOARD_READ_FAILED',safeError(e));return null});
+          if(ctx?.waitUntil)ctx.waitUntil(job);
+          let timer;
+          try{return await Promise.race([
+            job,
+            new Promise(resolve=>{timer=setTimeout(()=>resolve(null),1800)}),
+          ])}
+          finally{if(timer)clearTimeout(timer)}
+        })();
+    if(!board)return unverifiable('COMBINED_BOARD_TIMEOUT_OR_ERROR');
     if(board.stale===true||!Array.isArray(board.rows)||!board.rows.length)
       return unverifiable('COMBINED_BOARD_NOT_FRESH');
     // AirWAIT sorts by reception time across WEB and LINE when waitTypeId
