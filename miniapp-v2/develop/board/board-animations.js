@@ -1401,7 +1401,7 @@ function specialFocusRect(){
 }
 
 async function playCallAnimation({numbers,rare,isLive=()=>true}){
-  const values=(Array.isArray(numbers)?numbers:[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP);
+  const values=(Array.isArray(numbers)?numbers:[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_FULLSCREEN_CALL_NUMBERS);
   if(!values.length)return;
   const focusRect=specialFocusRect();
   const lvl=effectiveLevel();
