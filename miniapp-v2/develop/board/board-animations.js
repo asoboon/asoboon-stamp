@@ -348,11 +348,9 @@ function pruneQueuedEvents(next){
   const now=Date.now();
   for(const evt of queue){
     if(evt.kind==='call'&&Array.isArray(evt.members)){
-      const members=evt.members.filter(m=>next?.get?.(m.key)?.state==='calling');
-      if(!members.length)continue;
-      evt.members=members;
-      evt.numbers=members.map(m=>m.number);
-      evt.number=evt.numbers[0]||'';
+      // CALL is durable once observed. A 5-second refresh may see staff advance the
+      // ticket to done/hold/canceled while it is waiting behind another 5.8-second
+      // CALL. That later state must not erase the already-observed fullscreen call.
       const timing=callTiming();
       evt.estimatedMs=timing.total;
       evt.stableMs=timing.stable;
