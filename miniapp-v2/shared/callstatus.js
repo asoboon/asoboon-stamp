@@ -26,7 +26,20 @@ function removeKey(key){try{localStorage.removeItem(key)}catch{}}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
 function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
-function unmount(){stopPolling();stopReceptionWatch()}
+const CALL_VISUAL_TONES=['waiting','calling','done','canceled','hold','loading'];
+function setCallVisualTone(state){
+ const code=String(state||'');
+ const tone=code==='waiting'?'waiting':code==='calling'?'calling':
+   ['done','processing','closed'].includes(code)?'done':code==='canceled'?'canceled':
+   code==='hold'?'hold':'loading';
+ const page=$('csState')?.closest('.cs-page');
+ if(page)page.dataset.callTone=tone;
+ document.body.dataset.asoboonCallTone=tone;
+}
+function clearCallVisualTone(){
+ delete document.body.dataset.asoboonCallTone;
+}
+function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
@@ -218,6 +231,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  setCallVisualTone(d.found?d.state:'loading');
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
@@ -226,6 +240,7 @@ function applyStatus(d){
   if($('csReceipt'))$('csReceipt').textContent=receipt;
   if($('csWaitType'))$('csWaitType').textContent=String(d.waitTypeName||cached.waitTypeName||cached.waitTypeLabel||'受付枠');
   if(!d.found){
+    setCallVisualTone('loading');
     notFoundStreak+=1;
     nextPollMs=notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS;
     const box=$('csState');if(box)box.className='cs-state loading';
@@ -334,7 +349,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;setCallVisualTone('loading');updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -342,6 +357,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  setCallVisualTone('loading');
   updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();

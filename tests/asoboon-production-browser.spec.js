@@ -710,10 +710,10 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   for(const [time,web,onsite] of [['10:00',195,117],['12:30',71,44],['15:00',25,8]]){
     const card=box.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-remaining-title')).toHaveText('受付残り');
-    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'名.*現地受付の残り'+onsite+'名'));
+    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'名.*LINE受付の残り'+onsite+'名'));
     await expect(card.locator('.v38-crowd-channel--web')).toContainText('WEB受付');
     await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
-    await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('現地受付');
+    await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('LINE受付');
     await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
     await expect(card.locator('[role="progressbar"]')).toHaveCount(1);
   }
@@ -750,7 +750,7 @@ test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false 
     const card=page.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('確認中');
     await expect(card.locator('.v38-crowd-channel--onsite')).not.toContainText('0名');
-    await expect(card).toHaveAttribute('aria-label',/現地受付の残り確認中/);
+    await expect(card).toHaveAttribute('aria-label',/LINE受付の残り確認中/);
   }
   await expect(page.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('.v38-crowd-channel--web strong')).toHaveText('0名');
 });
@@ -909,4 +909,69 @@ test('Confirm sends to authoritative Gateway directly without a duplicate busine
   })).toBe('F321');
   expect(network.filter(a=>a==='businessDay')).toEqual([]);
   expect(network.filter(a=>a==='createReservation')).toHaveLength(1);
+});
+
+
+for(const status of [
+  {state:'waiting',tone:'waiting',label:'順番を',rgb:'rgb(219, 224, 228)',ink:'rgb(52, 69, 84)'},
+  {state:'calling',tone:'calling',label:'入場できます',rgb:'rgb(215, 236, 255)',ink:'rgb(19, 89, 152)'},
+  {state:'done',tone:'done',label:'ご案内済み',rgb:'rgb(216, 244, 220)',ink:'rgb(23, 101, 58)'},
+  {state:'canceled',tone:'canceled',label:'取消',rgb:'rgb(255, 224, 223)',ink:'rgb(165, 35, 41)'}
+]){
+  test('LINE call screen uses full-page '+status.tone+' verified status colors without stale foreground',async({page})=>{
+    const stamp=Date.parse('2026-10-03T03:00:00.000Z');
+    await installProduction(page,{status:{
+      ok:true,found:true,state:status.state,receiptNo:'F123',
+      businessDate:'2026-10-03',waitTypeId:'0033',
+      waitTypeName:'15:00の回',aheadCount:12,queueRank:13,activeCount:80,checkedAt:stamp
+    }});
+    await page.addInitScript(()=>{
+      localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+        businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033'
+      }));
+      localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+        businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033',
+        sessionToken:'c'.repeat(40),expiresAt:4102444800000
+      }));
+    });
+    await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+    await expect(page.locator('body')).toHaveAttribute('data-asoboon-call-tone',status.tone);
+    await expect(page.locator('#csState')).toContainText(status.label);
+    const colors=await page.evaluate(()=>({
+      body:getComputedStyle(document.body).backgroundColor,
+      page:getComputedStyle(document.querySelector('.cs-page')).backgroundColor,
+      card:getComputedStyle(document.querySelector('#csState')).backgroundColor,
+      head:getComputedStyle(document.querySelector('.cs-page .page-head.green')).backgroundColor,
+      overflow:document.documentElement.scrollWidth>innerWidth
+    }));
+    expect(colors.body).toBe(status.rgb);
+    expect(colors.page).toBe(status.rgb);
+    expect(colors.head).toBe(status.ink);
+    expect(colors.overflow).toBe(false);
+    if(status.state!=='waiting')await expect(page.locator('#csForecast')).toBeHidden();
+    if(process.env.ASOBOON_COLOR_SCREENSHOTS==='1')await page.screenshot({path:'/tmp/asoboon-status-'+status.tone+'.png',fullPage:true});
+    for(const width of [320,375,390,430]){
+      await page.setViewportSize({width,height:844});
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    }
+  });
+}
+
+test('LINE call status keeps a neutral background if the reservation cannot be verified',async({page})=>{
+  await installProduction(page);
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033'
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033',
+      sessionToken:'c'.repeat(40),expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('body')).toHaveAttribute('data-asoboon-call-tone','loading');
+  await expect(page.locator('#csForecast')).toBeHidden();
+  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('home');
+  await expect(page.locator('body')).not.toHaveAttribute('data-asoboon-call-tone',/.+/);
 });

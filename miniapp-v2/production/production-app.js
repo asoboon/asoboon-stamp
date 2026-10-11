@@ -9,8 +9,8 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const finish=()=>{if(!failed&&cssDone&&jsDone)resolve()};
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
-  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=a3517ad570ca',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=611201cfa460',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=3e0144809305',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=9d22fae19c0d',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -614,7 +614,7 @@ function receptionHoursNote(){
  ${url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
  </div>`;
 }
-function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'現地受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
+function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
 function guide(kind,title,sub,view,panel=''){return `<button class="v38-guide-card ${kind}" type="button" data-v7-view="${view}"${panel?` data-v7-panel="${panel}"`:''}><span class="v38-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span>${svg('arrow')}</button>`}
@@ -710,12 +710,12 @@ const crowdTitle=m?`${m.percent}<small>%</small>`:'<span class="v38-crowd-unveri
 const crowdLevel=m?esc(m.level):'WEB枠の数値を確認中';
 const spoken=value=>value===null?'確認中':value+'名';
 const track=m?`<div class="v38-crowd-track" role="progressbar" aria-label="${esc(label)}のWEB枠の混雑目安" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}"><span style="width:${m.percent}%"></span></div>`:'';
-return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。現地受付の残り${spoken(slot.onsite)}。受付画面へ進む">
+return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}。受付画面へ進む">
 <div class="v38-crowd-head"><time>${esc(label)}</time><span>WEB枠の混雑目安</span></div>
 <div class="v38-crowd-value"><strong>${crowdTitle}</strong><em>${crowdLevel}</em></div>
-<div class="v38-crowd-remaining" aria-label="WEB受付と現地受付の残り人数">
+<div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数">
 <div class="v38-crowd-remaining-title">受付残り</div>
-<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web')}${remainingMarkup('現地受付',slot.onsite,'onsite')}</div>
+<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web')}${remainingMarkup('LINE受付',slot.onsite,'onsite')}</div>
 </div>
 ${track}<div class="v38-crowd-go"><span>${esc(goLabel)}</span>${svg('arrow')}</div>
 </button>`;

@@ -47,7 +47,7 @@ function friendlyError(value){const code=String(value||'');const map={
   WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
   WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',
   WEB_NOT_OPEN_YET:'LINE当日受付は9:25からです。受付開始までお待ちください。',
-  ONSITE_NOT_OPEN_YET:'現地受付は9:25からです。受付開始までお待ちください。',
+  ONSITE_NOT_OPEN_YET:'LINE受付は9:25からです。受付開始までお待ちください。',
   RECEPTION_CLOSED_FOR_DAY:'本日の受付は終了しています。',
   CLOSED_DAY:'本日は休館日です。',
 
@@ -65,7 +65,7 @@ function friendlyError(value){const code=String(value||'');const map={
   AIRWAIT_SYSTEM_ERROR:'受付システム側で一時的なエラーが発生しました。受付は成立していません。時間をおいてもう一度お試しください。',
 };if(/^AIRWAIT_CREATE_ERROR_RC_/.test(code))return '受付システムから確認できないエラーが返されました。受付は成立していません。画面を開き直してもう一度お試しください。';return map[code]||code||'受付を確定できませんでした。'};
 
-function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>現地受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">現地受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / 現地受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
+function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>LINE受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">LINE受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / LINE受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と受付環境を確認しています…</div>
 ${methodBlock}
 <div id="recDay" class="rec-day"><span><small>営業区分</small><strong>確認中</strong></span><b>—</b></div>
@@ -76,7 +76,7 @@ ${locationBlock}
 <div class="rec-person"><span><strong>こども</strong><small>6か月〜小6 / 900円</small></span><div class="rec-stepper"><button type="button" data-rec-k="child" data-rec-d="-1">−</button><output id="recChild">0</output><button type="button" data-rec-k="child" data-rec-d="1">＋</button></div></div>
 <div class="rec-person"><span><strong>0〜5か月</strong><small>1人目900円 / 2人目以降無料</small></span><div class="rec-stepper"><button type="button" data-rec-k="infant" data-rec-d="-1">−</button><output id="recInfant">0</output><button type="button" data-rec-k="infant" data-rec-d="1">＋</button></div></div>
 </div>
-<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${PRODUCTION_TEST_DISABLED?'テスト':'LINE受付（現地受付枠）'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
+<div class="rec-summary"><div class="rec-line"><span>受付方法</span><strong id="recModeLabel">${PRODUCTION_TEST_DISABLED?'テスト':'LINE受付'}</strong></div><div class="rec-line"><span>回</span><strong id="recSlotLabel">未選択</strong></div><div class="rec-line"><span>合計人数</span><strong id="recPeopleTotal">1名</strong></div><div class="rec-line total"><span>料金目安</span><strong id="recPrice">600円</strong></div></div>
 <div id="recPeopleMsg" class="rec-status ok">この人数で受付できます。</div>
 <section class="rec-disclaimer" aria-labelledby="recDisclaimerTitle"><h3 id="recDisclaimerTitle">ご利用にあたって</h3><p>ご利用にあたりお客様ご自身に関する以下の項目について施設では責任を負いかねますので、あらかじめお知らせいたします。</p><ul><li>施設内での怪我、事故</li><li>お荷物の紛失、盗難</li><li>お客様同士のトラブル</li><li>施設内での衣服の汚れ</li><li>施設ご利用後の感染症罹患</li></ul></section>
 <label class="rec-agree"><input id="recAgree" type="checkbox"><span>受付内容とご利用にあたっての案内を確認しました。</span></label>
@@ -171,13 +171,13 @@ function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!==
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
 function usageAllowed(actual,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);return !u||u==='01'||u==='02'||u==='KeyALL'||u==='KeySTORE_RECEPTION_ONLY'}
 function buildSlots(waitTypes){const test=developTestRule(),configured=PRODUCTION_TEST_DISABLED?(test?[test]:[]):[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])];return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(rule.developTest){if(!usageAllowed(actual,{developTest:true}))return null;return{...rule,actual}}if(actual.dispFlg===false||!usageAllowed(actual))return null;return{...rule,actual}}).filter(Boolean)}
-function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日の現地受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
+function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日のLINE受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
 function locationOk(){return LINE_STORE_ONLY||S.mode!=='onsite'||Boolean(S.location?.ok)}
 
 function renderForm(){
   if(!$('recAdult'))return;
   $('recAdult').textContent=S.adult;$('recChild').textContent=S.child;$('recInfant').textContent=S.infant;
-  $('recModeLabel').textContent=PRODUCTION_TEST_DISABLED?'テスト':S.mode==='web'?'LINE受付（現地受付枠）':'現地受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
+  $('recModeLabel').textContent=PRODUCTION_TEST_DISABLED?'テスト':S.mode==='web'?'LINE受付':'LINE受付';$('recSlotLabel').textContent=S.slot?.label||'未選択';$('recPeopleTotal').textContent=total()+'名';$('recPrice').textContent=fmtYen(price());
   $('recWeb')?.classList.toggle('active',S.mode==='web');$('recOnsite')?.classList.toggle('active',S.mode==='onsite');if($('recLocation'))$('recLocation').hidden=S.mode!=='onsite';
   const peopleOK=validPeople(),msg=$('recPeopleMsg');msg.className='rec-status '+(peopleOK?'ok':'bad');msg.textContent=peopleOK?'この人数で受付できます。':`保護者1名につきお子さま3名まで、1組合計${maxTotal()}名までです。`;
   document.querySelectorAll('[data-rec-k]').forEach(b=>{const k=b.dataset.recK,d=+b.dataset.recD;if(d<0)b.disabled=k==='adult'?S.adult<=1||kids()>(S.adult-1)*kidsPerAdult():S[k]<=0;else b.disabled=total()>=maxTotal()||(k!=='adult'&&kids()>=S.adult*kidsPerAdult())});
@@ -186,7 +186,7 @@ function renderForm(){
 }
 
 function distanceM(a,b,c,d){const Rm=6371000,rad=x=>x*Math.PI/180,x=rad(c-a),y=rad(d-b),q=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 2*Rm*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
-async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocationBtn');if(!navigator.geolocation){txt.textContent='この端末では位置情報を利用できません。';return}btn.disabled=true;txt.textContent='現在地を確認しています…';try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:10000,maximumAge:0}));const g=R.geofence||{},lat=+p.coords.latitude,lng=+p.coords.longitude,accuracy=+p.coords.accuracy,age=Math.max(0,Date.now()-Number(p.timestamp||Date.now())),distance=distanceM(+g.lat,+g.lng,lat,lng),ok=distance<=Number(g.radiusM||500)&&accuracy<=Number(g.maxAccuracyM||200)&&age<=Number(g.maxAgeMs||120000);S.location={ok,lat,lng,accuracy,timestamp:Number(p.timestamp||Date.now()),distance};txt.textContent=ok?`現在地OK：施設から約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`:`現地受付の範囲外です：距離 約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`;txt.style.color=ok?'#286143':'#87362f'}catch{S.location=null;txt.textContent='位置情報を確認できませんでした。位置情報の許可を確認してください。'}finally{btn.disabled=false;renderForm()}}
+async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocationBtn');if(!navigator.geolocation){txt.textContent='この端末では位置情報を利用できません。';return}btn.disabled=true;txt.textContent='現在地を確認しています…';try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:10000,maximumAge:0}));const g=R.geofence||{},lat=+p.coords.latitude,lng=+p.coords.longitude,accuracy=+p.coords.accuracy,age=Math.max(0,Date.now()-Number(p.timestamp||Date.now())),distance=distanceM(+g.lat,+g.lng,lat,lng),ok=distance<=Number(g.radiusM||500)&&accuracy<=Number(g.maxAccuracyM||200)&&age<=Number(g.maxAgeMs||120000);S.location={ok,lat,lng,accuracy,timestamp:Number(p.timestamp||Date.now()),distance};txt.textContent=ok?`現在地OK：施設から約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`:`LINE受付の範囲外です：距離 約${Math.round(distance)}m / 精度 約${Math.round(accuracy)}m`;txt.style.color=ok?'#286143':'#87362f'}catch{S.location=null;txt.textContent='位置情報を確認できませんでした。位置情報の許可を確認してください。'}finally{btn.disabled=false;renderForm()}}
 
 async function boot(){
   try{localStorage.removeItem(`asoboon_v2_official_web_handoff_${STORAGE_NS}_v1`)}catch{}
@@ -222,7 +222,7 @@ async function boot(){
   S.slots=buildSlots(S.waitTypes);if(PRODUCTION_TEST_DISABLED&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
   const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
-  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!PRODUCTION_TEST_DISABLED){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、現地受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
+  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!PRODUCTION_TEST_DISABLED){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、LINE受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
   if(!lineOK){status(String(lineResult.reason?.message||lineResult.reason||'LINE接続を確認できません。'),'bad');return}
@@ -372,7 +372,20 @@ function removeKey(key){try{localStorage.removeItem(key)}catch{}}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
 function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
-function unmount(){stopPolling();stopReceptionWatch()}
+const CALL_VISUAL_TONES=['waiting','calling','done','canceled','hold','loading'];
+function setCallVisualTone(state){
+ const code=String(state||'');
+ const tone=code==='waiting'?'waiting':code==='calling'?'calling':
+   ['done','processing','closed'].includes(code)?'done':code==='canceled'?'canceled':
+   code==='hold'?'hold':'loading';
+ const page=$('csState')?.closest('.cs-page');
+ if(page)page.dataset.callTone=tone;
+ document.body.dataset.asoboonCallTone=tone;
+}
+function clearCallVisualTone(){
+ delete document.body.dataset.asoboonCallTone;
+}
+function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
@@ -564,6 +577,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  setCallVisualTone(d.found?d.state:'loading');
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
@@ -572,6 +586,7 @@ function applyStatus(d){
   if($('csReceipt'))$('csReceipt').textContent=receipt;
   if($('csWaitType'))$('csWaitType').textContent=String(d.waitTypeName||cached.waitTypeName||cached.waitTypeLabel||'受付枠');
   if(!d.found){
+    setCallVisualTone('loading');
     notFoundStreak+=1;
     nextPollMs=notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS;
     const box=$('csState');if(box)box.className='cs-state loading';
@@ -680,7 +695,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;setCallVisualTone('loading');updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -688,6 +703,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  setCallVisualTone('loading');
   updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
@@ -925,7 +941,7 @@ function ensureHead(){const head=root.querySelector('.page-head');if(!head)retur
 function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<div class="rv7-progress" aria-label="受付の流れ"><div class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></div><div class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></div><div class="rv7-step" data-rv7-step="3"><b>3</b><span>確認</span></div></div>')}
 function ensureConfirmLabel(){const summary=root.querySelector('.rec-summary');if(!summary)return;if(summary.previousElementSibling?.classList?.contains('rv7-confirm-label'))return;summary.insertAdjacentHTML('beforebegin','<div class="rv7-confirm-label"><b>3</b><span>内容を確認</span></div>')}
 function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>{const span=btn.querySelector(':scope > span:first-child');if(!span||span.dataset.rv7Icon==='1')return;span.dataset.rv7Icon='1';span.innerHTML=methodIcon(btn.classList.contains('onsite')?'onsite':'web')})}
-function cleanLabels(){setText(root.querySelector('#recWeb strong'),'LINE受付');setText(root.querySelector('#recOnsite strong'),'現地受付');const titles=root.querySelectorAll('.rec-title');setText(titles[0],'ご利用の回');setText(titles[1],'ご利用人数')}
+function cleanLabels(){setText(root.querySelector('#recWeb strong'),'LINE受付');setText(root.querySelector('#recOnsite strong'),'LINE受付');const titles=root.querySelectorAll('.rec-title');setText(titles[0],'ご利用の回');setText(titles[1],'ご利用人数')}
 function cleanCustomerCopy(){
  const dev=isDevTools();
  const status=root.querySelector('#recStatus');
@@ -939,7 +955,7 @@ function cleanCustomerCopy(){
    else if(/現在受付できる枠がありません|受付停止中/.test(t))setText(status,'現在受付できる枠がありません。最新の受付状況をご確認ください。');
    else if(/Developing|入場不可テスト/.test(t))setText(status,root.querySelector('.rec-day strong')?.textContent==='休館'?'本日は休館日です。':'受付できます。');
  }
- const loc=root.querySelector('#recLocationText');if(loc&&!dev&&/500m以内|精度/.test(String(loc.textContent||'')))setText(loc,'現地受付では、ASOBooN付近にいることを現在地で確認します。');
+ const loc=root.querySelector('#recLocationText');if(loc&&!dev&&/500m以内|精度/.test(String(loc.textContent||'')))setText(loc,'LINE受付では、ASOBooN付近にいることを現在地で確認します。');
  const agree=root.querySelector('.rec-agree span');if(agree&&!dev)setText(agree,'受付内容とご利用にあたっての案内を確認しました。受付ボタンは一度だけ押してください。');
  const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))setText(submit,'受付の準備中…');
 }
@@ -1020,7 +1036,7 @@ function patch(){
   const slotTitle=[...root.querySelectorAll('.rec-title')].find(el=>/ご利用の回/.test(String(el.textContent||'')));
   if(slotTitle)slotTitle.hidden=false;
   const slotsBox=root.querySelector('#recSlots');if(slotsBox)slotsBox.hidden=false;
-  setText(root.querySelector('#recModeLabel'),'LINE受付（現地受付枠）');
+  setText(root.querySelector('#recModeLabel'),'LINE受付');
 }
 function queue(){if(queued)return;queued=true;queueMicrotask(patch)}
 new MutationObserver(queue).observe(root,{childList:true,subtree:true});
@@ -1253,7 +1269,7 @@ function dateLabel(v){const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);r
 function clock(){try{return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())}catch{return'--:--:--'}}
 function yen(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('ja-JP')+'円':'—'}
 function people(r){const a=Number(r?.adults||0),c=Number(r?.paidChildren||0),i=Number(r?.infants||0),total=Number(r?.totalPeople||a+c+i||0);const parts=[];if(a>0)parts.push(`大人${a}`);if(c>0)parts.push(`こども${c}`);if(i>0)parts.push(`0〜5か月${i}`);return{total,detail:parts.join('・')}}
-function passMarkup(r,{callstatus=false}={}){const p=people(r),receipt=esc(r?.receiptNo||'—'),canceled=String(r?.state||'')==='canceled',mode=r?.mode==='onsite'?'現地受付':'LINE当日受付',waitLabel=String(r?.waitTypeLabel||r?.waitTypeName||'受付枠を確認中');const receiptNode=callstatus?`<strong class="v17-number" id="csReceipt">${receipt}</strong>`:`<strong class="v17-number">${receipt}</strong>`;const badge=canceled?'<span class="v17-valid v17-canceled">取消済み</span>':callstatus?'<span class="v17-valid"><i></i>LIVE</span>':'<span class="v17-valid"><i></i>有効</span>';const kicker=canceled?'受付控え':callstatus?'受付情報':'TODAY PASS';const facts=callstatus?`<div class="v17-facts v17-facts-call"><span><small>利用日</small><b>${esc(dateLabel(r?.businessDate))}</b></span></div>`:`<div class="v17-facts"><span><small>利用日</small><b>${esc(dateLabel(r?.businessDate))}</b></span><i></i><span><small>合計人数</small><b>${p.total>0?p.total+'名':'—'}</b></span></div>`;const callDetails=callstatus?`<div class="v17-call-slot"><small>利用する回</small><b id="csWaitType">${esc(waitLabel)}</b></div><div class="v17-call-grid"><span><small>受付方法</small><b>${esc(mode)}</b></span><span><small>料金目安</small><b>${esc(yen(r?.totalPrice))}</b></span></div>`:'';const live=callstatus?'':(canceled?'<div class="v17-live v17-live-canceled"><b>受付控え</b><small>この受付は取消済みです</small></div>':`<div class="v17-live"><span class="v17-live-dot" aria-hidden="true"></span><b>LIVE</b><time data-v17-clock>${clock()}</time></div>`);return `<div class="v17-pass${callstatus?' callstatus':''}${canceled?' canceled':''}" aria-label="${canceled?'取消済み受付控え':'本日の受付証'}"><div class="v17-pass-head"><span class="v17-pass-kicker">${kicker}</span>${badge}</div><div class="v17-number-label">受付番号</div>${receiptNode}${facts}${p.detail?`<div class="v17-breakdown">${esc(p.detail)}</div>`:''}${callDetails}${live}</div>`}
+function passMarkup(r,{callstatus=false}={}){const p=people(r),receipt=esc(r?.receiptNo||'—'),canceled=String(r?.state||'')==='canceled',mode=r?.mode==='onsite'?'LINE受付':'LINE当日受付',waitLabel=String(r?.waitTypeLabel||r?.waitTypeName||'受付枠を確認中');const receiptNode=callstatus?`<strong class="v17-number" id="csReceipt">${receipt}</strong>`:`<strong class="v17-number">${receipt}</strong>`;const badge=canceled?'<span class="v17-valid v17-canceled">取消済み</span>':callstatus?'<span class="v17-valid"><i></i>LIVE</span>':'<span class="v17-valid"><i></i>有効</span>';const kicker=canceled?'受付控え':callstatus?'受付情報':'TODAY PASS';const facts=callstatus?`<div class="v17-facts v17-facts-call"><span><small>利用日</small><b>${esc(dateLabel(r?.businessDate))}</b></span></div>`:`<div class="v17-facts"><span><small>利用日</small><b>${esc(dateLabel(r?.businessDate))}</b></span><i></i><span><small>合計人数</small><b>${p.total>0?p.total+'名':'—'}</b></span></div>`;const callDetails=callstatus?`<div class="v17-call-slot"><small>利用する回</small><b id="csWaitType">${esc(waitLabel)}</b></div><div class="v17-call-grid"><span><small>受付方法</small><b>${esc(mode)}</b></span><span><small>料金目安</small><b>${esc(yen(r?.totalPrice))}</b></span></div>`:'';const live=callstatus?'':(canceled?'<div class="v17-live v17-live-canceled"><b>受付控え</b><small>この受付は取消済みです</small></div>':`<div class="v17-live"><span class="v17-live-dot" aria-hidden="true"></span><b>LIVE</b><time data-v17-clock>${clock()}</time></div>`);return `<div class="v17-pass${callstatus?' callstatus':''}${canceled?' canceled':''}" aria-label="${canceled?'取消済み受付控え':'本日の受付証'}"><div class="v17-pass-head"><span class="v17-pass-kicker">${kicker}</span>${badge}</div><div class="v17-number-label">受付番号</div>${receiptNode}${facts}${p.detail?`<div class="v17-breakdown">${esc(p.detail)}</div>`:''}${callDetails}${live}</div>`}
 function signature(r){return[String(r?.receiptNo||''),String(r?.businessDate||''),String(r?.mode||''),String(r?.waitTypeLabel||''),String(r?.waitTypeName||''),Number(r?.adults||0),Number(r?.paidChildren||0),Number(r?.infants||0),Number(r?.totalPeople||0),Number(r?.totalPrice||0),String(r?.state||'')].join('|')}
 function ensureHome(r){const host=root.querySelector('#v7Hero .v7-ticket');if(!host)return;const sig=signature(r);if(host.dataset.v17Sig===sig&&host.querySelector('.v17-pass'))return;host.dataset.v17Sig=sig;host.classList.add('v17-ticket-host');host.innerHTML=passMarkup(r)}
 function ensureCallstatus(r){const host=root.querySelector('.cs-ticket');if(!host)return;const oldReceipt=String(root.querySelector('#csReceipt')?.textContent||r?.receiptNo||'—').trim();const oldWait=String(root.querySelector('#csWaitType')?.textContent||r?.waitTypeName||r?.waitTypeLabel||'受付枠').trim();const sig=signature(r);if(host.dataset.v17Sig===sig&&host.querySelector('.v17-pass'))return;const data={...r,receiptNo:oldReceipt==='—'?r?.receiptNo:oldReceipt};host.dataset.v17Sig=sig;host.classList.add('v17-ticket-host');host.innerHTML=passMarkup(data,{callstatus:true});const wait=root.querySelector('#csWaitType');if(wait&&oldWait)wait.textContent=oldWait}
@@ -1302,8 +1318,8 @@ function shell(tag,title,lead,body){return `<section class="page-card pv7-page">
 function button(label,view,panel='',kind='primary'){return `<button class="${kind==='text'?'pv7-text-btn':kind==='secondary'?'pv7-secondary-btn':'pv7-primary'}" type="button" data-pv7-view="${esc(view)}"${panel?` data-pv7-panel="${esc(panel)}"`:''}>${esc(label)}</button>`}
 function pricePage(){return shell('料金','料金','人数に合わせた合計金額は当日受付画面で自動計算します。',`<div class="pv7-list"><div class="pv7-band" style="--band:var(--pv7-orange)"><div><strong>大人</strong><small>保護者・同伴者</small></div><b>600円</b></div><div class="pv7-band" style="--band:var(--pv7-blue)"><div><strong>子ども</strong><small>6か月〜小学6年生</small></div><b>900円</b></div><div class="pv7-band" style="--band:var(--pv7-green)"><div><strong>0〜5か月</strong><small>ご家族の構成により追加料金なし</small></div><b>0〜900円</b></div></div><div class="pv7-callout orange"><strong>0〜5か月のお子さま</strong><br>6か月以上のお子さまが1人以上いる場合は追加料金なし。0〜5か月のお子さまだけの場合は1人目900円、2人目以降は無料です。</div><div class="pv7-callout"><strong>人数の上限</strong><br>保護者1名につきお子さま3名まで。1組合計10名までです。</div><div class="pv7-section"><h2>お支払い方法</h2><p>現金、クレジットカード、電子マネー、PayPayがご利用いただけます。LINE Payはご利用いただけません。</p></div>${button('当日受付へ進む','reception')}`)}
 function rulesPage(){return shell('館内ルール','たのしく遊ぶための4つの約束','みんなが安心して遊ぶための大切なことをまとめています。',`<div class="pv7-promise"><b>1</b><div><strong>保護者の方と一緒に</strong><small>お子さまから目を離さず、一緒に館内をお楽しみください。</small></div></div><div class="pv7-promise"><b>2</b><div><strong>周りのお友だちも大切に</strong><small>ぶつかったり、ほかのお子さまの遊びを妨げる行為にはご注意ください。</small></div></div><div class="pv7-promise"><b>3</b><div><strong>遊び方を考えながら</strong><small>子どもの挑戦を大切にしながら、重大な事故につながる危険は避けて遊びましょう。</small></div></div><div class="pv7-promise"><b>4</b><div><strong>困ったときはスタッフへ</strong><small>けが・迷子・体調不良・遊具の不具合などは近くのスタッフへお知らせください。</small></div></div><div class="pv7-callout green">安全のためスタッフからお声がけする場合があります。館内での案内を優先してください。</div>`)}
-function infoPage(){return shell('営業時間・基本情報','営業時間・基本情報','営業時間や対象年齢などの基本情報をまとめています。',`<div class="pv7-list"><div class="pv7-band" style="--band:var(--pv7-road)"><div><strong>平日</strong><small>営業時間</small></div><b>10:00〜17:00</b></div><div class="pv7-band" style="--band:var(--pv7-orange)"><div><strong>土日祝</strong><small>営業時間</small></div><b>10:00〜18:00</b></div><div class="pv7-band" style="--band:var(--pv7-blue)"><div><strong>LINE当日受付</strong><small>このLINEミニアプリ内で受付</small></div><b>9:25〜</b></div><div class="pv7-band" style="--band:var(--pv7-green)"><div><strong>受付枠</strong><small>本日の現地受付枠をLINEから取得</small></div><b>当日</b></div><div class="pv7-band" style="--band:#777"><div><strong>定休日</strong><small>営業カレンダーにより変更する場合があります</small></div><b>火曜</b></div></div><div class="pv7-section"><h2>場所</h2><p>ASOBooNは川口ハイウェイオアシス内にあります。</p></div><div class="pv7-section"><h2>対象</h2><p>0歳〜小学6年生。保護者1名につきお子さま3名までご利用いただけます。</p></div><div class="pv7-callout blue">当日の営業区分・受付可能な回は「当日受付」画面で最新情報を確認してください。</div>${button('当日受付を確認する','reception')}${button('利用時間の目安を見る','timeguide','','secondary')}${button('駐車場・アクセスを見る','parking','','text')}`)}
-function detailPage(){const r=readJSON(RES_KEY);if(!r?.receiptNo)return shell('受付詳細','本日の受付はありません','当日受付が完了すると、受付番号や利用回が表示されます。',`<div class="pv7-callout">当日受付が完了すると、このページに受付内容を表示します。</div>${button('当日受付をする','reception')}`);const a=Number(r.adults||0),c=Number(r.paidChildren||0),i=Number(r.infants||0),t=Number(r.totalPeople||a+c+i);return shell('受付詳細','本日の受付詳細','スタッフへ見せる情報をまとめています。',`<div class="v33-detail-number"><small>受付番号</small><strong>${esc(r.receiptNo)}</strong></div><div class="pv7-list"><div class="pv7-row"><span>利用日</span><strong>${esc(dateLabel(r.businessDate))}</strong></div><div class="pv7-row"><span>利用する回</span><strong>${esc(r.waitTypeLabel||r.waitTypeName||'受付枠')}</strong></div><div class="pv7-row"><span>受付方法</span><strong>${r.mode==='onsite'?'現地受付':'LINE当日受付'}</strong></div></div><section class="v33-detail-people" aria-label="人数内訳"><div><small>大人</small><strong>${a}</strong><span>名</span></div><div><small>子ども</small><strong>${c}</strong><span>名</span></div><div><small>0〜5か月</small><strong>${i}</strong><span>名</span></div></section><div class="pv7-row v33-total"><span>合計</span><strong>${t}名</strong></div><div class="pv7-row"><span>料金目安</span><strong>${esc(yen(r.totalPrice))}</strong></div><div class="pv7-callout green">順番・呼出状態は「呼出状況」で最新情報を確認できます。</div>${button('呼出状況を見る','callstatus','','secondary')}`)}
+function infoPage(){return shell('営業時間・基本情報','営業時間・基本情報','営業時間や対象年齢などの基本情報をまとめています。',`<div class="pv7-list"><div class="pv7-band" style="--band:var(--pv7-road)"><div><strong>平日</strong><small>営業時間</small></div><b>10:00〜17:00</b></div><div class="pv7-band" style="--band:var(--pv7-orange)"><div><strong>土日祝</strong><small>営業時間</small></div><b>10:00〜18:00</b></div><div class="pv7-band" style="--band:var(--pv7-blue)"><div><strong>LINE当日受付</strong><small>このLINEミニアプリ内で受付</small></div><b>9:25〜</b></div><div class="pv7-band" style="--band:var(--pv7-green)"><div><strong>受付枠</strong><small>本日のLINE受付枠をLINEから取得</small></div><b>当日</b></div><div class="pv7-band" style="--band:#777"><div><strong>定休日</strong><small>営業カレンダーにより変更する場合があります</small></div><b>火曜</b></div></div><div class="pv7-section"><h2>場所</h2><p>ASOBooNは川口ハイウェイオアシス内にあります。</p></div><div class="pv7-section"><h2>対象</h2><p>0歳〜小学6年生。保護者1名につきお子さま3名までご利用いただけます。</p></div><div class="pv7-callout blue">当日の営業区分・受付可能な回は「当日受付」画面で最新情報を確認してください。</div>${button('当日受付を確認する','reception')}${button('利用時間の目安を見る','timeguide','','secondary')}${button('駐車場・アクセスを見る','parking','','text')}`)}
+function detailPage(){const r=readJSON(RES_KEY);if(!r?.receiptNo)return shell('受付詳細','本日の受付はありません','当日受付が完了すると、受付番号や利用回が表示されます。',`<div class="pv7-callout">当日受付が完了すると、このページに受付内容を表示します。</div>${button('当日受付をする','reception')}`);const a=Number(r.adults||0),c=Number(r.paidChildren||0),i=Number(r.infants||0),t=Number(r.totalPeople||a+c+i);return shell('受付詳細','本日の受付詳細','スタッフへ見せる情報をまとめています。',`<div class="v33-detail-number"><small>受付番号</small><strong>${esc(r.receiptNo)}</strong></div><div class="pv7-list"><div class="pv7-row"><span>利用日</span><strong>${esc(dateLabel(r.businessDate))}</strong></div><div class="pv7-row"><span>利用する回</span><strong>${esc(r.waitTypeLabel||r.waitTypeName||'受付枠')}</strong></div><div class="pv7-row"><span>受付方法</span><strong>${r.mode==='onsite'?'LINE受付':'LINE当日受付'}</strong></div></div><section class="v33-detail-people" aria-label="人数内訳"><div><small>大人</small><strong>${a}</strong><span>名</span></div><div><small>子ども</small><strong>${c}</strong><span>名</span></div><div><small>0〜5か月</small><strong>${i}</strong><span>名</span></div></section><div class="pv7-row v33-total"><span>合計</span><strong>${t}名</strong></div><div class="pv7-row"><span>料金目安</span><strong>${esc(yen(r.totalPrice))}</strong></div><div class="pv7-callout green">順番・呼出状態は「呼出状況」で最新情報を確認できます。</div>${button('呼出状況を見る','callstatus','','secondary')}`)}
 function replaceMain(html,key){const main=root.querySelector('main.view');if(!main)return false;if(main.dataset.v33Key===key)return true;main.innerHTML=html;main.dataset.v33Key=key;return true}
 function lightStage(n){if(n<=3)return 5;if(n<=5)return 4;if(n<=10)return 3;if(n<=20)return 2;return 1}
 function waitCopy(n){if(n<=3)return'もうすぐです！';if(n<=5)return'入場の準備をお願いします';if(n<=10)return'そろそろ近づいてきました';if(n<=20)return'少しずつ近づいています';return'まだ時間があります'}
