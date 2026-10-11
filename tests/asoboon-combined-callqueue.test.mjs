@@ -154,6 +154,8 @@ test('missing queue data must never be converted to zero or presented as an ETA'
  assert.match(homeMarkup,/Number.isSafeInteger\(data\.ahead\)/);
  assert.match(callJS,/if\(ahead===null\)return POLL_RECONCILE_MS/);
  assert.match(homeJS,/if\(n===null\)return 10000/);
+ // Weekday immediate LINE reception (0023) differs from WEB 10:00 (0024).
+ assert.match(workerSource,/Object\.freeze\(\['0023'\]\),Object\.freeze\(\['0024'\]\)/);
  assert.match(workerSource,/callstatusCombinedWebLine = true/);
  assert.match(workerSource,/callstatusCombinedQueueSoftDeadlineMs = 1800/);
  assert.match(workerSource,/queueScope:'unverified'/);

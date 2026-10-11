@@ -56,7 +56,7 @@ const BOARD_SLOT_SPECS = Object.freeze({
 // has two internal wait types (LINE/store and WEB). A single wait type is NOT the
 // visitor's real place in line. These pairings are confirmed by the AirWAIT master.
 const CALLSTATUS_COMBINED_ROUNDS = Object.freeze({
-  '平日':Object.freeze([Object.freeze(['0023','0024']),Object.freeze(['0025','0027'])]),
+  '平日':Object.freeze([Object.freeze(['0023']),Object.freeze(['0024']),Object.freeze(['0025','0027'])]),
   '平日特定日':Object.freeze([Object.freeze(['0035','0036']),Object.freeze(['0037','0038'])]),
   '土日祝日':Object.freeze([Object.freeze(['0029','0030']),Object.freeze(['0031','0032']),Object.freeze(['0033','0034'])])
 });
