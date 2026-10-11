@@ -20,6 +20,6 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
  assert.doesNotMatch(home,/fetchOnsite|action=onsiteRemaining/);
 });
 test('Two clear, responsive channels preserve a neutral unavailable state and original reception action',()=>{
- for(const word of ['WEB受付','現地受付','確認中','混雑目安はWEB枠を基準','data-v7-view="reception"'])assert.ok(home.includes(word),word);
+ for(const word of ['WEB受付','LINE受付','確認中','混雑目安はWEB枠を基準','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
 });

@@ -26,12 +26,13 @@ function removeKey(key){try{localStorage.removeItem(key)}catch{}}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
 function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
-function unmount(){stopPolling();stopReceptionWatch()}
+function unmount(){stopPolling();stopReceptionWatch();document.body.removeAttribute('data-call-tone')}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
+<div id="csToneBanner" class="cs-tone-banner" hidden role="status" aria-live="polite"><strong id="csToneBannerTitle">確認中</strong><span id="csToneBannerDetail"></span></div>
 <div id="csTop" class="cs-top"><span class="cs-live-dot"></span><strong>受付情報を確認しています</strong><small>AirWAITの最新状況を自動で確認します。</small></div>
 <div class="cs-ticket"><small>あなたの受付番号</small><strong id="csReceipt">—</strong><span>番</span><div id="csWaitType" class="cs-waittype">受付枠を確認中</div></div>
 <div id="csState" class="cs-state loading"><div class="cs-state-icon">⏳</div><strong id="csTitle">状況を確認中</strong><p id="csMessage">LINE本人確認と受付情報を安全に照合しています。</p></div>
@@ -132,6 +133,34 @@ async function cancelCurrentReservation(){
   }
 }
 
+// Only a verified AirWAIT status may color the entire official call screen.
+// Pending/reconciling/failed reads remain neutral, never guessed as canceled.
+const CALL_TONES=Object.freeze({
+ waiting:{tone:'waiting',title:'呼出前',detail:'順番をお待ちください'},
+ calling:{tone:'calling',title:'呼出中',detail:'入場できます。受付へお越しください'},
+ processing:{tone:'guided',title:'受付対応中',detail:'スタッフがご案内しています'},
+ done:{tone:'guided',title:'案内済み',detail:'ご案内が完了しています'},
+ canceled:{tone:'canceled',title:'キャンセル',detail:'この受付は取り消されています'},
+ hold:{tone:'hold',title:'保留中',detail:'スタッフの案内をご確認ください'},
+ closed:{tone:'neutral',title:'受付終了',detail:'本日の受付は終了しました'}
+});
+function setCallTone(status){
+ const state=CALL_TONES[String(status||'')]||null;
+ const tone=state?.tone||'neutral';
+ const page=document.querySelector('.cs-page');
+ if(!page)return;
+ page.dataset.callTone=tone;
+ if(String(new URLSearchParams(location.search).get('view')||'home')==='callstatus')document.body.dataset.callTone=tone;
+ const banner=$('csToneBanner');
+ if(banner){
+  banner.hidden=!state;
+  if(state){
+   const title=$('csToneBannerTitle'),detail=$('csToneBannerDetail');
+   if(title)title.textContent=state.title;
+   if(detail)detail.textContent=state.detail;
+  }
+ }
+}
 function stateMeta(state,ahead){
   switch(String(state||'')){
     case'waiting':return{cls:'waiting',icon:'🕒',title:'順番をお待ちください',msg:Number.isFinite(ahead)?`現在、あなたの前に${ahead}組お待ちです。`:'現在、順番をお待ちいただいています。'};
@@ -218,6 +247,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  setCallTone(d?.found?d.state:null);
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
@@ -334,7 +364,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;setCallTone(null);updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -342,6 +372,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  setCallTone(null);
   updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
