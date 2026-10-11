@@ -1129,6 +1129,40 @@ test('new CALL arriving during CALL queues behind it instead of cutting it off',
   await waitForFxIdle(page);
 });
 
+test('observed queued CALL survives a later done/hold/canceled payload until it is shown', async ({ page }) => {
+  test.setTimeout(22000);
+  const h=await installBoard(page,[
+    payload([
+      {number:'8401',state:'waiting',order:1},
+      {number:'8402',state:'waiting',order:2},
+    ]),
+    payload([
+      {number:'8401',state:'calling',order:1},
+      {number:'8402',state:'calling',order:2},
+    ]),
+    payload([
+      {number:'8401',state:'calling',order:1},
+      {number:'8402',state:'done',order:2},
+    ]),
+  ]);
+  await page.evaluate(()=>window.ASOBOON_BOARD_EFFECTS.setSlowdown(.25,{persistValue:false}));
+
+  h.next();await h.refresh();
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().activeKind),{timeout:3000}).toBe('call');
+
+  // Simulate the next 5-second poll arriving while the first CALL is still on screen.
+  h.next();await h.refresh();
+  await expect(page.locator('.queue-card.done .queue-number')).toHaveText('8402');
+
+  await expect.poll(async()=>page.evaluate(
+    ()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.filter(x=>x.kind==='call').length
+  ),{timeout:8000}).toBe(2);
+
+  const history=await page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history);
+  expect(history.filter(x=>x.kind==='call').map(x=>x.number)).toEqual(['8401','8402']);
+  await waitForFxIdle(page);
+});
+
 test('reduced-motion CALL still shows only one number with the single-ticket LOW timing', async ({ page }) => {
   test.setTimeout(15000);
   await installBoard(page,[payload([{number:'F10001',state:'waiting',order:1}])],{reducedMotion:true});
