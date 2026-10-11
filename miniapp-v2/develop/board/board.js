@@ -31,9 +31,12 @@ function tokyoDateKey(date=new Date()){
   const t=tokyoParts(date),pad=v=>String(v).padStart(2,'0');
   return String(t.year)+'-'+pad(t.month)+'-'+pad(t.day);
 }
-function isWeekendHolidayType(businessType=''){
+function canonicalBusinessType(businessType=''){
   const type=String(businessType||'');
-  return type==='土日祝日'||type==='土日祝';
+  return type==='土日祝'?'土日祝日':type;
+}
+function isWeekendHolidayType(businessType=''){
+  return canonicalBusinessType(businessType)==='土日祝日';
 }
 function refreshIntervalMs(date=new Date(),businessType=state.businessType){
   if(!isWeekendHolidayType(businessType))return REFRESH_MS;
@@ -53,7 +56,7 @@ function nextRefreshDelayMs(date=new Date(),businessType=state.businessType){
   return Math.max(1000,Math.min(current,boundary*1000));
 }
 function resolveBoardContext(date=new Date(),businessType=''){
-  const type=String(businessType||''),t=tokyoParts(date),m=t.hour*60+t.minute;
+  const type=canonicalBusinessType(businessType),t=tokyoParts(date),m=t.hour*60+t.minute;
   if(type==='休館')return{businessType:type,phase:'closed',slotKey:'',slotLabel:'休館日',slotSuffix:'',detail:'本日は休館日です'};
   if(!CLOSE_MINUTES[type])return{businessType:type,phase:'checking',slotKey:'',slotLabel:'確認中',slotSuffix:'',detail:'営業情報を確認しています'};
   if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'8:00から呼出状況を表示します'};
@@ -381,9 +384,11 @@ function schedule(){
   clearTimeout(state.timer);
   const delay=nextRefreshDelayMs(new Date(),state.businessType);
   state.refreshMs=refreshIntervalMs(new Date(),state.businessType);
-  state.timer=setTimeout(async()=>{
-    await fetchBoard();
+  state.timer=setTimeout(()=>{
+    // Schedule the next tick before awaiting network I/O so the cadence stays
+    // start-to-start (5s or 10s), independent of request duration.
     schedule();
+    void fetchBoard();
   },delay);
 }
 window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
@@ -397,6 +402,7 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   visibleRows,
   normalizeRows,
   updateLiveCaption,
+  canonicalBusinessType,
   refreshIntervalMs,
   nextRefreshDelayMs,
   REFRESH_MS,
