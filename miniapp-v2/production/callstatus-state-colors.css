@@ -1,0 +1,46 @@
+
+/* Full-scene verified reservation status. A status color is NEVER applied to an unverified snapshot. */
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-state{border:2px solid transparent!important;box-shadow:none!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-state-icon{display:block}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-ticket{border-color:var(--tone-edge,#adb8bf)!important;border-width:2px!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-ticket .v17-number,
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-ticket strong{color:var(--tone-ink,#263947)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast{box-shadow:none}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .v33-start-panel{border-color:var(--tone-edge)!important;background:var(--tone-card)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .v33-start-copy{color:var(--tone-ink)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-state strong{color:var(--tone-ink)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-queue>div{border:1px solid var(--tone-edge);background:#fff}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-queue strong{color:var(--tone-ink)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-top{background:var(--tone-soft)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-refresh{background:var(--tone-ink)!important;color:#fff}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-meta{border-color:var(--tone-edge)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-note{background:var(--tone-soft)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast{border-color:var(--tone-edge);background:var(--tone-card)}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-main,
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-head{color:var(--tone-ink)}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-point.end{color:var(--tone-ink)}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-point.end .cs-forecast-dot{background:var(--tone-ink);border-color:var(--tone-ink)}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-flow-line{background:var(--tone-edge)}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-forecast-note{color:var(--tone-ink)}
+/* Waiting / before call: neutral gray across the entire screen */
+body.v7-callstatus-active[data-asoboon-call-tone="waiting"]{--tone-bg:#dbe0e4;--tone-card:#edf0f2;--tone-soft:#e6eaed;--tone-edge:#a6b1b9;--tone-ink:#344554}
+/* Calling: unmistakably blue */
+body.v7-callstatus-active[data-asoboon-call-tone="calling"]{--tone-bg:#d7ecff;--tone-card:#bfe0ff;--tone-soft:#e7f4ff;--tone-edge:#68abeb;--tone-ink:#135998}
+/* Guided / done: unmistakably green */
+body.v7-callstatus-active[data-asoboon-call-tone="done"]{--tone-bg:#d8f4dc;--tone-card:#c6edce;--tone-soft:#e7f9e9;--tone-edge:#70b886;--tone-ink:#17653a}
+/* Canceled: unmistakably red */
+body.v7-callstatus-active[data-asoboon-call-tone="canceled"]{--tone-bg:#ffe0df;--tone-card:#ffd0ce;--tone-soft:#fff0ef;--tone-edge:#ea8d89;--tone-ink:#a52329}
+/* Held and unknown: do not imply that a call has been issued */
+body.v7-callstatus-active[data-asoboon-call-tone="hold"],
+body.v7-callstatus-active[data-asoboon-call-tone="loading"]{--tone-bg:#f2f0e9;--tone-card:#f5f2ea;--tone-soft:#f5f3ed;--tone-edge:#c8c1b5;--tone-ink:#55554c}
+body.v7-callstatus-active[data-asoboon-call-tone]{background:var(--tone-bg)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .page-card.cs-page{background:var(--tone-bg)!important;border:2px solid var(--tone-edge)!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .page-head.green{background:var(--tone-ink)!important;color:#fff!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-state{background:var(--tone-card)!important;border-color:var(--tone-edge)!important;text-align:center!important}
+body.v7-callstatus-active[data-asoboon-call-tone] .cs-page .cs-state strong{font-size:clamp(23px,6.5vw,32px)!important}
+body.v7-callstatus-active[data-asoboon-call-tone="calling"] .cs-page .cs-state{padding:26px 12px!important}
+body.v7-callstatus-active[data-asoboon-call-tone="calling"] .cs-page .cs-state strong{font-size:clamp(30px,8vw,40px)!important}
+body.v7-callstatus-active[data-asoboon-call-tone="done"] .cs-page .cs-state,
+body.v7-callstatus-active[data-asoboon-call-tone="canceled"] .cs-page .cs-state{padding:24px 12px!important}
+body.v7-callstatus-active[data-asoboon-call-tone="calling"] .cs-page .v33-start-panel{background:var(--tone-card)!important}
+@media(prefers-reduced-motion:reduce){body.v7-callstatus-active[data-asoboon-call-tone],body.v7-callstatus-active[data-asoboon-call-tone] .page-card.cs-page{transition:none}}

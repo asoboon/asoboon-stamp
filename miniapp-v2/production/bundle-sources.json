@@ -20,7 +20,8 @@
     "miniapp-v2/production/entry-v25.css",
     "miniapp-v2/production/experience-v13.css",
     "miniapp-v2/production/ticket-pass-v17.css",
-    "miniapp-v2/production/ticket-people-v28.css"
+    "miniapp-v2/production/ticket-people-v28.css",
+    "miniapp-v2/production/callstatus-state-colors.css"
   ],
   "scripts": [
     "miniapp-v2/shared/config-common.js",

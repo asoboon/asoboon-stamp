@@ -240,7 +240,7 @@ jobs:
           grep -F 'lineReceptionUsesStoreOnly: true' miniapp-v2/backend/develop-gateway.js
           grep -F 'LINE当日受付は${lineReceptionOpenDisplay()}から' miniapp-v2/develop/home-v38.js
           grep -F 'lineReceptionOpenNow()' miniapp-v2/shared/reception.js
-          grep -F "LINE受付（現地受付枠）" miniapp-v2/shared/reception.js
+          grep -F "LINE受付枠をLINEから取得できます。" miniapp-v2/shared/reception.js
           grep -F "LINE受付（現地受付枠）" miniapp-v2/develop/reception-anywhere-v22.js
           ! grep -Fq 'LINE当日受付は7:00から' miniapp-v2/develop/home-v38.js miniapp-v2/shared/reception.js
 
