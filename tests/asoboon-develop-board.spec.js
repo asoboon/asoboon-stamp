@@ -29,22 +29,22 @@ function payload(rows, options = {}) {
   };
 }
 
-async function installBoard(page, sequence, { reducedMotion = false, cachedPayload = null } = {}) {
+async function installBoard(page, sequence, { reducedMotion = false, cachedPayload = null, fixedIso = '2026-09-19T00:30:00.000Z' } = {}) {
   let index = 0;
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(String(error)));
 
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
 
-  await page.addInitScript(() => {
+  await page.addInitScript(value => {
     window.__ASOBOON_BOARD_TEST_TIMING__ = true;
     const RealDate = Date;
-    const fixed = new RealDate('2026-09-19T00:30:00.000Z').valueOf(); // 09:30 JST -> 10:00 board
+    const fixed = new RealDate(value).valueOf();
     window.Date = class extends RealDate {
       constructor(...args) { super(...(args.length ? args : [fixed])); }
       static now() { return fixed; }
     };
-  });
+  }, fixedIso);
   if (cachedPayload) {
     await page.addInitScript(value => {
       localStorage.setItem('asoboon_call_board_last_good_v1', JSON.stringify({
@@ -530,7 +530,7 @@ test('reduced motion keeps transitions readable and disables screen shake', asyn
   expect(h.pageErrors).toEqual([]);
 });
 
-test('CALL GROUP and Level B stay inside the 9-second status batch policy', async ({ page }) => {
+test('CALL is fullscreen one ticket at a time while Level B keeps its 9-second budget', async ({ page }) => {
   const current = payload([{ number: '5901', state: 'waiting', order: 1 }]);
   await installBoard(page, [current]);
 
@@ -538,39 +538,37 @@ test('CALL GROUP and Level B stay inside the 9-second status batch policy', asyn
   expect(d.statusTimingMode).toBe('wall-clock');
   expect(d.callStableTimeline).toBe('linear-keyframes');
   expect(d.callAnticipationMs).toBe(400);
-  expect(d.maxCallGroupSize).toBe(8);
-  expect(d.maxSpecialDurationMs).toBe(6600);
-  expect(d.maxReducedSpecialDurationMs).toBe(5400);
+  expect(d.callPresentation).toBe('sequential-single');
+  expect(d.maxFullscreenCallNumbers).toBe(1);
+  expect(d.maxSpecialDurationMs).toBe(5800);
+  expect(d.maxReducedSpecialDurationMs).toBe(4600);
   expect(d.fullScreenStatusCount).toBe(1);
   expect(d.localStatusCount).toBe(3);
   expect(d.statusAssetPolicy).toBe('generated-only');
   expect(d.statusWebpAssets).toBe(false);
-  expect(d.queueLimit).toBeLessThanOrEqual(8);
+  expect(d.queueLimit).toBeGreaterThanOrEqual(32);
+  expect(d.maxLevelBBatch).toBe(8);
   expect(d.statusBatchBudgetMs).toBe(9000);
-  expect(d.maxEstimatedStatusRuntimeMs).toBeLessThan(d.statusBatchBudgetMs);
+  expect(d.maxEstimatedStatusRuntimeMs).toBe(5800);
 
   const status = fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
   const css = fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
-  expect(status).toContain("single:Object.freeze({total:5800,stable:3600})");
-  expect(status).toContain("medium:Object.freeze({total:6200,stable:4000})");
-  expect(status).toContain("large:Object.freeze({total:6600,stable:4400})");
-  expect(status).toContain("single:Object.freeze({total:4600,stable:3500})");
-  expect(status).toContain("medium:Object.freeze({total:5000,stable:3800})");
-  expect(status).toContain("large:Object.freeze({total:5400,stable:4100})");
-  expect(status).toContain("guided:Object.freeze({low:900,high:1500})");
-  expect(status).toContain("hold:Object.freeze({low:1000,high:1650})");
-  expect(status).toContain("cancel:Object.freeze({low:1050,high:1650})");
+  expect(status).toContain("high:Object.freeze({total:5800,stable:3600})");
+  expect(status).toContain("low:Object.freeze({total:4600,stable:3500})");
+  expect(status).toContain('const MAX_FULLSCREEN_CALL_NUMBERS=1');
+  expect(status).toContain('for(const call of calls)');
   expect(css).toContain('.fx-call-group');
   expect(css).toContain('.fx-local-status');
 });
 
-test('CALL timing has one canonical count-aware HIGH and LOW table', async () => {
+test('CALL timing has one canonical single-ticket HIGH and LOW table', async () => {
   const code=fs.readFileSync('miniapp-v2/develop/board/board-animations.js','utf8');
-  expect(code).toContain('const CALL_GROUP_TIMING=Object.freeze');
-  expect(code).not.toContain("call:Object.freeze({low:3800,high:5800})");
-  expect(code).toContain("maxSpecialDurationMs:6600");
-  expect(code).toContain("maxReducedSpecialDurationMs:5400");
-  expect(code).toContain("maxCallGroupSize:MAX_CALL_GROUP");
+  expect(code).toContain('const CALL_TIMING=Object.freeze');
+  expect(code).not.toContain('CALL_GROUP_TIMING');
+  expect(code).toContain("maxSpecialDurationMs:CALL_TIMING.high.total");
+  expect(code).toContain("maxReducedSpecialDurationMs:CALL_TIMING.low.total");
+  expect(code).toContain("callPresentation:'sequential-single'");
+  expect(code).toContain("maxFullscreenCallNumbers:MAX_FULLSCREEN_CALL_NUMBERS");
   expect(code).toContain("fullScreenStatusCount:1");
   expect(code).toContain("localStatusCount:3");
   expect(code).toContain("statusWebpAssets:false");
@@ -993,14 +991,44 @@ test.skip('new-source effects stay quiet on load and only run when the show stor
 });
 
 
-test('four six-character CALLs use one-column layout and keep at least 12vh text height', async ({ page }) => {
+test('same-refresh CALLs render one fullscreen ticket at a time in reception order', async ({ page }) => {
+  test.setTimeout(20000);
+  const waiting=[
+    {number:'F10001',state:'waiting',order:1},
+    {number:'F10002',state:'waiting',order:2},
+    {number:'T10003',state:'waiting',order:3},
+  ];
+  const calling=waiting.map(x=>({...x,state:'calling'}));
+  const h=await installBoard(page,[payload(waiting),payload(calling)]);
+  await page.evaluate(()=>window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.04,{persistValue:false}));
+
+  h.next();
+  await h.refresh();
+
+  // Data updates immediately even though the fullscreen presentation is serialized.
+  await expect(page.locator('.queue-card.calling')).toHaveCount(3);
+  await expect.poll(async()=>page.evaluate(()=>document.querySelectorAll('.fx-special-number.call .fx-special-number-value').length),{timeout:3000}).toBe(1);
+
+  await expect.poll(async()=>page.evaluate(
+    ()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.filter(x=>x.kind==='call').length
+  ),{timeout:7000}).toBe(3);
+
+  const d=await diagnostics(page);
+  const calls=d.history.filter(x=>x.kind==='call');
+  expect(calls.map(x=>x.numbers)).toEqual([['F10001'],['F10002'],['T10003']]);
+  expect(d.sequentialCallCount).toBe(3);
+  expect(d.maxQueuedCalls).toBeGreaterThanOrEqual(2);
+  await waitForFxIdle(page);
+});
+
+test('public CALL playback hard-caps a fullscreen special to one number', async ({ page }) => {
   test.setTimeout(15000);
   await page.setViewportSize({width:900,height:1600});
-  await installBoard(page,[payload([{number:'1001',state:'waiting',order:1}])]);
+  await installBoard(page,[payload([{number:'F10001',state:'waiting',order:1}])]);
   await page.evaluate(()=>{
     window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.04,{persistValue:false});
-    window.__groupPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
-      numbers:['F10001','F10002','T10003','T10004'],
+    window.__singleRulePromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      numbers:['F10001','F10002','F10003','F10004'],
       number:'F10001',kind:'call',fromStatus:'waiting',toStatus:'calling'
     });
   });
@@ -1011,117 +1039,70 @@ test('four six-character CALLs use one-column layout and keep at least 12vh text
       layout:root?.dataset.callLayout,
       duration:Number(root?.dataset.specialDuration||0),
       stableMs:Number(root?.dataset.stableReadableMs||0),
-      values:[...root.querySelectorAll('.fx-special-number-value')].map(x=>({
-        text:x.textContent,
-        h:Number(x.dataset.renderHeightVh||0),
-        w:Number(x.dataset.renderWidthRatio||0),
-      })),
-    };
-  });
-  expect(state.layout).toBe('1x4');
-  expect(state.duration).toBe(6200);
-  expect(state.stableMs).toBe(4000);
-  expect(state.values).toHaveLength(4);
-  for(const v of state.values){
-    expect(v.h).toBeGreaterThanOrEqual(12);
-    expect(v.w).toBeLessThanOrEqual(.921);
-  }
-  await page.evaluate(()=>window.__groupPromise);
-});
-
-test('eight six-character CALLs fit one fullscreen group with 7vh minimum height and no clipping', async ({ page }) => {
-  test.setTimeout(15000);
-  await page.setViewportSize({width:900,height:1600});
-  await installBoard(page,[payload([{number:'1001',state:'waiting',order:1}])]);
-  const numbers=['F10001','F10002','F10003','F10004','T10005','T10006','T10007','T10008'];
-  await page.evaluate(numbers=>{
-    window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.04,{persistValue:false});
-    window.__groupPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
-      numbers,number:numbers[0],kind:'call',fromStatus:'waiting',toStatus:'calling'
-    });
-  },numbers);
-  await expect.poll(async()=>page.evaluate(()=>document.querySelectorAll('.fx-special-number.call .fx-call-cell').length),{timeout:3000}).toBe(8);
-  const state=await page.evaluate(()=>{
-    const root=document.querySelector('.fx-special-number.call');
-    return{
-      layout:root?.dataset.callLayout,
-      duration:Number(root?.dataset.specialDuration||0),
-      stableMs:Number(root?.dataset.stableReadableMs||0),
-      values:[...root.querySelectorAll('.fx-special-number-value')].map(x=>({
-        h:Number(x.dataset.renderHeightVh||0),
-        w:Number(x.dataset.renderWidthRatio||0),
-        text:x.textContent,
-      })),
-    };
-  });
-  expect(state.layout).toBe('2x4');
-  expect(state.duration).toBe(6600);
-  expect(state.stableMs).toBe(4400);
-  expect(state.values).toHaveLength(8);
-  for(const v of state.values){
-    expect(v.text.length).toBe(6);
-    expect(v.h).toBeGreaterThanOrEqual(7);
-    expect(v.w).toBeLessThanOrEqual(.921);
-  }
-  await page.evaluate(()=>window.__groupPromise);
-  await expect(page.locator('.fx-special-number.call')).toHaveCount(0);
-});
-
-test('nine new CALLs update all data immediately but only the first eight enter one CALL GROUP', async ({ page }) => {
-  test.setTimeout(15000);
-  const waiting=Array.from({length:9},(_,i)=>({number:String(8101+i),state:'waiting',order:i+1}));
-  const calling=waiting.map(x=>({...x,state:'calling'}));
-  const h=await installBoard(page,[payload(waiting),payload(calling)]);
-  await page.evaluate(()=>window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.04,{persistValue:false}));
-  h.next();
-  await h.refresh();
-
-  await expect(page.locator('.queue-card.calling')).toHaveCount(9);
-  await expect.poll(async()=>page.evaluate(()=>document.querySelectorAll('.fx-special-number.call .fx-call-cell').length),{timeout:3000}).toBe(8);
-  const live=await page.evaluate(()=>{
-    const root=document.querySelector('.fx-special-number.call');
-    return{
       values:[...root.querySelectorAll('.fx-special-number-value')].map(x=>x.textContent.trim()),
-      diag:window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics(),
     };
   });
-  expect(live.values).toEqual(calling.slice(0,8).map(x=>x.number));
-  expect(live.diag.callGroupSize).toBe(8);
-  expect(live.diag.overflowCallCount).toBe(1);
-  await waitForFxIdle(page);
-  const history=await page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.filter(x=>x.kind==='call'));
-  expect(history).toHaveLength(1);
+  expect(state.layout).toBe('1x1');
+  expect(state.duration).toBe(5800);
+  expect(state.stableMs).toBe(3600);
+  expect(state.values).toEqual(['F10001']);
+  await page.evaluate(()=>window.__singleRulePromise);
 });
 
-test('LOW and reduced-motion CALL GROUPs keep count-aware readable durations', async ({ page }) => {
+test('new CALL arriving during CALL queues behind it instead of cutting it off', async ({ page }) => {
+  test.setTimeout(20000);
+  const h=await installBoard(page,[
+    payload([
+      {number:'8301',state:'waiting',order:1},
+      {number:'8302',state:'waiting',order:2},
+    ]),
+    payload([
+      {number:'8301',state:'calling',order:1},
+      {number:'8302',state:'waiting',order:2},
+    ]),
+    payload([
+      {number:'8301',state:'calling',order:1},
+      {number:'8302',state:'calling',order:2},
+    ]),
+  ]);
+  await page.evaluate(()=>window.ASOBOON_BOARD_EFFECTS.setSlowdown(.25,{persistValue:false}));
+
+  h.next();await h.refresh();
+  await expect.poll(async()=>page.evaluate(()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().activeKind),{timeout:3000}).toBe('call');
+  expect((await diagnostics(page)).history.filter(x=>x.kind==='call').map(x=>x.number)).toEqual(['8301']);
+
+  h.next();await h.refresh();
+  await expect.poll(async()=>page.evaluate(
+    ()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.filter(x=>x.kind==='call').length
+  ),{timeout:7000}).toBe(2);
+
+  const d=await diagnostics(page);
+  expect(d.history.filter(x=>x.kind==='call').map(x=>x.number)).toEqual(['8301','8302']);
+  expect(d.interruptedLevelB).toBe(0);
+  await waitForFxIdle(page);
+});
+
+test('reduced-motion CALL still shows only one number with the single-ticket LOW timing', async ({ page }) => {
   test.setTimeout(15000);
-  await page.setViewportSize({width:900,height:1600});
-  await installBoard(page,[payload([{number:'1001',state:'waiting',order:1}])],{reducedMotion:true});
+  await installBoard(page,[payload([{number:'F10001',state:'waiting',order:1}])],{reducedMotion:true});
   await page.evaluate(()=>window.ASOBOON_BOARD_EFFECTS.setSlowdown(0.025,{persistValue:false}));
-  const cases=[
-    {numbers:['F10001'],duration:4600,stable:3500},
-    {numbers:['F10001','F10002','F10003','F10004'],duration:5000,stable:3800},
-    {numbers:['F10001','F10002','F10003','F10004','F10005','F10006','F10007','F10008'],duration:5400,stable:4100},
-  ];
-  for(const c of cases){
-    const result=await page.evaluate(async c=>{
-      const p=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
-        numbers:c.numbers,number:c.numbers[0],kind:'call',fromStatus:'waiting',toStatus:'calling'
-      });
-      await new Promise(r=>setTimeout(r,8));
-      const root=document.querySelector('.fx-special-number.call');
-      const out={
-        duration:Number(root?.dataset.specialDuration||0),
-        stable:Number(root?.dataset.stableReadableMs||0),
-        count:Number(root?.dataset.callCount||0),
-      };
-      await p;
-      return out;
-    },c);
-    expect(result.duration).toBe(c.duration);
-    expect(result.stable).toBe(c.stable);
-    expect(result.count).toBe(c.numbers.length);
-  }
+  const result=await page.evaluate(async()=>{
+    const p=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      numbers:['F10001','F10002'],number:'F10001',kind:'call',fromStatus:'waiting',toStatus:'calling'
+    });
+    await new Promise(r=>setTimeout(r,8));
+    const root=document.querySelector('.fx-special-number.call');
+    const out={
+      duration:Number(root?.dataset.specialDuration||0),
+      stable:Number(root?.dataset.stableReadableMs||0),
+      values:[...root.querySelectorAll('.fx-special-number-value')].map(x=>x.textContent.trim()),
+    };
+    await p;
+    return out;
+  });
+  expect(result.duration).toBe(4600);
+  expect(result.stable).toBe(3500);
+  expect(result.values).toEqual(['F10001']);
 });
 
 test('mixed batch closes Level B playback after the first budget overflow', async ({ page }) => {
@@ -2248,10 +2229,10 @@ test('CALL real readable window matches the declared wall-clock contract', async
   expect(single.readableFrom).toBeLessThanOrEqual(1060);
   expect(single.anticipation).toBeLessThan(.05);
 
-  const eight=await scrubCallReadableWindow(page,['2501','2502','2503','2504','2505','2506','2507','2508']);
-  expect(eight.total).toBe(6600);
-  expect(eight.readableMs).toBeGreaterThanOrEqual(4400);
-  expect(eight.readableFrom).toBeLessThanOrEqual(1060);
+  const capped=await scrubCallReadableWindow(page,['2501','2502','2503','2504']);
+  expect(capped.total).toBe(5800);
+  expect(capped.readableMs).toBeGreaterThanOrEqual(3600);
+  expect(capped.readableFrom).toBeLessThanOrEqual(1060);
 });
 
 test('order-only rekey never replays an existing CALL', async ({ page }) => {
