@@ -4,22 +4,14 @@ const M=window.ASOBOON_BOARD_EFFECTS;
 const DEFAULT_LEVEL=3;
 const RARE_RATE=0.13;
 const MAX_CONCURRENT=1;
-const MAX_BATCH=8;
-const MAX_QUEUE=MAX_BATCH;
-const MAX_CALL_GROUP=8;
+const MAX_LEVEL_B_BATCH=8;
+const MAX_QUEUE=256;
+const MAX_FULLSCREEN_CALL_NUMBERS=1;
 const STATUS_BATCH_BUDGET_MS=9000;
 const STATUS_PRIORITY=Object.freeze({call:4,cancel:3,hold:2,guided:1});
-const CALL_GROUP_TIMING=Object.freeze({
-  high:Object.freeze({
-    single:Object.freeze({total:5800,stable:3600}),
-    medium:Object.freeze({total:6200,stable:4000}),
-    large:Object.freeze({total:6600,stable:4400}),
-  }),
-  low:Object.freeze({
-    single:Object.freeze({total:4600,stable:3500}),
-    medium:Object.freeze({total:5000,stable:3800}),
-    large:Object.freeze({total:5400,stable:4100}),
-  }),
+const CALL_TIMING=Object.freeze({
+  high:Object.freeze({total:5800,stable:3600}),
+  low:Object.freeze({total:4600,stable:3500}),
 });
 // CALL beats are real wall-clock milliseconds. The stable-readable window is
 // expressed with linear keyframe offsets so the declared readable time is truly visible.
@@ -57,8 +49,8 @@ const diagnostics={
   skippedLevelB:0,
   interruptedLevelB:0,
   budgetClosedBatches:0,
-  callGroupSize:0,
-  overflowCallCount:0,
+  sequentialCallCount:0,
+  maxQueuedCalls:0,
   rekeyedRows:0,
   lastEvent:null,
   history:[],
@@ -128,16 +120,12 @@ function transitionKind(fromStatus,toStatus){
   if(toStatus==='hold'&&fromStatus!=='hold')return'hold';
   return'';
 }
-function callGroupBucket(count){
-  return count<=1?'single':count<=4?'medium':'large';
+function callTiming(lvl=effectiveLevel()){
+  return (reduced||lvl<=1)?CALL_TIMING.low:CALL_TIMING.high;
 }
-function callGroupTiming(count,lvl=effectiveLevel()){
-  const mode=(reduced||lvl<=1)?'low':'high';
-  return CALL_GROUP_TIMING[mode][callGroupBucket(Math.max(1,count))];
-}
-function callTimeline(count,lvl=effectiveLevel()){
+function callTimeline(lvl=effectiveLevel()){
   const low=reduced||lvl<=1;
-  const timing=callGroupTiming(count,lvl);
+  const timing=callTiming(lvl);
   const beats=low?CALL_BEATS.low:CALL_BEATS.high;
   const total=timing.total;
   const anticipation=beats.anticipation;
@@ -157,7 +145,9 @@ function releaseAnimation(animation){
   try{animation.finish()}catch{try{animation.cancel();animation.effect=null}catch{}}
 }
 function abortActiveForCall(reason='call-preempt'){
-  if(!activeKind)return false;
+  // A newly called ticket never cuts off a CALL already on screen.
+  // It joins the queue and is shown after the current ticket finishes.
+  if(!activeKind||activeKind==='call')return false;
   const interrupted=activeKind;
   activeRunId+=1;
   try{M?.abortAll?.('status-'+String(reason||'call-preempt'))}catch{}
@@ -169,8 +159,7 @@ function abortActiveForCall(reason='call-preempt'){
     el.remove();
   });
   try{document.querySelector('.board')?.getAnimations?.().forEach(a=>{if(a.id==='status-screen-reaction')releaseAnimation(a)})}catch{}
-  if(interrupted==='call')diagnostics.interruptedCall=(diagnostics.interruptedCall||0)+1;
-  else diagnostics.interruptedLevelB+=1;
+  diagnostics.interruptedLevelB+=1;
   activeKind='';
   diagnostics.lastInterruptReason=String(reason||'call-preempt');
   return true;
@@ -185,37 +174,25 @@ function planRefreshEvents(events=[]){
   const planned=[];
   let spent=0;
   let budgetClosed=false;
+  const timing=callTiming();
 
-  if(calls.length){
-    const members=calls.slice(0,MAX_CALL_GROUP);
-    const overflow=Math.max(0,calls.length-members.length);
-    const timing=callGroupTiming(members.length);
-    diagnostics.callGroupSize=members.length;
-    diagnostics.overflowCallCount+=overflow;
+  // One ticket = one fullscreen CALL. Same-refresh calls are queued in reception order.
+  for(const call of calls){
     planned.push({
-      id:++sequence,
-      key:'call-group:'+sequence,
-      kind:'call',
-      number:members[0]?.number||'',
-      numbers:members.map(x=>x.number),
-      members,
-      fromStatus:'mixed',
-      toStatus:'calling',
-      order:Math.min(...members.map(x=>Number(x.order)||0)),
-      frame:members[0]?.frame||null,
-      grid:members[0]?.grid||null,
+      ...call,
+      numbers:[call.number],
+      members:[call],
       estimatedMs:timing.total,
       stableMs:timing.stable,
-      overflowCallCount:overflow,
     });
     spent+=timing.total;
   }
+  diagnostics.sequentialCallCount=calls.length;
 
-  const remainingSlots=Math.max(0,MAX_BATCH-planned.length);
   let acceptedLevelB=0;
   for(let i=0;i<levelB.length;i++){
     const evt=levelB[i];
-    if(acceptedLevelB>=remainingSlots||budgetClosed){
+    if(acceptedLevelB>=MAX_LEVEL_B_BATCH||budgetClosed){
       diagnostics.skippedLevelB+=1;
       continue;
     }
@@ -342,8 +319,7 @@ function observe({slotKey,rows,previousFrame,grid,onBeforeRealChange}={}){
 }
 function eventEstimateMs(evtOrKind){
   if(typeof evtOrKind==='object'&&evtOrKind?.kind==='call'){
-    const count=Math.max(1,evtOrKind?.numbers?.length||1);
-    return callGroupTiming(count).total;
+    return callTiming().total;
   }
   const kind=typeof evtOrKind==='string'?evtOrKind:evtOrKind?.kind;
   return levelBDuration(kind);
@@ -352,7 +328,10 @@ function sortStatusQueue(list=queue){
   list.sort((a,b)=>{
     const priority=(STATUS_PRIORITY[b?.kind]||0)-(STATUS_PRIORITY[a?.kind]||0);
     if(priority)return priority;
-    return (Number(a?.enqueuedAt)||0)-(Number(b?.enqueuedAt)||0);
+    const enqueued=(Number(a?.enqueuedAt)||0)-(Number(b?.enqueuedAt)||0);
+    if(enqueued)return enqueued;
+    const order=(Number(a?.order)||0)-(Number(b?.order)||0);
+    return order||((Number(a?.id)||0)-(Number(b?.id)||0));
   });
   return list;
 }
@@ -374,7 +353,7 @@ function pruneQueuedEvents(next){
       evt.members=members;
       evt.numbers=members.map(m=>m.number);
       evt.number=evt.numbers[0]||'';
-      const timing=callGroupTiming(evt.numbers.length);
+      const timing=callTiming();
       evt.estimatedMs=timing.total;
       evt.stableMs=timing.stable;
       latestByKey.set(evt.key,evt);
@@ -409,6 +388,7 @@ function enqueue(evt,{deferPump=false}={}){
     diagnostics.skippedLevelB+=removed.filter(x=>x.kind!=='call').length;
   }
   diagnostics.queued+=1;
+  diagnostics.maxQueuedCalls=Math.max(diagnostics.maxQueuedCalls,queue.filter(x=>x.kind==='call').length);
   if(!deferPump)pump();
 }
 function pump(){
@@ -445,7 +425,7 @@ async function playStatusAnimation({number,numbers,fromStatus,toStatus,element,f
   const runId=++activeRunId;
   activeKind=resolvedKind;
   const callNumbers=resolvedKind==='call'
-    ?(Array.isArray(numbers)&&numbers.length?numbers:[number]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP)
+    ?(Array.isArray(numbers)&&numbers.length?numbers:[number]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_FULLSCREEN_CALL_NUMBERS)
     :[];
   diagnostics.played+=1;
   diagnostics.lastEvent={
@@ -782,9 +762,9 @@ function fitCallGroupNumbers(el){
   }
 }
 function specialNumberTakeover(numbers,kind='call'){
-  const values=(Array.isArray(numbers)?numbers:[numbers]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_CALL_GROUP);
+  const values=(Array.isArray(numbers)?numbers:[numbers]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,MAX_FULLSCREEN_CALL_NUMBERS);
   if(!values.length||effectiveLevel()===0)return Promise.resolve();
-  const tl=callTimeline(values.length);
+  const tl=callTimeline();
   const duration=tl.total;
   M?.requestVisual?.('number',{priority:'essential'});
 
@@ -1425,7 +1405,7 @@ async function playCallAnimation({numbers,rare,isLive=()=>true}){
   if(!values.length)return;
   const focusRect=specialFocusRect();
   const lvl=effectiveLevel();
-  const tl=callTimeline(values.length,lvl);
+  const tl=callTimeline(lvl);
   const impactAt=tl.impactAt;
   const peakMs=Math.max(120,tl.stableStart-impactAt);
 
@@ -1566,12 +1546,14 @@ function getDiagnostics(){
     statusTimingMode:'wall-clock',
     callStableTimeline:'linear-keyframes',
     callAnticipationMs:CALL_BEATS.high.anticipation,
-    maxCallGroupSize:MAX_CALL_GROUP,
-    maxSpecialDurationMs:6600,
-    maxReducedSpecialDurationMs:5400,
+    callPresentation:'sequential-single',
+    maxFullscreenCallNumbers:MAX_FULLSCREEN_CALL_NUMBERS,
+    maxSpecialDurationMs:CALL_TIMING.high.total,
+    maxReducedSpecialDurationMs:CALL_TIMING.low.total,
     queueLimit:MAX_QUEUE,
+    maxLevelBBatch:MAX_LEVEL_B_BATCH,
     statusBatchBudgetMs:STATUS_BATCH_BUDGET_MS,
-    maxEstimatedStatusRuntimeMs:6600,
+    maxEstimatedStatusRuntimeMs:CALL_TIMING.high.total,
     activeKind,
     qualityLevel:M?.getQuality?.()||'AUTO',
     effectiveQuality:M?.getEffectiveQuality?.()||'HIGH',
@@ -1581,13 +1563,13 @@ function getDiagnostics(){
 function resetForTest(){
   initialized=false;baselineSlot='';previous=new Map();queue.length=0;running=0;sequence=0;activeKind='';activeRunId+=1;
   diagnostics.played=0;diagnostics.queued=0;diagnostics.dropped=0;diagnostics.activeFx=0;diagnostics.screenShakes=0;diagnostics.baselines=0;
-  diagnostics.skippedLevelB=0;diagnostics.interruptedLevelB=0;diagnostics.interruptedCall=0;diagnostics.budgetClosedBatches=0;diagnostics.callGroupSize=0;diagnostics.overflowCallCount=0;diagnostics.rekeyedRows=0;
+  diagnostics.skippedLevelB=0;diagnostics.interruptedLevelB=0;diagnostics.budgetClosedBatches=0;diagnostics.sequentialCallCount=0;diagnostics.maxQueuedCalls=0;diagnostics.rekeyedRows=0;
   diagnostics.lastEvent=null;diagnostics.history=[];
   document.getElementById('boardFxLayer')?.remove();
 }
 
 window.ASOBOON_BOARD_ANIMATIONS=Object.freeze({
-  version:'1.17.0-safe',
+  version:'1.18.0-sequential-call',
   capture,
   observe,
   playStatusAnimation,
