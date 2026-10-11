@@ -254,9 +254,9 @@ async function submit(){
   S.busy=true;status('受付内容を最終確認しています…','warn');renderForm();
   const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);
   try{
-    const latest=await withTimeout(D.getCurrent({force:true}),10000,'営業カレンダーの再確認がタイムアウトしました。受付は送信していません。');
-    if(seq!==S.submitSeq||S.locked)return;
-    if(latest.operationalDate!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度確認してください。');
+    const today=typeof D.operationalDate==='function'?D.operationalDate():'';
+    if(!today||today!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度受付画面を開いてください。');
+    if(S.day.isClosed)throw Error('本日は休館日です。');
     if(!LINE_STORE_ONLY&&S.mode==='onsite'&&!locationOk())throw Error('現在地の確認が必要です。');
     const token=String(liff.getAccessToken()||'');
     if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
@@ -280,6 +280,67 @@ async function submit(){
 function setMode(mode){S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
 function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
 window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.1.0-dispatch-proof',render,mount});
+})();
+
+;/* miniapp-v2/shared/call-forecast.js */
+/* ASOBooN call-time reference forecast. Not an official admission appointment.
+   Deliberately uses only a verified reservationStatus response; no extra calls. */
+(()=>{'use strict';
+const ROUNDS=Object.freeze({
+ '0029':{start:'10:00',cutoff:'12:00'},
+ '0031':{start:'12:30',cutoff:'14:30'},
+ '0033':{start:'15:00'},
+ '0035':{start:'10:00',cutoff:'13:00'},
+ '0037':{start:'13:30'},
+ '0025':{start:'14:00'}
+});
+function pace(rank,total){
+ if(!Number.isFinite(rank)||rank<=0)return 0;
+ const r=Math.max(1,Math.round(rank)),t=Math.max(r,Math.round(total||r));
+ if(r<=20)return r/20*5;
+ if(r<=60)return 5+(r-20)/10*5;
+ return 25+Math.min(1,(r-60)/Math.max(1,t-60))*5;
+}
+function parseClock(value){
+ const m=/^(\d{1,2}):(\d{2})$/.exec(String(value||''));
+ return m?Number(m[1])*60+Number(m[2]):null;
+}
+function jstNow(epoch){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+  timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
+  hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+ }).formatToParts(new Date(epoch)).map(x=>[x.type,x.value]));
+ return {date:parts.year+'-'+parts.month+'-'+parts.day,minutes:Number(parts.hour)*60+Number(parts.minute)};
+}
+function fmt(minutes){
+ const n=Math.min(1439,Math.max(0,Math.round(minutes/5)*5));
+ return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+}
+function predict(status,nowEpoch=Date.now()){
+ if(status?.ok!==true||status.found!==true||status.state!=='waiting')return null;
+ const round=ROUNDS[String(status.waitTypeId||'')];
+ if(!round)return null; // Includes immediate reception: no forecast.
+ const ahead=status.aheadCount,rank=status.queueRank,total=status.activeCount;
+ if(!Number.isSafeInteger(ahead)||ahead<0||!Number.isSafeInteger(rank)||rank<=0
+    ||!Number.isSafeInteger(total)||total<rank)return null;
+ const checked=Number(status.checkedAt);
+ if(!Number.isFinite(checked)||checked<=0||Math.abs(nowEpoch-checked)>3*60*1000)return null;
+ const now=jstNow(checked);
+ if(String(status.businessDate||'')!==now.date)return null;
+ const start=parseClock(round.start),cutoff=parseClock(round.cutoff);
+ if(start===null||(cutoff!==null&&now.minutes>=cutoff))return null;
+ const prestart=now.minutes<start;
+ const estimated=prestart
+  ?start+pace(rank,total)
+  :now.minutes+pace(ahead+1,Math.max(total,ahead+1));
+ if(cutoff!==null&&estimated>cutoff)return null;
+ return Object.freeze({
+  start:round.start,clock:fmt(estimated),prestart,
+  soon:!prestart&&ahead<=2,ahead,
+  method:'reference-queue-pace',checkedAt:checked
+ });
+}
+window.ASOBOON_V2_CALL_FORECAST=Object.freeze({predict});
 })();
 
 ;/* miniapp-v2/shared/callstatus.js */
@@ -321,6 +382,16 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-ticket"><small>あなたの受付番号</small><strong id="csReceipt">—</strong><span>番</span><div id="csWaitType" class="cs-waittype">受付枠を確認中</div></div>
 <div id="csState" class="cs-state loading"><div class="cs-state-icon">⏳</div><strong id="csTitle">状況を確認中</strong><p id="csMessage">LINE本人確認と受付情報を安全に照合しています。</p></div>
 <div id="csQueue" class="cs-queue" hidden><div><small>あなたの前</small><strong id="csAhead">—</strong><span>組</span></div><div><small>現在の位置</small><strong id="csRank">—</strong><span id="csTotal">組中</span></div></div>
+<section id="csForecast" class="cs-forecast" hidden aria-label="呼出時刻の参考目安">
+  <div class="cs-forecast-head"><span>🕒 あなたの呼出時刻の目安</span><small id="csForecastMode">順番からの参考予測</small></div>
+  <div class="cs-forecast-main"><strong id="csForecastClock">—</strong><span id="csForecastSuffix">ごろ</span></div>
+  <div class="cs-forecast-flow">
+    <div class="cs-forecast-point"><span class="cs-forecast-dot"></span><small id="csForecastStart">呼出開始</small></div>
+    <div class="cs-forecast-flow-line" aria-hidden="true">➜</div>
+    <div class="cs-forecast-point end"><span class="cs-forecast-dot"></span><small id="csForecastTarget">あなたの目安</small></div>
+  </div>
+  <p id="csForecastNote" class="cs-forecast-note">順番からの参考予測です。実際の呼出時刻は前後します。</p>
+</section>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
@@ -420,6 +491,22 @@ function stateMeta(state,ahead){
   }
 }
 
+function updateCallForecast(data){
+ const el=$('csForecast');
+ if(!el)return;
+ const result=window.ASOBOON_V2_CALL_FORECAST?.predict?.(data)||null;
+ el.hidden=!result;
+ if(!result)return;
+ const write=(id,value)=>{const node=$(id);if(node)node.textContent=value};
+ write('csForecastClock',result.soon?'まもなく':result.clock);
+ write('csForecastSuffix',result.soon?'':'ごろ');
+ write('csForecastMode',result.prestart?'呼出開始前・順番からの目安':'待ち組数からの参考目安');
+ write('csForecastStart','呼出開始 '+result.start);
+ write('csForecastTarget',result.soon?'まもなく':'あなた '+result.clock+'ごろ');
+ write('csForecastNote',result.prestart
+  ?'この回の呼出開始時刻と受付順から計算した参考予測です。実際の呼出は前後します。'
+  :'現在の待ち組数をもとにした参考予測です。実際の進行で前後します。LINEの呼出通知・最新状況をご確認ください。');
+}
 function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
@@ -477,6 +564,7 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
   shareHomeStatus(d);
   const cached=cachedReservation();
@@ -592,7 +680,7 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){nextPollMs=POLL_ERROR_MS;updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(gen===generation&&$('csState'))scheduleNext(gen);
@@ -600,6 +688,7 @@ async function refreshStatus({manual=false}={}){
 }
 
 function mountCallstatus(){
+  updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;
@@ -1207,8 +1296,6 @@ const route=()=>{const p=new URLSearchParams(location.search);return{view:String
 const readJSON=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const yen=v=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('ja-JP')+'円':'—'};
 const dateLabel=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${Number(m[2])}月${Number(m[3])}日`:String(v||'—')};
-function round5(x){return Math.max(5,Math.round(x/5)*5)}
-function etaText(n){if(n<=5)return'まもなく';const center=Math.max(1,n*.30);if(center<=4)return'約5分以内';let lo=round5(center*.83),hi=round5(center*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function setBrand(){setText(document.querySelector('.brand small'),'川口ハイウェイオアシス')}
 function clearClasses(){document.body.classList.remove('v7-page-active','v7-callstatus-active','v7-timeguide-active','v7-content-active')}
 function shell(tag,title,lead,body){return `<section class="page-card pv7-page"><div class="pv7-head"><span class="pv7-eyebrow">${esc(tag)}</span><h1>${esc(title)}</h1><p>${esc(lead)}</p></div><div class="pv7-body">${body}</div></section>`}
@@ -1222,7 +1309,7 @@ function lightStage(n){if(n<=3)return 5;if(n<=5)return 4;if(n<=10)return 3;if(n<
 function waitCopy(n){if(n<=3)return'もうすぐです！';if(n<=5)return'入場の準備をお願いします';if(n<=10)return'そろそろ近づいてきました';if(n<=20)return'少しずつ近づいています';return'まだ時間があります'}
 function lights(stage,color='red'){let out='';for(let i=1;i<=5;i++)out+=`<span class="v33-lamp ${i<=stage?'on':''} ${color}" aria-hidden="true"><i></i></span>`;return out}
 function receiptText(page){const dom=String(page.querySelector('#csReceipt')?.textContent||'').trim();if(dom&&dom!=='—')return dom;return String(readJSON(RES_KEY)?.receiptNo||'—')}
-function patchStartLights(page){const state=page.querySelector('#csState'),aheadEl=page.querySelector('#csAhead');if(!state)return;const calling=state.classList.contains('calling'),waiting=state.classList.contains('waiting'),compact=calling||waiting,ahead=Number(String(aheadEl?.textContent||'').trim());page.classList.toggle('v33-compact-active',compact);page.classList.toggle('v33-compact-calling',calling);let panel=page.querySelector('.v33-start-panel');if(!compact){panel?.remove();return}if(!panel){panel=document.createElement('section');panel.className='v33-start-panel';page.querySelector('#csTop')?.insertAdjacentElement('afterend',panel)}if(!panel)return;const receipt=receiptText(page),sig=calling?`calling:${receipt}`:`waiting:${Number.isFinite(ahead)?ahead:'x'}:${receipt}`;if(panel.dataset.sig===sig)return;panel.dataset.sig=sig;if(calling){panel.className='v33-start-panel calling';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-lights">${lights(5,'green')}</div><div class="v33-go">GO!</div><h2>入場できます！</h2><p>呼出後30分以内にASOBooN入口へお越しください。</p>`;setText(page.querySelector('#csMessage'),'呼出後30分以内に、受付番号を準備してASOBooN入口へお越しください。');return}const n=Number.isFinite(ahead)?ahead:0,stage=lightStage(n);panel.className='v33-start-panel waiting';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-start-count"><small>あなたの前</small><strong>${Number.isFinite(ahead)?ahead:'—'}</strong><span>組</span></div><div class="v33-lights">${lights(stage,'red')}</div><div class="v33-start-copy">${Number.isFinite(ahead)?waitCopy(n):'最新の順番を確認しています'}</div>${Number.isFinite(ahead)?`<div class="v33-start-eta"><small>待ち時間の目安</small><strong>${etaText(n)}</strong></div>`:''}<div class="v33-start-notify">順番になるとLINEでお知らせします。</div>`;setText(page.querySelector('#csMessage'),'順番になるとLINEでお知らせします。')}
+function patchStartLights(page){const state=page.querySelector('#csState'),aheadEl=page.querySelector('#csAhead');if(!state)return;const calling=state.classList.contains('calling'),waiting=state.classList.contains('waiting'),compact=calling||waiting,ahead=Number(String(aheadEl?.textContent||'').trim());page.classList.toggle('v33-compact-active',compact);page.classList.toggle('v33-compact-calling',calling);let panel=page.querySelector('.v33-start-panel');if(!compact){panel?.remove();return}if(!panel){panel=document.createElement('section');panel.className='v33-start-panel';page.querySelector('#csTop')?.insertAdjacentElement('afterend',panel)}if(!panel)return;const receipt=receiptText(page),sig=calling?`calling:${receipt}`:`waiting:${Number.isFinite(ahead)?ahead:'x'}:${receipt}`;if(panel.dataset.sig===sig)return;panel.dataset.sig=sig;if(calling){panel.className='v33-start-panel calling';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-lights">${lights(5,'green')}</div><div class="v33-go">GO!</div><h2>入場できます！</h2><p>呼出後30分以内にASOBooN入口へお越しください。</p>`;setText(page.querySelector('#csMessage'),'呼出後30分以内に、受付番号を準備してASOBooN入口へお越しください。');return}const n=Number.isFinite(ahead)?ahead:0,stage=lightStage(n);panel.className='v33-start-panel waiting';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-start-count"><small>あなたの前</small><strong>${Number.isFinite(ahead)?ahead:'—'}</strong><span>組</span></div><div class="v33-lights">${lights(stage,'red')}</div><div class="v33-start-copy">${Number.isFinite(ahead)?waitCopy(n):'最新の順番を確認しています'}</div><div class="v33-start-notify">順番になるとLINEでお知らせします。</div>`;setText(page.querySelector('#csMessage'),'順番になるとLINEでお知らせします。')}
 function patchCallstatus(){const page=root.querySelector('.cs-page');if(!page)return;document.body.classList.add('v7-page-active','v7-callstatus-active');setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'呼出状況');patchStartLights(page);const compact=page.classList.contains('v33-compact-active'),calling=page.classList.contains('v33-compact-calling');const refresh=page.querySelector('#csRefresh');if(refresh&&!refresh.disabled)setText(refresh,'最新状況を確認');const detail=page.querySelector('.v33-detail-link');if(compact){detail?.remove()}else if(refresh&&!detail){refresh.insertAdjacentHTML('afterend','<button class="pv7-text-btn v33-detail-link" type="button" data-pv7-view="callstatus" data-pv7-panel="detail">受付詳細を見る ＞</button>')}const note=page.querySelector('.cs-note');if(!compact)setHTML(note,'<strong>LINE通知：</strong>順番になるとLINEでお知らせします。画面を閉じている間も通知を優先します。');const top=page.querySelector('#csTop');if(top){const strong=top.querySelector('strong'),small=top.querySelector('small');if(compact){setText(strong,'LIVE');setText(small,calling?'呼出中です':'順番は自動で更新されます。')}else{if(strong&&/AirWAIT/.test(strong.textContent||''))setText(strong,'最新情報を確認中');if(small&&/(待ち状況に応じて|受付直後の反映待ち|次回は)/.test(small.textContent||''))setText(small,'順番は自動で更新されます。')}}const title=page.querySelector('#csTitle');if(title&&/AirWAITへ受付を反映中/.test(title.textContent||''))setText(title,'受付情報を確認しています');const err=page.querySelector('#csError');if(err&&/AirWAIT側/.test(err.textContent||''))setText(err,'受付情報を確認できていません。新しい受付を作り直さず、受付番号をスタッフへお伝えください。')}
 function patchTimeguide(){const page=root.querySelector('.tg-page');if(!page)return;document.body.classList.add('v7-page-active','v7-timeguide-active');setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'アソブーンタイマー');const body=page.querySelector('.tg-body');if(body&&!body.querySelector('.v33-time-warning'))body.insertAdjacentHTML('afterbegin','<div class="pv7-time-warning v33-time-warning"><strong>これは目安計算です。</strong><br>入場した時刻を選ぶと、その日の利用時間と閉館時刻から終了目安を計算します。</div>');const reload=page.querySelector('#tgReload');if(reload&&!reload.disabled)setText(reload,'営業情報を更新')}
 function apply(){queued=false;clearClasses();setBrand();const s=route();if(s.view==='callstatus'){document.body.classList.add('v7-page-active','v7-callstatus-active');if(s.panel==='detail'){replaceMain(detailPage(),'callstatus:detail');return}patchCallstatus();return}if(s.view==='timeguide'){patchTimeguide();return}if(s.view==='first'&&s.panel==='price'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(pricePage(),'first:price');return}if(s.view==='rules'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(rulesPage(),'rules');return}if(s.view==='parking'&&s.panel==='info'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(infoPage(),'parking:info');return}}

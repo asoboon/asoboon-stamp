@@ -821,3 +821,92 @@ test('Existing 30-minute HOME cache restores both channels without inventing mis
   await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('25名');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('14名');
 });
+
+test('Call status displays a large call-time reference and route from scheduled slot to the guest',async({page})=>{
+  const checkedAt=Date.parse('2026-10-03T03:00:00.000Z'); // JST 12:00
+  await installProduction(page,{status:{
+    ok:true,found:true,state:'waiting',receiptNo:'F123',businessDate:'2026-10-03',
+    waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:50,queueRank:51,
+    activeCount:100,checkedAt
+  }});
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033'
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033',
+      sessionToken:'c'.repeat(40),expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csForecast')).toBeVisible();
+  await expect(page.locator('.v33-start-eta')).toHaveCount(0);
+  await expect(page.locator('#csForecastClock')).toHaveText('15:20');
+  await expect(page.locator('#csForecastStart')).toHaveText('呼出開始 15:00');
+  await expect(page.locator('#csForecastTarget')).toContainText('15:20ごろ');
+  await expect(page.locator('#csForecastNote')).toContainText('参考');
+  await expect(page.locator('#csAhead')).toHaveText('50');
+  if(process.env.ASOBOON_FORECAST_SCREENSHOT==='1'){
+    await page.screenshot({path:'/tmp/asoboon-call-forecast-home-390.png',fullPage:true});
+  }
+  for(const width of [320,375,390,430]){
+    await page.setViewportSize({width,height:844});
+    await expect(page.locator('#csForecast')).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  }
+});
+
+test('Call-time forecast is hidden as soon as the customer is actually being called',async({page})=>{
+  const checkedAt=Date.parse('2026-10-03T03:00:00.000Z');
+  await installProduction(page,{status:{
+    ok:true,found:true,state:'calling',receiptNo:'F123',businessDate:'2026-10-03',
+    waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:0,queueRank:1,
+    activeCount:100,checkedAt
+  }});
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033'
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F123',waitTypeId:'0033',
+      sessionToken:'c'.repeat(40),expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csTitle')).toContainText('入場できます');
+  await expect(page.locator('#csForecast')).toBeHidden();
+});
+
+test('Confirm sends to authoritative Gateway directly without a duplicate business-day request',async({page})=>{
+  await installProduction(page);
+  const network=[];
+  let counting=false;
+  await page.route(GATEWAY+'**',async route=>{
+    const u=new URL(route.request().url());
+    const body=new URLSearchParams(route.request().postData()||'');
+    const action=u.searchParams.get('action')||body.get('action');
+    if(counting&&action)network.push(action);
+    if(action==='createReservation'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        ok:true,stored:true,receiptNo:'F321',reserveId:'A123456789',
+        businessDate:'2026-10-03',waitTypeId:body.get('waitTypeId'),
+        notificationReady:true
+      })});
+    }
+    return route.fallback();
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="reception"]').first().click();
+  await expect(page.locator('#recStatus')).toContainText('受付できます');
+  await page.locator('#recSlots [data-rec-slot]').first().click();
+  await page.locator('#recAgree').check();
+  await expect(page.locator('#recSubmit')).toBeEnabled();
+  counting=true;
+  await page.locator('#recSubmit').click();
+  await expect.poll(()=>network.includes('createReservation')).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>{
+    return JSON.parse(localStorage.getItem('asoboon_v2_current_reservation_production_v1')||'null')?.receiptNo
+  })).toBe('F321');
+  expect(network.filter(a=>a==='businessDay')).toEqual([]);
+  expect(network.filter(a=>a==='createReservation')).toHaveLength(1);
+});

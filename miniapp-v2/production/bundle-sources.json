@@ -40,6 +40,7 @@
   ],
   "routeScripts": [
     "miniapp-v2/shared/reception.js",
+    "miniapp-v2/shared/call-forecast.js",
     "miniapp-v2/shared/callstatus.js",
     "miniapp-v2/shared/timeguide.js",
     "miniapp-v2/production/reception-v7.js",
