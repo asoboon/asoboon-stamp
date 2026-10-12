@@ -645,7 +645,7 @@ test('Production HOME link stays available with a local receipt when network sta
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
  await expect(page.locator('#v38Hero')).not.toContainText('E777');
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveText(/呼出状況を確認する/);
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toContainText('呼び出し状況を確認する');
 });
 
 test('Production HOME recognizes a session restored to call-status cache alone',async({page})=>{
