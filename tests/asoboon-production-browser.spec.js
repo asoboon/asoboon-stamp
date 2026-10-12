@@ -577,6 +577,12 @@ test('HOME open-state uses the enhanced call button without interrupting the mai
  await expect(primary).toBeVisible();
  await expect(call).toBeVisible();
  await expect(call).toContainText('呼び出し状況を確認する');
+ for(const width of [320,375,390]){
+  await page.setViewportSize({width,height:800});
+  const rect=await call.boundingBox();
+  expect(rect.width).toBeGreaterThan(240);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
  await primary.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  await expect(page.locator('#recSubmit')).toBeVisible();

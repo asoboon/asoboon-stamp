@@ -316,10 +316,6 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 @media(max-width:350px){.v38-crowd-channels{gap:6px}.v38-crowd-channel{padding:9px 8px}.v38-crowd-channel strong{font-size:20px}.v38-crowd-channel>span{font-size:12px}}
 
 /* Official HOME: a neutral navigation action only, never AirWAIT call state. */
-.v38-hero.call-link{min-height:170px;border:1px solid #c8d9e0;background:linear-gradient(145deg,#fff,#edf6fb);box-shadow:0 10px 24px rgba(25,69,93,.08)}
-.v38-hero.call-link .v38-hero-icon{background:#e1eef5;color:#236589}
-.v38-hero.call-link .v38-action.primary{background:#236589;color:#fff}
-.v38-hero.call-link .v38-action.primary:hover{background:#175275}
 
 
 body.v38-home-active .v38-hero.call-link{display:flex;align-items:center;justify-content:flex-end;min-height:48px;padding:0;border:0;background:transparent;box-shadow:none}
@@ -361,6 +357,8 @@ body.v38-home-active .v38-action.v38-call-cta:focus-visible{outline:3px solid #f
 @keyframes v38-call-arrow{0%,84%,100%{transform:translateX(0)}88%,95%{transform:translateX(2px)}}
 @media(max-width:350px){body.v38-home-active .v38-action.v38-call-cta{grid-template-columns:35px minmax(0,1fr) 27px;gap:7px;padding:7px 9px}body.v38-home-active .v38-call-cta-copy strong{font-size:13px}body.v38-home-active .v38-call-cta-copy small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){body.v38-home-active .v38-action.v38-call-cta,body.v38-home-active .v38-call-cta-signal,body.v38-home-active .v38-call-cta-arrow{animation:none;transition:none}}
+
+@media(max-width:400px){body.v38-home-active .v38-hero.open{display:block}body.v38-home-active .v38-hero.open .v38-hero-icon{display:none}body.v38-home-active .v38-hero.open .v38-hero-body{width:100%}}
 
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
