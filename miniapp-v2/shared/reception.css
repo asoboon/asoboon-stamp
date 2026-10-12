@@ -10,3 +10,21 @@
 .rec-official>p{margin:11px 2px 0;color:#687b84;font-size:.6rem;line-height:1.55;font-weight:720}
 @media(max-width:360px){.rec-official-link{display:grid}.rec-official-link button{width:100%}}
 .rec-disclaimer{padding:12px;border:1px solid #ead8b6;border-radius:13px;background:#fffaf0;color:#4c463a}.rec-disclaimer h3{margin:0 0 6px;font-size:.72rem;color:#594324}.rec-disclaimer p{margin:0;font-size:.62rem;line-height:1.55}.rec-disclaimer ul{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:8px 0 0;padding-left:18px;font-size:.62rem;line-height:1.5}.rec-disclaimer li:last-child{grid-column:1/-1}@media(max-width:360px){.rec-disclaimer ul{grid-template-columns:1fr}}
+
+/* Reception feedback: only observed client/network phases, never a fake % complete. */
+.rec-processing{display:grid;gap:12px;padding:15px;border:1px solid #b6d6ea;border-radius:17px;background:linear-gradient(160deg,#f6fbff,#eaf5fc);color:#284a5f;box-shadow:0 4px 13px #355a7610}
+.rec-processing[hidden]{display:none!important}
+.rec-processing-head{display:flex;align-items:center;gap:12px}
+.rec-processing-spinner{width:33px;height:33px;flex:none;border:4px solid #c5dfef;border-top-color:#2787bc;border-radius:50%;animation:rec-processing-rotate 1s linear infinite}
+.rec-processing-heading{display:grid;gap:4px;min-width:0}
+.rec-processing-heading strong{font-size:.86rem;line-height:1.35}
+.rec-processing-heading small{color:#496f85;font-size:.64rem;font-weight:750;line-height:1.5}
+.rec-processing-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.rec-processing-step{padding:9px 3px;border-radius:9px;background:#e0ebf2;color:#657e8c;text-align:center;font-size:.6rem;font-weight:900}
+.rec-processing-step.is-active{background:#c7e6f8;color:#145980;outline:1px solid #7ab8d9}
+.rec-processing-step.is-done{background:#e0f2e8;color:#286449}
+.rec-processing-why{margin:0;font-size:.67rem;line-height:1.65;font-weight:830}
+.rec-processing-footer{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-top:9px;border-top:1px solid #cbdde9;color:#466276;font-size:.59rem;line-height:1.5;font-weight:800}
+.rec-processing-footer small{white-space:nowrap;font-size:.55rem;font-variant-numeric:tabular-nums;color:#6c8291}
+@keyframes rec-processing-rotate{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.rec-processing-spinner{animation:none;border-top-color:#2787bc}}
