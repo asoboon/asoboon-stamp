@@ -27,7 +27,7 @@ const LINE_REMAINING_NAMES=Object.freeze({
 });
 let LINE_OPEN_TIMER=0;
 let PROCESSING_TIMER=0,PROCESSING_STARTED_AT=0,PROCESSING_STAGE='';
-let remainingDetails=null,remainingCheckedAt=0,remainingLoading=false,remainingLastAttempt=0;
+let remainingDetails=null,remainingCheckedAt=0,remainingLoading=false,remainingLastAttempt=0,remainingCooldownTimer=0;
 const LINE_STORE_ONLY=E.lineStoreOnly===true||E.environment==='develop';
 const PRODUCTION_TEST_DISABLED=false;
 const S={
@@ -275,17 +275,29 @@ function updateRemainingInfo(){
  note.textContent=remainingLoading?'LINE受付の残り人数を確認中…'
    :known?'LINE受付の残り目安 ／ '+nowJstTime(remainingCheckedAt)+' 確認'
    :'残り人数を確認できません。回は選択できます。';
- if(button){button.disabled=remainingLoading||S.busy||S.locked||Date.now()-remainingLastAttempt<CROWD_MANUAL_COOLDOWN_MS}
+ if(button){
+   const remaining=remainingLastAttempt>0?Math.max(0,CROWD_MANUAL_COOLDOWN_MS-(performance.now()-remainingLastAttempt)):0;
+   button.disabled=remainingLoading||S.busy||S.locked||remaining>0;
+   if(remainingCooldownTimer){clearTimeout(remainingCooldownTimer);remainingCooldownTimer=0}
+   // The real clock may be frozen in tests; monotonic time also survives
+   // wall-clock changes on customer devices.
+   if(remaining>0&&!remainingLoading&&!S.busy&&!S.locked){
+     remainingCooldownTimer=setTimeout(()=>{
+       remainingCooldownTimer=0;
+       if(sameReceptionView())updateRemainingInfo();
+     },remaining+60);
+   }
+ }
 }
 async function loadRemaining({force=false,generation=S.generation}={}){
- if(force&&Date.now()-remainingLastAttempt<CROWD_MANUAL_COOLDOWN_MS)return;
+ if(force&&remainingLastAttempt>0&&performance.now()-remainingLastAttempt<CROWD_MANUAL_COOLDOWN_MS)return;
  if(E.environment!=='production'||PRODUCTION_TEST_DISABLED||remainingLoading||!S.day||S.day.isClosed||!S.slots.length||!sameReceptionView()||S.busy||S.locked)return;
  if(!force){
    const cached=cachedRemaining();
    if(cached){remainingDetails=cached.details;remainingCheckedAt=cached.savedAt;renderSlots();updateRemainingInfo();return}
  }
  // A booking is never disabled based on a display-only crowd snapshot.
- remainingLoading=true;remainingLastAttempt=Date.now();updateRemainingInfo();
+ remainingLoading=true;remainingLastAttempt=performance.now();updateRemainingInfo();
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
    const url=new URL(String(E.backendUrl));url.searchParams.set('action','crowdRemaining');
@@ -332,7 +344,7 @@ async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocation
 
 async function boot(){
   try{localStorage.removeItem(`asoboon_v2_official_web_handoff_${STORAGE_NS}_v1`)}catch{}
-  stopProcessing();const gen=++S.generation;remainingDetails=null;remainingCheckedAt=0;remainingLoading=false;remainingLastAttempt=0;S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
+  stopProcessing();const gen=++S.generation;remainingDetails=null;remainingCheckedAt=0;remainingLoading=false;remainingLastAttempt=0;if(remainingCooldownTimer){clearTimeout(remainingCooldownTimer);remainingCooldownTimer=0}S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
   const dayEl=$('recDay');if(dayEl)dayEl.innerHTML='<span><small>営業区分</small><strong>確認中</strong></span><b>—</b>';
   status('LINE接続・営業カレンダー・受付枠を確認しています…');renderForm();
 

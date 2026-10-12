@@ -209,6 +209,18 @@ test('Reception reuses a recent HOME quota snapshot without a second shared-WiFi
  await expect(page.locator('#recRemainingInfo')).toContainText('確認できません');
  expect(calls).toBe(1);
 });
+test('Quota refresh re-enables after the real-time cooldown without forcing navigation',async({page})=>{
+ test.setTimeout(35000);
+ await installProduction(page);
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+ const button=page.locator('#recRemainingRefresh');
+ await expect(button).toBeVisible();
+ await expect(button).toBeDisabled();
+ await expect(button).toBeEnabled({timeout:26000});
+ await button.click();
+ await expect(button).toBeDisabled();
+});
 test('Reception display is advisory and never calls createReservation from quota preview',async({page})=>{
  await installProduction(page);
  let creates=0;
