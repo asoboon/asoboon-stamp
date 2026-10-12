@@ -1120,13 +1120,13 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
   await expect(page.locator('#v38Slots')).not.toContainText('12:30回');
 });
 
-test('Existing 30-minute HOME cache restores both channels without inventing missing values',async({page})=>{
+test('Recent verified HOME cache can bridge a brief AirWAIT outage without inventing values',async({page})=>{
   await installProduction(page);
   await page.addInitScript(()=>{
     localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
       slots:[{waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}],
       details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:14}],
-      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()
+      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
     }));
   });
   await page.route(GATEWAY+'**',async route=>{
