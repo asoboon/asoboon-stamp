@@ -219,3 +219,8 @@ body.v38-home-active .v38-action[data-v7-view="callstatus"]:focus-visible{outlin
 .v38-crowd-note{font-size:13px;line-height:1.6;font-weight:760;color:#355769}
 .v38-crowd-disclaimer{margin:9px 1px 0;font-size:11px;font-weight:500;color:#64757e}
 @media(prefers-reduced-motion:reduce){.v38-crowd-card{transition:none}}
+
+/* Wide, single-line call-status CTA; keep its height and primary/secondary hierarchy. */
+body.v38-home-active .v38-action[data-v7-view="callstatus"]{width:min(100%,310px);justify-content:space-between}
+body.v38-home-active .v38-hero.call-link .v38-hero-body{width:100%;max-width:310px}
+body.v38-home-active .v38-hero.call-link .v38-action.primary{width:100%}
