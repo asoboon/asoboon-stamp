@@ -747,6 +747,56 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   if(process.env.ASOBOON_CROWD_SCREENSHOT==='1')await page.screenshot({path:'/tmp/asoboon-crowd-web-onsite.png',fullPage:true});
 });
 
+test('12:30 LINE verified zero is shown as 0名; crowded card advertises navigation to reception',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,slots:[
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
+    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}
+   ],
+   observedDetails:[
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:39,remainingVerified:true}
+   ]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-today-section>h2')).toHaveCount(0);
+ await expect(page.locator('#v38Today')).toBeVisible();
+ const box=page.locator('#v38Slots');
+ const c1230=box.locator('.v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(c1230).toBeVisible();
+ await expect(c1230.locator('.v38-crowd-channel--web strong')).toHaveText('0名');
+ await expect(c1230.locator('.v38-crowd-channel--onsite strong')).toHaveText('0名');
+ await expect(c1230.locator('.v38-crowd-go')).toContainText('受付画面へ進む');
+ await expect(c1230).toHaveAttribute('aria-label',/LINE受付の残り0名.*タップして受付画面へ進む/);
+ const c1500=box.locator('.v38-crowd-card').filter({hasText:'15:00回'});
+ await expect(c1500.locator('.v38-crowd-channel--onsite strong')).toHaveText('39名');
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  const button=await c1230.locator('.v38-crowd-go').boundingBox();
+  expect(button.height).toBeGreaterThanOrEqual(47);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+ await c1230.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSubmit')).toBeVisible();
+});
+test('Legacy or unverified zero remains 確認中 rather than reporting fabricated capacity',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('確認中');
+});
 test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false zeroes or the WEB remaining count',async({page})=>{
   await installProduction(page);
   await page.route(GATEWAY+'**',async route=>{

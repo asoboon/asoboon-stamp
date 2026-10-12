@@ -9,7 +9,7 @@ test('Onsite pool is derived only from explicitly named AirWAIT store labels, no
  assert.match(home,/matched\.length!==1/);
  assert.match(home,/reserveUnit!=='PERSON'/);
  assert.match(home,/safePeople\(matched\[0\]\.remaining\)/);
- assert.match(home,/return n===0\?null:n/);
+ assert.match(home,/n===0&&matched\[0\]\.remainingVerified!==true\?null:n/);
  assert.match(home,/slot\.matchMode!=='exact-name'/);
 });
 test('Reuse only existing API observedDetails, cache safely and never make an extra gateway call',()=>{
@@ -22,4 +22,7 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
 test('Two clear, responsive channels preserve a neutral unavailable state and original reception action',()=>{
  for(const word of ['WEB受付','LINE受付','確認中','混雑目安はWEB枠を基準','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.v38-crowd-go\{min-height:48px/);
+ assert.match(home,/タップすると受付画面へ進みます/);
+ assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
 });

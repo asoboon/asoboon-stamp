@@ -114,6 +114,33 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(vote.data?.ok,true);
 });
 
+test('AirWAIT explicit zero onsite capacity is verified; missing/null never fabricate zero',async()=>{
+  world.crowdWaitDetails=[
+    {detailedWaitType:'枠0030',reserveUnit:'PERSON',remainingNum:null},
+    {detailedWaitType:'枠0032',reserveUnit:'PERSON',remainingNum:0},
+    {detailedWaitType:'枠0034',reserveUnit:'PERSON'},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remainingNum:'0'},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remainingNum:39},
+    {detailedWaitType:'不正な枠',reserveUnit:'GROUP',remainingNum:0},
+  ];
+  const r=await call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
+  assert.equal(r.status,200,JSON.stringify(r.data));
+  const byName=name=>r.data.observedDetails.find(v=>v.detailedWaitType===name);
+  for(const id of ['0030','0034']){
+    const row=byName('枠'+id);
+    assert.equal(row.remaining,null,'missing/null is not zero');
+    assert.equal(row.remainingVerified,false);
+  }
+  for(const name of ['枠0032','12時50分頃入場【土休日特定日】']){
+    const row=byName(name);
+    assert.equal(row.remaining,0,'explicit numeric zero is valid');
+    assert.equal(row.remainingVerified,true);
+  }
+  assert.equal(byName('15時15分頃入場時間【土休日特定日】').remaining,39);
+  assert.equal(byName('不正な枠').remaining,null);
+  assert.equal(byName('不正な枠').remainingVerified,false);
+});
+
 test('business-day batches are IP-limited and restricted to the current and next month',async()=>{
   const headers={'CF-Connecting-IP':'198.51.100.23'};
   for(let i=0;i<12;i++){
