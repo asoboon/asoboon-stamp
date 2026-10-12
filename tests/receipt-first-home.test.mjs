@@ -15,6 +15,7 @@ test('Official HOME only provides call-status navigation and no auto polling bun
  const manifest=read('bundle-sources.json');
  assert.match(home,/E\.environment==='production'/);
  assert.match(home,/kind:'call-link'/);
+ assert.match(home,/isTodaysReceipt\(RES_KEY\)\|\|isTodaysReceipt\(CALL_STATUS_CACHE_KEY\)/);
  assert.match(home,/呼出状況を確認する/);
  assert.doesNotMatch(manifest,/home-status-v13\.js/);
 });

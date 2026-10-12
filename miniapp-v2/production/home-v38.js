@@ -3,6 +3,7 @@ const E=window.ASOBOON_V2_ENV||{},F=E.featureFlags||{},D=window.ASOBOON_V2_BUSIN
 const OPERATIONAL_FALLBACKS=E.operationalFallbacks||{};
 const RECEPTION_FALLBACK_ACTIVE=OPERATIONAL_FALLBACKS.enabled===true&&F.receptionCreate!==true&&Boolean(OPERATIONAL_FALLBACKS.receptionUrl);
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
+const CALL_STATUS_CACHE_KEY='asoboon_v2_callstatus_production_v1';
 const CROWD_CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const TIMEGUIDE_KEY='asoboon_v2_timeguide_production_v1';
 const ASSET_BASE=String(E.assetBase||'./');
@@ -61,9 +62,11 @@ function heroMarkup(data={}){
  // Official HOME is a navigation surface, never a second source of call-state truth.
  // No reception number, queue rank, "calling", "guided", or error states on HOME.
  if(E.environment==='production'){
-   const rec=reservationInfo();
    const opDate=String(day?.operationalDate||nowJst().date);
-   const saved=rec?.receiptNo&&String(rec.businessDate||'')===opDate;
+   const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
+   // A recovered LINE session can live only in CALL_STATUS_CACHE_KEY when
+   // the original reservation storage was lost.
+   const saved=isTodaysReceipt(RES_KEY)||isTodaysReceipt(CALL_STATUS_CACHE_KEY);
    const a=availability();
    if(saved){
      return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>呼出状況の確認</h1><p>受付番号・順番・入場案内は専用画面でご確認ください。</p>${action('callstatus','呼出状況を確認する','primary')}</div>`};

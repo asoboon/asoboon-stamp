@@ -25,3 +25,10 @@
 .cs-forecast-flow-line{height:3px;background:#e7bd75;position:relative;text-align:center;color:#b37923}
 .cs-forecast-note{color:#735d3e;font-size:12px;line-height:1.6;font-weight:760;margin:9px 0 0}
 @media(max-width:350px){.cs-forecast{padding:13px 11px}.cs-forecast-main strong{font-size:36px}.cs-forecast-point small{font-size:11px}}
+
+/* Post-cancel/completed re-reception lives on the verified call-status screen,
+   never on the neutral HOME display. */
+.cs-rebook-area[hidden]{display:none!important}
+.cs-rebook-area{margin-top:12px;text-align:center}
+.cs-rebook{width:100%;min-height:48px;border:0;border-radius:14px;background:#236b49;color:#fff;font-weight:1000;box-shadow:0 6px 15px rgba(23,103,71,.13)}
+.cs-rebook-area small{display:block;margin-top:7px;color:#526a5b;font-size:.59rem;line-height:1.5;font-weight:760}

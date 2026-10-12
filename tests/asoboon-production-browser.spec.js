@@ -478,6 +478,20 @@ test('Production HOME link stays available with a local receipt when network sta
  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveText(/呼出状況を確認する/);
 });
 
+test('Production HOME recognizes a session restored to call-status cache alone',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_callstatus_production_v1',JSON.stringify({
+     receiptNo:'R432',businessDate:'2026-10-03',waitTypeId:'0033',cachedAt:Date.now()
+   }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero')).not.toContainText('R432');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+});
+
 test('Production HOME does not show yesterday receipt or saved calling after the 19:00 JST rollover',async({page})=>{
   await installProduction(page);
   await page.addInitScript(()=>{
@@ -808,6 +822,49 @@ test('Existing 30-minute HOME cache restores both channels without inventing mis
   await expect(card).toHaveCount(1);
   await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('25名');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('14名');
+});
+
+for(const state of ['canceled','done']){
+ test('Terminal '+state+' exposes re-reception on call-status page, not HOME',async({page})=>{
+  await installProduction(page,{status:{
+    ok:true,found:true,state,receiptNo:'F998',businessDate:'2026-10-03',
+    waitTypeId:'0033',waitTypeName:'15:00の回',checkedAt:Date.parse('2026-10-03T03:00:00Z')
+  }});
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033'
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033',
+      sessionToken:'r'.repeat(40),expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csRebookArea')).toBeVisible();
+  await expect(page.locator('#csRebook')).toContainText('もう一度受付する');
+  await page.locator('#csRebook').click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSubmit')).toBeVisible();
+ });
+}
+test('Active waiting call-state does not offer a second reception',async({page})=>{
+ await installProduction(page,{status:{
+   ok:true,found:true,state:'waiting',receiptNo:'F998',businessDate:'2026-10-03',
+   waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:8,queueRank:9,
+   activeCount:40,checkedAt:Date.parse('2026-10-03T03:00:00Z')
+ }});
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033'
+   }));
+   localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033',
+     sessionToken:'r'.repeat(40),expiresAt:4102444800000
+   }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect(page.locator('#csRebookArea')).toBeHidden();
 });
 
 test('Call status automatically updates waiting → calling → done while screen stays open',async({page})=>{

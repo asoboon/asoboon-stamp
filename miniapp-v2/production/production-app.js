@@ -9,8 +9,8 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const finish=()=>{if(!failed&&cssDone&&jsDone)resolve()};
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
-  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=755d102b9e9e',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=2653356f69eb',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=a75edc6bda63',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=862139998cf6',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -572,6 +572,7 @@ const E=window.ASOBOON_V2_ENV||{},F=E.featureFlags||{},D=window.ASOBOON_V2_BUSIN
 const OPERATIONAL_FALLBACKS=E.operationalFallbacks||{};
 const RECEPTION_FALLBACK_ACTIVE=OPERATIONAL_FALLBACKS.enabled===true&&F.receptionCreate!==true&&Boolean(OPERATIONAL_FALLBACKS.receptionUrl);
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
+const CALL_STATUS_CACHE_KEY='asoboon_v2_callstatus_production_v1';
 const CROWD_CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const TIMEGUIDE_KEY='asoboon_v2_timeguide_production_v1';
 const ASSET_BASE=String(E.assetBase||'./');
@@ -630,9 +631,11 @@ function heroMarkup(data={}){
  // Official HOME is a navigation surface, never a second source of call-state truth.
  // No reception number, queue rank, "calling", "guided", or error states on HOME.
  if(E.environment==='production'){
-   const rec=reservationInfo();
    const opDate=String(day?.operationalDate||nowJst().date);
-   const saved=rec?.receiptNo&&String(rec.businessDate||'')===opDate;
+   const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
+   // A recovered LINE session can live only in CALL_STATUS_CACHE_KEY when
+   // the original reservation storage was lost.
+   const saved=isTodaysReceipt(RES_KEY)||isTodaysReceipt(CALL_STATUS_CACHE_KEY);
    const a=availability();
    if(saved){
      return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>呼出状況の確認</h1><p>受付番号・順番・入場案内は専用画面でご確認ください。</p>${action('callstatus','呼出状況を確認する','primary')}</div>`};

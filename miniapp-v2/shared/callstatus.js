@@ -65,6 +65,10 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
+    <div id="csRebookArea" class="cs-rebook-area" hidden>
+      <button id="csRebook" class="cs-rebook" type="button" data-v7-view="reception">もう一度受付する</button>
+      <small>新しい受付は、受付時間と空き枠をご確認のうえお手続きください。</small>
+    </div>
 <div id="csError" class="cs-error" hidden></div>
 <div class="cs-note"><strong>自動更新：</strong>この画面を開いている間は約5〜20秒ごとに確認します。呼出中・保留中も更新を続けます。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
@@ -77,6 +81,12 @@ function updateCancelAction(state){
   const allowed=['waiting','calling','hold'].includes(String(state||''));
   area.hidden=!allowed;
   if(button){button.disabled=cancelBusy||!allowed;button.textContent=cancelBusy?'キャンセル処理中…':'受付をキャンセルする'}
+}
+function updateRebookAction(data){
+  const area=$('csRebookArea');if(!area)return;
+  // A new same-day claim is allowed only after an actual terminal outcome.
+  // No second reservation is sent until the guest explicitly uses reception.
+  area.hidden=!(data?.found===true&&['canceled','done'].includes(String(data.state||'')));
 }
 function openCancelDialog(){
   if(cancelBusy||!['waiting','calling','hold'].includes(String(lastStatus?.state||'')))return;
@@ -239,6 +249,7 @@ function applyStatus(d){
   setCallVisualTone(d.found?d.state:'loading');
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
+  updateRebookAction(d);
   shareHomeStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
@@ -390,6 +401,7 @@ function mountCallstatus(){
   $('csCancelProceed')?.addEventListener('click',()=>void cancelCurrentReservation());
   document.querySelectorAll('[data-cs-cancel-close]').forEach(el=>el.addEventListener('click',closeCancelDialog));
   updateCancelAction('');
+  updateRebookAction(null);
   queueMicrotask(()=>{if(gen===generation&&$('csState'))void refreshStatus()});
 }
 
