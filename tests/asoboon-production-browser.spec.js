@@ -912,6 +912,60 @@ test('Confirm sends to authoritative Gateway directly without a duplicate busine
 });
 
 
+test('Reception explains the real wait without fake progress, keeps one request, and locks inputs',async({page})=>{
+ await installProduction(page);
+ let releaseCreate=null;
+ const network=[];
+ await page.route(GATEWAY+'**',async route=>{
+   const u=new URL(route.request().url()),body=new URLSearchParams(route.request().postData()||'');
+   const action=u.searchParams.get('action')||body.get('action');
+   if(action!=='createReservation')return route.fallback();
+   network.push(body.get('requestId'));
+   await new Promise(resolve=>{
+     releaseCreate=async()=>{
+       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+         ok:true,stored:true,receiptNo:'F901',reserveId:'A901234567',businessDate:'2026-10-03',
+         waitTypeId:body.get('waitTypeId'),notificationReady:true
+       })});
+       resolve();
+     };
+   });
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('[data-v7-view="reception"]').first().click();
+ await expect(page.locator('#recStatus')).toContainText('受付できます');
+ await page.locator('#recSlots [data-rec-slot]').first().click();
+ await page.locator('#recAgree').check();
+ await page.locator('#recSubmit').click();
+ await expect(page.locator('#recProcessing')).toBeVisible();
+ await expect(page.locator('#recProcessingTitle')).toContainText('受付番号の発行を依頼');
+ await expect(page.locator('#recProcessingWhy')).toContainText('二重受付');
+ await expect(page.locator('#recProcessingStep1')).toHaveClass(/is-done/);
+ await expect(page.locator('#recProcessingStep2')).toHaveClass(/is-active/);
+ await expect(page.locator('#recAgree')).toBeDisabled();
+ await expect(page.locator('#recSlots [data-rec-slot]').first()).toBeDisabled();
+ await expect(page.locator('[data-rec-k]').first()).toBeDisabled();
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+ expect(await page.locator('#recProcessing').getAttribute('role')).toBe('status');
+ expect(await page.locator('#recProcessing').textContent()).not.toMatch(/100%|完了しました|発行済み/);
+ for(const width of [320,375,390,430]){
+   await page.setViewportSize({width,height:844});
+   await expect(page.locator('#recProcessing')).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+ if(process.env.ASOBOON_WAITUX_SCREENSHOT==='1'){
+   await page.screenshot({path:'/tmp/asoboon-waitux-390.png',fullPage:true});
+ }
+ await expect.poll(()=>typeof releaseCreate).toBe('function');
+ await releaseCreate();
+ await expect.poll(()=>page.evaluate(()=>{
+  return JSON.parse(localStorage.getItem('asoboon_v2_current_reservation_production_v1')||'null')?.receiptNo
+ })).toBe('F901');
+ await expect(page.locator('#recProcessing')).toBeHidden();
+ expect(network).toHaveLength(1);
+});
+
+
 for(const status of [
   {state:'waiting',tone:'waiting',label:'順番を',rgb:'rgb(219, 224, 228)',ink:'rgb(52, 69, 84)'},
   {state:'calling',tone:'calling',label:'入場できます',rgb:'rgb(215, 236, 255)',ink:'rgb(19, 89, 152)'},
