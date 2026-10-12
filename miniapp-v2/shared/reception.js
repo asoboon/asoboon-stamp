@@ -241,7 +241,7 @@ function cachedRemaining(){
  if(E.environment!=='production')return null;
  try{
    const v=JSON.parse(localStorage.getItem(CROWD_CACHE_KEY)||'null');
-   if(!v||!Array.isArray(v.details)||!Number.isFinite(v.savedAt))return null;
+   if(!v||v.verifiedFresh!==true||!Array.isArray(v.details)||!Number.isFinite(v.savedAt))return null;
    if(Date.now()-v.savedAt<0||Date.now()-v.savedAt>CROWD_FRESH_MS)return null;
    if(String(v.operationalDate||'')!==String(S.day?.operationalDate||''))return null;
    if(String(v.businessType||'')!==String(S.day?.businessType||''))return null;

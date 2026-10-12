@@ -193,7 +193,7 @@ test('Reception reuses a recent HOME quota snapshot without a second shared-WiFi
   localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
    slots:[{waitTypeId:'0032',remaining:200,matchMode:'exact-name',evidence:'PERSON',reserveUnit:'PERSON'}],
    details:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:12,remainingVerified:true}],
-   operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()
+   operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
   }));
  });
  let calls=0;
