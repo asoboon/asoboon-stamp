@@ -406,6 +406,7 @@ const CACHE_KEY=`asoboon_v2_current_reservation_${STORAGE_NS}_v1`;
 const CALL_KEY=`asoboon_v2_callstatus_${STORAGE_NS}_v1`;
 const SESSION_KEY=`asoboon_v2_callstatus_session_${STORAGE_NS}_v1`;
 const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
+const RATE_LIMIT_STORAGE_KEY=`asoboon_v2_callstatus_retry_after_${STORAGE_NS}_v1`;
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
 const POLL_FRONT_MS=8000;
@@ -451,6 +452,24 @@ function clearCallVisualTone(){
 function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=8000)return'約8秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=30000)return'約30秒ごと';if(ms<=45000)return'約45秒ごと';return'約90秒ごと'}
+function restoreThrottle(){
+ if(rateLimitUntil>clockTick())return;
+ try{
+   const until=Number(sessionStorage.getItem(RATE_LIMIT_STORAGE_KEY)||0);
+   const ms=until-Date.now();
+   if(ms>0&&ms<=POLL_RATE_LIMITED_MS){rateLimitUntil=clockTick()+ms;return}
+   sessionStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+ }catch{}
+ rateLimitUntil=0;
+}
+function rememberThrottle(){
+ rateLimitUntil=clockTick()+POLL_RATE_LIMITED_MS;
+ try{sessionStorage.setItem(RATE_LIMIT_STORAGE_KEY,String(Date.now()+POLL_RATE_LIMITED_MS))}catch{}
+}
+function clearThrottle(){
+ rateLimitUntil=0;
+ try{sessionStorage.removeItem(RATE_LIMIT_STORAGE_KEY)}catch{}
+}
 function clockTick(){return typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now()}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
@@ -813,8 +832,8 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-    lastRefreshSucceededAt=Date.now();hadRefreshError=false;rateLimitUntil=0;
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);hadRefreshError=true;nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rateLimitUntil=clockTick()+POLL_RATE_LIMITED_MS;setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約1分後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
+    lastRefreshSucceededAt=Date.now();hadRefreshError=false;clearThrottle();
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);hadRefreshError=true;nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;
@@ -832,7 +851,7 @@ function mountCallstatus(){
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;
-  notFoundStreak=0;lastRefreshSucceededAt=0;hadRefreshError=false;rateLimitUntil=0;startHeartbeat();
+  notFoundStreak=0;lastRefreshSucceededAt=0;restoreThrottle();hadRefreshError=rateLimitUntil>clockTick();startHeartbeat();
   const gen=generation;
   const cached=cachedReservation();
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');

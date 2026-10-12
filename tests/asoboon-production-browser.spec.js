@@ -942,6 +942,16 @@ test('Rate-limited status requests visibly cool down and manual taps do not hamm
  await expect(page.locator('#csError')).toContainText('自動で再確認');
  await page.waitForTimeout(300);
  expect(count).toBe(1);
+ await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+ await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ await page.waitForTimeout(300);
+ expect(count).toBe(1);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ await page.waitForTimeout(300);
+ expect(count).toBe(1);
 });
 test('Call status automatically updates waiting → calling → done while screen stays open',async({page})=>{
  test.setTimeout(65000);

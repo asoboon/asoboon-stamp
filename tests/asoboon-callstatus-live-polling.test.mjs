@@ -38,4 +38,6 @@ test('single-flight, hidden-tab pause and RATE_LIMITED backoff are wired',()=>{
  assert.match(js,/setTimeout\(\(\)=>\{pollTimer=0;nextPollAt=0;void refreshStatus\(\)\},delay\)/);
  assert.match(js,/rateLimitUntil>clockTick\(\)/);
  assert.match(js,/function startHeartbeat\(\)/);
+ assert.match(js,/function restoreThrottle\(\)/);
+ assert.match(js,/sessionStorage\.setItem\(RATE_LIMIT_STORAGE_KEY/);
 });
