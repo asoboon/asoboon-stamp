@@ -534,6 +534,59 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
+test('Official HOME call CTA has a clear signifier, opens callstatus, and respects reduced motion',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const button=page.locator('#v38Hero .v38-call-cta');
+ await expect(button).toHaveCount(1);
+ await expect(button).toHaveAttribute('aria-label',/受付番号と順番を見る/);
+ await expect(button.locator('strong')).toHaveText('呼び出し状況を確認する');
+ await expect(button.locator('small')).toHaveText('番号・順番をタップしてチェック');
+ await expect(button.locator('.v38-call-cta-icon svg')).toHaveCount(1);
+ await expect(button.locator('.v38-call-cta-arrow svg')).toHaveCount(1);
+ await expect(button).not.toContainText('LIVE');
+ await expect(button).not.toContainText('呼出中');
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:800});
+  const box=await button.boundingBox();
+  expect(box.width).toBeGreaterThan(240);
+  expect(box.width).toBeLessThanOrEqual(341);
+  expect(box.height).toBeGreaterThanOrEqual(60);
+  expect(box.height).toBeLessThan(85);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+ if(process.env.ASOBOON_CALL_CTA_SCREENSHOT==='1'){await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/asoboon-call-cta-390.png',fullPage:true})}
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await expect.poll(()=>button.locator('.v38-call-cta-signal').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+ await expect.poll(()=>button.locator('.v38-call-cta-arrow').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+ await button.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+ await expect(page.locator('#csState')).toBeVisible();
+});
+test('HOME open-state uses the enhanced call button without interrupting the main reception path',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/open/);
+ const primary=page.locator('#v38Hero [data-v7-view="reception"]');
+ const call=page.locator('#v38Hero .v38-call-cta');
+ await expect(primary).toBeVisible();
+ await expect(call).toBeVisible();
+ await expect(call).toContainText('呼び出し状況を確認する');
+ for(const width of [320,375,390]){
+  await page.setViewportSize({width,height:800});
+  const rect=await call.boundingBox();
+  expect(rect.width).toBeGreaterThan(240);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+ await primary.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSubmit')).toBeVisible();
+});
 test('Official HOME call-status button is wide, low-profile and accessible on narrow phones',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
@@ -598,7 +651,7 @@ test('Production HOME link stays available with a local receipt when network sta
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
  await expect(page.locator('#v38Hero')).not.toContainText('E777');
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveText(/呼出状況を確認する/);
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toContainText('呼び出し状況を確認する');
 });
 
 test('Production HOME recognizes a session restored to call-status cache alone',async({page})=>{
