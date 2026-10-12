@@ -62,6 +62,7 @@ export class FakeWorld {
     this.pushes = [];                // LINE OA pushes
     this.calls = [];                 // every outbound URL
     this.businessType = '土日祝日';
+    this.crowdWaitDetails = null; // Override read-only AirWAIT crowd data per test
     this.businessDayFailures = new Set();
   }
   issueLiffToken(userId) {
@@ -125,7 +126,7 @@ export class FakeWorld {
     }
     if (url.pathname.endsWith('/store/getWaitInfo')) {
       const onlineIds = ['0024','0027','0030','0032','0034','0036','0038'];
-      return json({ success:true, resultCode:{code:'0000'}, innerDto:{ stores:[{ onlineRcptCode:'OPEN', waitDetails:onlineIds.map((id,i)=>({ detailedWaitType:`枠${id}`, reserveUnit:'PERSON', remainingNum:300-i*20 })) }] } });
+      return json({ success:true, resultCode:{code:'0000'}, innerDto:{ stores:[{ onlineRcptCode:'OPEN', waitDetails:this.crowdWaitDetails ?? onlineIds.map((id,i)=>({ detailedWaitType:`枠${id}`, reserveUnit:'PERSON', remainingNum:300-i*20 })) }] } });
     }
     if (url.pathname.endsWith('/store/getLastUpdDateStateless')) {
       return json({ success:true, resultCode:{code:'0000'}, innerDto:{lastUpdDate:'2026-10-03T12:00:00+09:00'} });

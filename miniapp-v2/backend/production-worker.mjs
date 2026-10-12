@@ -1099,12 +1099,20 @@ async function fetchCrowdRemainingFresh(request, env, ctx) {
     },
     slots,
     diagnostics,
-    observedDetails:details.map(row=>({
-      detailedWaitType:row.detailedWaitType,
-      reserveUnit:row.reserveUnit,
-      slotKey:row.slotKey,
-      remaining:row.reserveUnit==='PERSON'&&Number.isSafeInteger(Number(row.remainingNum))?Number(row.remainingNum):null,
-    })),
+    observedDetails:details.map(row=>{
+      // Treat an explicit zero as a verified 0; missing/null is unknown.
+      const raw=row.remainingNum;
+      const parsed=(typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw)))
+        ?Number(raw):NaN;
+      const verified=row.reserveUnit==='PERSON'&&Number.isSafeInteger(parsed)&&parsed>=0&&parsed<=350;
+      return {
+        detailedWaitType:row.detailedWaitType,
+        reserveUnit:row.reserveUnit,
+        slotKey:row.slotKey,
+        remaining:verified?parsed:null,
+        remainingVerified:verified,
+      };
+    }),
   };
 }
 
