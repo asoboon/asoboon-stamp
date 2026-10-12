@@ -224,7 +224,7 @@ function renderHeartbeat(){
  const label=$('csHeartbeatLabel');if(!label)return;
  if(activeRefreshGeneration===generation){
    const seconds=Math.max(0,Math.floor((clockTick()-lastRefreshStartedAt)/1000));
-   label.textContent=seconds>=8
+   label.textContent=seconds>=5
      ?`確認が続いています（${seconds}秒経過）。通信結果を待っています。`
      :`最新の呼出状況を確認中… ${seconds}秒`;
    return;

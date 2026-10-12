@@ -323,7 +323,7 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 
 /* Quiet 44px HOME navigation target, no oversized call-status card. */
 body.v38-home-active .v38-action[data-v7-view="callstatus"]{
- display:inline-flex;width:auto;min-height:44px;margin-top:11px;gap:9px;
+ display:inline-flex;width:auto;min-height:46px;margin-top:11px;gap:9px;
  justify-content:center;padding:0 13px;border:1px solid #c9d9e1;border-radius:11px;
  background:#f3f8fa;color:#315d74;font-size:13px;font-weight:800;box-shadow:none
 }
