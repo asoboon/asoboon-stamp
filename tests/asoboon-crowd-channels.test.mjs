@@ -14,10 +14,12 @@ test('Onsite pool is derived only from explicitly named AirWAIT store labels, no
 });
 test('Reuse only existing API observedDetails, cache safely and never make an extra gateway call',()=>{
  assert.match(home,/Array\.isArray\(data\.observedDetails\)/);
- assert.match(home,/writeCrowdCache\(crowdSlots,crowdDetails\)/);
+ assert.match(home,/writeCrowdCache\(crowdSlots,crowdDetails,crowdStale\)/);
  assert.match(home,/crowdDetails=Array\.isArray\(cached\.details\)/);
  assert.match(home,/slot\.web===null\?null:crowdMetric\(slot\.web\)/);
  assert.doesNotMatch(home,/fetchOnsite|action=onsiteRemaining/);
+ assert.match(home,/function scheduleCrowd\(\)/);
+ assert.match(home,/CROWD_STALE_MS=90000/);
 });
 test('Two clear, responsive channels preserve a neutral unavailable state and original reception action',()=>{
  for(const word of ['WEB受付','LINE受付','確認中','混雑目安はWEB枠を基準','data-v7-view="reception"'])assert.ok(home.includes(word),word);

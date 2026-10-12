@@ -878,6 +878,96 @@ test('Slow app startup shows only the small neutral boot indicator, never old HO
 });
 
 
+test('HOME updates 12:30 WEB and LINE quotas while left open without extra business-day calls',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  const nativeSetTimeout=window.setTimeout.bind(window);
+  window.setTimeout=(cb,ms,...args)=>nativeSetTimeout(cb,ms>=35000&&ms<=43000?190:ms,...args);
+ });
+ let calls=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  const n=++calls;
+  const web=n===1?71:Math.max(0,71-n*5),line=n===1?44:Math.max(0,44-n*4);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:[
+    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
+    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:web},
+    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}
+   ],observedDetails:[
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:117,remainingVerified:true},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:line,remainingVerified:true},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:8,remainingVerified:true}
+   ]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/\d+名/);
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
+ await expect.poll(()=>calls,{timeout:5000}).toBeGreaterThanOrEqual(2);
+ await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('71名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('44名');
+ await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ const before=calls;
+ await page.locator('#v38CrowdUpdate').click();
+ await expect.poll(()=>calls).toBeGreaterThan(before);
+ await card.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ const after=calls;await page.waitForTimeout(500);expect(calls).toBe(after);
+});
+test('HOME marks stale AirWAIT quota unverified instead of displaying stale capacity as current',async({page})=>{
+ await installProduction(page);
+ let reads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  if(++reads>1)return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_UNAVAILABLE"}'});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:true,staleAgeMs:180000,fetchedAt:'2026-10-03T02:57:00.000Z',
+   slots:[{waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card).toBeVisible();
+ await expect(page.locator('#v38CrowdAge')).toContainText('最新の取得に失敗しました');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
+ await expect(card).not.toContainText('71名');
+ await expect(card).not.toContainText('44名');
+ const previous=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1')||'{}'));
+ expect(previous.verifiedFresh).toBe(false);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
+ await card.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+});
+test('HOME shows manual refresh cooldown during 429 backoff instead of silently ignoring taps',async({page})=>{
+ await installProduction(page);
+ let reads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  reads++;
+  if(reads>1)return route.fulfill({status:429,contentType:'application/json',body:'{"ok":false,"error":"RATE_LIMITED"}'});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,
+   slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const button=page.locator('#v38CrowdUpdate');
+ await expect(button).toBeEnabled();
+ await button.click();
+ await expect(button).toBeDisabled();
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await page.waitForTimeout(200);
+ expect(reads).toBe(2);
+});
 test('HOME shows separate WEB and onsite remaining counts from the same existing crowd API response',async({page})=>{
   const actions=[];
   page.on('request',r=>{if(r.url().includes('action=crowdRemaining'))actions.push(r.url())});
@@ -1030,13 +1120,13 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
   await expect(page.locator('#v38Slots')).not.toContainText('12:30回');
 });
 
-test('Existing 30-minute HOME cache restores both channels without inventing missing values',async({page})=>{
+test('Recent verified HOME cache can bridge a brief AirWAIT outage without inventing values',async({page})=>{
   await installProduction(page);
   await page.addInitScript(()=>{
     localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
       slots:[{waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}],
       details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:14}],
-      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()
+      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
     }));
   });
   await page.route(GATEWAY+'**',async route=>{

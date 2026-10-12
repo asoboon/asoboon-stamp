@@ -580,7 +580,22 @@ const SITE_BASE=String(E.siteBase||'../../');
 const resolveHref=(base,path)=>{try{return new URL(String(path||''),new URL(base,location.href)).href}catch{return String(path||'')}};
 const assetHref=path=>resolveHref(ASSET_BASE,path);
 const siteHref=path=>resolveHref(SITE_BASE,path);
-const CROWD_CACHE_MAX_AGE_MS=30*60*1000;
+const CROWD_CACHE_MAX_AGE_MS=90*1000;
+const CROWD_POLL_MS=35000,CROWD_STALE_MS=90000;
+let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0;
+const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
+function scheduleCrowd(){
+ clearTimeout(crowdPollTimer);crowdPollTimer=0;
+ if(document.hidden||currentView()!=='home'||!day||day.isClosed)return;
+ const delay=Math.max(1000,crowdRetryAt-Date.now(),CROWD_POLL_MS+Math.floor(Math.random()*8000));
+ crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;if(!document.hidden&&currentView()==='home')void fetchCrowd(true)},delay);
+}
+function crowdFreshness(){
+ if(crowdRetryAt>Date.now())return (crowdAt?crowdClock()+' 確認時点 ／ ':'')+'最新の取得に失敗しました。自動で再確認します。';
+ if(crowdStale||crowdAt&&Date.now()-crowdAt>CROWD_STALE_MS)return '最新の人数を取得できていません。受付画面でご確認ください。';
+ if(!crowdAt)return 'LINE・WEBの残り人数を確認しています…';
+ return crowdClock()+' 確認時点の人数 ／ 自動更新中（約40秒ごと）';
+}
 // Verified AirWAIT onsite type names: match exactly, never by clock time.
 const ONSITE_CROWD_NAMES=Object.freeze({
   '平日':Object.freeze({'0024':'すぐ入場受付【平日】'}),
@@ -618,7 +633,6 @@ function receptionHoursNote(){
 function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
-// A navigation affordance, not a claim that a specific guest is being called.
 function callStatusAction(tone='neutral'){
  return '<button type="button" class="v38-action v38-call-cta '+tone+'" data-v7-view="callstatus" aria-label="呼び出し状況を確認する。受付番号と順番を見る">'
  +'<span class="v38-call-cta-icon" aria-hidden="true">'+svg('bell')+'<i class="v38-call-cta-signal"></i></span>'
@@ -701,9 +715,10 @@ const ids=CROWD_SETTINGS.IDS[String(day?.businessType||'')]||[];
 return ids.map(id=>{
 const matched=(Array.isArray(crowdSlots)?crowdSlots:[]).filter(x=>String(x?.waitTypeId||'')===id);
 const slot=matched.length===1?matched[0]:null;
-const web=verifiedWebRemaining(slot);
-const onsite=onsiteRemaining(id);
-if(web===null&&onsite===null)return null;
+const usable=!crowdStale&&crowdAt>0&&Date.now()-crowdAt<=CROWD_STALE_MS;
+const web=usable?verifiedWebRemaining(slot):null;
+const onsite=usable?onsiteRemaining(id):null;
+if(web===null&&onsite===null&&!crowdStale&&!(crowdAt&&Date.now()-crowdAt>CROWD_STALE_MS))return null;
 return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00' })[id],web,onsite};
 }).filter(Boolean);
 }
@@ -748,12 +763,48 @@ return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button"
 ${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><span class="v38-crowd-go-arrow">${svg('arrow')}</span></div>
 </button>`;
 }).join('');
-box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
+box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');const brand=document.querySelector('.brand small');setText(brand,'川口ハイウェイオアシス');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
-async function fetchCrowd(force=false){if(crowdLoading)return;if(!force&&crowdSlots&&!crowdError&&Date.now()-crowdAt<60000)return;crowdLoading=true;crowdError='';if(currentView()==='home')renderSlots();const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);try{const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');const response=await fetch(url,{cache:'no-store',signal:controller.signal});const data=await response.json();if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)throw Error(String(data?.error||'CROWD_UNAVAILABLE'));crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];crowdAt=Date.now();crowdError='';writeCrowdCache(crowdSlots,crowdDetails,data.stale===true)}catch(e){const cached=readCrowdCache();if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=Number(cached.savedAt||0)}crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE')}finally{clearTimeout(timer);crowdLoading=false;if(currentView()==='home')renderSlots()}}
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||'')))await fetchCrowd(force);else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
-window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};if(currentView()==='home'){lastHero='';mount()}});window.addEventListener('asoboon:v2-timeguide-updated',()=>{if(currentView()==='home')patchTimeguideShortcut()});window.addEventListener('asoboon:v2-route-rendered',()=>{lastHero='';mount();if(currentView()==='home')void refreshDay(false)});window.addEventListener('focus',()=>{if(currentView()==='home')void refreshDay(false)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentView()==='home')void refreshDay(false)});mount();if(currentView()==='home')void refreshDay(false);
+async function fetchCrowd(force=false){
+ if(document.hidden||currentView()!=='home'||crowdLoading)return;
+ if(Date.now()<crowdRetryAt){scheduleCrowd();return}
+ if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
+ crowdLoading=true;crowdError='';
+ const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
+ try{
+  const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
+  const response=await fetch(url,{cache:'no-store',signal:ctrl.signal});
+  const data=await response.json();
+  if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
+   throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
+  crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
+  crowdStale=data.stale===true;
+  crowdAt=crowdStale?0:Math.min(Date.now(),Number(Date.parse(data.fetchedAt))||Date.now());
+  if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
+  crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);
+ }catch(e){
+  const cached=readCrowdCache();
+  if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
+  if(String(e?.message||'').includes('RATE_LIMITED'))crowdRetryAt=Date.now()+90000;
+  else crowdRetryAt=Date.now()+Math.max(30000,Math.floor(Math.random()*5000));
+  crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
+  crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE');
+ }finally{
+  clearTimeout(timer);crowdLoading=false;
+  if(currentView()==='home'){renderSlots();scheduleCrowd()}
+ }
+}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||'')))await fetchCrowd(force);else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+root.addEventListener('click',e=>{
+ if(e.target?.closest?.('#v38CrowdUpdate')){
+  if(crowdLoading||Date.now()-crowdManualAt<15000)return;
+  crowdManualAt=Date.now();
+  void fetchCrowd(true);
+ }
+});
+window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};if(currentView()==='home'){lastHero='';mount()}});window.addEventListener('asoboon:v2-timeguide-updated',()=>{if(currentView()==='home')patchTimeguideShortcut()});window.addEventListener('asoboon:v2-route-rendered',()=>{lastHero='';mount();if(currentView()==='home')void refreshDay(false);else{clearTimeout(crowdPollTimer);crowdPollTimer=0}});window.addEventListener('focus',()=>{if(currentView()==='home')void refreshDay(false)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentView()==='home')void refreshDay(false);else{clearTimeout(crowdPollTimer);crowdPollTimer=0}});mount();if(currentView()==='home')void refreshDay(false);
 })();
 
 ;/* miniapp-v2/production/surprise-vote-home-v1.js */
