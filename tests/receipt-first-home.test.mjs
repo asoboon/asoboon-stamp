@@ -10,16 +10,18 @@ test('receipt-first prime uses local receipt and not cached call state',()=>{
  assert.match(code,/removeItem\('asoboon_v2_home_status_production_v1'\)/);
  assert.doesNotMatch(code,/snap\.status|source:'cache'/);
 });
-test('receipt-first hero shows large cached number separately from verified call states',()=>{
- assert.match(read('home-v38.js'),/kind==='pending'&&receipt/);
- assert.match(read('home-v38.js'),/v38-pending-number/);
- assert.match(read('home-v38.css'),/v38-hero\.pending/);
- assert.match(read('home-v38.css'),/v38-pending-number/);
- assert.match(read('home-status-v13.js'),/if\(!matchesCurrent\(cached,window\.ASOBOON_HOME_STATUS_SNAPSHOT\)\)emit\(provisional\(cached\)\)/);
- assert.doesNotMatch(read('home-status-v13.js'),/emit\(snap\)|saveSnapshot\(/);
+test('Official HOME only provides call-status navigation and no auto polling bundle',()=>{
+ const home=read('home-v38.js');
+ const manifest=read('bundle-sources.json');
+ assert.match(home,/E\.environment==='production'/);
+ assert.match(home,/kind:'call-link'/);
+ assert.match(home,/isTodaysReceipt\(RES_KEY\)\|\|isTodaysReceipt\(CALL_STATUS_CACHE_KEY\)/);
+ assert.match(home,/呼出状況を確認する/);
+ assert.doesNotMatch(manifest,/home-status-v13\.js/);
 });
+
 test('new reservations handoff use pending instead of outdated loading status',()=>{
  assert.match(read('home-reservation-handoff-v26.js'),/kind:'pending'/);
  assert.doesNotMatch(read('home-reservation-handoff-v26.js'),/kind:'sync'/);
- assert.match(read('home-status-v13.js'),/waitForLiff/);
+ assert.match(read('home-reservation-handoff-v26.js'),/ASOBOON_V13_HOME_STATUS\?\.refresh\?\./);
 });

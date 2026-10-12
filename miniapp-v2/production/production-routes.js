@@ -409,14 +409,17 @@ const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
 const POLL_FRONT_MS=5000;
-const POLL_NEAR_MS=15000;
-const POLL_MID_MS=60000;
-const POLL_FAR_MS=180000;
-const POLL_ERROR_MS=60000;
+const POLL_NEAR_MS=10000;
+const POLL_MID_MS=15000;
+const POLL_FAR_MS=20000;
+const POLL_ERROR_MS=15000;
+const POLL_RATE_LIMITED_MS=60000;
+const POLL_TERMINAL_MS=15000;
 const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
 const CANCEL_REQUEST_TIMEOUT_MS=60000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0,lastStatus=null,cancelBusy=false;
+let activeRefreshGeneration=-1,queuedManualRefresh=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -424,7 +427,7 @@ function readJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null')}
 function writeJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}
 function removeKey(key){try{localStorage.removeItem(key)}catch{}}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
-function stopPolling(){generation+=1;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
+function stopPolling(){generation+=1;activeRefreshGeneration=-1;queuedManualRefresh=false;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 const CALL_VISUAL_TONES=['waiting','calling','done','canceled','hold','loading'];
 function setCallVisualTone(state){
@@ -441,7 +444,7 @@ function clearCallVisualTone(){
 }
 function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
-function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=60000)return'約1分ごと';return'約3分ごと'}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=10000)return'約10秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=20000)return'約20秒ごと';return'約30秒ごと'}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
@@ -462,8 +465,12 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
+    <div id="csRebookArea" class="cs-rebook-area" hidden>
+      <button id="csRebook" class="cs-rebook" type="button" data-v7-view="reception">もう一度受付する</button>
+      <small>新しい受付は、受付時間と空き枠をご確認のうえお手続きください。</small>
+    </div>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>受付直後は約6秒間隔で再照合し、確認後は待ち人数に応じて約5秒〜3分で調整します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
+<div class="cs-note"><strong>自動更新：</strong>この画面を開いている間は約5〜20秒ごとに確認します。呼出中・保留中も更新を続けます。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
 <div id="csCancelDialog" class="cs-cancel-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="csCancelTitle"><button class="cs-cancel-backdrop" type="button" data-cs-cancel-close aria-label="閉じる"></button><div class="cs-cancel-sheet"><div class="cs-cancel-mark">!</div><h3 id="csCancelTitle">受付をキャンセルしますか？</h3><p>受付番号 <strong id="csCancelReceipt">—</strong><br>キャンセルすると現在の順番は取り消され、元には戻せません。</p><div id="csCancelError" class="cs-error" hidden></div><button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセルする</button><button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button></div></div>
 </section>`}
@@ -474,6 +481,12 @@ function updateCancelAction(state){
   const allowed=['waiting','calling','hold'].includes(String(state||''));
   area.hidden=!allowed;
   if(button){button.disabled=cancelBusy||!allowed;button.textContent=cancelBusy?'キャンセル処理中…':'受付をキャンセルする'}
+}
+function updateRebookAction(data){
+  const area=$('csRebookArea');if(!area)return;
+  // A new same-day claim is allowed only after an actual terminal outcome.
+  // No second reservation is sent until the guest explicitly uses reception.
+  area.hidden=!(data?.found===true&&['canceled','done'].includes(String(data.state||'')));
 }
 function openCancelDialog(){
   if(cancelBusy||!['waiting','calling','hold'].includes(String(lastStatus?.state||'')))return;
@@ -577,7 +590,8 @@ function updateCallForecast(data){
 function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
-  if(['calling','done','canceled','closed'].includes(state))return 0;
+  if(state==='calling')return POLL_TERMINAL_MS;
+  if(['done','canceled','closed'].includes(state))return 0;
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
     const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
@@ -635,6 +649,7 @@ function applyStatus(d){
   setCallVisualTone(d.found?d.state:'loading');
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
+  updateRebookAction(d);
   shareHomeStatus(d);
   const cached=cachedReservation();
   const receipt=String(d.receiptNo||cached.receiptNo||'—');
@@ -731,14 +746,18 @@ async function ensureSession(){
 async function refreshStatus({manual=false}={}){
   const gen=generation;
   if(!$('csState'))return;
+  // Only one status request per mounted screen. A manual tap while loading
+  // queues ONE additional refresh instead of racing and showing stale results.
+  if(activeRefreshGeneration===gen){if(manual)queuedManualRefresh=true;return}
+  activeRefreshGeneration=gen;
   if(manual)setBusy(true);
   setError('');
   try{
     let session=await ensureSession();
     if(gen!==generation||!$('csState'))return;
     if(!session){
-      nextPollMs=POLL_MID_MS;
       const cached=cachedReservation();
+      nextPollMs=cached?.receiptNo?POLL_MID_MS:POLL_RATE_LIMITED_MS;
       if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
       if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
       if($('csTitle'))$('csTitle').textContent='本日の受付が見つかりません';
@@ -755,10 +774,14 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){nextPollMs=POLL_ERROR_MS;setCallVisualTone('loading');updateCallForecast(null);setError(String(e?.message||e));const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent='通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約1分後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
-    if(gen===generation&&$('csState'))scheduleNext(gen);
+    if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;
+    if(gen===generation&&$('csState')){
+      if(queuedManualRefresh){queuedManualRefresh=false;void refreshStatus({manual:true})}
+      else scheduleNext(gen);
+    }
   }
 }
 
@@ -778,6 +801,7 @@ function mountCallstatus(){
   $('csCancelProceed')?.addEventListener('click',()=>void cancelCurrentReservation());
   document.querySelectorAll('[data-cs-cancel-close]').forEach(el=>el.addEventListener('click',closeCancelDialog));
   updateCancelAction('');
+  updateRebookAction(null);
   queueMicrotask(()=>{if(gen===generation&&$('csState'))void refreshStatus()});
 }
 

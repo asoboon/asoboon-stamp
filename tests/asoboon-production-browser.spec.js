@@ -430,62 +430,66 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
-test('Production HOME shows locally saved receipt before delayed call-status and never flashes cached calling',async({page})=>{
-  await installProduction(page);
-  await page.addInitScript(()=>{
-    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-      receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0
-    }));
-    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
-      sessionToken:'s'.repeat(40),receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',expiresAt:4102444800000
-    }));
-    localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
-      receiptNo:'F321',businessDate:'2026-10-03',savedAt:Date.now(),
-      status:{kind:'calling',receipt:'F321',source:'live',checkedAt:Date.now()}
-    }));
-  });
-  let release,started;
-  const held=new Promise(resolve=>{release=resolve});
-  const requested=new Promise(resolve=>{started=resolve});
-  await page.route(GATEWAY+'**',async route=>{
-    const action=new URLSearchParams(route.request().postData()||'').get('action');
-    if(action!=='reservationStatus')return route.fallback();
-    started();
-    await held;
-    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-      ok:true,found:true,state:'waiting',receiptNo:'F321',businessDate:'2026-10-03',aheadCount:6,checkedAt:Date.now()
-    })});
-  });
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#v38Hero')).toHaveClass(/pending/);
-  await expect(page.locator('.v38-pending-number')).toHaveText('F321');
-  await expect(page.locator('.v38-pending-status')).toContainText('最新の呼出状況を確認しています');
-  await expect(page.locator('#v38Hero')).not.toContainText('ご入場可能です');
-  await expect(page.locator('#v38Hero')).not.toContainText('呼出中');
-  await requested;
-  await expect(page.locator('#v38Hero')).toHaveClass(/pending/);
-  expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
-  release();
-  await expect(page.locator('#v38Hero')).toHaveClass(/waiting/);
-  await expect(page.locator('#v38Hero')).toContainText('F321');
-  await expect(page.locator('.v38-ahead')).toContainText('6');
+test('Production HOME with a saved receipt shows only the call-status link and makes no automatic reservationStatus requests',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+     receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0
+   }));
+   localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
+     receiptNo:'F321',businessDate:'2026-10-03',savedAt:Date.now(),
+     status:{kind:'calling',receipt:'F321',source:'live',checkedAt:Date.now()}
+   }));
+ });
+ const actions=[];
+ page.on('request',req=>{const p=new URLSearchParams(req.postData()||'');if(p.get('action')==='reservationStatus')actions.push('status')});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const hero=page.locator('#v38Hero');
+ await expect(hero).toHaveClass(/call-link/);
+ await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(1);
+ await expect(hero).not.toContainText('F321');
+ await expect(hero).not.toContainText('あと');
+ await expect(hero).not.toContainText('ご入場可能です');
+ await expect(hero).not.toContainText('呼出中');
+ for(const kind of ['waiting','calling','hold','guided','canceled','error']){
+   await page.evaluate(kind=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+     detail:{kind,receipt:'F321',ahead:3,source:'live',checkedAt:Date.now()}
+   })),kind);
+   await expect(hero).toHaveClass(/call-link/);
+   await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(1);
+   await expect(hero).not.toContainText('F321');
+   await expect(hero).not.toContainText('3組');
+   await expect(hero).not.toContainText('入場できます');
+ }
+ await page.waitForTimeout(350);
+ expect(actions).toEqual([]);
 });
 
-test('Production HOME preserves cached receipt when online status fails',async({page})=>{
-  await installProduction(page);
-  await page.addInitScript(()=>{
-    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-      receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:1,infants:0
-    }));
-    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
-      sessionToken:'t'.repeat(40),receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030',expiresAt:4102444800000
-    }));
-  });
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#v38Hero')).toHaveClass(/error/);
-  await expect(page.locator('#v38Hero')).toContainText('受付状況を取得できません');
-  await expect(page.locator('#v38Hero')).toContainText('E777');
-  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+test('Production HOME link stays available with a local receipt when network status is unavailable',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030'
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero')).not.toContainText('E777');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveText(/呼出状況を確認する/);
+});
+
+test('Production HOME recognizes a session restored to call-status cache alone',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_callstatus_production_v1',JSON.stringify({
+     receiptNo:'R432',businessDate:'2026-10-03',waitTypeId:'0033',cachedAt:Date.now()
+   }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero')).not.toContainText('R432');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
 });
 
 test('Production HOME does not show yesterday receipt or saved calling after the 19:00 JST rollover',async({page})=>{
@@ -550,17 +554,18 @@ test('WEB reservation link remains discoverable before 9:25 without opening MINI
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
 });
 
-test('WEB reservation invitation disappears when a reservation already exists',async({page})=>{
-  await installProduction(page);
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
-  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
-    detail:{kind:'waiting',receipt:'F321',ahead:6,source:'live',checkedAt:Date.now()}
-  })));
-  await expect(page.locator('#v38Hero')).toHaveClass(/waiting/);
-  await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
+test('Production HOME stays navigation-only even after call-state events',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+   detail:{kind:'waiting',receipt:'F321',ahead:6,source:'live',checkedAt:Date.now()}
+ })));
+ await expect(page.locator('#v38Hero')).toHaveClass(/open/);
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+ await expect(page.locator('#v38Hero')).not.toContainText('F321');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
 });
-
 
 test('AirWAIT text link opens the configured WEB reception externally on user tap only',async({page})=>{
   await installProduction(page);
@@ -622,22 +627,19 @@ test('ASOBooN Timer keeps its name and highlights the expected finish time when 
 });
 
 
-test('Admitted guests see アソブーンタイマー rather than the retired time-guide shortcut name',async({page})=>{
-  await installProduction(page);
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.evaluate(()=>{
-    window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
-      detail:{kind:'guided',receipt:'F123',checkedAt:Date.now(),source:'live'}
-    }));
-  });
-  const hero=page.locator('#v38Hero');
-  await expect(hero).toHaveClass(/guided/);
-  const timer=hero.locator('[data-v7-view="timeguide"]');
-  await expect(timer).toBeVisible();
-  await expect(timer).toContainText('アソブーンタイマー');
-  await expect(timer).not.toContainText('何時まで遊べる');
-  await timer.click();
-  await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
+test('Production HOME timer shortcut stays accessible after call-state events without showing the call state',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+   detail:{kind:'guided',receipt:'F123',checkedAt:Date.now(),source:'live'}
+ })));
+ const hero=page.locator('#v38Hero');
+ await expect(hero).not.toContainText('ご入場済み');
+ const timer=page.locator('#v38TimeguideShortcut');
+ await expect(timer).toBeVisible();
+ await expect(timer).toContainText('アソブーンタイマー');
+ await timer.click();
+ await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
 });
 
 test('Official HOME never inserts the retired prototype, including while LIFF initializes',async({page})=>{
@@ -820,6 +822,79 @@ test('Existing 30-minute HOME cache restores both channels without inventing mis
   await expect(card).toHaveCount(1);
   await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('25名');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('14名');
+});
+
+for(const state of ['canceled','done']){
+ test('Terminal '+state+' exposes re-reception on call-status page, not HOME',async({page})=>{
+  await installProduction(page,{status:{
+    ok:true,found:true,state,receiptNo:'F998',businessDate:'2026-10-03',
+    waitTypeId:'0033',waitTypeName:'15:00の回',checkedAt:Date.parse('2026-10-03T03:00:00Z')
+  }});
+  await page.addInitScript(()=>{
+    localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033'
+    }));
+    localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+      businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033',
+      sessionToken:'r'.repeat(40),expiresAt:4102444800000
+    }));
+  });
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#csRebookArea')).toBeVisible();
+  await expect(page.locator('#csRebook')).toContainText('もう一度受付する');
+  await page.locator('#csRebook').click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+  await expect(page.locator('#recSubmit')).toBeVisible();
+ });
+}
+test('Active waiting call-state does not offer a second reception',async({page})=>{
+ await installProduction(page,{status:{
+   ok:true,found:true,state:'waiting',receiptNo:'F998',businessDate:'2026-10-03',
+   waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:8,queueRank:9,
+   activeCount:40,checkedAt:Date.parse('2026-10-03T03:00:00Z')
+ }});
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033'
+   }));
+   localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F998',waitTypeId:'0033',
+     sessionToken:'r'.repeat(40),expiresAt:4102444800000
+   }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect(page.locator('#csRebookArea')).toBeHidden();
+});
+
+test('Call status automatically updates waiting → calling → done while screen stays open',async({page})=>{
+ await installProduction(page);
+ let polls=0;
+ await page.route(GATEWAY+'**',async route=>{
+   const action=new URLSearchParams(route.request().postData()||'').get('action');
+   if(action!=='reservationStatus')return route.fallback();
+   polls++;
+   const state=polls===1?'waiting':polls===2?'calling':'done';
+   const result={ok:true,found:true,state,receiptNo:'F222',businessDate:'2026-10-03',waitTypeId:'0033',
+     waitTypeName:'15:00の回',aheadCount:state==='waiting'?1:0,queueRank:state==='waiting'?2:1,
+     activeCount:10,checkedAt:Date.parse('2026-10-03T03:00:00Z')};
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});
+ });
+ await page.addInitScript(()=>{
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F222',waitTypeId:'0033'
+   }));
+   localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+     businessDate:'2026-10-03',receiptNo:'F222',waitTypeId:'0033',sessionToken:'d'.repeat(40),expiresAt:4102444800000
+   }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect.poll(()=>polls,{timeout:12000}).toBeGreaterThanOrEqual(2);
+ await expect(page.locator('#csTitle')).toContainText('入場できます');
+ await expect.poll(()=>polls,{timeout:25000}).toBeGreaterThanOrEqual(3);
+ await expect(page.locator('#csTitle')).toContainText('ご案内済み');
+ await expect(page.locator('#csTop')).toContainText('自動更新を終了');
 });
 
 test('Call status displays a large call-time reference and route from scheduled slot to the guest',async({page})=>{
@@ -1086,6 +1161,8 @@ test('Unverified cross-channel queue does not silently show 0 groups or an ungro
   await expect(page.locator('#csMessage')).toContainText('WEB受付とLINE受付の待ち順');
   await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
   await expect(page.locator('.v38-home')).toBeVisible();
-  await expect(page.locator('#v38Hero')).toContainText('2510');
+  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+  await expect(page.locator('#v38Hero')).not.toContainText('2510');
   await expect(page.locator('#v38Hero')).not.toContainText('あと0組');
+  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
 });
