@@ -919,8 +919,10 @@ test('HOME updates 12:30 WEB and LINE quotas while left open without extra busin
 });
 test('HOME marks stale AirWAIT quota unverified instead of displaying stale capacity as current',async({page})=>{
  await installProduction(page);
+ let reads=0;
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  if(++reads>1)return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_UNAVAILABLE"}'});
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
    ok:true,stale:true,staleAgeMs:180000,fetchedAt:'2026-10-03T02:57:00.000Z',
    slots:[{waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
@@ -930,13 +932,41 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card).toBeVisible();
- await expect(page.locator('#v38CrowdAge')).toContainText('最新の人数を取得できていません');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最新の取得に失敗しました');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
  await expect(card).not.toContainText('71名');
  await expect(card).not.toContainText('44名');
+ const previous=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1')||'{}'));
+ expect(previous.verifiedFresh).toBe(false);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
  await card.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+});
+test('HOME shows manual refresh cooldown during 429 backoff instead of silently ignoring taps',async({page})=>{
+ await installProduction(page);
+ let reads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  reads++;
+  if(reads>1)return route.fulfill({status:429,contentType:'application/json',body:'{"ok":false,"error":"RATE_LIMITED"}'});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,
+   slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const button=page.locator('#v38CrowdUpdate');
+ await expect(button).toBeEnabled();
+ await button.click();
+ await expect(button).toBeDisabled();
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await page.waitForTimeout(200);
+ expect(reads).toBe(2);
 });
 test('HOME shows separate WEB and onsite remaining counts from the same existing crowd API response',async({page})=>{
   const actions=[];
