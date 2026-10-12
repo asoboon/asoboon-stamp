@@ -6,7 +6,7 @@ import {
 
 const DAY='2026-10-03';
 const NOON_JST=Date.parse('2026-10-03T03:00:00Z');
-let worker,db,world,env;
+let worker,db,world,env,edgeCache;
 
 before(async()=>{
   const runtimeUrl=prepareRuntime();
@@ -15,10 +15,10 @@ before(async()=>{
   world=new FakeWorld();
   globalThis.fetch=(input,init)=>world.fetch(input,init);
   // Cloudflare cache API used by surprise-vote warm path.
-  const cache=new Map();
+  edgeCache=new Map();
   globalThis.caches={default:{
-    async match(req){const v=cache.get(String(req.url||req));return v?v.clone():undefined},
-    async put(req,res){cache.set(String(req.url||req),res.clone())},
+    async match(req){const v=edgeCache.get(String(req.url||req));return v?v.clone():undefined},
+    async put(req,res){edgeCache.set(String(req.url||req),res.clone())},
   }};
   worker=(await import(runtimeUrl)).default;
 });
@@ -26,6 +26,7 @@ before(async()=>{
 beforeEach(()=>{
   mock.timers.setTime(NOON_JST);
   db.clear();
+  edgeCache.clear();
   world.reset();
   env=baseEnv(db,{PRODUCTION_DIAGNOSTICS_TOKEN:DIAG_TOKEN});
 });
@@ -114,6 +115,32 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(vote.data?.ok,true);
 });
 
+test('Crowd simultaneously requested by 30 clients makes one upstream AirWAIT query',async()=>{
+  const clients=Array.from({length:30},()=>call(worker,env,{method:'GET',query:{action:'crowdRemaining'}}));
+  const results=await Promise.all(clients);
+  assert.ok(results.every(r=>r.status===200));
+  assert.equal(world.calls.filter(s=>s.includes('/store/getWaitInfo')).length,1);
+});
+test('Crowd response is shared for 20 seconds and misses refresh AirWAIT',async()=>{
+  const request=()=>call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
+  const first=await request();
+  assert.equal(first.status,200);
+  const original=first.data.slots.find(v=>v.waitTypeId==='0030').remaining;
+  world.crowdWaitDetails=[
+    {detailedWaitType:'枠0030',reserveUnit:'PERSON',remainingNum:47},
+    {detailedWaitType:'枠0032',reserveUnit:'PERSON',remainingNum:44},
+    {detailedWaitType:'枠0034',reserveUnit:'PERSON',remainingNum:39}
+  ];
+  const same=await request();
+  assert.equal(same.status,200);
+  assert.equal(same.data.cacheSource,'edge-shared');
+  assert.equal(same.data.slots.find(v=>v.waitTypeId==='0030').remaining,original);
+  mock.timers.setTime(NOON_JST+21000);
+  const next=await request();
+  assert.equal(next.status,200);
+  assert.equal(next.data.slots.find(v=>v.waitTypeId==='0030').remaining,47);
+  assert.equal(next.data.stale,false);
+});
 test('AirWAIT explicit zero onsite capacity is verified; missing/null never fabricate zero',async()=>{
   world.crowdWaitDetails=[
     {detailedWaitType:'枠0030',reserveUnit:'PERSON',remainingNum:null},

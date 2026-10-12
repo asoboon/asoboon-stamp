@@ -878,6 +878,66 @@ test('Slow app startup shows only the small neutral boot indicator, never old HO
 });
 
 
+test('HOME updates 12:30 WEB and LINE quotas while left open without extra business-day calls',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  const nativeSetTimeout=window.setTimeout.bind(window);
+  window.setTimeout=(cb,ms,...args)=>nativeSetTimeout(cb,ms>=35000&&ms<=43000?190:ms,...args);
+ });
+ let calls=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  const n=++calls;
+  const web=n===1?71:Math.max(0,71-n*5),line=n===1?44:Math.max(0,44-n*4);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:[
+    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
+    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:web},
+    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}
+   ],observedDetails:[
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:117,remainingVerified:true},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:line,remainingVerified:true},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:8,remainingVerified:true}
+   ]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/\d+名/);
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
+ await expect.poll(()=>calls,{timeout:5000}).toBeGreaterThanOrEqual(2);
+ await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('71名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('44名');
+ await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ const before=calls;
+ await page.locator('#v38CrowdUpdate').click();
+ await expect.poll(()=>calls).toBeGreaterThan(before);
+ await card.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ const after=calls;await page.waitForTimeout(500);expect(calls).toBe(after);
+});
+test('HOME marks stale AirWAIT quota unverified instead of displaying stale capacity as current',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:true,staleAgeMs:180000,fetchedAt:'2026-10-03T02:57:00.000Z',
+   slots:[{waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card).toBeVisible();
+ await expect(page.locator('#v38CrowdAge')).toContainText('最新の人数を取得できていません');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
+ await expect(card).not.toContainText('71名');
+ await expect(card).not.toContainText('44名');
+ await card.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+});
 test('HOME shows separate WEB and onsite remaining counts from the same existing crowd API response',async({page})=>{
   const actions=[];
   page.on('request',r=>{if(r.url().includes('action=crowdRemaining'))actions.push(r.url())});

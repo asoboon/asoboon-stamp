@@ -121,7 +121,7 @@ export default {
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
 
-    if (request.method === 'GET' && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, action)) {
+    if (request.method === 'GET' && action !== 'crowdRemaining' && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, action)) {
       try { await enforceRequestIpRateLimit(env, request, action); }
       catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||429)); }
     }
@@ -957,13 +957,49 @@ async function writeCrowdSnapshot(env,value){
       .bind(CROWD_SNAPSHOT_KEY,JSON.stringify(value),Date.now()).run();
   }catch(e){console.warn('CROWD_SNAPSHOT_WRITE_FAILED',safeError(e))}
 }
+// Shared Cloudflare edge cache prevents 300-500 guests on the same Wi-Fi from
+// each triggering an AirWAIT round-trip or consuming the shared-IP limiter.
+const CROWD_EDGE_TTL_MS=20000;
+let crowdEdgeInFlight=null;
 async function getCrowdRemaining(request,env,ctx){
+  const cacheKey=new Request('https://asoboon.internal/readonly/crowd-remaining-v3');
+  try{
+    const edge=await caches.default.match(cacheKey);
+    if(edge){
+      const box=await edge.json();
+      if(box?.value?.ok===true&&box.value.stale!==true
+        &&Date.now()-Number(box.savedAt)>-1000&&Date.now()-Number(box.savedAt)<CROWD_EDGE_TTL_MS){
+        return {...box.value,cacheSource:'edge-shared'};
+      }
+    }
+  }catch{}
+  // Same isolate can receive hundreds of simultaneous cache misses.
+  // Collapse them into one read while the shared edge cache warms.
+  if(crowdEdgeInFlight)return await crowdEdgeInFlight;
+  const work=readCrowdRemainingUncached(request,env,ctx,cacheKey);
+  crowdEdgeInFlight=work;
+  try{return await work}finally{if(crowdEdgeInFlight===work)crowdEdgeInFlight=null}
+}
+async function readCrowdRemainingUncached(request,env,ctx,cacheKey){
+  // Rate-limit only genuine shared-cache misses, not every guest reading the
+  // same public 20-second snapshot from a facility's shared public IP.
+  await enforceRequestIpRateLimit(env,request,'crowdRemaining');
   const cached=await readCrowdSnapshot(env);
   try{
     const fresh=await fetchCrowdRemainingFresh(request,env,ctx);
     if(!Array.isArray(fresh?.slots)||!fresh.slots.length)throw apiError('AIRWAIT_CROWD_EMPTY',502);
+    const payload={...fresh,stale:false,cacheSource:'airwait-fresh'};
+    const store=async()=>{
+      try{
+        await caches.default.put(cacheKey,new Response(JSON.stringify({savedAt:Date.now(),value:payload}),{
+          headers:{'Content-Type':'application/json','Cache-Control':'public, max-age=20'}
+        }));
+      }catch(e){console.warn('CROWD_EDGE_CACHE_WRITE_FAILED',safeError(e))}
+    };
+    if(ctx?.waitUntil)ctx.waitUntil(store());
+    else await store();
     await writeCrowdSnapshot(env,fresh);
-    return{...fresh,stale:false,cacheSource:'airwait-fresh'};
+    return payload;
   }catch(e){
     const age=cached?Date.now()-Number(cached.savedAt||0):Infinity;
     if(cached&&age<=CROWD_SNAPSHOT_MAX_AGE_MS){
