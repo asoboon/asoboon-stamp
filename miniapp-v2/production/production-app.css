@@ -321,6 +321,26 @@ body.v38-home-active.v38-state-canceled{background:linear-gradient(180deg,#fbe9e
 .v38-hero.call-link .v38-action.primary{background:#236589;color:#fff}
 .v38-hero.call-link .v38-action.primary:hover{background:#175275}
 
+/* Quiet 44px HOME navigation target, no oversized call-status card. */
+body.v38-home-active .v38-action[data-v7-view="callstatus"]{
+ display:inline-flex;width:auto;min-height:44px;margin-top:11px;gap:9px;
+ justify-content:center;padding:0 13px;border:1px solid #c9d9e1;border-radius:11px;
+ background:#f3f8fa;color:#315d74;font-size:13px;font-weight:800;box-shadow:none
+}
+body.v38-home-active .v38-action[data-v7-view="callstatus"] svg{width:15px;height:15px}
+body.v38-home-active .v38-action[data-v7-view="callstatus"]:focus-visible{outline:3px solid #7ab8d9;outline-offset:2px}
+body.v38-home-active .v38-hero.call-link{
+ display:flex;align-items:center;justify-content:flex-end;min-height:48px;
+ padding:0;border:0;border-radius:0;background:transparent;box-shadow:none
+}
+body.v38-home-active .v38-hero.call-link .v38-hero-icon,
+body.v38-home-active .v38-hero.call-link h1,
+body.v38-home-active .v38-hero.call-link p{display:none}
+body.v38-home-active .v38-hero.call-link .v38-action.primary{
+ margin:0;background:#f3f8fa;color:#315d74;border:1px solid #c9d9e1;box-shadow:none
+}
+body.v38-home-active .v38-hero.call-link .v38-action.primary:hover{background:#e7f2f6}
+
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
 .v38-surprise-section{padding:0}

@@ -32,3 +32,12 @@
 .cs-rebook-area{margin-top:12px;text-align:center}
 .cs-rebook{width:100%;min-height:48px;border:0;border-radius:14px;background:#236b49;color:#fff;font-weight:1000;box-shadow:0 6px 15px rgba(23,103,71,.13)}
 .cs-rebook-area small{display:block;margin-top:7px;color:#526a5b;font-size:.59rem;line-height:1.5;font-weight:760}
+
+/* Genuine client-side update heartbeat, not an invented server progress %. */
+.cs-heartbeat{display:flex;align-items:center;gap:9px;margin-top:10px;padding:9px 11px;
+ border:1px solid #c9dce5;border-radius:12px;background:#f3fafc;color:#466575;
+ font-size:12px;font-weight:750;line-height:1.5}
+.cs-heartbeat-dot{width:8px;height:8px;flex:none;border-radius:50%;background:#268a9a;
+ box-shadow:0 0 0 3px #268a9a19;animation:cs-heartbeat-pulse 2.4s ease-in-out infinite}
+@keyframes cs-heartbeat-pulse{50%{opacity:.55;transform:scale(.88)}}
+@media(prefers-reduced-motion:reduce){.cs-heartbeat-dot{animation:none}}

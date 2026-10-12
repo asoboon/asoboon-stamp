@@ -8,18 +8,19 @@ const SESSION_KEY=`asoboon_v2_callstatus_session_${STORAGE_NS}_v1`;
 const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
 const POLL_RECONCILE_MS=6000;
 const POLL_RECONCILE_MAX=3;
-const POLL_FRONT_MS=5000;
-const POLL_NEAR_MS=10000;
-const POLL_MID_MS=15000;
-const POLL_FAR_MS=20000;
-const POLL_ERROR_MS=15000;
-const POLL_RATE_LIMITED_MS=60000;
+const POLL_FRONT_MS=8000;
+const POLL_NEAR_MS=15000;
+const POLL_MID_MS=30000;
+const POLL_FAR_MS=45000;
+const POLL_ERROR_MS=30000;
+const POLL_RATE_LIMITED_MS=90000;
 const POLL_TERMINAL_MS=15000;
 const POLL_JITTER=0.10;
 const REQUEST_TIMEOUT_MS=10000;
 const CANCEL_REQUEST_TIMEOUT_MS=60000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0,lastStatus=null,cancelBusy=false;
 let activeRefreshGeneration=-1,queuedManualRefresh=false;
+let heartbeatTimer=0,lastRefreshStartedAt=0,lastRefreshSucceededAt=0,nextPollAt=0,rateLimitUntil=0,hadRefreshError=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -27,7 +28,12 @@ function readJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null')}
 function writeJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}
 function removeKey(key){try{localStorage.removeItem(key)}catch{}}
 function backendReady(){return Boolean(E.backendUrl&&/^https:\/\//.test(String(E.backendUrl)))}
-function stopPolling(){generation+=1;activeRefreshGeneration=-1;queuedManualRefresh=false;if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
+function stopPolling(){
+ generation+=1;activeRefreshGeneration=-1;queuedManualRefresh=false;
+ if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
+ if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=0}
+ nextPollAt=0;
+}
 function stopReceptionWatch(){if(receptionObserver){receptionObserver.disconnect();receptionObserver=null}if(receptionTimer){clearTimeout(receptionTimer);receptionTimer=0}}
 const CALL_VISUAL_TONES=['waiting','calling','done','canceled','hold','loading'];
 function setCallVisualTone(state){
@@ -44,7 +50,8 @@ function clearCallVisualTone(){
 }
 function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
-function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=5000)return'約5秒ごと';if(ms<=6000)return'約6秒ごと';if(ms<=10000)return'約10秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=20000)return'約20秒ごと';return'約30秒ごと'}
+function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=8000)return'約8秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=30000)return'約30秒ごと';if(ms<=45000)return'約45秒ごと';return'約90秒ごと'}
+function clockTick(){return typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():Date.now()}
 function jitter(ms){if(!ms)return 0;const factor=1-POLL_JITTER+Math.random()*POLL_JITTER*2;return Math.max(1000,Math.round(ms*factor))}
 
 function pageHtml(){return `<section class="page-card cs-page"><div class="page-head green"><small>CALL STATUS / NEW HOME</small><h2>呼出状況</h2></div><div class="page-body cs-body">
@@ -63,6 +70,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
   <p id="csForecastNote" class="cs-forecast-note">順番からの参考予測です。実際の呼出時刻は前後します。</p>
 </section>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
+<div id="csHeartbeat" class="cs-heartbeat" role="status" aria-live="off"><span class="cs-heartbeat-dot" aria-hidden="true"></span><span id="csHeartbeatLabel">自動更新を準備しています</span></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
     <div id="csRebookArea" class="cs-rebook-area" hidden>
@@ -70,7 +78,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
       <small>新しい受付は、受付時間と空き枠をご確認のうえお手続きください。</small>
     </div>
 <div id="csError" class="cs-error" hidden></div>
-<div class="cs-note"><strong>自動更新：</strong>この画面を開いている間は約5〜20秒ごとに確認します。呼出中・保留中も更新を続けます。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
+<div class="cs-note"><strong>自動更新：</strong>開いている間は状況に応じて約8〜45秒ごとに確認します。通信集中時には更新間隔を延ばして再試行します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
 <div id="csCancelDialog" class="cs-cancel-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="csCancelTitle"><button class="cs-cancel-backdrop" type="button" data-cs-cancel-close aria-label="閉じる"></button><div class="cs-cancel-sheet"><div class="cs-cancel-mark">!</div><h3 id="csCancelTitle">受付をキャンセルしますか？</h3><p>受付番号 <strong id="csCancelReceipt">—</strong><br>キャンセルすると現在の順番は取り消され、元には戻せません。</p><div id="csCancelError" class="cs-error" hidden></div><button id="csCancelProceed" class="cs-cancel-proceed" type="button">キャンセルする</button><button class="cs-cancel-dismiss" type="button" data-cs-cancel-close>やめる</button></div></div>
 </section>`}
@@ -207,9 +215,35 @@ function delayForStatus(d){
 function scheduleNext(gen=generation){
   if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
   if(gen!==generation||!$('csState')||document.visibilityState!=='visible'||!nextPollMs)return;
-  pollTimer=setTimeout(()=>{pollTimer=0;void refreshStatus()},jitter(nextPollMs));
+  const delay=jitter(nextPollMs);nextPollAt=clockTick()+delay;
+  pollTimer=setTimeout(()=>{pollTimer=0;nextPollAt=0;void refreshStatus()},delay);
+  renderHeartbeat();
 }
 
+function renderHeartbeat(){
+ const label=$('csHeartbeatLabel');if(!label)return;
+ if(activeRefreshGeneration===generation){
+   const seconds=Math.max(0,Math.floor((clockTick()-lastRefreshStartedAt)/1000));
+   label.textContent=seconds>=8
+     ?`確認が続いています（${seconds}秒経過）。通信結果を待っています。`
+     :`最新の呼出状況を確認中… ${seconds}秒`;
+   return;
+ }
+ if(nextPollAt>0){
+   const seconds=Math.max(0,Math.ceil((nextPollAt-clockTick())/1000));
+   const suffix=lastRefreshSucceededAt&&!hadRefreshError?`最終取得 ${fmtClock(lastRefreshSucceededAt)} ／ `:'';
+   label.textContent=`${hadRefreshError?'通信が不安定です。':'自動更新は動作中です。'}${suffix}次の再確認まで ${seconds}秒`;
+   return;
+ }
+ label.textContent=lastRefreshSucceededAt?'最新の確認結果を表示しています。':'自動更新を準備しています。';
+}
+function startHeartbeat(){
+ if(heartbeatTimer)clearInterval(heartbeatTimer);
+ heartbeatTimer=setInterval(()=>{
+   if(document.visibilityState==='visible'&&$('csState'))renderHeartbeat();
+ },1000);
+ renderHeartbeat();
+}
 function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=true;el.textContent='';return}el.hidden=false;el.textContent=String(text)}
 function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textContent=busy?'確認中…':'↻ 今すぐ更新'}}
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
@@ -296,16 +330,16 @@ async function gatewayPost(action,body={},options={}){
   const timeoutMs=Math.max(1000,Number(options?.timeoutMs||REQUEST_TIMEOUT_MS));
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),timeoutMs);
-  let r;
   try{
-    r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))});
+    const r=await fetch(E.backendUrl,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',signal:ctrl.signal,headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',Accept:'application/json'},body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')]))});
+    let d=null;try{d=await r.json()}catch(e){if(ctrl.signal.aborted)throw e}
+    if(!r.ok)throw Error(String(d?.error||`Gateway HTTP ${r.status}`));
+    if(!d||typeof d!=='object')throw Error('呼出状況の応答を読み取れませんでした。');
+    return d;
   }catch(e){
-    if(e?.name==='AbortError')throw Error(action==='cancelReservation'?'CANCEL_REQUEST_TIMEOUT':'呼出状況の確認がタイムアウトしました。');
+    if(ctrl.signal.aborted||e?.name==='AbortError')throw Error(action==='cancelReservation'?'CANCEL_REQUEST_TIMEOUT':'呼出状況の確認がタイムアウトしました。');
     throw e;
   }finally{clearTimeout(timer)}
-  let d=null;try{d=await r.json()}catch{}
-  if(!r.ok)throw Error(String(d?.error||`Gateway HTTP ${r.status}`));
-  return d||{};
 }
 
 async function waitForLine(){
@@ -349,7 +383,12 @@ async function refreshStatus({manual=false}={}){
   // Only one status request per mounted screen. A manual tap while loading
   // queues ONE additional refresh instead of racing and showing stale results.
   if(activeRefreshGeneration===gen){if(manual)queuedManualRefresh=true;return}
-  activeRefreshGeneration=gen;
+  if(rateLimitUntil>clockTick()){
+    nextPollMs=Math.max(1000,rateLimitUntil-clockTick());
+    if(manual)setError('アクセス集中のため待機しています。画面は自動で再確認します。');
+    scheduleNext(gen);return;
+  }
+  activeRefreshGeneration=gen;nextPollAt=0;lastRefreshStartedAt=clockTick();renderHeartbeat();
   if(manual)setBusy(true);
   setError('');
   try{
@@ -374,13 +413,15 @@ async function refreshStatus({manual=false}={}){
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約1分後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
+    lastRefreshSucceededAt=Date.now();hadRefreshError=false;rateLimitUntil=0;
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);hadRefreshError=true;nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rateLimitUntil=clockTick()+POLL_RATE_LIMITED_MS;setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約1分後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;
     if(gen===generation&&$('csState')){
       if(queuedManualRefresh){queuedManualRefresh=false;void refreshStatus({manual:true})}
       else scheduleNext(gen);
+      renderHeartbeat();
     }
   }
 }
@@ -391,7 +432,7 @@ function mountCallstatus(){
   stopPolling();
   stopReceptionWatch();
   nextPollMs=POLL_FAR_MS;
-  notFoundStreak=0;
+  notFoundStreak=0;lastRefreshSucceededAt=0;hadRefreshError=false;rateLimitUntil=0;startHeartbeat();
   const gen=generation;
   const cached=cachedReservation();
   if($('csReceipt'))$('csReceipt').textContent=String(cached.receiptNo||'—');
@@ -433,8 +474,12 @@ function watchReception({go}={}){
 }
 
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){if(pollTimer){clearTimeout(pollTimer);pollTimer=0};return}
-  if($('csState'))void refreshStatus({manual:true});
+  if(document.visibilityState==='hidden'){
+    if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=0}
+    nextPollAt=0;return;
+  }
+  if($('csState')){startHeartbeat();void refreshStatus({manual:true})}
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
   version:'1.8.0-terminal-resolution',
