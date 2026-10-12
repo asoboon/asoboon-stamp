@@ -114,18 +114,18 @@ jobs:
       - name: Call status must refresh visible reservations, shed HOME load and herd bursts
         run: |
           set -euo pipefail
-          grep -F "const POLL_FAR_MS=20000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_MID_MS=15000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_FRONT_MS=5000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_NEAR_MS=10000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_FAR_MS=45000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_MID_MS=30000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_FRONT_MS=8000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_NEAR_MS=15000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_JITTER=0.10;" miniapp-v2/shared/callstatus.js
           grep -F "document.visibilityState!=='visible'" miniapp-v2/shared/callstatus.js
-          grep -F "jitter(nextPollMs)" miniapp-v2/shared/callstatus.js
+          grep -F "const delay=jitter(nextPollMs)" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=1" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=5" miniapp-v2/shared/callstatus.js
           grep -F "ahead<=20" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_TERMINAL_MS=15000;" miniapp-v2/shared/callstatus.js
-          grep -F "const POLL_RATE_LIMITED_MS=60000;" miniapp-v2/shared/callstatus.js
+          grep -F "const POLL_RATE_LIMITED_MS=90000;" miniapp-v2/shared/callstatus.js
           grep -F "if(activeRefreshGeneration===gen)" miniapp-v2/shared/callstatus.js
           ! grep -Fq '"miniapp-v2/production/home-status-v13.js"' miniapp-v2/production/bundle-sources.json
           node --test tests/asoboon-callstatus-live-polling.test.mjs

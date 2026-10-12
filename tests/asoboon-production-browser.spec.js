@@ -430,6 +430,24 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
+test('Official HOME call-status button is compact and remains accessible on narrow phones',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+    receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'
+  }));
+ });
+ await page.setViewportSize({width:320,height:700});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ const hero=await page.locator('#v38Hero').boundingBox();
+ const button=await page.locator('#v38Hero [data-v7-view="callstatus"]').boundingBox();
+ expect(hero.height).toBeLessThan(85);
+ expect(button.height).toBeGreaterThanOrEqual(44);
+ expect(button.width).toBeLessThan(260);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+
 test('Production HOME with a saved receipt shows only the call-status link and makes no automatic reservationStatus requests',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
@@ -867,7 +885,76 @@ test('Active waiting call-state does not offer a second reception',async({page})
  await expect(page.locator('#csRebookArea')).toBeHidden();
 });
 
+test('Slow call-status responses show elapsed activity and recover without freezing',async({page})=>{
+ test.setTimeout(30000);
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+    businessDate:'2026-10-03',receiptNo:'F333',waitTypeId:'0033'
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+    businessDate:'2026-10-03',receiptNo:'F333',waitTypeId:'0033',
+    sessionToken:'s'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ let count=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const action=new URLSearchParams(route.request().postData()||'').get('action');
+  if(action!=='reservationStatus')return route.fallback();
+  count++;
+  await new Promise(resolve=>setTimeout(resolve,9000));
+  return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,found:true,state:'waiting',receiptNo:'F333',businessDate:'2026-10-03',
+      waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:27,queueRank:28,activeCount:50,checkedAt:Date.now()})
+  });
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csHeartbeat')).toBeVisible();
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('最新の呼出状況を確認中');
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('確認が続いています',{timeout:12000});
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち',{timeout:18000});
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ expect(count).toBe(1);
+});
+test('Rate-limited status requests visibly cool down and manual taps do not hammer the shared IP',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+    businessDate:'2026-10-03',receiptNo:'F444',waitTypeId:'0033'
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+    businessDate:'2026-10-03',receiptNo:'F444',waitTypeId:'0033',
+    sessionToken:'t'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ let count=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const action=new URLSearchParams(route.request().postData()||'').get('action');
+  if(action!=='reservationStatus')return route.fallback();
+  count++;
+  return route.fulfill({status:429,contentType:'application/json',body:'{"ok":false,"error":"RATE_LIMITED"}'});
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csError')).toContainText('アクセスが集中');
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ expect(count).toBe(1);
+ await page.locator('#csRefresh').click();
+ await expect(page.locator('#csError')).toContainText('自動で再確認');
+ await page.waitForTimeout(300);
+ expect(count).toBe(1);
+ await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+ await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ await page.waitForTimeout(300);
+ expect(count).toBe(1);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ await page.waitForTimeout(300);
+ expect(count).toBe(1);
+});
 test('Call status automatically updates waiting → calling → done while screen stays open',async({page})=>{
+ test.setTimeout(65000);
  await installProduction(page);
  let polls=0;
  await page.route(GATEWAY+'**',async route=>{
@@ -890,9 +977,9 @@ test('Call status automatically updates waiting → calling → done while scree
  });
  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
- await expect.poll(()=>polls,{timeout:12000}).toBeGreaterThanOrEqual(2);
+ await expect.poll(()=>polls,{timeout:18000}).toBeGreaterThanOrEqual(2);
  await expect(page.locator('#csTitle')).toContainText('入場できます');
- await expect.poll(()=>polls,{timeout:25000}).toBeGreaterThanOrEqual(3);
+ await expect.poll(()=>polls,{timeout:28000}).toBeGreaterThanOrEqual(3);
  await expect(page.locator('#csTitle')).toContainText('ご案内済み');
  await expect(page.locator('#csTop')).toContainText('自動更新を終了');
 });
