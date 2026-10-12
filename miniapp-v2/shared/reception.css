@@ -28,3 +28,25 @@
 .rec-processing-footer small{white-space:nowrap;font-size:.55rem;font-variant-numeric:tabular-nums;color:#6c8291}
 @keyframes rec-processing-rotate{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.rec-processing-spinner{animation:none;border-top-color:#2787bc}}
+
+/* LINE-only quota preview. Advisory: receipt issuance validates capacity later. */
+.rec-slot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rec-slot-main{display:block;min-width:0;flex:1}
+.rec-slot-main strong,.rec-slot-main small{overflow-wrap:anywhere}
+.rec-slot-remaining{display:flex;flex:none;min-width:102px;flex-direction:column;
+ gap:3px;align-items:center;justify-content:center;padding:8px 7px;border-radius:10px;
+ background:#fff0dd;color:#a94d0e;line-height:1.25}
+.rec-slot-remaining>span{font-size:10px;font-weight:850;white-space:nowrap}
+.rec-slot-remaining>b{font-size:17px;font-weight:1000;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rec-slot-remaining.is-zero{background:#f6e6e3;color:#9b3931}
+.rec-slot-remaining.is-unknown{background:#f1f2f2;color:#798087}
+.rec-remaining-info{display:flex;align-items:center;justify-content:space-between;gap:9px;
+ padding:1px 2px;color:#5e6b73;font-size:11px;line-height:1.45;font-weight:760}
+.rec-remaining-info[hidden]{display:none!important}
+.rec-remaining-refresh{min-height:38px;flex:none;padding:0 10px;border:1px solid #d3ddd7;
+ border-radius:10px;background:#fff;color:#327256;font-size:11px;font-weight:850}
+.rec-remaining-refresh:disabled{opacity:.5}
+.rec-remaining-refresh:focus-visible{outline:3px solid #a6d0b5;outline-offset:2px}
+.rec-remaining-caution{margin:-7px 2px 10px;color:#7d8586;font-size:10px;line-height:1.5}
+@media(max-width:360px){.rec-slot{gap:7px}.rec-slot-remaining{min-width:94px;padding:7px 5px}
+ .rec-slot-remaining>span{font-size:9px}.rec-slot-remaining>b{font-size:16px}}

@@ -15,8 +15,19 @@ const GET_TIMEOUT_MS=5000;
 const POLL_DEADLINE_MS=60000;
 const SUBMIT_WATCHDOG_MS=120000;
 const PENDING_TTL_MS=24*60*60*1000;
+// Shared with HOME. Do not reuse its long-lived cached numbers for booking.
+const CROWD_CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
+const CROWD_FRESH_MS=30000;
+const CROWD_MANUAL_COOLDOWN_MS=20000;
+// Exact AirWAIT LINE/onsite pool names; WEB IDs MUST NOT be substituted.
+const LINE_REMAINING_NAMES=Object.freeze({
+  '平日':Object.freeze({'0023':'すぐ入場受付【平日】'}),
+  '平日特定日':Object.freeze({'0035':'10時15分から【平日特定日】','0037':'13時45分から【平日特定日】'}),
+  '土日祝日':Object.freeze({'0029':'10時25分頃入場【土休日特定日】','0031':'12時50分頃入場【土休日特定日】','0033':'15時15分頃入場時間【土休日特定日】'})
+});
 let LINE_OPEN_TIMER=0;
 let PROCESSING_TIMER=0,PROCESSING_STARTED_AT=0,PROCESSING_STAGE='';
+let remainingDetails=null,remainingCheckedAt=0,remainingLoading=false,remainingLastAttempt=0;
 const LINE_STORE_ONLY=E.lineStoreOnly===true||E.environment==='develop';
 const PRODUCTION_TEST_DISABLED=false;
 const S={
@@ -71,6 +82,8 @@ function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"
 ${methodBlock}
 <div id="recDay" class="rec-day"><span><small>営業区分</small><strong>確認中</strong></span><b>—</b></div>
 <h3 class="rec-title">① ご利用の回</h3><div id="recSlots" class="rec-slots"><div class="rec-status">受付枠を確認しています…</div></div>
+${E.environment==='production'?`<div id="recRemainingInfo" class="rec-remaining-info" hidden><span id="recRemainingNote">LINE受付の残り人数を確認しています…</span><button id="recRemainingRefresh" class="rec-remaining-refresh" type="button">人数を更新 <span aria-hidden="true">↻</span></button></div>
+<p class="rec-remaining-caution">表示人数は確認時点の目安です。受付確定までに変わる場合があります。</p>`:''}
 ${locationBlock}
 <h3 class="rec-title">② ご利用人数</h3><div class="rec-people">
 <div class="rec-person"><span><strong>おとな</strong><small>600円</small></span><div class="rec-stepper"><button type="button" data-rec-k="adult" data-rec-d="-1">−</button><output id="recAdult">1</output><button type="button" data-rec-k="adult" data-rec-d="1">＋</button></div></div>
@@ -223,7 +236,82 @@ function developTestRule(){const t=E.developTestWaitType||{};if(E.environment!==
 function isDevelopTestSlot(s){const t=developTestRule();return Boolean(t&&s&&String(s.waitTypeId)===String(t.waitTypeId))}
 function usageAllowed(actual,{developTest=false}={}){const u=String(actual?.usageDispType||'');if(developTest)return !u||['01','02','KeyALL','KeySTORE_RECEPTION_ONLY'].includes(u);return !u||u==='01'||u==='02'||u==='KeyALL'||u==='KeySTORE_RECEPTION_ONLY'}
 function buildSlots(waitTypes){const test=developTestRule(),configured=PRODUCTION_TEST_DISABLED?(test?[test]:[]):[...(S.day&&typeof R.slotsFor==='function'?R.slotsFor(S.day.businessType,S.mode):[])];return configured.map(rule=>{const actual=Array.isArray(waitTypes)?waitTypes.find(x=>String(x.waitTypeId||'')===String(rule.waitTypeId)):null;if(!actual)return null;if(rule.developTest){if(!usageAllowed(actual,{developTest:true}))return null;return{...rule,actual}}if(actual.dispFlg===false||!usageAllowed(actual))return null;return{...rule,actual}}).filter(Boolean)}
-function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日のLINE受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>`<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></button>`).join('')}
+function nowJstTime(time){
+ return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(time));
+}
+function sameReceptionView(){return String(new URLSearchParams(location.search).get('view')||'home')==='reception'&&Boolean($('recSlots'))}
+function cachedRemaining(){
+ if(E.environment!=='production')return null;
+ try{
+   const v=JSON.parse(localStorage.getItem(CROWD_CACHE_KEY)||'null');
+   if(!v||!Array.isArray(v.details)||!Number.isFinite(v.savedAt))return null;
+   if(Date.now()-v.savedAt<0||Date.now()-v.savedAt>CROWD_FRESH_MS)return null;
+   if(String(v.operationalDate||'')!==String(S.day?.operationalDate||''))return null;
+   if(String(v.businessType||'')!==String(S.day?.businessType||''))return null;
+   return v;
+ }catch{return null}
+}
+function readLineRemaining(waitTypeId){
+ if(!Array.isArray(remainingDetails))return null;
+ const name=LINE_REMAINING_NAMES[String(S.day?.businessType||'')]?.[String(waitTypeId||'')];
+ if(!name)return null;
+ const normalize=v=>String(v??'').normalize('NFKC').replace(/\s+/g,'').trim();
+ const matches=remainingDetails.filter(row=>normalize(row?.detailedWaitType)===normalize(name));
+ if(matches.length!==1||matches[0]?.reserveUnit!=='PERSON')return null;
+ const row=matches[0],raw=row.remaining;
+ if(typeof raw!=='number'&&!(typeof raw==='string'&&/^\d+$/.test(raw)))return null;
+ const value=Number(raw);
+ if(!Number.isSafeInteger(value)||value<0||value>350)return null;
+ // Only an explicit verified 0 is safe: previous Workers turned null into 0.
+ if(value===0&&row.remainingVerified!==true)return null;
+ return value;
+}
+function updateRemainingInfo(){
+ const panel=$('recRemainingInfo'),note=$('recRemainingNote'),button=$('recRemainingRefresh');
+ if(!panel||!note)return;
+ panel.hidden=PRODUCTION_TEST_DISABLED||!S.day||S.day.isClosed||!S.slots.length;
+ if(panel.hidden)return;
+ const known=Array.isArray(remainingDetails);
+ note.textContent=remainingLoading?'LINE受付の残り人数を確認中…'
+   :known?'LINE受付の残り目安 ／ '+nowJstTime(remainingCheckedAt)+' 確認'
+   :'残り人数を確認できません。回は選択できます。';
+ if(button){button.disabled=remainingLoading||S.busy||S.locked||Date.now()-remainingLastAttempt<CROWD_MANUAL_COOLDOWN_MS}
+}
+async function loadRemaining({force=false,generation=S.generation}={}){
+ if(force&&Date.now()-remainingLastAttempt<CROWD_MANUAL_COOLDOWN_MS)return;
+ if(E.environment!=='production'||PRODUCTION_TEST_DISABLED||remainingLoading||!S.day||S.day.isClosed||!S.slots.length||!sameReceptionView()||S.busy||S.locked)return;
+ if(!force){
+   const cached=cachedRemaining();
+   if(cached){remainingDetails=cached.details;remainingCheckedAt=cached.savedAt;renderSlots();updateRemainingInfo();return}
+ }
+ // A booking is never disabled based on a display-only crowd snapshot.
+ remainingLoading=true;remainingLastAttempt=Date.now();updateRemainingInfo();
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
+ try{
+   const url=new URL(String(E.backendUrl));url.searchParams.set('action','crowdRemaining');
+   const response=await fetch(url,{method:'GET',credentials:'omit',cache:'no-store',signal:ctrl.signal});
+   const data=await response.json();
+   if(!response.ok||data?.ok!==true||data?.stale===true||!Array.isArray(data.observedDetails))throw Error('CROWD_UNAVAILABLE');
+   if(generation!==S.generation||!sameReceptionView())return;
+   remainingDetails=data.observedDetails;
+   remainingCheckedAt=Date.now();
+ }catch{
+   if(generation!==S.generation||!sameReceptionView())return;
+   // Never preserve stale counts after an unsuccessful fresh request.
+   remainingDetails=null;remainingCheckedAt=0;
+ }finally{
+   clearTimeout(timer);remainingLoading=false;
+   if(generation===S.generation&&sameReceptionView()&&!S.busy&&!S.locked){renderSlots();updateRemainingInfo()}
+ }
+}
+function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日のLINE受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>{
+  const count=readLineRemaining(s.waitTypeId);
+  const display=count===null?'確認中':count+'名';
+  return `<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1">
+  <span class="rec-slot-main"><strong>${esc(s.developTest?'🧪 '+s.label:s.label)}</strong><small>${esc(s.actual?.waitTypeName||s.detail||'')}</small></span>
+  ${E.environment!=='production'||PRODUCTION_TEST_DISABLED?'':`<span class="rec-slot-remaining ${count===null?'is-unknown':count===0?'is-zero':'is-known'}"><span>LINE受付 残り</span><b>${display}</b></span>`}
+  </button>`;
+ }).join('');updateRemainingInfo()}
 function locationOk(){return LINE_STORE_ONLY||S.mode!=='onsite'||Boolean(S.location?.ok)}
 
 function renderForm(){
@@ -244,7 +332,7 @@ async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocation
 
 async function boot(){
   try{localStorage.removeItem(`asoboon_v2_official_web_handoff_${STORAGE_NS}_v1`)}catch{}
-  stopProcessing();const gen=++S.generation;S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
+  stopProcessing();const gen=++S.generation;remainingDetails=null;remainingCheckedAt=0;remainingLoading=false;remainingLastAttempt=0;S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
   const dayEl=$('recDay');if(dayEl)dayEl.innerHTML='<span><small>営業区分</small><strong>確認中</strong></span><b>—</b>';
   status('LINE接続・営業カレンダー・受付枠を確認しています…');renderForm();
 
@@ -274,6 +362,7 @@ async function boot(){
 
   S.canCreate=Boolean(lineOK&&dayOK&&gatewayOK&&E.featureFlags?.receptionCreate===true&&healthSupportsOfficialDevelop(S.health));
   S.slots=buildSlots(S.waitTypes);if(PRODUCTION_TEST_DISABLED&&S.slots.length===1)S.slot=S.slots[0];renderSlots();renderForm();
+  if(dayOK&&gatewayOK&&lineOK&&lineReceptionOpenNow()&&!S.day?.isClosed&&!PRODUCTION_TEST_DISABLED&&S.slots.length)void loadRemaining({generation:gen});
   const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
   if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!PRODUCTION_TEST_DISABLED){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、LINE受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
@@ -332,7 +421,7 @@ async function submit(){
 }
 
 function setMode(mode){if(S.busy||S.locked)return;S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
-function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{if(S.busy||S.locked){e.target.checked=S.agree;return}S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);document.querySelector('.view')?.addEventListener('click',e=>{if(S.busy||S.locked)return;const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
+function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{if(S.busy||S.locked){e.target.checked=S.agree;return}S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);$('recRemainingRefresh')?.addEventListener('click',()=>void loadRemaining({force:true}));document.querySelector('.view')?.addEventListener('click',e=>{if(S.busy||S.locked)return;const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
 window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.1.0-dispatch-proof',render,mount});
 })();
 

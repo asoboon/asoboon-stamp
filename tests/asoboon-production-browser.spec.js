@@ -129,6 +129,98 @@ test('Production HOME reception stays in the MINI App and never redirects to Air
   expect(airwaitRequests).toEqual([]);
 });
 
+test('Reception round choices show verified LINE quota, not WEB remaining, and preserve selectable zero',async({page})=>{
+ await installProduction(page);
+ let quotaRequests=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  quotaRequests++;
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,observedDetails:[
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:7,remainingVerified:true},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:39,remainingVerified:true},
+    {detailedWaitType:'12時半ご入場枠【WEB整理券】',reserveUnit:'PERSON',remaining:200,remainingVerified:true}
+   ]
+  })});
+ });
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ const slots=page.locator('#recSlots [data-rec-slot]');
+ await expect(slots).toHaveCount(3);
+ await expect(page.locator('[data-rec-slot="0029"] .rec-slot-remaining')).toContainText('7名');
+ await expect(page.locator('[data-rec-slot="0031"] .rec-slot-remaining')).toContainText('0名');
+ await expect(page.locator('[data-rec-slot="0033"] .rec-slot-remaining')).toContainText('39名');
+ await expect(page.locator('#recRemainingInfo')).toContainText('確認');
+ await expect(page.locator('#recRemainingInfo')).toContainText('更新');
+ await expect(page.locator('.rec-remaining-caution')).toContainText('受付確定までに変わる');
+ await expect(page.locator('#recSlots')).not.toContainText('200名');
+ await page.locator('[data-rec-slot="0031"]').click();
+ await expect(page.locator('[data-rec-slot="0031"]')).toHaveClass(/active/);
+ await expect(page.locator('#recSlotLabel')).toHaveText('12:30の回');
+ await expect(page.locator('[data-rec-slot="0031"]')).toBeEnabled();
+ expect(quotaRequests).toBe(1);
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  const quota=await page.locator('[data-rec-slot="0031"] .rec-slot-remaining').boundingBox();
+  expect(quota.width).toBeGreaterThanOrEqual(85);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+});
+test('Reception never fabricates zero from legacy, missing, duplicated, GROUP or stale crowd records',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,observedDetails:[
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:3,remainingVerified:true},
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:5,remainingVerified:true},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'GROUP',remaining:0,remainingVerified:true}
+   ]
+  })});
+ });
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+ for(const waitTypeId of ['0029','0031','0033']){
+  await expect(page.locator('[data-rec-slot="'+waitTypeId+'"] .rec-slot-remaining')).toContainText('確認中');
+ }
+ await page.locator('[data-rec-slot="0033"]').click();
+ await expect(page.locator('[data-rec-slot="0033"]')).toHaveClass(/active/);
+});
+test('Reception reuses a recent HOME quota snapshot without a second shared-WiFi request',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+   slots:[{waitTypeId:'0032',remaining:200,matchMode:'exact-name',evidence:'PERSON',reserveUnit:'PERSON'}],
+   details:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:12,remainingVerified:true}],
+   operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()
+  }));
+ });
+ let calls=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  calls++;return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
+ });
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('[data-rec-slot="0031"] .rec-slot-remaining')).toContainText('12名');
+ expect(calls).toBe(0);
+ await page.locator('#recRemainingRefresh').click();
+ await expect(page.locator('[data-rec-slot="0031"] .rec-slot-remaining')).toContainText('確認中');
+ await expect(page.locator('#recRemainingInfo')).toContainText('確認できません');
+ expect(calls).toBe(1);
+});
+test('Reception display is advisory and never calls createReservation from quota preview',async({page})=>{
+ await installProduction(page);
+ let creates=0;
+ page.on('request',req=>{
+  if(new URLSearchParams(req.postData()||'').get('action')==='createReservation')creates++;
+ });
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+ await expect(page.locator('#recRemainingInfo')).toBeVisible();
+ await expect(page.locator('#recSlots')).toContainText('LINE受付 残り');
+ expect(creates).toBe(0);
+});
 test('Production reception shows the supplied facility-use notice before confirmation',async({page})=>{
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
@@ -430,7 +522,7 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
-test('Official HOME call-status button is compact and remains accessible on narrow phones',async({page})=>{
+test('Official HOME call-status button is wide, low-profile and accessible on narrow phones',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
@@ -444,7 +536,8 @@ test('Official HOME call-status button is compact and remains accessible on narr
  const button=await page.locator('#v38Hero [data-v7-view="callstatus"]').boundingBox();
  expect(hero.height).toBeLessThan(85);
  expect(button.height).toBeGreaterThanOrEqual(44);
- expect(button.width).toBeLessThan(260);
+ expect(button.width).toBeGreaterThan(210);
+ expect(button.width).toBeLessThanOrEqual(320);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
 
