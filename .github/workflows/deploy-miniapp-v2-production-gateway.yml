@@ -203,7 +203,7 @@ jobs:
                   x.createRequiresVerifiedLiff!==true ||
                   !Array.isArray(x.acceptedClientIds) ||
                   !x.acceptedClientIds.includes("2009884613") ||
-                  x.lineReceptionOpen!=="09:25" ||
+                  x.lineReceptionOpen!=="09:30" ||
                   x.lineReceptionUsesStoreOnly!==true ||
                   x.operationalCutoffHour!==19 ||
                   x.serviceMessageEnabled!==true ||

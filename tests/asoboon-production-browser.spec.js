@@ -686,7 +686,7 @@ test('Production HOME does not show yesterday receipt or saved calling after the
   expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
 });
 
-test('Production HOME shows compact 9:25 MINI App and 7:00 WEB reception hours with optional AirWAIT link',async({page})=>{
+test('Production HOME shows compact 9:30 MINI App and 7:00 WEB reception hours with optional AirWAIT link',async({page})=>{
   const externalRequests=[];
   page.on('request',req=>{if(new URL(req.url()).hostname==='airwait.jp')externalRequests.push(req.url())});
   await installProduction(page);
@@ -695,7 +695,7 @@ test('Production HOME shows compact 9:25 MINI App and 7:00 WEB reception hours w
   const note=page.locator('#v38Hero .v38-reception-hours');
   await expect(note).toBeVisible();
   await expect(note).toContainText('LINEミニアプリ');
-  await expect(note).toContainText('9:25から');
+  await expect(note).toContainText('9:30から');
   await expect(note).toContainText('WEB受付');
   await expect(note).toContainText('7:00から');
   const link=note.locator('a.v38-airwait-link');
@@ -718,13 +718,13 @@ test('Production HOME shows compact 9:25 MINI App and 7:00 WEB reception hours w
   expect(externalRequests).toEqual([]);
 });
 
-test('WEB reservation link remains discoverable before 9:25 without opening MINI reception early',async({page})=>{
+test('WEB reservation link remains discoverable before 9:30 without opening MINI reception early',async({page})=>{
   await installProduction(page,{clockIso:'2026-10-02T23:00:00.000Z'}); // 08:00 JST
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#v38Hero')).toHaveClass(/before/);
-  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:25から');
+  await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:30から');
   const note=page.locator('#v38Hero .v38-reception-hours');
-  await expect(note).toContainText('9:25から');
+  await expect(note).toContainText('9:30から');
   await expect(note).toContainText('7:00から');
   await expect(note.locator('a')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);

@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=aa9aa7ee0d24',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=b1f83683807c',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=77497d374999',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -362,11 +362,11 @@ function priceFor({adult=0,child=0,infant=0}={}){
   return a*PRICES.adult+c*PRICES.child+chargedInfants*PRICES.infantFirstWhenNoPaidChild;
 }
 const RULES=Object.freeze({
-  version:'1.2.1-line-store-0925',
+  version:'1.2.1-line-store-0930',
   timeZone:'Asia/Tokyo',
   operationalCutoffHour:19,
-  lineReceptionOpen:'09:25',
-  onsiteOpen:'09:25',
+  lineReceptionOpen:'09:30',
+  onsiteOpen:'09:30',
   prices:PRICES,
   limits:Object.freeze({maxTotalPeople:10,childrenPerAdult:3}),
   slotRules:SLOT_RULES,
@@ -613,9 +613,9 @@ let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoa
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
 function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
-function lineReceptionOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:25')}
+function lineReceptionOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30')}
 function lineReceptionOpenDisplay(){const m=lineReceptionOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineReceptionOpenClock()}
-function lineReceptionOpenMinutes(){const n=clockMinutes(lineReceptionOpenClock());return Number.isFinite(n)?n:565}
+function lineReceptionOpenMinutes(){const n=clockMinutes(lineReceptionOpenClock());return Number.isFinite(n)?n:570}
 function airwaitWebReceptionUrl(){
  try{
   const url=new URL(String(OPERATIONAL_FALLBACKS.receptionUrl||''));

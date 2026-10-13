@@ -2,7 +2,7 @@
 
 Certified LINE identity: `2009884613-ELc6kolf`. The existing endpoint remains `https://asoboon.github.io/asoboon-stamp/home.html`.
 
-This release connects both Production entries to the dedicated Production Worker, keeps reception inside the MINI App, and opens STORE_RECEPTION_ONLY reception at 09:25 JST. No Developing/Review Worker, database, LIFF identity or storage is reused.
+This release connects both Production entries to the dedicated Production Worker, keeps reception inside the MINI App, and opens STORE_RECEPTION_ONLY reception at 09:30 JST. No Developing/Review Worker, database, LIFF identity or storage is reused.
 
 ## Release order
 
