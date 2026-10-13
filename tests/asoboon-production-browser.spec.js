@@ -1745,3 +1745,24 @@ test('Optional language runtime outage falls back to the working Japanese LINE r
  await page.locator('[data-v7-view="reception"]').first().click();
  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
 });
+
+test('Five-language fallback and ambiguous-result warnings are never left in Japanese',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSubmit')).toBeVisible();
+ const states=[
+  '受付できる内容を確認しています…',
+  '受付しています…',
+  '現在受付できる枠がありません。最新の受付状況をご確認ください。',
+  '受付結果を確認できません。AirWAIT側で成立している可能性があるため、新しい受付は行わないでください。',
+ ];
+ for(const locale of ['en','zh-CN','vi','ne']){
+  await page.locator('#asoboon-language-select').selectOption(locale);
+  for(const original of states){
+   await page.locator('#recStatus').evaluate((el,value)=>{el.textContent=value},original);
+   const expected=await page.evaluate(([key])=>window.ASOBOON_I18N.t(key),[original]);
+   await expect(page.locator('#recStatus')).toHaveText(expected);
+   expect(expected).not.toEqual(original);
+  }
+ }
+});

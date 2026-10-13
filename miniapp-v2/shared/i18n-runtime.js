@@ -29,6 +29,15 @@ function dynamicText(value){
  if(groupCount)return locale==='en'?'/ '+groupCount[1]+' total groups':locale==='zh-CN'?'/ 共'+groupCount[1]+'组':locale==='vi'?'/ tổng '+groupCount[1]+' nhóm':'/ जम्मा '+groupCount[1]+' समूह';
  const stamp=value.match(/^(\d{1,2}:\d{2}) 確認時点の人数 ／ 自動更新中（約40秒ごと）$/);
  if(stamp)return locale==='en'?stamp[1]+' checked · Auto-refresh ~40 sec':locale==='zh-CN'?stamp[1]+'已确认 · 每约40秒自动刷新':locale==='vi'?stamp[1]+' đã kiểm tra · Tự cập nhật ~40 giây':stamp[1]+' जाँच · करिब ४० सेकेन्डमा अद्यावधिक';
+ const staleAt=value.match(/^(\d{1,2}:\d{2}) 確認時点 ／ (.+)$/);
+ if(staleAt){
+  const prefix=locale==='en'?'Checked '+staleAt[1]+' / ':locale==='zh-CN'?staleAt[1]+'确认 / ':locale==='vi'?'Đã kiểm tra '+staleAt[1]+' / ':staleAt[1]+' जाँच / ';
+  return prefix+dynamicText(staleAt[2]);
+ }
+ const callStart=value.match(/^呼出開始 (\d{1,2}:\d{2})$/);
+ if(callStart)return (TABLE['呼出開始']?.[locale]||'Call start')+' '+callStart[1];
+ const callTarget=value.match(/^あなた (\d{1,2}:\d{2})ごろ$/);
+ if(callTarget)return locale==='en'?'Your estimate: around '+callTarget[1]:locale==='zh-CN'?'您的预计时间：'+callTarget[1]+'左右':locale==='vi'?'Giờ dự kiến của bạn: khoảng '+callTarget[1]:'तपाईंको अनुमान: करिब '+callTarget[1];
  const readTime=value.match(/^LINE受付の残り目安 ／ (\d{1,2}:\d{2}) 確認$/);
  if(readTime)return locale==='en'?'LINE spaces checked at '+readTime[1]:locale==='zh-CN'?'LINE名额 · '+readTime[1]+'确认':locale==='vi'?'Số chỗ LINE · đã kiểm tra '+readTime[1]:'LINE स्थान · '+readTime[1]+' जाँच';
  const heartbeat=value.match(/^自動更新は動作中です。最終取得 ([\d:]+) ／ 次の再確認まで (\d+)秒$/);

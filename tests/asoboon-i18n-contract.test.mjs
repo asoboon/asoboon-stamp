@@ -18,9 +18,18 @@ const critical=[
   '受付システム側で一時的なエラーが発生しました。受付は成立していません。時間をおいてもう一度お試しください。',
   'キャンセル処理に時間がかかっています。受付は作り直さず、最新状況を確認してください。',
   'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。',
+  "受付できる内容を確認しています…",
+  "受付しています…",
+  "受付の準備中…",
+  "現在受付できる枠がありません。最新の受付状況をご確認ください。",
+  "確認中…",
+  "受付結果を確認できません。AirWAIT側で成立している可能性があるため、新しい受付は行わないでください。",
+  "受付処理の確認に時間がかかっています。新しい受付は行わないでください。",
+  "受付システムの応答を待っています",
+  "受付状況の確認がタイムアウトしました。",
 ];
 test('core phrase dictionary is complete, with real translated mandatory safety wording',()=>{
- assert.ok(Object.keys(entries).length>=255);
+ assert.ok(Object.keys(entries).length>=375);
  for(const [ja,row] of Object.entries(entries)){
   assert.ok(ja.length>0);
   for(const locale of locales){
