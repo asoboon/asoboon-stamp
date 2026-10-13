@@ -39,7 +39,7 @@ test('Developing play content exposes BOON BLOCK v23 without changing Review sco
   assert.match(develop,/https:\/\/asoboon\.github\.io\/asoboon-3d\/boon-block-next\/\?v=23/);
   assert.match(develop,/BOON BLOCK','ブロックを動かしてジャングル攻略'[^\n]*'is-new'/);
   assert.doesNotMatch(review,/boon-block-next|BOON BLOCK/);
-  assert.match(index,/home-v38\.js\?v=20261013-0930/);
+  assert.match(index,/home-v38\.js\?v=20261013-01/);
 });
 
 test('Developing play cards are explicitly allowed through the route escape guard',()=>{
@@ -89,9 +89,9 @@ test('review candidate asset cache points to the updated review UI',()=>{
     'parking-v24.css':'20261004-06',
     'entry-v25.css':'20261004-06',
     'app-stable-v36.js':'20261006-03',
-    'reception-v7.js':'20261013-0930',
-    'first-v27.js':'20261013-0930',
-    'pages-final-v33.js':'20261013-0930',
+    'reception-v7.js':'20261013-01',
+    'first-v27.js':'20261013-01',
+    'pages-final-v33.js':'20261013-01',
   };
   for(const [name,version] of Object.entries(expected)){
     const escaped=name.replace(/[.*+?^$()|[\]\\]/g,'\\$&');
@@ -112,7 +112,7 @@ test('Developing and Review pages invalidate cached 9:25 JavaScript on the 9:30 
   const targets=['../shared/reception.js','./home-v38.js','./reception-v7.js','./first-v27.js','./pages-final-v33.js'];
   if(mode==='develop')targets.push('../shared/app-rules.js');
   for(const target of targets){
-   assert.ok(index.includes(`src="${target}?v=20261013-0930"`),mode+' '+target);
+   assert.ok(index.includes(`src="${target}?v=20261013-01"`),mode+' '+target);
   }
  }
 });
