@@ -15,8 +15,8 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-step-copy">
      <span class="v27-kicker">来場前</span>
      <h2>当日受付</h2>
-     <strong>9:25からLINEミニアプリ内で受付</strong>
-     <p>当日9:25から、このLINEミニアプリの「当日受付」で本日の受付枠を取得できます。</p>
+     <strong>9:30からLINEミニアプリ内で受付</strong>
+     <p>当日9:30から、このLINEミニアプリの「当日受付」で本日の受付枠を取得できます。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>

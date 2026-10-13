@@ -175,10 +175,10 @@ test('different requestIds from one LINE user cannot create concurrent user-day 
   assert.equal(results.filter(x=>x.status==='rejected').length,99);
 });
 
-test('09:24:59 is rejected and 09:25:00 is accepted in JST',()=>{
+test('09:24:59 is rejected and 09:30:00 is accepted in JST',()=>{
   const day={isClosed:false,closeMin:18*60};
-  assert.throws(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:24:59Z')),/WEB_NOT_OPEN_YET/);
-  assert.doesNotThrow(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:25:00Z')));
+  assert.throws(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:29:59Z')),/WEB_NOT_OPEN_YET/);
+  assert.doesNotThrow(()=>T.enforceReceptionHours(day,'web','0029',Date.parse('2026-10-04T00:30:00Z')));
 });
 
 test('operational date rolls exactly at 19:00 JST',()=>{

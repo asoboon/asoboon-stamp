@@ -52,13 +52,13 @@ test('Developing play cards are explicitly allowed through the route escape guar
   }
 });
 
-test('active review copy uses 09:25 LINE reception and no legacy 7:00/weekday-onsite wording',()=>{
+test('active review copy uses 09:30 LINE reception and no legacy 7:00/weekday-onsite wording',()=>{
   const first=read('miniapp-v2/develop/first-v27.js');
   const info=read('miniapp-v2/develop/pages-final-v33.js');
   const app=read('miniapp-v2/develop/app-stable-v36.js');
   const joined=[first,info,app].join('\n');
-  assert.match(first,/9:25からLINEミニアプリ内で受付/);
-  assert.match(info,/LINE当日受付[\s\S]*9:25〜/);
+  assert.match(first,/9:30からLINEミニアプリ内で受付/);
+  assert.match(info,/LINE当日受付[\s\S]*9:30〜/);
   assert.match(app,/LINEミニアプリ内で当日受付/);
   assert.doesNotMatch(joined,/\b7:00(?:〜|から)/);
   assert.doesNotMatch(joined,/通常平日は現地/);
