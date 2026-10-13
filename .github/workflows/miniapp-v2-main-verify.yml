@@ -17,6 +17,7 @@ on:
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
       - 'tests/asoboon-production-*.spec.js'
+      - 'tests/asoboon-i18n-*.test.mjs'
       - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
@@ -40,6 +41,7 @@ on:
       - 'tests/asoboon-develop-*.test.cjs'
       - 'tests/asoboon-production-*.test.mjs'
       - 'tests/asoboon-production-*.spec.js'
+      - 'tests/asoboon-i18n-*.test.mjs'
       - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
@@ -90,6 +92,8 @@ jobs:
         run: npm run test:miniapp-production
       - name: HOME layout and timeguide reflection regression
         run: node --test tests/asoboon-home-layout-timeguide.test.mjs
+      - name: Multilingual reception dictionary and display-only contract
+        run: node --test tests/asoboon-i18n-contract.test.mjs
       - name: Official HOME cutover regression
         run: node --test tests/asoboon-home-cutover.test.mjs
       - name: LINE Review readiness regression

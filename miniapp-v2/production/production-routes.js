@@ -1182,7 +1182,7 @@ const root=document.getElementById('app');
 if(!root)return;
 let obs=null;
 const qs=()=>new URLSearchParams(location.search);
-const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text};
 function currentView(){return String(qs().get('view')||'home')}
 function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
@@ -1224,7 +1224,7 @@ const configs=[
   {id:'recChild',kind:'child',mark:'子',label:'子ども',meta:'6か月〜小学6年生',price:'900円'},
   {id:'recInfant',kind:'infant',mark:'0',label:'0〜5か月',meta:'6か月未満',price:'0〜900円'}
 ];
-function setText(el,text){if(el&&el.textContent!==text)el.textContent=text}
+function setText(el,text){if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text}
 function decoratePerson(cfg){
   const out=root.querySelector('#'+cfg.id);if(!out)return;
   const person=out.closest('.rec-person'),stepper=out.closest('.rec-stepper');if(!person||!stepper)return;
@@ -1275,7 +1275,7 @@ patch();setTimeout(patch,80);setTimeout(patch,350);
 const root=document.getElementById('app');if(!root)return;
 let queued=false;
 const view=()=>String(new URLSearchParams(location.search).get('view')||'home');
-const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text};
 function patch(){
   queued=false;if(view()!=='reception')return;
   root.querySelector('.rec-methods')?.remove();
@@ -1492,7 +1492,7 @@ const fmtTime=ms=>{try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',mi
 function freshness(d){const t=fmtTime(d?.checkedAt);return d?.source==='cache'?`前回 ${t} ・ 最新情報を確認中`:`${t} 更新`}
 function ensureMeta(hero,d){let meta=hero.querySelector('.v13-status-meta');if(!meta){meta=document.createElement('div');meta.className='v13-status-meta';meta.innerHTML='<span class="v13-live-dot"></span><span class="v13-status-text"></span><button type="button" data-v13-refresh>更新</button>';const ticket=hero.querySelector('.v7-ticket');const target=ticket||hero.querySelector('.v7-call-title')||hero.querySelector('.v7-simple');if(target)target.insertAdjacentElement('afterend',meta)}if(!meta)return;const dot=meta.querySelector('.v13-live-dot'),label=meta.querySelector('.v13-status-text');const live=d?.source!=='cache';const cls=`v13-live-dot${live?' live':''}`;if(dot&&dot.className!==cls)dot.className=cls;const text=freshness(d);if(label&&label.textContent!==text)label.textContent=text}
 function patchHome(){if(state().view!=='home')return;const home=root.querySelector('.v7-home');if(!home)return;const hero=home.querySelector('#v7Hero');if(hero){if(hero.getAttribute('aria-live')!=='polite')hero.setAttribute('aria-live','polite');if(hero.getAttribute('aria-atomic')!=='true')hero.setAttribute('aria-atomic','true');hero.querySelectorAll('.v13-next,.v13-call-window').forEach(x=>x.remove())}const d=latest;if(d&&hero){const kind=String(d.kind||'sync');if(['waiting','calling','guide'].includes(kind))ensureMeta(hero,d)}const play=home.querySelector('.v7-play');if(play){const any=Boolean(F.game||F.omikuji||F.stamp);if(play.hidden===any)play.hidden=!any}const shortcut=home.querySelector('.v9-status-shortcut');if(shortcut&&d){const hide=String(d.kind||'')==='none';if(shortcut.hidden!==hide)shortcut.hidden=hide}}
-function patchReception(){if(state().view!=='reception')return;const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.v13-after-reception'))return;const progress=wrap.querySelector('.rv7-progress');const html='<div class="v13-after-reception"><strong>受付後は並ばなくてOK</strong><span>HOMEで「あと○組」を確認できます。順番になるとLINEでお知らせします。</span></div>';if(progress)progress.insertAdjacentHTML('afterend',html);else wrap.insertAdjacentHTML('afterbegin',html)}
+function patchReception(){if(state().view!=='reception')return;const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.v13-after-reception'))return;const progress=wrap.querySelector('.rv7-progress');const html='<div class="v13-after-reception"><strong>受付後は並ばなくてOK</strong><span>呼出状況画面で順番を確認できます。呼出時はLINEで通知します。</span></div>';if(progress)progress.insertAdjacentHTML('afterend',html);else wrap.insertAdjacentHTML('afterbegin',html)}
 function patchEntry(){if(state().view!=='entry')return;const body=root.querySelector('.pv7-page .pv7-body');if(!body)return;const practical=body.querySelector('.v12-practical');if(practical&&!practical.querySelector('.v13-entry-note'))practical.insertAdjacentHTML('beforeend','<div class="v13-entry-note"><strong>ポイント</strong><span>ロッカーは1回のお会計につき1つ。一時退場する場合は、退場前にスタッフへお声がけください。</span></div>')}
 function patchParking(){const s=state();if(s.view!=='parking'||s.panel==='info')return;const page=root.querySelector('.v12-parking-page');if(!page)return;if(page.getAttribute('aria-label')!=='駐車場・アクセス')page.setAttribute('aria-label','駐車場・アクセス');const free=page.querySelector('.v12-free');if(free&&free.getAttribute('role')!=='status')free.setAttribute('role','status')}
 function patch(){queued=false;patchHome();patchReception();patchEntry();patchParking()}
@@ -1555,8 +1555,8 @@ const root=document.getElementById('app');if(!root)return;
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
 let queued=false;
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
-const setHTML=(el,html)=>{if(el&&el.innerHTML!==html)el.innerHTML=html};
+const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text};
+const setHTML=(el,html)=>{if(!el||el.dataset.v33HtmlSignature===html)return;el.dataset.v33HtmlSignature=html;if(el.innerHTML!==html)el.innerHTML=html};
 const route=()=>{const p=new URLSearchParams(location.search);return{view:String(p.get('view')||'home'),panel:String(p.get('panel')||'')}};
 const readJSON=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const yen=v=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('ja-JP')+'円':'—'};

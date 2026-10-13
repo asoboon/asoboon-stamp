@@ -11,6 +11,9 @@ const read=p=>readFileSync(resolve(root,p),'utf8');
 const sources=JSON.parse(read(`${dir}/bundle-sources.json`));
 const hash=s=>createHash('sha256').update(s).digest('hex').slice(0,12);
 const envHash=p=>hash(read(p).trim());
+const dictPath='miniapp-v2/shared/i18n-dictionary.js';
+const i18nPath='miniapp-v2/shared/i18n-runtime.js';
+const i18nRef=p=>p+'?v='+hash(read(p));
 const check=process.argv.includes('--check');
 function output(path,text){
   if(check){
@@ -82,9 +85,10 @@ root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=${hash(css)}';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
-const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}'];
+const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}',
+  './${i18nRef(dictPath)}','./${i18nRef(i18nPath)}'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
-  if(src.startsWith('https:'))return; // The app already handles an unavailable LIFF SDK.
+  if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
 };document.head.appendChild(s)}
 })();
@@ -106,6 +110,8 @@ const index=`<!doctype html>
 <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script defer src="./env.js?v=${envHash(`${dir}/env.js`)}"></script>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
+<script defer src="../../${i18nRef(dictPath)}"></script>
+<script defer src="../../${i18nRef(i18nPath)}"></script>
 </head>
 <body data-asoboon-app="miniapp-v2" data-environment="production">
 <div id="app" class="app"><noscript>JavaScriptを有効にしてください。</noscript></div>
