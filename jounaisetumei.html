@@ -42,6 +42,8 @@
     function coreUrlFromParent(){
       const url=new URL(coreBase.href);
       url.search=location.search;
+      // Cache-bust only the tablet core while preserving existing query options.
+      url.searchParams.set('tablet_build','20261014-v8.2');
       url.hash=location.hash;
       return url;
     }
