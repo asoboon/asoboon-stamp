@@ -6781,7 +6781,10 @@ body.eg-guide-mode > main.app { visibility:hidden!important; pointer-events:none
   // Closing day / calendar error overlays in the original system must remain usable.
   function syncOperationalOverlay(){
     const critical=document.getElementById('asoboonSpecialOverlay');
-    if(critical?.classList.contains('show')) {
+    // Unlimited weekdays are open days: only actual closure/errors suppress the guide.
+    const blockingOverlay=critical?.classList.contains('show') &&
+      (critical.dataset.kind==='closed'||critical.dataset.kind==='error');
+    if(blockingOverlay) {
       // Operational closed/error overlay must take priority over the guide.
       if(document.body.classList.contains('eg-guide-mode')) document.body.classList.remove('eg-guide-mode');
       if(cin.classList.contains('active')){
