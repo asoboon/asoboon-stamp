@@ -5964,6 +5964,19 @@
 @media(prefers-reduced-motion:reduce){#eg-cinema{display:none!important}#exitGuideV2 .eg-choice:before,#exitGuideV2 .eg-choice:after,#exitGuideV2 .eg-home:before{animation:none!important}}
 #exitGuideV2.eg-motion-off .eg-choice:before,#exitGuideV2.eg-motion-off .eg-choice:after,#exitGuideV2.eg-motion-off .eg-home:before{animation:none!important}
 `;
+  css.textContent += `
+    /* Explicitly switching effects ON overrides iPad's reduce-motion preference for the V5 scene only. */
+    @media (prefers-reduced-motion:reduce) {
+      #eg-cinema.eg-force-motion.active .cin-door.top,
+      #eg-cinema.eg-force-motion.active .cin-door.bottom,
+      #eg-cinema.eg-force-motion.active .cin-star,
+      #eg-cinema.eg-force-motion.active .cin-label,
+      #eg-cinema.eg-force-motion.active .cin-title,
+      #eg-cinema.eg-force-motion.active .cin-ribbon,
+      #eg-cinema.eg-force-motion.active .cin-flash {animation-duration:1.6s!important;animation-iteration-count:1!important;}
+      #eg-cinema.eg-force-motion.active .cin-energy-grid {animation-duration:1s!important;animation-iteration-count:infinite!important;}
+    }
+  `;
   document.head.appendChild(css);
 
   const arrows = `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m8 5 7 7-7 7"/></svg>`;
@@ -6053,11 +6066,12 @@
   fxLayer.setAttribute('aria-hidden','true');
   document.body.appendChild(fxLayer);
   const systemReduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  let motionEnabled=true;
+  // Respect the iPad motion preference at startup; the visitor may explicitly turn effects ON.
+  let motionEnabled=!(systemReduced?.matches);
   let navigating=false;
   let navTimer=0;
   const colors={home:'#0c83d1',family:'#1c97f3',adult:'#eda817','adult-yes':'#eab225','adult-no':'#f17656',leave:'#24bd78',time:'#13a7d1'};
-  function animationOK(){return motionEnabled && !(systemReduced?.matches);}
+  function animationOK(){return motionEnabled;}
   const makeEffect=(cl,style)=>{const el=document.createElement('i');el.className=cl;Object.assign(el.style,style);fxLayer.appendChild(el);return el;};
   function bursts(x,y,color,large=false){
     if(!animationOK())return;
@@ -6160,7 +6174,7 @@
     if(t<1.76 && cin.classList.contains('active'))raf=requestAnimationFrame(drawCinema);
   }
   function stopCinema(){cancelAnimationFrame(raf);cin.classList.remove('active');ctx.clearRect(0,0,can.width,can.height);particles.length=0;}
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCinema()});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){window.clearTimeout(navTimer);stopCinema();root.classList.remove('eg-nav-active');navigating=false;}});
   window.addEventListener('resize',()=>{if(cin.classList.contains('active'))resizeCinema()});
   window.__ASOBOON_CINEMA_TEST__={isRunning:()=>cin.classList.contains('active'),particleCount:()=>particles.length,screen:()=>current};
 
