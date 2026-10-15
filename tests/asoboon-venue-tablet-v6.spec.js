@@ -47,7 +47,7 @@ test('休館と営業情報エラーの警告は3択より優先される',async
   await expect(page.locator('main.app')).not.toHaveAttribute('aria-hidden','true');
 });
 
-test('公開ラッパーのiframeが確実に新しいV6を読み込む',async({page})=>{
+test('公開ラッパーのiframeが確実にV5を読み込む',async({page})=>{
   await page.goto(pathToFileURL(path.resolve('jounaisetumei.html')).href);
-  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v6-20261015-unlimited-fix/);
+  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v5-20261015-restored/);
 });
