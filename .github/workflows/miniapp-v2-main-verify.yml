@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
       - 'home.html'
       - 'home-core.html'
       - 'callstatus.html'
@@ -26,6 +27,7 @@ on:
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
       - 'home.html'
       - 'home-core.html'
       - 'callstatus.html'
