@@ -42,6 +42,8 @@
     function coreUrlFromParent(){
       const url=new URL(coreBase.href);
       url.search=location.search;
+      // iPad Safari/Web Clip に残った旧版の iframe キャッシュを回避する。
+      url.searchParams.set('tablet_release','v6-20261015-unlimited-fix');
       url.hash=location.hash;
       return url;
     }

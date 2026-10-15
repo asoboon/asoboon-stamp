@@ -6198,7 +6198,10 @@
   // Closing day / calendar error overlays in the original system must remain usable.
   function syncOperationalOverlay(){
     const critical=document.getElementById('asoboonSpecialOverlay');
-    if(critical?.classList.contains('show')) {
+    // 平日「時間制限なし」は退場時間表示だけの情報。館内説明の3択は隠さない。
+    // 休館・カレンダーエラーは従来どおり営業上の警告を優先する。
+    const blocking=critical?.classList.contains('show') && critical.dataset.kind!=='unlimited';
+    if(blocking) {
       root.hidden=true;
     } else if(current!=='time') {
       root.hidden=false;
