@@ -5986,7 +5986,14 @@
   let lastFocus=null;
   const setRoute = (color) => `style="--route-color:${color}"`;
   // No speculative ASOBooN logo: maximize space for the three actions.
-  const openTime=()=>{root.hidden=true;current='time';timeView.classList.add('active');document.getElementById('detailView')?.classList.remove('active');document.body.classList.add('home-view');document.getElementById('backButton')?.setAttribute('hidden','');};
+  function syncGuideLayer(){
+    const visible=!root.hidden;
+    if(visible&&originalApp.contains(document.activeElement))document.activeElement.blur();
+    originalApp.inert=visible;
+    if(visible)originalApp.setAttribute('aria-hidden','true');
+    else originalApp.removeAttribute('aria-hidden');
+  }
+  const openTime=()=>{root.hidden=true;current='time';timeView.classList.add('active');document.getElementById('detailView')?.classList.remove('active');document.body.classList.add('home-view');document.getElementById('backButton')?.setAttribute('hidden','');syncGuideLayer();};
   const page=(screen,body,color)=>`<div class="eg-page eg-detail" ${setRoute(color)}><div class="eg-header"><button class="eg-back" type="button" data-guide="home">← 3つの選択肢へ</button><span class="eg-route">${screen}</span></div>${body}<div class="eg-actions"><button type="button" class="eg-main-btn" data-guide="home">最初の画面へ戻る</button><button type="button" class="eg-sub-btn" data-guide="time">退場時間を見る</button></div></div>`;
   const step=(n,title,desc,icon='')=>`<div class="eg-step"><div class="eg-num">${n}</div><div class="eg-step-text"><strong>${title}</strong><p>${desc}</p></div>${icon?`<div class="eg-minisymbol">${icon}</div>`:''}</div>`;
   const family=()=> page('みんなで外に出る',`
@@ -6093,8 +6100,9 @@
 
   // V6: actual animated cinematic scene, dual sliding doors, speed-ramping trails, hold and release.
   // WebKit/iPad compatible CSS keyframes + Canvas2D; no external resources.
-  const cin=document.createElement('div');cin.id='eg-cinema';cin.setAttribute('aria-hidden','true');
+  const cin=document.createElement('div');cin.id='eg-cinema';cin.setAttribute('role','group');cin.setAttribute('aria-label','画面切り替えの演出');
   cin.innerHTML=`<div class="cin-back"></div><div class="cin-tunnel"></div><div class="cin-speedframe"></div><div class="cin-zero"></div><div class="cin-warning">扉が開きます</div><div class="cin-gate left"></div><div class="cin-gate right"></div><div class="cin-seam"></div><div class="cin-power"></div><div class="cin-break"></div><div class="cin-bloom"></div><canvas id="eg-canvas"></canvas><div class="cin-title"></div><div class="cin-caption"></div><div class="cin-flash"></div><button type="button" class="cin-skip" aria-label="演出をスキップして手順を見る">スキップ ›</button>`;
+  Array.from(cin.children).forEach(child=>{if(!child.classList.contains('cin-skip'))child.setAttribute('aria-hidden','true')});
   document.body.appendChild(cin);
   const can=cin.querySelector('canvas'),ctx=can.getContext('2d',{alpha:true});
   let raf=0,cinColor='#00b8ff',startAt=0,activeDestination=null,stars=[];
@@ -6108,6 +6116,7 @@
     cin.querySelector('.cin-warning').textContent=destination==='adult-no'?'ご確認ください':'扉が開きます';
     cin.querySelector('.cin-caption').textContent=destination==='adult-no'?'外出前に条件をご確認ください':'このあとの手順をご案内';
     cin.classList.remove('active');void cin.offsetWidth;cin.classList.add('active');
+    cin.querySelector('.cin-skip').focus({preventScroll:true});
     resizeCinema();stars=Array.from({length:145},()=>({angle:Math.random()*Math.PI*2,z:.12+Math.random()*.94,r:Math.random()*1.4+1,spin:(Math.random()-.5)*.4}));
     startAt=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
   }
@@ -6153,7 +6162,7 @@
     if(name==='home'&&cin.classList.contains('active')){stopCinema();pendingDestination=null;window.clearTimeout(navTimer);navigating=false;root.classList.remove('eg-nav-active');}
     if(name==='time'){openTime();resetIdle();return;}
     if(!screens[name])name='home';
-    current=name;root.hidden=false;root.innerHTML=screens[name]();root.scrollTop=0;
+    current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
     showMotionState();resetIdle();
   }
   function resetIdle(){
@@ -6194,6 +6203,7 @@
     } else if(current!=='time') {
       root.hidden=false;
     }
+    syncGuideLayer();
   }
   new MutationObserver(syncOperationalOverlay).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   render('home');
