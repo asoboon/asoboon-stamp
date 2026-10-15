@@ -5609,21 +5609,21 @@
     })();
   </script>
 <script>
-/* ASOBooN 場内説明タブレット / kinetic pachinko-gate guide v6 — motion-rich / wordmark-free
+/* ASOBooN 場内説明タブレット / cinematic guide v5 — motion-rich / wordmark-free
    Staging draft (2026-10-13). Injected into jounaisetumei-core.html;
    original calendar, modes and time display remain untouched.
 */
 (() => {
   'use strict';
-  if (window.__asoboonExitGuideV6) return;
-  window.__asoboonExitGuideV6 = true;
+  if (window.__asoboonExitGuideV5) return;
+  window.__asoboonExitGuideV5 = true;
   const timeView = document.getElementById('timeView');
   const detailsButton = document.getElementById('openDetailsButton');
   const originalApp = document.querySelector('main.app');
   if (!timeView || !originalApp || !detailsButton) return;
 
   const css = document.createElement('style');
-  css.id='asoboon-guide-v6-style';
+  css.id='asoboon-guide-v5-style';
   css.textContent = `
     /* Motion-rich, readable, touch-first customer-facing display */
     #exitGuideV2, #exitGuideV2 * {box-sizing:border-box}
@@ -5903,69 +5903,66 @@
     @media(max-width:800px){#exitGuideV2 .eg-motion-switch{right:8px;top:6px;font-size:11px;padding:4px 8px;min-height:27px}}
     @media(max-width:420px){#exitGuideV2 .eg-choice-action{min-height:42px;font-size:13px;max-width:116px}}
     @media(prefers-reduced-motion:reduce){
-      #exitGuideV2:not(.eg-force-motion) *,#exitGuideV2:not(.eg-force-motion) *::before,#exitGuideV2:not(.eg-force-motion) *::after{animation:none!important;transition:none!important}
+      #exitGuideV2 *,#exitGuideV2 *::before,#exitGuideV2 *::after{animation:none!important;transition:none!important}
       #exitGuideV2 .eg-choice:active{transform:none!important}
     }
     #exitGuideV2.eg-motion-off *,#exitGuideV2.eg-motion-off *::before,#exitGuideV2.eg-motion-off *::after{animation:none!important;transition:none!important}
   `;
   css.textContent += `
-/* V6 | Light, double doors, speed-ramp, freeze, kinetic reveal */
-#exitGuideV2{background:#f4faff}
-#exitGuideV2 .eg-home{background:radial-gradient(ellipse 58% 60% at 50% 110%,rgba(17,129,240,.10),transparent),#f6fbff}
-#exitGuideV2 .eg-choice{overflow:hidden;outline:2px solid rgba(255,255,255,.60);outline-offset:-9px;box-shadow:0 9px 0 rgba(7,31,56,.22),0 0 29px rgba(8,91,166,.16),inset 0 0 25px rgba(255,255,255,.15)}
-#exitGuideV2 .eg-choice:before{content:"";position:absolute;inset:-70%;pointer-events:none;z-index:0;opacity:.72;background:conic-gradient(transparent 0 80deg,rgba(255,255,255,.22) 98deg,transparent 114deg,transparent 255deg,rgba(255,255,255,.22) 270deg,transparent 286deg);animation:v6-card-shine 8s linear infinite}
+/* V5: Pachinko-inspired kinetic light machine; all noninteractive overlays pointer-events:none */
+#exitGuideV2{--eg-energy:#0ff; background:#f4faff}
+#exitGuideV2 .eg-home{background:radial-gradient(ellipse 45% 39% at 50% 90%,rgba(63,151,255,.13),transparent),repeating-linear-gradient(135deg,rgba(0,156,255,.025) 0px,rgba(0,156,255,.025) 2px,transparent 2px,transparent 17px),#f6fbff}
+#exitGuideV2 .eg-home:before{content:"";position:absolute;inset:-20%;pointer-events:none;background:conic-gradient(from 0deg at 50% 48%,transparent 0 10deg,rgba(0,164,255,.04) 10deg 12deg,transparent 12deg 42deg,rgba(0,164,255,.06) 42deg 44deg,transparent 44deg 100deg);animation:eg-stage-rotate 24s linear infinite;z-index:-1}
+#exitGuideV2 .eg-choice{border:4px solid rgba(255,255,255,.7);outline:4px solid rgba(0,34,78,.07);box-shadow:0 0 0 3px rgba(41,144,255,.10),0 10px 0 rgba(9,32,52,.20),0 24px 40px rgba(9,32,52,.20);overflow:hidden}
+#exitGuideV2 .eg-choice:before{content:"";z-index:0;position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 70deg,rgba(255,255,255,.27) 82deg,transparent 96deg,transparent 225deg,rgba(255,255,255,.23) 239deg,transparent 255deg);transform:none;animation:eg-led-rot 5.8s linear infinite;opacity:1;pointer-events:none;transition:none}
+#exitGuideV2 .eg-choice:after{content:"";position:absolute;inset:5px;border:3px dashed rgba(255,255,255,.30);border-radius:16px;transform:none;opacity:1;pointer-events:none;animation:eg-frame-flicker 1.45s steps(2,end) infinite}
 #exitGuideV2 .eg-choice > *{position:relative;z-index:1}
-#exitGuideV2 .eg-blue{box-shadow:0 9px 0 #004979,0 0 30px rgba(0,129,255,.38)}
-#exitGuideV2 .eg-amber{box-shadow:0 9px 0 #754800,0 0 30px rgba(255,154,0,.28)}
-#exitGuideV2 .eg-green{box-shadow:0 9px 0 #005b40,0 0 30px rgba(11,182,104,.30)}
-#exitGuideV2 .eg-choice-index{box-shadow:0 0 17px rgba(255,255,255,.8),0 0 0 7px rgba(255,255,255,.22)}
-#exitGuideV2 .eg-choice-action{animation:v6-cta-pulse 4s ease-in-out infinite}
-#exitGuideV2 .eg-choice.eg-selected{animation:v6-card-impact .11s linear 3!important;filter:brightness(1.22) saturate(1.3)!important}
-@keyframes v6-card-shine{to{transform:rotate(360deg)}}
-@keyframes v6-cta-pulse{0%,84%,100%{transform:none}89%{transform:scale(1.045)}94%{transform:none}}
-@keyframes v6-card-impact{0%{transform:translate(2px,-1px) scale(1.02)}50%{transform:translate(-3px,3px) scale(1.04)}100%{transform:translate(0,0) scale(1.035)}}
-/* All cinema elements are under one fixed composite layer: never cover text after reveal. */
-#eg-cinema{position:fixed;inset:0;z-index:15000;overflow:hidden;pointer-events:none;display:none;isolation:isolate;perspective:1050px;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;color:#fff;--cin-accent:#1dbbff;--cin-shadow:#0850b7}
+#exitGuideV2 .eg-choice-index{box-shadow:0 0 0 7px rgba(255,255,255,.28),0 0 22px rgba(255,255,255,.55),0 6px 0 rgba(1,13,32,.25)}
+#exitGuideV2 .eg-blue{box-shadow:0 0 0 2px #60bdff,0 11px 0 #00549c,0 0 34px rgba(0,129,255,.46)}
+#exitGuideV2 .eg-amber{box-shadow:0 0 0 2px #ffe07c,0 11px 0 #8f5700,0 0 34px rgba(255,165,0,.48)}
+#exitGuideV2 .eg-green{box-shadow:0 0 0 2px #65ffb2,0 11px 0 #00653e,0 0 34px rgba(5,190,109,.38)}
+#exitGuideV2 .eg-choice-action{animation:eg-action-heartbeat 2.4s ease-in-out infinite;border:2px solid rgba(255,255,255,.9)}
+#exitGuideV2 .eg-choice:nth-child(2) .eg-choice-action{animation-delay:.4s}#exitGuideV2 .eg-choice:nth-child(3) .eg-choice-action{animation-delay:.8s}
+#exitGuideV2 .eg-choice.eg-selected{animation:eg-impact-btn .24s linear infinite!important;z-index:5;filter:saturate(1.5) brightness(1.16)!important}
+#exitGuideV2 .eg-intro h1{letter-spacing:.02em;text-shadow:0 3px 0 #fff,0 0 15px rgba(32,146,255,.18)}
+#exitGuideV2.eg-nav-active{filter:saturate(1.13)}
+#exitGuideV2.eg-nav-active .eg-page{animation:eg-app-shudder .10s linear 6}
+#eg-cinema{position:fixed;inset:0;z-index:1250;overflow:hidden;pointer-events:none;isolation:isolate;display:none;color:white;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif}
 #eg-cinema.active{display:block}
-#eg-cinema .cin-back{position:absolute;inset:-10%;background:radial-gradient(ellipse 65% 58% at 50% 51%,var(--cin-shadow) 0%,#001b32 53%,#00050a 100%);animation:v6-back 2.85s both;z-index:0}
-#eg-cinema .cin-tunnel{position:absolute;inset:-70%;opacity:0;transform-origin:center;background:repeating-conic-gradient(from 0deg,transparent 0deg 5deg,rgba(255,255,255,.28) 6deg 7deg,transparent 9deg 17deg),radial-gradient(circle,transparent 0 8%,rgba(0,0,0,.75) 63%);mix-blend-mode:screen;animation:v6-tunnel 2.85s both;z-index:1}
-#eg-cinema .cin-speedframe{position:absolute;inset:-5%;z-index:2;background:repeating-linear-gradient(112deg,transparent 0 32px,rgba(255,255,255,.20) 35px 38px,transparent 40px 91px);filter:blur(8px);opacity:0;animation:v6-speedframe 2.85s both}
-#eg-cinema .cin-zero{position:absolute;inset:0;background:#000;opacity:0;z-index:3;animation:v6-zero 2.85s both}
-/* Actual two LEAVES of the gate, with metallic panels and neon edges */
-#eg-cinema .cin-gate{position:absolute;top:-4%;bottom:-4%;width:52%;z-index:5;overflow:hidden;backface-visibility:hidden;border:5px solid rgba(255,255,255,.62);background:repeating-linear-gradient(0deg,transparent 0 34px,rgba(255,255,255,.11) 35px 38px,transparent 39px 86px),repeating-linear-gradient(90deg,transparent 0 86px,rgba(255,255,255,.09) 87px 91px,transparent 92px 170px),linear-gradient(107deg,#010b1b 0%,#173658 20%,var(--cin-shadow) 49%,#0a1d36 72%,#010817 100%);box-shadow:inset 0 0 33px 15px rgba(255,255,255,.13),inset 0 0 80px #000,0 0 70px var(--cin-accent),0 0 80px #000;opacity:0;will-change:transform}
-#eg-cinema .cin-gate.left{left:-1%;border-right:11px ridge #f8e3a1;transform:translateX(-110%);animation:v6-left 2.85s both}
-#eg-cinema .cin-gate.right{right:-1%;border-left:11px ridge #f8e3a1;transform:translateX(110%);animation:v6-right 2.85s both}
-#eg-cinema .cin-gate::before{content:"";position:absolute;inset:3%;border:5px solid rgba(255,227,114,.68);box-shadow:inset 0 0 20px var(--cin-accent),0 0 20px var(--cin-accent),0 0 0 12px rgba(4,9,18,.48);background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.19) 50%,transparent 60%)}
-#eg-cinema .cin-gate::after{content:"";position:absolute;top:35%;height:30%;width:74%;left:13%;border:9px double #ffe9a1;border-radius:18px;background:radial-gradient(circle at center,#fafbd3 0 4%,var(--cin-accent) 5% 10%,#021c3c 30%,rgba(2,10,23,.6) 67%);box-shadow:0 0 36px var(--cin-accent),inset 0 0 46px var(--cin-accent);transform:skewY(-3deg)}
-#eg-cinema .cin-seam{position:absolute;top:0;bottom:0;left:50%;width:10px;transform:translateX(-50%);z-index:7;opacity:0;background:#fff;box-shadow:0 0 20px 8px var(--cin-accent),0 0 100px 28px var(--cin-accent);animation:v6-seam 2.85s both}
-#eg-cinema .cin-warning{position:absolute;top:14%;left:0;right:0;text-align:center;z-index:4;font-size:clamp(20px,3.3vw,37px);font-weight:1000;letter-spacing:.18em;opacity:0;animation:v6-warning 2.85s both;text-shadow:0 0 16px var(--cin-accent)}
-#eg-cinema .cin-power{position:absolute;left:50%;top:50%;width:24vw;height:24vw;max-width:200px;max-height:200px;min-width:100px;min-height:100px;transform:translate(-50%,-50%) scale(0);z-index:9;opacity:0;border:13px double #fff;border-radius:50%;box-shadow:inset 0 0 30px var(--cin-accent),0 0 40px var(--cin-accent),0 0 85px var(--cin-accent);animation:v6-power 2.85s both}
-#eg-cinema .cin-power::after{content:"";position:absolute;inset:18%;border-radius:50%;background:#fff;box-shadow:0 0 28px 16px var(--cin-accent)}
-#eg-cinema .cin-break{position:absolute;left:50%;top:50%;width:100vmax;height:100vmax;transform:translate(-50%,-50%) scale(.02);border:9px solid white;border-radius:50%;z-index:8;opacity:0;box-shadow:0 0 30px var(--cin-accent),inset 0 0 30px var(--cin-accent);animation:v6-break 2.85s both}
-#eg-cinema .cin-bloom{position:absolute;inset:-30%;pointer-events:none;z-index:8;opacity:0;background:radial-gradient(circle at 50% 50%,#fff 0 7%,#fff3c0 10%,var(--cin-accent) 22%,transparent 47%);mix-blend-mode:screen;animation:v6-bloom 2.85s both}
-#eg-cinema .cin-title{position:absolute;z-index:10;left:2%;right:2%;top:50%;white-space:pre-line;text-align:center;transform:translateY(-50%) scale(4.2) rotate(-9deg);font-size:clamp(53px,9.3vw,125px);font-weight:1000;line-height:1.08;letter-spacing:-.055em;color:#fff;-webkit-text-stroke:2px var(--cin-accent);text-shadow:4px 5px 0 #061025,9px 11px 0 var(--cin-shadow),0 0 22px #fff,0 0 60px var(--cin-accent),0 0 90px var(--cin-accent);opacity:0;animation:v6-title 2.85s both}
-#eg-cinema .cin-caption{position:absolute;z-index:10;bottom:13%;left:8%;right:8%;padding:12px 5px;border-block:3px solid rgba(255,255,255,.8);text-align:center;font-size:clamp(14px,2.3vw,26px);font-weight:1000;letter-spacing:.12em;background:linear-gradient(90deg,transparent,var(--cin-shadow),transparent);opacity:0;animation:v6-caption 2.85s both}
-#eg-cinema .cin-flash{position:absolute;inset:0;background:#fff;z-index:11;opacity:0;animation:v6-flash 2.85s both}
-#eg-cinema canvas{position:absolute;inset:0;width:100%;height:100%;z-index:9;mix-blend-mode:screen}
-#eg-cinema .cin-skip{position:absolute;z-index:16;right:15px;top:16px;pointer-events:auto;display:block;padding:12px 18px;border-radius:99px;border:2px solid rgba(255,255,255,.5);background:rgba(0,12,25,.64);color:#fff;font-size:17px;font-weight:900;min-height:48px;cursor:pointer}
-/* timeline: acceleration .14–.74, freeze .74–.93, door shut .96–1.28, HOLD 1.28–1.57, release 1.6–1.98, result 2.0–2.70 */
-@keyframes v6-back{0%{opacity:0;transform:scale(1)}5%{opacity:1}21%{transform:scale(1.4)}27%{transform:scale(2)}34%{opacity:.7}48%{opacity:1}63%{transform:scale(1.3)}100%{opacity:0}}
-@keyframes v6-tunnel{0%,5%{opacity:0;transform:scale(.2) rotate(0deg)}18%{opacity:.6;transform:scale(.9) rotate(12deg)}26%{opacity:1;transform:scale(1.8) rotate(34deg)}30%{opacity:.85;transform:scale(3.5) rotate(64deg)}33%,100%{opacity:0;transform:scale(4) rotate(70deg)}}
-@keyframes v6-speedframe{0%,8%{opacity:0;transform:translateX(60%)}15%{opacity:.3;transform:translateX(35%)}24%{opacity:.75;transform:translateX(-50%)}29%{opacity:1;transform:translateX(-120%)}32%,100%{opacity:0;transform:translateX(-140%)}}
-@keyframes v6-zero{0%,25%{opacity:0}29%,32%{opacity:.92}34%,100%{opacity:0}}
-@keyframes v6-left{0%,33%{opacity:0;transform:translateX(-112%) rotateY(0)}35%{opacity:1;transform:translateX(-110%) rotateY(0)}44%{transform:translateX(0) rotateY(0)}53%,57%{opacity:1;transform:translateX(0) rotateY(0)}66%{opacity:1;transform:translateX(-25%) rotateY(-19deg)}78%,100%{opacity:0;transform:translateX(-135%) rotateY(-58deg)}}
-@keyframes v6-right{0%,33%{opacity:0;transform:translateX(112%) rotateY(0)}35%{opacity:1;transform:translateX(110%) rotateY(0)}44%{transform:translateX(0) rotateY(0)}53%,57%{opacity:1;transform:translateX(0) rotateY(0)}66%{opacity:1;transform:translateX(25%) rotateY(19deg)}78%,100%{opacity:0;transform:translateX(135%) rotateY(58deg)}}
-@keyframes v6-seam{0%,42%{opacity:0}45%{opacity:1}51%{opacity:.65}57%{opacity:1;width:18px}64%,100%{opacity:0;width:120px}}
-@keyframes v6-warning{0%,33%{opacity:0;transform:scale(2)}37%,55%{opacity:1;transform:scale(1)}63%,100%{opacity:0;transform:scale(1.3)}}
-@keyframes v6-power{0%,53%{opacity:0;transform:translate(-50%,-50%) scale(.1)}57%{opacity:1;transform:translate(-50%,-50%) scale(.85)}62%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}68%{opacity:0;transform:translate(-50%,-50%) scale(4)}100%{opacity:0}}
-@keyframes v6-break{0%,58%{opacity:0;transform:translate(-50%,-50%) scale(.01)}62%{opacity:1;transform:translate(-50%,-50%) scale(.13)}79%,100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)}}
-@keyframes v6-bloom{0%,59%{opacity:0;transform:scale(.3)}62%{opacity:.82;transform:scale(.75)}70%{opacity:.42;transform:scale(1.6)}81%,100%{opacity:0;transform:scale(3)}}
-@keyframes v6-flash{0%,59%{opacity:0}62%{opacity:.80}66%{opacity:.06}70%,100%{opacity:0}}
-@keyframes v6-title{0%,60%{opacity:0;transform:translateY(-50%) scale(4.2) rotate(-9deg)}67%{opacity:1;transform:translateY(-50%) scale(.86) rotate(2deg)}71%{transform:translateY(-50%) scale(1.08) rotate(-1deg)}76%,90%{opacity:1;transform:translateY(-50%) scale(1) rotate(0)}100%{opacity:0;transform:translateY(-50%) scale(1.19)}}
-@keyframes v6-caption{0%,68%{opacity:0;transform:translateY(50px)}74%,91%{opacity:1;transform:none}100%{opacity:0;transform:translateY(28px)}}
-@media (prefers-reduced-motion:reduce){#eg-cinema:not(.eg-force-motion){display:none!important}#exitGuideV2:not(.eg-force-motion) .eg-choice:before{animation:none!important}}
-#exitGuideV2.eg-motion-off .eg-choice:before,#exitGuideV2.eg-motion-off .eg-choice-action{animation:none!important}
-
+#eg-cinema .cin-back{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at center,var(--cin-glow,#0c76dc),#001126 65%,#00050e 100%);opacity:.98}
+#eg-cinema .cin-energy-grid{position:absolute;inset:-60%;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.12) 0deg 2deg,transparent 2deg 20deg);mix-blend-mode:screen;animation:eg-cin-spin 1s linear infinite}
+#eg-cinema .cin-door{position:absolute;width:120%;height:30%;left:-10%;background:linear-gradient(90deg,#010913,#142b4b 13%,var(--cin-accent,#0cb3ff) 47%,#ffffff 50%,var(--cin-accent,#0cb3ff) 53%,#152f50 85%,#010913);border:5px solid rgba(255,255,255,.45);box-shadow:inset 0 0 45px rgba(255,255,255,.4),0 0 54px var(--cin-accent,#0cb3ff);z-index:2;opacity:0}
+#eg-cinema .cin-door.top{top:0;transform:translateY(-120%)}
+#eg-cinema .cin-door.bottom{bottom:0;transform:translateY(120%)}
+#eg-cinema.active .cin-door.top{animation:eg-cin-door-top 1.55s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema.active .cin-door.bottom{animation:eg-cin-door-bottom 1.55s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema .cin-star{position:absolute;left:50%;top:50%;width:min(92vw,850px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.05) rotate(-90deg);opacity:0;clip-path:polygon(50% 0,54% 32%,71% 7%,66% 40%,100% 34%,69% 50%,100% 66%,66% 61%,71% 93%,54% 68%,50% 100%,46% 68%,29% 93%,34% 61%,0 66%,31% 50%,0 34%,34% 40%,29% 7%,46% 32%);background:radial-gradient(circle,#fff 0 16%,#ffe48d 25%,var(--cin-accent,#0cb3ff) 52%,transparent 76%);filter:drop-shadow(0 0 38px white);mix-blend-mode:screen;z-index:3}
+#eg-cinema.active .cin-star{animation:eg-cin-star 1.5s both}
+#eg-cinema .cin-label{position:absolute;top:13%;width:100%;text-align:center;font-size:clamp(18px,3vw,34px);font-weight:1000;letter-spacing:.22em;text-shadow:0 0 12px var(--cin-accent,#0cb3ff);opacity:0;z-index:5}
+#eg-cinema.active .cin-label{animation:eg-cin-label 1.6s both}
+#eg-cinema .cin-title{position:absolute;left:50%;top:50%;width:100%;transform:translate(-50%,-50%) scale(5) rotate(-4deg);opacity:0;z-index:6;white-space:pre-line;text-align:center;font-size:clamp(62px,10vw,145px);font-weight:1000;line-height:1.03;letter-spacing:-.04em;color:#fff;-webkit-text-stroke:2px var(--cin-accent,#0cb3ff);text-shadow:4px 5px 0 #00122b,8px 10px 0 var(--cin-accent,#0cb3ff),0 0 17px white,0 0 43px var(--cin-accent,#0cb3ff),0 0 75px var(--cin-accent,#0cb3ff)}
+#eg-cinema.active .cin-title{animation:eg-cin-title 1.6s both cubic-bezier(.11,1,.26,1)}
+#eg-cinema .cin-ribbon{position:absolute;bottom:10%;left:-15%;width:130%;padding:12px 0;border-block:4px solid white;background:linear-gradient(90deg,transparent,var(--cin-accent,#0cb3ff),transparent);text-align:center;font-size:clamp(20px,3.3vw,34px);font-weight:1000;letter-spacing:.18em;opacity:0;z-index:6}
+#eg-cinema.active .cin-ribbon{animation:eg-cin-ribbon 1.6s both}
+#eg-cinema .cin-flash{position:absolute;inset:0;background:white;opacity:0;z-index:10}
+#eg-cinema.active .cin-flash{animation:eg-cin-flash 1.6s both}
+#eg-cinema canvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;z-index:4}
+@keyframes eg-stage-rotate{to{transform:rotate(360deg)}}@keyframes eg-led-rot{to{transform:rotate(360deg)}}
+@keyframes eg-action-heartbeat{0%,63%,100%{transform:none;box-shadow:0 6px 0 rgba(0,27,55,.15)}70%{transform:scale(1.035);box-shadow:0 6px 18px rgba(255,255,255,.5)}78%{transform:none}}
+@keyframes eg-frame-flicker{0%,100%{opacity:.4}50%{opacity:.9}}
+@keyframes eg-impact-btn{0%,100%{transform:translate(0,0) scale(1.035)}25%{transform:translate(3px,-2px) scale(1.05)}50%{transform:translate(-3px,2px) scale(1.06)}75%{transform:translate(1px,3px) scale(1.04)}}
+@keyframes eg-app-shudder{0%{transform:translate(3px,-2px)}50%{transform:translate(-4px,3px)}100%{transform:translate(1px,-1px)}}
+@keyframes eg-cin-spin{to{transform:rotate(180deg)}}
+@keyframes eg-cin-door-top{0%,18%{transform:translateY(-120%);opacity:1}43%{transform:translateY(62%);opacity:1}55%{transform:translateY(57%);opacity:1}73%,100%{transform:translateY(-160%);opacity:1}}
+@keyframes eg-cin-door-bottom{0%,18%{transform:translateY(120%);opacity:1}43%{transform:translateY(-62%);opacity:1}55%{transform:translateY(-57%);opacity:1}73%,100%{transform:translateY(160%);opacity:1}}
+@keyframes eg-cin-star{0%,33%{opacity:0;transform:translate(-50%,-50%) scale(.05) rotate(-90deg)}43%{opacity:1;transform:translate(-50%,-50%) scale(.72) rotate(0)}65%{opacity:.9;transform:translate(-50%,-50%) scale(1.35) rotate(25deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6) rotate(50deg)}}
+@keyframes eg-cin-label{0%,13%{opacity:0;transform:translateY(-30px)}25%,70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-45px)}}
+@keyframes eg-cin-title{0%,32%{opacity:0;transform:translate(-50%,-50%) scale(4.5) rotate(-6deg)}44%{opacity:1;transform:translate(-50%,-50%) scale(.91) rotate(1deg)}52%,81%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)}}
+@keyframes eg-cin-ribbon{0%,36%{opacity:0;transform:translateX(-100%)}50%,78%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(100%)}}
+/* Single photographic flash; do not strobe */
+@keyframes eg-cin-flash{0%,39%{opacity:0}43%{opacity:.88}49%{opacity:.12}55%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){#eg-cinema{display:none!important}#exitGuideV2 .eg-choice:before,#exitGuideV2 .eg-choice:after,#exitGuideV2 .eg-home:before{animation:none!important}}
+#exitGuideV2.eg-motion-off .eg-choice:before,#exitGuideV2.eg-motion-off .eg-choice:after,#exitGuideV2.eg-motion-off .eg-home:before{animation:none!important}
 `;
   document.head.appendChild(css);
 
@@ -5986,14 +5983,8 @@
   let lastFocus=null;
   const setRoute = (color) => `style="--route-color:${color}"`;
   // No speculative ASOBooN logo: maximize space for the three actions.
-  function syncGuideLayer(){
-    const visible=!root.hidden;
-    if(visible&&originalApp.contains(document.activeElement))document.activeElement.blur();
-    originalApp.inert=visible;
-    if(visible)originalApp.setAttribute('aria-hidden','true');
-    else originalApp.removeAttribute('aria-hidden');
-  }
-  const openTime=()=>{root.hidden=true;current='time';timeView.classList.add('active');document.getElementById('detailView')?.classList.remove('active');document.body.classList.add('home-view');document.getElementById('backButton')?.setAttribute('hidden','');syncGuideLayer();};
+  function syncGuideLayer(){const visible=!root.hidden;if(visible&&originalApp.contains(document.activeElement))document.activeElement.blur();originalApp.inert=visible;if(visible)originalApp.setAttribute('aria-hidden','true');else originalApp.removeAttribute('aria-hidden');}
+  const openTime=()=>{root.hidden=true;syncGuideLayer();current='time';timeView.classList.add('active');document.getElementById('detailView')?.classList.remove('active');document.body.classList.add('home-view');document.getElementById('backButton')?.setAttribute('hidden','');};
   const page=(screen,body,color)=>`<div class="eg-page eg-detail" ${setRoute(color)}><div class="eg-header"><button class="eg-back" type="button" data-guide="home">← 3つの選択肢へ</button><span class="eg-route">${screen}</span></div>${body}<div class="eg-actions"><button type="button" class="eg-main-btn" data-guide="home">最初の画面へ戻る</button><button type="button" class="eg-sub-btn" data-guide="time">退場時間を見る</button></div></div>`;
   const step=(n,title,desc,icon='')=>`<div class="eg-step"><div class="eg-num">${n}</div><div class="eg-step-text"><strong>${title}</strong><p>${desc}</p></div>${icon?`<div class="eg-minisymbol">${icon}</div>`:''}</div>`;
   const family=()=> page('みんなで外に出る',`
@@ -6062,11 +6053,11 @@
   fxLayer.setAttribute('aria-hidden','true');
   document.body.appendChild(fxLayer);
   const systemReduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  let motionEnabled=!(systemReduced?.matches);
+  let motionEnabled=true;
   let navigating=false;
   let navTimer=0;
   const colors={home:'#0c83d1',family:'#1c97f3',adult:'#eda817','adult-yes':'#eab225','adult-no':'#f17656',leave:'#24bd78',time:'#13a7d1'};
-  function animationOK(){return motionEnabled;}
+  function animationOK(){return motionEnabled && !(systemReduced?.matches);}
   const makeEffect=(cl,style)=>{const el=document.createElement('i');el.className=cl;Object.assign(el.style,style);fxLayer.appendChild(el);return el;};
   function bursts(x,y,color,large=false){
     if(!animationOK())return;
@@ -6092,74 +6083,109 @@
     el.addEventListener('animationend',()=>el.remove(),{once:true});
   }
   function showMotionState(){
-    root.classList.toggle('eg-motion-off',!motionEnabled);root.classList.toggle('eg-force-motion',motionEnabled);cin.classList.toggle('eg-force-motion',motionEnabled);
+    root.classList.toggle('eg-motion-off',!motionEnabled);
     root.querySelectorAll('[data-motion-toggle]').forEach(b=>{
       b.textContent=motionEnabled?'✨ 動き ON':'動き OFF';b.dataset.motion=motionEnabled?'on':'off';b.setAttribute('aria-pressed',String(motionEnabled));
     });
   }
 
-  // V6: actual animated cinematic scene, dual sliding doors, speed-ramping trails, hold and release.
-  // WebKit/iPad compatible CSS keyframes + Canvas2D; no external resources.
-  const cin=document.createElement('div');cin.id='eg-cinema';cin.setAttribute('role','group');cin.setAttribute('aria-label','画面切り替えの演出');
-  cin.innerHTML=`<div class="cin-back"></div><div class="cin-tunnel"></div><div class="cin-speedframe"></div><div class="cin-zero"></div><div class="cin-warning">扉が開きます</div><div class="cin-gate left"></div><div class="cin-gate right"></div><div class="cin-seam"></div><div class="cin-power"></div><div class="cin-break"></div><div class="cin-bloom"></div><canvas id="eg-canvas"></canvas><div class="cin-title"></div><div class="cin-caption"></div><div class="cin-flash"></div><button type="button" class="cin-skip" aria-label="演出をスキップして手順を見る">スキップ ›</button>`;
-  Array.from(cin.children).forEach(child=>{if(!child.classList.contains('cin-skip'))child.setAttribute('aria-hidden','true')});
+  // Video-like, actual frame-by-frame cinematic effects. Pure Canvas2D+CSS, no asset / library network.
+  const cin=document.createElement('div');cin.id='eg-cinema';cin.setAttribute('aria-hidden','true');
+  cin.innerHTML='<div class="cin-back"></div><div class="cin-energy-grid"></div><div class="cin-door top"></div><div class="cin-door bottom"></div><div class="cin-star"></div><canvas id="eg-canvas"></canvas><div class="cin-label">選択しました</div><div class="cin-title"></div><div class="cin-ribbon">外に出るときのご案内</div><div class="cin-flash"></div>';
   document.body.appendChild(cin);
   const can=cin.querySelector('canvas'),ctx=can.getContext('2d',{alpha:true});
-  let raf=0,cinColor='#00b8ff',startAt=0,activeDestination=null,stars=[];
+  let raf=0,particles=[],rays=[],startAt=0,lastFrame=0,cinColor='#00b8ff';
   const cinLabels={family:'みんなで\n外に出る',adult:'大人だけ\n外に出る',leave:'今日は\n帰る','adult-yes':'外出できます','adult-no':'外出できません',home:'3つの選択肢',time:'退場時間'};
+  const dist=(a,b)=>Math.sqrt(a*a+b*b)||1;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-  const palette=(dest)=>({'family':['#00b9ff','#0056af'],'adult':['#ffb800','#874100'],'adult-yes':['#f9cb29','#805000'],'adult-no':['#ff6464','#8c0000'],'leave':['#1bf3a6','#006042'],'home':['#4bd1ff','#06376c'],'time':['#5eeeff','#056d90']}[dest]||['#00b8ff','#004b8f']);
-  function resizeCinema(){const d=Math.min(window.devicePixelRatio||1,1.5),w=window.innerWidth,h=window.innerHeight;can.width=Math.round(w*d);can.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);return {w,h};}
+  function resizeCinema(){
+    const d=Math.min(window.devicePixelRatio||1,1.7),w=window.innerWidth,h=window.innerHeight;
+    can.width=Math.round(w*d);can.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);return {w,h};
+  }
+  const palette=(destination)=>({'family':['#00aaff','#0757b8'],'adult':['#ffbe21','#995c00'],'adult-yes':['#ffd45b','#ba7c00'],'adult-no':['#ff5757','#690200'],'leave':['#15df8a','#026845'],home:['#00b8ff','#064a8a'],time:['#2fe0ff','#04608c']}[destination]||['#00b8ff','#0348ab']);
   function setupCinema(destination){
-    activeDestination=destination;const colors=palette(destination);cinColor=colors[0];cin.style.setProperty('--cin-accent',colors[0]);cin.style.setProperty('--cin-shadow',colors[1]);
-    cin.querySelector('.cin-title').textContent=(cinLabels[destination]||'ご案内').replace(/\\n/g,'\n');
-    cin.querySelector('.cin-warning').textContent=destination==='adult-no'?'ご確認ください':'扉が開きます';
-    cin.querySelector('.cin-caption').textContent=destination==='adult-no'?'外出前に条件をご確認ください':'このあとの手順をご案内';
-    cin.classList.remove('active');void cin.offsetWidth;cin.classList.add('active');
-    cin.querySelector('.cin-skip').focus({preventScroll:true});
-    resizeCinema();stars=Array.from({length:145},()=>({angle:Math.random()*Math.PI*2,z:.12+Math.random()*.94,r:Math.random()*1.4+1,spin:(Math.random()-.5)*.4}));
-    startAt=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
+    cinColor=palette(destination)[0];const glow=palette(destination)[1];
+    cin.style.setProperty('--cin-accent',cinColor);cin.style.setProperty('--cin-glow',glow);
+    cin.querySelector('.cin-title').textContent=cinLabels[destination]||'ご案内';
+    cin.querySelector('.cin-label').textContent=destination==='adult-no'?'ご確認ください':'選択しました';
+    cin.querySelector('.cin-ribbon').textContent=destination==='adult-no'?'必ず手順をご確認ください':'このあとの手順をご案内';
+    cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
+    particles=[];rays=[];const {w,h}=resizeCinema();let midX=w/2,midY=h/2;
+    for(let i=0;i<190;i++){
+      const ang=Math.random()*Math.PI*2,spd=90+Math.random()*950;
+      const p={a:ang,v:spd,x:midX,y:midY,size:Math.random()*5+1,tail:18+Math.random()*50,hue:i%4===0?'#ffffff':i%4===1?'#fff2ae':cinColor,phase:Math.random()*.27};
+      particles.push(p);
+    }
+    for(let i=0;i<46;i++)rays.push({ang:i/46*Math.PI*2+Math.random()*.09,size:1+Math.random()*4,length:80+Math.random()*260,alpha:.28+Math.random()*.6});
+    startAt=performance.now();lastFrame=startAt;cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
   }
   function drawCinema(now){
-    if(!cin.classList.contains('active'))return;
-    const t=Math.max(0,(now-startAt)/1000),w=window.innerWidth,h=window.innerHeight,cx=w/2,cy=h/2;
-    ctx.clearRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='lighter';
-    // Speed change: start gently, accelerate violently, then FREEZE instantly.
-    if(t<.82){const n=t/.82;const accel=Math.pow(n,3.0);const hyp=Math.max(w,h)*1.1;
-      for(const s of stars){const z=Math.max(.015, (s.z-accel*1.05+2)%1);const radius=(1-z)*hyp;const length=(9+accel*240)*(.24+1-z);const angle=s.angle+s.spin*accel;const x=cx+Math.cos(angle)*radius,y=cy+Math.sin(angle)*radius;
-        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(angle)*length,y+Math.sin(angle)*length);ctx.lineWidth=s.r*(1+accel*1.35);ctx.globalAlpha=.32+accel*.6;ctx.strokeStyle=s.r>1.9?'#ffffff':cinColor;ctx.shadowBlur=accel*19;ctx.shadowColor=cinColor;ctx.stroke();}
+    const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
+    const t=(now-startAt)/1000,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    ctx.clearRect(0,0,w,h);
+    const cx=w*.5,cy=h*.5;
+    // Scanning energy before the two gates collide.
+    if(t<.65){
+      for(let j=0;j<20;j++){
+        let ang=Math.PI*2*j/20+t*3;
+        ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);ctx.fillStyle=j%2?'rgba(255,255,255,.34)':cinColor;ctx.globalAlpha=.18*(.5+.5*Math.sin(t*9+j));ctx.fillRect(0,0,Math.max(w,h)*.8,1.3);ctx.restore();
+      }
     }
-    // Impact after door slams shut: ripples radiating outward only during the impact window.
-    if(t>1.17&&t<1.68){const dt=t-1.17;
-      for(let j=0;j<3;j++){const radius=dt*550-j*56;if(radius<0)continue;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.strokeStyle=j===0?'#fff':cinColor;ctx.globalAlpha=(1-dt*1.7)*(.85-j*.18);ctx.lineWidth=8-j*2;ctx.shadowBlur=27;ctx.shadowColor=cinColor;ctx.stroke();}
+    // Thick impact ring and concentrically spreading shock waves.
+    const boom=t-.66;
+    if(boom>0 && boom<.95){
+      ctx.globalCompositeOperation='lighter';
+      for(let k=0;k<3;k++){
+        let r=boom*840-k*112;
+        if(r>0){ctx.beginPath();ctx.ellipse(cx,cy,r,r*.84,0,0,Math.PI*2);ctx.strokeStyle=k===0?'rgba(255,255,255,.95)':cinColor;ctx.globalAlpha=(1-boom)*(.88-k*.2);ctx.lineWidth=k===0?9:3;ctx.shadowBlur=25;ctx.shadowColor=cinColor;ctx.stroke();}
+      }
+      ctx.globalAlpha=1;
+      // High-speed radial slash beams.
+      ctx.save();ctx.translate(cx,cy);
+      for(const ray of rays){ctx.save();ctx.rotate(ray.ang+t*1.2);const startR=25+Math.max(0,boom)*560;const L=ray.length*(1-boom*.45);ctx.globalAlpha=ray.alpha*clamp(1-boom*1.2,0,1);ctx.fillStyle='#fff';ctx.shadowBlur=14;ctx.shadowColor=cinColor;ctx.fillRect(startR,-ray.size/2,L,ray.size);ctx.restore();}ctx.restore();
+      // Sparks with trailing beams.
+      for(const p of particles){const age=boom-p.phase;if(age<0)continue;const r=p.v*age*.87;let x=cx+Math.cos(p.a)*r,y=cy+Math.sin(p.a)*r;const len=Math.max(2,p.tail*(.6+age));const tx=x-Math.cos(p.a)*len,ty=y-Math.sin(p.a)*len;
+        ctx.globalAlpha=clamp(1-age*.9,0,1);ctx.lineWidth=p.size;ctx.strokeStyle=p.hue;ctx.shadowColor=p.hue;ctx.shadowBlur=16;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tx,ty);ctx.stroke();
+      }
+      ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;
     }
-    // Door breaks open — bright radial shooting streaks plus outward expanding fragments.
-    if(t>1.74&&t<2.60){const age=t-1.74;const opacity=Math.max(0,1-age/1.0);for(let k=0;k<116;k++){
-      const s=stars[k],angle=s.angle,r=age*age*(480+530*s.z),len=(36+140*s.z)*(1+age*1.2);ctx.beginPath();ctx.moveTo(cx+Math.cos(angle)*r,cy+Math.sin(angle)*r);ctx.lineTo(cx+Math.cos(angle)*(r+len),cy+Math.sin(angle)*(r+len));ctx.globalAlpha=opacity;ctx.lineWidth=1+s.r*2;ctx.strokeStyle=k%5===0?'#fffac2':k%3===0?'#ffffff':cinColor;ctx.shadowColor=cinColor;ctx.shadowBlur=16;ctx.stroke();}
+    // Cascading star confetti as titles land; warning flow gets no congratulatory gold.
+    if(t>.95 && t<1.68){
+      ctx.globalCompositeOperation='lighter';for(let i=0;i<54;i++){
+        const p=particles[i],age=t-.95;let x=cx+Math.sin(p.a*2)*w*.37+Math.cos(p.a)*age*96,y=cy-h*.22+age*270+(i%7)*14;
+        ctx.save();ctx.translate(x,y);ctx.rotate(age*6+i);ctx.globalAlpha=clamp((1.66-t)*1.5,0,.9);ctx.fillStyle=i%4===0?'#fff':cinColor;ctx.fillRect(-3,-3,6,6);ctx.restore();
+      }ctx.globalCompositeOperation='source-over';
     }
-    ctx.restore();
-    if(t<2.90)raf=requestAnimationFrame(drawCinema);
+    // stop as soon as reveal concludes; cannot leak animation loops
+    if(t<1.76 && cin.classList.contains('active'))raf=requestAnimationFrame(drawCinema);
   }
-  function stopCinema(){cancelAnimationFrame(raf);cin.classList.remove('active');ctx.clearRect(0,0,can.width,can.height);stars=[];activeDestination=null;}
-  let pendingDestination=null;
-  const finishCinema=()=>{window.clearTimeout(navTimer);stopCinema();root.classList.remove('eg-nav-active');if(pendingDestination){const dest=pendingDestination;pendingDestination=null;navigating=false;render(dest);}else{navigating=false;}};
-  cin.querySelector('.cin-skip').addEventListener('click',finishCinema);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)finishCinema()});
+  function stopCinema(){cancelAnimationFrame(raf);cin.classList.remove('active');ctx.clearRect(0,0,can.width,can.height);particles.length=0;}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCinema()});
   window.addEventListener('resize',()=>{if(cin.classList.contains('active'))resizeCinema()});
-  window.__ASOBOON_CINEMA_TEST__={isRunning:()=>cin.classList.contains('active'),screen:()=>current,phase:()=>Math.round((performance.now()-startAt)),destination:()=>activeDestination};
+  window.__ASOBOON_CINEMA_TEST__={isRunning:()=>cin.classList.contains('active'),particleCount:()=>particles.length,screen:()=>current};
+
+
   function navigate(destination,button){
     if(navigating)return;
     if(destination==='home'&&current==='home')return;
     if(!animationOK()){render(destination);return;}
-    navigating=true;pendingDestination=destination;
+    navigating=true;
     if(button.classList.contains('eg-choice'))button.classList.add('eg-selected');
-    root.classList.add('eg-nav-active');setupCinema(destination);
-    window.clearTimeout(navTimer);navTimer=window.setTimeout(finishCinema,2830);
+    root.classList.add('eg-nav-active');
+    setupCinema(destination);
+    window.clearTimeout(navTimer);
+    // Motion takes a full 1.65s, not an invisible 240ms flash.
+    navTimer=window.setTimeout(()=>{
+      stopCinema();root.classList.remove('eg-nav-active');render(destination);navigating=false;
+      if(destination==='adult-yes'||destination==='leave'){
+        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},460);
+      }
+    },1620);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
   function render(name='home'){
-    if(name==='home'&&cin.classList.contains('active')){stopCinema();pendingDestination=null;window.clearTimeout(navTimer);navigating=false;root.classList.remove('eg-nav-active');}
+    if(name==='home'&&cin.classList.contains('active')){stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
     if(name==='time'){openTime();resetIdle();return;}
     if(!screens[name])name='home';
     current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
@@ -6171,7 +6197,7 @@
   }
   root.addEventListener('click',(event)=>{
     const motionButton=event.target.closest('button[data-motion-toggle]');
-    if(motionButton){motionEnabled=!motionEnabled;if(!motionEnabled){finishCinema();}showMotionState();return;}
+    if(motionButton){motionEnabled=!motionEnabled;if(!motionEnabled){stopCinema();root.classList.remove("eg-nav-active");}showMotionState();return;}
     const target=event.target.closest('button[data-guide]');
     if(!target)return;
     navigate(target.dataset.guide,target);
@@ -6198,14 +6224,8 @@
   // Closing day / calendar error overlays in the original system must remain usable.
   function syncOperationalOverlay(){
     const critical=document.getElementById('asoboonSpecialOverlay');
-    // 平日「時間制限なし」は退場時間表示だけの情報。館内説明の3択は隠さない。
-    // 休館・カレンダーエラーは従来どおり営業上の警告を優先する。
     const blocking=critical?.classList.contains('show') && critical.dataset.kind!=='unlimited';
-    if(blocking) {
-      root.hidden=true;
-    } else if(current!=='time') {
-      root.hidden=false;
-    }
+    if(blocking) {root.hidden=true;} else if(current!=='time'){root.hidden=false;}
     syncGuideLayer();
   }
   new MutationObserver(syncOperationalOverlay).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
