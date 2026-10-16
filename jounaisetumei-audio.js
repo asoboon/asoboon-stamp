@@ -285,10 +285,10 @@
     const preferred=/kyoko|samantha|female|mei-jia|xiaoxiao|yuna|sun-hi|natural|enhanced|premium/i;
     return group.find(v=>preferred.test(v.name||''))||group[0];
   }
-  function announce(destination){
+  function announce(destination,spokenStep){
     cancelVoice();
-    if(muted||!prompts[destination])return;
-    const lang=locale(),text=prompts[destination][lang];
+    if(muted||(!spokenStep&&!prompts[destination]))return;
+    const lang=locale(),text=spokenStep||prompts[destination]?.[lang];
     if(!text)return;
     // Called synchronously from render() inside the user's tap.
     // No timeout: Safari voice permission requires a real user gesture.
@@ -312,6 +312,20 @@
         synth.speak(utter);
       }catch(error){failures++;voiceAvailable=false;}
     }
+  }
+  function step(route,spokenStep,direction='next'){
+    // Deliberately quiet: never replay the full-screen V5 impact for Next/Back.
+    // The direct tap gesture enables WebAudio and iPad Safari speech synthesis.
+    stopScene();
+    lastDestination=route+'-step';
+    if(muted||document.hidden)return;
+    const audio=unlock();
+    if(audio){
+      const now=audio.currentTime+.006;
+      const back=direction==='prev';
+      oscillator(back?700:550,back?510:830,now,.09,.075,'sine');
+    }
+    if(spokenStep)announce(route,spokenStep);
   }
   function setMuted(next){
     muted=Boolean(next);
@@ -371,7 +385,7 @@
   window.addEventListener('pagehide',stopScene);
   function resetForNextVisitor(){stopScene();setMuted(false);}
   window.__ASOBOON_AUDIO__={
-    start,announce,stop:stopScene,resetForNextVisitor,setMuted,setVolume,
+    start,announce,step,stop:stopScene,resetForNextVisitor,setMuted,setVolume,
     prompt:(destination,lang=locale())=>prompts[destination]?.[lang]||null,
     state:()=>({enabled:!muted,locale:locale(),cachedSounds:buffers.size,lastDestination,
       voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:310,volumeLevel,previewCount,

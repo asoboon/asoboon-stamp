@@ -289,3 +289,4 @@ test('実WebAudioレンダリングでFXのピークを抑え、20%を最大よ�
 require('./asoboon-venue-tablet-delight-cases.cjs');
 
 require('./asoboon-venue-tablet-stepper-cases.cjs');
+require('./asoboon-venue-tablet-step-audio-cases.cjs');
