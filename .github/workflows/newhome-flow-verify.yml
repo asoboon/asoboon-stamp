@@ -4,12 +4,14 @@ on:
     paths:
       - 'miniapp-v2/**'
       - 'jounaisetumei-core.html'
+      - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
   pull_request:
     paths:
       - 'miniapp-v2/**'
       - 'jounaisetumei-core.html'
+      - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
 
