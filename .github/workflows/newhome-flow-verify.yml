@@ -3,11 +3,13 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
       - '.github/workflows/newhome-flow-verify.yml'
 

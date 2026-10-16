@@ -3,6 +3,11 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
+      - 'jounaisetumei-final.js'
+      - 'tests/asoboon-venue-tablet-final.spec.js'
+      - 'jounaisetumei.html'
+      - 'tests/asoboon-venue-tablet-v6.spec.js'
       - 'home.html'
       - 'home-core.html'
       - 'callstatus.html'
@@ -27,6 +32,11 @@ on:
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'jounaisetumei-core.html'
+      - 'jounaisetumei-final.js'
+      - 'tests/asoboon-venue-tablet-final.spec.js'
+      - 'jounaisetumei.html'
+      - 'tests/asoboon-venue-tablet-v6.spec.js'
       - 'home.html'
       - 'home-core.html'
       - 'callstatus.html'
@@ -90,6 +100,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Production browser E2E
         run: npm run test:miniapp-production
+      - name: Venue tablet three-choice / unlimited / iframe browser regression
+        run: npx playwright test tests/asoboon-venue-tablet-v6.spec.js --workers=1
+      - name: Venue tablet V5 final multilingual / cinematic browser tests
+        run: |
+          node --check jounaisetumei-final.js
+          npx playwright test tests/asoboon-venue-tablet-final.spec.js --workers=1
       - name: HOME layout and timeguide reflection regression
         run: node --test tests/asoboon-home-layout-timeguide.test.mjs
       - name: Multilingual reception dictionary and display-only contract

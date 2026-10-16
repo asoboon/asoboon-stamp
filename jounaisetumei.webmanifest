@@ -1,0 +1,11 @@
+{
+  "name": "ASOBooN｜外出・退場のご案内",
+  "short_name": "ASOBooN 案内",
+  "lang": "ja",
+  "start_url": "./jounaisetumei.html?launch=landscape-kiosk-20261016",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#081522",
+  "theme_color": "#081522"
+}

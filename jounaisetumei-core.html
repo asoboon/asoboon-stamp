@@ -4799,6 +4799,39 @@
     }
 
   </style>
+<style id="asoboon-kiosk-hide-legacy">
+  /* No time guidance in this customer-facing landscape kiosk. */
+  main.app,#stepOverlay,#bootScreen{display:none!important}
+  html,body{height:100%;width:100%;overflow:hidden}
+</style>
+
+<style id="asoboon-kiosk-landscape-style">
+#exitGuideV2{width:100vw;height:100dvh;min-height:100vh;overflow-y:auto}
+#exitGuideV2 .eg-page{max-width:none!important;width:100%!important;min-height:100%;padding-left:max(18px,env(safe-area-inset-left))!important;padding-right:max(18px,env(safe-area-inset-right))!important}
+#exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr!important}
+#exitGuideV2 .eg-home .eg-note{font-size:clamp(13px,1.45vw,17px);text-align:center}
+#exitGuideV2 .eg-fullscreen-switch{position:absolute;z-index:6;top:57px;right:14px;min-height:35px;border:1px solid #bacfdd;border-radius:99px;background:#164a70;color:#fff;font-size:13px;font-weight:900;padding:7px 13px;box-shadow:0 3px 8px #1234}
+#exitGuideV2 .eg-motion-switch{right:140px!important}
+#exitGuideV2 .eg-actions .eg-main-btn{width:100%}
+@media (orientation:landscape) and (min-width:700px){
+ #exitGuideV2 .eg-home{height:100dvh;min-height:0;overflow:hidden;gap:clamp(6px,1.2dvh,11px)!important;padding-bottom:max(9px,env(safe-area-inset-bottom))!important}
+ #exitGuideV2 .eg-options{flex:1;min-height:0;gap:clamp(8px,1.4vw,20px)!important}
+ #exitGuideV2 .eg-home .eg-choice{min-height:0!important;height:100%;padding:clamp(8px,1.5dvh,16px) 12px!important;gap:clamp(3px,.85dvh,9px)}
+ #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(22px,3vw,38px)}
+ #exitGuideV2 .eg-home .eg-illustration{flex:1 1 70px;min-height:44px;max-height:170px}
+ #exitGuideV2 .eg-home .eg-illustration svg{max-height:100%;height:100%}
+ #exitGuideV2 .eg-home .eg-choice-action{min-height:clamp(38px,6dvh,55px)}
+ #exitGuideV2 .eg-home .eg-intro h1{font-size:clamp(27px,3.9vw,44px)}
+ #exitGuideV2 .eg-home .eg-intro p{font-size:clamp(16px,2.2vw,23px)}
+ #exitGuideV2 .eg-home .eg-bottom{flex:0 0 auto;min-height:0}
+ #exitGuideV2 .eg-home .eg-note{padding:8px 12px!important}
+ #exitGuideV2 .eg-detail{min-height:100dvh}
+}
+@media(max-width:650px){
+ #exitGuideV2 .eg-motion-switch{right:128px!important}
+ #exitGuideV2 .eg-fullscreen-switch{font-size:11px;padding:6px 8px}
+}
+</style>
 </head>
 
 <body data-mode="150" class="home-view">
@@ -5608,5 +5641,643 @@
       window.setInterval(updateTimes, 1000);
     })();
   </script>
+<script>
+/* ASOBooN 場内説明タブレット / cinematic guide v5 — motion-rich / wordmark-free
+   Staging draft (2026-10-13). Injected into jounaisetumei-core.html;
+   original calendar, modes and time display remain untouched.
+*/
+(() => {
+  'use strict';
+  if (window.__asoboonExitGuideV5) return;
+  window.__asoboonExitGuideV5 = true;
+  const timeView = document.getElementById('timeView');
+  const detailsButton = document.getElementById('openDetailsButton');
+  const originalApp = document.querySelector('main.app');
+  if (!timeView || !originalApp || !detailsButton) return;
+
+  const css = document.createElement('style');
+  css.id='asoboon-guide-v5-style';
+  css.textContent = `
+    /* Motion-rich, readable, touch-first customer-facing display */
+    #exitGuideV2, #exitGuideV2 * {box-sizing:border-box}
+    #exitGuideV2 {
+      --navy:#092842; --ink:#10283d; --muted:#4b6475; --border:#d8e5ec;
+      position:fixed; inset:0; z-index:300; background:#f8fbfd; color:var(--ink);
+      font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;
+      font-feature-settings:'palt'; line-height:1.48; overflow:auto; overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch; -webkit-text-size-adjust:100%;
+    }
+    #exitGuideV2[hidden]{display:none!important}
+    #exitGuideV2 button {touch-action:manipulation;font:inherit;cursor:pointer;outline-offset:3px}
+    #exitGuideV2 button:focus-visible{outline:4px solid #6e67f8}
+    #exitGuideV2 .eg-page{min-height:100%;max-width:1100px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:13px}
+    #exitGuideV2 .eg-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+    #exitGuideV2 .eg-brand{display:flex;align-items:baseline;gap:9px;white-space:nowrap}
+    #exitGuideV2 .eg-logo{font-weight:1000;font-size:clamp(20px,3vw,27px);letter-spacing:-.06em;color:#0089cf}
+    #exitGuideV2 .eg-logo span:nth-child(2){color:#ff9a17}
+    #exitGuideV2 .eg-logo span:nth-child(3){color:#18a368}
+    #exitGuideV2 .eg-unit{font-size:14px;color:var(--muted);font-weight:800}
+    #exitGuideV2 .eg-home-label{font-weight:800;font-size:13px;background:#e7f3f9;color:#1c5572;padding:6px 12px;border-radius:99px}
+    #exitGuideV2 h1,#exitGuideV2 h2,#exitGuideV2 h3,#exitGuideV2 p{margin:0}
+    #exitGuideV2 .eg-intro{text-align:center;padding:2px 0 0}
+    #exitGuideV2 h1{font-size:clamp(31px,5.2vw,48px);letter-spacing:-.045em;font-weight:1000;line-height:1.22}
+    #exitGuideV2 .eg-intro p{font-size:clamp(17px,2.3vw,23px);color:#415970;font-weight:800;margin-top:4px}
+    #exitGuideV2 .eg-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;flex:1;min-height:0}
+    #exitGuideV2 .eg-choice{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:22px 10px 20px;border:0;border-radius:23px;min-width:0;min-height:345px;color:#fff;box-shadow:0 8px 0 rgba(6,27,47,.10),0 10px 23px rgba(6,27,47,.08);transition:transform .12s,filter .12s;justify-content:space-evenly}
+    #exitGuideV2 .eg-choice:active{transform:translateY(4px);filter:brightness(.96)}
+    #exitGuideV2 .eg-blue{background:#0877cb}
+    #exitGuideV2 .eg-amber{background:#a96300}
+    #exitGuideV2 .eg-green{background:#0f8151}
+    #exitGuideV2 .eg-choice-index{width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:#fff;color:var(--eg-color);font-size:32px;line-height:1;font-weight:1000}
+    #exitGuideV2 .eg-blue{--eg-color:#0877cb}
+    #exitGuideV2 .eg-amber{--eg-color:#c78400}
+    #exitGuideV2 .eg-green{--eg-color:#118c59}
+    #exitGuideV2 .eg-choice-title{font-size:clamp(25px,3.65vw,38px);line-height:1.23;font-weight:1000;letter-spacing:-.05em}
+    #exitGuideV2 .eg-illustration{display:flex;align-items:center;justify-content:center;flex:0 0 175px;min-height:100px;max-height:200px;width:100%}
+    #exitGuideV2 .eg-illustration svg{width:100%;max-width:199px;height:100%;max-height:190px;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+    #exitGuideV2 .eg-choice-sub{width:100%;background:#fff;border-radius:999px;color:var(--eg-color);font-size:clamp(16px,2.3vw,22px);font-weight:1000;padding:9px 2px;line-height:1.2}
+    #exitGuideV2 .eg-choice-action{display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:800;color:rgba(255,255,255,.97)}
+    #exitGuideV2 .eg-choice-action svg{width:18px;height:18px}
+    #exitGuideV2 .eg-bottom{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;align-items:stretch}
+    #exitGuideV2 .eg-note{font-size:15px;line-height:1.35;color:#37566a;font-weight:700;background:#eaf3f8;border-radius:16px;padding:13px 16px}
+    #exitGuideV2 .eg-time{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:11px;background:#fff;border:2px solid #b5dbe8;color:#174764;padding:11px 17px;border-radius:16px;font-weight:900;font-size:18px}
+    #exitGuideV2 .eg-time small{display:block;color:#658095;font-size:12px;font-weight:700}
+    #exitGuideV2 .eg-detail .eg-header{border-bottom:2px solid var(--border);padding-bottom:13px}
+    #exitGuideV2 .eg-back{display:flex;align-items:center;gap:8px;border:2px solid #cadae3;border-radius:13px;padding:10px 14px;background:#fff;color:#164a64;font-size:18px;font-weight:900;min-height:53px}
+    #exitGuideV2 .eg-route{font-size:clamp(17px,2.6vw,22px);font-weight:900;padding:8px 13px;border-radius:12px;color:#fff;background:var(--route-color,#0877cb)}
+    #exitGuideV2 .eg-detail-title{text-align:center;margin:2px 0 0;font-size:clamp(29px,4.7vw,42px);font-weight:1000;line-height:1.24}
+    #exitGuideV2 .eg-detail-lead{text-align:center;color:#4b6475;font-size:19px;font-weight:800}
+    #exitGuideV2 .eg-steps{display:grid;gap:12px;flex:1;align-content:stretch;grid-auto-rows:minmax(100px,1fr)}
+    #exitGuideV2 .eg-step{display:flex;align-items:center;gap:14px;border:2px solid var(--border);border-radius:19px;background:#fff;padding:15px 20px;min-height:105px}
+    #exitGuideV2 .eg-num{display:grid;place-items:center;flex-shrink:0;width:56px;height:56px;border-radius:50%;color:#fff;background:var(--route-color,#0877cb);font-size:31px;font-weight:1000}
+    #exitGuideV2 .eg-step-text{min-width:0;flex:1}
+    #exitGuideV2 .eg-step strong{display:block;font-size:clamp(21px,3vw,28px);line-height:1.32;letter-spacing:-.03em}
+    #exitGuideV2 .eg-step p{color:#445c6a;font-size:clamp(15px,2vw,19px);font-weight:700;margin-top:3px}
+    #exitGuideV2 .eg-minisymbol{flex-shrink:0;width:76px;display:flex;justify-content:center;align-items:center}
+    #exitGuideV2 .eg-receipt{width:45px;height:64px;background:#fff;border:3px solid #0b5d96;border-radius:4px;box-shadow:7px 6px 0 #e5eefa;position:relative}
+    #exitGuideV2 .eg-receipt::after{content:'レシート';position:absolute;top:20px;left:-2px;font-weight:1000;font-size:10px;transform:rotate(-8deg);color:#0b5d96}
+    #exitGuideV2 .eg-holder{width:50px;height:62px;border-radius:10px;background:var(--holder-color,#e33c43);border:3px solid rgba(0,0,0,.15);position:relative;box-shadow:0 6px 0 rgba(0,0,0,.08)}
+    #exitGuideV2 .eg-holder:before{content:'';position:absolute;width:16px;height:17px;border:5px solid #223443;border-radius:11px 11px 0 0;top:-19px;left:14px}
+    #exitGuideV2 .eg-two-holders{display:flex;align-items:center;justify-content:center;gap:5px;transform:scale(.75)}
+    #exitGuideV2 .eg-hint{border-radius:18px;padding:14px 19px;background:#eaf6ff;border:2px solid #afdcfa;display:flex;align-items:center;gap:12px;font-size:18px;font-weight:900}
+    #exitGuideV2 .eg-hint strong{font-size:20px}
+    #exitGuideV2 .eg-hint b{display:grid;place-items:center;border-radius:50%;width:44px;height:44px;flex-shrink:0;background:#0877cb;color:#fff;font-size:26px}
+    #exitGuideV2 .eg-notice-amber{background:#fff6dd;border-color:#f1c765}
+    #exitGuideV2 .eg-notice-amber b{background:#bf8100}
+    #exitGuideV2 .eg-notice-green{background:#ebfff5;border-color:#aae6c9}
+    #exitGuideV2 .eg-notice-green b{background:#148653}
+    #exitGuideV2 .eg-danger{background:#fff0f0;border:2px solid #eeadb0;color:#ad2735}
+    #exitGuideV2 .eg-danger b{background:#c42a39}
+    #exitGuideV2 .eg-actions{display:flex;align-items:stretch;gap:10px;justify-content:space-between}
+    #exitGuideV2 .eg-main-btn{flex:1;min-height:60px;border:0;border-radius:15px;padding:11px 20px;background:#154f76;color:#fff;font-size:20px;font-weight:950}
+    #exitGuideV2 .eg-sub-btn{border:2px solid #a4c9d7;border-radius:15px;padding:11px 18px;background:#fff;color:#164764;font-size:18px;font-weight:900}
+    #exitGuideV2 .eg-question{margin:15px auto 0;text-align:center;font-size:24px;font-weight:1000}
+    #exitGuideV2 .eg-question-sub{font-size:17px;color:#4f6573;text-align:center;font-weight:700}
+    #exitGuideV2 .eg-answer-buttons{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;align-items:center}
+    #exitGuideV2 .eg-answer{min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:23px;border:3px solid #bfcfd9;background:#fff;color:#1f3c53;font-weight:1000;font-size:clamp(27px,4vw,36px);line-height:1.3}
+    #exitGuideV2 .eg-answer.eg-yes{background:#eaf8e8;border-color:#278c58;color:#1a7548}
+    #exitGuideV2 .eg-answer.eg-no{background:#fff1ee;border-color:#d85450;color:#ae2e31}
+    #exitGuideV2 .eg-answer small{font-weight:800;color:inherit;font-size:17px}
+    #exitGuideV2 .eg-yellow-picture{display:flex;justify-content:center;padding:15px 0 4px}
+    #exitGuideV2 .eg-yellow-picture .eg-holder{width:70px;height:91px;--holder-color:#ffcc24;transform:rotate(-5deg)}
+    #exitGuideV2 .eg-yellow-picture .eg-holder:before{left:22px;top:-22px}
+    #exitGuideV2 .eg-yellow-picture strong{padding-left:28px;font-size:22px;align-self:center}
+    #exitGuideV2 .eg-no-case{flex:1;display:flex;flex-direction:column;justify-content:center;gap:21px}
+    #exitGuideV2 .eg-no-case h2{font-size:clamp(30px,5.2vw,48px);font-weight:1000;color:#b32434;line-height:1.38;text-align:center}
+    #exitGuideV2 .eg-no-case p{font-size:20px;line-height:1.5;text-align:center;font-weight:800}
+    #exitGuideV2 .eg-quiet{color:#506a7a;font-size:14px;font-weight:700;text-align:center}
+    #exitGuideV2 .eg-foot-space{flex:1}
+    @media (max-width:650px){
+      #exitGuideV2 .eg-page{padding:12px 12px 20px;gap:10px}
+      #exitGuideV2 .eg-options{gap:8px}
+      #exitGuideV2 .eg-choice{min-height:330px;padding:18px 5px 12px;border-radius:15px}
+      #exitGuideV2 .eg-choice-index{width:41px;height:41px;font-size:25px}
+      #exitGuideV2 .eg-choice-title{font-size:clamp(17px,3.6vw,26px)}
+      #exitGuideV2 .eg-choice-sub{font-size:clamp(13px,2.9vw,17px)}
+      #exitGuideV2 .eg-illustration svg{max-width:130px}
+      #exitGuideV2 .eg-choice-action{font-size:12px}
+      #exitGuideV2 .eg-bottom{grid-template-columns:1fr;gap:6px}
+      #exitGuideV2 .eg-note{font-size:12px;padding:10px 12px}
+      #exitGuideV2 .eg-time{font-size:16px;padding:9px 13px}
+      #exitGuideV2 .eg-step{padding:12px;gap:9px}
+      #exitGuideV2 .eg-step strong{font-size:19px}
+      #exitGuideV2 .eg-step p{font-size:14px}
+      #exitGuideV2 .eg-num{width:42px;height:42px;font-size:25px}
+      #exitGuideV2 .eg-minisymbol{width:45px}
+      #exitGuideV2 .eg-hint{padding:12px;font-size:16px}
+      #exitGuideV2 .eg-hint strong{font-size:17px}
+      #exitGuideV2 .eg-logo{font-size:19px}
+      #exitGuideV2 .eg-unit{font-size:10px}
+    }
+    @media (max-width:420px){
+      #exitGuideV2 .eg-options{grid-template-columns:1fr;flex:none}
+      #exitGuideV2 .eg-choice{flex-direction:row;justify-content:space-between;gap:12px;min-height:105px;text-align:left;padding:12px 15px}
+      #exitGuideV2 .eg-choice-index{width:37px;height:37px}
+      #exitGuideV2 .eg-illustration{display:none}
+      #exitGuideV2 .eg-choice-sub{width:auto;background:transparent;color:#fff;font-size:13px}
+      #exitGuideV2 .eg-choice-action{display:none}
+      #exitGuideV2 .eg-answer{min-height:160px}
+    }
+    @media (max-height:750px) and (min-width:421px){
+      #exitGuideV2 .eg-page{gap:9px;padding-top:9px;padding-bottom:10px}
+      #exitGuideV2 .eg-intro h1{font-size:clamp(27px,4vw,38px)}
+      #exitGuideV2 .eg-choice{min-height:280px;padding-top:12px;padding-bottom:12px;gap:4px}
+      #exitGuideV2 .eg-illustration{min-height:65px;max-height:95px;flex-basis:95px}
+      #exitGuideV2 .eg-illustration svg{height:96px}
+      #exitGuideV2 .eg-step{min-height:90px;padding:10px 14px}
+      #exitGuideV2 .eg-hint{padding:10px}
+    }
+    @media (prefers-reduced-motion:reduce){#exitGuideV2 .eg-choice{transition:none}}
+    /* V3: remove invented wordmark; invest header space in the question and choices */
+    #exitGuideV2 .eg-home{gap:15px;padding-top:max(22px,env(safe-area-inset-top));}
+    #exitGuideV2 .eg-home .eg-intro{padding:0 6px 2px}
+    #exitGuideV2 .eg-home .eg-intro h1{font-size:clamp(35px,5.8vw,56px);letter-spacing:-.045em;line-height:1.22;color:#102c46}
+    #exitGuideV2 .eg-home .eg-intro h1::after{content:'';display:block;width:min(78%,450px);height:7px;margin:9px auto 0;background:#ffcc47;border-radius:99px}
+    #exitGuideV2 .eg-home .eg-intro p{font-size:clamp(21px,3.25vw,27px);color:#263f51;font-weight:950;margin-top:8px}
+    #exitGuideV2 .eg-home .eg-options{gap:15px}
+    #exitGuideV2 .eg-home .eg-choice{padding:22px 12px 18px;gap:10px;border-radius:25px;box-shadow:0 9px 0 rgba(6,27,47,.11),0 13px 25px rgba(6,27,47,.10)}
+    #exitGuideV2 .eg-home .eg-choice-index{width:62px;height:62px;font-size:38px;flex-shrink:0}
+    #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(27px,4.7vw,42px);line-height:1.19}
+    #exitGuideV2 .eg-home .eg-illustration{flex-basis:195px;min-height:125px;max-height:230px}
+    #exitGuideV2 .eg-home .eg-illustration svg{max-width:225px;max-height:213px;stroke-width:5.6}
+    #exitGuideV2 .eg-home .eg-choice-sub{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.8);color:#fff;font-size:clamp(18px,2.8vw,24px);padding:9px 4px}
+    #exitGuideV2 .eg-home .eg-choice-action{width:100%;background:#fff;border-radius:13px;min-height:64px;padding:12px 8px;color:var(--eg-color);font-size:clamp(17px,2.65vw,23px);font-weight:1000;gap:12px}
+    #exitGuideV2 .eg-home .eg-choice-action svg{width:25px;height:25px}
+    #exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1.35fr 1fr}
+    #exitGuideV2 .eg-home .eg-note{font-size:14px}
+    #exitGuideV2 .eg-home .eg-time{border-width:3px;font-size:19px}
+    @media(max-width:800px) and (min-width:421px){
+       #exitGuideV2 .eg-home .eg-choice{padding:17px 10px 16px;gap:8px}
+       #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(27px,4.9vw,38px)}
+       #exitGuideV2 .eg-home .eg-illustration{flex-basis:165px;min-height:112px;max-height:192px}
+       #exitGuideV2 .eg-home .eg-illustration svg{max-height:188px}
+       #exitGuideV2 .eg-home .eg-choice-action{font-size:clamp(17px,2.9vw,21px);min-height:58px}
+    }
+    @media(max-height:820px) and (min-width:421px){
+      #exitGuideV2 .eg-home{gap:8px;padding-top:8px}
+      #exitGuideV2 .eg-home .eg-intro h1{font-size:clamp(29px,4.6vw,42px)}
+      #exitGuideV2 .eg-home .eg-intro h1::after{height:4px;margin-top:4px}
+      #exitGuideV2 .eg-home .eg-intro p{font-size:18px;margin-top:4px}
+      #exitGuideV2 .eg-home .eg-choice{min-height:225px;padding:10px 7px;gap:5px}
+      #exitGuideV2 .eg-home .eg-choice-index{width:42px;height:42px;font-size:27px}
+      #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(20px,3.4vw,30px)}
+      #exitGuideV2 .eg-home .eg-illustration{flex-basis:80px;max-height:90px;min-height:65px}
+      #exitGuideV2 .eg-home .eg-illustration svg{height:85px}
+      #exitGuideV2 .eg-home .eg-choice-sub{font-size:15px;padding:4px}
+      #exitGuideV2 .eg-home .eg-choice-action{min-height:41px;padding:5px;font-size:16px}
+      #exitGuideV2 .eg-home .eg-note{font-size:12px}
+    }
+    @media(max-width:420px){
+      #exitGuideV2 .eg-home .eg-choice{min-height:110px;flex-direction:row;padding:12px;gap:10px}
+      #exitGuideV2 .eg-home .eg-choice-index{width:39px;height:39px;font-size:25px}
+      #exitGuideV2 .eg-home .eg-choice-title{font-size:18px}
+      #exitGuideV2 .eg-home .eg-choice-sub{width:auto;font-size:12px;border:0;background:transparent;padding:0}
+      #exitGuideV2 .eg-home .eg-choice-action{width:auto;min-height:36px;padding:5px 8px;font-size:13px}
+      #exitGuideV2 .eg-home .eg-choice-action svg{display:none}
+      #exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr!important}
+      #exitGuideV2 .eg-home .eg-intro h1{font-size:27px}
+      #exitGuideV2 .eg-home .eg-intro p{font-size:19px}
+    }
+
+
+    /* v4 motion layer: touch delight, never obscure an instruction */
+    #exitGuideV2{--eg-depth:0 12px 26px rgba(7,36,55,.13)}
+    #exitGuideV2 .eg-page{position:relative;isolation:isolate}
+    #exitGuideV2 .eg-home{background:radial-gradient(ellipse 34% 23% at 11% 59%,rgba(35,156,240,.085),transparent 90%),radial-gradient(ellipse 33% 24% at 91% 45%,rgba(44,188,116,.09),transparent 92%)}
+    #exitGuideV2 .eg-intro{position:relative;z-index:1}
+    #exitGuideV2 .eg-intro h1{color:#0c2942;text-shadow:0 3px 0 rgba(255,255,255,.83)}
+    #exitGuideV2 .eg-choice{position:relative;isolation:isolate;overflow:hidden;transform:translate3d(0,0,0);backface-visibility:hidden;will-change:transform;box-shadow:0 10px 0 rgba(9,32,52,.14),0 17px 26px rgba(9,32,52,.08);transition:transform .2s cubic-bezier(.18,.8,.28,1.4),box-shadow .2s,filter .17s;border:2px solid rgba(255,255,255,.16)}
+    #exitGuideV2 .eg-blue{background:linear-gradient(150deg,#189afa 0%,#0877cf 44%,#0365b2 100%)}
+    #exitGuideV2 .eg-amber{background:linear-gradient(145deg,#e99a0a 0%,#bb7200 54%,#a15b00 100%)}
+    #exitGuideV2 .eg-green{background:linear-gradient(155deg,#1cae75 0%,#0c8757 55%,#08714a 100%)}
+    #exitGuideV2 .eg-choice::before{content:"";pointer-events:none;position:absolute;inset:-48% -50%;z-index:-1;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.19),transparent 58%);transform:translate(35%,31%);transition:transform .55s cubic-bezier(.15,.8,.28,1)}
+    #exitGuideV2 .eg-choice::after{content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.16) 49%,transparent 65%);transform:translateX(-170%) skewX(-13deg);opacity:0}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible)::before{transform:translate(-15%,-11%)}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible){filter:brightness(1.06);box-shadow:0 13px 0 rgba(9,32,52,.11),0 19px 35px rgba(9,32,52,.16)}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible)::after{animation:eg-sweep .8s both}
+    #exitGuideV2 .eg-choice:active,#exitGuideV2 .eg-choice.eg-pressed{transform:translate3d(0,7px,0) scale(.974)!important;box-shadow:0 3px 0 rgba(9,32,52,.15),0 7px 14px rgba(9,32,52,.1)}
+    #exitGuideV2 .eg-choice.eg-selected{transform:translate3d(0,-8px,0) scale(1.035)!important;filter:brightness(1.16) saturate(1.18);box-shadow:0 20px 42px rgba(9,32,52,.2)}
+    #exitGuideV2 .eg-choice-index{box-shadow:0 6px 0 rgba(2,24,49,.17),inset 0 -2px 0 rgba(7,32,52,.10);transition:transform .2s cubic-bezier(.16,.87,.25,1.6);animation:eg-badge-pop .7s .35s both cubic-bezier(.2,1.4,.28,1)}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible) .eg-choice-index{transform:rotate(-12deg) scale(1.12)}
+    #exitGuideV2 .eg-choice-title{filter:drop-shadow(0 2px 2px rgba(0,0,0,.1));position:relative;z-index:1}
+    #exitGuideV2 .eg-illustration{position:relative;filter:drop-shadow(0 7px 2px rgba(3,38,60,.2));transition:transform .26s cubic-bezier(.2,1.3,.25,1)}
+    #exitGuideV2 .eg-illustration svg{overflow:visible}
+    #exitGuideV2 .eg-blue .eg-illustration{animation:eg-icon-wave 3.8s 1.45s ease-in-out infinite}
+    #exitGuideV2 .eg-amber .eg-illustration{animation:eg-icon-walk 4.3s 1.6s ease-in-out infinite}
+    #exitGuideV2 .eg-green .eg-illustration{animation:eg-house-bop 4.2s 1.75s ease-in-out infinite}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible) .eg-illustration{transform:scale(1.10) rotate(-4deg)}
+    #exitGuideV2 .eg-choice-sub{box-shadow:inset 0 -4px 0 rgba(17,55,68,.11)}
+    #exitGuideV2 .eg-choice-action{position:relative;width:min(100%,245px);min-height:52px;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:1000;color:var(--eg-color);background:#fff;border-radius:15px;box-shadow:0 6px 0 rgba(0,27,55,.15);font-size:clamp(16px,2vw,22px);transition:transform .2s cubic-bezier(.12,1.6,.25,1),box-shadow .2s}
+    #exitGuideV2 .eg-choice-action svg{width:24px;height:24px;transition:transform .18s ease-out}
+    #exitGuideV2 .eg-choice:where(:hover,:focus-visible) .eg-choice-action svg{transform:translateX(5px)}
+    #exitGuideV2 .eg-choice:active .eg-choice-action,#exitGuideV2 .eg-choice.eg-pressed .eg-choice-action{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,27,55,.14)}
+    #exitGuideV2 .eg-choice:nth-child(1){animation:eg-card-enter .69s .09s both cubic-bezier(.17,1.18,.27,1)}
+    #exitGuideV2 .eg-choice:nth-child(2){animation:eg-card-enter .69s .20s both cubic-bezier(.17,1.18,.27,1)}
+    #exitGuideV2 .eg-choice:nth-child(3){animation:eg-card-enter .69s .31s both cubic-bezier(.17,1.18,.27,1)}
+    #exitGuideV2 .eg-home .eg-bottom{animation:eg-bottom-enter .52s .52s both}
+    #exitGuideV2 .eg-intro{animation:eg-heading-enter .55s both}
+    #exitGuideV2 .eg-detail .eg-header{animation:eg-fade-down .38s both}
+    #exitGuideV2 .eg-detail-title{animation:eg-detail-heading .55s .05s both cubic-bezier(.14,.9,.26,1)}
+    #exitGuideV2 .eg-detail-lead{animation:eg-fade-down .45s .15s both}
+    #exitGuideV2 .eg-step{position:relative;overflow:hidden;box-shadow:0 5px 0 rgba(14,48,76,.065),0 9px 18px rgba(14,48,76,.035);animation:eg-step-appear .48s both cubic-bezier(.16,1.14,.25,1);transition:transform .22s,box-shadow .22s}
+    #exitGuideV2 .eg-step:nth-child(1){animation-delay:.10s}
+    #exitGuideV2 .eg-step:nth-child(2){animation-delay:.22s}
+    #exitGuideV2 .eg-step:nth-child(3){animation-delay:.34s}
+    #exitGuideV2 .eg-step:nth-child(4){animation-delay:.46s}
+    #exitGuideV2 .eg-step::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--route-color,#0877cb);border-radius:6px}
+    #exitGuideV2 .eg-num{box-shadow:0 4px 0 rgba(7,27,54,.18);animation:eg-badge-zoom .52s both cubic-bezier(.22,1.4,.26,1)}
+    #exitGuideV2 .eg-step:nth-child(1) .eg-num{animation-delay:.26s}
+    #exitGuideV2 .eg-step:nth-child(2) .eg-num{animation-delay:.38s}
+    #exitGuideV2 .eg-step:nth-child(3) .eg-num{animation-delay:.50s}
+    #exitGuideV2 .eg-hint{box-shadow:0 6px 0 rgba(14,48,76,.055);animation:eg-hint-enter .56s .40s both cubic-bezier(.12,1.2,.26,1)}
+    #exitGuideV2 .eg-hint b{box-shadow:0 3px 0 rgba(0,0,0,.13)}
+    #exitGuideV2 .eg-detail .eg-actions{animation:eg-bottom-enter .45s .45s both}
+    #exitGuideV2 .eg-receipt{animation:eg-receipt-rise 2.7s .9s ease-in-out infinite}
+    #exitGuideV2 .eg-two-holders{animation:eg-holders-show 3.3s 1s ease-in-out infinite}
+    #exitGuideV2 .eg-yellow-picture .eg-holder{animation:eg-yellow-swing 2.75s .6s ease-in-out infinite;transform-origin:50% 4%}
+    #exitGuideV2 .eg-answer{transition:transform .19s cubic-bezier(.15,1.3,.25,1),box-shadow .2s;box-shadow:0 7px 0 rgba(5,37,65,.12);animation:eg-answer-entrance .53s .14s both}
+    #exitGuideV2 .eg-answer:nth-child(2){animation-delay:.25s}
+    #exitGuideV2 .eg-answer:active{transform:translateY(5px) scale(.97);box-shadow:0 2px 0 rgba(5,37,65,.12)}
+    #exitGuideV2 .eg-no-case .eg-danger{animation:eg-warn-enter .5s .1s both}
+    #exitGuideV2 .eg-time,#exitGuideV2 .eg-main-btn,#exitGuideV2 .eg-sub-btn,#exitGuideV2 .eg-back{transition:transform .19s cubic-bezier(.16,1.1,.25,1),filter .2s,box-shadow .2s}
+    #exitGuideV2 :is(.eg-time,.eg-main-btn,.eg-sub-btn,.eg-back):active{transform:translateY(3px) scale(.98);filter:brightness(.94)}
+    #exitGuideV2 .eg-quiet{font-size:clamp(13px,1.8vw,16px)}
+    #exitGuideV2 .eg-motion-switch{position:absolute;right:20px;top:max(17px,env(safe-area-inset-top));z-index:5;border:1px solid #cce0ec;background:#fff;color:#527187;border-radius:99px;font-size:12px;font-weight:800;padding:7px 11px;min-height:34px;box-shadow:0 3px 8px rgba(0,0,0,.06)}
+    #exitGuideV2 .eg-motion-switch[data-motion="off"]{background:#e7edf0;color:#425b6b}
+    #eg-special-fx{position:fixed;inset:0;pointer-events:none;z-index:1000;overflow:hidden;contain:layout style paint}
+    .eg-fx-particle{position:fixed;display:block;width:12px;height:12px;pointer-events:none;will-change:transform,opacity}
+    .eg-fx-ring{position:fixed;pointer-events:none;border:5px solid var(--ring,#fff);border-radius:50%;width:28px;height:28px;mix-blend-mode:screen;box-shadow:0 0 16px var(--ring,#fff);will-change:transform,opacity}
+    .eg-fx-glow{position:fixed;pointer-events:none;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--glow,#fff) 0%,transparent 65%);will-change:transform,opacity}
+    .eg-fx-flash{position:fixed;inset:0;z-index:999;pointer-events:none;background:var(--flash,#fff);opacity:0;animation:eg-full-flash .38s both}
+    @keyframes eg-card-enter{0%{opacity:0;transform:translateY(75px) scale(.78) rotate(-5deg)}70%{opacity:1;transform:translateY(-12px) scale(1.025) rotate(1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+    @keyframes eg-heading-enter{from{opacity:0;transform:translateY(-20px) scale(.96)}to{opacity:1;transform:none}}
+    @keyframes eg-underline{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @keyframes eg-bottom-enter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+    @keyframes eg-fade-down{from{opacity:0;transform:translateY(-13px)}to{opacity:1;transform:none}}
+    @keyframes eg-detail-heading{from{opacity:0;transform:translateY(24px) scale(.91)}to{opacity:1;transform:none}}
+    @keyframes eg-step-appear{0%{opacity:0;transform:translateX(48px) scale(.95)}75%{opacity:1;transform:translateX(-4px) scale(1)}100%{opacity:1;transform:none}}
+    @keyframes eg-badge-pop{0%{transform:scale(.5) rotate(-30deg);opacity:0}65%{transform:scale(1.2) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg)}}
+    @keyframes eg-badge-zoom{0%{transform:scale(.2) rotate(-50deg)}70%{transform:scale(1.18) rotate(10deg)}100%{transform:scale(1) rotate(0deg)}}
+    @keyframes eg-hint-enter{from{opacity:0;transform:translateY(25px) scale(.93)}to{opacity:1;transform:none}}
+    @keyframes eg-answer-entrance{from{opacity:0;transform:translateY(43px) scale(.85)}to{opacity:1;transform:none}}
+    @keyframes eg-warn-enter{0%{opacity:0;transform:scale(.89)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:none}}
+    @keyframes eg-sweep{0%{transform:translateX(-170%) skewX(-13deg);opacity:0}30%{opacity:1}100%{transform:translateX(180%) skewX(-13deg);opacity:0}}
+    @keyframes eg-icon-wave{0%,18%,30%,100%{transform:none}21%{transform:translateY(-6px) rotate(-4deg)}25%{transform:translateY(-6px) rotate(4deg)}}
+    @keyframes eg-icon-walk{0%,17%,30%,100%{transform:none}20%{transform:translate(-4px,-8px) rotate(-4deg)}24%{transform:translate(4px,0) rotate(4deg)}27%{transform:translate(-3px,-5px) rotate(-2deg)}}
+    @keyframes eg-house-bop{0%,23%,40%,100%{transform:none}26%{transform:scale(.94,1.08)}30%{transform:translateY(-9px) scale(1.04,.97)}34%{transform:translateY(-3px) scale(.98,1.03)}}
+    @keyframes eg-receipt-rise{0%,58%,100%{transform:none}16%,30%{transform:translateY(-13px) rotate(-7deg)}38%{transform:translateY(0) rotate(0)}}
+    @keyframes eg-holders-show{0%,65%,100%{transform:scale(.75) rotate(0)}18%,38%{transform:scale(.82) rotate(-4deg)}}
+    @keyframes eg-yellow-swing{0%,55%,100%{transform:rotate(-5deg)}15%,35%{transform:rotate(9deg)}25%{transform:rotate(-10deg)}}
+    @keyframes eg-full-flash{0%{opacity:0}20%{opacity:.21}100%{opacity:0}}
+    @media(max-height:780px) and (min-width:700px){
+      #exitGuideV2 .eg-choice-action{font-size:clamp(15px,2vw,19px);min-height:40px}
+      #exitGuideV2 .eg-motion-switch{font-size:11px;padding:5px 9px;min-height:30px}
+    }
+    @media(max-width:800px){#exitGuideV2 .eg-motion-switch{right:8px;top:6px;font-size:11px;padding:4px 8px;min-height:27px}}
+    @media(max-width:420px){#exitGuideV2 .eg-choice-action{min-height:42px;font-size:13px;max-width:116px}}
+    @media(prefers-reduced-motion:reduce){
+      #exitGuideV2 *,#exitGuideV2 *::before,#exitGuideV2 *::after{animation:none!important;transition:none!important}
+      #exitGuideV2 .eg-choice:active{transform:none!important}
+    }
+    #exitGuideV2.eg-motion-off *,#exitGuideV2.eg-motion-off *::before,#exitGuideV2.eg-motion-off *::after{animation:none!important;transition:none!important}
+  `;
+  css.textContent += `
+/* V5: Pachinko-inspired kinetic light machine; all noninteractive overlays pointer-events:none */
+#exitGuideV2{--eg-energy:#0ff; background:#f4faff}
+#exitGuideV2 .eg-home{background:radial-gradient(ellipse 45% 39% at 50% 90%,rgba(63,151,255,.13),transparent),repeating-linear-gradient(135deg,rgba(0,156,255,.025) 0px,rgba(0,156,255,.025) 2px,transparent 2px,transparent 17px),#f6fbff}
+#exitGuideV2 .eg-home:before{content:"";position:absolute;inset:-20%;pointer-events:none;background:conic-gradient(from 0deg at 50% 48%,transparent 0 10deg,rgba(0,164,255,.04) 10deg 12deg,transparent 12deg 42deg,rgba(0,164,255,.06) 42deg 44deg,transparent 44deg 100deg);animation:eg-stage-rotate 24s linear infinite;z-index:-1}
+#exitGuideV2 .eg-choice{border:4px solid rgba(255,255,255,.7);outline:4px solid rgba(0,34,78,.07);box-shadow:0 0 0 3px rgba(41,144,255,.10),0 10px 0 rgba(9,32,52,.20),0 24px 40px rgba(9,32,52,.20);overflow:hidden}
+#exitGuideV2 .eg-choice:before{content:"";z-index:0;position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 70deg,rgba(255,255,255,.27) 82deg,transparent 96deg,transparent 225deg,rgba(255,255,255,.23) 239deg,transparent 255deg);transform:none;animation:eg-led-rot 5.8s linear infinite;opacity:1;pointer-events:none;transition:none}
+#exitGuideV2 .eg-choice:after{content:"";position:absolute;inset:5px;border:3px dashed rgba(255,255,255,.30);border-radius:16px;transform:none;opacity:1;pointer-events:none;animation:eg-frame-flicker 1.45s steps(2,end) infinite}
+#exitGuideV2 .eg-choice > *{position:relative;z-index:1}
+#exitGuideV2 .eg-choice-index{box-shadow:0 0 0 7px rgba(255,255,255,.28),0 0 22px rgba(255,255,255,.55),0 6px 0 rgba(1,13,32,.25)}
+#exitGuideV2 .eg-blue{box-shadow:0 0 0 2px #60bdff,0 11px 0 #00549c,0 0 34px rgba(0,129,255,.46)}
+#exitGuideV2 .eg-amber{box-shadow:0 0 0 2px #ffe07c,0 11px 0 #8f5700,0 0 34px rgba(255,165,0,.48)}
+#exitGuideV2 .eg-green{box-shadow:0 0 0 2px #65ffb2,0 11px 0 #00653e,0 0 34px rgba(5,190,109,.38)}
+#exitGuideV2 .eg-choice-action{animation:eg-action-heartbeat 2.4s ease-in-out infinite;border:2px solid rgba(255,255,255,.9)}
+#exitGuideV2 .eg-choice:nth-child(2) .eg-choice-action{animation-delay:.4s}#exitGuideV2 .eg-choice:nth-child(3) .eg-choice-action{animation-delay:.8s}
+#exitGuideV2 .eg-choice.eg-selected{animation:eg-impact-btn .24s linear infinite!important;z-index:5;filter:saturate(1.5) brightness(1.16)!important}
+#exitGuideV2 .eg-intro h1{letter-spacing:.02em;text-shadow:0 3px 0 #fff,0 0 15px rgba(32,146,255,.18)}
+#exitGuideV2.eg-nav-active{filter:saturate(1.13)}
+#exitGuideV2.eg-nav-active .eg-page{animation:eg-app-shudder .10s linear 6}
+#eg-cinema{position:fixed;inset:0;z-index:1250;overflow:hidden;pointer-events:none;isolation:isolate;display:none;color:white;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif}
+#eg-cinema.active{display:block}
+#eg-cinema .cin-back{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at center,var(--cin-glow,#0c76dc),#001126 65%,#00050e 100%);opacity:.98}
+#eg-cinema .cin-energy-grid{position:absolute;inset:-60%;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.12) 0deg 2deg,transparent 2deg 20deg);mix-blend-mode:screen;animation:eg-cin-spin 1s linear infinite}
+#eg-cinema .cin-door{position:absolute;width:120%;height:30%;left:-10%;background:linear-gradient(90deg,#010913,#142b4b 13%,var(--cin-accent,#0cb3ff) 47%,#ffffff 50%,var(--cin-accent,#0cb3ff) 53%,#152f50 85%,#010913);border:5px solid rgba(255,255,255,.45);box-shadow:inset 0 0 45px rgba(255,255,255,.4),0 0 54px var(--cin-accent,#0cb3ff);z-index:2;opacity:0}
+#eg-cinema .cin-door.top{top:0;transform:translateY(-120%)}
+#eg-cinema .cin-door.bottom{bottom:0;transform:translateY(120%)}
+#eg-cinema.active .cin-door.top{animation:eg-cin-door-top 1.55s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema.active .cin-door.bottom{animation:eg-cin-door-bottom 1.55s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema .cin-star{position:absolute;left:50%;top:50%;width:min(92vw,850px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.05) rotate(-90deg);opacity:0;clip-path:polygon(50% 0,54% 32%,71% 7%,66% 40%,100% 34%,69% 50%,100% 66%,66% 61%,71% 93%,54% 68%,50% 100%,46% 68%,29% 93%,34% 61%,0 66%,31% 50%,0 34%,34% 40%,29% 7%,46% 32%);background:radial-gradient(circle,#fff 0 16%,#ffe48d 25%,var(--cin-accent,#0cb3ff) 52%,transparent 76%);filter:drop-shadow(0 0 38px white);mix-blend-mode:screen;z-index:3}
+#eg-cinema.active .cin-star{animation:eg-cin-star 1.5s both}
+#eg-cinema .cin-label{position:absolute;top:13%;width:100%;text-align:center;font-size:clamp(18px,3vw,34px);font-weight:1000;letter-spacing:.22em;text-shadow:0 0 12px var(--cin-accent,#0cb3ff);opacity:0;z-index:5}
+#eg-cinema.active .cin-label{animation:eg-cin-label 1.6s both}
+#eg-cinema .cin-title{position:absolute;left:50%;top:50%;width:100%;transform:translate(-50%,-50%) scale(5) rotate(-4deg);opacity:0;z-index:6;white-space:pre-line;text-align:center;font-size:clamp(62px,10vw,145px);font-weight:1000;line-height:1.03;letter-spacing:-.04em;color:#fff;-webkit-text-stroke:2px var(--cin-accent,#0cb3ff);text-shadow:4px 5px 0 #00122b,8px 10px 0 var(--cin-accent,#0cb3ff),0 0 17px white,0 0 43px var(--cin-accent,#0cb3ff),0 0 75px var(--cin-accent,#0cb3ff)}
+#eg-cinema.active .cin-title{animation:eg-cin-title 1.6s both cubic-bezier(.11,1,.26,1)}
+#eg-cinema .cin-ribbon{position:absolute;bottom:10%;left:-15%;width:130%;padding:12px 0;border-block:4px solid white;background:linear-gradient(90deg,transparent,var(--cin-accent,#0cb3ff),transparent);text-align:center;font-size:clamp(20px,3.3vw,34px);font-weight:1000;letter-spacing:.18em;opacity:0;z-index:6}
+#eg-cinema.active .cin-ribbon{animation:eg-cin-ribbon 1.6s both}
+#eg-cinema .cin-flash{position:absolute;inset:0;background:white;opacity:0;z-index:10}
+#eg-cinema.active .cin-flash{animation:eg-cin-flash 1.6s both}
+#eg-cinema canvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;z-index:4}
+@keyframes eg-stage-rotate{to{transform:rotate(360deg)}}@keyframes eg-led-rot{to{transform:rotate(360deg)}}
+@keyframes eg-action-heartbeat{0%,63%,100%{transform:none;box-shadow:0 6px 0 rgba(0,27,55,.15)}70%{transform:scale(1.035);box-shadow:0 6px 18px rgba(255,255,255,.5)}78%{transform:none}}
+@keyframes eg-frame-flicker{0%,100%{opacity:.4}50%{opacity:.9}}
+@keyframes eg-impact-btn{0%,100%{transform:translate(0,0) scale(1.035)}25%{transform:translate(3px,-2px) scale(1.05)}50%{transform:translate(-3px,2px) scale(1.06)}75%{transform:translate(1px,3px) scale(1.04)}}
+@keyframes eg-app-shudder{0%{transform:translate(3px,-2px)}50%{transform:translate(-4px,3px)}100%{transform:translate(1px,-1px)}}
+@keyframes eg-cin-spin{to{transform:rotate(180deg)}}
+@keyframes eg-cin-door-top{0%,18%{transform:translateY(-120%);opacity:1}43%{transform:translateY(62%);opacity:1}55%{transform:translateY(57%);opacity:1}73%,100%{transform:translateY(-160%);opacity:1}}
+@keyframes eg-cin-door-bottom{0%,18%{transform:translateY(120%);opacity:1}43%{transform:translateY(-62%);opacity:1}55%{transform:translateY(-57%);opacity:1}73%,100%{transform:translateY(160%);opacity:1}}
+@keyframes eg-cin-star{0%,33%{opacity:0;transform:translate(-50%,-50%) scale(.05) rotate(-90deg)}43%{opacity:1;transform:translate(-50%,-50%) scale(.72) rotate(0)}65%{opacity:.9;transform:translate(-50%,-50%) scale(1.35) rotate(25deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6) rotate(50deg)}}
+@keyframes eg-cin-label{0%,13%{opacity:0;transform:translateY(-30px)}25%,70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-45px)}}
+@keyframes eg-cin-title{0%,32%{opacity:0;transform:translate(-50%,-50%) scale(4.5) rotate(-6deg)}44%{opacity:1;transform:translate(-50%,-50%) scale(.91) rotate(1deg)}52%,81%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)}}
+@keyframes eg-cin-ribbon{0%,36%{opacity:0;transform:translateX(-100%)}50%,78%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(100%)}}
+/* Single photographic flash; do not strobe */
+@keyframes eg-cin-flash{0%,39%{opacity:0}43%{opacity:.88}49%{opacity:.12}55%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){#eg-cinema{display:none!important}#exitGuideV2 .eg-choice:before,#exitGuideV2 .eg-choice:after,#exitGuideV2 .eg-home:before{animation:none!important}}
+#exitGuideV2.eg-motion-off .eg-choice:before,#exitGuideV2.eg-motion-off .eg-choice:after,#exitGuideV2.eg-motion-off .eg-home:before{animation:none!important}
+`;
+  css.textContent += `
+    /* Explicitly switching effects ON overrides iPad's reduce-motion preference for the V5 scene only. */
+    @media (prefers-reduced-motion:reduce) {
+      #eg-cinema.eg-force-motion.active .cin-door.top,
+      #eg-cinema.eg-force-motion.active .cin-door.bottom,
+      #eg-cinema.eg-force-motion.active .cin-star,
+      #eg-cinema.eg-force-motion.active .cin-label,
+      #eg-cinema.eg-force-motion.active .cin-title,
+      #eg-cinema.eg-force-motion.active .cin-ribbon,
+      #eg-cinema.eg-force-motion.active .cin-flash {animation-duration:1.6s!important;animation-iteration-count:1!important;}
+      #eg-cinema.eg-force-motion.active .cin-energy-grid {animation-duration:1s!important;animation-iteration-count:infinite!important;}
+    }
+  `;
+  document.head.appendChild(css);
+
+  const arrows = `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m8 5 7 7-7 7"/></svg>`;
+  const familyIcon = `<svg viewBox="0 0 180 150" aria-hidden="true"><circle cx="55" cy="30" r="18"/><path d="M21 126v-39c0-24 16-38 34-38s34 14 34 38v39"/><circle cx="126" cy="30" r="18"/><path d="M93 126v-38c0-25 15-39 34-39s33 14 33 39v38"/><circle cx="89" cy="91" r="14"/><path d="M64 137v-18c0-12 11-20 25-20s25 8 25 20v18"/></svg>`;
+  const adultIcon = `<svg viewBox="0 0 180 150" aria-hidden="true"><circle cx="90" cy="28" r="21"/><path d="M47 133V91c0-29 17-42 43-42s43 13 43 42v42"/><path d="M48 92l-22 23 14 10M132 92l22 23-14 10"/></svg>`;
+  const houseIcon = `<svg viewBox="0 0 180 150" aria-hidden="true"><path d="M17 65 90 9l73 56M34 58v80h112V58"/><path d="M75 138V88h34v50M48 88h17v20H48"/></svg>`;
+  const holder = (color='#ec4149')=>`<div class="eg-holder" style="--holder-color:${color}" aria-hidden="true"></div>`;
+  const dualHolder = `<div class="eg-two-holders" aria-hidden="true">${holder('#e9434e')}${holder('#ffd236')}<svg width="37" height="48" viewBox="0 0 37 48" fill="none" stroke="#344e5d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-label="鍵"><circle cx="17" cy="12" r="10"/><path d="M17 22v24m0-5h9m-9-7h8"/></svg></div>`;
+  const lockerIcon = `<svg aria-hidden="true" width="73" height="70" viewBox="0 0 80 80" fill="none" stroke="#2e627d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9h56v61H12zM40 9v61M32 38h3M47 38h3"/></svg>`;
+
+  const root=document.createElement('section');
+  root.id='exitGuideV2';
+  root.setAttribute('aria-label','ASOBooN 外出・退場のご案内');
+  document.body.appendChild(root);
+  let current='home';
+  let idle=null;
+  let lastFocus=null;
+  const setRoute = (color) => `style="--route-color:${color}"`;
+  // No speculative ASOBooN logo: maximize space for the three actions.
+  function syncGuideLayer(){const visible=!root.hidden;if(visible&&originalApp.contains(document.activeElement))document.activeElement.blur();originalApp.inert=visible;if(visible)originalApp.setAttribute('aria-hidden','true');else originalApp.removeAttribute('aria-hidden');}
+  const page=(screen,body,color)=>`<div class="eg-page eg-detail" ${setRoute(color)}><div class="eg-header"><button class="eg-back" type="button" data-guide="home">← 3つの選択肢へ</button><span class="eg-route">${screen}</span></div>${body}<div class="eg-actions"><button type="button" class="eg-main-btn" data-guide="home">最初の画面へ戻る</button></div></div>`;
+  const step=(n,title,desc,icon='')=>`<div class="eg-step"><div class="eg-num">${n}</div><div class="eg-step-text"><strong>${title}</strong><p>${desc}</p></div>${icon?`<div class="eg-minisymbol">${icon}</div>`:''}</div>`;
+  const family=()=> page('みんなで外に出る',`
+    <h1 class="eg-detail-title">あとで戻ってくるとき</h1>
+    <p class="eg-detail-lead">外に出る前に、次の3つをしてください。</p>
+    <div class="eg-steps">
+      ${step(1,'ロッカーの荷物を全部出す','忘れ物がないか確認してください。',lockerIcon)}
+      ${step(2,'赤ホルダーからレシートを抜く','レシートは返さず、持って出てください。','<span class="eg-receipt" aria-hidden="true"></span>')}
+      ${step(3,'ホルダーと鍵をすべて返す','赤・黄色のホルダーを返却ボックスへ。',dualHolder)}
+    </div>
+    <div class="eg-hint"><b>↩</b><div><strong>戻るときは、受付でレシートを見せてください。</strong><div>一時退場中も利用時間は進みます。レシートをなくした場合は受付へ。</div></div></div>
+  `,'#0877cb');
+  const adultQuestion=()=>page('大人だけ外に出る',`
+    <h1 class="eg-detail-title">大人だけ、あとで戻ってくるとき</h1>
+    <div class="eg-yellow-picture">${holder('#ffd236')}<strong>黄色ホルダー</strong></div>
+    <h2 class="eg-question">黄色ホルダーを持っていますか？</h2>
+    <p class="eg-question-sub">お子さまのそばには、ほかの保護者が残ります。</p>
+    <div class="eg-answer-buttons">
+      <button class="eg-answer eg-yes" data-guide="adult-yes">✓ ある<small>外出する方法を見る</small></button>
+      <button class="eg-answer eg-no" data-guide="adult-no">× ない<small>必要な対応を見る</small></button>
+    </div>
+    <p class="eg-quiet">大人と子どもが一緒に一部だけ外出する場合は、受付スタッフへ。</p>
+  `,'#da9200');
+  const adultYes=()=>page('大人だけ外に出る',`
+    <h1 class="eg-detail-title">黄色ホルダーを持って、外出できます</h1>
+    <p class="eg-detail-lead">館内にお子さまと保護者が残る場合です。</p>
+    <div class="eg-steps">
+      ${step(1,'黄色ホルダーを持って外に出る','黄色ホルダーは返さず、外出する大人が持ちます。',holder('#ffd236'))}
+      ${step(2,'ほかの保護者とお子さまは館内で遊べます','黄色ホルダーを持たない方は、そのままご利用ください。',`<span style="font-size:52px" aria-hidden="true">⌂</span>`)}
+    </div>
+    <div class="eg-hint eg-notice-amber"><b>↩</b><div><strong>戻るときは、受付で黄色ホルダーを見せてください。</strong></div></div>
+    <p class="eg-quiet">大人と子どもが一緒に一部だけ外出する場合は、受付スタッフへ。</p>
+  `,'#da9200');
+  const adultNo=()=>page('大人だけ外に出る',`
+    <div class="eg-no-case">
+      <h2>お子さまだけを残して、<br>外出することはできません。</h2>
+      <div class="eg-hint eg-danger"><b>!</b><div>黄色ホルダーがない場合、<br><strong>外出前に受付スタッフへ確認してください。</strong></div></div>
+      <p>黄色ホルダーは、大人2名以上で同じ会計をご利用の方にお渡ししています。</p>
+    </div>
+  `,'#d47e00');
+  const leave=()=>page('今日は帰る',`
+    <h1 class="eg-detail-title">本日のご利用は、ここで終了です</h1>
+    <p class="eg-detail-lead">帰る前に、次の2つをしてください。</p>
+    <div class="eg-steps">
+      ${step(1,'ロッカーの荷物を全部出す','忘れ物がないか、最後に確認してください。',lockerIcon)}
+      ${step(2,'ホルダーと鍵をすべて返す','赤・黄色のホルダーと鍵を返却ボックスへ。',dualHolder)}
+    </div>
+    <div class="eg-hint eg-notice-green"><b>✓</b><div><strong>返却が済んだら、そのままお帰りいただけます。</strong></div></div>
+    <div class="eg-hint eg-danger"><b>!</b><div><strong>本日のご利用を終了すると、再入場はできません。</strong></div></div>
+  `,'#148653');
+  const home=()=>`<div class="eg-page eg-home">
+    <button type="button" class="eg-motion-switch" data-motion-toggle aria-label="アニメーション切り替え">✨ 動き ON</button>
+    <button type="button" class="eg-fullscreen-switch" data-kiosk-fullscreen aria-label="全画面表示">⛶ 全画面</button>
+    <div class="eg-intro"><h1>外に出るときのご案内</h1><p>このあと、どうされますか？</p></div>
+    <div class="eg-options" role="group" aria-label="当てはまる状況を選択してください">
+      <button type="button" class="eg-choice eg-blue" data-guide="family"><span class="eg-choice-index">1</span><strong class="eg-choice-title">みんなで<br>外に出る</strong><span class="eg-illustration">${familyIcon}</span><span class="eg-choice-sub">あとで戻る</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
+      <button type="button" class="eg-choice eg-amber" data-guide="adult"><span class="eg-choice-index">2</span><strong class="eg-choice-title">大人だけ<br>外に出る</strong><span class="eg-illustration">${adultIcon}</span><span class="eg-choice-sub">あとで戻る</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
+      <button type="button" class="eg-choice eg-green" data-guide="leave"><span class="eg-choice-index">3</span><strong class="eg-choice-title">今日は<br>帰る</strong><span class="eg-illustration">${houseIcon}</span><span class="eg-choice-sub">もう戻らない</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
+    </div>
+    <div class="eg-bottom"><div class="eg-note">※ 一部の大人と子どもが一緒に外出する場合は、受付スタッフへお声がけください。</div></div>
+  </div>`;
+
+
+  // Performance policy: opacity and transform only, capped DOM particles; silent by default.
+  const fxLayer = document.createElement('div');
+  fxLayer.id = 'eg-special-fx';
+  fxLayer.setAttribute('aria-hidden','true');
+  document.body.appendChild(fxLayer);
+  const systemReduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  // Respect the iPad motion preference at startup; the visitor may explicitly turn effects ON.
+  let motionEnabled=!(systemReduced?.matches);
+  let navigating=false;
+  let navTimer=0;
+  const colors={home:'#0c83d1',family:'#1c97f3',adult:'#eda817','adult-yes':'#eab225','adult-no':'#f17656',leave:'#24bd78',time:'#13a7d1'};
+  function animationOK(){return motionEnabled;}
+  const makeEffect=(cl,style)=>{const el=document.createElement('i');el.className=cl;Object.assign(el.style,style);fxLayer.appendChild(el);return el;};
+  function bursts(x,y,color,large=false){
+    if(!animationOK())return;
+    const count=large?34:15;
+    const ring=makeEffect('eg-fx-ring',{left:`${x-14}px`,top:`${y-14}px`,'--ring':color});
+    ring.animate([{transform:'scale(.2)',opacity:1},{transform:'scale(11)',opacity:0}],{duration:570,easing:'cubic-bezier(.12,.8,.3,1)'}).onfinish=()=>ring.remove();
+    const glow=makeEffect('eg-fx-glow',{left:`${x-45}px`,top:`${y-45}px`,'--glow':color});
+    glow.animate([{transform:'scale(.2)',opacity:.65},{transform:'scale(6)',opacity:0}],{duration:520,easing:'ease-out'}).onfinish=()=>glow.remove();
+    for(let i=0;i<count;i++){
+      const angle=(i/count)*Math.PI*2 + Math.random()*.25;
+      const distance=(large?85:44)+Math.random()*(large?125:75);
+      const dx=Math.cos(angle)*distance,dy=Math.sin(angle)*distance+(large?35:20);
+      const star=i%5===0;
+      const size=star?13:5+Math.random()*9;
+      const particle=makeEffect('eg-fx-particle',{left:`${x-size/2}px`,top:`${y-size/2}px`,width:`${size}px`,height:`${size}px`,background:i%4===0?'#fff':i%4===1?'#ffe55f':color,borderRadius:star?'2px':'50%',boxShadow:'0 1px 7px rgba(0,0,0,.12)'});
+      const deg=star?` rotate(${25+i*19}deg)`:'';
+      particle.animate([{transform:`translate3d(0,0,0) scale(.38)${deg}`,opacity:1},{offset:.35,transform:`translate3d(${dx*.62}px,${dy*.58}px,0) scale(1.25)${deg}`,opacity:1},{transform:`translate3d(${dx}px,${dy}px,0) scale(.18) rotate(${i*33}deg)`,opacity:0}],{duration:480+Math.random()*320,easing:'cubic-bezier(.12,.75,.25,1)',fill:'forwards'}).onfinish=()=>particle.remove();
+    }
+  }
+  function flash(color){
+    if(!animationOK())return;
+    const el=document.createElement('i');el.className='eg-fx-flash';el.style.setProperty('--flash',color);fxLayer.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove(),{once:true});
+  }
+  function showMotionState(){
+    root.classList.toggle('eg-motion-off',!motionEnabled);
+    root.querySelectorAll('[data-motion-toggle]').forEach(b=>{
+      b.textContent=motionEnabled?'✨ 動き ON':'動き OFF';b.dataset.motion=motionEnabled?'on':'off';b.setAttribute('aria-pressed',String(motionEnabled));
+    });
+  }
+
+  // Video-like, actual frame-by-frame cinematic effects. Pure Canvas2D+CSS, no asset / library network.
+  const cin=document.createElement('div');cin.id='eg-cinema';cin.setAttribute('aria-hidden','true');
+  cin.innerHTML='<div class="cin-back"></div><div class="cin-energy-grid"></div><div class="cin-door top"></div><div class="cin-door bottom"></div><div class="cin-star"></div><canvas id="eg-canvas"></canvas><div class="cin-label">選択しました</div><div class="cin-title"></div><div class="cin-ribbon">外に出るときのご案内</div><div class="cin-flash"></div>';
+  document.body.appendChild(cin);
+  const can=cin.querySelector('canvas'),ctx=can.getContext('2d',{alpha:true});
+  let raf=0,particles=[],rays=[],startAt=0,lastFrame=0,cinColor='#00b8ff';
+  const cinLabels={family:'みんなで\n外に出る',adult:'大人だけ\n外に出る',leave:'今日は\n帰る','adult-yes':'外出できます','adult-no':'外出できません',home:'3つの選択肢',time:'退場時間'};
+  const dist=(a,b)=>Math.sqrt(a*a+b*b)||1;
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  function resizeCinema(){
+    const d=Math.min(window.devicePixelRatio||1,1.7),w=window.innerWidth,h=window.innerHeight;
+    can.width=Math.round(w*d);can.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);return {w,h};
+  }
+  const palette=(destination)=>({'family':['#00aaff','#0757b8'],'adult':['#ffbe21','#995c00'],'adult-yes':['#ffd45b','#ba7c00'],'adult-no':['#ff5757','#690200'],'leave':['#15df8a','#026845'],home:['#00b8ff','#064a8a'],time:['#2fe0ff','#04608c']}[destination]||['#00b8ff','#0348ab']);
+  function setupCinema(destination){
+    cinColor=palette(destination)[0];const glow=palette(destination)[1];
+    cin.style.setProperty('--cin-accent',cinColor);cin.style.setProperty('--cin-glow',glow);
+    cin.querySelector('.cin-title').textContent=cinLabels[destination]||'ご案内';
+    cin.querySelector('.cin-label').textContent=destination==='adult-no'?'ご確認ください':'選択しました';
+    cin.querySelector('.cin-ribbon').textContent=destination==='adult-no'?'必ず手順をご確認ください':'このあとの手順をご案内';
+    cin.dataset.played='true';cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
+    particles=[];rays=[];const {w,h}=resizeCinema();let midX=w/2,midY=h/2;
+    for(let i=0;i<190;i++){
+      const ang=Math.random()*Math.PI*2,spd=90+Math.random()*950;
+      const p={a:ang,v:spd,x:midX,y:midY,size:Math.random()*5+1,tail:18+Math.random()*50,hue:i%4===0?'#ffffff':i%4===1?'#fff2ae':cinColor,phase:Math.random()*.27};
+      particles.push(p);
+    }
+    cin.dataset.particleCount=String(particles.length);
+    for(let i=0;i<46;i++)rays.push({ang:i/46*Math.PI*2+Math.random()*.09,size:1+Math.random()*4,length:80+Math.random()*260,alpha:.28+Math.random()*.6});
+    startAt=performance.now();lastFrame=startAt;cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
+  }
+  function drawCinema(now){
+    const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
+    const t=(now-startAt)/1000*2.75,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    ctx.clearRect(0,0,w,h);
+    const cx=w*.5,cy=h*.5;
+    // Scanning energy before the two gates collide.
+    if(t<.65){
+      for(let j=0;j<20;j++){
+        let ang=Math.PI*2*j/20+t*3;
+        ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);ctx.fillStyle=j%2?'rgba(255,255,255,.34)':cinColor;ctx.globalAlpha=.18*(.5+.5*Math.sin(t*9+j));ctx.fillRect(0,0,Math.max(w,h)*.8,1.3);ctx.restore();
+      }
+    }
+    // Thick impact ring and concentrically spreading shock waves.
+    const boom=t-.66;
+    if(boom>0 && boom<.95){
+      ctx.globalCompositeOperation='lighter';
+      for(let k=0;k<3;k++){
+        let r=boom*840-k*112;
+        if(r>0){ctx.beginPath();ctx.ellipse(cx,cy,r,r*.84,0,0,Math.PI*2);ctx.strokeStyle=k===0?'rgba(255,255,255,.95)':cinColor;ctx.globalAlpha=(1-boom)*(.88-k*.2);ctx.lineWidth=k===0?9:3;ctx.shadowBlur=25;ctx.shadowColor=cinColor;ctx.stroke();}
+      }
+      ctx.globalAlpha=1;
+      // High-speed radial slash beams.
+      ctx.save();ctx.translate(cx,cy);
+      for(const ray of rays){ctx.save();ctx.rotate(ray.ang+t*1.2);const startR=25+Math.max(0,boom)*560;const L=ray.length*(1-boom*.45);ctx.globalAlpha=ray.alpha*clamp(1-boom*1.2,0,1);ctx.fillStyle='#fff';ctx.shadowBlur=14;ctx.shadowColor=cinColor;ctx.fillRect(startR,-ray.size/2,L,ray.size);ctx.restore();}ctx.restore();
+      // Sparks with trailing beams.
+      for(const p of particles){const age=boom-p.phase;if(age<0)continue;const r=p.v*age*.87;let x=cx+Math.cos(p.a)*r,y=cy+Math.sin(p.a)*r;const len=Math.max(2,p.tail*(.6+age));const tx=x-Math.cos(p.a)*len,ty=y-Math.sin(p.a)*len;
+        ctx.globalAlpha=clamp(1-age*.9,0,1);ctx.lineWidth=p.size;ctx.strokeStyle=p.hue;ctx.shadowColor=p.hue;ctx.shadowBlur=16;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tx,ty);ctx.stroke();
+      }
+      ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;
+    }
+    // Cascading star confetti as titles land; warning flow gets no congratulatory gold.
+    if(t>.95 && t<1.68){
+      ctx.globalCompositeOperation='lighter';for(let i=0;i<54;i++){
+        const p=particles[i],age=t-.95;let x=cx+Math.sin(p.a*2)*w*.37+Math.cos(p.a)*age*96,y=cy-h*.22+age*270+(i%7)*14;
+        ctx.save();ctx.translate(x,y);ctx.rotate(age*6+i);ctx.globalAlpha=clamp((1.66-t)*1.5,0,.9);ctx.fillStyle=i%4===0?'#fff':cinColor;ctx.fillRect(-3,-3,6,6);ctx.restore();
+      }ctx.globalCompositeOperation='source-over';
+    }
+    // stop as soon as reveal concludes; cannot leak animation loops
+    if(t<1.76 && cin.classList.contains('active'))raf=requestAnimationFrame(drawCinema);
+  }
+  function stopCinema(){cancelAnimationFrame(raf);cin.classList.remove('active');ctx.clearRect(0,0,can.width,can.height);particles.length=0;}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){window.clearTimeout(navTimer);stopCinema();root.classList.remove('eg-nav-active');navigating=false;}});
+  window.addEventListener('resize',()=>{if(cin.classList.contains('active'))resizeCinema()});
+  window.__ASOBOON_CINEMA_TEST__={isRunning:()=>cin.classList.contains('active'),particleCount:()=>particles.length,screen:()=>current};
+
+
+  function navigate(destination,button){
+    if(navigating)return;
+    if(destination==='home'&&current==='home')return;
+    if(!animationOK()){render(destination);return;}
+    navigating=true;
+    if(button.classList.contains('eg-choice'))button.classList.add('eg-selected');
+    root.classList.add('eg-nav-active');
+    setupCinema(destination);
+    window.clearTimeout(navTimer);
+    // Motion takes a full 1.65s, not an invisible 240ms flash.
+    navTimer=window.setTimeout(()=>{
+      stopCinema();root.classList.remove('eg-nav-active');render(destination);navigating=false;
+      if(destination==='adult-yes'||destination==='leave'){
+        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},150);
+      }
+    },620);
+  }
+
+  const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
+  function render(name='home'){
+    if(name==='home'&&cin.classList.contains('active')){stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
+    if(!screens[name])name='home';
+    current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
+    showMotionState();resetIdle();
+  }
+  function resetIdle(){
+    if(idle) window.clearTimeout(idle);
+    idle=window.setTimeout(()=>{render('home');}, 30000);
+  }
+  root.addEventListener('click',(event)=>{
+    const motionButton=event.target.closest('button[data-motion-toggle]');
+    if(motionButton){motionEnabled=!motionEnabled;if(!motionEnabled){stopCinema();root.classList.remove("eg-nav-active");}showMotionState();return;}
+    const target=event.target.closest('button[data-guide]');
+    if(!target)return;
+    navigate(target.dataset.guide,target);
+  });
+  root.addEventListener('pointerdown',(event)=>{
+    const b=event.target.closest('.eg-choice');
+    if(!b)return;
+    b.classList.add('eg-pressed');
+    const r=b.getBoundingClientRect();
+    b.style.setProperty('--pointer-x',`${((event.clientX-r.left)/r.width*100).toFixed(1)}%`);
+    window.setTimeout(()=>b.classList.remove('eg-pressed'),200);
+  },{passive:true});
+  root.addEventListener('pointerup',()=>root.querySelectorAll('.eg-pressed').forEach(x=>x.classList.remove('eg-pressed')),{passive:true});
+  root.addEventListener('pointercancel',()=>root.querySelectorAll('.eg-pressed').forEach(x=>x.classList.remove('eg-pressed')),{passive:true});
+  root.addEventListener('pointerdown',resetIdle,{passive:true});
+  root.addEventListener('keydown',resetIdle,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render('home')});
+  window.addEventListener('pageshow',()=>render('home'));
+
+  // The original time screen's CTA now opens the same three choices.
+  detailsButton.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();render('home')},true);
+
+  // No legacy calendar overlay observer. The kiosk always renders the three-action guide.
+  // The original timer keeps calculating, but it is not visible and cannot steal focus.
+  render('home');
+  // The customer-facing kiosk has no legacy exit-time or staff display.
+  // Keep the old engine's detached references alive without leaving its screens in the DOM.
+  originalApp.replaceChildren();
+  document.getElementById('bootScreen')?.remove();
+  document.getElementById('stepOverlay')?.remove();
+})();
+
+</script>
+<script src="./jounaisetumei-final.js?v=20261016-fast-kiosk-r94"></script>
 </body>
 </html>
