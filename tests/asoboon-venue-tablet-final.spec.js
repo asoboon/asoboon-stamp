@@ -190,15 +190,20 @@ test('音量スライダーで効果音を調節できる・音声設定も維�
   const slider=page.locator('#eg-audio-volume');
   await expect(audio).toBeVisible();
   await expect(slider).toBeVisible();
-  await expect(slider).toHaveValue('85');
-  await expect(page.locator('#eg-audio-volume-value')).toHaveText('85%');
-  let sound=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
-  expect(sound.volumeLevel).toBe(85);
-  expect(sound.masterGain).toBeCloseTo(.8075,3);
-  await slider.evaluate(node=>{node.value='100';node.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(slider).toHaveValue('100');
   await expect(page.locator('#eg-audio-volume-value')).toHaveText('100%');
+  let sound=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
+  expect(sound.volumeLevel).toBe(100);
+  expect(sound.boostGain).toBeCloseTo(2.2,3);
+  expect(sound.outputGain).toBeCloseTo(.92,3);
+  await audio.click();await audio.click(); // Unlock the real AudioContext for gain smoothing.
+  await slider.evaluate(node=>{node.value='20';node.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(page.locator('#eg-audio-volume-value')).toHaveText('20%');
+  await expect.poll(async()=>page.evaluate(()=>window.__ASOBOON_AUDIO__.state().outputGain)).toBeCloseTo(.184,3);
   sound=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
-  expect(sound.masterGain).toBeCloseTo(.95,3);
+  expect(sound.boostGain).toBeCloseTo(2.2,3);
+  expect(sound.outputTarget).toBeCloseTo(.184,3);
+  expect(sound.previewCount).toBe(0);
   await page.locator('#eg-final-languages [data-locale="en"]').click();
   await expect(slider).toHaveAttribute('aria-label','FX volume');
   await expect(audio).toContainText('Sound ON');
@@ -207,10 +212,78 @@ test('音量スライダーで効果音を調節できる・音声設定も維�
   await expect(slider).toBeVisible();
   await audio.click();
   await expect(audio).toHaveAttribute('aria-pressed','false');
-  await expect(slider).toHaveValue('100');
+  await expect(slider).toHaveValue('20');
+  await expect.poll(async()=>page.evaluate(()=>window.__ASOBOON_AUDIO__.state().outputGain)).toBeCloseTo(0,3);
   await audio.click();
   await expect(audio).toHaveAttribute('aria-pressed','true');
   await guide.locator('[data-guide="home"]').first().click();
   await expect(slider).toBeVisible();
   await expect(guide.locator('[data-guide="time"]')).toHaveCount(0);
 });
+
+test('効果音プレビューはドラッグ中に鳴らず、離した時だけ短く鳴る・ミュート中は無音',async({page})=>{
+  await page.goto(target);
+  const slider=page.locator('#eg-audio-volume');
+  const box=await slider.boundingBox();
+  await page.mouse.move(box.x+box.width-5,box.y+box.height/2);
+  await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.4,box.y+box.height/2,{steps:5});
+  expect(await page.evaluate(()=>window.__ASOBOON_AUDIO__.state().previewCount)).toBe(0);
+  await page.mouse.up();
+  expect(await page.evaluate(()=>window.__ASOBOON_AUDIO__.state().previewCount)).toBe(1);
+  await page.locator('#eg-audio-toggle').click();
+  await slider.focus();
+  await page.keyboard.press('ArrowLeft');
+  expect(await page.evaluate(()=>window.__ASOBOON_AUDIO__.state().previewCount)).toBe(1);
+  await page.evaluate(()=>window.__ASOBOON_AUDIO__.resetForNextVisitor());
+  const state=await page.evaluate(()=>window.__ASOBOON_AUDIO__.state());
+  expect(state.enabled).toBe(true);
+  expect(state.previewCount).toBe(1); // Reset/unmute never plays a test sound.
+});
+
+test('実WebAudioレンダリングでFXのピークを抑え、20%を最大より十分静かにする',async({page})=>{
+  // Real browser DSP, rendered offline: exercises the production graph and MP3
+  // cues without sending test sounds to speakers or mocking audio nodes.
+  await page.addInitScript(()=>{
+    window.AudioContext=function(){
+      return window.__offlineAudio=new OfflineAudioContext(1,48000,48000);
+    };
+  });
+  await page.route('http://audio.test/**',async route=>{
+    const url=new URL(route.request().url());
+    if(url.pathname==='/'){
+      const level=url.searchParams.get('level')==='20'?20:100;
+      await route.fulfill({contentType:'text/html',body:`<!doctype html><div id="exitGuideV2"></div><div id="eg-cinema"></div><script src="/jounaisetumei-audio.js"></script><script>window.__ASOBOON_AUDIO__.setVolume(${level});</script>`});
+    }else if(url.pathname==='/jounaisetumei-audio.js'||/^\/assets\/audio\/runtime\/common\/[a-z-]+\.mp3$/.test(url.pathname)){
+      await route.fulfill({path:path.resolve('.'+url.pathname)});
+    }else await route.abort();
+  });
+  async function render(level,overload=false){
+    await page.goto('http://audio.test/?level='+level);
+    await expect.poll(async()=>page.evaluate(()=>window.__ASOBOON_AUDIO__.state().cachedSounds)).toBe(5);
+    return page.evaluate(async overload=>{
+      // Stress overlapping cues by scheduling repeatedly on the offline clock.
+      // The normal start() cancels previous scenes, so retain scheduled sources
+      // by using repeated slider commits for the overload case instead.
+      if(overload){
+        for(let i=0;i<100;i++)document.querySelector('#eg-audio-volume').dispatchEvent(new Event('change'));
+      }else window.__ASOBOON_AUDIO__.start('family');
+      const rendered=await window.__offlineAudio.startRendering();
+      const data=rendered.getChannelData(0);
+      let peak=0,sum=0;
+      for(const sample of data){peak=Math.max(peak,Math.abs(sample));sum+=sample*sample;}
+      return {peak,rms:Math.sqrt(sum/data.length),failures:window.__ASOBOON_AUDIO__.state().failures};
+    },overload);
+  }
+  const full=await render(100),low=await render(20),overload=await render(100,true);
+  expect(full.failures).toBe(0);expect(low.failures).toBe(0);expect(overload.failures).toBe(0);
+  expect(full.rms).toBeGreaterThan(.01);
+  expect(full.peak).toBeLessThan(.877);
+  expect(low.rms/full.rms).toBeCloseTo(.2,2);
+  expect(low.peak/full.peak).toBeCloseTo(.2,2);
+  expect(overload.peak).toBeGreaterThan(.1);
+  expect(overload.peak).toBeLessThan(.877);
+});
+
+// Run micro-theater regression in the existing mandatory V5 browser CI job.
+require('./asoboon-venue-tablet-delight-cases.cjs');

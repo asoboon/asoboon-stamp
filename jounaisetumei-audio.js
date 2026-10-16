@@ -81,7 +81,9 @@
       my:'ပစ္စည်းကျန်မကျန် စစ်ပါ။ ပြန်မသွားမီ holder နှင့် သော့ကို ပြန်အပ်ပါ။'
     }
   };
-  let muted=false,volumeLevel=85,ctx=null,master=null,limiter=null,sceneTimers=[],sceneNodes=[],voiceTimer=0;
+  const FX_BOOST=2.2,FX_OUTPUT=.92;
+  let muted=false,volumeLevel=100,ctx=null,boost=null,master=null,limiter=null,sceneTimers=[],sceneNodes=[],voiceTimer=0;
+  let previewCount=0;
   let lastDestination=null,lastCueAt=0,lastSpoken='',voiceAvailable=null,failures=0;
   const buffers=new Map();
   const button=document.createElement('button');
@@ -140,15 +142,31 @@
     if(!API)return null;
     try{
       ctx=new API({latencyHint:'interactive'});
+      boost=ctx.createGain();
+      boost.gain.value=FX_BOOST;
       limiter=ctx.createDynamicsCompressor();
-      limiter.threshold.value=-17;
-      limiter.knee.value=7;
-      limiter.ratio.value=10;
-      limiter.attack.value=.002;
-      limiter.release.value=.16;
+      limiter.threshold.value=-12;
+      limiter.knee.value=6;
+      limiter.ratio.value=4;
+      limiter.attack.value=.003;
+      limiter.release.value=.12;
+      // A compressor alone cannot catch every transient. This unity-slope soft
+      // knee bounds even overloaded summed cues before the final output gain.
+      // No oversampling: avoid reconstruction overshoot after the peak cap.
+      const peakCap=ctx.createWaveShaper();
+      const curve=new Float32Array(4097);
+      for(let i=0;i<curve.length;i++){
+        const x=2*i/(curve.length-1)-1,a=Math.abs(x);
+        curve[i]=Math.sign(x)*(a<=.8?a:.8+.2*Math.tanh((a-.8)/.2));
+      }
+      peakCap.curve=curve;
+      peakCap.oversample='none';
       master=ctx.createGain();
-      master.gain.value=.95*volumeLevel/100; // Boost old .34 level and retain dynamics protection.
-      limiter.connect(master);
+      master.gain.value=muted?0:FX_OUTPUT*volumeLevel/100;
+      // All FX share this path. At 100%, the two gains multiply to 2.024x;
+      // compression controls dynamics and sample peaks stay below .877.
+      // Put the slider AFTER compression so 20% retains one fifth the amplitude.
+      boost.connect(limiter).connect(peakCap).connect(master);
       master.connect(ctx.destination);
       return ctx;
     }catch(error){failures++;return null;}
@@ -181,7 +199,7 @@
     sceneTimers.push(id);
   }
   function oscillator(frequency,endFrequency,startTime,duration,volume=.2,type='sine'){
-    if(!ctx||!limiter||muted)return;
+    if(!ctx||!boost||muted)return;
     try{
       const osc=ctx.createOscillator(),vol=ctx.createGain();
       osc.type=type;
@@ -190,14 +208,15 @@
       vol.gain.setValueAtTime(.0001,startTime);
       vol.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),startTime+.008);
       vol.gain.exponentialRampToValueAtTime(.0001,startTime+duration);
-      osc.connect(vol).connect(limiter);
+      osc.connect(vol).connect(boost);
       osc.start(startTime);osc.stop(startTime+duration+.01);
       sceneNodes.push(osc);
       osc.onended=()=>{osc.disconnect();vol.disconnect();sceneNodes=sceneNodes.filter(x=>x!==osc);};
+      return true;
     }catch(error){failures++;}
   }
   function sample(key,delay=0,level=.5){
-    if(muted||!ctx||!limiter)return false;
+    if(muted||!ctx||!boost)return false;
     const buff=buffers.get(key);
     if(!buff)return false;
     try{
@@ -205,7 +224,7 @@
       source.buffer=buff;vol.gain.value=level;
       // Play short compressed cue; lengthy original assets never delay navigation or speech.
       source.playbackRate.value=Math.max(1,buff.duration/.24);
-      source.connect(vol).connect(limiter);
+      source.connect(vol).connect(boost);
       source.start(ctx.currentTime+Math.max(0,delay));
       sceneNodes.push(source);
       source.onended=()=>{source.disconnect();vol.disconnect();sceneNodes=sceneNodes.filter(x=>x!==source);};
@@ -296,9 +315,9 @@
   }
   function setMuted(next){
     muted=Boolean(next);
-    if(muted){stopScene();if(master&&ctx)master.gain.setTargetAtTime(.0001,ctx.currentTime,.015);}
+    if(muted){stopScene();smoothOutput(0);}
     else{
-      if(master&&ctx)master.gain.setTargetAtTime(.95*volumeLevel/100,ctx.currentTime,.025);
+      smoothOutput(FX_OUTPUT*volumeLevel/100);
       // Explicit tap unlocks WebAudio, but silence until the visitor selects an action.
       unlock();
     }
@@ -316,15 +335,35 @@
   new MutationObserver(placeAudioControl).observe(root,{childList:true,subtree:true});
   placeAudioControl();
   button.addEventListener('click',()=>setMuted(!muted));
+  function smoothOutput(value){
+    if(!master||!ctx)return;
+    const gain=master.gain,now=ctx.currentTime;
+    // Retarget from the current gain even during a fast drag or mute toggle.
+    if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(now);
+    else{
+      const current=gain.value;
+      gain.cancelScheduledValues(now);
+      gain.setValueAtTime(current,now);
+    }
+    gain.setTargetAtTime(value,now,.018);
+  }
   function setVolume(next){
     const value=Number(next);
     if(!Number.isFinite(value))return;
     volumeLevel=Math.min(100,Math.max(20,Math.round(value/5)*5));
     slider.value=String(volumeLevel);
     sliderValue.value=volumeLevel+'%';
-    if(master&&ctx&&!muted)master.gain.setTargetAtTime(.95*volumeLevel/100,ctx.currentTime,.018);
+    smoothOutput(muted?0:FX_OUTPUT*volumeLevel/100);
   }
   slider.addEventListener('input',()=>setVolume(slider.value));
+  slider.addEventListener('change',()=>{
+    setVolume(slider.value);
+    if(muted||document.hidden)return;
+    // Resume inside the release gesture for iPad Safari. A single gentle tone,
+    // with an 8 ms attack, gives feedback without replaying the scene cues.
+    const audio=unlock();
+    if(audio&&oscillator(660,660,audio.currentTime+.006,.09,.08,'sine'))previewCount++;
+  });
   setVolume(volumeLevel);
   const langObserver=new MutationObserver(updateButton);
   langObserver.observe(root,{attributes:true,attributeFilter:['data-lang']});
@@ -335,7 +374,9 @@
     start,announce,stop:stopScene,resetForNextVisitor,setMuted,setVolume,
     prompt:(destination,lang=locale())=>prompts[destination]?.[lang]||null,
     state:()=>({enabled:!muted,locale:locale(),cachedSounds:buffers.size,lastDestination,
-      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:310,volumeLevel,masterGain:.95*volumeLevel/100})
+      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:310,volumeLevel,previewCount,
+      boostGain:boost?boost.gain.value:null,outputGain:master?master.gain.value:null,
+      outputTarget:muted?0:FX_OUTPUT*volumeLevel/100,masterGain:master?master.gain.value:null})
   };
   updateButton();
 })();
