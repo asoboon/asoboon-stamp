@@ -960,7 +960,24 @@ async function writeCrowdSnapshot(env,value){
 // Shared Cloudflare edge cache prevents 300-500 guests on the same Wi-Fi from
 // each triggering an AirWAIT round-trip or consuming the shared-IP limiter.
 const CROWD_EDGE_TTL_MS=20000;
+const CROWD_SNAPSHOT_FAST_MS=65000;
 let crowdEdgeInFlight=null;
+function crowdSnapshotAge(snapshot){
+ const savedAge=Date.now()-Number(snapshot?.savedAt||0);
+ const fetchedAge=Date.now()-Date.parse(snapshot?.value?.fetchedAt||'');
+ return savedAge>=0&&savedAge<=CROWD_SNAPSHOT_FAST_MS
+   &&Number.isFinite(fetchedAge)&&fetchedAge>=0&&fetchedAge<=CROWD_SNAPSHOT_FAST_MS
+   &&snapshot?.value?.ok===true&&snapshot?.value?.stale!==true
+   ?Math.max(savedAge,fetchedAge):Infinity;
+}
+function kickOffCrowdRefresh(request,env,ctx,cacheKey){
+ if(crowdEdgeInFlight||typeof ctx?.waitUntil!=='function')return;
+ const work=readCrowdRemainingUncached(request,env,ctx,cacheKey);
+ crowdEdgeInFlight=work;
+ ctx.waitUntil(work.catch(e=>console.warn('CROWD_BACKGROUND_REFRESH_FAILED',safeError(e)))
+   .finally(()=>{if(crowdEdgeInFlight===work)crowdEdgeInFlight=null}));
+}
+
 async function getCrowdRemaining(request,env,ctx){
   const cacheKey=new Request('https://asoboon.internal/readonly/crowd-remaining-v3');
   try{
@@ -973,6 +990,13 @@ async function getCrowdRemaining(request,env,ctx){
       }
     }
   }catch{}
+  // Serve only a recently verified AirWAIT snapshot and preserve its
+  // original fetchedAt. Refresh asynchronously without blocking the guest.
+  const snapshot=await readCrowdSnapshot(env);
+  if(crowdSnapshotAge(snapshot)!==Infinity){
+    kickOffCrowdRefresh(request,env,ctx,cacheKey);
+    return {...snapshot.value,ok:true,stale:false,cacheSource:'d1-verified-fast'};
+  }
   // Same isolate can receive hundreds of simultaneous cache misses.
   // Collapse them into one read while the shared edge cache warms.
   if(crowdEdgeInFlight)return await crowdEdgeInFlight;

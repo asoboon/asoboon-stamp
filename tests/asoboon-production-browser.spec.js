@@ -1849,3 +1849,39 @@ test('Business calendar reuses a fully verified 45-minute snapshot and refreshes
  await expect.poll(()=>apiReads).toBe(2);
  await expect(page.locator('#bcStatus')).toContainText('営業日API');
 });
+
+test('HOME duplicate ASOBooN/Kawaguchi title is removed without hiding Language or other page navigation',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-home')).toBeVisible();
+ await expect(page.locator('.topbar')).toBeHidden();
+ await expect(page.locator('#asoboon-language-select')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-call-cta')).toBeVisible();
+ await page.locator('[data-v7-view="first"]').first().click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
+ await expect(page.locator('.topbar')).toBeVisible();
+ await expect(page.locator('#asoboon-language-select')).toBeVisible();
+});
+test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matched safely',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:new Date().toISOString(),
+   slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
+    slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:281}],
+   observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',
+    reserveUnit:'PERSON',remaining:281,remainingVerified:true}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card).toBeVisible();
+ await expect(card.locator('.v38-crowd-onsite')).toContainText('LINE受付');
+ await expect(card.locator('.v38-crowd-onsite')).toContainText('281名');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('281名');
+ await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
+ await card.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+});

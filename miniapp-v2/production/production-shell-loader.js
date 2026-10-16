@@ -5,9 +5,9 @@ const root=document.getElementById('app');if(!root)return;
 document.body.dataset.asoboonApp='miniapp-v2';document.body.dataset.environment='production';
 root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
-const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=dbbcad33f82d';document.head.appendChild(link);
+const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=07abe2829244';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
-const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=3a8e76ba9596',
+const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=2a0fbcb1727a',
   './miniapp-v2/shared/i18n-dictionary.js?v=dcd24b3f5691','./miniapp-v2/shared/i18n-runtime.js?v=0bb3a7f7e8c4'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.

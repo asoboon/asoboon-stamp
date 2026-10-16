@@ -138,8 +138,28 @@ test('Crowd response is shared for 20 seconds and misses refresh AirWAIT',async(
   mock.timers.setTime(NOON_JST+21000);
   const next=await request();
   assert.equal(next.status,200);
-  assert.equal(next.data.slots.find(v=>v.waitTypeId==='0030').remaining,47);
+  assert.equal(next.data.cacheSource,'d1-verified-fast');
+  assert.equal(next.data.slots.find(v=>v.waitTypeId==='0030').remaining,original);
+  assert.equal(next.data.fetchedAt,first.data.fetchedAt,
+    'returned cache retains original AirWAIT fetch time; never resets freshness');
   assert.equal(next.data.stale,false);
+  // Context waitUntil completes a new AirWAIT read without holding up the guest.
+  const refreshed=await request();
+  assert.equal(refreshed.data.slots.find(v=>v.waitTypeId==='0030').remaining,47);
+  assert.equal(refreshed.data.stale,false);
+});
+test('An expired crowd snapshot cannot masquerade as current availability',async()=>{
+  const request=()=>call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
+  const first=await request();
+  assert.equal(first.status,200);
+  const original=first.data.slots.find(v=>v.waitTypeId==='0030').remaining;
+  world.crowdWaitDetails=[{detailedWaitType:'枠0030',reserveUnit:'PERSON',remainingNum:91}];
+  mock.timers.setTime(NOON_JST+66000);
+  const next=await request();
+  assert.equal(next.status,200);
+  assert.notEqual(next.data.cacheSource,'d1-verified-fast','65 seconds expires fast cache');
+  assert.equal(next.data.slots.find(v=>v.waitTypeId==='0030').remaining,91);
+  assert.notEqual(next.data.slots.find(v=>v.waitTypeId==='0030').remaining,original);
 });
 test('AirWAIT explicit zero onsite capacity is verified; missing/null never fabricate zero',async()=>{
   world.crowdWaitDetails=[

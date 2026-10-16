@@ -27,7 +27,6 @@ function crowdFreshness(){
  if(!crowdAt)return 'LINE・WEBの残り人数を確認しています…';
  return crowdClock()+' 確認時点の人数 ／ 自動更新中（約40秒ごと）';
 }
-// Verified AirWAIT onsite type names: match exactly, never by clock time.
 const ONSITE_CROWD_NAMES=Object.freeze({
   '平日':Object.freeze({'0024':'すぐ入場受付【平日】'}),
   '平日特定日':Object.freeze({'0036':'10時15分から【平日特定日】','0038':'13時45分から【平日特定日】'}),
@@ -79,8 +78,6 @@ function peopleBreakdown(rec){if(!rec)return'—';const a=Number(rec.adults),c=N
 function reservationCard(receipt=''){const rec=reservationInfo(receipt),number=String(receipt||rec?.receiptNo||'—'),date=fmtDate(rec?.businessDate||'—'),people=peopleBreakdown(rec);return `<div class="v38-reservation-card" aria-label="受付情報"><div class="v38-reservation-item receipt"><small>受付番号</small><strong>${esc(number)}</strong></div><div class="v38-reservation-item"><small>利用日</small><strong>${esc(date)}</strong></div><div class="v38-reservation-item people"><small>人数内訳</small><strong>${esc(people)}</strong></div></div>`}
 function stateLabel(text){return `<div class="v38-state-label">${esc(text)}</div>`}
 function heroMarkup(data={}){
- // Official HOME is a navigation surface, never a second source of call-state truth.
- // No reception number, queue rank, "calling", "guided", or error states on HOME.
  if(E.environment==='production'){
    const opDate=String(day?.operationalDate||nowJst().date);
    const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
@@ -120,7 +117,7 @@ function restoreFreshCrowdForDay(){
  renderSlots();
  return true;
 }
-function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:Date.now(),verifiedFresh:stale!==true}))}catch{}}
+function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
 function crowdMetric(value){const n=Number(value);if(!Number.isSafeInteger(n)||n<0||n>CROWD_SETTINGS.CAPACITY)return null;const current=Math.max(CROWD_SETTINGS.CAPACITY-n,0),percent=Math.min(100,Math.floor(current/CROWD_SETTINGS.CROWD_BASE*100));const tone=percent<=39?'low':percent<=59?'light':percent<=79?'mid':percent<=94?'high':'very-high';return{percent,level:CROWD_SETTINGS.LEVELS.find(x=>percent<=x.max)?.label||'かなり混雑しています',tone}}
 function crowdTime(name){const m=String(name||'').normalize('NFKC').match(/^(\d{1,2})時(半|(?:([0-5]?\d)分)?)/);if(!m)return'';const hour=Number(m[1]),minute=m[2]==='半'?30:Number(m[3]||0);return hour<=23?`${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`:''}
 function safePeople(value){
@@ -135,14 +132,10 @@ if(!label||!Array.isArray(crowdDetails))return null;
 const matched=crowdDetails.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
 if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
 const n=safePeople(matched[0].remaining);
-// Old Worker versions could turn a missing remainingNum into zero. Require
-// the explicit verification bit for zero until the safe Worker is deployed.
 return n===0&&matched[0].remainingVerified!==true?null:n;
 }
 function verifiedWebRemaining(slot){
 if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON')return null;
-// AirWAIT's time-key match could belong to a different pool or day.
-// Only its independently verified WEB wait-type name is authoritative.
 if(slot.matchMode!=='exact-name')return null;
 return safePeople(slot.remaining);
 }
@@ -185,8 +178,8 @@ const rows=slots.map(slot=>{
 const m=slot.web===null?null:crowdMetric(slot.web);
 const label=String(day?.businessType||'')==='平日'?'すぐ入場':`${slot.time}回`;
 const goLabel=RECEPTION_FALLBACK_ACTIVE?'WEB受付画面へ':'受付画面へ進む';
-const crowdTitle=m?`${m.percent}<small>%</small>`:'<span class="v38-crowd-unverified">確認中</span>';
-const crowdLevel=m?esc(m.level):'WEB枠の数値を確認中';
+const crowdTitle=m?`${m.percent}<small>%</small>`:slot.onsite!==null?`<span class="v38-crowd-onsite">LINE受付 <b>${slot.onsite}<small>名</small></b></span>`:'<span class="v38-crowd-unverified">確認中</span>';
+const crowdLevel=m?esc(m.level):slot.onsite!==null?'LINEの受付残りを確認済み':'WEB枠の数値を確認中';
 const spoken=value=>value===null?'確認中':value+'名';
 const track=m?`<div class="v38-crowd-track" role="progressbar" aria-label="${esc(label)}のWEB枠の混雑目安" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}"><span style="width:${m.percent}%"></span></div>`:'';
 return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}。タップして受付画面へ進む">
@@ -201,7 +194,7 @@ ${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><s
 }).join('');
 box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
 }
-function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');const brand=document.querySelector('.brand small');setText(brand,'川口ハイウェイオアシス');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
+function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
