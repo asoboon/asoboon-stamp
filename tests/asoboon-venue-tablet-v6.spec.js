@@ -34,7 +34,7 @@ test('旧画面から独立した3択を操作でき、次の案内へ即移動'
 
 test('ラッパーは退場時間システムを起動せず、新版だけを読み込む',async({page})=>{
   await page.goto(pathToFileURL(path.resolve('jounaisetumei.html')).href,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v5-louder-audio-20261016/);
+  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v5-audio-delight-layer1-20261016-r98/);
   const source=await page.locator('body').textContent();
   expect(source).not.toMatch(/退場時間|asoboon-calendar/);
   await expect(page.frameLocator('#tabletCore').locator('#exitGuideV2')).toBeVisible();
