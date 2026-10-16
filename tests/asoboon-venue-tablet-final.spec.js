@@ -182,3 +182,35 @@ test('ボタンを押した同じ処理内で説明へ切り替わる',async({pa
   await page.locator('#exitGuideV2 [data-guide="adult-no"]').click();
   await expect(page.locator('#exitGuideV2')).toContainText('外出前に受付スタッフへ確認してください。');
 });
+
+test('音量スライダーで効果音を調節できる・音声設定も維持',async({page})=>{
+  await page.goto(target);
+  const guide=page.locator('#exitGuideV2');
+  const audio=page.locator('#eg-audio-toggle');
+  const slider=page.locator('#eg-audio-volume');
+  await expect(audio).toBeVisible();
+  await expect(slider).toBeVisible();
+  await expect(slider).toHaveValue('85');
+  await expect(page.locator('#eg-audio-volume-value')).toHaveText('85%');
+  let sound=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
+  expect(sound.volumeLevel).toBe(85);
+  expect(sound.masterGain).toBeCloseTo(.8075,3);
+  await slider.evaluate(node=>{node.value='100';node.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(page.locator('#eg-audio-volume-value')).toHaveText('100%');
+  sound=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
+  expect(sound.masterGain).toBeCloseTo(.95,3);
+  await page.locator('#eg-final-languages [data-locale="en"]').click();
+  await expect(slider).toHaveAttribute('aria-label','FX volume');
+  await expect(audio).toContainText('Sound ON');
+  await guide.locator('[data-guide="adult"]').click();
+  await expect(guide).toContainText('Do you have a YELLOW holder?');
+  await expect(slider).toBeVisible();
+  await audio.click();
+  await expect(audio).toHaveAttribute('aria-pressed','false');
+  await expect(slider).toHaveValue('100');
+  await audio.click();
+  await expect(audio).toHaveAttribute('aria-pressed','true');
+  await guide.locator('[data-guide="home"]').first().click();
+  await expect(slider).toBeVisible();
+  await expect(guide.locator('[data-guide="time"]')).toHaveCount(0);
+});
