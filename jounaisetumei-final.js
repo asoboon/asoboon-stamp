@@ -228,7 +228,7 @@
     inRefresh=true;
     try{
       root.dataset.lang=lang;root.setAttribute('lang',lang);
-      root.querySelectorAll('[data-kiosk-fullscreen]').forEach(b=>{b.textContent=(fullscreenWords[lang]||fullscreenWords.ja)[0];});
+      root.querySelectorAll('[data-kiosk-fullscreen]').forEach(b=>{const label=(fullscreenWords[lang]||fullscreenWords.ja)[0];if(b.textContent!==label)b.textContent=label;});
       translateText(root);translatedChoiceTitles();translateAttrs();translateCinema();
       const motion=root.querySelector('[data-motion-toggle]')?.dataset.motion;
       cin.classList.toggle('eg-force-motion',motion==='on');
