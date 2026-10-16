@@ -80,3 +80,23 @@ test('視差効果を減らす設定に応じて動作表示がOFFになる',asy
   await page.locator('#exitGuideV2 [data-motion-toggle]').click();
   await expect(page.locator('#exitGuideV2 [data-motion-toggle]')).toHaveAttribute('data-motion','on');
 });
+
+test('退場時間画面でも言語と動きON/OFFが翻訳される',async({page})=>{
+  await page.goto(target);
+  const bar=page.locator('#eg-final-languages');
+  const guide=page.locator('#exitGuideV2');
+  await bar.locator('[data-locale="en"]').click();
+  await expect(guide.locator('[data-motion-toggle]')).toContainText('FX ON');
+  await guide.locator('[data-motion-toggle]').click();
+  await expect(guide.locator('[data-motion-toggle]')).toContainText('FX OFF');
+  await guide.locator('[data-guide="time"]').click();
+  await expect(guide).toBeHidden();
+  await expect(bar).toBeVisible();
+  await expect(page.locator('#timeView .hero h1')).toContainText('Visitors who entered around');
+  await expect(page.locator('#planLabel')).toHaveText('2 hr 30 min visit');
+  await bar.locator('[data-locale="zh"]').click();
+  await expect(page.locator('#timeView .hero h1')).toContainText('入场的游客请离场');
+  await page.locator('#openDetailsButton').click();
+  await expect(guide).toBeVisible();
+  await expect(guide.locator('.eg-intro h1')).toHaveText('外出与返回指南');
+});
