@@ -148,6 +148,22 @@ test('Crowd response is shared for 20 seconds and misses refresh AirWAIT',async(
   assert.equal(refreshed.data.slots.find(v=>v.waitTypeId==='0030').remaining,47);
   assert.equal(refreshed.data.stale,false);
 });
+test('Explicit HOME manual refresh bypasses recent D1 fast cache without inventing stale values',async()=>{
+ const request=query=>call(worker,env,{method:'GET',query:{action:'crowdRemaining',...query}});
+ const first=await request();
+ assert.equal(first.status,200);
+ world.crowdWaitDetails=[
+  {detailedWaitType:'枠0030',reserveUnit:'PERSON',remainingNum:67},
+  {detailedWaitType:'枠0032',reserveUnit:'PERSON',remainingNum:44},
+  {detailedWaitType:'枠0034',reserveUnit:'PERSON',remainingNum:39}
+ ];
+ mock.timers.setTime(NOON_JST+21000);
+ const refreshed=await request({refresh:'manual'});
+ assert.equal(refreshed.status,200);
+ assert.equal(refreshed.data.cacheSource,'airwait-fresh');
+ assert.equal(refreshed.data.slots.find(x=>x.waitTypeId==='0030').remaining,67);
+ assert.equal(refreshed.data.stale,false);
+});
 test('An expired crowd snapshot cannot masquerade as current availability',async()=>{
   const request=()=>call(worker,env,{method:'GET',query:{action:'crowdRemaining'}});
   const first=await request();

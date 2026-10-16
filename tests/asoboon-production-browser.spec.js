@@ -1885,3 +1885,18 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await card.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
+
+test('HOME manual refresh requests fresh AirWAIT confirmation, not the fast cached snapshot',async({page})=>{
+ await installProduction(page);
+ const requests=[];
+ page.on('request',request=>{
+  if(new URL(request.url()).searchParams.get('action')==='crowdRemaining')requests.push(new URL(request.url()));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ expect(requests.length).toBe(1);
+ expect(requests[0].searchParams.get('refresh')).toBe(null);
+ await page.locator('#v38CrowdUpdate').click();
+ await expect.poll(()=>requests.length).toBe(2);
+ expect(requests[1].searchParams.get('refresh')).toBe('manual');
+});

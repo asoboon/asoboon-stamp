@@ -195,7 +195,7 @@ ${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><s
 box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
-async function fetchCrowd(force=false){
+async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
@@ -203,7 +203,7 @@ async function fetchCrowd(force=false){
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
-  const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
+  const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
   const response=await fetch(url,{cache:'no-store',signal:ctrl.signal});
   const data=await response.json();
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
@@ -230,7 +230,7 @@ root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
   crowdManualAt=Date.now();
-  void fetchCrowd(true);
+  void fetchCrowd(true,true);
  }
 });
 window.addEventListener('asoboon:v8-home-status',e=>{latest=e.detail||{kind:'sync'};if(currentView()==='home'){lastHero='';mount()}});window.addEventListener('asoboon:v2-timeguide-updated',()=>{if(currentView()==='home')patchTimeguideShortcut()});window.addEventListener('asoboon:v2-route-rendered',()=>{lastHero='';mount();if(currentView()==='home')void refreshDay(false);else{clearTimeout(crowdPollTimer);crowdPollTimer=0}});window.addEventListener('focus',()=>{if(currentView()==='home')void refreshDay(false)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentView()==='home')void refreshDay(false);else{clearTimeout(crowdPollTimer);crowdPollTimer=0}});mount();if(currentView()==='home')void refreshDay(false);

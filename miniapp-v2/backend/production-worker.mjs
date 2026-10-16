@@ -993,7 +993,8 @@ async function getCrowdRemaining(request,env,ctx){
   // Serve only a recently verified AirWAIT snapshot and preserve its
   // original fetchedAt. Refresh asynchronously without blocking the guest.
   const snapshot=await readCrowdSnapshot(env);
-  if(crowdSnapshotAge(snapshot)!==Infinity){
+  const manualRefresh=new URL(request.url).searchParams.get('refresh')==='manual';
+  if(!manualRefresh&&crowdSnapshotAge(snapshot)!==Infinity){
     kickOffCrowdRefresh(request,env,ctx,cacheKey);
     return {...snapshot.value,ok:true,stale:false,cacheSource:'d1-verified-fast'};
   }
