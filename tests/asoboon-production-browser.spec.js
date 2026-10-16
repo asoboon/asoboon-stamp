@@ -983,9 +983,9 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
     await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('LINE受付');
     await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
-    await expect(card.locator('[role="progressbar"]')).toHaveCount(1);
+    await expect(card.locator('[role="progressbar"]')).toHaveCount(0); // no fabricated occupancy percentage
   }
-  await expect(box).toContainText('混雑目安はWEB枠を基準');
+  await expect(box).toContainText('人数は各受付枠の残りです。');
   expect(actions.length).toBe(1); // no additional Worker calls for onsite
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
@@ -1877,8 +1877,6 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card).toBeVisible();
- await expect(card.locator('.v38-crowd-onsite')).toContainText('LINE受付');
- await expect(card.locator('.v38-crowd-onsite')).toContainText('281名');
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('281名');
  await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
