@@ -4807,15 +4807,15 @@
 
 <style id="asoboon-kiosk-landscape-style">
 #exitGuideV2{width:100vw;height:100dvh;min-height:100vh;overflow-y:auto}
-#exitGuideV2 .eg-page{max-width:none;width:100%;min-height:100%;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
-#exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr}
+#exitGuideV2 .eg-page{max-width:none!important;width:100%!important;min-height:100%;padding-left:max(18px,env(safe-area-inset-left))!important;padding-right:max(18px,env(safe-area-inset-right))!important}
+#exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr!important}
 #exitGuideV2 .eg-home .eg-note{font-size:clamp(13px,1.45vw,17px);text-align:center}
 #exitGuideV2 .eg-fullscreen-switch{position:absolute;z-index:6;top:57px;right:14px;min-height:35px;border:1px solid #bacfdd;border-radius:99px;background:#164a70;color:#fff;font-size:13px;font-weight:900;padding:7px 13px;box-shadow:0 3px 8px #1234}
 #exitGuideV2 .eg-motion-switch{right:140px!important}
 #exitGuideV2 .eg-actions .eg-main-btn{width:100%}
 @media (orientation:landscape) and (min-width:700px){
  #exitGuideV2 .eg-home{height:100dvh;min-height:0;overflow:hidden;gap:clamp(6px,1.2dvh,11px)!important;padding-bottom:max(9px,env(safe-area-inset-bottom))!important}
- #exitGuideV2 .eg-options{flex:1;min-height:0;gap:clamp(8px,1.4vw,20px)}
+ #exitGuideV2 .eg-options{flex:1;min-height:0;gap:clamp(8px,1.4vw,20px)!important}
  #exitGuideV2 .eg-home .eg-choice{min-height:0!important;height:100%;padding:clamp(8px,1.5dvh,16px) 12px!important;gap:clamp(3px,.85dvh,9px)}
  #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(22px,3vw,38px)}
  #exitGuideV2 .eg-home .eg-illustration{flex:1 1 70px;min-height:44px;max-height:170px}
@@ -4824,7 +4824,7 @@
  #exitGuideV2 .eg-home .eg-intro h1{font-size:clamp(27px,3.9vw,44px)}
  #exitGuideV2 .eg-home .eg-intro p{font-size:clamp(16px,2.2vw,23px)}
  #exitGuideV2 .eg-home .eg-bottom{flex:0 0 auto;min-height:0}
- #exitGuideV2 .eg-home .eg-note{padding:8px 12px}
+ #exitGuideV2 .eg-home .eg-note{padding:8px 12px!important}
  #exitGuideV2 .eg-detail{min-height:100dvh}
 }
 @media(max-width:650px){
@@ -5834,7 +5834,7 @@
       #exitGuideV2 .eg-home .eg-choice-sub{width:auto;font-size:12px;border:0;background:transparent;padding:0}
       #exitGuideV2 .eg-home .eg-choice-action{width:auto;min-height:36px;padding:5px 8px;font-size:13px}
       #exitGuideV2 .eg-home .eg-choice-action svg{display:none}
-      #exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr}
+      #exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr!important}
       #exitGuideV2 .eg-home .eg-intro h1{font-size:27px}
       #exitGuideV2 .eg-home .eg-intro p{font-size:19px}
     }
