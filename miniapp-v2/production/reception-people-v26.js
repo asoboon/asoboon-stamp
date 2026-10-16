@@ -7,7 +7,7 @@ const configs=[
   {id:'recChild',kind:'child',mark:'子',label:'子ども',meta:'6か月〜小学6年生',price:'900円'},
   {id:'recInfant',kind:'infant',mark:'0',label:'0〜5か月',meta:'6か月未満',price:'0〜900円'}
 ];
-function setText(el,text){if(el&&el.textContent!==text)el.textContent=text}
+function setText(el,text){if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text}
 function decoratePerson(cfg){
   const out=root.querySelector('#'+cfg.id);if(!out)return;
   const person=out.closest('.rec-person'),stepper=out.closest('.rec-stepper');if(!person||!stepper)return;

@@ -2,7 +2,7 @@
 const root=document.getElementById('app');if(!root)return;
 let queued=false;
 const view=()=>String(new URLSearchParams(location.search).get('view')||'home');
-const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text};
 function patch(){
   queued=false;if(view()!=='reception')return;
   root.querySelector('.rec-methods')?.remove();

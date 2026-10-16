@@ -1551,3 +1551,301 @@ test('Unverified cross-channel queue does not silently show 0 groups or an ungro
   await expect(page.locator('#v38Hero')).not.toContainText('あと0組');
   await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
 });
+
+test('Five-language switch translates HOME, persists through navigation, and restores Japanese',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const picker=page.locator('#asoboon-language-select');
+ await expect(picker).toBeVisible();
+ expect(await picker.locator('option').count()).toBe(7);
+ const labels={
+  en:'Check queue status',
+  'zh-CN':'查看叫号状态',
+  vi:'Kiểm tra lượt gọi',
+  ne:'पालोको अवस्था हेर्नुहोस्',
+  ko:'호출 현황 확인하기',
+  kmr:'Rewşa gazîkirinê bibîne'
+ };
+ for(const [lang,label] of Object.entries(labels)){
+  await picker.selectOption(lang);
+  await expect(page.locator('html')).toHaveAttribute('lang',lang);
+  await expect(page.locator('#v38Hero .v38-call-cta')).toContainText(label);
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);
+  expect(overflow).toBe(true);
+ }
+ await picker.selectOption('en');
+ await page.locator('[data-v7-view="reception"]').first().click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+
+ await expect(page.locator('#recSlots')).toContainText('12:30 session');
+ await expect(page.locator('h3.rec-title').first()).toHaveText('Select a session');
+ await expect(picker).toHaveValue('en');
+ await page.locator('[data-rec-slot="0031"]').click();
+ await page.locator('[data-rec-k="child"][data-rec-d="1"]').click();
+ await page.locator('#recAgree').check();
+ await expect(page.locator('#recChild')).toHaveText('1');
+ await picker.selectOption('vi');
+ await expect(page.locator('h3.rec-title').first()).toHaveText('Chọn lượt chơi');
+ await expect(page.locator('#recChild')).toHaveText('1');
+ await expect(page.locator('#recAgree')).toBeChecked();
+ await expect(page.locator('[data-rec-slot="0031"]')).toHaveClass(/active/);
+ await picker.selectOption('ja');
+ await expect(page.locator('h3.rec-title').first()).toHaveText('ご利用の回');
+ await expect(page.locator('#recChild')).toHaveText('1');
+ await expect(page.locator('#recAgree')).toBeChecked();
+ await picker.selectOption('ne');
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#asoboon-language-select')).toHaveValue('ne');
+ await expect(page.locator('h3.rec-title').first()).toHaveText('समयको पालो छान्नुहोस्');
+ await picker.selectOption('ja');
+});
+
+test('Five-language call-status keeps ticket number and cancellation controls intact',async({page})=>{
+ await installProduction(page,{status:{ok:true,found:true,state:'waiting',receiptNo:'F345',
+  businessDate:'2026-10-03',waitTypeId:'0031',waitTypeName:'12:30の回',
+  aheadCount:6,queueRank:7,activeCount:80,checkedAt:Date.now()}});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031',waitTypeName:'12:30の回'
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',receiptNo:'F345',waitTypeId:'0031',
+   sessionToken:'s'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ const picker=page.locator('#asoboon-language-select');
+ await expect(page.locator('#csReceipt')).toHaveText('F345');
+
+ for(const [lang,expected] of Object.entries({
+  en:'Queue status','zh-CN':'叫号状态',vi:'Tình trạng gọi số',ne:'पालोको अवस्था',
+  ko:'호출 현황',kmr:'Rewşa gazîkirinê'
+ })){
+  await picker.selectOption(lang);
+  await expect(page.locator('.cs-page .page-head h2')).toHaveText(expected);
+  await expect(page.locator('#csReceipt')).toHaveText('F345');
+  await expect(page.locator('#csCancel')).toBeVisible();
+ }
+ await picker.selectOption('en');
+ await page.locator('#csCancel').click();
+ await expect(page.locator('#csCancelTitle')).toHaveText('Cancel this ticket?');
+ await expect(page.locator('#csCancelReceipt')).toHaveText('F345');
+ await page.locator('.cs-cancel-dismiss').click();
+ await expect(page.locator('#csCancelDialog')).toBeHidden();
+});
+
+test('Language selector does not alter booking issuance or invent translated other pages',async({page})=>{
+ await installProduction(page);
+ let creates=0;
+ page.on('request',r=>{
+  if(new URLSearchParams(r.postData()||'').get('action')==='createReservation')creates++;
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('#asoboon-language-select').selectOption('zh-CN');
+ await page.locator('[data-v7-view="first"]').first().click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
+ await expect(page.locator('#asoboon-language-note')).toContainText('仅提供日语');
+ await expect(page.locator('html')).toHaveAttribute('lang','ja');
+ await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+ await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
+ expect(creates).toBe(0);
+});
+
+test('I18N translation coverage audit core screens',async({page})=>{
+ test.setTimeout(60000);
+ await installProduction(page,{status:{ok:true,found:true,state:'waiting',receiptNo:'F345',businessDate:'2026-10-03',
+ waitTypeId:'0031',waitTypeName:'12:30の回',aheadCount:8,queueRank:9,activeCount:100,checkedAt:Date.now()}});
+ await page.addInitScript(()=>{
+ localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031'}));
+ localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+ businessDate:'2026-10-03',receiptNo:'F345',waitTypeId:'0031',sessionToken:'x'.repeat(40),expiresAt:4102444800000
+ }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ for(const target of ['home','reception','callstatus']){
+  if(target!=='home'){
+   await page.evaluate(target=>window.ASOBOON_V2_NAVIGATE?.(target),target);
+   if(new URL(page.url()).searchParams.get('view')!==target){
+    await page.goto(BASE+'?view='+target,{waitUntil:'domcontentloaded'});
+   }
+   await expect(page.locator(target==='reception'?'#recSubmit':'#csReceipt')).toBeVisible();
+  }
+  for(const code of ['en','zh-CN','vi','ne']){
+   await page.locator('#asoboon-language-select').selectOption(code);
+   await page.waitForTimeout(200);
+   const missing=await page.evaluate(()=>window.ASOBOON_I18N.missing());
+   console.log('I18N_COVERAGE',target,code,JSON.stringify(missing));
+  }
+ }
+});
+
+test('Multilingual HOME/reception/callstatus remain usable at narrow mobile widths',async({page})=>{
+ test.setTimeout(45000);
+ await installProduction(page,{status:{ok:true,found:true,state:'waiting',receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031',waitTypeName:'12:30の回',aheadCount:9,queueRank:10,activeCount:80,checkedAt:Date.now()}});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031'}));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({businessDate:'2026-10-03',receiptNo:'F345',waitTypeId:'0031',sessionToken:'q'.repeat(40),expiresAt:4102444800000}));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const locales=['en','zh-CN','vi','ne','ko','kmr'];
+ for(const view of ['home','reception','callstatus']){
+  if(view!=='home')await page.goto(BASE+'?view='+view,{waitUntil:'domcontentloaded'});
+  await expect(page.locator(view==='home'?'#v38Hero':view==='reception'?'#recSlots':'#csReceipt')).toBeVisible();
+  for(const lang of locales){
+   await page.locator('#asoboon-language-select').selectOption(lang);
+   for(const width of [320,375,430]){
+    await page.setViewportSize({width,height:740});
+    await expect(page.locator('#asoboon-language-select')).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow '+view+' '+lang+' '+width).toBe(true);
+    if(view==='reception'){
+      await expect(page.locator('.rec-disclaimer')).toBeVisible();
+      await expect(page.locator('#asoboon-japanese-legal-original')).toHaveCount(1);
+      if(lang==='ko'||lang==='kmr')await expect(page.locator('#asoboon-language-note')).toBeVisible();
+      await expect(page.locator('#recSubmit')).toBeVisible();
+    }
+    if(view==='callstatus')await expect(page.locator('#csReceipt')).toHaveText('F345');
+   }
+  }
+ }
+ await page.locator('#asoboon-language-select').selectOption('ja');
+ await expect(page.locator('#asoboon-japanese-legal-original')).toHaveCount(0);
+});
+
+test('Official home.html loads the real hashed language assets without requiring a restart or second reception',async({page})=>{
+ await installProduction(page);
+ const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ const responseCodes={};
+ page.on('response',response=>{
+  if(response.url().includes('/shared/i18n-'))responseCodes[response.url().split('?')[0]]=response.status();
+ });
+ await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+ const picker=page.locator('#asoboon-language-select');
+ await expect(picker).toBeVisible();
+ await picker.selectOption('en');
+ await expect(page.locator('#v38Hero')).toContainText('Check queue status');
+ expect(Object.keys(responseCodes)).toHaveLength(2);
+ expect(Object.values(responseCodes)).toEqual([200,200]);
+ expect(errors).toEqual([]);
+});
+
+test('Optional language file outage never replaces Japanese reception or stops the official HOME',async({page})=>{
+ await installCertifiedProduction(page);
+ await page.route('**/miniapp-v2/shared/i18n-dictionary.js*',r=>r.abort());
+ await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-home')).toBeVisible();
+ await expect(page.locator('#v38Hero')).toContainText('当日受付');
+ await expect(page.locator('#asoboon-language-select')).toHaveCount(0);
+ await page.locator('[data-v7-view="reception"]').first().click();
+ await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+ await expect(page.locator('#recSubmit')).toBeVisible();
+});
+test('Optional language runtime outage falls back to the working Japanese LINE reception',async({page})=>{
+ await installCertifiedProduction(page);
+ await page.route('**/miniapp-v2/shared/i18n-runtime.js*',r=>r.abort());
+ await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toContainText('当日受付');
+ await expect(page.locator('#asoboon-language-select')).toHaveCount(0);
+ await page.locator('[data-v7-view="reception"]').first().click();
+ await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+});
+
+test('Five-language fallback and ambiguous-result warnings are never left in Japanese',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSubmit')).toBeVisible();
+ const states=[
+  '受付できる内容を確認しています…',
+  '受付しています…',
+  '現在受付できる枠がありません。最新の受付状況をご確認ください。',
+  '受付結果を確認できません。AirWAIT側で成立している可能性があるため、新しい受付は行わないでください。',
+ ];
+ for(const locale of ['en','zh-CN','vi','ne']){
+  await page.locator('#asoboon-language-select').selectOption(locale);
+  for(const original of states){
+   await page.locator('#recStatus').evaluate((el,value)=>{el.textContent=value},original);
+   const expected=await page.evaluate(([key])=>window.ASOBOON_I18N.t(key),[original]);
+   await expect(page.locator('#recStatus')).toHaveText(expected);
+   expect(expected).not.toEqual(original);
+  }
+ }
+});
+
+test('HOME call-status button is gold and remains distinct from blue reception CTA',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const call=page.locator('#v38Hero .v38-call-cta');
+ const reception=page.locator('#v38Hero [data-v7-view="reception"]');
+ await expect(call).toBeVisible();
+ await expect(reception).toBeVisible();
+ const styles=await page.evaluate(()=>{
+  const a=document.querySelector('#v38Hero .v38-call-cta');
+  const b=document.querySelector('#v38Hero [data-v7-view="reception"]');
+  return{background:getComputedStyle(a).backgroundImage,border:getComputedStyle(a).borderColor,
+   other:getComputedStyle(b).backgroundImage,rect:a.getBoundingClientRect().toJSON()};
+ });
+ expect(styles.background).toContain('248, 213, 123'); // bright gold
+ expect(styles.background).not.toEqual(styles.other);
+ expect(styles.rect.width).toBeGreaterThan(220);
+ await call.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+});
+test('HOME restores recently verified 12:30 capacity instantly without a second initial AirWAIT read',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+   slots:[
+    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:28},
+    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:14},
+    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:12}
+   ],
+   details:[],
+   operationalDate:'2026-10-03',businessType:'土日祝日',
+   savedAt:Date.now(),verifiedFresh:true
+  }));
+ });
+ let crowdReads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')==='crowdRemaining')crowdReads++;
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('14名');
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
+ expect(crowdReads).toBe(0);
+});
+test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
+ await installCertifiedProduction(page);
+ let apiReads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const u=new URL(route.request().url());
+  if(u.searchParams.get('action')!=='businessDays')return route.fallback();
+  apiReads++;
+  const month=u.searchParams.get('month'),start=u.searchParams.get('from');
+  const [year,mon]=month.split('-').map(Number);
+  const final=new Date(Date.UTC(year,mon,0)).getUTCDate();
+  const dates=Array.from({length:final-Number(start.slice(8,10))+1},(_,i)=>month+'-'+String(Number(start.slice(8,10))+i).padStart(2,'0'));
+  const days=dates.map(date=>({
+   ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',
+   closingTime:'18:00',durationLabel:'2時間30分',source:'test'
+  }));
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,month,days,failedDates:[],complete:true})});
+ });
+ const cal='http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html';
+ await page.goto(cal,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#bcStatus')).toContainText('営業日API');
+ expect(apiReads).toBe(1);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#bcStatus')).toContainText('保存済みの最新営業予定');
+ expect(apiReads).toBe(1);
+ await page.evaluate(()=>{
+  const key='asoboon_business_calendar_month_v1';
+  const data=JSON.parse(localStorage.getItem(key));
+  for(const row of Object.values(data['2026-10'].days||{}))row.savedAt-=46*60*1000;
+  localStorage.setItem(key,JSON.stringify(data));
+ });
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect.poll(()=>apiReads).toBe(2);
+ await expect(page.locator('#bcStatus')).toContainText('営業日API');
+});

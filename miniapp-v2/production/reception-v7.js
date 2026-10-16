@@ -3,7 +3,7 @@ const root=document.getElementById('app');
 if(!root)return;
 let obs=null;
 const qs=()=>new URLSearchParams(location.search);
-const setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
+const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(String(text))||text;if(el.textContent!==text&&el.textContent!==localized)el.textContent=text};
 function currentView(){return String(qs().get('view')||'home')}
 function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
