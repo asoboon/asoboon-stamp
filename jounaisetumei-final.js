@@ -115,6 +115,8 @@
     const row=textMap.get(text);
     return row?(lang==='ja'?row[0]:row[Math.max(1,LANGS.findIndex(l=>l[0]===lang))]||row[0]):text;
   }
+  // Share the existing reviewed eight-language dictionary with per-step voice.
+  window.__ASOBOON_VENUE_TRANSLATE__=(text)=>tr(text);
   const bar=document.createElement('nav');
   bar.id='eg-final-languages';
   bar.setAttribute('aria-label','Language / 言語 / 语言');

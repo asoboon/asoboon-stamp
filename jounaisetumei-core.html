@@ -6242,9 +6242,11 @@
     if(name==='home'&&cin.classList.contains('active')){stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
     if(!screens[name])name='home';
     current=name;root.dataset.guideScreen=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
+    // Prepare the visible first step synchronously while still in this tap.
+    window.__ASOBOON_STEPPER__?.prepare(name);
     showMotionState();resetIdle();
-    // Voice follows the exact moment that the next instruction page appears.
-    window.__ASOBOON_AUDIO__?.announce(name);
+    // On guided routes speak only the visible step, not the whole itinerary.
+    window.__ASOBOON_AUDIO__?.announce(name,window.__ASOBOON_STEPPER__?.spokenStep(name));
   }
   function resetIdle(){
     if(idle) window.clearTimeout(idle);
@@ -6286,9 +6288,9 @@
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261016-instant-audio-r95"></script>
-<script src="./jounaisetumei-audio.js?v=20261016-boost-limited-r97"></script>
+<script src="./jounaisetumei-final.js?v=20261016-step-voice-r100"></script>
+<script src="./jounaisetumei-audio.js?v=20261016-step-voice-r100"></script>
 <script src="./jounaisetumei-delight.js?v=20261016-layer1-r98"></script>
-<script src="./jounaisetumei-stepper.js?v=20261016-steps-r99"></script>
+<script src="./jounaisetumei-stepper.js?v=20261016-step-voice-r100"></script>
 </body>
 </html>

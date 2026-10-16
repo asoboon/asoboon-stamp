@@ -117,8 +117,9 @@
     root.scrollTop=0;
   }
   function init(){
-    state=null;
     const panel=root.querySelector(':scope > .eg-detail');
+    if(state?.panel===panel)return; // one initialization per rendered guide
+    state=null;
     if(!panel||!['family','adult-yes','leave'].includes(root.dataset.guideScreen))return;
     const group=panel.querySelector('.eg-steps');
     const steps=[...(group?.children||[])].filter(x=>x.classList.contains('eg-step'));
@@ -150,6 +151,22 @@
     state={panel,steps,notices,progress,prev,next,index:0};
     show(0);
   }
+  function spokenStep(route){
+    if(!state||root.dataset.guideScreen!==route)return null;
+    const item=state.steps[state.index];
+    const translate=window.__ASOBOON_VENUE_TRANSLATE__||((x)=>x);
+    const parts=[item?.querySelector('strong')?.textContent?.trim(),item?.querySelector('p')?.textContent?.trim()].filter(Boolean);
+    if(route==='family'&&state.index===0)parts.push('一時退場中も利用時間は進みます。');
+    if(route==='leave'&&state.index===0)parts.push('本日のご利用を終了すると、再入場はできません。');
+    if(state.index===state.steps.length-1){
+      const note=state.notices.find(el=>!el.classList.contains('eg-danger'));
+      const message=note?.querySelector('strong')?.textContent?.trim();
+      if(message)parts.push(message);
+      if(route==='leave')parts.push('本日のご利用を終了すると、再入場はできません。');
+    }
+    return parts.map(part=>translate(part)).join(' ');
+  }
+  window.__ASOBOON_STEPPER__={prepare:init,spokenStep};
   // Original guide replaces the root's direct child synchronously on each route.
   const pageObserver=new MutationObserver(init);
   pageObserver.observe(root,{childList:true});
@@ -159,10 +176,15 @@
     const button=e.target.closest('button[data-stepper-action]');
     if(!button||!state)return;
     e.preventDefault();e.stopPropagation();
-    if(button.dataset.stepperAction==='prev')show(state.index-1);
-    else if(state.index===state.steps.length-1){
+    if(button.dataset.stepperAction==='prev'){
+      show(state.index-1);
+      window.__ASOBOON_AUDIO__?.step(root.dataset.guideScreen,spokenStep(root.dataset.guideScreen),'prev');
+    }else if(state.index===state.steps.length-1){
       root.querySelector('.eg-header button[data-guide="home"]')?.click();
-    }else show(state.index+1);
+    }else{
+      show(state.index+1);
+      window.__ASOBOON_AUDIO__?.step(root.dataset.guideScreen,spokenStep(root.dataset.guideScreen),'next');
+    }
   });
   init();
 })();
