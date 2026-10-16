@@ -8,6 +8,7 @@
   const LANGS=[['ja','日本語'],['en','English'],['zh','简体中文'],['vi','Tiếng Việt'],['ko','한국어'],['ne','नेपाली'],['tl','Filipino'],['my','မြန်မာ']];
   // Each row: Japanese canonical text, followed by en, zh-Hans, vi, ko, ne, tl, my.
   const T=[
+    ["一時退場中も利用時間は進みます。","Play time keeps running while you are outside.","外出期间游玩时间仍继续计算。","Thời gian chơi vẫn tiếp tục khi bạn ra ngoài.","외출 중에도 이용 시간이 계속 흐릅니다.","बाहिर हुँदा पनि खेल्ने समय चलिरहन्छ।","Tuloy ang oras ng paggamit habang nasa labas.","အပြင်ထွက်နေစဉ်လည်း ကစားချိန် ဆက်လက်တွက်ပါသည်။"],
     ["✨ 動き ON","✨ FX ON","✨ 动画开启","✨ Hiệu ứng BẬT","✨ 효과 켬","✨ प्रभाव चालु","✨ FX ON","✨ လှုပ်ရှားမှု ဖွင့်"],
     ["動き OFF","FX OFF","动画关闭","Hiệu ứng TẮT","효과 끔","प्रभाव बन्द","FX OFF","လှုပ်ရှားမှု ပိတ်"],
     ["この時間ごろに","Visitors who entered around","约在此时间","Khách vào khoảng giờ","이 시간에","लगभग यो समयमा","Mga pumasok bandang","ဤအချိန်ခန့် ဝင်လာသူများ"],
