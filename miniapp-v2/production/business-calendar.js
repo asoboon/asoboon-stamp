@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const D=window.ASOBOON_V2_BUSINESS_DAY||{};
 const $=id=>document.getElementById(id),grid=$('bcGrid'),status=$('bcStatus'),detail=$('bcDetail');
-const pad=n=>String(n).padStart(2,'0'),CACHE_KEY='asoboon_business_calendar_month_v1',CACHE_MS=12*60*60*1000;
+const pad=n=>String(n).padStart(2,'0'),CACHE_KEY='asoboon_business_calendar_month_v1',CACHE_MS=12*60*60*1000,CACHE_FRESH_MS=45*60*1000;
 function jstToday(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`}
 function ymd(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`}
 function parts(date){const [y,m,d]=date.split('-').map(Number);return{year:y,month:m,day:d}}
@@ -12,26 +12,49 @@ function daysInMonth(y,m){return new Date(Date.UTC(y,m+1,0)).getUTCDate()}
 function mondayOffset(y,m){return(new Date(Date.UTC(y,m,1)).getUTCDay()+6)%7}
 function monthDates(y,m,today){const n=daysInMonth(y,m),p=parts(today),start=y===p.year&&m===p.month-1?p.day:1;return Array.from({length:Math.max(0,n-start+1)},(_,i)=>ymd(y,m,start+i))}
 let today=jstToday(),currentMonth=monthKey(today),maxMonth=currentMonth+1;
-let shownMonth=currentMonth,selectedDate=today,days=new Map(),loadToken=0;
+let shownMonth=currentMonth,selectedDate=today,days=new Map(),loadToken=0,monthLoadingKey='';
 function label(day){if(!day)return'';const type=String(day.businessType||'').normalize('NFKC').trim();if(day.isClosed||type==='休館')return'休館';return['平日','平日特定日','土日祝日'].includes(type)?type:'営業日'}
 function categoryClass(day){if(!day||day.isClosed)return'';return({'平日':'type-weekday','平日特定日':'type-special','土日祝日':'type-weekend'})[String(day.businessType||'').normalize('NFKC').trim()]||''}
 function monthCacheKey(year,month){return `${year}-${pad(month+1)}`}
 function saveMonthCache(key,dates,refreshed){try{const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'),previous=all?.[key]||{},rows={};for(const date of dates){const day=days.get(date);if(!day)continue;const old=previous.days?.[date],savedAt=refreshed.has(date)?Date.now():Number(old?.savedAt||previous.savedAt||0);if(savedAt)rows[date]={savedAt,day}}all[key]={savedAt:Number(previous.savedAt||0),days:rows};localStorage.setItem(CACHE_KEY,JSON.stringify(all))}catch{}}
 function restoreMonthCache(key,dates){try{const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'),entry=all?.[key];if(!entry)return 0;let count=0;for(const date of dates){const row=entry.days?.[date],savedAt=Number(row?.savedAt||entry.savedAt||0),day=row?.day||row;if(!day||Date.now()-savedAt>CACHE_MS)continue;if(day?.ok&&day.operationalDate===date){days.set(date,day);count++}}return count}catch{return 0}}
+// Complete, recently confirmed month data can open without a second network round-trip.
+function hasFreshMonthCache(key,dates){
+ try{
+  const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'),entry=all?.[key];
+  if(!entry||!dates.length)return false;
+  return dates.every(date=>{
+   const item=entry.days?.[date],age=Date.now()-Number(item?.savedAt||0);
+   return item?.day?.ok===true&&item.day.operationalDate===date&&age>=0&&age<CACHE_FRESH_MS&&!item.day.stale;
+  });
+ }catch{return false}
+}
 function describe(day,date){if(!day)return'<p>営業情報を読み込めませんでした。</p>';const title=label(day),closed=Boolean(day.isClosed);detail.classList.toggle('closed',closed);let text=`<h2>${Number(date.slice(5,7))}月${Number(date.slice(8,10))}日 <span class="bc-badge">${esc(title)}</span></h2>`;if(closed)text+='<p>休館日です。</p>';else{text+=`<p>営業時間　10:00〜${esc(day.closingTime||'17:00')}</p>`;if(day.durationLabel&&day.durationLabel!=='時間制限なし')text+=`<p>利用時間　${esc(day.durationLabel)}</p>`}if(day.note)text+=`<p>${esc(day.note)}</p>`;detail.innerHTML=text}
 function render(){const year=Math.floor(shownMonth/12),month=shownMonth%12;$('bcMonth').textContent=fmtMonth(year,month);$('bcPrev').disabled=shownMonth<=currentMonth;$('bcNext').disabled=shownMonth>=maxMonth;const offset=mondayOffset(year,month),count=daysInMonth(year,month),cells=[];for(let i=0;i<offset;i++)cells.push('<span class="bc-day blank" aria-hidden="true"></span>');for(let d=1;d<=count;d++){const date=ymd(year,month,d),isPast=date<today,day=days.get(date),state=day?(day.isClosed?'closed':'open'):'pending',isToday=date===today,isSelected=date===selectedDate;const statusText=day?label(day):(isPast?'':'…');const classes=['bc-day',state,categoryClass(day),isPast?'past':'',isToday?'today':'',isSelected?'selected':''].filter(Boolean).join(' ');const aria=`${year}年${month+1}月${d}日${isToday?'、今日':''}${statusText?`、${statusText}`:''}`;cells.push(`<button class="${classes}" type="button" data-date="${date}" aria-label="${esc(aria)}" ${isPast||!day?'disabled':''}><span class="bc-number">${d}</span><span class="bc-state-mark ${statusText?'':'empty'}">${esc(statusText||'—')}</span></button>`)}while(cells.length%7)cells.push('<span class="bc-day blank" aria-hidden="true"></span>');grid.innerHTML=cells.join('');const selected=days.get(selectedDate);if(selected)describe(selected,selectedDate);else if(selectedDate<today){detail.classList.remove('closed');detail.innerHTML='<h2>過ぎた日程</h2><p>過ぎた日は薄く表示しています。</p>'}else{detail.classList.remove('closed');detail.innerHTML='<h2>営業情報を確認しています</h2><p>予定が表示されるまで少しお待ちください。</p>'}}
 async function pool(values,workerCount,fn){let cursor=0;const workers=Array.from({length:Math.min(workerCount,values.length)},async()=>{while(cursor<values.length){const i=cursor++;await fn(values[i],i)}});await Promise.all(workers)}
 function setStatus(text,isError=false){status.classList.toggle('error',isError);status.textContent=text}
-async function loadMonth(force=false){const token=++loadToken,year=Math.floor(shownMonth/12),month=shownMonth%12,key=monthCacheKey(year,month),dates=monthDates(year,month,today);restoreMonthCache(key,dates);render();if(!dates.length){setStatus('この月の営業予定はありません。');return}if(typeof D.getMonth!=='function'&&typeof D.getByDate!=='function'){setStatus('営業情報を読み込めません。画面を開き直してください。',true);return}
+async function loadMonth(force=false){const token=++loadToken,year=Math.floor(shownMonth/12),month=shownMonth%12,key=monthCacheKey(year,month),dates=monthDates(year,month,today);restoreMonthCache(key,dates);render();if(!dates.length){setStatus('この月の営業予定はありません。');return}if(!force&&hasFreshMonthCache(key,dates)){setStatus('保存済みの最新営業予定を表示しています。');return}if(!force&&monthLoadingKey===key)return;if(typeof D.getMonth!=='function'&&typeof D.getByDate!=='function'){setStatus('営業情報を読み込めません。画面を開き直してください。',true);return}
   const hadCached=dates.some(date=>days.has(date));setStatus(hadCached?'保存済みの予定を表示中です。最新情報を確認しています…':'営業予定を確認しています…');
-  let failed=[],refreshed=new Set();
+  monthLoadingKey=key;let failed=[],refreshed=new Set();
   try{if(typeof D.getMonth==='function'){const result=await D.getMonth(`${year}-${pad(month+1)}`,{fromDate:dates[0],force});for(const item of result.days||[])if(item?.ok&&dates.includes(item.operationalDate)){days.set(item.operationalDate,item);if(!item.stale)refreshed.add(item.operationalDate)}failed=result.failedDates||[]}
     else{failed=[];await pool(dates,4,async date=>{try{const item=await D.getByDate(date,{force});if(item?.ok&&item.operationalDate===date){days.set(date,item);if(!item.stale)refreshed.add(date)}else failed.push(date)}catch{failed.push(date)}})}
   }catch{failed=dates.filter(date=>!days.has(date))}
+  if(monthLoadingKey===key)monthLoadingKey='';
   if(token!==loadToken)return;saveMonthCache(key,dates,refreshed);render();const missing=dates.filter(date=>!days.has(date));if(missing.length){setStatus(`営業情報を確認できない日があります（${missing.length}日）。再読み込みできます。`,true);const button=document.createElement('button');button.className='bc-retry';button.id='bcRetry';button.type='button';button.textContent='再読み込み';button.addEventListener('click',()=>loadMonth(true));status.append(' ',button)}else setStatus(failed.length?'一部の予定は保存済み情報で表示しています。':'営業日APIの予定を表示しています。');}
 function move(delta){const next=shownMonth+delta;if(next<currentMonth||next>maxMonth)return;shownMonth=next;const year=Math.floor(next/12),month=next%12,first=monthDates(year,month,today)[0];selectedDate=first||today;loadMonth(false)}
 function refreshDayWindow(){const next=jstToday();if(next===today)return;today=next;currentMonth=monthKey(today);maxMonth=currentMonth+1;shownMonth=currentMonth;selectedDate=today;days.clear();loadMonth(false)}
-window.addEventListener('pageshow',refreshDayWindow);window.addEventListener('focus',refreshDayWindow);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshDayWindow()});
+let focusCheckAt=0;
+function refreshVisible(){
+ const before=today;refreshDayWindow();
+ if(today!==before)return;
+ if(document.hidden||Date.now()-focusCheckAt<30000)return;
+ focusCheckAt=Date.now();
+ const y=Math.floor(shownMonth/12),m=shownMonth%12,key=monthCacheKey(y,m),dates=monthDates(y,m,today);
+ if(monthLoadingKey!==key&&!hasFreshMonthCache(key,dates))void loadMonth(false);
+}
+window.addEventListener('pageshow',refreshVisible);
+window.addEventListener('focus',refreshVisible);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisible()});
 $('bcPrev').addEventListener('click',()=>move(-1));$('bcNext').addEventListener('click',()=>move(1));grid.addEventListener('click',e=>{const button=e.target.closest('[data-date]');if(!button)return;selectedDate=button.dataset.date;render()});
 loadMonth(false);
 })();

@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const ctx={window:{}};
 runInNewContext(read('miniapp-v2/shared/i18n-dictionary.js'),ctx);
 const entries=ctx.window.ASOBOON_I18N_DICTIONARY;
-const locales=['en','zh-CN','vi','ne'];
+const locales=['en','zh-CN','vi','ne']; // Four complete dictionaries; Korean and Kurmanji use reviewed core + clearly labeled English fallback.
 const critical=[
   '当日受付','① ご利用の回','② ご利用人数','受付番号 / 受付が完了しました',
   '入場できます','キャンセルすると現在の順番は取り消され、元には戻せません。',
@@ -44,6 +44,23 @@ test('core phrase dictionary is complete, with real translated mandatory safety 
    assert.notEqual(entries[ja][locale],ja,ja+' '+locale);
   }
  }
+});
+test('Korean and Kurmanji cover critical booking and cancellation warnings without Turkish locale',()=>{
+ const critical=[
+  '呼び出し状況を確認する','当日受付','受付番号','① ご利用の回',
+  'キャンセルすると現在の順番は取り消され、元には戻せません。',
+  '受付結果を確認できません。AirWAIT側で成立している可能性があるため、新しい受付は行わないでください。',
+  'ご利用にあたって','ご利用にあたりお客様ご自身に関する以下の項目について施設では責任を負いかねますので、あらかじめお知らせいたします。',
+  '呼出後30分以内','LINE当日受付は9:30からです。受付開始までお待ちください。'
+ ];
+ for(const key of critical){
+  assert.ok(entries[key],key);
+  for(const language of ['ko','kmr'])assert.ok(entries[key][language]?.length>2,key+' '+language);
+ }
+ const code=read('miniapp-v2/shared/i18n-runtime.js');
+ assert.match(code,/kmr:'Kurmancî'/);
+ assert.match(code,/ko:'한국어'/);
+ assert.doesNotMatch(code,/tr:'Türkçe'|Turkish|Türkçe/);
 });
 test('Production and pre-release shells resolve localized resources without modifying AirWAIT flows',()=>{
  const build=read('miniapp-v2/build-production.mjs');

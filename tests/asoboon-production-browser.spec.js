@@ -1557,12 +1557,14 @@ test('Five-language switch translates HOME, persists through navigation, and res
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const picker=page.locator('#asoboon-language-select');
  await expect(picker).toBeVisible();
- expect(await picker.locator('option').count()).toBe(5);
+ expect(await picker.locator('option').count()).toBe(7);
  const labels={
   en:'Check queue status',
   'zh-CN':'查看叫号状态',
   vi:'Kiểm tra lượt gọi',
-  ne:'पालोको अवस्था हेर्नुहोस्'
+  ne:'पालोको अवस्था हेर्नुहोस्',
+  ko:'호출 현황 확인하기',
+  kmr:'Rewşa gazîkirinê bibîne'
  };
  for(const [lang,label] of Object.entries(labels)){
   await picker.selectOption(lang);
@@ -1616,7 +1618,8 @@ test('Five-language call-status keeps ticket number and cancellation controls in
  await expect(page.locator('#csReceipt')).toHaveText('F345');
 
  for(const [lang,expected] of Object.entries({
-  en:'Queue status','zh-CN':'叫号状态',vi:'Tình trạng gọi số',ne:'पालोको अवस्था'
+  en:'Queue status','zh-CN':'叫号状态',vi:'Tình trạng gọi số',ne:'पालोको अवस्था',
+  ko:'호출 현황',kmr:'Rewşa gazîkirinê'
  })){
   await picker.selectOption(lang);
   await expect(page.locator('.cs-page .page-head h2')).toHaveText(expected);
@@ -1684,7 +1687,7 @@ test('Multilingual HOME/reception/callstatus remain usable at narrow mobile widt
   localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({businessDate:'2026-10-03',receiptNo:'F345',waitTypeId:'0031',sessionToken:'q'.repeat(40),expiresAt:4102444800000}));
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const locales=['en','zh-CN','vi','ne'];
+ const locales=['en','zh-CN','vi','ne','ko','kmr'];
  for(const view of ['home','reception','callstatus']){
   if(view!=='home')await page.goto(BASE+'?view='+view,{waitUntil:'domcontentloaded'});
   await expect(page.locator(view==='home'?'#v38Hero':view==='reception'?'#recSlots':'#csReceipt')).toBeVisible();
@@ -1697,6 +1700,7 @@ test('Multilingual HOME/reception/callstatus remain usable at narrow mobile widt
     if(view==='reception'){
       await expect(page.locator('.rec-disclaimer')).toBeVisible();
       await expect(page.locator('#asoboon-japanese-legal-original')).toHaveCount(1);
+      if(lang==='ko'||lang==='kmr')await expect(page.locator('#asoboon-language-note')).toBeVisible();
       await expect(page.locator('#recSubmit')).toBeVisible();
     }
     if(view==='callstatus')await expect(page.locator('#csReceipt')).toHaveText('F345');
@@ -1765,4 +1769,83 @@ test('Five-language fallback and ambiguous-result warnings are never left in Jap
    expect(expected).not.toEqual(original);
   }
  }
+});
+
+test('HOME call-status button is gold and remains distinct from blue reception CTA',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const call=page.locator('#v38Hero .v38-call-cta');
+ const reception=page.locator('#v38Hero [data-v7-view="reception"]');
+ await expect(call).toBeVisible();
+ await expect(reception).toBeVisible();
+ const styles=await page.evaluate(()=>{
+  const a=document.querySelector('#v38Hero .v38-call-cta');
+  const b=document.querySelector('#v38Hero [data-v7-view="reception"]');
+  return{background:getComputedStyle(a).backgroundImage,border:getComputedStyle(a).borderColor,
+   other:getComputedStyle(b).backgroundImage,rect:a.getBoundingClientRect().toJSON()};
+ });
+ expect(styles.background).toContain('248, 213, 123'); // bright gold
+ expect(styles.background).not.toEqual(styles.other);
+ expect(styles.rect.width).toBeGreaterThan(220);
+ await call.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+});
+test('HOME restores recently verified 12:30 capacity instantly without a second initial AirWAIT read',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+   slots:[
+    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:28},
+    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:14},
+    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:12}
+   ],
+   details:[],
+   operationalDate:'2026-10-03',businessType:'土日祝日',
+   savedAt:Date.now(),verifiedFresh:true
+  }));
+ });
+ let crowdReads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  if(new URL(route.request().url()).searchParams.get('action')==='crowdRemaining')crowdReads++;
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('14名');
+ await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
+ expect(crowdReads).toBe(0);
+});
+test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
+ await installCertifiedProduction(page);
+ let apiReads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const u=new URL(route.request().url());
+  if(u.searchParams.get('action')!=='businessDays')return route.fallback();
+  apiReads++;
+  const month=u.searchParams.get('month'),start=u.searchParams.get('from');
+  const [year,mon]=month.split('-').map(Number);
+  const final=new Date(Date.UTC(year,mon,0)).getUTCDate();
+  const dates=Array.from({length:final-Number(start.slice(8,10))+1},(_,i)=>month+'-'+String(Number(start.slice(8,10))+i).padStart(2,'0'));
+  const days=dates.map(date=>({
+   ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',
+   closingTime:'18:00',durationLabel:'2時間30分',source:'test'
+  }));
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,month,days,failedDates:[],complete:true})});
+ });
+ const cal='http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html';
+ await page.goto(cal,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#bcStatus')).toContainText('営業日API');
+ expect(apiReads).toBe(1);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#bcStatus')).toContainText('保存済みの最新営業予定');
+ expect(apiReads).toBe(1);
+ await page.evaluate(()=>{
+  const key='asoboon_business_calendar_month_v1';
+  const data=JSON.parse(localStorage.getItem(key));
+  for(const row of Object.values(data['2026-10'].days||{}))row.savedAt-=46*60*1000;
+  localStorage.setItem(key,JSON.stringify(data));
+ });
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect.poll(()=>apiReads).toBe(2);
+ await expect(page.locator('#bcStatus')).toContainText('営業日API');
 });

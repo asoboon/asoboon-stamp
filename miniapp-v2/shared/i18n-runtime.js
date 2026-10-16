@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const TABLE=window.ASOBOON_I18N_DICTIONARY;
 if(!TABLE||Object.keys(TABLE).length<200)return; // Missing dictionary: show only the complete Japanese experience.
-const LANGUAGES=Object.freeze({ja:'日本語','zh-CN':'简体中文',vi:'Tiếng Việt',en:'English',ne:'नेपाली'});
+const LANGUAGES=Object.freeze({ja:'日本語','zh-CN':'简体中文',vi:'Tiếng Việt',en:'English',ne:'नेपाली',ko:'한국어',kmr:'Kurmancî'});
 const KEY='asoboon_miniapp_locale_v1';
 const app=document.getElementById('app');if(!app)return;
 const cached=new WeakMap(),attributes=new WeakMap();
@@ -13,12 +13,13 @@ const isCore=()=>['home','reception','callstatus'].includes(page());
 function dynamicText(value){
  const locale=language;
  if(TABLE[value]&&TABLE[value][locale])return TABLE[value][locale];
+ if((locale==='ko'||locale==='kmr')&&TABLE[value]?.en)return TABLE[value].en;
  if(value.startsWith('LINE内 · '))return (locale==='en'?'In LINE · ':locale==='zh-CN'?'LINE内 · ':locale==='vi'?'Trong LINE · ':'LINE भित्र · ')+value.slice('LINE内 · '.length);
  for(const prefix of ['① ','② ','③ ']){const entry=TABLE[prefix+value]?.[locale];if(entry)return entry.replace(/^[①②③]\s*/, '')}
- const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':'जना';
- const session=locale==='en'?'session':locale==='zh-CN'?'场次':locale==='vi'?'lượt':'पालो';
- const minute=locale==='en'?'min':locale==='zh-CN'?'分钟':locale==='vi'?'phút':'मिनेट';
- const seconds=locale==='en'?'sec':locale==='zh-CN'?'秒':locale==='vi'?'giây':'सेकेन्ड';
+ const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':locale==='ko'?'명':locale==='kmr'?'kes':'जना';
+ const session=locale==='en'?'session':locale==='zh-CN'?'场次':locale==='vi'?'lượt':locale==='ko'?'회차':locale==='kmr'?'dora lîstinê':'पालो';
+ const minute=locale==='en'?'min':locale==='zh-CN'?'分钟':locale==='vi'?'phút':locale==='ko'?'분':locale==='kmr'?'deqe':'मिनेट';
+ const seconds=locale==='en'?'sec':locale==='zh-CN'?'秒':locale==='vi'?'giây':locale==='ko'?'초':locale==='kmr'?'çirke':'सेकेन्ड';
  if(/^\d{1,2}:\d{2}の回$/.test(value))return value.replace('の回',' '+session);
  if(/^\d{1,2}:\d{2}回$/.test(value))return value.replace('回',' '+session);
  const duration=value.match(/^(\d+)時間(\d+)分$/);
@@ -117,12 +118,14 @@ function translate(){
  document.documentElement.lang=isCore()?language:'ja';
  const note=document.getElementById('asoboon-language-note');
  if(note){
-  note.hidden=isCore()||language==='ja';
+  note.hidden=(isCore()&&language!=='ko'&&language!=='kmr')||language==='ja';
   note.textContent=({
    en:'This section is currently available in Japanese.',
    'zh-CN':'此页面目前仅提供日语。',
    vi:'Trang này hiện chỉ có tiếng Nhật。',
-   ne:'यो पृष्ठ अहिले जापानी भाषामा मात्र उपलब्ध छ।'
+   ne:'यो पृष्ठ अहिले जापानी भाषामा मात्र उपलब्ध छ।',
+   ko:isCore()?'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.':'이 화면은 현재 일본어로만 제공됩니다.',
+   kmr:isCore()?'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.':'Ev rûpel niha tenê bi Japonî ye.'
   })[language]||'';
  }
 }
