@@ -104,6 +104,7 @@
     if(button.textContent!==text)button.textContent=text;
     button.setAttribute('aria-pressed',String(!muted));
     button.setAttribute('lang',locales[lang]);
+    button.setAttribute('aria-label',text);
   }
   function connectAudio(){
     if(ctx)return ctx;
@@ -196,6 +197,16 @@
     lastDestination=destination;lastCueAt=performance.now();
     if(muted)return;
     const audio=unlock();
+    // Prime iOS speech while we still have a real user gesture.
+    // Actual narration is queued only when the instruction screen has appeared.
+    try{
+      const synth=window.speechSynthesis;
+      if(synth && window.SpeechSynthesisUtterance){
+        const primer=new SpeechSynthesisUtterance(' ');
+        primer.lang=locales[locale()];primer.volume=0;
+        synth.cancel();synth.speak(primer);
+      }
+    }catch(error){}
     if(!audio)return;
     const now=audio.currentTime+.006;
     sample('tap',0,.62);
