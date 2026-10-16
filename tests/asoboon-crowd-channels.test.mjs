@@ -25,6 +25,8 @@ test('Two clear, responsive channels preserve a neutral unavailable state and or
  for(const word of ['WEB受付','LINE受付','確認中','館内の滞在人数や混雑率ではありません','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(css,/\.v38-crowd-go\{min-height:48px/);
- assert.match(home,/タップすると受付画面へ進みます/);
+ assert.doesNotMatch(home,/希望の時間を確認して、カードをタップすると/);
+ assert.match(home,/class="v38-crowd-refresh"/);
+ assert.match(home,/goLabel=/);
  assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
 });

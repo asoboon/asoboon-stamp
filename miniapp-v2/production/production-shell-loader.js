@@ -7,7 +7,7 @@ root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=8138f3a4bd3f';document.head.appendChild(link);
 // async=false preserves execution order while all three downloads run concurrently.
-const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=0e9275e7fbbe',
+const scripts=['https://static.line-scdn.net/liff/edge/2/sdk.js','./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=4e0271a4bb45',
   './miniapp-v2/shared/i18n-dictionary.js?v=525ede3401ca','./miniapp-v2/shared/i18n-runtime.js?v=0bb3a7f7e8c4'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
