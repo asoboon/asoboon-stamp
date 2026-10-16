@@ -81,22 +81,55 @@ test('視差効果を減らす設定に応じて動作表示がOFFになる',asy
   await expect(page.locator('#exitGuideV2 [data-motion-toggle]')).toHaveAttribute('data-motion','on');
 });
 
-test('退場時間画面でも言語と動きON/OFFが翻訳される',async({page})=>{
+
+test('横向きiPadで3択だけを全画面表示し、旧退場時間画面を表示しない',async({page})=>{
+  await page.setViewportSize({width:1194,height:834});
   await page.goto(target);
-  const bar=page.locator('#eg-final-languages');
   const guide=page.locator('#exitGuideV2');
-  await bar.locator('[data-locale="en"]').click();
-  await expect(guide.locator('[data-motion-toggle]')).toContainText('FX ON');
-  await guide.locator('[data-motion-toggle]').click();
-  await expect(guide.locator('[data-motion-toggle]')).toContainText('FX OFF');
-  await guide.locator('[data-guide="time"]').click();
-  await expect(guide).toBeHidden();
-  await expect(bar).toBeVisible();
-  await expect(page.locator('#timeView .hero h1')).toContainText('Visitors who entered around');
-  await expect(page.locator('#planLabel')).toHaveText('2 hr 30 min visit');
-  await bar.locator('[data-locale="zh"]').click();
-  await expect(page.locator('#timeView .hero h1')).toContainText('入场的游客请离场');
-  await page.locator('#openDetailsButton').click();
   await expect(guide).toBeVisible();
-  await expect(guide.locator('.eg-intro h1')).toHaveText('外出与返回指南');
+  await expect(page.locator('main.app')).toBeHidden();
+  await expect(page.locator('#timeView')).toBeHidden();
+  await expect(guide.locator('[data-guide="time"]')).toHaveCount(0);
+  await expect(guide.locator('[data-guide="family"]')).toBeVisible();
+  await expect(guide.locator('[data-guide="adult"]')).toBeVisible();
+  await expect(guide.locator('[data-guide="leave"]')).toBeVisible();
+  const view=await page.evaluate(()=>{
+    const r=document.querySelector('#exitGuideV2').getBoundingClientRect();
+    const cards=[...document.querySelectorAll('.eg-choice')].map(e=>e.getBoundingClientRect());
+    return {x:r.x,y:r.y,w:r.width,h:r.height,viewportW:innerWidth,viewportH:innerHeight,
+      cardBounds:cards.map(c=>({left:c.left,right:c.right,top:c.top,bottom:c.bottom}))};
+  });
+  expect(view.x).toBe(0);expect(view.y).toBe(0);
+  expect(view.w).toBe(view.viewportW);expect(view.h).toBe(view.viewportH);
+  for(const c of view.cardBounds){
+    expect(c.left).toBeGreaterThanOrEqual(0);
+    expect(c.right).toBeLessThanOrEqual(view.viewportW+1);
+    expect(c.top).toBeGreaterThanOrEqual(0);
+    expect(c.bottom).toBeLessThanOrEqual(view.viewportH+1);
+  }
+  await page.locator('#eg-final-languages [data-locale="en"]').click();
+  await expect(guide.locator('.eg-intro h1')).toHaveText('Leaving & returning');
+  await expect(guide.locator('[data-kiosk-fullscreen]')).toContainText('Full screen');
+});
+test('全画面操作がブラウザAPIを呼び、非対応環境でも案内を表示する',async({page})=>{
+  await page.setViewportSize({width:1024,height:768});
+  await page.goto(target);
+  const guide=page.locator('#exitGuideV2');
+  await expect(guide.locator('[data-kiosk-fullscreen]')).toBeVisible();
+  await page.evaluate(()=>{
+    document.documentElement.requestFullscreen=undefined;
+    document.documentElement.webkitRequestFullscreen=undefined;
+  });
+  await guide.locator('[data-kiosk-fullscreen]').click();
+  await expect(page.locator('#eg-landscape-fullscreen-tip')).toContainText('ホーム画面に追加');
+  await expect(guide).toBeVisible();
+});
+test('横画面でも8言語とV5の全画面演出を維持',async({page})=>{
+  await page.setViewportSize({width:1024,height:768});
+  await page.goto(target);
+  await page.locator('#eg-final-languages [data-locale="ko"]').click();
+  await expect(page.locator('#exitGuideV2 .eg-intro h1')).toContainText('외출 및 재입장 안내');
+  await page.locator('#exitGuideV2 [data-guide="adult"]').click();
+  await expect(page.locator('#eg-cinema')).toHaveClass(/active/);
+  await expect(page.locator('#exitGuideV2')).toContainText('노란색 홀더를 가지고 계신가요?',{timeout:5000});
 });

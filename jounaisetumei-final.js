@@ -228,24 +228,55 @@
     inRefresh=true;
     try{
       root.dataset.lang=lang;root.setAttribute('lang',lang);
+      root.querySelectorAll('[data-kiosk-fullscreen]').forEach(b=>{const label=(fullscreenWords[lang]||fullscreenWords.ja)[0];if(b.textContent!==label)b.textContent=label;});
       translateText(root);translatedChoiceTitles();translateAttrs();translateCinema();
-      if(timeView)translateText(timeView);
       const motion=root.querySelector('[data-motion-toggle]')?.dataset.motion;
       cin.classList.toggle('eg-force-motion',motion==='on');
-      const critical=document.querySelector('#asoboonSpecialOverlay.show');
-      bar.hidden=!!(critical&&critical.dataset.kind!=='unlimited')||cin.classList.contains('active');
-      const app=document.querySelector('main.app');
-      if(app)app.style.paddingTop=root.hidden&&!bar.hidden?'max(68px,env(safe-area-inset-top))':'';
+      bar.hidden=cin.classList.contains('active');
       bar.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.locale===lang)));
     }finally{inRefresh=false;}
   }
   new MutationObserver(refresh).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   new MutationObserver(refresh).observe(cin,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
-  if(timeView)new MutationObserver(refresh).observe(timeView,{childList:true,subtree:true,characterData:true});
   function resetIdle(){
     clearTimeout(idle);
     idle=setTimeout(()=>{lang='ja';refresh();},29750);
   }
+  // A landscape iPad Web Clip can launch without Safari bars.
+  // A fullscreen API call is best-effort; iPad Safari may not expose it.
+  const fullscreenWords={
+    ja:['⛶ 全画面','iPadを横向きにし、Safariの「共有」→「ホーム画面に追加」から起動すると全画面で使えます。'],
+    en:['⛶ Full screen','Turn iPad sideways, then use Safari Share → Add to Home Screen for a full-screen view.'],
+    zh:['⛶ 全屏','请横放iPad，并在Safari中选择“共享”→“添加到主屏幕”以全屏启动。'],
+    vi:['⛶ Toàn màn hình','Xoay ngang iPad và chọn Safari Chia sẻ → Thêm vào Màn hình chính để xem toàn màn hình.'],
+    ko:['⛶ 전체 화면','iPad를 가로로 놓고 Safari 공유 → 홈 화면에 추가로 실행하면 전체 화면이 됩니다.'],
+    ne:['⛶ पूरा स्क्रिन','iPad तेर्सो राखेर Safari को Share → Add to Home Screen बाट खोल्नुहोस्।'],
+    tl:['⛶ Full screen','Ihiga ang iPad at piliin ang Safari Share → Add to Home Screen para sa full screen.'],
+    my:['⛶ မျက်နှာပြင်ပြည့်','iPad ကို အလျားလိုက်ထားပြီး Safari Share → Add to Home Screen ဖြင့် ဖွင့်ပါ။']
+  };
+  let fullscreenTipTimeout=0;
+  function fullscreenTip(){
+    let tip=document.getElementById('eg-landscape-fullscreen-tip');
+    if(!tip){tip=document.createElement('div');tip.id='eg-landscape-fullscreen-tip';tip.setAttribute('role','status');tip.style.cssText='position:fixed;z-index:1800;left:6%;right:6%;bottom:max(25px,env(safe-area-inset-bottom));margin:auto;max-width:760px;padding:18px 22px;border-radius:18px;background:#09283deF;color:#fff;box-shadow:0 14px 50px #0009;font:800 clamp(15px,2.5vw,22px)/1.5 -apple-system,sans-serif;text-align:center;';document.body.appendChild(tip);}
+    tip.textContent=(fullscreenWords[lang]||fullscreenWords.ja)[1];
+    tip.hidden=false;
+    clearTimeout(fullscreenTipTimeout);
+    fullscreenTipTimeout=setTimeout(()=>{tip.hidden=true;},6500);
+  }
+  root.addEventListener('click',e=>{
+    if(!e.target.closest('[data-kiosk-fullscreen]'))return;
+    const el=document.documentElement;
+    const request=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(!request){fullscreenTip();return;}
+    try{
+      const promise=request.call(el);
+      if(promise&&typeof promise.then==='function'){
+        promise.then(()=>{
+          if(screen.orientation?.lock)screen.orientation.lock('landscape').catch(()=>{});
+        }).catch(fullscreenTip);
+      }
+    }catch{fullscreenTip();}
+  });
   bar.addEventListener('click',e=>{
     const b=e.target.closest('button[data-locale]');if(!b)return;
     lang=b.dataset.locale;refresh();resetIdle();
