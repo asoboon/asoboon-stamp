@@ -18,7 +18,7 @@ const CROWD_FRESH_MS=30000;
 const CROWD_MANUAL_COOLDOWN_MS=20000;
 // Exact AirWAIT LINE/onsite pool names; WEB IDs MUST NOT be substituted.
 const LINE_REMAINING_NAMES=Object.freeze({
-  '平日':Object.freeze({'0023':'すぐ入場受付【平日】'}),
+  '平日':Object.freeze({'0023':'すぐ入場受付【平日】','0025':'14時から【平日】'}),
   '平日特定日':Object.freeze({'0035':'10時15分から【平日特定日】','0037':'13時45分から【平日特定日】'}),
   '土日祝日':Object.freeze({'0029':'10時25分頃入場【土休日特定日】','0031':'12時50分頃入場【土休日特定日】','0033':'15時15分頃入場時間【土休日特定日】'})
 });
