@@ -49,5 +49,5 @@ test('休館と営業情報エラーの警告は3択より優先される',async
 
 test('公開ラッパーのiframeが確実にV5を読み込む',async({page})=>{
   await page.goto(pathToFileURL(path.resolve('jounaisetumei.html')).href);
-  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v5-20261015-restored/);
+  await expect(page.locator('#tabletCore')).toHaveAttribute('src',/jounaisetumei-core\.html\?tablet_release=v5-final-20261016-multilingual/);
 });
