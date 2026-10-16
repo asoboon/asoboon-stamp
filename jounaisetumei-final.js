@@ -152,6 +152,14 @@
     #eg-cinema.eg-final-warning .eg-final-rail i{filter:saturate(.5);background:linear-gradient(115deg,#190e1a,#731d28,#ff6767,#fff,#631625,#1a0910)}
     #eg-cinema.eg-final-warning .cin-ribbon{background:linear-gradient(90deg,transparent,#8d2833,transparent)}
     @media(prefers-reduced-motion:reduce){#eg-cinema.eg-force-motion.active{display:block!important}#eg-cinema.eg-force-motion.active .eg-final-vortex{animation:eg-final-speed 1.62s both}#eg-cinema.eg-force-motion.active .eg-final-rail{animation:eg-final-doors 1.62s both}#eg-cinema.eg-force-motion.active .eg-final-impact{animation:eg-final-hit 1.62s both}}
+    /* Short-impact V5: visual peak before 300ms; instructions appear at 620ms. */
+    #eg-cinema.active .cin-door.top,#eg-cinema.active .cin-door.bottom,
+    #eg-cinema.active .cin-star,#eg-cinema.active .cin-label,
+    #eg-cinema.active .cin-title,#eg-cinema.active .cin-ribbon,
+    #eg-cinema.active .cin-flash,#eg-cinema.active .eg-final-vortex,
+    #eg-cinema.active .eg-final-rail,#eg-cinema.active .eg-final-impact
+    {animation-duration:.62s!important;animation-iteration-count:1!important}
+    #eg-cinema.active .cin-energy-grid{animation-duration:.38s!important}
     #exitGuideV2[data-lang="en"] .eg-receipt:after{content:'RECEIPT'}#exitGuideV2[data-lang="zh"] .eg-receipt:after{content:'收据'}#exitGuideV2[data-lang="vi"] .eg-receipt:after{content:'BIÊN LAI'}#exitGuideV2[data-lang="ko"] .eg-receipt:after{content:'영수증'}#exitGuideV2[data-lang="ne"] .eg-receipt:after{content:'रसिद'}#exitGuideV2[data-lang="tl"] .eg-receipt:after{content:'RESIBO'}#exitGuideV2[data-lang="my"] .eg-receipt:after{content:'ပြေစာ'}
   `;
   document.head.appendChild(style);
