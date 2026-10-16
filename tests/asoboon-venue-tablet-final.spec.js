@@ -133,3 +133,52 @@ test('横画面でも8言語とV5の全画面演出を維持',async({page})=>{
   await expect(page.locator('#eg-cinema')).toHaveAttribute('data-played','true');
   await expect(page.locator('#exitGuideV2')).toContainText('노란색 홀더를 가지고 계신가요?',{timeout:5000});
 });
+test('音ON/OFFと8言語の音声が即時案内を妨げない',async({page})=>{
+  await page.goto(target);
+  const guide=page.locator('#exitGuideV2');
+  const audio=page.locator('#eg-audio-toggle');
+  await expect(audio).toBeVisible();
+  await expect(audio).toHaveAttribute('aria-pressed','true');
+  const audioAssets=['ui-tap.mp3','ultimate-ready.mp3','judge-critical.mp3','judge-super.mp3','miss.mp3'];
+  for(const asset of audioAssets)expect(require('node:fs').existsSync(path.resolve('assets/audio/runtime/common',asset))).toBe(true);
+  for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
+    await page.locator('#eg-final-languages [data-locale="'+lang+'"]').click();
+    const text=await page.evaluate(lang=>window.__ASOBOON_AUDIO__?.prompt('family',lang),lang);
+    expect(typeof text).toBe('string');expect(text.length).toBeGreaterThan(20);
+  }
+  await page.locator('#eg-final-languages [data-locale="en"]').click();
+  await expect(audio).toContainText('Sound ON');
+  await audio.click();
+  await expect(audio).toContainText('Sound OFF');
+  await expect(audio).toHaveAttribute('aria-pressed','false');
+  await audio.click();
+  const state=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
+  expect(state.enabled).toBe(true);
+  expect(state.locale).toBe('en');
+  expect(state.durationMs).toBe(310);
+  await guide.locator('[data-guide="family"]').click();
+  await expect(guide).toContainText('Remove the receipt from the RED holder');
+  expect(await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state().lastDestination)).toBe('family');
+  await expect(guide.locator('[data-guide="time"]')).toHaveCount(0);
+});
+
+test('ボタンを押した同じ処理内で説明へ切り替わる',async({page})=>{
+  await page.goto(target);
+  const immediate=await page.evaluate(()=>{
+    const begin=performance.now();
+    document.querySelector('#exitGuideV2 [data-guide="adult"]').click();
+    return {
+      elapsed:performance.now()-begin,
+      hasQuestion:document.querySelector('#exitGuideV2')?.innerText.includes('黄色ホルダーを持っていますか？'),
+      screen:window.__ASOBOON_CINEMA_TEST__?.screen(),
+      played:document.querySelector('#eg-cinema')?.dataset.played
+    };
+  });
+  expect(immediate.hasQuestion).toBe(true);
+  expect(immediate.screen).toBe('adult');
+  expect(immediate.played).toBe('true');
+  expect(immediate.elapsed).toBeLessThan(400);
+  await expect(page.locator('#exitGuideV2 [data-guide="adult-no"]')).toBeVisible();
+  await page.locator('#exitGuideV2 [data-guide="adult-no"]').click();
+  await expect(page.locator('#exitGuideV2')).toContainText('外出前に受付スタッフへ確認してください。');
+});
