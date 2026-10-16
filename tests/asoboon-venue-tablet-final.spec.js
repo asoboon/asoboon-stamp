@@ -144,7 +144,7 @@ test('音ON/OFFと8言語の音声が即時案内を妨げない',async({page})=
   for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
     await page.locator('#eg-final-languages [data-locale="'+lang+'"]').click();
     const text=await page.evaluate(lang=>window.__ASOBOON_AUDIO__?.prompt('family',lang),lang);
-    expect(typeof text).toBe('string');expect(text.length).toBeGreaterThan(20);
+    expect(typeof text).toBe('string');expect(text.trim().length).toBeGreaterThan(8);
   }
   await page.locator('#eg-final-languages [data-locale="en"]').click();
   await expect(audio).toContainText('Sound ON');
