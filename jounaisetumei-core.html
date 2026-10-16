@@ -6168,7 +6168,7 @@
   }
   function drawCinema(now){
     const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
-    const t=(now-startAt)/1000,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    const t=(now-startAt)/1000*2.75,{w,h}= {w:window.innerWidth,h:window.innerHeight};
     ctx.clearRect(0,0,w,h);
     const cx=w*.5,cy=h*.5;
     // Scanning energy before the two gates collide.
@@ -6225,9 +6225,9 @@
     navTimer=window.setTimeout(()=>{
       stopCinema();root.classList.remove('eg-nav-active');render(destination);navigating=false;
       if(destination==='adult-yes'||destination==='leave'){
-        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},460);
+        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},150);
       }
-    },1620);
+    },620);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
@@ -6269,6 +6269,11 @@
   // No legacy calendar overlay observer. The kiosk always renders the three-action guide.
   // The original timer keeps calculating, but it is not visible and cannot steal focus.
   render('home');
+  // The customer-facing kiosk has no legacy exit-time or staff display.
+  // Keep the old engine's detached references alive without leaving its screens in the DOM.
+  originalApp.replaceChildren();
+  document.getElementById('bootScreen')?.remove();
+  document.getElementById('stepOverlay')?.remove();
 })();
 
 </script>
