@@ -4799,6 +4799,39 @@
     }
 
   </style>
+<style id="asoboon-kiosk-hide-legacy">
+  /* No time guidance in this customer-facing landscape kiosk. */
+  main.app,#stepOverlay,#bootScreen{display:none!important}
+  html,body{height:100%;width:100%;overflow:hidden}
+</style>
+
+<style id="asoboon-kiosk-landscape-style">
+#exitGuideV2{width:100vw;height:100dvh;min-height:100vh;overflow-y:auto}
+#exitGuideV2 .eg-page{max-width:none;width:100%;min-height:100%;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+#exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr}
+#exitGuideV2 .eg-home .eg-note{font-size:clamp(13px,1.45vw,17px);text-align:center}
+#exitGuideV2 .eg-fullscreen-switch{position:absolute;z-index:6;top:57px;right:14px;min-height:35px;border:1px solid #bacfdd;border-radius:99px;background:#164a70;color:#fff;font-size:13px;font-weight:900;padding:7px 13px;box-shadow:0 3px 8px #1234}
+#exitGuideV2 .eg-motion-switch{right:140px!important}
+#exitGuideV2 .eg-actions .eg-main-btn{width:100%}
+@media (orientation:landscape) and (min-width:700px){
+ #exitGuideV2 .eg-home{height:100dvh;min-height:0;overflow:hidden;gap:clamp(6px,1.2dvh,11px)!important;padding-bottom:max(9px,env(safe-area-inset-bottom))!important}
+ #exitGuideV2 .eg-options{flex:1;min-height:0;gap:clamp(8px,1.4vw,20px)}
+ #exitGuideV2 .eg-home .eg-choice{min-height:0!important;height:100%;padding:clamp(8px,1.5dvh,16px) 12px!important;gap:clamp(3px,.85dvh,9px)}
+ #exitGuideV2 .eg-home .eg-choice-title{font-size:clamp(22px,3vw,38px)}
+ #exitGuideV2 .eg-home .eg-illustration{flex:1 1 70px;min-height:44px;max-height:170px}
+ #exitGuideV2 .eg-home .eg-illustration svg{max-height:100%;height:100%}
+ #exitGuideV2 .eg-home .eg-choice-action{min-height:clamp(38px,6dvh,55px)}
+ #exitGuideV2 .eg-home .eg-intro h1{font-size:clamp(27px,3.9vw,44px)}
+ #exitGuideV2 .eg-home .eg-intro p{font-size:clamp(16px,2.2vw,23px)}
+ #exitGuideV2 .eg-home .eg-bottom{flex:0 0 auto;min-height:0}
+ #exitGuideV2 .eg-home .eg-note{padding:8px 12px}
+ #exitGuideV2 .eg-detail{min-height:100dvh}
+}
+@media(max-width:650px){
+ #exitGuideV2 .eg-motion-switch{right:128px!important}
+ #exitGuideV2 .eg-fullscreen-switch{font-size:11px;padding:6px 8px}
+}
+</style>
 </head>
 
 <body data-mode="150" class="home-view">
@@ -5997,8 +6030,7 @@
   const setRoute = (color) => `style="--route-color:${color}"`;
   // No speculative ASOBooN logo: maximize space for the three actions.
   function syncGuideLayer(){const visible=!root.hidden;if(visible&&originalApp.contains(document.activeElement))document.activeElement.blur();originalApp.inert=visible;if(visible)originalApp.setAttribute('aria-hidden','true');else originalApp.removeAttribute('aria-hidden');}
-  const openTime=()=>{root.hidden=true;syncGuideLayer();current='time';timeView.classList.add('active');document.getElementById('detailView')?.classList.remove('active');document.body.classList.add('home-view');document.getElementById('backButton')?.setAttribute('hidden','');};
-  const page=(screen,body,color)=>`<div class="eg-page eg-detail" ${setRoute(color)}><div class="eg-header"><button class="eg-back" type="button" data-guide="home">← 3つの選択肢へ</button><span class="eg-route">${screen}</span></div>${body}<div class="eg-actions"><button type="button" class="eg-main-btn" data-guide="home">最初の画面へ戻る</button><button type="button" class="eg-sub-btn" data-guide="time">退場時間を見る</button></div></div>`;
+  const page=(screen,body,color)=>`<div class="eg-page eg-detail" ${setRoute(color)}><div class="eg-header"><button class="eg-back" type="button" data-guide="home">← 3つの選択肢へ</button><span class="eg-route">${screen}</span></div>${body}<div class="eg-actions"><button type="button" class="eg-main-btn" data-guide="home">最初の画面へ戻る</button></div></div>`;
   const step=(n,title,desc,icon='')=>`<div class="eg-step"><div class="eg-num">${n}</div><div class="eg-step-text"><strong>${title}</strong><p>${desc}</p></div>${icon?`<div class="eg-minisymbol">${icon}</div>`:''}</div>`;
   const family=()=> page('みんなで外に出る',`
     <h1 class="eg-detail-title">あとで戻ってくるとき</h1>
@@ -6050,13 +6082,14 @@
   `,'#148653');
   const home=()=>`<div class="eg-page eg-home">
     <button type="button" class="eg-motion-switch" data-motion-toggle aria-label="アニメーション切り替え">✨ 動き ON</button>
+    <button type="button" class="eg-fullscreen-switch" data-kiosk-fullscreen aria-label="全画面表示">⛶ 全画面</button>
     <div class="eg-intro"><h1>外に出るときのご案内</h1><p>このあと、どうされますか？</p></div>
     <div class="eg-options" role="group" aria-label="当てはまる状況を選択してください">
       <button type="button" class="eg-choice eg-blue" data-guide="family"><span class="eg-choice-index">1</span><strong class="eg-choice-title">みんなで<br>外に出る</strong><span class="eg-illustration">${familyIcon}</span><span class="eg-choice-sub">あとで戻る</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
       <button type="button" class="eg-choice eg-amber" data-guide="adult"><span class="eg-choice-index">2</span><strong class="eg-choice-title">大人だけ<br>外に出る</strong><span class="eg-illustration">${adultIcon}</span><span class="eg-choice-sub">あとで戻る</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
       <button type="button" class="eg-choice eg-green" data-guide="leave"><span class="eg-choice-index">3</span><strong class="eg-choice-title">今日は<br>帰る</strong><span class="eg-illustration">${houseIcon}</span><span class="eg-choice-sub">もう戻らない</span><span class="eg-choice-action">手順を見る ${arrows}</span></button>
     </div>
-    <div class="eg-bottom"><div class="eg-note">※ 一部の大人と子どもが一緒に外出する場合は、受付スタッフへお声がけください。</div><button class="eg-time" data-guide="time" type="button"><span>◷ 何時まで遊べる？<small>退場時間の目安を確認する</small></span><span aria-hidden="true">›</span></button></div>
+    <div class="eg-bottom"><div class="eg-note">※ 一部の大人と子どもが一緒に外出する場合は、受付スタッフへお声がけください。</div></div>
   </div>`;
 
 
@@ -6200,7 +6233,6 @@
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
   function render(name='home'){
     if(name==='home'&&cin.classList.contains('active')){stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
-    if(name==='time'){openTime();resetIdle();return;}
     if(!screens[name])name='home';
     current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
     showMotionState();resetIdle();
@@ -6228,18 +6260,15 @@
   root.addEventListener('pointercancel',()=>root.querySelectorAll('.eg-pressed').forEach(x=>x.classList.remove('eg-pressed')),{passive:true});
   root.addEventListener('pointerdown',resetIdle,{passive:true});
   root.addEventListener('keydown',resetIdle,{passive:true});
-  document.addEventListener('pointerdown',()=>{if(current==='time')resetIdle()},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)render('home')});
   window.addEventListener('pageshow',()=>render('home'));
 
   // The original time screen's CTA now opens the same three choices.
   detailsButton.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();render('home')},true);
 
-  // Closing day / calendar error overlays in the original system must remain usable.
+  // This kiosk is for exit procedures only. Calendar/time overlays remain hidden.
   function syncOperationalOverlay(){
-    const critical=document.getElementById('asoboonSpecialOverlay');
-    const blocking=critical?.classList.contains('show') && critical.dataset.kind!=='unlimited';
-    if(blocking) {root.hidden=true;} else if(current!=='time'){root.hidden=false;}
+    root.hidden=false;
     syncGuideLayer();
   }
   new MutationObserver(syncOperationalOverlay).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
