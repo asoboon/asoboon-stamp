@@ -14,6 +14,9 @@
     warning:'miss.mp3'
   };
   const locales={ja:'ja-JP',en:'en-US',zh:'zh-CN',vi:'vi-VN',ko:'ko-KR',ne:'ne-NP',tl:'fil-PH',my:'my-MM'};
+  const volumeLabels={
+    ja:'効果音',en:'FX volume',zh:'音效',vi:'Âm thanh',ko:'효과음',ne:'ध्वनि',tl:'Effects',my:'အသံအကျိုးသက်ရောက်မှု'
+  };
   const buttonText={
     ja:['🔊 音 ON','🔇 音 OFF'],
     en:['🔊 Sound ON','🔇 Sound OFF'],
@@ -126,6 +129,9 @@
     if(button.textContent!==text)button.textContent=text;
     button.setAttribute('aria-pressed',String(!muted));
     button.setAttribute('lang',locales[lang]);
+    const label=volumeLabels[lang]||volumeLabels.ja;
+    if(sliderLabel.textContent!==label)sliderLabel.textContent=label;
+    slider.setAttribute('aria-label',label);
     button.setAttribute('aria-label',text);
   }
   function connectAudio(){
