@@ -6146,7 +6146,8 @@
   const dist=(a,b)=>Math.sqrt(a*a+b*b)||1;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   function resizeCinema(){
-    const d=Math.min(window.devicePixelRatio||1,1.7),w=window.innerWidth,h=window.innerHeight;
+    // Cap expensive retina canvas work; vector/CSS highlights stay crisp.
+    const d=Math.min(window.devicePixelRatio||1,1.25),w=window.innerWidth,h=window.innerHeight;
     can.width=Math.round(w*d);can.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);return {w,h};
   }
   const palette=(destination)=>({'family':['#00aaff','#0757b8'],'adult':['#ffbe21','#995c00'],'adult-yes':['#ffd45b','#ba7c00'],'adult-no':['#ff5757','#690200'],'leave':['#15df8a','#026845'],home:['#00b8ff','#064a8a'],time:['#2fe0ff','#04608c']}[destination]||['#00b8ff','#0348ab']);
@@ -6169,7 +6170,7 @@
   }
   function drawCinema(now){
     const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
-    const t=(now-startAt)/1000*2.75,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    const t=(now-startAt)/1000*5.8,{w,h}= {w:window.innerWidth,h:window.innerHeight};
     ctx.clearRect(0,0,w,h);
     const cx=w*.5,cy=h*.5;
     // Scanning energy before the two gates collide.
@@ -6214,21 +6215,26 @@
 
 
   function navigate(destination,button){
-    if(navigating)return;
+    // The next guide appears on the same tap. FX never holds the visitor hostage.
+    if(navigating){window.clearTimeout(navTimer);stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
     if(destination==='home'&&current==='home')return;
-    if(!animationOK()){render(destination);return;}
+    const animate=animationOK()&&destination!=='home';
+    // AudioContext must be unlocked directly by this tap, before async work.
+    window.__ASOBOON_AUDIO__?.start(destination,animate);
+    // Immediate DOM update, without waiting for the effect, sound files, or speech.
+    render(destination);
+    if(!animate)return;
     navigating=true;
-    if(button.classList.contains('eg-choice'))button.classList.add('eg-selected');
     root.classList.add('eg-nav-active');
     setupCinema(destination);
     window.clearTimeout(navTimer);
-    // Motion takes a full 1.65s, not an invisible 240ms flash.
     navTimer=window.setTimeout(()=>{
-      stopCinema();root.classList.remove('eg-nav-active');render(destination);navigating=false;
+      stopCinema();root.classList.remove('eg-nav-active');navigating=false;
       if(destination==='adult-yes'||destination==='leave'){
-        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},150);
+        const b=root.querySelector('.eg-hint');
+        if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}
       }
-    },620);
+    },310);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
@@ -6237,10 +6243,12 @@
     if(!screens[name])name='home';
     current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
     showMotionState();resetIdle();
+    // Voice follows the exact moment that the next instruction page appears.
+    window.__ASOBOON_AUDIO__?.announce(name);
   }
   function resetIdle(){
     if(idle) window.clearTimeout(idle);
-    idle=window.setTimeout(()=>{render('home');}, 30000);
+    idle=window.setTimeout(()=>{window.__ASOBOON_AUDIO__?.resetForNextVisitor();render('home');}, 30000);
   }
   root.addEventListener('click',(event)=>{
     const motionButton=event.target.closest('button[data-motion-toggle]');
@@ -6278,6 +6286,7 @@
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261016-fast-kiosk-r94"></script>
+<script src="./jounaisetumei-final.js?v=20261016-instant-audio-r95"></script>
+<script src="./jounaisetumei-audio.js?v=20261016-character-sfx-r95"></script>
 </body>
 </html>
