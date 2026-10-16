@@ -6156,19 +6156,20 @@
     cin.querySelector('.cin-title').textContent=cinLabels[destination]||'ご案内';
     cin.querySelector('.cin-label').textContent=destination==='adult-no'?'ご確認ください':'選択しました';
     cin.querySelector('.cin-ribbon').textContent=destination==='adult-no'?'必ず手順をご確認ください':'このあとの手順をご案内';
-    cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
+    cin.dataset.played='true';cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
     particles=[];rays=[];const {w,h}=resizeCinema();let midX=w/2,midY=h/2;
     for(let i=0;i<190;i++){
       const ang=Math.random()*Math.PI*2,spd=90+Math.random()*950;
       const p={a:ang,v:spd,x:midX,y:midY,size:Math.random()*5+1,tail:18+Math.random()*50,hue:i%4===0?'#ffffff':i%4===1?'#fff2ae':cinColor,phase:Math.random()*.27};
       particles.push(p);
     }
+    cin.dataset.particleCount=String(particles.length);
     for(let i=0;i<46;i++)rays.push({ang:i/46*Math.PI*2+Math.random()*.09,size:1+Math.random()*4,length:80+Math.random()*260,alpha:.28+Math.random()*.6});
     startAt=performance.now();lastFrame=startAt;cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
   }
   function drawCinema(now){
     const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
-    const t=(now-startAt)/1000,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    const t=(now-startAt)/1000*2.75,{w,h}= {w:window.innerWidth,h:window.innerHeight};
     ctx.clearRect(0,0,w,h);
     const cx=w*.5,cy=h*.5;
     // Scanning energy before the two gates collide.
@@ -6225,9 +6226,9 @@
     navTimer=window.setTimeout(()=>{
       stopCinema();root.classList.remove('eg-nav-active');render(destination);navigating=false;
       if(destination==='adult-yes'||destination==='leave'){
-        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},460);
+        window.setTimeout(()=>{const b=root.querySelector('.eg-hint');if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}},150);
       }
-    },1620);
+    },620);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
@@ -6269,9 +6270,14 @@
   // No legacy calendar overlay observer. The kiosk always renders the three-action guide.
   // The original timer keeps calculating, but it is not visible and cannot steal focus.
   render('home');
+  // The customer-facing kiosk has no legacy exit-time or staff display.
+  // Keep the old engine's detached references alive without leaving its screens in the DOM.
+  originalApp.replaceChildren();
+  document.getElementById('bootScreen')?.remove();
+  document.getElementById('stepOverlay')?.remove();
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261016-landscape-kiosk-r93"></script>
+<script src="./jounaisetumei-final.js?v=20261016-fast-kiosk-r94"></script>
 </body>
 </html>

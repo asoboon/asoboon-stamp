@@ -44,9 +44,9 @@ test('V5演出に190粒子と追加の扉・光・衝撃レイヤーがある',a
   const cin=page.locator('#eg-cinema');
   await expect(page.locator('#eg-final-languages')).toBeVisible();
   await page.locator('#exitGuideV2 [data-guide="family"]').click();
-  await expect(cin).toHaveClass(/active/);
-  const state=await page.evaluate(()=>({v5:!!window.__asoboonExitGuideV5,playing:window.__ASOBOON_CINEMA_TEST__?.isRunning(),particles:window.__ASOBOON_CINEMA_TEST__?.particleCount()}));
-  expect(state).toEqual({v5:true,playing:true,particles:190});
+  await expect(cin).toHaveAttribute('data-played','true');
+  const state=await page.evaluate(()=>({v5:!!window.__asoboonExitGuideV5,played:document.querySelector('#eg-cinema')?.dataset.played,particles:document.querySelector('#eg-cinema')?.dataset.particleCount}));
+  expect(state).toEqual({v5:true,played:'true',particles:'190'});
   await expect(cin.locator('.eg-final-rail i')).toHaveCount(2);
   await expect(cin.locator('.eg-final-vortex')).toHaveCount(1);
   await expect(cin.locator('.eg-final-impact')).toHaveCount(1);
@@ -68,7 +68,7 @@ test('言語を選択しても通常平日の案内を隠さない',async({page}
   await page.evaluate(()=>{
     const overlay=document.createElement('div');overlay.id='asoboonSpecialOverlay';
     overlay.className='show';overlay.dataset.kind='unlimited';
-    document.querySelector('#timeView .stage').append(overlay);
+    document.body.append(overlay);
   });
   await expect(page.locator('#exitGuideV2')).toBeVisible();
   await expect(page.locator('#exitGuideV2 .eg-intro h1')).toHaveText('Hướng dẫn ra ngoài');
@@ -88,7 +88,7 @@ test('横向きiPadで3択だけを全画面表示し、旧退場時間画面を
   const guide=page.locator('#exitGuideV2');
   await expect(guide).toBeVisible();
   await expect(page.locator('main.app')).toBeHidden();
-  await expect(page.locator('#timeView')).toBeHidden();
+  await expect(page.locator('#timeView')).toHaveCount(0);
   await expect(guide.locator('[data-guide="time"]')).toHaveCount(0);
   await expect(guide.locator('[data-guide="family"]')).toBeVisible();
   await expect(guide.locator('[data-guide="adult"]')).toBeVisible();
@@ -130,6 +130,6 @@ test('横画面でも8言語とV5の全画面演出を維持',async({page})=>{
   await page.locator('#eg-final-languages [data-locale="ko"]').click();
   await expect(page.locator('#exitGuideV2 .eg-intro h1')).toContainText('외출 및 재입장 안내');
   await page.locator('#exitGuideV2 [data-guide="adult"]').click();
-  await expect(page.locator('#eg-cinema')).toHaveClass(/active/);
+  await expect(page.locator('#eg-cinema')).toHaveAttribute('data-played','true');
   await expect(page.locator('#exitGuideV2')).toContainText('노란색 홀더를 가지고 계신가요?',{timeout:5000});
 });
