@@ -1,0 +1,131 @@
+ASOBooN crowd and calendar reliability patch
+Date: 2026-10-16 (JST)
+Repository: ASOBooN isolated local worktree (path redacted)
+Branch: fix/crowd-calendar-20261016 (already present at start; reused)
+Base and current HEAD: caf0e40998574c0ad2f94d50f9b07c2f12d369e7
+Changed commit SHA: UNAVAILABLE - changes remain uncommitted.
+Working-tree change manifest SHA-256: 525a97ed9a43435069d9289b0706774d87f7522ae9ed3388e0f008f4098d907e
+Digest definition: sorted changed file paths, each UTF-8 path + NUL + file bytes + NUL; excludes REPORT.txt and unrelated .gitignore changes.
+
+DELIVERY / PRECISE BLOCKS
+- Implementation and local validation completed; no push, deploy or merge.
+- git add -u failed with exit 128: unable to create .git/index.lock: Operation not permitted.
+  The execution environment permits repo file edits but mounts .git read-only.
+  The chained git commit was therefore never executed. No changed commit SHA exists.
+- REPORT.txt is stored inside the repo, under the requested run directory. The run-directory
+  parent itself is outside the writable sandbox. No workaround or permission escalation used.
+- Browser test dependency check exited 1: MODULE_NOT_FOUND for @playwright/test.
+  Browser fixtures were updated and syntax checked, but Playwright was NOT run.
+  No packages, browser binaries, hooks or configurations were installed/changed.
+
+IMPLEMENTATION
+1. HOME shows explicit WEB and onsite/LINE channels, including weekday 14:00 (0027).
+   Provided 2026-10-16 13:33 JST evidence is a test fixture, not a newly observed live result.
+   Weekday onsite values 264 and 50 remain onsite only; WEB is unknown for alias/time-key matches.
+   WEB requires exact matching WEB names and PERSON evidence. Onsite still requires its
+   configured exact label, unique match, PERSON unit; zero additionally requires verification.
+   Backend alias/time-key slots now return null remaining with UNVERIFIED_WEB_SOURCE;
+   observedDetails retain the independently verified onsite counts.
+2. Removed fixed 350/310-derived crowd percentages, labels and progress bars. No occupancy or
+   per-round capacity is inferred. Unknown values are never rendered as zero.
+3. Crowd snapshots preserve original fetchedAt, reject absent/future/wrong-day source times,
+   and retain verified counts for up to 30 minutes on the same business date. Restored or
+   failed refreshes are explicitly historical/stale. Older counts become unknown.
+   Cache schema 2 guards legacy timestamps; existing cache key and verifiedFresh field remain
+   compatible with reception's shared read-only cache. Existing reception routes are retained.
+4. Future calendar uses original per-date source times and five-minute freshness. It rechecks
+   on focus/pageshow/visibility and every 30 seconds while visible, making network requests
+   only when the month is incomplete/stale. Offline rows show their checked time and stale label;
+   retained schedules expire after 12 hours. No future schedule is inferred from missing dates.
+5. Backend month requests share a canonical current/next-month edge snapshot, with same-isolate
+   miss coalescing. Current month requests starting today or later fetch only today onward
+   (16 dates for the supplied 2026-10-16 example). Different from-dates reuse and filter it.
+   Edge hits consume no IP limiter budget; genuine misses retain the 12/10-minute limit.
+   Existing per-date D1/memory validation and concurrency limit of eight remain. Month reads
+   use a five-minute per-date max age, without altering ordinary businessDay's default 30 minutes.
+   Edge expiry follows oldest source time; degraded responses share a 30-second retry window.
+6. Failed/partial month batches no longer fan out into up to 31 client per-date requests.
+   Existing checked rows remain visible as historical information, with retry available.
+7. New crowd/source/freshness labels have dictionary translations; callstatus, LINE reception,
+   current-business-date cutoff, and configuration/credential files were not modified.
+   Production bundles and cache hashes were regenerated with the required builder.
+
+FINAL VALIDATION (all outbound services in Node tests mocked; no real reservations/messages)
+- node --test tests/*.test.mjs tests/*.test.cjs
+  Exit 0: 240 passed, 0 failed, 0 skipped; includes existing reception, callstatus, i18n,
+  production API/security/secret-scan checks plus 15 new behavioral regression cases.
+- node miniapp-v2/build-production.mjs
+  Exit 0. Initial bundle 138602 bytes / 36856 gzip bytes (limits 140000 / 40000).
+- node miniapp-v2/build-production.mjs --check
+  Exit 0. Generated files match source modules.
+- Independent node --check on all 13 changed JS/MJS/test files
+  Exit 0, including production-app.js and the updated Playwright spec.
+- git diff --check
+  Exit 0.
+- Static scope check: no env, wrangler, configuration or secret files in changed paths.
+  Exit 0.
+
+REGRESSION EVIDENCE
+- Actual onsite/WEB fixture, strict identity, duplicates, GROUP units, null/invalid/verified zero.
+- Fresh/offline/server-stale/expired/persisted data, original timestamp, invalid or wrong-day time.
+- 300 same-IP requests: one 16-date upstream batch; alternate from-date shares it.
+- Five-minute invalidation, D1 reuse from a cold isolate, partial/unprovided date safety,
+  stale-cache retry sharing/recovery and actual-miss IP rate enforcement.
+- Visible calendar update on focus, duplicate in-flight focus, reload without repeat fetch,
+  no compounded freshness when server snapshot is already four minutes old, and no API fan-out.
+- Initial test-development failures: VM harness insertion marker and obsolete LINE-only wording
+  assertion; both corrected. Final complete Node suite is green.
+
+LIMITS
+- Not deployed; production still runs its existing code.
+- No live API was called by this task. Verification uses user-supplied evidence and mocks.
+- No browser-layout/Playwright run due missing dependency; DOM output exercised via Node VM.
+- Edge cache is data-center local; D1 provides existing cross-isolate per-date reuse.
+  In-flight coalescing is per isolate, not a global distributed lock.
+- Official cache API reference consulted: https://developers.cloudflare.com/workers/runtime-apis/cache/
+
+UNRELATED WORKTREE CHANGE
+- .gitignore acquired Skipper ignore entries during execution. This patch did not author
+  that change or enable/install hooks. Its origin is unverified; it was left intact and
+  excluded from the patch manifest rather than overwriting another process's changes.
+
+CHANGED FILES (SHA-256)
+home.html
+  22e1c6a41d77cf9013010b1e50a6dfb879bd0f00b6e8c7a28f6f6abd048c4dfe
+miniapp-v2/backend/production-worker.mjs
+  83836229e224a073a4a27f0916c026179ad34feee02552182e01f521076705cd
+miniapp-v2/production/business-calendar.html
+  666641372a9a2c37930b6b4e8e25a9a01d1dbfac3f4510eaaee20e3d74b5542d
+miniapp-v2/production/business-calendar.js
+  d08fa768f016c514eb9c8a8be4da8f73ef643b1504ed8252118951bdfbda6cd4
+miniapp-v2/production/business-day-cutoff-v26.js
+  b15066e573f1f7246d3bf0d69852a9c7fbff769070dd676b21345b94d12b8810
+miniapp-v2/production/home-v38.js
+  d5e6ff888a0b3adccba52f038b519901450ba130e1818cdfb5b5f24f3be7f1c2
+miniapp-v2/production/index.html
+  34afe7b5b29dd3eecacd5712802b103f938089fc4f790666cafa3505c8326e84
+miniapp-v2/production/production-app.js
+  fccf705c25298e3e1a7771c1a6b14b51446a4539aa92725163922abdc1f384ae
+miniapp-v2/production/production-shell-loader.js
+  547de092bd0a2aacf3f942583695fa1ca8c171ceadf79eeca557ac9c962a1a16
+miniapp-v2/shared/i18n-dictionary.js
+  525ede3401ca2e3d6f224f1fb16755ebc846775ebec1d0090cb812ef0d0e05f9
+tests/asoboon-calendar-cache.test.mjs
+  6acc709850285a9cbf0ee92ddc1ec2b1d8ef37c3ae6c53479848e87884326582
+tests/asoboon-call-colors.test.mjs
+  4bc3f7633d2053b8500a841bbd9a7330964674a89c9f34287060fadaabb6bd7a
+tests/asoboon-crowd-calendar-reliability.test.mjs
+  b8159303f29e003e53b3ee12b402ec4ff3bcb690fd24c3717977b4884c26f074
+tests/asoboon-crowd-channels.test.mjs
+  02b21ffb8ed1f9cbbf6cfb24d440ea0e10ad8dc91bc2878d3f3299f450fb3c8d
+tests/asoboon-production-api-contract.test.mjs
+  dfce4c52839d7b1b00c0222997ae4238bd35dcf7ce30ad2c2002372c37123339
+tests/asoboon-production-browser.spec.js
+  4b581d2fa8bff177e84b7c4a27bb4244e6f564c522100ff5476d5b0a99db5177
+
+FINAL QA ADDENDUM (after independent Sonnet review)
+- Read-only Sonnet review returned no blockers; review flagged 19:00 rollover, midnight in-flight collision and stale-count visual emphasis.
+- Corrected all three: suppress tomorrow crowd from 19:00, discard prior-day async result, dim verified historical counts.
+- Added direct Node regression tests for after 19:00 JST and same-month midnight in-flight race.
+- Rebuilt production bundles and verified the final 240/240 Node suite; git diff --check passed.
+- Standalone calendar localization and full Playwright real-browser checks remain release-verification follow-ups.

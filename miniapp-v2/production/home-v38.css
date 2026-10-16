@@ -38,3 +38,5 @@ body.v38-home-active .topbar{display:none!important}
 .v38-crowd-onsite{display:block;color:#22644f;font-size:14px;font-weight:900;line-height:1.2}
 .v38-crowd-onsite b{display:block;margin-top:4px;font-size:26px;font-weight:950;line-height:1}
 .v38-crowd-onsite b small{font-size:13px}
+
+.v38-crowd-list[data-stale="true"] .v38-crowd-channel strong{opacity:.55}
