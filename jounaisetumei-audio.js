@@ -175,6 +175,8 @@
     try{
       const source=ctx.createBufferSource(),vol=ctx.createGain();
       source.buffer=buff;vol.gain.value=level;
+      // Play short compressed cue; lengthy original assets never delay navigation or speech.
+      source.playbackRate.value=Math.max(1,buff.duration/.24);
       source.connect(vol).connect(limiter);
       source.start(ctx.currentTime+Math.max(0,delay));
       sceneNodes.push(source);
@@ -217,18 +219,18 @@
     }
     if(destination==='adult-no'){
       // A cautionary cue, never a success celebration.
-      oscillator(390,210,now+.07,.22,.24,'triangle');
-      sample('warning',.20,.43);
-      oscillator(225,145,now+.24,.20,.14,'sine');
+      oscillator(390,210,now+.03,.12,.24,'triangle');
+      sample('warning',.105,.43);
+      oscillator(225,145,now+.14,.10,.14,'sine');
       return;
     }
-    oscillator(170,1220,now+.06,.26,.19,'sawtooth'); // Rush / acceleration
-    sample('charge',.075,.50);
-    oscillator(100,51,now+.265,.25,.39,'triangle'); // Gate impact
-    oscillator(950,360,now+.265,.11,.14,'square');
-    sample('impact',.27,.78);
-    oscillator(320,880,now+.39,.18,.20,'sine'); // Light release
-    sample('resolve',.42,.53);
+    oscillator(170,1220,now+.025,.095,.19,'sawtooth'); // Quick charge
+    sample('charge',.035,.48);
+    oscillator(100,51,now+.115,.09,.32,'triangle'); // Gate impact at 115ms
+    oscillator(950,360,now+.115,.07,.14,'square');
+    sample('impact',.115,.74);
+    oscillator(320,880,now+.205,.075,.18,'sine'); // Light release
+    sample('resolve',.21,.47);
   }
   function pickVoice(lang){
     const synth=window.speechSynthesis;
@@ -269,7 +271,7 @@
         synth.cancel();
         synth.speak(utter);
       }catch(error){failures++;voiceAvailable=false;}
-    },95);
+    },340);
   }
   function setMuted(next){
     muted=Boolean(next);
@@ -291,7 +293,7 @@
     start,announce,stop:stopScene,resetForNextVisitor,setMuted,
     prompt:(destination,lang=locale())=>prompts[destination]?.[lang]||null,
     state:()=>({enabled:!muted,locale:locale(),cachedSounds:buffers.size,lastDestination,
-      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:620})
+      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:310})
   };
   updateButton();
 })();
