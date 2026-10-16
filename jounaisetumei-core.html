@@ -6156,7 +6156,7 @@
     cin.querySelector('.cin-title').textContent=cinLabels[destination]||'ご案内';
     cin.querySelector('.cin-label').textContent=destination==='adult-no'?'ご確認ください':'選択しました';
     cin.querySelector('.cin-ribbon').textContent=destination==='adult-no'?'必ず手順をご確認ください':'このあとの手順をご案内';
-    cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
+    cin.dataset.played='true';cin.classList.remove('active'); void cin.offsetWidth; cin.classList.add('active');
     particles=[];rays=[];const {w,h}=resizeCinema();let midX=w/2,midY=h/2;
     for(let i=0;i<190;i++){
       const ang=Math.random()*Math.PI*2,spd=90+Math.random()*950;
@@ -6277,6 +6277,6 @@
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261016-landscape-kiosk-r93"></script>
+<script src="./jounaisetumei-final.js?v=20261016-fast-kiosk-r94"></script>
 </body>
 </html>
