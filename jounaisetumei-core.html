@@ -6163,6 +6163,7 @@
       const p={a:ang,v:spd,x:midX,y:midY,size:Math.random()*5+1,tail:18+Math.random()*50,hue:i%4===0?'#ffffff':i%4===1?'#fff2ae':cinColor,phase:Math.random()*.27};
       particles.push(p);
     }
+    cin.dataset.particleCount=String(particles.length);
     for(let i=0;i<46;i++)rays.push({ang:i/46*Math.PI*2+Math.random()*.09,size:1+Math.random()*4,length:80+Math.random()*260,alpha:.28+Math.random()*.6});
     startAt=performance.now();lastFrame=startAt;cancelAnimationFrame(raf);raf=requestAnimationFrame(drawCinema);
   }
