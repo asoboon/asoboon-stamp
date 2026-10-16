@@ -100,9 +100,9 @@
   function trLive(text){
     const value=tr(text);
     if(value!==text||lang==='ja')return value;
-    const m=text.match(/^(?:営業開始は10:00です。)?最初の退場目安は(\\d{2}:\\d{2})です。$/);
+    const m=text.match(/^(?:営業開始は10:00です。)?最初の退場目安は(\d{2}:\d{2})です。$/);
     if(m){const t=m[1];const prefix=text.startsWith('営業開始')?{en:'Opens at 10:00. ',zh:'10:00开园。',vi:'Mở cửa lúc 10:00. ',ko:'10:00 개장. ',ne:'१०:०० बजे खुल्छ। ',tl:'Bukas 10:00. ',my:'၁၀:၀၀ ဖွင့်သည်။ '}[lang]||'':'';const parts={en:'First expected exit: ',zh:'最早离场时间：',vi:'Giờ ra về đầu tiên: ',ko:'첫 퇴장 예상: ',ne:'पहिलो निस्कने समय: ',tl:'Unang exit: ',my:'ပထမထွက်ချိန်: '}[lang]||'';return prefix+parts+t;}
-    const close=text.match(/^この利用時間の日は(\\d{2}:\\d{2})閉館です。$/);
+    const close=text.match(/^この利用時間の日は(\d{2}:\d{2})閉館です。$/);
     if(close){const t=close[1];return ({en:'Closing time: ',zh:'闭园时间：',vi:'Giờ đóng cửa: ',ko:'폐장 시간: ',ne:'बन्द हुने समय: ',tl:'Oras ng pagsara: ',my:'ပိတ်ချိန်: '}[lang]||'')+t;}
     return value;
   }
