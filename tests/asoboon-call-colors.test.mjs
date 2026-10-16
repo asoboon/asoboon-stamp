@@ -14,8 +14,8 @@ test('The four audience-facing status categories have separate page-wide palette
  assert.match(js,/function unmount\(\)\{clearCallVisualTone\(\)/);
  assert.doesNotMatch(js,/\['done','processing','closed'\]/);
 });
-test('LINE wording replaces onsite reception in visitor-facing production features',()=>{
+test('Crowd distinguishes onsite / LINE while reception preserves LINE wording',()=>{
  for(const x of [home,rec])assert.ok(!x.includes('現地受付'));
- assert.match(home,/remainingMarkup\('LINE受付'/);
+ assert.match(home,/remainingMarkup\('現地／LINE受付'/);
  assert.match(rec,/LINE受付/);
 });

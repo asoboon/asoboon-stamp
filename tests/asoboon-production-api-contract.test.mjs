@@ -204,14 +204,14 @@ test('AirWAIT explicit zero onsite capacity is verified; missing/null never fabr
   assert.equal(byName('不正な枠').remainingVerified,false);
 });
 
-test('business-day batches are IP-limited and restricted to the current and next month',async()=>{
+test('business-day shared cache hits do not consume the IP limit; month scope is restricted',async()=>{
   const headers={'CF-Connecting-IP':'198.51.100.23'};
-  for(let i=0;i<12;i++){
+  for(let i=0;i<30;i++){
     const r=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'},headers});
     assert.equal(r.status,200,`request ${i+1}: ${JSON.stringify(r.data)}`);
   }
   const limited=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-10',from:'2026-10-03'},headers});
-  assert.equal(limited.status,429,JSON.stringify(limited.data));
+  assert.equal(limited.status,200,JSON.stringify(limited.data));
   const outside=await call(worker,env,{method:'GET',query:{action:'businessDays',month:'2026-09'},headers:{'CF-Connecting-IP':'198.51.100.24'}});
   assert.equal(outside.status,400,JSON.stringify(outside.data));
   assert.equal(outside.data?.error,'BUSINESS_MONTH_OUT_OF_RANGE');

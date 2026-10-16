@@ -16,15 +16,17 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
  assert.match(home,/Array\.isArray\(data\.observedDetails\)/);
  assert.match(home,/writeCrowdCache\(crowdSlots,crowdDetails,crowdStale\)/);
  assert.match(home,/crowdDetails=Array\.isArray\(cached\.details\)/);
- assert.match(home,/slot\.web===null\?null:crowdMetric\(slot\.web\)/);
+ assert.doesNotMatch(home,/crowdMetric|CROWD_BASE|CAPACITY/);
  assert.doesNotMatch(home,/fetchOnsite|action=onsiteRemaining/);
  assert.match(home,/function scheduleCrowd\(\)/);
  assert.match(home,/CROWD_STALE_MS=90000/);
 });
 test('Two clear, responsive channels preserve a neutral unavailable state and original reception action',()=>{
- for(const word of ['WEB受付','LINE受付','確認中','混雑目安はWEB枠を基準','data-v7-view="reception"'])assert.ok(home.includes(word),word);
+ for(const word of ['WEB受付','LINE受付','確認中','館内の滞在人数や混雑率ではありません','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(css,/\.v38-crowd-go\{min-height:48px/);
- assert.match(home,/タップすると受付画面へ進みます/);
+ assert.doesNotMatch(home,/希望の時間を確認して、カードをタップすると/);
+ assert.match(home,/class="v38-crowd-refresh"/);
+ assert.match(home,/goLabel=/);
  assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
 });

@@ -121,7 +121,7 @@ export default {
     const url = new URL(request.url);
     const action = String(url.searchParams.get('action') || '');
 
-    if (request.method === 'GET' && action !== 'crowdRemaining' && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, action)) {
+    if (request.method === 'GET' && !['crowdRemaining','businessDays'].includes(action) && Object.hasOwn(PRODUCTION_IP_RATE_LIMITS, action)) {
       try { await enforceRequestIpRateLimit(env, request, action); }
       catch (e) { return json(request,{ok:false,error:safeError(e)},Number(e?.status||429)); }
     }
@@ -181,7 +181,7 @@ export default {
         return json(request, await getBusinessDaysProxy(
           url.searchParams.get('month'),
           url.searchParams.get('from'),
-          env,
+          env, request,
         ));
       } catch (e) {
         return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503));
@@ -1145,9 +1145,10 @@ async function fetchCrowdRemainingFresh(request, env, ctx) {
       slotKey:expectedSlot,
       detailedWaitType:matched?.detailedWaitType||'',
       reserveUnit:matched?.reserveUnit||'',
-      remaining:valid?n:null,
+      // Alias/time matches may be onsite; they never establish a WEB count.
+      remaining:valid&&matchMode==='exact-name'?n:null,
       matchMode:matchMode||'none',
-      evidence,
+      evidence:valid&&matchMode!=='exact-name'?'UNVERIFIED_WEB_SOURCE':evidence,
     };
   });
   return {
@@ -1509,15 +1510,15 @@ async function writeBusinessDayD1(env,date,value){
       .bind('business_day:'+date,JSON.stringify(value),Date.now()).run();
   }catch(e){console.warn('BUSINESS_DAY_CACHE_WRITE_FAILED',safeError(e))}
 }
-async function getBusinessDayProxy(value, env) {
+async function getBusinessDayProxy(value, env, maxAge=BUSINESS_DAY_CACHE_MS) {
   const date = normalizeDate(value);
   if (!date) throw apiError('BUSINESS_DATE_INVALID', 400);
   const now = Date.now();
   const cached = businessDayCache.get(date);
-  if (cached && now - cached.savedAt < BUSINESS_DAY_CACHE_MS) return { ...cached.value, cached:true, cacheSource:'memory', cachedAt:cached.savedAt };
+  if (cached && now >= cached.savedAt && now - cached.savedAt < maxAge) return { ...cached.value, cached:true, cacheSource:'memory', cachedAt:cached.savedAt };
 
   const d1=await readBusinessDayD1(env,date);
-  if(d1 && now-d1.savedAt < BUSINESS_DAY_CACHE_MS){
+  if(d1 && now>=d1.savedAt && now-d1.savedAt < maxAge){
     businessDayCache.set(date,{savedAt:d1.savedAt,value:d1.value});
     return{...d1.value,cached:true,cacheSource:'d1',cachedAt:d1.savedAt};
   }
@@ -1537,7 +1538,7 @@ async function getBusinessDayProxy(value, env) {
       finally { clearTimeout(timer); }
       let d=null;try{d=await r.json()}catch{}
       if (!r.ok || d?.ok !== true) throw apiError('BUSINESS_CALENDAR_UNAVAILABLE',503);
-      const returned = normalizeDate(d.operationalDate || d.calendarDate || date);
+      const returned = normalizeDate(d.operationalDate || d.calendarDate || '');
       const businessType = String(d.businessType || '').normalize('NFKC').trim();
       if (returned !== date || !VALID_BUSINESS_TYPES.has(businessType)) throw apiError('BUSINESS_CALENDAR_INVALID',503);
       const valueOut = {
@@ -1590,21 +1591,53 @@ function businessMonthDates(monthValue, fromValue='') {
     return `${month}-${String(day).padStart(2,'0')}`;
   });
 }
-async function getBusinessDaysProxy(month,from,env){
-  const dates=businessMonthDates(month,from);
-  const days=[],failedDates=[];
-  let cursor=0;
-  const workers=Array.from({length:Math.min(8,dates.length)},async()=>{
-    while(cursor<dates.length){
-      const date=dates[cursor++];
-      try{days.push(await getBusinessDayProxy(date,env))}
-      catch(_){failedDates.push(date)}
+const BUSINESS_MONTH_CACHE_MS=5*60*1000;
+const businessMonthInflight=new Map();
+async function getBusinessDaysProxy(month,from,env,request){
+  const dates=businessMonthDates(month,from); // Validate before any cache or limiter.
+  const monthKey=dates[0].slice(0,7);
+  const today=tokyoCalendarDate();
+  const canonicalFrom=monthKey===today.slice(0,7)&&dates[0]>=today?today:monthKey+'-01';
+  const sharedKey=monthKey+':'+canonicalFrom;
+  const cacheKey=new Request(`https://asoboon.internal/readonly/business-month-v2/${sharedKey}`);
+  const select=value=>({...value,days:value.days.filter(day=>dates.includes(day.operationalDate)),failedDates:value.failedDates.filter(date=>dates.includes(date)),complete:!value.failedDates.some(date=>dates.includes(date))});
+  try{
+    const cached=await caches.default.match(cacheKey);
+    if(cached){
+      const box=await cached.json();
+      if(box?.value?.ok===true&&Date.now()<box.expiresAt)return select(box.value);
     }
-  });
-  await Promise.all(workers);
-  days.sort((a,b)=>String(a.operationalDate).localeCompare(String(b.operationalDate)));
-  failedDates.sort();
-  return{ok:true,month,source:'production-worker-batch',days,failedDates,complete:failedDates.length===0};
+  }catch{}
+  if(businessMonthInflight.has(sharedKey))return select(await businessMonthInflight.get(sharedKey));
+  const work=(async()=>{
+    // Only a shared month cache miss consumes the facility IP budget.
+    await enforceRequestIpRateLimit(env,request,'businessDays');
+    const allDates=businessMonthDates(monthKey,canonicalFrom),days=[],failedDates=[];
+    let cursor=0;
+    const workers=Array.from({length:Math.min(8,allDates.length)},async()=>{
+      while(cursor<allDates.length){
+        const date=allDates[cursor++];
+        try{days.push(await getBusinessDayProxy(date,env,BUSINESS_MONTH_CACHE_MS))}
+        catch(_){failedDates.push(date)}
+      }
+    });
+    await Promise.all(workers);
+    days.sort((a,b)=>String(a.operationalDate).localeCompare(String(b.operationalDate)));
+    failedDates.sort();
+    const value={ok:true,month:monthKey,source:'production-worker-batch',days,failedDates,complete:failedDates.length===0};
+    // Preserve per-date source times; never extend a five-minute snapshot on a cache hit.
+    // Briefly share degraded results too, avoiding an upstream retry storm.
+    const expiresAt=failedDates.length||days.some(day=>day.stale)
+      ?Date.now()+30000
+      :Math.min(...days.map(day=>Number(day.cachedAt)+BUSINESS_MONTH_CACHE_MS));
+    const ttl=Math.max(1,Math.ceil((expiresAt-Date.now())/1000));
+    try{await caches.default.put(cacheKey,new Response(JSON.stringify({value,expiresAt}),{
+      headers:{'Content-Type':'application/json','Cache-Control':`public, max-age=${ttl}`}
+    }))}catch{}
+    return value;
+  })();
+  businessMonthInflight.set(sharedKey,work);
+  try{return select(await work)}finally{if(businessMonthInflight.get(sharedKey)===work)businessMonthInflight.delete(sharedKey)}
 }
 
 const CALLSTATUS_CLOSE_BY_WAITTYPE=Object.freeze({

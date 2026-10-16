@@ -30,10 +30,10 @@ async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00
     const json=body=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
     if(action==='health')return json({ok:true,environment:'official-production',acceptedClientIds:['2009884613'],createEnabled:true,createRequiresVerifiedLiff:true,serviceMessageReady:true,serviceMessageMandatoryBeforeCreate:true});
     if(action==='businessDay')return json({ok:true,operationalDate:'2026-10-03',calendarDate:'2026-10-03',businessType:'土日祝日',durationLabel:'2時間30分',closingTime:'18:00'});
-    if(action==='crowdRemaining')return json({ok:true,slots:[
-      {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
-      {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71},
-      {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25},
+    if(action==='crowdRemaining')return json({ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
+      {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',detailedWaitType:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
+      {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71},
+      {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',detailedWaitType:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25},
     ],observedDetails:[
       {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:117},
       {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44},
@@ -190,7 +190,7 @@ test('Reception never fabricates zero from legacy, missing, duplicated, GROUP or
 test('Reception reuses a recent HOME quota snapshot without a second shared-WiFi request',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
-  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({schema:2,
    slots:[{waitTypeId:'0032',remaining:200,matchMode:'exact-name',evidence:'PERSON',reserveUnit:'PERSON'}],
    details:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:12,remainingVerified:true}],
    operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
@@ -256,7 +256,7 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
     const days=dates.map(date=>{
       const weekday=new Date(date+'T12:00:00Z').getUTCDay();
       const businessType=date==='2026-10-10'?'休館':date==='2026-10-08'?'平日特定日':weekday===2?'休館':weekday===0||weekday===6?'土日祝日':'平日';
-      return{ok:true,operationalDate:date,calendarDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test'};
+      return{ok:true,operationalDate:date,calendarDate:date,businessType,closingTime:businessType==='土日祝日'?'18:00':'17:00',durationLabel:'時間制限なし',note:date==='2026-10-10'?'臨時休館':'',source:'test',cachedAt:Date.parse('2026-10-03T03:00:00Z')};
     });
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,month,days,failedDates:[],complete:true,source:'test-batch'})});
   });
@@ -273,7 +273,7 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   await expect(page.locator('[data-date="2026-10-08"]')).toHaveCSS('background-color','rgb(244, 249, 255)');
   await expect(page.locator('[data-date="2026-10-09"]')).toHaveCSS('background-color','rgb(239, 249, 245)');
   await expect(page.locator('[data-date="2026-10-11"]')).toHaveCSS('background-color','rgb(255, 248, 233)');
-  await expect(page.locator('#bcStatus')).toContainText('営業日API');
+  await expect(page.locator('#bcStatus')).toContainText('確認済みの営業予定');
   expect(requested.length).toBe(29);
   await page.locator('#bcNext').click();
   await expect(page.locator('#bcMonth')).toHaveText('2026年 11月');
@@ -892,9 +892,9 @@ test('HOME updates 12:30 WEB and LINE quotas while left open without extra busin
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
    ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
    slots:[
-    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
-    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:web},
-    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}
+    {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',detailedWaitType:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:195},
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:web},
+    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',detailedWaitType:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}
    ],observedDetails:[
     {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:117,remainingVerified:true},
     {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:line,remainingVerified:true},
@@ -925,24 +925,23 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
   if(++reads>1)return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_UNAVAILABLE"}'});
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
    ok:true,stale:true,staleAgeMs:180000,fetchedAt:'2026-10-03T02:57:00.000Z',
-   slots:[{waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
+   slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
    observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
   })});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card).toBeVisible();
- await expect(page.locator('#v38CrowdAge')).toContainText('最新の取得に失敗しました');
- await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
- await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
- await expect(card).not.toContainText('71名');
- await expect(card).not.toContainText('44名');
+ await expect(page.locator('#v38CrowdAge')).toContainText('過去の情報');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('71名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('44名');
+ await expect(page.locator('.v38-crowd-list')).toHaveAttribute('data-stale','true');
  const previous=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1')||'{}'));
- expect(previous.verifiedFresh).toBe(false);
+ expect(previous.stale).toBe(true);
  await page.reload({waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
- await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
- await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
+ await expect(page.locator('#v38CrowdAge')).toContainText('過去の情報');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('71名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('44名');
  await card.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
@@ -954,7 +953,7 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
   reads++;
   if(reads>1)return route.fulfill({status:429,contentType:'application/json',body:'{"ok":false,"error":"RATE_LIMITED"}'});
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   ok:true,stale:false,
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
    slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71}],
    observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true}]
   })});
@@ -964,7 +963,7 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
  await expect(button).toBeEnabled();
  await button.click();
  await expect(button).toBeDisabled();
- await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await expect(page.locator('#v38CrowdAge')).toContainText('過去の情報');
  await page.waitForTimeout(200);
  expect(reads).toBe(2);
 });
@@ -983,9 +982,9 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
     await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('LINE受付');
     await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
-    await expect(card.locator('[role="progressbar"]')).toHaveCount(1);
+    await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
   }
-  await expect(box).toContainText('混雑目安はWEB枠を基準');
+  await expect(box).toContainText('館内の滞在人数や混雑率ではありません');
   expect(actions.length).toBe(1); // no additional Worker calls for onsite
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
@@ -1000,9 +999,9 @@ test('12:30 LINE verified zero is shown as 0名; crowded card advertises navigat
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   ok:true,slots:[
-    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
-    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}
+   ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
+    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',detailedWaitType:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}
    ],
    observedDetails:[
     {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true},
@@ -1037,7 +1036,7 @@ test('Legacy or unverified zero remains 確認中 rather than reporting fabricat
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   ok:true,slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}],
+   ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}],
    observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0}]
   })});
  });
@@ -1050,10 +1049,10 @@ test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false 
   await page.route(GATEWAY+'**',async route=>{
     if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-      ok:true,slots:[
-        {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:100},
-        {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
-        {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:200}
+      ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
+        {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',detailedWaitType:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:100},
+        {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
+        {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',detailedWaitType:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:200}
       ],observedDetails:[
         {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:60},
         {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:80},
@@ -1078,13 +1077,13 @@ test('Onsite-only verified pool remains visible while unsafe online time-key mat
   await page.route(GATEWAY+'**',async route=>{
     if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-      ok:true,slots:[
+      ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
         {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'time-key',remaining:75}
       ],observedDetails:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:75}]
     })});
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const card=page.locator('#v38Slots .v38-crowd-card');
+  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'10:00回'});
   await expect(card).toHaveCount(1);
   await expect(card.locator('.v38-crowd-channel--web')).toContainText('確認中');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('75名');
@@ -1100,9 +1099,9 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
     const json=body=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
     if(action==='businessDay')return json({ok:true,operationalDate:'2026-10-03',businessType:'平日特定日',durationLabel:'3時間',closingTime:'17:00'});
     if(action!=='crowdRemaining')return route.fallback();
-    return json({ok:true,slots:[
-      {waitTypeId:'0036',waitTypeName:'10時ご入場枠【WEB平日特定日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:140},
-      {waitTypeId:'0038',waitTypeName:'13時半ご入場枠【WEB平日特定日】',slotKey:'13:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:80}
+    return json({ok:true,fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
+      {waitTypeId:'0036',waitTypeName:'10時ご入場枠【WEB平日特定日】',detailedWaitType:'10時ご入場枠【WEB平日特定日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:140},
+      {waitTypeId:'0038',waitTypeName:'13時半ご入場枠【WEB平日特定日】',detailedWaitType:'13時半ご入場枠【WEB平日特定日】',slotKey:'13:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:80}
     ],observedDetails:[
       {detailedWaitType:'10時15分から【平日特定日】',reserveUnit:'PERSON',remaining:59},
       {detailedWaitType:'13時45分から【平日特定日】',reserveUnit:'PERSON',remaining:22},
@@ -1123,8 +1122,8 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
 test('Recent verified HOME cache can bridge a brief AirWAIT outage without inventing values',async({page})=>{
   await installProduction(page);
   await page.addInitScript(()=>{
-    localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
-      slots:[{waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}],
+    localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({schema:2,
+      slots:[{waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',detailedWaitType:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}],
       details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:14}],
       operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
     }));
@@ -1134,7 +1133,7 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
     await route.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const card=page.locator('#v38Slots .v38-crowd-card');
+  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'10:00回'});
   await expect(card).toHaveCount(1);
   await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('25名');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('14名');
@@ -1790,14 +1789,14 @@ test('HOME call-status button is gold and remains distinct from blue reception C
  await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
 });
-test('HOME restores recently verified 12:30 capacity instantly without a second initial AirWAIT read',async({page})=>{
+test('HOME refreshes persisted counts before marking them current',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
-  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({schema:2,
    slots:[
-    {waitTypeId:'0030',waitTypeName:'10:00',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:28},
-    {waitTypeId:'0032',waitTypeName:'12:30',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:14},
-    {waitTypeId:'0034',waitTypeName:'15:00',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:12}
+    {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',detailedWaitType:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:28},
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',detailedWaitType:'12時半ご入場枠【WEB整理券】',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:14},
+    {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',detailedWaitType:'15時ご入場枠【WEB整理券】',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:12}
    ],
    details:[],
    operationalDate:'2026-10-03',businessType:'土日祝日',
@@ -1811,11 +1810,11 @@ test('HOME restores recently verified 12:30 capacity instantly without a second 
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
- await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('14名');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('71名');
  await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
- expect(crowdReads).toBe(0);
+ expect(crowdReads).toBe(1);
 });
-test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
+test('Business calendar reuses a fully verified five-minute snapshot and refreshes stale months',async({page})=>{
  await installCertifiedProduction(page);
  let apiReads=0;
  await page.route(GATEWAY+'**',async route=>{
@@ -1828,26 +1827,26 @@ test('Business calendar reuses a fully verified 45-minute snapshot and refreshes
   const dates=Array.from({length:final-Number(start.slice(8,10))+1},(_,i)=>month+'-'+String(Number(start.slice(8,10))+i).padStart(2,'0'));
   const days=dates.map(date=>({
    ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',
-   closingTime:'18:00',durationLabel:'2時間30分',source:'test'
+   closingTime:'18:00',durationLabel:'2時間30分',source:'test',cachedAt:Date.parse('2026-10-03T03:00:00Z')
   }));
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,month,days,failedDates:[],complete:true})});
  });
  const cal='http://127.0.0.1:4173/miniapp-v2/production/business-calendar.html';
  await page.goto(cal,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#bcStatus')).toContainText('営業日API');
+ await expect(page.locator('#bcStatus')).toContainText('確認済みの営業予定');
  expect(apiReads).toBe(1);
  await page.reload({waitUntil:'domcontentloaded'});
- await expect(page.locator('#bcStatus')).toContainText('保存済みの最新営業予定');
+ await expect(page.locator('#bcStatus')).toContainText('確認済みの営業予定');
  expect(apiReads).toBe(1);
  await page.evaluate(()=>{
-  const key='asoboon_business_calendar_month_v1';
+  const key='asoboon_business_calendar_month_v2';
   const data=JSON.parse(localStorage.getItem(key));
-  for(const row of Object.values(data['2026-10'].days||{}))row.savedAt-=46*60*1000;
+  for(const row of Object.values(data['2026-10'].days||{}))row.day.fetchedAt-=6*60*1000;
   localStorage.setItem(key,JSON.stringify(data));
  });
  await page.reload({waitUntil:'domcontentloaded'});
  await expect.poll(()=>apiReads).toBe(2);
- await expect(page.locator('#bcStatus')).toContainText('営業日API');
+ await expect(page.locator('#bcStatus')).toContainText('確認済みの営業予定');
 });
 
 test('HOME duplicate ASOBooN/Kawaguchi title is removed without hiding Language or other page navigation',async({page})=>{
@@ -1867,7 +1866,7 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   ok:true,stale:false,fetchedAt:new Date().toISOString(),
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
    slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
     slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:281}],
    observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',
@@ -1877,8 +1876,8 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card).toBeVisible();
- await expect(card.locator('.v38-crowd-onsite')).toContainText('LINE受付');
- await expect(card.locator('.v38-crowd-onsite')).toContainText('281名');
+ await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('現地／LINE受付');
+ await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('281名');
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('281名');
  await expect(card.locator('[role="progressbar"]')).toHaveCount(0);

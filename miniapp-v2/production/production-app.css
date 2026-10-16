@@ -191,6 +191,8 @@ body.v38-home-active .topbar{display:none!important}
 .v38-crowd-onsite b{display:block;margin-top:4px;font-size:26px;font-weight:950;line-height:1}
 .v38-crowd-onsite b small{font-size:13px}
 
+.v38-crowd-list[data-stale="true"] .v38-crowd-channel strong{opacity:.55}
+
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
 .v38-surprise-section{padding:0}

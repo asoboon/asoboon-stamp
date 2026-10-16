@@ -97,18 +97,11 @@ async function getMonth(monthValue,{fromDate='',force=false}={}){
     }
     for(const date of payload.failedDates||[])if(dates.includes(date))failed.add(date);
     for(const date of dates)if(!byDate.has(date))failed.add(date);
-  }catch(_){
-    dates.forEach(date=>failed.add(date));
+  }catch(error){
+    // A failed batch must not fan out into up to 31 independent requests.
+    // The calendar retains its dated last-good rows and offers a retry.
+    throw error;
   }
-  let cursor=0;
-  const retry=[...failed];
-  const workers=Array.from({length:Math.min(4,retry.length)},async()=>{
-    while(cursor<retry.length){
-      const date=retry[cursor++];
-      try{const value=await getByDate(date,{force});if(value?.ok&&value.operationalDate===date){byDate.set(date,value);failed.delete(date)}}catch{}
-    }
-  });
-  await Promise.all(workers);
   return{ok:true,month,days:[...byDate.values()].sort((a,b)=>a.operationalDate.localeCompare(b.operationalDate)),failedDates:[...failed].sort(),complete:failed.size===0};
 }
 
