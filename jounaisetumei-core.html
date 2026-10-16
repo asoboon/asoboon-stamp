@@ -6216,6 +6216,8 @@
   function navigate(destination,button){
     if(navigating)return;
     if(destination==='home'&&current==='home')return;
+    // Must run directly inside the customer tap: iPad Safari unlocks audio here.
+    window.__ASOBOON_AUDIO__?.start(destination,animationOK());
     if(!animationOK()){render(destination);return;}
     navigating=true;
     if(button.classList.contains('eg-choice'))button.classList.add('eg-selected');
@@ -6237,10 +6239,12 @@
     if(!screens[name])name='home';
     current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
     showMotionState();resetIdle();
+    // Voice follows the exact moment that the next instruction page appears.
+    window.__ASOBOON_AUDIO__?.announce(name);
   }
   function resetIdle(){
     if(idle) window.clearTimeout(idle);
-    idle=window.setTimeout(()=>{render('home');}, 30000);
+    idle=window.setTimeout(()=>{window.__ASOBOON_AUDIO__?.resetForNextVisitor();render('home');}, 30000);
   }
   root.addEventListener('click',(event)=>{
     const motionButton=event.target.closest('button[data-motion-toggle]');
@@ -6279,5 +6283,6 @@
 
 </script>
 <script src="./jounaisetumei-final.js?v=20261016-fast-kiosk-r94"></script>
+<script src="./jounaisetumei-audio.js?v=20261016-character-sfx-r95"></script>
 </body>
 </html>
