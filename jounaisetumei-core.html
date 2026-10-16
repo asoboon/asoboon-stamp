@@ -6266,14 +6266,9 @@
   // The original time screen's CTA now opens the same three choices.
   detailsButton.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();render('home')},true);
 
-  // This kiosk is for exit procedures only. Calendar/time overlays remain hidden.
-  function syncOperationalOverlay(){
-    root.hidden=false;
-    syncGuideLayer();
-  }
-  new MutationObserver(syncOperationalOverlay).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  // No legacy calendar overlay observer. The kiosk always renders the three-action guide.
+  // The original timer keeps calculating, but it is not visible and cannot steal focus.
   render('home');
-  syncOperationalOverlay();
 })();
 
 </script>
