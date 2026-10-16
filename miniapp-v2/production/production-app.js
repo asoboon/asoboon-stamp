@@ -605,7 +605,7 @@ const ONSITE_CROWD_NAMES=Object.freeze({
 const COPY={ja:{loading:'読み込み中',today:'',hours:'利用時間',close:'閉館',guide:'利用案内',fun:'ASOBooNを楽しむ',first:'初めての方',firstSub:'受付から入場まで',price:'料金',priceSub:'大人600円・子ども900円',parking:'アクセス',parkingSub:'駐車場・行き方',rules:'館内ルール',rulesSub:'遊ぶ前に確認',entry:'一時退場・再入場',entrySub:'外出するときはこちら',game:'ミニゲーム',fortune:'おみくじ',stamp:'スタンプ',soon:'準備中'}};
 const T=COPY.ja,icons={calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h2M14 14h2M8 17h2"/>',play:'<path d="M7 5v14l11-7z"/>',ticket:'<path d="M5 7.5A2.5 2.5 0 0 0 7.5 5h9A2.5 2.5 0 0 0 19 7.5v1a2.5 2.5 0 0 0 0 5v1A2.5 2.5 0 0 0 16.5 17h-9A2.5 2.5 0 0 0 5 14.5v-1a2.5 2.5 0 0 0 0-5z"/><path d="M12 7v10"/>',queue:'<circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><path d="M3.5 18c.5-3.5 2-5 4.5-5s4 1.5 4.5 5M12 14c1-.8 2-1 3.3-1 2.7 0 4.3 1.6 4.7 5"/>',bell:'<path d="M6 16h12l-1.5-2v-3a4.5 4.5 0 0 0-9 0v3zM10 19h4"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',person:'<circle cx="12" cy="8" r="3"/><path d="M6 20c.4-4 2.4-6 6-6s5.6 2 6 6"/>',yen:'<path d="m7 5 5 7 5-7M8 12h8M8 15h8M12 12v7"/>',parking:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>',check:'<path d="M7 4h10v16H7zM9 9l1.5 1.5L14 7M9 15h6"/>',door:'<path d="M5 20V4h11v16M9 12h10M16 9l3 3-3 3"/>',game:'<path d="M7 9h10l3 7a2 2 0 0 1-3 2l-2-2H9l-2 2a2 2 0 0 1-3-2zM8 12v3M6.5 13.5h3M16 12h.01M18 14h.01"/>',fortune:'<path d="M7 4h10v16H7zM9 7h6M10 11h4M9 16h6"/>',stamp:'<path d="M8 12h8l2 5H6zM9 20h6M9 12l1-7h4l1 7"/>',quest:'<path d="M5 15h14l-1.5-5.5h-2.2L13.8 7h-4L8.2 9.5H6.5z"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M9 9.5h5.8M4 13h2M18 13h2"/>',alert:'<path d="M12 4 3.5 19h17zM12 9v4M12 16h.01"/>',arrow:'<path d="m9 6 6 6-6 6"/>'};
 const svg=k=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${icons[k]||icons.check}</svg>`;
-const CROWD_SETTINGS=Object.freeze({CAPACITY:350,CROWD_BASE:310,IDS:Object.freeze({'平日':Object.freeze(['0024','0027']),'平日特定日':Object.freeze(['0036','0038']),'土日祝日':Object.freeze(['0030','0032','0034'])}),LEVELS:Object.freeze([{max:39,label:'空いています'},{max:59,label:'比較的空いています'},{max:79,label:'やや混雑'},{max:94,label:'混雑しています'},{max:100,label:'かなり混雑しています'}])});
+const CROWD_SETTINGS=Object.freeze({CAPACITY:350,IDS:Object.freeze({'平日':Object.freeze(['0024','0027']),'平日特定日':Object.freeze(['0036','0038']),'土日祝日':Object.freeze(['0030','0032','0034'])})});
 let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdDetails=[],crowdError='',crowdAt=0,crowdLoading=false;
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
@@ -687,8 +687,6 @@ function restoreFreshCrowdForDay(){
  return true;
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
-function crowdMetric(value){const n=Number(value);if(!Number.isSafeInteger(n)||n<0||n>CROWD_SETTINGS.CAPACITY)return null;const current=Math.max(CROWD_SETTINGS.CAPACITY-n,0),percent=Math.min(100,Math.floor(current/CROWD_SETTINGS.CROWD_BASE*100));const tone=percent<=39?'low':percent<=59?'light':percent<=79?'mid':percent<=94?'high':'very-high';return{percent,level:CROWD_SETTINGS.LEVELS.find(x=>percent<=x.max)?.label||'かなり混雑しています',tone}}
-function crowdTime(name){const m=String(name||'').normalize('NFKC').match(/^(\d{1,2})時(半|(?:([0-5]?\d)分)?)/);if(!m)return'';const hour=Number(m[1]),minute=m[2]==='半'?30:Number(m[3]||0);return hour<=23?`${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`:''}
 function safePeople(value){
 if(typeof value!=='number'&&!(typeof value==='string'&&/^\d+$/.test(value)))return null;
 const n=Number(value);
@@ -742,26 +740,20 @@ if(crowdError||!slots.length){
 box.innerHTML='<h3>本日の混雑状況</h3><p class="v38-slots-note">現在の混雑状況を更新しています。受付画面から最新状況をご確認いただけます。</p>'+action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'受付画面を見る');
 return;
 }
-const receptionOpen=availability().type==='open';
 const rows=slots.map(slot=>{
-const m=slot.web===null?null:crowdMetric(slot.web);
 const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':`${slot.time}回`;
 const goLabel=RECEPTION_FALLBACK_ACTIVE?'WEB受付画面へ':'受付画面へ進む';
-const crowdTitle=m?`${m.percent}<small>%</small>`:slot.onsite!==null?`<span class="v38-crowd-onsite">LINE受付 <b>${slot.onsite}<small>名</small></b></span>`:'<span class="v38-crowd-unverified">確認中</span>';
-const crowdLevel=m?esc(m.level):slot.onsite!==null?'LINEの受付残りを確認済み':'WEB枠の数値を確認中';
 const spoken=value=>value===null?'確認中':value+'名';
-const track=m?`<div class="v38-crowd-track" role="progressbar" aria-label="${esc(label)}のWEB枠の混雑目安" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m.percent}"><span style="width:${m.percent}%"></span></div>`:'';
-return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}。タップして受付画面へ進む">
-<div class="v38-crowd-head"><time>${esc(label)}</time><span>WEB枠の混雑目安</span></div>
-<div class="v38-crowd-value"><strong>${crowdTitle}</strong><em>${crowdLevel}</em></div>
+return `<button class="v38-crowd-card crowd-unknown" type="button" data-v7-view="reception" data-v7-slot="${esc(slot.time)}" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}。タップして受付画面へ進む">
+<div class="v38-crowd-head"><time>${esc(label)}</time></div>
 <div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数">
 <div class="v38-crowd-remaining-title">受付残り</div>
 <div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web')}${remainingMarkup('LINE受付',slot.onsite,'onsite')}</div>
 </div>
-${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><span class="v38-crowd-go-arrow">${svg('arrow')}</span></div>
+<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><span class="v38-crowd-go-arrow">${svg('arrow')}</span></div>
 </button>`;
 }).join('');
-box.innerHTML=`<h3>本日の混雑状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
+box.innerHTML=`<h3>本日の混雑状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">人数は各受付枠の残りです。館内の滞在人数や混雑率ではありません。</p>`;
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){

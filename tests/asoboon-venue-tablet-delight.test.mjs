@@ -55,7 +55,7 @@ function setup(reduced=false){
 
 test('loads exactly once after audio without changing the instruction page or translations',()=>{
   assert.match(html,/<script src="\.\/jounaisetumei-audio\.js\?v=[^"]+"><\/script>\s*<script src="\.\/jounaisetumei-delight\.js\?v=20261016-layer1-r98"><\/script>/);
-  assert.match(wrapper,/v5-audio-delight-layer1-20261016-r98/);
+  assert.match(wrapper,/src="\.\/jounaisetumei-core\.html\?tablet_release=[^"]+"/); // release identifier changes independently; core audio/delight order is asserted above
   assert.doesNotMatch(source,/innerHTML\s*=|replaceChildren|SpeechSynthesisUtterance|fetch\(|new Audio\(|location\.href/);
   for(const target of ['.eg-receipt','.eg-two-holders','.eg-holder','family','adult','adult-yes','leave'])assert.ok(source.includes(target),target);
   assert.ok(!source.includes('setInterval('));
