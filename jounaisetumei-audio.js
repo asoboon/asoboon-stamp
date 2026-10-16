@@ -199,16 +199,7 @@
     lastDestination=destination;lastCueAt=performance.now();
     if(muted)return;
     const audio=unlock();
-    // Prime iOS speech while we still have a real user gesture.
-    // Actual narration is queued only when the instruction screen has appeared.
-    try{
-      const synth=window.speechSynthesis;
-      if(synth && window.SpeechSynthesisUtterance){
-        const primer=new SpeechSynthesisUtterance(' ');
-        primer.lang=locales[locale()];primer.volume=0;
-        synth.cancel();synth.speak(primer);
-      }
-    }catch(error){}
+    // The guide is now rendered immediately in this same gesture; voice is started there.
     if(!audio)return;
     const now=audio.currentTime+.006;
     sample('tap',0,.62);
@@ -252,7 +243,9 @@
     if(muted||!prompts[destination])return;
     const lang=locale(),text=prompts[destination][lang];
     if(!text)return;
-    voiceTimer=window.setTimeout(()=>{
+    // Called synchronously from render() inside the user's tap.
+    // No timeout: Safari voice permission requires a real user gesture.
+    {
       if(muted||document.hidden)return;
       const synth=window.speechSynthesis;
       if(!synth||!window.SpeechSynthesisUtterance)return;
@@ -271,7 +264,7 @@
         synth.cancel();
         synth.speak(utter);
       }catch(error){failures++;voiceAvailable=false;}
-    },340);
+    }
   }
   function setMuted(next){
     muted=Boolean(next);
