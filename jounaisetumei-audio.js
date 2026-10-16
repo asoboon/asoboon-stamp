@@ -289,6 +289,7 @@
   function resetForNextVisitor(){stopScene();setMuted(false);}
   window.__ASOBOON_AUDIO__={
     start,announce,stop:stopScene,resetForNextVisitor,setMuted,
+    prompt:(destination,lang=locale())=>prompts[destination]?.[lang]||null,
     state:()=>({enabled:!muted,locale:locale(),cachedSounds:buffers.size,lastDestination,
       voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:620})
   };
