@@ -6241,14 +6241,14 @@
   function render(name='home'){
     if(name==='home'&&cin.classList.contains('active')){stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
     if(!screens[name])name='home';
-    current=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
+    current=name;root.dataset.guideScreen=name;root.hidden=false;syncGuideLayer();root.innerHTML=screens[name]();root.scrollTop=0;
     showMotionState();resetIdle();
     // Voice follows the exact moment that the next instruction page appears.
     window.__ASOBOON_AUDIO__?.announce(name);
   }
   function resetIdle(){
     if(idle) window.clearTimeout(idle);
-    idle=window.setTimeout(()=>{window.__ASOBOON_AUDIO__?.resetForNextVisitor();render('home');}, 30000);
+    idle=window.setTimeout(()=>{window.__ASOBOON_AUDIO__?.resetForNextVisitor();render('home');}, current==='home'?30000:60000);
   }
   root.addEventListener('click',(event)=>{
     const motionButton=event.target.closest('button[data-motion-toggle]');
@@ -6289,5 +6289,6 @@
 <script src="./jounaisetumei-final.js?v=20261016-instant-audio-r95"></script>
 <script src="./jounaisetumei-audio.js?v=20261016-boost-limited-r97"></script>
 <script src="./jounaisetumei-delight.js?v=20261016-layer1-r98"></script>
+<script src="./jounaisetumei-stepper.js?v=20261016-steps-r99"></script>
 </body>
 </html>
