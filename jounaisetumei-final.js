@@ -8,6 +8,24 @@
   const LANGS=[['ja','日本語'],['en','English'],['zh','简体中文'],['vi','Tiếng Việt'],['ko','한국어'],['ne','नेपाली'],['tl','Filipino'],['my','မြန်မာ']];
   // Each row: Japanese canonical text, followed by en, zh-Hans, vi, ko, ne, tl, my.
   const T=[
+    ["✨ 動き ON","✨ FX ON","✨ 动画开启","✨ Hiệu ứng BẬT","✨ 효과 켬","✨ प्रभाव चालु","✨ FX ON","✨ လှုပ်ရှားမှု ဖွင့်"],
+    ["動き OFF","FX OFF","动画关闭","Hiệu ứng TẮT","효과 끔","प्रभाव बन्द","FX OFF","လှုပ်ရှားမှု ပိတ်"],
+    ["この時間ごろに","Visitors who entered around","约在此时间","Khách vào khoảng giờ","이 시간에","लगभग यो समयमा","Mga pumasok bandang","ဤအချိန်ခန့် ဝင်လာသူများ"],
+    ["入場した方は退場です","this time should leave now","入场的游客请离场","này cần ra về","입장한 분은 퇴장하세요","भित्र पसेका व्यक्तिहरू निस्कनुहोस्","ay dapat nang lumabas","ထွက်ချိန်ရောက်ပါပြီ"],
+    ["中央の時刻が、いま退場する方の入場時刻です。","The large time shows when people due to leave entered.","中间的大数字是现在应该离场游客的入场时间。","Giờ lớn giữa màn hình là giờ vào của khách cần ra về.","중앙의 큰 시각은 현재 퇴장할 분의 입장 시각입니다.","बीचको ठूलो समय अहिले निस्कनुपर्ने व्यक्तिको प्रवेश समय हो।","Ang malaking oras sa gitna ay oras ng pagpasok ng dapat nang lumabas.","အလယ်ရှိအချိန်မှာ ယခုထွက်ရမည့်သူများ၏ ဝင်ချိန်ဖြစ်သည်။"],
+    ["2時間30分利用","2 hr 30 min visit","游玩2小时30分钟","Vé 2 giờ 30 phút","2시간 30분 이용","२ घण्टा ३० मिनेट","2 oras 30 minuto","၂ နာရီ ၃၀ မိနစ်"],
+    ["3時間利用","3 hr visit","游玩3小时","Vé 3 giờ","3시간 이용","३ घण्टा","3 oras","၃ နာရီ"],
+    ["この時刻ごろに入場した方は、いま退場です","Visitors who entered around this time should leave now.","此时段入场的游客现在应离场。","Khách vào khoảng giờ này cần ra về ngay.","이 시각에 입장한 분은 지금 퇴장할 시간입니다.","यस समयमा प्रवेश गरेका व्यक्तिहरू अहिले निस्कनुपर्छ।","Dapat nang lumabas ang pumasok sa oras na ito.","ဤအချိန်တွင် ဝင်သူများ ယခုထွက်ရပါမည်။"],
+    ["本日の営業開始前です","Not open yet today","今日尚未开园","Chưa mở cửa hôm nay","오늘 영업 시작 전입니다","आज अझै खुलेको छैन","Hindi pa bukas ngayon","ယနေ့ ဖွင့်ချိန်မရောက်သေးပါ"],
+    ["まだ退場時間を迎えた方はいません","No visitors are due to leave yet","目前尚无人需要离场","Chưa có khách nào đến giờ ra về","아직 퇴장 시간이 된 분이 없습니다","अहिलेसम्म कसैको निस्कने समय भएको छैन","Wala pang kailangang lumabas","ထွက်ရမည့်သူ မရှိသေးပါ"],
+    ["本日の営業は終了しました","Closed for today","今日营业已结束","Hôm nay đã đóng cửa","오늘 영업이 종료되었습니다","आजको सञ्चालन सकिएको छ","Sarado na para sa araw na ito","ယနေ့ ပိတ်ပါပြီ"],
+    ["ごろに入場した方が、いま退場の目安です","Visitors who entered around the displayed time should leave now.","显示的入场时刻对应当前离场时间。","Khách vào khoảng giờ hiển thị nên ra về bây giờ.","표시된 시각에 입장한 분이 퇴장할 때입니다.","देखाइएको समयमा प्रवेश गर्नेहरूको निस्कने समय हो।","Dapat nang umalis ang pumasok sa ipinakitang oras.","ပြထားသည့်အချိန်တွင် ဝင်သူများ ယခုထွက်ရမည်။"],
+    ["正確な入場時刻は、受付時の案内とレシートをご確認ください。","Check your receipt and reception details for the exact entry time.","准确入场时间请查看收据及前台说明。","Xem biên lai và hướng dẫn ở lễ tân để biết giờ vào chính xác.","정확한 입장 시각은 안내 및 영수증을 확인하세요.","सही प्रवेश समय रसिद र स्वागत कक्षको विवरणमा हेर्नुहोस्।","Tingnan ang resibo at tagubilin sa reception para sa eksaktong oras ng pagpasok.","ဝင်ချိန်အတိအကျကို ပြေစာနှင့် ဧည့်ကြိုဌာနအချက်အလက်၌ ကြည့်ပါ။"],
+    ["表示時刻ごろに入場した方が、現在の退場目安です。","The time shown is the entry time of visitors due to exit.","显示的时间是现在应离场游客的入场时间。","Giờ hiển thị là giờ vào của khách cần ra về.","표시된 시각은 지금 퇴장할 분의 입장 시각입니다.","देखाइएको समय अहिले निस्कनुपर्नेहरूको प्रवेश समय हो।","Ang oras sa screen ay oras ng pagpasok ng mga dapat nang lumabas.","ပြထားသည့်အချိန်မှာ ယခုထွက်ရမည့်သူများ၏ ဝင်ချိန်ဖြစ်သည်။"],
+    ["外に出る方はこちら","LEAVING THE VENUE?","要外出吗？","MUỐN RA NGOÀI?","외출하시나요?","बाहिर जानुहुन्छ?","LALABAS BA KAYO?","အပြင်ထွက်မည်လား။"],
+    ["入退場の方法を見る","See how to leave or return","查看出入园方法","Xem cách ra ngoài / quay lại","외출·재입장 방법 보기","बाहिर जाने र फर्कने तरिका","Tingnan ang paglabas at pagbalik","ထွက်ခြင်း/ပြန်ဝင်ခြင်း ကြည့်ရန်"],
+    ["一時退場・再入場・完全退場はこちら","Temporary exit / re-entry / final exit","临时外出／再次入场／正式离园","Ra ngoài tạm thời / quay lại / về hẳn","일시 외출·재입장·완전 퇴장","अस्थायी निकास / पुनःप्रवेश / अन्तिम निकास","Pansamantalang labas / balik / huling labas","ယာယီထွက် / ပြန်ဝင် / အပြီးထွက်"],
+    ["本日は時間制限なくご利用いただけます","Unlimited play time today (until closing)","今天不限游玩时长（营业时间内）","Hôm nay chơi không giới hạn giờ (đến khi đóng cửa)","오늘은 폐장 시까지 시간제한 없이 이용할 수 있습니다","आज बन्द हुने समयसम्म कुनै समयसीमा छैन","Walang limitasyon sa oras ngayon (hanggang magsara)","ယနေ့ ပိတ်ချိန်အထိ အချိန်ကန့်သတ်ချက် မရှိပါ"],
 ['外に出るときのご案内','Leaving & returning','外出与返回指南','Hướng dẫn ra ngoài','외출 및 재입장 안내','बाहिर जाने र फर्कने 안내','Gabay sa paglabas','အပြင်ထွက်ခြင်း လမ်းညွှန်'],
 ['このあと、どうされますか？','What would you like to do?','您接下来要做什么？','Bạn muốn làm gì tiếp theo?','이제 어떻게 하시겠습니까?','अब के गर्न चाहनुहुन्छ?','Ano ang gusto ninyong gawin?','နောက်တစ်ဆင့် ဘာလုပ်လိုပါသလဲ။'],
 ['みんなで','Everyone','全家一起','Cả gia đình','가족 모두','सबैजना','Lahat','အားလုံး'],
@@ -79,6 +97,16 @@
 ['正確な入場時刻はレシートをご確認ください。','Check your receipt for your exact entry time.','准确入场时间请查看收据。','Xem biên lai để biết giờ vào chính xác.','정확한 입장 시간은 영수증을 확인하세요.','ठ्याक्कै प्रवेश समय रसिदमा हेर्नुहोस्।','Tingnan ang resibo para sa eksaktong oras ng pagpasok.','ဝင်ချိန်အတိအကျကို ပြေစာတွင် ကြည့်ပါ။']
   ];
   const textMap=new Map(T.map(r=>[r[0],r]));
+  function trLive(text){
+    const value=tr(text);
+    if(value!==text||lang==='ja')return value;
+    const m=text.match(/^(?:営業開始は10:00です。)?最初の退場目安は(\\d{2}:\\d{2})です。$/);
+    if(m){const t=m[1];const prefix=text.startsWith('営業開始')?{en:'Opens at 10:00. ',zh:'10:00开园。',vi:'Mở cửa lúc 10:00. ',ko:'10:00 개장. ',ne:'१०:०० बजे खुल्छ। ',tl:'Bukas 10:00. ',my:'၁၀:၀၀ ဖွင့်သည်။ '}[lang]||'':'';const parts={en:'First expected exit: ',zh:'最早离场时间：',vi:'Giờ ra về đầu tiên: ',ko:'첫 퇴장 예상: ',ne:'पहिलो निस्कने समय: ',tl:'Unang exit: ',my:'ပထမထွက်ချိန်: '}[lang]||'';return prefix+parts+t;}
+    const close=text.match(/^この利用時間の日は(\\d{2}:\\d{2})閉館です。$/);
+    if(close){const t=close[1];return ({en:'Closing time: ',zh:'闭园时间：',vi:'Giờ đóng cửa: ',ko:'폐장 시간: ',ne:'बन्द हुने समय: ',tl:'Oras ng pagsara: ',my:'ပိတ်ချိန်: '}[lang]||'')+t;}
+    return value;
+  }
+  const timeView=document.getElementById('timeView');
   const baseText=new WeakMap();
   const baseAttr=new WeakMap();
   let lang='ja',idle=0,lastGuideMarkup='';
@@ -146,7 +174,7 @@
       if(!originals.has(node))originals.set(node,node.nodeValue);
       const base=originals.get(node),plain=base.trim();
       if(!plain)continue;
-      const tx=tr(plain);
+      const tx=trLive(plain);
       const rendered=base.replace(plain,tx);
       if(node.nodeValue!==rendered)node.nodeValue=rendered;
     }
@@ -200,14 +228,19 @@
     try{
       root.dataset.lang=lang;root.setAttribute('lang',lang);
       translateText(root);translatedChoiceTitles();translateAttrs();translateCinema();
+      if(timeView)translateText(timeView);
       const motion=root.querySelector('[data-motion-toggle]')?.dataset.motion;
       cin.classList.toggle('eg-force-motion',motion==='on');
-      bar.hidden=root.hidden;
+      const critical=document.querySelector('#asoboonSpecialOverlay.show');
+      bar.hidden=!!(critical&&critical.dataset.kind!=='unlimited')||cin.classList.contains('active');
+      const app=document.querySelector('main.app');
+      if(app)app.style.paddingTop=root.hidden&&!bar.hidden?'max(68px,env(safe-area-inset-top))':'';
       bar.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.locale===lang)));
     }finally{inRefresh=false;}
   }
   new MutationObserver(refresh).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   new MutationObserver(refresh).observe(cin,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
+  if(timeView)new MutationObserver(refresh).observe(timeView,{childList:true,subtree:true,characterData:true});
   function resetIdle(){
     clearTimeout(idle);
     idle=setTimeout(()=>{lang='ja';refresh();},29750);
