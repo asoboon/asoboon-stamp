@@ -11,6 +11,9 @@ test('小道具は選んだ案内で一度だけ動き、注意画面と戻る�
   await expect(root).not.toHaveAttribute('data-delight-route',/.+/);
   await root.locator('[data-guide="family"]').click();
   await expect(root).toHaveAttribute('data-delight-route','family');
+  // Receipt is now step 2: earlier instructions stay hidden until Next is tapped.
+  await expect(root.locator('.eg-receipt')).toBeHidden();
+  await root.locator('[data-stepper-action="next"]').click();
   await expect(root.locator('.eg-receipt')).toBeVisible();
   const receiptAnimation=await root.locator('.eg-receipt').evaluate(node=>({
     name:getComputedStyle(node).animationName,
