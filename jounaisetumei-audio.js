@@ -91,7 +91,7 @@
   css.id='eg-audio-styles';
   css.textContent=`
     #eg-audio-toggle{position:fixed;z-index:430;top:57px;left:15px;min-height:35px;border:1px solid #bed5e8;border-radius:99px;padding:7px 13px;background:#164a70;color:white;font-size:clamp(11px,1.35vw,14px);font-weight:900;box-shadow:0 4px 14px #041a334d;cursor:pointer;touch-action:manipulation}
-    #exitGuideV2:has(.eg-detail) ~ #eg-audio-toggle{left:auto;right:14px;top:57px}
+    #exitGuideV2 .eg-header #eg-audio-toggle{position:static;left:auto;right:auto;top:auto;z-index:auto;flex:0 0 auto;box-shadow:none;padding:6px 10px}
     #eg-audio-toggle:focus-visible{outline:3px solid #ffdc49;outline-offset:3px}
     #eg-audio-toggle[aria-pressed=false]{background:#42535e}
     #eg-cinema.active ~ #eg-audio-toggle{visibility:hidden}
@@ -277,6 +277,18 @@
     }
     updateButton();
   }
+  // The detail header has three explicit flex items: Back / sound / route.
+  // Do not float the audio control above any other hit target.
+  function placeAudioControl(){
+    const header=root.querySelector('.eg-detail .eg-header');
+    if(header){
+      if(button.parentElement!==header)header.insertBefore(button,header.querySelector('.eg-route'));
+    }else if(button.parentElement!==document.body){
+      document.body.appendChild(button);
+    }
+  }
+  new MutationObserver(placeAudioControl).observe(root,{childList:true,subtree:true});
+  placeAudioControl();
   button.addEventListener('click',()=>setMuted(!muted));
   const langObserver=new MutationObserver(updateButton);
   langObserver.observe(root,{attributes:true,attributeFilter:['data-lang']});
