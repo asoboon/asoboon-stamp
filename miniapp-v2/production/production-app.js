@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=aa9aa7ee0d24',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=28a8f916ccf6',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=e14196640d5b',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -761,7 +761,7 @@ return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button"
 ${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><span class="v38-crowd-go-arrow">${svg('arrow')}</span></div>
 </button>`;
 }).join('');
-box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
+box.innerHTML=`<h3>本日の混雑状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){

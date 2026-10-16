@@ -192,7 +192,7 @@ return `<button class="v38-crowd-card crowd-${m?.tone||'unknown'}" type="button"
 ${track}<div class="v38-crowd-go"><span>${svg('ticket')}${esc(goLabel)}</span><span class="v38-crowd-go-arrow">${svg('arrow')}</span></div>
 </button>`;
 }).join('');
-box.innerHTML=`<h3>本日の混雑状況</h3><p class="v38-crowd-note">希望の時間を確認して、カードをタップすると受付画面へ進みます。WEB・LINEそれぞれの受付残りを表示しています。</p><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
+box.innerHTML=`<h3>本日の混雑状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑目安はWEB枠を基準としており、館内の滞在人数ではありません。</p>`;
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){
