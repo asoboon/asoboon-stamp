@@ -23,6 +23,19 @@
     if(window.ASOBOON_PRODUCTION_SHELL)document.documentElement.classList.add('asoboon-production-shell');
   })();
   </script>
+  <!-- Once QR/NFC handoff has run, start downloading the two HOME assets immediately.
+       This avoids the extra waterfall hop through the tiny shell-loader. -->
+  <script>
+  if(window.ASOBOON_PRODUCTION_SHELL&&!window.ASOBOON_ASOQUEST_HANDOFF){
+    for(const [kind,src] of [
+      ['style','./miniapp-v2/production/production-app.css?v=07abe2829244'],
+      ['script','./miniapp-v2/production/production-app.js?v=11a337dc0290']
+    ]){
+      const link=document.createElement('link');
+      link.rel='preload';link.as=kind;link.href=src;document.head.appendChild(link);
+    }
+  }
+  </script>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
   <meta name="theme-color" content="#f4f0e7">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -40,7 +53,7 @@
   <script>
   if(window.ASOBOON_PRODUCTION_SHELL){
     const s=document.createElement('script');
-    s.src='./miniapp-v2/production/production-shell-loader.js?v=7fb96093b620';
+    s.src='./miniapp-v2/production/production-shell-loader.js?v=8421f324073e';
     s.async=false;
     document.head.appendChild(s);
   }
