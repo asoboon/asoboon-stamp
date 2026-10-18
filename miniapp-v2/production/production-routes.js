@@ -55,6 +55,16 @@ function jstClock(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
 function lineReceptionOpenNow(){const n=jstClock();return n.hour*60+n.minute>=lineOpenMinutes()}
 function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),seconds=Math.max(1,(lineOpenMinutes()-(n.hour*60+n.minute))*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
 function friendlyError(value){const code=String(value||'');const map={
+  LINE_PROFILE_INVALID:'LINEの本人情報を確認できませんでした。ミニアプリを完全に閉じ、公式LINEのメニューから開き直してください。受付番号が表示されていなければ、受付は完了していません。',
+  LINE_PROFILE_REAUTHORIZE:'LINEプロフィールの利用許可を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直し、許可画面が出たら同意してください。',
+  LINE_PROFILE_SCOPE_REQUIRED:'LINEプロフィールの利用許可が必要です。ミニアプリを公式LINEから開き直し、許可画面が出たら同意してください。',
+  LINE_PROFILE_TEMPORARILY_UNAVAILABLE:'LINEの本人確認サービスが一時的に混雑しています。時間をおいてミニアプリを開き直してください。',
+  LINE_PROFILE_FAILED:'LINEプロフィールを確認できません。ミニアプリを完全に閉じ、公式LINEから開き直してください。',
+  LINE_TOKEN_VERIFY_FAILED:'LINEログイン情報の有効期限を確認できません。公式LINEから開き直してください。',
+  LINE_TOKEN_EXPIRED:'LINEログインの有効期限が切れています。ミニアプリを完全に閉じて開き直してください。',
+  LINE_ACCESS_TOKEN_INVALID:'LINEログイン情報を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直してください。',
+  LINE_PROFILE_TIMEOUT:'LINEの本人確認に時間がかかっています。時間をおいてもう一度お試しください。',
+  LINE_CHANNEL_MISMATCH:'LINE連携設定を確認できません。受付スタッフへお声がけください。',
   WAIT_TYPE_NOT_AVAILABLE:'選択した受付枠は現在利用できません。最新の受付状況を確認してください。',
   WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
   WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',

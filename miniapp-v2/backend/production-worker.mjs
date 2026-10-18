@@ -2303,11 +2303,36 @@ async function verifyCancelLineUser(liffAccessToken){
   const vr=await fetchWithCancelTimeout(verifyUrl.toString(),{headers:{Accept:'application/json'}},8000);
   let vd=null;try{vd=await vr.json()}catch{}
   if(!vr.ok||String(vd?.client_id||'')!==LINE_CHANNEL_ID)throw apiError('LINE_ACCESS_TOKEN_INVALID',401);
-  const pr=await fetchWithCancelTimeout('https://api.line.me/v2/profile',{headers:{Authorization:'Bearer '+token,Accept:'application/json'}},8000);
-  let pd=null;try{pd=await pr.json()}catch{}
-  const userId=String(pd?.userId||'');
-  if(!pr.ok||!userId)throw apiError('LINE_PROFILE_INVALID',401);
-  return await lineUserHash(userId);
+  // The verified access token must explicitly include the profile scope.
+  // Distinguish missing consent from LINE's temporary profile API errors.
+  const scopes=new Set(String(vd?.scope||'').split(/\s+/).filter(Boolean));
+  if(!scopes.has('profile'))throw apiError('LINE_PROFILE_SCOPE_REQUIRED',403);
+  if(Number(vd?.expires_in||0)<=0)throw apiError('LINE_ACCESS_TOKEN_INVALID',401);
+  let pr=null,pd=null;
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      pr=await fetchWithCancelTimeout('https://api.line.me/v2/profile',{
+        headers:{Authorization:'Bearer '+token,Accept:'application/json'}
+      },8000);
+      try{pd=await pr.json()}catch{pd=null}
+      if(pr.ok&&String(pd?.userId||''))return await lineUserHash(String(pd.userId));
+      // Retry only transient upstream failures, never authorization failures.
+      if(attempt===0&&(pr.status===429||pr.status>=500)){
+        await new Promise(resolve=>setTimeout(resolve,250));
+        continue;
+      }
+      break;
+    }catch(e){
+      if(attempt===0){
+        await new Promise(resolve=>setTimeout(resolve,250));
+        continue;
+      }
+      throw apiError('LINE_PROFILE_TEMPORARILY_UNAVAILABLE',503);
+    }
+  }
+  if(pr?.status===401||pr?.status===403)throw apiError('LINE_PROFILE_REAUTHORIZE',401);
+  if(pr?.status===429||Number(pr?.status)>=500||pr?.ok)throw apiError('LINE_PROFILE_TEMPORARILY_UNAVAILABLE',503);
+  throw apiError('LINE_PROFILE_INVALID',401);
 }
 async function loadCancelShortUrl(env,session){
   const row=await env.DB.prepare("SELECT c.request_id,rr.result_json FROM v2_user_day_claims c JOIN v2_request_results rr ON rr.request_id=c.request_id WHERE c.user_hash=? AND c.business_date=? AND c.reserve_id=? AND c.receipt_no=? AND c.state='CONFIRMED' LIMIT 1")
