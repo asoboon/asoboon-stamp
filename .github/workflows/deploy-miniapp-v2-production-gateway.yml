@@ -8,6 +8,11 @@ on:
         type: choice
         options: [dark, live]
         default: dark
+      public_read_prewarm:
+        description: Warm crowd/calendar reads before visitors arrive (opt-in)
+        type: choice
+        options: [off, on]
+        default: off
 
 permissions:
   contents: read
@@ -26,6 +31,7 @@ jobs:
       DB_NAME: asoboon-miniapp-v2-production-db
       WORKER_URL: https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev
       PRODUCTION_CREATE_ENABLED: ${{ github.event.inputs.mode == 'live' && '1' || '0' }}
+      PUBLIC_READ_PREWARM_ENABLED: ${{ github.event.inputs.public_read_prewarm == 'on' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -151,6 +157,7 @@ jobs:
             "triggers": { "crons": ["* * * * *"] },
             "vars": {
               "CREATE_ENABLED": "$PRODUCTION_CREATE_ENABLED",
+              "PUBLIC_READ_PREWARM_ENABLED": "$PUBLIC_READ_PREWARM_ENABLED",
               "SERVICE_MESSAGE_TEMPLATE_NAME": "yourturn_s_w_ja",
               "SERVICE_MESSAGE_TEMPLATE_PARAMS_JSON": "{\"turn\":\"{{receiptNo}}\",\"btn1_url\":\"{{callstatusUrl}}\",\"btn2_url\":\"https://miniapp.line.me/2009884613-ELc6kolf?view=entry\"}",
               "SERVICE_MESSAGE_CONFIRM_TEMPLATE_NAME": "waiting_req_d_w_ja",
@@ -169,7 +176,7 @@ jobs:
             ]
           }
           EOF
-          node -e 'const x=JSON.parse(require("fs").readFileSync("./wrangler-v2-production.tmp.jsonc","utf8"));if(x.vars.CREATE_ENABLED!==process.env.PRODUCTION_CREATE_ENABLED)process.exit(1)'
+          node -e 'const x=JSON.parse(require("fs").readFileSync("./wrangler-v2-production.tmp.jsonc","utf8"));if(x.vars.CREATE_ENABLED!==process.env.PRODUCTION_CREATE_ENABLED || x.vars.PUBLIC_READ_PREWARM_ENABLED!==process.env.PUBLIC_READ_PREWARM_ENABLED || !["0","1"].includes(x.vars.PUBLIC_READ_PREWARM_ENABLED))process.exit(1)'
 
       - name: Deploy Production gateway
         id: deploy
@@ -198,6 +205,7 @@ jobs:
                   x.officialProductionEnabled!==true ||
                   x.productionCreateArmed!==true ||
                   x.createEnabled!==(process.env.PRODUCTION_CREATE_ENABLED==="1") ||
+                  x.publicReadPrewarmEnabled!==(process.env.PUBLIC_READ_PREWARM_ENABLED==="1") ||
                   x.dbConfigured!==true ||
                   x.airwaitKeyConfigured!==true ||
                   x.createRequiresVerifiedLiff!==true ||
@@ -224,7 +232,7 @@ jobs:
               });
             '; then
               echo "$RESPONSE"
-              echo "Production Worker verified; CREATE_ENABLED=$PRODUCTION_CREATE_ENABLED."
+              echo "Production Worker verified; CREATE_ENABLED=$PRODUCTION_CREATE_ENABLED; PUBLIC_READ_PREWARM_ENABLED=$PUBLIC_READ_PREWARM_ENABLED."
               exit 0
             fi
             sleep 3

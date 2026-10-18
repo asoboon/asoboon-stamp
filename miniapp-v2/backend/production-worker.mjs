@@ -237,6 +237,8 @@ export default {
         'serviceMessageStatus','cancelReservation',
       ]));
       body.crowdSnapshotFallbackEnabled = true;
+      body.publicReadPrewarmEnabled = String(env?.PUBLIC_READ_PREWARM_ENABLED||'0')==='1';
+      body.publicReadPrewarmIntervalSeconds = 60;
       body.lineReceptionStoreOnly = true;
       body.callstatusCombinedWebLine = true;
       body.callstatusCombinedQueueSoftDeadlineMs = 1800;
@@ -397,6 +399,11 @@ export default {
     ctx.waitUntil(runServiceMessageWorker(env).catch(e => console.error('service-message-worker', safeError(e))));
     ctx.waitUntil(runConcurrencyIntegrityAudit(env).catch(e => console.error('concurrency-integrity-audit', safeError(e))));
     ctx.waitUntil(refreshSurpriseVotePublicStatus(env, ctx).catch(e => console.warn('surprise-vote-public-warm', safeError(e))));
+    // Opt-in: prefetch PUBLIC read-only data before guests open the miniapp.
+    // Does not perform reservations, LINE authentication, or outbound messages.
+    if (String(env?.PUBLIC_READ_PREWARM_ENABLED||'0')==='1') {
+      ctx.waitUntil(prewarmPublicReadCaches(env, ctx).catch(e => console.warn('public-cache-prewarm',safeError(e))));
+    }
   },
 };
 
@@ -937,6 +944,43 @@ async function getCreateDiagnostics(env) {
   };
 }
 
+// Scheduled snapshot warming is deliberately isolated from all check-in writes.
+// The cron already runs every minute for notifications. Keep warming OFF by
+// default and activate only after a successful isolated / browser load test.
+async function prewarmPublicReadCaches(env, ctx) {
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23',
+  }).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const minute=Number(parts.hour)*60+Number(parts.minute);
+  const inOpeningWindow=minute>=9*60+15&&minute<=18*60+5;
+  const calendarBoundary=minute===19*60;
+  // Always prewarm calendar at the beginning of operating hours and
+  // on quarter hours. The D1 cache also prevents excessive upstream calls.
+  if(inOpeningWindow||calendarBoundary){
+    const operationalDate=currentOperationalDate();
+    const calendar=await getBusinessDayProxy(operationalDate,env).catch(e=>{
+      console.warn('public-calendar-prewarm',safeError(e));
+      return null;
+    });
+    if(!calendar||calendar.ok!==true||calendar.stale===true||
+      calendar.businessType==='休館'||!inOpeningWindow)return;
+    const close=calendar.businessType==='土日祝日'?18*60:17*60;
+    if(minute>close+5)return;
+    const request=new Request(
+      'https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/?action=crowdRemaining',
+      {headers:{Origin:ALLOWED_ORIGIN}}
+    );
+    const edgeKey=new Request('https://asoboon.internal/readonly/crowd-remaining-v3');
+    try {
+      // The cron is an internal trusted read, not a visitor/IP. It should
+      // neither use nor consume the shared guest rate limiter.
+      await readCrowdRemainingUncached(request,env,ctx,edgeKey,{skipGuestRateLimit:true});
+    }catch(e){
+      console.warn('public-crowd-prewarm',safeError(e));
+    }
+  }
+}
+
 const CROWD_SNAPSHOT_KEY='crowd_remaining_snapshot_v1';
 const CROWD_SNAPSHOT_MAX_AGE_MS=30*60*1000;
 
@@ -961,12 +1005,14 @@ async function writeCrowdSnapshot(env,value){
 // each triggering an AirWAIT round-trip or consuming the shared-IP limiter.
 const CROWD_EDGE_TTL_MS=20000;
 const CROWD_SNAPSHOT_FAST_MS=65000;
+const CROWD_PREWARM_FAST_MS=85000; // one cron minute + up to 25s of scheduling jitter
+const CROWD_PREWARM_REFRESH_AT_MS=80000; // do not refresh from guests during the normal cron cycle
 let crowdEdgeInFlight=null;
-function crowdSnapshotAge(snapshot){
+function crowdSnapshotAge(snapshot,limit=CROWD_SNAPSHOT_FAST_MS){
  const savedAge=Date.now()-Number(snapshot?.savedAt||0);
  const fetchedAge=Date.now()-Date.parse(snapshot?.value?.fetchedAt||'');
- return savedAge>=0&&savedAge<=CROWD_SNAPSHOT_FAST_MS
-   &&Number.isFinite(fetchedAge)&&fetchedAge>=0&&fetchedAge<=CROWD_SNAPSHOT_FAST_MS
+ return savedAge>=0&&savedAge<=limit
+   &&Number.isFinite(fetchedAge)&&fetchedAge>=0&&fetchedAge<=limit
    &&snapshot?.value?.ok===true&&snapshot?.value?.stale!==true
    ?Math.max(savedAge,fetchedAge):Infinity;
 }
@@ -993,9 +1039,15 @@ async function getCrowdRemaining(request,env,ctx){
   // Serve only a recently verified AirWAIT snapshot and preserve its
   // original fetchedAt. Refresh asynchronously without blocking the guest.
   const snapshot=await readCrowdSnapshot(env);
+  const prewarming=String(env?.PUBLIC_READ_PREWARM_ENABLED||'0')==='1';
+  const fastLimit=prewarming?CROWD_PREWARM_FAST_MS:CROWD_SNAPSHOT_FAST_MS;
   const manualRefresh=new URL(request.url).searchParams.get('refresh')==='manual';
-  if(!manualRefresh&&crowdSnapshotAge(snapshot)!==Infinity){
-    kickOffCrowdRefresh(request,env,ctx,cacheKey);
+  if(!manualRefresh&&crowdSnapshotAge(snapshot,fastLimit)!==Infinity){
+    // Cron refreshes each minute; suppress guest-triggered bursts for the
+    // entire cycle plus jitter, even after the short edge TTL expires.
+    // A missed cron can still trigger a background refresh, with fallback.
+    if(!prewarming||crowdSnapshotAge(snapshot,fastLimit)>CROWD_PREWARM_REFRESH_AT_MS)
+      kickOffCrowdRefresh(request,env,ctx,cacheKey);
     return {...snapshot.value,ok:true,stale:false,cacheSource:'d1-verified-fast'};
   }
   // Same isolate can receive hundreds of simultaneous cache misses.
@@ -1005,10 +1057,10 @@ async function getCrowdRemaining(request,env,ctx){
   crowdEdgeInFlight=work;
   try{return await work}finally{if(crowdEdgeInFlight===work)crowdEdgeInFlight=null}
 }
-async function readCrowdRemainingUncached(request,env,ctx,cacheKey){
-  // Rate-limit only genuine shared-cache misses, not every guest reading the
-  // same public 20-second snapshot from a facility's shared public IP.
-  await enforceRequestIpRateLimit(env,request,'crowdRemaining');
+async function readCrowdRemainingUncached(request,env,ctx,cacheKey,{skipGuestRateLimit=false}={}){
+  // Rate-limit only genuine guest cache misses. Internal cron warming must
+  // never spend guest IP quota or be throttled as a shared public visitor.
+  if(!skipGuestRateLimit)await enforceRequestIpRateLimit(env,request,'crowdRemaining');
   const cached=await readCrowdSnapshot(env);
   try{
     const fresh=await fetchCrowdRemainingFresh(request,env,ctx);
