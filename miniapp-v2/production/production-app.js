@@ -488,6 +488,16 @@ function render(){
 }
 function canonicalizeAfterLiff(){try{readRoute();const p=q(),extra={};if(p.get('panel'))extra.panel=p.get('panel');if(p.get('dev'))extra.dev=p.get('dev');const canonical=routeUrl(state.view,extra);if(location.href!==canonical)history.replaceState({asoboonV2:true},'',canonical)}catch{state.bootError='PRODUCTION_ENDPOINT_INVALID'}}
 async function initLiff(){
+  // The Production HOME paints and stays navigable while LINE's SDK downloads.
+  // Only LIFF identity-dependent actions must wait for this authentication.
+  if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
+    try{
+      await Promise.race([
+        window.ASOBOON_LIFF_SDK_READY,
+        new Promise((_,reject)=>setTimeout(()=>reject(Error('LIFF_SDK_TIMEOUT')),6000))
+      ]);
+    }catch{}
+  }
   if(!E.liffId||!window.liff){state.booting=false;state.bootError='LIFF_SDK_NOT_READY';readRoute();window.dispatchEvent(new CustomEvent('asoboon:v2-liff-ready',{detail:lineState()}));render();return}
   try{
     state.inClient=Boolean(liff.isInClient());
@@ -498,9 +508,9 @@ async function initLiff(){
     state.liffReady=true;
     state.inClient=Boolean(liff.isInClient());
     canonicalizeAfterLiff();
-    if(liff.isLoggedIn()){
-      try{const p=await liff.getProfile();state.displayName=String(p?.displayName||'')}catch{}
-    }
+    // Display name is not needed on the public HOME. Avoid a second LINE
+    // network roundtrip at startup. Reception still validates server-side.
+
   }catch(e){
     state.bootError=String(e?.message||e||'LIFF_INIT_FAILED').slice(0,120);
     readRoute();
@@ -786,7 +796,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();await fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
