@@ -15,6 +15,7 @@ test('Official ROOT preloads main assets only after QR handoff has had priority'
 test('Official ROOT initializes LIFF after async SDK load without startup profile API',()=>{
  const source=read('miniapp-v2/production/app-stable-v36.js');
  assert.match(source,/window\.ASOBOON_LIFF_SDK_READY/);
+ assert.match(source,/if\(loaded&&window\.liff\)\{void initLiff\(\);return\}/);
  assert.doesNotMatch(source,/await liff\.getProfile\(\)/);
  assert.match(source,/liff\.init\(\{liffId:E\.liffId\}\)/);
  assert.match(source,/window\.dispatchEvent\(new CustomEvent\('asoboon:v2-liff-ready'/);

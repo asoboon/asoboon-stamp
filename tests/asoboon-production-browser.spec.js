@@ -1945,3 +1945,35 @@ test('Official ROOT shows business-day data before slow crowd API completes',asy
     await expect(page.locator('#v38Today')).toContainText('2時間30分',{timeout:5000});
   }finally{releaseCrowd();}
 });
+
+test('Official ROOT recovers LINE identity when the SDK arrives after the six-second watchdog',async({page})=>{
+  await installProduction(page);
+  await page.addInitScript(()=>{
+    window.__lateLiffEvents=[];
+    window.addEventListener('asoboon:v2-liff-ready',event=>{
+      window.__lateLiffEvents.push(event.detail);
+    });
+  });
+  let releaseSdk;
+  const hold=new Promise(resolve=>{releaseSdk=resolve});
+  await page.route('https://static.line-scdn.net/liff/edge/2/sdk.js',async route=>{
+    await hold;
+    await route.fulfill({
+      status:200,contentType:'application/javascript',
+      body:"window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>null,getProfile:async()=>{throw Error('Should not be required') }};"
+    });
+  });
+  try{
+    await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
+    await expect(page.locator('.v38-home')).toBeVisible({timeout:8000});
+    await page.waitForTimeout(6250);
+    await expect(page.locator('.v38-home')).toBeVisible();
+    expect(await page.evaluate(()=>window.__lateLiffEvents?.some(x=>x.liffReady===true))).toBe(false);
+  }finally{releaseSdk();}
+  await expect.poll(()=>page.evaluate(()=>window.__lateLiffEvents?.some(x=>x.liffReady===true)),{timeout:8000}).toBe(true);
+  await expect(page.locator('.v38-home')).toBeVisible();
+  // Local test origin deliberately differs from the certified production
+  // endpoint, so canonicalization can report PRODUCTION_ENDPOINT_INVALID.
+  // What matters here is that the late SDK no longer strands LIFF identity.
+  expect(await page.evaluate(()=>window.__lateLiffEvents.at(-1).bootError)).not.toMatch(/LIFF_SDK_SLOW|LIFF_SDK_NOT_READY/);
+});

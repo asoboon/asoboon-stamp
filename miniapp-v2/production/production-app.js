@@ -491,12 +491,25 @@ async function initLiff(){
   // The Production HOME paints and stays navigable while LINE's SDK downloads.
   // Only LIFF identity-dependent actions must wait for this authentication.
   if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
-    try{
-      await Promise.race([
-        window.ASOBOON_LIFF_SDK_READY,
-        new Promise((_,reject)=>setTimeout(()=>reject(Error('LIFF_SDK_TIMEOUT')),6000))
-      ]);
-    }catch{}
+    const sdkReady=window.ASOBOON_LIFF_SDK_READY;
+    let watchdog=0;
+    const result=await Promise.race([
+      sdkReady,
+      new Promise(resolve=>{watchdog=setTimeout(()=>resolve('pending'),6000)})
+    ]);
+    clearTimeout(watchdog);
+    if(result==='pending'&&!window.liff){
+      // Do not strand guests if the SDK arrives after the initial watchdog.
+      // HOME remains accessible while identity-dependent features wait.
+      state.booting=false;
+      state.bootError='LIFF_SDK_SLOW';
+      render();
+      void sdkReady.then(loaded=>{
+        if(loaded&&window.liff){void initLiff();return}
+        state.bootError='LIFF_SDK_NOT_READY';render();
+      });
+      return;
+    }
   }
   if(!E.liffId||!window.liff){state.booting=false;state.bootError='LIFF_SDK_NOT_READY';readRoute();window.dispatchEvent(new CustomEvent('asoboon:v2-liff-ready',{detail:lineState()}));render();return}
   try{
@@ -506,6 +519,7 @@ async function initLiff(){
       new Promise((_,reject)=>setTimeout(()=>reject(Error('LIFF_INIT_TIMEOUT')),6000))
     ]);
     state.liffReady=true;
+    state.bootError='';
     state.inClient=Boolean(liff.isInClient());
     canonicalizeAfterLiff();
     // Display name is not needed on the public HOME. Avoid a second LINE
