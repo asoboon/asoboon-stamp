@@ -1005,12 +1005,14 @@ async function writeCrowdSnapshot(env,value){
 // each triggering an AirWAIT round-trip or consuming the shared-IP limiter.
 const CROWD_EDGE_TTL_MS=20000;
 const CROWD_SNAPSHOT_FAST_MS=65000;
+const CROWD_PREWARM_FAST_MS=85000; // one cron minute + up to 25s of scheduling jitter
+const CROWD_PREWARM_REFRESH_AT_MS=80000; // do not refresh from guests during the normal cron cycle
 let crowdEdgeInFlight=null;
-function crowdSnapshotAge(snapshot){
+function crowdSnapshotAge(snapshot,limit=CROWD_SNAPSHOT_FAST_MS){
  const savedAge=Date.now()-Number(snapshot?.savedAt||0);
  const fetchedAge=Date.now()-Date.parse(snapshot?.value?.fetchedAt||'');
- return savedAge>=0&&savedAge<=CROWD_SNAPSHOT_FAST_MS
-   &&Number.isFinite(fetchedAge)&&fetchedAge>=0&&fetchedAge<=CROWD_SNAPSHOT_FAST_MS
+ return savedAge>=0&&savedAge<=limit
+   &&Number.isFinite(fetchedAge)&&fetchedAge>=0&&fetchedAge<=limit
    &&snapshot?.value?.ok===true&&snapshot?.value?.stale!==true
    ?Math.max(savedAge,fetchedAge):Infinity;
 }
@@ -1037,11 +1039,14 @@ async function getCrowdRemaining(request,env,ctx){
   // Serve only a recently verified AirWAIT snapshot and preserve its
   // original fetchedAt. Refresh asynchronously without blocking the guest.
   const snapshot=await readCrowdSnapshot(env);
+  const prewarming=String(env?.PUBLIC_READ_PREWARM_ENABLED||'0')==='1';
+  const fastLimit=prewarming?CROWD_PREWARM_FAST_MS:CROWD_SNAPSHOT_FAST_MS;
   const manualRefresh=new URL(request.url).searchParams.get('refresh')==='manual';
-  if(!manualRefresh&&crowdSnapshotAge(snapshot)!==Infinity){
-    // A freshly prewarmed D1 record needs no per-guest AirWAIT refresh.
-    // Background refresh remains a fallback when cron misses a cycle.
-    if(String(env?.PUBLIC_READ_PREWARM_ENABLED||'0')!=='1'||crowdSnapshotAge(snapshot)>45000)
+  if(!manualRefresh&&crowdSnapshotAge(snapshot,fastLimit)!==Infinity){
+    // Cron refreshes each minute; suppress guest-triggered bursts for the
+    // entire cycle plus jitter, even after the short edge TTL expires.
+    // A missed cron can still trigger a background refresh, with fallback.
+    if(!prewarming||crowdSnapshotAge(snapshot,fastLimit)>CROWD_PREWARM_REFRESH_AT_MS)
       kickOffCrowdRefresh(request,env,ctx,cacheKey);
     return {...snapshot.value,ok:true,stale:false,cacheSource:'d1-verified-fast'};
   }

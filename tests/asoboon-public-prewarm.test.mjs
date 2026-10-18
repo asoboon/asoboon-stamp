@@ -53,6 +53,14 @@ test('A single cron fetch populates D1, then 100 guests read without another Air
   assert.ok(results.every(x=>x.status===200&&x.data?.ok===true&&!x.data?.stale));
   assert.equal(crowdCalls(),1,'100 readers must not independently hit AirWAIT');
   assert.ok(results.every(x=>x.data?.cacheSource==='d1-verified-fast'),'readers received the snapshot');
+  // A 60s cron has a normal 15-25s scheduling window beyond the old 45s
+  // suppress cutoff; guests must still avoid extra origin reads at +70s.
+  mock.timers.tick(70000);
+  const nextGuests=await Promise.all(Array.from({length:100},()=>call(worker,env,{
+    method:'GET',query:{action:'crowdRemaining'}
+  })));
+  assert.ok(nextGuests.every(x=>x.status===200&&x.data?.ok===true));
+  assert.equal(crowdCalls(),1,'guests cannot create a 45-65s refresh burst between cron ticks');
 });
 
 test('Scheduled prefetch skips venue crowd data when business calendar says closed',async()=>{
