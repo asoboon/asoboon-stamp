@@ -11,8 +11,8 @@ on:
       public_read_prewarm:
         description: Warm crowd/calendar reads before visitors arrive (opt-in)
         type: choice
-        options: [off, on]
-        default: off
+        options: ["off", "on"]
+        default: "off"
 
 permissions:
   contents: read
