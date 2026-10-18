@@ -322,12 +322,27 @@ async function verifyLineUser(accessToken) {
   const scopes = new Set(String(v.scope || '').split(/\s+/).filter(Boolean));
   if (!scopes.has('profile')) throw apiError('LINE_PROFILE_SCOPE_REQUIRED', 403);
 
-  const pr = await fetchWithHardTimeout(CFG.LINE_PROFILE, {
-    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-  }, 8000, 'LINE_PROFILE_TIMEOUT');
-  const profile = await safeJson(pr, 'LINE_PROFILE');
-  if (!pr.ok || !profile?.userId) throw apiError('LINE_PROFILE_FAILED', 401);
-  return { userId: String(profile.userId), clientId: String(v.client_id), expiresIn: Number(v.expires_in) };
+  // The outer Worker checks ownership first, then this Gateway independently
+  // verifies it again. Both checks must tolerate a single transient LINE failure.
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      const pr=await fetchWithHardTimeout(CFG.LINE_PROFILE,{
+        headers:{ Authorization: `Bearer ${token}`, Accept:'application/json' },
+      },8000,'LINE_PROFILE_TIMEOUT');
+      if(pr.status===401||pr.status===403)throw apiError('LINE_PROFILE_REAUTHORIZE',401);
+      if(pr.status===429||pr.status>=500)throw apiError('LINE_PROFILE_TEMPORARILY_UNAVAILABLE',503);
+      if(!pr.ok)throw apiError('LINE_PROFILE_FAILED',401);
+      const profile=await safeJson(pr,'LINE_PROFILE');
+      if(!profile?.userId)throw apiError('LINE_PROFILE_FAILED',401);
+      return {userId:String(profile.userId),clientId:String(v.client_id),expiresIn:Number(v.expires_in)};
+    }catch(e){
+      const temporary=['LINE_PROFILE_TEMPORARILY_UNAVAILABLE','LINE_PROFILE_TIMEOUT','LINE_PROFILE_INVALID_JSON'].includes(String(e?.message||''));
+      if(!temporary)throw e;
+      if(attempt===0){await new Promise(resolve=>setTimeout(resolve,250));continue;}
+      throw apiError('LINE_PROFILE_TEMPORARILY_UNAVAILABLE',503);
+    }
+  }
+  throw apiError('LINE_PROFILE_TEMPORARILY_UNAVAILABLE',503);
 }
 
 async function userHash(userId) {
