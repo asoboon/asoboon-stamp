@@ -428,6 +428,11 @@ test('NFC/QR stamp -> rally HOME -> official MINI App HOME -> rally preserves ac
   await expect(page).toHaveURL(site+'home.html');
   await expect(page.locator('.v38-home')).toBeVisible();
 
+  // Production HOME may re-render before tap. Keep the test on localhost even
+  // if a status refresh replaces the manually rewritten anchor.
+  await page.route('https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/**',
+    route=>route.fulfill({status:302,headers:{location:rally}}));
+
   // Production uses the same origin; rewrite its absolute GitHub Pages URL
   // to this localhost fixture so localStorage can be checked across both screens.
   const card=page.locator('.v38-play-card').filter({hasText:'スタンプラリー'});
@@ -878,7 +883,7 @@ test('Slow app startup shows only the small neutral boot indicator, never old HO
 });
 
 
-test('HOME updates 12:30 WEB and LINE quotas while left open without extra business-day calls',async({page})=>{
+test('HOME 12:30 quotas refresh only on tap without extra business-day calls',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
   const nativeSetTimeout=window.setTimeout.bind(window);
@@ -905,14 +910,14 @@ test('HOME updates 12:30 WEB and LINE quotas while left open without extra busin
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/\d+名/);
- await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
- await expect.poll(()=>calls,{timeout:5000}).toBeGreaterThanOrEqual(2);
- await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('71名');
- await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('44名');
+ await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
+ expect(calls).toBe(1);
  await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
  const before=calls;
  await page.locator('#v38CrowdUpdate').click();
  await expect.poll(()=>calls).toBeGreaterThan(before);
+ await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('71名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('44名');
  await card.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  const after=calls;await page.waitForTimeout(500);expect(calls).toBe(after);
@@ -1812,7 +1817,7 @@ test('HOME restores recently verified 12:30 capacity instantly without a second 
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('14名');
- await expect(page.locator('#v38CrowdAge')).toContainText('自動更新中');
+ await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
  expect(crowdReads).toBe(0);
 });
 test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
