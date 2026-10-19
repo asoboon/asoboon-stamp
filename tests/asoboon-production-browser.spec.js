@@ -2031,3 +2031,15 @@ test('Older LIFF SDK can open native profile consent through getProfile when per
   await expect(page.locator('#recProfileConsent')).toBeHidden();
   await expect(page.locator('#recSubmit')).toBeVisible();
 });
+
+test('Reception blocks submission when the LINE permission query itself fails',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',permission:{query:async()=>{throw Error('LINE temporary failure')},requestAll:async()=>{}}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#recProfileConsent')).toBeVisible();
+  await expect(page.locator('#recProfileConsentText')).toContainText('確認できません');
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+});

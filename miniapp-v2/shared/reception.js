@@ -437,7 +437,7 @@ function renderForm(){
   document.querySelectorAll('[data-rec-k]').forEach(b=>{if(S.busy||S.locked){b.disabled=true;return}const k=b.dataset.recK,d=+b.dataset.recD;if(d<0)b.disabled=k==='adult'?S.adult<=1||kids()>(S.adult-1)*kidsPerAdult():S[k]<=0;else b.disabled=total()>=maxTotal()||(k!=='adult'&&kids()>=S.adult*kidsPerAdult())});
   if($('recAgree'))$('recAgree').disabled=S.busy||S.locked;
   document.querySelectorAll('[data-rec-slot]').forEach(b=>{b.disabled=S.busy||S.locked});
-  const testSelected=isDevelopTestSlot(S.slot),openNow=lineReceptionOpenNow()||testSelected;const permissionOK=!['checking','prompt','requesting','unavailable'].includes(S.profilePermission);const ready=openNow&&peopleOK&&S.slot&&S.day&&S.agree&&locationOk()&&(!S.day.isClosed||testSelected)&&!S.busy&&!S.locked&&S.canCreate&&permissionOK;
+  const testSelected=isDevelopTestSlot(S.slot),openNow=lineReceptionOpenNow()||testSelected;const permissionOK=!['checking','prompt','requesting','unavailable','failed'].includes(S.profilePermission);const ready=openNow&&peopleOK&&S.slot&&S.day&&S.agree&&locationOk()&&(!S.day.isClosed||testSelected)&&!S.busy&&!S.locked&&S.canCreate&&permissionOK;
   const submit=$('recSubmit');submit.disabled=!ready;submit.textContent=S.busy?'受付中…':!openNow?`受付は${lineOpenDisplay()}から`:S.canCreate&&S.day?'受付を確定する':'受付確定（確認待ち）';
 }
 
@@ -515,7 +515,7 @@ async function submit(){
     if(!today||today!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度受付画面を開いてください。');
     if(S.day.isClosed)throw Error('本日は休館日です。');
     if(!LINE_STORE_ONLY&&S.mode==='onsite'&&!locationOk())throw Error('現在地の確認が必要です。');
-    if(S.profilePermission==='prompt'||S.profilePermission==='requesting'||S.profilePermission==='unavailable')throw Error('LINEプロフィールの利用許可が必要です。承認画面で許可してください。');
+    if(['checking','prompt','requesting','unavailable','failed'].includes(S.profilePermission))throw Error('LINEプロフィールの利用許可が必要です。承認画面で許可してください。');
      const token=String(liff.getAccessToken()||'');
     if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
     const loc=LINE_STORE_ONLY?{}:(S.location||{});
