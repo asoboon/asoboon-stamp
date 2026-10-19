@@ -57,3 +57,9 @@
 #recProfileConsent p{margin:8px 0 14px;line-height:1.65}
 #recProfileConsentButton{display:block;width:100%;padding:15px 12px;border:0;border-radius:12px;background:#06c755;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
 #recProfileConsentButton:disabled{opacity:.6}
+
+/* Emergency WEB reception option is visible only on relevant errors. */
+.rec-web-fallback[hidden]{display:none!important}
+.rec-web-fallback{margin:10px 0 16px;padding:14px;border:1px solid #ead6b2;background:#fff8ea;border-radius:12px;color:#493a20}
+.rec-web-fallback p{margin:7px 0 12px;font-size:13px;line-height:1.5}
+.rec-web-fallback a{display:block;padding:12px;border-radius:9px;background:#fff;color:#734300;border:1px solid #d8b678;font-weight:700;text-align:center;text-decoration:none}

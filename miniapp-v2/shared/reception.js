@@ -86,6 +86,11 @@ function friendlyError(value){const code=String(value||'');const map={
 
 function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>LINE受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">LINE受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / LINE受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と受付環境を確認しています…</div>
+<div id="recWebFallback" class="rec-web-fallback" hidden>
+<strong>LINE受付が進まないとき</strong>
+<p>従来のWEB受付から取得できる枠もあります。受付可能な回と残数は移動先でご確認ください。</p>
+<a href="https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918" target="_blank" rel="noopener noreferrer" data-external="1">AirWAITのWEB受付を開く ↗</a>
+</div>
  <div id="recProfileConsent" class="rec-status warn" hidden>
  <strong id="recProfileConsentTitle">LINEの利用許可が必要です</strong>
  <p id="recProfileConsentText">受付するにはプロフィールの利用許可が必要です。</p>
@@ -123,7 +128,12 @@ ${locationBlock}
 <div id="recResult" hidden></div>
 </div></div></section>`}
 
-function status(text,kind=''){const el=$('recStatus');if(!el)return;el.className='rec-status'+(kind?' '+kind:'');el.textContent=text}
+function status(text,kind=''){
+ const el=$('recStatus');if(!el)return;
+ el.className='rec-status'+(kind?' '+kind:'');el.textContent=text;
+ const fallback=$('recWebFallback');
+ if(fallback)fallback.hidden=!(kind==='bad'||kind==='warn'&&/プロフィール|接続|取得できません|確認できません|タイムアウト|受付枠を取得/.test(String(text))||['prompt','unavailable','failed'].includes(S.profilePermission));
+}
 // LINE-native consent screen, never an app-made fake dialog.
 function showProfileConsent(){
   const panel=$('recProfileConsent'),title=$('recProfileConsentTitle'),message=$('recProfileConsentText'),button=$('recProfileConsentButton');
