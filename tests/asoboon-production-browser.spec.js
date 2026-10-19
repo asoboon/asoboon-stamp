@@ -2043,3 +2043,16 @@ test('Reception blocks submission when the LINE permission query itself fails',a
   await expect(page.locator('#recProfileConsentText')).toContainText('確認できません');
   await expect(page.locator('#recSubmit')).toBeDisabled();
 });
+
+test('Reception offers official WEB alternative when LINE profile permission is unavailable',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',permission:{query:async()=>({state:'unavailable'}),requestAll:async()=>{}}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#recProfileConsent')).toBeVisible();
+  await expect(page.locator('#recWebFallback')).toBeVisible();
+  await expect(page.locator('#recWebFallback a')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+});
