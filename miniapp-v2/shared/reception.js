@@ -30,7 +30,7 @@ const DEVELOP_TEST_ONLY=E.environment==='develop'&&new URLSearchParams(location.
 const S={
   mode:'web',day:null,waitTypes:null,slots:[],slot:null,
   adult:1,child:0,infant:0,agree:false,location:null,
-  health:null,canCreate:false,busy:false,locked:false,recovering:false,generation:0,submitSeq:0
+  health:null,canCreate:false,busy:false,locked:false,recovering:false,generation:0,submitSeq:0,profilePermission:'checking',profilePrompting:false,profileAutoPrompted:false,profileHelp:''
 };
 let CTX=null;
 const $=id=>document.getElementById(id);
@@ -86,6 +86,11 @@ function friendlyError(value){const code=String(value||'');const map={
 
 function render(){const methodBlock=LINE_STORE_ONLY?'':`<div class="rec-methods"><button id="recWeb" class="rec-method active" type="button"><span>🌐</span><strong>LINE受付</strong><small>来場前にLINEミニアプリの中で受付します。</small></button><button id="recOnsite" class="rec-method onsite" type="button"><span>📍</span><strong>LINE受付</strong><small>ASOBooN付近で現在地を確認して受付します。</small></button></div>`;const locationBlock=LINE_STORE_ONLY?'':`<div id="recLocation" class="rec-location" hidden><p id="recLocationText">LINE受付は、施設から500m以内・位置情報の精度200m以内を確認します。</p><button id="recLocationBtn" type="button">現在地を確認する</button></div>`;return `<section class="page-card"><div class="page-head orange"><small>LINE 当日受付 / LINE受付枠</small><h2>当日受付</h2></div><div class="page-body"><div class="rec-wrap">
 <div id="recStatus" class="rec-status">LINE接続と受付環境を確認しています…</div>
+ <div id="recProfileConsent" class="rec-status warn" hidden>
+ <strong id="recProfileConsentTitle">LINEの利用許可が必要です</strong>
+ <p id="recProfileConsentText">受付するにはプロフィールの利用許可が必要です。</p>
+ <button id="recProfileConsentButton" type="button">LINEの承認画面を開く</button>
+ </div>
 ${methodBlock}
 <div id="recDay" class="rec-day"><span><small>営業区分</small><strong>確認中</strong></span><b>—</b></div>
 <h3 class="rec-title">① ご利用の回</h3><div id="recSlots" class="rec-slots"><div class="rec-status">受付枠を確認しています…</div></div>
@@ -119,6 +124,96 @@ ${locationBlock}
 </div></div></section>`}
 
 function status(text,kind=''){const el=$('recStatus');if(!el)return;el.className='rec-status'+(kind?' '+kind:'');el.textContent=text}
+// LINE-native consent screen, never an app-made fake dialog.
+function showProfileConsent(){
+  const panel=$('recProfileConsent'),title=$('recProfileConsentTitle'),message=$('recProfileConsentText'),button=$('recProfileConsentButton');
+  if(!panel)return;
+  const blocked=['prompt','requesting','unavailable','failed'].includes(S.profilePermission);
+  panel.hidden=!blocked;
+  if(!blocked)return;
+  const scopeUnavailable=S.profilePermission==='unavailable';
+  const requesting=S.profilePermission==='requesting';
+  const sdkUnsupported=typeof window.liff?.permission?.requestAll!=='function'&&typeof window.liff?.getProfile!=='function';
+  if(title)title.textContent=scopeUnavailable?'LINE連携の設定を確認してください':requesting?'LINEの許可を確認しています':'LINEプロフィールの利用許可が必要です';
+  if(message)message.textContent=scopeUnavailable?'このミニアプリのLINE設定でプロフィール権限を利用できません。スタッフへお声がけください。':requesting?'LINEの画面で内容を確認し、許可してください。':S.profileHelp||'LINEの承認画面で許可すると、この受付画面で続けられます。';
+  if(button){
+    button.hidden=requesting||scopeUnavailable||sdkUnsupported;
+    button.disabled=requesting||S.busy||S.locked;
+    button.textContent='LINEの承認画面を開く';
+  }
+}
+async function queryProfilePermission(generation){
+  if(typeof window.liff?.permission?.query!=='function'){
+    // Older LIFF SDKs can still open LINE's native consent via getProfile().
+    // Never send the returned client profile to our server.
+    S.profilePermission=typeof window.liff?.getProfile==='function'?'prompt':'unsupported';
+    S.profileHelp='';showProfileConsent();renderForm();return S.profilePermission;
+  }
+  try{
+    const result=await liff.permission.query('profile');
+    if(generation!==S.generation)return 'stale';
+    const permission=String(result?.state||'');
+    S.profilePermission=['granted','prompt','unavailable'].includes(permission)?permission:'failed';
+    if(S.profilePermission==='granted')S.profileHelp='';
+  }catch{
+    if(generation!==S.generation)return 'stale';
+    S.profilePermission='failed';
+    S.profileHelp='LINEの許可状態を確認できません。通信を確認してから、もう一度お試しください。';
+  }
+  showProfileConsent();renderForm();return S.profilePermission;
+}
+async function promptProfilePermission({automatic=false}={}){
+  if(S.profilePermission!=='prompt'&&S.profilePermission!=='failed')return false;
+  if(S.profilePrompting||S.busy||S.locked||
+    (typeof liff?.permission?.requestAll!=='function'&&typeof liff?.getProfile!=='function'))return false;
+  // Only trigger automatic consent once when entering this reception view.
+  if(automatic){if(S.profileAutoPrompted)return false;S.profileAutoPrompted=true}
+  const generation=S.generation;
+  S.profilePrompting=true;S.profilePermission='requesting';S.profileHelp='';
+  showProfileConsent();renderForm();
+  const nativeRequest=typeof liff.permission?.requestAll==='function';
+  try{
+    // LINE Mini App native permission screen; older SDKs may launch it
+    // through getProfile(). Returned profile data is deliberately ignored.
+    if(nativeRequest)await liff.permission.requestAll();
+    else await liff.getProfile();
+  }catch(e){
+    if(generation===S.generation){
+      const msg=String(e?.message||e||'');
+      S.profileHelp=/SkipChannelVerificationScreen|unavailable|not supported/i.test(msg)
+        ?'LINEの追加承認画面を開けません。LINEミニアプリの連携設定をご確認ください。'
+        :'許可が完了しませんでした。下のボタンからLINEの承認画面を開いてください。';
+    }
+  }finally{
+    S.profilePrompting=false;
+    if(generation===S.generation){
+      // requestAll() refreshes the LIFF access token. Submit reads a NEW token.
+      S.profilePermission='checking';
+      const after=(!nativeRequest&&typeof liff.permission?.query!=='function'&&!S.profileHelp)
+        ?(S.profilePermission='granted',showProfileConsent(),renderForm(),'granted')
+        :await queryProfilePermission(generation);
+      if(after==='granted'){
+        status('LINEの利用許可を確認しました。受付を続けられます。','ok');
+      }else if(after==='prompt'||after==='failed'){
+        showProfileConsent();
+        status('LINEのプロフィール利用許可を確認できません。承認画面から許可してください。','warn');
+      }
+    }
+  }
+  return S.profilePermission==='granted';
+}
+async function beginProfileConsent(generation){
+  try{await waitForLine()}catch{return}
+  if(generation!==S.generation)return;
+  const permission=await queryProfilePermission(generation);
+  if(permission==='prompt'&&window.liff?.isInClient?.()&&
+    (typeof liff.permission?.requestAll==='function'||typeof liff.getProfile==='function')){
+    // Official LINE MINI App docs allow requesting consent after permission.query.
+    // If native presentation is unavailable, the explicit button remains.
+    void promptProfilePermission({automatic:true});
+  }
+}
+
 // These are UI phases, not server-side progress percentages. Never imply a
 // number has been issued until the authenticated response confirms it.
 function renderProcessing(){
@@ -342,7 +437,7 @@ function renderForm(){
   document.querySelectorAll('[data-rec-k]').forEach(b=>{if(S.busy||S.locked){b.disabled=true;return}const k=b.dataset.recK,d=+b.dataset.recD;if(d<0)b.disabled=k==='adult'?S.adult<=1||kids()>(S.adult-1)*kidsPerAdult():S[k]<=0;else b.disabled=total()>=maxTotal()||(k!=='adult'&&kids()>=S.adult*kidsPerAdult())});
   if($('recAgree'))$('recAgree').disabled=S.busy||S.locked;
   document.querySelectorAll('[data-rec-slot]').forEach(b=>{b.disabled=S.busy||S.locked});
-  const testSelected=isDevelopTestSlot(S.slot),openNow=lineReceptionOpenNow()||testSelected;const ready=openNow&&peopleOK&&S.slot&&S.day&&S.agree&&locationOk()&&(!S.day.isClosed||testSelected)&&!S.busy&&!S.locked&&S.canCreate;
+  const testSelected=isDevelopTestSlot(S.slot),openNow=lineReceptionOpenNow()||testSelected;const permissionOK=!['checking','prompt','requesting','unavailable'].includes(S.profilePermission);const ready=openNow&&peopleOK&&S.slot&&S.day&&S.agree&&locationOk()&&(!S.day.isClosed||testSelected)&&!S.busy&&!S.locked&&S.canCreate&&permissionOK;
   const submit=$('recSubmit');submit.disabled=!ready;submit.textContent=S.busy?'受付中…':!openNow?`受付は${lineOpenDisplay()}から`:S.canCreate&&S.day?'受付を確定する':'受付確定（確認待ち）';
 }
 
@@ -351,9 +446,9 @@ async function checkLocation(){const txt=$('recLocationText'),btn=$('recLocation
 
 async function boot(){
   try{localStorage.removeItem(`asoboon_v2_official_web_handoff_${STORAGE_NS}_v1`)}catch{}
-  stopProcessing();const gen=++S.generation;remainingDetails=null;remainingCheckedAt=0;remainingLoading=false;remainingLastAttempt=0;if(remainingCooldownTimer){clearTimeout(remainingCooldownTimer);remainingCooldownTimer=0}S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
+  stopProcessing();const gen=++S.generation;remainingDetails=null;remainingCheckedAt=0;remainingLoading=false;remainingLastAttempt=0;if(remainingCooldownTimer){clearTimeout(remainingCooldownTimer);remainingCooldownTimer=0}S.slot=null;S.day=null;S.waitTypes=null;S.health=null;S.canCreate=false;S.profilePermission='checking';S.profilePrompting=false;S.profileAutoPrompted=false;S.profileHelp='';S.location=null;S.agree=false;S.busy=false;S.locked=false;S.recovering=false;if($('recAgree'))$('recAgree').checked=false;
   const dayEl=$('recDay');if(dayEl)dayEl.innerHTML='<span><small>営業区分</small><strong>確認中</strong></span><b>—</b>';
-  status('LINE接続・営業カレンダー・受付枠を確認しています…');renderForm();
+  status('LINE接続・営業カレンダー・受付枠を確認しています…');showProfileConsent();renderForm();void beginProfileConsent(gen);
 
   const lineTask=withTimeout(waitForLine(),7500,'LINE接続の確認に時間がかかっています。いったん閉じて開き直してください。');
   const dayTask=typeof D.getCurrent==='function'?withTimeout(D.getCurrent({force:true}),12000,'営業カレンダーの取得がタイムアウトしました。'):Promise.reject(Error('営業カレンダー機能を読み込めませんでした。'));
@@ -420,7 +515,8 @@ async function submit(){
     if(!today||today!==S.day.operationalDate)throw Error('営業日が切り替わりました。もう一度受付画面を開いてください。');
     if(S.day.isClosed)throw Error('本日は休館日です。');
     if(!LINE_STORE_ONLY&&S.mode==='onsite'&&!locationOk())throw Error('現在地の確認が必要です。');
-    const token=String(liff.getAccessToken()||'');
+    if(S.profilePermission==='prompt'||S.profilePermission==='requesting'||S.profilePermission==='unavailable')throw Error('LINEプロフィールの利用許可が必要です。承認画面で許可してください。');
+     const token=String(liff.getAccessToken()||'');
     if(token.length<20)throw Error('LINE本人確認情報を取得できません。');
     const loc=LINE_STORE_ONLY?{}:(S.location||{});
     status('受付番号の発行を依頼しています…','warn');setProcessingStage('send');
@@ -428,18 +524,27 @@ async function submit(){
     if(seq!==S.submitSeq||S.locked)return;
     if(r?.notificationAmbiguous){lockNotificationAmbiguous(r?._requestId);return}
     if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous(r?._requestId||readPending()?.requestId||'');return}
-    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);throw Error(friendlyError(r?.error||'受付結果が不正です。'))}
+    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);const reason=String(r?.error||'');const error=Error(friendlyError(reason||'受付結果が不正です。'));error.code=reason;throw error}
     completeConfirmed(r,{operationalDate:S.day.operationalDate,mode:S.mode,waitTypeId:S.slot.waitTypeId,adults:S.adult,paidChildren:S.child,infants:S.infant});
   }catch(e){
     if(seq!==S.submitSeq)return;
     if(e?.ambiguous){lockAmbiguous(e?.requestId||readPending()?.requestId||'');return}
-    stopProcessing();S.busy=false;status(String(e?.message||e),'bad');renderForm();
+    const errorText=String(e?.message||e);
+     stopProcessing();S.busy=false;status(errorText,'bad');renderForm();
+     // A server-side scope error may occur even when a local check was stale.
+     // Re-query, then show the official native consent screen if genuinely missing.
+     if(/LINE_PROFILE_(INVALID|REAUTHORIZE|SCOPE_REQUIRED|FAILED)/.test(String(e?.code||''))){
+       const generation=S.generation;
+       void queryProfilePermission(generation).then(permission=>{
+         if(permission==='prompt'&&window.liff?.isInClient?.())void promptProfilePermission({automatic:true});
+       });
+     }
   }finally{
     clearTimeout(watchdog);
   }
 }
 
 function setMode(mode){if(S.busy||S.locked)return;S.mode=mode==='onsite'?'onsite':'web';S.slot=null;S.location=null;S.slots=buildSlots(S.waitTypes);renderSlots();renderForm()}
-function mount(ctx){CTX=ctx||{};$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{if(S.busy||S.locked){e.target.checked=S.agree;return}S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);$('recRemainingRefresh')?.addEventListener('click',()=>void loadRemaining({force:true}));document.querySelector('.view')?.addEventListener('click',e=>{if(S.busy||S.locked)return;const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
+function mount(ctx){CTX=ctx||{};$('recProfileConsentButton')?.addEventListener('click',()=>{void promptProfilePermission()});$('recWeb')?.addEventListener('click',()=>setMode('web'));$('recOnsite')?.addEventListener('click',()=>setMode('onsite'));$('recLocationBtn')?.addEventListener('click',checkLocation);$('recAgree')?.addEventListener('change',e=>{if(S.busy||S.locked){e.target.checked=S.agree;return}S.agree=Boolean(e.target.checked);renderForm()});$('recSubmit')?.addEventListener('click',submit);$('recRemainingRefresh')?.addEventListener('click',()=>void loadRemaining({force:true}));document.querySelector('.view')?.addEventListener('click',e=>{if(S.busy||S.locked)return;const slot=e.target.closest?.('[data-rec-slot]');if(slot){S.slot=S.slots.find(x=>String(x.waitTypeId)===String(slot.dataset.recSlot))||null;renderSlots();renderForm();return}const b=e.target.closest?.('[data-rec-k]');if(!b||b.disabled)return;const k=b.dataset.recK,d=Number(b.dataset.recD),prev={adult:S.adult,child:S.child,infant:S.infant};S[k]=Math.max(k==='adult'?1:0,Number(S[k])+d);if(!validPeople())Object.assign(S,prev);renderForm()});renderForm();void boot()}
 window.ASOBOON_V2_RECEPTION=Object.freeze({version:'2.1.0-dispatch-proof',render,mount});
 })();

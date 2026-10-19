@@ -54,6 +54,13 @@
 @media(max-width:360px){.rec-slot{gap:7px}.rec-slot-remaining{min-width:94px;padding:7px 5px}
  .rec-slot-remaining>span{font-size:9px}.rec-slot-remaining>b{font-size:16px}}
 
+/* LINE-native profile-consent invitation: hidden when previously granted. */
+#recProfileConsent[hidden],#recProfileConsentButton[hidden]{display:none!important}
+#recProfileConsent{margin:12px 0;padding:16px;border:2px solid #e7a52c;background:#fff6df;color:#473010;border-radius:14px}
+#recProfileConsent p{margin:8px 0 14px;line-height:1.65}
+#recProfileConsentButton{display:block;width:100%;padding:15px 12px;border:0;border-radius:12px;background:#06c755;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+#recProfileConsentButton:disabled{opacity:.6}
+
 /* miniapp-v2/shared/callstatus.css */
 .cs-body{padding:14px}.cs-top{display:grid;grid-template-columns:12px 1fr;column-gap:8px;align-items:center;padding:11px 12px;border:1px solid #d8e3e8;border-radius:14px;background:#f7fafb}.cs-top strong{font-size:.76rem}.cs-top small{grid-column:2;color:#6d7a82;font-size:.61rem;line-height:1.45;font-weight:760}.cs-live-dot{width:9px;height:9px;border-radius:50%;background:#9aa7af;box-shadow:0 0 0 4px rgba(154,167,175,.12)}.cs-top.ok .cs-live-dot{background:var(--green);box-shadow:0 0 0 4px rgba(50,135,75,.12)}.cs-top.warn .cs-live-dot{background:var(--orange);box-shadow:0 0 0 4px rgba(240,128,38,.14)}
 .cs-ticket{position:relative;margin-top:12px;padding:18px 14px 15px;border:2px solid #bfd5e3;border-radius:20px;background:linear-gradient(180deg,#f7fcff,#edf7fc);text-align:center;overflow:hidden}.cs-ticket:before,.cs-ticket:after{content:"";position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid #bfd5e3;transform:translateY(-50%)}.cs-ticket:before{left:-10px}.cs-ticket:after{right:-10px}.cs-ticket small{display:block;color:#667984;font-size:.66rem;font-weight:900}.cs-ticket strong{display:inline-block;margin-top:3px;color:var(--blue-deep);font-size:clamp(2.9rem,15vw,4.5rem);line-height:1;font-weight:1000;letter-spacing:.02em;font-variant-numeric:tabular-nums}.cs-ticket>span{margin-left:4px;color:var(--blue-deep);font-size:1rem;font-weight:1000}.cs-waittype{display:inline-block;margin-top:9px;padding:5px 9px;border-radius:999px;background:#fff;color:#50636f;font-size:.58rem;font-weight:900;box-shadow:0 3px 9px rgba(31,52,65,.08)}

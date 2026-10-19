@@ -50,3 +50,10 @@
 .rec-remaining-caution{margin:-7px 2px 10px;color:#7d8586;font-size:10px;line-height:1.5}
 @media(max-width:360px){.rec-slot{gap:7px}.rec-slot-remaining{min-width:94px;padding:7px 5px}
  .rec-slot-remaining>span{font-size:9px}.rec-slot-remaining>b{font-size:16px}}
+
+/* LINE-native profile-consent invitation: hidden when previously granted. */
+#recProfileConsent[hidden],#recProfileConsentButton[hidden]{display:none!important}
+#recProfileConsent{margin:12px 0;padding:16px;border:2px solid #e7a52c;background:#fff6df;color:#473010;border-radius:14px}
+#recProfileConsent p{margin:8px 0 14px;line-height:1.65}
+#recProfileConsentButton{display:block;width:100%;padding:15px 12px;border:0;border-radius:12px;background:#06c755;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+#recProfileConsentButton:disabled{opacity:.6}

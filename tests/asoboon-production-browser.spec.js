@@ -1977,3 +1977,57 @@ test('Official ROOT recovers LINE identity when the SDK arrives after the six-se
   // What matters here is that the late SDK no longer strands LIFF identity.
   expect(await page.evaluate(()=>window.__lateLiffEvents.at(-1).bootError)).not.toMatch(/LIFF_SDK_SLOW|LIFF_SDK_NOT_READY/);
 });
+
+// LINE-native consent flow is tested without touching a real user or AirWAIT.
+test('Reception auto-opens LINE permission screen for unapproved profile',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.__scope='prompt';window.__requestCount=0;window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',permission:{query:async()=>({state:window.__scope}),requestAll:async()=>{window.__requestCount++;window.__scope='granted';}}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#recSubmit')).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>window.__requestCount)).toBe(1);
+  await expect(page.locator('#recProfileConsent')).toBeHidden();
+  expect(await page.evaluate(()=>window.__scope)).toBe('granted');
+});
+
+test('Reception offers a one-tap LINE permission button after initial dialog declined',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.__scope='prompt';window.__requestCount=0;window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',permission:{query:async()=>({state:window.__scope}),requestAll:async()=>{window.__requestCount++;if(window.__requestCount===1)throw Error('declined');window.__scope='granted';}}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>page.evaluate(()=>window.__requestCount)).toBe(1);
+  await expect(page.locator('#recProfileConsent')).toBeVisible();
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+  await page.locator('#recProfileConsentButton').click();
+  await expect.poll(()=>page.evaluate(()=>window.__requestCount)).toBe(2);
+  await expect(page.locator('#recProfileConsent')).toBeHidden();
+});
+
+test('Reception does not enable submit if profile scope is missing from the channel',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.__requestCount=0;window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',permission:{query:async()=>({state:'unavailable'}),requestAll:async()=>{window.__requestCount++;}}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#recProfileConsent')).toBeVisible();
+  await expect(page.locator('#recProfileConsentText')).toContainText('スタッフ');
+  await expect(page.locator('#recSubmit')).toBeDisabled();
+  expect(await page.evaluate(()=>window.__requestCount)).toBe(0);
+});
+
+test('Older LIFF SDK can open native profile consent through getProfile when permission APIs are absent',async({page})=>{
+  await installProduction(page);
+  await page.route('https://static.line-scdn.net/**',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.__profileCalls=0;window.liff={init:async()=>{},isInClient:()=>true,isLoggedIn:()=>true,getAccessToken:()=>'prod_test_access_token_abcdefghijklmnopqrstuvwxyz',getProfile:async()=>{window.__profileCalls++;return {userId:'U_not_sent',displayName:'Not sent'};}};"
+  }));
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>page.evaluate(()=>window.__profileCalls)).toBe(1);
+  await expect(page.locator('#recProfileConsent')).toBeHidden();
+  await expect(page.locator('#recSubmit')).toBeVisible();
+});
