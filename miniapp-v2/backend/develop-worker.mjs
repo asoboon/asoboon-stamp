@@ -1261,6 +1261,8 @@ function boardSlotKey(row,specs=[]) {
   for (const spec of specs) {
     if (spec.waitTypeIds.includes(id)) return spec.key;
   }
+  // On Monday never import a different day's numbered wait type by name alone.
+  if (specs === BOARD_SLOT_SPECS['月曜'] && id) return '';
   const name = String(row?.waitTypeName || '').normalize('NFKC').replace(/\s+/g,'');
   for (const spec of specs) {
     if ((spec.nameTokens||[]).some(token=>name.includes(String(token).normalize('NFKC').replace(/\s+/g,'')))) return spec.key;
