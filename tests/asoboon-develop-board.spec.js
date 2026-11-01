@@ -148,8 +148,8 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261102-monday-four-queues-v16');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-monday-four-queues-v16'");
+  expect(buildFile.version).toBe('20261102-monday-windows-v17');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-monday-windows-v17'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
   expect(indexHtml).toContain('board.css?v=39');
   expect(boardCss).toContain('background:var(--sign-green-2);');
@@ -160,7 +160,7 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=38');
+  expect(indexHtml).toContain('board.js?v=39');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
