@@ -74,7 +74,7 @@ test('board renders Monday as a 17:00-close, 2h30 operating day without touching
   const monday=check('2026-11-02T01:00:00Z','月曜');
   assert.equal(monday.phase,'active');
   assert.equal(monday.slotKey,'weekday');
-  assert.equal(monday.detail,'2時間30分利用');
+  assert.equal(monday.detail,'呼出状況を表示しています');
   assert.equal(check('2026-11-02T08:00:00Z','月曜').phase,'ended');
   assert.equal(check('2026-11-04T01:00:00Z','平日').detail,'時間制限なし');
   assert.equal(check('2026-11-02T01:00:00Z','休館').phase,'closed');
