@@ -1202,6 +1202,18 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+// Monday has distinct, overlapping display windows for the four weekday wait types.
+function mondayWaitTypeVisible(waitTypeId, date=new Date()){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hour12:false
+  }).formatToParts(date).map(v=>[v.type,v.value]));
+  const minute=Number(p.hour)*60+Number(p.minute);
+  if(waitTypeId==='0023')return minute>=8*60&&minute<17*60; // すぐ入場: throughout the board's operating day
+  if(waitTypeId==='0024')return minute>=9*60&&minute<13*60+30; // WEB 10:00
+  if(waitTypeId==='0025'||waitTypeId==='0027')return minute>=13*60&&minute<17*60; // 14:00 store/WEB
+  return false;
+}
+
 function boardDisplayType(businessType, businessDate) {
   // Calendar decisions take precedence (closed, special and holiday remain unchanged).
   if (businessType !== '平日' || !/^\d{4}-\d{2}-\d{2}$/.test(String(businessDate || ''))) return businessType;
@@ -1222,7 +1234,10 @@ async function getBoardStatus(env) {
   }
 
   const slots = specs.map(spec => {
-    const target = boardRows.rows.filter(row => boardSlotKey(row,specs) === spec.key);
+    const target = boardRows.rows.filter(row => (
+      boardSlotKey(row,specs) === spec.key &&
+      (boardType!=='月曜'||mondayWaitTypeVisible(String(row?.waitTypeId||'')))
+    ));
     return {
       key:spec.key,
       label:spec.label,
@@ -1231,6 +1246,7 @@ async function getBoardStatus(env) {
         number:String(row?.number || ''),
         state:boardReservationState(row),
         order:index + 1,
+        ...(boardType==='月曜'?{waitTypeId:String(row?.waitTypeId||'')}:{}),
       })),
     };
   });
