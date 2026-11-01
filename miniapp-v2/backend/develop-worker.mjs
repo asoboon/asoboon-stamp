@@ -38,6 +38,11 @@ const CROWD_DETAIL_ALIASES = Object.freeze({
   '0024':Object.freeze(['すぐ入場受付【平日】']),
 });
 const BOARD_SLOT_SPECS = Object.freeze({
+  // Monday operates with all four weekday AirWAIT wait types.
+  // Preserve the store-wide arrival order while including both WEB groups.
+  '月曜':Object.freeze([
+    Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0024','0025','0027']), nameTokens:Object.freeze(['すぐ入場','10時','10:00','14時','14:00']) }),
+  ]),
   '平日':Object.freeze([
     Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
   ]),
@@ -1197,12 +1202,19 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+function boardDisplayType(businessType, businessDate) {
+  // Calendar decisions take precedence (closed, special and holiday remain unchanged).
+  if (businessType !== '平日' || !/^\d{4}-\d{2}-\d{2}$/.test(String(businessDate || ''))) return businessType;
+  return new Date(businessDate + 'T00:00:00Z').getUTCDay() === 1 ? '月曜' : businessType;
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const businessDate=tokyoCalendarDate();
   const day=await getBusinessDayProxy(businessDate, env);
   const businessType=String(day?.businessType||'');
-  const specs=BOARD_SLOT_SPECS[businessType]||Object.freeze([]);
+  const boardType=boardDisplayType(businessType,businessDate);
+  const specs=BOARD_SLOT_SPECS[boardType]||Object.freeze([]);
 
   let boardRows={rows:[],stale:false,cacheSource:'inactive',lastUpdDate:''};
   if(boardActiveNow(businessType)){
@@ -1230,6 +1242,7 @@ async function getBoardStatus(env) {
     requestBudgetMs:BOARD_BROWSER_TIMEOUT_BUDGET_MS,
     businessDate,
     businessType,
+    boardType,
     isClosed:businessType==='休館',
     weekday:String(day?.weekday||''),
     note:String(day?.note||''),
