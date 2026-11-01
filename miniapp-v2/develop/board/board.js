@@ -62,7 +62,7 @@ function resolveBoardContext(date=new Date(),businessType=''){
   if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'8:00から呼出状況を表示します'};
   if(m>=CLOSE_MINUTES[type])return{businessType:type,phase:'ended',slotKey:'',slotLabel:'終了',slotSuffix:'',detail:'本日のご案内は終了しました'};
   if(type==='平日')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'受付中',slotSuffix:'',detail:'時間制限なし'};
-  if(type==='月曜')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'月曜受付中',slotSuffix:'',detail:'2時間30分利用'};
+  if(type==='月曜')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'月曜受付中',slotSuffix:'',detail:'呼出状況を表示しています'};
   if(type==='平日特定日'){
     const key=m<13*60?'10:00':'13:30';
     return{businessType:type,phase:'active',slotKey:key,slotLabel:key,slotSuffix:'の回',detail:'3時間利用'};
