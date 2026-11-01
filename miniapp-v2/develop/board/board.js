@@ -20,7 +20,7 @@ const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
 const BOARD_OPEN_MINUTE=8*60;
-const CLOSE_MINUTES=Object.freeze({'平日':17*60,'平日特定日':17*60,'土日祝日':18*60});
+const CLOSE_MINUTES=Object.freeze({'平日':17*60,'月曜':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
 function tokyoParts(date=new Date()){
   const parts=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date);
@@ -62,6 +62,7 @@ function resolveBoardContext(date=new Date(),businessType=''){
   if(m<BOARD_OPEN_MINUTE)return{businessType:type,phase:'before',slotKey:'',slotLabel:'まもなく',slotSuffix:'',detail:'8:00から呼出状況を表示します'};
   if(m>=CLOSE_MINUTES[type])return{businessType:type,phase:'ended',slotKey:'',slotLabel:'終了',slotSuffix:'',detail:'本日のご案内は終了しました'};
   if(type==='平日')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'受付中',slotSuffix:'',detail:'時間制限なし'};
+  if(type==='月曜')return{businessType:type,phase:'active',slotKey:'weekday',slotLabel:'月曜受付中',slotSuffix:'',detail:'2時間30分利用'};
   if(type==='平日特定日'){
     const key=m<13*60?'10:00':'13:30';
     return{businessType:type,phase:'active',slotKey:key,slotLabel:key,slotSuffix:'の回',detail:'3時間利用'};
@@ -255,7 +256,7 @@ function renderStaticBoard(context,data){
   updateDiagnostics(context,data);
 }
 function renderPayload(data){
-  const context=resolveBoardContext(new Date(),data?.businessType);
+  const context=resolveBoardContext(new Date(),data?.boardType||data?.businessType);
   state.businessType=context.businessType;
   state.phase=context.phase;
   state.slotKey=context.slotKey;
