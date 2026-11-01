@@ -60,7 +60,7 @@ for (const edition of ['develop','production']) {
   });
 }
 
-test('board renders Monday as a 17:00-close, 2h30 operating day without touching normal weekdays',()=>{
+test('board renders Monday as a 17:00-close day without claiming an unverified stay duration',()=>{
   const source=read('miniapp-v2/develop/board/board.js');
   const harness=vm.runInNewContext([
     pick(source,/^const BOARD_OPEN_MINUTE=.*;$/m,'opening'),
