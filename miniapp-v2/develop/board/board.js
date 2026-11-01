@@ -15,7 +15,7 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-monday-four-queues-v16';
+const BOARD_BUILD_ID='20261102-monday-windows-v17';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
@@ -69,6 +69,13 @@ function resolveBoardContext(date=new Date(),businessType=''){
   }
   const key=m<12*60?'10:00':m<14*60+30?'12:30':'15:00';
   return{businessType:type,phase:'active',slotKey:key,slotLabel:key,slotSuffix:'の回',detail:'2時間30分利用'};
+}
+function mondayWaitTypeVisible(waitTypeId,date=new Date()){
+  const t=tokyoParts(date),minute=t.hour*60+t.minute;
+  if(waitTypeId==='0023')return minute>=8*60&&minute<17*60;
+  if(waitTypeId==='0024')return minute>=9*60&&minute<13*60+30;
+  if(waitTypeId==='0025'||waitTypeId==='0027')return minute>=13*60&&minute<17*60;
+  return false;
 }
 function activeSlotKey(date=new Date(),businessType='土日祝日'){
   return resolveBoardContext(date,businessType).slotKey;
@@ -278,7 +285,13 @@ function renderPayload(data){
     return;
   }
 
-  const allRows=normalizeRows(slot?.rows||[]);
+  // Apply the Monday display windows in the browser too. An older cached API
+  // snapshot must never keep the 10:00 WEB lane visible after 13:30.
+  const now=new Date();
+  const scopedRows=context.businessType==='月曜'
+    ?(slot?.rows||[]).filter(row=>mondayWaitTypeVisible(String(row?.waitTypeId||''),now))
+    :(slot?.rows||[]);
+  const allRows=normalizeRows(scopedRows);
   const grid=$('queueGrid');
   const previousFrame=FX?.capture?.(grid)||new Map();
   const rows=visibleRows(allRows);
@@ -396,6 +409,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(layoutGrid));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){fetchBoard();void checkForBuildUpdate();}});
 window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   activeSlotKey,
+  mondayWaitTypeVisible,
   resolveBoardContext,
   tokyoDateKey,
   statusMeta,
