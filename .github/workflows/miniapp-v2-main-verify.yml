@@ -85,6 +85,8 @@ jobs:
           node --check miniapp-v2/backend/develop-worker.mjs
           node --check miniapp-v2/backend/production-service-message.js
           node --check miniapp-v2/backend/production-worker.mjs
+      - name: Monday call board four-AirWAIT-channel regression
+        run: node --test tests/asoboon-monday-board.test.mjs
       - name: Developing reception lifecycle
         run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
       - name: Security regression (same receiptNo across waitTypes, requestId ownership)

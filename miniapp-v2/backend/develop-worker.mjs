@@ -38,6 +38,11 @@ const CROWD_DETAIL_ALIASES = Object.freeze({
   '0024':Object.freeze(['すぐ入場受付【平日】']),
 });
 const BOARD_SLOT_SPECS = Object.freeze({
+  // Monday operates with all four weekday AirWAIT wait types.
+  // Preserve the store-wide arrival order while including both WEB groups.
+  '月曜':Object.freeze([
+    Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0024','0025','0027']), nameTokens:Object.freeze(['すぐ入場','10時','10:00','14時','14:00']) }),
+  ]),
   '平日':Object.freeze([
     Object.freeze({ key:'weekday', label:'本日の呼出状況', waitTypeIds:Object.freeze(['0023','0025']), nameTokens:Object.freeze(['すぐ入場','14:00','14時']) }),
   ]),
@@ -1197,12 +1202,31 @@ function boardActiveNow(businessType,date=new Date()){
   return false;
 }
 
+// Monday has distinct, overlapping display windows for the four weekday wait types.
+function mondayWaitTypeVisible(waitTypeId, date=new Date()){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hour12:false
+  }).formatToParts(date).map(v=>[v.type,v.value]));
+  const minute=Number(p.hour)*60+Number(p.minute);
+  if(waitTypeId==='0023')return minute>=8*60&&minute<17*60; // すぐ入場: throughout the board's operating day
+  if(waitTypeId==='0024')return minute>=9*60&&minute<13*60+30; // WEB 10:00
+  if(waitTypeId==='0025'||waitTypeId==='0027')return minute>=13*60&&minute<17*60; // 14:00 store/WEB
+  return false;
+}
+
+function boardDisplayType(businessType, businessDate) {
+  // Calendar decisions take precedence (closed, special and holiday remain unchanged).
+  if (businessType !== '平日' || !/^\d{4}-\d{2}-\d{2}$/.test(String(businessDate || ''))) return businessType;
+  return new Date(businessDate + 'T00:00:00Z').getUTCDay() === 1 ? '月曜' : businessType;
+}
+
 async function getBoardStatus(env) {
   if (!env?.AIRWAIT_API_KEY) throw apiError('AIRWAIT_KEY_NOT_CONFIGURED', 503);
   const businessDate=tokyoCalendarDate();
   const day=await getBusinessDayProxy(businessDate, env);
   const businessType=String(day?.businessType||'');
-  const specs=BOARD_SLOT_SPECS[businessType]||Object.freeze([]);
+  const boardType=boardDisplayType(businessType,businessDate);
+  const specs=BOARD_SLOT_SPECS[boardType]||Object.freeze([]);
 
   let boardRows={rows:[],stale:false,cacheSource:'inactive',lastUpdDate:''};
   if(boardActiveNow(businessType)){
@@ -1210,7 +1234,10 @@ async function getBoardStatus(env) {
   }
 
   const slots = specs.map(spec => {
-    const target = boardRows.rows.filter(row => boardSlotKey(row,specs) === spec.key);
+    const target = boardRows.rows.filter(row => (
+      boardSlotKey(row,specs) === spec.key &&
+      (boardType!=='月曜'||mondayWaitTypeVisible(String(row?.waitTypeId||'')))
+    ));
     return {
       key:spec.key,
       label:spec.label,
@@ -1219,6 +1246,7 @@ async function getBoardStatus(env) {
         number:String(row?.number || ''),
         state:boardReservationState(row),
         order:index + 1,
+        ...(boardType==='月曜'?{waitTypeId:String(row?.waitTypeId||'')}:{}),
       })),
     };
   });
@@ -1230,6 +1258,7 @@ async function getBoardStatus(env) {
     requestBudgetMs:BOARD_BROWSER_TIMEOUT_BUDGET_MS,
     businessDate,
     businessType,
+    boardType,
     isClosed:businessType==='休館',
     weekday:String(day?.weekday||''),
     note:String(day?.note||''),
@@ -1248,6 +1277,8 @@ function boardSlotKey(row,specs=[]) {
   for (const spec of specs) {
     if (spec.waitTypeIds.includes(id)) return spec.key;
   }
+  // On Monday never import a different day's numbered wait type by name alone.
+  if (specs === BOARD_SLOT_SPECS['月曜'] && id) return '';
   const name = String(row?.waitTypeName || '').normalize('NFKC').replace(/\s+/g,'');
   for (const spec of specs) {
     if ((spec.nameTokens||[]).some(token=>name.includes(String(token).normalize('NFKC').replace(/\s+/g,'')))) return spec.key;
