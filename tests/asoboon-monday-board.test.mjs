@@ -16,8 +16,9 @@ for (const edition of ['develop','production']) {
     const harness=vm.runInNewContext([
       pick(source,/const BOARD_SLOT_SPECS = Object.freeze\(\{[\s\S]*?\n\}\);/,'slot specs'),
       pick(source,/function boardDisplayType\([\s\S]*?\n\}/,'Monday routing'),
+      pick(source,/function mondayWaitTypeVisible\([\s\S]*?\n\}/,'Monday visibility'),
       pick(source,/function boardSlotKey\([\s\S]*?\n\}/,'slot key'),
-      '({specs:BOARD_SLOT_SPECS,resolve:boardDisplayType,slot:boardSlotKey})'
+      '({specs:BOARD_SLOT_SPECS,resolve:boardDisplayType,slot:boardSlotKey,visible:mondayWaitTypeVisible})'
     ].join('\n'));
     const monday=harness.specs['月曜'];
     assert.equal(monday.length,1,'Current board has one all-day queue grid');
@@ -32,6 +33,23 @@ for (const edition of ['develop','production']) {
       assert.equal(harness.slot({waitTypeId:id,waitTypeName:label},monday),'weekday',label+' must appear');
     }
     assert.equal(harness.slot({waitTypeId:'0030',waitTypeName:'10:00の回'},monday),'');
+    const mondayTimeline=[
+      ['2026-11-01T23:59:00Z', ['0023']],
+      ['2026-11-02T00:00:00Z', ['0023','0024']],
+      ['2026-11-02T03:59:00Z', ['0023','0024']],
+      ['2026-11-02T04:00:00Z', ['0023','0024','0025','0027']],
+      ['2026-11-02T04:29:00Z', ['0023','0024','0025','0027']],
+      ['2026-11-02T04:30:00Z', ['0023','0025','0027']],
+      ['2026-11-02T07:59:00Z', ['0023','0025','0027']],
+      ['2026-11-02T08:00:00Z', []],
+    ];
+    for (const [iso,expected] of mondayTimeline){
+      const active=['0023','0024','0025','0027'].filter(id=>harness.visible(id,new Date(iso)));
+      assert.deepEqual(active,expected,edition+' '+iso);
+    }
+    assert.match(source,/boardType!=='月曜'\|\|mondayWaitTypeVisible/);
+    assert.match(source,/boardType==='月曜'\?\{waitTypeId:/);
+
     assert.equal(harness.resolve('平日','2026-11-02'),'月曜');
     assert.equal(harness.resolve('平日','2026-11-09'),'月曜');
     assert.equal(harness.resolve('平日','2026-11-04'),'平日');
@@ -63,4 +81,29 @@ test('board renders Monday as a 17:00-close, 2h30 operating day without touching
   assert.equal(check('2026-11-02T01:00:00Z','平日特定日').slotKey,'10:00');
   assert.equal(check('2026-11-01T03:00:00Z','土日祝日').slotKey,'12:30');
   assert.ok(source.includes('data?.boardType||data?.businessType'),'API routing must reach client rendering');
+});
+
+test('browser Monday visibility windows mirror the Worker and include exact overlap boundaries',()=>{
+  const source=read('miniapp-v2/develop/board/board.js');
+  const harness=vm.runInNewContext([
+    pick(source,/function tokyoParts\([\s\S]*?\n\}/,'Tokyo clock'),
+    pick(source,/function mondayWaitTypeVisible\([\s\S]*?\n\}/,'Monday client visibility'),
+    '({visible:mondayWaitTypeVisible})'
+  ].join('\n'));
+  const entries=[
+    ['2026-11-01T23:59:00Z',['0023']],
+    ['2026-11-02T00:00:00Z',['0023','0024']],
+    ['2026-11-02T03:59:00Z',['0023','0024']],
+    ['2026-11-02T04:00:00Z',['0023','0024','0025','0027']],
+    ['2026-11-02T04:29:00Z',['0023','0024','0025','0027']],
+    ['2026-11-02T04:30:00Z',['0023','0025','0027']],
+    ['2026-11-02T07:59:00Z',['0023','0025','0027']],
+    ['2026-11-02T08:00:00Z',[]]
+  ];
+  for(const [iso,expected] of entries) {
+    const found=['0023','0024','0025','0027'].filter(id=>harness.visible(id,new Date(iso)));
+    assert.deepEqual(found,expected,iso);
+  }
+  assert.match(source,/context.businessType==='月曜'/);
+  assert.match(source,/row=>mondayWaitTypeVisible\(String\(row\?\.waitTypeId\|\|''\),now\)/);
 });
