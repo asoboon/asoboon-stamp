@@ -19,7 +19,7 @@ for (const edition of ['develop','production']) {
       pick(source,/function boardSlotKey\([\s\S]*?\n\}/,'slot key'),
       '({specs:BOARD_SLOT_SPECS,resolve:boardDisplayType,slot:boardSlotKey})'
     ].join('\n'));
-    const monday=Array.from(harness.specs['月曜']);
+    const monday=harness.specs['月曜'];
     assert.equal(monday.length,1,'Current board has one all-day queue grid');
     assert.equal(monday[0].key,'weekday');
     assert.deepEqual(Array.from(monday[0].waitTypeIds),['0023','0024','0025','0027']);
