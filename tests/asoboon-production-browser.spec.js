@@ -2192,3 +2192,37 @@ test('HOME recovers from an invalid crowd count response by checking all hidden 
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots')).not.toContainText('通信状態をご確認');
 });
+
+test('HOME does not launch a second crowd request while the hidden-slot cross-check is pending',async({page})=>{
+ await installProduction(page);
+ let crowdReads=0,waitTypeReads=0,release;
+ const hold=new Promise(resolve=>{release=resolve});
+ await page.route(GATEWAY+'**',async route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='crowdRemaining'){
+   crowdReads++;
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+    slots:[{waitTypeId:'0032',reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'}],
+    observedDetails:[]
+   })});
+  }
+  if(action==='waitTypes'){
+   waitTypeReads++;
+   await hold;
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,waitTypes:['0029','0031','0033','0030','0032','0034'].map(waitTypeId=>({waitTypeId,dispFlg:false}))
+   })});
+  }
+  return route.fallback();
+ });
+ try{
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>waitTypeReads).toBe(1);
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await page.waitForTimeout(100);
+  expect(crowdReads).toBe(1);
+  release();
+  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ }finally{release()}
+});

@@ -223,7 +223,7 @@ async function fetchCrowd(force=false,manual=false){
    crowdError=crowdSlots?'':reason;
   }
  }finally{
-  clearTimeout(timer);crowdLoading=false;
+  clearTimeout(timer);
   if(!crowdClosed&&(crowdError||!validCrowdSlots().length)&&day){
    const date=day.operationalDate;
    try{
@@ -232,6 +232,7 @@ async function fetchCrowd(force=false,manual=false){
     if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}}
    }catch{}
   }
+  crowdLoading=false;
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
