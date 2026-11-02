@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 
-const BASE='http://127.0.0.1:4173/miniapp-v2/production/';
+const BASE=`http://127.0.0.1:${process.env.ASOBOON_TEST_PORT||4173}/miniapp-v2/production/`;
 const GATEWAY='https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev/';
 
 async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00.000Z'}={}){
@@ -2060,4 +2060,66 @@ test('Reception offers official WEB alternative when LINE profile permission is 
   await expect(page.locator('#recWebFallback')).toBeVisible();
   await expect(page.locator('#recWebFallback a')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
   await expect(page.locator('#recSubmit')).toBeDisabled();
+});
+
+test('HOME shows an ordinary finished-slots message, not a crowd fetch error, when AirWAIT has no published slots',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({ok:false,error:'AIRWAIT_CROWD_EMPTY'})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const box=page.locator('#v38Slots');
+ await expect(box).toContainText('本日の受付枠は終了しました');
+ await expect(box).not.toContainText('人数を取得できませんでした');
+ await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
+});
+
+test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint fails',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'CROWD_UNAVAILABLE'})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const box=page.locator('#v38Slots');
+ await expect(box).toContainText('混雑状況を確認できません');
+ await expect(box).not.toContainText('本日の受付枠は終了しました');
+ await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
+});
+
+test('HOME uses a neutral no-visible-slots state for valid quota data without verified counts',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'}],
+   observedDetails:[]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const box=page.locator('#v38Slots');
+ await expect(box).toContainText('現在、表示できる受付枠はありません');
+ await expect(box).not.toContainText('混雑状況を確認できません');
+ await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
+});
+
+test('HOME clears a fresh saved capacity snapshot when staff remove all public AirWAIT slots',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+   slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:40}],
+   details:[],operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
+  }));
+ });
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({ok:false,error:'AIRWAIT_CROWD_EMPTY'})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('40');
+ await page.locator('#v38CrowdUpdate').click();
+ await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ await expect(page.locator('#v38Slots')).not.toContainText('40名');
 });

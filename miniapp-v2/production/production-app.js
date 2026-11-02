@@ -766,8 +766,11 @@ return;
 }
 const slots=validCrowdSlots();
 if(crowdError||!slots.length){
-writeCrowdMarkup(box,'<h3>本日の混雑状況</h3><p class="v38-slots-note">人数を取得できませんでした。受付画面からお進みください。</p>'+action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'受付画面を見る'));
-return;
+ const ended=crowdError==='AIRWAIT_CROWD_EMPTY';
+ const title=ended?'本日の受付枠は終了しました':crowdError?'混雑状況を確認できません':'現在、表示できる受付枠はありません';
+ const note=ended?'またのご利用をお待ちしております。':crowdError?'通信状況を確認してください。':'受付終了または確認中です。';
+ writeCrowdMarkup(box,`<h3>本日の混雑状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
+ return;
 }
 const rows=slots.map(slot=>{
 const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':`${slot.time}回`;
@@ -804,12 +807,16 @@ async function fetchCrowd(force=false,manual=false){
   if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
   crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);
  }catch(e){
-  const cached=readCrowdCache();
-  if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
-  if(String(e?.message||'').includes('RATE_LIMITED'))crowdRetryAt=Date.now()+90000;
-  else crowdRetryAt=Date.now()+Math.max(30000,Math.floor(Math.random()*5000));
-  crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
-  crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE');
+  const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
+  if(reason==='AIRWAIT_CROWD_EMPTY'){
+   crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdError=reason;crowdRetryAt=Date.now()+30000;
+  }else{
+   const cached=readCrowdCache();
+   if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
+   crowdRetryAt=Date.now()+(reason.includes('RATE_LIMITED')?90000:30000+Math.floor(Math.random()*5000));
+   crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
+   crowdError=crowdSlots?'':reason;
+  }
  }finally{
   clearTimeout(timer);crowdLoading=false;
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
