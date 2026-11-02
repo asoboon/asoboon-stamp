@@ -15,10 +15,10 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-waiting-panel-v19';
+const BOARD_BUILD_ID='20261102-waiting-full-cards-v20';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
-const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
+const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,waitingLastColumns:0,waitingRows:[],lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
 const BOARD_OPEN_MINUTE=8*60;
 const CLOSE_MINUTES=Object.freeze({'平日':17*60,'月曜':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
@@ -138,23 +138,35 @@ function updateCallingBanner(rows=[]){
     sub.textContent='受付した順番に並んでいます';
   }
 }
+function renderQueueCards(rows){
+  return rows.map((row,index)=>{
+    const kind=['waiting','calling','done','hold'].includes(String(row?.state||''))?String(row.state):'waiting';
+    const m=statusMeta(kind),num=esc(row?.number||'—'),key=esc(row?.__key||rowKey(row,index));
+    return '<div class="queue-card '+kind+'" data-index="'+index+'" data-row-key="'+key+'" data-state="'+kind+'" aria-label="受付番号 '+num+' '+m.aria+'">'+
+      '<div class="number-wrap"><strong class="queue-number">'+num+'</strong></div>'+
+      '<div class="status-rail"><span class="status-icon" aria-hidden="true">'+m.icon+'</span><span class="status-label">'+m.label+'</span></div>'+
+      '</div>';
+  }).join('');
+}
 function updateWaitingPanel(rows=null){
-  const count=$('waitingCount'),list=$('waitingTickets');
-  if(!count||!list)return;
+  const count=$('waitingCount'),grid=$('waitingGrid'),empty=$('waitingEmpty'),label=$('waitingEmptyTitle');
+  if(!count||!grid||!empty)return;
   if(!Array.isArray(rows)){
+    state.waitingRows=[];state.waitingLastColumns=0;
     count.textContent='—';
-    list.innerHTML='<span class="waiting-empty">受付状況を確認しています</span>';
+    grid.innerHTML='';grid.hidden=true;empty.hidden=false;
+    if(label)label.textContent='受付状況を確認しています';
     return;
   }
-  const waiting=visibleRows(rows).filter(row=>String(row?.state||'waiting')==='waiting');
-  count.textContent=waiting.length+'組';
-  if(!waiting.length){
-    list.innerHTML='<span class="waiting-empty">現在、呼出前のお客様はいません</span>';
+  state.waitingRows=visibleRows(rows).filter(row=>String(row?.state||'waiting')==='waiting');
+  count.textContent=state.waitingRows.length+'組';
+  if(!state.waitingRows.length){
+    grid.innerHTML='';grid.hidden=true;empty.hidden=false;
+    if(label)label.textContent='呼出前の受付番号はありません';
     return;
   }
-  const preview=waiting.slice(0,8).map(row=>'<span class="waiting-ticket">'+esc(row?.number||'—')+'</span>').join('');
-  const rest=waiting.length>8?'<span class="waiting-more">ほか'+(waiting.length-8)+'組（下の一覧）</span>':'';
-  list.innerHTML=preview+rest;
+  empty.hidden=true;grid.hidden=false;
+  grid.innerHTML=renderQueueCards(state.waitingRows);
 }
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
@@ -165,14 +177,7 @@ function renderRows(rows){
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
-  grid.innerHTML=state.rows.map((row,index)=>{
-    const kind=['waiting','calling','done','hold'].includes(String(row?.state||''))?String(row.state):'waiting';
-    const m=statusMeta(kind),num=esc(row?.number||'—'),key=esc(row?.__key||rowKey(row,index));
-    return '<div class="queue-card '+kind+'" data-index="'+index+'" data-row-key="'+key+'" data-state="'+kind+'" aria-label="受付番号 '+num+' '+m.aria+'">'+
-      '<div class="number-wrap"><strong class="queue-number">'+num+'</strong></div>'+
-      '<div class="status-rail"><span class="status-icon" aria-hidden="true">'+m.icon+'</span><span class="status-label">'+m.label+'</span></div>'+
-      '</div>';
-  }).join('');
+  grid.innerHTML=renderQueueCards(state.rows);
   requestAnimationFrame(layoutGrid);
 }
 function preferredColumns(count){
@@ -193,7 +198,7 @@ function metrics(cols,count,w,h,gap){
   const font=Math.min(cellW*.29,numberH*.54);
   return{cols,rows,cellW,cellH,rail,font};
 }
-function chooseColumns(count,w,h,gap){
+function chooseColumns(count,w,h,gap,cacheKey='lastColumns'){
   const maxCols=Math.min(Math.max(4,count),18);
   const start=Math.min(maxCols,preferredColumns(count));
   let best=metrics(start,count,w,h,gap);
@@ -205,14 +210,18 @@ function chooseColumns(count,w,h,gap){
     const bestScore=best.font-bestPenalty;
     if(score>bestScore)best=m;
   }
-  if(state.lastColumns>=4&&state.lastColumns<=maxCols){
-    const old=metrics(state.lastColumns,count,w,h,gap);
+  if(state[cacheKey]>=4&&state[cacheKey]<=maxCols){
+    const old=metrics(state[cacheKey],count,w,h,gap);
     if(old.font>=best.font*.92)best=old;
   }
-  state.lastColumns=best.cols;
+  state[cacheKey]=best.cols;
   return best;
 }
 function layoutGrid(){
+  layoutMainGrid();
+  layoutWaitingGrid();
+}
+function layoutMainGrid(){
   const grid=$('queueGrid');if(!grid||grid.hidden||!state.rows.length)return;
   const box=grid.getBoundingClientRect(),count=state.rows.length;
   if(box.width<1||box.height<1)return;
@@ -233,6 +242,20 @@ function layoutGrid(){
     card.classList.toggle('current-band',dist===0);
     card.classList.toggle('near-band',dist===1);
   });
+}
+function layoutWaitingGrid(){
+  const grid=$('waitingGrid');if(!grid||grid.hidden||!state.waitingRows.length)return;
+  const box=grid.getBoundingClientRect(),count=state.waitingRows.length;
+  if(box.width<1||box.height<1)return;
+  const gap=Math.max(4,Math.min(10,Math.round(Math.min(box.width,box.height)*.0055)));
+  const m=chooseColumns(count,box.width,box.height,gap,'waitingLastColumns');
+  const font=Math.max(12,Math.min(58,m.font));
+  grid.style.setProperty('--grid-gap',gap+'px');
+  grid.style.setProperty('--number-size',font+'px');
+  grid.style.setProperty('--state-size',Math.max(8,Math.min(15,font*.29))+'px');
+  grid.style.gridTemplateColumns='repeat('+m.cols+', minmax(0, 1fr))';
+  grid.style.gridTemplateRows='repeat('+m.rows+', minmax(0, 1fr))';
+  grid.classList.toggle('ultra-compact',m.cellH<42||m.cellW<68);
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -269,7 +292,7 @@ function updateDiagnostics(context,data){
 function renderStaticBoard(context,data){
   SHOW?.suspend(context?.phase||'inactive');
   if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
-  state.rows=[];state.lastColumns=0;
+  state.rows=[];state.lastColumns=0;state.waitingLastColumns=0;
   updateLiveCaption();
   updateCallingBanner([]);
   updateWaitingPanel(null);
