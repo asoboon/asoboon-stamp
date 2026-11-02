@@ -148,10 +148,10 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261102-monday-windows-v17');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-monday-windows-v17'");
+  expect(buildFile.version).toBe('20261102-persistent-queue-v18');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-persistent-queue-v18'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=39');
+  expect(indexHtml).toContain('board.css?v=40');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
   expect(indexHtml).toContain('board-animations.js?v=38');
@@ -160,7 +160,7 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=39');
+  expect(indexHtml).toContain('board.js?v=40');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -168,6 +168,26 @@ test('board build marker matches runtime and stale builds are detected without r
   await installBoard(page,[payload([])]);
   const result=await page.evaluate(()=>window.ASOBOON_CALL_BOARD_TEST.checkForBuildUpdate({reload:false}));
   expect(result).toMatchObject({changed:true,version:'future-build'});
+});
+
+test('waiting reception numbers stay in front of fullscreen effects and calling banner shows live numbers', async ({ page }) => {
+  await installBoard(page,[payload([
+    { number:'A101',state:'waiting',order:1 },
+    { number:'A102',state:'calling',order:2 },
+  ])]);
+  await expect(page.locator('.queue-number')).toHaveText(['A101','A102']);
+  await expect(page.locator('.route-copy strong')).toContainText('A102');
+  const layers=await page.evaluate(()=>{
+    const board=document.querySelector('.board');
+    const fx=document.createElement('div');
+    fx.className='board-fx-overlay-layer';
+    board.appendChild(fx);
+    const queue=document.querySelector('.queue-shell');
+    const z=el=>Number(getComputedStyle(el).zIndex)||0;
+    return {queue:z(queue),fx:z(fx),visible:!document.querySelector('#queueGrid').hidden};
+  });
+  expect(layers.queue).toBeGreaterThan(layers.fx);
+  expect(layers.visible).toBe(true);
 });
 
 test('current SPECIAL implementation contains no onomatopoeia and legacy cached words are hard-hidden', async ({ page }) => {
