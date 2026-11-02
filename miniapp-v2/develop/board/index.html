@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>ASOBooN 呼出状況</title>
-  <link rel="stylesheet" href="./board.css?v=41">
+  <link rel="stylesheet" href="./board.css?v=42">
 </head>
 <body>
   <main class="board" aria-label="ASOBooN 呼出状況掲示板">
@@ -34,14 +34,11 @@
         <strong>受付番号を確認</strong>
         <span>受付した順番に並んでいます</span>
       </div>
-      <section class="waiting-dedicated" aria-label="ご待機者専用の受付番号">
-        <div class="waiting-dedicated-head">
-          <strong>ご待機者専用</strong><span id="waitingCount">—</span>
-        </div>
-        <div class="waiting-dedicated-tickets" id="waitingTickets">
-          <span class="waiting-empty">受付状況を確認しています</span>
-        </div>
-      </section>
+      <div class="road" aria-hidden="true">
+        <span class="road-start">受付順</span>
+        <i></i><i></i><i></i><i></i><i></i>
+        <span class="road-goal">ご案内 →</span>
+      </div>
       <div class="legend">
         <span class="legend-item waiting"><i></i>呼出前</span>
         <span class="legend-item calling"><i>▶</i>呼出中</span>
@@ -50,15 +47,26 @@
       </div>
     </section>
 
-    <section class="queue-shell" aria-label="受付番号一覧">
-      <div class="queue-caption"><span>受付番号</span><strong id="liveCaption">呼出状況</strong></div>
-      <div id="queueGrid" class="queue-grid"></div>
-      <div id="emptyState" class="empty-state" hidden>
-        <div class="empty-icon">↗</div>
-        <strong id="emptyTitle">ただいま準備中</strong>
-        <p id="emptyText">受付が入ると、ここに番号が並びます。</p>
-      </div>
-    </section>
+    <div class="queue-panels" aria-label="受付番号の掲示">
+      <section class="queue-shell" aria-label="受付番号一覧">
+        <div class="queue-caption"><span>受付番号</span><strong id="liveCaption">呼出状況</strong></div>
+        <div id="queueGrid" class="queue-grid"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <div class="empty-icon">↗</div>
+          <strong id="emptyTitle">ただいま準備中</strong>
+          <p id="emptyText">受付が入ると、ここに番号が並びます。</p>
+        </div>
+      </section>
+      <section class="queue-shell waiting-shell" aria-label="ご待機者専用の受付番号一覧">
+        <div class="queue-caption"><span>ご待機者専用</span><strong id="waitingCount">—</strong></div>
+        <div id="waitingGrid" class="queue-grid"></div>
+        <div id="waitingEmpty" class="empty-state" hidden>
+          <div class="empty-icon">•</div>
+          <strong id="waitingEmptyTitle">受付状況を確認しています</strong>
+          <p>呼出前の受付番号を、すべてこちらに表示します。</p>
+        </div>
+      </section>
+    </div>
 
     <footer class="board-footer">
       <div id="connection" class="connection"><span class="live-dot"></span>接続を確認しています</div>
@@ -79,6 +87,6 @@
   <script src="./board-idle-events.js?v=18"></script>
   <script src="./board-entertainment-director.js?v=19"></script>
   <script src="./board-show.js?v=1"></script>
-  <script src="./board.js?v=41"></script>
+  <script src="./board.js?v=42"></script>
 </body>
 </html>
