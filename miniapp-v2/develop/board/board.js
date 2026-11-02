@@ -15,7 +15,7 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-waiting-full-cards-v20';
+const BOARD_BUILD_ID='20261102-airwait-0022-v21';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,waitingLastColumns:0,waitingRows:[],lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
@@ -158,11 +158,13 @@ function updateWaitingPanel(rows=null){
     if(label)label.textContent='受付状況を確認しています';
     return;
   }
-  state.waitingRows=visibleRows(rows).filter(row=>String(row?.state||'waiting')==='waiting');
+  // AirWAIT 0022 is its own queue. Show every non-canceled ticket in that queue,
+  // regardless of whether it is waiting, calling, guided or on hold.
+  state.waitingRows=visibleRows(rows);
   count.textContent=state.waitingRows.length+'組';
   if(!state.waitingRows.length){
     grid.innerHTML='';grid.hidden=true;empty.hidden=false;
-    if(label)label.textContent='呼出前の受付番号はありません';
+    if(label)label.textContent='ご待機者専用の受付番号はありません';
     return;
   }
   empty.hidden=true;grid.hidden=false;
@@ -173,7 +175,6 @@ function renderRows(rows){
   state.rows=visibleRows(rows);
   updateLiveCaption(state.rows);
   updateCallingBanner(state.rows);
-  updateWaitingPanel(state.rows);
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
@@ -364,6 +365,16 @@ function renderPayload(data){
   // Data/render updates are immediate. The animation module only visualizes
   // state transitions after the fresh DOM is already on screen.
   renderRows(allRows);
+  // Do not synthesize the dedicated queue from the ordinary slot. The Worker
+  // returns independent AirWAIT waitTypeId=0022 rows from the same snapshot.
+  // If older backend payloads omit the group, keep an 'unverified' message,
+  // rather than asserting an empty queue.
+  if(Array.isArray(data?.waitingDedicated?.rows)){
+    updateWaitingPanel(normalizeRows(data.waitingDedicated.rows));
+  }else{
+    updateWaitingPanel(null);
+  }
+  requestAnimationFrame(layoutGrid);
   const observation=FX?.observe?.({
     slotKey:context.businessType+'::'+context.slotKey,
     rows:allRows,
