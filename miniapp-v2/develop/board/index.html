@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>ASOBooN 呼出状況</title>
-  <link rel="stylesheet" href="./board.css?v=40">
+  <link rel="stylesheet" href="./board.css?v=41">
 </head>
 <body>
   <main class="board" aria-label="ASOBooN 呼出状況掲示板">
@@ -34,11 +34,14 @@
         <strong>受付番号を確認</strong>
         <span>受付した順番に並んでいます</span>
       </div>
-      <div class="road" aria-hidden="true">
-        <span class="road-start">受付順</span>
-        <i></i><i></i><i></i><i></i><i></i>
-        <span class="road-goal">ご案内 →</span>
-      </div>
+      <section class="waiting-dedicated" aria-label="ご待機者専用の受付番号">
+        <div class="waiting-dedicated-head">
+          <strong>ご待機者専用</strong><span id="waitingCount">—</span>
+        </div>
+        <div class="waiting-dedicated-tickets" id="waitingTickets">
+          <span class="waiting-empty">受付状況を確認しています</span>
+        </div>
+      </section>
       <div class="legend">
         <span class="legend-item waiting"><i></i>呼出前</span>
         <span class="legend-item calling"><i>▶</i>呼出中</span>
@@ -76,6 +79,6 @@
   <script src="./board-idle-events.js?v=18"></script>
   <script src="./board-entertainment-director.js?v=19"></script>
   <script src="./board-show.js?v=1"></script>
-  <script src="./board.js?v=40"></script>
+  <script src="./board.js?v=41"></script>
 </body>
 </html>

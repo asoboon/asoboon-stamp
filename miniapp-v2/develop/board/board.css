@@ -131,8 +131,8 @@ body{
   grid-template-columns:auto minmax(120px,1fr) auto;
   align-items:center;
   gap:16px;
-  min-height:56px;
-  padding:8px 14px;
+  min-height:84px;
+  padding:7px 12px;
   border-radius:16px;
   border:1px solid rgba(255,255,255,.13);
   background:rgba(8,15,17,.42);
@@ -140,6 +140,21 @@ body{
 .route-copy{display:flex;flex-direction:column;white-space:nowrap}
 .route-copy strong{font-size:13px;line-height:1;font-weight:1000;letter-spacing:.16em;color:var(--asoboon-orange)}
 .route-copy span{margin-top:5px;color:#d6dfe1;font-size:14px;font-weight:850}
+
+/* Waiting-only strip is permanent; the full grid below still contains every
+   ticket. Effects sit below the original board panels (z-index 100). */
+.waiting-dedicated{
+  min-width:0;min-height:66px;align-self:stretch;
+  display:grid;grid-template-rows:auto minmax(0,1fr);
+  padding:6px 10px;border:2px solid rgba(255,214,77,.78);
+  border-radius:11px;background:#172e31;
+}
+.waiting-dedicated-head{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#ffe58d}
+.waiting-dedicated-head strong{white-space:nowrap;font-size:clamp(12px,1.5vw,19px);font-weight:1000;letter-spacing:.04em}
+.waiting-dedicated-head span{font-size:clamp(11px,1.2vw,15px);white-space:nowrap;font-weight:950;color:#fff;font-variant-numeric:tabular-nums}
+.waiting-dedicated-tickets{display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:4px 6px;min-width:0;overflow:hidden;padding:3px 0 0}
+.waiting-ticket{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;min-height:22px;border-radius:5px;color:#14242a;background:#fff9d8;font-size:clamp(11px,1.25vw,17px);line-height:1;font-weight:1000;font-variant-numeric:tabular-nums;white-space:nowrap}
+.waiting-more,.waiting-empty{font-size:clamp(10px,1vw,13px);color:#ebf0f0;font-weight:850;white-space:nowrap}
 .road{
   min-width:0;
   display:flex;
@@ -1748,6 +1763,8 @@ body{
   .session-main strong{font-size:34px}
   .route-strip{grid-template-columns:1fr auto;gap:8px}
   .road{display:none}
+  .waiting-dedicated{grid-column:1/-1;grid-row:2;min-height:64px}
+  .route-strip{min-height:0}
   .route-copy span{font-size:11px}
   .legend{gap:6px}
   .legend-item{font-size:11px}
