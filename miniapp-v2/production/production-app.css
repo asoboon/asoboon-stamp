@@ -191,6 +191,12 @@ body.v38-home-active .topbar{display:none!important}
 .v38-crowd-onsite b{display:block;margin-top:4px;font-size:26px;font-weight:950;line-height:1}
 .v38-crowd-onsite b small{font-size:13px}
 
+/* Empty reception is a normal operational state, not an error screen. */
+.v38-crowd-empty{padding:16px 14px;margin:8px 0 12px;border-radius:14px;background:var(--v38-panel,#f5f7fa);text-align:center}
+.v38-crowd-empty strong{display:block;font-size:17px;line-height:1.5}
+.v38-crowd-empty p{margin:8px 0 0;font-size:13px;line-height:1.75;color:var(--v38-muted,#596375)}
+.v38-crowd-empty.is-closed{background:#f0f5f2}
+
 /* miniapp-v2/production/surprise-vote-home-v1.css */
 .v38-surprise-section[hidden]{display:none!important}
 .v38-surprise-section{padding:0}

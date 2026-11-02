@@ -605,7 +605,7 @@ const resolveHref=(base,path)=>{try{return new URL(String(path||''),new URL(base
 const assetHref=path=>resolveHref(ASSET_BASE,path);
 const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
-const CROWD_POLL_MS=35000,CROWD_STALE_MS=90000;
+const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0;
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
@@ -766,8 +766,11 @@ return;
 }
 const slots=validCrowdSlots();
 if(crowdError||!slots.length){
-writeCrowdMarkup(box,'<h3>本日の混雑状況</h3><p class="v38-slots-note">人数を取得できませんでした。受付画面からお進みください。</p>'+action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'受付画面を見る'));
-return;
+ const ended=crowdError==='AIRWAIT_CROWD_EMPTY';
+ const title=ended?'本日の受付枠は終了しました':crowdError?'混雑状況を確認できません':'表示できる受付枠はありません';
+ const note=ended?'ご利用ありがとうございました。':crowdError?'通信状態をご確認ください。':'受付終了・確認中です。';
+ writeCrowdMarkup(box,`<h3>本日の混雑状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
+ return;
 }
 const rows=slots.map(slot=>{
 const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':`${slot.time}回`;
@@ -796,6 +799,7 @@ async function fetchCrowd(force=false,manual=false){
   const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
   const response=await fetch(url,{cache:'no-store',signal:ctrl.signal});
   const data=await response.json();
+  if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
@@ -804,12 +808,16 @@ async function fetchCrowd(force=false,manual=false){
   if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
   crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);
  }catch(e){
-  const cached=readCrowdCache();
-  if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
-  if(String(e?.message||'').includes('RATE_LIMITED'))crowdRetryAt=Date.now()+90000;
-  else crowdRetryAt=Date.now()+Math.max(30000,Math.floor(Math.random()*5000));
-  crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
-  crowdError=crowdSlots?'':String(e?.message||e||'CROWD_UNAVAILABLE');
+  const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
+  if(reason==='AIRWAIT_CROWD_EMPTY'){
+   crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdError=reason;crowdRetryAt=Date.now()+30000;
+  }else{
+   const cached=readCrowdCache();
+   if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
+   crowdRetryAt=Date.now()+(reason.includes('RATE_LIMITED')?90000:30000+Math.floor(Math.random()*5000));
+   crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
+   crowdError=crowdSlots?'':reason;
+  }
  }finally{
   clearTimeout(timer);crowdLoading=false;
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
