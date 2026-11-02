@@ -807,7 +807,7 @@ async function fetchCrowd(force=false,manual=false){
  }catch(e){
   const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
   if(reason==='AIRWAIT_CROWD_EMPTY'){
-   crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdError=reason;crowdClosed=true;crowdRetryAt=Date.now()+30000;
+   crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=true;crowdRetryAt=Date.now()+30000;
   }else{
    const cached=readCrowdCache();
    if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
@@ -822,9 +822,10 @@ async function fetchCrowd(force=false,manual=false){
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
     const closed=await m.check(E.backendUrl,R.slotsFor(day.businessType,'onsite'),CROWD_SETTINGS.IDS[day.businessType]);
-    if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}}
+    if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;}
    }catch{}
   }
+  if(crowdClosed)try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
   crowdLoading=false;
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
