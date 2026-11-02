@@ -605,7 +605,7 @@ const resolveHref=(base,path)=>{try{return new URL(String(path||''),new URL(base
 const assetHref=path=>resolveHref(ASSET_BASE,path);
 const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
-const CROWD_POLL_MS=35000,CROWD_STALE_MS=90000;
+const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0;
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
@@ -767,8 +767,8 @@ return;
 const slots=validCrowdSlots();
 if(crowdError||!slots.length){
  const ended=crowdError==='AIRWAIT_CROWD_EMPTY';
- const title=ended?'本日の受付枠は終了しました':crowdError?'混雑状況を確認できません':'現在、表示できる受付枠はありません';
- const note=ended?'またのご利用をお待ちしております。':crowdError?'通信状況を確認してください。':'受付終了または確認中です。';
+ const title=ended?'本日の受付枠は終了しました':crowdError?'混雑状況を確認できません':'表示できる受付枠はありません';
+ const note=ended?'ご利用ありがとうございました。':crowdError?'通信状態をご確認ください。':'受付終了・確認中です。';
  writeCrowdMarkup(box,`<h3>本日の混雑状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
  return;
 }
@@ -799,6 +799,7 @@ async function fetchCrowd(force=false,manual=false){
   const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
   const response=await fetch(url,{cache:'no-store',signal:ctrl.signal});
   const data=await response.json();
+  if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];

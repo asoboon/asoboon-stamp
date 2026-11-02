@@ -2100,7 +2100,7 @@ test('HOME uses a neutral no-visible-slots state for valid quota data without ve
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('現在、表示できる受付枠はありません');
+ await expect(box).toContainText('表示できる受付枠はありません');
  await expect(box).not.toContainText('混雑状況を確認できません');
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
 });
@@ -2122,4 +2122,19 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
  await page.locator('#v38CrowdUpdate').click();
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots')).not.toContainText('40名');
+});
+
+test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as old remaining seats',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:true,warning:'AIRWAIT_CROWD_EMPTY',fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:88}],
+   observedDetails:[]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ await expect(page.locator('#v38Slots')).not.toContainText('88名');
 });
