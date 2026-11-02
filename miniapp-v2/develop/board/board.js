@@ -15,7 +15,7 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-monday-windows-v17';
+const BOARD_BUILD_ID='20261102-persistent-queue-v18';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
@@ -124,10 +124,25 @@ function updateLiveCaption(rows=[]){
   const live=$('liveCaption');if(!live)return;
   live.textContent='呼出状況';
 }
+function updateCallingBanner(rows=[]){
+  const root=document.querySelector('.route-copy'),title=root?.querySelector('strong'),sub=root?.querySelector('span');
+  if(!root||!title||!sub)return;
+  const numbers=visibleRows(rows).filter(row=>String(row?.state||'')==='calling')
+    .map(row=>String(row?.number||'').trim()).filter(Boolean);
+  root.classList.toggle('calling-active',numbers.length>0);
+  if(numbers.length){
+    title.textContent='呼出中 '+numbers.slice(0,3).join('・')+(numbers.length>3?' ほか'+(numbers.length-3)+'組':'');
+    sub.textContent='該当する番号の方は受付へお越しください';
+  }else{
+    title.textContent='受付番号を確認';
+    sub.textContent='受付した順番に並んでいます';
+  }
+}
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
   state.rows=visibleRows(rows);
   updateLiveCaption(state.rows);
+  updateCallingBanner(state.rows);
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
@@ -237,6 +252,7 @@ function renderStaticBoard(context,data){
   if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
   state.rows=[];state.lastColumns=0;
   updateLiveCaption();
+  updateCallingBanner([]);
   const grid=$('queueGrid'),empty=$('emptyState');
   if(grid){grid.innerHTML='';grid.hidden=true;}
   if(empty)empty.hidden=false;
