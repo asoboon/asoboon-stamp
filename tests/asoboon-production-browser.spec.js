@@ -2138,3 +2138,57 @@ test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as 
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots')).not.toContainText('88名');
 });
+
+test('HOME confirms real hidden AirWAIT slots rather than blaming the connection',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0029','0031','0033','0030','0032','0034'].map(waitTypeId=>({waitTypeId,dispFlg:false}))
+  })});
+  if(action!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:['0030','0032','0034'].map(waitTypeId=>({waitTypeId,reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'})),
+   observedDetails:[{detailedWaitType:'《ご待機者専用》',remaining:null}]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ await expect(page.locator('#v38Slots')).not.toContainText('通信状態をご確認');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+});
+
+test('HOME refuses to claim reception ended when one AirWAIT slot remains published',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0029','0031','0033','0030','0032','0034'].map(waitTypeId=>({waitTypeId,dispFlg:waitTypeId==='0031'}))
+  })});
+  if(action!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
+   slots:[{waitTypeId:'0032',reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'}],
+   observedDetails:[]
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('表示できる受付枠はありません');
+ await expect(page.locator('#v38Slots')).not.toContainText('本日の受付枠は終了しました');
+});
+
+test('HOME recovers from an invalid crowd count response by checking all hidden wait types',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0029','0031','0033','0030','0032','0034'].map(waitTypeId=>({waitTypeId,dispFlg:false}))
+  })});
+  if(action!=='crowdRemaining')return route.fallback();
+  return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'AIRWAIT_CROWD_INFO_FAILED_HTTP_200_RC_NONE'})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ await expect(page.locator('#v38Slots')).not.toContainText('通信状態をご確認');
+});
