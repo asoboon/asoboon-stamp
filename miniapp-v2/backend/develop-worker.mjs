@@ -37,6 +37,9 @@ const CROWD_SLOT_KEYS = Object.freeze({
 const CROWD_DETAIL_ALIASES = Object.freeze({
   '0024':Object.freeze(['すぐ入場受付【平日】']),
 });
+// AirWAIT master: wait type 0022 is 《ご待機者専用》, an independent queue,
+// NOT the waiting state of the ordinary admission-round tickets.
+const BOARD_DEDICATED_WAIT_TYPE_ID = '0022';
 const BOARD_SLOT_SPECS = Object.freeze({
   // Monday operates with all four weekday AirWAIT wait types.
   // Preserve the store-wide arrival order while including both WEB groups.
@@ -1233,6 +1236,24 @@ async function getBoardStatus(env) {
     boardRows=await getBoardRows(env,businessDate,businessType);
   }
 
+  // This separate AirWAIT wait type must not be derived from the current slot
+  // or from the state='waiting' rows of any other admission group.
+  // Preserve the store-wide chronological order and all states here; canceled
+  // tickets are suppressed consistently by the browser's visibleRows().
+  const dedicatedRows=boardRows.rows.filter(row=>
+    String(row?.waitTypeId||'')===BOARD_DEDICATED_WAIT_TYPE_ID
+  );
+  const waitingDedicated={
+    waitTypeId:BOARD_DEDICATED_WAIT_TYPE_ID,
+    label:'ご待機者専用',
+    count:dedicatedRows.length,
+    rows:dedicatedRows.map((row,index)=>({
+      number:String(row?.number||''),
+      state:boardReservationState(row),
+      order:index+1,
+    })),
+  };
+
   const slots = specs.map(spec => {
     const target = boardRows.rows.filter(row => (
       boardSlotKey(row,specs) === spec.key &&
@@ -1267,6 +1288,7 @@ async function getBoardStatus(env) {
     cacheSource:String(boardRows.cacheSource||''),
     lastUpdDate:String(boardRows.lastUpdDate||''),
     warning:String(boardRows.warning||''),
+    waitingDedicated,
     slots,
   };
 }
