@@ -15,7 +15,7 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-persistent-queue-v18';
+const BOARD_BUILD_ID='20261102-waiting-panel-v19';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
@@ -138,11 +138,30 @@ function updateCallingBanner(rows=[]){
     sub.textContent='受付した順番に並んでいます';
   }
 }
+function updateWaitingPanel(rows=null){
+  const count=$('waitingCount'),list=$('waitingTickets');
+  if(!count||!list)return;
+  if(!Array.isArray(rows)){
+    count.textContent='—';
+    list.innerHTML='<span class="waiting-empty">受付状況を確認しています</span>';
+    return;
+  }
+  const waiting=visibleRows(rows).filter(row=>String(row?.state||'waiting')==='waiting');
+  count.textContent=waiting.length+'組';
+  if(!waiting.length){
+    list.innerHTML='<span class="waiting-empty">現在、呼出前のお客様はいません</span>';
+    return;
+  }
+  const preview=waiting.slice(0,8).map(row=>'<span class="waiting-ticket">'+esc(row?.number||'—')+'</span>').join('');
+  const rest=waiting.length>8?'<span class="waiting-more">ほか'+(waiting.length-8)+'組（下の一覧）</span>':'';
+  list.innerHTML=preview+rest;
+}
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
   state.rows=visibleRows(rows);
   updateLiveCaption(state.rows);
   updateCallingBanner(state.rows);
+  updateWaitingPanel(state.rows);
   if(!grid||!empty)return;
   if(!state.rows.length){grid.innerHTML='';grid.hidden=true;empty.hidden=false;requestAnimationFrame(layoutGrid);return;}
   empty.hidden=true;grid.hidden=false;
@@ -253,6 +272,7 @@ function renderStaticBoard(context,data){
   state.rows=[];state.lastColumns=0;
   updateLiveCaption();
   updateCallingBanner([]);
+  updateWaitingPanel(null);
   const grid=$('queueGrid'),empty=$('emptyState');
   if(grid){grid.innerHTML='';grid.hidden=true;}
   if(empty)empty.hidden=false;
