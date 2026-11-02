@@ -148,10 +148,10 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261102-waiting-panel-v19');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-waiting-panel-v19'");
+  expect(buildFile.version).toBe('20261102-waiting-full-cards-v20');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-waiting-full-cards-v20'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=41');
+  expect(indexHtml).toContain('board.css?v=42');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
   expect(indexHtml).toContain('board-animations.js?v=38');
@@ -160,7 +160,7 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=41');
+  expect(indexHtml).toContain('board.js?v=42');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -175,7 +175,7 @@ test('waiting reception numbers stay in front of fullscreen effects and calling 
     { number:'A101',state:'waiting',order:1 },
     { number:'A102',state:'calling',order:2 },
   ])]);
-  await expect(page.locator('.queue-number')).toHaveText(['A101','A102']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101','A102']);
   await expect(page.locator('.route-copy strong')).toContainText('A102');
   const layers=await page.evaluate(()=>{
     const board=document.querySelector('.board');
@@ -184,7 +184,7 @@ test('waiting reception numbers stay in front of fullscreen effects and calling 
     board.appendChild(fx);
     const queue=document.querySelector('.queue-shell');
     const z=el=>Number(getComputedStyle(el).zIndex)||0;
-    return {queue:z(queue),fx:z(fx),visible:!document.querySelector('#queueGrid').hidden};
+    return {queue:z(queue.parentElement),fx:z(fx),visible:!document.querySelector('#queueGrid').hidden};
   });
   expect(layers.queue).toBeGreaterThan(layers.fx);
   expect(layers.visible).toBe(true);
@@ -204,11 +204,20 @@ test('dedicated waiting panel is visible and excludes calling, guided and hold t
     {number:'A104',state:'hold',order:4},
     {number:'A105',state:'waiting',order:5},
   ])]);
-  await expect(page.locator('.waiting-dedicated')).toBeVisible();
-  await expect(page.locator('.waiting-dedicated-head strong')).toHaveText('ご待機者専用');
+  await expect(page.locator('.waiting-shell')).toBeVisible();
+  await expect(page.locator('.waiting-shell .queue-caption span')).toHaveText('ご待機者専用');
   await expect(page.locator('#waitingCount')).toHaveText('2組');
-  await expect(page.locator('#waitingTickets .waiting-ticket')).toHaveText(['A101','A105']);
-  await expect(page.locator('.queue-number')).toHaveCount(5);
+  await expect(page.locator('#waitingGrid .queue-number')).toHaveText(['A101','A105']);
+  await expect(page.locator('#waitingGrid .queue-card')).toHaveCount(2);
+  const matchingStyles=await page.evaluate(()=>{
+    const main=document.querySelector('#queueGrid .queue-card.waiting');
+    const dedicated=document.querySelector('#waitingGrid .queue-card.waiting');
+    return {mainColor:getComputedStyle(main).backgroundColor,dedicatedColor:getComputedStyle(dedicated).backgroundColor,
+      sameRail:dedicated.querySelector('.status-rail .status-label')?.textContent==='呼出前'};
+  });
+  expect(matchingStyles.dedicatedColor).toBe(matchingStyles.mainColor);
+  expect(matchingStyles.sameRail).toBe(true);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveCount(5);
   const layer=await page.evaluate(()=>{
     const el=document.createElement('div');el.className='board-fx-overlay-layer';
     document.querySelector('.board').appendChild(el);
@@ -218,17 +227,33 @@ test('dedicated waiting panel is visible and excludes calling, guided and hold t
   expect(layer.route).toBeGreaterThan(layer.fx);
   server.next();await server.refresh();
   await expect(page.locator('#waitingCount')).toHaveText('1組');
-  await expect(page.locator('#waitingTickets .waiting-ticket')).toHaveText(['A105']);
-  await expect(page.locator('.waiting-dedicated')).toBeVisible();
+  await expect(page.locator('#waitingGrid .queue-number')).toHaveText(['A105']);
+  await expect(page.locator('.waiting-shell')).toBeVisible();
 });
 
-test('waiting-only panel previews eight numbers while full list preserves remaining tickets', async ({page}) => {
+test('waiting-only panel renders all numbers as full-sized ticket cards with no eight-ticket cap', async ({page}) => {
   const rows=Array.from({length:12},(_,i)=>({number:'W'+String(i+1).padStart(3,'0'),state:'waiting',order:i+1}));
   await installBoard(page,[payload(rows)]);
   await expect(page.locator('#waitingCount')).toHaveText('12組');
-  await expect(page.locator('#waitingTickets .waiting-ticket')).toHaveCount(8);
-  await expect(page.locator('#waitingTickets .waiting-more')).toContainText('ほか4組');
+  await expect(page.locator('#waitingGrid .queue-number')).toHaveCount(12);
   await expect(page.locator('#queueGrid .queue-number')).toHaveCount(12);
+});
+
+test('dedicated waiting panel fits 120 waiting numbers with the same auto-layout and remains separate',async({page})=>{
+  const rows=Array.from({length:120},(_,i)=>({number:String(i+1).padStart(4,'0'),state:'waiting',order:i+1}));
+  await installBoard(page,[payload(rows)]);
+  await expect(page.locator('#waitingGrid .queue-card')).toHaveCount(120);
+  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(120);
+  await expect(page.locator('#waitingCount')).toHaveText('120組');
+  const layout=await page.evaluate(()=>{
+    const g=document.querySelector('#waitingGrid'),a=g.getBoundingClientRect();
+    const cards=[...g.querySelectorAll('.queue-card')];
+    const overflowing=cards.some(c=>{const b=c.getBoundingClientRect();return b.left<a.left-1||b.right>a.right+1||b.top<a.top-1||b.bottom>a.bottom+1});
+    return {w:a.width,h:a.height,columns:getComputedStyle(g).gridTemplateColumns,overflowing};
+  });
+  expect(layout.w).toBeGreaterThan(0);
+  expect(layout.h).toBeGreaterThan(0);
+  expect(layout.overflowing).toBe(false);
 });
 
 test('current SPECIAL implementation contains no onomatopoeia and legacy cached words are hard-hidden', async ({ page }) => {
@@ -268,7 +293,7 @@ test('CALL keeps the fullscreen signature while Level B uses local generated lay
   await page.evaluate(() => {
     window.__signatureProbe=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
       number:'5991',fromStatus:'waiting',toStatus:'calling',kind:'call',
-      element:document.querySelector('.queue-card')
+      element:document.querySelector('#queueGrid .queue-card')
     });
   });
   await expect.poll(async()=>page.evaluate(()=>Boolean(document.querySelector('.fx-status-signature.call'))),{timeout:2000}).toBe(true);
@@ -338,7 +363,7 @@ test('initial board snapshot never fires status animations', async ({ page }) =>
   ]);
   const h = await installBoard(page, [initial]);
 
-  await expect(page.locator('.queue-card')).toHaveCount(4);
+  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(4);
   const d = await diagnostics(page);
   expect(d.played).toBe(0);
   expect(d.baselines).toBe(1);
@@ -356,7 +381,7 @@ test('board caption stays simple while calling state is expressed by cards and m
   h.next();
   await h.refresh();
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
-  await expect(page.locator('.queue-card')).toHaveCount(0);
+  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(0);
 
   h.next();
   await h.refresh();
@@ -374,13 +399,13 @@ test('temporary API failure preserves readable data and automatically recovers',
 
   h.next();
   await h.refresh();
-  await expect(page.locator('.queue-number')).toHaveText(['2581']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['2581']);
   await expect(page.locator('#connection')).toContainText('更新待機中');
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
 
   h.next();
   await h.refresh();
-  await expect(page.locator('.queue-number')).toHaveText(['2581','2582']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['2581','2582']);
   await expect(page.locator('#connection')).toContainText('10秒ごとに自動更新');
   await expect(page.locator('#liveCaption')).toHaveText('呼出状況');
   expect(h.pageErrors).toEqual([]);
@@ -455,7 +480,7 @@ test('stale board payload remains visible with a clear update-waiting warning', 
     cacheSource:'snapshot-stale',
   };
   await installBoard(page, [stale]);
-  await expect(page.locator('.queue-number')).toHaveText(['2591']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['2591']);
   await expect(page.locator('#connection')).toContainText('前回の状況を表示中');
   await expect(page.locator('#emptyTitle')).not.toHaveText('呼出状況を確認しています');
 });
@@ -466,7 +491,7 @@ test('first-load API failure restores same-day browser snapshot instead of freez
     { number:'2593', state:'calling', order:2 },
   ]);
   await installBoard(page, [{ ok:false, error:'AIRWAIT_BOARD_TIMEOUT' }], { cachedPayload:cached });
-  await expect(page.locator('.queue-number')).toHaveText(['2592','2593']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['2592','2593']);
   await expect(page.locator('#connection')).toContainText('前回の状況を表示中');
   await expect(page.locator('#emptyTitle')).not.toHaveText('呼出状況を確認しています');
   const config=await page.evaluate(() => ({
@@ -506,7 +531,7 @@ test('240 receptions fit a 1080x1920 portrait board without scrolling or overlap
     order:i+1,
   }));
   await installBoard(page, [payload(rows)]);
-  await expect(page.locator('.queue-card')).toHaveCount(240);
+  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(240);
   await expect(page.locator('#boardDiagnostics')).toBeHidden();
   const layout = await page.evaluate(() => {
     const grid=document.getElementById('queueGrid'),box=grid.getBoundingClientRect();
@@ -577,7 +602,7 @@ test('call, guided, hold and cancel transitions fire only for the changed number
     ['2504', 'hold'],
     ['2503', 'cancel'],
   ]);
-  await expect(page.locator('.queue-number')).toHaveText(['2501', '2502', '2504']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['2501', '2502', '2504']);
   expect(h.pageErrors).toEqual([]);
 });
 
@@ -601,10 +626,10 @@ test('multiple changes update data immediately while effects are safely queued',
   await h.refresh();
 
   // The current data is rendered before the entertainment layer finishes.
-  await expect(page.locator('.queue-number')).toHaveText(['3001', '3002', '3004']);
-  await expect(page.locator('.queue-card').nth(0)).toHaveClass(/calling/);
-  await expect(page.locator('.queue-card').nth(1)).toHaveClass(/hold/);
-  await expect(page.locator('.queue-card').nth(2)).toHaveClass(/done/);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['3001', '3002', '3004']);
+  await expect(page.locator('#queueGrid .queue-card').nth(0)).toHaveClass(/calling/);
+  await expect(page.locator('#queueGrid .queue-card').nth(1)).toHaveClass(/hold/);
+  await expect(page.locator('#queueGrid .queue-card').nth(2)).toHaveClass(/done/);
 
   // CALL consumes the dominant budget. CANCEL still fits; HOLD would cross 9s,
   // so HOLD and every remaining lower-priority Level B effect are intentionally skipped.
@@ -648,7 +673,7 @@ test('reduced motion keeps transitions readable and disables screen shake', asyn
   expect(d.reduced).toBe(true);
   expect(d.effectiveLevel).toBe(1);
   expect(d.screenShakes).toBe(0);
-  await expect(page.locator('.queue-card.calling .queue-number')).toHaveText('5101');
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('5101');
   expect(h.pageErrors).toEqual([]);
 });
 
@@ -718,7 +743,7 @@ test('animation controls support OFF through level 3 and rare effects toggle', a
   });
   h.next();
   await h.refresh();
-  await expect(page.locator('.queue-card.calling')).toHaveCount(1);
+  await expect(page.locator('#queueGrid .queue-card.calling')).toHaveCount(1);
   expect((await diagnostics(page)).played).toBe(0);
 
   const values = await page.evaluate(() => {
@@ -1128,7 +1153,7 @@ test('same-refresh CALLs render one fullscreen ticket at a time in reception ord
   await h.refresh();
 
   // Data updates immediately even though the fullscreen presentation is serialized.
-  await expect(page.locator('.queue-card.calling')).toHaveCount(3);
+  await expect(page.locator('#queueGrid .queue-card.calling')).toHaveCount(3);
   await expect.poll(async()=>page.evaluate(()=>document.querySelectorAll('.fx-special-number.call .fx-special-number-value').length),{timeout:3000}).toBe(1);
 
   await expect.poll(async()=>page.evaluate(
@@ -1227,7 +1252,7 @@ test('observed queued CALL survives a later done/hold/canceled payload until it 
 
   // Simulate the next 5-second poll arriving while the first CALL is still on screen.
   h.next();await h.refresh();
-  await expect(page.locator('.queue-card.done .queue-number')).toHaveText('8402');
+  await expect(page.locator('#queueGrid .queue-card.done .queue-number')).toHaveText('8402');
 
   await expect.poll(async()=>page.evaluate(
     ()=>window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics().history.filter(x=>x.kind==='call').length
@@ -1282,8 +1307,8 @@ test('mixed batch closes Level B playback after the first budget overflow', asyn
   await waitForFxIdle(page);
   const state=await page.evaluate(()=>({
     diag:window.ASOBOON_BOARD_ANIMATIONS.getDiagnostics(),
-    hold:document.querySelector('.queue-card.hold .queue-number')?.textContent||'',
-    done:document.querySelector('.queue-card.done .queue-number')?.textContent||'',
+    hold:document.querySelector('#queueGrid .queue-card.hold .queue-number')?.textContent||'',
+    done:document.querySelector('#queueGrid .queue-card.done .queue-number')?.textContent||'',
   }));
   expect(state.diag.history.map(x=>x.kind)).toEqual(['call','cancel']);
   expect(state.diag.skippedLevelB).toBeGreaterThanOrEqual(2);
@@ -1306,7 +1331,7 @@ test('new CALL aborts a running Level B effect and the interrupted Level B never
   ]);
   await page.evaluate(()=>{
     window.ASOBOON_BOARD_EFFECTS.setSlowdown(.7,{persistValue:false});
-    const card=document.querySelector('.queue-card.hold');
+    const card=document.querySelector('#queueGrid .queue-card.hold');
     window.__runningLevelB=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
       number:'8301',kind:'hold',fromStatus:'waiting',toStatus:'hold',element:card
     });
@@ -1321,7 +1346,7 @@ test('new CALL aborts a running Level B effect and the interrupted Level B never
   expect(d.interruptedLevelB).toBeGreaterThanOrEqual(1);
   expect(d.history.filter(x=>x.kind==='hold')).toHaveLength(1);
   expect(d.history.filter(x=>x.kind==='call')).toHaveLength(1);
-  await expect(page.locator('.queue-card.calling .queue-number')).toHaveText('8302');
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText('8302');
 });
 
 test('CALL wins priority when the same refresh also contains earlier Level B transitions', async ({ page }) => {
@@ -1394,7 +1419,7 @@ test('new reception data suppresses idle events even without a status transition
   h.next();
   await h.refresh();
 
-  await expect(page.locator('.queue-number')).toHaveText(['7301','7302']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['7301','7302']);
   expect((await idleDiagnostics(page)).played).toBe(0);
 });
 
@@ -1442,7 +1467,7 @@ test('idle reduced-motion mode caps animation level and keeps real numbers untou
   const d = await idleDiagnostics(page);
   expect(d.reduced).toBe(true);
   expect(d.effectiveLevel).toBe(1);
-  await expect(page.locator('.queue-number')).toHaveText(['7601','7602']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['7601','7602']);
 });
 
 
