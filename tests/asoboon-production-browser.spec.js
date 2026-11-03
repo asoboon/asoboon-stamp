@@ -948,7 +948,7 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
- await card.click();
+ await card.locator('.v38-crowd-channel--onsite').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
 test('HOME shows manual refresh cooldown during 429 backoff instead of silently ignoring taps',async({page})=>{
@@ -1099,7 +1099,7 @@ test('Onsite-only verified pool remains visible while unsafe online time-key mat
   await expect(card.locator('.v38-crowd-channel--web')).toContainText('確認中');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('75名');
   await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
-  await card.click();
+  await card.locator('.v38-crowd-channel--onsite').click();
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
 
@@ -1890,7 +1890,7 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('281名');
  await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
- await card.click();
+ await card.locator('.v38-crowd-channel--onsite').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
 
