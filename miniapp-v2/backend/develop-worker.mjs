@@ -1236,11 +1236,15 @@ async function getBoardStatus(env) {
     boardRows=await getBoardRows(env,businessDate,businessType);
   }
 
+  // Retain store-wide arrival order for a unified current-round + 0022 grid.
+  // The existing per-group order is unchanged for backward compatibility.
+  const storeRows=boardRows.rows.map((row,index)=>({...row,sourceOrder:index+1}));
+
   // This separate AirWAIT wait type must not be derived from the current slot
   // or from the state='waiting' rows of any other admission group.
   // Preserve the store-wide chronological order and all states here; canceled
   // tickets are suppressed consistently by the browser's visibleRows().
-  const dedicatedRows=boardRows.rows.filter(row=>
+  const dedicatedRows=storeRows.filter(row=>
     String(row?.waitTypeId||'')===BOARD_DEDICATED_WAIT_TYPE_ID
   );
   const waitingDedicated={
@@ -1251,11 +1255,12 @@ async function getBoardStatus(env) {
       number:String(row?.number||''),
       state:boardReservationState(row),
       order:index+1,
+      sourceOrder:Number(row?.sourceOrder||0),
     })),
   };
 
   const slots = specs.map(spec => {
-    const target = boardRows.rows.filter(row => (
+    const target = storeRows.filter(row => (
       boardSlotKey(row,specs) === spec.key &&
       (boardType!=='月曜'||mondayWaitTypeVisible(String(row?.waitTypeId||'')))
     ));
@@ -1267,6 +1272,7 @@ async function getBoardStatus(env) {
         number:String(row?.number || ''),
         state:boardReservationState(row),
         order:index + 1,
+        sourceOrder:Number(row?.sourceOrder||0),
         ...(boardType==='月曜'?{waitTypeId:String(row?.waitTypeId||'')}:{}),
       })),
     };
