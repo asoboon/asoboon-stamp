@@ -990,6 +990,7 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
     await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('LINE受付');
     await expect(card.locator('.v38-crowd-channel--onsite')).toHaveAttribute('data-v7-view','reception');
+    await expect(card.locator('.v38-crowd-channel--onsite')).toHaveAttribute('data-v7-slot',time);
     await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
     await expect(card.locator('[role="progressbar"]')).toHaveCount(0); // no fabricated occupancy percentage
   }

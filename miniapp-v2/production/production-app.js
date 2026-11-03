@@ -783,7 +783,7 @@ return `<div class="v38-crowd-card crowd-unknown" role="group" aria-label="${esc
 <div class="v38-crowd-head"><time>${esc(label)}</time></div>
 <div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数">
 <div class="v38-crowd-remaining-title">受付残り</div>
-<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web',{time:label,webUrl})}${remainingMarkup('LINE受付',slot.onsite,'onsite',{time:label})}</div>
+<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl})}${remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time})}</div>
 </div>
 <p class="v38-crowd-tap-hint">受付したい方法をタップしてください</p>
 </div>`;
