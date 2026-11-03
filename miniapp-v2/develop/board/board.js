@@ -15,10 +15,10 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261102-airwait-0022-v21';
+const BOARD_BUILD_ID='20261103-merged-live-queue-v22';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
-const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,waitingLastColumns:0,waitingRows:[],lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
+const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
 const BOARD_OPEN_MINUTE=8*60;
 const CLOSE_MINUTES=Object.freeze({'平日':17*60,'月曜':17*60,'平日特定日':17*60,'土日祝日':18*60});
 
@@ -148,27 +148,16 @@ function renderQueueCards(rows){
       '</div>';
   }).join('');
 }
-function updateWaitingPanel(rows=null){
-  const count=$('waitingCount'),grid=$('waitingGrid'),empty=$('waitingEmpty'),label=$('waitingEmptyTitle');
-  if(!count||!grid||!empty)return;
-  if(!Array.isArray(rows)){
-    state.waitingRows=[];state.waitingLastColumns=0;
-    count.textContent='—';
-    grid.innerHTML='';grid.hidden=true;empty.hidden=false;
-    if(label)label.textContent='受付状況を確認しています';
-    return;
-  }
-  // AirWAIT 0022 is its own queue. Show every non-canceled ticket in that queue,
-  // regardless of whether it is waiting, calling, guided or on hold.
-  state.waitingRows=visibleRows(rows);
-  count.textContent=state.waitingRows.length+'組';
-  if(!state.waitingRows.length){
-    grid.innerHTML='';grid.hidden=true;empty.hidden=false;
-    if(label)label.textContent='ご待機者専用の受付番号はありません';
-    return;
-  }
-  empty.hidden=true;grid.hidden=false;
-  grid.innerHTML=renderQueueCards(state.waitingRows);
+function combineDisplayRows(slotRows=[],dedicatedRows=[]){
+  // Both lists are derived from the same store-wide AirWAIT reservation
+  // snapshot. sourceOrder preserves reception order across the two wait types.
+  return [...(Array.isArray(slotRows)?slotRows:[]),
+          ...(Array.isArray(dedicatedRows)?dedicatedRows:[])]
+    .sort((a,b)=>{
+      const x=Number(a?.sourceOrder),y=Number(b?.sourceOrder);
+      if(Number.isSafeInteger(x)&&x>0&&Number.isSafeInteger(y)&&y>0)return x-y;
+      return 0;
+    });
 }
 function renderRows(rows){
   const grid=$('queueGrid'),empty=$('emptyState');
@@ -219,10 +208,6 @@ function chooseColumns(count,w,h,gap,cacheKey='lastColumns'){
   return best;
 }
 function layoutGrid(){
-  layoutMainGrid();
-  layoutWaitingGrid();
-}
-function layoutMainGrid(){
   const grid=$('queueGrid');if(!grid||grid.hidden||!state.rows.length)return;
   const box=grid.getBoundingClientRect(),count=state.rows.length;
   if(box.width<1||box.height<1)return;
@@ -243,20 +228,6 @@ function layoutMainGrid(){
     card.classList.toggle('current-band',dist===0);
     card.classList.toggle('near-band',dist===1);
   });
-}
-function layoutWaitingGrid(){
-  const grid=$('waitingGrid');if(!grid||grid.hidden||!state.waitingRows.length)return;
-  const box=grid.getBoundingClientRect(),count=state.waitingRows.length;
-  if(box.width<1||box.height<1)return;
-  const gap=Math.max(4,Math.min(10,Math.round(Math.min(box.width,box.height)*.0055)));
-  const m=chooseColumns(count,box.width,box.height,gap,'waitingLastColumns');
-  const font=Math.max(12,Math.min(58,m.font));
-  grid.style.setProperty('--grid-gap',gap+'px');
-  grid.style.setProperty('--number-size',font+'px');
-  grid.style.setProperty('--state-size',Math.max(8,Math.min(15,font*.29))+'px');
-  grid.style.gridTemplateColumns='repeat('+m.cols+', minmax(0, 1fr))';
-  grid.style.gridTemplateRows='repeat('+m.rows+', minmax(0, 1fr))';
-  grid.classList.toggle('ultra-compact',m.cellH<42||m.cellW<68);
 }
 function setConnection(ok,text){
   const el=$('connection');if(!el)return;
@@ -293,10 +264,9 @@ function updateDiagnostics(context,data){
 function renderStaticBoard(context,data){
   SHOW?.suspend(context?.phase||'inactive');
   if(DIRECTOR?.suspend)DIRECTOR.suspend(context?.phase||'inactive');else IDLE?.cancelIdleEvent?.('board-inactive');
-  state.rows=[];state.lastColumns=0;state.waitingLastColumns=0;
+  state.rows=[];state.lastColumns=0;
   updateLiveCaption();
   updateCallingBanner([]);
-  updateWaitingPanel(null);
   const grid=$('queueGrid'),empty=$('emptyState');
   if(grid){grid.innerHTML='';grid.hidden=true;}
   if(empty)empty.hidden=false;
@@ -351,7 +321,11 @@ function renderPayload(data){
   const scopedRows=context.businessType==='月曜'
     ?(slot?.rows||[]).filter(row=>mondayWaitTypeVisible(String(row?.waitTypeId||''),now))
     :(slot?.rows||[]);
-  const allRows=normalizeRows(scopedRows);
+  // One board: the active timed admission round plus the independent
+  // AirWAIT 0022 queue, which does not switch at 12:00/14:30.
+  const dedicatedAvailable=Array.isArray(data?.waitingDedicated?.rows);
+  const allRows=normalizeRows(combineDisplayRows(scopedRows,
+    dedicatedAvailable?data.waitingDedicated.rows:[]));
   const grid=$('queueGrid');
   const previousFrame=FX?.capture?.(grid)||new Map();
   const rows=visibleRows(allRows);
@@ -365,16 +339,6 @@ function renderPayload(data){
   // Data/render updates are immediate. The animation module only visualizes
   // state transitions after the fresh DOM is already on screen.
   renderRows(allRows);
-  // Do not synthesize the dedicated queue from the ordinary slot. The Worker
-  // returns independent AirWAIT waitTypeId=0022 rows from the same snapshot.
-  // If older backend payloads omit the group, keep an 'unverified' message,
-  // rather than asserting an empty queue.
-  if(Array.isArray(data?.waitingDedicated?.rows)){
-    updateWaitingPanel(normalizeRows(data.waitingDedicated.rows));
-  }else{
-    updateWaitingPanel(null);
-  }
-  requestAnimationFrame(layoutGrid);
   const observation=FX?.observe?.({
     slotKey:context.businessType+'::'+context.slotKey,
     rows:allRows,
@@ -395,7 +359,7 @@ function renderPayload(data){
   }else{
     saveLastGoodPayload(data);
     state.refreshMs=refreshIntervalMs(new Date(),context.businessType);
-    setConnection(true,(state.refreshMs===FAST_REFRESH_MS?'5秒':'10秒')+'ごとに自動更新');
+    setConnection(dedicatedAvailable,(dedicatedAvailable?'':'ご待機者専用の取得待機中・')+(state.refreshMs===FAST_REFRESH_MS?'5秒':'10秒')+'ごとに自動更新');
   }
 }
 async function fetchBoard(){
@@ -486,6 +450,7 @@ window.ASOBOON_CALL_BOARD_TEST=Object.freeze({
   preferredColumns,
   visibleRows,
   normalizeRows,
+  combineDisplayRows,
   updateLiveCaption,
   canonicalBusinessType,
   refreshIntervalMs,

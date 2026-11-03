@@ -154,10 +154,10 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261102-airwait-0022-v21');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261102-airwait-0022-v21'");
+  expect(buildFile.version).toBe('20261103-merged-live-queue-v22');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261103-merged-live-queue-v22'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=43');
+  expect(indexHtml).toContain('board.css?v=44');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
   expect(indexHtml).toContain('board-animations.js?v=38');
@@ -166,7 +166,7 @@ test('board build marker matches runtime and stale builds are detected without r
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=43');
+  expect(indexHtml).toContain('board.js?v=44');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
@@ -190,84 +190,91 @@ test('waiting reception numbers stay in front of fullscreen effects and calling 
     board.appendChild(fx);
     const queue=document.querySelector('.queue-shell');
     const z=el=>Number(getComputedStyle(el).zIndex)||0;
-    return {queue:z(queue.parentElement),fx:z(fx),visible:!document.querySelector('#queueGrid').hidden};
+    return {queue:z(queue),fx:z(fx),visible:!document.querySelector('#queueGrid').hidden};
   });
   expect(layers.queue).toBeGreaterThan(layers.fx);
   expect(layers.visible).toBe(true);
 });
 
-test('AirWAIT dedicated 0022 is independent of ordinary slot state and shows all non-canceled statuses',async({page})=>{
-  const current=[{number:'A101',state:'waiting',order:1},{number:'A102',state:'calling',order:2}];
+test('current timed admission round and AirWAIT 0022 share one full-width board in store-wide order',async({page})=>{
+  const current=[
+    {number:'A101',state:'waiting',order:1,sourceOrder:1},
+    {number:'A102',state:'calling',order:2,sourceOrder:4},
+  ];
   const dedicated=[
-    {number:'G201',state:'waiting',order:1},
-    {number:'G202',state:'calling',order:2},
-    {number:'G203',state:'done',order:3},
-    {number:'G204',state:'hold',order:4},
-    {number:'G205',state:'canceled',order:5},
+    {number:'G201',state:'waiting',order:1,sourceOrder:2},
+    {number:'G202',state:'calling',order:2,sourceOrder:3},
+    {number:'G203',state:'done',order:3,sourceOrder:5},
+    {number:'G204',state:'hold',order:4,sourceOrder:6},
+    {number:'G205',state:'canceled',order:5,sourceOrder:7},
   ];
   const server=await installBoard(page,[
     payload(current,{waitingDedicatedRows:dedicated}),
-    payload(current,{waitingDedicatedRows:[{number:'G202',state:'done',order:1},{number:'G206',state:'waiting',order:2}]}),
+    payload(current,{waitingDedicatedRows:[
+      {number:'G201',state:'done',order:1,sourceOrder:2},
+      {number:'G206',state:'waiting',order:2,sourceOrder:3},
+    ]}),
   ]);
-  await expect(page.locator('.waiting-shell')).toBeVisible();
-  await expect(page.locator('.waiting-shell .queue-caption span')).toHaveText('ご待機者専用');
-  await expect(page.locator('#waitingCount')).toHaveText('4組');
-  await expect(page.locator('#waitingGrid .queue-number')).toHaveText(['G201','G202','G203','G204']);
-  await expect(page.locator('#waitingGrid .queue-card.calling .queue-number')).toHaveText('G202');
-  await expect(page.locator('#waitingGrid .queue-card.done .queue-number')).toHaveText('G203');
-  await expect(page.locator('#waitingGrid .queue-card.hold .queue-number')).toHaveText('G204');
-  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101','A102']);
-  const matching=await page.evaluate(()=>{
-    const main=document.querySelector('#queueGrid .queue-card.waiting');
-    const dedicated=document.querySelector('#waitingGrid .queue-card.waiting');
-    return {main:getComputedStyle(main).backgroundColor,dedicated:getComputedStyle(dedicated).backgroundColor};
-  });
-  expect(matching.dedicated).toBe(matching.main);
+  await expect(page.locator('.queue-shell')).toHaveCount(1);
+  await expect(page.locator('#waitingGrid')).toHaveCount(0);
+  await expect(page.locator('.queue-caption span')).toContainText('ご待機者専用を含む');
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101','G201','G202','A102','G203','G204']);
+  await expect(page.locator('#queueGrid .queue-card.calling .queue-number')).toHaveText(['G202','A102']);
+  await expect(page.locator('#queueGrid .queue-card.done .queue-number')).toHaveText('G203');
+  await expect(page.locator('#queueGrid .queue-card.hold .queue-number')).toHaveText('G204');
   const layer=await page.evaluate(()=>{
     const fx=document.createElement('div');fx.className='board-fx-overlay-layer';
     document.querySelector('.board').appendChild(fx);
     const z=el=>Number(getComputedStyle(el).zIndex)||0;
-    return {queue:z(document.querySelector('.queue-panels')),fx:z(fx)};
+    return {queue:z(document.querySelector('.queue-shell')),fx:z(fx)};
   });
   expect(layer.queue).toBeGreaterThan(layer.fx);
   server.next();await server.refresh();
-  await expect(page.locator('#waitingCount')).toHaveText('2組');
-  await expect(page.locator('#waitingGrid .queue-number')).toHaveText(['G202','G206']);
-  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101','A102']);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101','G201','G206','A102']);
 });
 
-test('AirWAIT 0022 displays every dedicated ticket without the old eight-ticket cap',async({page})=>{
-  const special=Array.from({length:12},(_,i)=>({number:'G'+String(i+1).padStart(3,'0'),state:'waiting',order:i+1}));
-  await installBoard(page,[payload([{number:'A101',state:'calling',order:1}],{waitingDedicatedRows:special})]);
-  await expect(page.locator('#waitingCount')).toHaveText('12組');
-  await expect(page.locator('#waitingGrid .queue-number')).toHaveCount(12);
-  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101']);
-});
-
-test('independent 0022 panel fits 120 numbers, main queue stays separate',async({page})=>{
-  const special=Array.from({length:120},(_,i)=>({number:'G'+String(i+1).padStart(4,'0'),state:'waiting',order:i+1}));
-  await installBoard(page,[payload([{number:'A101',state:'waiting',order:1}],{waitingDedicatedRows:special})]);
-  await expect(page.locator('#waitingGrid .queue-card')).toHaveCount(120);
-  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(1);
-  await expect(page.locator('#waitingCount')).toHaveText('120組');
+test('merged 0022 receipts have no eight-ticket limit and use the full width',async({page})=>{
+  const special=Array.from({length:120},(_,i)=>({
+    number:'G'+String(i+1).padStart(4,'0'),state:'waiting',order:i+1,sourceOrder:i+2
+  }));
+  await installBoard(page,[payload([{number:'A101',state:'calling',order:1,sourceOrder:1}],{waitingDedicatedRows:special})]);
+  await expect(page.locator('#queueGrid .queue-card')).toHaveCount(121);
+  await expect(page.locator('#queueGrid .queue-number').first()).toHaveText('A101');
+  await expect(page.locator('#queueGrid .queue-number').last()).toHaveText('G0120');
   const layout=await page.evaluate(()=>{
-    const g=document.querySelector('#waitingGrid'),a=g.getBoundingClientRect();
-    const cards=[...g.querySelectorAll('.queue-card')];
-    const overflowing=cards.some(c=>{const b=c.getBoundingClientRect();return b.left<a.left-1||b.right>a.right+1||b.top<a.top-1||b.bottom>a.bottom+1});
-    return {w:a.width,h:a.height,overflowing};
+    const grid=document.getElementById('queueGrid'),rect=grid.getBoundingClientRect();
+    const cards=[...grid.querySelectorAll('.queue-card')];
+    return{
+      gridWidth:rect.width,
+      shellWidth:document.querySelector('.queue-shell').getBoundingClientRect().width,
+      overflowing:cards.some(card=>{const b=card.getBoundingClientRect();return b.left<rect.left-1||b.right>rect.right+1||b.top<rect.top-1||b.bottom>rect.bottom+1})
+    };
   });
-  expect(layout.w).toBeGreaterThan(0);
-  expect(layout.h).toBeGreaterThan(0);
+  expect(layout.gridWidth).toBeGreaterThan(layout.shellWidth*.8);
   expect(layout.overflowing).toBe(false);
 });
 
-test('missing independent 0022 source reports unverified instead of empty',async({page})=>{
-  const response=payload([{number:'A101',state:'waiting',order:1}]);
-  delete response.waitingDedicated;
-  await installBoard(page,[response]);
-  await expect(page.locator('#waitingCount')).toHaveText('—');
-  await expect(page.locator('#waitingEmptyTitle')).toHaveText('受付状況を確認しています');
-  await expect(page.locator('#waitingGrid .queue-number')).toHaveCount(0);
+for(const [slot,fixedIso] of [
+  ['10:00','2026-09-19T00:30:00.000Z'],
+  ['12:30','2026-09-19T03:40:00.000Z'],
+  ['15:00','2026-09-19T06:30:00.000Z']
+]){
+  test('timed '+slot+' automatically selects that slot while always retaining 0022',async({page})=>{
+    const daily=[{number:'T'+slot.replace(':',''),state:'waiting',order:1,sourceOrder:2}];
+    const special=[{number:'G8888',state:'calling',order:1,sourceOrder:1}];
+    await installBoard(page,[payload(daily,{activeKey:slot,waitingDedicatedRows:special})],{fixedIso});
+    await expect(page.locator('#slotLabel')).toHaveText(slot);
+    await expect(page.locator('#queueGrid .queue-number')).toHaveText(['G8888',daily[0].number]);
+  });
+}
+
+test('missing independent 0022 feed warns without silently claiming there are no special tickets',async({page})=>{
+  const result=payload([{number:'A101',state:'waiting',order:1}]);
+  delete result.waitingDedicated;
+  await installBoard(page,[result]);
+  await expect(page.locator('#queueGrid .queue-number')).toHaveText(['A101']);
+  await expect(page.locator('#connection')).toContainText('ご待機者専用の取得待機中');
+  await expect(page.locator('#waitingGrid')).toHaveCount(0);
 });
 
 test('current SPECIAL implementation contains no onomatopoeia and legacy cached words are hard-hidden', async ({ page }) => {

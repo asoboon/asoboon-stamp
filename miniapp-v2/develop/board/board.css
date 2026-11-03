@@ -141,27 +141,8 @@ body{
 .route-copy strong{font-size:13px;line-height:1;font-weight:1000;letter-spacing:.16em;color:var(--asoboon-orange)}
 .route-copy span{margin-top:5px;color:#d6dfe1;font-size:14px;font-weight:850}
 
-/* Two equally important boards use the same queue-card design and the
-   same auto-fit logic; neither hides reception numbers during animations. */
-.queue-panels{
-  position:relative;
-  z-index:100;
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-  min-height:0;
-  min-width:0;
-}
-.queue-panels > .queue-shell{
-  min-height:0;
-  min-width:0;
-}
-.waiting-shell{border-color:rgba(255,212,77,.63);background:linear-gradient(180deg,rgba(255,212,77,.075),rgba(255,255,255,.018))}
-.waiting-shell .queue-caption span{color:#ffe58d;font-size:clamp(13px,1.5vw,19px)}
-.waiting-shell .queue-caption strong{color:#fff}
-@media(orientation:portrait){
-  .queue-panels{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:8px}
-}
+/* A single full-size board displays the current timed round plus the
+   dedicated 0022 queue. Keep the original card sizing and effect layering. */
 .road{
   min-width:0;
   display:flex;
@@ -703,7 +684,7 @@ body{
    layer, including the fullscreen CALL signature. Effects run behind the list. */
 .board > .hero,
 .board > .route-strip,
-.board > .queue-panels,
+.board > .queue-shell,
 .board > .board-footer{
   position:relative;
   z-index:100;

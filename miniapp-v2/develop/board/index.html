@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>ASOBooN 呼出状況</title>
-  <link rel="stylesheet" href="./board.css?v=43">
+  <link rel="stylesheet" href="./board.css?v=44">
 </head>
 <body>
   <main class="board" aria-label="ASOBooN 呼出状況掲示板">
@@ -47,26 +47,15 @@
       </div>
     </section>
 
-    <div class="queue-panels" aria-label="受付番号の掲示">
-      <section class="queue-shell" aria-label="受付番号一覧">
-        <div class="queue-caption"><span>受付番号</span><strong id="liveCaption">呼出状況</strong></div>
-        <div id="queueGrid" class="queue-grid"></div>
-        <div id="emptyState" class="empty-state" hidden>
-          <div class="empty-icon">↗</div>
-          <strong id="emptyTitle">ただいま準備中</strong>
-          <p id="emptyText">受付が入ると、ここに番号が並びます。</p>
-        </div>
-      </section>
-      <section class="queue-shell waiting-shell" aria-label="ご待機者専用の受付番号一覧">
-        <div class="queue-caption"><span>ご待機者専用</span><strong id="waitingCount">—</strong></div>
-        <div id="waitingGrid" class="queue-grid"></div>
-        <div id="waitingEmpty" class="empty-state" hidden>
-          <div class="empty-icon">•</div>
-          <strong id="waitingEmptyTitle">受付状況を確認しています</strong>
-          <p>《ご待機者専用》で受付した番号を、すべてこちらに表示します。</p>
-        </div>
-      </section>
-    </div>
+    <section class="queue-shell" aria-label="現在の回とご待機者専用を合わせた受付番号一覧">
+      <div class="queue-caption"><span>受付番号（ご待機者専用を含む）</span><strong id="liveCaption">呼出状況</strong></div>
+      <div id="queueGrid" class="queue-grid"></div>
+      <div id="emptyState" class="empty-state" hidden>
+        <div class="empty-icon">↗</div>
+        <strong id="emptyTitle">ただいま準備中</strong>
+        <p id="emptyText">受付が入ると、ここに番号が並びます。</p>
+      </div>
+    </section>
 
     <footer class="board-footer">
       <div id="connection" class="connection"><span class="live-dot"></span>接続を確認しています</div>
@@ -87,6 +76,6 @@
   <script src="./board-idle-events.js?v=18"></script>
   <script src="./board-entertainment-director.js?v=19"></script>
   <script src="./board-show.js?v=1"></script>
-  <script src="./board.js?v=43"></script>
+  <script src="./board.js?v=44"></script>
 </body>
 </html>
