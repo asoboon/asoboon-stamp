@@ -28,6 +28,7 @@ function prefetchCrowd(){
  if(earlyCrowd||!E.backendUrl||document.hidden||currentView()!=='home')return;
  const date=D.operationalDate?.(),hour=nowJst().minutes;
  if(!date||hour<420||hour>1085||new Date(date+'T00:00:00Z').getUTCDay()===2)return;
+ const cached=readCrowdCache();if(cached?.verifiedFresh&&cached.operationalDate===date&&Date.now()-cached.savedAt<30000)return;
  const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
  const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
  const job=fetch(url,{cache:'no-store',signal:ctrl.signal}).then(async response=>({response,data:await response.json()})).catch(error=>({error})).finally(()=>clearTimeout(timeout));

@@ -42,6 +42,7 @@ test('Cold HOME starts one safe read in parallel with business-day lookup and re
  assert.match(home,/const job=fetch\(url,\{cache:'no-store',signal:ctrl\.signal\}\)/);
  assert.match(home,/early\?\.date===day\?\.operationalDate&&Date\.now\(\)-early\.at<90000/);
  assert.match(home,/if\(!manual&&early/);
+ assert.match(home,/const cached=readCrowdCache\(\);if\(cached\?\.verifiedFresh/);
  assert.match(home,/result\.response;data=result\.data/);
  assert.match(home,/受付残り人数を確認しています/);
 });
