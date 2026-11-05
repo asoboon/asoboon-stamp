@@ -973,6 +973,22 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
  await page.waitForTimeout(200);
  expect(reads).toBe(2);
 });
+test('Cold HOME starts crowd request before delayed business day resolves and issues it only once',async({page})=>{
+ await installProduction(page);
+ let dayDone=false,crowdBeforeDay=false,crowdReads=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='businessDay'){await new Promise(resolve=>setTimeout(resolve,1000));dayDone=true;return route.fallback()}
+  if(action==='crowdRemaining'){crowdReads++;if(!dayDone)crowdBeforeDay=true;return route.fallback()}
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ expect(crowdBeforeDay).toBe(true);
+ expect(crowdReads).toBe(1);
+ await expect(page.locator('#v38Slots .v38-crowd-channel--web strong').first()).toHaveText('195名');
+});
+
 test('HOME shows separate WEB and onsite remaining counts from the same existing crowd API response',async({page})=>{
   const actions=[];
   page.on('request',r=>{if(r.url().includes('action=crowdRemaining'))actions.push(r.url())});

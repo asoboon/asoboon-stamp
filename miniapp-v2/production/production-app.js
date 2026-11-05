@@ -617,6 +617,16 @@ function crowdFreshness(){
  if(!crowdAt)return 'LINE・WEBの残り人数を確認しています…';
  return crowdClock()+' 確認時点の人数 ／ 更新ボタンで再確認できます';
 }
+function prefetchCrowd(){
+ if(earlyCrowd||!E.backendUrl||document.hidden||currentView()!=='home')return;
+ const date=D.operationalDate?.(),hour=nowJst().minutes;
+ if(!date||hour<420||hour>1085||new Date(date+'T00:00:00Z').getUTCDay()===2)return;
+ const cached=readCrowdCache();if(cached?.verifiedFresh&&cached.operationalDate===date&&Date.now()-cached.savedAt<30000)return;
+ const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
+ const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
+ const job=fetch(url,{cache:'no-store',signal:ctrl.signal}).then(async response=>({response,data:await response.json()})).catch(error=>({error})).finally(()=>clearTimeout(timeout));
+ earlyCrowd={date,at:Date.now(),job};
+}
 const ONSITE_CROWD_NAMES=Object.freeze({
   '平日':Object.freeze({'0024':'すぐ入場受付【平日】','0027':'14時から【平日】'}),
   '平日特定日':Object.freeze({'0036':'10時15分から【平日特定日】','0038':'13時45分から【平日特定日】'}),
@@ -628,6 +638,7 @@ const T=COPY.ja,icons={calendar:'<rect x="4" y="5" width="16" height="15" rx="2"
 const svg=k=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${icons[k]||icons.check}</svg>`;
 const CROWD_SETTINGS=Object.freeze({CAPACITY:350,IDS:Object.freeze({'平日':Object.freeze(['0024','0027']),'平日特定日':Object.freeze(['0036','0038']),'土日祝日':Object.freeze(['0030','0032','0034'])})});
 let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdDetails=[],crowdError='',crowdAt=0,crowdLoading=false;
+let earlyCrowd=null;
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
 function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
@@ -760,7 +771,7 @@ function renderSlots(){
 const box=root.querySelector('#v38Slots');
 if(!box)return;
 if(!day||dayError||day.isClosed){
-writeCrowdMarkup(box,dayError?'<h3>本日の混雑状況</h3><p class="v38-slots-error">混雑情報を取得できません</p>':'');
+writeCrowdMarkup(box,dayError?'<h3>本日の混雑状況</h3><p class="v38-slots-error">混雑情報を取得できません</p>':!day?'<h3>本日の混雑状況</h3><p class="v38-slots-note">受付残り人数を確認しています…</p>':'');
 return;
 }
 if(crowdLoading&&!crowdSlots){
@@ -800,8 +811,12 @@ async function fetchCrowd(force=false,manual=false){
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
   const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
-  const response=await fetch(url,{cache:'no-store',signal:ctrl.signal});
-  const data=await response.json();
+  const early=earlyCrowd;earlyCrowd=null;
+  let response,data;
+  if(!manual&&early?.date===day?.operationalDate&&Date.now()-early.at<90000){
+   const result=await early.job;if(result.error)throw result.error;
+   response=result.response;data=result.data;
+  }else{response=await fetch(url,{cache:'no-store',signal:ctrl.signal});data=await response.json()}
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
@@ -836,7 +851,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;

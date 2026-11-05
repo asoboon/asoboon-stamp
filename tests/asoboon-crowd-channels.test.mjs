@@ -34,3 +34,15 @@ test('Two clear, responsive channels independently navigate to AirWAIT WEB and L
  assert.doesNotMatch(home,/希望の時間を確認して、カードをタップすると/);
  assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
 });
+
+
+test('Cold HOME starts one safe read in parallel with business-day lookup and reuses it',()=>{
+ assert.match(home,/if\(!day&&!force\)prefetchCrowd\(\);try\{const previousDate=/);
+ assert.match(home,/const date=D\.operationalDate\?\.\(\),hour=nowJst\(\)\.minutes/);
+ assert.match(home,/const job=fetch\(url,\{cache:'no-store',signal:ctrl\.signal\}\)/);
+ assert.match(home,/early\?\.date===day\?\.operationalDate&&Date\.now\(\)-early\.at<90000/);
+ assert.match(home,/if\(!manual&&early/);
+ assert.match(home,/const cached=readCrowdCache\(\);if\(cached\?\.verifiedFresh/);
+ assert.match(home,/result\.response;data=result\.data/);
+ assert.match(home,/受付残り人数を確認しています/);
+});
