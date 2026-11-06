@@ -900,12 +900,13 @@ function showVerifiedMissing(cached){
  // Keep the saved receipt for staff assistance. A missing active session may be
  // a terminal/deleted booking or an identity mismatch; never claim which one.
  notFoundStreak+=1;nextPollMs=POLL_RATE_LIMITED_MS;
- setCallVisualTone('loading');updateCallForecast(null);
+ updateCallForecast(null);
  updateCancelAction('');updateRebookAction(null);
  const receipt=String(cached?.receiptNo||'').trim();
  if($('csReceipt'))$('csReceipt').textContent=receipt||'—';
  if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
- const state=$('csState');if(state)state.className='cs-state loading';
+ const state=$('csState');if(state){state.className='cs-state missing';const icon=state.querySelector('.cs-state-icon');if(icon)icon.textContent='？'}
+ const panel=state?.closest('.cs-page');if(panel)panel.dataset.callTone='missing';document.body.dataset.asoboonCallTone='missing';
  if($('csQueue'))$('csQueue').hidden=true;
  if($('csTitle'))$('csTitle').textContent=receipt?'この受付番号を確認できません':'本日の受付はありません';
  if($('csMessage'))$('csMessage').textContent=receipt
