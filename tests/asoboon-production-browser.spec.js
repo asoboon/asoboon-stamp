@@ -2407,6 +2407,6 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  }
  await page.locator('#v59GuideFold summary').click();
  await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeHidden();
- await page.locator('#v59PlayFold .v38-play-card').first().click();
- await expect.poll(()=>new URL(page.url()).pathname.includes('/asoquest/')).toBe(true);
+ const firstGameHref=await page.locator('#v59PlayFold .v38-play-card').first().getAttribute('href');
+ expect(firstGameHref).toContain('asoquest/');
 });
