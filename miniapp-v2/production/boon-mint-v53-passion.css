@@ -540,3 +540,50 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v55-crowd-prompt{
  min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important;
 }
+
+/* ASOBooN 2026-11-06: mint/orange palette for production views.
+   Only surfaces/actions; never recolor the calling GO lamp, cancel or errors. */
+html.boon-v4.boon-v5-mint {
+ --aso-mint-pale:#EDFFF8;--aso-mint-surface:#D5F8EA;--aso-mint-strong:#08745E;
+ --aso-orange-action:#FF7A00;--aso-orange-soft:#FFF0DE;--aso-ink:#153F34;
+ --aso-muted:#426C60;--aso-line:#94D7C2;
+}
+html.boon-v4.boon-v5-mint body:is(.v7-reception-active,.v7-callstatus-active,.v7-timeguide-active,.v7-page-active){
+ background:linear-gradient(180deg,#C4F6E7 0,#EEFFF8 410px,#F9FFFC 100%)!important;
+ color:var(--aso-ink)!important;
+}
+html.boon-v4.boon-v5-mint body:is(.v7-reception-active,.v7-callstatus-active,.v7-timeguide-active,.v7-page-active) .topbar{
+ border-bottom:1px solid var(--aso-line)!important;
+}
+html.boon-v4.boon-v5-mint body:is(.v7-reception-active,.v7-callstatus-active,.v7-timeguide-active,.v7-page-active) .brand strong{
+ color:#075F50!important;
+}
+html.boon-v4.boon-v5-mint body.v7-page-active .page-head{
+ background:linear-gradient(135deg,#C7F8E6,#F3FFF9)!important;border-color:#B6DED1!important;
+}
+html.boon-v4.boon-v5-mint body.v7-timeguide-active :is(.tg-day,.tg-input,.tg-details>div){
+ border-color:var(--aso-line)!important;background:#F3FFF9!important;
+}
+html.boon-v4.boon-v5-mint body.v7-timeguide-active .tg-day strong,
+html.boon-v4.boon-v5-mint body.v7-timeguide-active .tg-details strong{color:#134C3E!important;}
+html.boon-v4.boon-v5-mint body.v7-timeguide-active .tg-reload:not(:disabled){
+ background:#FF7A00!important;color:#482100!important;
+ border:2px solid #B95000!important;min-height:48px!important;
+ box-shadow:0 3px 0 #B95000!important;
+}
+html.boon-v4.boon-v5-mint body.v7-callstatus-active .cs-page{border-color:#A4D9C5!important;}
+html.boon-v4.boon-v5-mint body.v7-callstatus-active .cs-top{
+ border-color:#A4D9C5!important;background:linear-gradient(135deg,#D7F8EC,#F7FFFC)!important;
+}
+html.boon-v4.boon-v5-mint body.v7-callstatus-active #csRefresh:not(:disabled){
+ min-height:48px!important;border-color:#71C4AA!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active .rec-summary{
+ border-color:#A4D9C5!important;background:#F6FFFB!important;
+}
+html.boon-v4.boon-v5-mint body :is(a,button,summary,input,select,textarea):focus-visible{
+ outline:3px solid #B85000!important;outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint body.v7-timeguide-active .tg-reload{transition:none!important;}
+}

@@ -220,9 +220,14 @@ function enhanceHomeAffordances(home){
  if(call){
   var title=call.querySelector('.v38-call-cta-copy strong');
   var sub=call.querySelector('.v38-call-cta-copy small');
-  if(title&&title.textContent!==copy.call)title.textContent=copy.call;
-  if(sub&&sub.textContent!==copy.callSub)sub.textContent=copy.callSub;
-  call.setAttribute('aria-label',copy.call+'。'+copy.callSub);
+  // The v5.9 state-first HOME owns its live CTA title; don't override it.
+  if(!home.classList.contains('v58-action-first')){
+   if(title&&title.textContent!==copy.call)title.textContent=copy.call;
+   if(sub&&sub.textContent!==copy.callSub)sub.textContent=copy.callSub;
+   call.setAttribute('aria-label',copy.call+'。'+copy.callSub);
+  }else if(title){
+   call.setAttribute('aria-label',title.textContent);
+  }
  }
  var slots=home.querySelector('#v38Slots');
  var heading=slots?.querySelector(':scope > h3');
