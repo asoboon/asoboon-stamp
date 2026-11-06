@@ -1249,3 +1249,36 @@ html.boon-v5-mint .boon-v5-complete-check{
  color:#44261A!important;
  box-shadow:0 6px 0 rgba(242,111,76,.23),0 0 0 8px rgba(255,168,63,.13)!important;
 }
+
+/* No reservation is not a communication failure. Preserve native staff guidance. */
+html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation{
+ background:linear-gradient(145deg,#F3FFFA,#FFFFFF)!important;
+ border:2px solid #A0D7C8!important;
+}
+html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation .boon-v4-status-tag{
+ background:#DFF8ED!important;color:#155A4C!important;
+}
+html.boon-v4.boon-v5-mint .boon-v4-reception-entry{
+ width:100%;min-height:52px;margin:14px 0 7px;border-radius:13px;
+ border:1px solid #D96000;background:#FF7A00;color:#492300;
+ font-weight:900;font-size:16px;cursor:pointer;
+ box-shadow:0 4px 0 #BB5300;
+}
+html.boon-v4.boon-v5-mint .boon-v4-reception-entry:focus-visible{
+ outline:3px solid #0D776B;outline-offset:3px;
+}
+html.boon-v4.boon-v5-mint .boon-v4-no-reservation-note{
+ font-size:13px;line-height:1.65;color:#4B615B;
+ padding:12px 10px;margin:8px 0 0;background:#EAF9F3;
+ border-radius:12px;
+}
+html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation h2 {
+  font-size:clamp(18px,5.3vw,22px)!important;
+  line-height:1.4!important;
+}
+html.boon-v4.boon-v5-mint .cs-page[data-boon-state="no-reservation"] #csRefresh {
+  background:#EFFBF6!important;
+  color:#1C665C!important;
+  border:1px solid #B6DFD4!important;
+  box-shadow:none!important;
+}

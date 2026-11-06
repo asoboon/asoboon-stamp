@@ -6,8 +6,8 @@
 const fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright');
 const ROOT=process.cwd();
-const OUT=path.join(ROOT,'docs/boon-passion-v53/qa');
-const BASE='http://127.0.0.1:4180/home.html';
+const OUT=path.join(ROOT,'docs/boon-v54-live/qa');
+const BASE='http://127.0.0.1:4186/home.html';
 const FIXED='2026-11-07T03:00:00.000Z'; // Sat noon JST; not a real booking.
 const WAIT=[
  {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
@@ -22,7 +22,7 @@ function labels(){
  return [
  ['01','home'],['02','slots'],['03','people'],['04','confirm'],['05','processing'],['06','complete'],
  ['07','waiting'],['08','waiting0'],['09','near'],['10','calling'],['11','done'],['12','hold'],
- ['13','cancel-confirm'],['14','canceled'],['15','closed'],['16','comm-error'],['17','ambiguous']
+ ['13','cancel-confirm'],['14','canceled'],['15','closed'],['16','comm-error'],['17','ambiguous'],['18','no-reservation'],['19','unverified-receipt']
  ];
 }
 async function install(page,kind){
@@ -31,9 +31,9 @@ async function install(page,kind){
    configurable:true,
    get(){return this.__productionTestEnv;},
    set(value){this.__productionTestEnv=Object.freeze({...value,
-    assetBase:'http://127.0.0.1:4180/miniapp-v2/production/',
-    siteBase:'http://127.0.0.1:4180/',
-    endpoint:'http://127.0.0.1:4180/home.html'
+    assetBase:'http://127.0.0.1:4186/miniapp-v2/production/',
+    siteBase:'http://127.0.0.1:4186/',
+    endpoint:'http://127.0.0.1:4186/home.html'
    });}
   });
   const NativeDate=Date, fixed=NativeDate.parse(when);
@@ -46,6 +46,7 @@ async function install(page,kind){
    businessDate:'2026-11-07',receiptNo:'QA-123',waitTypeId:'0029',
    expiresAt:fixed+3600000,cachedAt:fixed
   };
+  if(kind==='unverified-receipt')localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'QA-123',businessDate:'2026-11-07',waitTypeId:'0029',cachedAt:fixed}));
   if(['waiting','waiting0','near','calling','done','hold','cancel-confirm','canceled','closed','comm-error'].includes(kind)){
   localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify(storage));
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',
@@ -75,7 +76,7 @@ async function install(page,kind){
    if(kind==='comm-error')return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"MOCK_CONNECTION_LOSS"}'});
    payload=data;
   }
-  if(action==='recoverReservationSession')payload={ok:true,found:true,sessionToken:'qa-session-token-not-real-12345678901234567890',receiptNo:'QA-123',businessDate:'2026-11-07',waitTypeId:'0029',expiresAt:Date.parse(FIXED)+3600000};
+  if(action==='recoverReservationSession')payload=['no-reservation','unverified-receipt'].includes(kind)?{ok:true,found:false}:{ok:true,found:true,sessionToken:'qa-session-token-not-real-12345678901234567890',receiptNo:'QA-123',businessDate:'2026-11-07',waitTypeId:'0029',expiresAt:Date.parse(FIXED)+3600000};
   if(action==='createReservation')payload={ok:false,error:'QA_INTERCEPT_NO_SEND'};
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});
  });
@@ -90,7 +91,7 @@ async function install(page,kind){
 async function openKind(page,kind){
  let route='home';
  if(['slots','people','confirm','processing','complete','ambiguous'].includes(kind))route='reception';
- if(['waiting','waiting0','near','calling','done','hold','cancel-confirm','canceled','closed','comm-error'].includes(kind))route='callstatus';
+ if(['waiting','waiting0','near','calling','done','hold','cancel-confirm','canceled','closed','comm-error','no-reservation','unverified-receipt'].includes(kind))route='callstatus';
  await page.goto(BASE+'?view='+route,{waitUntil:'domcontentloaded'});
  if(route==='home'){await page.locator('.v38-home, .v37-home, .v35-home').first().waitFor({timeout:15000});}
  if(route==='reception'){
@@ -128,6 +129,19 @@ async function openKind(page,kind){
  }else if(route==='callstatus'){
   await page.locator('#boonV4CallHero').waitFor({timeout:15000});
   await page.waitForTimeout(850);
+  if(['no-reservation','unverified-receipt'].includes(kind)){
+   await page.evaluate(({preserveReceipt})=>{
+    const $=id=>document.getElementById(id);
+    $('csState').className='cs-state loading';
+    $('csTitle').textContent='本日の受付が見つかりません';
+    $('csMessage').textContent='当日受付を完了すると、ここに自動で呼出状況が表示されます。';
+    $('csReceipt').textContent=preserveReceipt?'QA-123':'—';
+    const help=$('csError');
+    help.hidden=false;
+    help.textContent='受付済みなのに表示されない場合は、受付番号をスタッフへお伝えください。';
+   },{preserveReceipt:kind==='unverified-receipt'});
+   await page.waitForFunction(()=>document.querySelector('#boonV4CallHero.no-reservation'),{timeout:6000});
+  }
   if(kind==='cancel-confirm'){
    if(await page.locator('#csCancel').isVisible())await page.locator('#csCancel').click();
   }
@@ -182,13 +196,22 @@ async function main(){
       go:!!hero?.querySelector('.boon-v4-go'),
       badge:hero?.querySelector('.boon-v4-status-tag')?.textContent||'',
       headline:hero?.querySelector('h2')?.textContent||'',
+      action:hero?.querySelector('.boon-v4-next')?.textContent||'',
+      staffHelp:hero?.querySelector('.boon-v4-no-reservation-note')?.textContent||'',
+      startAllowed:!!hero?.querySelector('button.boon-v4-reception-entry'),
       stage:document.querySelector('.boon-v4-reception')?.dataset.boonStage||'',
       receipt:hero?.querySelector('.boon-v4-number strong')?.textContent||'',
       buttons:[...document.querySelectorAll('button')].filter(n=>n.offsetWidth&&n.offsetHeight).length
      };
     });
     const expected={waiting:'waiting',waiting0:'waiting',near:'near',calling:'calling',done:'done',hold:'hold',canceled:'canceled',closed:'closed','comm-error':'error'};
-    const namedOk=!expected[kind]||(state.badge!==''&&state.receipt==='QA-123'&&state.heroKind.split(' ').includes(expected[kind]));
+    const missingSession=kind==='no-reservation';
+    const cachedWithoutSession=kind==='unverified-receipt';
+    const namedOk=missingSession
+      ?(state.heroKind.includes('no-reservation')&&state.headline==='本日の受付が見つかりません'&&state.action.includes('当日受付を完了')&&state.staffHelp.includes('スタッフ')&&state.receipt===''&&state.startAllowed&&!state.go)
+      :cachedWithoutSession
+       ?(state.heroKind.includes('no-reservation')&&state.headline==='受付番号を確認してください'&&state.action.includes('新しい受付を作り直さず')&&state.staffHelp.includes('スタッフ')&&state.receipt==='QA-123'&&!state.startAllowed&&!state.go)
+       :(!expected[kind]||(state.badge!==''&&state.receipt==='QA-123'&&state.heroKind.split(' ').includes(expected[kind])));
     const expectedStage={slots:'1',people:'2',confirm:'3',processing:'4',complete:'5',ambiguous:'5'};
     const stageOk=!expectedStage[kind]||state.stage===expectedStage[kind];
     const mintOk=state.v5&&state.colors.join(',')==='#28C7BE,#E3FFF6,#FF7A00'&&state.passionToken==='#FF7A00';
@@ -211,6 +234,10 @@ async function main(){
        (kind!=='comm-error'||(!state.go&&state.headline.includes('取得できません')));
     qa.attempts.push({id,kind,width,ok,state,errors:faults});
     if(width===390)await page.screenshot({path:path.join(OUT,'screens',id+'.png'),fullPage:true});
+    if(kind==='no-reservation'){
+     await page.locator('.boon-v4-reception-entry').click();
+     await page.locator('#boonV4Progress').waitFor({timeout:6000});
+    }
    }catch(e){qa.attempts.push({id,kind,width,ok:false,error:String(e).slice(0,700),errors:faults});}
    await page.close();
   }

@@ -197,7 +197,12 @@ function heroModel(){
  var receipt=String($('csReceipt')?.textContent||'—').trim()||'—';
  var checked=String($('csChecked')?.textContent||'—').trim()||'—';
  var message=String($('csError')?.textContent||'').trim();
- var error=!!$('csError')&&!$('csError').hidden&&!!message;
+ // Native callstatus also uses #csError for staff help when no reservation exists.
+ // That guidance must not be misclassified as a network failure.
+ var nativeTitle=String($('csTitle')?.textContent||'').trim();
+ var nativeAction=String($('csMessage')?.textContent||'').trim();
+ var noSession=nativeTitle==='本日の受付が見つかりません';
+ var error=!noSession&&!!$('csError')&&!$('csError').hidden&&!!message;
  var phase=['calling','waiting','hold','processing','done','canceled','closed'].find(function(name){return classes.contains(name);})||'loading';
  var kind=phase==='waiting'&&ahead!==null&&ahead>0&&ahead<=3?'near':phase;
  if(error)kind='error';
@@ -211,8 +216,16 @@ function heroModel(){
  if(kind==='canceled'){name='受付は取り消されています';action='元の受付番号では入場できません。';badge='取消済み';}
  if(kind==='closed'){name='本日の受付は終了しました';action='この受付の呼出状況表示は終了しています。';badge='受付終了';}
  if(kind==='error'){name='最新情報を取得できません';action='新しい受付を作り直さず、最新状況を再確認してください。';badge='更新失敗・以前の確認結果';}
+ if(noSession){
+  kind='no-reservation';
+  var hasReceipt=receipt!=='—';
+  name=hasReceipt?'受付番号を確認してください':nativeTitle;
+  action=hasReceipt?'受付番号は保持されています。新しい受付を作り直さず、スタッフに番号をお伝えください。':(nativeAction||'LINE当日受付を完了すると、呼出状況がここに表示されます。');
+  badge=hasReceipt?'受付番号を確認中':'本日の受付情報なし';
+ }
  if(phase==='waiting'&&ahead===0&&!error){name='まだ呼出前です';action='前に0組ですが、まだ入場案内前です。LINEの通知をお待ちください。';badge='受付済み・呼出待ち';kind='waiting';}
- return {kind:kind,name:name,action:action,badge:badge,receipt:receipt,ahead:ahead,checked:checked,error:error};
+ return {kind:kind,name:name,action:action,badge:badge,receipt:receipt,ahead:ahead,checked:checked,error:error,
+  note:noSession?message:'',canStart:noSession&&receipt==='—'};
 }
 function renderHero(model){
  var showLamps=['waiting','near','calling'].includes(model.kind);
@@ -223,12 +236,16 @@ function renderHero(model){
  var checkedAvailable=model.checked!=='—'&&model.checked!=='';
  var freshness=model.error?(checkedAvailable?'最後に確認できた時刻':'更新状況'):'最終確認';
  var stamp=checkedAvailable?escapeText(model.checked):(model.error?'時刻を取得できていません':'確認中');
+ var noSession=model.kind==='no-reservation';
+ var numberView=(!noSession||model.receipt!=='—')?'<div class="boon-v4-number"><span>受付番号</span><strong>'+escapeText(model.receipt)+'</strong></div>':'';
+ var actionView=noSession&&model.canStart?'<button class="boon-v4-reception-entry" type="button" data-v7-view="reception">LINE受付へ進む</button>':'';
+ var helpView=noSession&&model.note?'<p class="boon-v4-no-reservation-note">'+escapeText(model.note)+'</p>':'';
  return '<section class="boon-v4-call-hero '+escapeText(model.kind)+'" id="boonV4CallHero" aria-live="polite">'+
   '<div class="boon-v4-status-tag">'+escapeText(model.badge)+'</div>'+
   '<h2>'+escapeText(model.name)+'</h2>'+
   '<p class="boon-v4-next">'+escapeText(model.action)+'</p>'+visual+flag+
-  '<div class="boon-v4-number"><span>受付番号</span><strong>'+escapeText(model.receipt)+'</strong></div>'+
-  queue+'<p class="boon-v4-checked">'+freshness+' '+stamp+'</p>'+
+  numberView+actionView+helpView+
+  queue+(noSession?'':'<p class="boon-v4-checked">'+freshness+' '+stamp+'</p>')+
   (model.error?'<p class="boon-v4-error">この表示を最新の呼出案内として扱わないでください。</p>':'')+
   '</section>';
 }
