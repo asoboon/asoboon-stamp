@@ -30,7 +30,7 @@ function currentKind(hero){
  const s=window.ASOBOON_HOME_STATUS_SNAPSHOT||{};
  const age=Date.now()-Number(s.checkedAt||0);
  const live=s.source==='live'&&age>=0&&age<360000;
- if(live&&['waiting','calling','hold','guided','canceled','closed','error','pending'].includes(s.kind))return {kind:s.kind,snapshot:s,live:true};
+ if(live&&hero.classList.contains('call-link')&&['waiting','calling','hold','guided','canceled','closed','error','pending'].includes(s.kind))return {kind:s.kind,snapshot:s,live:true};
  if(s.kind==='pending'&&String(s.receipt||'').trim())return{kind:'pending',snapshot:s,live:false};
  if(hero.classList.contains('call-link'))return {kind:'saved',snapshot:s,live:false};
  for(const v of ['open','before','ended','closed','error','loading']){
@@ -93,9 +93,24 @@ function mount(){
  if(hero.parentElement!==targetHero)targetHero.appendChild(hero);
  const dayZone=shell.querySelector('#v58DayZone'),timerZone=shell.querySelector('#v58TimerZone'),sessionsZone=shell.querySelector('#v58SessionsZone');
  if(day.parentElement!==dayZone)dayZone.appendChild(day);
- if(timer.parentElement!==timerZone)timerZone.appendChild(timer);
+ // An entered visitor's real next action is the *existing* timer control,
+ // not a decorative label with a stale call-status primary button.
+ // Move the original DOM control, preserving its native route handler.
+ const activeState=currentKind(hero).kind;
+ if(activeState==='guided'){
+  if(timer.parentElement!==targetHero||timer.nextSibling!==hero)targetHero.insertBefore(timer,hero);
+  timerZone.hidden=true;
+ }else{
+  if(timer.parentElement!==timerZone)timerZone.appendChild(timer);
+  timerZone.hidden=false;
+ }
  if(slots.parentElement!==sessionsZone)sessionsZone.appendChild(slots);
  const t=copy[language()],info=currentKind(hero),state=info.kind;
+ const callCTA=hero.querySelector('.v38-call-cta-copy strong');
+ // Relabel the native callstatus link based on the verified next task.
+ // Never create a new reception action or a fake destination.
+ const callLabel=state==='calling'?'受付番号を見る':state==='guided'?'呼出履歴を確認する':state==='waiting'?'待ち順を確認する':state==='hold'?'受付状態を確認する':'呼出状況を確認する';
+ if(callCTA&&language()==='ja')set(callCTA,callLabel);
  if(shell.dataset.state!==state)shell.dataset.state=state;
  set(shell.querySelector('.v58-eyebrow'),t.eyebrow);
  set(shell.querySelector('#v58Phase'),t.eyebrow);
