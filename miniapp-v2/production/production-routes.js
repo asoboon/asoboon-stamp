@@ -634,6 +634,8 @@ const SESSION_KEY=`asoboon_v2_callstatus_session_${STORAGE_NS}_v1`;
 const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
 const RATE_LIMIT_STORAGE_KEY=`asoboon_v2_callstatus_retry_after_${STORAGE_NS}_v1`;
 const POLL_RECONCILE_MS=6000;
+// A successful identity-backed recovery returning found:false is not a network error.
+const VERIFIED_NO_SESSION=Object.freeze({verifiedNoSession:true});
 const POLL_RECONCILE_MAX=3;
 const POLL_FRONT_MS=8000;
 const POLL_NEAR_MS=15000;
@@ -894,6 +896,26 @@ function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textConten
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 
+function showVerifiedMissing(cached){
+ // Keep the saved receipt for staff assistance. A missing active session may be
+ // a terminal/deleted booking or an identity mismatch; never claim which one.
+ notFoundStreak+=1;nextPollMs=POLL_RATE_LIMITED_MS;
+ setCallVisualTone('loading');updateCallForecast(null);
+ updateCancelAction('');updateRebookAction(null);
+ const receipt=String(cached?.receiptNo||'').trim();
+ if($('csReceipt'))$('csReceipt').textContent=receipt||'—';
+ if($('csWaitType'))$('csWaitType').textContent=cachedWaitType();
+ const state=$('csState');if(state)state.className='cs-state loading';
+ if($('csQueue'))$('csQueue').hidden=true;
+ if($('csTitle'))$('csTitle').textContent=receipt?'この受付番号を確認できません':'本日の受付はありません';
+ if($('csMessage'))$('csMessage').textContent=receipt
+  ?'LINE本人確認は完了しましたが、現在この受付番号の記録を確認できません。取消・終了・削除や別アカウントでの受付などが考えられます。番号は保存したままです。'
+  :'当日受付が完了すると、ここで呼出状況を確認できます。';
+ if($('csChecked'))$('csChecked').textContent=fmtClock(Date.now());
+ setError(receipt?'お困りの場合は保存済みの受付番号をスタッフへお伝えください。新しい受付は自動作成しません。':'');
+ const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='該当する受付情報が見つかりません';top.querySelector('small').textContent='通信エラーではありません。約90秒後に自動再確認します。'}
+}
+
 function shareHomeStatus(d){
   if(!['develop','review'].includes(String(E.environment||'')))return;
   const cached=cachedReservation();
@@ -1000,7 +1022,8 @@ async function recoverSession(){
   const cached=cachedReservation();
   const d=await gatewayPost('recoverReservationSession',{liffAccessToken:token,businessDate:String(cached.businessDate||'')});
   if(!d?.ok)throw Error('受付情報の復元に失敗しました。');
-  if(!d.found)return null;
+  if(d.found===false)return VERIFIED_NO_SESSION;
+  if(d.found!==true)throw Error('受付情報の照合結果を確認できません。');
   const session={sessionToken:String(d.sessionToken||''),businessDate:String(d.businessDate||''),receiptNo:String(d.receiptNo||''),waitTypeId:String(d.waitTypeId||''),expiresAt:Number(d.expiresAt||0),cachedAt:Date.now()};
   if(session.sessionToken.length<32)throw Error('呼出状況セッションを作成できませんでした。');
   writeJSON(SESSION_KEY,session);
@@ -1039,6 +1062,7 @@ async function refreshStatus({manual=false}={}){
   try{
     let session=await ensureSession();
     if(gen!==generation||!$('csState'))return;
+    if(session===VERIFIED_NO_SESSION){showVerifiedMissing(cachedReservation());return}
     if(!session){
       const cached=cachedReservation();
       nextPollMs=cached?.receiptNo?POLL_MID_MS:POLL_RATE_LIMITED_MS;
@@ -1053,13 +1077,13 @@ async function refreshStatus({manual=false}={}){
     let d;
     try{d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
     catch(e){
-      if(/SESSION/.test(String(e?.message||''))){removeKey(SESSION_KEY);session=await recoverSession();if(!session)throw e;d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
+      if(/SESSION/.test(String(e?.message||''))){removeKey(SESSION_KEY);session=await recoverSession();if(session===VERIFIED_NO_SESSION){showVerifiedMissing(cachedReservation());return}if(!session)throw e;d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
       else throw e;
     }
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
     lastRefreshSucceededAt=Date.now();hadRefreshError=false;clearThrottle();
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code);hadRefreshError=true;nextPollMs=throttled?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':'通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;
