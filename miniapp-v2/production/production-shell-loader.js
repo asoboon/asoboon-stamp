@@ -28,10 +28,10 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   document.head.appendChild(css);
   // Explicit passion-orange palette selected by the user; CSS-only, no API logic.
   const passion=document.createElement('link');passion.rel='stylesheet';
-  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=415b63d88e13';
+  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=4429acc58011';
   document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
-  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=afad6657c9f7';
+  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=82151b6c1c39';
   document.head.appendChild(theme);
 }
 })();

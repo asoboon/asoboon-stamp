@@ -2262,3 +2262,96 @@ test('HOME does not launch a second crowd request while the hidden-slot cross-ch
   await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  }finally{release()}
 });
+
+
+
+test('v5.5 standard HOME affords four native actions without adding another WEB button',async({page})=>{
+ await installProduction(page);
+ const homeURL=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,
+   get(){return this.__mintTestEnvironment;},
+   set(value){this.__mintTestEnvironment=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+ },siteBase);
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-home')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).toHaveText('呼出状況を見る');
+ await expect(page.locator('#v38Today .v55-today-action')).toContainText('営業区分・利用時間を詳しく見る');
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action')).toContainText('遊べる時間を計算する');
+ await expect(page.locator('#v38Slots>.v55-crowd-prompt')).toContainText('受付方法を選ぼう');
+ await expect(page.locator('#v38Slots .v38-crowd-channel--onsite:is(a,button)')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-crowd-channel--web:is(a,button)')).toHaveCount(3);
+ await expect(page.locator('#boonV5WebReception,.boon-v5-web-reception')).toHaveCount(0);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:860});
+  const result=await page.evaluate(()=>{
+   const selectors=['#v38Hero .v38-call-cta','#v38Today','#v38TimeguideShortcut',
+    '#v38Slots .v38-crowd-channel--onsite:is(a,button)','#v38Slots .v38-crowd-channel--web:is(a,button)'];
+   const controls=selectors.map(selector=>{
+    const el=document.querySelector(selector);
+    if(!el)return {selector,missing:true};
+    const r=el.getBoundingClientRect();
+    return {selector,width:r.width,height:r.height,cursor:getComputedStyle(el).cursor,
+      focusable:el.matches('button:not([disabled]),a[href]')};
+   });
+   const onsite=document.querySelector('#v38Slots .v38-crowd-channel--onsite .v38-crowd-tap');
+   return {controls,overflow:document.documentElement.scrollWidth>innerWidth,
+    orange:onsite?getComputedStyle(onsite).backgroundColor:'missing',
+    routes:[
+     document.querySelector('#v38Hero .v38-call-cta')?.getAttribute('data-v7-view'),
+     document.querySelector('#v38Today')?.getAttribute('data-v7-view'),
+     document.querySelector('#v38TimeguideShortcut')?.getAttribute('data-v7-view')
+    ]};
+  });
+  expect(result.overflow,'horizontal overflow at '+width).toBe(false);
+  expect(result.orange).toBe('rgb(255, 122, 0)');
+  expect(result.routes).toEqual(['callstatus','timeguide','timeguide']);
+  for(const control of result.controls){
+   expect(control.missing,control.selector+' missing').toBeFalsy();
+   expect(control.width,control.selector+' width').toBeGreaterThanOrEqual(44);
+   expect(control.height,control.selector+' height').toBeGreaterThanOrEqual(44);
+   expect(control.cursor).toBe('pointer');
+   expect(control.focusable).toBe(true);
+  }
+ }
+ const localePicker=page.locator('#asoboon-language-select');
+ await localePicker.selectOption('en');
+ await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).toHaveText('Check queue status');
+ await expect(page.locator('#v38Today .v55-today-action')).toContainText('View hours and play time');
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action')).toContainText('Calculate play time');
+ await expect(page.locator('#v38Slots>.v55-crowd-prompt')).toContainText('Choose session');
+ await page.setViewportSize({width:320,height:860});
+ for(const lang of ['zh-CN','vi','ne','ko','kmr']){
+  await localePicker.selectOption(lang);
+  await expect(page.locator('#v38Today .v55-today-action')).not.toContainText('営業区分');
+  await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).not.toHaveText('呼出状況を見る');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow in '+lang).toBe(true);
+ }
+ await localePicker.selectOption('ja');
+ await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).toHaveText('呼出状況を見る');
+ await expect(page.locator('#v38Today .v55-today-action')).toContainText('営業区分');
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action')).toContainText('遊べる時間を計算する');
+ await page.evaluate(()=>{
+  localStorage.setItem('asoboon_v2_timeguide_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',entryTime:'12:30',endTime:'15:00',durationLabel:'2時間30分'
+  }));
+  window.dispatchEvent(new Event('asoboon:v2-timeguide-updated'));
+ });
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action-label')).toHaveText('計算結果を確認する');
+ await page.locator('#v38Today').click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await page.locator('#v38TimeguideShortcut').click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await page.locator('#v38Hero .v38-call-cta').click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await page.locator('#v38Slots .v38-crowd-channel--onsite').first().click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+});

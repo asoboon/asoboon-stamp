@@ -270,3 +270,273 @@ html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong {
     animation:none!important;
   }
 }
+
+
+/* v5.5 HOME affordances — four original actions, no new reception links.
+   Make the whole existing interactive surfaces feel like real controls.
+   The backend is the only authority for business type, capacity and calling. */
+
+/* 1) 呼出状況: unmistakably pressable, separate from the official green GO status. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-action.v38-call-cta{
+ display:grid!important;
+ grid-template-columns:42px minmax(0,1fr) 38px!important;
+ width:100%!important;max-width:none!important;min-height:74px!important;
+ gap:10px!important;padding:9px 11px!important;
+ border:2px solid #CA5D00!important;border-radius:17px!important;
+ background:linear-gradient(155deg,#FFAB55 0%,#FF7A00 76%)!important;
+ color:#492300!important;
+ box-shadow:0 5px 0 #A74E0C,0 9px 17px rgba(193,88,9,.19)!important;
+ cursor:pointer!important;
+ text-decoration:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-icon{
+ width:42px!important;height:42px!important;
+ background:#FFE5C4!important;border:1px solid #B75A0B!important;
+ color:#803C00!important;
+ box-shadow:inset 0 -2px 0 #EAB67F!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-copy strong{
+ font-size:16px!important;line-height:1.32!important;
+ color:#492300!important;font-weight:950!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-copy small{
+ font-size:11px!important;line-height:1.35!important;color:#65390F!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-arrow{
+ width:38px!important;height:40px!important;
+ border:1px solid #8C4100!important;border-radius:11px!important;
+ background:#653000!important;color:#FFF1DE!important;
+ display:grid!important;place-items:center!important;
+ animation:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta:focus-visible{
+ outline:3px solid #063F3B!important;outline-offset:3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta:active{
+ transform:translateY(4px)!important;
+ box-shadow:0 1px 0 #A74E0C!important;
+}
+/* 2) 営業区分: metrics stay native; the final row says what tapping opens. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today{
+ display:grid!important;grid-template-columns:1.2fr 1fr .82fr!important;
+ padding:0!important;margin-top:13px!important;
+ overflow:hidden!important;
+ background:linear-gradient(130deg,#0F7772,#125C58)!important;
+ border:2px solid #0A6762!important;
+ box-shadow:0 5px 0 #0B514D,0 9px 17px rgba(9,82,75,.16)!important;
+ border-radius:17px!important;cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:not(.v55-today-action){
+ min-height:65px!important;padding:12px 8px!important;
+ border-right:1px solid rgba(255,255,255,.16)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:first-child{
+ padding-left:33px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:first-child>svg{
+ left:8px!important;top:20px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>svg{display:none!important;}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today small{
+ font-size:12px!important;color:#D6FCED!important;opacity:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today strong{
+ color:#FFFFFF!important;font-size:14px!important;line-height:1.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action{
+ grid-column:1/-1!important;
+ display:flex!important;justify-content:space-between!important;
+ align-items:center!important;min-height:41px!important;
+ padding:8px 10px 8px 13px!important;
+ border:0!important;border-top:1px solid #A1E7D8!important;
+ background:#E3FFF6!important;color:#155C55!important;
+ font-size:13px!important;font-weight:900!important;
+ line-height:1.35!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action i{
+ font-size:20px!important;font-style:normal!important;
+ display:grid!important;place-items:center!important;
+ width:31px!important;height:29px!important;
+ border-radius:9px!important;color:#4D2600!important;
+ background:#FF7A00!important;box-shadow:0 2px 0 #B85E0A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today:active{
+ transform:translateY(3px)!important;box-shadow:0 2px 0 #0B514D!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+/* 3) 本日の混雑状況: not a decorative crowd box; the channel cards are actionable.
+   Only genuine a / button elements get orange controls; unavailable div stays muted. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots{
+ border:1px solid #91D8C8!important;border-radius:18px!important;
+ box-shadow:0 4px 0 #B9E9DD!important;
+ padding:13px 12px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>h3{
+ font-size:18px!important;font-weight:950!important;
+ margin:0 0 3px!important;color:#145F59!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v55-crowd-prompt{
+ margin:0 0 12px!important;
+ padding:8px 10px!important;
+ border-left:4px solid #FF7A00!important;
+ background:#FFF1DF!important;color:#734007!important;
+ border-radius:0 9px 9px 0!important;
+ font-size:12px!important;font-weight:850!important;line-height:1.5!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-card{
+ border:1px solid #B5D9D1!important;background:#F6FFFC!important;
+ padding:12px 10px!important;
+ border-radius:14px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-head time{
+ font-size:17px!important;color:#175A54!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button){
+ min-height:126px!important;
+ padding:10px 8px!important;
+ border-width:2px!important;border-style:solid!important;
+ border-radius:13px!important;
+ box-shadow:0 4px 0 rgba(52,125,110,.20)!important;
+ cursor:pointer!important;text-decoration:none!important;
+ transition:transform .13s ease,box-shadow .13s ease!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--onsite:is(a,button){
+ background:#FFF2E5!important;border-color:#F6AF70!important;
+ color:#713508!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--web:is(a,button){
+ background:#E9FFF9!important;border-color:#8DDAC7!important;
+ color:#1A6257!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button) .v38-crowd-tap{
+ min-height:43px!important;
+ margin-top:7px!important;padding:8px 4px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ background:#FF7A00!important;color:#492300!important;
+ border-radius:9px!important;border:1px solid #D25F00!important;
+ font-weight:950!important;font-size:12px!important;line-height:1.35!important;
+ text-decoration:none!important;text-align:center!important;
+ box-shadow:0 3px 0 #B45810!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--web:is(a,button) .v38-crowd-tap{
+ background:#D7F8EA!important;color:#135E52!important;
+ border-color:#6BBCAB!important;box-shadow:0 3px 0 #84D3BE!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button):active{
+ transform:translateY(3px)!important;box-shadow:0 1px 0 rgba(52,125,110,.25)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button):focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate{
+ min-height:44px!important;cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate:disabled{
+ opacity:.6!important;cursor:not-allowed!important;
+}
+/* 4) タイマー: the existing full-width button explains the next action. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut{
+ min-height:114px!important;
+ display:grid!important;
+ grid-template-columns:53px minmax(0,1fr) 18px!important;
+ gap:11px!important;padding:13px 11px!important;
+ border:2px solid #6FCBBB!important;border-radius:17px!important;
+ background:linear-gradient(116deg,#E8FFF6,#FFF7EC)!important;
+ box-shadow:0 5px 0 #97DDD0!important;
+ cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut>.v38-quick-icon{
+ background:#FF7A00!important;color:#492300!important;
+ width:51px!important;height:51px!important;border-radius:14px!important;
+ box-shadow:inset 0 -3px 0 #C75B00!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut strong{
+ color:#155B55!important;font-size:19px!important;line-height:1.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut em{
+ font-size:12px!important;color:#3F7167!important;opacity:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut>.v38-quick-icon svg{
+ stroke-width:2.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut>svg{
+ display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-action{
+ display:inline-flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:8px!important;max-width:100%!important;
+ min-height:36px!important;margin-top:9px!important;padding:6px 7px 6px 10px!important;
+ border-radius:10px!important;background:#FF7A00!important;
+ border:1px solid #C45B00!important;box-shadow:0 3px 0 #A95200!important;
+ color:#492300!important;
+ font-size:12px!important;font-style:normal!important;font-weight:950!important;
+ line-height:1.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-action i{
+ font-style:normal!important;font-size:18px!important;line-height:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut:active{
+ transform:translateY(3px)!important;box-shadow:0 2px 0 #97DDD0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut:focus-visible{
+ outline:3px solid #0A7970!important;outline-offset:3px!important;
+}
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:not(.v55-today-action){
+  padding-left:6px!important;padding-right:5px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:first-child{
+  padding-left:29px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today strong{font-size:12px!important;}
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button) .v38-crowd-tap{
+  font-size:11px!important;padding-inline:2px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut strong{font-size:17px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint body.v38-home-active :is(#v38Today,#v38TimeguideShortcut,#v38Hero .v38-call-cta,#v38Slots .v38-crowd-channel:is(a,button)){
+  transition:none!important;animation:none!important;
+ }
+}
+
+/* Keep one unmistakable primary CTA: reception is vivid orange; call is warm secondary. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-action.v38-call-cta{
+ background:linear-gradient(145deg,#FFF3DE 0%,#FFD8A6 100%)!important;
+ border-color:#E88A24!important;
+ box-shadow:0 5px 0 #BA771C,0 9px 15px rgba(113,67,11,.14)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-icon{
+ background:#E3FFF6!important;border-color:#74C8B7!important;color:#155B54!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-arrow{
+ background:#FF7A00!important;color:#492300!important;border-color:#CB5F00!important;
+}
+/* When live crowd data is unavailable, the existing receipt-status link is still a button. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action{
+ width:100%!important;min-height:54px!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ padding:10px 13px!important;
+ border:2px solid #A4DCCF!important;border-radius:13px!important;
+ background:#E3FFF6!important;color:#155C54!important;
+ box-shadow:0 4px 0 #9DD7C9!important;
+ font-weight:900!important;cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action svg{
+ color:#AD4D00!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:active{
+ transform:translateY(3px)!important;box-shadow:0 1px 0 #9DD7C9!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+
+/* All supported UI languages can wrap within the same touch targets. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action>span,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-action-label,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v55-crowd-prompt{
+ min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important;
+}

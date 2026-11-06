@@ -156,6 +156,87 @@ function updateWizard(page){
   }
  }
 }
+/* v5.5: strengthen signifiers without adding routes or changing status data.
+ * Everything here is an existing button / route / card, never a new WEB CTA. */
+var HOME_AFFORDANCE_COPY={
+ ja:{call:'呼出状況を見る',callSub:'受付番号・待ち順・入場案内',today:'営業区分・利用時間を詳しく見る',
+  timer:'遊べる時間を計算する',timerDone:'計算結果を確認する',
+  crowd:'残り人数を見て、受付方法を選ぼう ↓',crowdEmpty:'各受付枠の残り人数を表示します'},
+ en:{call:'Check queue status',callSub:'Ticket number · queue · entry',today:'View hours and play time',
+  timer:'Calculate play time',timerDone:'View calculated time',
+  crowd:'Choose session and check-in option ↓',crowdEmpty:'Spaces remaining by session'},
+ 'zh-CN':{call:'查看叫号状态',callSub:'取号号码·排队·入场',today:'查看营业与游玩时间',
+  timer:'计算游玩时间',timerDone:'查看计算结果',
+  crowd:'选择场次与取号方式 ↓',crowdEmpty:'各场次剩余名额'},
+ vi:{call:'Xem lượt gọi',callSub:'Số vé · xếp hàng · vào cửa',today:'Xem giờ mở cửa và giờ chơi',
+  timer:'Tính thời gian chơi',timerDone:'Xem kết quả',
+  crowd:'Chọn lượt và cách đăng ký ↓',crowdEmpty:'Chỗ còn lại theo lượt'},
+ ne:{call:'बोलावट स्थिति हेर्नुहोस्',callSub:'टिकट · पालो · प्रवेश',today:'आजको समय र खेल अवधि हेर्नुहोस्',
+  timer:'खेल्ने समय गणना',timerDone:'नतिजा हेर्नुहोस्',
+  crowd:'पालो र दर्ता तरिका रोज्नुहोस् ↓',crowdEmpty:'प्रत्येक पालोको बाँकी स्थान'},
+ ko:{call:'호출 현황 보기',callSub:'접수번호 · 대기 · 입장',today:'오늘 운영 및 이용시간 보기',
+  timer:'이용시간 계산하기',timerDone:'계산 결과 보기',
+  crowd:'회차와 접수 방법 선택 ↓',crowdEmpty:'회차별 남은 인원'},
+ kmr:{call:'Rewşa bangkirinê bibîne',callSub:'Hejmara bilêtê · rêz · ketin',today:'Demên vekirinê û lîstinê bibîne',
+  timer:'Dema lîstinê hesab bike',timerDone:'Encamê bibîne',
+  crowd:'Dem û rêbaza qeydkirinê hilbijêre ↓',crowdEmpty:'Cihên mayî ji bo her demê'}
+};
+function homeAffordanceCopy(){
+ var locale=window.ASOBOON_I18N?.language||document.documentElement.lang||'ja';
+ return HOME_AFFORDANCE_COPY[locale]||HOME_AFFORDANCE_COPY.en;
+}
+function enhanceHomeAffordances(home){
+ var copy=homeAffordanceCopy();
+ var today=home.querySelector('#v38Today');
+ if(today){
+  today.setAttribute('aria-label',copy.today);
+  if(!today.querySelector('.v55-today-action')){
+   var footer=create('span','v55-today-action');
+   footer.setAttribute('aria-hidden','true');
+   footer.innerHTML='<span class="v55-today-action-label"></span><i>→</i>';
+   today.appendChild(footer);
+  }
+  var todayLabel=today.querySelector('.v55-today-action-label');
+  if(todayLabel&&todayLabel.textContent!==copy.today)todayLabel.textContent=copy.today;
+ }
+ var timer=home.querySelector('#v38TimeguideShortcut');
+ if(timer){
+  var action=timer.querySelector('.v55-timer-action');
+  if(!action){
+   action=create('span','v55-timer-action');
+   action.setAttribute('aria-hidden','true');
+   action.innerHTML='<span class="v55-timer-action-label"></span><i>→</i>';
+   var copy=timer.querySelector('[data-timeguide-summary]')?.parentElement;
+   if(copy)copy.appendChild(action);
+  }
+  var saved=timer.classList.contains('has-timeguide-result');
+  var words=saved?copy.timerDone:copy.timer;
+  var label=action?.querySelector('.v55-timer-action-label');
+  if(label&&label.textContent!==words)label.textContent=words;
+  var aria=words;
+  if(timer.getAttribute('aria-label')!==aria)timer.setAttribute('aria-label',aria);
+ }
+ var call=home.querySelector('#v38Hero .v38-call-cta');
+ if(call){
+  var title=call.querySelector('.v38-call-cta-copy strong');
+  var sub=call.querySelector('.v38-call-cta-copy small');
+  if(title&&title.textContent!==copy.call)title.textContent=copy.call;
+  if(sub&&sub.textContent!==copy.callSub)sub.textContent=copy.callSub;
+  call.setAttribute('aria-label',copy.call+'。'+copy.callSub);
+ }
+ var slots=home.querySelector('#v38Slots');
+ var heading=slots?.querySelector(':scope > h3');
+ if(heading){
+  var prompt=slots.querySelector(':scope > .v55-crowd-prompt');
+  if(!prompt){
+   prompt=create('p','v55-crowd-prompt');
+   heading.insertAdjacentElement('afterend',prompt);
+  }
+  var available=!!slots.querySelector('.v38-crowd-channel:is(a,button)');
+  var description=available?copy.crowd:copy.crowdEmpty;
+  if(prompt.textContent!==description)prompt.textContent=description;
+ }
+}
 function styleHome(){
  var home=root.querySelector('.v38-home, .v37-home, .v35-home');
  if(!home)return;
@@ -168,6 +249,7 @@ function styleHome(){
   var flag=create('span','boon-v4-home-flag','BOON START / READY FOR FUN');
   hero.insertBefore(flag,hero.firstChild);
  }
+ enhanceHomeAffordances(home);
 }
 function makeLamps(kind){
  var active=kind==='calling'?5:kind==='near'?4:kind==='hold'?2:0;
@@ -272,6 +354,7 @@ function run(){
 function queue(){if(scheduled)return;scheduled=true;setTimeout(run,0);}
 new MutationObserver(queue).observe(root,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class','hidden','disabled']});
 window.addEventListener('asoboon:v2-route-rendered',queue);
+window.addEventListener('asoboon:language-changed',queue);
 window.addEventListener('popstate',queue);
 root.addEventListener('click',function(event){
  if(view()!=='reception')return;
