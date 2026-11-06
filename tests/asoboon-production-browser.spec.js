@@ -1753,7 +1753,7 @@ test('Official home.html loads the real hashed language assets without requiring
  const picker=page.locator('#asoboon-language-select');
  await expect(picker).toBeVisible();
  await picker.selectOption('en');
- await expect(page.locator('#v56QueueTile .v38-call-cta')).toContainText('Check your queue');
+ await expect(page.locator('.v58-next-title')).toHaveText('Take a queue number');
  expect(Object.keys(responseCodes)).toHaveLength(2);
  expect(Object.values(responseCodes)).toEqual([200,200]);
  expect(errors).toEqual([]);
@@ -2265,104 +2265,99 @@ test('HOME does not launch a second crowd request while the hidden-slot cross-ch
 
 
 
-test('v5.6 rebuilt HOME has a real four-part command deck while preserving native routes',async({page})=>{
+test('v5.8 HOME exposes true actions and readable operational facts rather than a static card deck',async({page})=>{
  await installProduction(page);
  const homeURL=new URL('../../home.html',BASE).href;
  const siteBase=new URL('../../',BASE).href;
  await page.addInitScript(site=>{
   Object.defineProperty(window,'ASOBOON_V2_ENV',{
-   configurable:true,
-   get(){return this.__mintTestEnvironment;},
+   configurable:true,get(){return this.__mintTestEnvironment;},
    set(value){this.__mintTestEnvironment=Object.freeze({...value,
     assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
    });}
   });
  },siteBase);
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v56CommandDeck')).toBeVisible();
- await expect(page.locator('#v56CrowdStage')).toBeVisible();
- await expect(page.locator('#v56QueueTile .v38-call-cta')).toBeVisible();
- await expect(page.locator('#v38Hero .v38-call-cta')).toHaveCount(0);
- await expect(page.locator('#v56DayTile #v38Today')).toBeVisible();
- await expect(page.locator('#v56TimerTile #v38TimeguideShortcut')).toBeVisible();
- await expect(page.locator('#v56CrowdStage #v38Slots')).toBeVisible();
- await expect(page.locator('#v56QueueTile .v38-call-cta-copy strong')).toHaveText('呼出状況をチェック');
- await expect(page.locator('#v56CrowdStage .v56-crowd-title')).toContainText('時間帯ごとの受付状況');
+ await expect(page.locator('#v58Flow')).toBeVisible();
+ await expect(page.locator('#v58Primary')).toBeVisible();
+ await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
+ await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
+ await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone .v58-section-title')).toHaveText('受付枠の空き状況');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-crowd-channel--onsite:is(a,button)')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-crowd-channel--web:is(a,button)')).toHaveCount(3);
+ await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('当日受付をする');
+ await expect(page.locator('#v58Lead #v38Hero [data-v7-view="reception"]')).toBeVisible();
+ await expect(page.locator('#v58Lead #v38Hero [data-v7-view="callstatus"]')).toBeVisible();
  await expect(page.locator('#boonV5WebReception,.boon-v5-web-reception')).toHaveCount(0);
- // The redesign must stay idle; no MutationObserver feedback loop on class/hidden.
- const idleMutations=await page.evaluate(()=>new Promise(resolve=>{
-  const target=document.querySelector('.v38-home');
+ await expect(page.locator('#v56CommandDeck,#v56QueueTile,#v56CrowdStage')).toHaveCount(0);
+ // Business-day information is not a fake button that redirects to a timer.
+ expect(await page.locator('#v38Today').evaluate(el=>({
+  tag:el.tagName,role:el.getAttribute('role'),action:el.getAttribute('data-v7-view')
+ }))).toEqual({tag:'DIV',role:'group',action:null});
+
+ const stable=await page.evaluate(()=>new Promise(resolve=>{
   let mutations=0;
   const observer=new MutationObserver(records=>{
    for(const rec of records)if(rec.type==='attributes')mutations++;
   });
-  observer.observe(target,{attributes:true,subtree:true,attributeFilter:['class','hidden']});
-  setTimeout(()=>{observer.disconnect();resolve(mutations);},500);
+  observer.observe(document.querySelector('.v38-home'),{attributes:true,subtree:true,attributeFilter:['class','hidden']});
+  setTimeout(()=>{observer.disconnect();resolve(mutations)},500);
  }));
- expect(idleMutations,'HOME idle class/hidden mutations').toBeLessThan(10);
+ expect(stable,'no endless HOME attribute mutation loop').toBeLessThan(10);
 
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:860});
   const state=await page.evaluate(()=>{
-   const ids=['#v56QueueTile .v38-call-cta','#v38Today','#v38TimeguideShortcut',
-    '#v38Slots .v38-crowd-channel--onsite:is(a,button)','#v38Slots .v38-crowd-channel--web:is(a,button)'];
-   return {
-    overflow:document.documentElement.scrollWidth>innerWidth,
-    routeNames:ids.slice(0,3).map(s=>document.querySelector(s)?.getAttribute('data-v7-view')),
-    controls:ids.map(s=>{
-     const e=document.querySelector(s);
-     if(!e)return {id:s,missing:true};
-     const r=e.getBoundingClientRect();
-     return {id:s,width:r.width,height:r.height,cursor:getComputedStyle(e).cursor,
-      active:e.matches('button:not([disabled]),a[href]')};
-    }),
-    uniqueIds:['v38Today','v38TimeguideShortcut','v38Slots'].every(id=>document.querySelectorAll('#'+id).length===1),
-    order:['v38Hero','v56CommandDeck','v56CrowdStage'].map(id=>document.getElementById(id)?.getBoundingClientRect().top)
+   const interactive=[
+    '#v58Lead #v38Hero [data-v7-view="reception"]',
+    '#v58Lead #v38Hero [data-v7-view="callstatus"]',
+    '#v38TimeguideShortcut',
+    '#v38Slots .v38-crowd-channel--onsite:is(a,button)',
+    '#v38Slots .v38-crowd-channel--web:is(a,button)'
+   ];
+   return{
+    overflow:document.documentElement.scrollWidth>innerWidth+1,
+    unique:['v38Today','v38TimeguideShortcut','v38Slots','v38Hero'].every(id=>document.querySelectorAll('#'+id).length===1),
+    controls:interactive.map(selector=>{
+     const node=document.querySelector(selector);
+     if(!node)return{selector,missing:true};
+     const r=node.getBoundingClientRect();
+     return{selector,width:r.width,height:r.height,active:node.matches('button:not([disabled]),a[href]')};
+    })
    };
   });
-  expect(state.overflow,'overflow '+width).toBe(false);
-  expect(state.uniqueIds).toBe(true);
-  expect(state.routeNames).toEqual(['callstatus','timeguide','timeguide']);
-  expect(state.order[0]).toBeLessThan(state.order[1]);
-  expect(state.order[1]).toBeLessThan(state.order[2]);
-  for(const x of state.controls){
-   expect(x.missing,x.id+' missing').toBeFalsy();
-   expect(x.width,x.id+' width').toBeGreaterThanOrEqual(44);
-   expect(x.height,x.id+' height').toBeGreaterThanOrEqual(44);
-   expect(x.cursor).toBe('pointer');
-   expect(x.active).toBe(true);
+  expect(state.overflow,'horizontal overflow '+width).toBe(false);
+  expect(state.unique,'unique native control IDs').toBe(true);
+  for(const ctl of state.controls){
+   expect(ctl.missing,ctl.selector+' missing').toBeFalsy();
+   expect(ctl.width,ctl.selector+' width').toBeGreaterThanOrEqual(44);
+   expect(ctl.height,ctl.selector+' height').toBeGreaterThanOrEqual(44);
+   expect(ctl.active,ctl.selector+' is not actionable').toBe(true);
   }
  }
  const picker=page.locator('#asoboon-language-select');
+ await expect(picker).toBeVisible();
  const translations={
-  en:['Your ASOBooN today','Check your queue'],
-  'zh-CN':['今日的ASOBooN','查看叫号状态'],
-  vi:['ASOBooN hôm nay','Kiểm tra lượt gọi'],
-  ne:['आजको ASOBooN','पालो जाँच्नुहोस्'],
-  ko:['오늘의 ASOBooN','호출 현황 확인'],
-  kmr:['ASOBooN îro','Rêza bangkirinê bibîne']
+  en:'Take a queue number','zh-CN':'领取排队号码',
+  vi:'Lấy số thứ tự',ne:'पालो नम्बर लिनुहोस्',
+  ko:'대기 번호 받기',kmr:'Hejmarekê bistîne'
  };
  await page.setViewportSize({width:320,height:860});
- for(const [lang,[heading,call]] of Object.entries(translations)){
+ for(const [lang,title] of Object.entries(translations)){
   await picker.selectOption(lang);
-  await expect(page.locator('.v56-heading-title')).toHaveText(heading);
-  await expect(page.locator('#v56QueueTile .v38-call-cta-copy strong')).toHaveText(call);
+  await expect(page.locator('.v58-next-title')).toHaveText(title);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow '+lang).toBe(true);
  }
  await picker.selectOption('ja');
- await expect(page.locator('#v56QueueTile .v38-call-cta-copy strong')).toHaveText('呼出状況をチェック');
- await page.locator('#v56DayTile #v38Today').click();
+ await expect(page.locator('.v58-next-title')).toHaveText('当日受付をする');
+ await page.locator('#v58TimerZone #v38TimeguideShortcut').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await page.locator('#v56TimerTile #v38TimeguideShortcut').click();
- await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
- await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await page.locator('#v56QueueTile .v38-call-cta').click();
+ await page.locator('#v58Lead #v38Hero .v38-call-cta').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await page.locator('#v56CrowdStage .v38-crowd-channel--onsite').first().click();
+ await expect(page.locator('#v38Slots .v38-crowd-channel--onsite')).toHaveCount(3);
+ await page.locator('#v38Slots .v38-crowd-channel--onsite').first().click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
