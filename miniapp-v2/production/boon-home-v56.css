@@ -1,0 +1,442 @@
+/*
+  BOON START v5.6 — ZERO-BASE COMMAND DECK
+  Significant structural redraw of the original HOME:
+  START ZONE → CALL STATUS → TODAY × TIMER → TIME SLOT BOARD.
+  Presentation only. No fake remaining-counts, new WEB action or GO indicator.
+*/
+html.boon-v4.boon-v5-mint body.v38-home-active{
+ background:
+  radial-gradient(circle at 80% -3%,rgba(255,122,0,.10) 0 230px,transparent 250px),
+  linear-gradient(180deg,#E3FFF6 0%,#F6FFFC 590px,#ECF9F4 100%)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .app{
+ width:min(100%,510px)!important;
+ padding-inline:clamp(12px,4vw,20px)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-home.v56-command-home{
+ display:flex!important; flex-direction:column!important;
+ gap:0!important;padding-bottom:36px!important;
+}
+/* The original backend-approved reception button still rules the START zone. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link){
+ position:relative!important;
+ border:0!important;border-radius:28px!important;
+ display:grid!important;
+ grid-template-columns:1fr!important;
+ gap:10px!important;
+ min-height:0!important;
+ padding:21px 19px 19px!important;
+ background:
+  radial-gradient(circle at 96% 2%,rgba(255,226,171,.27) 0 95px,transparent 96px),
+  linear-gradient(145deg,#125E58 0%,#0A4544 100%)!important;
+ color:#FFFFFF!important;
+ overflow:hidden!important;
+ box-shadow:0 8px 0 #083A39,0 16px 31px rgba(10,69,68,.18)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link)::before{
+ content:'START ZONE';display:block!important;
+ width:max-content!important;height:auto!important;
+ position:relative!important;inset:auto!important;
+ padding:6px 10px!important;
+ border-radius:9px!important;
+ background:#FF7A00!important;color:#422900!important;
+ box-shadow:0 2px 0 rgba(91,42,0,.38)!important;
+ font:950 11px/1.2 system-ui,sans-serif!important;
+ letter-spacing:.11em!important;z-index:1!important;
+ transform:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link)::after{
+ content:'';position:absolute;top:-43px;right:-31px;
+ width:145px;height:145px;border-radius:50%;
+ background:radial-gradient(circle,#FF7A00 0 32%,#FFB24D 33% 47%,transparent 48%)!important;
+ opacity:.50!important;pointer-events:none!important;z-index:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link)>.v38-hero-icon{
+ display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link) .v38-hero-body,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link)>div:not(.v38-hero-icon){
+ min-width:0!important;position:relative!important;z-index:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link) h1{
+ color:#FFFFFF!important;font-size:clamp(26px,7vw,34px)!important;
+ font-weight:950!important;letter-spacing:-.055em!important;line-height:1.15!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero:not(.call-link) p{
+ color:#D8F5ED!important;
+ font-size:13px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .boon-v4-home-flag{
+ display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-action.primary:not(:disabled){
+ min-height:66px!important;margin-top:15px!important;
+ border:2px solid #FFE6C6!important;border-radius:17px!important;
+ background:#FF7A00!important;
+ color:#422900!important;font-size:19px!important;font-weight:950!important;
+ box-shadow:0 5px 0 #C35C00,inset 0 2px 0 rgba(255,255,255,.44)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-reception-hours{
+ color:#E2FFF4!important;
+ border-color:rgba(255,255,255,.25)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-reception-hours :is(span,strong),
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-airwait-link{
+ color:#EDFFF8!important;
+}
+/* Dynamic call-link hero becomes an empty structural source after moving its call control. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.call-link{
+ display:none!important;
+}
+/* Brand-new dashboard: a clear visible information hierarchy. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CommandDeck{
+ margin-top:25px!important;
+ border:0!important;
+ padding:0!important;
+ background:transparent!important;
+ display:flex!important;flex-direction:column!important;
+ gap:13px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-deck-heading{
+ display:flex!important;flex-direction:column!important;gap:4px!important;
+ padding:0 3px 2px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-eyebrow{
+ color:#F26F4C!important;font:950 11px/1.2 system-ui,sans-serif!important;
+ letter-spacing:.14em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-heading-title{
+ margin:0!important;color:#104C48!important;font-size:25px!important;
+ line-height:1.17!important;font-weight:950!important;letter-spacing:-.045em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-heading-sub{
+ margin:0!important;font-size:12px!important;color:#4B7970!important;font-weight:700!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active :is(.v56-queue-tile,.v56-day-tile,.v56-timer-tile){
+ position:relative!important;min-width:0!important;
+ border-radius:20px!important;
+ overflow:hidden!important;
+}
+/* Calling/ticket status: dedicated dark/navy tile instead of a secondary HERO button. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile{
+ padding:13px 12px 12px!important;
+ background:linear-gradient(117deg,#173F4C,#193F3C)!important;
+ border:1px solid #0C4546!important;
+ box-shadow:0 5px 0 #0C4948!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-tile-tag{
+ display:block!important;
+ margin:0 0 10px!important;
+ color:#BDF0DF!important;font-size:11px!important;
+ font-weight:950!important;letter-spacing:.065em!important;
+ line-height:1.5!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v56-queue-slot>.v38-call-cta{
+ width:100%!important;max-width:none!important;
+ min-height:77px!important;
+ margin:0!important;
+ padding:12px 10px!important;
+ display:grid!important;
+ grid-template-columns:44px minmax(0,1fr) 38px!important;
+ gap:9px!important;
+ background:#FFFFFF!important;
+ border:2px solid #F8E3D1!important;
+ border-radius:15px!important;
+ box-shadow:0 4px 0 #A8D2C6!important;
+ color:#123F3B!important;
+ text-align:left!important;
+ cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta-icon{
+ width:44px!important;height:44px!important;
+ border-radius:12px!important;
+ display:grid!important;place-items:center!important;
+ background:#E3FFF6!important;color:#14675D!important;
+ border:1px solid #7ACDB8!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta-copy strong{
+ color:#164C46!important;font-size:16px!important;line-height:1.35!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta-copy small{
+ color:#53776F!important;font-size:11px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta-arrow{
+ display:grid!important;place-items:center!important;
+ width:38px!important;height:42px!important;
+ border-radius:12px!important;background:#FF7A00!important;
+ color:#422900!important;border:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta:active{
+ transform:translateY(3px)!important;box-shadow:0 1px 0 #A8D2C6!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56QueueTile .v38-call-cta:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+/* BUSINESS & TIMER: two genuinely different tiles, not twin legacy banners. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-utility-grid{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ align-items:stretch!important;gap:12px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile{
+ padding:15px 12px!important;
+ background:linear-gradient(160deg,#17857B,#0D5B57)!important;
+ box-shadow:0 6px 0 #0B4744!important;
+ border:1px solid #0D6961!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile .v56-tile-tag{
+ color:#CBF8E8!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today{
+ width:100%!important;min-height:0!important;margin:0!important;
+ border:0!important;border-radius:0!important;
+ padding:0!important;display:flex!important;
+ flex-direction:column!important;gap:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ overflow:visible!important;color:#FFFFFF!important;
+ text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today>span:not(.v55-today-action){
+ display:flex!important;flex-direction:column!important;
+ min-width:0!important;min-height:0!important;
+ padding:9px 0!important;border:0!important;
+ border-bottom:1px solid rgba(255,255,255,.23)!important;
+ background:transparent!important;
+ gap:4px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today>span:first-child{
+ padding-left:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today>span:first-child svg{
+ display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today small{
+ font-size:11px!important;color:#D3F4E9!important;
+ font-weight:760!important;line-height:1.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today strong{
+ color:#FFFFFF!important;font-size:clamp(15px,4vw,20px)!important;
+ font-weight:950!important;letter-spacing:-.025em!important;
+ line-height:1.27!important;overflow-wrap:anywhere!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today .v55-today-action{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:space-between!important;gap:5px!important;
+ min-height:45px!important;margin-top:10px!important;
+ padding:5px 6px 5px 9px!important;
+ background:#E3FFF6!important;
+ border:0!important;border-radius:11px!important;
+ color:#104D45!important;
+ font-size:11px!important;line-height:1.45!important;font-weight:950!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today .v55-today-action i{
+ flex:none!important;width:28px!important;height:28px!important;
+ display:grid!important;place-items:center!important;
+ background:#FF7A00!important;color:#492300!important;
+ border-radius:9px!important;font-style:normal!important;
+ font-size:17px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today:active{
+ transform:translateY(2px)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile{
+ padding:15px 12px!important;
+ background:linear-gradient(155deg,#FFF5E4,#FFE4C1)!important;
+ border:1px solid #F1B779!important;
+ box-shadow:0 6px 0 #E4B179!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile .v56-tile-tag{
+ color:#8A4C10!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut{
+ min-height:0!important;width:100%!important;
+ display:flex!important;flex-direction:column!important;
+ align-items:stretch!important;justify-content:flex-start!important;
+ gap:11px!important;padding:0!important;
+ border:0!important;box-shadow:none!important;
+ background:transparent!important;color:#4D2C0B!important;
+ border-radius:0!important;text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut>.v38-quick-icon{
+ width:61px!important;height:61px!important;min-height:61px!important;
+ border-radius:50%!important;display:grid!important;place-items:center!important;
+ background:#FF7A00!important;color:#4A2800!important;
+ box-shadow:0 5px 0 #C56300,inset 0 3px 0 #FFBF79!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut>.v38-quick-icon svg{
+ width:31px!important;height:31px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut>span:nth-child(2){
+ display:flex!important;flex-direction:column!important;
+ align-items:flex-start!important;gap:5px!important;
+ min-width:0!important;flex:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut small{
+ font-size:10px!important;color:#81552B!important;line-height:1.3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut strong{
+ color:#5A3100!important;font-size:clamp(16px,4.5vw,20px)!important;
+ line-height:1.25!important;font-weight:950!important;overflow-wrap:anywhere!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut em{
+ color:#84572C!important;font-size:11px!important;line-height:1.42!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut .v55-timer-action{
+ display:flex!important;justify-content:space-between!important;align-items:center!important;
+ gap:5px!important;align-self:stretch!important;
+ width:100%!important;max-width:none!important;
+ min-height:45px!important;margin:9px 0 0!important;
+ padding:7px 8px!important;
+ border-radius:10px!important;
+ background:#FF7A00!important;color:#492300!important;
+ font-size:11px!important;font-weight:950!important;line-height:1.35!important;
+ border:1px solid #C95D00!important;
+ box-shadow:0 3px 0 #BD5E00!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut:active{
+ transform:translateY(2px)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+/* Native remaining-capacity data turns into a board with time slots as rows. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage{
+ margin-top:25px!important;
+ padding:16px 12px 14px!important;
+ border:0!important;border-radius:23px!important;
+ background:linear-gradient(155deg,#163D3B,#0F3737)!important;
+ box-shadow:0 7px 0 #082C2D,0 12px 24px rgba(10,48,48,.17)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-crowd-top{
+ position:relative!important;display:flex!important;flex-direction:column!important;
+ gap:5px!important;padding:0 4px 13px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-crowd-tag{
+ color:#FF9D3D!important;font-size:11px!important;font-weight:950!important;
+ letter-spacing:.09em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-crowd-title{
+ margin:0!important;color:#FFFFFF!important;
+ font-size:21px!important;font-weight:950!important;
+ line-height:1.23!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v56-crowd-sub{
+ margin:0!important;color:#B9E9DE!important;
+ font-size:12px!important;line-height:1.5!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots{
+ margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ border-radius:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots>h3{
+ margin:0 0 7px!important;
+ color:#D8FFF1!important;font-size:14px!important;font-weight:880!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v55-crowd-prompt{
+ color:#6E3900!important;
+ background:#FFE5C4!important;border-left:4px solid #FF7A00!important;
+ border-radius:8px!important;font-size:12px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-note,
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-slots-note,
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-disclaimer{
+ color:#CAECE2!important;font-size:11px!important;line-height:1.5!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-list{
+ gap:10px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-card{
+ background:#FFFFFF!important;
+ color:#173F3D!important;
+ padding:13px 11px!important;
+ border:0!important;border-left:6px solid #FF7A00!important;
+ border-radius:15px!important;
+ box-shadow:0 4px 0 rgba(0,0,0,.19)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-head{
+ padding-bottom:7px!important;margin-bottom:9px!important;
+ border-bottom:1px solid #D9E9E3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-head time{
+ color:#134E49!important;font-size:23px!important;letter-spacing:-.03em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channels{
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channel{
+ min-width:0!important;min-height:108px!important;
+ display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+ padding:9px 7px!important;border-radius:10px!important;
+ background:#F3FAF7!important;border:1px solid #B9DED3!important;
+ box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channel--onsite:is(a,button){
+ background:#FFF0DE!important;border:2px solid #F6B87C!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channel--web:is(a,button){
+ background:#E5FFF6!important;border:2px solid #8FD8C3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channel:is(a,button) .v38-crowd-tap{
+ display:flex!important;min-height:43px!important;
+ background:#FF7A00!important;border:1px solid #D06000!important;
+ color:#492300!important;box-shadow:0 3px 0 #B95800!important;
+ align-items:center!important;justify-content:center!important;
+ font-weight:950!important;font-size:12px!important;
+ padding:6px 3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-crowd-channel--web:is(a,button) .v38-crowd-tap{
+ background:#D4F6EA!important;color:#14564D!important;border-color:#82CEB8!important;box-shadow:0 3px 0 #7ECCB7!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage #v38Slots .v38-action{
+ min-height:52px!important;background:#E3FFF6!important;color:#12524C!important;
+ border:1px solid #9DD9C9!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-today-section:empty,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-quick-tools:empty{
+ display:none!important;
+}
+/* Prevent the old dashboard's empty sections from taking vertical space. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-today-section:has(> :not(script):not(style):not(#v38Today):not(#v38Slots)){
+ margin:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-today-section{
+ margin:0!important;padding:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-quick-tools{
+ margin:0!important;padding:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage .v38-crowd-channel:focus-visible,
+html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage .v38-action:focus-visible{
+ outline:3px solid #FF7A00!important;outline-offset:3px!important;
+}
+@media(max-width:355px){
+ html.boon-v4.boon-v5-mint body.v38-home-active .v56-utility-grid{
+  grid-template-columns:1fr 1fr!important;gap:8px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile,
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile{
+  padding:12px 9px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56DayTile #v38Today strong{
+  font-size:14px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56TimerTile #v38TimeguideShortcut strong{
+  font-size:15px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage{
+  padding-inline:10px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #v56CrowdStage .v38-crowd-channel{
+  padding:8px 5px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint body.v38-home-active :is(#v38Hero,#v56CommandDeck *,#v56CrowdStage *){
+  transition:none!important;animation:none!important;
+ }
+}
