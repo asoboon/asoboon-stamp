@@ -12,7 +12,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=6681734690ca',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=2252ee6dad83',
   './miniapp-v2/shared/i18n-dictionary.js?v=1cb3555ac942','./miniapp-v2/shared/i18n-runtime.js?v=0bb3a7f7e8c4'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -31,12 +31,12 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=4429acc58011';
   document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
-  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=17272d4a2cad';
+  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=0d26574f630a';
   document.head.appendChild(theme);
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
   const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
-  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=4e09e8ac00df';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=95081705967c';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
   deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=33e14cde3efc';
