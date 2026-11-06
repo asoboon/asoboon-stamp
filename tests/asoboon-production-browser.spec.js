@@ -2121,7 +2121,7 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('混雑状況を確認できません');
+ await expect(box).toContainText('受付枠の残り人数を確認できません');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
 });
@@ -2420,11 +2420,23 @@ test('v5.9 calling action label stays state-specific in all seven supported lang
    receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031',adults:1,paidChildren:0,infants:0
   }));
  });
- await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const homeURL=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__mintTestEnvironment;},
+   set(value){this.__mintTestEnvironment=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+ },siteBase);
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
- await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
-  detail:{kind:'calling',receipt:'F345',source:'live',checkedAt:Date.now()}
- })));
+ await page.evaluate(()=>{
+  const status={kind:'calling',receipt:'F345',source:'live',checkedAt:Date.now()};
+  window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+  window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+ });
  const expected={ja:'受付番号を見る',en:'View queue number','zh-CN':'查看排队号码',
   ko:'접수 번호 확인',vi:'Xem số thứ tự',ne:'पालो नम्बर हेर्नुहोस्',kmr:'Hejmarê bibîne'};
  const picker=page.locator('#asoboon-language-select');

@@ -12,7 +12,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=539f267de7d2',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=d722e909d312',
   './miniapp-v2/shared/i18n-dictionary.js?v=1cb3555ac942','./miniapp-v2/shared/i18n-runtime.js?v=0bb3a7f7e8c4'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -31,7 +31,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=8ca841ad2dd5';
   document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
-  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=0d26574f630a';
+  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=8bb8d43fae05';
   document.head.appendChild(theme);
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.

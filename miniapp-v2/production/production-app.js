@@ -751,7 +751,7 @@ return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0027':'14:00','0036
 }
 function remainingMarkup(label,value,channel,{time='',webUrl=''}={}){
  const people=value===null?'確認中':value+'名';
- const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-count-prefix">残り</span><span class="v38-crowd-number">${value}</span><small>名</small>${value===0?'<em class="v38-crowd-full">満枠</em>':''}`}</strong>`;
+ const content=`<span>${esc(label)}</span><span class="v38-crowd-count-prefix">残り</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-number">${value}</span><small>名</small>`}</strong>${value===0?'<em class="v38-crowd-full">満枠</em>':''}`;
  const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
  const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
  const accessible=`${time}。${label}の残り${people}。${destination}`;
