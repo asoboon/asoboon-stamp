@@ -22,7 +22,7 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
  assert.match(home,/CROWD_STALE_MS=90000/);
 });
 test('Two clear, responsive channels independently navigate to AirWAIT WEB and LINE reception',()=>{
- for(const word of ['WEB受付','LINE受付','確認中','人数は各受付枠の残りです。館内の滞在人数や混雑率ではありません。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
+ for(const word of ['WEB受付','LINE受付','確認中','表示はWEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(home,/const webUrl=airwaitWebReceptionUrl\(\)/);
  assert.match(home,/href="\$\{esc\(webUrl\)\}" target="_blank" rel="noopener noreferrer" data-external="1"/);
@@ -35,6 +35,17 @@ test('Two clear, responsive channels independently navigate to AirWAIT WEB and L
  assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
 });
 
+test('HOME states verified remaining people clearly and labels the section as reception availability',()=>{
+ for(const phrase of ['受付枠の空き状況','残り人数','value===null?\'確認中\''])assert.ok(home.includes(phrase),phrase);
+ assert.match(home,/\$\{value\}<small>人<\/small>/);
+ assert.match(home,/WEB受付とLINE受付の残り人数/);
+ assert.match(home,/WEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。/);
+ assert.doesNotMatch(home,/本日の混雑状況/);
+ assert.match(home,/slot\.reserveUnit!=='PERSON'/);
+ assert.match(home,/slot\.evidence!=='PERSON'/);
+ assert.match(home,/slot\.matchMode!=='exact-name'/);
+});
+
 
 test('Cold HOME starts one safe read in parallel with business-day lookup and reuses it',()=>{
  assert.match(home,/if\(!day&&!force\)prefetchCrowd\(\);try\{const previousDate=/);
@@ -45,4 +56,15 @@ test('Cold HOME starts one safe read in parallel with business-day lookup and re
  assert.match(home,/const cached=readCrowdCache\(\);if\(cached\?\.verifiedFresh/);
  assert.match(home,/result\.response;data=result\.data/);
  assert.match(home,/受付残り人数を確認しています/);
+});
+
+test('HOME callstatus CTA supports verified states in seven locales without changing its destination',()=>{
+ const source=readFileSync('miniapp-v2/production/boon-home-v56-layout.js','utf8');
+ for(const lang of ['ja','en','ko','vi','ne','kmr']){
+  assert.ok(source.includes(lang+':{calling:'),'missing status-specific CTA label '+lang);
+ }
+ assert.ok(source.includes('zh-CN')&&source.includes('查看排队号码'),'missing zh-CN calling label');
+ assert.ok(source.includes('const callLabel=(callActionLabels[language()]'));
+ assert.ok(source.includes("hero.querySelector('.v38-call-cta-copy strong')"));
+ assert.ok(source.includes('if(callCTA)set(callCTA,callLabel)'));
 });

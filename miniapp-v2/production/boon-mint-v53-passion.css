@@ -540,3 +540,37 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v55-crowd-prompt{
  min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important;
 }
+
+/* v5.10 — say exactly what the verified WEB and LINE figures represent. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>h3{
+ color:#145F59!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-remaining-title{
+ color:#155C54!important;font-weight:900!important;font-size:13px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel strong{
+ display:flex!important;align-items:baseline!important;justify-content:center!important;
+ gap:3px!important;min-height:45px!important;color:#104F49!important;
+ font-size:clamp(25px,7vw,34px)!important;font-weight:950!important;line-height:1.1!important;
+ white-space:nowrap!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-remain-label{
+ font-size:14px!important;font-weight:900!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel strong small:not(.v38-crowd-unknown){
+ font-size:17px!important;font-weight:900!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel .v38-crowd-unknown{
+ font-size:18px!important;color:#4F625D!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:focus-visible,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate:focus-visible{
+ outline:3px solid #075E55!important;outline-offset:3px!important;
+}
+
+/* Small devices: keep real 3-digit remaining people readable. */
+@media(max-width:370px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channels{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}

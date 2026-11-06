@@ -22,6 +22,24 @@ function dynamicText(value){
  const seconds=locale==='en'?'sec':locale==='zh-CN'?'秒':locale==='vi'?'giây':locale==='ko'?'초':locale==='kmr'?'çirke':'सेकेन्ड';
  if(/^\d{1,2}:\d{2}の回$/.test(value))return value.replace('の回',' '+session);
  if(/^\d{1,2}:\d{2}回$/.test(value))return value.replace('回',' '+session);
+
+ // Translate the exact people-count fields and accessibility labels introduced by v5.10.
+ if(value.includes('。')&&(value.includes('WEB受付の残り')||value.includes('LINE受付の残り'))){
+  return value.split('。').map(piece=>dynamicText(piece)).join(locale==='en'?'. ':'。');
+ }
+ const remainingChannel=value.match(/^(WEB受付|LINE受付)の残り(確認中|\d+人)$/);
+ if(remainingChannel){
+  const channel=dynamicText(remainingChannel[1]),count=remainingChannel[2];
+  const displayed=count==='確認中'?dynamicText('確認中'):dynamicText(count);
+  return locale==='en'?channel+': '+displayed+(count==='確認中'?'':' remaining'):
+   locale==='zh-CN'?channel+'剩余'+displayed:
+   locale==='vi'?channel+': còn '+displayed:
+   locale==='ko'?channel+' 남은 '+displayed:
+   locale==='kmr'?channel+': '+displayed+' mayî':
+   channel+': बाँकी '+displayed;
+ }
+ if(/^\d+人$/.test(value))return value.replace('人',locale==='zh-CN'?'人':' '+people);
+
  const duration=value.match(/^(\d+)時間(\d+)分$/);
  if(duration)return locale==='en'?duration[1]+' hr '+duration[2]+' min':locale==='zh-CN'?duration[1]+'小时'+duration[2]+'分钟':locale==='vi'?duration[1]+' giờ '+duration[2]+' phút':duration[1]+' घण्टा '+duration[2]+' मिनेट';
  const peopleSum=value.match(/^合計 (\d+)名$/);

@@ -915,15 +915,15 @@ test('HOME 12:30 quotas refresh only on tap without extra business-day calls',as
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
- await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/\d+名/);
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/残り\d+人/);
  await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
  expect(calls).toBe(1);
  await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
  const before=calls;
  await page.locator('#v38CrowdUpdate').click();
  await expect.poll(()=>calls).toBeGreaterThan(before);
- await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('71名');
- await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('44名');
+ await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('残り71人');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('残り44人');
  await card.locator('.v38-crowd-channel--onsite').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  const after=calls;await page.waitForTimeout(500);expect(calls).toBe(after);
@@ -992,7 +992,7 @@ test('Cold HOME starts crowd request before delayed business day resolves and is
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  expect(crowdBeforeDay).toBe(true);
  expect(crowdReads).toBe(1);
- await expect(page.locator('#v38Slots .v38-crowd-channel--web strong').first()).toHaveText('195名');
+ await expect(page.locator('#v38Slots .v38-crowd-channel--web strong').first()).toHaveText('残り195人');
 });
 
 test('HOME shows separate WEB and onsite remaining counts from the same existing crowd API response',async({page})=>{
@@ -1004,19 +1004,19 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
   for(const [time,web,onsite] of [['10:00',195,117],['12:30',71,44],['15:00',25,8]]){
     const card=box.locator('.v38-crowd-card').filter({hasText:time+'回'});
-    await expect(card.locator('.v38-crowd-remaining-title')).toHaveText('受付残り');
-    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'名.*LINE受付の残り'+onsite+'名'));
+    await expect(card.locator('.v38-crowd-remaining-title')).toHaveText('残り人数');
+    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'人.*LINE受付の残り'+onsite+'人'));
     await expect(card.locator('.v38-crowd-channel--web')).toContainText('WEB受付');
     await expect(card.locator('.v38-crowd-channel--web')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
     await expect(card.locator('.v38-crowd-channel--web')).toHaveAttribute('data-external','1');
-    await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
+    await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り'+web+'人');
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('LINE受付');
     await expect(card.locator('.v38-crowd-channel--onsite')).toHaveAttribute('data-v7-view','reception');
     await expect(card.locator('.v38-crowd-channel--onsite')).toHaveAttribute('data-v7-slot',time);
-    await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
+    await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り'+onsite+'人');
     await expect(card.locator('[role="progressbar"]')).toHaveCount(0); // no fabricated occupancy percentage
   }
-  await expect(box).toContainText('人数は各受付枠の残りです。');
+  await expect(box).toContainText('表示はWEB・LINE各受付の残り人数です。');
   expect(actions.length).toBe(1); // no additional Worker calls for onsite
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
@@ -1026,7 +1026,7 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   if(process.env.ASOBOON_CROWD_SCREENSHOT==='1')await page.screenshot({path:'/tmp/asoboon-crowd-web-onsite.png',fullPage:true});
 });
 
-test('12:30 LINE verified zero is shown as 0名; crowded card advertises navigation to reception',async({page})=>{
+test('12:30 LINE verified zero is shown as 残り0人; crowded card advertises navigation to reception',async({page})=>{
  await installProduction(page);
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
@@ -1047,13 +1047,13 @@ test('12:30 LINE verified zero is shown as 0名; crowded card advertises navigat
  const box=page.locator('#v38Slots');
  const c1230=box.locator('.v38-crowd-card').filter({hasText:'12:30回'});
  await expect(c1230).toBeVisible();
- await expect(c1230.locator('.v38-crowd-channel--web strong')).toHaveText('0名');
- await expect(c1230.locator('.v38-crowd-channel--onsite strong')).toHaveText('0名');
+ await expect(c1230.locator('.v38-crowd-channel--web strong')).toHaveText('残り0人');
+ await expect(c1230.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り0人');
  await expect(c1230.locator('.v38-crowd-channel--web')).toContainText('WEBで受付する');
  await expect(c1230.locator('.v38-crowd-channel--onsite')).toContainText('LINEで受付する');
- await expect(c1230).toHaveAttribute('aria-label',/LINE受付の残り0名/);
+ await expect(c1230).toHaveAttribute('aria-label',/LINE受付の残り0人/);
  const c1500=box.locator('.v38-crowd-card').filter({hasText:'15:00回'});
- await expect(c1500.locator('.v38-crowd-channel--onsite strong')).toHaveText('39名');
+ await expect(c1500.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り39人');
  for(const width of [320,375,390,430]){
   await page.setViewportSize({width,height:844});
   const button=await c1230.locator('.v38-crowd-channel--onsite').boundingBox();
@@ -1099,10 +1099,10 @@ test('Missing, ambiguous or invalid onsite rows show 確認中 instead of false 
   for(const time of ['10:00','12:30','15:00']){
     const card=page.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-channel--onsite')).toContainText('確認中');
-    await expect(card.locator('.v38-crowd-channel--onsite')).not.toContainText('0名');
+    await expect(card.locator('.v38-crowd-channel--onsite')).not.toContainText('残り0人');
     await expect(card).toHaveAttribute('aria-label',/LINE受付の残り確認中/);
   }
-  await expect(page.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('.v38-crowd-channel--web strong')).toHaveText('0名');
+  await expect(page.locator('.v38-crowd-card').filter({hasText:'12:30回'}).locator('.v38-crowd-channel--web strong')).toHaveText('残り0人');
 });
 
 test('Onsite-only verified pool remains visible while unsafe online time-key match is hidden',async({page})=>{
@@ -1119,7 +1119,7 @@ test('Onsite-only verified pool remains visible while unsafe online time-key mat
   const card=page.locator('#v38Slots .v38-crowd-card');
   await expect(card).toHaveCount(1);
   await expect(card.locator('.v38-crowd-channel--web')).toContainText('確認中');
-  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('75名');
+  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り75人');
   await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
   await card.locator('.v38-crowd-channel--onsite').click();
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
@@ -1146,8 +1146,8 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
   await expect(cards).toHaveCount(2);
   for(const [time,web,onsite] of [['10:00',140,59],['13:30',80,22]]){
     const card=cards.filter({hasText:time+'回'});
-    await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(web+'名');
-    await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText(onsite+'名');
+    await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り'+web+'人');
+    await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り'+onsite+'人');
   }
   await expect(page.locator('#v38Slots')).not.toContainText('12:30回');
 });
@@ -1168,8 +1168,8 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   const card=page.locator('#v38Slots .v38-crowd-card');
   await expect(card).toHaveCount(1);
-  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('25名');
-  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('14名');
+  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り25人');
+  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り14人');
 });
 
 for(const state of ['canceled','done']){
@@ -1854,7 +1854,7 @@ test('HOME restores recently verified 12:30 capacity instantly without a second 
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
- await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('14名');
+ await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り14人');
  await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
  expect(crowdReads).toBe(0);
 });
@@ -1921,7 +1921,7 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card).toBeVisible();
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
- await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('281名');
+ await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り281人');
  await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
  await card.locator('.v38-crowd-channel--onsite').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
@@ -2121,7 +2121,7 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('混雑状況を確認できません');
+ await expect(box).toContainText('受付枠の空き状況を確認できません');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
 });
@@ -2139,7 +2139,7 @@ test('HOME uses a neutral no-visible-slots state for valid quota data without ve
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
  await expect(box).toContainText('表示できる受付枠はありません');
- await expect(box).not.toContainText('混雑状況を確認できません');
+ await expect(box).not.toContainText('受付枠の空き状況を確認できません');
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
 });
 
@@ -2159,7 +2159,7 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
  await expect(page.locator('#v38Slots')).toContainText('40');
  await page.locator('#v38CrowdUpdate').click();
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
- await expect(page.locator('#v38Slots')).not.toContainText('40名');
+ await expect(page.locator('#v38Slots')).not.toContainText('残り40人');
 });
 
 test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as old remaining seats',async({page})=>{
@@ -2174,7 +2174,7 @@ test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as 
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
- await expect(page.locator('#v38Slots')).not.toContainText('88名');
+ await expect(page.locator('#v38Slots')).not.toContainText('残り88人');
 });
 
 test('HOME confirms real hidden AirWAIT slots rather than blaming the connection',async({page})=>{
