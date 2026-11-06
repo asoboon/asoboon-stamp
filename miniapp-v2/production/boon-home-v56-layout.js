@@ -71,9 +71,22 @@ function make(){
 }
 function mount(){
  const home=root.querySelector('.v38-home');
- const hero=home?.querySelector('#v38Hero'),day=home?.querySelector('#v38Today');
+ const hero=home?.querySelector('#v38Hero');
+ let day=home?.querySelector('#v38Today');
  const slots=home?.querySelector('#v38Slots'),timer=home?.querySelector('#v38TimeguideShortcut');
  if(!home||!hero||!day||!slots||!timer)return;
+ // Business-day facts are informational. The original button pointed to the
+ // timer, which made a static business label falsely appear tappable.
+ // Keep the existing three values and native patchToday bindings unchanged.
+ if(day.tagName==='BUTTON'){
+  const passive=el('div',day.className+' v58-readonly-facts');
+  passive.id='v38Today';
+  passive.setAttribute('role','group');
+  passive.setAttribute('aria-label','本日の営業情報');
+  while(day.firstChild)passive.appendChild(day.firstChild);
+  day.replaceWith(passive);
+  day=passive;
+ }
  let shell=home.querySelector(':scope > #v58Flow');
  if(!shell){shell=make();home.insertBefore(shell,hero)}
  const targetHero=shell.querySelector('#v58Lead');
