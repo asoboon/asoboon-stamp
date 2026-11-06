@@ -1753,7 +1753,7 @@ test('Official home.html loads the real hashed language assets without requiring
  const picker=page.locator('#asoboon-language-select');
  await expect(picker).toBeVisible();
  await picker.selectOption('en');
- await expect(page.locator('#v56QueueTile .v38-call-cta')).toContainText('Check your queue');
+ await expect(page.locator('.v58-next-title')).toHaveText('Take a queue number');
  expect(Object.keys(responseCodes)).toHaveLength(2);
  expect(Object.values(responseCodes)).toEqual([200,200]);
  expect(errors).toEqual([]);
