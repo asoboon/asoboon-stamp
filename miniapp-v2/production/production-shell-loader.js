@@ -18,4 +18,15 @@ for(const src of scripts){const s=document.createElement('script');s.src=src;s.a
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
 };document.head.appendChild(s)}
+// BOON START Mint Soda is an explicit, reversible visual preview only.
+// Default Production URLs never fetch these large optional assets.
+if(new URLSearchParams(location.search).get('boonTheme')==='mint'){
+  window.ASOBOON_MINT_V51_PREVIEW=true;
+  const css=document.createElement('link');css.rel='stylesheet';
+  css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=4ea20d3c8781';
+  document.head.appendChild(css);
+  const theme=document.createElement('script');theme.async=false;
+  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=ce5c076c24c6';
+  document.head.appendChild(theme);
+}
 })();
