@@ -245,10 +245,8 @@ function styleHome(){
  var old=root.querySelector('#boonV4HomeTag');
  if(old)old.remove();
  var hero=home.querySelector('#v38Hero');
- if(hero&&hero.classList.contains('open')&&!hero.querySelector('.boon-v4-home-flag')){
-  var flag=create('span','boon-v4-home-flag','BOON START / READY FOR FUN');
-  hero.insertBefore(flag,hero.firstChild);
- }
+ // The separate BOON START / READY FOR FUN flag was removed by request.
+ if(hero){var oldFlag=hero.querySelector('.boon-v4-home-flag');if(oldFlag)oldFlag.remove()}
  enhanceHomeAffordances(home);
 }
 function makeLamps(kind){
