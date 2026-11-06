@@ -1,5 +1,5 @@
 /*
- * BOON START v5.8 — action-first HOME
+ * HOME v5.8.1 — calm status and readable business facts
  * Presentation only. Reuses the original reception, callstatus, day, capacity
  * and timer DOM nodes. No API calls, booking links, prices or state writes.
  * Verified live status comes from home-status-v13, not cached guesswork.
@@ -41,15 +41,8 @@ function currentKind(hero){
 }
 function make(){
  const shell=el('section','v58-flow');shell.id='v58Flow';
- const header=el('header','v58-header');
- header.appendChild(el('span','v58-eyebrow'));
- header.appendChild(el('h2','v58-header-title','BOON START'));
- shell.appendChild(header);
  const primary=el('section','v58-primary');primary.id='v58Primary';
  primary.setAttribute('aria-label','Next action');
- const phase=el('div','v58-phase');
- const phaseText=el('span','v58-phase-text');phaseText.id='v58Phase';
- phase.appendChild(phaseText);primary.appendChild(phase);
  const intro=el('div','v58-intro');intro.setAttribute('role','status');intro.setAttribute('aria-live','polite');
  intro.appendChild(el('h2','v58-next-title'));intro.appendChild(el('p','v58-next-summary'));
  primary.appendChild(intro);
@@ -93,6 +86,8 @@ function mount(){
  if(hero.parentElement!==targetHero)targetHero.appendChild(hero);
  const dayZone=shell.querySelector('#v58DayZone'),timerZone=shell.querySelector('#v58TimerZone'),sessionsZone=shell.querySelector('#v58SessionsZone');
  if(day.parentElement!==dayZone)dayZone.appendChild(day);
+ // The native business values stay bound to patchToday; only presentation labels move.
+ if(language()==='ja')set(day.querySelector('span:first-child small'),'営業区分');
  // An entered visitor's real next action is the *existing* timer control,
  // not a decorative label with a stale call-status primary button.
  // Move the original DOM control, preserving its native route handler.
@@ -112,8 +107,6 @@ function mount(){
  const callLabel=language()==='ja'?(state==='calling'?'受付番号を見る':state==='guided'?'呼出履歴を確認する':state==='waiting'?'待ち順を確認する':state==='hold'?'受付状態を確認する':'呼出状況を確認する'):t.saved[0];
  if(callCTA)set(callCTA,callLabel);
  if(shell.dataset.state!==state)shell.dataset.state=state;
- set(shell.querySelector('.v58-eyebrow'),t.eyebrow);
- set(shell.querySelector('#v58Phase'),t.eyebrow);
  const title=t[state]||t.default;
  let detail=title[1];
  if(state==='waiting'&&info.live&&Number.isSafeInteger(info.snapshot.ahead)&&info.snapshot.ahead>=0){
@@ -146,9 +139,25 @@ let scheduled=false;
 function request(){
  if(scheduled)return;
  scheduled=true;
- setTimeout(()=>{scheduled=false;mount()},16);
+ // Update at most once per frame; don't react to our own title/label mutations.
+ const run=()=>{scheduled=false;mount()};
+ if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);
+ else setTimeout(run,16);
 }
-new MutationObserver(request).observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
+const nativeIds=new Set(['v38Hero','v38Today','v38Slots','v38TimeguideShortcut']);
+new MutationObserver(records=>{
+ const nativeChanged=records.some(record=>{
+  const target=record.target;
+  if(target.nodeType!==1)return false;
+  if(target===root||target.classList.contains('v38-home'))return true;
+  if(record.type==='attributes')return nativeIds.has(target.id);
+  // An updated call markup or capacity board requires action refresh.
+  if(target.id==='v38Hero'||target.id==='v38Slots')return true;
+  // Native business facts and timer text can update in place.
+  return Boolean(target.closest('#v38Today, #v38TimeguideShortcut'));
+ });
+ if(nativeChanged)request();
+}).observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
 for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-timeguide-updated','asoboon:v2-route-rendered','popstate'])window.addEventListener(event,request);
 request();
 window.BOON_HOME_V58=Object.freeze({version:'5.8.0-action-first',presentationOnly:true,existingActionsOnly:true});
