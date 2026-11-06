@@ -25,6 +25,10 @@ if(new URLSearchParams(location.search).get('boonTheme')==='mint'){
   const css=document.createElement('link');css.rel='stylesheet';
   css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=97aa7ffa9915';
   document.head.appendChild(css);
+  // Explicit passion-orange palette selected by the user; CSS-only, no API logic.
+  const passion=document.createElement('link');passion.rel='stylesheet';
+  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=f947831410ee';
+  document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=ce5c076c24c6';
   document.head.appendChild(theme);

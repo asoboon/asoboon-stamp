@@ -1,0 +1,149 @@
+/*
+ BOON START v5.3 PASSION ORANGE — 2026-11-06
+ Design decision: user selected #FF7A00 as the action/accent orange.
+ This stylesheet loads AFTER v5.2 only when ?boonTheme=mint is enabled.
+ No AirWAIT, LINE, reservation, calling-state, or cancellation behavior changes.
+*/
+html.boon-v4.boon-v5-mint {
+  --mint-passion: #FF7A00;
+  --mint-passion-deep: #BA5000;
+  --mint-passion-dark: #653000;
+  --mint-passion-light: #FFA34A;
+  --mint-passion-pale: #FFF0DF;
+  --mint-coral: #FF7A00;
+  --mint-orange-spark: #FF7A00;
+  --mint-orange-soft: #FFF0DF;
+  --mint-orange-ink: #653000;
+}
+/* The home START line has a bright orange pulse of visual energy, not animation. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open {
+  box-shadow:0 7px 0 #FF7A00, 0 19px 32px rgba(15,99,86,.21)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open::after {
+  background:radial-gradient(circle at center,
+    #FF7A00 0 29%,
+    rgba(255,122,0,.85) 30% 38%,
+    rgba(255,122,0,.18) 39% 53%,
+    transparent 54%)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag {
+  color:#5B2D00!important;
+  background:#FFE3C2!important;
+  border:1px solid #FF7A00!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag::before {
+  background:#FF7A00!important;
+}
+/* The real active CTA changes to Passion Orange with dark, high contrast text. */
+html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary,
+html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled),
+html.boon-v4.boon-v5-mint #recSubmit:not(:disabled) {
+  background:linear-gradient(180deg,#FF9B3D 0%,#FF7A00 67%,#EF6B00 100%)!important;
+  border:1px solid #D45B00!important;
+  color:#492300!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.50), inset 0 -4px 0 #B94B00, 0 7px 14px rgba(214,96,0,.20)!important;
+}
+html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:hover,
+html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):hover,
+html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):hover {
+  background:linear-gradient(180deg,#FFAD5A 0%,#FF850B 100%)!important;
+}
+html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:active,
+html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):active,
+html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):active {
+  transform:translateY(3px)!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.4), inset 0 -1px #B94B00!important;
+}
+/* Selected slot / active step are orange. Unselected and disabled remain neutral. */
+html.boon-v4.boon-v5-mint .boon-v4-progress>span.active {
+  border-bottom-color:#FF7A00!important;
+  background:linear-gradient(180deg,#FFF7EE,#FFE1C4)!important;
+  color:#6C3509!important;
+}
+html.boon-v4.boon-v5-mint .boon-v4-stage-intro {
+  border-left-color:#FF7A00!important;
+  box-shadow:inset 0 -3px 0 rgba(255,122,0,.34),0 3px 0 #B6E7DB!important;
+}
+html.boon-v4.boon-v5-mint .boon-v4-stage-intro small {color:#FFD7A1!important;}
+html.boon-v4.boon-v5-mint #recSlots .rec-slot.active:not([hidden]){
+  border-color:#FF7A00!important;
+  border-left-color:#FF7A00!important;
+  background:#FFF3E5!important;
+  box-shadow:0 5px 0 rgba(255,122,0,.37),0 7px 17px rgba(255,122,0,.11)!important;
+}
+html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::before {
+  background:#FF7A00!important;
+  color:#452100!important;
+}
+html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::after {
+  background:#FFE2BF!important;
+  color:#723B06!important;
+}
+/* "＋" is a real increment control; never make disabled steppers look active. */
+html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled){
+  background:#FF7A00!important;
+  border-color:#C95700!important;
+  color:#4B2500!important;
+  box-shadow:0 3px 0 #A64500!important;
+}
+html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled):active {
+  background:#FFA347!important;
+  transform:translateY(3px)!important;
+  box-shadow:0 0 0 #A64500!important;
+}
+/* The amount is a strong, warm signifier; actual numeric calculation stays original. */
+html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team{
+  border-bottom-color:#FF7A00!important;
+}
+html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
+  background:linear-gradient(150deg,#FFB663 0%,#FF7A00 100%)!important;
+  color:#4B2500!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 -3px 0 rgba(154,67,0,.29)!important;
+}
+html.boon-v4.boon-v5-mint .rec-summary .rec-line.total strong {
+  color:#B94C00!important;
+}
+/* HOME discovery accents. Don't alter crowd severity or game identity colors. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-guide>h2,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-help>h2,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-section-heading,
+html.boon-v4.boon-v5-mint body.v38-home-active .boon-v5-web-reception,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
+  border-left-color:#FF7A00!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta .v38-quick-icon,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-calendar-icon {
+  background:#FF7A00!important;
+  color:#492300!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-play {
+  border-top-color:#FF7A00!important;
+  background:linear-gradient(180deg,#FFE3CA 0%,#FFF7F0 102px,#FFFFFF 180px)!important;
+}
+/* Registration success is orange, not the emerald "you may enter" light. */
+html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
+  border-top-color:#FF7A00!important;
+  background:linear-gradient(155deg,#FFE3C9 0%,#E3FFF6 60%,#FFFFFF 100%)!important;
+}
+html.boon-v4.boon-v5-mint .boon-v5-complete-check{
+  background:#FF7A00!important;
+  color:#492300!important;
+  border-color:#FFD09C!important;
+  box-shadow:0 6px 0 rgba(199,89,0,.25),0 0 0 8px rgba(255,122,0,.12)!important;
+}
+html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong{
+  color:#A64600!important;
+}
+/*
+ Important: no selectors here touch:
+   .boon-v4-call-hero.calling, .boon-v4-lamp.green, .boon-v4-go,
+   .boon-v4-call-hero.error, .boon-v4-lamp.red, .rec-stepper button:disabled
+ The official server calling state remains the only GO trigger.
+*/
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary,
+ html.boon-v4.boon-v5-mint .boon-v4-primary,
+ html.boon-v4.boon-v5-mint #recSubmit {transition:none!important;}
+}

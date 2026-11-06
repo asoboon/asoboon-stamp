@@ -6,8 +6,8 @@
 const fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright');
 const ROOT=process.cwd();
-const OUT=path.join(ROOT,'docs/boon-mint-production-preview/qa');
-const BASE='http://127.0.0.1:4178/home.html';
+const OUT=path.join(ROOT,'docs/boon-passion-v53/qa');
+const BASE='http://127.0.0.1:4180/home.html';
 const FIXED='2026-11-07T03:00:00.000Z'; // Sat noon JST; not a real booking.
 const WAIT=[
  {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
@@ -31,9 +31,9 @@ async function install(page,kind){
    configurable:true,
    get(){return this.__productionTestEnv;},
    set(value){this.__productionTestEnv=Object.freeze({...value,
-    assetBase:'http://127.0.0.1:4178/miniapp-v2/production/',
-    siteBase:'http://127.0.0.1:4178/',
-    endpoint:'http://127.0.0.1:4178/home.html'
+    assetBase:'http://127.0.0.1:4180/miniapp-v2/production/',
+    siteBase:'http://127.0.0.1:4180/',
+    endpoint:'http://127.0.0.1:4180/home.html'
    });}
   });
   const NativeDate=Date, fixed=NativeDate.parse(when);
@@ -143,7 +143,7 @@ async function openKind(page,kind){
 async function main(){
  fs.mkdirSync(path.join(OUT,'screens'),{recursive:true});
  const browser=await chromium.launch({channel:'chrome',headless:true});
- const qa={version:'5.1.0-mint-production-preview',baseSha:'400ba7ade537e484db5ff53011edb604e79bd62a',
+ const qa={version:'5.3.0-passion-production-preview',baseSha:'400ba7ade537e484db5ff53011edb604e79bd62a',
   strictNoRealCalls:true,attempts:[],startedAt:new Date().toISOString(),browser:'Chrome headless',
   errors:[],testedWidths:[320,390,430],realLiff:false,realAirwait:false};
  for(const width of [320,390,430]){
@@ -167,6 +167,11 @@ async function main(){
      return {v4:html.classList.contains('boon-v4'),v5:html.classList.contains('boon-v5-mint'),
       colors:[mint.getPropertyValue('--mint-main').trim(),mint.getPropertyValue('--mint-pale').trim(),mint.getPropertyValue('--mint-coral').trim()],
       testedTapTargets:targets.length,tooSmall:tooSmall,
+      passionToken:mint.getPropertyValue('--mint-passion').trim(),
+      ctaBg:(()=>{const el=document.querySelector('#v38Hero.open .v38-action.primary,#boonV4Continue:not(:disabled),#recSubmit:not(:disabled)');return el?getComputedStyle(el).backgroundImage:'';})(),
+      selectedBorder:(()=>{const el=document.querySelector('#recSlots .rec-slot.active');return el?getComputedStyle(el).borderLeftColor:'';})(),
+      plusBg:(()=>{const el=document.querySelector('.rec-stepper button[data-rec-d="1"]:not(:disabled)');return el?getComputedStyle(el).backgroundColor:'';})(),
+      successBg:(()=>{const el=document.querySelector('.boon-v5-complete-check');return el?getComputedStyle(el).backgroundColor:'';})(),
       webUrl:document.querySelector('#boonV5WebReception')?.getAttribute('href')||'',
       selectedSlot:!!document.querySelector('#recSlots .rec-slot.active'),
       teamMatches:document.querySelector('#boonV5TeamPrice')?.textContent===document.querySelector('#recPrice')?.textContent,
@@ -184,7 +189,12 @@ async function main(){
     const namedOk=!expected[kind]||(state.badge!==''&&state.receipt==='QA-123'&&state.heroKind.split(' ').includes(expected[kind]));
     const expectedStage={slots:'1',people:'2',confirm:'3',processing:'4',complete:'5',ambiguous:'5'};
     const stageOk=!expectedStage[kind]||state.stage===expectedStage[kind];
-    const mintOk=state.v5&&state.colors.join(',')==='#28C7BE,#E3FFF6,#F26F4C';
+    const mintOk=state.v5&&state.colors.join(',')==='#28C7BE,#E3FFF6,#FF7A00'&&state.passionToken==='#FF7A00';
+    const orangeCss='rgb(255, 122, 0)';
+    const signalOk=(kind!=='home'||state.ctaBg.includes(orangeCss))&&
+      (kind!=='slots'||state.selectedBorder===orangeCss)&&
+      (kind!=='people'||state.plusBg===orangeCss)&&
+      (kind!=='complete'||state.successBg===orangeCss);
     const touchOk=state.tooSmall.length===0;
     const webOk=kind!=='home'||state.webUrl==='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
     const slotOk=kind!=='slots'||state.selectedSlot;
@@ -193,7 +203,7 @@ async function main(){
     const helpCopyOk=kind!=='slots'||(await page.locator('.v13-after-reception summary').textContent()).includes('LINE');
     const holdOk=kind!=='hold'||(await page.locator('#boonV4CallHero .boon-v4-lights').count())===0;
     const hintOk=kind!=='slots'||(await page.locator('#boonV51ActionHint').count())===1;
-    const ok=state.v4&&mintOk&&touchOk&&webOk&&slotOk&&teamOk&&helpOk&&helpCopyOk&&holdOk&&hintOk&&!state.overflow&&faults.length===0&&namedOk&&stageOk&&
+    const ok=state.v4&&mintOk&&signalOk&&touchOk&&webOk&&slotOk&&teamOk&&helpOk&&helpCopyOk&&holdOk&&hintOk&&!state.overflow&&faults.length===0&&namedOk&&stageOk&&
        (kind!=='waiting0'||(state.green===0&&!state.go))&&
        (kind!=='calling'||(state.green===5&&state.go&&state.headline.includes('入場できます'))) &&
        (kind!=='comm-error'||(!state.go&&state.headline.includes('取得できません')));

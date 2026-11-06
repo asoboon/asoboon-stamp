@@ -3,7 +3,7 @@
 // All external hosts are mocked/blocked so this test cannot touch production APIs.
 const { chromium } = require('playwright');
 const assert=require('node:assert/strict');
-const HOME_URL='http://127.0.0.1:4178/home.html';
+const HOME_URL='http://127.0.0.1:4180/home.html';
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true});
  try {
@@ -17,7 +17,7 @@ const HOME_URL='http://127.0.0.1:4178/home.html';
   const state=await page.evaluate(()=>({flag:window.ASOBOON_MINT_V51_PREVIEW===true,theme:document.documentElement.classList.contains('boon-v5-mint')}));
   assert.equal(state.flag,false);
   assert.equal(state.theme,false);
-  assert.equal(requests.filter(x=>x.includes('boon-mint-v51-preview')).length,0);
+  assert.equal(requests.filter(x=>x.includes('boon-mint-v51-preview')||x.includes('boon-mint-v53-passion')).length,0);
   console.log('PRODUCTION_DEFAULT_THEME_OFF: OK',JSON.stringify({requests:requests.length,flag:state.flag,theme:state.theme}));
   await page.close();
  } finally {await browser.close();}
