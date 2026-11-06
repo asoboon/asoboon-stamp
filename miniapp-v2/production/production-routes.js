@@ -1078,7 +1078,7 @@ async function refreshStatus({manual=false}={}){
     let d;
     try{d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
     catch(e){
-      if(/SESSION/.test(String(e?.message||''))){removeKey(SESSION_KEY);session=await recoverSession();if(session===VERIFIED_NO_SESSION){showVerifiedMissing(cachedReservation());return}if(!session)throw e;d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
+      if(/SESSION/.test(String(e?.message||''))){removeKey(SESSION_KEY);session=await recoverSession();if(gen!==generation||!$('csState'))return;if(session===VERIFIED_NO_SESSION){showVerifiedMissing(cachedReservation());return}if(!session)throw e;d=await gatewayPost('reservationStatus',{sessionToken:session.sessionToken})}
       else throw e;
     }
     if(gen!==generation||!$('csState'))return;
