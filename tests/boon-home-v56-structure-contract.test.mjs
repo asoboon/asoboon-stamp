@@ -81,17 +81,17 @@ test('timer copy and official localization are preserved',()=>{
  assert.match(css,/prefers-reduced-motion/);
 });
 
-test('v5.8.1 removes decorative BOON START labels and prevents call-status flashing',()=>{
- assert.doesNotMatch(layout,/el\\('h2','v58-header-title','BOON START'\\)/);
- assert.doesNotMatch(layout,/shell\\.appendChild\\(header\\)/);
- assert.match(css,/\.v58-flow #v38Hero \*\{/);
- assert.match(css,/animation:none!important;transition:none!important/);
- assert.match(layout,/const nativeIds=new Set/);
- assert.match(layout,/if\(nativeChanged\)request\(\)/);
+test('v5.8.1 has no decorative BOON START title and keeps status motionless',()=>{
+ assert.equal(layout.includes("el('h2','v58-header-title','BOON START')"),false);
+ assert.equal(layout.includes('shell.appendChild(header)'),false);
+ assert.ok(css.includes('.v58-flow #v38Hero *,'));
+ assert.ok(css.includes('animation:none!important;transition:none!important'));
+ assert.ok(layout.includes('const nativeIds=new Set'));
+ assert.ok(layout.includes('if(nativeChanged)request()'));
 });
-test('v5.8.1 reads real business facts in a full-width row and two metric cells',()=>{
- assert.match(css,/grid-column:1\\/-1!important/);
- assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(layout,/営業区分/);
+test('v5.8.1 emphasizes real business facts without modifying their source',()=>{
+ assert.ok(css.includes('grid-column:1/-1!important'));
+ assert.ok(css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
+ assert.ok(layout.includes('営業区分'));
  assert.match(original,/function patchToday\(\)/);
 });
