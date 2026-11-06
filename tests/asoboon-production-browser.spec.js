@@ -1005,7 +1005,7 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
   for(const [time,web,onsite] of [['10:00',195,117],['12:30',71,44],['15:00',25,8]]){
     const card=box.locator('.v38-crowd-card').filter({hasText:time+'回'});
     await expect(card.locator('.v38-crowd-remaining-title')).toHaveText('残り人数');
-    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'名.*LINE受付の残り'+onsite+'人'));
+    await expect(card).toHaveAttribute('aria-label',new RegExp('WEB受付の残り'+web+'人.*LINE受付の残り'+onsite+'人'));
     await expect(card.locator('.v38-crowd-channel--web')).toContainText('WEB受付');
     await expect(card.locator('.v38-crowd-channel--web')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
     await expect(card.locator('.v38-crowd-channel--web')).toHaveAttribute('data-external','1');
@@ -2437,6 +2437,9 @@ test('v5.9 calling action label stays state-specific in all seven supported lang
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v58Lead #v38Hero')).toHaveClass(/call-link/);
  await page.evaluate(()=>{
+  // Stop the asynchronous live poll before injecting a verified-state test snapshot.
+  // Otherwise a late unauthenticated refresh can overwrite this test state.
+  window.ASOBOON_V13_HOME_STATUS?.stop();
   const detail={kind:'calling',receipt:'F345',source:'live',checkedAt:Date.now()};
   window.ASOBOON_HOME_STATUS_SNAPSHOT=detail;
   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail}));
