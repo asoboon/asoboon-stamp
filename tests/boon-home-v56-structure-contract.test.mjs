@@ -95,3 +95,26 @@ test('v5.8.1 emphasizes real business facts without modifying their source',()=>
  assert.ok(layout.includes('営業区分'));
  assert.match(original,/function patchToday\(\)/);
 });
+
+
+test('v5.9 keeps critical action, today, slots and timer out of disclosure',()=>{
+ assert.match(layout,/progressiveSections\(home,state,info\.live\)/);
+ assert.match(layout,/groupCalendars\(home,words\.calendars\)/);
+ assert.match(layout,/foldExisting\(home,'\.v38-guide','v59GuideFold'/);
+ assert.match(layout,/foldExisting\(home,'\.v38-play','v59PlayFold'/);
+ assert.doesNotMatch(layout,/foldExisting\(home,'#v38Hero'|foldExisting\(home,'#v38Today'|foldExisting\(home,'#v38Slots'|foldExisting\(home,'#v38TimeguideShortcut'/);
+ assert.match(layout,/document\.createElement\(tag\)/);
+ assert.match(layout,/body\.appendChild\(section\)/);
+ assert.match(layout,/el\('details','v59-fold'\)/);
+ assert.match(layout,/el\('summary','v59-fold-summary'\)/);
+ assert.match(layout,/v59\.0-progressive-disclosure/);
+ assert.doesNotMatch(layout,/XMLHttpRequest|fetch\s*\(|createReservation|cancelReservation/);
+});
+test('v5.9 accessible native disclosure shows the calendar links and preserves keyboard interaction',()=>{
+ assert.match(css,/\.v59-fold-summary:focus-visible/);
+ assert.match(css,/min-height:73px!important/);
+ assert.match(css,/\.v59-fold\[open\] \.v59-fold-close/);
+ assert.match(css,/\.v59-calendar-links \.v38-calendar-card/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ for(const locale of ['ja','en','zh-CN','ko','vi','ne','kmr'])assert.match(layout,new RegExp(locale.replace(/[-]/g,'\\-')+":\\{guide:"));
+});
