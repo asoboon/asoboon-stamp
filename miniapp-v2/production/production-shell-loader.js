@@ -23,7 +23,7 @@ for(const src of scripts){const s=document.createElement('script');s.src=src;s.a
 if(new URLSearchParams(location.search).get('boonTheme')==='mint'){
   window.ASOBOON_MINT_V51_PREVIEW=true;
   const css=document.createElement('link');css.rel='stylesheet';
-  css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=4ea20d3c8781';
+  css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=97aa7ffa9915';
   document.head.appendChild(css);
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=ce5c076c24c6';

@@ -1096,3 +1096,156 @@ html.boon-v5-mint body.v38-home-active .v38-play-card:focus-visible,
 html.boon-v5-mint body.v38-home-active .v38-calendar-card:focus-visible{
  outline:3px solid #0a756d!important;outline-offset:3px!important;
 }
+
+/* BOON START Mint Soda / orange-balance pass 2026-11-06.
+ * The three approved signature colors are unchanged. Orange is an interaction
+ * and delight accent, never a substitution for calling GO / error status.
+ * Warm tangerine #FFA83F is decorative only, not a new primary CTA color. */
+html.boon-v5-mint{
+ --mint-orange-spark:#FFA83F;
+ --mint-orange-soft:#FFF1E6;
+ --mint-orange-ink:#813C28;
+}
+/* START gate: add a visible orange sunburst without blocking the booking CTA. */
+html.boon-v5-mint body.v38-home-active #v38Hero.open::after{
+ content:"";position:absolute;right:-43px;top:-50px;
+ width:148px;height:148px;border-radius:50%;
+ background:radial-gradient(circle at center,
+   rgba(255,168,63,.94) 0 30%,
+   rgba(242,111,76,.72) 31% 37%,
+   rgba(255,168,63,.20) 38% 53%,
+   transparent 54%);
+ opacity:.83;pointer-events:none;z-index:0;
+}
+html.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag{
+ color:#723A24!important;
+ background:#FFE7D6!important;
+ border:1px solid #FFA83F!important;
+ box-shadow:0 2px 0 rgba(104,40,22,.13)!important;
+}
+html.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag::before{
+ background:#F26F4C!important;
+ box-shadow:0 0 0 3px rgba(242,111,76,.16)!important;
+}
+/* Small operational hours must be legible on the dark turquoise gate. */
+html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours,
+html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-deadline,
+html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-airwait-link{
+ color:#F3FFF9!important;opacity:1!important;
+}
+html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours *{
+ color:#F3FFF9!important;opacity:1!important;
+}
+/* Orange thread through the HOME: clarify the sections, not the queue status. */
+html.boon-v5-mint body.v38-home-active .v38-section-heading,
+html.boon-v5-mint body.v38-home-active .v38-guide>h2,
+html.boon-v5-mint body.v38-home-active .v38-help>h2{
+ border-left:5px solid #F26F4C!important;
+ padding-left:10px!important;
+}
+html.boon-v5-mint body.v38-home-active .boon-v5-web-reception{
+ border-left:5px solid #F26F4C!important;
+ background:linear-gradient(105deg,#FFF4EB 0%,#FFFFFF 56%)!important;
+}
+html.boon-v5-mint body.v38-home-active .boon-v5-web-reception>span:last-child{
+ color:#C85435!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-timeguide-cta{
+ border-left:5px solid #F26F4C!important;
+ background:linear-gradient(115deg,#FFF0E6 0%,#F7FFFB 70%)!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-timeguide-cta .v38-quick-icon{
+ background:#F26F4C!important;color:#fff!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-guide-grid .v38-guide-card:nth-child(2n)>.v38-icon{
+ background:#FFE5D7!important;color:#B94F32!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest){
+ border-bottom:3px solid rgba(242,111,76,.55)!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest) .v38-play-icon{
+ box-shadow:0 0 0 2px rgba(242,111,76,.13)!important;
+}
+/* Orange = next active step. Do not color unselected/disabled slots as selected. */
+html.boon-v5-mint .boon-v4-progress>span.active{
+ background:linear-gradient(180deg,#FFF7F0,#FFE4D5)!important;
+ border-bottom-color:#F26F4C!important;
+}
+html.boon-v5-mint .boon-v4-stage-intro{
+ box-shadow:inset 0 -3px 0 rgba(255,168,63,.4),0 3px 0 #B6E7DB!important;
+}
+html.boon-v5-mint .boon-v4-stage-intro small{
+ color:#FFD0A4!important;
+}
+html.boon-v5-mint #recSlots .rec-slot.active:not([hidden]){
+ box-shadow:0 5px 0 rgba(242,111,76,.40),0 7px 17px rgba(242,111,76,.12)!important;
+}
+html.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled){
+ background:#F26F4C!important;
+ color:#422316!important;
+ border-color:#D75D40!important;
+ box-shadow:0 3px 0 #B64C2D!important;
+}
+html.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled):active{
+ background:#FFA83F!important;transform:translateY(3px)!important;
+ box-shadow:0 0 0 #B64C2D!important;
+}
+html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team{
+ border-bottom-width:6px!important;
+ border-bottom-color:#F26F4C!important;
+}
+html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
+ color:#FFCC8A!important;
+}
+/* Success is warm and celebratory; green is reserved for verified calling. */
+html.boon-v5-mint .boon-v5-complete-check{
+ background:linear-gradient(145deg,#FFF2E7,#FFD9C5)!important;
+ border-color:#F26F4C!important;
+ color:#B44E30!important;
+ box-shadow:0 5px 0 rgba(242,111,76,.23),0 0 0 7px rgba(255,168,63,.09)!important;
+}
+html.boon-v5-mint .boon-v5-complete-hero strong{
+ color:#A84930!important;
+}
+html.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
+ border-top:5px solid #F26F4C!important;
+}
+/* Preserve semantic safety: waiting and calling keep their existing status palette. */
+@media(prefers-reduced-motion:reduce){
+ html.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]{
+  transition:none!important;
+ }
+}
+
+/* The meaningful orange moments: explore, choose, and celebrate.
+ * Kept separate from waiting/calling/error semantics. */
+html.boon-v5-mint body.v38-home-active .v38-play{
+ background:linear-gradient(180deg,#FFE8D8 0%,#FFF7F0 95px,#FFFFFF 172px)!important;
+ border-top:5px solid #F26F4C!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-play .v38-section-heading{
+ color:#915037!important;
+}
+html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest):nth-child(even){
+ background:linear-gradient(150deg,#FFF3EA,#FFFFFF)!important;
+ border-color:#F2CAB8!important;
+}
+html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
+ background:linear-gradient(155deg,#FFB56E 0%,#F26F4C 100%)!important;
+ color:#40251C!important;
+ border-radius:11px!important;
+ padding:9px 11px!important;
+ box-shadow:inset 0 -3px 0 rgba(140,59,29,.23)!important;
+ text-shadow:none!important;
+}
+html.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
+ background:linear-gradient(156deg,#FFE6D6 0%,#E3FFF6 61%,#FFFFFF)!important;
+ border:2px solid #F4B39B!important;
+ border-top:6px solid #F26F4C!important;
+}
+html.boon-v5-mint .boon-v5-complete-check{
+ background:#F26F4C!important;
+ border:4px solid #FFC5A0!important;
+ color:#44261A!important;
+ box-shadow:0 6px 0 rgba(242,111,76,.23),0 0 0 8px rgba(255,168,63,.13)!important;
+}
