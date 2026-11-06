@@ -156,6 +156,57 @@ function updateWizard(page){
   }
  }
 }
+/* v5.5: strengthen signifiers without adding routes or changing status data.
+ * Everything here is an existing button / route / card, never a new WEB CTA. */
+function enhanceHomeAffordances(home){
+ var today=home.querySelector('#v38Today');
+ if(today){
+  today.setAttribute('aria-label','本日の営業区分・利用時間の詳細を開く');
+  if(!today.querySelector('.v55-today-action')){
+   var footer=create('span','v55-today-action');
+   footer.setAttribute('aria-hidden','true');
+   footer.innerHTML='<span>営業区分・利用時間を詳しく見る</span><i>→</i>';
+   today.appendChild(footer);
+  }
+ }
+ var timer=home.querySelector('#v38TimeguideShortcut');
+ if(timer){
+  var action=timer.querySelector('.v55-timer-action');
+  if(!action){
+   action=create('span','v55-timer-action');
+   action.setAttribute('aria-hidden','true');
+   action.innerHTML='<span class="v55-timer-action-label"></span><i>→</i>';
+   var copy=timer.querySelector('[data-timeguide-summary]')?.parentElement;
+   if(copy)copy.appendChild(action);
+  }
+  var saved=timer.classList.contains('has-timeguide-result');
+  var words=saved?'計算結果を確認する':'遊べる時間を計算する';
+  var label=action?.querySelector('.v55-timer-action-label');
+  if(label&&label.textContent!==words)label.textContent=words;
+  var aria=saved?'アソブーンタイマーの計算結果を見る':'アソブーンタイマーで終了時刻を計算する';
+  if(timer.getAttribute('aria-label')!==aria)timer.setAttribute('aria-label',aria);
+ }
+ var call=home.querySelector('#v38Hero .v38-call-cta');
+ if(call){
+  var title=call.querySelector('.v38-call-cta-copy strong');
+  var sub=call.querySelector('.v38-call-cta-copy small');
+  if(title&&title.textContent!=='呼出状況を見る')title.textContent='呼出状況を見る';
+  if(sub&&sub.textContent!=='受付番号・待ち順・入場案内')sub.textContent='受付番号・待ち順・入場案内';
+  call.setAttribute('aria-label','呼出状況を見る。受付番号・順番・入場案内を確認する');
+ }
+ var slots=home.querySelector('#v38Slots');
+ var heading=slots?.querySelector(':scope > h3');
+ if(heading){
+  var prompt=slots.querySelector(':scope > .v55-crowd-prompt');
+  if(!prompt){
+   prompt=create('p','v55-crowd-prompt');
+   heading.insertAdjacentElement('afterend',prompt);
+  }
+  var available=!!slots.querySelector('.v38-crowd-channel:is(a,button)');
+  var description=available?'残り人数を見て、受付方法を選ぼう ↓':'各受付枠の残り人数を表示します';
+  if(prompt.textContent!==description)prompt.textContent=description;
+ }
+}
 function styleHome(){
  var home=root.querySelector('.v38-home, .v37-home, .v35-home');
  if(!home)return;
@@ -168,6 +219,7 @@ function styleHome(){
   var flag=create('span','boon-v4-home-flag','BOON START / READY FOR FUN');
   hero.insertBefore(flag,hero.firstChild);
  }
+ enhanceHomeAffordances(home);
 }
 function makeLamps(kind){
  var active=kind==='calling'?5:kind==='near'?4:kind==='hold'?2:0;
