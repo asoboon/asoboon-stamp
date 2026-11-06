@@ -1,5 +1,5 @@
 /*
- * HOME v5.8.1 — CALM ACTION-FIRST INTERFACE
+ * HOME v5.8.2 — MINT STRONGER, BUSINESS FACTS FIRST
  * Not a decorative card deck. One context-aware next step, one truthful
  * operational facts strip and one capacity board, in that order.
  * Native buttons and backend state are unchanged.
@@ -237,6 +237,52 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow[data-state="calling"] .
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow[data-state="error"] .v58-primary,
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow[data-state="hold"] .v58-primary{border-color:#8B5741!important;box-shadow:0 7px 0 #8B5741!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow[data-state="guided"] .v58-primary{border-color:#16856D!important}
+
+/* v5.8.2: use mint as the primary surface, not merely a faint border accent. */
+html.boon-v4.boon-v5-mint body.v38-home-active{
+ background:linear-gradient(180deg,#BDF5E6 0%,#D6FFF0 330px,#E8FCF5 760px,#F3FFFB 100%)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary{
+ background:linear-gradient(155deg,#D3FBEF 0%,#F0FFF9 100%)!important;
+ border-color:#087761!important;box-shadow:0 6px 0 #087761,0 12px 24px rgba(5,110,83,.12)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary::before{
+ background:linear-gradient(90deg,#04AC91 0%,#1ACDAA 73%,#FF7A00 73%,#FF7A00 100%)!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day{
+ background:#D4F9EB!important;border:1px solid #6BCBB1!important;
+ padding:15px!important;border-radius:22px!important;margin-top:28px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day>.v58-section-title{
+ color:#074F41!important;font-size:21px!important;margin:0 0 12px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today{
+ border:2px solid #7CCBB8!important;background:#FFFFFF!important;
+ border-radius:17px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ gap:5px!important;padding:17px 18px 15px!important;background:#BAF3DE!important;
+ border-bottom:2px solid #79D5B9!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child small{
+ display:block!important;font-size:12px!important;font-weight:800!important;
+ letter-spacing:.08em!important;color:#286957!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child strong{
+ display:block!important;font-size:clamp(25px,7vw,32px)!important;
+ font-weight:950!important;line-height:1.2!important;
+ color:#07533E!important;text-align:left!important;letter-spacing:-.035em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(n+2){
+ padding:16px 14px 17px!important;gap:9px!important;background:#FFFFFF!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(n+2) strong{
+ font-size:clamp(16px,4.8vw,22px)!important;color:#0C5042!important;font-weight:900!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today.closed>span:first-child{
+ background:#FFE4D2!important;border-bottom-color:#EEB98E!important;
+}
 @media(max-width:350px){
  html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary{padding:18px 13px 14px!important}
  html.boon-v4.boon-v5-mint body.v38-home-active .v58-next-title{font-size:25px!important}
