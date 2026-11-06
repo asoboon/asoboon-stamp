@@ -57,3 +57,14 @@ test('Cold HOME starts one safe read in parallel with business-day lookup and re
  assert.match(home,/result\.response;data=result\.data/);
  assert.match(home,/受付残り人数を確認しています/);
 });
+
+test('HOME callstatus CTA supports verified states in seven locales without changing its destination',()=>{
+ const source=readFileSync('miniapp-v2/production/boon-home-v56-layout.js','utf8');
+ for(const lang of ['ja','en','ko','vi','ne','kmr']){
+  assert.ok(source.includes(lang+':{calling:'),'missing status-specific CTA label '+lang);
+ }
+ assert.ok(source.includes('zh-CN')&&source.includes('查看排队号码'),'missing zh-CN calling label');
+ assert.ok(source.includes('const callLabel=(callActionLabels[language()]'));
+ assert.ok(source.includes("hero.querySelector('.v38-call-cta-copy strong')"));
+ assert.ok(source.includes('if(callCTA)set(callCTA,callLabel)'));
+});
