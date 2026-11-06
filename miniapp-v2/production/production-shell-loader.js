@@ -39,7 +39,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=1aab7491da1b';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
-  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=f4d1ab786f52';
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=255e2d9b03cd';
   document.head.appendChild(deck);
 }
 })();
