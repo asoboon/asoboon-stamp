@@ -109,8 +109,8 @@ function mount(){
  const callCTA=hero.querySelector('.v38-call-cta-copy strong');
  // Relabel the native callstatus link based on the verified next task.
  // Never create a new reception action or a fake destination.
- const callLabel=state==='calling'?'受付番号を見る':state==='guided'?'呼出履歴を確認する':state==='waiting'?'待ち順を確認する':state==='hold'?'受付状態を確認する':'呼出状況を確認する';
- if(callCTA&&language()==='ja')set(callCTA,callLabel);
+ const callLabel=language()==='ja'?(state==='calling'?'受付番号を見る':state==='guided'?'呼出履歴を確認する':state==='waiting'?'待ち順を確認する':state==='hold'?'受付状態を確認する':'呼出状況を確認する'):t.saved[0];
+ if(callCTA)set(callCTA,callLabel);
  if(shell.dataset.state!==state)shell.dataset.state=state;
  set(shell.querySelector('.v58-eyebrow'),t.eyebrow);
  set(shell.querySelector('#v58Phase'),t.eyebrow);
