@@ -15,6 +15,7 @@ test('verified missing recovery is separate from unavailable LINE auth and netwo
  assert.match(call,/if\(session===VERIFIED_NO_SESSION\)\{showVerifiedMissing\(cachedReservation\(\)\);return\}/);
  assert.match(call,/LINEミニアプリから開き直して呼出状況をご確認ください/);
  assert.match(call,/通信エラーではありません/);
+ assert.match(call,/session=await recoverSession\(\);if\(gen!==generation\|\|!\$\('csState'\)\)return;/);
  assert.match(call,/受付番号は保存したままです/);
  assert.doesNotMatch(call,/if\(!d\.found\)return null/);
 });
