@@ -109,7 +109,6 @@ html.boon-v4.boon-v5-mint .rec-summary .rec-line.total strong {
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-guide>h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-help>h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-section-heading,
-html.boon-v4.boon-v5-mint body.v38-home-active .boon-v5-web-reception,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
   border-left-color:#FF7A00!important;
 }
@@ -186,11 +185,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v38-play h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-play .v38-section-heading {
   color:#5C3108!important;
 }
-/* Existing WEB and guidance cards remain secondary buttons, with warm edges. */
-html.boon-v4.boon-v5-mint body.v38-home-active .boon-v5-web-reception {
-  background:linear-gradient(110deg,#FFE4CA 0%,#FFF4E8 46%,#FFFFFF 100%)!important;
-  border-left:6px solid #FF7A00!important;
-}
+/* Warm, secondary guidance card. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
   background:linear-gradient(110deg,#FFD6AE 0%,#FFF4E7 55%,#F8FFFC 100%)!important;
   border-left:6px solid #FF7A00!important;

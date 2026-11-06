@@ -171,7 +171,7 @@ async function main(){
      const html=document.documentElement,hero=document.querySelector('#boonV4CallHero');
      const total=document.documentElement.scrollWidth,view=document.documentElement.clientWidth;
      const mint=getComputedStyle(html);
-     const targets=[...document.querySelectorAll('#v38Hero.open .v38-action.primary,#boonV5WebReception,#recSlots .rec-slot,#boonV4Continue,#boonV4Back,#recSubmit,.rec-stepper button,#csRefresh,#csCancel')].filter(el=>{
+     const targets=[...document.querySelectorAll('#v38Hero.open .v38-action.primary,#recSlots .rec-slot,#boonV4Continue,#boonV4Back,#recSubmit,.rec-stepper button,#csRefresh,#csCancel')].filter(el=>{
       const st=getComputedStyle(el),r=el.getBoundingClientRect();
       return st.display!=='none'&&st.visibility!=='hidden'&&r.width>0&&r.height>0;
      });
@@ -188,7 +188,7 @@ async function main(){
       plusBg:(()=>{const el=document.querySelector('.rec-stepper button[data-rec-d="1"]:not(:disabled)');return el?getComputedStyle(el).backgroundColor:'';})(),
       plusGradient:(()=>{const el=document.querySelector('.rec-stepper button[data-rec-d="1"]:not(:disabled)');return el?getComputedStyle(el).backgroundImage:'';})(),
       successBg:(()=>{const el=document.querySelector('.boon-v5-complete-check');return el?getComputedStyle(el).backgroundColor:'';})(),
-      webUrl:document.querySelector('#boonV5WebReception')?.getAttribute('href')||'',
+      extraWebButtonCount:document.querySelectorAll('#boonV5WebReception,.boon-v5-web-reception').length,
       selectedSlot:!!document.querySelector('#recSlots .rec-slot.active'),
       teamMatches:document.querySelector('#boonV5TeamPrice')?.textContent===document.querySelector('#recPrice')?.textContent,
       overflow:total>view+1,
@@ -221,7 +221,7 @@ async function main(){
       (kind!=='people'||state.plusBg===orangeCss||state.plusGradient.includes(orangeCss))&&
       (kind!=='complete'||state.successBg===orangeCss);
     const touchOk=state.tooSmall.length===0;
-    const webOk=kind!=='home'||state.webUrl==='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
+    const webOk=kind!=='home'||state.extraWebButtonCount===0;
     const slotOk=kind!=='slots'||state.selectedSlot;
     const teamOk=kind!=='people'||state.teamMatches;
     const helpOk=kind!=='slots'||(await page.locator('.v13-after-reception details').count())===1;

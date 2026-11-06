@@ -168,18 +168,6 @@ function styleHome(){
   var flag=create('span','boon-v4-home-flag','BOON START / READY FOR FUN');
   hero.insertBefore(flag,hero.firstChild);
  }
- // The WEB reception URL is reused verbatim from the official, existing AirWAIT
- // anchor in shared/reception.js. This is a distinct route, not another LINE step.
- if(hero&&!home.querySelector('#boonV5WebReception')){
-  var web=create('a','boon-v5-web-reception');
-  web.id='boonV5WebReception';
-  web.href='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
-  web.target='_blank';web.rel='noopener noreferrer';
-  web.setAttribute('data-external','1');
-  web.setAttribute('aria-label','WEB受付をAirWAITで開く');
-  web.innerHTML='<span><strong>WEB受付</strong><small>AirWAITで受付条件・残数を確認</small></span><span aria-hidden="true">↗</span>';
-  hero.insertAdjacentElement('afterend',web);
- }
 }
 function makeLamps(kind){
  var active=kind==='calling'?5:kind==='near'?4:kind==='hold'?2:0;
