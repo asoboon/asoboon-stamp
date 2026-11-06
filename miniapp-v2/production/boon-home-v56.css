@@ -167,6 +167,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today strong{
  white-space:normal!important;overflow-wrap:anywhere;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>svg{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day .v58-readonly-facts{cursor:default!important;pointer-events:none!important;user-select:text!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut{
  width:100%!important;min-height:65px!important;padding:12px 14px!important;
  border:2px solid #66BDAE!important;border-radius:16px!important;
