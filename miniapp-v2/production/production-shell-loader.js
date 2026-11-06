@@ -12,7 +12,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=1f76521943fb',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=9734b55a25ab',
   './miniapp-v2/shared/i18n-dictionary.js?v=1cb3555ac942','./miniapp-v2/shared/i18n-runtime.js?v=0bb3a7f7e8c4'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -28,7 +28,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   document.head.appendChild(css);
   // Explicit passion-orange palette selected by the user; CSS-only, no API logic.
   const passion=document.createElement('link');passion.rel='stylesheet';
-  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=4429acc58011';
+  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=2cc070221894';
   document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=0d26574f630a';
@@ -39,7 +39,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=2e22354fcd49';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
-  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=a8bbccfb035a';
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=58ea2bc95c16';
   document.head.appendChild(deck);
 }
 })();

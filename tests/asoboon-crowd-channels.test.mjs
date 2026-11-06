@@ -22,7 +22,7 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
  assert.match(home,/CROWD_STALE_MS=90000/);
 });
 test('Two clear, responsive channels independently navigate to AirWAIT WEB and LINE reception',()=>{
- for(const word of ['WEB受付','LINE受付','確認中','人数は各受付枠の残りです。館内の滞在人数や混雑率ではありません。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
+ for(const word of ['WEB受付','LINE受付','確認中','表示はWEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(home,/const webUrl=airwaitWebReceptionUrl\(\)/);
  assert.match(home,/href="\$\{esc\(webUrl\)\}" target="_blank" rel="noopener noreferrer" data-external="1"/);
@@ -33,6 +33,17 @@ test('Two clear, responsive channels independently navigate to AirWAIT WEB and L
  assert.match(css,/\.v38-crowd-channel:is\(a,button\)/);
  assert.doesNotMatch(home,/希望の時間を確認して、カードをタップすると/);
  assert.doesNotMatch(home,/<h2>\$\{T\.today\}<\/h2>/);
+});
+
+test('HOME states verified remaining people clearly and labels the section as reception availability',()=>{
+ for(const phrase of ['受付枠の空き状況','残り人数','value===null?\'確認中\''])assert.ok(home.includes(phrase),phrase);
+ assert.match(home,/\$\{value\}<small>人<\/small>/);
+ assert.match(home,/WEB受付とLINE受付の残り人数/);
+ assert.match(home,/WEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。/);
+ assert.doesNotMatch(home,/本日の混雑状況/);
+ assert.match(home,/slot\.reserveUnit!=='PERSON'/);
+ assert.match(home,/slot\.evidence!=='PERSON'/);
+ assert.match(home,/slot\.matchMode!=='exact-name'/);
 });
 
 
