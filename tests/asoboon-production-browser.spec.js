@@ -315,6 +315,7 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('production_preview')).toBe('1');
   await expect(page.locator('.v38-legal')).toContainText('株式会社コマーム');
+  await page.locator('#v59GuideFold summary').click(); // Open the intentionally folded guide.
   await page.locator('[data-v7-view="first"]').first().click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
@@ -439,6 +440,7 @@ test('NFC/QR stamp -> rally HOME -> official MINI App HOME -> rally preserves ac
 
   // Production uses the same origin; rewrite its absolute GitHub Pages URL
   // to this localhost fixture so localStorage can be checked across both screens.
+  await page.locator('#v59PlayFold summary').click(); // Optional games start folded.
   const card=page.locator('.v38-play-card').filter({hasText:'スタンプラリー'});
   await expect(card).toHaveAttribute('href','https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/');
   await card.evaluate((a,url)=>{a.href=url;},rally);
