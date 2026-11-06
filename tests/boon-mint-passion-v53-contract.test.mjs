@@ -37,8 +37,8 @@ test('Only interactive and success elements receive the new Passion Orange',()=>
  assert.doesNotMatch(css,/\.boon-v4-call-hero\.error\s*\{/);
 });
 
-test('Passion CSS loads only behind existing explicit preview query',()=>{
- assert.match(loader,/get\('boonTheme'\)==='mint'/);
+test('Passion CSS loads for normal visitors, with classic-only opt-out',()=>{
+ assert.match(loader,/get\('boonTheme'\)!=='classic'/);
  assert.match(loader,/boon-mint-v53-passion\.css\?v=/);
  assert.match(themeJS,/ASOBOON_MINT_V51_PREVIEW!==true/);
  for (const list of [sources.scripts,sources.styles,sources.routeScripts,sources.routeStyles]) {

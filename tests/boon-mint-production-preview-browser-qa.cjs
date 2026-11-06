@@ -91,7 +91,7 @@ async function openKind(page,kind){
  let route='home';
  if(['slots','people','confirm','processing','complete','ambiguous'].includes(kind))route='reception';
  if(['waiting','waiting0','near','calling','done','hold','cancel-confirm','canceled','closed','comm-error'].includes(kind))route='callstatus';
- await page.goto(BASE+'?boonTheme=mint&view='+route,{waitUntil:'domcontentloaded'});
+ await page.goto(BASE+'?view='+route,{waitUntil:'domcontentloaded'});
  if(route==='home'){await page.locator('.v38-home, .v37-home, .v35-home').first().waitFor({timeout:15000});}
  if(route==='reception'){
   await page.locator('#boonV4Progress').waitFor({timeout:15000});
@@ -143,7 +143,7 @@ async function openKind(page,kind){
 async function main(){
  fs.mkdirSync(path.join(OUT,'screens'),{recursive:true});
  const browser=await chromium.launch({channel:'chrome',headless:true});
- const qa={version:'5.3.0-passion-production-preview',baseSha:'400ba7ade537e484db5ff53011edb604e79bd62a',
+ const qa={version:'5.4.0-passion-production-default',baseSha:'400ba7ade537e484db5ff53011edb604e79bd62a',
   strictNoRealCalls:true,attempts:[],startedAt:new Date().toISOString(),browser:'Chrome headless',
   errors:[],testedWidths:[320,390,430],realLiff:false,realAirwait:false};
  for(const width of [320,390,430]){
@@ -166,11 +166,13 @@ async function main(){
      }).map(el=>({element:el.id||el.className,width:Math.round(el.getBoundingClientRect().width),height:Math.round(el.getBoundingClientRect().height)}));
      return {v4:html.classList.contains('boon-v4'),v5:html.classList.contains('boon-v5-mint'),
       colors:[mint.getPropertyValue('--mint-main').trim(),mint.getPropertyValue('--mint-pale').trim(),mint.getPropertyValue('--mint-coral').trim()],
+      surpriseHidden:(()=>{const el=document.querySelector('#v38Surprise');return !el||el.hidden||getComputedStyle(el).display==='none';})(),
       testedTapTargets:targets.length,tooSmall:tooSmall,
       passionToken:mint.getPropertyValue('--mint-passion').trim(),
       ctaBg:(()=>{const el=document.querySelector('#v38Hero.open .v38-action.primary,#boonV4Continue:not(:disabled),#recSubmit:not(:disabled)');return el?getComputedStyle(el).backgroundImage:'';})(),
       selectedBorder:(()=>{const el=document.querySelector('#recSlots .rec-slot.active');return el?getComputedStyle(el).borderLeftColor:'';})(),
       plusBg:(()=>{const el=document.querySelector('.rec-stepper button[data-rec-d="1"]:not(:disabled)');return el?getComputedStyle(el).backgroundColor:'';})(),
+      plusGradient:(()=>{const el=document.querySelector('.rec-stepper button[data-rec-d="1"]:not(:disabled)');return el?getComputedStyle(el).backgroundImage:'';})(),
       successBg:(()=>{const el=document.querySelector('.boon-v5-complete-check');return el?getComputedStyle(el).backgroundColor:'';})(),
       webUrl:document.querySelector('#boonV5WebReception')?.getAttribute('href')||'',
       selectedSlot:!!document.querySelector('#recSlots .rec-slot.active'),
@@ -193,7 +195,7 @@ async function main(){
     const orangeCss='rgb(255, 122, 0)';
     const signalOk=(kind!=='home'||state.ctaBg.includes(orangeCss))&&
       (kind!=='slots'||state.selectedBorder===orangeCss)&&
-      (kind!=='people'||state.plusBg===orangeCss)&&
+      (kind!=='people'||state.plusBg===orangeCss||state.plusGradient.includes(orangeCss))&&
       (kind!=='complete'||state.successBg===orangeCss);
     const touchOk=state.tooSmall.length===0;
     const webOk=kind!=='home'||state.webUrl==='https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918';
@@ -203,7 +205,7 @@ async function main(){
     const helpCopyOk=kind!=='slots'||(await page.locator('.v13-after-reception summary').textContent()).includes('LINE');
     const holdOk=kind!=='hold'||(await page.locator('#boonV4CallHero .boon-v4-lights').count())===0;
     const hintOk=kind!=='slots'||(await page.locator('#boonV51ActionHint').count())===1;
-    const ok=state.v4&&mintOk&&signalOk&&touchOk&&webOk&&slotOk&&teamOk&&helpOk&&helpCopyOk&&holdOk&&hintOk&&!state.overflow&&faults.length===0&&namedOk&&stageOk&&
+    const ok=state.surpriseHidden&&state.v4&&mintOk&&signalOk&&touchOk&&webOk&&slotOk&&teamOk&&helpOk&&helpCopyOk&&holdOk&&hintOk&&!state.overflow&&faults.length===0&&namedOk&&stageOk&&
        (kind!=='waiting0'||(state.green===0&&!state.go))&&
        (kind!=='calling'||(state.green===5&&state.go&&state.headline.includes('入場できます'))) &&
        (kind!=='comm-error'||(!state.go&&state.headline.includes('取得できません')));

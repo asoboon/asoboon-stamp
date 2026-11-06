@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const root=document.getElementById('app');
-if(!root)return;
+const SHOW_HOME_ENTRY=false;
+if(!root||!SHOW_HOME_ENTRY)return;
 
 const ENV=window.ASOBOON_V2_ENV||{};
 const STATUS_CACHE_KEY='asoboon-surprise-status-cache-production-v1';

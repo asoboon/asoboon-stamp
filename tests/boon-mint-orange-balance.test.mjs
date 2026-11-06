@@ -31,6 +31,6 @@ test('HOME orange treatment does not modify the crowd or waiting status source c
 });
 test('the optional preview gate remains off unless expressly requested',()=>{
  const loader=readFileSync('miniapp-v2/production/production-shell-loader.js','utf8');
- assert.match(loader,/get\('boonTheme'\)==='mint'/);
+ assert.match(loader,/get\('boonTheme'\)!=='classic'/);
  assert.match(js,/ASOBOON_MINT_V51_PREVIEW!==true/);
 });

@@ -10,8 +10,8 @@ const css=read('miniapp-v2/production/boon-mint-v51-preview.css');
 const home=read('home.html');
 const sources=JSON.parse(read('miniapp-v2/production/bundle-sources.json'));
 
-test('Mint Soda production preview is URL opt-in only and disabled by default',()=>{
- assert.match(loader,/new URLSearchParams\(location.search\)\.get\('boonTheme'\)==='mint'/);
+test('Mint Soda v5.4 loads normally; classic query is a reversible opt-out',()=>{
+ assert.match(loader,/new URLSearchParams\(location.search\)\.get\('boonTheme'\)!=='classic'/);
  assert.match(loader,/ASOBOON_MINT_V51_PREVIEW=true/);
  assert.match(js,/ASOBOON_MINT_V51_PREVIEW!==true/);
  assert.match(loader,/boon-mint-v51-preview\.css\?v=/);
