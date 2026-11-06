@@ -350,7 +350,11 @@ test('certified HOME loads bundled assets once and keeps the official LINE ident
   await page.locator('[data-v7-view="reception"]').first().click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
-  await expect(page.locator('#recSubmit')).toBeVisible();
+  // The first step is now 'choose a reception slot'; the final submit is
+  // intentionally withheld until the slot and party-size steps are completed.
+  await expect(page.locator('#boonV4Progress')).toBeVisible();
+  await expect(page.locator('#boonV4Continue')).toBeVisible();
+  await expect(page.locator('#recSubmit')).toBeHidden();
   expect(requests.some(x=>x.startsWith('https://airwait.jp/'))).toBeFalsy();
   expect(errors).toEqual([]);
 });
@@ -1764,6 +1768,17 @@ test('Optional language file outage never replaces Japanese reception or stops t
  await expect(page.locator('#asoboon-language-select')).toHaveCount(0);
  await page.locator('[data-v7-view="reception"]').first().click();
  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
+ // Mint Soda now presents three intentional steps before the submit button.
+ await expect(page.locator('#boonV4Continue')).toBeVisible();
+ await expect(page.locator('#recSubmit')).toBeHidden();
+ await page.locator('#recSlots [data-rec-slot]').first().click();
+ await expect(page.locator('#boonV4Continue')).toBeEnabled();
+ await page.locator('#boonV4Continue').click();
+ await expect(page.locator('.boon-v4-reception')).toHaveAttribute('data-boon-stage','2');
+ await page.locator('[data-rec-k="child"][data-rec-d="1"]').first().click();
+ await expect(page.locator('#boonV4Continue')).toBeEnabled();
+ await page.locator('#boonV4Continue').click();
+ await expect(page.locator('.boon-v4-reception')).toHaveAttribute('data-boon-stage','3');
  await expect(page.locator('#recSubmit')).toBeVisible();
 });
 test('Optional language runtime outage falls back to the working Japanese LINE reception',async({page})=>{

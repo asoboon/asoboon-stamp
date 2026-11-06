@@ -1,0 +1,1550 @@
+{
+  "version": "5.1.0-mint-production-preview",
+  "baseSha": "400ba7ade537e484db5ff53011edb604e79bd62a",
+  "strictNoRealCalls": true,
+  "attempts": [
+    {
+      "id": "01",
+      "kind": "home",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "02",
+      "kind": "slots",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 4,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "1",
+        "receipt": "",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "03",
+      "kind": "people",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 8,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "2",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "04",
+      "kind": "confirm",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "3",
+        "receipt": "",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "05",
+      "kind": "processing",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "4",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "06",
+      "kind": "complete",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 2
+      },
+      "errors": []
+    },
+    {
+      "id": "07",
+      "kind": "waiting",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "08",
+      "kind": "waiting0",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "09",
+      "kind": "near",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero near",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まもなくご案内の可能性があります",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "10",
+      "kind": "calling",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero calling",
+        "green": 5,
+        "go": true,
+        "badge": "呼出中",
+        "headline": "入場できます！",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "11",
+      "kind": "done",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero done",
+        "green": 0,
+        "go": false,
+        "badge": "案内済み",
+        "headline": "ご案内済みです",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "12",
+      "kind": "hold",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero hold",
+        "green": 0,
+        "go": false,
+        "badge": "保留中",
+        "headline": "受付でご確認ください",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "13",
+      "kind": "cancel-confirm",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "14",
+      "kind": "canceled",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero canceled",
+        "green": 0,
+        "go": false,
+        "badge": "取消済み",
+        "headline": "受付は取り消されています",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "15",
+      "kind": "closed",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero closed",
+        "green": 0,
+        "go": false,
+        "badge": "受付終了",
+        "headline": "本日の受付は終了しました",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "16",
+      "kind": "comm-error",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero error",
+        "green": 0,
+        "go": false,
+        "badge": "更新失敗・以前の確認結果",
+        "headline": "最新情報を取得できません",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "17",
+      "kind": "ambiguous",
+      "width": 320,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "01",
+      "kind": "home",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "02",
+      "kind": "slots",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 4,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "1",
+        "receipt": "",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "03",
+      "kind": "people",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 8,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "2",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "04",
+      "kind": "confirm",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "3",
+        "receipt": "",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "05",
+      "kind": "processing",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "4",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "06",
+      "kind": "complete",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 2
+      },
+      "errors": []
+    },
+    {
+      "id": "07",
+      "kind": "waiting",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "08",
+      "kind": "waiting0",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "09",
+      "kind": "near",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero near",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まもなくご案内の可能性があります",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "10",
+      "kind": "calling",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero calling",
+        "green": 5,
+        "go": true,
+        "badge": "呼出中",
+        "headline": "入場できます！",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "11",
+      "kind": "done",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero done",
+        "green": 0,
+        "go": false,
+        "badge": "案内済み",
+        "headline": "ご案内済みです",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "12",
+      "kind": "hold",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero hold",
+        "green": 0,
+        "go": false,
+        "badge": "保留中",
+        "headline": "受付でご確認ください",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "13",
+      "kind": "cancel-confirm",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "14",
+      "kind": "canceled",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero canceled",
+        "green": 0,
+        "go": false,
+        "badge": "取消済み",
+        "headline": "受付は取り消されています",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "15",
+      "kind": "closed",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero closed",
+        "green": 0,
+        "go": false,
+        "badge": "受付終了",
+        "headline": "本日の受付は終了しました",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "16",
+      "kind": "comm-error",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero error",
+        "green": 0,
+        "go": false,
+        "badge": "更新失敗・以前の確認結果",
+        "headline": "最新情報を取得できません",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "17",
+      "kind": "ambiguous",
+      "width": 390,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "01",
+      "kind": "home",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "02",
+      "kind": "slots",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 4,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "1",
+        "receipt": "",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "03",
+      "kind": "people",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 8,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "2",
+        "receipt": "",
+        "buttons": 10
+      },
+      "errors": []
+    },
+    {
+      "id": "04",
+      "kind": "confirm",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "3",
+        "receipt": "",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "05",
+      "kind": "processing",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "4",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "06",
+      "kind": "complete",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 2
+      },
+      "errors": []
+    },
+    {
+      "id": "07",
+      "kind": "waiting",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "08",
+      "kind": "waiting0",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "09",
+      "kind": "near",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero near",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まもなくご案内の可能性があります",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "10",
+      "kind": "calling",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero calling",
+        "green": 5,
+        "go": true,
+        "badge": "呼出中",
+        "headline": "入場できます！",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 3
+      },
+      "errors": []
+    },
+    {
+      "id": "11",
+      "kind": "done",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero done",
+        "green": 0,
+        "go": false,
+        "badge": "案内済み",
+        "headline": "ご案内済みです",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "12",
+      "kind": "hold",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero hold",
+        "green": 0,
+        "go": false,
+        "badge": "保留中",
+        "headline": "受付でご確認ください",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "13",
+      "kind": "cancel-confirm",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 2,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero waiting",
+        "green": 0,
+        "go": false,
+        "badge": "受付済み・呼出待ち",
+        "headline": "まだ呼出前です",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 7
+      },
+      "errors": []
+    },
+    {
+      "id": "14",
+      "kind": "canceled",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero canceled",
+        "green": 0,
+        "go": false,
+        "badge": "取消済み",
+        "headline": "受付は取り消されています",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 5
+      },
+      "errors": []
+    },
+    {
+      "id": "15",
+      "kind": "closed",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero closed",
+        "green": 0,
+        "go": false,
+        "badge": "受付終了",
+        "headline": "本日の受付は終了しました",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "16",
+      "kind": "comm-error",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 1,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": false,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "boon-v4-call-hero error",
+        "green": 0,
+        "go": false,
+        "badge": "更新失敗・以前の確認結果",
+        "headline": "最新情報を取得できません",
+        "stage": "",
+        "receipt": "QA-123",
+        "buttons": 4
+      },
+      "errors": []
+    },
+    {
+      "id": "17",
+      "kind": "ambiguous",
+      "width": 430,
+      "ok": true,
+      "state": {
+        "v4": true,
+        "v5": true,
+        "colors": [
+          "#28C7BE",
+          "#E3FFF6",
+          "#F26F4C"
+        ],
+        "testedTapTargets": 0,
+        "tooSmall": [],
+        "webUrl": "",
+        "selectedSlot": true,
+        "teamMatches": true,
+        "overflow": false,
+        "heroKind": "",
+        "green": 0,
+        "go": false,
+        "badge": "",
+        "headline": "",
+        "stage": "5",
+        "receipt": "",
+        "buttons": 3
+      },
+      "errors": []
+    }
+  ],
+  "startedAt": "2026-11-06T00:14:47.171Z",
+  "browser": "Chrome headless",
+  "errors": [],
+  "testedWidths": [
+    320,
+    390,
+    430
+  ],
+  "realLiff": false,
+  "realAirwait": false,
+  "passed": 51,
+  "failed": 0,
+  "finishedAt": "2026-11-06T00:15:49.455Z"
+}
