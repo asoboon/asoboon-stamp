@@ -679,24 +679,6 @@ html.boon-v4.boon-v5-mint .boon-v4-ahead {cursor:default;}
  }
 }
 
-html.boon-v4.boon-v5-mint .boon-v5-web-reception {
- display:flex;align-items:center;justify-content:space-between;
- gap:12px;padding:13px 16px;margin:0 0 22px;min-height:56px;
- text-decoration:none;color:#16675F;
- background:white;border:1px solid #9FDCCE;border-radius:16px;
- box-shadow:0 3px 0 #BCE9DF;
-}
-html.boon-v4.boon-v5-mint .boon-v5-web-reception strong {
- display:block;font-size:16px;color:#175E58;
-}
-html.boon-v4.boon-v5-mint .boon-v5-web-reception small {
- display:block;font-size:12px;margin-top:2px;color:#48746B;
-}
-html.boon-v4.boon-v5-mint .boon-v5-web-reception>span:last-child {
- color:#188C82;font-size:21px;font-weight:900;
-}
-html.boon-v4.boon-v5-mint .boon-v5-web-reception:active {transform:translateY(2px);box-shadow:0 1px 0 #BCE9DF;}
-html.boon-v4.boon-v5-mint .boon-v5-web-reception:focus-visible {outline:3px solid #086B66;outline-offset:3px;}
 /* 320px phones must not fall back to 40px ± controls in legacy v26 media rules. */
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper {
  grid-template-columns:44px 44px 44px!important;gap:3px!important;
@@ -1142,13 +1124,6 @@ html.boon-v5-mint body.v38-home-active .v38-guide>h2,
 html.boon-v5-mint body.v38-home-active .v38-help>h2{
  border-left:5px solid #F26F4C!important;
  padding-left:10px!important;
-}
-html.boon-v5-mint body.v38-home-active .boon-v5-web-reception{
- border-left:5px solid #F26F4C!important;
- background:linear-gradient(105deg,#FFF4EB 0%,#FFFFFF 56%)!important;
-}
-html.boon-v5-mint body.v38-home-active .boon-v5-web-reception>span:last-child{
- color:#C85435!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-timeguide-cta{
  border-left:5px solid #F26F4C!important;
