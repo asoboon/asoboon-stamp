@@ -2319,6 +2319,23 @@ test('v5.5 standard HOME affords four native actions without adding another WEB 
    expect(control.focusable).toBe(true);
   }
  }
+ const localePicker=page.locator('#asoboon-language-select');
+ await localePicker.selectOption('en');
+ await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).toHaveText('Check queue status');
+ await expect(page.locator('#v38Today .v55-today-action')).toContainText('View hours and play time');
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action')).toContainText('Calculate play time');
+ await expect(page.locator('#v38Slots>.v55-crowd-prompt')).toContainText('Choose session');
+ await page.setViewportSize({width:320,height:860});
+ for(const lang of ['zh-CN','vi','ne','ko','kmr']){
+  await localePicker.selectOption(lang);
+  await expect(page.locator('#v38Today .v55-today-action')).not.toContainText('営業区分');
+  await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).not.toHaveText('呼出状況を見る');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow in '+lang).toBe(true);
+ }
+ await localePicker.selectOption('ja');
+ await expect(page.locator('#v38Hero .v38-call-cta-copy strong')).toHaveText('呼出状況を見る');
+ await expect(page.locator('#v38Today .v55-today-action')).toContainText('営業区分');
+ await expect(page.locator('#v38TimeguideShortcut .v55-timer-action')).toContainText('遊べる時間を計算する');
  await page.evaluate(()=>{
   localStorage.setItem('asoboon_v2_timeguide_production_v1',JSON.stringify({
    businessDate:'2026-10-03',entryTime:'12:30',endTime:'15:00',durationLabel:'2時間30分'

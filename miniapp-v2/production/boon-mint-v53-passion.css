@@ -533,3 +533,10 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:active{
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:focus-visible{
  outline:3px solid #FF7A00!important;outline-offset:3px!important;
 }
+
+/* All supported UI languages can wrap within the same touch targets. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action>span,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-action-label,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v55-crowd-prompt{
+ min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important;
+}
