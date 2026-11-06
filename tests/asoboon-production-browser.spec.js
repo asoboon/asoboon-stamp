@@ -2361,3 +2361,52 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await page.locator('#v38Slots .v38-crowd-channel--onsite').first().click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
+
+
+test('v5.9 HOME starts with essentials visible and optional sections closed, while preserving native links',async({page})=>{
+ await installProduction(page);
+ const homeURL=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__mintTestEnvironment;},
+   set(value){this.__mintTestEnvironment=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+ },siteBase);
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v59GuideFold summary')).toBeVisible();
+ await expect(page.locator('#v59PlayFold summary')).toBeVisible();
+ await expect(page.locator('#v59GuideFold')).not.toHaveAttribute('open','');
+ await expect(page.locator('#v59PlayFold')).not.toHaveAttribute('open','');
+ await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeHidden();
+ await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeHidden();
+ await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
+ await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
+ await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
+ await expect(page.locator('#v59CalendarLinks .v38-calendar-card')).toHaveCount(2);
+ await page.locator('#v59GuideFold summary').click();
+ await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeVisible();
+ await page.locator('#v59PlayFold summary').click();
+ await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeVisible();
+ // State updates must not reset a parent's deliberate disclosure choice.
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{kind:'none',source:'live',checkedAt:Date.now()}})));
+ await expect(page.locator('#v59GuideFold')).toHaveAttribute('open','');
+ await expect(page.locator('#v59PlayFold')).toHaveAttribute('open','');
+ const picker=page.locator('#asoboon-language-select');
+ await picker.selectOption('en');
+ await expect(page.locator('#v59GuideFold .v59-fold-title')).toHaveText('Visitor guide');
+ await picker.selectOption('ja');
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:860});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow '+width).toBe(true);
+  const bounds=await page.locator('#v59GuideFold summary').boundingBox();
+  expect(bounds.height).toBeGreaterThanOrEqual(56);
+ }
+ await page.locator('#v59GuideFold summary').click();
+ await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeHidden();
+ await page.locator('#v59PlayFold .v38-play-card').first().click();
+ await expect.poll(()=>new URL(page.url()).pathname.includes('/asoquest/')).toBe(true);
+});
