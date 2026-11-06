@@ -206,8 +206,8 @@ function enhanceHomeAffordances(home){
    action=create('span','v55-timer-action');
    action.setAttribute('aria-hidden','true');
    action.innerHTML='<span class="v55-timer-action-label"></span><i>→</i>';
-   var copy=timer.querySelector('[data-timeguide-summary]')?.parentElement;
-   if(copy)copy.appendChild(action);
+   var timerCopyParent=timer.querySelector('[data-timeguide-summary]')?.parentElement;
+   if(timerCopyParent)timerCopyParent.appendChild(action);
   }
   var saved=timer.classList.contains('has-timeguide-result');
   var words=saved?copy.timerDone:copy.timer;

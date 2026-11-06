@@ -111,6 +111,14 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.js')}';
   document.head.appendChild(theme);
+  // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
+  // not recreated; reception rules, real-time data and LINE handlers stay native.
+  const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=${envHash('miniapp-v2/production/boon-home-v56.css')}';
+  document.head.appendChild(deckStyle);
+  const deck=document.createElement('script');deck.async=false;
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=${envHash('miniapp-v2/production/boon-home-v56-layout.js')}';
+  document.head.appendChild(deck);
 }
 })();
 `;
