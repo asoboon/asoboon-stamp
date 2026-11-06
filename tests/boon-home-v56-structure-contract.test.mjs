@@ -107,7 +107,7 @@ test('v5.9 keeps critical action, today, slots and timer out of disclosure',()=>
  assert.match(layout,/body\.appendChild\(section\)/);
  assert.match(layout,/el\('details','v59-fold'\)/);
  assert.match(layout,/el\('summary','v59-fold-summary'\)/);
- assert.match(layout,/v59\.0-progressive-disclosure/);
+ assert.match(layout,/5\.9\.0-progressive-disclosure/);
  assert.doesNotMatch(layout,/XMLHttpRequest|fetch\s*\(|createReservation|cancelReservation/);
 });
 test('v5.9 accessible native disclosure shows the calendar links and preserves keyboard interaction',()=>{
@@ -116,5 +116,5 @@ test('v5.9 accessible native disclosure shows the calendar links and preserves k
  assert.match(css,/\.v59-fold\[open\] \.v59-fold-close/);
  assert.match(css,/\.v59-calendar-links \.v38-calendar-card/);
  assert.match(css,/prefers-reduced-motion:reduce/);
- for(const locale of ['ja','en','zh-CN','ko','vi','ne','kmr'])assert.match(layout,new RegExp(locale.replace(/[-]/g,'\\-')+":\\{guide:"));
+ for(const locale of ['ja','en','zh-CN','ko','vi','ne','kmr'])assert.ok(layout.includes((locale==='zh-CN'?"'zh-CN'":locale)+':{guide:'),locale);
 });
