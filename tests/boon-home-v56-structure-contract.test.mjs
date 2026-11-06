@@ -80,3 +80,18 @@ test('timer copy and official localization are preserved',()=>{
  assert.match(theme,/var words=saved\?copy\.timerDone:copy\.timer/);
  assert.match(css,/prefers-reduced-motion/);
 });
+
+test('v5.8.1 removes decorative BOON START labels and prevents call-status flashing',()=>{
+ assert.doesNotMatch(layout,/el\\('h2','v58-header-title','BOON START'\\)/);
+ assert.doesNotMatch(layout,/shell\\.appendChild\\(header\\)/);
+ assert.match(css,/\.v58-flow #v38Hero \*\{/);
+ assert.match(css,/animation:none!important;transition:none!important/);
+ assert.match(layout,/const nativeIds=new Set/);
+ assert.match(layout,/if\(nativeChanged\)request\(\)/);
+});
+test('v5.8.1 reads real business facts in a full-width row and two metric cells',()=>{
+ assert.match(css,/grid-column:1\\/-1!important/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(layout,/営業区分/);
+ assert.match(original,/function patchToday\(\)/);
+});
