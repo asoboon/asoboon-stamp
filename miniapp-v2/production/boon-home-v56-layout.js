@@ -165,7 +165,16 @@ function mount(){
  const callCTA=hero.querySelector('.v38-call-cta-copy strong');
  // Relabel the native callstatus link based on the verified next task.
  // Never create a new reception action or a fake destination.
- const callLabel=language()==='ja'?(state==='calling'?'受付番号を見る':state==='guided'?'呼出履歴を確認する':state==='waiting'?'待ち順を確認する':state==='hold'?'受付状態を確認する':'呼出状況を確認する'):t.saved[0];
+ const callActionLabels={
+  ja:{calling:'受付番号を見る',guided:'呼出履歴を確認する',waiting:'待ち順を確認する',hold:'保留状態を確認する',canceled:'取消内容を確認する',error:'もう一度確認する',pending:'照合状況を確認する'},
+  en:{calling:'View queue number',guided:'View call history',waiting:'Check your place',hold:'Check hold status',canceled:'View cancellation',error:'Retry status check',pending:'Check verification'},
+  'zh-CN':{calling:'查看排队号码',guided:'查看叫号记录',waiting:'查看排队位置',hold:'查看暂停状态',canceled:'查看取消信息',error:'重新查询状态',pending:'查看核对进度'},
+  ko:{calling:'접수 번호 확인',guided:'호출 기록 확인',waiting:'대기 순서 확인',hold:'보류 상태 확인',canceled:'취소 내용 확인',error:'상태 다시 확인',pending:'확인 진행 상태 보기'},
+  vi:{calling:'Xem số thứ tự',guided:'Xem lịch sử gọi',waiting:'Xem vị trí chờ',hold:'Xem trạng thái tạm giữ',canceled:'Xem thông tin hủy',error:'Kiểm tra lại trạng thái',pending:'Xem tiến trình xác minh'},
+  ne:{calling:'पालो नम्बर हेर्नुहोस्',guided:'बोलाएको विवरण हेर्नुहोस्',waiting:'आफ्नो पालो हेर्नुहोस्',hold:'रोकिएको अवस्था हेर्नुहोस्',canceled:'रद्द विवरण हेर्नुहोस्',error:'अवस्था फेरि जाँच्नुहोस्',pending:'जाँचको अवस्था हेर्नुहोस्'},
+  kmr:{calling:'Hejmarê bibîne',guided:'Dîroka bangê bibîne',waiting:'Cihê xwe bibîne',hold:'Rewşa rawestanê bibîne',canceled:'Agahiya betalkirinê bibîne',error:'Rewşê dîsa kontrol bike',pending:'Pêşketina kontrolê bibîne'}
+ };
+ const callLabel=(callActionLabels[language()]||callActionLabels.en)[state]||t.saved[0];
  if(callCTA)set(callCTA,callLabel);
  if(shell.dataset.state!==state)shell.dataset.state=state;
  const title=t[state]||t.default;

@@ -2412,3 +2412,24 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  const firstGameHref=await page.locator('#v59PlayFold .v38-play-card').first().getAttribute('href');
  expect(firstGameHref).toContain('asoquest/');
 });
+
+test('v5.9 calling action label stays state-specific in all seven supported languages',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031',adults:1,paidChildren:0,infants:0
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+  detail:{kind:'calling',receipt:'F345',source:'live',checkedAt:Date.now()}
+ })));
+ const expected={ja:'受付番号を見る',en:'View queue number','zh-CN':'查看排队号码',
+  ko:'접수 번호 확인',vi:'Xem số thứ tự',ne:'पालो नम्बर हेर्नुहोस्',kmr:'Hejmarê bibîne'};
+ const picker=page.locator('#asoboon-language-select');
+ for(const [lang,label] of Object.entries(expected)){
+  await picker.selectOption(lang);
+  await expect(page.locator('#v58Lead #v38Hero .v38-call-cta-copy strong')).toHaveText(label);
+ }
+});

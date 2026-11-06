@@ -690,7 +690,7 @@ function heroMarkup(data={}){
    return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${callStatusAction()}${a.type==='before'?receptionHoursNote():''}</div>`};
  }
  const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='pending'&&receipt)return{kind:'pending',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><div class="v38-pending-eyebrow">保存済みの受付番号</div><div class="v38-pending-number">${esc(receipt)}</div><p class="v38-pending-status" role="status"><span class="v38-pending-indicator" aria-hidden="true"></span>最新の呼出状況を確認しています…</p>${action('callstatus','呼出状況を確認する')}</div>`};if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number.isSafeInteger(data.ahead)&&data.ahead>=0?data.ahead:null;if(n===null)return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>WEB受付とLINE受付の待ち順を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','受付番号を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','アソブーンタイマー')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}${receptionHoursNote()}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='error'?action('reception','受付画面を開く','primary'):action('first','利用案内へ')}${a.type==='before'?receptionHoursNote():''}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
-function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)return;const v=heroMarkup(data),sig=v.kind+'|'+v.html; /* Re-render only when visible native markup truly changes. */if(sig===lastHero&&el.dataset.rendered==='1')return;lastHero=sig;el.dataset.rendered='1';el.className=`v38-hero ${v.kind}`;el.innerHTML=v.html;document.body.classList.remove('v38-state-waiting','v38-state-calling','v38-state-guided','v38-state-hold','v38-state-canceled','v38-state-closed');const theme=String(v.kind).split(/\s+/)[0];if(['waiting','calling','guided','hold','canceled','closed'].includes(theme))document.body.classList.add(`v38-state-${theme}`);}
+function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)return;const v=heroMarkup(data),sig=v.kind+'|'+v.html;if(sig===lastHero&&el.dataset.rendered==='1')return;lastHero=sig;el.dataset.rendered='1';el.className=`v38-hero ${v.kind}`;el.innerHTML=v.html;document.body.classList.remove('v38-state-waiting','v38-state-calling','v38-state-guided','v38-state-hold','v38-state-canceled','v38-state-closed');const theme=String(v.kind).split(/\s+/)[0];if(['waiting','calling','guided','hold','canceled','closed'].includes(theme))document.body.classList.add(`v38-state-${theme}`);}
 function patchToday(){const box=root.querySelector('#v38Today');if(!box)return;const labels=box.querySelectorAll('small'),vals=box.querySelectorAll('strong');if(day){setText(vals[0],day.isClosed?'休館':day.businessType||'—');setText(vals[1],day.isClosed?'—':day.durationLabel||'—');setText(vals[2],day.isClosed?'—':day.closingTime||'—');box.classList.toggle('closed',Boolean(day.isClosed));return}setText(vals[0],dayError?'取得できません':T.loading);setText(vals[1],'—');setText(vals[2],'—')}
 function readTimeguideResult(){try{return JSON.parse(localStorage.getItem(TIMEGUIDE_KEY)||'null')}catch{return null}}
 function patchTimeguideShortcut(){
@@ -751,7 +751,7 @@ return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0027':'14:00','0036
 }
 function remainingMarkup(label,value,channel,{time='',webUrl=''}={}){
  const people=value===null?'確認中':value+'名';
- const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`${value}<small>名</small>`}</strong>`;
+ const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-count-prefix">残り</span><span class="v38-crowd-number">${value}</span><small>名</small>${value===0?'<em class="v38-crowd-full">満枠</em>':''}`}</strong>`;
  const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
  const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
  const accessible=`${time}。${label}の残り${people}。${destination}`;
@@ -771,19 +771,19 @@ function renderSlots(){
 const box=root.querySelector('#v38Slots');
 if(!box)return;
 if(!day||dayError||day.isClosed){
-writeCrowdMarkup(box,dayError?'<h3>本日の混雑状況</h3><p class="v38-slots-error">混雑情報を取得できません</p>':!day?'<h3>本日の混雑状況</h3><p class="v38-slots-note">受付残り人数を確認しています…</p>':'');
+writeCrowdMarkup(box,dayError?'<h3>受付枠の空き状況</h3><p class="v38-slots-error">受付枠の残り人数を取得できません</p>':!day?'<h3>受付枠の空き状況</h3><p class="v38-slots-note">受付残り人数を確認しています…</p>':'');
 return;
 }
 if(crowdLoading&&!crowdSlots){
-writeCrowdMarkup(box,'<h3>本日の混雑状況</h3><p class="v38-slots-note">混雑情報を取得しています…</p>');
+writeCrowdMarkup(box,'<h3>受付枠の空き状況</h3><p class="v38-slots-note">混雑情報を取得しています…</p>');
 return;
 }
 const slots=validCrowdSlots();
 if(crowdClosed||crowdError||!slots.length){
  const ended=crowdClosed||crowdError==='AIRWAIT_CROWD_EMPTY';
- const title=ended?'本日の受付枠は終了しました':crowdError?'混雑状況を確認できません':'表示できる受付枠はありません';
+ const title=ended?'本日の受付枠は終了しました':crowdError?'受付枠の残り人数を確認できません':'表示できる受付枠はありません';
  const note=ended?'ご利用ありがとうございました。':'受付画面で最新状況をご確認ください。';
- writeCrowdMarkup(box,`<h3>本日の混雑状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
+ writeCrowdMarkup(box,`<h3>受付枠の空き状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
  return;
 }
 const webUrl=airwaitWebReceptionUrl();
@@ -799,7 +799,7 @@ return `<div class="v38-crowd-card crowd-unknown" role="group" aria-label="${esc
 <p class="v38-crowd-tap-hint">受付したい方法をタップしてください</p>
 </div>`;
 }).join('');
-writeCrowdMarkup(box,`<h3>本日の混雑状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">人数は各受付枠の残りです。館内の滞在人数や混雑率ではありません。</p>`);
+writeCrowdMarkup(box,`<h3>受付枠の空き状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">人数は各受付枠の残りです。館内の滞在人数や混雑率ではありません。</p>`);
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){
