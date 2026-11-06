@@ -350,7 +350,11 @@ test('certified HOME loads bundled assets once and keeps the official LINE ident
   await page.locator('[data-v7-view="reception"]').first().click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
-  await expect(page.locator('#recSubmit')).toBeVisible();
+  // The first step is now 'choose a reception slot'; the final submit is
+  // intentionally withheld until the slot and party-size steps are completed.
+  await expect(page.locator('#boonV4Progress')).toBeVisible();
+  await expect(page.locator('#boonV4Continue')).toBeVisible();
+  await expect(page.locator('#recSubmit')).toBeHidden();
   expect(requests.some(x=>x.startsWith('https://airwait.jp/'))).toBeFalsy();
   expect(errors).toEqual([]);
 });
