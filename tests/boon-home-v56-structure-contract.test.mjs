@@ -19,6 +19,8 @@ test('HOME is structurally rebuilt as START, queue, today and timer, and capacit
  assert.match(layout,/timerTile\.appendChild\(timer\)/);
  assert.match(layout,/crowdStage\.appendChild\(crowd\)/);
  assert.match(layout,/callSlot\.replaceChildren\(originalCall\)/);
+ assert.match(layout,/if\(queueTile\.hidden!==shouldHide\)queueTile\.hidden=shouldHide/);
+ assert.match(layout,/if\(!home\.classList\.contains\('v56-command-home'\)\)/);
 });
 test('all 7 already supported languages have copy and no synthetic data is generated',()=>{
  for(const language of ['ja','en','zh-CN','vi','ne','ko','kmr'])

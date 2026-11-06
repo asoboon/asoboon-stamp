@@ -69,7 +69,9 @@ function mount(){
  const timerTile=deck.querySelector('#v56TimerTile');
  if(day.parentElement!==dayTile)dayTile.appendChild(day);
  if(timer.parentElement!==timerTile)timerTile.appendChild(timer);
- deck.querySelector('#v56QueueTile').hidden=!callSlot.firstElementChild;
+ const queueTile=deck.querySelector('#v56QueueTile');
+ const shouldHide=!callSlot.firstElementChild;
+ if(queueTile.hidden!==shouldHide)queueTile.hidden=shouldHide;
  // The native HOME source may update #v38Slots; its refresh/data bindings remain intact.
  let crowdStage=home.querySelector(':scope > #v56CrowdStage');
  if(!crowdStage){
@@ -100,7 +102,7 @@ function mount(){
  assignText(crowdStage.querySelector('.v56-crowd-tag'),t.crowdTag);
  assignText(crowdStage.querySelector('.v56-crowd-title'),t.crowdTitle);
  assignText(crowdStage.querySelector('.v56-crowd-sub'),t.crowdSub);
- home.classList.add('v56-command-home');
+ if(!home.classList.contains('v56-command-home'))home.classList.add('v56-command-home');
 }
 let pending=false;
 function request(){

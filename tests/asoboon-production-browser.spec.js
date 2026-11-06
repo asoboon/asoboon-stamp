@@ -2292,6 +2292,18 @@ test('v5.6 rebuilt HOME has a real four-part command deck while preserving nativ
  await expect(page.locator('#v38Slots .v38-crowd-channel--onsite:is(a,button)')).toHaveCount(3);
  await expect(page.locator('#v38Slots .v38-crowd-channel--web:is(a,button)')).toHaveCount(3);
  await expect(page.locator('#boonV5WebReception,.boon-v5-web-reception')).toHaveCount(0);
+ // The redesign must stay idle; no MutationObserver feedback loop on class/hidden.
+ const idleMutations=await page.evaluate(()=>new Promise(resolve=>{
+  const target=document.querySelector('.v38-home');
+  let mutations=0;
+  const observer=new MutationObserver(records=>{
+   for(const rec of records)if(rec.type==='attributes')mutations++;
+  });
+  observer.observe(target,{attributes:true,subtree:true,attributeFilter:['class','hidden']});
+  setTimeout(()=>{observer.disconnect();resolve(mutations);},500);
+ }));
+ expect(idleMutations,'HOME idle class/hidden mutations').toBeLessThan(10);
+
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:860});
   const state=await page.evaluate(()=>{
