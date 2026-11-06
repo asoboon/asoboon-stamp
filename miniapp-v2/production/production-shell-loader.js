@@ -36,10 +36,10 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
   const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
-  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=95081705967c';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=2e22354fcd49';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
-  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=33e14cde3efc';
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=a8bbccfb035a';
   document.head.appendChild(deck);
 }
 })();

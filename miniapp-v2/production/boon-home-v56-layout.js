@@ -1,5 +1,5 @@
 /*
- * HOME v5.8.1 — calm status and readable business facts
+ * HOME v5.9 — contextual disclosure, without hiding essential next actions
  * Presentation only. Reuses the original reception, callstatus, day, capacity
  * and timer DOM nodes. No API calls, booking links, prices or state writes.
  * Verified live status comes from home-status-v13, not cached guesswork.
@@ -39,6 +39,67 @@ function currentKind(hero){
  if(live&&s.kind==='none')return{kind:'none',snapshot:s,live:true};
  return{kind:'default',snapshot:s,live:false};
 }
+
+/* Progressive disclosure wraps original sections; it does not recreate links
+   or native buttons and does not modify booking, AirWAIT, or route state. */
+const disclosureCopy={
+ ja:{guide:['利用案内','はじめて・料金・駐車場・再入場'],play:['あそびコンテンツ','スタンプラリー・ゲーム・おみくじ'],waiting:'呼出を待つ間に遊べます',open:'見る',close:'閉じる',calendars:'営業日とイベントのカレンダー'},
+ en:{guide:['Visitor guide','First visit · prices · parking · re-entry'],play:['Play & games','Stamp rally · games · fortune'],waiting:'Have fun while waiting for your turn',open:'View',close:'Close',calendars:'Opening days and event calendars'},
+ 'zh-CN':{guide:['游玩指南','首次来访、票价、停车、再次入场'],play:['游戏与活动','集章、游戏、抽签'],waiting:'等待叫号时也可以玩',open:'查看',close:'关闭',calendars:'营业日与活动日历'},
+ ko:{guide:['이용 안내','처음 방문 · 요금 · 주차 · 재입장'],play:['놀이와 게임','스탬프 랠리 · 게임 · 운세'],waiting:'호출을 기다리며 즐길 수 있어요',open:'보기',close:'닫기',calendars:'영업일과 이벤트 달력'},
+ vi:{guide:['Hướng dẫn tham quan','Lần đầu · giá vé · đỗ xe · vào lại'],play:['Trò chơi','Sưu tập tem · trò chơi · bói vui'],waiting:'Chơi trong lúc chờ đến lượt',open:'Xem',close:'Đóng',calendars:'Lịch hoạt động và sự kiện'},
+ ne:{guide:['आगन्तुक जानकारी','पहिलो पटक · शुल्क · पार्किङ · पुनः प्रवेश'],play:['खेलहरू','स्ट्याम्प र्‍याली · खेल · भाग्य'],waiting:'पालो कुर्दै खेल्नुहोस्',open:'हेर्नुहोस्',close:'बन्द',calendars:'खुल्ने दिन र कार्यक्रम'},
+ kmr:{guide:['Rêberiya mêvanan','Cara yekem · bihayê · park · veger'],play:['Lîstik û çalakî','Stamp · lîstik · fal'],waiting:'Dema li bendê lîstikan bibîne',open:'Bibîne',close:'Bigire',calendars:'Salnameya roj û çalakiyan'}
+};
+function groupCalendars(home,label){
+ const business=home.querySelector('.v38-business-calendar-section');
+ const event=Array.from(home.querySelectorAll('.v38-calendar-section')).find(node=>node!==business);
+ if(!business||!event)return;
+ let zone=home.querySelector(':scope > #v59CalendarLinks');
+ if(!zone){
+  zone=el('section','v59-calendar-links');zone.id='v59CalendarLinks';
+  home.insertBefore(zone,business);
+ }
+ zone.setAttribute('aria-label',label);
+ if(business.parentElement!==zone)zone.appendChild(business);
+ if(event.parentElement!==zone)zone.appendChild(event);
+}
+function foldExisting(home,selector,id,words,openWord,closeWord){
+ const section=home.querySelector(selector);
+ if(!section)return;
+ let fold=home.querySelector(':scope > #'+id);
+ if(!fold){
+  fold=el('details','v59-fold');fold.id=id;
+  const summary=el('summary','v59-fold-summary');
+  const label=el('span','v59-fold-label');
+  label.appendChild(el('strong','v59-fold-title'));
+  label.appendChild(el('small','v59-fold-hint'));
+  const indicator=el('span','v59-fold-indicator');
+  indicator.appendChild(el('span','v59-fold-open'));
+  indicator.appendChild(el('span','v59-fold-close'));
+  indicator.appendChild(el('span','v59-fold-chevron'));
+  indicator.setAttribute('aria-hidden','true');
+  summary.appendChild(label);summary.appendChild(indicator);
+  fold.appendChild(summary);
+  fold.appendChild(el('div','v59-fold-body'));
+  home.insertBefore(fold,section);
+ }
+ // Preserve the same original DOM node and the browser-native <details> state.
+ const body=fold.querySelector('.v59-fold-body');
+ if(section.parentElement!==body)body.appendChild(section);
+ set(fold.querySelector('.v59-fold-title'),words[0]);
+ set(fold.querySelector('.v59-fold-hint'),words[1]);
+ set(fold.querySelector('.v59-fold-open'),openWord);
+ set(fold.querySelector('.v59-fold-close'),closeWord);
+}
+function progressiveSections(home,state,verified){
+ const words=disclosureCopy[language()]||disclosureCopy.ja;
+ groupCalendars(home,words.calendars);
+ foldExisting(home,'.v38-guide','v59GuideFold',words.guide,words.open,words.close);
+ const playWords=verified&&state==='waiting'?[words.play[0],words.waiting]:words.play;
+ foldExisting(home,'.v38-play','v59PlayFold',playWords,words.open,words.close);
+}
+
 function make(){
  const shell=el('section','v58-flow');shell.id='v58Flow';
  const primary=el('section','v58-primary');primary.id='v58Primary';
@@ -133,6 +194,7 @@ function mount(){
  if(shell.querySelector('#v58Journey').hidden!==!showJourney)shell.querySelector('#v58Journey').hidden=!showJourney;
  const visibleSlots=slots.textContent.trim().length>0&&state!=='ended';
  if(sessionsZone.hidden===visibleSlots)sessionsZone.hidden=!visibleSlots;
+ progressiveSections(home,state,info.live);
  if(!home.classList.contains('v58-action-first'))home.classList.add('v58-action-first');
 }
 let scheduled=false;
@@ -160,5 +222,5 @@ new MutationObserver(records=>{
 }).observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
 for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-timeguide-updated','asoboon:v2-route-rendered','popstate'])window.addEventListener(event,request);
 request();
-window.BOON_HOME_V58=Object.freeze({version:'5.8.0-action-first',presentationOnly:true,existingActionsOnly:true});
+window.BOON_HOME_V58=Object.freeze({version:'5.9.0-progressive-disclosure',presentationOnly:true,existingActionsOnly:true});
 })();
