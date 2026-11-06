@@ -567,3 +567,10 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:focu
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate:focus-visible{
  outline:3px solid #075E55!important;outline-offset:3px!important;
 }
+
+/* Small devices: keep real 3-digit remaining people readable. */
+@media(max-width:370px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channels{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}

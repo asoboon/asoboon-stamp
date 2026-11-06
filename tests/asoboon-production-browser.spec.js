@@ -2415,13 +2415,27 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
 
 test('v5.9 calling action label stays state-specific in all seven supported languages',async({page})=>{
  await installProduction(page);
+ const homeURL=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__mintTestEnvironment;},
+   set(value){this.__mintTestEnvironment=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+ },siteBase);
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
    receiptNo:'F345',businessDate:'2026-10-03',waitTypeId:'0031',adults:1,paidChildren:0,infants:0
   }));
+  localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
+   receiptNo:'F345',businessDate:'2026-10-03',savedAt:Date.now(),
+   status:{kind:'waiting',receipt:'F345',source:'live',checkedAt:Date.now()}
+  }));
  });
- await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await page.goto(homeURL,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58Lead #v38Hero')).toHaveClass(/call-link/);
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
   detail:{kind:'calling',receipt:'F345',source:'live',checkedAt:Date.now()}
  })));
