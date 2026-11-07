@@ -22,7 +22,7 @@ test('end-of-reception clears both live counts and persisted positive snapshot',
 });
 test('visibility check owns loading lock through its awaited decision',()=>{
   for(const code of [source,bundle]){
-    const start=code.indexOf("if(!crowdClosed&&(crowdError||!validCrowdSlots().length)&&day){");
+    const start=code.indexOf("if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){");
     assert.notEqual(start,-1);
     const lockRelease=code.indexOf('crowdLoading=false;',start);
     assert.ok(lockRelease>code.indexOf('await m.check(',start),'request remains locked until visibility resolved');

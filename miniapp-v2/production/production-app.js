@@ -835,6 +835,7 @@ async function fetchCrowd(force=false,manual=false){
  }finally{
   clearTimeout(timer);
   if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
+   renderSlots();
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');

@@ -29,13 +29,15 @@
   if(window.ASOBOON_PRODUCTION_SHELL&&!window.ASOBOON_ASOQUEST_HANDOFF){
     for(const [kind,src] of [
       ['style','./miniapp-v2/production/production-app.css?v=e04359eb6e55'],
-      ['script','./miniapp-v2/production/production-app.js?v=d74fc54a88e7']
+      ['script','./miniapp-v2/production/production-app.js?v=e28445720ba8']
     ]){
       const link=document.createElement('link');
       link.rel='preload';link.as=kind;link.href=src;document.head.appendChild(link);
     }
   }
   </script>
+  <!-- Warm read-only public business-day and capacity requests. No reservation calls. -->
+  <link rel="preconnect" href="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev" crossorigin>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
   <meta name="theme-color" content="#f4f0e7">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -53,7 +55,7 @@
   <script>
   if(window.ASOBOON_PRODUCTION_SHELL){
     const s=document.createElement('script');
-    s.src='./miniapp-v2/production/production-shell-loader.js?v=56d739a72fa0';
+    s.src='./miniapp-v2/production/production-shell-loader.js?v=748b108b5446';
     s.async=false;
     document.head.appendChild(s);
   }
