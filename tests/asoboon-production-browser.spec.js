@@ -2268,6 +2268,7 @@ test('HOME does not launch a second crowd request while the hidden-slot cross-ch
 
 
 test('v5.8 HOME exposes true actions and readable operational facts rather than a static card deck',async({page})=>{
+ page.on('pageerror',error=>console.error('HOME_V60_PAGEERROR',error.message));
  await installProduction(page);
  const homeURL=new URL('../../home.html',BASE).href;
  const siteBase=new URL('../../',BASE).href;
@@ -2285,11 +2286,10 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
  await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
- await expect(page.locator('#v59SlotsFold')).not.toHaveAttribute('open','');
- await expect(page.locator('#v59SlotsFold summary')).toBeVisible();
+ await expect(page.locator('#v60CapacityPanel')).toBeVisible();
+ await expect(page.locator('#v60CapacityPanel thead')).toContainText('混雑予想');
+ await expect(page.locator('#v60CapacityPanel tbody tr')).toHaveCount(3);
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeHidden();
- await page.locator('#v59SlotsFold summary').click();
- await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
  await expect(page.locator('#v58SessionsZone .v58-section-title')).toHaveText('受付の空き状況');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('当日受付をする');
@@ -2318,9 +2318,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
    const interactive=[
     '#v58Lead #v38Hero [data-v7-view="reception"]',
     '#v58Lead #v38Hero [data-v7-view="callstatus"]',
-    '#v38TimeguideShortcut',
-    '#v38Slots .v38-crowd-channel--onsite:is(a,button)',
-    '#v38Slots .v38-crowd-channel--web:is(a,button)'
+    '#v38TimeguideShortcut'
    ];
    return{
     overflow:document.documentElement.scrollWidth>innerWidth+1,
@@ -2363,10 +2361,10 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await page.locator('#v58Lead #v38Hero .v38-call-cta').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v59SlotsFold')).not.toHaveAttribute('open','');
- await page.locator('#v59SlotsFold summary').click();
+ await expect(page.locator('#v60CapacityPanel')).toBeVisible();
+ await expect(page.locator('#v60CapacityPanel thead')).toContainText('混雑予想');
  await expect(page.locator('#v38Slots .v38-crowd-channel--onsite')).toHaveCount(3);
- await page.locator('#v38Slots .v38-crowd-channel--onsite').first().click();
+ await page.locator('#v58Lead #v38Hero [data-v7-view="reception"]').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
 
@@ -2392,11 +2390,10 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeHidden();
  await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
  await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
- await expect(page.locator('#v59SlotsFold')).not.toHaveAttribute('open','');
- await expect(page.locator('#v59SlotsFold summary')).toBeVisible();
+ await expect(page.locator('#v60CapacityPanel')).toBeVisible();
+ await expect(page.locator('#v60CapacityPanel thead')).toContainText('混雑予想');
+ await expect(page.locator('#v60CapacityPanel tbody tr')).toHaveCount(3);
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeHidden();
- await page.locator('#v59SlotsFold summary').click();
- await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
  await expect(page.locator('#v59CalendarLinks .v38-calendar-card')).toHaveCount(2);
  await page.locator('#v59GuideFold summary').click();

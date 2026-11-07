@@ -159,7 +159,7 @@ function updateWizard(page){
 /* v5.5: strengthen signifiers without adding routes or changing status data.
  * Everything here is an existing button / route / card, never a new WEB CTA. */
 var HOME_AFFORDANCE_COPY={
- ja:{call:'呼出状況を見る',callSub:'受付番号・待ち順・入場案内',today:'営業区分・利用時間を詳しく見る',
+ ja:{call:'呼出状況を見る',callSub:'受付番号・待ち順・入場案内',today:'本日の営業情報',
   timer:'遊べる時間を計算する',timerDone:'計算結果を確認する',
   crowd:'残り人数を見て、受付方法を選ぼう ↓',crowdEmpty:'各受付枠の残り人数を表示します'},
  en:{call:'Check queue status',callSub:'Ticket number · queue · entry',today:'View hours and play time',
