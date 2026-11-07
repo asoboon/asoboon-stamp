@@ -1,0 +1,98 @@
+/* v5.12: compact mobile presentation for functional LINE miniapp routes. */
+:root { --b512-mint:#E3FFF6; --b512-soft:#F3FBF8; --b512-orange:#FF7A00; --b512-ink:#0C5041; --b512-brown:#301C00; }
+body.v7-reception-active .page-card,
+body.v7-callstatus-active .page-card,
+body.v7-timeguide-active .page-card,
+.v27-first-page,.v24-parking-page,.v25-entry-page,.v17-pass,.v28-people { box-shadow:0 3px 12px rgba(12,80,65,.07); }
+body.v7-reception-active .page-head { margin:0 0 10px; padding:12px 14px; border-radius:16px; }
+body.v7-reception-active .page-head h2 { font-size:1.45rem; }
+body.v7-reception-active .page-body { padding:0; }
+body.v7-reception-active .rec-wrap,
+body.v7-reception-active .rec-step,
+body.v7-callstatus-active .cs-body,
+body.v7-timeguide-active .tg-body,
+.v27-first-page .pv7-body,.v24-parking-page .pv7-body,
+.v25-entry-page .pv7-body { padding:12px; }
+body.v7-reception-active .rec-stepper { gap:8px; }
+body.v7-reception-active .rec-stepper button { width:auto; min-width:48px; min-height:48px; border-radius:14px; background:var(--b512-orange); color:#301C00; font-weight:800; }
+body.v7-reception-active .rec-stepper button:disabled { opacity:.42; background:#d5ddd9; color:#52635d; }
+body.v7-callstatus-active .page-head.green,body.v7-timeguide-active .page-head.green { padding:12px 14px; }
+.v27-first-page .pv7-head,.v24-parking-page .pv7-head,.v25-entry-page .pv7-head { padding:13px 14px 12px; }
+.v27-first-page .pv7-head h1,.v24-parking-page .pv7-head h1,.v25-entry-page .pv7-head h1 { margin:5px 0 4px; font-size:1.55rem; }
+.v27-first-page .pv7-body,.v24-parking-page .pv7-body,.v25-entry-page .pv7-body { display:grid; gap:10px; }
+.v27-first-page .pv7-card,.v24-parking-page .pv7-card,.v25-entry-page .pv7-card { border-radius:14px; background:var(--b512-soft); }
+.v17-pass { padding:11px 12px; border-radius:15px; }
+.v28-people { padding:9px; border-radius:13px; }
+body.v7-reception-active button:not(:disabled),body.v7-callstatus-active button:not(:disabled),
+body.v7-timeguide-active button:not(:disabled),.v27-first-page button:not(:disabled),
+.v24-parking-page button:not(:disabled),.v25-entry-page button:not(:disabled),
+.v17-pass button:not(:disabled),.v28-people button:not(:disabled) { min-height:44px; }
+body.v7-reception-active button[type="submit"],body.v7-callstatus-active #csRefresh,
+body.v7-timeguide-active button.primary,.v27-first-page button.primary,
+.v24-parking-page button.primary,.v25-entry-page button.primary { min-height:52px; background:var(--b512-orange); color:var(--b512-brown); }
+body.v7-reception-active button:focus-visible,body.v7-callstatus-active button:focus-visible,
+body.v7-timeguide-active button:focus-visible,.v27-first-page button:focus-visible,
+.v24-parking-page button:focus-visible,.v25-entry-page button:focus-visible,
+.v17-pass button:focus-visible,.v28-people button:focus-visible,
+body.v7-reception-active a:focus-visible,body.v7-callstatus-active a:focus-visible,
+body.v7-timeguide-active a:focus-visible { outline:3px solid #FF7A00; outline-offset:3px; }
+body.v7-reception-active button:not(:disabled):active,body.v7-callstatus-active button:not(:disabled):active,
+body.v7-timeguide-active button:not(:disabled):active,.v27-first-page button:not(:disabled):active,
+.v24-parking-page button:not(:disabled):active,.v25-entry-page button:not(:disabled):active { transform:scale(.98); }
+body.v7-reception-active [role="alert"],body.v7-callstatus-active .cs-error,
+body.v7-timeguide-active [role="alert"],.v25-entry-page .entry-warning { color:#8b1e1e; }
+@media(max-width:360px) {
+  body.v7-reception-active .page-head h2,.v27-first-page .pv7-head h1,.v24-parking-page .pv7-head h1,.v25-entry-page .pv7-head h1 { font-size:1.35rem; }
+}
+@media(max-width:430px) {
+  body.v7-reception-active .page-card,body.v7-callstatus-active .page-card,body.v7-timeguide-active .page-card,
+  .v27-first-page,.v24-parking-page,.v25-entry-page { max-width:100%; min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  body.v7-reception-active *,body.v7-callstatus-active *,body.v7-timeguide-active *,
+  .v27-first-page *, .v24-parking-page *, .v25-entry-page * { scroll-behavior:auto!important; transition:none!important; animation:none!important; }
+}
+
+/* Generic v7 information routes inherit the same compact mint surface. */
+body.v7-page-active { background:#F3FBF8!important; color:var(--b512-ink); }
+body.v7-page-active .pv7-page { background:#fff!important; border-color:rgba(12,80,65,.12)!important; box-shadow:0 3px 12px rgba(12,80,65,.07)!important; }
+body.v7-page-active .pv7-head { padding:13px 14px 12px; border-color:#d5eee5; }
+body.v7-page-active .pv7-head h1 { margin:5px 0 4px; font-size:clamp(1.35rem,6vw,1.65rem); overflow-wrap:anywhere; }
+body.v7-page-active .pv7-head p { font-size:.82rem; }
+body.v7-page-active .pv7-body { padding:12px; }
+body.v7-page-active .pv7-section+.pv7-section { margin-top:10px; padding-top:10px; }
+body.v7-page-active .pv7-band { min-height:56px; padding:9px 10px; }
+body.v7-page-active .pv7-callout { margin-top:10px; padding:10px 11px; }
+body.v7-page-active .pv7-roadstep { min-height:58px; padding:10px 11px 10px 46px; }
+body.v7-page-active .pv7-primary,body.v7-page-active .pv7-primary.green { min-height:52px; background:#FF7A00; color:#301C00; }
+body.v7-page-active .pv7-secondary-btn,body.v7-page-active .pv7-secondary-btn.green { min-height:44px; background:#E3FFF6; color:#0C5041; }
+body.v7-page-active .pv7-text-btn { min-height:44px; color:#0C5041; }
+body.v7-page-active :is(button,a,summary)[href],body.v7-page-active :is(button,summary) { -webkit-tap-highlight-color:transparent; }
+body.v7-page-active :is(button,a,summary):focus-visible,.v17-pass :is(button,a,summary):focus-visible,.v28-people :is(button,a,summary):focus-visible { outline:3px solid #FF7A00; outline-offset:3px; }
+body.v7-page-active button:not(:disabled),body.v7-page-active a[href],body.v7-page-active summary { min-height:44px; }
+body.v7-page-active button:active,body.v7-page-active a[href]:active,body.v7-page-active summary:active { transform:scale(.98); }
+.v17-pass { padding:10px 11px; }
+.v17-pass :is(button,a[href],summary) { min-height:44px; }
+.v17-pass :is(button,a[href],summary):active { transform:scale(.98); }
+.v13-status-meta button { min-height:44px; font-size:.72rem; }
+.v13-call-window { margin:8px 0 4px; padding:9px 10px; }
+.v13-call-window strong { font-size:.92rem; }
+.v13-call-window span { font-size:.82rem; }
+.v13-after-reception { margin:8px 0 10px; padding:9px 10px; }
+.v13-after-reception strong { font-size:.84rem; }
+.v13-after-reception span { font-size:.82rem; }
+.v33-start-panel { padding:10px 11px; }
+.v33-detail-number { padding:10px; }
+.cs-page.v33-compact-active #csRefresh { min-height:44px; background:#FF7A00; color:#301C00; }
+.cs-page.v33-compact-active .v33-detail-number strong { font-size:2.2rem; }
+.v17-pass .v17-live-dot { color:inherit; }
+@media(max-width:360px) {
+ body.v7-page-active .pv7-head h1 { font-size:1.35rem; }
+ body.v7-page-active .pv7-body { padding:10px; }
+}
+@media(max-width:430px) {
+ body.v7-page-active .pv7-page { width:100%; min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+ body.v7-page-active *, .v17-pass *, .v28-people * { scroll-behavior:auto!important; transition:none!important; animation:none!important; }
+}

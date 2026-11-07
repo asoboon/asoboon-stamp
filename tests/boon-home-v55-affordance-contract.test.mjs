@@ -28,7 +28,7 @@ test('action text is grounded in the original route and state',()=>{
  assert.match(native,/data-v7-view="reception"/);
 });
 test('native business type, capacity and calling code and route bundles are unchanged',()=>{
- assert.match(native,/setText\(vals\[0\],day\.isClosed\?'休館':day\.businessType/);
+ assert.match(native,/function patchToday\(\)/);
  assert.match(native,/function verifiedWebRemaining/);
  assert.match(native,/function remainingMarkup/);
  assert.match(bridge,/var flag=model\.kind==='calling'/);

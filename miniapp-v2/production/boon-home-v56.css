@@ -403,3 +403,35 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v59-fold-body .v38-play-grid{
 @media(prefers-reduced-motion:reduce){
  html.boon-v4.boon-v5-mint body.v38-home-active .v59-fold-chevron{transition:none!important}
 }
+
+/* v5.11.1 compact, tappable HOME */
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day{margin:0 0 6px!important;padding:5px 9px!important;border-radius:12px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day>.v58-section-title,html.boon-v4.boon-v5-mint body.v38-home-active .v58-day>.v58-section-summary{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today{display:grid!important;grid-template-columns:minmax(0,auto) minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:1px 9px!important;min-height:46px!important;padding:3px 5px!important;border:0!important;background:transparent!important;box-shadow:none!important;text-align:left!important;cursor:default!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span{display:contents!important;padding:0!important;background:none!important;border:0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child small{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child strong{grid-column:1;grid-row:1/3;font-size:13px!important;line-height:1.2!important;letter-spacing:0!important;white-space:normal}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(2) strong{grid-column:2;grid-row:1;font-size:14px!important;line-height:1.25!important;white-space:normal}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3){display:block!important;grid-column:2;grid-row:2}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3) small{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3) strong{font-size:12px!important;line-height:1.2!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>svg{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today.closed>span:first-child strong{color:#9E4C16!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-sessions{margin:5px 0!important;padding:0!important;background:transparent!important;border:0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-sessions>.v58-section-title{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-fold{overflow:hidden;border:1px solid #92DCC5;border-radius:15px;background:#E3FFF6}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border-left:5px solid #FF7A00;cursor:pointer;list-style:none;touch-action:manipulation}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary::-webkit-details-marker{display:none}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary:active{background:#C8F8E9}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary:focus-visible{outline:3px solid #087864;outline-offset:-3px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-title{flex:1;min-width:0;font-size:15px;line-height:1.3;color:#0C5041;overflow-wrap:anywhere}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-action{flex:none;padding:6px 10px;border-radius:999px;background:#FF7A00;color:#301C00;font-size:12px;font-weight:800;line-height:1.2;white-space:nowrap}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-close,.v59-slots-fold[open] .v59-slots-open{display:none}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-fold[open] .v59-slots-close{display:inline}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-chevron{flex:none;width:11px;height:11px;border-right:2px solid #C65B00;border-bottom:2px solid #C65B00;transform:rotate(45deg);transition:transform .18s}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-fold[open] .v59-slots-chevron{transform:rotate(225deg)}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-body{padding:0 10px 10px;min-width:0}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-body #v38Slots{margin:0!important;padding:0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-body #v38Slots>h3,html.boon-v4.boon-v5-mint body.v38-home-active .v55-today-action,html.boon-v4.boon-v5-mint body.v38-home-active .v55-crowd-prompt{display:none!important}
+@media(max-width:350px){html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary{gap:7px;padding:8px}.v59-slots-action{padding:6px 7px!important}}
+@media(prefers-reduced-motion:reduce){html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary,html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-chevron{transition:none}}
