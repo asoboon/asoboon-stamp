@@ -30,7 +30,7 @@ function translateBusiness(){
  for(const [i,node] of nodes.entries()){
   if(!node)continue;
   const actual=node.textContent.trim();
-  if(lang==='ja'||/[一-龯ぁ-んァ-ヶ]/.test(actual))node.dataset.v613Original=actual;
+  if(lang==='ja'||/(?:土日祝|土休日|平日|月曜|2時間30分|3時間|無制限)/.test(actual))node.dataset.v613Original=actual;
   const jp=node.dataset.v613Original||actual;
   if(lang==='ja'||!dict){copyTo(node,jp);continue}
   if(i===0){
