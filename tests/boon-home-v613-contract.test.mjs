@@ -22,7 +22,7 @@ test('Native actions remain delegated and no new mutating network calls are intr
 });
 test('Availability board is open and readable without a tap',()=>{
  assert.match(js,/if\(fold&&!fold\.open\)fold\.open=true/);
- assert.match(css,/\.v59-slots-fold>summary\{display:none!important\}/);
+ assert.match(css,/\.v59-slots-fold>summary[\s\S]{0,180}display:none!important/);
  assert.match(css,/\.v613-header/);
  assert.match(css,/min-height:44px/);
  assert.match(loader,/boon-home-v613-board\.js/);
@@ -30,9 +30,15 @@ test('Availability board is open and readable without a tap',()=>{
 });
 test('Prior contrast, day-card and fallback issues have targeted corrections',()=>{
  assert.match(css,/#v38Today>span:nth-child\(n\+2\)/);
- assert.match(css,/#v38Hero \.v38-reception-hours \*/);
- assert.match(css,/color:#174B42!important/);
+ assert.match(css,/#v38Hero \.v38-reception-hours>div>span/);
+ assert.match(css,/color:#28594d!important/);
  assert.match(js,/pct===null\?'—':pct\+'%'/);
+});
+
+test('v7 preserves visible next-step instructions for saved, calling, hold, and error states',()=>{
+ assert.match(css,/\.v58-flow:not\(\[data-state="open"\]\):not\(\[data-state="default"\]\)/);
+ assert.match(css,/\.v58-primary \.v58-intro\{[\s\S]*?display:block!important/);
+ assert.match(css,/\.v58-primary \.v58-next-summary\{[\s\S]*?font-size:14px!important/);
 });
 
 test('Japanese business labels survive English and Chinese round trips and native updates',()=>{
