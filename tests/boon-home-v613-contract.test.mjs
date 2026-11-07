@@ -35,6 +35,12 @@ test('Prior contrast, day-card and fallback issues have targeted corrections',()
  assert.match(js,/pct===null\?'—':pct\+'%'/);
 });
 
+test('v7 preserves visible next-step instructions for saved, calling, hold, and error states',()=>{
+ assert.match(css,/\.v58-flow:not\(\[data-state="open"\]\):not\(\[data-state="default"\]\)/);
+ assert.match(css,/\.v58-primary \.v58-intro\{[\s\S]*?display:block!important/);
+ assert.match(css,/\.v58-primary \.v58-next-summary\{[\s\S]*?font-size:14px!important/);
+});
+
 test('Japanese business labels survive English and Chinese round trips and native updates',()=>{
  const match=js.match(/function translateBusiness\(\)\{[\s\S]*?\n\}\nfunction trustedBooked/);
  assert.ok(match,'translateBusiness must be extractable for behavioral regression');

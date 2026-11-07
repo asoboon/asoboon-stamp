@@ -162,7 +162,21 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary{
  border:0!important; border-radius:0!important; background:transparent!important; box-shadow:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary::before{display:none!important}
+/* The minimal open-state card must not suppress essential live-status instructions.
+   HOLD, error, saved receipt, pending verification and calling need explicit next steps. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary .v58-intro{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow:not([data-state="open"]):not([data-state="default"]):not([data-state="none"]):not([data-state="loading"]) .v58-primary .v58-intro{
+ display:block!important;width:100%!important;margin:0 0 9px!important;padding:0 2px!important;
+ color:#1b5044!important;line-height:1.4!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow:not([data-state="open"]):not([data-state="default"]):not([data-state="none"]):not([data-state="loading"]) .v58-primary .v58-next-title{
+ display:block!important;font-size:17px!important;font-weight:900!important;line-height:1.3!important;
+ margin:0 0 3px!important;color:#164a3e!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow:not([data-state="open"]):not([data-state="default"]):not([data-state="none"]):not([data-state="loading"]) .v58-primary .v58-next-summary{
+ display:block!important;font-size:14px!important;font-weight:650!important;line-height:1.45!important;
+ margin:0!important;color:#2c5e50!important;
+}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action,
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action #v38Hero {
  display:block!important; width:100%!important; height:auto!important; min-height:0!important;
