@@ -150,8 +150,8 @@ test('v5.11.1 keeps one stable native details node and preserves open state duri
  assert.match(css,/\.v59-slots-fold\[open\] \.v59-slots-chevron/);
 });
 test('v5.11.1 compact facts and tappable summary fit narrow mobile viewports',()=>{
- assert.match(original,/setText\(v\[0\],'今日の営業'\)/);
- assert.match(original,/k\+\(t\?' '\+t:''\)/);
+ assert.match(original,/compact\?'今日の営業'/);
+ assert.match(original,/k\.replace\('土日祝日','土日祝'\)/);assert.match(original,/10:00〜/);
  assert.match(original,/day\.durationLabel/);
  assert.match(css,/\.v58-day\{margin:0 0 6px/);
  assert.match(css,/\.v58-sessions\{margin:5px 0/);
