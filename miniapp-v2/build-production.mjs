@@ -119,6 +119,13 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   const deck=document.createElement('script');deck.async=false;
   deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=${envHash('miniapp-v2/production/boon-home-v56-layout.js')}';
   document.head.appendChild(deck);
+  // v6.0: independent read-only HOME summary; no changes to reservation API.
+  const capacityStyle=document.createElement('link');capacityStyle.rel='stylesheet';
+  capacityStyle.href='./miniapp-v2/production/boon-home-v60.css?v=${envHash('miniapp-v2/production/boon-home-v60.css')}';
+  document.head.appendChild(capacityStyle);
+  const capacity=document.createElement('script');capacity.async=false;
+  capacity.src='./miniapp-v2/production/boon-home-v60.js?v=${envHash('miniapp-v2/production/boon-home-v60.js')}';
+  document.head.appendChild(capacity);
 }
 })();
 `;

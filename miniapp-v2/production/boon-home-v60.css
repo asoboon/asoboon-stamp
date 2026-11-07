@@ -1,0 +1,87 @@
+/* HOME v6.0: compact, factual, always-visible capacity summary.
+   Presentation only: existing AirWAIT/LINE reservation actions remain unchanged. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow{gap:9px!important;padding:0 0 16px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day{order:1!important;display:block!important;margin:0!important;padding:9px 12px!important;min-height:0!important;border:1px solid #CDE5DB!important;border-radius:14px!important;background:#ECF9F2!important;box-shadow:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-sessions{order:2!important;display:block!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary{order:3!important;border:1px solid #D3E5DD!important;border-radius:18px!important;background:#FFFFFF!important;box-shadow:0 2px 8px rgba(10,65,52,.05)!important;padding:13px 14px 14px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary::before{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-journey{order:4!important;margin:0!important;padding:4px 0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer{order:5!important;margin:5px 0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-next-title{font-size:clamp(21px,5.8vw,26px)!important;line-height:1.2!important;letter-spacing:-.025em!important;margin:0 0 5px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-next-summary{font-size:12px!important;line-height:1.4!important;margin:0 0 9px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary .v38-action{box-shadow:none!important;border-radius:12px!important;min-height:52px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-reception-hours{background:#F1F9F5!important;border:1px solid #DFEEE7!important;box-shadow:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-reception-hours,
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-reception-hours :is(span,strong,a){color:#174A40!important;opacity:1!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-reception-hours a{text-decoration:underline!important;text-underline-offset:2px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today{display:grid!important;grid-template-columns:82px minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:2px 8px!important;align-items:center!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;overflow:visible!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span{display:block!important;position:static!important;grid-column:auto!important;grid-row:auto!important;align-self:center!important;min-height:0!important;height:auto!important;width:auto!important;padding:0!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;overflow:visible!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child{grid-column:1!important;grid-row:1/3!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(2){grid-column:2!important;grid-row:1!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3){grid-column:2!important;grid-row:2!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span :is(small,svg){display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span strong{display:block!important;width:auto!important;margin:0!important;padding:0!important;font-size:13px!important;line-height:1.35!important;white-space:normal!important;color:#174B40!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child strong{font-size:12px!important;font-weight:700!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(2) strong{font-size:14px!important;font-weight:800!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3) strong{font-size:12px!important;font-weight:600!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>svg{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-sessions>#v59SlotsFold{display:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity{border:1px solid #CEE7DD;border-radius:15px;background:#FFFFFF;overflow:hidden;color:#163C33;box-shadow:none}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-head{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:10px 11px 8px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-head strong{font-size:15px;line-height:1.3;color:#174B40}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-age{font-size:10px;color:#557469;text-align:right;line-height:1.35}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table{border-collapse:collapse;table-layout:fixed;width:100%;font-variant-numeric:tabular-nums}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table th{padding:8px 2px;font-size:11px;line-height:1.3;font-weight:700;background:#E7F7F0;color:#315E51;text-align:center;border:0}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table td{padding:10px 2px;font-size:13px;line-height:1.25;font-weight:700;text-align:center;border-top:1px solid #E7F1EC;color:#193C35;word-break:normal}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table tbody tr:nth-child(even){background:#F7FBF9}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table td.v60-forecast{color:#186C59}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table td.v60-unknown{color:#6B837C}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table td.v60-zero{color:#A64B32}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-bar{display:block;height:3px;background:#D9E9E1;border-radius:5px;margin:4px auto 0;width:70%;overflow:hidden}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-bar>i{display:block;height:100%;background:#2A9777}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-note{font-size:10px;line-height:1.45;color:#4D7165;margin:0;padding:7px 10px 10px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-empty{font-size:12px;color:#4D7165;text-align:center;padding:14px 8px;border-top:1px solid #E7F1EC}
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table th{font-size:10px!important;padding-inline:1px}
+ html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-table td{font-size:12px!important;padding-inline:1px}
+ html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today{grid-template-columns:75px minmax(0,1fr)!important}
+ html.boon-v4.boon-v5-mint body.v38-home-active .v58-primary{padding:12px!important}
+}
+
+/* Override the old higher-specificity span cards rather than only their parent. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child,
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(2),
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3){
+ display:block!important;min-height:0!important;height:auto!important;width:auto!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;overflow:visible!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:first-child{
+ grid-column:1!important;grid-row:1/3!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(2){
+ grid-column:2!important;grid-row:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-day #v38Today>span:nth-child(3){
+ grid-column:2!important;grid-row:2!important;
+}
+
+/* Higher specificity than the retired dark-gate accent rule. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours *,
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .v38-airwait-link{
+ color:#174A40!important;opacity:1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours{
+ margin-top:7px!important;padding:8px 10px!important;
+ background:#F1F9F5!important;border-color:#DCEDE4!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .v38-airwait-link{
+ text-decoration:underline!important;text-underline-offset:2px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-head{min-height:47px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-capacity-head strong{flex:1;white-space:nowrap}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-head-meta{display:flex;align-items:center;gap:5px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-refresh{font:700 11px/1.2 system-ui,sans-serif;min-width:44px;min-height:44px;padding:7px 8px;border:1px solid #A3CCBF;border-radius:10px;background:#F2FBF7;color:#164E40;cursor:pointer;touch-action:manipulation}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-refresh:focus-visible{outline:3px solid #087864;outline-offset:2px}
+html.boon-v4.boon-v5-mint body.v38-home-active .v60-refresh:disabled{opacity:.45;cursor:not-allowed}

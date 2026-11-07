@@ -31,7 +31,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=f4ae18fb7034';
   document.head.appendChild(passion);
   const theme=document.createElement('script');theme.async=false;
-  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=93255723dae8';
+  theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=ee931a2ec49a';
   document.head.appendChild(theme);
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
@@ -41,5 +41,12 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   const deck=document.createElement('script');deck.async=false;
   deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=903f07a38a5a';
   document.head.appendChild(deck);
+  // v6.0: independent read-only HOME summary; no changes to reservation API.
+  const capacityStyle=document.createElement('link');capacityStyle.rel='stylesheet';
+  capacityStyle.href='./miniapp-v2/production/boon-home-v60.css?v=a7b83f094c93';
+  document.head.appendChild(capacityStyle);
+  const capacity=document.createElement('script');capacity.async=false;
+  capacity.src='./miniapp-v2/production/boon-home-v60.js?v=17e60c8ad46e';
+  document.head.appendChild(capacity);
 }
 })();
