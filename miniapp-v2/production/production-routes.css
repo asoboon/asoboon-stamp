@@ -572,10 +572,10 @@ body.v7-callstatus-active .page-head.green,body.v7-timeguide-active .page-head.g
 .v27-first-page .pv7-card,.v24-parking-page .pv7-card,.v25-entry-page .pv7-card { border-radius:14px; background:var(--b512-soft); }
 .v17-pass { padding:11px 12px; border-radius:15px; }
 .v28-people { padding:9px; border-radius:13px; }
-body.v7-reception-active button:not(:disabled),body.v7-callstatus-active button:not(:disabled),
-body.v7-timeguide-active button:not(:disabled),.v27-first-page button:not(:disabled),
-.v24-parking-page button:not(:disabled),.v25-entry-page button:not(:disabled),
-.v17-pass button:not(:disabled),.v28-people button:not(:disabled) { min-height:44px; }
+body.v7-reception-active :where(button:not(:disabled)),body.v7-callstatus-active :where(button:not(:disabled)),
+body.v7-timeguide-active :where(button:not(:disabled)),.v27-first-page :where(button:not(:disabled)),
+.v24-parking-page :where(button:not(:disabled)),.v25-entry-page :where(button:not(:disabled)),
+.v17-pass :where(button:not(:disabled)),.v28-people :where(button:not(:disabled)) { min-height:44px; }
 body.v7-reception-active button[type="submit"],body.v7-callstatus-active #csRefresh,
 body.v7-timeguide-active button.primary,.v27-first-page button.primary,
 .v24-parking-page button.primary,.v25-entry-page button.primary { min-height:52px; background:var(--b512-orange); color:var(--b512-brown); }
@@ -618,7 +618,7 @@ body.v7-page-active .pv7-secondary-btn,body.v7-page-active .pv7-secondary-btn.gr
 body.v7-page-active .pv7-text-btn { min-height:44px; color:#0C5041; }
 body.v7-page-active :is(button,a,summary)[href],body.v7-page-active :is(button,summary) { -webkit-tap-highlight-color:transparent; }
 body.v7-page-active :is(button,a,summary):focus-visible,.v17-pass :is(button,a,summary):focus-visible,.v28-people :is(button,a,summary):focus-visible { outline:3px solid #FF7A00; outline-offset:3px; }
-body.v7-page-active button:not(:disabled),body.v7-page-active a[href],body.v7-page-active summary { min-height:44px; }
+body.v7-page-active :where(button:not(:disabled),a[href],summary){min-height:44px;}
 body.v7-page-active button:active,body.v7-page-active a[href]:active,body.v7-page-active summary:active { transform:scale(.98); }
 .v17-pass { padding:10px 11px; }
 .v17-pass :is(button,a[href],summary) { min-height:44px; }

@@ -23,3 +23,9 @@ test('native interactive controls receive focus and tap treatment without stylin
  assert.ok(!css.includes('[role="button"]'));
  assert.match(experience,/\.v13-live-dot\.live\{background:#79c18e\}/);
 });
+
+test('generic minimum hit target never shrinks larger entry choices',()=>{
+ assert.match(css,/body\.v7-page-active :where\(button:not\(:disabled\),a\[href\],summary\)\{min-height:44px;\}/);
+ assert.doesNotMatch(css,/body\.v7-page-active button:not\(:disabled\),body\.v7-page-active a\[href\]/);
+ assert.match(css,/\.v25-entry-page :where\(button:not\(:disabled\)\)/);
+});

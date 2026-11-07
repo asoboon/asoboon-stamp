@@ -2285,6 +2285,10 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
  await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
+ await expect(page.locator('#v59SlotsFold')).not.toHaveAttribute('open','');
+ await expect(page.locator('#v59SlotsFold summary')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone #v38Slots')).toBeHidden();
+ await page.locator('#v59SlotsFold summary').click();
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
  await expect(page.locator('#v58SessionsZone .v58-section-title')).toHaveText('受付枠の空き状況');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
@@ -2386,6 +2390,10 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeHidden();
  await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
  await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
+ await expect(page.locator('#v59SlotsFold')).not.toHaveAttribute('open','');
+ await expect(page.locator('#v59SlotsFold summary')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone #v38Slots')).toBeHidden();
+ await page.locator('#v59SlotsFold summary').click();
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
  await expect(page.locator('#v59CalendarLinks .v38-calendar-card')).toHaveCount(2);
