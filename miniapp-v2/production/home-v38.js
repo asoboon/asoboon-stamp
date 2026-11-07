@@ -22,7 +22,7 @@ function scheduleCrowd(){
  crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
 function crowdFreshness(){
- if(crowdRetryAt>Date.now())return (crowdAt?crowdClock()+' 確認時点 ／ ':'')+'最新の取得に失敗しました。自動で再確認します。';
+ if(crowdRetryAt>Date.now())return (crowdAt?crowdClock()+' 確認時点 ／ ':'')+(crowdError?'受付枠の空き状況を確認できません。':'最新の取得に失敗しました。')+'自動で再確認します。';
  if(crowdStale||crowdAt&&Date.now()-crowdAt>CROWD_STALE_MS)return '最新の人数を取得できていません。受付画面でご確認ください。';
  if(!crowdAt)return 'LINE・WEBの残り人数を確認しています…';
  return crowdClock()+' 確認時点の人数 ／ 更新ボタンで再確認できます';
@@ -159,8 +159,8 @@ return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0027':'14:00','0036
 });
 }
 function remainingMarkup(label,value,channel,{time='',webUrl=''}={}){
- const people=value===null?'—':value+'人';
- const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">—</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
+ const people=value===null?'確認中':value+'人';
+ const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
  const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
  const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
  const accessible=`${time}。${label}の残り${people}。${destination}`;
@@ -194,7 +194,7 @@ if(crowdClosed||!slots.length){
 const webUrl=airwaitWebReceptionUrl();
 const rows=slots.map(slot=>{
 const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':`${slot.time}回`;
-const spoken=value=>value===null?'—':value+'人';
+const spoken=value=>value===null?'確認中':value+'人';
 return `<div class="v38-crowd-card crowd-unknown" role="group" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}">
 <div class="v38-crowd-head"><time>${esc(label)}</time></div>
 <div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数">
@@ -227,7 +227,7 @@ async function fetchCrowd(force=false,manual=false){
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
   crowdStale=data.stale===true;
-  const fetchedAt=Date.parse(data.fetchedAt);
+  const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
   crowdAt=fetchedAt<=Date.now()&&!crowdStale?fetchedAt:0;
   if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
   crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);
@@ -244,7 +244,7 @@ async function fetchCrowd(force=false,manual=false){
   }
  }finally{
   clearTimeout(timer);
-  if(!crowdClosed&&(crowdError||!validCrowdSlots().length)&&day){
+  if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');

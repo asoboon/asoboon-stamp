@@ -1166,10 +1166,12 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
     await route.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'});
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const card=page.locator('#v38Slots .v38-crowd-card');
-  await expect(card).toHaveCount(1);
+  const cards=page.locator('#v38Slots .v38-crowd-card');
+  await expect(cards).toHaveCount(3); // v7 retains unknown time slots rather than hiding them.
+  const card=cards.filter({hasText:'10:00回'});
   await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り25人');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り14人');
+  await expect(cards.filter({hasText:'12:30回'}).locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
 });
 
 for(const state of ['canceled','done']){
@@ -1911,7 +1913,7 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  await page.route(GATEWAY+'**',async route=>{
   if(new URL(route.request().url()).searchParams.get('action')!=='crowdRemaining')return route.fallback();
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   ok:true,stale:false,fetchedAt:new Date().toISOString(),
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:00:00.000Z',
    slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
     slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:281}],
    observedDetails:[{detailedWaitType:'12時50分頃入場【土休日特定日】',
@@ -2124,7 +2126,8 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  const box=page.locator('#v38Slots');
  await expect(box).toContainText('受付枠の空き状況を確認できません');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
- await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
+ await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
+ await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(3);
 });
 
 test('HOME uses a neutral no-visible-slots state for valid quota data without verified counts',async({page})=>{
@@ -2139,9 +2142,11 @@ test('HOME uses a neutral no-visible-slots state for valid quota data without ve
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('表示できる受付枠はありません');
+ await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
+ await expect(box.locator('.v38-crowd-channel--web strong')).toHaveText(['確認中','確認中','確認中']);
+ await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box).not.toContainText('受付枠の空き状況を確認できません');
- await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(1);
+ await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(3);
 });
 
 test('HOME clears a fresh saved capacity snapshot when staff remove all public AirWAIT slots',async({page})=>{
@@ -2213,7 +2218,8 @@ test('HOME refuses to claim reception ended when one AirWAIT slot remains publis
   })});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots')).toContainText('表示できる受付枠はありません');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-crowd-channel--web strong')).toHaveText(['確認中','確認中','確認中']);
  await expect(page.locator('#v38Slots')).not.toContainText('本日の受付枠は終了しました');
 });
 
