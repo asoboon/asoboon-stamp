@@ -121,6 +121,8 @@ function make(){
  const sessions=el('section','v58-sessions');sessions.id='v58SessionsZone';
  sessions.appendChild(el('h2','v58-section-title'));sessions.appendChild(el('p','v58-section-summary'));
  shell.appendChild(sessions);
+ // Keep the business facts and live availability ahead of the single next action.
+ shell.append(day,sessions,primary,path,timer);
  return shell;
 }
 function mount(){
@@ -129,6 +131,7 @@ function mount(){
  let day=home?.querySelector('#v38Today');
  const slots=home?.querySelector('#v38Slots'),timer=home?.querySelector('#v38TimeguideShortcut');
  if(!home||!hero||!day||!slots||!timer)return;
+ if(!home.querySelector(':scope > .v58-brand'))home.insertBefore(el('div','v58-brand','ASOBooN'),home.firstChild);
  // Business-day facts are informational. The original button pointed to the
  // timer, which made a static business label falsely appear tappable.
  // Keep the existing three values and native patchToday bindings unchanged.
@@ -170,7 +173,7 @@ function mount(){
  // Relabel the native callstatus link based on the verified next task.
  // Never create a new reception action or a fake destination.
  const callActionLabels={
-  ja:{calling:'受付番号を見る',guided:'呼出履歴を確認する',waiting:'待ち順を確認する',hold:'保留状態を確認する',canceled:'取消内容を確認する',error:'呼出状況を確認する',pending:'照合状況を確認する'},
+  ja:{calling:'入口案内を見る',guided:'呼出履歴を確認する',waiting:'待ち順を確認する',hold:'保留状態を確認する',canceled:'取消内容を確認する',error:'呼出状況を確認する',pending:'照合状況を確認する'},
   en:{calling:'View queue number',guided:'View call history',waiting:'Check your place',hold:'Check hold status',canceled:'View cancellation',error:'View queue status',pending:'Check verification'},
   'zh-CN':{calling:'查看排队号码',guided:'查看叫号记录',waiting:'查看排队位置',hold:'查看暂停状态',canceled:'查看取消信息',error:'查看叫号状态',pending:'查看核对进度'},
   ko:{calling:'접수 번호 확인',guided:'호출 기록 확인',waiting:'대기 순서 확인',hold:'보류 상태 확인',canceled:'취소 내용 확인',error:'호출 상태 확인',pending:'확인 진행 상태 보기'},

@@ -4,7 +4,7 @@ if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
 const root=document.getElementById('app');if(!root)return;
 const CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const L={
- ja:['混雑予想','入場回','WEB残り','LINE残り','※予約人数÷320の目安。キャンセル等で実際の館内混雑とは異なります。','予約人数を確認できない回は「—」で表示します。'],
+ ja:['混雑予想','入場回','WEB残り','LINE残り','※予約人数からの予想です。実際と異なる場合があります。','※予約人数ベース。「—」は未確認です。'],
  en:['Crowd forecast','Entry','WEB left','LINE left','Estimate: bookings ÷ 320. Actual crowd may differ due to cancellations.','— means booking count is unavailable.'],
  'zh-CN':['拥挤预测','入场场次','WEB剩余','LINE剩余','估算值：预约人数÷320。实际拥挤程度可能因取消而不同。','— 表示无法确认预约人数。'],
  ko:['혼잡 예상','입장 회차','WEB 잔여','LINE 잔여','예상치: 예약 인원÷320. 취소 등에 따라 실제 혼잡도는 다를 수 있습니다.','—는 예약 인원을 확인할 수 없다는 뜻입니다.'],
@@ -54,7 +54,9 @@ function translateBusiness(){
 function trustedBooked(time){
  try{
   const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
-  if(!c||!Array.isArray(c.slots)||!Number.isFinite(c.savedAt)||Date.now()-c.savedAt>90000)return null;
+  const age=Date.now()-Number(c?.savedAt||0);
+  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  if(!c||!Array.isArray(c.slots)||!Number.isFinite(c.savedAt)||age<0||age>90000||String(c.operationalDate||'')!==today)return null;
   const matched=c.slots.filter(s=>s.slotKey===time);
   if(matched.length!==1)return null;
   const s=matched[0],n=s.bookedPeople;
@@ -67,6 +69,17 @@ function cloneAction(native,unknown){
  if(!native)return elem('span','v613-na','—');
  const node=native.cloneNode(true);
  node.removeAttribute('style');
+ // Compact table cells are numbers, not duplicate full-sized reception buttons.
+ // Keep the real link/button and its aria-label; remove redundant visual copy.
+ node.querySelectorAll('.v38-crowd-tap,.v38-crowd-remain-label').forEach(e=>e.remove());
+ if(node.firstElementChild?.tagName==='SPAN')node.firstElementChild.remove();
+ for(const [prop,value] of Object.entries({
+  'min-height':'44px','height':'44px','padding':'3px 9px 3px 3px',
+  'margin':'0','border':'0','background':'transparent','box-shadow':'none',
+  'border-radius':'7px','gap':'0'
+ }))node.style.setProperty(prop,value,'important');
+ const strongNode=node.querySelector('strong');
+ if(strongNode){strongNode.style.setProperty('font-size','16px','important');strongNode.style.setProperty('line-height','1.2','important')}
  if(unknown){
   const strong=node.querySelector('strong');
   if(strong)strong.textContent='—';
@@ -105,10 +118,8 @@ function buildBoard(){
   grid.appendChild(row);
  }
  board.appendChild(grid);
- board.appendChild(elem('p','v613-footnote',labels[4]));
- if(cards.some(x=>trustedBooked(x.querySelector('time')?.textContent?.match(/\d{1,2}:\d{2}/)?.[0]||'')===null)){
-  board.appendChild(elem('p','v613-footnote v613-pending',labels[5]));
- }
+ const hasUnknown=cards.some(x=>trustedBooked(x.querySelector('time')?.textContent?.match(/\d{1,2}:\d{2}/)?.[0]||'')===null);
+ board.appendChild(elem('p','v613-footnote',hasUnknown?labels[5]:labels[4]));
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v613-board-ready');
 }
 function apply(){

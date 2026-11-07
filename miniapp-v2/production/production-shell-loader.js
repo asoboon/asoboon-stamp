@@ -12,7 +12,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=8c25c794fcd6',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=fb37185db588',
   './miniapp-v2/shared/i18n-dictionary.js?v=2803d55a0b6a','./miniapp-v2/shared/i18n-runtime.js?v=82d917a14d39'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -36,17 +36,17 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
   const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
-  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=d825271e9ae5';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=99806b90380f';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
-  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=903f07a38a5a';
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=d4ed19c64eb1';
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';
-  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=31f5392d2e9e';
+  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=6c721dfad61e';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=6b2497fbca90';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=fd6c0b569673';
   document.head.appendChild(next);
 }
 })();
