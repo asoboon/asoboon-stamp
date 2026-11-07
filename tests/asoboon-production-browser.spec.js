@@ -1116,10 +1116,12 @@ test('Onsite-only verified pool remains visible while unsafe online time-key mat
     })});
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const card=page.locator('#v38Slots .v38-crowd-card');
-  await expect(card).toHaveCount(1);
+  const cards=page.locator('#v38Slots .v38-crowd-card');
+  await expect(cards).toHaveCount(3); // Retain unknown sessions; only one has verified LINE capacity.
+  const card=cards.filter({hasText:'10:00回'});
   await expect(card.locator('.v38-crowd-channel--web')).toContainText('確認中');
   await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り75人');
+  await expect(cards.filter({hasText:'12:30回'}).locator('.v38-crowd-channel--onsite strong')).toHaveText('確認中');
   await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
   await card.locator('.v38-crowd-channel--onsite').click();
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
