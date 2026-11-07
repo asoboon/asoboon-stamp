@@ -260,6 +260,85 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v59-fold-hint{font-size:12px!imp
  html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow * {animation:none!important;transition:none!important}
 }
 
+/* HOME v7.1 visual polish: information first, one orange call to action.
+   Scoped to HOME only; native routing and reservation logic are untouched. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-home.v58-action-first {
+  border:0!important; border-radius:0!important; box-shadow:none!important;
+  background:transparent!important; padding-bottom:16px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-flow {
+  gap:8px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-brand {
+  font-size:21px!important; letter-spacing:-.04em!important;
+  padding:0 2px 2px!important; margin:0!important;
+}
+/* Retain one clear disclosure of the difference between bookings and occupancy. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots.v613-board-ready>.v38-crowd-disclaimer {
+  display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v613-footnote {
+  font-size:12px!important; color:#41685a!important; margin:6px 2px 0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38CrowdAge {
+  font-size:13px!important; font-weight:650!important; line-height:1.4!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38CrowdUpdate {
+  font-size:13px!important; font-weight:800!important; min-height:44px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer>.v58-section-summary {
+  display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut {
+  display:grid!important; grid-template-columns:42px minmax(0,1fr) auto!important;
+  gap:10px!important; min-height:70px!important; padding:11px 12px!important;
+  background:#fff!important; border:1px solid #d4e3da!important;
+  border-radius:12px!important; box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut>.v38-quick-icon {
+  width:42px!important; height:42px!important; border-radius:12px!important;
+  background:#dceee6!important; color:#1c6651!important;
+  border:0!important; box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut>.v38-quick-icon svg {
+  width:23px!important; height:23px!important; color:#1c6651!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut .v55-timer-action {
+  display:inline-flex!important; min-height:36px!important; align-items:center!important;
+  border-radius:9px!important; padding:5px 10px!important; border:1px solid #bfd9c9!important;
+  color:#185a48!important; background:#edf7f1!important; box-shadow:none!important;
+  font-size:12px!important; font-weight:800!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut .v55-timer-action i {
+  color:#185a48!important; background:none!important; box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-card {
+  background:#fff!important; min-height:70px!important;
+  border:1px solid #d7e6dc!important; box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-icon {
+  background:#dfeee6!important; color:#1b5d4b!important;
+  border:0!important; box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-icon svg {
+  color:#1b5d4b!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-card>svg {
+  color:#517b69!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-legal {
+  margin:14px 0 0!important; padding:10px 0!important;
+  border-top:1px solid #e0ebe4!important; color:#486e60!important;
+}
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut {
+   grid-template-columns:38px minmax(0,1fr)!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut .v55-timer-action {
+   grid-column:2!important; justify-self:start!important;
+ }
+}
+
 /* Restore meaningful reception-hour labels hidden by the legacy v5 skin. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action #v38Hero .v38-reception-hours>div>span{display:inline!important;visibility:visible!important;opacity:1!important;color:#28594d!important;font-size:12px!important;font-weight:700!important;line-height:1.4!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action #v38Hero .v38-reception-hours>div>strong{display:inline!important;visibility:visible!important;opacity:1!important;font-size:12px!important;color:#164f42!important}
