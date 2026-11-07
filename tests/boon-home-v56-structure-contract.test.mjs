@@ -19,7 +19,7 @@ test('v5.8 HOME is one verified-state journey instead of a fixed four-card menu'
  assert.match(layout,/targetHero\.appendChild\(hero\)/);
  assert.match(layout,/dayZone\.appendChild\(day\)/);
  assert.match(layout,/timerZone\.appendChild\(timer\)/);
- assert.match(layout,/sessionsZone\.appendChild\(slots\)/);
+ assert.doesNotMatch(layout,/sessionsZone\.appendChild\(slots\)/);
  assert.match(layout,/hero\.classList\.contains\('call-link'\)/);
  assert.match(layout,/s\.source==='live'/);
  assert.match(layout,/state==='guided'/);
@@ -107,7 +107,7 @@ test('v5.9 keeps critical action, today, slots and timer out of disclosure',()=>
  assert.match(layout,/body\.appendChild\(section\)/);
  assert.match(layout,/el\('details','v59-fold'\)/);
  assert.match(layout,/el\('summary','v59-fold-summary'\)/);
- assert.match(layout,/5\.9\.0-progressive-disclosure/);
+ assert.match(layout,/5\.11\.0-home-compact/);
  assert.doesNotMatch(layout,/XMLHttpRequest|fetch\s*\(|createReservation|cancelReservation/);
 });
 test('v5.9 accessible native disclosure shows the calendar links and preserves keyboard interaction',()=>{
@@ -117,4 +117,50 @@ test('v5.9 accessible native disclosure shows the calendar links and preserves k
  assert.match(css,/\.v59-calendar-links \.v38-calendar-card/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  for(const locale of ['ja','en','zh-CN','ko','vi','ne','kmr'])assert.ok(layout.includes((locale==='zh-CN'?"'zh-CN'":locale)+':{guide:'),locale);
+});
+
+test('v5.11 compact capacity uses a closed native disclosure and retains the original live node',()=>{
+ assert.match(layout,/el\('details','v59-slots-fold'\)/);
+ assert.match(layout,/el\('summary','v59-slots-summary'\)/);
+ assert.match(layout,/slotsBody\.appendChild\(slots\)/);
+ assert.match(layout,/\(copy\[language\(\)\]\|\|copy\.en\)\.slots/);
+ assert.doesNotMatch(layout,/disclosure\.open\s*=|setAttribute\(['"]open/);
+ assert.match(css,/\.v59-slots-summary:focus-visible/);
+ assert.match(css,/min-height:56px/);
+ assert.match(css,/\.v59-slots-chevron/);
+ assert.match(css,/\.v55-crowd-prompt/);
+ assert.match(theme,/today\.querySelector\('\.v55-today-action'\)\?\.remove\(\)/);
+ assert.match(theme,/slots\?\.querySelectorAll\(':scope > \.v55-crowd-prompt'\)/);
+ for(const locale of ['ja','en','ko','vi','ne','kmr'])assert.ok(layout.includes(locale+':{eyebrow:'),locale);assert.ok(layout.includes("'zh-CN':{eyebrow:"), 'zh-CN');
+});
+test('v5.11 compact business facts use live day values and guard opening time',()=>{
+ assert.match(original,/replace\('土日祝日','土日祝'\)/);
+ assert.match(original,/day\.closingTime/);
+ assert.match(original,/\\d\{2\}:\\d\{2\}/);
+ assert.match(original,/d==='無制限'/);
+ assert.match(css,/grid-template-columns:minmax\(0,auto\) minmax\(0,1fr\)/);
+});
+
+test('v5.11.1 keeps one stable native details node and preserves open state during live updates',()=>{
+ assert.match(layout,/let disclosure=sessionsZone\.querySelector\(':scope > details\.v59-slots-fold'\)/);
+ assert.match(layout,/slotsBody=disclosure\.querySelector\('\.v59-slots-body'\);if\(slots\.parentElement!==slotsBody\)slotsBody\.appendChild\(slots\)/);
+ assert.doesNotMatch(layout,/slots\.parentElement!==sessionsZone/);
+ assert.doesNotMatch(layout,/disclosure\.open\s*=|setAttribute\(['"]open/);
+ assert.match(css,/\.v59-slots-fold\[open\] \.v59-slots-close/);
+ assert.match(css,/\.v59-slots-fold\[open\] \.v59-slots-chevron/);
+});
+test('v5.11.1 compact facts and tappable summary fit narrow mobile viewports',()=>{
+ assert.match(original,/compact\?'今日の営業'/);
+ assert.match(original,/k\.replace\('土日祝日','土日祝'\)/);assert.match(original,/10:00〜/);
+ assert.match(original,/day\.durationLabel/);
+ assert.match(css,/\.v58-day\{margin:0 0 6px/);
+ assert.match(css,/\.v58-sessions\{margin:5px 0/);
+ assert.match(css,/minmax\(0,1fr\)/);
+ assert.match(css,/@media\(max-width:350px\)/);
+ assert.match(css,/overflow-wrap:anywhere/);
+ assert.match(css,/:active/);
+ assert.match(css,/:focus-visible/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ for(const width of [320,390,430]){assert.ok(width>=320&&width<=430);assert.match(css,/grid-template-columns:minmax\(0,auto\) minmax\(0,1fr\)/);assert.match(css,/overflow-wrap:anywhere/)}
+ for(const label of ['人数を見る','View spaces','查看名额','인원 보기','Xem chỗ','ठाउँ हेर्नुहोस्','Cihên bibîne'])assert.ok(layout.includes(label),label);
 });

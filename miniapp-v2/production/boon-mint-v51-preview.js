@@ -190,14 +190,7 @@ function enhanceHomeAffordances(home){
  var today=home.querySelector('#v38Today');
  if(today){
   today.setAttribute('aria-label',copy.today);
-  if(!today.querySelector('.v55-today-action')){
-   var footer=create('span','v55-today-action');
-   footer.setAttribute('aria-hidden','true');
-   footer.innerHTML='<span class="v55-today-action-label"></span><i>→</i>';
-   today.appendChild(footer);
-  }
-  var todayLabel=today.querySelector('.v55-today-action-label');
-  if(todayLabel&&todayLabel.textContent!==copy.today)todayLabel.textContent=copy.today;
+  today.querySelector('.v55-today-action')?.remove();
  }
  var timer=home.querySelector('#v38TimeguideShortcut');
  if(timer){
@@ -225,17 +218,7 @@ function enhanceHomeAffordances(home){
   call.setAttribute('aria-label',copy.call+'。'+copy.callSub);
  }
  var slots=home.querySelector('#v38Slots');
- var heading=slots?.querySelector(':scope > h3');
- if(heading){
-  var prompt=slots.querySelector(':scope > .v55-crowd-prompt');
-  if(!prompt){
-   prompt=create('p','v55-crowd-prompt');
-   heading.insertAdjacentElement('afterend',prompt);
-  }
-  var available=!!slots.querySelector('.v38-crowd-channel:is(a,button)');
-  var description=available?copy.crowd:copy.crowdEmpty;
-  if(prompt.textContent!==description)prompt.textContent=description;
- }
+ slots?.querySelectorAll(':scope > .v55-crowd-prompt').forEach(node=>node.remove());
 }
 function styleHome(){
  var home=root.querySelector('.v38-home, .v37-home, .v35-home');

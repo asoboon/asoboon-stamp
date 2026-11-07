@@ -1,6 +1,4 @@
 (()=>{'use strict';
-// Render ONLY the locally saved receipt immediately. Cached call states are
-// intentionally not shown on a new load; they may be stale or unsafe.
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
 const CALL_KEY='asoboon_v2_callstatus_production_v1';
 const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
@@ -12,7 +10,6 @@ function cachedReservation(){
   }
   return null;
 }
-// Discard legacy cached states such as 'calling'; only the receipt remains authoritative locally.
 try{localStorage.removeItem('asoboon_v2_home_status_production_v1')}catch{}
 const cached=cachedReservation();
 if(!cached)return;

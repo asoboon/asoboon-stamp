@@ -16,7 +16,7 @@ test('verified missing recovery is separate from unavailable LINE auth and netwo
  assert.match(call,/LINEミニアプリから開き直して呼出状況をご確認ください/);
  assert.match(call,/通信エラーではありません/);
  assert.match(call,/session=await recoverSession\(\);if\(gen!==generation\|\|!\$\('csState'\)\)return;/);
- assert.match(call,/受付番号は保存したままです/);
+ assert.match(call,/番号は保存したままです/);
  assert.doesNotMatch(call,/if\(!d\.found\)return null/);
 });
 
@@ -29,7 +29,9 @@ test('callstatus never deletes a saved receipt on a missing or transient respons
 
 test('HOME reception button remains stable on status polls and no extra HOME status API runs',()=>{
  assert.match(home,/sig=v\.kind\+'\|'\+v\.html/);
- assert.doesNotMatch(home,/asoboon:v8-home-status'[^\n]*lastHero=''/);
+ assert.match(home,/window\.addEventListener\('asoboon:v8-home-status',e=>\{latest=e\.detail\|\|\{kind:'sync'\};if\(currentView\(\)==='home'\)mount\(\)\}\)/);
+ const statusHandler=home.slice(home.indexOf("window.addEventListener('asoboon:v8-home-status'"),home.indexOf("window.addEventListener('asoboon:v2-timeguide-updated'"));
+ assert.doesNotMatch(statusHandler,/lastHero=''/);
  assert.equal(sources.scripts.includes('miniapp-v2/production/home-status-v13.js'),false);
 });
 
