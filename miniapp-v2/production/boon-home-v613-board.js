@@ -30,17 +30,25 @@ function translateBusiness(){
  for(const [i,node] of nodes.entries()){
   if(!node)continue;
   const actual=node.textContent.trim();
-  if(lang==='ja'||/(?:土日祝|土休日|平日|月曜|2時間30分|3時間|無制限)/.test(actual))node.dataset.v613Original=actual;
-  const jp=node.dataset.v613Original||actual;
-  if(lang==='ja'||!dict){copyTo(node,jp);continue}
-  if(i===0){
-   const names=[['平日特定日',dict[1]],['土日祝',dict[0]],['土休日',dict[0]],['平日',dict[2]],['月曜',dict[3]]];
-   let translated=jp;for(const [from,to] of names)if(translated.includes(from)){translated=translated.replace(from,to);break}
-   copyTo(node,translated);
-  }else{
-   const x=jp.includes('2時間30分')?dict[4]:jp.includes('3時間')?dict[5]:jp.includes('無制限')?dict[6]:jp;
-   copyTo(node,x);
+  // Preserve the native Japanese value separately from this layer's translations.
+  // A language switch must never promote our English/Chinese output to the source.
+  const lastRendered=node.dataset.v613Rendered;
+  if(!node.dataset.v613Original||
+      (actual!==lastRendered&&/(?:土日祝|土休日|平日|月曜|2時間30分|3時間|無制限)/.test(actual))){
+   node.dataset.v613Original=actual;
   }
+  const jp=node.dataset.v613Original||actual;
+  let display=jp;
+  if(lang!=='ja'&&dict){
+   if(i===0){
+    const names=[['平日特定日',dict[1]],['土日祝',dict[0]],['土休日',dict[0]],['平日',dict[2]],['月曜',dict[3]]];
+    for(const [from,to] of names)if(display.includes(from)){display=display.replace(from,to);break}
+   }else{
+    display=jp.includes('2時間30分')?dict[4]:jp.includes('3時間')?dict[5]:jp.includes('無制限')?dict[6]:jp;
+   }
+  }
+  copyTo(node,display);
+  node.dataset.v613Rendered=display;
  }
 }
 function trustedBooked(time){
