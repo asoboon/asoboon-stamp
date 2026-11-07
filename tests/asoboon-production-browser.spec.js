@@ -1768,7 +1768,8 @@ test('Optional language file outage never replaces Japanese reception or stops t
  await expect(page.locator('.v38-home')).toBeVisible();
  await expect(page.locator('#v38Hero')).toContainText('当日受付');
  await expect(page.locator('#asoboon-language-select')).toHaveCount(0);
- await page.locator('[data-v7-view="reception"]').first().click();
+ // The v6.13 board contains the visible clone; the legacy list is intentionally hidden.
+ await page.locator('#v613Board [data-v7-view="reception"]').first().click();
  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
  // Mint Soda now presents three intentional steps before the submit button.
  await expect(page.locator('#boonV4Continue')).toBeVisible();
