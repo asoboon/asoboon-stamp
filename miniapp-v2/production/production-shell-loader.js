@@ -46,7 +46,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=88ca6c51000b';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=fd6c0b569673';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=3bfcfdc5291b';
   document.head.appendChild(next);
 }
 })();

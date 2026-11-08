@@ -4,13 +4,13 @@ if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
 const root=document.getElementById('app');if(!root)return;
 const CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const L={
- ja:['混雑予想','入場回','WEB残り','LINE残り','※予約人数からの予想です。実際と異なる場合があります。','※予約人数ベース。「—」は未確認です。'],
- en:['Crowd forecast','Entry','WEB left','LINE left','Estimate: bookings ÷ 320. Actual crowd may differ due to cancellations.','— means booking count is unavailable.'],
- 'zh-CN':['拥挤预测','入场场次','WEB剩余','LINE剩余','估算值：预约人数÷320。实际拥挤程度可能因取消而不同。','— 表示无法确认预约人数。'],
- ko:['혼잡 예상','입장 회차','WEB 잔여','LINE 잔여','예상치: 예약 인원÷320. 취소 등에 따라 실제 혼잡도는 다를 수 있습니다.','—는 예약 인원을 확인할 수 없다는 뜻입니다.'],
- vi:['Dự báo đông','Lượt vào','WEB còn','LINE còn','Ước tính: số người đăng ký ÷ 320. Thực tế có thể khác vì hủy lượt.','—: chưa xác nhận số người đăng ký.'],
- ne:['भीड अनुमान','प्रवेश समय','WEB बाँकी','LINE बाँकी','अनुमान: दर्ता भएका मानिस ÷ 320। रद्द हुँदा वास्तविक भीड फरक हुन सक्छ।','—: दर्ता संख्या उपलब्ध छैन।'],
- kmr:['Pêşbîniya qelebalixiyê','Dema ketinê','WEB mayî','LINE mayî','Texmîn: kesên tomarbûyî ÷ 320. Bi betalkirinê dikare biguhere.','—: hejmara tomarkiriyan nayê piştrastkirin.']
+ ja:['混雑予想','入場回','WEB残り','LINE残り','※WEB・LINE残り人数を320人から差し引いた参考値。実際の館内混雑とは異なります。','※残り人数が確認できない回は「—」です。'],
+ en:['Crowd forecast','Entry','WEB left','LINE left','Estimate: (320 − WEB left − LINE left) ÷ 320. Not actual attendance.','— means remaining people could not be verified.'],
+ 'zh-CN':['拥挤预测','入场场次','WEB剩余','LINE剩余','参考值：(320－WEB剩余－LINE剩余)÷320，非馆内实际人数。','— 表示剩余人数未确认。'],
+ ko:['혼잡 예상','입장 회차','WEB 잔여','LINE 잔여','참고치: (320 − WEB 잔여 − LINE 잔여) ÷ 320. 실제 혼잡도와 다릅니다.','—는 잔여 인원을 확인할 수 없다는 뜻입니다.'],
+ vi:['Dự báo đông','Lượt vào','WEB còn','LINE còn','Tham khảo: (320 − WEB còn − LINE còn) ÷ 320; không phải số khách thực tế.','—: chưa xác nhận được số người còn.'],
+ ne:['भीड अनुमान','प्रवेश समय','WEB बाँकी','LINE बाँकी','अनुमान: (320 − WEB बाँकी − LINE बाँकी) ÷ 320। वास्तविक भीड होइन।','—: बाँकी संख्या पुष्टि भएको छैन।'],
+ kmr:['Pêşbîniya qelebalixiyê','Dema ketinê','WEB mayî','LINE mayî','Texmîn: (320 − WEB mayî − LINE mayî) ÷ 320. Ne hejmara rastîn a mêvanan e.','—: hejmara mayî nehat piştrastkirin.']
 };
 const days={
  en:['Sat/Sun/holiday','Special weekday','Weekday','Monday','2h 30m limit','3h limit','No time limit'],
@@ -51,19 +51,22 @@ function translateBusiness(){
   node.dataset.v613Rendered=display;
  }
 }
-function trustedBooked(time){
- try{
-  const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
-  const age=Date.now()-Number(c?.savedAt||0);
-  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-  if(!c||!Array.isArray(c.slots)||!Number.isFinite(c.savedAt)||age<0||age>90000||String(c.operationalDate||'')!==today)return null;
-  const matched=c.slots.filter(s=>s.slotKey===time);
-  if(matched.length!==1)return null;
-  const s=matched[0],n=s.bookedPeople;
-  // Only an explicitly verified, person-unit booked count may drive a forecast.
-  if(s.bookedPeopleVerified!==true||s.bookedPeopleUnit!=='PERSON'||!Number.isSafeInteger(n)||n<0||n>10000)return null;
-  return Math.round(n/320*100);
- }catch{return null}
+function trustedBooked(card){
+ // A deliberately labeled *estimate* from two verified PERSON remaining counts.
+ // No assumption about an AirWAIT configured capacity or guest attendance.
+ function remaining(selector){
+  const channel=card.querySelector(selector);
+  if(!channel||channel.querySelector('.v38-crowd-unknown'))return null;
+  const raw=String(channel.querySelector('strong')?.textContent||'').replace(/\s+/g,'');
+  const match=raw.match(/^(?:残り)?(\d+)人$/);
+  if(!match)return null;
+  const n=Number(match[1]);
+  return Number.isSafeInteger(n)&&n>=0&&n<=10000?n:null;
+ }
+ const web=remaining('.v38-crowd-channel--web');
+ const line=remaining('.v38-crowd-channel--onsite');
+ if(web===null||line===null||web+line>320)return null;
+ return Math.round((320-web-line)/320*100);
 }
 function cloneAction(native,unknown){
  if(!native)return elem('span','v613-na','—');
@@ -105,7 +108,7 @@ function buildBoard(){
  for(const card of cards){
   const rawTime=card.querySelector('time')?.textContent?.trim()||'—';
   const time=rawTime.match(/\d{1,2}:\d{2}/)?.[0]||rawTime;
-  const pct=trustedBooked(time);
+  const pct=trustedBooked(card);
   const row=elem('div','v613-row');row.setAttribute('role','row');
   const gauge=elem('div','v613-cell v613-gauge');gauge.setAttribute('role','cell');
   gauge.appendChild(elem('strong','v613-percent',pct===null?'—':pct+'%'));
@@ -118,7 +121,7 @@ function buildBoard(){
   grid.appendChild(row);
  }
  board.appendChild(grid);
- const hasUnknown=cards.some(x=>trustedBooked(x.querySelector('time')?.textContent?.match(/\d{1,2}:\d{2}/)?.[0]||'')===null);
+ const hasUnknown=cards.some(x=>trustedBooked(x)===null);
  board.appendChild(elem('p','v613-footnote',hasUnknown?labels[5]:labels[4]));
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v613-board-ready');
 }
@@ -138,5 +141,5 @@ function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pe
 new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
 for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-route-rendered'])window.addEventListener(event,schedule);
 schedule();
-window.ASOBOON_HOME_FORECAST=Object.freeze({version:'6.13',basePeople:320,bookedVerifiedOnly:true});
+window.ASOBOON_HOME_FORECAST=Object.freeze({version:'6.14',basePeople:320,method:'remaining-proxy',bookedVerifiedOnly:false});
 })();
