@@ -29,7 +29,8 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Hero.open .v38-action.pr
 html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-head{background:linear-gradient(135deg,var(--cm-deep),var(--cm-mint))!important;color:var(--cm-cocoa)!important}
 html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-head h2,html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-head small{color:var(--cm-cocoa)!important}
 html.boon-v4.boon-v5-mint body.v7-reception-active #app .rec-slot:not(:disabled):focus-visible{outline:3px solid var(--cm-deep)!important;outline-offset:3px}
-html.boon-v4.boon-v5-mint body.v7-callstatus-active #app .cs-page,html.boon-v4.boon-v5-mint body.v7-page-active #app .pv7-page{border-color:var(--cm-line)!important;background:var(--cm-paper)!important}
+html.boon-v4.boon-v5-mint body.v7-callstatus-active #app .cs-page{border-color:var(--cm-line)!important}
+html.boon-v4.boon-v5-mint body.v7-page-active #app .pv7-page{border-color:var(--cm-line)!important;background:var(--cm-paper)!important}
 html.boon-v4.boon-v5-mint body.v7-page-active #app .pv7-head{background:var(--cm-mint-soft)!important;border-bottom-color:var(--cm-line)!important}
 html.boon-v4.boon-v5-mint body.v7-page-active #app .pv7-head h1{color:var(--cm-cocoa)!important}
 html.boon-v4.boon-v5-mint body.v7-page-active #app .pv7-head p{color:var(--cm-milk)!important}
