@@ -38,4 +38,8 @@ test('Figma mint shell remains independent of operational API and prevents view 
  for(const state of ['v38-home-active','v7-reception-active','v7-callstatus-active','v7-page-active'])assert(css.includes(state));
  assert(css.includes('.v38-action.primary:not(:disabled)'));
 });
+test('Call-status semantic waiting/calling/canceled colors are not overridden by theme',()=>{
+ assert(css.includes('body.v7-callstatus-active #app .cs-page{border-color:var(--cm-line)!important}'));
+ assert(!css.includes('body.v7-callstatus-active #app .cs-page,html'));
+});
 
