@@ -750,7 +750,7 @@ return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0027':'14:00','0036
 }
 function remainingMarkup(label,value,channel,{time='',webUrl=''}={}){
  const people=value===null?'確認中':value+'人';
- const content=`<span>${esc(label)}</span><strong>${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
+ const content=`<span>${esc(label)}</span><strong data-v613-n="${value??''}">${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
  const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
  const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
  const accessible=`${time}。${label}の残り${people}。${destination}`;
@@ -791,7 +791,7 @@ return `<div class="v38-crowd-card crowd-unknown" role="group" aria-label="${esc
 <div class="v38-crowd-remaining-title">残り人数</div>
 <div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl})}${remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time})}</div>
 </div>
-<p class="v38-crowd-tap-hint">受付したい方法をタップしてください</p>
+<p class="v38-crowd-tap-hint">受付方法をタップ</p>
 </div>`;
 }).join('');
 writeCrowdMarkup(box,`<h3>受付枠の空き状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">表示はWEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。</p>`);

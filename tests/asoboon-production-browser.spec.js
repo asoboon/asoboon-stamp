@@ -948,7 +948,8 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
- await expect(card).toBeVisible();
+ await expect(visibleCrowdLine(page,'12:30')).toBeVisible();
+ await expect(page.locator('#v613Board .v613-row').filter({hasText:'12:30'}).locator('.v613-percent')).toHaveText('—');
  await expect(page.locator('#v38CrowdAge')).toContainText('最新の取得に失敗しました');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
