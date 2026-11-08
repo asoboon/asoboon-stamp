@@ -24,7 +24,8 @@ test('action text is grounded in the original route and state',()=>{
  assert.match(bridge,/計算結果を確認する/);
  assert.match(bridge,/各受付枠の残り人数を表示します/);
  assert.match(native,/data-v7-view="timeguide"/);
- assert.match(native,/data-v7-view="callstatus"/);
+ assert.doesNotMatch(native,/data-v7-view=\"callstatus\"/);
+ assert.match(read('miniapp-v2/production/choco-mint-nav-v8.js'),/\['home','callstatus','guide','play'\]/);
  assert.match(native,/data-v7-view="reception"/);
 });
 test('native business type, capacity and calling code and route bundles are unchanged',()=>{
