@@ -249,3 +249,17 @@ html body #app #v38Hero.call-link .v38-call-cta{width:100%!important;max-width:1
 #app .rv7-consent-label b{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--cm-mint);color:var(--cm-bitter);font-size:12px;}
 #app .page-head .rv7-head-note{color:var(--cm-milk)!important;text-shadow:none!important;line-height:1.6!important;}
 @media(max-width:360px){#app .rv7-step{font-size:10px!important;flex-direction:column;gap:2px!important;}#app .rv7-progress{margin-left:-3px!important;margin-right:-3px!important;}}
+/* Preserve official, verified CALL semantic colors; these are safety signals,
+   not decorative legacy shades. Unknown reception states remain neutral. */
+html body.v7-callstatus-active[data-asoboon-call-tone] #app .page-card.cs-page{
+ background:var(--tone-bg)!important;border:2px solid var(--tone-edge)!important;
+}
+html body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green{
+ background:var(--tone-ink)!important;border-radius:13px!important;
+}
+html body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green :is(h1,h2,p,small,strong){
+ color:#fff!important;
+}
+/* The secondary call shortcut is distinct from the main mint reception CTA. */
+html body #app #v38Hero .v38-call-cta{background:var(--cm-cream)!important;max-width:340px!important}
+html body #app #v38Hero.call-link .v38-call-cta{background:var(--cm-mint)!important;max-width:340px!important}

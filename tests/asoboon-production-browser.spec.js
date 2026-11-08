@@ -568,7 +568,7 @@ test('Official HOME call CTA has a clear signifier, opens callstatus, and respec
   await page.setViewportSize({width,height:800});
   const box=await button.boundingBox();
   expect(box.width).toBeGreaterThan(240);
-  expect(box.width).toBeLessThanOrEqual(341);
+  expect(box.width).toBeLessThanOrEqual(341); // Stable one-hand CTA, within the CHOCO MINT card
   expect(box.height).toBeGreaterThanOrEqual(60);
   expect(box.height).toBeLessThan(85);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -1834,7 +1834,7 @@ test('Five-language fallback and ambiguous-result warnings are never left in Jap
  }
 });
 
-test('HOME call-status button is gold and remains distinct from blue reception CTA',async({page})=>{
+test('HOME call-status uses mint cream and remains distinct from primary mint reception CTA',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const call=page.locator('#v38Hero .v38-call-cta');
@@ -1844,10 +1844,11 @@ test('HOME call-status button is gold and remains distinct from blue reception C
  const styles=await page.evaluate(()=>{
   const a=document.querySelector('#v38Hero .v38-call-cta');
   const b=document.querySelector('#v38Hero [data-v7-view="reception"]');
-  return{background:getComputedStyle(a).backgroundImage,border:getComputedStyle(a).borderColor,
-   other:getComputedStyle(b).backgroundImage,rect:a.getBoundingClientRect().toJSON()};
+  return{background:getComputedStyle(a).backgroundColor,border:getComputedStyle(a).borderColor,
+   other:getComputedStyle(b).backgroundColor,rect:a.getBoundingClientRect().toJSON()};
  });
- expect(styles.background).toContain('248, 213, 123'); // bright gold
+ expect(styles.background).toBe('rgb(221, 248, 240)'); // mint cream for secondary status
+ expect(styles.other).toBe('rgb(109, 210, 202)'); // primary mint reception
  expect(styles.background).not.toEqual(styles.other);
  expect(styles.rect.width).toBeGreaterThan(220);
  await call.click();
@@ -1913,11 +1914,12 @@ test('Business calendar reuses a fully verified 45-minute snapshot and refreshes
  await expect(page.locator('#bcStatus')).toContainText('営業日API');
 });
 
-test('HOME duplicate ASOBooN/Kawaguchi title is removed without hiding Language or other page navigation',async({page})=>{
+test('Figma HOME uses one accessible ASOBooN AppBar with Language and working back navigation',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('.v38-home')).toBeVisible();
- await expect(page.locator('.topbar')).toBeHidden();
+ await expect(page.locator('.topbar')).toBeVisible();
+ await expect(page.locator('.topbar .brand strong')).toHaveText('ASOBooN');
  await expect(page.locator('#asoboon-language-select')).toBeVisible();
  await expect(page.locator('#v38Hero .v38-call-cta')).toBeVisible();
  await page.locator('[data-v7-view="first"]').first().click();
