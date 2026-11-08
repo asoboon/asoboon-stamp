@@ -329,3 +329,112 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day #v38Today>span:nth-
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day #v38Today>span:nth-child(3) strong{
  font-size:12px!important;font-weight:750!important;
 }
+
+/* Cocoa cap: a single chocolate layer above the calm, information-first HOME. */
+html.boon-v4.boon-v5-mint body #app .topbar,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .topbar{
+  isolation:isolate;
+  overflow:visible!important;
+  background:linear-gradient(115deg,#35211d 0%,#4b2d23 53%,#663e2e 100%)!important;
+  border-bottom:2px solid #855745!important;
+  border-radius:0 0 22px 22px!important;
+  box-shadow:0 5px 0 rgba(66,34,27,.10)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::before{
+  content:"";position:absolute;top:16px;left:50%;width:24px;height:4px;
+  border-radius:999px;transform:rotate(-23deg);
+  background:rgba(255,249,240,.20);box-shadow:34px 13px 0 -1px rgba(255,249,240,.15);
+  pointer-events:none;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::after{
+  content:"";position:absolute;right:28%;bottom:-11px;width:38px;height:17px;
+  border-radius:0 0 19px 19px;background:#503024;
+  box-shadow:49px -3px 0 -5px #503024;
+  pointer-events:none;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand{
+  min-height:45px!important;min-width:0!important;max-width:100%!important;
+  padding:7px 11px!important;border:1px solid #e1c29e!important;
+  border-radius:14px!important;background:#fff8ed!important;
+  box-shadow:0 3px 0 rgba(32,16,11,.25)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  color:#3a231d!important;line-height:1.15!important;
+}
+#asoboon-language-select{
+  background:#fff8ed!important;border-color:#bc947a!important;
+  box-shadow:0 2px 0 rgba(29,15,10,.20)!important;
+}
+#asoboon-language-select:focus-visible{
+  outline:3px solid #6dd2ca!important;outline-offset:2px!important;
+}
+@media(max-width:360px){
+  html.boon-v4.boon-v5-mint body #app .topbar .brand{
+    padding:7px 9px!important;
+  }
+  html.boon-v4.boon-v5-mint body #app .topbar::after{right:32%}
+}
+
+/* Chocolate-chip ice cream finish: all flourishes are decorative only. */
+html.boon-v4.boon-v5-mint body #app .topbar,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .topbar{
+  background:
+    radial-gradient(ellipse 4px 7px at 43% 22%,#dfb393 92%,transparent 100%),
+    radial-gradient(ellipse 8px 3px at 57% 20%,#b78972 92%,transparent 100%),
+    radial-gradient(ellipse 4px 5px at 70% 75%,#f0caaa 92%,transparent 100%),
+    radial-gradient(ellipse 7px 3px at 53% 69%,#be8d70 92%,transparent 100%),
+    radial-gradient(ellipse 5px 4px at 87% 72%,#b88970 92%,transparent 100%),
+    radial-gradient(ellipse 5px 3px at 34% 83%,#d8ab8b 92%,transparent 100%),
+    linear-gradient(115deg,#35211d 0%,#4b2d23 53%,#663e2e 100%)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::before{
+  content:"";position:absolute;pointer-events:none;left:46%;top:17px;
+  width:35px;height:5px;border-radius:999px;
+  background:#e0b290;transform:rotate(-28deg);opacity:.82;
+  box-shadow:22px 34px 0 -1px #eac4a4,-9px 46px 0 -1px #e8bc9b;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::after{
+  right:26%;bottom:-7px;width:21px;height:12px;
+  border-radius:0 0 45% 55%;background:#533325;
+  box-shadow:31px 0 0 -4px #533325,49px -3px 0 -6px #533325;
+}
+/* Ice-cream label: cream-colored icing visibly drips below the letter plaque. */
+html.boon-v4.boon-v5-mint body #app .topbar .brand{
+  position:relative!important;overflow:visible!important;
+  background:linear-gradient(180deg,#fffdf6,#fff2e4)!important;
+  border:1px solid #d9b592!important;border-radius:15px 15px 13px 13px!important;
+  box-shadow:0 3px 0 #271712,0 6px 10px rgba(27,14,10,.24)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand::before{
+  content:"";display:block!important;position:absolute;pointer-events:none;
+  left:25px;bottom:-7px;width:14px;height:12px;
+  background:#fff2e4;border-radius:0 0 8px 8px;
+  box-shadow:48px 2px 0 -2px #fff2e4,76px -2px 0 -4px #fff2e4;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  position:relative;z-index:1;font-weight:1000!important;letter-spacing:-.05em!important;
+  text-shadow:0 1px 0 #fffefa,0 2px 0 rgba(180,130,98,.28)!important;
+}
+
+/* Melted chocolate lettering: connected cocoa droplets beneath the wordmark. */
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  font-family:"Arial Rounded MT Bold","Hiragino Maru Gothic ProN",system-ui,sans-serif!important;
+  font-weight:950!important;letter-spacing:-.058em!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong::after{
+  content:"";position:absolute;pointer-events:none;left:20%;bottom:-4px;
+  width:7px;height:10px;background:#3a231d;border-radius:0 0 6px 6px;
+  box-shadow:43px 3px 0 -1px #3a231d,84px 0 0 -2px #3a231d;
+}
+/* Chocolate chips float in the mint, far from the actual business-day copy. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone{
+  position:relative;isolation:isolate;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone::after{
+  content:"";position:absolute;pointer-events:none;z-index:1;
+  right:8px;top:8px;width:29px;height:28px;opacity:.72;
+  background:
+    radial-gradient(ellipse 3px 5px at 21% 22%,#775043 93%,transparent 100%),
+    radial-gradient(ellipse 4px 2px at 77% 42%,#5b372d 93%,transparent 100%),
+    radial-gradient(ellipse 2px 4px at 43% 78%,#976450 93%,transparent 100%);
+}

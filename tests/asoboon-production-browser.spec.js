@@ -816,6 +816,57 @@ test('After 19:00 daily rollover, next-business-day slots remain reference-only'
  await expect(page.locator('#v38Slots')).not.toContainText('受付時間外');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
 });
+test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed language picker at five widths',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ const logo=page.locator('.topbar .brand strong');
+ const lang=page.locator('#asoboon-language-select');
+ await expect(logo).toHaveText('ASOBooN');
+ await expect(lang).toBeVisible();
+ await expect(page.locator('.topbar .brand strong')).toHaveCount(1);
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  const visuals=await page.evaluate(()=>{
+   const head=document.querySelector('#app .topbar');
+   const brand=head.querySelector('.brand');
+   const logo=brand.querySelector('strong');
+   const language=document.querySelector('#asoboon-language-select');
+   const hr=head.getBoundingClientRect(),br=brand.getBoundingClientRect(),lr=language.getBoundingClientRect();
+   const ice=getComputedStyle(logo,'::after'),sprinkles=getComputedStyle(document.querySelector('#v58DayZone'),'::after');
+   return {
+    background:getComputedStyle(head).backgroundImage,
+    plaque:getComputedStyle(brand).backgroundImage,
+    text:getComputedStyle(logo).color,
+    drips:ice.content!=='none'&&ice.position==='absolute',
+    sprinkles:sprinkles.content!=='none'&&sprinkles.position==='absolute',
+    headerInside:br.left>=hr.left&&br.right<=hr.right,
+    pickerInside:lr.left>=hr.left&&lr.right<=hr.right,
+    noControlCollision:br.right+10<=lr.left,
+    scrollWidth:document.documentElement.scrollWidth,
+    viewport:innerWidth,
+    callNav:document.querySelectorAll('.cm-bottom-nav [data-v7-view="callstatus"]').length
+   };
+  });
+  expect(visuals,JSON.stringify(visuals)).toMatchObject({
+   drips:true,sprinkles:true,headerInside:true,pickerInside:true,noControlCollision:true,callNav:1
+  });
+  expect(visuals.background).toContain('radial-gradient');
+  expect(visuals.background).toContain('rgb(53, 33, 29)');
+  expect(visuals.plaque).toContain('linear-gradient');
+  expect(visuals.text).toBe('rgb(58, 35, 29)');
+  expect(visuals.scrollWidth).toBeLessThanOrEqual(width+1);
+ }
+ await page.setViewportSize({width:390,height:820});
+ await lang.selectOption('en');
+ await expect(logo).toHaveText('ASOBooN');
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+});
 test('HOME has exactly one ASOBooN header logo and no second v58 brand',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
