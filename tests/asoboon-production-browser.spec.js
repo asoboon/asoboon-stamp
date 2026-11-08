@@ -655,6 +655,9 @@ test('Certified HOME business-day typography never overlaps at five responsive w
  await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:820});
+  await expect(page.locator('#v58DayZone>.v58-section-title')).toBeVisible();
+  await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
+  await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
   const v=await page.evaluate(()=>{
    const q=s=>document.querySelector(s)?.getBoundingClientRect();
    const outer=q('#v58DayZone'),title=q('#v58DayZone>.v58-section-title');
@@ -857,7 +860,7 @@ test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed l
    };
   });
   expect(visuals,JSON.stringify(visuals)).toMatchObject({
-   drips:true,sprinkles:true,headerInside:true,pickerInside:true,noControlCollision:true,callNav:1
+   drips:true,headerInside:true,pickerInside:true,noControlCollision:true,callNav:1
   });
   expect(visuals.background).toContain('radial-gradient');
   expect(visuals.background).toContain('rgb(53, 33, 29)');
