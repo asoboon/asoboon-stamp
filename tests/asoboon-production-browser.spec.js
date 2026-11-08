@@ -560,10 +560,10 @@ test('Certified main HOME keeps after-closing session rows visible in the v58 la
  },site);
  await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v58SessionsZone')).toBeVisible();
- await expect(page.locator('#v38Slots .v38-ended-slot')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
- await expect(page.locator('#v613Board')).toHaveCount(0);
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
 });
 test('Certified main HOME translates saved ticket instructions in all supported locales',async({page})=>{
  await installProduction(page);
@@ -599,23 +599,89 @@ test('Certified main HOME translates saved ticket instructions in all supported 
  await picker.selectOption('ja');
  await expect(page.locator('#v38Hero h1')).toHaveText('受付番号は保存済みです');
 });
+test('19:00 date rollover reads the previous calendar date business type, never tomorrow booking rows',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ const dateReads=[];
+ await page.route(GATEWAY+'**',async route=>{
+  const u=new URL(route.request().url());
+  if(u.searchParams.get('action')!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');dateReads.push(date);
+  const isToday=date==='2026-10-03';
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:date,calendarDate:date,businessType:isToday?'土日祝日':'平日特定日',closingTime:isToday?'18:00':'17:00'})});
+ });
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+  date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-600000,
+  slots:[{waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',matchMode:'exact-name',evidence:'PERSON',remaining:0}],
+  details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true}]
+ })));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await expect(page.locator('#v613Board .v613-time')).toHaveText(['10:00','12:30','15:00']);
+ await expect(page.locator('#v613Board .v613-percent').first()).toHaveText('100%');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ expect(dateReads).toContain('2026-10-04');
+ expect(dateReads).toContain('2026-10-03');
+});
+test('After closing, last verified WEB and LINE counts still give forecast 100 percent, with no active booking buttons',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+   date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-1800000,
+   slots:[
+    {waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
+    {waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71},
+    {waitTypeId:'0034',slotKey:'15:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}
+   ],
+   details:[
+    {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true},
+    {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:44,remainingVerified:true},
+    {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:8,remainingVerified:true}
+   ]
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
+ await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('7:00');
+ await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('9:30');
+ const first=page.locator('#v613Board .v613-row').first();
+ await expect(first.locator('.v613-percent')).toHaveText('100%');
+ await expect(first.locator('.v38-crowd-channel--web')).toContainText('0');
+ await expect(first.locator('.v38-crowd-channel--onsite')).toContainText('0');
+ await expect(page.locator('#v38Slots')).not.toContainText('次の営業日の入場');
+ await expect(page.locator('#v38Slots')).not.toContainText('受付時間外');
+ await expect(page.locator('#v38Slots a[href],#v38Slots button[data-v7-view="reception"]')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+});
+test('Never reuse yesterday verified counts for a new calendar day',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+   date:'2026-10-02',businessType:'土日祝日',savedAt:Date.now()-1800000,slots:[],details:[]
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
+ await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v38Slots')).not.toContainText('次の営業日の入場');
+});
 test('After closing, HOME retains three admission times but offers no reception links',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toContainText('本日の営業は終了しました');
- const times=page.locator('#v38Slots .v38-ended-slot');
+ const times=page.locator('#v38Slots .v38-crowd-card');
  await expect(times).toHaveCount(3);
- for(const time of ['10:00','12:30','15:00'])await expect(times.filter({hasText:time})).toContainText('受付終了');
+ for(const time of ['10:00','12:30','15:00'])await expect(page.locator('#v613Board .v613-time').filter({hasText:time})).toBeVisible();
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
  await expect(page.locator('#v38Slots a[href]')).toHaveCount(0);
- await expect(page.locator('#v613Board')).toHaveCount(0);
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
 });
 test('After 19:00 daily rollover, next-business-day slots remain reference-only',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots .v38-ended-slot')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-ended-schedule-note')).toContainText('参考');
- await expect(page.locator('#v38Slots .v38-ended-slot').first()).toContainText('受付時間外');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
+ await expect(page.locator('#v38Slots')).not.toContainText('受付時間外');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
 });
 test('HOME has exactly one ASOBooN header logo and no second v58 brand',async({page})=>{
@@ -1072,7 +1138,7 @@ test('HOME shows separate WEB and onsite remaining counts from the same existing
     await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り'+onsite+'人');
     await expect(card.locator('[role="progressbar"]')).toHaveCount(0); // no fabricated occupancy percentage
   }
-  await expect(box).toContainText('表示はWEB・LINE各受付の残り人数です。');
+  await expect(box).toContainText('混雑予想は予約枠の残り人数から算出した参考値');
   expect(actions.length).toBe(1); // no additional Worker calls for onsite
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
@@ -2160,7 +2226,7 @@ test('HOME shows an ordinary finished-slots message, not a crowd fetch error, wh
  const box=page.locator('#v38Slots');
  await expect(box).toContainText('本日の受付枠は終了しました');
  await expect(box).not.toContainText('人数を取得できませんでした');
- await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
+ await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
 });
 
 test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint fails',async({page})=>{
@@ -2250,7 +2316,7 @@ test('HOME confirms real hidden AirWAIT slots rather than blaming the connection
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots')).not.toContainText('通信状態をご確認');
- await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
 });
 
 test('HOME refuses to claim reception ended when one AirWAIT slot remains published',async({page})=>{
