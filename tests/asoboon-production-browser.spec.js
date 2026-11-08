@@ -639,6 +639,11 @@ test('After closing, last verified WEB and LINE counts still give forecast 100 p
    ]
   }));
  });
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')==='crowdRemaining')
+   return route.fulfill({status:502,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_CROWD_EMPTY"}'});
+  return route.fallback();
+ });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
@@ -659,6 +664,11 @@ test('Never reuse yesterday verified counts for a new calendar day',async({page}
   localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
    date:'2026-10-02',businessType:'土日祝日',savedAt:Date.now()-1800000,slots:[],details:[]
   }));
+ });
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')==='crowdRemaining')
+   return route.fulfill({status:502,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_CROWD_EMPTY"}'});
+  return route.fallback();
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
