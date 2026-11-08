@@ -1,0 +1,18 @@
+.cm-hub{width:100%;max-width:100%;margin:0 auto 12px;padding:0 0 10px;background:var(--cm-vanilla);color:var(--cm-cocoa);border:1px solid var(--cm-line);border-radius:20px;overflow:hidden}
+.cm-hub-head{padding:22px 18px 16px;background:var(--cm-mint-soft);border-bottom:1px solid var(--cm-line)}
+.cm-hub-eyebrow{display:block;color:var(--cm-deep);font-size:11px;font-weight:850;letter-spacing:.09em}
+.cm-hub-head h1{margin:5px 0 6px;font-size:clamp(23px,6.4vw,28px);line-height:1.2;color:var(--cm-cocoa)}
+.cm-hub-head p{margin:0;font-size:14px;line-height:1.6;color:var(--cm-milk)}
+.cm-hub-list{padding:6px 12px}
+.cm-hub-row{width:calc(100% - 24px);min-width:0;min-height:66px;display:grid;grid-template-columns:42px minmax(0,1fr) 20px;align-items:center;gap:10px;margin:8px 12px;padding:10px;border:1px solid var(--cm-line);border-radius:14px;background:#fff;color:var(--cm-cocoa);text-decoration:none;text-align:left;cursor:pointer}
+.cm-hub-list>.cm-hub-row{width:100%;margin:7px 0}
+.cm-hub-row:focus-visible,.cm-faq summary:focus-visible{outline:3px solid var(--cm-deep);outline-offset:2px}
+.cm-hub-row:active{background:var(--cm-mint-soft)}
+.cm-hub-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--cm-mint-soft);color:var(--cm-deep);font-size:19px;font-weight:800}
+.cm-hub-label{min-width:0;overflow-wrap:anywhere}.cm-hub-label strong{display:block;font-size:15px;line-height:1.35}.cm-hub-label small{display:block;margin-top:3px;color:var(--cm-milk);font-size:12px;line-height:1.45}
+.cm-hub-chevron{font-size:21px;font-weight:700;color:var(--cm-deep)}
+.cm-hub-tip{margin:12px;padding:14px;background:var(--cm-mint-soft);border-radius:13px;border:1px solid #9ADBC0;color:var(--cm-cocoa)}
+.cm-hub-tip strong{font-size:14px}.cm-hub-tip p{margin:5px 0 0;line-height:1.55;font-size:13px}
+.cm-faq{padding:14px 12px}.cm-faq details{border:1px solid var(--cm-line);background:#fff;border-radius:12px;margin:7px 0;overflow:hidden}.cm-faq summary{min-height:56px;padding:15px 13px;cursor:pointer;font-weight:800;line-height:1.5}.cm-faq details p{margin:0;padding:0 13px 16px;line-height:1.65;font-size:14px;color:var(--cm-milk)}
+@media(max-width:360px){#app>.cm-bottom-nav .cm-nav-tab{font-size:10.5px} .cm-hub-row{gap:7px}}
+@media(prefers-reduced-motion:reduce){#app>.cm-bottom-nav *, .cm-hub *{animation:none!important;transition:none!important}}

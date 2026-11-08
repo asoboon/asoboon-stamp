@@ -79,7 +79,7 @@ test('Production new HOME renders all core routes and legal information',async({
     await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe(view);
     await expect.poll(()=>page.evaluate(()=>window.ASOBOON_V2_ROUTE_ASSETS_READY||false)).toBe(true);
     expect(deferredRequests).toHaveLength(2);
-    await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+    await page.locator('.cm-nav-tab[data-v7-view=home]').click();
     await expect(page.locator('.v38-home')).toBeVisible();
   }
 });
@@ -320,7 +320,7 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
   await expect.poll(()=>new URL(page.url()).searchParams.get('production_preview')).toBe('1');
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await page.locator('.v38-business-calendar-section .v38-calendar-card').click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/business-calendar.html');
   await expect(page.getByRole('heading',{name:'営業日カレンダー'})).toBeVisible();
@@ -519,7 +519,9 @@ test('Entry guide: yellow holder and family receipt procedures, safety warnings 
   await expect(page.locator('.entry-checklist li')).toHaveCount(2);
   await expect(page.locator('.entry-warning')).toContainText('また戻って遊ぶ予定なら');
   await page.getByRole('button',{name:'4つの選択肢へ戻る'}).click();
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('#backBtn').click();
+  await expect(page.locator('.cm-hub h1')).toHaveText('ご利用案内');
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await expect(page.locator('.v38-home')).toBeVisible();
 });
 
@@ -796,7 +798,7 @@ test('Production HOME prioritizes ASOBooN Timer before the business calendar',as
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
   await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
   await expect(page.locator('#tgEntry')).toBeVisible();
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await expect(calendar).toBeVisible();
 });
 
@@ -863,7 +865,7 @@ test('Official HOME never inserts the retired prototype, including while LIFF in
   await expect(timer).toContainText('アソブーンタイマー');
   await timer.click();
   await expect(page.locator('.tg-page h2')).toHaveText('アソブーンタイマー');
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await expect(page.locator('.v38-home')).toBeVisible();
   expect(await page.evaluate(()=>window.__retiredHomeWrites)).toEqual([]);
 });
@@ -1289,7 +1291,7 @@ test('Rate-limited status requests visibly cool down and manual taps do not hamm
  await expect(page.locator('#csError')).toContainText('自動で再確認');
  await page.waitForTimeout(300);
  expect(count).toBe(1);
- await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+ await page.locator('.cm-nav-tab[data-v7-view=home]').click();
  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
  await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
  await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
@@ -1535,7 +1537,7 @@ test('LINE call status keeps a neutral background if the reservation cannot be v
   await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
   await expect(page.locator('body')).toHaveAttribute('data-asoboon-call-tone','loading');
   await expect(page.locator('#csForecast')).toBeHidden();
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('home');
   await expect(page.locator('body')).not.toHaveAttribute('data-asoboon-call-tone',/.+/);
 });
@@ -1593,7 +1595,7 @@ test('Unverified cross-channel queue does not silently show 0 groups or an ungro
   await expect(page.locator('#csQueue')).toContainText('待ち順を確認中');
   await expect(page.locator('#csForecast')).toBeHidden();
   await expect(page.locator('#csMessage')).toContainText('WEB受付とLINE受付の待ち順');
-  await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
   await expect(page.locator('.v38-home')).toBeVisible();
   await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
   await expect(page.locator('#v38Hero')).not.toContainText('2510');
@@ -1695,7 +1697,7 @@ test('Language selector does not alter booking issuance or invent translated oth
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
  await expect(page.locator('#asoboon-language-note')).toContainText('仅提供日语');
  await expect(page.locator('html')).toHaveAttribute('lang','ja');
- await page.getByRole('button',{name:'新HOMEへ戻る'}).click();
+ await page.locator('.cm-nav-tab[data-v7-view=home]').click();
  await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
  expect(creates).toBe(0);
 });

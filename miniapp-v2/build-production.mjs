@@ -84,13 +84,14 @@ document.body.dataset.asoboonApp='miniapp-v2';document.body.dataset.environment=
 root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=${hash(css)}';document.head.appendChild(link);
+const navCss=document.createElement('link');navCss.rel='stylesheet';navCss.href='./miniapp-v2/production/choco-mint-nav-v8.css?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.css')}';document.head.appendChild(navCss);
 // LIFF SDK is an independent network dependency. Download it in parallel
 // without blocking the public HOME, then wait for it only before auth.
 const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net/liff/edge/2/sdk.js';sdk.async=true;
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}',
+const scripts=['./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}','./miniapp-v2/production/choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}',
   './${i18nRef(dictPath)}','./${i18nRef(i18nPath)}'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -147,6 +148,7 @@ const index=`<!doctype html>
 <title>ASOBooN｜公式LINEミニアプリ</title>
 <link rel="preconnect" href="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev" crossorigin>
 <link rel="stylesheet" href="./production-app.css?v=${hash(css)}">
+<link rel="stylesheet" href="./choco-mint-nav-v8.css?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.css')}">
 <!-- LINE SDK must not block the certified public HOME or capacity board.
      initLiff() waits on this promise only for identity-dependent operations. -->
 <script>
@@ -159,6 +161,7 @@ window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
 </script>
 <script defer src="./env.js?v=${envHash(`${dir}/env.js`)}"></script>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
+<script defer src="./choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>
 <script defer src="../../${i18nRef(i18nPath)}"></script>
 <!-- Certified LINE entry: add only the read-only crowd board to native HOME.
