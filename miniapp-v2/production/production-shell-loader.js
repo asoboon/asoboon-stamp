@@ -7,7 +7,7 @@ root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=e04359eb6e55';document.head.appendChild(link);
 const navCss=document.createElement('link');navCss.rel='stylesheet';navCss.href='./miniapp-v2/production/choco-mint-nav-v8.css?v=6b75c561b76e';document.head.appendChild(navCss);
-const mintCss=document.createElement('link');mintCss.rel='stylesheet';mintCss.href='./miniapp-v2/production/choco-mint-unified-v9.css?v=8c9d8ebcdef4';document.head.appendChild(mintCss);
+const mintCss=document.createElement('link');mintCss.rel='stylesheet';mintCss.href='./miniapp-v2/production/choco-mint-unified-v9.css?v=fa6e475a9f45';document.head.appendChild(mintCss);
 // LIFF SDK is an independent network dependency. Download it in parallel
 // without blocking the public HOME, then wait for it only before auth.
 const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net/liff/edge/2/sdk.js';sdk.async=true;
