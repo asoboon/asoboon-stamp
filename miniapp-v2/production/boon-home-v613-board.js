@@ -52,15 +52,13 @@ function translateBusiness(){
  }
 }
 function trustedBooked(card){
- // A deliberately labeled *estimate* from two verified PERSON remaining counts.
- // No assumption about an AirWAIT configured capacity or guest attendance.
+ // Use language-neutral values from the already verified native reception cards.
+ // Never parse translated text (e.g. "残り80人" / "Left 80 people").
  function remaining(selector){
   const channel=card.querySelector(selector);
-  if(!channel||channel.querySelector('.v38-crowd-unknown'))return null;
-  const raw=String(channel.querySelector('strong')?.textContent||'').replace(/\s+/g,'');
-  const match=raw.match(/^(?:残り)?(\d+)人$/);
-  if(!match)return null;
-  const n=Number(match[1]);
+  const raw=channel?.querySelector('strong')?.getAttribute('data-v613-n');
+  if(raw===null||!/^\d+$/.test(raw))return null;
+  const n=Number(raw);
   return Number.isSafeInteger(n)&&n>=0&&n<=10000?n:null;
  }
  const web=remaining('.v38-crowd-channel--web');

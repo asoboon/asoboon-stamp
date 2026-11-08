@@ -9,19 +9,20 @@ const loader=read('miniapp-v2/production/production-shell-loader.js');
 
 test('HOME forecast uses verified WEB+LINE remaining, 320 baseline, and no unverified capacity assumptions',()=>{
  assert.match(js,/Math\.round\(\(320-web-line\)\/320\*100\)/);
- assert.match(js,/channel\.querySelector\('\.v38-crowd-unknown'\)/);
+ assert.match(js,/channel\?\.querySelector\('strong'\)\?\.getAttribute\('data-v613-n'\)/);
  assert.match(js,/if\(web===null\|\|line===null\|\|web\+line>320\)return null/);
  assert.match(js,/Math\.min\(100,pct\)/);
  assert.match(js,/method:'remaining-proxy'/);
+ assert.match(read('miniapp-v2/production/home-v38.js'),/data-v613-n/);
  assert.doesNotMatch(js,/s\.bookedPeopleVerified/);
 });
 test('remaining count proxy reflects two verified numbers and fails closed for unknown or over 320',()=>{
  const fn=js.slice(js.indexOf('function trustedBooked(card){'),js.indexOf('\nfunction cloneAction('));
  const estimate=vm.runInNewContext(fn+';trustedBooked');
- const card=(web,line)=>({querySelector(selector){const value=selector.includes('--web')?web:line;if(value===null)return {querySelector:q=>q==='.v38-crowd-unknown'?{}:null};return {querySelector:q=>q==='.v38-crowd-unknown'?null:q==='strong'?{textContent:'残り'+value+'人'}:null}}});
+ const card=(web,line)=>({querySelector(selector){const value=selector.includes('--web')?web:line;return {querySelector:q=>q==='strong'?{textContent:'Left '+value+' people',getAttribute:key=>key==='data-v613-n'&&value!==null?String(value):null}:null}}});
  assert.equal(estimate(card(80,80)),50);
  assert.equal(estimate(card(0,0)),100);
- assert.equal(estimate(card(90,30)),63);
+ assert.equal(estimate(card(90,30)),63); // Language-neutral even when visible text is translated.
  assert.equal(estimate(card(175,23)),38);
  assert.equal(estimate(card(300,20)),0);
  assert.equal(estimate(card(null,20)),null);
