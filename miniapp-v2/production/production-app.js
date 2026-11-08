@@ -9,8 +9,8 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const finish=()=>{if(!failed&&cssDone&&jsDone)resolve()};
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
-  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=b6d46c20902a',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=c5191f38b5a9',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=7aa7dd1119f5',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=c2a389ce0772',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -390,7 +390,9 @@ const q=()=>new URLSearchParams(location.search);
 const receptionModule=()=>window.ASOBOON_V2_RECEPTION;
 const callstatusModule=()=>window.ASOBOON_V2_CALLSTATUS;
 const timeguideModule=()=>window.ASOBOON_V2_TIMEGUIDE;
-function normalizeView(v){return Object.values(C.routes||{}).includes(String(v||''))?String(v):'home'}
+const EXTRA_VIEWS=['guide','play','faq'];
+
+function normalizeView(v){return Object.values(C.routes||{}).includes(String(v||''))||EXTRA_VIEWS.includes(String(v||''))?String(v):'home'}
 function normalizeMode(v){return String(v)==='inside'?'inside':'before'}
 function endpointBase(){const u=new URL(E.endpoint||location.href,location.href);u.search='';u.hash='';return u}
 function isNewAppUrl(value){try{const u=new URL(String(value||''),location.href),b=endpointBase();return u.origin===b.origin&&u.pathname.startsWith(b.pathname)}catch{return false}}
@@ -413,8 +415,6 @@ function go(view,{replace=false,...extra}={}){
 function setMode(mode){state.mode=normalizeMode(mode);const u=new URL(routeUrl(state.view));history.replaceState({asoboonV2:true},'',u.href);render()}
 function readRoute(){const p=q();state.view=normalizeView(p.get('view'));state.mode=normalizeMode(p.get('mode'))}
 function feature(route){const map={reception:'reception',callstatus:'callstatus',timeguide:'timeguide',first:'firstGuide',entry:'entryGuide',rules:'rules',stamp:'stamp',omikuji:'omikuji',game:'game',parking:'parking'};const k=map[route];return k?F[k]===true:true}
-// Official Production HOME is mounted by home-v38.js. The old prototype is
-// deliberately absent even from the initial DOM, not just hidden with CSS.
 function home(){return '<section class="home-shell" aria-label="ASOBooN HOME" aria-busy="true"></section>'}
 function disabledPage(view,title,icon){return `<section class="page-card"><div class="page-head"><small>ASOBooN NEW HOME / ${esc(E.environmentLabel||'')}</small><h2>${esc(title)}</h2></div><div class="disabled-card"><div class="disabled-icon">${icon}</div><h3>この機能は準備中です</h3><p>利用可能になるまで、ほかのメニューをご利用ください。</p><span class="pill">${esc(view)} · SAFE HOLD</span></div></section>`}
 function receptionPage(){const mod=receptionModule();return mod&&typeof mod.render==='function'?mod.render():disabledPage('reception','当日受付','🎫')}
@@ -424,8 +424,8 @@ function firstPage(){const receptionStep=operationalFallback('reception')?'WEB�
 function entryPage(){return `<section class="page-card"><div class="page-head green"><small>ENTRY / EXIT</small><h2>入退場方法</h2></div><div class="page-body"><h3>受付番号を準備して受付へ</h3><p>呼出状態になったら、受付番号を確認できる状態で受付へお越しください。</p><div class="step-list"><div class="step"><b>1</b><span>当日受付を完了する</span></div><div class="step"><b>2</b><span>${operationalFallback('callstatus')?'呼出状況を確認する':'LINE通知・呼出状況を確認する'}</span></div><div class="step"><b>3</b><span>呼出されたら受付・会計へ</span></div><div class="step"><b>4</b><span>入場後は利用時間案内を確認</span></div></div></div></section>`}
 function rulesPage(){return `<section class="page-card"><div class="page-head"><small>SAFETY & PLAY</small><h2>館内ルール</h2></div><div class="page-body"><p>安全を守りながら、子ども自身が考えて挑戦できる遊びを大切にしています。</p><div class="rule-list"><div class="rule"><strong>保護者の方と一緒に</strong>お子さまから目を離さず、一緒に館内をお楽しみください。</div><div class="rule"><strong>危険な行為は止める</strong>他のお客さまにぶつかる行為や、設備の想定外利用はスタッフがお声がけします。</div><div class="rule"><strong>困った時はスタッフへ</strong>けが・迷子・体調不良などは近くのスタッフへお知らせください。</div></div></div></section>`}
 function parkingPage(){return `<section class="page-card"><div class="page-head orange"><small>ACCESS</small><h2>駐車場・アクセス</h2></div><div class="page-body"><h3>川口ハイウェイオアシス内</h3><p>ASOBooNは川口ハイウェイオアシス内にあります。一般道・首都高それぞれの来場方法をご案内します。</p><div class="rule-list"><div class="rule"><strong>地図を開く場合</strong>Googleマップなど外部サイトへ移動するリンクには、その旨を表示します。</div></div></div></section>`}
-function pageFor(view){if(view==='home')return home();if(!feature(view)){const meta={reception:['当日受付','🎫'],callstatus:['呼出状況','🔔'],timeguide:['アソブーンタイマー','⏱️'],stamp:['スタンプラリー','🔩'],omikuji:['おみくじ','🎯'],game:['ミニゲーム','🏎️']}[view]||[view,'🛠️'];return disabledPage(view,meta[0],meta[1])}if(view==='reception')return receptionPage();if(view==='callstatus')return callstatusPage();if(view==='first')return firstPage();if(view==='entry')return entryPage();if(view==='rules')return rulesPage();if(view==='timeguide')return timePage();if(view==='parking')return parkingPage();return disabledPage(view,view,'🛠️')}
-function shell(){const homeView=state.view==='home';const lineText=state.booting?'LINE接続中':state.liffReady?(state.inClient?'LINE内':'ブラウザプレビュー'):(state.bootError?'LIFF確認エラー':'LIFF未接続');const dot=state.liffReady?(state.inClient?'ok':'warn'):(state.bootError?'warn':'');return `<div class="devbar"><span><i class="dot ${dot}"></i><b>NEW HOME · ${esc(E.environmentLabel||'ENV')}</b></span><span>${esc(lineText)} · v${esc(C.version||'')}</span></div><header class="topbar"><button class="iconbtn ${homeView?'ghost':''}" id="backBtn" type="button" aria-label="新HOMEへ戻る">‹</button><div class="brand"><strong>ASOBooN</strong><small>NEW OFFICIAL LINE MINI APP</small></div><button class="iconbtn ${homeView?'ghost':''}" data-view="home" type="button" aria-label="新HOME">⌂</button></header><main class="view active">${pageFor(state.view)}</main><footer class="footer"><b>ASOBooN OFFICIAL HOME / MINI APP v2</b><br>${esc(E.environmentLabel||'')} · safe cutover mode</footer>`}
+function pageFor(view){if(view==='home')return home();if(!feature(view)){const meta={reception:['当日受付','🎫'],callstatus:['呼出状況','🔔'],timeguide:['アソブーンタイマー','⏱️'],stamp:['スタンプラリー','🔩'],omikuji:['おみくじ','🎯'],game:['ミニゲーム','🏎️']}[view]||[view,'🛠️'];return disabledPage(view,meta[0],meta[1])}if(view==='reception')return receptionPage();if(view==='callstatus')return callstatusPage();if(view==='first')return firstPage();if(view==='entry')return entryPage();if(view==='rules')return rulesPage();if(view==='timeguide')return timePage();if(view==='parking')return parkingPage();return window.ASOBOON_CHOCOMINT_HUBS?.[view]?.()||disabledPage(view,view,'🛠️')}
+function shell(){const homeView=state.view==='home';const lineText=state.booting?'LINE接続中':state.liffReady?(state.inClient?'LINE内':'ブラウザプレビュー'):(state.bootError?'LIFF確認エラー':'LIFF未接続');const dot=state.liffReady?(state.inClient?'ok':'warn'):(state.bootError?'warn':'');return `<div class="devbar"><span><i class="dot ${dot}"></i><b>NEW HOME · ${esc(E.environmentLabel||'ENV')}</b></span><span>${esc(lineText)} · v${esc(C.version||'')}</span></div><header class="topbar"><button class="iconbtn ${homeView?'ghost':''}" id="backBtn" type="button" aria-label="戻る">‹</button><div class="brand"><strong>ASOBooN</strong><small>公式LINEミニアプリ</small></div><button class="iconbtn ${homeView?'ghost':''}" data-view="home" type="button" aria-label="新HOME">⌂</button></header><main class="view active">${pageFor(state.view)}</main><footer class="footer"><b>ASOBooN</b> · 施設のご案内</footer>`}
 function lineState(){return{liffReady:state.liffReady,inClient:state.inClient,bootError:state.bootError,booting:state.booting,displayName:state.displayName}}
 function cleanupModules(){try{callstatusModule()?.unmount?.()}catch(e){console.warn('CALLSTATUS_UNMOUNT_FAILED',e)}try{timeguideModule()?.unmount?.()}catch(e){console.warn('TIMEGUIDE_UNMOUNT_FAILED',e)}}
 function bindModule(){
@@ -450,9 +450,9 @@ function bindAppEvents(){
     const target=e.target?.closest?.('[data-v7-view],[data-pv7-view],[data-view],#backBtn');
     if(target&&!target.disabled){
       const isBack=target.id==='backBtn';
-      const view=isBack?'home':(target.dataset.v7View||target.dataset.pv7View||target.dataset.view||'');
+      const view=isBack?(window.ASOBOON_CHOCOMINT_BACK?.()||'home'):(target.dataset.v7View||target.dataset.pv7View||target.dataset.view||'');
       const panel=isBack?'':(target.dataset.v7Panel||target.dataset.pv7Panel||'');
-      if(Object.values(C.routes||{}).includes(String(view||''))){
+      if(normalizeView(view)===String(view)){
         e.preventDefault();
         go(view,{replace:isBack,panel});
         return;

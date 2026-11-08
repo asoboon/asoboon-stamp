@@ -15,6 +15,7 @@
     "miniapp-v2/production/pages-v7.css",
     "miniapp-v2/production/pages-v7-polish.css",
     "miniapp-v2/production/pages-final-v33.css",
+    "miniapp-v2/production/choco-mint-hubs-v8.css",
     "miniapp-v2/production/first-v27.css",
     "miniapp-v2/production/parking-v24.css",
     "miniapp-v2/production/entry-v25.css",
@@ -53,6 +54,7 @@
     "miniapp-v2/production/experience-v13.js",
     "miniapp-v2/production/ticket-pass-v17.js",
     "miniapp-v2/production/ticket-people-v28.js",
-    "miniapp-v2/production/pages-final-v33.js"
+    "miniapp-v2/production/pages-final-v33.js",
+    "miniapp-v2/production/choco-mint-hubs-v8.js"
   ]
 }
