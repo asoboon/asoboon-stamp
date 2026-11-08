@@ -599,6 +599,90 @@ test('Certified main HOME translates saved ticket instructions in all supported 
  await picker.selectOption('ja');
  await expect(page.locator('#v38Hero h1')).toHaveText('受付番号は保存済みです');
 });
+test('After 19:00 a fresh visitor sees latest verified AirWAIT counts for the switched reception day',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ let crowdReads=0;
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='businessDay'){
+   const date=u.searchParams.get('date'),today=date==='2026-10-03';
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,businessType:today?'土日祝日':'平日特定日',
+    closingTime:today?'18:00':'17:00',durationLabel:'3時間'
+   })});
+  }
+  if(action==='crowdRemaining'){
+   crowdReads++;
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,stale:false,fetchedAt:'2026-10-03T10:10:00.000Z',
+    slots:[
+     {waitTypeId:'0036',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:250},
+     {waitTypeId:'0038',slotKey:'13:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:250}
+    ],
+    observedDetails:[
+     {detailedWaitType:'10時15分から【平日特定日】',reserveUnit:'PERSON',remaining:70,remainingVerified:true},
+     {detailedWaitType:'13時45分から【平日特定日】',reserveUnit:'PERSON',remaining:70,remainingVerified:true}
+    ]
+   })});
+  }
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v613Board .v613-time')).toHaveText(['10:00','13:30']);
+ await expect(page.locator('#v613Board .v613-percent')).toHaveText(['0%','0%']);
+ await expect(page.locator('#v613Board .v613-row').first()).toContainText('250');
+ await expect(page.locator('#v613Board .v613-row').first()).toContainText('70');
+ await expect(page.locator('#v38Today')).toContainText('土日祝');
+ await expect(page.locator('#v38Today')).not.toContainText('平日特定日');
+ await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('受付切替後');
+ await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('本日終了時の人数とは異なります');
+ await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ expect(crowdReads).toBeGreaterThanOrEqual(1);
+});
+test('Certified HOME business-day typography never overlaps at five responsive widths',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ const title=page.locator('#v58DayZone>.v58-section-title');
+ await expect(title).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  const v=await page.evaluate(()=>{
+   const q=s=>document.querySelector(s)?.getBoundingClientRect();
+   const outer=q('#v58DayZone'),title=q('#v58DayZone>.v58-section-title');
+   const day=q('#v38Today'),name=q('#v38Today>span:nth-child(2) strong'),duration=q('#v38Today>span:nth-child(3) strong');
+   const overlaps=(a,b)=>a&&b&&a.left<b.right-1&&b.left<a.right-1&&a.top<b.bottom-1&&b.top<a.bottom-1;
+   return{width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
+    all:!!outer&&!!title&&!!day&&!!name&&!!duration,
+    titleDayOverlap:overlaps(title,day),nameDurationOverlap:overlaps(name,duration),
+    titleInside:!!title&&!!outer&&title.left>=outer.left-1&&title.right<=outer.right+1,
+    nameInside:!!name&&!!outer&&name.left>=outer.left-1&&name.right<=outer.right+1,
+    durationInside:!!duration&&!!outer&&duration.left>=outer.left-1&&duration.right<=outer.right+1};
+  });
+  expect(v,'business-day overlap at '+width).toMatchObject({all:true,titleDayOverlap:false,nameDurationOverlap:false,titleInside:true,nameInside:true,durationInside:true});
+  expect(v.scrollWidth).toBeLessThanOrEqual(width+1);
+ }
+});
+test('PLAY hub restores BOON Puzzle and swaps Monster to Boon Jump with working URLs',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('.cm-nav-tab[data-v7-view="play"]').click();
+ await expect(page.locator('.cm-hub-list')).toBeVisible();
+ const list=page.locator('.cm-hub-list');
+ await expect(list).toContainText('ブーンジャンプ');
+ await expect(list).toContainText('BOON パズル');
+ await expect(list).not.toContainText('BOON MONSTER');
+ await expect(list.locator('a').filter({hasText:'ブーンジャンプ'})).toHaveAttribute('href','https://asoboon.github.io/asoboon-stamp/boonjump/');
+ await expect(list.locator('a').filter({hasText:'BOON パズル'})).toHaveAttribute('href','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
+});
 test('19:00 date rollover reads the previous calendar date business type, never tomorrow booking rows',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
  const dateReads=[];
