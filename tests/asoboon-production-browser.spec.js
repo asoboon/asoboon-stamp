@@ -655,6 +655,9 @@ test('Certified HOME business-day typography never overlaps at five responsive w
  await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:820});
+  await expect(page.locator('#v58DayZone>.v58-section-title')).toBeVisible();
+  await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
+  await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
   const v=await page.evaluate(()=>{
    const q=s=>document.querySelector(s)?.getBoundingClientRect();
    const outer=q('#v58DayZone'),title=q('#v58DayZone>.v58-section-title');
@@ -815,6 +818,99 @@ test('After 19:00 daily rollover, next-business-day slots remain reference-only'
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
  await expect(page.locator('#v38Slots')).not.toContainText('受付時間外');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+});
+test('HOME typography follows a left reading edge while numeric slots stay column-aligned on five widths',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58DayZone>.v58-section-title')).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
+ await expect(page.locator('#v58SessionsZone>.v58-section-title')).toBeVisible();
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:850});
+  const result=await page.evaluate(()=>{
+   const b=s=>document.querySelector(s)?.getBoundingClientRect();
+   const title=b('#v58DayZone>.v58-section-title'),main=b('#v38Today>span:nth-child(2) strong');
+   const duration=b('#v38Today>span:nth-child(3) strong'),day=b('#v58DayZone');
+   const items=[...document.querySelectorAll('.v59-calendar-links .v38-calendar-card')];
+   const header=document.querySelector('#v613Board .v613-header');
+   const leftAligned=[title,main,duration].every(x=>!!x&&Math.abs(x.left-main.left)<6);
+   const stacked=!!main&&!!duration&&main.bottom<=duration.top+1;
+   const readable=items.every(x=>{const t=x.querySelector('strong');if(!t)return false;const r=t.getBoundingClientRect(),c=x.getBoundingClientRect();return r.left>=c.left-1&&r.right<=c.right+1&&r.height<=Math.max(50,c.height-8)});
+   const first=items[0]?.getBoundingClientRect(),second=items[1]?.getBoundingClientRect();
+   const cardsSingleColumn=!!first&&!!second&&second.top>=first.bottom-2;
+   const chips=getComputedStyle(document.querySelector('#v58SessionsZone>.v58-section-title'),'::before');
+   return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
+    leftAligned,stacked,readable,cardsSingleColumn,chipsPresent:chips.content!=='none',
+    cardInside:!!day&&[title,main,duration].every(x=>x&&x.left>=day.left-1&&x.right<=day.right+1),
+    boardPresent:!!header,boardHeaderAligned:header?getComputedStyle(header).display==='grid':false
+   };
+  });
+  expect(result,JSON.stringify(result)).toMatchObject({leftAligned:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
+  expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
+  if(width===320)expect(result.cardsSingleColumn).toBe(true);
+  if(width===390)expect(result.cardsSingleColumn).toBe(false);
+ }
+});
+test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed language picker at five widths',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ const logo=page.locator('.topbar .brand strong');
+ const lang=page.locator('#asoboon-language-select');
+ await expect(logo).toHaveText('ASOBooN');
+ await expect(lang).toBeVisible();
+ await expect(page.locator('#v58DayZone')).toBeVisible({timeout:10000});
+ await expect(page.locator('.topbar .brand strong')).toHaveCount(1);
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  const visuals=await page.evaluate(()=>{
+   const head=document.querySelector('#app .topbar');
+   const brand=head.querySelector('.brand');
+   const logo=brand.querySelector('strong');
+   const language=document.querySelector('#asoboon-language-select');
+   const hr=head.getBoundingClientRect(),br=brand.getBoundingClientRect(),lr=language.getBoundingClientRect();
+   const ice=getComputedStyle(logo,'::after');
+   const dayZone=document.querySelector('#v58DayZone');
+   const sprinkles=dayZone?getComputedStyle(dayZone,'::after'):null;
+   return {
+    background:getComputedStyle(head).backgroundImage,
+    plaque:getComputedStyle(brand).backgroundImage,
+    text:getComputedStyle(logo).color,
+    drips:ice.content!=='none'&&ice.position==='absolute',
+    sprinkles:!!sprinkles&&sprinkles.content!=='none'&&sprinkles.position==='absolute',
+    headerInside:br.left>=hr.left&&br.right<=hr.right,
+    pickerInside:lr.left>=hr.left&&lr.right<=hr.right,
+    noControlCollision:br.right+10<=lr.left,
+    scrollWidth:document.documentElement.scrollWidth,
+    viewport:innerWidth,
+    callNav:document.querySelectorAll('.cm-bottom-nav [data-v7-view="callstatus"]').length
+   };
+  });
+  expect(visuals,JSON.stringify(visuals)).toMatchObject({
+   drips:true,headerInside:true,pickerInside:true,noControlCollision:true,callNav:1
+  });
+  expect(visuals.background).toContain('radial-gradient');
+  expect(visuals.background).toContain('rgb(53, 33, 29)');
+  expect(visuals.plaque).toContain('linear-gradient');
+  expect(visuals.text).toBe('rgb(58, 35, 29)');
+  expect(visuals.scrollWidth).toBeLessThanOrEqual(width+1);
+ }
+ await page.setViewportSize({width:390,height:820});
+ await lang.selectOption('en');
+ await expect(logo).toHaveText('ASOBooN');
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
 });
 test('HOME has exactly one ASOBooN header logo and no second v58 brand',async({page})=>{
  await installProduction(page);

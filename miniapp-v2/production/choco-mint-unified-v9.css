@@ -329,3 +329,203 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day #v38Today>span:nth-
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day #v38Today>span:nth-child(3) strong{
  font-size:12px!important;font-weight:750!important;
 }
+
+/* Cocoa cap: a single chocolate layer above the calm, information-first HOME. */
+html.boon-v4.boon-v5-mint body #app .topbar,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .topbar{
+  isolation:isolate;
+  overflow:visible!important;
+  background:linear-gradient(115deg,#35211d 0%,#4b2d23 53%,#663e2e 100%)!important;
+  border-bottom:2px solid #855745!important;
+  border-radius:0 0 22px 22px!important;
+  box-shadow:0 5px 0 rgba(66,34,27,.10)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::before{
+  content:"";position:absolute;top:16px;left:50%;width:24px;height:4px;
+  border-radius:999px;transform:rotate(-23deg);
+  background:rgba(255,249,240,.20);box-shadow:34px 13px 0 -1px rgba(255,249,240,.15);
+  pointer-events:none;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::after{
+  content:"";position:absolute;right:28%;bottom:-11px;width:38px;height:17px;
+  border-radius:0 0 19px 19px;background:#503024;
+  box-shadow:49px -3px 0 -5px #503024;
+  pointer-events:none;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand{
+  min-height:45px!important;min-width:0!important;max-width:100%!important;
+  padding:7px 11px!important;border:1px solid #e1c29e!important;
+  border-radius:14px!important;background:#fff8ed!important;
+  box-shadow:0 3px 0 rgba(32,16,11,.25)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  color:#3a231d!important;line-height:1.15!important;
+}
+#asoboon-language-select{
+  background:#fff8ed!important;border-color:#bc947a!important;
+  box-shadow:0 2px 0 rgba(29,15,10,.20)!important;
+}
+#asoboon-language-select:focus-visible{
+  outline:3px solid #6dd2ca!important;outline-offset:2px!important;
+}
+@media(max-width:360px){
+  html.boon-v4.boon-v5-mint body #app .topbar .brand{
+    padding:7px 9px!important;
+  }
+  html.boon-v4.boon-v5-mint body #app .topbar::after{right:32%}
+}
+
+/* Chocolate-chip ice cream finish: all flourishes are decorative only. */
+html.boon-v4.boon-v5-mint body #app .topbar,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .topbar{
+  background:
+    radial-gradient(ellipse 4px 7px at 43% 22%,#dfb393 92%,transparent 100%),
+    radial-gradient(ellipse 8px 3px at 57% 20%,#b78972 92%,transparent 100%),
+    radial-gradient(ellipse 4px 5px at 70% 75%,#f0caaa 92%,transparent 100%),
+    radial-gradient(ellipse 7px 3px at 53% 69%,#be8d70 92%,transparent 100%),
+    radial-gradient(ellipse 5px 4px at 87% 72%,#b88970 92%,transparent 100%),
+    radial-gradient(ellipse 5px 3px at 34% 83%,#d8ab8b 92%,transparent 100%),
+    linear-gradient(115deg,#35211d 0%,#4b2d23 53%,#663e2e 100%)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::before{
+  content:"";position:absolute;pointer-events:none;left:46%;top:17px;
+  width:35px;height:5px;border-radius:999px;
+  background:#e0b290;transform:rotate(-28deg);opacity:.82;
+  box-shadow:22px 34px 0 -1px #eac4a4,-9px 46px 0 -1px #e8bc9b;
+}
+html.boon-v4.boon-v5-mint body #app .topbar::after{
+  right:26%;bottom:-7px;width:21px;height:12px;
+  border-radius:0 0 45% 55%;background:#533325;
+  box-shadow:31px 0 0 -4px #533325,49px -3px 0 -6px #533325;
+}
+/* Ice-cream label: cream-colored icing visibly drips below the letter plaque. */
+html.boon-v4.boon-v5-mint body #app .topbar .brand{
+  position:relative!important;overflow:visible!important;
+  background:linear-gradient(180deg,#fffdf6,#fff2e4)!important;
+  border:1px solid #d9b592!important;border-radius:15px 15px 13px 13px!important;
+  box-shadow:0 3px 0 #271712,0 6px 10px rgba(27,14,10,.24)!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand::before{
+  content:"";display:block!important;position:absolute;pointer-events:none;
+  left:25px;bottom:-7px;width:14px;height:12px;
+  background:#fff2e4;border-radius:0 0 8px 8px;
+  box-shadow:48px 2px 0 -2px #fff2e4,76px -2px 0 -4px #fff2e4;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  position:relative;z-index:1;font-weight:1000!important;letter-spacing:-.05em!important;
+  text-shadow:0 1px 0 #fffefa,0 2px 0 rgba(180,130,98,.28)!important;
+}
+
+/* Melted chocolate lettering: connected cocoa droplets beneath the wordmark. */
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong{
+  font-family:"Arial Rounded MT Bold","Hiragino Maru Gothic ProN",system-ui,sans-serif!important;
+  font-weight:950!important;letter-spacing:-.058em!important;
+}
+html.boon-v4.boon-v5-mint body #app .topbar .brand strong::after{
+  content:"";position:absolute;pointer-events:none;left:20%;bottom:-4px;
+  width:7px;height:10px;background:#3a231d;border-radius:0 0 6px 6px;
+  box-shadow:43px 3px 0 -1px #3a231d,84px 0 0 -2px #3a231d;
+}
+/* Chocolate chips float in the mint, far from the actual business-day copy. */
+#app #v58DayZone{
+  position:relative;isolation:isolate;
+}
+#app #v58DayZone::after{
+  content:"";position:absolute;pointer-events:none;z-index:1;
+  right:8px;top:8px;width:29px;height:28px;opacity:.72;
+  background:
+    radial-gradient(ellipse 3px 5px at 21% 22%,#775043 93%,transparent 100%),
+    radial-gradient(ellipse 4px 2px at 77% 42%,#5b372d 93%,transparent 100%),
+    radial-gradient(ellipse 2px 4px at 43% 78%,#976450 93%,transparent 100%);
+}
+
+/* Chocolate-guided typography and spacing refinement; no operational changes.
+   Information reads top to bottom from a common left edge, figures stay aligned
+   in the four-column availability table for fast comparison. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone.v58-day{
+  display:flex!important;flex-direction:column!important;
+  justify-content:flex-start!important;align-items:stretch!important;
+  gap:6px!important;min-height:102px!important;height:auto!important;
+  padding:14px 17px 15px!important;margin:0!important;text-align:left!important;
+  background:linear-gradient(115deg,#ddf7f3,#c9efeb)!important;
+  border:1px solid #9fcfce!important;
+  border-left:4px solid #694234!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone>.v58-section-title{
+  width:100%!important;margin:0!important;padding:0!important;
+  text-align:left!important;line-height:1.4!important;
+  color:#684031!important;font-size:12px!important;font-weight:850!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone #v38Today{
+  display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+  align-items:flex-start!important;gap:3px!important;text-align:left!important;
+  width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone #v38Today>span:nth-child(n+2){
+  display:block!important;position:static!important;align-self:stretch!important;
+  width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
+  text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone #v38Today>span:nth-child(n+2) strong{
+  display:block!important;width:100%!important;max-width:100%!important;
+  height:auto!important;min-height:0!important;line-height:1.35!important;
+  white-space:normal!important;overflow-wrap:break-word!important;text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone #v38Today>span:nth-child(2) strong{
+  color:#134e59!important;font-size:clamp(16px,4.5vw,19px)!important;
+  font-weight:950!important;letter-spacing:-.02em!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone #v38Today>span:nth-child(3) strong{
+  display:inline-block!important;width:auto!important;max-width:100%!important;
+  padding:3px 9px!important;border-radius:8px!important;
+  background:#fff9ee!important;color:#654132!important;
+  font-size:12px!important;font-weight:850!important;line-height:1.5!important;
+}
+/* A chocolate-chip marker for each new information section; decorative only. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58SessionsZone>.v58-section-title{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:9px!important;width:100%!important;margin:9px 0 7px!important;
+  text-align:left!important;color:#124f60!important;line-height:1.4!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58SessionsZone>.v58-section-title::before{
+  content:"";display:inline-block;flex:none;width:10px;height:13px;
+  background:#744a37;transform:rotate(-24deg);border-radius:3px 4px 2px 5px;
+  box-shadow:2px 2px 0 #cfa68c;pointer-events:none;
+}
+/* Put instructions on a shared left reading edge. Keep percentages and column
+   headings centred, since their alignment conveys the table's relationships. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours>span{
+  justify-content:flex-start!important;text-align:left!important;
+  align-content:center!important;padding:10px 9px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots>.v38-crowd-refresh{
+  align-items:center!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-footnote,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-crowd-closed-note{
+  text-align:left!important;
+}
+@media(max-width:360px){
+  html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone.v58-day{
+    padding:12px 13px 13px!important;min-height:94px!important;
+  }
+  html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours>span{
+    padding:9px 6px!important;
+  }
+}
+
+/* Narrow devices: calendar actions remain short horizontal cards instead of vertical Japanese word stacks. */
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links{
+  grid-template-columns:minmax(0,1fr)!important;gap:8px!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links .v38-calendar-card{
+  min-height:59px!important;max-width:100%!important;
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:10px!important;padding:10px 13px!important;text-align:left!important;
+ }
+ html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links .v38-calendar-card strong{
+  font-size:14px!important;line-height:1.45!important;
+  overflow-wrap:normal!important;word-break:keep-all!important;
+ }
+}

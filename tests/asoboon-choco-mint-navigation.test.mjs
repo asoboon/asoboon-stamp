@@ -46,3 +46,13 @@ test('Call-status semantic waiting/calling/canceled colors are not overridden by
  assert(!css.includes('body.v7-callstatus-active #app .cs-page,html'));
 });
 
+
+test('Cocoa chip and melted-ice-cream decorations exist without depending on route state',()=>{
+ const cocoa=read('miniapp-v2/production/choco-mint-unified-v9.css');
+ for(const selector of ['#app .topbar .brand strong::after','#app #v58DayZone::after'])assert(cocoa.includes(selector),selector);
+ assert(cocoa.includes('Melted chocolate lettering'));
+ assert(cocoa.includes('Chocolate chips float in the mint'));
+ assert(cocoa.includes('content:"";position:absolute;pointer-events:none;z-index:1;'));
+ assert(!cocoa.includes('body.v38-home-active #app #v58DayZone::after'));
+ assert(cocoa.includes('radial-gradient(ellipse'));
+});
