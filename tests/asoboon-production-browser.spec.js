@@ -607,9 +607,15 @@ test('Official HOME call-status button is wide, low-profile and accessible on na
  });
  await page.setViewportSize({width:320,height:700});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
- const hero=await page.locator('#v38Hero').boundingBox();
- const button=await page.locator('#v38Hero [data-v7-view="callstatus"]').boundingBox();
+ const heroNode=page.locator('#v38Hero');
+ const callButton=page.locator('#v38Hero [data-v7-view="callstatus"]');
+ await expect(heroNode).toHaveClass(/call-link/);
+ await expect(heroNode).toBeVisible();
+ await expect(callButton).toBeVisible();
+ const hero=await heroNode.boundingBox();
+ const button=await callButton.boundingBox();
+ expect(hero).not.toBeNull();
+ expect(button).not.toBeNull();
  expect(hero.height).toBeLessThan(85);
  expect(button.height).toBeGreaterThanOrEqual(44);
  expect(button.width).toBeGreaterThan(210);
