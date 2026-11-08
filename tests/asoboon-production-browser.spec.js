@@ -744,7 +744,7 @@ test('Business-day refresh failure never reopens closed WEB or LINE reception co
  await page.evaluate(()=>{window.__qaBreakBusinessDay=true;window.dispatchEvent(new Event('focus'))});
  await expect(page.locator('#v38Hero')).toContainText('営業情報を取得できません');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toBeVisible();
+ await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toBeHidden();
  await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
 test('After closing, last verified WEB and LINE counts still give forecast 100 percent, with no active booking buttons',async({page})=>{
@@ -1678,7 +1678,7 @@ test('Rate-limited status requests visibly cool down and manual taps do not hamm
  await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
  expect(count).toBe(1);
  await page.locator('#csRefresh').click();
- await expect(page.locator('#csError')).toContainText('最終更新');
+ await expect(page.locator('#csError')).toContainText('自動で再確認');
  await page.waitForTimeout(300);
  expect(count).toBe(1);
  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
@@ -2520,7 +2520,7 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('受付枠の空き状況を確認できません');
+ await expect(box.locator('#v38CrowdAge')).toHaveText('最終更新 —:—');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
  await expect(box.locator('.v38-crowd-list [data-v7-view="reception"]')).toHaveCount(3);
