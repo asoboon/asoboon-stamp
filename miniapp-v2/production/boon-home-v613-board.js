@@ -80,7 +80,15 @@ function cloneAction(native,unknown){
   'border-radius':'7px','gap':'0'
  }))node.style.setProperty(prop,value,'important');
  const strongNode=node.querySelector('strong');
- if(strongNode){strongNode.style.setProperty('font-size','16px','important');strongNode.style.setProperty('line-height','1.2','important')}
+ if(strongNode){
+  strongNode.style.setProperty('font-size','16px','important');
+  strongNode.style.setProperty('line-height','1.2','important');
+  // Reset the 45px legacy large-card min-height: the compact count itself
+  // should shrink to its text height and sit at the centre of its 44px cell.
+  strongNode.style.setProperty('min-height','0','important');
+  strongNode.style.setProperty('height','auto','important');
+  strongNode.style.setProperty('margin','0','important');
+ }
  if(unknown){
   const strong=node.querySelector('strong');
   if(strong)strong.textContent='—';

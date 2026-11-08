@@ -638,6 +638,43 @@ test('After 19:00 a fresh visitor sees latest verified AirWAIT counts for the sw
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('本日終了時の人数とは異なります');
  await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ // Compact WEB/LINE counts must be vertically centered with percentages and time,
+ // not pinned to the top by the old 45px large-card number minimum.
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  await expect(page.locator('#v613Board .v613-row')).toHaveCount(2);
+  const aligned=await page.evaluate(()=>{
+   const midpoint=el=>{const r=el.getBoundingClientRect();return (r.top+r.bottom)/2};
+   return [...document.querySelectorAll('#v613Board .v613-row')].flatMap(row=>{
+    const gauge=row.querySelector('.v613-percent');
+    return [...row.querySelectorAll('.v613-channel')].map(cell=>{
+     const channel=cell.querySelector('.v38-crowd-channel'),strong=channel?.querySelector('strong');
+     if(!strong||!gauge)return{exists:false};
+     const rect=strong.getBoundingClientRect(),channelRect=channel.getBoundingClientRect();
+     return {
+      exists:true,
+      text:strong.innerText,
+      verticalOffset:Math.abs(midpoint(strong)-midpoint(cell)),
+      peerOffset:Math.abs(midpoint(strong)-midpoint(gauge)),
+      legacyMinHeight:getComputedStyle(strong).minHeight,
+      numberHeight:rect.height,
+      tapHeight:channelRect.height
+     };
+    });
+   });
+  });
+  expect(aligned,'WEB/LINE count alignment at '+width).toHaveLength(4);
+  for(const box of aligned){
+   expect(box.exists).toBe(true);
+   expect(box.verticalOffset).toBeLessThanOrEqual(1);
+   expect(box.peerOffset).toBeLessThanOrEqual(2);
+   expect(box.legacyMinHeight).toBe('0px');
+   expect(box.numberHeight).toBeLessThan(28);
+   expect(box.tapHeight).toBeGreaterThanOrEqual(44);
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+
  expect(crowdReads).toBeGreaterThanOrEqual(1);
 });
 test('Certified HOME business-day typography never overlaps at five responsive widths',async({page})=>{
@@ -2565,10 +2602,17 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
   return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({ok:false,error:'AIRWAIT_CROWD_EMPTY'})});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots')).toContainText('40');
- await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
- await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
- await expect(page.locator('#v38Slots')).not.toContainText('残り40人');
+ const box=page.locator('#v38Slots');
+ await expect(box.locator('.v38-crowd-list')).toBeAttached();
+ // The saved quota is fresh so automatic polling can postpone a network request.
+ // Retry the internal manual action until startup and any concurrent fetch have
+ // completed. This tests quota invalidation, not JS load-event timing.
+ await expect.poll(async()=>{
+  if((await box.textContent()||'').includes('本日の受付枠は終了しました'))return true;
+  await page.locator('#v38CrowdUpdate').evaluate(el=>{if(!el.disabled)el.click()}).catch(()=>{});
+  return false;
+ },{timeout:12000,intervals:[200,350,500,750]}).toBe(true);
+ await expect(box).not.toContainText('残り40人');
 });
 
 test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as old remaining seats',async({page})=>{
