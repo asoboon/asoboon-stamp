@@ -145,8 +145,18 @@ const index=`<!doctype html>
 <meta name="theme-color" content="#f4f0e7">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>ASOBooN｜公式LINEミニアプリ</title>
+<link rel="preconnect" href="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev" crossorigin>
 <link rel="stylesheet" href="./production-app.css?v=${hash(css)}">
-<script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!-- LINE SDK must not block the certified public HOME or capacity board.
+     initLiff() waits on this promise only for identity-dependent operations. -->
+<script>
+window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
+ const sdk=document.createElement('script');sdk.async=true;
+ sdk.src='https://static.line-scdn.net/liff/edge/2/sdk.js';
+ sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false);
+ document.head.appendChild(sdk);
+});
+</script>
 <script defer src="./env.js?v=${envHash(`${dir}/env.js`)}"></script>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>
