@@ -209,7 +209,7 @@ function mount(){
  });
  const showJourney=!['before','ended','loading','default','none'].includes(state);
  if(shell.querySelector('#v58Journey').hidden!==!showJourney)shell.querySelector('#v58Journey').hidden=!showJourney;
- const visibleSlots=slots.textContent.trim().length>0&&state!=='ended';
+ const visibleSlots=slots.textContent.trim().length>0; // Ending reception must not hide the read-only schedule.
  if(sessionsZone.hidden===visibleSlots)sessionsZone.hidden=!visibleSlots;
  progressiveSections(home,state,info.live);
  if(!home.classList.contains('v58-action-first'))home.classList.add('v58-action-first');

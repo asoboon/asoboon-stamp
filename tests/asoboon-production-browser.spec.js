@@ -547,6 +547,58 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
+test('Certified main HOME keeps after-closing session rows visible in the v58 layout',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__homeQAEnv;},
+   set(value){this.__homeQAEnv=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58SessionsZone')).toBeVisible();
+ await expect(page.locator('#v38Slots .v38-ended-slot')).toHaveCount(3);
+ await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ await expect(page.locator('#v613Board')).toHaveCount(0);
+});
+test('Certified main HOME translates saved ticket instructions in all supported locales',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__homeQAEnv;},
+   set(value){this.__homeQAEnv=Object.freeze({...value,
+    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
+   });}
+  });
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'R777',businessDate:'2026-10-03',waitTypeId:'0030'
+  }));
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero h1')).toHaveText('受付番号は保存済みです');
+ const headings={
+  en:'Your ticket number is saved',
+  'zh-CN':'您的取号号码已保存',
+  vi:'Số thứ tự của bạn đã được lưu',
+  ne:'तपाईंको पालो नम्बर सुरक्षित छ',
+  ko:'접수 번호가 저장되어 있습니다',
+  kmr:'Hejmara qeydkirina we hatiye tomar kirin'
+ };
+ const picker=page.locator('#asoboon-language-select');
+ for(const [language,heading] of Object.entries(headings)){
+  await picker.selectOption(language);
+  await expect(page.locator('#v38Hero h1')).toHaveText(heading);
+  await expect(page.locator('#v38Hero p')).not.toContainText('現在の受付・呼出状況');
+  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+ }
+ await picker.selectOption('ja');
+ await expect(page.locator('#v38Hero h1')).toHaveText('受付番号は保存済みです');
+});
 test('After closing, HOME retains three admission times but offers no reception links',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
