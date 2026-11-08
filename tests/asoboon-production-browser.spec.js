@@ -776,6 +776,7 @@ test('After closing, last verified WEB and LINE counts still give forecast 100 p
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('9:30');
  const first=page.locator('#v613Board .v613-row').first();
  await expect(first.locator('.v613-percent')).toHaveText('100%');
+ await expect(page.locator('#v38CrowdAge')).toHaveText('最終更新 17:40');
  await expect(first.locator('.v38-crowd-channel--web')).toContainText('0');
  await expect(first.locator('.v38-crowd-channel--onsite')).toContainText('0');
  await expect(page.locator('#v38Slots')).not.toContainText('次の営業日の入場');
