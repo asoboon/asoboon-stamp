@@ -1800,7 +1800,7 @@ test('Optional language runtime outage falls back to the working Japanese LINE r
  await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toContainText('当日受付');
  await expect(page.locator('#asoboon-language-select')).toHaveCount(0);
- await page.locator('[data-v7-view="reception"]').first().click();
+ await page.locator('#v38Hero [data-v7-view="reception"]').click();
  await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
 });
 
