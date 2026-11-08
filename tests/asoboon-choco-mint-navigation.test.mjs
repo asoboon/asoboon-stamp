@@ -32,3 +32,10 @@ test('Navigation modules do not mutate reception, cancellation, user state, or A
   for(const forbidden of [/fetch\(/,/XMLHttpRequest/,/localStorage\.removeItem/,/localStorage\.clear/,/cancelReservation/,/createReservation/,/sendServiceMessage/,/navigator\.sendBeacon/])assert(!forbidden.test(src),String(forbidden));
  }
 });
+test('Figma mint shell remains independent of operational API and prevents view flicker',()=>{
+ for(const token of ['--cm-paper:#FFFFFC','--cm-pale:#F7F3EA','--cm-mint-ice:#9ADBC0'])assert(css.includes(token));
+ assert(css.includes('body #app .view.active{animation:none!important;opacity:1!important'));
+ for(const state of ['v38-home-active','v7-reception-active','v7-callstatus-active','v7-page-active'])assert(css.includes(state));
+ assert(css.includes('.v38-action.primary:not(:disabled)'));
+});
+
