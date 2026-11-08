@@ -1377,8 +1377,10 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const button=page.locator('#v38CrowdUpdate');
+ await expect(page.locator('#v38CrowdAge')).toHaveText(/^最終更新 \d{2}:\d{2}$/);
  await expect(button).toBeEnabled();
  await button.evaluate(el=>el.click());
+ await expect.poll(()=>reads).toBe(2);
  await expect(button).toBeDisabled();
  await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  await page.waitForTimeout(200);
@@ -2334,6 +2336,7 @@ test('HOME manual refresh requests fresh AirWAIT confirmation, not the fast cach
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
+ await expect(page.locator('#v38CrowdAge')).toHaveText(/^最終更新 \d{2}:\d{2}$/);
  expect(requests.length).toBe(1);
  expect(requests[0].searchParams.get('refresh')).toBe(null);
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
