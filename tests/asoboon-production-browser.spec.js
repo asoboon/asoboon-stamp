@@ -622,6 +622,44 @@ test('19:00 date rollover reads the previous calendar date business type, never 
  expect(dateReads).toContain('2026-10-04');
  expect(dateReads).toContain('2026-10-03');
 });
+test('Verified legacy capacity survives AIRWAIT_CROWD_EMPTY cleanup and migrates to durable same-day archive',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
+  operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-600000,verifiedFresh:true,
+  slots:[{waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}],
+  details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true}]
+ })));
+ await page.route(GATEWAY+'**',route=>{
+  if(new URL(route.request().url()).searchParams.get('action')==='crowdRemaining')
+   return route.fulfill({status:502,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_CROWD_EMPTY"}'});
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const first=page.locator('#v613Board .v613-row').first();
+ await expect(first.locator('.v613-percent')).toHaveText('100%');
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1'))).toBeNull();
+ await expect(first.locator('.v613-percent')).toHaveText('100%');
+ const x=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_last_verified_crowd_day_v1')||'null'));
+ expect(x.date).toBe('2026-10-03');
+ await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});
+test('Business-day refresh failure never reopens closed WEB or LINE reception controls',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ await page.addInitScript(()=>{
+  let currentDay;
+  Object.defineProperty(window,'ASOBOON_V2_BUSINESS_DAY',{configurable:true,
+   get(){return currentDay;},
+   set(value){currentDay={...value,getCurrent:(...args)=>window.__qaBreakBusinessDay?Promise.reject(Error('SIMULATED_BUSINESS_DAY_FAILURE')):value.getCurrent(...args)};}
+  });
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await page.evaluate(()=>{window.__qaBreakBusinessDay=true;window.dispatchEvent(new Event('focus'))});
+ await expect(page.locator('#v38Hero')).toContainText('営業情報を取得できません');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toBeVisible();
+ await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});
 test('After closing, last verified WEB and LINE counts still give forecast 100 percent, with no active booking buttons',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.addInitScript(()=>{

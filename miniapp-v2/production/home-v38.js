@@ -128,7 +128,11 @@ function readLastCrowd(){
  for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
   const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
   if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
-  if(key===CROWD_CACHE_KEY&&x.verifiedFresh!==true)continue;
+  if(key===CROWD_CACHE_KEY){
+   if(x.verifiedFresh!==true)continue;
+   // Persist the proven same-day value before an empty API response deletes the legacy cache.
+   try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
+  }
   return x;
  }catch{}
  return null;
@@ -140,6 +144,11 @@ function saveLastCrowd(){
 function businessForBoard(){
  const today=nowJst().date;
  return displayDay?.operationalDate===today?displayDay:day?.operationalDate===today?day:null;
+}
+function crowdReadOnly(){
+ const business=businessForBoard(),now=nowJst(),closing=clockMinutes(business?.closingTime);
+ return !day||!!dayError||crowdClosed||day?.operationalDate!==now.date
+  ||availability().type==='ended'||(Number.isFinite(closing)&&now.minutes>=closing);
 }
 function safePeople(value){
 if(typeof value!=='number'&&!(typeof value==='string'&&/^\d+$/.test(value)))return null;
@@ -163,7 +172,7 @@ function validCrowdSlots(){
  const business=businessForBoard(),ids=CROWD_SETTINGS.IDS[String(business?.businessType||'')]||[];
  const age=Date.now()-crowdAt;
  const live=day?.operationalDate===nowJst().date&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS;
- const ended=availability().type==='ended'||crowdClosed;
+ const ended=crowdReadOnly();
  const archive=ended&&!live?readLastCrowd():null;
  const source=live?{businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:archive;
  const trusted=source?.businessType===business?.businessType?source:null;
@@ -204,7 +213,7 @@ function renderSlots(){
  const times='<div class="v38-opening-hours" aria-label="受付開始時刻"><span>WEB受付 <strong>7:00〜</strong><small>対象日のみ</small></span><span>LINE受付 <strong>'+esc(lineReceptionOpenDisplay())+'〜</strong></span></div>';
  if(!business){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠を確認しています…</p>');return}
  if(business.isClosed){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">本日は休館日です。</p>');return}
- const slots=validCrowdSlots(),ended=availability().type==='ended'||crowdClosed;
+ const slots=validCrowdSlots(),ended=crowdReadOnly();
  if(!slots.length){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠の人数を確認できません。</p>');return}
  const stamp=slots.find(x=>x.verifiedAt>0)?.verifiedAt||0;
  const time=stamp?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(stamp)):'';
