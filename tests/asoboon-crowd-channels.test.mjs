@@ -22,7 +22,7 @@ test('Reuse only existing API observedDetails, cache safely and never make an ex
  assert.match(home,/CROWD_STALE_MS=90000/);
 });
 test('Two clear, responsive channels independently navigate to AirWAIT WEB and LINE reception',()=>{
- for(const word of ['WEB受付','LINE受付','確認中','表示はWEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
+ for(const word of ['WEB受付','LINE受付','確認中','混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。','data-v7-view="reception"'])assert.ok(home.includes(word),word);
  assert.match(css,/v38-crowd-channels\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(home,/const webUrl=airwaitWebReceptionUrl\(\)/);
  assert.match(home,/href="\$\{esc\(webUrl\)\}" target="_blank" rel="noopener noreferrer" data-external="1"/);
@@ -39,7 +39,7 @@ test('HOME states verified remaining people clearly and labels the section as re
  for(const phrase of ['受付枠の空き状況','残り人数','value===null?\'確認中\''])assert.ok(home.includes(phrase),phrase);
  assert.match(home,/\$\{value\}<small>人<\/small>/);
  assert.match(home,/WEB受付とLINE受付の残り人数/);
- assert.match(home,/WEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。/);
+ assert.match(home,/混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。/);
  assert.doesNotMatch(home,/本日の混雑状況/);
  assert.match(home,/slot\.reserveUnit!=='PERSON'/);
  assert.match(home,/slot\.evidence!=='PERSON'/);
@@ -55,7 +55,7 @@ test('Cold HOME starts one safe read in parallel with business-day lookup and re
  assert.match(home,/if\(!manual&&early/);
  assert.match(home,/const cached=readCrowdCache\(\);if\(cached\?\.verifiedFresh/);
  assert.match(home,/result\.response;data=result\.data/);
- assert.match(home,/受付残り人数を確認しています/);
+ assert.match(home,/受付枠を確認しています/);
 });
 
 test('HOME callstatus CTA supports verified states in seven locales without changing its destination',()=>{

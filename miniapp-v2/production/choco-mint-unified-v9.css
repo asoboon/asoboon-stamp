@@ -272,3 +272,23 @@ html body #app #v38Hero.call-link .v38-call-cta{background:var(--cm-mint)!import
 #app .v38-ended-slot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 15px;background:var(--cm-paper);border:1px solid var(--cm-beige);border-radius:12px;color:var(--cm-bitter)}
 #app .v38-ended-slot time{font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}
 #app .v38-ended-slot span{font-size:13px;font-weight:850;color:var(--cm-milk)}
+
+/* Stronger chocolate-mint blue: headers, facts and key numbers only. */
+:root{--cm-bold-blue:#126E7D;--cm-deep-blue:#0B5869;--cm-blue-tint:#DAF3F2}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;margin:7px 0 11px}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours>span{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:4px;padding:10px 6px;border:1px solid #96CED3;border-radius:12px;background:var(--cm-blue-tint);color:var(--cm-deep-blue);font-size:12px;font-weight:850}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours>span:first-child{background:var(--cm-bold-blue);color:#fff;border-color:var(--cm-bold-blue)}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours strong{font-size:15px;letter-spacing:.01em;color:inherit}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours small{font-size:10px;font-weight:600;color:inherit;opacity:.9}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-crowd-closed-note{margin:4px 0 11px;padding:9px 12px;border-left:4px solid var(--cm-bold-blue);border-radius:6px 10px 10px 6px;background:#EEF9F8;color:var(--cm-deep-blue);font-size:12px;font-weight:750;line-height:1.5}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-header{background:var(--cm-bold-blue)!important;border-bottom-color:var(--cm-deep-blue)!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-header .v613-header-cell{color:#fff!important;font-weight:900!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-percent{color:var(--cm-deep-blue)!important;font-size:18px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-time{color:var(--cm-deep-blue)!important;font-weight:950!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58SessionsZone>.v58-section-title{color:var(--cm-deep-blue)!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Today{border:1px solid #8DCBD0!important;background:#D7F3F1!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Today strong{color:var(--cm-deep-blue)!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-grid{border-color:#92C7CF!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-channel .v38-crowd-channel.is-readonly{cursor:default!important;pointer-events:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-channel .v38-crowd-channel.is-readonly>strong{color:#24505B!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app>.cm-bottom-nav .cm-nav-tab.is-current{background:#36B9BE!important;color:#173637!important}

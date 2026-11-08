@@ -595,6 +595,7 @@ const RECEPTION_FALLBACK_ACTIVE=OPERATIONAL_FALLBACKS.enabled===true&&F.receptio
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
 const CALL_STATUS_CACHE_KEY='asoboon_v2_callstatus_production_v1';
 const CROWD_CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
+const LAST_CROWD_KEY='asoboon_v2_last_verified_crowd_day_v1';
 const TIMEGUIDE_KEY='asoboon_v2_timeguide_production_v1';
 const ASSET_BASE=String(E.assetBase||'./');
 const SITE_BASE=String(E.siteBase||'../../');
@@ -607,7 +608,7 @@ let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
  clearTimeout(crowdPollTimer);crowdPollTimer=0;
- if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
+ if(currentView()!=='home'||day?.isClosed||crowdClosed||day?.operationalDate!==nowJst().date||availability().type==='ended')return;
  const now=Date.now(),wait=crowdRetryAt>now?crowdRetryAt-now:crowdAt?30e3:15e3
  crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
@@ -637,7 +638,7 @@ const COPY={ja:{loading:'読み込み中',today:'',hours:'利用時間',close:'�
 const T=COPY.ja,icons={calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h2M14 14h2M8 17h2"/>',ticket:'<path d="M5 7.5A2.5 2.5 0 0 0 7.5 5h9A2.5 2.5 0 0 0 19 7.5v1a2.5 2.5 0 0 0 0 5v1A2.5 2.5 0 0 0 16.5 17h-9A2.5 2.5 0 0 0 5 14.5v-1a2.5 2.5 0 0 0 0-5z"/><path d="M12 7v10"/>',queue:'<circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><path d="M3.5 18c.5-3.5 2-5 4.5-5s4 1.5 4.5 5M12 14c1-.8 2-1 3.3-1 2.7 0 4.3 1.6 4.7 5"/>',bell:'<path d="M6 16h12l-1.5-2v-3a4.5 4.5 0 0 0-9 0v3zM10 19h4"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',person:'<circle cx="12" cy="8" r="3"/><path d="M6 20c.4-4 2.4-6 6-6s5.6 2 6 6"/>',yen:'<path d="m7 5 5 7 5-7M8 12h8M8 15h8M12 12v7"/>',parking:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>',check:'<path d="M7 4h10v16H7zM9 9l1.5 1.5L14 7M9 15h6"/>',door:'<path d="M5 20V4h11v16M9 12h10M16 9l3 3-3 3"/>',game:'<path d="M7 9h10l3 7a2 2 0 0 1-3 2l-2-2H9l-2 2a2 2 0 0 1-3-2zM8 12v3M6.5 13.5h3M16 12h.01M18 14h.01"/>',fortune:'<path d="M7 4h10v16H7zM9 7h6M10 11h4M9 16h6"/>',quest:'<path d="M5 15h14l-1.5-5.5h-2.2L13.8 7h-4L8.2 9.5H6.5z"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><path d="M9 9.5h5.8M4 13h2M18 13h2"/>',alert:'<path d="M12 4 3.5 19h17zM12 9v4M12 16h.01"/>',arrow:'<path d="m9 6 6 6-6 6"/>'};
 const svg=k=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${icons[k]||icons.check}</svg>`;
 const CROWD_SETTINGS=Object.freeze({CAPACITY:350,IDS:Object.freeze({'平日':Object.freeze(['0024','0027']),'平日特定日':Object.freeze(['0036','0038']),'土日祝日':Object.freeze(['0030','0032','0034'])})});
-let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdDetails=[],crowdError='',crowdAt=0,crowdLoading=false;
+let latest=window.ASOBOON_HOME_STATUS_SNAPSHOT||null,day=null,displayDay=null,dayError='',dayLoading=false,lastHero='',crowdSlots=null,crowdDetails=[],crowdError='',crowdAt=0,crowdLoading=false;
 let earlyCrowd=null;
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
@@ -711,37 +712,74 @@ function restoreFreshCrowdForDay(){
  return true;
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
+// Preserve VERIFIED reservation counts for the same calendar day, read-only.
+function readLastCrowd(){
+ // Also migrate a previously VERIFIED 90-second cache without trusting it as live data.
+ for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
+  const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
+  if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
+  if(key===CROWD_CACHE_KEY){
+   if(x.verifiedFresh!==true)continue;
+   // Persist the proven same-day value before an empty API response deletes the legacy cache.
+   try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
+  }
+  return x;
+ }catch{}
+ return null;
+}
+function saveLastCrowd(){
+ if(day?.operationalDate!==nowJst().date||day?.isClosed||crowdAt<=0||crowdStale)return;
+ try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:day.operationalDate,businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}))}catch{}
+}
+function businessForBoard(){
+ const today=nowJst().date;
+ return displayDay?.operationalDate===today?displayDay:day?.operationalDate===today?day:null;
+}
+function crowdReadOnly(){
+ const business=businessForBoard(),now=nowJst(),closing=clockMinutes(business?.closingTime);
+ return !day||!!dayError||crowdClosed||day?.operationalDate!==now.date
+  ||availability().type==='ended'||(Number.isFinite(closing)&&now.minutes>=closing);
+}
 function safePeople(value){
 if(typeof value!=='number'&&!(typeof value==='string'&&/^\d+$/.test(value)))return null;
 const n=Number(value);
 return Number.isSafeInteger(n)&&n>=0&&n<=CROWD_SETTINGS.CAPACITY?n:null;
 }
 function normCrowdName(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').trim()}
-function onsiteRemaining(webId){
-const label=ONSITE_CROWD_NAMES[String(day?.businessType||'')]?.[String(webId||'')];
-if(!label||!Array.isArray(crowdDetails))return null;
-const matched=crowdDetails.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
-if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
-const n=safePeople(matched[0].remaining);
-return n===0&&matched[0].remainingVerified!==true?null:n;
+function onsiteRemaining(webId,rows=crowdDetails,type=day?.businessType){
+ const label=ONSITE_CROWD_NAMES[String(type||'')]?.[String(webId||'')];
+ if(!label||!Array.isArray(rows))return null;
+ const matched=rows.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
+ if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
+ const n=safePeople(matched[0].remaining);
+ return n===0&&matched[0].remainingVerified!==true?null:n;
 }
 function verifiedWebRemaining(slot){
-if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON')return null;
-if(slot.matchMode!=='exact-name')return null;
-return safePeople(slot.remaining);
+ if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON'||slot.matchMode!=='exact-name')return null;
+ return safePeople(slot.remaining);
 }
 function validCrowdSlots(){
-const ids=CROWD_SETTINGS.IDS[String(day?.businessType||'')]||[];
-return ids.map(id=>{
-const matched=(Array.isArray(crowdSlots)?crowdSlots:[]).filter(x=>String(x?.waitTypeId||'')===id);
-const slot=matched.length===1?matched[0]:null;
- const age=Date.now()-crowdAt,usable=!crowdStale&&age>=0&&age<=CROWD_STALE_MS&&day?.operationalDate===nowJst().date;
-const web=usable?verifiedWebRemaining(slot):null;
-const onsite=usable?onsiteRemaining(id):null;
-return{id,time:String(slot?.slotKey||'')||({ '0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00' })[id],web,onsite};
-});
+ const business=businessForBoard(),ids=CROWD_SETTINGS.IDS[String(business?.businessType||'')]||[];
+ const age=Date.now()-crowdAt;
+ const live=day?.operationalDate===nowJst().date&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS;
+ const ended=crowdReadOnly();
+ const archive=ended&&!live?readLastCrowd():null;
+ const source=live?{businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:archive;
+ const trusted=source?.businessType===business?.businessType?source:null;
+ return ids.map(id=>{
+  const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
+  const slot=matches.length===1?matches[0]:null;
+  return {id,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
+   web:verifiedWebRemaining(slot),onsite:trusted?onsiteRemaining(id,trusted.details,business.businessType):null,
+   verifiedAt:trusted?.savedAt||0};
+ });
 }
-function remainingMarkup(label,value,channel,{time='',webUrl=''}={}){
+function remainingMarkup(label,value,channel,{time='',webUrl='',readonly=false}={}){
+ if(readonly){
+  const number=value===null?'<small class="v38-crowd-unknown">確認中</small>':String(value)+'<small>人</small>';
+  return '<div class="v38-crowd-channel v38-crowd-channel--'+channel+' is-readonly" aria-label="'+esc(label+'、受付終了')+'"><span>'+esc(label)+'</span><strong data-v613-n="'+(value===null?'':value)+'">'+number+'</strong></div>';
+ }
+
  const people=value===null?'確認中':value+'人';
  const content=`<span>${esc(label)}</span><strong data-v613-n="${value??''}">${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
  const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
@@ -760,44 +798,33 @@ function writeCrowdMarkup(box,markup){
  lastCrowdRenderBox=box;lastCrowdMarkup=markup;
 }
 function renderSlots(){
-const box=root.querySelector('#v38Slots');
-if(!box)return;
-if(!day||dayError||day.isClosed){
- writeCrowdMarkup(box,dayError?'<h3>受付枠の空き状況</h3><p class="v38-slots-error">受付状況を取得できません</p>':!day?'<h3>受付枠の空き状況</h3><p class="v38-slots-note">受付残り人数を確認しています…</p>':'');
-return;
-}
-const slots=validCrowdSlots();
-if(availability().type==='ended'||crowdClosed){
- const today=day.operationalDate===nowJst().date;
- const label=today?'本日の受付枠は終了しました':'次の営業日の入場回（参考）';
- writeCrowdMarkup(box,`<h3>受付枠の時間帯</h3><p class="v38-ended-schedule-note" role="status">${label}。受付は終了しています。</p><div class="v38-ended-schedule" role="list">${slots.map(x=>`<div class="v38-ended-slot" role="listitem"><time>${esc(x.time||'—')}</time><span>${today?'受付終了':'受付時間外'}</span></div>`).join('')}</div>`);
- return;
-}
-if(!slots.length){
- const ended=crowdClosed||crowdError==='AIRWAIT_CROWD_EMPTY';
- const title=ended?'本日の受付枠は終了しました':crowdError?'受付枠の空き状況を確認できません':'表示できる受付枠はありません';
- const note=ended?'ご利用ありがとうございました。':'受付画面で最新状況をご確認ください。';
- writeCrowdMarkup(box,`<h3>受付枠の空き状況</h3><div class="v38-crowd-empty"><strong>${title}</strong><p>${note}</p></div>`+(ended?'':action('reception','受付状況を確認する')));
- return;
-}
-const webUrl=airwaitWebReceptionUrl();
-const rows=slots.map(slot=>{
-const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':`${slot.time}回`;
-const spoken=value=>value===null?'確認中':value+'人';
-return `<div class="v38-crowd-card crowd-unknown" role="group" aria-label="${esc(label)}。WEB受付の残り${spoken(slot.web)}。LINE受付の残り${spoken(slot.onsite)}">
-<div class="v38-crowd-head"><time>${esc(label)}</time></div>
-<div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数">
-<div class="v38-crowd-remaining-title">残り人数</div>
-<div class="v38-crowd-channels">${remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl})}${remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time})}</div>
-</div>
-<p class="v38-crowd-tap-hint">受付方法をタップ</p>
-</div>`;
-}).join('');
-writeCrowdMarkup(box,`<h3>受付枠の空き状況</h3><div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">${esc(crowdFreshness())}</span><button type="button" id="v38CrowdUpdate" ${crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':''}>↻ 今すぐ更新</button></div><div class="v38-crowd-list">${rows}</div><p class="v38-crowd-note v38-crowd-disclaimer">表示はWEB・LINE各受付の残り人数です。館内の滞在人数や混雑率ではありません。</p>`);
+ const box=root.querySelector('#v38Slots');if(!box)return;
+ const business=businessForBoard();
+ const times='<div class="v38-opening-hours" aria-label="受付開始時刻"><span>WEB受付 <strong>7:00〜</strong><small>対象日のみ</small></span><span>LINE受付 <strong>'+esc(lineReceptionOpenDisplay())+'〜</strong></span></div>';
+ if(!business){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠を確認しています…</p>');return}
+ if(business.isClosed){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">本日は休館日です。</p>');return}
+ const slots=validCrowdSlots(),ended=crowdReadOnly();
+ if(!slots.length){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠の人数を確認できません。</p>');return}
+ const stamp=slots.find(x=>x.verifiedAt>0)?.verifiedAt||0;
+ const time=stamp?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(stamp)):'';
+ const endedNote=ended?'<p class="v38-crowd-closed-note" role="status">本日の受付枠は終了しました。'+(time?'数字は'+time+'の最終確認時点です。':'最新の人数は確認できません。')+'</p>':'';
+ const webUrl=airwaitWebReceptionUrl();
+ const rows=slots.map(slot=>{
+  const label=slot.id==='0024'?'すぐ入場':slot.id==='0027'?'14:00から':slot.time+'回';
+  const spoken=value=>value===null?'確認中':value+'人';
+  return '<div class="v38-crowd-card crowd-unknown'+(ended?' is-readonly':'')+'" role="group" aria-label="'+esc(label+'。WEB受付の残り'+spoken(slot.web)+'。LINE受付の残り'+spoken(slot.onsite))+'">'
+   +'<div class="v38-crowd-head"><time>'+esc(label)+'</time></div>'
+   +'<div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数"><div class="v38-crowd-remaining-title">残り人数</div><div class="v38-crowd-channels">'
+   +remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl,readonly:ended})
+   +remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended})
+   +'</div></div>'+(ended?'':'<p class="v38-crowd-tap-hint">受付方法をタップ</p>')+'</div>';
+ }).join('');
+ const refresh=ended?'':'<div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">'+esc(crowdFreshness())+'</span><button type="button" id="v38CrowdUpdate" '+(crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':'')+'>↻ 今すぐ更新</button></div>';
+ writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+endedNote+refresh+'<div class="v38-crowd-list">'+rows+'</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。</p>');
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){
- if(document.hidden||currentView()!=='home'||crowdLoading)return;
+ if(document.hidden||currentView()!=='home'||crowdLoading||day?.operationalDate!==nowJst().date)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
@@ -819,7 +846,7 @@ async function fetchCrowd(force=false,manual=false){
   const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
   crowdAt=fetchedAt<=Date.now()&&!crowdStale?fetchedAt:0;
   if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
-  crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);
+  crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);saveLastCrowd();
  }catch(e){
   const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
   if(reason==='AIRWAIT_CROWD_EMPTY'){
@@ -847,7 +874,16 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}
+ displayDay=day.operationalDate===nowJst().date?day:null;
+ if(!displayDay&&typeof D.getByDate==='function'){
+  try{
+   const today=nowJst().date;
+   const resolved=await Promise.race([D.getByDate(today),new Promise((_,reject)=>setTimeout(()=>reject(Error('DISPLAY_DAY_TIMEOUT')),7000))]);
+   if(resolved?.ok&&resolved.operationalDate===today)displayDay=resolved;
+  }catch{}
+ }
+if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
