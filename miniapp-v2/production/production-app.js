@@ -824,7 +824,7 @@ function renderSlots(){
    +remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended})
    +'</div></div>'+(ended?'':'<p class="v38-crowd-tap-hint">受付方法をタップ</p>')+'</div>';
  }).join('');
- const refresh='<div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">'+esc(crowdFreshness())+'</span><button type="button" id="v38CrowdUpdate" '+(crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':'')+'>↻ 今すぐ更新</button></div>';
+ const refresh='<div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">'+esc(time?'最終更新 '+time:'最終更新 —:—')+'</span><button type="button" id="v38CrowdUpdate" '+(crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':'')+'>↻ 今すぐ更新</button></div>';
  writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+endedNote+refresh+'<div class="v38-crowd-list">'+rows+'</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。</p>');
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}

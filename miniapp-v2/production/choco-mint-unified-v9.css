@@ -529,3 +529,88 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-crowd-closed-note{
   overflow-wrap:normal!important;word-break:keep-all!important;
  }
 }
+
+/* HOME final compact copy and consistent guide navigation.
+   Keep dynamic forecast percentages/counts, but display only their last update. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots .v38-crowd-closed-note,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots .v38-crowd-disclaimer,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board .v613-footnote,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots #v38CrowdUpdate{
+  display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots>.v38-crowd-refresh{
+  display:flex!important;justify-content:flex-end!important;align-items:center!important;
+  min-height:22px!important;height:auto!important;gap:0!important;
+  margin:0 1px 5px!important;padding:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38CrowdAge{
+  display:block!important;flex:none!important;max-width:100%!important;
+  font-size:11px!important;line-height:1.45!important;
+  font-weight:700!important;text-align:right!important;color:#54736e!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="ended"] .v58-native-action,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="closed"] .v58-native-action{
+  display:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="ended"] .v58-primary,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="closed"] .v58-primary{
+  display:block!important;min-height:0!important;height:auto!important;
+  padding:4px 0 2px!important;margin:0 0 8px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="ended"] .v58-primary .v58-intro,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v58Flow[data-state="closed"] .v58-primary .v58-intro{
+  display:block!important;margin:0!important;padding:0 2px!important;
+}
+/* One coherent list of five large tap targets. The re-entry shortcut is not
+   allowed to be narrower than the other four cards. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v59-fold-body{
+  padding:12px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-grid{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  gap:9px!important;width:100%!important;min-width:0!important;
+  align-items:stretch!important;justify-items:stretch!important;margin:0!important;padding:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide>.v38-guide-card{
+  display:grid!important;grid-template-columns:42px minmax(0,1fr) 18px!important;
+  align-items:center!important;justify-items:stretch!important;
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;
+  max-width:100%!important;min-height:70px!important;height:auto!important;
+  margin:0!important;padding:11px 12px!important;gap:10px!important;
+  border-radius:12px!important;border:1px solid #cbe3dc!important;
+  background:#fffefd!important;box-shadow:none!important;
+  text-align:left!important;transform:none!important;
+  --accent:#176d74!important;--soft:#e2f5f0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card>.v38-icon{
+  display:grid!important;place-items:center!important;
+  width:42px!important;height:42px!important;min-width:42px!important;
+  border-radius:11px!important;background:#e2f5f0!important;color:#116b70!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card>span:nth-child(2){
+  min-width:0!important;text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card strong{
+  font-size:15px!important;font-weight:900!important;line-height:1.4!important;
+  color:#2b3835!important;text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card small{
+  display:block!important;margin-top:2px!important;font-size:12px!important;
+  line-height:1.4!important;color:#55716a!important;text-align:left!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card>svg{
+  width:18px!important;height:18px!important;justify-self:end!important;
+  color:#2e7f7f!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card:focus-visible{
+  outline:3px solid #116b70!important;outline-offset:2px!important;
+}
+@media(max-width:350px){
+  html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v59-fold-body{padding:10px!important}
+  html.boon-v4.boon-v5-mint body.v38-home-active #app #v59GuideFold .v38-guide-card{
+    grid-template-columns:40px minmax(0,1fr) 16px!important;
+    gap:9px!important;padding:10px 11px!important;
+  }
+}
