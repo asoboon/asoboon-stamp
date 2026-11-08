@@ -2230,7 +2230,8 @@ test('HOME refuses to claim reception ended when one AirWAIT slot remains publis
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-crowd-channel--web strong')).toHaveText(['確認中','確認中','確認中']);
+ await expect(page.locator('#v38Slots .v38-crowd-list .v38-crowd-channel--web strong')).toHaveText(['確認中','確認中','確認中']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['—','—','—']);
  await expect(page.locator('#v38Slots')).not.toContainText('本日の受付枠は終了しました');
 });
 
