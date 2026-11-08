@@ -638,6 +638,43 @@ test('After 19:00 a fresh visitor sees latest verified AirWAIT counts for the sw
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('本日終了時の人数とは異なります');
  await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ // Compact WEB/LINE counts must be vertically centered with percentages and time,
+ // not pinned to the top by the old 45px large-card number minimum.
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  await expect(page.locator('#v613Board .v613-row')).toHaveCount(2);
+  const aligned=await page.evaluate(()=>{
+   const midpoint=el=>{const r=el.getBoundingClientRect();return (r.top+r.bottom)/2};
+   return [...document.querySelectorAll('#v613Board .v613-row')].flatMap(row=>{
+    const gauge=row.querySelector('.v613-percent');
+    return [...row.querySelectorAll('.v613-channel')].map(cell=>{
+     const channel=cell.querySelector('.v38-crowd-channel'),strong=channel?.querySelector('strong');
+     if(!strong||!gauge)return{exists:false};
+     const rect=strong.getBoundingClientRect(),channelRect=channel.getBoundingClientRect();
+     return {
+      exists:true,
+      text:strong.innerText,
+      verticalOffset:Math.abs(midpoint(strong)-midpoint(cell)),
+      peerOffset:Math.abs(midpoint(strong)-midpoint(gauge)),
+      legacyMinHeight:getComputedStyle(strong).minHeight,
+      numberHeight:rect.height,
+      tapHeight:channelRect.height
+     };
+    });
+   });
+  });
+  expect(aligned,'WEB/LINE count alignment at '+width).toHaveLength(4);
+  for(const box of aligned){
+   expect(box.exists).toBe(true);
+   expect(box.verticalOffset).toBeLessThanOrEqual(1);
+   expect(box.peerOffset).toBeLessThanOrEqual(2);
+   expect(box.legacyMinHeight).toBe('0px');
+   expect(box.numberHeight).toBeLessThan(28);
+   expect(box.tapHeight).toBeGreaterThanOrEqual(44);
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+
  expect(crowdReads).toBeGreaterThanOrEqual(1);
 });
 test('Certified HOME business-day typography never overlaps at five responsive widths',async({page})=>{
