@@ -1337,8 +1337,9 @@ function currentView(){return String(qs().get('view')||'home')}
 function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
 function ensureHead(){const head=root.querySelector('.page-head');if(!head)return;setText(head.querySelector('small'),'ASOBooN');setText(head.querySelector('h2'),'LINE当日受付');if(!head.querySelector('.rv7-head-note'))head.insertAdjacentHTML('beforeend','<div class="rv7-head-note">9:30以降、利用する回と人数を選んで受付してください。</div>')}
-function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<div class="rv7-progress" aria-label="受付の流れ"><div class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></div><div class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></div><div class="rv7-step" data-rv7-step="3"><b>3</b><span>確認</span></div></div>')}
+function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<div class="rv7-progress" aria-label="受付の流れ"><div class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></div><div class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></div><div class="rv7-step" data-rv7-step="3"><b>3</b><span>内容確認</span></div><div class="rv7-step" data-rv7-step="4"><b>4</b><span>利用案内</span></div></div>')}
 function ensureConfirmLabel(){const summary=root.querySelector('.rec-summary');if(!summary)return;if(summary.previousElementSibling?.classList?.contains('rv7-confirm-label'))return;summary.insertAdjacentHTML('beforebegin','<div class="rv7-confirm-label"><b>3</b><span>内容を確認</span></div>')}
+function ensureConsentLabel(){const section=root.querySelector('.rec-disclaimer');if(section&&!section.previousElementSibling?.classList?.contains('rv7-consent-label'))section.insertAdjacentHTML('beforebegin','<div class="rv7-consent-label"><b>4</b><span>利用案内を確認</span></div>')}
 function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>{const span=btn.querySelector(':scope > span:first-child');if(!span||span.dataset.rv7Icon==='1')return;span.dataset.rv7Icon='1';span.innerHTML=methodIcon(btn.classList.contains('onsite')?'onsite':'web')})}
 function cleanLabels(){setText(root.querySelector('#recWeb strong'),'LINE受付');setText(root.querySelector('#recOnsite strong'),'LINE受付');const titles=root.querySelectorAll('.rec-title');setText(titles[0],'ご利用の回');setText(titles[1],'ご利用人数')}
 function cleanCustomerCopy(){
@@ -1358,8 +1359,8 @@ function cleanCustomerCopy(){
  const agree=root.querySelector('.rec-agree span');if(agree&&!dev)setText(agree,'受付内容とご利用にあたっての案内を確認しました。受付ボタンは一度だけ押してください。');
  const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))setText(submit,'受付の準備中…');
 }
-function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active')}
-function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());setText(document.querySelector('.brand small'),'川口ハイウェイオアシス');ensureHead();ensureProgress();ensureConfirmLabel();replaceMethodIcons();cleanLabels();cleanCustomerCopy();progressState()}
+function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active');if(agree)steps[3]?.classList.add('active');steps.forEach(x=>{if(x.classList.contains('active'))x.setAttribute('aria-current','step');else x.removeAttribute('aria-current')})}
+function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());setText(document.querySelector('.brand small'),'川口ハイウェイオアシス');ensureHead();ensureProgress();ensureConfirmLabel();ensureConsentLabel();replaceMethodIcons();cleanLabels();cleanCustomerCopy();progressState()}
 function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true,characterData:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',()=>setTimeout(progressState,0),true);patch();setTimeout(patch,50);setTimeout(patch,300)}
 start();
 })();
@@ -1733,4 +1734,43 @@ function needsApply(mutations){const s=route();for(const m of mutations){if(m.ty
 new MutationObserver(mutations=>{if(needsApply(mutations))queue()}).observe(root,{childList:true,subtree:true,characterData:true});
 window.addEventListener('popstate',()=>setTimeout(apply,0));
 apply();
+})();
+
+;/* miniapp-v2/production/choco-mint-hubs-v8.js */
+/* CHOCO MINT SODA route content: lazy-loaded only off HOME. */
+(()=>{'use strict';
+const E=window.ASOBOON_V2_ENV||{};
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function siteHref(path){return new URL(path, E.siteBase||'https://asoboon.github.io/asoboon-stamp/').href}
+function hubRow(title,sub,view,panel='',icon='›'){
+ return `<button type="button" class="cm-hub-row" data-v7-view="${esc(view)}"${panel?` data-v7-panel="${esc(panel)}"`:''}><span class="cm-hub-icon" aria-hidden="true">${esc(icon)}</span><span class="cm-hub-label"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="cm-hub-chevron" aria-hidden="true">›</span></button>`;
+}
+function hubLink(title,sub,path,icon='›'){
+ return `<a class="cm-hub-row" href="${esc(siteHref(path))}" data-external="1" target="_blank" rel="noopener noreferrer"><span class="cm-hub-icon" aria-hidden="true">${esc(icon)}</span><span class="cm-hub-label"><strong>${esc(title)}</strong><small>${esc(sub)}（別の画面で開く）</small></span><span class="cm-hub-chevron" aria-hidden="true">↗</span></a>`;
+}
+function guidePage(){return `<section class="page-card cm-hub" aria-label="ご利用案内"><header class="cm-hub-head"><span class="cm-hub-eyebrow">ASOBooN GUIDE</span><h1>ご利用案内</h1><p>知りたい内容を選んでください。</p></header><div class="cm-hub-list" aria-label="ご利用案内の各項目">
+${hubRow('アソブーンタイマー','入場・終了の時刻を確認','timeguide','','◷')}
+${hubRow('初めての方','受付から入場までの流れ','first','','？')}
+${hubRow('料金','大人600円・子ども900円','first','price','¥')}
+${hubRow('館内ルール','安全に遊ぶためのお約束','rules','','✓')}
+${hubRow('駐車場・アクセス','車でお越しの方へ','parking','','P')}
+${hubRow('一時退場・再入場','外出と戻り方をご案内','entry','','↩')}
+${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/production/business-calendar.html','▦')}
+${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
+${hubRow('よくある質問','困ったときはこちら','faq','','!')}
+</div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
+function faqPage(){return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>ご利用時の疑問をまとめました。</p></header><div class="cm-faq">
+<details><summary>LINE受付とWEB受付は同じですか？</summary><p>別の受付方法です。LINEミニアプリでは店舗受付系の受付をご利用いただけます。</p></details>
+<details><summary>受付番号を確認したい</summary><p>画面下の「呼出」から確認できます。通信エラー時も、保存済みの受付番号は消しません。</p></details>
+<details><summary>呼び出されてから何分以内に行けばいいですか？</summary><p>呼出から30分を目安に受付へお越しください。実際の受付状態は「呼出」でご確認ください。</p></details>
+<details><summary>館内で飲食できますか？</summary><p>館内でのお食事はできません。飲み物は指定された土足エリアでお願いします。</p></details>
+<details><summary>一時退場したあと、戻れますか？</summary><p>再入場の方法は「一時退場・再入場」の案内からご確認ください。</p></details>
+</div>${hubRow('ご利用案内へ戻る','案内トップ','guide','','↩')}</section>`}
+function playPage(){return `<section class="page-card cm-hub" aria-label="あそび"><header class="cm-hub-head"><span class="cm-hub-eyebrow">ASOBooN PLAY</span><h1>あそび</h1><p>館内でも、待ち時間でも。遊びたいものを選んでね。</p></header><div class="cm-hub-list" aria-label="あそびの各項目">
+${hubLink('ASOQUEST スタンプラリー','館内のQRから車のパーツを集めよう','miniapp-v2/production/asoquest/','★')}
+${hubLink('ブーンRUN','障害物をよけて走ろう','boonrun/','▶')}
+${hubLink('BOON MONSTER','モンスターと遊ぼう','boonmonster/','✦')}
+</div><div class="cm-hub-tip"><strong>スタンプラリーに参加する方へ</strong><p>パーツの取得は館内の専用QRから行ってください。完成した画面をスタッフへ見せてね。</p></div>${hubRow('ホームへ戻る','空き状況を見る','home','','⌂')}</section>`}
+
+window.ASOBOON_CHOCOMINT_HUBS=Object.freeze({guide:guidePage,play:playPage,faq:faqPage});
 })();
