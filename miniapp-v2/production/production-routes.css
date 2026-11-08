@@ -332,6 +332,9 @@ body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .t
 @media(max-width:360px){.cs-page.v33-compact-active .cs-ticket.v17-ticket-host .v17-number{font-size:3.05rem!important}}
 
 /* miniapp-v2/production/choco-mint-hubs-v8.css */
+/* The legacy viewIn animation starts at opacity:0 and could make newly
+   navigated GUIDE/PLAY/FAQ screens look blank. New hubs paint immediately. */
+main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 .cm-hub{width:100%;max-width:100%;margin:0 auto 12px;padding:0 0 10px;background:var(--cm-vanilla);color:var(--cm-cocoa);border:1px solid var(--cm-line);border-radius:20px;overflow:hidden}
 .cm-hub-head{padding:22px 18px 16px;background:var(--cm-mint-soft);border-bottom:1px solid var(--cm-line)}
 .cm-hub-eyebrow{display:block;color:var(--cm-deep);font-size:11px;font-weight:850;letter-spacing:.09em}
