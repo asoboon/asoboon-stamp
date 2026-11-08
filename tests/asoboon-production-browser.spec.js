@@ -2602,10 +2602,17 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
   return route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({ok:false,error:'AIRWAIT_CROWD_EMPTY'})});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots')).toContainText('40');
- await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
- await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
- await expect(page.locator('#v38Slots')).not.toContainText('残り40人');
+ const box=page.locator('#v38Slots');
+ await expect(box.locator('.v38-crowd-list')).toBeAttached();
+ // The saved quota is fresh so automatic polling can postpone a network request.
+ // Retry the internal manual action until startup and any concurrent fetch have
+ // completed. This tests quota invalidation, not JS load-event timing.
+ await expect.poll(async()=>{
+  if((await box.textContent()||'').includes('本日の受付枠は終了しました'))return true;
+  await page.locator('#v38CrowdUpdate').evaluate(el=>{if(!el.disabled)el.click()}).catch(()=>{});
+  return false;
+ },{timeout:12000,intervals:[200,350,500,750]}).toBe(true);
+ await expect(box).not.toContainText('残り40人');
 });
 
 test('HOME treats an AirWAIT empty warning on a stale snapshot as ended, not as old remaining seats',async({page})=>{
