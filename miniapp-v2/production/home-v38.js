@@ -221,7 +221,7 @@ function renderSlots(){
  const stamp=slots.find(x=>x.verifiedAt>0)?.verifiedAt||0;
  const time=stamp?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(stamp)):'';
  const switched=ended&&slots.some(slot=>slot.verifiedAt>0&&slot.sourceDate&&slot.sourceDate!==nowJst().date);
- const endedNote=ended?'<p class="v38-crowd-closed-note" role="status">本日の受付は終了しました。'+
+ const endedNote=ended?'<p class="v38-crowd-closed-note" role="status">本日の受付枠は終了しました。'+
    (switched?'数字は'+time+'取得時点の受付切替後の値です。本日終了時の人数とは異なります。':
     time?'数字は'+time+'に確認した人数です。':'最新の人数は確認できません。')+'</p>':'';
  const webUrl=airwaitWebReceptionUrl();

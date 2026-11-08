@@ -649,6 +649,8 @@ test('Certified HOME business-day typography never overlaps at five responsive w
  await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
  const title=page.locator('#v58DayZone>.v58-section-title');
  await expect(title).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
+ await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:820});
   const v=await page.evaluate(()=>{
@@ -659,9 +661,9 @@ test('Certified HOME business-day typography never overlaps at five responsive w
    return{width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
     all:!!outer&&!!title&&!!day&&!!name&&!!duration,
     titleDayOverlap:overlaps(title,day),nameDurationOverlap:overlaps(name,duration),
-    titleInside:title.left>=outer.left-1&&title.right<=outer.right+1,
-    nameInside:name.left>=outer.left-1&&name.right<=outer.right+1,
-    durationInside:duration.left>=outer.left-1&&duration.right<=outer.right+1};
+    titleInside:!!title&&!!outer&&title.left>=outer.left-1&&title.right<=outer.right+1,
+    nameInside:!!name&&!!outer&&name.left>=outer.left-1&&name.right<=outer.right+1,
+    durationInside:!!duration&&!!outer&&duration.left>=outer.left-1&&duration.right<=outer.right+1};
   });
   expect(v,'business-day overlap at '+width).toMatchObject({all:true,titleDayOverlap:false,nameDurationOverlap:false,titleInside:true,nameInside:true,durationInside:true});
   expect(v.scrollWidth).toBeLessThanOrEqual(width+1);
