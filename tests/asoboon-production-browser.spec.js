@@ -632,6 +632,8 @@ test('After 19:00 a fresh visitor sees latest verified AirWAIT counts for the sw
  await expect(page.locator('#v613Board .v613-percent')).toHaveText(['0%','0%']);
  await expect(page.locator('#v613Board .v613-row').first()).toContainText('250');
  await expect(page.locator('#v613Board .v613-row').first()).toContainText('70');
+ await expect(page.locator('#v38Today')).toContainText('土日祝');
+ await expect(page.locator('#v38Today')).not.toContainText('平日特定日');
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('受付切替後');
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('本日終了時の人数とは異なります');
  await expect(page.locator('#v38CrowdUpdate')).toBeVisible();

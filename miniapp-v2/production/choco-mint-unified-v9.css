@@ -293,8 +293,6 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-channel .v38-crowd-cha
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-channel .v38-crowd-channel.is-readonly>strong{color:#24505B!important}
 html.boon-v4.boon-v5-mint body.v38-home-active #app>.cm-bottom-nav .cm-nav-tab.is-current{background:#36B9BE!important;color:#173637!important}
 
-/* HOME business-day facts: stack the label over a flex-wrapping facts row.
- * Previous v5.11 / v6.13 grid rules forced two facts into overlapping columns. */
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day{
  display:flex!important;flex-direction:column!important;align-items:stretch!important;
  justify-content:center!important;gap:5px!important;min-width:0!important;
