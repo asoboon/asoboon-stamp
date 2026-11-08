@@ -1930,7 +1930,7 @@ test('HOME surfaces verified LINE capacity when the WEB wait type cannot be matc
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
- await expect(card).toBeVisible();
+ await expect(visibleCrowdLine(page,'12:30')).toBeVisible();
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り281人');
  await expect(card.locator('[role="progressbar"]')).toHaveCount(0);
