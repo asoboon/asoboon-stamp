@@ -1769,7 +1769,8 @@ function faqPage(){return `<section class="page-card cm-hub" aria-label="よく�
 function playPage(){return `<section class="page-card cm-hub" aria-label="あそび"><header class="cm-hub-head"><span class="cm-hub-eyebrow">ASOBooN PLAY</span><h1>あそび</h1><p>館内でも、待ち時間でも。遊びたいものを選んでね。</p></header><div class="cm-hub-list" aria-label="あそびの各項目">
 ${hubLink('ASOQUEST スタンプラリー','館内のQRから車のパーツを集めよう','miniapp-v2/production/asoquest/','★')}
 ${hubLink('ブーンRUN','障害物をよけて走ろう','boonrun/','▶')}
-${hubLink('BOON MONSTER','モンスターと遊ぼう','boonmonster/','✦')}
+${hubLink('ブーンジャンプ','3タップで飛距離勝負','boonjump/','▶')}
+${hubLink('BOON パズル','ブロックを動かしてゴールを目指そう','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','▦')}
 </div><div class="cm-hub-tip"><strong>スタンプラリーに参加する方へ</strong><p>パーツの取得は館内の専用QRから行ってください。完成した画面をスタッフへ見せてね。</p></div>${hubRow('ホームへ戻る','空き状況を見る','home','','⌂')}</section>`}
 
 window.ASOBOON_CHOCOMINT_HUBS=Object.freeze({guide:guidePage,play:playPage,faq:faqPage});

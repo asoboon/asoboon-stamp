@@ -22,8 +22,11 @@ test('New navigation labels support seven real languages and accessible touch ta
 });
 test('Guide, FAQ, GameHub retain nondead-end links and no staged game routes',()=>{
  for(const route of ["'timeguide'","'first'","'rules'","'parking'","'entry'","'faq'","'guide'"])assert(hubs.includes(route));
- for(const path of ['miniapp-v2/production/asoquest/','boonrun/','boonmonster/','miniapp-v2/production/business-calendar.html','miniapp-v2/production/event-calendar.html']){assert(hubs.includes(path),path);assert(existsSync(path.endsWith('/')?path+'index.html':path),path)}
+ for(const path of ['miniapp-v2/production/asoquest/','boonrun/','boonjump/','miniapp-v2/production/business-calendar.html','miniapp-v2/production/event-calendar.html']){assert(hubs.includes(path),path);assert(existsSync(path.endsWith('/')?path+'index.html':path),path)}
  assert(!hubs.includes('asoquest-v7/'));
+ assert(!hubs.includes('BOON MONSTER'));
+ assert(hubs.includes('BOON パズル'));
+ assert(hubs.includes('https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23'));
  assert(hubs.includes('target="_blank"'));assert(hubs.includes('data-external="1"'));
  assert.match(hubCss,/cm-hub-row/);assert.match(hubCss,/cm-faq/);
 });
