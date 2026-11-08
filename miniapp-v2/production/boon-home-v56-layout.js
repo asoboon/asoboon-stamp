@@ -131,7 +131,8 @@ function mount(){
  let day=home?.querySelector('#v38Today');
  const slots=home?.querySelector('#v38Slots'),timer=home?.querySelector('#v38TimeguideShortcut');
  if(!home||!hero||!day||!slots||!timer)return;
- if(!home.querySelector(':scope > .v58-brand'))home.insertBefore(el('div','v58-brand','ASOBooN'),home.firstChild);
+ // The fixed AppBar is the single official ASOBooN brand on HOME.
+ home.querySelector(':scope > .v58-brand')?.remove();
  // Business-day facts are informational. The original button pointed to the
  // timer, which made a static business label falsely appear tappable.
  // Keep the existing three values and native patchToday bindings unchanged.

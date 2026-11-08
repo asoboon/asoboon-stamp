@@ -547,143 +547,132 @@ test('Entry guide: returning with receipt / yellow holder / neither, then resele
   await expect(page.locator('#entryChoices')).toBeVisible();
 });
 
-test('Official HOME call CTA has a clear signifier, opens callstatus, and respects reduced motion',async({page})=>{
- await installProduction(page);
- await page.addInitScript(()=>{
-  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-   receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'
-  }));
- });
+test('After closing, HOME retains three admission times but offers no reception links',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const button=page.locator('#v38Hero .v38-call-cta');
- await expect(button).toHaveCount(1);
- await expect(button).toHaveAttribute('aria-label',/受付番号と順番を見る/);
- await expect(button.locator('strong')).toHaveText('呼び出し状況を確認する');
- await expect(button.locator('small')).toHaveText('番号・順番をタップしてチェック');
- await expect(button.locator('.v38-call-cta-icon svg')).toHaveCount(1);
- await expect(button.locator('.v38-call-cta-arrow svg')).toHaveCount(1);
- await expect(button).not.toContainText('LIVE');
- await expect(button).not.toContainText('呼出中');
+ await expect(page.locator('#v38Hero')).toContainText('本日の営業は終了しました');
+ const times=page.locator('#v38Slots .v38-ended-slot');
+ await expect(times).toHaveCount(3);
+ for(const time of ['10:00','12:30','15:00'])await expect(times.filter({hasText:time})).toContainText('受付終了');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+ await expect(page.locator('#v38Slots a[href]')).toHaveCount(0);
+ await expect(page.locator('#v613Board')).toHaveCount(0);
+});
+test('After 19:00 daily rollover, next-business-day slots remain reference-only',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-ended-slot')).toHaveCount(3);
+ await expect(page.locator('#v38Slots .v38-ended-schedule-note')).toContainText('参考');
+ await expect(page.locator('#v38Slots .v38-ended-slot').first()).toContainText('受付時間外');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+});
+test('HOME has exactly one ASOBooN header logo and no second v58 brand',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.topbar .brand strong')).toHaveText('ASOBooN');
+ await expect(page.locator('.v38-home .v58-brand')).toHaveCount(0);
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toHaveCount(1);
+});
+test('Official HOME keeps one call-status entry in the bottom navigation for saved receipt',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'})));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero')).toContainText('受付番号は保存済みです');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ const call=page.locator('.cm-bottom-nav [data-v7-view="callstatus"]');
+ await expect(call).toHaveCount(1);
  for(const width of [320,375,390,430]){
   await page.setViewportSize({width,height:800});
-  const box=await button.boundingBox();
-  expect(box.width).toBeGreaterThan(240);
-  expect(box.width).toBeLessThanOrEqual(341); // Stable one-hand CTA, within the CHOCO MINT card
-  expect(box.height).toBeGreaterThanOrEqual(60);
-  expect(box.height).toBeLessThan(85);
+  await expect(call).toBeVisible();
+  expect((await call.boundingBox()).height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  }
- if(process.env.ASOBOON_CALL_CTA_SCREENSHOT==='1'){await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/asoboon-call-cta-390.png',fullPage:true})}
  await page.emulateMedia({reducedMotion:'reduce'});
- await expect.poll(()=>button.locator('.v38-call-cta-signal').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
- await expect.poll(()=>button.locator('.v38-call-cta-arrow').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
- await button.click();
+ await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
  await expect(page.locator('#csState')).toBeVisible();
 });
-test('HOME open-state uses the enhanced call button without interrupting the main reception path',async({page})=>{
+
+test('HOME open-state has only reception CTA; call-status stays in the fixed menu',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/open/);
  const primary=page.locator('#v38Hero [data-v7-view="reception"]');
- const call=page.locator('#v38Hero .v38-call-cta');
  await expect(primary).toBeVisible();
- await expect(call).toBeVisible();
- await expect(call).toContainText('呼び出し状況を確認する');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
  for(const width of [320,375,390]){
   await page.setViewportSize({width,height:800});
-  const rect=await call.boundingBox();
-  expect(rect.width).toBeGreaterThan(240);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  }
  await primary.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  await expect(page.locator('#recSubmit')).toBeVisible();
 });
-test('Official HOME call-status button is wide, low-profile and accessible on narrow phones',async({page})=>{
+
+test('Saved receipt uses compact passive HOME status and accessible fixed call tab on narrow phones',async({page})=>{
  await installProduction(page);
- await page.addInitScript(()=>{
-  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-    receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'
-  }));
- });
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F777',businessDate:'2026-10-03',waitTypeId:'0033'})));
  await page.setViewportSize({width:320,height:700});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const heroNode=page.locator('#v38Hero');
- const callButton=page.locator('#v38Hero [data-v7-view="callstatus"]');
- await expect(heroNode).toHaveClass(/call-link/);
- await expect(heroNode).toBeVisible();
- await expect(callButton).toBeVisible();
- const hero=await heroNode.boundingBox();
- const button=await callButton.boundingBox();
- expect(hero).not.toBeNull();
- expect(button).not.toBeNull();
- expect(hero.height).toBeLessThan(85);
- expect(button.height).toBeGreaterThanOrEqual(44);
- expect(button.width).toBeGreaterThan(210);
- expect(button.width).toBeLessThanOrEqual(320);
+ const hero=page.locator('#v38Hero');
+ await expect(hero).toHaveClass(/call-link/);
+ await expect(hero).toBeVisible();
+ await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(0);
+ const tab=page.locator('.cm-bottom-nav [data-v7-view="callstatus"]');
+ await expect(tab).toBeVisible();
+ const tabRect=await tab.boundingBox();
+ expect(tabRect.height).toBeGreaterThanOrEqual(44);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
 
-test('Production HOME with a saved receipt shows only the call-status link and makes no automatic reservationStatus requests',async({page})=>{
+test('Production HOME with a saved receipt shows status hint only; no duplicated call CTA or automatic reservationStatus requests',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
-   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-     receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0
-   }));
-   localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({
-     receiptNo:'F321',businessDate:'2026-10-03',savedAt:Date.now(),
-     status:{kind:'calling',receipt:'F321',source:'live',checkedAt:Date.now()}
-   }));
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0}));
+  localStorage.setItem('asoboon_v2_home_status_production_v1',JSON.stringify({receiptNo:'F321',businessDate:'2026-10-03',savedAt:Date.now(),status:{kind:'calling',receipt:'F321',source:'live',checkedAt:Date.now()}}));
  });
  const actions=[];
  page.on('request',req=>{const p=new URLSearchParams(req.postData()||'');if(p.get('action')==='reservationStatus')actions.push('status')});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const hero=page.locator('#v38Hero');
  await expect(hero).toHaveClass(/call-link/);
- await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(1);
+ await expect(hero).toContainText('画面下の「呼出」');
+ await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(0);
  await expect(hero).not.toContainText('F321');
- await expect(hero).not.toContainText('あと');
- await expect(hero).not.toContainText('ご入場可能です');
- await expect(hero).not.toContainText('呼出中');
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toHaveCount(1);
  for(const kind of ['waiting','calling','hold','guided','canceled','error']){
-   await page.evaluate(kind=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
-     detail:{kind,receipt:'F321',ahead:3,source:'live',checkedAt:Date.now()}
-   })),kind);
-   await expect(hero).toHaveClass(/call-link/);
-   await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(1);
-   await expect(hero).not.toContainText('F321');
-   await expect(hero).not.toContainText('3組');
-   await expect(hero).not.toContainText('入場できます');
+  await page.evaluate(kind=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{kind,receipt:'F321',ahead:3,source:'live',checkedAt:Date.now()}})),kind);
+  await expect(hero).toHaveClass(/call-link/);
+  await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(0);
+  await expect(hero).not.toContainText('F321');
+  await expect(hero).not.toContainText('3組');
  }
  await page.waitForTimeout(350);
  expect(actions).toEqual([]);
 });
 
-test('Production HOME link stays available with a local receipt when network status is unavailable',async({page})=>{
+test('Production HOME keeps a saved receipt hint and fixed call navigation during network errors',async({page})=>{
  await installProduction(page);
- await page.addInitScript(()=>{
-  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
-   receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030'
-  }));
- });
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'E777',businessDate:'2026-10-03',waitTypeId:'0030'})));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero')).toContainText('受付番号は保存済みです');
  await expect(page.locator('#v38Hero')).not.toContainText('E777');
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toContainText('呼び出し状況を確認する');
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
 });
 
-test('Production HOME recognizes a session restored to call-status cache alone',async({page})=>{
+test('Production HOME recognizes call cache session, keeps receipt hint without duplicate call button',async({page})=>{
  await installProduction(page);
- await page.addInitScript(()=>{
-   localStorage.setItem('asoboon_v2_callstatus_production_v1',JSON.stringify({
-     receiptNo:'R432',businessDate:'2026-10-03',waitTypeId:'0033',cachedAt:Date.now()
-   }));
- });
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_callstatus_production_v1',JSON.stringify({receiptNo:'R432',businessDate:'2026-10-03',waitTypeId:'0033',cachedAt:Date.now()})));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
  await expect(page.locator('#v38Hero')).not.toContainText('R432');
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toHaveCount(1);
  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
 });
 
@@ -759,7 +748,7 @@ test('Production HOME stays navigation-only even after call-state events',async(
  await expect(page.locator('#v38Hero')).toHaveClass(/open/);
  await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
  await expect(page.locator('#v38Hero')).not.toContainText('F321');
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
 });
 
 test('AirWAIT text link opens the configured WEB reception externally on user tap only',async({page})=>{
@@ -1292,8 +1281,8 @@ test('Rate-limited status requests visibly cool down and manual taps do not hamm
  await page.waitForTimeout(300);
  expect(count).toBe(1);
  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
- await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toBeVisible();
- await page.locator('#v38Hero [data-v7-view="callstatus"]').click();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+ await page.locator('.cm-bottom-nav [data-v7-view="callstatus"]').click();
  await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
  await page.waitForTimeout(300);
  expect(count).toBe(1);
@@ -1600,7 +1589,7 @@ test('Unverified cross-channel queue does not silently show 0 groups or an ungro
   await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
   await expect(page.locator('#v38Hero')).not.toContainText('2510');
   await expect(page.locator('#v38Hero')).not.toContainText('あと0組');
-  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(1);
+  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
 });
 
 test('Five-language switch translates HOME, persists through navigation, and restores Japanese',async({page})=>{
@@ -1609,18 +1598,11 @@ test('Five-language switch translates HOME, persists through navigation, and res
  const picker=page.locator('#asoboon-language-select');
  await expect(picker).toBeVisible();
  expect(await picker.locator('option').count()).toBe(7);
- const labels={
-  en:'Check queue status',
-  'zh-CN':'查看叫号状态',
-  vi:'Kiểm tra lượt gọi',
-  ne:'पालोको अवस्था हेर्नुहोस्',
-  ko:'호출 현황 확인하기',
-  kmr:'Rewşa gazîkirinê bibîne'
- };
+ const labels={en:'Calls','zh-CN':'叫号',vi:'Gọi số',ne:'बोलावट',ko:'호출',kmr:'Bangkirin'};
  for(const [lang,label] of Object.entries(labels)){
   await picker.selectOption(lang);
   await expect(page.locator('html')).toHaveAttribute('lang',lang);
-  await expect(page.locator('#v38Hero .v38-call-cta')).toContainText(label);
+  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toContainText(label);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);
   expect(overflow).toBe(true);
  }
@@ -1834,26 +1816,20 @@ test('Five-language fallback and ambiguous-result warnings are never left in Jap
  }
 });
 
-test('HOME call-status uses mint cream and remains distinct from primary mint reception CTA',async({page})=>{
+test('HOME has a single mint reception CTA and one dark fixed call-status tab',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const call=page.locator('#v38Hero .v38-call-cta');
  const reception=page.locator('#v38Hero [data-v7-view="reception"]');
- await expect(call).toBeVisible();
  await expect(reception).toBeVisible();
- const styles=await page.evaluate(()=>{
-  const a=document.querySelector('#v38Hero .v38-call-cta');
-  const b=document.querySelector('#v38Hero [data-v7-view="reception"]');
-  return{background:getComputedStyle(a).backgroundColor,border:getComputedStyle(a).borderColor,
-   other:getComputedStyle(b).backgroundColor,rect:a.getBoundingClientRect().toJSON()};
- });
- expect(styles.background).toBe('rgb(221, 248, 240)'); // mint cream for secondary status
- expect(styles.other).toBe('rgb(109, 210, 202)'); // primary mint reception
- expect(styles.background).not.toEqual(styles.other);
- expect(styles.rect.width).toBeGreaterThan(220);
+ await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
+ const call=page.locator('.cm-bottom-nav [data-v7-view="callstatus"]');
+ await expect(call).toBeVisible();
+ const primaryColor=await reception.evaluate(el=>getComputedStyle(el).backgroundColor);
+ expect(primaryColor).toBe('rgb(109, 210, 202)');
  await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
 });
+
 test('HOME restores recently verified 12:30 capacity instantly without a second initial AirWAIT read',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
@@ -1921,7 +1897,7 @@ test('Figma HOME uses one accessible ASOBooN AppBar with Language and working ba
  await expect(page.locator('.topbar')).toBeVisible();
  await expect(page.locator('.topbar .brand strong')).toHaveText('ASOBooN');
  await expect(page.locator('#asoboon-language-select')).toBeVisible();
- await expect(page.locator('#v38Hero .v38-call-cta')).toBeVisible();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
  await page.locator('[data-v7-view="first"]').first().click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
  await expect(page.locator('.topbar')).toBeVisible();
@@ -2323,7 +2299,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('当日受付をする');
  await expect(page.locator('#v58Lead #v38Hero [data-v7-view="reception"]')).toBeVisible();
- await expect(page.locator('#v58Lead #v38Hero [data-v7-view="callstatus"]')).toBeVisible();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
  await expect(page.locator('#boonV5WebReception,.boon-v5-web-reception')).toHaveCount(0);
  await expect(page.locator('#v56CommandDeck,#v56QueueTile,#v56CrowdStage')).toHaveCount(0);
  // Business-day information is not a fake button that redirects to a timer.
@@ -2346,7 +2322,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
   const state=await page.evaluate(()=>{
    const interactive=[
     '#v58Lead #v38Hero [data-v7-view="reception"]',
-    '#v58Lead #v38Hero [data-v7-view="callstatus"]',
+    '.cm-bottom-nav [data-v7-view="callstatus"]',
     '#v38TimeguideShortcut',
     '#v613Board .v38-crowd-channel--onsite:is(a,button)',
     '#v613Board .v38-crowd-channel--web:is(a,button)'
@@ -2389,7 +2365,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await page.locator('#v58TimerZone #v38TimeguideShortcut').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('timeguide');
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await page.locator('#v58Lead #v38Hero .v38-call-cta').click();
+ await page.locator('.cm-bottom-nav [data-v7-view="callstatus"]').click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v59SlotsFold')).toHaveAttribute('open','');

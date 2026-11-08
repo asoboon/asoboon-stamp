@@ -263,3 +263,12 @@ html body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.
 /* The secondary call shortcut is distinct from the main mint reception CTA. */
 html body #app #v38Hero .v38-call-cta{background:var(--cm-cream)!important;max-width:340px!important}
 html body #app #v38Hero.call-link .v38-call-cta{background:var(--cm-mint)!important;max-width:340px!important}
+
+/* After closing: keep the time slots visible, never as tappable reservation actions. */
+#app .v38-ended-schedule-note{margin:8px 0 12px;padding:12px 14px;border-radius:12px;background:var(--cm-cream);color:var(--cm-bitter);font-size:13px}
+#app .v38-ended-schedule-note strong{font-size:14px;font-weight:900}
+#app .v38-ended-schedule-note p{margin:5px 0 0;line-height:1.5}
+#app .v38-ended-schedule{display:grid;gap:9px;margin:0 0 12px}
+#app .v38-ended-slot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 15px;background:var(--cm-paper);border:1px solid var(--cm-beige);border-radius:12px;color:var(--cm-bitter)}
+#app .v38-ended-slot time{font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}
+#app .v38-ended-slot span{font-size:13px;font-weight:850;color:var(--cm-milk)}
