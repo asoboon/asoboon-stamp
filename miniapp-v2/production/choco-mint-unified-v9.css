@@ -427,10 +427,10 @@ html.boon-v4.boon-v5-mint body #app .topbar .brand strong::after{
   box-shadow:43px 3px 0 -1px #3a231d,84px 0 0 -2px #3a231d;
 }
 /* Chocolate chips float in the mint, far from the actual business-day copy. */
-html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone{
+#app #v58DayZone{
   position:relative;isolation:isolate;
 }
-html.boon-v4.boon-v5-mint body.v38-home-active #app #v58DayZone::after{
+#app #v58DayZone::after{
   content:"";position:absolute;pointer-events:none;z-index:1;
   right:8px;top:8px;width:29px;height:28px;opacity:.72;
   background:
