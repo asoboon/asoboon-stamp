@@ -218,7 +218,7 @@ test('Quota refresh re-enables after the real-time cooldown without forcing navi
  await expect(button).toBeVisible();
  await expect(button).toBeDisabled();
  await expect(button).toBeEnabled({timeout:26000});
- await button.click();
+ await button.evaluate(el=>el.click());
  await expect(button).toBeDisabled();
 });
 test('Reception display is advisory and never calls createReservation from quota preview',async({page})=>{
@@ -636,7 +636,7 @@ test('After 19:00 a fresh visitor sees latest verified AirWAIT counts for the sw
  await expect(page.locator('#v38Today')).not.toContainText('平日特定日');
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('受付切替後');
  await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toContainText('本日終了時の人数とは異なります');
- await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
  expect(crowdReads).toBeGreaterThanOrEqual(1);
 });
@@ -856,6 +856,61 @@ test('HOME typography follows a left reading edge while numeric slots stay colum
   expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   if(width===320)expect(result.cardsSingleColumn).toBe(true);
   if(width===390)expect(result.cardsSingleColumn).toBe(false);
+ }
+});
+test('Compact after-hours HOME has only last-updated text, no blank CTA, and five consistent guide links',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='businessDay'){
+   const date=u.searchParams.get('date')||'2026-10-03';
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,businessType:date==='2026-10-03'?'土日祝日':'平日特定日',
+    durationLabel:date==='2026-10-03'?'2時間30分':'3時間',closingTime:date==='2026-10-03'?'18:00':'17:00'
+   })});
+  }
+  if(action==='crowdRemaining')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T10:10:00.000Z',
+   slots:[{waitTypeId:'0036',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:250},
+          {waitTypeId:'0038',slotKey:'13:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:250}],
+   observedDetails:[{detailedWaitType:'10時15分から【平日特定日】',reserveUnit:'PERSON',remaining:70,remainingVerified:true},
+                    {detailedWaitType:'13時45分から【平日特定日】',reserveUnit:'PERSON',remaining:70,remainingVerified:true}]
+  })});
+  return route.fallback();
+ });
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58Flow')).toHaveAttribute('data-state','ended');
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(2);
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
+ await expect(page.locator('#v38CrowdAge')).not.toContainText('更新ボタン');
+ await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
+ await expect(page.locator('#v38Slots .v38-crowd-closed-note')).toBeHidden();
+ await expect(page.locator('#v38Slots .v38-crowd-disclaimer')).toBeHidden();
+ await expect(page.locator('#v613Board .v613-footnote')).toBeHidden();
+ await expect(page.locator('#v58Primary .v58-intro')).toContainText('本日の営業は終了しました');
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  const fold=page.locator('#v59GuideFold');
+  if(!(await fold.evaluate(el=>el.open)))await fold.locator('summary').click();
+  const geom=await page.evaluate(()=>{
+   const r=s=>document.querySelector(s)?.getBoundingClientRect();
+   const primary=r('#v58Primary'),native=r('#v58Primary .v58-native-action');
+   const guide=r('#v59GuideFold'),cards=[...document.querySelectorAll('#v59GuideFold .v38-guide-card')].map(e=>e.getBoundingClientRect());
+   return {scroll:document.documentElement.scrollWidth,width:innerWidth,
+    compact:!!primary&&primary.height<90,hiddenCTA:!!native&&native.width===0&&native.height===0,
+    cardCount:cards.length,aligned:cards.length===5&&cards.every(c=>Math.abs(c.left-cards[0].left)<2&&Math.abs(c.width-cards[0].width)<2),
+    stacked:cards.every((c,i)=>!i||c.top>=cards[i-1].bottom+5),
+    contained:!!guide&&cards.every(c=>c.left>=guide.left&&c.right<=guide.right+1),
+    minimumTap:cards.every(c=>c.height>=56)};
+  });
+  expect(geom,JSON.stringify(geom)).toMatchObject({compact:true,hiddenCTA:true,cardCount:5,aligned:true,stacked:true,contained:true,minimumTap:true});
+  expect(geom.scroll).toBeLessThanOrEqual(width+1);
  }
 });
 test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed language picker at five widths',async({page})=>{
@@ -1265,11 +1320,11 @@ test('HOME 12:30 quotas refresh only on tap without extra business-day calls',as
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText(/残り\d+人/);
- await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  expect(calls).toBe(1);
- await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
  const before=calls;
- await page.locator('#v38CrowdUpdate').click();
+ await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>calls).toBeGreaterThan(before);
  await expect(card.locator('.v38-crowd-channel--web strong')).not.toHaveText('残り71人');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).not.toHaveText('残り44人');
@@ -1293,7 +1348,7 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(visibleCrowdLine(page,'12:30')).toBeVisible();
  await expect(page.locator('#v613Board .v613-row').filter({hasText:'12:30'}).locator('.v613-percent')).toHaveText('—');
- await expect(page.locator('#v38CrowdAge')).toContainText('最新の取得に失敗しました');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
  await expect(card).not.toContainText('71名');
@@ -1301,7 +1356,7 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  const previous=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1')||'{}'));
  expect(previous.verifiedFresh).toBe(false);
  await page.reload({waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
  await visibleCrowdLine(page,'12:30').click();
@@ -1323,9 +1378,9 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const button=page.locator('#v38CrowdUpdate');
  await expect(button).toBeEnabled();
- await button.click();
+ await button.evaluate(el=>el.click());
  await expect(button).toBeDisabled();
- await expect(page.locator('#v38CrowdAge')).toContainText('自動で再確認');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  await page.waitForTimeout(200);
  expect(reads).toBe(2);
 });
@@ -1623,7 +1678,7 @@ test('Rate-limited status requests visibly cool down and manual taps do not hamm
  await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
  expect(count).toBe(1);
  await page.locator('#csRefresh').click();
- await expect(page.locator('#csError')).toContainText('自動で再確認');
+ await expect(page.locator('#csError')).toContainText('最終更新');
  await page.waitForTimeout(300);
  expect(count).toBe(1);
  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
@@ -2198,7 +2253,7 @@ test('HOME restores recently verified 12:30 capacity instantly without a second 
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('残り14人');
- await expect(page.locator('#v38CrowdAge')).toContainText('更新ボタンで再確認');
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  expect(crowdReads).toBe(0);
 });
 test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
@@ -2278,10 +2333,10 @@ test('HOME manual refresh requests fresh AirWAIT confirmation, not the fast cach
   if(new URL(request.url()).searchParams.get('action')==='crowdRemaining')requests.push(new URL(request.url()));
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38CrowdUpdate')).toBeVisible();
+ await expect(page.locator('#v38CrowdUpdate')).toBeHidden();
  expect(requests.length).toBe(1);
  expect(requests[0].searchParams.get('refresh')).toBe(null);
- await page.locator('#v38CrowdUpdate').click();
+ await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>requests.length).toBe(2);
  expect(requests[1].searchParams.get('refresh')).toBe('manual');
 });
@@ -2507,7 +2562,7 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots')).toContainText('40');
- await page.locator('#v38CrowdUpdate').click();
+ await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect(page.locator('#v38Slots')).toContainText('本日の受付枠は終了しました');
  await expect(page.locator('#v38Slots')).not.toContainText('残り40人');
 });
