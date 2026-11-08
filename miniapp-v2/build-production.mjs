@@ -85,6 +85,7 @@ root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
 const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=${hash(css)}';document.head.appendChild(link);
 const navCss=document.createElement('link');navCss.rel='stylesheet';navCss.href='./miniapp-v2/production/choco-mint-nav-v8.css?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.css')}';document.head.appendChild(navCss);
+const mintCss=document.createElement('link');mintCss.rel='stylesheet';mintCss.href='./miniapp-v2/production/choco-mint-unified-v9.css?v=${envHash('miniapp-v2/production/choco-mint-unified-v9.css')}';document.head.appendChild(mintCss);
 // LIFF SDK is an independent network dependency. Download it in parallel
 // without blocking the public HOME, then wait for it only before auth.
 const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net/liff/edge/2/sdk.js';sdk.async=true;
@@ -149,6 +150,7 @@ const index=`<!doctype html>
 <link rel="preconnect" href="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev" crossorigin>
 <link rel="stylesheet" href="./production-app.css?v=${hash(css)}">
 <link rel="stylesheet" href="./choco-mint-nav-v8.css?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.css')}">
+<link rel="stylesheet" href="./choco-mint-unified-v9.css?v=${envHash('miniapp-v2/production/choco-mint-unified-v9.css')}">
 <!-- LINE SDK must not block the certified public HOME or capacity board.
      initLiff() waits on this promise only for identity-dependent operations. -->
 <script>
