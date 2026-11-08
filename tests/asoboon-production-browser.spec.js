@@ -829,6 +829,7 @@ test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed l
  const lang=page.locator('#asoboon-language-select');
  await expect(logo).toHaveText('ASOBooN');
  await expect(lang).toBeVisible();
+ await expect(page.locator('#v58DayZone')).toBeVisible({timeout:10000});
  await expect(page.locator('.topbar .brand strong')).toHaveCount(1);
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:820});
@@ -838,13 +839,15 @@ test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed l
    const logo=brand.querySelector('strong');
    const language=document.querySelector('#asoboon-language-select');
    const hr=head.getBoundingClientRect(),br=brand.getBoundingClientRect(),lr=language.getBoundingClientRect();
-   const ice=getComputedStyle(logo,'::after'),sprinkles=getComputedStyle(document.querySelector('#v58DayZone'),'::after');
+   const ice=getComputedStyle(logo,'::after');
+   const dayZone=document.querySelector('#v58DayZone');
+   const sprinkles=dayZone?getComputedStyle(dayZone,'::after'):null;
    return {
     background:getComputedStyle(head).backgroundImage,
     plaque:getComputedStyle(brand).backgroundImage,
     text:getComputedStyle(logo).color,
     drips:ice.content!=='none'&&ice.position==='absolute',
-    sprinkles:sprinkles.content!=='none'&&sprinkles.position==='absolute',
+    sprinkles:!!sprinkles&&sprinkles.content!=='none'&&sprinkles.position==='absolute',
     headerInside:br.left>=hr.left&&br.right<=hr.right,
     pickerInside:lr.left>=hr.left&&lr.right<=hr.right,
     noControlCollision:br.right+10<=lr.left,
