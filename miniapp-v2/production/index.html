@@ -13,24 +13,19 @@
 <script defer src="./production-app.js?v=e28445720ba8"></script>
 <script defer src="../../miniapp-v2/shared/i18n-dictionary.js?v=2803d55a0b6a"></script>
 <script defer src="../../miniapp-v2/shared/i18n-runtime.js?v=82d917a14d39"></script>
-<!-- Official LINE endpoint must render the same HOME components as /home.html.
-     No redirect: preserve the certified LIFF endpoint and auth flow. -->
+<!-- Certified LINE entry: add only the read-only crowd board to native HOME.
+     All reception, callstatus, guides and games keep their original structure. -->
 <script>
 (()=>{
  if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
  document.addEventListener('DOMContentLoaded',()=>{
-  window.ASOBOON_MINT_V51_PREVIEW=true;
-  for(const asset of [
-   'boon-mint-v51-preview.css?v=9edfd81a5e02',
-   'boon-mint-v53-passion.css?v=f4ae18fb7034',
-   'boon-home-v56.css?v=99806b90380f',
-   'boon-home-v613-board.css?v=88ca6c51000b'
-  ]){const link=document.createElement('link');link.rel='stylesheet';link.href='./'+asset;document.head.appendChild(link)}
-  for(const asset of [
-   'boon-mint-v51-preview.js?v=93255723dae8',
-   'boon-home-v56-layout.js?v=a70105041db4',
-   'boon-home-v613-board.js?v=fd6c0b569673'
-  ]){const script=document.createElement('script');script.async=false;script.src='./'+asset;document.head.appendChild(script)}
+  document.documentElement.classList.add('boon-v4','boon-v5-mint');
+  const css=document.createElement('link');css.rel='stylesheet';
+  css.href='./boon-home-v613-board.css?v=88ca6c51000b';
+  document.head.appendChild(css);
+  const js=document.createElement('script');js.async=false;
+  js.src='./boon-home-v613-board.js?v=fd6c0b569673';
+  document.head.appendChild(js);
  },{once:true});
 })();
 </script>

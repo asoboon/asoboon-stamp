@@ -151,24 +151,19 @@ const index=`<!doctype html>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>
 <script defer src="../../${i18nRef(i18nPath)}"></script>
-<!-- Official LINE endpoint must render the same HOME components as /home.html.
-     No redirect: preserve the certified LIFF endpoint and auth flow. -->
+<!-- Certified LINE entry: add only the read-only crowd board to native HOME.
+     All reception, callstatus, guides and games keep their original structure. -->
 <script>
 (()=>{
  if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
  document.addEventListener('DOMContentLoaded',()=>{
-  window.ASOBOON_MINT_V51_PREVIEW=true;
-  for(const asset of [
-   'boon-mint-v51-preview.css?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.css')}',
-   'boon-mint-v53-passion.css?v=${envHash('miniapp-v2/production/boon-mint-v53-passion.css')}',
-   'boon-home-v56.css?v=${envHash('miniapp-v2/production/boon-home-v56.css')}',
-   'boon-home-v613-board.css?v=${envHash('miniapp-v2/production/boon-home-v613-board.css')}'
-  ]){const link=document.createElement('link');link.rel='stylesheet';link.href='./'+asset;document.head.appendChild(link)}
-  for(const asset of [
-   'boon-mint-v51-preview.js?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.js')}',
-   'boon-home-v56-layout.js?v=${envHash('miniapp-v2/production/boon-home-v56-layout.js')}',
-   'boon-home-v613-board.js?v=${envHash('miniapp-v2/production/boon-home-v613-board.js')}'
-  ]){const script=document.createElement('script');script.async=false;script.src='./'+asset;document.head.appendChild(script)}
+  document.documentElement.classList.add('boon-v4','boon-v5-mint');
+  const css=document.createElement('link');css.rel='stylesheet';
+  css.href='./boon-home-v613-board.css?v=${envHash('miniapp-v2/production/boon-home-v613-board.css')}';
+  document.head.appendChild(css);
+  const js=document.createElement('script');js.async=false;
+  js.src='./boon-home-v613-board.js?v=${envHash('miniapp-v2/production/boon-home-v613-board.js')}';
+  document.head.appendChild(js);
  },{once:true});
 })();
 </script>

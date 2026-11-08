@@ -4,13 +4,13 @@ import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(p,'utf8');
 test('certified LINE endpoint includes same v7 availability board and structural HOME as browser HOME',()=>{
  const index=read('miniapp-v2/production/index.html');
- for(const asset of ['boon-mint-v51-preview.js','boon-home-v56-layout.js','boon-home-v613-board.js','boon-home-v56.css','boon-home-v613-board.css']){
+ for(const asset of ['boon-home-v613-board.js','boon-home-v613-board.css']){
   assert.ok(index.includes(asset+'?v='),`${asset} missing in certified LINE entry`);
   assert.ok(read('miniapp-v2/production/production-shell-loader.js').includes(asset+'?v='),`${asset} missing in browser HOME`);
  }
  assert.match(index,/document\.addEventListener\('DOMContentLoaded'/);
- assert.match(index,/window\.ASOBOON_MINT_V51_PREVIEW=true/);
- assert.match(index,/script\.async=false/);
+ assert.match(index,/document\.documentElement\.classList\.add\('boon-v4','boon-v5-mint'\)/);
+ assert.match(index,/js\.async=false/);
  assert.doesNotMatch(index,/location\.replace\(|window\.location\s*=/);
 });
 test('classic rollback retains original native reception while disabling all theme assets',()=>{
@@ -21,6 +21,6 @@ test('classic rollback retains original native reception while disabling all the
 });
 test('both entrypoint HOME sources are generated reproducibly by build-production.mjs',()=>{
  const s=read('miniapp-v2/build-production.mjs');
- assert.match(s,/Official LINE endpoint must render the same HOME components/);
+ assert.match(s,/Certified LINE entry: add only the read-only crowd board/);
  assert.match(s,/output\(`\$\{dir\}\/index\.html`,index\)/);
 });
