@@ -237,7 +237,7 @@ async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
- crowdLoading=true;crowdError='';crowdClosed=false;crowdPublicFlags=null;
+ crowdLoading=true;crowdError='';crowdClosed=false;
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
@@ -254,7 +254,7 @@ async function fetchCrowd(force=false,manual=false){
   const t=readLastCrowd()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
   const types=await m.published(E.backendUrl);
-  crowdPublicFlags=types?new Map(types.map(x=>[String(x.waitTypeId),x.dispFlg])):null;
+  if(types)crowdPublicFlags=new Map([...(crowdPublicFlags||[]),...types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])]);
   if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
@@ -298,7 +298,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'});scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;crowdPublicFlags=null;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{

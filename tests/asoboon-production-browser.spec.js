@@ -870,6 +870,7 @@ test('HOME typography follows a left reading edge while numeric slots stay colum
  await expect(page.locator('#v38Today>span:nth-child(2) strong')).toBeVisible();
  await expect(page.locator('#v38Today>span:nth-child(3) strong')).toBeVisible();
  await expect(page.locator('#v58SessionsZone>.v58-section-title')).toBeVisible();
+ await expect(page.locator('#v613Board .v613-header')).toBeVisible({timeout:15000});
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:850});
   const result=await page.evaluate(()=>{
@@ -3078,4 +3079,51 @@ test('After 19:00, HOME never labels archived or newly fetched headcounts as cur
  await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
  await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['—','—','—']);
  await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});
+
+test('Confirmed hidden WEB quota stays hidden when a later crowdRemaining request fails',async({page})=>{
+ await installProduction(page);
+ let crowdErrors=0,breakCrowd=false;
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0029',dispFlg:true},{waitTypeId:'0031',dispFlg:true},{waitTypeId:'0033',dispFlg:true},
+   {waitTypeId:'0030',dispFlg:false},{waitTypeId:'0032',dispFlg:true},{waitTypeId:'0034',dispFlg:true}
+  ]})});
+  if(action==='crowdRemaining'&&breakCrowd){crowdErrors++;return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"TRANSIENT_TEST"}'});}
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const first=page.locator('#v613Board .v613-row').first();
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
+ breakCrowd=true;
+ await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
+ await expect.poll(()=>crowdErrors,{timeout:10000}).toBe(1);
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('a[href]')).toHaveCount(0);
+ await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
+});
+
+test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails',async({page})=>{
+ await installProduction(page);
+ let waitReads=0,failVisibility=false;
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action!=='waitTypes')return route.fallback();
+  waitReads++;
+  if(failVisibility)return route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"TRANSIENT_TEST"}'});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0029',dispFlg:true},{waitTypeId:'0031',dispFlg:true},{waitTypeId:'0033',dispFlg:true},
+   {waitTypeId:'0030',dispFlg:false},{waitTypeId:'0032',dispFlg:true},{waitTypeId:'0034',dispFlg:true}
+  ]})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const first=page.locator('#v613Board .v613-row').first();
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ failVisibility=true;
+ await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
+ await expect.poll(()=>waitReads,{timeout:10000}).toBeGreaterThanOrEqual(2);
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('a[href]')).toHaveCount(0);
 });
