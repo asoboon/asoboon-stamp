@@ -9,7 +9,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const finish=()=>{if(!failed&&cssDone&&jsDone)resolve()};
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
-  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=7aa7dd1119f5',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
+  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=441a0e38166c',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
   const script=document.createElement('script');script.src=new URL('production-routes.js?v=f78dd93a97e9',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;

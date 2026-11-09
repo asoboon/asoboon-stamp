@@ -668,3 +668,379 @@ body.v7-page-active button:active,body.v7-page-active a[href]:active,body.v7-pag
 @media(prefers-reduced-motion:reduce) {
  body.v7-page-active *, .v17-pass *, .v28-people * { scroll-behavior:auto!important; transition:none!important; animation:none!important; }
 }
+
+/* miniapp-v2/production/choco-mint-allroutes-v10.css */
+/* CHOCO MINT SODA v10 — complete non-HOME visual language.
+   FINAL deferred stylesheet, after all legacy route themes.
+   Visual-only: do not affect reservation data, event wiring or call states. */
+:root{
+ --cmv-cocoa:#3A231D;--cmv-milk:#764D3D;--cmv-deep:#126E7D;
+ --cmv-ink:#173D3D;--cmv-mint:#6DD2CA;--cmv-ice:#D8F7F0;
+ --cmv-vanilla:#FFF9F0;--cmv-paper:#FFFEFA;--cmv-border:#BEDFD6;
+ --cmv-muted:#536C67;--cmv-chocolate:#744634;--cmv-soft:#F0FAF6;
+}
+/* Shared shell: no switch back to an unrelated app on navigation. */
+html body #app main.view.active{color:var(--cmv-ink);background:transparent!important}
+html body #app main.view.active>.page-card{
+ color:var(--cmv-cocoa)!important;
+ background:var(--cmv-vanilla)!important;
+ border:1px solid var(--cmv-border)!important;border-radius:20px!important;
+ box-shadow:0 2px 0 rgba(58,35,29,.045)!important;
+ max-width:100%;min-width:0;
+}
+html body #app .topbar .iconbtn:not(.ghost){
+ background:#E3F8F2!important;border:1px solid #8DCBC4!important;
+ color:var(--cmv-cocoa)!important;border-radius:13px!important;
+ box-shadow:0 2px 0 rgba(58,35,29,.12)!important;
+}
+/* Shared ice-cream header: pale mint, chocolate chips, a small melted drop.
+   A single visual vocabulary for receipt, guide, parking and play. */
+html body #app :is(.page-head,.pv7-head,.cm-hub-head){
+ position:relative!important;isolation:isolate;
+ display:block!important;visibility:visible!important;
+ background-color:var(--cmv-ice)!important;
+ background-image:
+  radial-gradient(ellipse 6px 4px at 91% 25%,#744634 94%,transparent 100%),
+  radial-gradient(ellipse 4px 3px at 95% 48%,#98705B 94%,transparent 100%),
+  radial-gradient(ellipse 3px 5px at 84% 18%,#76503F 94%,transparent 100%),
+  linear-gradient(115deg,#CCF4EB 0%,#DAF8F1 55%,#B8EDE6 100%)!important;
+ background-size:100% 100%!important;
+ border-left:4px solid var(--cmv-chocolate)!important;
+ border-bottom:1px solid #B0D9D0!important;
+ border-radius:17px 17px 12px 12px!important;
+ box-shadow:none!important;
+ padding:18px 19px 17px 15px!important;
+ margin:0 0 3px!important;
+ color:var(--cmv-cocoa)!important;
+ text-shadow:none!important;
+ min-height:0!important;
+}
+html body #app :is(.page-head,.pv7-head,.cm-hub-head)::after{
+ content:"";pointer-events:none;position:absolute;
+ right:48px;bottom:-5px;width:12px;height:8px;
+ background:#C9F2E9;border-radius:0 0 9px 9px;opacity:.98;
+}
+html body #app :is(.page-head,.pv7-head,.cm-hub-head) :is(h1,h2,h3,strong){
+ color:var(--cmv-cocoa)!important;text-align:left!important;
+ text-shadow:none!important;font-weight:950!important;
+ letter-spacing:-.025em!important;line-height:1.25!important;
+}
+html body #app :is(.page-head,.pv7-head,.cm-hub-head) :is(p,small,.pv7-eyebrow,.cm-hub-eyebrow,.v27-first-head){
+ color:var(--cmv-milk)!important;text-align:left!important;
+ text-shadow:none!important;line-height:1.5!important;
+}
+html body #app :is(.page-head,.pv7-head,.cm-hub-head) :is(.pv7-eyebrow,.cm-hub-eyebrow){
+ color:#125E6A!important;font-size:11px!important;
+ letter-spacing:.09em!important;font-weight:900!important;
+}
+html body #app .page-body,html body #app .pv7-body,html body #app .tg-body{
+ background:transparent!important;color:var(--cmv-ink)!important;
+}
+/* Cards and containers: coherent ivory surfaces, cacao separators. */
+html body #app :is(.pv7-section,.pv7-band,.pv7-row,.pv7-promise,.pv7-step,
+ .v27-step,.v24-section,.v24-pick,.v24-map,.v24-free,
+ .v25-entry-page .entry-choice,.entry-detail,.entry-question,.entry-needed,
+ .rec-day,.rec-summary,.rec-disclaimer,.rec-person,.rec-method,
+ .tg-result,.tg-summary,.tg-field,.tg-day,.tg-slot,.tg-section,
+ .cm-hub-row,.cm-faq details){
+ border-color:var(--cmv-border)!important;
+ box-shadow:none!important;color:var(--cmv-cocoa)!important;
+}
+/* Functional detail cards are accessible, with a restrained mint/cocoa rhythm. */
+html body #app :is(.pv7-band,.pv7-row,.pv7-promise,.pv7-step,.v27-step,
+ .v24-pick,.v24-map,.entry-choice,.cm-hub-row,.cm-faq details){
+ background:var(--cmv-paper)!important;border-radius:13px!important;
+}
+html body #app .pv7-band{--band:var(--cmv-deep)!important;min-height:64px!important}
+html body #app .pv7-band:nth-child(even){background:#F1FAF7!important}
+html body #app .pv7-band b,html body #app .pv7-band strong,
+html body #app .pv7-row strong{color:var(--cmv-deep)!important}
+html body #app :is(.pv7-callout,.v24-free,.v24-facts,.entry-note,.cm-hub-tip){
+ background:#E8F8F2!important;border-color:#ACDED2!important;
+ color:var(--cmv-cocoa)!important;box-shadow:none!important;
+}
+html body #app :is(.pv7-callout.orange,.pv7-callout.green,.pv7-callout.blue){
+ background:#E8F8F2!important;border:1px solid #ACDED2!important;
+ color:var(--cmv-cocoa)!important;
+}
+html body #app :is(.pv7-promise b,.pv7-step b,.v27-num){
+ background:var(--cmv-deep)!important;color:#fff!important;
+ border-radius:11px!important;
+}
+html body #app :is(.v27-step-copy strong,.pv7-promise strong,.v24-pick strong){
+ color:var(--cmv-cocoa)!important;
+}
+html body #app :is(.v27-kicker,.v24-pick-tag){color:var(--cmv-deep)!important}
+html body #app .v27-finish{background:#E2F4ED!important;color:var(--cmv-deep)!important}
+html body #app :is(.pv7-primary,.v27-primary,.v24-nav.primary,.v24-official,
+ .entry-back,.tg-submit,.tg-action):not(:disabled){
+ background:var(--cmv-deep)!important;border-color:var(--cmv-deep)!important;
+ color:#fff!important;box-shadow:0 3px 0 #0A505A!important;
+ border-radius:12px!important;min-height:48px!important;
+ text-shadow:none!important;font-weight:900!important;
+}
+html body #app :is(.pv7-secondary-btn,.pv7-text-btn,.v27-basic,.v24-more){
+ background:#E7F7F1!important;border-color:#B0DAD0!important;
+ color:var(--cmv-deep)!important;border-radius:12px!important;
+ box-shadow:none!important;
+}
+html body #app :is(button,a,summary):focus-visible{outline:3px solid var(--cmv-deep)!important;outline-offset:2px!important}
+/* Guide, FAQ, and games hub: one navigation pattern on every row. */
+html body #app .cm-hub{background:var(--cmv-vanilla)!important;border-color:var(--cmv-border)!important}
+html body #app .cm-hub-list{padding:8px 12px 4px!important}
+html body #app .cm-hub-list>.cm-hub-row{
+ width:100%!important;min-height:72px!important;margin:8px 0!important;
+ display:grid!important;grid-template-columns:44px minmax(0,1fr) 20px!important;
+ gap:12px!important;align-items:center!important;
+ border:1px solid #C5E3D9!important;border-left:3px solid var(--cmv-chocolate)!important;
+ box-shadow:0 2px 0 rgba(58,35,29,.035)!important;
+ background:var(--cmv-paper)!important;
+}
+html body #app .cm-hub-row>.cm-hub-icon{
+ background:var(--cmv-ice)!important;color:var(--cmv-deep)!important;
+ width:44px;height:44px;border-radius:12px;
+}
+html body #app .cm-hub-row :is(strong){color:var(--cmv-cocoa)!important;font-size:15px!important}
+html body #app .cm-hub-row :is(small){color:var(--cmv-muted)!important;font-size:12px!important}
+html body #app .cm-hub-chevron{color:var(--cmv-deep)!important;font-size:22px!important}
+html body #app .cm-hub-tip{margin:14px 12px!important;border-radius:13px!important}
+html body #app .cm-faq summary{color:var(--cmv-cocoa)!important;min-height:60px!important}
+html body #app .cm-faq details[open]{border-color:#8FC9C0!important;background:#F7FFFB!important}
+html body #app .cm-faq details p{color:var(--cmv-muted)!important}
+/* Boarding/reception stages. Do not recolor warnings or red error states. */
+html body.v7-reception-active #app .page-head{min-height:104px!important}
+html body.v7-reception-active #app .rv7-progress{gap:7px!important}
+html body.v7-reception-active #app .rv7-step{
+ background:#EAF8F3!important;color:#43665E!important;
+ border-bottom-color:#B2DFD3!important;border-radius:9px 9px 0 0!important;
+}
+html body.v7-reception-active #app .rv7-step.active{
+ background:var(--cmv-ice)!important;color:var(--cmv-cocoa)!important;
+ border-bottom:4px solid var(--cmv-chocolate)!important;
+}
+html body.v7-reception-active #app .rv7-step.done{background:#D6F2EA!important;color:var(--cmv-deep)!important}
+html body.v7-reception-active #app .rec-status.ok{
+ background:#E7F8F0!important;border-color:#8ACFBF!important;
+ color:#155A4C!important;
+}
+html body.v7-reception-active #app .rec-status.warn{background:#FFF5E5!important;color:#815221!important}
+html body.v7-reception-active #app .rec-status.bad{background:#FFF0EE!important;color:#983E35!important}
+html body.v7-reception-active #app .rec-slot:not(:disabled),
+html body.v7-reception-active #app .rec-method{
+ background:var(--cmv-paper)!important;border-color:var(--cmv-border)!important;
+ color:var(--cmv-cocoa)!important;
+}
+html body.v7-reception-active #app .rec-slot.active,
+html body.v7-reception-active #app .rec-slot.is-selected,
+html body.v7-reception-active #app .rec-method.active{
+ border:2px solid var(--cmv-deep)!important;
+ background:var(--cmv-ice)!important;
+}
+html body.v7-reception-active #app :is(.rec-stepper button,#recSubmit,.rec-submit,.rec-official-open):not(:disabled){
+ background:var(--cmv-deep)!important;border-color:var(--cmv-deep)!important;
+ color:#fff!important;box-shadow:0 2px 0 #0B505C!important;
+}
+html body.v7-reception-active #app .rec-stepper button:disabled,
+html body.v7-reception-active #app :is(#recSubmit,.rec-submit):disabled{
+ background:#E9E6DC!important;color:#7D7771!important;box-shadow:none!important;
+}
+html body.v7-reception-active #app .rec-agree{background:var(--cmv-paper)!important;border-color:var(--cmv-border)!important}
+html body.v7-reception-active #app .rec-agree input{accent-color:var(--cmv-deep)!important}
+/* Call status: return a visible readable page title, replacing the legacy
+   simulated title that hid the main heading and the normal logo. */
+html body.v7-callstatus-active #app .topbar .brand{visibility:visible!important}
+html body.v7-callstatus-active #app .topbar::after{display:none!important}
+html body.v7-callstatus-active #app .cs-page .page-head{
+ display:block!important;padding:15px 17px!important;min-height:76px!important;
+}
+html body.v7-callstatus-active #app .cs-page .page-head :is(h2,small){display:block!important;color:var(--cmv-cocoa)!important}
+html body.v7-callstatus-active #app .cs-page .page-head h2{font-size:22px!important}
+html body.v7-callstatus-active #app .cs-page{
+ background:var(--cmv-vanilla)!important;border-color:var(--cmv-border)!important;
+ box-shadow:none!important;
+}
+html body.v7-callstatus-active #app .cs-body{background:transparent!important;padding:13px 13px 18px!important}
+html body.v7-callstatus-active #app .cs-state:not(.calling):not(.canceled):not(.done){
+ background:#EAF8F3!important;border:1px solid #C2E3D8!important;
+ color:var(--cmv-cocoa)!important;
+}
+html body.v7-callstatus-active #app .cs-state.calling{
+ background:#FFF0D9!important;border:1px solid #E5C58C!important;
+}
+html body.v7-callstatus-active #app .cs-state.canceled{background:#FFF0EE!important;border:1px solid #E8BAB4!important}
+html body.v7-callstatus-active #app .cs-ticket,
+html body.v7-callstatus-active #app .cs-queue>div,
+html body.v7-callstatus-active #app .v33-start-panel{
+ background:var(--cmv-paper)!important;border-color:var(--cmv-border)!important;box-shadow:none!important;
+}
+html body.v7-callstatus-active #app .cs-top,
+html body.v7-callstatus-active #app .cs-note{background:#EAF8F3!important;color:var(--cmv-cocoa)!important;border-color:var(--cmv-border)!important}
+html body.v7-callstatus-active #app .cs-top :is(strong,small),
+html body.v7-callstatus-active #app .cs-note strong{color:var(--cmv-deep)!important}
+html body.v7-callstatus-active #app .cs-refresh:not(:disabled),
+html body.v7-callstatus-active #app #csRefresh:not(:disabled){
+ background:var(--cmv-deep)!important;color:#fff!important;
+ border:1px solid #0C5B69!important;box-shadow:0 3px 0 #074C59!important;
+ border-radius:12px!important;
+}
+html body.v7-callstatus-active #app .v33-start-panel:before{
+ background:repeating-linear-gradient(90deg,#744634 0 15px,#6DD2CA 15px 30px)!important
+}
+html body.v7-callstatus-active #app .v33-start-panel.calling:before{
+ background:repeating-linear-gradient(90deg,#8C5B35 0 15px,#F0B96D 15px 30px)!important
+}
+html body.v7-callstatus-active #app .v17-pass{
+ border-color:#B6D9CE!important;background:var(--cmv-paper)!important;
+ box-shadow:none!important;
+}
+html body.v7-callstatus-active #app .v17-pass:before{
+ background:linear-gradient(90deg,var(--cmv-chocolate) 0 40%,var(--cmv-mint) 40% 100%)!important
+}
+/* Timer: coherent inputs and result, without changing calculations. */
+html body.v7-timeguide-active #app .tg-page{
+ border-color:var(--cmv-border)!important;background:var(--cmv-vanilla)!important;
+}
+html body.v7-timeguide-active #app .tg-result{
+ background:#E9F8F2!important;border:1px solid #B2DCCF!important;
+ color:var(--cmv-cocoa)!important;
+}
+html body.v7-timeguide-active #app .tg-result strong{color:var(--cmv-deep)!important}
+html body.v7-timeguide-active #app :is(input,select){
+ border-color:#AFCFC6!important;background:#FFFEFA!important;
+ color:var(--cmv-cocoa)!important;border-radius:11px!important;min-height:44px;
+}
+html body.v7-timeguide-active #app .pv7-time-warning{
+ background:#FFF1DC!important;color:#79552D!important;
+}
+/* First-time guide: never revive orange/blue/forest page branding. */
+html body #app .v27-first-page .v27-step{border-left:4px solid var(--cmv-deep)!important}
+html body #app .v27-first-page .v27-step:nth-child(2){border-left-color:var(--cmv-chocolate)!important}
+html body #app .v27-first-page .v27-step:nth-child(3){border-left-color:#4A9D8C!important}
+html body #app .v27-first-page .v27-num{background:var(--cmv-deep)!important}
+html body #app .v27-first-page :is(.v27-step,.v27-finish){box-shadow:none!important}
+/* Parking: blue is a utility accent, not a second unrelated brand. */
+html body #app .v24-parking-page .v24-section,
+html body #app .v24-parking-page .v24-free,
+html body #app .v24-parking-page .v24-pick{
+ background:var(--cmv-paper)!important;border-color:var(--cmv-border)!important;
+}
+html body #app .v24-parking-page .v24-section{border-top:4px solid var(--cmv-deep)!important}
+html body #app .v24-parking-page .v24-section.highway{border-top-color:var(--cmv-chocolate)!important}
+html body #app .v24-parking-page .v24-pick.recommended{
+ border-color:#6BBFB0!important;background:#EAF8F3!important;
+}
+html body #app .v24-parking-page .v24-free{background:#E5F6EE!important}
+html body #app .v24-parking-page .v24-facts>span{
+ background:#E7F7F2!important;color:var(--cmv-cocoa)!important;
+}
+html body #app .v24-parking-page :is(.v24-nav,.v24-route){
+ border-color:#A7D6CD!important;color:var(--cmv-deep)!important;
+}
+html body #app .v24-parking-page :is(.v24-alert,.v24-warning,.v24-safety){
+ color:#85521B!important;background:#FFF4E6!important;border-color:#E5CC9B!important;
+}
+/* Exit/return choice cards stay distinguishable by copy, not four brand colors. */
+html body #app .v25-entry-page .entry-choice{
+ min-height:138px!important;border:1px solid #B6DCD1!important;
+ background:#FFFEFA!important;box-shadow:0 3px 0 rgba(58,35,29,.06)!important;
+ color:var(--cmv-cocoa)!important;
+}
+html body #app .v25-entry-page .entry-choice:nth-child(even){background:#EAF8F3!important}
+html body #app .v25-entry-page .entry-choice:nth-child(odd){border-left:4px solid var(--cmv-chocolate)!important}
+html body #app .v25-entry-page .entry-choice-icon{
+ background:var(--cmv-ice)!important;color:var(--cmv-deep)!important;
+}
+html body #app .v25-entry-page :is(.entry-choice strong,.entry-choice h3,.entry-choice-arrow){
+ color:var(--cmv-cocoa)!important;
+}
+html body #app .v25-entry-page :is(.entry-choice-sub,.entry-needed-copy){color:var(--cmv-muted)!important}
+html body #app .v25-entry-page .entry-choice:focus-visible{outline:3px solid var(--cmv-deep)!important}
+html body #app .v25-entry-page .entry-warning{
+ background:#FFF1DC!important;color:#79532D!important;border-color:#E5C58C!important;
+}
+@media(max-width:350px){
+ html body #app :is(.page-head,.pv7-head,.cm-hub-head){padding:15px 13px 14px 12px!important}
+ html body #app .cm-hub-list{padding-inline:9px!important}
+ html body #app .cm-hub-list>.cm-hub-row{grid-template-columns:40px minmax(0,1fr) 16px!important;gap:8px!important}
+ html body #app .cm-hub-row>.cm-hub-icon{width:40px;height:40px}
+ html body.v7-callstatus-active #app .cs-body{padding-inline:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body #app :is(.page-head,.pv7-head,.cm-hub-head,.cm-hub-row,.rec-slot,.entry-choice){animation:none!important;transition:none!important}
+}
+/* v10.1 — priority over legacy page-specific color states. */
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-card .page-head,
+html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green{
+ background-color:#D8F7F0!important;
+ background-image:
+  radial-gradient(ellipse 6px 4px at 91% 25%,#744634 94%,transparent 100%),
+  radial-gradient(ellipse 4px 3px at 95% 48%,#98705B 94%,transparent 100%),
+  radial-gradient(ellipse 3px 5px at 84% 18%,#76503F 94%,transparent 100%),
+  linear-gradient(115deg,#CCF4EB,#DAF8F1 55%,#B8EDE6)!important;
+ color:#3A231D!important;
+ border-left:4px solid #744634!important;
+ border-bottom:1px solid #B0D9D0!important;
+ box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-card .page-head :is(h2,p,.rv7-head-note),
+html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green :is(h2,p,strong){
+ color:#3A231D!important;text-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .page-card .page-head small,
+html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green small{
+ display:none!important; /* The ASOBooN logo is already in the topbar. */
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .rv7-progress .rv7-step.active{
+ background:#D8F7F0!important;color:#3A231D!important;border-bottom:4px solid #744634!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .rv7-progress .rv7-step.active b{
+ background:#126E7D!important;color:#fff!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .rv7-progress .rv7-step:not(.active){
+ background:#EFF9F5!important;color:#496C65!important;border-bottom:3px solid #BADFD4!important;
+}
+html.boon-v4.boon-v5-mint body #app .v27-first-page .pv7-head h1{
+ font-size:clamp(21px,5.4vw,24px)!important;line-height:1.3!important;letter-spacing:-.025em!important;
+}
+html.boon-v4.boon-v5-mint body #app :is(.pv7-primary,.v27-primary,#tgReload):not(:disabled){
+ background:#126E7D!important;color:#fff!important;
+ border:1px solid #0C5B67!important;border-radius:12px!important;
+ box-shadow:0 3px 0 #084F59!important;
+ font-weight:950!important;
+}
+html.boon-v4.boon-v5-mint body #app #tgReload{
+ min-height:52px!important;
+}
+html.boon-v4.boon-v5-mint body #app .pv7-body :is(p,small),
+html.boon-v4.boon-v5-mint body #app .v27-step-copy :is(p,small),
+html.boon-v4.boon-v5-mint body #app .v24-section :is(p,small){
+ line-height:1.55!important;
+}
+html.boon-v4.boon-v5-mint body #app .pv7-body p{font-size:clamp(12px,3.1vw,14px)!important}
+html.boon-v4.boon-v5-mint body #app .pv7-body .pv7-band small{font-size:11px!important}
+
+/* v10.2 — narrow-screen typography and reception stage indicator finish. */
+html.boon-v4.boon-v5-mint body #app .v27-first-page .v27-first-head h1{
+ max-width:100%!important;overflow-wrap:normal!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .rv7-progress .rv7-step.active::after{
+ background:#744634!important;border-color:#744634!important;box-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .rv7-progress .rv7-step.active{
+ box-shadow:inset 0 -4px 0 #744634!important;
+}
+html.boon-v4.boon-v5-mint body.v7-timeguide-active #app .tg-page .page-head small{
+ display:none!important;
+}
+
+/* Safety override — certified CALL status tone has priority over cosmetics.
+   Keep full-page/call-header semantic color exactly equal to --tone-ink.
+   Chocolate/mint stays in the topbar, neutral cards, and buttons. */
+html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green{
+ background:var(--tone-ink)!important;background-image:none!important;
+ background-color:var(--tone-ink)!important;color:#fff!important;
+ border-left:4px solid #6DD2CA!important;border-bottom-color:var(--tone-edge)!important;
+}
+html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green :is(h1,h2,h3,p,strong){
+ color:#fff!important;
+}
