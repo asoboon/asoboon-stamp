@@ -22,9 +22,12 @@ test('end-of-reception clears both live counts and persisted positive snapshot',
 });
 test('visibility check owns loading lock through its awaited decision',()=>{
   for(const code of [source,bundle]){
-    const start=code.indexOf("if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){");
-    assert.notEqual(start,-1);
+    const branch=code.indexOf("if(reason==='AIRWAIT_CROWD_EMPTY'){");
+    const start=code.indexOf('if(!crowdClosed&&',branch);
+    const check=code.indexOf('await m.check(',start);
     const lockRelease=code.indexOf('crowdLoading=false;',start);
-    assert.ok(lockRelease>code.indexOf('await m.check(',start),'request remains locked until visibility resolved');
+    assert.ok(branch>=0&&start>branch&&check>start,'visibility check remains on empty/error path');
+    assert.match(code.slice(start,check),/NO_MATCH/,'fresh no-match results bypass saved positive quotas');
+    assert.ok(lockRelease>check,'request remains locked until visibility resolved');
   }
 });

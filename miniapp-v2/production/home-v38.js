@@ -15,6 +15,7 @@ const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
+let crowdHiddenConfirmed=false; // All public AirWAIT wait types independently confirmed hidden.
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
  clearTimeout(crowdPollTimer);crowdPollTimer=0;
@@ -70,7 +71,7 @@ function receptionHoursNote(){
  ${url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
  </div>`;
 }
-function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
+function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(crowdHiddenConfirmed)return{type:'ended',title:'公開中の受付枠はありません',message:'WEB・LINEの受付は現在停止しています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
 function guide(kind,title,sub,view,panel=''){return `<button class="v38-guide-card ${kind}" type="button" data-v7-view="${view}"${panel?` data-v7-panel="${panel}"`:''}><span class="v38-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span>${svg('arrow')}</button>`}
@@ -123,13 +124,11 @@ function restoreFreshCrowdForDay(){
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
 function readLastCrowd(){
- // Also migrate a previously VERIFIED 90-second cache without trusting it as live data.
  for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
   const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
   if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
   if(key===CROWD_CACHE_KEY){
    if(x.verifiedFresh!==true)continue;
-   // Persist the proven same-day value before an empty API response deletes the legacy cache.
    try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
   }
   return x;
@@ -169,8 +168,8 @@ function verifiedWebRemaining(slot){
 }
 function validCrowdSlots(){
  const age=Date.now()-crowdAt,ended=crowdReadOnly();
- const archive=ended?readLastCrowd():null;
- const live=!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+ const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
+ const live=!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
    &&Array.isArray(crowdSlots)&&crowdSlots.length
      ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
        slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
@@ -256,6 +255,7 @@ async function fetchCrowd(force=false,manual=false){
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
+  crowdHiddenConfirmed=false;
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
   crowdStale=data.stale===true;
   const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
@@ -275,21 +275,25 @@ async function fetchCrowd(force=false,manual=false){
   }
  }finally{
   clearTimeout(timer);
-  if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
+  if(!crowdClosed&&(crowdError||crowdSlots?.every(s=>s?.evidence==='NO_MATCH')||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
    renderSlots();
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
     const closed=await m.check(E.backendUrl,R.slotsFor(day.businessType,'onsite'),CROWD_SETTINGS.IDS[day.businessType]);
-    if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;}
+    if(closed===true&&date===day?.operationalDate){
+      crowdHiddenConfirmed=true;crowdClosed=true;
+      crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;
+      try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
+    }
    }catch{}
   }
   if(crowdClosed)try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
   crowdLoading=false;
-  if(currentView()==='home'){renderSlots();scheduleCrowd()}
+  if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'});scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{
