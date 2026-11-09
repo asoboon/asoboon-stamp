@@ -41,3 +41,9 @@ test('production build retains split delivery and existing business logic module
  assert.ok(manifest.routeScripts.includes('miniapp-v2/shared/timeguide.js'));
  assert.ok(!manifest.styles.includes('miniapp-v2/production/choco-mint-allroutes-v10.css'),'Non-HOME CSS must be deferred');
 });
+test('all navigable detail headers keep chocolate chips despite legacy important background declarations',()=>{
+ assert.match(css,/main\.view\.active :is\(\.cm-hub-head,\.pv7-head\)/);
+ assert.match(css,/body:not\(\.v7-callstatus-active\) #app main\.view\.active \.page-head/);
+ assert.match(css,/radial-gradient\(ellipse 6px 4px at 91% 25%,#744634/);
+ assert.match(css,/background:var\(--tone-ink\)!important/);
+});
