@@ -372,3 +372,18 @@ html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app
 html.boon-v4.boon-v5-mint body.v7-callstatus-active[data-asoboon-call-tone] #app .cs-page .page-head.green :is(h1,h2,h3,p,strong){
  color:#fff!important;
 }
+
+/* v10.3 — header chips on ALL native hubs and guide detail pages.
+   The old mint/nav rules contained high-specificity "background: ...!important"
+   declarations, which suppressed the allroutes background-image on some views.
+   Explicitly override only the image, preserving the existing mint card color.
+   Certified call-status header colors are excluded. */
+html.boon-v4.boon-v5-mint body #app main.view.active :is(.cm-hub-head,.pv7-head),
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active) #app main.view.active .page-head {
+ background-image:
+  radial-gradient(ellipse 6px 4px at 91% 25%,#744634 94%,transparent 100%),
+  radial-gradient(ellipse 4px 3px at 95% 48%,#98705B 94%,transparent 100%),
+  radial-gradient(ellipse 3px 5px at 84% 18%,#76503F 94%,transparent 100%),
+  linear-gradient(115deg,#CCF4EB,#DAF8F1 55%,#B8EDE6)!important;
+ background-color:#D8F7F0!important;
+}
