@@ -2710,6 +2710,36 @@ test('HOME does not show archived positive headcounts after all public AirWAIT s
  }
 });
 
+test('HOME hides reception booking CTA during open hours when staff unpublish every slot',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T03:10:00.000Z'});
+ let checkCount=0;
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='crowdRemaining')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T03:10:00.000Z',
+   onlineReception:{enabled:false,code:'03'},
+   slots:['0030','0032','0034'].map(waitTypeId=>({
+    waitTypeId,reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'
+   })),observedDetails:[]
+  })});
+  if(action==='waitTypes'){
+   checkCount++;
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,waitTypes:Array.from({length:50},(_,i)=>({
+     waitTypeId:String(i+1).padStart(4,'0'),dispFlg:false
+    }))
+   })});
+  }
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>checkCount,{timeout:12000}).toBeGreaterThan(0);
+ await expect(page.locator('#v38Hero h1')).toHaveText('公開中の受付枠はありません');
+ await expect(page.locator('#v38Hero')).not.toContainText('順番を取る');
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+ await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
+ await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
+});
 test('HOME refuses to claim reception ended when one AirWAIT slot remains published',async({page})=>{
  await installProduction(page);
  await page.route(GATEWAY+'**',route=>{
