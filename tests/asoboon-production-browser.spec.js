@@ -3120,7 +3120,12 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
+ await expect.poll(()=>waitReads,{timeout:12000}).toBeGreaterThanOrEqual(1);
  await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
+ // The hidden refresh button is disabled during the initial API check.
+ // Only trigger a second fetch AFTER the first one has completed.
+ await expect(page.locator('#v38CrowdUpdate')).toBeEnabled();
  failVisibility=true;
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>waitReads,{timeout:10000}).toBeGreaterThanOrEqual(2);
