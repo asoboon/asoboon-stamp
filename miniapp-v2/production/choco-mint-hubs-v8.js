@@ -20,13 +20,32 @@ ${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/prod
 ${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
 ${hubRow('よくある質問','困ったときはこちら','faq','','!')}
 </div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
-function faqPage(){return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>ご利用時の疑問をまとめました。</p></header><div class="cm-faq">
-<details><summary>LINE受付とWEB受付は同じですか？</summary><p>別の受付方法です。LINEミニアプリでは店舗受付系の受付をご利用いただけます。</p></details>
-<details><summary>受付番号を確認したい</summary><p>画面下の「呼出」から確認できます。通信エラー時も、保存済みの受付番号は消しません。</p></details>
-<details><summary>呼び出されてから何分以内に行けばいいですか？</summary><p>呼出から30分を目安に受付へお越しください。実際の受付状態は「呼出」でご確認ください。</p></details>
-<details><summary>館内で飲食できますか？</summary><p>館内でのお食事はできません。飲み物は指定された土足エリアでお願いします。</p></details>
-<details><summary>一時退場したあと、戻れますか？</summary><p>再入場の方法は「一時退場・再入場」の案内からご確認ください。</p></details>
-</div>${hubRow('ご利用案内へ戻る','案内トップ','guide','','↩')}</section>`}
+function faqPage(){return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq" aria-label="ご利用に関するよくある質問">
+<details><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
+<details><summary>今日の受付枠・残人数はどこで確認するの？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
+<details><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
+<details><summary>WEB受付とLINE受付は同じですか？</summary><p>別の受付方法です。WEB受付はAirWAITのWEB受付、LINE受付はミニアプリの店舗受付系です。開始時間と空き人数はそれぞれ違います。</p></details>
+<details><summary>受付番号・呼出の順番を知りたい</summary><p>画面下の「呼出」から番号と呼出状態を確認できます。受付後はそこで最新状態を確かめてください。</p></details>
+<details><summary>呼出されたら何分以内に行けばいい？</summary><p>呼出から30分以内にASOBooN入口の受付へお越しください。30分経過後は自動キャンセルの対象です。各回の最終入場時刻にもご注意ください。</p></details>
+<details><summary>受付をキャンセルしたい</summary><p>画面下の「呼出」で受付内容を確認し、取消操作を行えます。再度受付する場合は公開されている枠を確認してください。</p></details>
+<details><summary>受付枠が全部なくなったら？</summary><p>非公開の枠は受付できません。予約枠の公開状態が変わることがありますが、表示されていない空きを保証することはできません。営業予定は営業日カレンダーでご確認ください。</p></details>
+<details><summary>今日の営業時間・定休日は？</summary><p>通常は平日10:00〜17:00、土日祝10:00〜18:00、定休日は火曜日です。臨時変更や平日特定日はHOMEの「今日の営業」と営業日カレンダーに表示されます。</p></details>
+<details><summary>何時間遊べますか？</summary><p>通常平日は時間無制限、平日特定日は3時間、土日祝・月曜は2時間30分が基本です。入場日の営業区分で変わります。「アソブーンタイマー」で終了時刻の目安を確認できます。</p></details>
+<details><summary>入場料金はいくら？</summary><p>大人600円・子ども900円です。生後6か月未満のお子さまは、同じ会計に子どもが複数いる場合の2人目以降が無料です。詳しくは「料金」案内をご確認ください。</p></details>
+<details><summary>乳幼児向けの場所はある？</summary><p>0歳〜1歳6か月のお子さま向けの「オレンジ・ポンド」があります。利用対象を守って安全に遊びましょう。</p></details>
+<details><summary>館内で飲食できますか？</summary><p>館内での食事はできません。飲み物は土足エリアでお願いします。遊具エリアには持ち込まないでください。</p></details>
+<details><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。再入場時には当日のレシートを提示してください。ホルダーの取り扱いと戻る場所も確認できます。</p></details>
+<details><summary>ロッカーはありますか？</summary><p>小ロッカー約37L、大ロッカー約50Lがあります。利用時は鍵や貴重品の管理にご注意ください。</p></details>
+<details><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあり、一般道からも来場できます。高速道路側と一般道側で入口が違うため、「駐車場・アクセス」をご確認ください。</p></details>
+</div><div class="cm-hub-list" aria-label="関連する案内へ進む">
+${hubRow('本日の受付枠','WEB・LINE残人数を見る','home','','⌂')}
+${hubRow('呼出状況','受付番号と入場案内','callstatus','','◷')}
+${hubRow('料金','ご利用料金の詳しい案内','first','price','¥')}
+${hubRow('一時退場・再入場','外出・戻り方','entry','','↩')}
+${hubRow('館内ルール','安全・飲食など','rules','','✓')}
+${hubRow('駐車場・アクセス','行き方・駐車場','parking','','P')}
+${hubRow('ご利用案内へ戻る','案内トップ','guide','','‹')}
+</div></section>`}
 function playPage(){return `<section class="page-card cm-hub" aria-label="あそび"><header class="cm-hub-head"><span class="cm-hub-eyebrow">ASOBooN PLAY</span><h1>あそび</h1><p>館内でも、待ち時間でも。遊びたいものを選んでね。</p></header><div class="cm-hub-list" aria-label="あそびの各項目">
 ${hubLink('ASOQUEST スタンプラリー','館内のQRから車のパーツを集めよう','miniapp-v2/production/asoquest/','★')}
 ${hubLink('ブーンRUN','障害物をよけて走ろう','boonrun/','▶')}

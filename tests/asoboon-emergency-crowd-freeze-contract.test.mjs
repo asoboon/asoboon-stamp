@@ -4,11 +4,13 @@ import {readFileSync} from 'node:fs';
 const home=readFileSync('miniapp-v2/production/home-v38.js','utf8');
 const rec=readFileSync('miniapp-v2/shared/reception.js','utf8');
 
-test('Public home cannot rerender crowd cards on an automatic 35-second polling timer',()=>{
-  assert.match(home,/function scheduleCrowd\(\)\{[\s\S]*?clearTimeout\(crowdPollTimer\);crowdPollTimer=0;\s*\}/);
-  const body=home.slice(home.indexOf('function scheduleCrowd(){'),home.indexOf('function crowdFreshness()'));
-  assert.doesNotMatch(body,/setTimeout\(/);
-  assert.match(home,/fetchCrowd\(true,true\)/,'manual refresh remains available');
+test('Public HOME refreshes AirWAIT only on the active screen and preserves unchanged cards',()=>{
+ const body=home.slice(home.indexOf('function scheduleCrowd(){'),home.indexOf('function crowdFreshness()'));
+ assert.match(body,/clearTimeout\(crowdPollTimer\);crowdPollTimer=0/);
+ assert.match(body,/currentView\(\)!=='home'\|\|day\?\.isClosed\|\|crowdClosed/);
+ assert.match(body,/crowdReadOnly\(\)\?180e3:30e3/);
+ assert.match(body,/setTimeout\(\(\)=>\{crowdPollTimer=0;fetchCrowd\(true\)/);
+ assert.match(home,/fetchCrowd\(true,true\)/);
 });
 
 test('A repeated status update with identical crowd markup cannot discard an in-progress tap',()=>{
