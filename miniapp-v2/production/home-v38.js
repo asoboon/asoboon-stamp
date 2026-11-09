@@ -15,34 +15,28 @@ const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
-let crowdHiddenConfirmed=false; // All public AirWAIT wait types independently confirmed hidden.
-const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
+let crowdHiddenConfirmed=false,crowdPublicFlags=null;
 function scheduleCrowd(){
- clearTimeout(crowdPollTimer);crowdPollTimer=0;
- if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
- const now=Date.now(),wait=crowdRetryAt>now?crowdRetryAt-now:crowdAt?(crowdReadOnly()?180e3:30e3):15e3
- crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
+clearTimeout(crowdPollTimer);crowdPollTimer=0;
+if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
+const now=Date.now(),wait=crowdRetryAt>now?crowdRetryAt-now:crowdAt?(crowdReadOnly()?180e3:30e3):15e3
+crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
-function crowdFreshness(){
- if(crowdRetryAt>Date.now())return (crowdAt?crowdClock()+' 確認時点 ／ ':'')+(crowdError?'受付枠の空き状況を確認できません。':'最新の取得に失敗しました。')+'自動で再確認します。';
- if(crowdStale||crowdAt&&Date.now()-crowdAt>CROWD_STALE_MS)return '最新の人数を取得できていません。受付画面でご確認ください。';
- if(!crowdAt)return 'LINE・WEBの残り人数を確認しています…';
- return crowdClock()+' 確認時点の人数 ／ 更新ボタンで再確認できます';
-}
+function crowdFreshness(){}
 function prefetchCrowd(){
- if(earlyCrowd||!E.backendUrl||document.hidden||currentView()!=='home')return;
- const date=D.operationalDate?.(),hour=nowJst().minutes;
- if(!date||hour<420||hour>1085||new Date(date+'T00:00:00Z').getUTCDay()===2)return;
- const cached=readCrowdCache();if(cached?.verifiedFresh&&cached.operationalDate===date&&Date.now()-cached.savedAt<30000)return;
- const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
- const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
- const job=fetch(url,{cache:'no-store',signal:ctrl.signal}).then(async response=>({response,data:await response.json()})).catch(error=>({error})).finally(()=>clearTimeout(timeout));
- earlyCrowd={date,at:Date.now(),job};
+if(earlyCrowd||!E.backendUrl||document.hidden||currentView()!=='home')return;
+const date=D.operationalDate?.(),hour=nowJst().minutes;
+if(!date||hour<420||hour>1085||new Date(date+'T00:00:00Z').getUTCDay()===2)return;
+const cached=readCrowdCache();if(cached?.verifiedFresh&&cached.operationalDate===date&&Date.now()-cached.savedAt<30000)return;
+const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');
+const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8000);
+const job=fetch(url,{cache:'no-store',signal:ctrl.signal}).then(async response=>({response,data:await response.json()})).catch(error=>({error})).finally(()=>clearTimeout(timeout));
+earlyCrowd={date,at:Date.now(),job};
 }
 const ONSITE_CROWD_NAMES=Object.freeze({
-  '平日':Object.freeze({'0024':'すぐ入場受付【平日】','0027':'14時から【平日】'}),
-  '平日特定日':Object.freeze({'0036':'10時15分から【平日特定日】','0038':'13時45分から【平日特定日】'}),
-  '土日祝日':Object.freeze({'0030':'10時25分頃入場【土休日特定日】','0032':'12時50分頃入場【土休日特定日】','0034':'15時15分頃入場時間【土休日特定日】'})
+'平日':Object.freeze({'0024':'すぐ入場受付【平日】','0027':'14時から【平日】'}),
+'平日特定日':Object.freeze({'0036':'10時15分から【平日特定日】','0038':'13時45分から【平日特定日】'}),
+'土日祝日':Object.freeze({'0030':'10時25分頃入場【土休日特定日】','0032':'12時50分頃入場【土休日特定日】','0034':'15時15分頃入場時間【土休日特定日】'})
 });
 
 const COPY={ja:{loading:'読み込み中',today:'',hours:'利用時間',close:'閉館',guide:'利用案内',fun:'ASOBooNを楽しむ',first:'初めての方',firstSub:'受付から入場まで',price:'料金',priceSub:'大人600円・子ども900円',parking:'アクセス',parkingSub:'駐車場・行き方',rules:'館内ルール',rulesSub:'遊ぶ前に確認',entry:'一時退場・再入場',entrySub:'外出するときはこちら',game:'ミニゲーム',fortune:'おみくじ',stamp:'スタンプ',soon:'準備中'}};
@@ -58,95 +52,95 @@ function lineReceptionOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpe
 function lineReceptionOpenDisplay(){const m=lineReceptionOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineReceptionOpenClock()}
 function lineReceptionOpenMinutes(){const n=clockMinutes(lineReceptionOpenClock());return Number.isFinite(n)?n:570}
 function airwaitWebReceptionUrl(){
- try{
-  const url=new URL(String(OPERATIONAL_FALLBACKS.receptionUrl||''));
-  return url.protocol==='https:'&&url.hostname==='airwait.jp'&&url.pathname==='/WCSP/storeDetail'?url.href:'';
- }catch{return''}
+try{
+const url=new URL(String(OPERATIONAL_FALLBACKS.receptionUrl||''));
+return url.protocol==='https:'&&url.hostname==='airwait.jp'&&url.pathname==='/WCSP/storeDetail'?url.href:'';
+}catch{return''}
 }
 function receptionHoursNote(){
- const url=airwaitWebReceptionUrl();
- return `<div class="v38-reception-hours" aria-label="受付開始時刻">
- <div><span>LINEミニアプリ</span><strong>${esc(lineReceptionOpenDisplay())}から</strong></div>
- <div><span>WEB受付</span><strong>7:00から</strong></div>
- ${url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
- </div>`;
+const url=airwaitWebReceptionUrl();
+return `<div class="v38-reception-hours" aria-label="受付開始時刻">
+<div><span>LINEミニアプリ</span><strong>${esc(lineReceptionOpenDisplay())}から</strong></div>
+<div><span>WEB受付</span><strong>7:00から</strong></div>
+${url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
+</div>`;
 }
 function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'受付画面からお進みください。'};if(!day)return{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(String(day.operationalDate||'')!==now.date)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(day.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(day.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(crowdHiddenConfirmed)return{type:'ended',title:'公開中の受付枠はありません',message:'WEB・LINEの受付は現在停止しています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
 function guide(kind,title,sub,view,panel=''){return `<button class="v38-guide-card ${kind}" type="button" data-v7-view="${view}"${panel?` data-v7-panel="${panel}"`:''}><span class="v38-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span>${svg('arrow')}</button>`}
 function playLink(kind,title,sub,href,extra=''){return `<a class="v38-play-card ${kind} ${extra}" href="${href}" data-external="1"><span class="v38-play-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span></a>`}
-function baseHome(){return `<section class="home-shell v38-home" aria-label="ASOBooN HOME"><section id="v38Hero" class="v38-hero loading"><div class="v38-hero-icon">${svg('clock')}</div><div><h1>${T.loading}</h1><p>お待ちください。</p></div></section><section class="v38-today-section"><button id="v38Today" class="v38-today" type="button" data-v7-view="timeguide" aria-label="本日の営業と利用時間"><span>${svg('clock')}<small>営業</small><strong>${T.loading}</strong></span><span><small>${T.hours}</small><strong>—</strong></span><span><small>${T.close}</small><strong>—</strong></span>${svg('arrow')}</button><section id="v38Slots" class="v38-slots" aria-live="polite"></section></section><section class="v38-quick-tools" aria-label="よく使う機能"><button id="v38TimeguideShortcut" class="v38-timeguide-cta" type="button" data-v7-view="timeguide"><span class="v38-quick-icon">${svg('clock')}</span><span><small data-timeguide-eyebrow>利用中にも便利</small><strong data-timeguide-title>アソブーンタイマー</strong><em data-timeguide-summary>入場時刻から終了時刻の目安がわかります</em></span>${svg('arrow')}</button></section><section class="v38-calendar-section v38-business-calendar-section"><h2>営業日カレンダー</h2><a class="v38-calendar-card" href="${assetHref('business-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>定休日・臨時変更を確認</small><strong>これからの営業日を見る</strong><em>今日から翌月までの予定</em></span>${svg('arrow')}</a></section><section id="v38Surprise" class="v38-surprise-section" hidden aria-live="polite"></section><section class="v38-guide"><h2>${T.guide}</h2><div class="v38-guide-grid">${guide('person',T.first,T.firstSub,'first')}${guide('yen',T.price,T.priceSub,'first','price')}${guide('parking',T.parking,T.parkingSub,'parking')}${guide('check',T.rules,T.rulesSub,'rules')}</div>${guide('door',T.entry,T.entrySub,'entry')}</section><section class="v38-play"><div class="v38-section-heading"><div><small>あそび</small><h2>あそびコンテンツ</h2></div><p>待ち時間も、館内でも。</p></div><div class="v38-play-grid">${playLink('quest','スタンプラリー','館内6か所でパーツを集めよう',assetHref('asoquest/'),'is-new')}${playLink('game','BOON BLOCK','ブロックを動かしてジャングル攻略','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','is-new')}${playLink('game','ブーンジャンプ','3タップで飛距離勝負',siteHref('boonjump/'))}${playLink('game','ブーンRUN','障害物をかわして走ろう',siteHref('boonrun/'))}${playLink('fortune','おみくじ','今日の運勢をチェック',siteHref('omikuji.html'))}</div></section><section class="v38-calendar-section"><h2>イベントカレンダー</h2><a class="v38-calendar-card" href="${assetHref('event-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>今月の予定</small><strong>今月のイベントを見る</strong><em>開催予定をまとめてチェック</em></span>${svg('arrow')}</a></section><section class="v38-help"><details><summary><span>${svg('check')}<strong>よくある質問・困ったとき</strong></span>${svg('arrow')}</summary><div><p><b>呼出後30分を過ぎそうなとき</b><br>受付番号を確認し、ASOBooN入口のスタッフへお声がけください。</p><p><b>受付を取り消したいとき</b><br>呼出状況から受付内容を確認してください。</p><p><b>料金・支払い・再入場</b><br>上の利用案内から詳しく確認できます。</p></div></details></section><footer class="v38-legal" aria-label="運営・お問い合わせ・プライバシー情報"><span>運営：株式会社コマーム</span><a href="tel:0484209780" data-external="1">ASOBooN事務局 048-420-9780</a><a href="https://comaam.jp/privacy-policy/" target="_blank" rel="noopener noreferrer" data-external="1">個人情報保護方針</a></footer></section>`}
+function baseHome(){return `<section class="home-shell v38-home" aria-label="ASOBooN HOME"><section id="v38Hero" class="v38-hero loading"><div class="v38-hero-icon">${svg('clock')}</div><div><h1>${T.loading}</h1><p>お待ちください。</p></div></section><section class="v38-today-section"><button id="v38Today" class="v38-today" type="button" data-v7-view="timeguide" aria-label="本日の営業と利用時間"><span>${svg('clock')}<small>営業</small><strong>${T.loading}</strong></span><span><small>${T.hours}</small><strong>—</strong></span><span><small>${T.close}</small><strong>—</strong></span>${svg('arrow')}</button><section id="v38Slots" class="v38-slots" aria-live="polite"></section></section><section class="v38-quick-tools" aria-label="よく使う機能"><button id="v38TimeguideShortcut" class="v38-timeguide-cta" type="button" data-v7-view="timeguide"><span class="v38-quick-icon">${svg('clock')}</span><span><small data-timeguide-eyebrow>利用中にも便利</small><strong data-timeguide-title>アソブーンタイマー</strong><em data-timeguide-summary>入場時刻から終了時刻の目安がわかります</em></span>${svg('arrow')}</button></section><section class="v38-calendar-section v38-business-calendar-section"><h2>営業日カレンダー</h2><a class="v38-calendar-card" href="${assetHref('business-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>定休日・臨時変更を確認</small><strong>これからの営業日を見る</strong><em>今日から翌月までの予定</em></span>${svg('arrow')}</a></section><section id="v38Surprise" class="v38-surprise-section" hidden aria-live="polite"></section><section class="v38-guide"><h2>${T.guide}</h2><div class="v38-guide-grid">${guide('person',T.first,T.firstSub,'first')}${guide('yen',T.price,T.priceSub,'first','price')}${guide('parking',T.parking,T.parkingSub,'parking')}${guide('check',T.rules,T.rulesSub,'rules')}</div>${guide('door',T.entry,T.entrySub,'entry')}</section><section class="v38-play"><div class="v38-section-heading"><div><small>あそび</small><h2>あそびコンテンツ</h2></div><p>待ち時間も、館内でも。</p></div><div class="v38-play-grid">${playLink('quest','スタンプラリー','館内6か所でパーツを集めよう',assetHref('asoquest/'),'is-new')}${playLink('game','BOON BLOCK','ブロックを動かしてジャングル攻略','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','is-new')}${playLink('game','ブーンジャンプ','3タップで飛距離勝負',siteHref('boonjump/'))}${playLink('game','ブーンRUN','障害物をかわして走ろう',siteHref('boonrun/'))}${playLink('fortune','おみくじ','今日の運勢をチェック',siteHref('omikuji.html'))}</div></section><section class="v38-calendar-section"><h2>イベントカレンダー</h2><a class="v38-calendar-card" href="${assetHref('event-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>今月の予定</small><strong>今月のイベントを見る</strong><em>開催予定をまとめてチェック</em></span>${svg('arrow')}</a></section><section class="v38-help"><details><summary><span>${svg('check')}<strong>よくある質問・困ったとき</strong></span>${svg('arrow')}</summary><div><p><b>呼出後30分を過ぎそうなとき</b><br>受付番号を確認し、ASOBooN入口のスタッフへお声がけください。</p><p><b>受付を取り消したいとき</b><br>呼出状況から受付内容を確認してください。</p><p><b>料金・支払い・再入場</b><br>上の利用案内から詳しく確認できます。</p><button type="button" class="v38-faq-more" data-v7-view="faq">よくある質問をすべて見る ›</button></div></details></section><footer class="v38-legal" aria-label="運営・お問い合わせ・プライバシー情報"><span>運営：株式会社コマーム</span><span>ご案内・お問い合わせは「利用案内」「よくある質問」をご覧ください。</span><a href="https://comaam.jp/privacy-policy/" target="_blank" rel="noopener noreferrer" data-external="1">個人情報保護方針</a></footer></section>`}
 function fmtDate(value){const raw=String(value||'').trim(),m=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return raw||'—';return `${Number(m[2])}月${Number(m[3])}日`}
 function reservationInfo(receipt=''){let rec=null;try{rec=JSON.parse(localStorage.getItem(RES_KEY)||'null')}catch{}if(!rec)return null;if(receipt&&rec.receiptNo&&String(rec.receiptNo)!==String(receipt))return null;return rec}
 function peopleBreakdown(rec){if(!rec)return'—';const a=Number(rec.adults),c=Number(rec.paidChildren),i=Number(rec.infants);if(![a,c,i].every(Number.isFinite))return'—';const parts=[`おとな ${a}名`];if(c>0)parts.push(`こども ${c}名`);if(i>0)parts.push(`0〜5か月 ${i}名`);return parts.join('・')}
 function reservationCard(receipt=''){const rec=reservationInfo(receipt),number=String(receipt||rec?.receiptNo||'—'),date=fmtDate(rec?.businessDate||'—'),people=peopleBreakdown(rec);return `<div class="v38-reservation-card" aria-label="受付情報"><div class="v38-reservation-item receipt"><small>受付番号</small><strong>${esc(number)}</strong></div><div class="v38-reservation-item"><small>利用日</small><strong>${esc(date)}</strong></div><div class="v38-reservation-item people"><small>人数内訳</small><strong>${esc(people)}</strong></div></div>`}
 function stateLabel(text){return `<div class="v38-state-label">${esc(text)}</div>`}
 function heroMarkup(data={}){
- if(E.environment==='production'){
-   const opDate=String(day?.operationalDate||nowJst().date);
-   const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
-      const saved=isTodaysReceipt(RES_KEY)||isTodaysReceipt(CALL_STATUS_CACHE_KEY);
-   const a=availability();
-   if(saved){
-     return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>受付番号は保存済みです</h1><p>現在の受付・呼出状況は画面下の「呼出」から確認できます。</p></div>`};
-   }
-     if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}${receptionHoursNote()}</div>`};
-   return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='before'?receptionHoursNote():''}</div>`};
- }
- const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='pending'&&receipt)return{kind:'pending',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><div class="v38-pending-eyebrow">保存済みの受付番号</div><div class="v38-pending-number">${esc(receipt)}</div><p class="v38-pending-status" role="status"><span class="v38-pending-indicator" aria-hidden="true"></span>最新の呼出状況を確認しています…</p>${action('callstatus','呼出状況を確認する')}</div>`};if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number.isSafeInteger(data.ahead)&&data.ahead>=0?data.ahead:null;if(n===null)return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>WEB受付とLINE受付の待ち順を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','入口案内を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','アソブーンタイマー')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}${receptionHoursNote()}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='error'?action('reception','受付画面を開く','primary'):action('first','利用案内へ')}${a.type==='before'?receptionHoursNote():''}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
+if(E.environment==='production'){
+const opDate=String(day?.operationalDate||nowJst().date);
+const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
+const saved=isTodaysReceipt(RES_KEY)||isTodaysReceipt(CALL_STATUS_CACHE_KEY);
+const a=availability();
+if(saved){
+return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>受付番号は保存済みです</h1><p>現在の受付・呼出状況は画面下の「呼出」から確認できます。</p></div>`};
+}
+if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}${receptionHoursNote()}</div>`};
+return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='before'?receptionHoursNote():''}</div>`};
+}
+const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='pending'&&receipt)return{kind:'pending',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><div class="v38-pending-eyebrow">保存済みの受付番号</div><div class="v38-pending-number">${esc(receipt)}</div><p class="v38-pending-status" role="status"><span class="v38-pending-indicator" aria-hidden="true"></span>最新の呼出状況を確認しています…</p>${action('callstatus','呼出状況を確認する')}</div>`};if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number.isSafeInteger(data.ahead)&&data.ahead>=0?data.ahead:null;if(n===null)return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>WEB受付とLINE受付の待ち順を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','入口案内を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','アソブーンタイマー')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'順番を取る','primary')}${receptionHoursNote()}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='error'?action('reception','受付画面を開く','primary'):action('first','利用案内へ')}${a.type==='before'?receptionHoursNote():''}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
 function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)return;const v=heroMarkup(data),sig=v.kind+'|'+v.html;if(sig===lastHero&&el.dataset.rendered==='1')return;lastHero=sig;el.dataset.rendered='1';el.className=`v38-hero ${v.kind}`;el.innerHTML=v.html;document.body.classList.remove('v38-state-waiting','v38-state-calling','v38-state-guided','v38-state-hold','v38-state-canceled','v38-state-closed');const theme=String(v.kind).split(/\s+/)[0];if(['waiting','calling','guided','hold','canceled','closed'].includes(theme))document.body.classList.add(`v38-state-${theme}`);}
 function patchToday(){const b=root.querySelector('#v38Today');if(!b)return;const v=b.querySelectorAll('strong'),compact=window.ASOBOON_MINT_V51_PREVIEW===true,today=displayDay?.operationalDate===nowJst().date?displayDay:day,c=!!today?.isClosed;if(today){const k=today.businessType||'—',d=today.durationLabel||'—',t=today.closingTime||'—';setText(v[0],compact?'今日の営業':c?'休館':k);setText(v[1],compact?(c?'休館日':k.replace('土日祝日','土日祝')+(/^\d{2}:\d{2}$/.test(t)?' 10:00〜'+t:'')):c?'—':d);setText(v[2],compact?(c?'':d==='無制限'?d:d==='—'?'':d+'制'):c?'—':t);b.classList.toggle('closed',c);return}setText(v[0],compact?'今日の営業':dayError?'取得できません':T.loading);setText(v[1],compact?(dayError?'取得不可':T.loading):'—');setText(v[2],compact?'':'—')}
 function readTimeguideResult(){try{return JSON.parse(localStorage.getItem(TIMEGUIDE_KEY)||'null')}catch{return null}}
 function patchTimeguideShortcut(){
-  const card=root.querySelector('#v38TimeguideShortcut');if(!card)return;
-  const eyebrow=card.querySelector('[data-timeguide-eyebrow]'),title=card.querySelector('[data-timeguide-title]'),summary=card.querySelector('[data-timeguide-summary]');
-  const saved=readTimeguideResult(),valid=saved&&day&&!day.isClosed&&String(saved.businessDate||'')===String(day.operationalDate||'')&&/^\d{2}:\d{2}$/.test(String(saved.endTime||''));
-  if(!valid){setText(eyebrow,'利用中にも便利');setText(title,'アソブーンタイマー');setText(summary,'入場時刻から終了時刻の目安がわかります');card.classList.remove('has-timeguide-result');return}
-  const entry=String(saved.entryTime||''),end=String(saved.endTime||''),duration=String(saved.durationLabel||'');
-  let detail=entry?entry+'入場':'入力済み';
-  if(saved.unlimited)detail+=(detail?'・':'')+'時間制限なし';
-  else if(saved.limitedByClose)detail+=(detail?'・':'')+'閉館時刻まで';
-  else if(duration)detail+=(detail?'・':'')+duration;
-  setText(eyebrow,'アソブーンタイマー');setText(title,end+'まで遊べる');setText(summary,detail);card.classList.add('has-timeguide-result');
+const card=root.querySelector('#v38TimeguideShortcut');if(!card)return;
+const eyebrow=card.querySelector('[data-timeguide-eyebrow]'),title=card.querySelector('[data-timeguide-title]'),summary=card.querySelector('[data-timeguide-summary]');
+const saved=readTimeguideResult(),valid=saved&&day&&!day.isClosed&&String(saved.businessDate||'')===String(day.operationalDate||'')&&/^\d{2}:\d{2}$/.test(String(saved.endTime||''));
+if(!valid){setText(eyebrow,'利用中にも便利');setText(title,'アソブーンタイマー');setText(summary,'入場時刻から終了時刻の目安がわかります');card.classList.remove('has-timeguide-result');return}
+const entry=String(saved.entryTime||''),end=String(saved.endTime||''),duration=String(saved.durationLabel||'');
+let detail=entry?entry+'入場':'入力済み';
+if(saved.unlimited)detail+=(detail?'・':'')+'時間制限なし';
+else if(saved.limitedByClose)detail+=(detail?'・':'')+'閉館時刻まで';
+else if(duration)detail+=(detail?'・':'')+duration;
+setText(eyebrow,'アソブーンタイマー');setText(title,end+'まで遊べる');setText(summary,detail);card.classList.add('has-timeguide-result');
 }
 function readCrowdCache(){try{const x=JSON.parse(localStorage.getItem(CROWD_CACHE_KEY)||'null');if(!x||!Array.isArray(x.slots)||!x.slots.length||Date.now()-Number(x.savedAt||0)>CROWD_CACHE_MAX_AGE_MS)return null;if(day&&String(x.operationalDate||'')!==String(day.operationalDate||''))return null;return x}catch{return null}}
 function restoreFreshCrowdForDay(){
- if(crowdSlots)return false;
- const cached=readCrowdCache();
- if(!cached||cached.verifiedFresh!==true||Date.now()-Number(cached.savedAt||0)>CROWD_STALE_MS)return false;
- crowdSlots=cached.slots;
- crowdDetails=Array.isArray(cached.details)?cached.details:[];
- crowdAt=Number(cached.savedAt);
- crowdStale=false;
- renderSlots();
- return true;
+if(crowdSlots)return false;
+const cached=readCrowdCache();
+if(!cached||cached.verifiedFresh!==true||Date.now()-Number(cached.savedAt||0)>CROWD_STALE_MS)return false;
+crowdSlots=cached.slots;
+crowdDetails=Array.isArray(cached.details)?cached.details:[];
+crowdAt=Number(cached.savedAt);
+crowdStale=false;
+renderSlots();
+return true;
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
 function readLastCrowd(){
- for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
-  const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
-  if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
-  if(key===CROWD_CACHE_KEY){
-   if(x.verifiedFresh!==true)continue;
-   try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
-  }
-  return x;
- }catch{}
- return null;
+for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
+const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
+if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
+if(key===CROWD_CACHE_KEY){
+if(x.verifiedFresh!==true)continue;
+try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
+}
+return x;
+}catch{}
+return null;
 }
 function saveLastCrowd(){
- if(day?.operationalDate!==nowJst().date||day?.isClosed||crowdAt<=0||crowdStale)return;
- try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:day.operationalDate,businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}))}catch{}
+if(day?.operationalDate!==nowJst().date||day?.isClosed||crowdAt<=0||crowdStale)return;
+try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:day.operationalDate,businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}))}catch{}
 }
 function businessForBoard(){
- const today=nowJst().date;
- return displayDay?.operationalDate===today?displayDay:day?.operationalDate===today?day:null;
+const today=nowJst().date;
+return displayDay?.operationalDate===today?displayDay:day?.operationalDate===today?day:null;
 }
 function crowdReadOnly(){
- const business=businessForBoard(),now=nowJst(),closing=clockMinutes(business?.closingTime);
- return !day||!!dayError||crowdClosed||day?.operationalDate!==now.date
-  ||availability().type==='ended'||(Number.isFinite(closing)&&now.minutes>=closing);
+const business=businessForBoard(),now=nowJst(),closing=clockMinutes(business?.closingTime);
+return !day||!!dayError||crowdClosed||day?.operationalDate!==now.date
+||availability().type==='ended'||(Number.isFinite(closing)&&now.minutes>=closing);
 }
 function safePeople(value){
 if(typeof value!=='number'&&!(typeof value==='string'&&/^\d+$/.test(value)))return null;
@@ -155,52 +149,54 @@ return Number.isSafeInteger(n)&&n>=0&&n<=CROWD_SETTINGS.CAPACITY?n:null;
 }
 function normCrowdName(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').trim()}
 function onsiteRemaining(webId,rows=crowdDetails,type=day?.businessType){
- const label=ONSITE_CROWD_NAMES[String(type||'')]?.[String(webId||'')];
- if(!label||!Array.isArray(rows))return null;
- const matched=rows.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
- if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
- const n=safePeople(matched[0].remaining);
- return n===0&&matched[0].remainingVerified!==true?null:n;
+const label=ONSITE_CROWD_NAMES[String(type||'')]?.[String(webId||'')];
+if(!label||!Array.isArray(rows))return null;
+const matched=rows.filter(row=>normCrowdName(row?.detailedWaitType)===normCrowdName(label));
+if(matched.length!==1||matched[0]?.reserveUnit!=='PERSON')return null;
+const n=safePeople(matched[0].remaining);
+return n===0&&matched[0].remainingVerified!==true?null:n;
 }
 function verifiedWebRemaining(slot){
- if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON'||slot.matchMode!=='exact-name')return null;
- return safePeople(slot.remaining);
+if(!slot||slot.reserveUnit!=='PERSON'||slot.evidence!=='PERSON'||slot.matchMode!=='exact-name')return null;
+return safePeople(slot.remaining);
 }
 function validCrowdSlots(){
- const age=Date.now()-crowdAt,ended=crowdReadOnly();
- const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
- const live=!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
-   &&Array.isArray(crowdSlots)&&crowdSlots.length
-     ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
-       slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
- const trusted=archive||live;
- const type=String(trusted?.businessType||businessForBoard()?.businessType||'');
- const ids=CROWD_SETTINGS.IDS[type]||[];
- const sourceDate=String(trusted?.date||trusted?.operationalDate||'');
- return ids.map(id=>{
-  const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
-  const slot=matches.length===1?matches[0]:null;
-  return {id,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
-   web:verifiedWebRemaining(slot),onsite:trusted?onsiteRemaining(id,trusted.details,type):null,
-   verifiedAt:trusted?.savedAt||0,sourceDate};
- });
+const age=Date.now()-crowdAt,ended=crowdReadOnly();
+const archive=ended&&!crowdHiddenConfirmed&&nowJst().minutes<1140?readLastCrowd():null;
+const live=nowJst().minutes<1140&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+&&Array.isArray(crowdSlots)&&crowdSlots.length
+?{businessType:day?.businessType,operationalDate:day?.operationalDate,
+slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
+const trusted=archive||live;
+const type=String(trusted?.businessType||businessForBoard()?.businessType||'');
+const ids=CROWD_SETTINGS.IDS[type]||[];
+const sourceDate=String(trusted?.date||trusted?.operationalDate||'');
+return ids.map(id=>{
+const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
+const slot=matches.length===1?matches[0]:null;
+const onsiteId=R.slotsFor(type,'onsite')[ids.indexOf(id)]?.waitTypeId;
+const webHidden=crowdPublicFlags?.get(id)===false,onsiteHidden=crowdPublicFlags?.get(onsiteId)===false;
+return {id,webHidden,onsiteHidden,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
+web:webHidden?null:verifiedWebRemaining(slot),onsite:onsiteHidden?null:trusted?onsiteRemaining(id,trusted.details,type):null,
+verifiedAt:trusted?.savedAt||0,sourceDate};
+});
 }
 function remainingMarkup(label,value,channel,{time='',webUrl='',readonly=false}={}){
- if(readonly){
-  const number=value===null?'<small class="v38-crowd-unknown">確認中</small>':String(value)+'<small>人</small>';
-  return '<div class="v38-crowd-channel v38-crowd-channel--'+channel+' is-readonly" aria-label="'+esc(label+'、受付終了')+'"><span>'+esc(label)+'</span><strong data-v613-n="'+(value===null?'':value)+'">'+number+'</strong></div>';
- }
+if(readonly){
+const number=value===null?'<small class="v38-crowd-unknown">確認中</small>':String(value)+'<small>人</small>';
+return '<div class="v38-crowd-channel v38-crowd-channel--'+channel+' is-readonly" aria-label="'+esc(label+'、受付終了')+'"><span>'+esc(label)+'</span><strong data-v613-n="'+(value===null?'':value)+'">'+number+'</strong></div>';
+}
 
- const people=value===null?'確認中':value+'人';
- const content=`<span>${esc(label)}</span><strong data-v613-n="${value??''}">${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
- const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
- const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
- const accessible=`${time}。${label}の残り${people}。${destination}`;
- if(channel==='web'){
-  if(!webUrl)return `<div class="${className} is-unavailable" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">WEB受付ページを確認できません</span></div>`;
-  return `<a class="${className}" href="${esc(webUrl)}" target="_blank" rel="noopener noreferrer" data-external="1" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">WEBで受付する ↗</span></a>`;
- }
- return `<button class="${className}" type="button" data-v7-view="reception" data-v7-slot="${esc(time)}" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">LINEで受付する →</span></button>`;
+const people=value===null?'確認中':value+'人';
+const content=`<span>${esc(label)}</span><strong data-v613-n="${value??''}">${value===null?'<small class="v38-crowd-unknown">確認中</small>':`<span class="v38-crowd-remain-label">残り</span>${value}<small>人</small>`}</strong>`;
+const className=`v38-crowd-channel v38-crowd-channel--${channel}`;
+const destination=channel==='web'?'AirウェイトのWEB受付へ':'LINEミニアプリの受付へ';
+const accessible=`${time}。${label}の残り${people}。${destination}`;
+if(channel==='web'){
+if(!webUrl)return `<div class="${className} is-unavailable" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">WEB受付ページを確認できません</span></div>`;
+return `<a class="${className}" href="${esc(webUrl)}" target="_blank" rel="noopener noreferrer" data-external="1" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">WEBで受付する ↗</span></a>`;
+}
+return `<button class="${className}" type="button" data-v7-view="reception" data-v7-slot="${esc(time)}" aria-label="${esc(accessible)}">${content}<span class="v38-crowd-tap">LINEで受付する →</span></button>`;
 }
 let lastCrowdRenderBox=null,lastCrowdMarkup='';
 function writeCrowdMarkup(box,markup){
@@ -229,8 +225,8 @@ function renderSlots(){
   return '<div class="v38-crowd-card crowd-unknown'+(ended?' is-readonly':'')+'" role="group" aria-label="'+esc(label+'。WEB受付の残り'+spoken(slot.web)+'。LINE受付の残り'+spoken(slot.onsite))+'">'
    +'<div class="v38-crowd-head"><time>'+esc(label)+'</time></div>'
    +'<div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数"><div class="v38-crowd-remaining-title">残り人数</div><div class="v38-crowd-channels">'
-   +remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl,readonly:ended})
-   +remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended})
+   +remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl,readonly:ended||slot.webHidden})
+   +remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended||slot.onsiteHidden})
    +'</div></div>'+(ended?'':'<p class="v38-crowd-tap-hint">受付方法をタップ</p>')+'</div>';
  }).join('');
  const refresh='<div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">'+esc(time?'最終更新 '+time:'最終更新 —:—')+'</span><button type="button" id="v38CrowdUpdate" '+(crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':'')+'>↻ 今すぐ更新</button></div>';
@@ -241,7 +237,7 @@ async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
- crowdLoading=true;crowdError='';crowdClosed=false;
+ crowdLoading=true;crowdError='';crowdClosed=false;crowdPublicFlags=null;
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
@@ -255,6 +251,15 @@ async function fetchCrowd(force=false,manual=false){
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
+  const t=readLastCrowd()?.businessType||day?.businessType;
+  const m=await import('./crowd-visibility.mjs?v=1');
+  const types=await m.published(E.backendUrl);
+  crowdPublicFlags=types?new Map(types.map(x=>[String(x.waitTypeId),x.dispFlg])):null;
+  if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
+   crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
+   try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
+   return;
+  }
   crowdHiddenConfirmed=false;
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
   crowdStale=data.stale===true;

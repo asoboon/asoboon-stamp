@@ -92,8 +92,7 @@ test('Current and next Production HOME expose the corporate privacy policy from 
   assert.match(legacy,/運営：株式会社コマーム/);
   assert.match(nextHome,url);
   assert.match(nextHome,/運営：株式会社コマーム/);
-  assert.match(nextHome,/ASOBooN事務局 048-420-9780/);
-  assert.match(nextHome,/href=\"tel:0484209780\" data-external=\"1\"/);
+  assert.doesNotMatch(nextHome,/048-420-9780|tel:0484209780/);
   assert.match(nextHome,/v38-calendar-card[^>]*data-external=\"1\"/);
   assert.match(nextHome,/data-external=\"1\"/);
 });

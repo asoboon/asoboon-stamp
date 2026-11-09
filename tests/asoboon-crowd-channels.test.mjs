@@ -36,7 +36,7 @@ test('Two clear, responsive channels independently navigate to AirWAIT WEB and L
 });
 
 test('HOME states verified remaining people clearly and labels the section as reception availability',()=>{
- for(const phrase of ['受付枠の空き状況','残り人数','value===null?\'確認中\''])assert.ok(home.includes(phrase),phrase);
+ for(const phrase of ['受付の空き状況','残り人数','value===null?\'確認中\''])assert.ok(home.includes(phrase),phrase);
  assert.match(home,/\$\{value\}<small>人<\/small>/);
  assert.match(home,/WEB受付とLINE受付の残り人数/);
  assert.match(home,/混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。/);

@@ -11,7 +11,7 @@ export function allHidden(types, onsite, online) {
   if (!ids.every(id => map.has(id))) return null;
   return ids.every(id => map.get(id)?.dispFlg === false);
 }
-export async function check(base, onsite, online) {
+export async function published(base) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 4500);
   try {
@@ -21,7 +21,11 @@ export async function check(base, onsite, online) {
     const response = await fetch(url, {cache:'no-store', credentials:'omit', signal:ctrl.signal});
     if (!response.ok) return null;
     const data = await response.json();
-    return data?.ok === true ? allHidden(data.waitTypes, onsite, online) : null;
+    return data?.ok === true && Array.isArray(data.waitTypes) ? data.waitTypes : null;
   } catch {return null}
   finally {clearTimeout(timer)}
+}
+
+export async function check(base, onsite, online) {
+ return allHidden(await published(base), onsite, online);
 }
