@@ -1,0 +1,37 @@
+/* CHOCO MINT SODA — satellite calendars, visual-only. */
+:root{--cmc-cocoa:#3A231D;--cmc-mint:#D8F7F0;--cmc-deep:#126E7D;--cmc-paper:#FFFEFA;--cmc-line:#BCDCD2}
+html,body{background:linear-gradient(180deg,#E3FAF3 0%,#FFF9F0 78%,#E9F9F3 100%)!important;color:var(--cmc-cocoa)!important}
+body .bc-page,body>.app{color:var(--cmc-cocoa)!important}
+body .bc-page .bc-back,
+body>.app .top .back{background:#E7F8F2!important;border:1px solid #9FCFC4!important;color:var(--cmc-cocoa)!important;box-shadow:0 2px 0 rgba(58,35,29,.12)!important}
+body .bc-page .bc-header,
+body>.app .hero{
+ position:relative;overflow:visible;
+ border:1px solid var(--cmc-line)!important;border-left:4px solid #744634!important;
+ border-radius:17px!important;
+ background-image:
+  radial-gradient(ellipse 6px 4px at 91% 25%,#744634 95%,transparent 100%),
+  radial-gradient(ellipse 4px 3px at 95% 48%,#98705B 95%,transparent 100%),
+  linear-gradient(115deg,#C9F2E9,#DDF8F1 62%,#BEF1E9)!important;
+ background-color:#D8F7F0!important;
+ box-shadow:none!important;color:#3A231D!important;
+}
+body .bc-page .bc-header :is(h1,h2,p,small),
+body>.app .hero :is(h1,p,.eyebrow){color:#3A231D!important;text-shadow:none!important}
+body .bc-page .bc-header h1,body>.app .hero h1{font-size:clamp(23px,6vw,28px)!important;line-height:1.25!important}
+body .bc-page .bc-calendar,body .bc-page .bc-detail,
+body>.app .panel{border:1px solid var(--cmc-line)!important;background:#FFFEFA!important;border-radius:17px!important;box-shadow:none!important;color:var(--cmc-cocoa)!important}
+body .bc-page .bc-monthbar,
+body .bc-page .bc-monthbar button{background:#EAF8F3!important;color:#185C65!important;border-color:#B1DCD2!important}
+body .bc-page .bc-monthbar h2{color:#3A231D!important}
+body .bc-page .bc-month-arrow{min-width:44px;min-height:44px;box-shadow:none!important}
+body .bc-page .bc-detail :is(h2,strong){color:#126E7D!important}
+body .bc-page .bc-legend{background:#F7FCF8!important;border-color:#BDDCD2!important}
+body>.app .top strong{color:#3A231D!important}
+body>.app .top small{color:#765242!important}
+body>.app .hero .month{background:#126E7D!important;color:#fff!important}
+body>.app .panel .profile a,body>.app .fallback a{color:#126E7D!important}
+body>.app .panel .frame{border-color:#BDDCD2!important;background:#F6FBF8!important}
+body>.app .note,body>.app .fallback{color:#526E69!important}
+body a:focus-visible,body button:focus-visible{outline:3px solid #126E7D!important;outline-offset:2px!important}
+@media(max-width:350px){body .bc-page .bc-header h1,body>.app .hero h1{font-size:22px!important}}
