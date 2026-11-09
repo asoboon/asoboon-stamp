@@ -488,9 +488,7 @@ function render(){
 }
 function canonicalizeAfterLiff(){try{readRoute();const p=q(),extra={};if(p.get('panel'))extra.panel=p.get('panel');if(p.get('dev'))extra.dev=p.get('dev');const canonical=routeUrl(state.view,extra);if(location.href!==canonical)history.replaceState({asoboonV2:true},'',canonical)}catch{state.bootError='PRODUCTION_ENDPOINT_INVALID'}}
 async function initLiff(){
-  // The Production HOME paints and stays navigable while LINE's SDK downloads.
-  // Only LIFF identity-dependent actions must wait for this authentication.
-  if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
+      if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
     const sdkReady=window.ASOBOON_LIFF_SDK_READY;
     let watchdog=0;
     const result=await Promise.race([
@@ -499,8 +497,6 @@ async function initLiff(){
     ]);
     clearTimeout(watchdog);
     if(result==='pending'&&!window.liff){
-      // Do not strand guests if the SDK arrives after the initial watchdog.
-      // HOME remains accessible while identity-dependent features wait.
       state.booting=false;
       state.bootError='LIFF_SDK_SLOW';
       render();
@@ -522,8 +518,6 @@ async function initLiff(){
     state.bootError='';
     state.inClient=Boolean(liff.isInClient());
     canonicalizeAfterLiff();
-    // Display name is not needed on the public HOME. Avoid a second LINE
-    // network roundtrip at startup. Reception still validates server-side.
 
   }catch(e){
     state.bootError=String(e?.message||e||'LIFF_INIT_FAILED').slice(0,120);
@@ -605,6 +599,7 @@ const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
+let crowdHiddenConfirmed=false; // All public AirWAIT wait types independently confirmed hidden.
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
  clearTimeout(crowdPollTimer);crowdPollTimer=0;
@@ -713,13 +708,11 @@ function restoreFreshCrowdForDay(){
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
 function readLastCrowd(){
- // Also migrate a previously VERIFIED 90-second cache without trusting it as live data.
  for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
   const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
   if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
   if(key===CROWD_CACHE_KEY){
    if(x.verifiedFresh!==true)continue;
-   // Persist the proven same-day value before an empty API response deletes the legacy cache.
    try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
   }
   return x;
@@ -759,8 +752,8 @@ function verifiedWebRemaining(slot){
 }
 function validCrowdSlots(){
  const age=Date.now()-crowdAt,ended=crowdReadOnly();
- const archive=ended?readLastCrowd():null;
- const live=!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+ const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
+ const live=!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
    &&Array.isArray(crowdSlots)&&crowdSlots.length
      ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
        slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
@@ -846,6 +839,7 @@ async function fetchCrowd(force=false,manual=false){
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
+  crowdHiddenConfirmed=false;
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
   crowdStale=data.stale===true;
   const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
@@ -865,13 +859,17 @@ async function fetchCrowd(force=false,manual=false){
   }
  }finally{
   clearTimeout(timer);
-  if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
+  if(!crowdClosed&&(crowdError||crowdSlots?.every(s=>s?.evidence==='NO_MATCH')||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
    renderSlots();
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
     const closed=await m.check(E.backendUrl,R.slotsFor(day.businessType,'onsite'),CROWD_SETTINGS.IDS[day.businessType]);
-    if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;}
+    if(closed===true&&date===day?.operationalDate){
+      crowdHiddenConfirmed=true;crowdClosed=true;
+      crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;
+      try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
+    }
    }catch{}
   }
   if(crowdClosed)try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
@@ -879,7 +877,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{

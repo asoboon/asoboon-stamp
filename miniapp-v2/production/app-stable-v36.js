@@ -108,9 +108,7 @@ function render(){
 }
 function canonicalizeAfterLiff(){try{readRoute();const p=q(),extra={};if(p.get('panel'))extra.panel=p.get('panel');if(p.get('dev'))extra.dev=p.get('dev');const canonical=routeUrl(state.view,extra);if(location.href!==canonical)history.replaceState({asoboonV2:true},'',canonical)}catch{state.bootError='PRODUCTION_ENDPOINT_INVALID'}}
 async function initLiff(){
-  // The Production HOME paints and stays navigable while LINE's SDK downloads.
-  // Only LIFF identity-dependent actions must wait for this authentication.
-  if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
+      if(!window.liff&&window.ASOBOON_LIFF_SDK_READY){
     const sdkReady=window.ASOBOON_LIFF_SDK_READY;
     let watchdog=0;
     const result=await Promise.race([
@@ -119,8 +117,6 @@ async function initLiff(){
     ]);
     clearTimeout(watchdog);
     if(result==='pending'&&!window.liff){
-      // Do not strand guests if the SDK arrives after the initial watchdog.
-      // HOME remains accessible while identity-dependent features wait.
       state.booting=false;
       state.bootError='LIFF_SDK_SLOW';
       render();
@@ -142,8 +138,6 @@ async function initLiff(){
     state.bootError='';
     state.inClient=Boolean(liff.isInClient());
     canonicalizeAfterLiff();
-    // Display name is not needed on the public HOME. Avoid a second LINE
-    // network roundtrip at startup. Reception still validates server-side.
 
   }catch(e){
     state.bootError=String(e?.message||e||'LIFF_INIT_FAILED').slice(0,120);

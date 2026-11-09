@@ -2650,6 +2650,66 @@ test('HOME confirms real hidden AirWAIT slots rather than blaming the connection
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
 });
 
+test('HOME does not show archived positive headcounts after all public AirWAIT slots are hidden',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+   date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-600000,
+   slots:['0030','0032','0034'].map((waitTypeId,i)=>({
+    waitTypeId,slotKey:['10:00','12:30','15:00'][i],
+    reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:100
+   })),
+   details:['10時25分頃入場【土休日特定日】','12時50分頃入場【土休日特定日】',
+    '15時15分頃入場時間【土休日特定日】'].map(detailedWaitType=>({
+     detailedWaitType,reserveUnit:'PERSON',remaining:50,remainingVerified:true
+   }))
+  }));
+ });
+ let visibilityChecks=0;
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='businessDay'){
+   const date=u.searchParams.get('date');
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,
+    businessType:date==='2026-10-03'?'土日祝日':'平日特定日',
+    closingTime:date==='2026-10-03'?'18:00':'17:00',durationLabel:'3時間'
+   })});
+  }
+  if(action==='crowdRemaining')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T10:10:00.000Z',
+   onlineReception:{enabled:false,code:'03'},
+   slots:['0024','0027','0030','0032','0034','0036','0038'].map(waitTypeId=>({
+    waitTypeId,reserveUnit:'',remaining:null,matchMode:'none',evidence:'NO_MATCH'
+   })),
+   observedDetails:[{detailedWaitType:'《ご待機者専用》',reserveUnit:'GROUP',remaining:null}]
+  })});
+  if(action==='waitTypes'){
+   visibilityChecks++;
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,waitTypes:Array.from({length:50},(_,i)=>({
+     waitTypeId:String(i+1).padStart(4,'0'),dispFlg:false
+    }))
+   })});
+  }
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>visibilityChecks,{timeout:12000}).toBeGreaterThan(0);
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_last_verified_crowd_day_v1')),
+  {timeout:12000}).toBeNull();
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
+ await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--onsite strong')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v38CrowdAge')).toContainText('最終更新 —:—');
+ await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+ for(const width of [320,375,390,430,768]){
+  await page.setViewportSize({width,height:820});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+});
+
 test('HOME refuses to claim reception ended when one AirWAIT slot remains published',async({page})=>{
  await installProduction(page);
  await page.route(GATEWAY+'**',route=>{

@@ -15,6 +15,7 @@ const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
+let crowdHiddenConfirmed=false; // All public AirWAIT wait types independently confirmed hidden.
 const crowdClock=()=>new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(crowdAt));
 function scheduleCrowd(){
  clearTimeout(crowdPollTimer);crowdPollTimer=0;
@@ -123,13 +124,11 @@ function restoreFreshCrowdForDay(){
 }
 function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
 function readLastCrowd(){
- // Also migrate a previously VERIFIED 90-second cache without trusting it as live data.
  for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
   const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
   if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
   if(key===CROWD_CACHE_KEY){
    if(x.verifiedFresh!==true)continue;
-   // Persist the proven same-day value before an empty API response deletes the legacy cache.
    try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
   }
   return x;
@@ -169,8 +168,8 @@ function verifiedWebRemaining(slot){
 }
 function validCrowdSlots(){
  const age=Date.now()-crowdAt,ended=crowdReadOnly();
- const archive=ended?readLastCrowd():null;
- const live=!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+ const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
+ const live=!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
    &&Array.isArray(crowdSlots)&&crowdSlots.length
      ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
        slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
@@ -256,6 +255,7 @@ async function fetchCrowd(force=false,manual=false){
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
+  crowdHiddenConfirmed=false;
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
   crowdStale=data.stale===true;
   const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
@@ -275,13 +275,17 @@ async function fetchCrowd(force=false,manual=false){
   }
  }finally{
   clearTimeout(timer);
-  if(!crowdClosed&&(crowdError||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
+  if(!crowdClosed&&(crowdError||crowdSlots?.every(s=>s?.evidence==='NO_MATCH')||!validCrowdSlots().some(s=>s.web!==null||s.onsite!==null))&&day){
    renderSlots();
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
     const closed=await m.check(E.backendUrl,R.slotsFor(day.businessType,'onsite'),CROWD_SETTINGS.IDS[day.businessType]);
-    if(closed&&date===day?.operationalDate){crowdClosed=true;crowdSlots=null;crowdError='';crowdAt=0;}
+    if(closed===true&&date===day?.operationalDate){
+      crowdHiddenConfirmed=true;crowdClosed=true;
+      crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;
+      try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
+    }
    }catch{}
   }
   if(crowdClosed)try{localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
@@ -289,7 +293,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{
