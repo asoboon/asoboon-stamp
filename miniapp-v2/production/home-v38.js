@@ -238,7 +238,7 @@ function renderSlots(){
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function fetchCrowd(force=false,manual=false){
- if(document.hidden||currentView()!=='home'||crowdLoading||day?.isClosed)return;
+ if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
@@ -280,7 +280,7 @@ async function fetchCrowd(force=false,manual=false){
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
-    const closed=await m.check(E.backendUrl,R.slotsFor(day.businessType,'onsite'),CROWD_SETTINGS.IDS[day.businessType]);
+    const type=readLastCrowd()?.businessType||day.businessType;const closed=await m.check(E.backendUrl,R.slotsFor(type,'onsite'),CROWD_SETTINGS.IDS[type]);
     if(closed===true&&date===day?.operationalDate){
       crowdHiddenConfirmed=true;crowdClosed=true;
       crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;
@@ -302,7 +302,7 @@ async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='fun
    if(resolved?.ok&&resolved.operationalDate===today)displayDay=resolved;
   }catch{}
  }
-if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd())void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
