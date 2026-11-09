@@ -2710,6 +2710,51 @@ test('HOME does not show archived positive headcounts after all public AirWAIT s
  }
 });
 
+test('After 19:00 with next day closed, archived seats are invalidated using today hidden wait types',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+  date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-360000,
+  slots:['0030','0032','0034'].map(waitTypeId=>({
+   waitTypeId,remaining:130,reserveUnit:'PERSON',matchMode:'exact-name',evidence:'PERSON'
+  })),
+  details:['10時25分頃入場【土休日特定日】','12時50分頃入場【土休日特定日】','15時15分頃入場時間【土休日特定日】'].map(detailedWaitType=>({
+   detailedWaitType,reserveUnit:'PERSON',remaining:45,remainingVerified:true
+  }))
+ })));
+ let crowdReads=0,visibilityReads=0;
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='businessDay'){
+   const date=u.searchParams.get('date'),closed=date!=='2026-10-03';
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,
+    businessType:closed?'休館日':'土日祝日',isClosed:closed,
+    closingTime:closed?'00:00':'18:00',durationLabel:'2時間30分'
+   })});
+  }
+  if(action==='crowdRemaining'){crowdReads++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:false,fetchedAt:'2026-10-03T10:10:00.000Z',
+   onlineReception:{enabled:false,code:'03'},
+   slots:['0024','0027','0030','0032','0034','0036','0038'].map(waitTypeId=>({
+    waitTypeId,remaining:null,reserveUnit:'',matchMode:'none',evidence:'NO_MATCH'
+   })),observedDetails:[{detailedWaitType:'《ご待機者専用》',reserveUnit:'GROUP',remaining:null}]
+  })});}
+  if(action==='waitTypes'){visibilityReads++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:Array.from({length:50},(_,i)=>({waitTypeId:String(i+1).padStart(4,'0'),dispFlg:false}))
+  })});}
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>crowdReads,{timeout:12000}).toBeGreaterThan(0);
+ await expect.poll(()=>visibilityReads,{timeout:12000}).toBeGreaterThan(0);
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_last_verified_crowd_day_v1')),
+  {timeout:12000}).toBeNull();
+ await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--onsite strong')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v38Hero h1')).toHaveText('本日の営業は終了しました');
+ await expect(page.locator('#v38Slots a[href],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});
 test('HOME hides reception booking CTA during open hours when staff unpublish every slot',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T03:10:00.000Z'});
  let checkCount=0;

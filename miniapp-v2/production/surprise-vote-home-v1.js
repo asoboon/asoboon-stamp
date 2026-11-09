@@ -66,8 +66,6 @@ function warmVoteStaticOnce(){
 }
 async function warmVoteStatic(){
   if(navigator.connection?.saveData)return;
-  // Warm only the document, and only after the user touches or points at the vote.
-  // Its CSS, JS and LINE config are loaded when the vote actually opens.
   await Promise.allSettled([fetch(VOTE_PAGE_URL,{method:'GET',cache:'force-cache',credentials:'same-origin'})]);
 }
 async function warmVoteStatus(){
