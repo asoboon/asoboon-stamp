@@ -64,3 +64,15 @@ test('arrival-choice parking style is deferred after all route themes and stays 
  assert.match(read('miniapp-v2/production/production-routes.css'),/access-legibility-v11/);
  assert.ok(!manifest.styles.includes('miniapp-v2/production/access-legibility-v11.css'));
 });
+
+test('all 5 Iina Park parking lots have Google Maps shortlist pins and visible individual links',()=>{
+ const parking=read('miniapp-v2/production/parking-v24.js');
+ const ids=['ChIJXXu6y1SVGGAR_0YLVUttt6Y','ChIJyZN4QJOVGGARXseqERsVP2Y','ChIJoRybHi2VGGARe61DT2GBGW0','ChIJYSPyO0CVGGAR8ny8dIbrVDU','ChIJzwHsNK-VGGARXntcgjBDg-4'];
+ assert.match(parking,/map_action=shortlist&place_ids=/);
+ for(const id of ids)assert.ok(parking.includes(id),'Missing Google place ID '+id);
+ for(const id of ['hKcx4SKWdEYZHcPE6','kgT7ZqYLWhsQQZZW8','NJnqAPZWHYBngrzYA','wnq7keJLpMDo6GrC8','mYVyxfQSc3ZvMUzG7'])assert.ok(parking.includes(id),'Missing individual Google link '+id);
+ for(const i of [1,2,3,4,5])assert.ok(parking.includes('data-v24-lot="'+i+'"'),'Missing visible parking link '+i);
+ assert.match(parking,/一部駐車場は閉鎖/);
+ assert.match(read('miniapp-v2/production/access-legibility-v11.css'),/v24-all-map/);
+ assert.match(read('miniapp-v2/production/access-legibility-v11.css'),/v24-lot-row/);
+});
