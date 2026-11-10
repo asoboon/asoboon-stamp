@@ -37,7 +37,7 @@ function browserSource(p){
   }
   // Keep explanatory source comments in the repository, not in the critical HOME payload.
   if (['miniapp-v2/production/app-stable-v36.js','miniapp-v2/shared/config-common.js','miniapp-v2/shared/business-day.js','miniapp-v2/shared/app-rules.js'].includes(p)) {
-    text=text.replace(/^[ \\t]*\\/\\*[\\s\\S]*?\\*\\/[ \\t]*(?:\\r?\\n|$)/gm,'').replace(/^[ \\t]*\\/\\/[^\\n]*(?:\\r?\\n|$)/gm,'');
+    text=text.replace(/^[ \t]*\/\*[\s\S]*?\*\/[ \t]*(?:\r?\n|$)/gm,'').replace(/^[ \t]*\/\/[^\n]*(?:\r?\n|$)/gm,'');
   }
   return text.trim();
 }
