@@ -926,6 +926,18 @@ test('After closing, HOME retains three admission times but offers no reception 
 });
 test('After 19:00 daily rollover, next-business-day slots remain reference-only',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ // The default fixture always returns 10/03, even when the cutoff engine asks
+ // for 10/04. A date-mismatch triggers JSONP rescue and makes this test flaky
+ // on slow CI runners. Return a valid calendar record for the requested date.
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url());
+  if(u.searchParams.get('action')!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',
+   isClosed:false,closingTime:'18:00',durationMinutes:150,durationLabel:'2時間30分'
+  })});
+ });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
