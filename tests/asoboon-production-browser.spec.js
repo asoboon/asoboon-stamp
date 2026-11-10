@@ -3074,6 +3074,8 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
  await expect(page.locator('#v59CalendarLinks .v38-calendar-card')).toHaveCount(2);
+ await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first().locator('strong')).toHaveText('営業日カレンダー');
+ await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first()).toHaveAttribute('href',/business-calendar\.html/);
  await page.locator('#v59GuideFold summary').click();
  await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeVisible();
  await page.locator('#v59PlayFold summary').click();
@@ -3085,6 +3087,7 @@ test('v5.9 HOME starts with essentials visible and optional sections closed, whi
  const picker=page.locator('#asoboon-language-select');
  await picker.selectOption('en');
  await expect(page.locator('#v59GuideFold .v59-fold-title')).toHaveText('Visitor guide');
+ await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first().locator('strong')).toHaveText('Opening calendar');
  await picker.selectOption('ja');
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:860});
