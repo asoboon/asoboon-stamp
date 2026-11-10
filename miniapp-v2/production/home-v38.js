@@ -179,8 +179,10 @@ return safePeople(slot.remaining);
 }
 function validCrowdSlots(){
 const age=Date.now()-crowdAt,ended=crowdReadOnly();
-const archive=ended&&!crowdHiddenConfirmed&&nowJst().minutes<1140?readLastCrowd():null;
-const live=nowJst().minutes<1140&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+// Keep a verified, explicitly date-scoped snapshot visible after the 19:00
+// reservation rollover; it is readonly and never grants a booking CTA.
+const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
+const live=day?.operationalDate===nowJst().date&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
 &&Array.isArray(crowdSlots)&&crowdSlots.length
 ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
 slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;

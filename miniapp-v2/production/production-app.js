@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=5eca57de917c',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=9e00c0b393de',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=47b911623c79',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -763,8 +763,10 @@ return safePeople(slot.remaining);
 }
 function validCrowdSlots(){
 const age=Date.now()-crowdAt,ended=crowdReadOnly();
-const archive=ended&&!crowdHiddenConfirmed&&nowJst().minutes<1140?readLastCrowd():null;
-const live=nowJst().minutes<1140&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
+// Keep a verified, explicitly date-scoped snapshot visible after the 19:00
+// reservation rollover; it is readonly and never grants a booking CTA.
+const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
+const live=day?.operationalDate===nowJst().date&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
 &&Array.isArray(crowdSlots)&&crowdSlots.length
 ?{businessType:day?.businessType,operationalDate:day?.operationalDate,
 slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;

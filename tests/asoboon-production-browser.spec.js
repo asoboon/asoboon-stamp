@@ -926,6 +926,18 @@ test('After closing, HOME retains three admission times but offers no reception 
 });
 test('After 19:00 daily rollover, next-business-day slots remain reference-only',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ // The default fixture always returns 10/03, even when the cutoff engine asks
+ // for 10/04. A date-mismatch triggers JSONP rescue and makes this test flaky
+ // on slow CI runners. Return a valid calendar record for the requested date.
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url());
+  if(u.searchParams.get('action')!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',
+   isClosed:false,closingTime:'18:00',durationMinutes:150,durationLabel:'2時間30分'
+  })});
+ });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
@@ -3503,4 +3515,89 @@ test('2026-11-10 official reception keeps only its existing three-step wizard',a
  await expect(page.locator('#recAgree')).not.toBeChecked();
  await expect(page.locator('#recSubmit')).toBeDisabled();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});
+
+
+test('2026-11-10 timeguide checks actual calendar day after 19:00 cutoff, not tomorrow',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-10T13:15:00.000Z'});
+ const requested=[];
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');requested.push(date);
+  const closed=date==='2026-11-10';
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,businessType:closed?'休館日':'平日',
+    isClosed:closed,closingTime:closed?'00:00':'17:00',durationMinutes:0,durationLabel:'無制限'
+  })});
+ });
+ await page.goto(BASE+'?view=timeguide',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#tgDay')).toContainText('11月10日 の営業');
+ await expect(page.locator('#tgStatus')).toContainText('本日は休館日です。');
+ await expect(page.locator('#tgEntry')).toBeDisabled();
+ await expect(page.locator('#tgResult')).toContainText('休館日');
+ await expect(page.locator('#tgClose')).toHaveText('—');
+ expect(requested).toContain('2026-11-10');
+ expect(requested).not.toContain('2026-11-11');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});
+test('2026-11-10 timeguide uses today after reservation rollover, without future-date leakage',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:15:00.000Z'});
+ const requested=[];
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');requested.push(date);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,operationalDate:date,calendarDate:date,
+   businessType:'土日祝日',isClosed:false,closingTime:'18:00',durationMinutes:150,durationLabel:'2時間30分'
+  })});
+ });
+ await page.goto(BASE+'?view=timeguide',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#tgDay')).toContainText('10月3日 の営業');
+ await expect(page.locator('#tgEntry')).toBeEnabled();
+ await expect(page.locator('#tgStatus')).toContainText('本日の利用時間を確認しました');
+ await expect(page.locator('#tgDuration')).toHaveText('2時間30分');
+ expect(requested).toContain('2026-10-03');
+ expect(requested).not.toContain('2026-10-04');
+});
+
+
+test('2026-11-10 verified same-day crowd archive stays readable after 19:00 without booking links',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T10:10:00.000Z'});
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+  date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-20*60000,
+  publicFlags:[['0029',true],['0031',true],['0033',true],['0030',true],['0032',true],['0034',true]],
+  slots:['0030','0032','0034'].map((waitTypeId,i)=>({
+   waitTypeId,slotKey:['10:00','12:30','15:00'][i],
+   reserveUnit:'PERSON',matchMode:'exact-name',evidence:'PERSON',remaining:100
+  })),
+  details:['10時25分頃入場【土休日特定日】','12時50分頃入場【土休日特定日】','15時15分頃入場時間【土休日特定日】'].map(detailedWaitType=>({
+   detailedWaitType,reserveUnit:'PERSON',remaining:50,remainingVerified:true
+  }))
+ })));
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action==='businessDay'){
+   const date=u.searchParams.get('date'),closed=date!=='2026-10-03';
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,operationalDate:date,calendarDate:date,
+    businessType:closed?'休館日':'土日祝日',isClosed:closed,closingTime:closed?'00:00':'18:00',durationLabel:'2時間30分'
+   })});
+  }
+  if(action==='crowdRemaining')return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'ROLLOVER_NO_TODAY_LIVE_DATA'})});
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    ok:true,waitTypes:Array.from({length:50},(_,i)=>({waitTypeId:String(i+1).padStart(4,'0'),dispFlg:true}))
+  })});
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const card=page.locator('#v38Slots');
+ await expect(card.locator('.v38-crowd-card')).toHaveCount(3);
+ await expect(card.locator('.v38-crowd-list .v38-crowd-channel--web strong')).toHaveText(['100人','100人','100人']);
+ await expect(card.locator('.v38-crowd-list .v38-crowd-channel--onsite strong')).toHaveText(['50人','50人','50人']);
+ await expect(card.locator('#v613Board .v613-percent')).not.toHaveText(['—','—','—']);
+ await expect(card.locator('a[href], [data-v7-view="reception"]')).toHaveCount(0);
+ await expect(card.locator('#v38CrowdAge')).toContainText('最終更新');
+ for(const width of [320,390,768]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
 });
