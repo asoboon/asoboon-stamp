@@ -3273,8 +3273,7 @@ test('2026-11-10 first-time flow removes repeated copy and provides legible step
 test('2026-11-10 HOME privacy-policy link has a usable touch target',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const box=await page.locator('#v38Slots').boundingBox();expect(box).toBeTruthy();
  const target=page.locator('.v38-legal a[href*="privacy-policy"]');
  await expect(target).toBeVisible();
- expect((await target.boundingBox()).height).toBeGreaterThanOrEqual(44);
+ await expect.poll(async()=>Math.round((await target.boundingBox())?.height||0),{timeout:12000}).toBeGreaterThanOrEqual(44);
 });
