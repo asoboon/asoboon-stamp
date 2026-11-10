@@ -1302,7 +1302,7 @@ async function loadDay({force=false}={}){
     const input=$('tgEntry');input.disabled=Boolean(day.isClosed);const saved=readSaved(day);input.value=saved?.entryTime||defaultEntry(day);
     window.__ASOBOON_V2_TIMEGUIDE_DAY=day;
     if(day.isClosed)setStatus('本日は休館日です。','closed');
-    else setStatus('営業カレンダーから本日の利用時間を確認しました。','ok');
+    else setStatus('本日の利用時間を確認しました。','ok');
     renderCalculation(day);
   }catch(e){
     if(gen!==generation||!$('tgEntry'))return;
@@ -1501,7 +1501,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
  <div class="pv7-head v27-first-head">
   <span class="pv7-eyebrow">初めての方</span>
   <h1>はじめてでも、この3つだけ</h1>
-  <p>当日受付して、待って、呼ばれたら入口へ。まずはこの流れだけ分かれば大丈夫です。</p>
+  <p>当日受付 → 呼出を待つ → 入口へ。</p>
  </div>
  <div class="pv7-body">
   <div class="v27-flow" aria-label="初めての方の利用の流れ">
@@ -1531,7 +1531,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれたら</span>
      <h2>ASOBooN入口へ</h2>
      <strong>呼出後30分以内</strong>
-     <p>入口で受付番号をスタッフへお見せください。</p>
+     <p>入口で受付番号を見せてください。</p>
     </div>
    </article>
   </div>
@@ -1555,14 +1555,14 @@ let queued=false;
 function route(){const p=new URLSearchParams(location.search);return{view:String(p.get('view')||'home'),panel:String(p.get('panel')||'')}}
 const mapLink=(href,name,note,meta='',kind='')=>`<a class="v24-map ${kind}" data-external href="${href}" target="_blank" rel="noopener noreferrer"><span><strong>${name}</strong><small>${note}</small></span>${meta?`<b>${meta}</b>`:'<b>地図 ↗</b>'}</a>`;
 function page(){return `<section class="page-card pv7-page v12-parking-page v24-parking-page">
- <div class="pv7-head"><span class="pv7-eyebrow">駐車場・アクセス</span><h1>どちらから来ますか？</h1><p>一般道側と首都高側で、入る駐車場が異なります。</p></div>
+ <div class="pv7-head"><span class="pv7-eyebrow">駐車場・アクセス</span><h1>どちらから来ますか？</h1><p>一般道と首都高では駐車場が別です。</p></div>
  <div class="pv7-body">
-  <div class="v24-free"><span>P</span><strong>駐車料金 無料</strong><small>首都高をご利用の場合、高速料金は別途かかります。</small></div>
+  <div class="v24-free"><span>P</span><strong>駐車料金 無料</strong><small>首都高は高速料金が別です。</small></div>
   <div class="v24-choice" role="group" aria-label="来場ルートを選択">
    <button type="button" data-v24-route="v24-general" aria-pressed="false" aria-expanded="false" aria-controls="v24-general"><span>一般道から</span><strong>東門・正門駐車場</strong><small>9:00〜18:00</small></button>
    <button type="button" data-v24-route="v24-highway" aria-pressed="false" aria-expanded="false" aria-controls="v24-highway"><span>首都高から</span><strong>川口PA（上り）</strong><small>駐車場24時間</small></button>
   </div>
-  <p class="v24-select-hint">選ぶと、そのルートの駐車場・行き方だけを表示します。</p>
+  <p class="v24-select-hint">駐車場と行き方を表示します。</p>
   <span class="v24-route-announcement" role="status" aria-live="polite"></span>
 
   <section class="v24-section" id="v24-general" hidden>
@@ -1637,7 +1637,7 @@ new MutationObserver(queue).observe(root,{childList:true,subtree:true});window.a
 const root=document.getElementById('app');if(!root)return;
 let queued=false;
 const choices=[
-  {id:'adult',title:'大人だけ出る',sub:'黄色ホルダーを持つ保護者',icon:'person'},
+  {id:'adult',title:'大人だけ出る',sub:'黄色ホルダーの保護者',icon:'person'},
   {id:'all',title:'全員で出る',sub:'あとで戻って遊ぶ',icon:'group'},
   {id:'return',title:'再入場する',sub:'一時退場から戻った',icon:'return'},
   {id:'exit',title:'今日は帰る',sub:'完全退場する',icon:'check'}
@@ -1800,7 +1800,7 @@ function clearClasses(){document.body.classList.remove('v7-page-active','v7-call
 function shell(tag,title,lead,body){return `<section class="page-card pv7-page"><div class="pv7-head"><span class="pv7-eyebrow">${esc(tag)}</span><h1>${esc(title)}</h1><p>${esc(lead)}</p></div><div class="pv7-body">${body}</div></section>`}
 function button(label,view,panel='',kind='primary'){return `<button class="${kind==='text'?'pv7-text-btn':kind==='secondary'?'pv7-secondary-btn':'pv7-primary'}" type="button" data-pv7-view="${esc(view)}"${panel?` data-pv7-panel="${esc(panel)}"`:''}>${esc(label)}</button>`}
 function pricePage(){return shell('料金','料金','人数に合わせた合計金額は当日受付画面で自動計算します。',`<div class="pv7-list"><div class="pv7-band" style="--band:var(--pv7-orange)"><div><strong>大人</strong><small>保護者・同伴者</small></div><b>600円</b></div><div class="pv7-band" style="--band:var(--pv7-blue)"><div><strong>子ども</strong><small>6か月〜小学6年生</small></div><b>900円</b></div><div class="pv7-band" style="--band:var(--pv7-green)"><div><strong>0〜5か月</strong><small>ご家族の構成により追加料金なし</small></div><b>0〜900円</b></div></div><div class="pv7-callout orange"><strong>0〜5か月のお子さま</strong><br>6か月以上のお子さまが1人以上いる場合は追加料金なし。0〜5か月のお子さまだけの場合は1人目900円、2人目以降は無料です。</div><div class="pv7-callout"><strong>人数の上限</strong><br>保護者1名につきお子さま3名まで。1組合計10名までです。</div><div class="pv7-section"><h2>お支払い方法</h2><p>現金、クレジットカード、電子マネー、PayPayがご利用いただけます。LINE Payはご利用いただけません。</p></div>${button('当日受付へ進む','reception')}`)}
-function rulesPage(){return shell('館内ルール','たのしく遊ぶための4つの約束','みんなが安心して遊ぶための大切なことをまとめています。',`<div class="pv7-promise"><b>1</b><div><strong>保護者の方と一緒に</strong><small>お子さまから目を離さず、一緒に館内をお楽しみください。</small></div></div><div class="pv7-promise"><b>2</b><div><strong>周りのお友だちも大切に</strong><small>ぶつかったり、ほかのお子さまの遊びを妨げる行為にはご注意ください。</small></div></div><div class="pv7-promise"><b>3</b><div><strong>遊び方を考えながら</strong><small>子どもの挑戦を大切にしながら、重大な事故につながる危険は避けて遊びましょう。</small></div></div><div class="pv7-promise"><b>4</b><div><strong>困ったときはスタッフへ</strong><small>けが・迷子・体調不良・遊具の不具合などは近くのスタッフへお知らせください。</small></div></div><div class="pv7-callout green">安全のためスタッフからお声がけする場合があります。館内での案内を優先してください。</div>`)}
+function rulesPage(){return shell('館内ルール','たのしく遊ぶための4つの約束','安全に遊ぶための4つの約束です。',`<div class="pv7-promise"><b>1</b><div><strong>保護者の方と一緒に</strong><small>お子さまから目を離さず、一緒に館内をお楽しみください。</small></div></div><div class="pv7-promise"><b>2</b><div><strong>周りのお友だちも大切に</strong><small>ぶつかったり、ほかのお子さまの遊びを妨げる行為にはご注意ください。</small></div></div><div class="pv7-promise"><b>3</b><div><strong>遊び方を考えながら</strong><small>子どもの挑戦を大切にしながら、重大な事故につながる危険は避けて遊びましょう。</small></div></div><div class="pv7-promise"><b>4</b><div><strong>困ったときはスタッフへ</strong><small>けが・迷子・体調不良・遊具の不具合などは近くのスタッフへお知らせください。</small></div></div><div class="pv7-callout green">安全のためスタッフからお声がけする場合があります。館内での案内を優先してください。</div>`)}
 function infoPage(){return shell('営業時間・基本情報','営業時間・基本情報','営業時間や対象年齢などの基本情報をまとめています。',`<div class="pv7-list"><div class="pv7-band" style="--band:var(--pv7-road)"><div><strong>平日</strong><small>営業時間</small></div><b>10:00〜17:00</b></div><div class="pv7-band" style="--band:var(--pv7-orange)"><div><strong>土日祝</strong><small>営業時間</small></div><b>10:00〜18:00</b></div><div class="pv7-band" style="--band:var(--pv7-blue)"><div><strong>LINE当日受付</strong><small>このLINEミニアプリ内で受付</small></div><b>9:30〜</b></div><div class="pv7-band" style="--band:var(--pv7-green)"><div><strong>受付枠</strong><small>本日のLINE受付枠をLINEから取得</small></div><b>当日</b></div><div class="pv7-band" style="--band:#777"><div><strong>定休日</strong><small>営業カレンダーにより変更する場合があります</small></div><b>火曜</b></div></div><div class="pv7-section"><h2>場所</h2><p>ASOBooNは川口ハイウェイオアシス内にあります。</p></div><div class="pv7-section"><h2>対象</h2><p>0歳〜小学6年生。保護者1名につきお子さま3名までご利用いただけます。</p></div><div class="pv7-callout blue">当日の営業区分・受付可能な回は「当日受付」画面で最新情報を確認してください。</div>${button('当日受付を確認する','reception')}${button('利用時間の目安を見る','timeguide','','secondary')}${button('駐車場・アクセスを見る','parking','','text')}`)}
 function detailPage(){const r=readJSON(RES_KEY);if(!r?.receiptNo)return shell('受付詳細','本日の受付はありません','当日受付が完了すると、受付番号や利用回が表示されます。',`<div class="pv7-callout">当日受付が完了すると、このページに受付内容を表示します。</div>${button('当日受付をする','reception')}`);const a=Number(r.adults||0),c=Number(r.paidChildren||0),i=Number(r.infants||0),t=Number(r.totalPeople||a+c+i);return shell('受付詳細','本日の受付詳細','スタッフへ見せる情報をまとめています。',`<div class="v33-detail-number"><small>受付番号</small><strong>${esc(r.receiptNo)}</strong></div><div class="pv7-list"><div class="pv7-row"><span>利用日</span><strong>${esc(dateLabel(r.businessDate))}</strong></div><div class="pv7-row"><span>利用する回</span><strong>${esc(r.waitTypeLabel||r.waitTypeName||'受付枠')}</strong></div><div class="pv7-row"><span>受付方法</span><strong>${r.mode==='onsite'?'LINE受付':'LINE当日受付'}</strong></div></div><section class="v33-detail-people" aria-label="人数内訳"><div><small>大人</small><strong>${a}</strong><span>名</span></div><div><small>子ども</small><strong>${c}</strong><span>名</span></div><div><small>0〜5か月</small><strong>${i}</strong><span>名</span></div></section><div class="pv7-row v33-total"><span>合計</span><strong>${t}名</strong></div><div class="pv7-row"><span>料金目安</span><strong>${esc(yen(r.totalPrice))}</strong></div><div class="pv7-callout green">順番・呼出状態は「呼出状況」で最新情報を確認できます。</div>${button('呼出状況を見る','callstatus','','secondary')}`)}
 function replaceMain(html,key){const main=root.querySelector('main.view');if(!main)return false;if(main.dataset.v33Key===key)return true;main.innerHTML=html;main.dataset.v33Key=key;return true}
@@ -1842,9 +1842,9 @@ ${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/prod
 ${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
 ${hubRow('よくある質問','困ったときはこちら','faq','','!')}
 </div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
-function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p><p id="cmFaqLanguageNote" class="cm-faq-language-note" role="note" hidden></p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
+function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>質問をタップすると答えが開きます。予約から再入場まで確認できます。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p><p id="cmFaqLanguageNote" class="cm-faq-language-note" role="note" hidden></p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
 <details data-faq-key="reception"><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
-<details data-faq-key="availability"><summary>今日の受付枠・残人数はどこで確認するの？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
+<details data-faq-key="availability"><summary>受付枠・残人数の確認方法は？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
 <details data-faq-key="unknown"><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
 <details data-faq-key="channels"><summary>WEB受付とLINE受付は同じですか？</summary><p>別の受付方法です。WEB受付はAirWAITのWEB受付、LINE受付はミニアプリの店舗受付系です。開始時間と空き人数はそれぞれ違います。</p></details>
 <details data-faq-key="call"><summary>受付番号・呼出の順番を知りたい</summary><p>画面下の「呼出」から番号と呼出状態を確認できます。受付後はそこで最新状態を確かめてください。</p></details>

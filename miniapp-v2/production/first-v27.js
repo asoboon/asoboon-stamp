@@ -6,7 +6,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
  <div class="pv7-head v27-first-head">
   <span class="pv7-eyebrow">初めての方</span>
   <h1>はじめてでも、この3つだけ</h1>
-  <p>当日受付して、待って、呼ばれたら入口へ。まずはこの流れだけ分かれば大丈夫です。</p>
+  <p>当日受付 → 呼出を待つ → 入口へ。</p>
  </div>
  <div class="pv7-body">
   <div class="v27-flow" aria-label="初めての方の利用の流れ">
@@ -36,7 +36,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれたら</span>
      <h2>ASOBooN入口へ</h2>
      <strong>呼出後30分以内</strong>
-     <p>入口で受付番号をスタッフへお見せください。</p>
+     <p>入口で受付番号を見せてください。</p>
     </div>
    </article>
   </div>

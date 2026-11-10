@@ -4,14 +4,14 @@ let queued=false;
 function route(){const p=new URLSearchParams(location.search);return{view:String(p.get('view')||'home'),panel:String(p.get('panel')||'')}}
 const mapLink=(href,name,note,meta='',kind='')=>`<a class="v24-map ${kind}" data-external href="${href}" target="_blank" rel="noopener noreferrer"><span><strong>${name}</strong><small>${note}</small></span>${meta?`<b>${meta}</b>`:'<b>地図 ↗</b>'}</a>`;
 function page(){return `<section class="page-card pv7-page v12-parking-page v24-parking-page">
- <div class="pv7-head"><span class="pv7-eyebrow">駐車場・アクセス</span><h1>どちらから来ますか？</h1><p>一般道側と首都高側で、入る駐車場が異なります。</p></div>
+ <div class="pv7-head"><span class="pv7-eyebrow">駐車場・アクセス</span><h1>どちらから来ますか？</h1><p>一般道と首都高では駐車場が別です。</p></div>
  <div class="pv7-body">
-  <div class="v24-free"><span>P</span><strong>駐車料金 無料</strong><small>首都高をご利用の場合、高速料金は別途かかります。</small></div>
+  <div class="v24-free"><span>P</span><strong>駐車料金 無料</strong><small>首都高は高速料金が別です。</small></div>
   <div class="v24-choice" role="group" aria-label="来場ルートを選択">
    <button type="button" data-v24-route="v24-general" aria-pressed="false" aria-expanded="false" aria-controls="v24-general"><span>一般道から</span><strong>東門・正門駐車場</strong><small>9:00〜18:00</small></button>
    <button type="button" data-v24-route="v24-highway" aria-pressed="false" aria-expanded="false" aria-controls="v24-highway"><span>首都高から</span><strong>川口PA（上り）</strong><small>駐車場24時間</small></button>
   </div>
-  <p class="v24-select-hint">選ぶと、そのルートの駐車場・行き方だけを表示します。</p>
+  <p class="v24-select-hint">駐車場と行き方を表示します。</p>
   <span class="v24-route-announcement" role="status" aria-live="polite"></span>
 
   <section class="v24-section" id="v24-general" hidden>

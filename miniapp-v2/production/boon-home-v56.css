@@ -432,3 +432,11 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-body #v38Slots{margin:
 html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-body #v38Slots>h3,html.boon-v4.boon-v5-mint body.v38-home-active .v55-today-action,html.boon-v4.boon-v5-mint body.v38-home-active .v55-crowd-prompt{display:none!important}
 @media(max-width:350px){html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary{gap:7px;padding:8px}.v59-slots-action{padding:6px 7px!important}}
 @media(prefers-reduced-motion:reduce){html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-summary,html.boon-v4.boon-v5-mint body.v38-home-active .v59-slots-chevron{transition:none}}
+
+/* v5.9 mobile: calendar is a full-width choice, not two 58px-wide title columns. */
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-card strong{
+ text-wrap:balance;word-break:normal;overflow-wrap:normal;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active .v38-legal span{
+ text-wrap:pretty;
+}

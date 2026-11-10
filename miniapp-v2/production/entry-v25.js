@@ -2,7 +2,7 @@
 const root=document.getElementById('app');if(!root)return;
 let queued=false;
 const choices=[
-  {id:'adult',title:'大人だけ出る',sub:'黄色ホルダーを持つ保護者',icon:'person'},
+  {id:'adult',title:'大人だけ出る',sub:'黄色ホルダーの保護者',icon:'person'},
   {id:'all',title:'全員で出る',sub:'あとで戻って遊ぶ',icon:'group'},
   {id:'return',title:'再入場する',sub:'一時退場から戻った',icon:'return'},
   {id:'exit',title:'今日は帰る',sub:'完全退場する',icon:'check'}
