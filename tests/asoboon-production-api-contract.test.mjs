@@ -1,5 +1,7 @@
 import { test, before, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync as requireReadFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {
   FakeD1, FakeWorld, prepareRuntime, baseEnv, call, makeCtx, DIAG_TOKEN,
 } from './helpers/production-worker-harness.mjs';
@@ -303,4 +305,56 @@ test('unknown actions fail closed rather than falling through',async()=>{
   const post=await call(worker,env,{body:{action:'definitelyUnknown'}});
   assert.equal(post.status,400);
   assert.equal(post.data?.error,'UNKNOWN_ACTION');
+});
+
+
+test('HOME only publishes counts and booking actions for explicitly visible AirWAIT wait types',()=>{
+  const fs=requireReadFileSync;
+  const source=fs('miniapp-v2/production/home-v38.js');
+  const bundle=fs('miniapp-v2/production/production-app.js');
+  for(const code of [source,bundle]){
+    assert.match(code,/webHidden=crowdPublicFlags\?\.get\(id\)!==true/);
+    assert.match(code,/onsiteHidden=crowdPublicFlags\?\.get\(onsiteId\)!==true/);
+    assert.match(code,/crowdClosed=false;crowdPublicFlags=null/);
+    assert.match(code,/crowdPublicFlags=Array\.isArray\(types\)\?new Map/);
+    assert.doesNotMatch(code,/new Map\(\[\.\.\.\(crowdPublicFlags\|\|\[\]\)/);
+  }
+  const begin=source.indexOf('function validCrowdSlots(){');
+  const end=source.indexOf('\nfunction remainingMarkup(',begin);
+  assert.ok(begin>=0&&end>begin);
+  const fn=source.slice(begin,end);
+  function evaluate(publicFlags){
+    const data=[
+      {waitTypeId:'0024',slotKey:'10:00',remaining:40},
+      {waitTypeId:'0027',slotKey:'14:00',remaining:50},
+    ];
+    const ctx={
+      Date,day:{businessType:'平日',operationalDate:'2026-10-03',isClosed:false},
+      crowdAt:Date.now(),crowdStale:false,crowdClosed:false,crowdHiddenConfirmed:false,
+      CROWD_STALE_MS:90000,CROWD_SETTINGS:{IDS:{'平日':['0024','0027']}},
+      crowdSlots:data,crowdDetails:[],crowdPublicFlags:publicFlags,
+      nowJst:()=>({date:'2026-10-03',minutes:600}),
+      crowdReadOnly:()=>false,businessForBoard:()=>({businessType:'平日'}),
+      readLastCrowd:()=>null,R:{slotsFor:()=>[{waitTypeId:'0023'},{waitTypeId:'0025'}]},
+      verifiedWebRemaining:s=>s?.remaining??null,onsiteRemaining:()=>20,
+    };
+    return Array.from(runInNewContext(fn+'\nvalidCrowdSlots()',ctx));
+  }
+  const hidden=evaluate(null);
+  assert.equal(hidden.length,2);
+  assert.ok(hidden.every(x=>x.web===null&&x.onsite===null&&x.webHidden&&x.onsiteHidden));
+  const mixed=evaluate(new Map([['0024',true],['0023',false],['0027',false],['0025',true]]));
+  assert.equal(mixed[0].web,40);
+  assert.equal(mixed[0].onsite,null);
+  assert.equal(mixed[1].web,null);
+  assert.equal(mixed[1].onsite,20);
+});
+
+test('HOME and certified LINE entry allow mobile magnification; 4-tab labels remain readable',()=>{
+  for(const page of ['home.html','miniapp-v2/production/index.html']){
+    assert.doesNotMatch(requireReadFileSync(page),/maximum-scale=1/);
+  }
+  const nav=requireReadFileSync('miniapp-v2/production/choco-mint-nav-v8.css');
+  assert.match(nav,/\.cm-nav-tab\{[^}]*font-size:13px/);
+  assert.match(nav,/@media\(max-width:360px\)\{#app>\.cm-bottom-nav \.cm-nav-tab\{font-size:12px\}/);
 });
