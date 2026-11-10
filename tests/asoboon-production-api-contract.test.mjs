@@ -359,3 +359,22 @@ test('HOME and certified LINE entry allow mobile magnification; 4-tab labels rem
   assert.match(nav,/\.cm-nav-tab\{[^}]*font-size:13px/);
   assert.match(nav,/@media\(max-width:360px\)\{#app>\.cm-bottom-nav \.cm-nav-tab\{font-size:12px\}/);
 });
+
+
+test('HOME reception hero never promises a LINE slot until its public flag is verified',()=>{
+  const source=requireReadFileSync('miniapp-v2/production/home-v38.js');
+  const bundle=requireReadFileSync('miniapp-v2/production/production-app.js');
+  for(const js of [source,bundle]){
+    assert.match(js,/const onsite=R\.slotsFor\(String\(day\.businessType\|\|''\),'onsite'\)\|\|\[\]/);
+    assert.match(js,/if\(!onsite\.some\(x=>crowdPublicFlags\?\.get\(String\(x\.waitTypeId\)\)===true\)\)/);
+    assert.match(js,/if\(a\.type==='unknown'\)return\{kind:'guide'/);
+    assert.match(js,/受付状況を確認する/);
+  }
+});
+
+test('Informational calendar and voting pages permit zoom',()=>{
+  for(const path of ['miniapp-v2/production/event-calendar.html','miniapp-v2/production/surprise-vote.html']){
+    const html=requireReadFileSync(path);
+    assert.doesNotMatch(html,/maximum-scale=1|user-scalable=no/);
+  }
+});
