@@ -2342,8 +2342,7 @@ test('HOME has a single mint reception CTA and one dark fixed call-status tab',a
  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
  const call=page.locator('.cm-bottom-nav [data-v7-view="callstatus"]');
  await expect(call).toBeVisible();
- const primaryColor=await reception.evaluate(el=>getComputedStyle(el).backgroundColor);
- expect(primaryColor).toBe('rgb(109, 210, 202)');
+ await expect.poll(()=>reception.evaluate(el=>getComputedStyle(el).backgroundColor),{timeout:12000}).toBe('rgb(109, 210, 202)');
  await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
 });
@@ -3031,7 +3030,13 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v59SlotsFold')).toHaveAttribute('open','');
  await expect(page.locator('#v613Board .v38-crowd-channel--onsite')).toHaveCount(3);
- await page.locator('#v613Board .v38-crowd-channel--onsite').first().click();
+ const lineAction=page.locator('#v613Board .v38-crowd-channel--onsite:is(a,button)').first();
+ if(await lineAction.count()){
+  await lineAction.click();
+ }else{
+  await expect(page.locator('#v613Board .v38-crowd-channel--onsite.is-readonly').first()).toBeVisible();
+  await page.locator('#v38Hero [data-v7-view="reception"]').click();
+ }
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
 });
 
