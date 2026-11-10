@@ -84,6 +84,55 @@ test('Production new HOME renders all core routes and legal information',async({
   }
 });
 
+for(const width of [320,375,390,430,768]){
+ test('Access route selection reveals only the chosen parking information at '+width+'px',async({page})=>{
+  await installProduction(page);
+  await page.setViewportSize({width,height:844});
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-v7-view="parking"]').first().click();
+  const container=page.locator('.v24-parking-page');
+  await expect(container).toBeVisible();
+  const general=page.locator('#v24-general'),highway=page.locator('#v24-highway');
+  const road=page.locator('[data-v24-route="v24-general"]');
+  const expressway=page.locator('[data-v24-route="v24-highway"]');
+  await expect(road).toHaveAttribute('aria-pressed','false');
+  await expect(expressway).toHaveAttribute('aria-pressed','false');
+  await expect(general).toBeHidden();
+  await expect(highway).toBeHidden();
+  await expect(page.locator('.v24-select-hint')).toBeVisible();
+  await expect(page.locator('.v24-safety')).toBeHidden();
+
+  await road.click();
+  await expect(general).toBeVisible();
+  await expect(highway).toBeHidden();
+  await expect(road).toHaveAttribute('aria-pressed','true');
+  await expect(road).toHaveAttribute('aria-expanded','true');
+  await expect(expressway).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('.v24-select-hint')).toBeHidden();
+  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(1);
+  await expect(page.locator('#v24-general .v24-map:visible').first()).toHaveAttribute('href',/hKcx4SKWdEYZHcPE6/);
+  await page.locator('#v24-general .v24-more summary').click();
+  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(5);
+
+  await expressway.click();
+  await expect(general).toBeHidden();
+  await expect(highway).toBeVisible();
+  await expect(expressway).toHaveAttribute('aria-pressed','true');
+  await expect(road).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('#v24-highway .v24-map:visible')).toHaveCount(1);
+  await expect(page.locator('#v24-highway .v24-map:visible')).toHaveAttribute('href',/PE7zNw8WGpkhvbBZ6/);
+  await expect(page.locator('.v24-safety')).toBeVisible();
+
+  await road.click();
+  await expect(general).toBeVisible();
+  await expect(highway).toBeHidden();
+  await expect(page.locator('#v24-general .v24-more')).not.toHaveAttribute('open',/.+/);
+  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(1);
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ });
+}
+
 test('Production play content features one new stamp rally and four other games without retired LIFF URLs',async({page})=>{
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
