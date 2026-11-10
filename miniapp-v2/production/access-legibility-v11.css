@@ -461,3 +461,13 @@ html body.v7-reception-active #app .rv7-head-note{font-size:13px!important}
 html body.v7-reception-active #app .rv7-step b{
  font-size:12px!important;min-width:24px;min-height:24px;
 }
+
+
+/* Final readability for the call queue and play-time safety copy. */
+html body #app .tg-note,
+html body #app .cs-waittype,
+html body #app #csMessage,
+html body #app .v33-detail-link {
+ font-size:12px!important;
+ line-height:1.5!important;
+}

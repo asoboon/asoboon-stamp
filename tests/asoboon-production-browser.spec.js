@@ -3318,3 +3318,22 @@ test('2026-11-10 party-size validation never falsely announces reception availab
  await expect(page.locator('#recPeopleMsg')).toHaveText('人数の条件は満たしています。');
  await expect(page.locator('#recSubmit')).toBeDisabled();
 });
+
+
+test('2026-11-10 official route CSS keeps rules, call details and timer safety copy readable',async({page})=>{
+ await installProduction(page);
+ await page.setViewportSize({width:320,height:844});
+ const examples=[
+  ['rules','.pv7-promise small'],
+  ['timeguide','.tg-note'],
+  ['callstatus','.cs-waittype'],
+  ['callstatus','#csMessage'],
+ ];
+ for(const [route,selector] of examples){
+  await page.goto(BASE+'?view='+route,{waitUntil:'domcontentloaded'});
+  const item=page.locator(selector).first();
+  await expect(item).toBeVisible();
+  await expect.poll(async()=>item.evaluate(el=>Number.parseFloat(getComputedStyle(el).fontSize)),{timeout:10000}).toBeGreaterThanOrEqual(12);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});
