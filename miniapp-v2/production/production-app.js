@@ -777,7 +777,7 @@ const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
 const slot=matches.length===1?matches[0]:null;
 const onsiteId=R.slotsFor(type,'onsite')[ids.indexOf(id)]?.waitTypeId;
 const flags=archive?new Map(archive.publicFlags):crowdPublicFlags;
-const webHidden=flags?.get(id)!==true,onsiteHidden=flags?.get(onsiteId)!==true;
+const webHidden=flags?.get(id)!==true||crowdPublicFlags?.get(id)===false,onsiteHidden=flags?.get(onsiteId)!==true||crowdPublicFlags?.get(onsiteId)===false;
 return {id,webHidden,onsiteHidden,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
 web:webHidden?null:verifiedWebRemaining(slot),onsite:onsiteHidden?null:trusted?onsiteRemaining(id,trusted.details,type):null,
 verifiedAt:trusted?.savedAt||0,sourceDate};

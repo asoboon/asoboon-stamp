@@ -3180,6 +3180,32 @@ test('Confirmed hidden WEB quota stays hidden when a later crowdRemaining reques
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('—');
 });
 
+test('Newly hidden WEB overrides an older certified after-hours archive',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
+ await page.addInitScript(()=>localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
+  date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-60000,
+  publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]],
+  slots:[{waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:50}],
+  details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:117,remainingVerified:true}]
+ })));
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='waitTypes')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0030','0032','0034','0029','0031','0033'].map(waitTypeId=>({waitTypeId,dispFlg:waitTypeId!=='0030'}))
+  })});
+  if(action==='crowdRemaining')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,stale:true,fetchedAt:'2026-10-03T08:59:00.000Z',slots:[{waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:50}],observedDetails:[]
+  })});
+  return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const first=page.locator('#v613Board .v613-row').first();
+ await expect(first).toBeVisible();
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
+ await expect(first.locator('a[href]')).toHaveCount(0);
+});
+
 test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails',async({page})=>{
  await installProduction(page);
  let waitReads=0,failVisibility=false;
