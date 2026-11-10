@@ -15,19 +15,21 @@ function page(){return `<section class="page-card pv7-page v12-parking-page v24-
   <span class="v24-route-announcement" role="status" aria-live="polite"></span>
 
   <section class="v24-section" id="v24-general" hidden>
-   <div class="v24-section-head"><span>一般道から</span><h2>おすすめは東門駐車場①</h2><p>近さ重視なら東門①。ほかの候補も下から確認できます。</p></div>
-   <div class="v24-pick-grid">
-    <article class="v24-pick recommended"><span class="v24-pick-tag">近さ重視</span><h3>東門駐車場①</h3><strong>徒歩 約3分</strong><p>ASOBooNに比較的近く、最初の候補におすすめです。</p>${mapLink('https://maps.app.goo.gl/hKcx4SKWdEYZHcPE6?g_st=ic','東門駐車場①','Googleマップで開く','地図 ↗','primary')}</article>
-
+   <div class="v24-section-head"><span>一般道から</span><h2>駐車場は全部で5か所</h2><p>東門側3か所・正門側2か所。地図で位置を比べて選べます。</p></div>
+   <a class="v24-all-map" data-external target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/@?api=1&map_action=shortlist&place_ids=ChIJXXu6y1SVGGAR_0YLVUttt6Y,ChIJyZN4QJOVGGARXseqERsVP2Y,ChIJoRybHi2VGGARe61DT2GBGW0,ChIJYSPyO0CVGGAR8ny8dIbrVDU,ChIJzwHsNK-VGGARXntcgjBDg-4" aria-label="一般道側の駐車場5か所をGoogleマップでまとめて見る">
+    <span class="v24-all-map-icon" aria-hidden="true">📍</span><span class="v24-all-map-copy"><strong>全5か所を地図で見る</strong><small>5つのピンを同時表示</small></span><b>開く ↗</b>
+   </a>
+   <div class="v24-alert"><strong>一部駐車場は閉鎖の案内があります</strong><p>Googleマップの「営業中」は参考です。現地の案内を優先し、一般道側は18:00までに出庫してください。</p><a data-external href="https://www.city.kawaguchi.lg.jp/soshiki/01120/035/iinakawaguchi/49590.html" target="_blank" rel="noopener noreferrer">川口市の閉鎖情報を確認 ↗</a></div>
+   <h3 class="v24-lots-heading">駐車場を個別に見る</h3>
+   <div class="v24-lots" aria-label="一般道側の駐車場5か所">
+    <a class="v24-lot-row" data-external data-v24-lot="1" href="https://maps.app.goo.gl/hKcx4SKWdEYZHcPE6?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>東門駐車場①</strong><small>東門側｜徒歩 約3分</small></span><b>地図 ↗</b></a>
+    <a class="v24-lot-row" data-external data-v24-lot="2" href="https://maps.app.goo.gl/kgT7ZqYLWhsQQZZW8?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>東門駐車場②</strong><small>東門側｜徒歩 約5分</small></span><b>地図 ↗</b></a>
+    <a class="v24-lot-row" data-external data-v24-lot="3" href="https://maps.app.goo.gl/NJnqAPZWHYBngrzYA?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>東門駐車場③</strong><small>東門側｜徒歩 約10分</small></span><b>地図 ↗</b></a>
+    <a class="v24-lot-row" data-external data-v24-lot="4" href="https://maps.app.goo.gl/wnq7keJLpMDo6GrC8?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>正門駐車場①</strong><small>正門側｜徒歩 約15分</small></span><b>地図 ↗</b></a>
+    <a class="v24-lot-row" data-external data-v24-lot="5" href="https://maps.app.goo.gl/mYVyxfQSc3ZvMUzG7?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>正門駐車場②</strong><small>正門側｜徒歩 約20分</small></span><b>地図 ↗</b></a>
    </div>
-
-   <div class="v24-alert"><strong>一般道側駐車場は一部閉鎖の案内があります</strong><p>現地の案内を優先してください。18:00までに出庫できるようご利用ください。</p><a data-external href="https://www.city.kawaguchi.lg.jp/soshiki/01120/035/iinakawaguchi/49590.html" target="_blank" rel="noopener noreferrer">川口市の最新案内を見る ↗</a></div>
-   <details class="v24-more"><summary>ほかの駐車場・台数情報を見る</summary><div class="v24-more-body">
-    <article class="v24-pick"><span class="v24-pick-tag capacity">台数重視</span><h3>正門駐車場①</h3><strong>徒歩 約15分</strong><p>距離はありますが、東門側が混雑しているときの候補です。</p>${mapLink('https://maps.app.goo.gl/wnq7keJLpMDo6GrC8?g_st=ic','正門駐車場①','Googleマップで開く','地図 ↗')}</article>
-   <div class="v24-facts"><div><small>利用時間</small><strong>9:00〜18:00</strong></div><div><small>小型車</small><strong>通常時 332台</strong></div><div><small>その他</small><strong>障がい者3台・大型5台</strong></div></div>
-    ${mapLink('https://maps.app.goo.gl/kgT7ZqYLWhsQQZZW8?g_st=ic','東門駐車場②','東門側・台数少なめ','徒歩 約5分')}
-    ${mapLink('https://maps.app.goo.gl/NJnqAPZWHYBngrzYA?g_st=ic','東門駐車場③','東門側の予備候補','徒歩 約10分')}
-    ${mapLink('https://maps.app.goo.gl/mYVyxfQSc3ZvMUzG7?g_st=ic','正門駐車場②','距離はあるが台数多め','徒歩 約20分')}
+   <details class="v24-more"><summary>利用時間と駐車台数を確認する</summary><div class="v24-more-body">
+    <div class="v24-facts"><div><small>利用時間</small><strong>9:00〜18:00</strong></div><div><small>小型車</small><strong>通常時 332台</strong></div><div><small>その他</small><strong>障がい者3台・大型5台</strong></div></div>
    </div></details>
    <div class="v24-nav"><strong>カーナビ検索</strong><span>埼玉県川口市赤山986</span></div>
   </section>

@@ -1398,3 +1398,69 @@ html body #app .v24-parking-page .v24-more-body .v24-pick{
 html body #app .v24-parking-page .v24-more-body .v24-facts{
  margin:12px 0!important;
 }
+
+/* v11.2 — Google Maps verified 5-pin list, with every parking choice visible. */
+html body #app .v24-parking-page .v24-all-map{
+ display:grid!important;grid-template-columns:38px minmax(0,1fr) auto!important;
+ width:100%!important;min-height:86px!important;align-items:center!important;gap:10px!important;
+ margin:4px 0 13px!important;padding:15px 12px!important;
+ background:#116C79!important;color:#fff!important;
+ border:2px solid #105661!important;border-radius:15px!important;
+ box-shadow:0 4px 0 #094C55!important;text-decoration:none!important;
+}
+html body #app .v24-parking-page .v24-all-map-icon{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:38px!important;height:38px!important;font-size:23px!important;
+ background:#DDF7ED!important;border-radius:12px!important;
+}
+html body #app .v24-parking-page .v24-all-map-copy{
+ display:flex!important;flex-direction:column!important;gap:4px!important;min-width:0!important;
+}
+html body #app .v24-parking-page .v24-all-map-copy strong{
+ font-size:16px!important;line-height:1.35!important;color:#fff!important;font-weight:950!important;
+}
+html body #app .v24-parking-page .v24-all-map-copy small{
+ font-size:12px!important;line-height:1.45!important;color:#E2FAF1!important;font-weight:700!important;
+}
+html body #app .v24-parking-page .v24-all-map>b{
+ font-size:13px!important;color:#fff!important;white-space:nowrap!important;
+}
+html body #app .v24-parking-page .v24-lots-heading{
+ font-size:16px!important;line-height:1.4!important;color:#3A231D!important;
+ font-weight:950!important;margin:18px 1px 8px!important;
+}
+html body #app .v24-parking-page .v24-lots{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;
+ margin:0 0 12px!important;
+}
+html body #app .v24-parking-page .v24-lot-row{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 55px!important;gap:10px!important;
+ align-items:center!important;min-height:69px!important;padding:13px!important;
+ border:1px solid #BDD8D0!important;border-radius:13px!important;
+ background:#FFFEFA!important;text-decoration:none!important;
+ box-shadow:0 2px 0 rgba(58,35,29,.05)!important;
+}
+html body #app .v24-parking-page .v24-lot-row.is-recommended{
+ border:2px solid #6CBDB0!important;background:#EBF9F3!important;
+}
+html body #app .v24-parking-page .v24-lot-copy{
+ display:flex!important;flex-direction:column!important;gap:4px!important;min-width:0!important;
+}
+html body #app .v24-parking-page .v24-lot-copy strong{
+ font-size:15px!important;line-height:1.4!important;color:#352B27!important;font-weight:950!important;
+}
+html body #app .v24-parking-page .v24-lot-copy small{
+ font-size:12px!important;line-height:1.45!important;color:#4D615C!important;font-weight:750!important;
+}
+html body #app .v24-parking-page .v24-lot-row>b{
+ color:#0E6473!important;font-size:13px!important;font-weight:900!important;
+ text-align:right!important;white-space:nowrap!important;
+}
+html body #app .v24-parking-page :is(.v24-all-map,.v24-lot-row):focus-visible{
+ outline:3px solid #0D6573!important;outline-offset:3px!important;
+}
+@media(max-width:360px){
+ html body #app .v24-parking-page .v24-all-map{grid-template-columns:32px minmax(0,1fr)!important;}
+ html body #app .v24-parking-page .v24-all-map-icon{width:32px!important;height:32px!important;}
+ html body #app .v24-parking-page .v24-all-map>b{grid-column:2!important;text-align:right!important;}
+}

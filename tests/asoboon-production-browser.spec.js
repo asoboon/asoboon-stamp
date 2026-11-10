@@ -109,10 +109,32 @@ for(const width of [320,375,390,430,768]){
   await expect(road).toHaveAttribute('aria-expanded','true');
   await expect(expressway).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('.v24-select-hint')).toBeHidden();
-  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(1);
-  await expect(page.locator('#v24-general .v24-map:visible').first()).toHaveAttribute('href',/hKcx4SKWdEYZHcPE6/);
+  const allMap=page.locator('#v24-general .v24-all-map');
+  await expect(allMap).toBeVisible();
+  await expect(allMap).toContainText('全5か所を地図で見る');
+  const mapHref=await allMap.getAttribute('href');
+  const mapUrl=new URL(mapHref);
+  expect(mapUrl.origin).toBe('https://www.google.com');
+  expect(mapUrl.searchParams.get('map_action')).toBe('shortlist');
+  expect(mapUrl.searchParams.get('place_ids').split(',')).toEqual([
+   'ChIJXXu6y1SVGGAR_0YLVUttt6Y',
+   'ChIJyZN4QJOVGGARXseqERsVP2Y',
+   'ChIJoRybHi2VGGARe61DT2GBGW0',
+   'ChIJYSPyO0CVGGAR8ny8dIbrVDU',
+   'ChIJzwHsNK-VGGARXntcgjBDg-4'
+  ]);
+  const lots=page.locator('#v24-general .v24-lot-row:visible');
+  await expect(lots).toHaveCount(5);
+  for(const [i,name] of ['東門駐車場①','東門駐車場②','東門駐車場③','正門駐車場①','正門駐車場②'].entries()){
+   await expect(lots.nth(i)).toContainText(name);
+   await expect(lots.nth(i)).toHaveAttribute('data-external','');
+  }
+  await expect(lots.first()).toHaveAttribute('href',/hKcx4SKWdEYZHcPE6/);
+  await expect(page.locator('#v24-general .v24-alert')).toContainText('一部駐車場は閉鎖');
+  await expect(page.locator('#v24-general .v24-more')).not.toHaveAttribute('open',/.+/);
   await page.locator('#v24-general .v24-more summary').click();
-  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(5);
+  await expect(page.locator('#v24-general .v24-facts')).toBeVisible();
+  await expect(lots).toHaveCount(5);
 
   await expressway.click();
   await expect(general).toBeHidden();
@@ -127,7 +149,8 @@ for(const width of [320,375,390,430,768]){
   await expect(general).toBeVisible();
   await expect(highway).toBeHidden();
   await expect(page.locator('#v24-general .v24-more')).not.toHaveAttribute('open',/.+/);
-  await expect(page.locator('#v24-general .v24-map:visible')).toHaveCount(1);
+  await expect(page.locator('#v24-general .v24-all-map')).toBeVisible();
+  await expect(page.locator('#v24-general .v24-lot-row:visible')).toHaveCount(5);
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  });
