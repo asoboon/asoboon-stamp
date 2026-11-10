@@ -7,7 +7,7 @@ function hubRow(title,sub,view,panel='',icon='›'){
  return `<button type="button" class="cm-hub-row" data-v7-view="${esc(view)}"${panel?` data-v7-panel="${esc(panel)}"`:''}><span class="cm-hub-icon" aria-hidden="true">${esc(icon)}</span><span class="cm-hub-label"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="cm-hub-chevron" aria-hidden="true">›</span></button>`;
 }
 function hubLink(title,sub,path,icon='›'){
- return `<a class="cm-hub-row" href="${esc(siteHref(path))}" data-external="1" target="_blank" rel="noopener noreferrer"><span class="cm-hub-icon" aria-hidden="true">${esc(icon)}</span><span class="cm-hub-label"><strong>${esc(title)}</strong><small>${esc(sub)}（別の画面で開く）</small></span><span class="cm-hub-chevron" aria-hidden="true">↗</span></a>`;
+ return `<a class="cm-hub-row" href="${esc(siteHref(path))}" aria-label="${esc(title)}（別の画面で開く）" data-external="1" target="_blank" rel="noopener noreferrer"><span class="cm-hub-icon" aria-hidden="true">${esc(icon)}</span><span class="cm-hub-label"><strong>${esc(title)}</strong><small>${esc(sub)}</small></span><span class="cm-hub-chevron" aria-hidden="true">↗</span></a>`;
 }
 function guidePage(){return `<section class="page-card cm-hub" aria-label="ご利用案内"><header class="cm-hub-head"><span class="cm-hub-eyebrow">ASOBooN GUIDE</span><h1>ご利用案内</h1><p>知りたい内容を選んでください。</p></header><div class="cm-hub-list" aria-label="ご利用案内の各項目">
 ${hubRow('アソブーンタイマー','入場・終了の時刻を確認','timeguide','','◷')}
@@ -20,13 +20,13 @@ ${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/prod
 ${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
 ${hubRow('よくある質問','困ったときはこちら','faq','','!')}
 </div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
-function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>質問をタップすると答えが開きます。予約から再入場まで確認できます。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p><p id="cmFaqLanguageNote" class="cm-faq-language-note" role="note" hidden></p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
-<details data-faq-key="reception"><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
+function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい質問をタップしてください。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p><p id="cmFaqLanguageNote" class="cm-faq-language-note" role="note" hidden></p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
+<details data-faq-key="reception"><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日7:00から、LINE受付は9:30から。開館は10:00です。</p></details>
 <details data-faq-key="availability"><summary>受付枠・残人数の確認方法は？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
-<details data-faq-key="unknown"><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
+<details data-faq-key="unknown"><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直して確認してください。</p></details>
 <details data-faq-key="channels"><summary>WEB受付とLINE受付は同じですか？</summary><p>別の受付方法です。WEB受付はAirWAITのWEB受付、LINE受付はミニアプリの店舗受付系です。開始時間と空き人数はそれぞれ違います。</p></details>
-<details data-faq-key="call"><summary>受付番号・呼出の順番を知りたい</summary><p>画面下の「呼出」から番号と呼出状態を確認できます。受付後はそこで最新状態を確かめてください。</p></details>
-<details data-faq-key="deadline"><summary>呼出されたら何分以内に行けばいい？</summary><p>呼出から30分以内にASOBooN入口の受付へお越しください。30分経過後は自動キャンセルの対象です。各回の最終入場時刻にもご注意ください。</p></details>
+<details data-faq-key="call"><summary>受付番号・呼出の順番を知りたい</summary><p>番号と順番は「呼出」で確認できます。</p></details>
+<details data-faq-key="deadline"><summary>呼出されたら何分以内に行けばいい？</summary><p>呼出後30分以内にASOBooN入口へお越しください。30分経過後は自動キャンセルの対象です。各回の最終入場時刻も確認してください。</p></details>
 <details data-faq-key="cancel"><summary>受付をキャンセルしたい</summary><p>画面下の「呼出」で受付内容を確認し、取消操作を行えます。再度受付する場合は公開されている枠を確認してください。</p></details>
 <details data-faq-key="full"><summary>受付枠が全部なくなったら？</summary><p>非公開の枠は受付できません。予約枠の公開状態が変わることがありますが、表示されていない空きを保証することはできません。営業予定は営業日カレンダーでご確認ください。</p></details>
 <details data-faq-key="hours"><summary>今日の営業時間・定休日は？</summary><p>通常は平日10:00〜17:00、土日祝10:00〜18:00、定休日は火曜日です。臨時変更や平日特定日はHOMEの「今日の営業」と営業日カレンダーに表示されます。</p></details>
@@ -34,9 +34,9 @@ function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-c
 <details data-faq-key="fees"><summary>入場料金はいくら？</summary><p>大人600円・子ども900円です。生後6か月未満のお子さまは、同じ会計に子どもが複数いる場合の2人目以降が無料です。詳しくは「料金」案内をご確認ください。</p></details>
 <details data-faq-key="baby"><summary>乳幼児向けの場所はある？</summary><p>0歳〜1歳6か月のお子さま向けの「オレンジ・ポンド」があります。利用対象を守って安全に遊びましょう。</p></details>
 <details data-faq-key="food"><summary>館内で飲食できますか？</summary><p>館内での食事はできません。飲み物は土足エリアでお願いします。遊具エリアには持ち込まないでください。</p></details>
-<details data-faq-key="reentry"><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。全員で一時退場するときは当日のレシートを保管し、戻る際に提示してください。大人だけ外出する場合は、館内に別の保護者が残ることが条件です。外出する保護者は黄色ホルダーを持って出て、再入場時に提示してください。どちらも退場前にスタッフへお声がけください。</p></details>
-<details data-faq-key="locker"><summary>ロッカーはありますか？</summary><p>小ロッカー約37L、大ロッカー約50Lがあります。利用時は鍵や貴重品の管理にご注意ください。</p></details>
-<details data-faq-key="parking"><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあり、一般道からも来場できます。高速道路側と一般道側で入口が違うため、「駐車場・アクセス」をご確認ください。</p></details>
+<details data-faq-key="reentry"><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。全員で一時退場するときは当日のレシートを保管し、戻る際に提示してください。大人だけ外出する場合は、館内に別の保護者が残ることが条件です。外出する保護者は黄色ホルダーを持って出て、再入場時に提示してください。退場前にはスタッフにお声がけください。</p></details>
+<details data-faq-key="locker"><summary>ロッカーはありますか？</summary><p>小37L・大50Lのロッカーがあります。鍵や貴重品の管理にご注意ください。</p></details>
+<details data-faq-key="parking"><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあります。一般道からも来場できます。入口は「駐車場・アクセス」でご確認ください。</p></details>
 </div><div class="cm-hub-list" aria-label="関連する案内へ進む">
 ${hubRow('本日の受付枠','WEB・LINE残人数を見る','home','','⌂')}
 ${hubRow('呼出状況','受付番号と入場案内','callstatus','','◷')}

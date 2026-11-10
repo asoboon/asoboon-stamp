@@ -18,3 +18,19 @@ Object.assign(window.ASOBOON_I18N_DICTIONARY,{
  "消す":{"en":"Clear","zh-CN":"清除","vi":"Xóa","ne":"खाली","ko":"지우기","kmr":"Paqij bike"},
  "16件の質問":{"en":"16 questions","zh-CN":"16个问题","vi":"16 câu hỏi","ne":"१६ प्रश्न","ko":"질문 16개","kmr":"16 pirs"}
 });
+
+/* Keep published translations when Japanese labels are shortened to avoid mobile widows. */
+for (const [next, previous] of Object.entries({
+  'あそび':'あそびコンテンツ',
+  '受付の流れ':'受付から入場まで',
+  '駐車場と道順':'駐車場・行き方',
+  '遊べる時間の目安を表示':'入場時刻から終了時刻の目安がわかります',
+  'ブロック勝負':'ブロックを動かしてジャングル攻略',
+  '3タップ勝負':'3タップで飛距離勝負',
+  '障害物を回避':'障害物をかわして走ろう',
+  '運勢を占う':'今日の運勢をチェック',
+  '残人数は目安です。受付前に変わることがあります。':'表示人数は確認時点の目安です。受付確定までに変わる場合があります。'
+})) {
+  const dictionary=window.ASOBOON_I18N_DICTIONARY;
+  if (!dictionary[next]&&dictionary[previous]) dictionary[next]={...dictionary[previous]};
+}

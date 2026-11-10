@@ -37,3 +37,5 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 /* Balanced FAQ questions; avoid dangling single kana in mobile headings. */
 .cm-hub-head p{ text-wrap:pretty; }
 .cm-faq summary{ text-wrap:balance;word-break:normal;overflow-wrap:normal; }
+
+html body #app .cm-faq details p{text-wrap:balance!important}

@@ -11,3 +11,5 @@ body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .t
 .v33-entry-action p{margin:0!important;padding:10px 11px;border-radius:12px;background:#fff;border:1px solid #BDDDD0}
 .v33-entry-action strong{display:block;color:#184D45;font-size:14px;line-height:1.45}
 .v33-entry-action span{display:block;margin-top:2px;color:#355750;font-size:12px;line-height:1.55}
+
+html body #app .v33-rules-page .pv7-promise small{text-wrap:balance!important}

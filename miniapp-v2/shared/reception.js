@@ -100,7 +100,7 @@ ${methodBlock}
 <div id="recDay" class="rec-day"><span><small>営業区分</small><strong>確認中</strong></span><b>—</b></div>
 <h3 class="rec-title">① ご利用の回</h3><div id="recSlots" class="rec-slots"><div class="rec-status">受付枠を確認しています…</div></div>
 ${E.environment==='production'?`<div id="recRemainingInfo" class="rec-remaining-info" hidden><span id="recRemainingNote">LINE受付の残り人数を確認しています…</span><button id="recRemainingRefresh" class="rec-remaining-refresh" type="button">人数を更新 <span aria-hidden="true">↻</span></button></div>
-<p class="rec-remaining-caution">表示人数は確認時点の目安です。受付確定までに変わる場合があります。</p>`:''}
+<p class="rec-remaining-caution">残人数は目安です。受付前に変わることがあります。</p>`:''}
 ${locationBlock}
 <h3 class="rec-title">② ご利用人数</h3><div class="rec-people">
 <div class="rec-person"><span><strong>おとな</strong><small>600円</small></span><div class="rec-stepper"><button type="button" data-rec-k="adult" data-rec-d="-1">−</button><output id="recAdult">1</output><button type="button" data-rec-k="adult" data-rec-d="1">＋</button></div></div>

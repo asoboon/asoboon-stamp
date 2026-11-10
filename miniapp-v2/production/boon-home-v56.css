@@ -440,3 +440,6 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-legal span{
  text-wrap:pretty;
 }
+
+/* No squeezed game captions on narrow screens. Full-width choices remain tappable. */
+@media(max-width:480px){html body .v38-play-grid{grid-template-columns:minmax(0,1fr)!important}}
