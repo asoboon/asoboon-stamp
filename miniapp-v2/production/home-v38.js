@@ -270,7 +270,7 @@ async function fetchCrowd(force=false,manual=false){
   if(data?.warning==='AIRWAIT_CROWD_EMPTY')throw Error('AIRWAIT_CROWD_EMPTY');
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
-  const t=readLastCrowd()?.businessType||day?.businessType;
+  const t=readLastCrowd()?.businessType||businessForBoard()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
   const types=await m.published(E.backendUrl);
   crowdPublicFlags=Array.isArray(types)?new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])):null;
@@ -304,7 +304,7 @@ async function fetchCrowd(force=false,manual=false){
    const date=day.operationalDate;
    try{
     const m=await import('./crowd-visibility.mjs?v=1');
-    const type=readLastCrowd()?.businessType||day.businessType;const closed=await m.check(E.backendUrl,R.slotsFor(type,'onsite'),CROWD_SETTINGS.IDS[type]);
+    const type=readLastCrowd()?.businessType||businessForBoard()?.businessType||day.businessType;const closed=await m.check(E.backendUrl,R.slotsFor(type,'onsite'),CROWD_SETTINGS.IDS[type]);
     if(closed===true&&date===day?.operationalDate){
       crowdHiddenConfirmed=true;crowdClosed=true;
       crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;
@@ -326,7 +326,7 @@ async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='fun
    if(resolved?.ok&&resolved.operationalDate===today)displayDay=resolved;
   }catch{}
  }
-if(!day.isClosed&&['平日','平日特定日','土日祝日'].includes(String(day.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd())void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+const currentBusiness=businessForBoard();if(currentBusiness&&!currentBusiness.isClosed&&['平日','平日特定日','土日祝日'].includes(String(currentBusiness.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd())void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
