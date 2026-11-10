@@ -47,7 +47,7 @@ function makeWizard(page){
   progress=create('div','boon-v4-progress');
   progress.id='boonV4Progress';
   progress.setAttribute('aria-label','受付手順');
-  progress.innerHTML='<span data-boon-p="1">1 <b>受付枠</b></span><span data-boon-p="2">2 <b>人数</b></span><span data-boon-p="3">3 <b>内容確認</b></span>';
+  progress.innerHTML='<span data-boon-p="1">1 <b>受付枠</b></span><span data-boon-p="2">2 <b>人数</b></span><span data-boon-p="3">3 <b>確認・同意</b></span>';
   var day=$('recDay'),wrap=page.querySelector('.rec-wrap');
   if(day&&day.parentNode)day.parentNode.insertBefore(progress,day);
   else if(wrap)wrap.insertBefore(progress,wrap.firstChild);
@@ -98,7 +98,7 @@ function updateWizard(page){
  if(intro&&intro.dataset.stage!==String(effective)){
   var message=messages[effective]||messages[1];
   intro.dataset.stage=String(effective);
-  intro.innerHTML='<small>'+message[0]+'</small><strong>'+message[1]+'</strong>';
+  intro.innerHTML='<strong>'+message[1]+'</strong>';
  }
  page.querySelectorAll('#recSlots .rec-slot').forEach(function(btn){
   var pressed=btn.classList.contains('active')?'true':'false';

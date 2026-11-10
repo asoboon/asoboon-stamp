@@ -1337,9 +1337,34 @@ function currentView(){return String(qs().get('view')||'home')}
 function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
 function ensureHead(){const head=root.querySelector('.page-head');if(!head)return;setText(head.querySelector('small'),'ASOBooN');setText(head.querySelector('h2'),'LINE当日受付');if(!head.querySelector('.rv7-head-note'))head.insertAdjacentHTML('beforeend','<div class="rv7-head-note">利用する回と人数を選んでください。</div>')}
-function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<nav class="rv7-progress" aria-label="受付手順を移動"><button type="button" class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></button><button type="button" class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></button><button type="button" class="rv7-step" data-rv7-step="3"><b>3</b><span>内容確認</span></button><button type="button" class="rv7-step" data-rv7-step="4"><b>4</b><span>利用案内</span></button></nav>')}
-function ensureConfirmLabel(){const summary=root.querySelector('.rec-summary');if(!summary)return;if(summary.previousElementSibling?.classList?.contains('rv7-confirm-label'))return;summary.insertAdjacentHTML('beforebegin','<div class="rv7-confirm-label"><b>3</b><span>内容を確認</span></div>')}
-function ensureConsentLabel(){const section=root.querySelector('.rec-disclaimer');if(section&&!section.previousElementSibling?.classList?.contains('rv7-consent-label'))section.insertAdjacentHTML('beforebegin','<div class="rv7-consent-label"><b>4</b><span>利用案内を確認</span></div>')}
+function ensureSingleProgress(){
+ const wizard=window.ASOBOON_MINT_V51_PREVIEW===true;
+ document.body.classList.toggle('v7-reception-fallback',!wizard);
+ if(wizard){
+  // The official HOME already uses the accessible v51 three-stage wizard.
+  root.querySelectorAll('.rv7-progress,.rv7-confirm-label,.rv7-consent-label').forEach(el=>el.remove());
+  return;
+ }
+ // The noindex /production/index.html diagnostic route must also have a single
+ // three-stage progress control, even when the official v51 wizard is not loaded.
+ root.querySelectorAll('.rv7-confirm-label,.rv7-consent-label').forEach(el=>el.remove());
+ const wrap=root.querySelector('.rec-wrap');if(!wrap)return;
+ if(!wrap.querySelector('.rv7-progress'))wrap.insertAdjacentHTML('afterbegin',
+  '<nav class="rv7-progress" aria-label="受付の3つの手順">'
+  +'<button class="rv7-step" type="button" data-rv7-step="1"><b>1</b><span>利用する回</span></button>'
+  +'<button class="rv7-step" type="button" data-rv7-step="2"><b>2</b><span>人数</span></button>'
+  +'<button class="rv7-step" type="button" data-rv7-step="3"><b>3</b><span>確認・同意</span></button></nav>');
+ const selected=Boolean(wrap.querySelector('.rec-slot.active:not([hidden])'));
+ const valid=Boolean(wrap.querySelector('#recPeopleMsg.ok'));
+ const current=selected?(valid?3:2):1;
+ wrap.querySelectorAll('[data-rv7-step]').forEach(node=>{
+  const index=Number(node.dataset.rv7Step);
+  node.classList.toggle('done',index<current);
+  node.classList.toggle('active',index===current);
+  if(index===current)node.setAttribute('aria-current','step');
+  else node.removeAttribute('aria-current');
+ });
+}
 function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>{const span=btn.querySelector(':scope > span:first-child');if(!span||span.dataset.rv7Icon==='1')return;span.dataset.rv7Icon='1';span.innerHTML=methodIcon(btn.classList.contains('onsite')?'onsite':'web')})}
 function cleanLabels(){setText(root.querySelector('#recWeb strong'),'LINE受付');setText(root.querySelector('#recOnsite strong'),'LINE受付');const titles=root.querySelectorAll('.rec-title');setText(titles[0],'ご利用の回');setText(titles[1],'ご利用人数')}
 function cleanCustomerCopy(){
@@ -1362,9 +1387,20 @@ function cleanCustomerCopy(){
  const agree=root.querySelector('.rec-agree span');if(agree&&!dev)setText(agree,'受付内容とご利用にあたっての案内を確認しました。受付ボタンは一度だけ押してください。');
  const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))setText(submit,'受付の準備中…');
 }
-function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>{x.classList.remove('active','done');x.removeAttribute('aria-current')});if(!selected){steps[0]?.classList.add('active');steps[0]?.setAttribute('aria-current','step');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');steps[1]?.setAttribute('aria-current','step');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active');if(agree)steps[3]?.classList.add('active');steps.forEach(x=>{if(x.classList.contains('active'))x.setAttribute('aria-current','step');else x.removeAttribute('aria-current')})}
-function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());setText(document.querySelector('.brand small'),'川口ハイウェイオアシス');ensureHead();ensureProgress();ensureConfirmLabel();ensureConsentLabel();replaceMethodIcons();cleanLabels();cleanCustomerCopy();progressState()}
-function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true,characterData:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',event=>{const tab=event.target?.closest?.('[data-rv7-step]');if(tab){const target={1:'.rec-slots',2:'.rec-people',3:'.rec-summary',4:'.rec-disclaimer'}[tab.dataset.rv7Step];const dest=target&&root.querySelector(target);if(dest){dest.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});dest.setAttribute('tabindex','-1');dest.focus({preventScroll:true});return}}setTimeout(progressState,0)},true);patch();setTimeout(patch,50);setTimeout(patch,300)}
+function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','v7-reception-fallback','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());setText(document.querySelector('.brand small'),'川口ハイウェイオアシス');ensureHead();ensureSingleProgress();replaceMethodIcons();cleanLabels();cleanCustomerCopy()}
+function start(){
+ obs=new MutationObserver(()=>queueMicrotask(patch));
+ obs.observe(root,{subtree:true,childList:true,characterData:true});
+ root.addEventListener('click',event=>{
+  const tab=event.target?.closest?.('[data-rv7-step]');
+  if(!tab||window.ASOBOON_MINT_V51_PREVIEW===true)return;
+  const target={1:'.rec-slots',2:'.rec-people',3:'.rec-summary'}[tab.dataset.rv7Step];
+  const dest=target&&root.querySelector(target);
+  if(dest){dest.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+   dest.setAttribute('tabindex','-1');dest.focus({preventScroll:true})}
+ },true);
+ patch();setTimeout(patch,50);setTimeout(patch,300)
+}
 start();
 })();
 
@@ -1763,7 +1799,7 @@ function lightStage(n){if(n<=3)return 5;if(n<=5)return 4;if(n<=10)return 3;if(n<
 function waitCopy(n){if(n<=3)return'もうすぐです！';if(n<=5)return'入場の準備をお願いします';if(n<=10)return'そろそろ近づいてきました';if(n<=20)return'少しずつ近づいています';return'まだ時間があります'}
 function lights(stage,color='red'){let out='';for(let i=1;i<=5;i++)out+=`<span class="v33-lamp ${i<=stage?'on':''} ${color}" aria-hidden="true"><i></i></span>`;return out}
 function receiptText(page){const dom=String(page.querySelector('#csReceipt')?.textContent||'').trim();if(dom&&dom!=='—')return dom;return String(readJSON(RES_KEY)?.receiptNo||'—')}
-function patchStartLights(page){const state=page.querySelector('#csState'),aheadEl=page.querySelector('#csAhead');if(!state)return;const calling=state.classList.contains('calling'),waiting=state.classList.contains('waiting'),compact=calling||waiting,ahead=Number(String(aheadEl?.textContent||'').trim());page.classList.toggle('v33-compact-active',compact);page.classList.toggle('v33-compact-calling',calling);let panel=page.querySelector('.v33-start-panel');if(!compact){panel?.remove();return}if(!panel){panel=document.createElement('section');panel.className='v33-start-panel';page.querySelector('#csTop')?.insertAdjacentElement('afterend',panel)}if(!panel)return;const receipt=receiptText(page),sig=calling?`calling:${receipt}`:`waiting:${Number.isFinite(ahead)?ahead:'x'}:${receipt}`;if(panel.dataset.sig===sig)return;panel.dataset.sig=sig;if(calling){panel.className='v33-start-panel calling';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-lights">${lights(5,'green')}</div><div class="v33-go">GO!</div><h2>入場できます！</h2><p>呼出後30分以内にASOBooN入口へお越しください。</p>`;setText(page.querySelector('#csMessage'),'呼出後30分以内に、受付番号を準備してASOBooN入口へお越しください。');return}const known=Number.isFinite(ahead),n=known?ahead:0,stage=known?lightStage(n):0;const combined=String(page.querySelector('#csQueue small')?.textContent||'').includes('WEB＋LINE');panel.className='v33-start-panel waiting';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-start-count"><small>${known?(combined?'あなたの前（WEB＋LINE合算）':'あなたの前'):'待ち順を確認中'}</small><strong>${Number.isFinite(ahead)?ahead:'—'}</strong><span>組</span></div><div class="v33-lights">${lights(stage,'red')}</div><div class="v33-start-copy">${Number.isFinite(ahead)?waitCopy(n):'最新の順番を確認しています'}</div><div class="v33-start-notify">順番になるとLINEでお知らせします。</div>`;setText(page.querySelector('#csMessage'),known?'順番になるとLINEでお知らせします。':'WEB受付とLINE受付の待ち順を確認しています。受付番号は保存されています。')}
+function patchStartLights(page){const state=page.querySelector('#csState'),aheadEl=page.querySelector('#csAhead');if(!state)return;const calling=state.classList.contains('calling'),waiting=state.classList.contains('waiting'),compact=calling||waiting,ahead=Number(String(aheadEl?.textContent||'').trim());page.classList.toggle('v33-compact-active',compact);page.classList.toggle('v33-compact-calling',calling);let panel=page.querySelector('.v33-start-panel');if(!compact){panel?.remove();return}if(!panel){panel=document.createElement('section');panel.className='v33-start-panel';page.querySelector('#csTop')?.insertAdjacentElement('afterend',panel)}if(!panel)return;const receipt=receiptText(page),sig=calling?`calling:${receipt}`:`waiting:${Number.isFinite(ahead)?ahead:'x'}:${receipt}`;if(panel.dataset.sig===sig)return;panel.dataset.sig=sig;if(calling){panel.className='v33-start-panel calling';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-lights">${lights(5,'green')}</div><div class="v33-go">GO!</div><h2>入場できます！</h2><div class="v33-entry-action" role="note"><p><strong>ASOBooN入口の受付へ</strong><span>受付番号をご準備ください。</span></p><p><strong>呼出から30分以内</strong><span>この時間内に入口の受付へお越しください。</span></p><p><strong>各回の最終入場時刻にも注意</strong><span>30分以内でも、各回の最終入場条件が適用されます。</span></p></div>`;setText(page.querySelector('#csMessage'),'呼出後30分以内に、受付番号を準備してASOBooN入口へお越しください。');return}const known=Number.isFinite(ahead),n=known?ahead:0,stage=known?lightStage(n):0;const combined=String(page.querySelector('#csQueue small')?.textContent||'').includes('WEB＋LINE');panel.className='v33-start-panel waiting';panel.innerHTML=`<div class="v33-start-kicker">START LIGHTS</div><div class="v33-start-count"><small>${known?(combined?'あなたの前（WEB＋LINE合算）':'あなたの前'):'待ち順を確認中'}</small><strong>${Number.isFinite(ahead)?ahead:'—'}</strong><span>組</span></div><div class="v33-lights">${lights(stage,'red')}</div><div class="v33-start-copy">${Number.isFinite(ahead)?waitCopy(n):'最新の順番を確認しています'}</div><div class="v33-start-notify">順番になるとLINEでお知らせします。</div>`;setText(page.querySelector('#csMessage'),known?'順番になるとLINEでお知らせします。':'WEB受付とLINE受付の待ち順を確認しています。受付番号は保存されています。')}
 function patchCallstatus(){const page=root.querySelector('.cs-page');if(!page)return;document.body.classList.add('v7-page-active','v7-callstatus-active');setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'呼出状況');patchStartLights(page);const compact=page.classList.contains('v33-compact-active'),calling=page.classList.contains('v33-compact-calling');const refresh=page.querySelector('#csRefresh');if(refresh&&!refresh.disabled)setText(refresh,'最新状況を確認');const detail=page.querySelector('.v33-detail-link');if(compact){detail?.remove()}else if(refresh&&!detail){refresh.insertAdjacentHTML('afterend','<button class="pv7-text-btn v33-detail-link" type="button" data-pv7-view="callstatus" data-pv7-panel="detail">受付詳細を見る ＞</button>')}const note=page.querySelector('.cs-note');if(!compact)setHTML(note,'<strong>LINE通知：</strong>順番になるとLINEでお知らせします。画面を閉じている間も通知を優先します。');const top=page.querySelector('#csTop');if(top){const strong=top.querySelector('strong'),small=top.querySelector('small');if(compact){setText(strong,'LIVE');setText(small,calling?'呼出中です':'順番は自動で更新されます。')}else{if(strong&&/AirWAIT/.test(strong.textContent||''))setText(strong,'最新情報を確認中');if(small&&/(待ち状況に応じて|受付直後の反映待ち|次回は)/.test(small.textContent||''))setText(small,'順番は自動で更新されます。')}}const title=page.querySelector('#csTitle');if(title&&/AirWAITへ受付を反映中/.test(title.textContent||''))setText(title,'受付情報を確認しています');const err=page.querySelector('#csError');if(err&&/AirWAIT側/.test(err.textContent||''))setText(err,'受付情報を確認できていません。新しい受付を作り直さず、受付番号をスタッフへお伝えください。')}
 function patchTimeguide(){const page=root.querySelector('.tg-page');if(!page)return;document.body.classList.add('v7-page-active','v7-timeguide-active');setText(page.querySelector('.page-head small'),'ASOBooN');setText(page.querySelector('.page-head h2'),'アソブーンタイマー');const body=page.querySelector('.tg-body');if(body&&!body.querySelector('.v33-time-warning'))body.insertAdjacentHTML('afterbegin','<div class="pv7-time-warning v33-time-warning"><strong>これは目安計算です。</strong><br>入場した時刻を選ぶと、その日の利用時間と閉館時刻から終了目安を計算します。</div>');const reload=page.querySelector('#tgReload');if(reload&&!reload.disabled)setText(reload,'営業情報を更新')}
 function apply(){queued=false;clearClasses();setBrand();const s=route();if(s.view==='callstatus'){document.body.classList.add('v7-page-active','v7-callstatus-active');if(s.panel==='detail'){replaceMain(detailPage(),'callstatus:detail');return}patchCallstatus();return}if(s.view==='timeguide'){patchTimeguide();return}if(s.view==='first'&&s.panel==='price'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(pricePage(),'first:price');return}if(s.view==='rules'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(rulesPage(),'rules');return}if(s.view==='parking'&&s.panel==='info'){document.body.classList.add('v7-page-active','v7-content-active');replaceMain(infoPage(),'parking:info');return}}
@@ -1797,23 +1833,23 @@ ${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/prod
 ${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
 ${hubRow('よくある質問','困ったときはこちら','faq','','!')}
 </div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
-function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
-<details><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
-<details><summary>今日の受付枠・残人数はどこで確認するの？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
-<details><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
-<details><summary>WEB受付とLINE受付は同じですか？</summary><p>別の受付方法です。WEB受付はAirWAITのWEB受付、LINE受付はミニアプリの店舗受付系です。開始時間と空き人数はそれぞれ違います。</p></details>
-<details><summary>受付番号・呼出の順番を知りたい</summary><p>画面下の「呼出」から番号と呼出状態を確認できます。受付後はそこで最新状態を確かめてください。</p></details>
-<details><summary>呼出されたら何分以内に行けばいい？</summary><p>呼出から30分以内にASOBooN入口の受付へお越しください。30分経過後は自動キャンセルの対象です。各回の最終入場時刻にもご注意ください。</p></details>
-<details><summary>受付をキャンセルしたい</summary><p>画面下の「呼出」で受付内容を確認し、取消操作を行えます。再度受付する場合は公開されている枠を確認してください。</p></details>
-<details><summary>受付枠が全部なくなったら？</summary><p>非公開の枠は受付できません。予約枠の公開状態が変わることがありますが、表示されていない空きを保証することはできません。営業予定は営業日カレンダーでご確認ください。</p></details>
-<details><summary>今日の営業時間・定休日は？</summary><p>通常は平日10:00〜17:00、土日祝10:00〜18:00、定休日は火曜日です。臨時変更や平日特定日はHOMEの「今日の営業」と営業日カレンダーに表示されます。</p></details>
-<details><summary>何時間遊べますか？</summary><p>通常平日は時間無制限、平日特定日は3時間、土日祝・月曜は2時間30分が基本です。入場日の営業区分で変わります。「アソブーンタイマー」で終了時刻の目安を確認できます。</p></details>
-<details><summary>入場料金はいくら？</summary><p>大人600円・子ども900円です。生後6か月未満のお子さまは、同じ会計に子どもが複数いる場合の2人目以降が無料です。詳しくは「料金」案内をご確認ください。</p></details>
-<details><summary>乳幼児向けの場所はある？</summary><p>0歳〜1歳6か月のお子さま向けの「オレンジ・ポンド」があります。利用対象を守って安全に遊びましょう。</p></details>
-<details><summary>館内で飲食できますか？</summary><p>館内での食事はできません。飲み物は土足エリアでお願いします。遊具エリアには持ち込まないでください。</p></details>
-<details><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。再入場時には当日のレシートを提示してください。ホルダーの取り扱いと戻る場所も確認できます。</p></details>
-<details><summary>ロッカーはありますか？</summary><p>小ロッカー約37L、大ロッカー約50Lがあります。利用時は鍵や貴重品の管理にご注意ください。</p></details>
-<details><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあり、一般道からも来場できます。高速道路側と一般道側で入口が違うため、「駐車場・アクセス」をご確認ください。</p></details>
+function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p><p id="cmFaqLanguageNote" class="cm-faq-language-note" role="note" hidden></p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
+<details data-faq-key="reception"><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
+<details data-faq-key="availability"><summary>今日の受付枠・残人数はどこで確認するの？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
+<details data-faq-key="unknown"><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
+<details data-faq-key="channels"><summary>WEB受付とLINE受付は同じですか？</summary><p>別の受付方法です。WEB受付はAirWAITのWEB受付、LINE受付はミニアプリの店舗受付系です。開始時間と空き人数はそれぞれ違います。</p></details>
+<details data-faq-key="call"><summary>受付番号・呼出の順番を知りたい</summary><p>画面下の「呼出」から番号と呼出状態を確認できます。受付後はそこで最新状態を確かめてください。</p></details>
+<details data-faq-key="deadline"><summary>呼出されたら何分以内に行けばいい？</summary><p>呼出から30分以内にASOBooN入口の受付へお越しください。30分経過後は自動キャンセルの対象です。各回の最終入場時刻にもご注意ください。</p></details>
+<details data-faq-key="cancel"><summary>受付をキャンセルしたい</summary><p>画面下の「呼出」で受付内容を確認し、取消操作を行えます。再度受付する場合は公開されている枠を確認してください。</p></details>
+<details data-faq-key="full"><summary>受付枠が全部なくなったら？</summary><p>非公開の枠は受付できません。予約枠の公開状態が変わることがありますが、表示されていない空きを保証することはできません。営業予定は営業日カレンダーでご確認ください。</p></details>
+<details data-faq-key="hours"><summary>今日の営業時間・定休日は？</summary><p>通常は平日10:00〜17:00、土日祝10:00〜18:00、定休日は火曜日です。臨時変更や平日特定日はHOMEの「今日の営業」と営業日カレンダーに表示されます。</p></details>
+<details data-faq-key="playtime"><summary>何時間遊べますか？</summary><p>通常平日は時間無制限、平日特定日は3時間、土日祝・月曜は2時間30分が基本です。入場日の営業区分で変わります。「アソブーンタイマー」で終了時刻の目安を確認できます。</p></details>
+<details data-faq-key="fees"><summary>入場料金はいくら？</summary><p>大人600円・子ども900円です。生後6か月未満のお子さまは、同じ会計に子どもが複数いる場合の2人目以降が無料です。詳しくは「料金」案内をご確認ください。</p></details>
+<details data-faq-key="baby"><summary>乳幼児向けの場所はある？</summary><p>0歳〜1歳6か月のお子さま向けの「オレンジ・ポンド」があります。利用対象を守って安全に遊びましょう。</p></details>
+<details data-faq-key="food"><summary>館内で飲食できますか？</summary><p>館内での食事はできません。飲み物は土足エリアでお願いします。遊具エリアには持ち込まないでください。</p></details>
+<details data-faq-key="reentry"><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。全員で一時退場するときは当日のレシートを保管し、戻る際に提示してください。大人だけ外出する場合は、館内に別の保護者が残ることが条件です。外出する保護者は黄色ホルダーを持って出て、再入場時に提示してください。どちらも退場前にスタッフへお声がけください。</p></details>
+<details data-faq-key="locker"><summary>ロッカーはありますか？</summary><p>小ロッカー約37L、大ロッカー約50Lがあります。利用時は鍵や貴重品の管理にご注意ください。</p></details>
+<details data-faq-key="parking"><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあり、一般道からも来場できます。高速道路側と一般道側で入口が違うため、「駐車場・アクセス」をご確認ください。</p></details>
 </div><div class="cm-hub-list" aria-label="関連する案内へ進む">
 ${hubRow('本日の受付枠','WEB・LINE残人数を見る','home','','⌂')}
 ${hubRow('呼出状況','受付番号と入場案内','callstatus','','◷')}
@@ -1830,6 +1866,32 @@ ${hubLink('ブーンジャンプ','3タップで飛距離勝負','boonjump/','�
 ${hubLink('BOON パズル','ブロックを動かしてゴールを目指そう','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','▦')}
 </div><div class="cm-hub-tip"><strong>スタンプラリーに参加する方へ</strong><p>パーツの取得は館内の専用QRから行ってください。完成した画面をスタッフへ見せてね。</p></div>${hubRow('ホームへ戻る','空き状況を見る','home','','⌂')}</section>`}
 
+const FAQ_SEARCH_ALIASES=Object.freeze({
+  reception:'booking reservation check-in 预约 预约取号 예약 접수 đăng ký đặt chỗ',
+  availability:'availability slots spaces remaining vacant 空位 名额 잔여 인원 chỗ trống',
+  unknown:'unavailable error checking unknown 未知 확인중',
+  channels:'web line difference channels 区别 차이 khác nhau',
+  call:'queue number call ticket turn 排队 叫号 대기번호 호출 số thứ tự gọi',
+  deadline:'30 minutes deadline arrival 30分钟 半小时 30분 30 phút',
+  cancel:'cancel cancellation 取消 취소 hủy',
+  full:'fully booked sold out full 满额 마감 hết chỗ',
+  hours:'opening hours closed holiday 营业时间 休息日 영업시간 휴무 giờ mở cửa',
+  playtime:'duration time limit playtime 时间 제한 시간 thời gian',
+  fees:'price fee charge ticket baby free 价格 票价 요금 가격 giá vé',
+  baby:'baby toddler infants infant pond 婴儿 유아 아기 trẻ sơ sinh',
+  food:'food drink water meal 饮食 食物 飲料 음식 음료 đồ ăn đồ uống',
+  reentry:'reentry re-entry return leave receipt yellow holder 再入场 小票 黄色 영수증 재입장 노란 입장 다시 masuk lại hóa đơn',
+  locker:'locker luggage storage 储物柜 사물함 tủ đồ',
+  parking:'parking car access bus train 停车场 交通 주차장 교통 bãi đỗ xe'
+});
+const FAQ_ANSWER_NOTES=Object.freeze({
+ en:'Answers are currently in Japanese. For details, open the relevant guide below.',
+ 'zh-CN':'以下回答目前为日语。详细步骤请查看下方相关指南。',
+ vi:'Các câu trả lời hiện bằng tiếng Nhật. Xem hướng dẫn liên quan bên dưới để biết chi tiết.',
+ ne:'जवाफहरू अहिले जापानी भाषामा छन्। विस्तृत जानकारीका लागि तलको सम्बन्धित मार्गदर्शन हेर्नुहोस्।',
+ ko:'답변 본문은 현재 일본어로 제공됩니다. 자세한 내용은 아래 관련 안내를 확인하세요.',
+ kmr:'Bersiv niha bi japonî ne. Ji bo hûrguliyan rêberiya têkildar a jêrê bibînin.'
+});
 function applyFaqLabels(){
  const query=document.getElementById('cmFaqQuery');
  if(!query||!query.closest('#app'))return;
@@ -1839,6 +1901,7 @@ function applyFaqLabels(){
  query.placeholder=t('例：料金・駐車場・再入場');
  const clear=document.getElementById('cmFaqClear');
  if(clear){clear.textContent=t('消す');clear.setAttribute('aria-label',t('検索文字を消去'))}
+ const lang=window.ASOBOON_I18N?.language||'ja';const note=document.getElementById('cmFaqLanguageNote');if(note){note.hidden=lang==='ja';note.textContent=FAQ_ANSWER_NOTES[lang]||FAQ_ANSWER_NOTES.en}
  updateFaqResults();
 }
 function updateFaqResults(){
@@ -1847,7 +1910,7 @@ function updateFaqResults(){
  const needle=String(input.value||'').normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,'').trim();
  let count=0;
  for(const item of list.querySelectorAll(':scope > details')){
-   const haystack=String(item.textContent||'').normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,'');
+   const haystack=String(item.textContent||'').concat(' ',FAQ_SEARCH_ALIASES[item.dataset.faqKey]||'').normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,'');
    const show=!needle||haystack.includes(needle);item.hidden=!show;if(show)count++;
  }
  const notices={
