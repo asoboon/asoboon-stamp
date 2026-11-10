@@ -75,7 +75,7 @@ function updateFaqResults(){
  }
  const notices={
   ja:{found:n=>n+'件見つかりました',none:'一致する質問がありません。別の言葉でもお試しください。',all:'16件の質問'},
-  en:{found:n=>n+' results',none:'No matching questions. Try another word.',all:'16 questions'},
+  en:{found:n=>n+' result'+(n===1?'':'s'),none:'No matching questions. Try another word.',all:'16 questions'},
   'zh-CN':{found:n=>n+'个结果',none:'没有找到匹配的问题。请尝试其他关键词。',all:'16个问题'},
   vi:{found:n=>n+' kết quả',none:'Không tìm thấy câu hỏi. Hãy thử từ khác.',all:'16 câu hỏi'},
   ne:{found:n=>n+' नतिजा',none:'मिल्ने प्रश्न छैन। अर्को शब्द प्रयास गर्नुहोस्।',all:'१६ प्रश्न'},

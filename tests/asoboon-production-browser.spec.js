@@ -3398,7 +3398,7 @@ test('2026-11-10 FAQ search is readable in English, Chinese and Korean',async({p
  await select.selectOption('en');
  await expect(label).toHaveText('Search questions');
  await q.fill('37L');
- await expect(msg).toHaveText('1 results');
+ await expect(msg).toHaveText('1 result');
  await select.selectOption('zh-CN');
  await expect(label).toHaveText('搜索问题');
  await expect(msg).toHaveText('1个结果');
