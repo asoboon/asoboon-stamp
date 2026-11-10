@@ -175,7 +175,7 @@ return ids.map(id=>{
 const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
 const slot=matches.length===1?matches[0]:null;
 const onsiteId=R.slotsFor(type,'onsite')[ids.indexOf(id)]?.waitTypeId;
-const webHidden=crowdPublicFlags?.get(id)===false,onsiteHidden=crowdPublicFlags?.get(onsiteId)===false;
+const webHidden=crowdPublicFlags?.get(id)!==true,onsiteHidden=crowdPublicFlags?.get(onsiteId)!==true;
 return {id,webHidden,onsiteHidden,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
 web:webHidden?null:verifiedWebRemaining(slot),onsite:onsiteHidden?null:trusted?onsiteRemaining(id,trusted.details,type):null,
 verifiedAt:trusted?.savedAt||0,sourceDate};
@@ -237,7 +237,7 @@ async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
- crowdLoading=true;crowdError='';crowdClosed=false;
+ crowdLoading=true;crowdError='';crowdClosed=false;crowdPublicFlags=null;
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
@@ -254,7 +254,7 @@ async function fetchCrowd(force=false,manual=false){
   const t=readLastCrowd()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
   const types=await m.published(E.backendUrl);
-  if(types)crowdPublicFlags=new Map([...(crowdPublicFlags||[]),...types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])]);
+  crowdPublicFlags=Array.isArray(types)?new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])):null;
   if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
