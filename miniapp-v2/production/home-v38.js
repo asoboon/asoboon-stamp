@@ -109,6 +109,10 @@ function restoreFreshCrowdForDay(){
 if(crowdSlots)return false;
 const cached=readCrowdCache();
 if(!cached||cached.verifiedFresh!==true||Date.now()-Number(cached.savedAt||0)>CROWD_STALE_MS)return false;
+const flags=new Map(Array.isArray(cached.publicFlags)?cached.publicFlags:[]);
+const needed=[...(CROWD_SETTINGS.IDS[cached.businessType]||[]),...(R.slotsFor(cached.businessType,'onsite')||[]).map(x=>String(x.waitTypeId||''))];
+if(!needed.length||!needed.every(id=>typeof flags.get(id)==='boolean'))return false;
+crowdPublicFlags=flags;
 crowdSlots=cached.slots;
 crowdDetails=Array.isArray(cached.details)?cached.details:[];
 crowdAt=Number(cached.savedAt);
@@ -116,22 +120,35 @@ crowdStale=false;
 renderSlots();
 return true;
 }
-function writeCrowdCache(slots,details,stale=false){try{localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),verifiedFresh:stale!==true&&crowdAt>0}))}catch{}}
+function publishedFlagsForDay(type=day?.businessType){
+ const slots=R.slotsFor(String(type||''),'onsite')||[];
+ const ids=[...(CROWD_SETTINGS.IDS[String(type||'')]||[]),...slots.map(x=>String(x.waitTypeId||''))];
+ if(!ids.length||!crowdPublicFlags||!ids.every(id=>crowdPublicFlags.has(id)))return null;
+ return [...crowdPublicFlags];
+}
+function writeCrowdCache(slots,details,stale=false){try{
+ const flags=publishedFlagsForDay();
+ localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),publicFlags:flags,verifiedFresh:stale!==true&&crowdAt>0&&!!flags}));
+}catch{}}
 function readLastCrowd(){
 for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
 const x=JSON.parse(localStorage.getItem(key)||'null'),age=Date.now()-Number(x?.savedAt||0);
 if(!x||(x.date||x.operationalDate)!==nowJst().date||!CROWD_SETTINGS.IDS[x.businessType]||!Array.isArray(x.slots)||!Array.isArray(x.details)||age<0||age>86400000)continue;
+const required=[...CROWD_SETTINGS.IDS[x.businessType],...(R.slotsFor(x.businessType,'onsite')||[]).map(y=>String(y.waitTypeId||''))];
+const flags=new Map(Array.isArray(x.publicFlags)?x.publicFlags:[]);
+if(!required.every(id=>typeof flags.get(id)==='boolean'))continue;
 if(key===CROWD_CACHE_KEY){
 if(x.verifiedFresh!==true)continue;
-try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt}))}catch{}
+try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:x.operationalDate,businessType:x.businessType,slots:x.slots,details:x.details,savedAt:x.savedAt,publicFlags:x.publicFlags}))}catch{}
 }
 return x;
 }catch{}
 return null;
 }
 function saveLastCrowd(){
-if(day?.operationalDate!==nowJst().date||day?.isClosed||crowdAt<=0||crowdStale)return;
-try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:day.operationalDate,businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}))}catch{}
+const flags=publishedFlagsForDay();
+if(day?.operationalDate!==nowJst().date||day?.isClosed||crowdAt<=0||crowdStale||!flags)return;
+try{localStorage.setItem(LAST_CROWD_KEY,JSON.stringify({date:day.operationalDate,businessType:day.businessType,slots:crowdSlots,details:crowdDetails,savedAt:crowdAt,publicFlags:flags}))}catch{}
 }
 function businessForBoard(){
 const today=nowJst().date;
@@ -175,7 +192,8 @@ return ids.map(id=>{
 const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
 const slot=matches.length===1?matches[0]:null;
 const onsiteId=R.slotsFor(type,'onsite')[ids.indexOf(id)]?.waitTypeId;
-const webHidden=crowdPublicFlags?.get(id)===false,onsiteHidden=crowdPublicFlags?.get(onsiteId)===false;
+const flags=archive?new Map(archive.publicFlags):crowdPublicFlags;
+const webHidden=flags?.get(id)!==true||crowdPublicFlags?.get(id)===false,onsiteHidden=flags?.get(onsiteId)!==true||crowdPublicFlags?.get(onsiteId)===false;
 return {id,webHidden,onsiteHidden,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
 web:webHidden?null:verifiedWebRemaining(slot),onsite:onsiteHidden?null:trusted?onsiteRemaining(id,trusted.details,type):null,
 verifiedAt:trusted?.savedAt||0,sourceDate};
@@ -238,6 +256,7 @@ async function fetchCrowd(force=false,manual=false){
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
+ crowdPublicFlags=null;
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
@@ -254,7 +273,7 @@ async function fetchCrowd(force=false,manual=false){
   const t=readLastCrowd()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
   const types=await m.published(E.backendUrl);
-  if(types)crowdPublicFlags=new Map([...(crowdPublicFlags||[]),...types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])]);
+  crowdPublicFlags=Array.isArray(types)?new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])):null;
   if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
