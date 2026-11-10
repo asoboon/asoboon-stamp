@@ -807,7 +807,7 @@ function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-
 async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
- if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
+ if(!force&&crowdSlots&&!crowdStale&&crowdPublicFlags instanceof Map&&crowdPublicFlags.size>0&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;crowdPublicFlags=null;
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
