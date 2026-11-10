@@ -3337,3 +3337,74 @@ test('2026-11-10 official route CSS keeps rules, call details and timer safety c
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  }
 });
+
+
+test('2026-11-10 FAQ searches the answer as well as the question, and clear restores all 16',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=faq',{waitUntil:'domcontentloaded'});
+ const q=page.locator('#cmFaqQuery'), items=page.locator('#cmFaqList details'),result=page.locator('#cmFaqResult');
+ await expect(q).toBeVisible();
+ await expect(items).toHaveCount(16);
+ await q.fill('37L');
+ await expect(items.filter({visible:true})).toHaveCount(1);
+ await expect(items.filter({visible:true}).first()).toContainText('ロッカー');
+ await expect(result).toContainText('1件');
+ await q.fill('ありません検索無');
+ await expect(items.filter({visible:true})).toHaveCount(0);
+ await expect(result).toContainText('一致する質問がありません');
+ const clear=page.locator('#cmFaqClear');
+ await expect(clear).toBeVisible();
+ await expect(clear).toHaveJSProperty('hidden',false);
+ await clear.click();
+ await expect(items.filter({visible:true})).toHaveCount(16);
+ await expect(q).toHaveValue('');
+ await expect(q).toBeFocused();
+ for(const width of [320,375,390,430,768]){
+   await page.setViewportSize({width,height:844});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),'horizontal overflow '+width).toBeLessThanOrEqual(1);
+   const rect=await q.boundingBox();expect(rect.height).toBeGreaterThanOrEqual(44);
+ }
+});
+test('2026-11-10 HOME self-service help precedes the games fold',async({page})=>{
+ await installProduction(page);
+ const official=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{Object.defineProperty(window,'ASOBOON_V2_ENV',{
+  configurable:true,get(){return this.__faqEnvironment},
+  set(value){this.__faqEnvironment=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'})}
+ })},siteBase);
+ await page.goto(official,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v59PlayFold')).toBeVisible();
+ await expect(page.locator('.v38-help')).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>{
+  const help=document.querySelector('#app .v38-help'),games=document.querySelector('#app #v59PlayFold');
+  return !!(help&&games&&(help.compareDocumentPosition(games)&Node.DOCUMENT_POSITION_FOLLOWING))
+ }),{timeout:10000}).toBe(true);
+ await page.locator('.v38-help summary').click();
+ await page.locator('.v38-faq-more').click();
+ await expect(page.locator('#cmFaqQuery')).toBeVisible();
+ await expect(page).toHaveURL(/view=faq/);
+ await page.locator('#cmFaqQuery').fill('再入場');
+ await expect(page.locator('#cmFaqList details').filter({visible:true}).first()).toContainText('再入場');
+});
+
+test('2026-11-10 FAQ search is readable in English, Chinese and Korean',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=faq',{waitUntil:'domcontentloaded'});
+ const select=page.locator('#asoboon-language-select');
+ const label=page.locator('.cm-faq-find label');
+ const q=page.locator('#cmFaqQuery'),msg=page.locator('#cmFaqResult');
+ await expect(q).toBeVisible();
+ await select.selectOption('en');
+ await expect(label).toHaveText('Search questions');
+ await q.fill('37L');
+ await expect(msg).toHaveText('1 results');
+ await select.selectOption('zh-CN');
+ await expect(label).toHaveText('搜索问题');
+ await expect(msg).toHaveText('1个结果');
+ await select.selectOption('ko');
+ await expect(label).toHaveText('질문 검색');
+ await expect(msg).toHaveText('1개 검색됨');
+ await select.selectOption('ja');
+ await expect(msg).toHaveText('1件見つかりました');
+});

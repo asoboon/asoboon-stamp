@@ -9,3 +9,12 @@ Object.assign(window.ASOBOON_I18N_DICTIONARY,{"受付番号は保存済みです
 
 /* Admission-hour labels and read-only forecast clarification. */
 Object.assign(window.ASOBOON_I18N_DICTIONARY,{"対象日のみ":{"en":"Eligible days only","zh-CN":"仅限指定日期","vi":"Chỉ ngày áp dụng","ne":"तोकिएका दिनमा मात्र","ko":"대상일만","kmr":"Tenê rojên destûrdayî"},"受付の空き状況":{"en":"Available admission spaces","zh-CN":"剩余入场名额","vi":"Chỗ đăng ký còn lại","ne":"प्रवेशका बाँकी स्थान","ko":"접수 잔여 인원","kmr":"Cihên mayî yên qeydkirinê"},"本日の受付枠は終了しました。":{"en":"Today’s check-in sessions have ended.","zh-CN":"今天的取号场次已结束。","vi":"Các lượt đăng ký hôm nay đã kết thúc.","ne":"आजका दर्ता समय समाप्त भएका छन्।","ko":"오늘의 접수가 종료되었습니다.","kmr":"Demên qeydkirina îro qediya."},"最新の人数は確認できません。":{"en":"Latest guest counts are unavailable.","zh-CN":"目前无法确认最新人数。","vi":"Không thể xác nhận số người mới nhất.","ne":"नयाँ संख्या पुष्टि गर्न सकिएन।","ko":"최신 잔여 인원을 확인할 수 없습니다.","kmr":"Hejmara herî nû nehatiye piştrastkirin."},"混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。":{"en":"Crowd forecast is estimated from spaces remaining in reservation slots, not actual occupancy.","zh-CN":"拥挤预测根据预约场次的剩余人数估算，并非馆内实际人数。","vi":"Dự báo đông dựa vào chỗ đăng ký còn lại, không phải số người thực tế bên trong.","ne":"भीड अनुमान दर्ताका बाँकी स्थानबाट गणना गरिन्छ, वास्तविक भित्रका मानिस होइन।","ko":"혼잡 예상은 예약 잔여 인원으로 계산한 참고치이며 실제 시설 내 인원이 아닙니다.","kmr":"Pêşbîniya qelebalixiyê ji cihên mayî tê hesabkirin, ne hejmara rastîn a hundir."}});
+
+/* Self-service FAQ search affordance: all published menu languages. */
+Object.assign(window.ASOBOON_I18N_DICTIONARY,{
+ "質問を検索":{"en":"Search questions","zh-CN":"搜索问题","vi":"Tìm câu hỏi","ne":"प्रश्न खोज्नुहोस्","ko":"질문 검색","kmr":"Pirsan bigere"},
+ "例：料金・駐車場・再入場":{"en":"e.g. price, parking, re-entry","zh-CN":"例如：票价、停车、再次入场","vi":"Ví dụ: giá vé, đỗ xe, vào lại","ne":"जस्तै: शुल्क, पार्किङ, पुनः प्रवेश","ko":"예: 요금, 주차, 재입장","kmr":"Mînak: biha, park, veger"},
+ "検索文字を消去":{"en":"Clear search","zh-CN":"清除搜索","vi":"Xóa tìm kiếm","ne":"खोजी खाली गर्नुहोस्","ko":"검색어 지우기","kmr":"Lêgerînê paqij bike"},
+ "消す":{"en":"Clear","zh-CN":"清除","vi":"Xóa","ne":"खाली","ko":"지우기","kmr":"Paqij bike"},
+ "16件の質問":{"en":"16 questions","zh-CN":"16个问题","vi":"16 câu hỏi","ne":"१६ प्रश्न","ko":"질문 16개","kmr":"16 pirs"}
+});

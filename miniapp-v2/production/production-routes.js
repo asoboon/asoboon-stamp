@@ -1797,7 +1797,7 @@ ${hubLink('営業日カレンダー','休館日・営業予定','miniapp-v2/prod
 ${hubLink('イベントカレンダー','イベント情報を見る','miniapp-v2/production/event-calendar.html','☆')}
 ${hubRow('よくある質問','困ったときはこちら','faq','','!')}
 </div>${hubRow('ホームへ戻る','営業状況・空き状況を見る','home','','⌂')}</section>`}
-function faqPage(){return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq" aria-label="ご利用に関するよくある質問">
+function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-card cm-hub" aria-label="よくある質問"><header class="cm-hub-head"><span class="cm-hub-eyebrow">HELP / FAQ</span><h1>よくある質問</h1><p>知りたい項目をタップして答えを確認できます。予約からご利用後まで、このアプリでご案内します。</p></header><div class="cm-faq-find" role="search" aria-label="質問を探す"><label for="cmFaqQuery">質問を検索</label><div class="cm-faq-find-field"><input id="cmFaqQuery" type="search" autocomplete="off" placeholder="例：料金・駐車場・再入場" aria-controls="cmFaqList" /><button id="cmFaqClear" type="button" hidden aria-label="検索文字を消去">消す</button></div><p id="cmFaqResult" role="status" aria-live="polite">16件の質問</p></div><div id="cmFaqList" class="cm-faq" aria-label="ご利用に関するよくある質問">
 <details><summary>受付は何時から始まりますか？</summary><p>WEB受付は対象日の7:00から、LINEミニアプリの当日受付は9:30からです。通常の開館は10:00です。受付開始と開館の時刻は異なります。</p></details>
 <details><summary>今日の受付枠・残人数はどこで確認するの？</summary><p>HOMEの「受付の空き状況」に、WEB・LINEそれぞれの残り人数と混雑予想を表示します。最新の確認時刻も一緒に確認してください。</p></details>
 <details><summary>残人数が「—」や「確認中」の場合は？</summary><p>AirWAITで人数を確認できない、またはその枠が非公開の場合です。「0人」「満員」「空きあり」のどれとも断定できません。HOMEを開き直すと再確認されます。</p></details>
@@ -1830,5 +1830,46 @@ ${hubLink('ブーンジャンプ','3タップで飛距離勝負','boonjump/','�
 ${hubLink('BOON パズル','ブロックを動かしてゴールを目指そう','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','▦')}
 </div><div class="cm-hub-tip"><strong>スタンプラリーに参加する方へ</strong><p>パーツの取得は館内の専用QRから行ってください。完成した画面をスタッフへ見せてね。</p></div>${hubRow('ホームへ戻る','空き状況を見る','home','','⌂')}</section>`}
 
+function applyFaqLabels(){
+ const query=document.getElementById('cmFaqQuery');
+ if(!query||!query.closest('#app'))return;
+ const t=window.ASOBOON_I18N?.t||((x)=>x);
+ const label=document.querySelector('.cm-faq-find label');
+ if(label)label.textContent=t('質問を検索');
+ query.placeholder=t('例：料金・駐車場・再入場');
+ const clear=document.getElementById('cmFaqClear');
+ if(clear){clear.textContent=t('消す');clear.setAttribute('aria-label',t('検索文字を消去'))}
+ updateFaqResults();
+}
+function updateFaqResults(){
+ const input=document.getElementById('cmFaqQuery'),list=document.getElementById('cmFaqList');
+ if(!input||!list||!list.closest('#app'))return;
+ const needle=String(input.value||'').normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,'').trim();
+ let count=0;
+ for(const item of list.querySelectorAll(':scope > details')){
+   const haystack=String(item.textContent||'').normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,'');
+   const show=!needle||haystack.includes(needle);item.hidden=!show;if(show)count++;
+ }
+ const notices={
+  ja:{found:n=>n+'件見つかりました',none:'一致する質問がありません。別の言葉でもお試しください。',all:'16件の質問'},
+  en:{found:n=>n+' results',none:'No matching questions. Try another word.',all:'16 questions'},
+  'zh-CN':{found:n=>n+'个结果',none:'没有找到匹配的问题。请尝试其他关键词。',all:'16个问题'},
+  vi:{found:n=>n+' kết quả',none:'Không tìm thấy câu hỏi. Hãy thử từ khác.',all:'16 câu hỏi'},
+  ne:{found:n=>n+' नतिजा',none:'मिल्ने प्रश्न छैन। अर्को शब्द प्रयास गर्नुहोस्।',all:'१६ प्रश्न'},
+  ko:{found:n=>n+'개 검색됨',none:'일치하는 질문이 없습니다. 다른 단어를 입력하세요.',all:'질문 16개'},
+  kmr:{found:n=>n+' encam',none:'Pirsek li gorî lêgerînê tune ye. Peyveke din biceribîne.',all:'16 pirs'}
+ };
+ const lang=window.ASOBOON_I18N?.language||'ja';
+ const words=notices[lang]||notices.en;
+ const result=document.getElementById('cmFaqResult');if(result)result.textContent=needle?(count?words.found(count):words.none):words.all;
+ const clear=document.getElementById('cmFaqClear');if(clear)clear.hidden=!needle;
+}
+const app=document.getElementById('app');
+if(app){
+ app.addEventListener('input',e=>{if(e.target?.id==='cmFaqQuery')updateFaqResults()});
+ app.addEventListener('click',e=>{if(e.target?.id!=='cmFaqClear')return;const input=document.getElementById('cmFaqQuery');if(!input)return;input.value='';updateFaqResults();input.focus()});
+}
+window.addEventListener('asoboon:language-changed',()=>queueMicrotask(applyFaqLabels));
+window.addEventListener('asoboon:v2-route-rendered',()=>queueMicrotask(applyFaqLabels));
 window.ASOBOON_CHOCOMINT_HUBS=Object.freeze({guide:guidePage,play:playPage,faq:faqPage});
 })();
