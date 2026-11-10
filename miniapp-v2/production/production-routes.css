@@ -374,6 +374,10 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 .cm-faq-language-note{margin:8px 0 10px!important;padding:10px 12px;background:#FFF4E8;border-left:3px solid #9B5F3A;border-radius:8px;color:#4B382A!important;font-size:12px!important;line-height:1.55!important}
 .cm-faq-language-note[hidden]{display:none!important}
 
+/* Balanced FAQ questions; avoid dangling single kana in mobile headings. */
+.cm-hub-head p{ text-wrap:pretty; }
+.cm-faq summary{ text-wrap:balance;word-break:normal;overflow-wrap:normal; }
+
 /* miniapp-v2/production/first-v27.css */
 .v27-first-page .pv7-head{background:linear-gradient(145deg,#286d43,#2f7d4a)}.v27-first-page .pv7-head h1{color:#fff}.v27-first-page .pv7-head p{color:#eef8f1}.v27-first-page .pv7-head .pv7-eyebrow{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.22)}
 .v27-first-head h1{max-width:12em}
@@ -1583,3 +1587,11 @@ html.boon-v4 body.v7-reception-fallback #app .rv7-step:focus-visible{
  outline:3px solid #096D7C;outline-offset:2px;border-radius:8px;
 }
 html.boon-v4 body.v7-reception-fallback #app .rv7-step b{font-size:12px!important}
+
+/* Japanese mobile reading rhythm: never shrink readable type to force a line. */
+html body #app .v24-parking-page :is(.pv7-head p,.v24-free small,.v24-select-hint),
+html body #app .v27-first-page :is(.pv7-head p,.v27-step-copy p),
+html body #app .v25-entry-page :is(.entry-choice-sub,.pv7-head p),
+html body #app .v33-rules-page :is(.pv7-head p,.v33-rule p){
+ text-wrap:pretty;
+}

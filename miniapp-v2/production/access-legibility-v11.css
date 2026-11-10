@@ -500,3 +500,11 @@ html.boon-v4 body.v7-reception-fallback #app .rv7-step:focus-visible{
  outline:3px solid #096D7C;outline-offset:2px;border-radius:8px;
 }
 html.boon-v4 body.v7-reception-fallback #app .rv7-step b{font-size:12px!important}
+
+/* Japanese mobile reading rhythm: never shrink readable type to force a line. */
+html body #app .v24-parking-page :is(.pv7-head p,.v24-free small,.v24-select-hint),
+html body #app .v27-first-page :is(.pv7-head p,.v27-step-copy p),
+html body #app .v25-entry-page :is(.entry-choice-sub,.pv7-head p),
+html body #app .v33-rules-page :is(.pv7-head p,.v33-rule p){
+ text-wrap:pretty;
+}

@@ -981,7 +981,7 @@ test('HOME typography follows a left reading edge while numeric slots stay colum
   expect(result,JSON.stringify(result)).toMatchObject({leftAligned:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
   expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   if(width===320)expect(result.cardsSingleColumn).toBe(true);
-  if(width===390)expect(result.cardsSingleColumn).toBe(false);
+  if(width===390)expect(result.cardsSingleColumn).toBe(true); // Readable calendar links, not two cramped title columns.
  }
 });
 test('Compact after-hours HOME has only last-updated text, no blank CTA, and five consistent guide links',async({page})=>{
@@ -3283,7 +3283,7 @@ test('2026-11-10 first-time flow removes repeated copy and provides legible step
  await expect(page.locator('.v27-first-page')).toBeVisible();
  await expect(page.locator('.v27-step')).toHaveCount(3);
  await expect(page.locator('.v27-step.waiting strong')).toContainText('呼出');
- await expect(page.locator('.v27-step.called p')).toHaveText('入口で受付番号をスタッフへお見せください。');
+ await expect(page.locator('.v27-step.called p')).toHaveText('入口で受付番号を見せてください。');
  const sizes=await page.locator('.v27-step-copy p').evaluateAll(xs=>xs.map(x=>parseFloat(getComputedStyle(x).fontSize)));
  expect(sizes.length).toBe(3);expect(Math.min(...sizes)).toBeGreaterThanOrEqual(12);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
@@ -3603,4 +3603,73 @@ test('2026-11-10 verified same-day crowd archive stays readable after 19:00 with
  await expect(card.locator('a[href], [data-v7-view="reception"]')).toHaveCount(0);
  await expect(card.locator('#v38CrowdAge')).toContainText('最終更新');
  for(const width of [320,390,768]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
+});
+
+
+// Prevent short Japanese fragments ('す。', 'い。', etc.) orphaned at line ends.
+test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid-word',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v59GuideFold summary')).toBeVisible();
+ await page.locator('#v59GuideFold summary').click();
+ const cards=page.locator('.v59-calendar-links .v38-calendar-card');
+ await expect(cards).toHaveCount(2);
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  const data=await page.evaluate(()=>{
+   const links=[...document.querySelectorAll('.v59-calendar-links .v38-calendar-card')];
+   const first=links[0].getBoundingClientRect(),second=links[1].getBoundingClientRect();
+   const title=links.map(e=>{
+    const x=e.querySelector('strong'),r=x.getBoundingClientRect();
+    return {text:x.textContent,oneLine:r.height<=parseFloat(getComputedStyle(x).lineHeight)*1.1};
+   });
+   return {oneColumn:second.top>=first.bottom-2,links:title,overflow:document.documentElement.scrollWidth-innerWidth};
+  });
+  expect(data.oneColumn,'calendar must not crush Japanese into 60px column').toBe(true);
+  expect(data.links.every(x=>x.oneLine),JSON.stringify(data.links)).toBe(true);
+  expect(data.overflow).toBeLessThanOrEqual(1);
+ }
+ await expect(page.locator('.v38-legal')).toContainText('お困りのときは');
+});
+test('2026-11-11 mobile copy has no isolated 1–2 kana lines in key guidance',async({page})=>{
+ await installProduction(page);
+ const views=[
+  ['parking',['.v24-parking-page .pv7-head p','.v24-free small','.v24-select-hint']],
+  ['first',['.v27-first-head p','.v27-step.called .v27-step-copy p']],
+  ['entry',['.v25-entry-page .entry-choice--adult .entry-choice-sub']],
+  ['faq',['.cm-hub-head p']],
+  ['rules',['.pv7-head p']],
+  ['timeguide',['#tgStatus']]
+ ];
+ for(const [view,selectors] of views){
+  await page.goto(BASE+'?view='+view,{waitUntil:'domcontentloaded'});
+  for(const width of [320,375,390]){
+   await page.setViewportSize({width,height:844});
+   for(const selector of selectors){
+    const el=page.locator(selector).first();
+    await expect(el,'missing '+view+' '+selector).toBeVisible();
+    const rows=await el.evaluate(element=>{
+     const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),m=new Map();let node;
+     while(node=walker.nextNode())for(let i=0;i<node.textContent.length;i++){
+      const range=document.createRange();range.setStart(node,i);range.setEnd(node,i+1);
+      const r=range.getBoundingClientRect();if(r.height>2&&r.width>.1){
+       const top=Math.round(r.top),text=m.get(top)||'';
+       m.set(top,text+node.textContent[i]);
+      }
+     }
+     return [...m.values()].map(s=>s.trim()).filter(Boolean);
+    });
+    expect(rows.length,'no rendered copy '+selector).toBeGreaterThan(0);
+    const last=rows[rows.length-1].replace(/[。、！？\s]/g,'');
+    expect(last.length,'orphan '+view+' '+selector+': '+JSON.stringify(rows)).toBeGreaterThanOrEqual(3);
+   }
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),'overflow '+view+' '+width).toBeLessThanOrEqual(1);
+  }
+ }
 });

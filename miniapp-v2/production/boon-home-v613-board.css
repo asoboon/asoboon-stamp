@@ -238,7 +238,8 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v58-journey{display:none!importa
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer {padding:2px 0 0!important;margin:0!important;border:0!important;box-shadow:none!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer>.v58-section-title{font-size:15px!important;margin:1px 0 3px!important;color:#194f43!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-timer #v38TimeguideShortcut{border:1px solid #d6e7de!important;border-radius:11px!important;background:#f7faf8!important;box-shadow:none!important;padding:9px!important;margin:0!important}
-html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin:5px 0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:5px 0!important}
+@media(min-width:520px){html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links>.v38-calendar-section{margin:0!important;padding:0!important;min-width:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links>.v38-calendar-section>h2{font-size:14px!important;line-height:1.4!important;margin:0 0 5px!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v59-calendar-links .v38-calendar-card{min-height:72px!important;padding:8px!important;box-shadow:none!important;border:1px solid #d7e5dc!important;border-radius:11px!important;background:#fff!important}

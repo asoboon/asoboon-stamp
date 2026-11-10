@@ -137,7 +137,7 @@ async function loadDay({force=false}={}){
     const input=$('tgEntry');input.disabled=Boolean(day.isClosed);const saved=readSaved(day);input.value=saved?.entryTime||defaultEntry(day);
     window.__ASOBOON_V2_TIMEGUIDE_DAY=day;
     if(day.isClosed)setStatus('本日は休館日です。','closed');
-    else setStatus('営業カレンダーから本日の利用時間を確認しました。','ok');
+    else setStatus('本日の利用時間を確認しました。','ok');
     renderCalculation(day);
   }catch(e){
     if(gen!==generation||!$('tgEntry'))return;

@@ -33,3 +33,7 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 
 .cm-faq-language-note{margin:8px 0 10px!important;padding:10px 12px;background:#FFF4E8;border-left:3px solid #9B5F3A;border-radius:8px;color:#4B382A!important;font-size:12px!important;line-height:1.55!important}
 .cm-faq-language-note[hidden]{display:none!important}
+
+/* Balanced FAQ questions; avoid dangling single kana in mobile headings. */
+.cm-hub-head p{ text-wrap:pretty; }
+.cm-faq summary{ text-wrap:balance;word-break:normal;overflow-wrap:normal; }
