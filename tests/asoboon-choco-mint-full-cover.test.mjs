@@ -7,7 +7,11 @@ const read=p=>readFileSync(root+p,'utf8');
 const manifest=JSON.parse(read('miniapp-v2/production/bundle-sources.json'));
 const css=read('miniapp-v2/production/choco-mint-allroutes-v10.css');
 test('all non-HOME UI routes load the final chocolate-mint layer after legacy CSS',()=>{
- assert.equal(manifest.routeStyles.at(-1),'miniapp-v2/production/choco-mint-allroutes-v10.css');
+ const core='miniapp-v2/production/choco-mint-allroutes-v10.css';
+ const access='miniapp-v2/production/access-legibility-v11.css';
+ assert.ok(manifest.routeStyles.includes(core));
+ assert.equal(manifest.routeStyles.at(-1),access);
+ assert.ok(manifest.routeStyles.indexOf(access)>manifest.routeStyles.indexOf(core));
  assert.match(read('miniapp-v2/production/production-routes.css'),/choco-mint-allroutes-v10\.css/);
  for(const token of ['.pv7-head','.cm-hub-head','.v7-reception-active','.v7-callstatus-active','.v7-timeguide-active','.v27-first-page','.v24-parking-page','.v25-entry-page','.cm-faq','.cm-hub-row']){
   assert.ok(css.includes(token),'Missing route styling: '+token);
@@ -46,4 +50,17 @@ test('all navigable detail headers keep chocolate chips despite legacy important
  assert.match(css,/body:not\(\.v7-callstatus-active\) #app main\.view\.active \.page-head/);
  assert.match(css,/radial-gradient\(ellipse 6px 4px at 91% 25%,#744634/);
  assert.match(css,/background:var\(--tone-ink\)!important/);
+});
+
+test('arrival-choice parking style is deferred after all route themes and stays independent of business API',()=>{
+ const accessCss=read('miniapp-v2/production/access-legibility-v11.css');
+ const routeJs=read('miniapp-v2/production/parking-v24.js');
+ assert.match(accessCss,/\.v24-section,\.v24-safety,\.v24-select-hint/);
+ assert.match(accessCss,/\[hidden\]\{display:none!important\}/);
+ assert.match(routeJs,/data-v24-route="v24-general"/);
+ assert.match(routeJs,/data-v24-route="v24-highway"/);
+ assert.match(routeJs,/aria-pressed="false"/);
+ assert.match(routeJs,/\.open=false/);
+ assert.match(read('miniapp-v2/production/production-routes.css'),/access-legibility-v11/);
+ assert.ok(!manifest.styles.includes('miniapp-v2/production/access-legibility-v11.css'));
 });

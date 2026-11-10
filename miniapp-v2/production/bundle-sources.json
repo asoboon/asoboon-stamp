@@ -24,7 +24,8 @@
     "miniapp-v2/production/ticket-people-v28.css",
     "miniapp-v2/production/callstatus-state-colors.css",
     "miniapp-v2/production/boon-all-pages-mobile-v512.css",
-    "miniapp-v2/production/choco-mint-allroutes-v10.css"
+    "miniapp-v2/production/choco-mint-allroutes-v10.css",
+    "miniapp-v2/production/access-legibility-v11.css"
   ],
   "scripts": [
     "miniapp-v2/shared/config-common.js",

@@ -1059,3 +1059,342 @@ html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active) #app main.view.active 
   linear-gradient(115deg,#CCF4EB,#DAF8F1 55%,#B8EDE6)!important;
  background-color:#D8F7F0!important;
 }
+
+/* miniapp-v2/production/access-legibility-v11.css */
+/* ASOBooN ACCESS legibility v11
+   Deferred route-only CSS. Fixed-content accessibility/affordance patch:
+   clear entry-route choice, readable parking options and obvious map actions.
+   Does not change addresses, links, times, capacities or business logic. */
+html body #app .v24-parking-page{
+ --ac-choco:#3A231D;
+ --ac-ink:#243C38;
+ --ac-muted:#49635E;
+ --ac-blue:#105C69;
+ --ac-mint:#E5F8F2;
+ --ac-line:#A9CFC5;
+ color:var(--ac-ink)!important;
+}
+html body #app .v24-parking-page .pv7-head{
+ padding:19px 17px 18px!important;
+ margin-bottom:4px!important;
+}
+html body #app .v24-parking-page .pv7-head h1{
+ font-size:clamp(23px,6.2vw,27px)!important;
+ line-height:1.28!important;
+ letter-spacing:-.035em;
+ color:var(--ac-choco)!important;
+}
+html body #app .v24-parking-page .pv7-head p{
+ color:#4B605C!important;
+ font-size:14px!important;
+ line-height:1.55!important;
+ font-weight:750!important;
+}
+html body #app .v24-parking-page .pv7-head .pv7-eyebrow{
+ font-size:12px!important;
+ line-height:1.35!important;
+ color:#0E5663!important;
+ background:rgba(255,255,255,.56)!important;
+ border-color:#9FCFC3!important;
+}
+html body #app .v24-parking-page .pv7-body{gap:12px!important}
+html body #app .v24-parking-page .v24-free{
+ grid-template-columns:46px minmax(0,1fr)!important;
+ padding:16px!important;
+ gap:2px 12px!important;
+ border-radius:17px!important;
+ background:#E7F6EF!important;
+ border:1px solid #AED4C8!important;
+}
+html body #app .v24-parking-page .v24-free>span{
+ width:46px!important;height:46px!important;
+ border-radius:12px!important;background:#126A73!important;
+ color:#fff!important;font-size:20px!important;
+}
+html body #app .v24-parking-page .v24-free strong{
+ font-size:17px!important;line-height:1.4!important;
+ color:#273D33!important;
+}
+html body #app .v24-parking-page .v24-free small{
+ font-size:12px!important;line-height:1.55!important;
+ color:#476258!important;font-weight:700!important;
+}
+/* Step 1: make the way into the site an unmistakable choice. */
+html body #app .v24-parking-page .v24-choice{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px!important;
+ margin:0 0 15px!important;
+}
+html body #app .v24-parking-page .v24-choice button{
+ min-width:0!important;min-height:116px!important;
+ padding:14px 12px!important;
+ border:2px solid #93C8BF!important;
+ border-radius:17px!important;
+ background:#EDF9F5!important;
+ text-align:left!important;
+ color:#2D3835!important;
+ box-shadow:0 3px 0 rgba(58,35,29,.07)!important;
+ touch-action:manipulation;
+}
+html body #app .v24-parking-page .v24-choice button:last-child{
+ background:#F9F6F1!important;
+ border-color:#B6A69C!important;
+}
+html body #app .v24-parking-page .v24-choice button span,
+html body #app .v24-parking-page .v24-section-head>span{
+ font-size:12px!important;line-height:1.4!important;
+ padding:4px 9px!important;border-radius:9px!important;
+ font-weight:900!important;
+ color:#104F5D!important;background:#D3F1E9!important;
+}
+html body #app .v24-parking-page .v24-choice button:last-child span,
+html body #app .v24-parking-page .v24-section.highway .v24-section-head>span{
+ color:#633C2C!important;background:#F2E5D9!important;
+}
+html body #app .v24-parking-page .v24-choice button strong{
+ display:block!important;
+ font-size:16px!important;line-height:1.38!important;
+ margin-top:9px!important;
+ color:#292E2B!important;
+ overflow-wrap:anywhere;
+}
+html body #app .v24-parking-page .v24-choice button small{
+ font-size:13px!important;line-height:1.4!important;
+ margin-top:6px!important;color:#4D5D57!important;
+ font-weight:800!important;
+}
+/* Step 2: directions and the recommended parking choice. */
+html body #app .v24-parking-page .v24-section{
+ padding:16px!important;
+ margin:0 0 15px!important;
+ border:1px solid #B8D7CD!important;
+ border-top:5px solid #127786!important;
+ background:#FFFEFB!important;
+ border-radius:19px!important;
+}
+html body #app .v24-parking-page .v24-section.highway{
+ border-top-color:#785039!important;
+}
+html body #app .v24-parking-page .v24-section-head h2{
+ font-size:20px!important;line-height:1.35!important;
+ margin:11px 0 6px!important;color:#302722!important;
+}
+html body #app .v24-parking-page .v24-section-head p{
+ font-size:14px!important;line-height:1.6!important;
+ color:#4B605A!important;font-weight:750!important;
+ margin-bottom:14px!important;
+}
+html body #app .v24-parking-page .v24-pick-grid{gap:12px!important}
+html body #app .v24-parking-page .v24-pick{
+ padding:15px 14px!important;
+ border:1px solid #B5D7CD!important;
+ border-radius:16px!important;
+ background:#FFFEFC!important;
+}
+html body #app .v24-parking-page .v24-pick.recommended{
+ border:2px solid #77BDB5!important;
+ background:#E9F8F3!important;
+}
+html body #app .v24-parking-page .v24-pick-tag{
+ font-size:12px!important;line-height:1.45!important;
+ padding:4px 9px!important;
+ font-weight:950!important;
+ background:#146A76!important;color:#fff!important;
+}
+html body #app .v24-parking-page .v24-pick-tag.capacity{
+ background:#655347!important;color:#fff!important;
+}
+html body #app .v24-parking-page .v24-pick h3{
+ font-size:19px!important;line-height:1.4!important;
+ margin:10px 0 3px!important;color:#332821!important;
+}
+html body #app .v24-parking-page .v24-pick>strong{
+ font-size:16px!important;line-height:1.45!important;
+ color:#0D5D69!important;
+}
+html body #app .v24-parking-page .v24-pick>p{
+ font-size:14px!important;line-height:1.62!important;
+ color:#485F59!important;font-weight:650!important;
+ margin:7px 0 11px!important;
+}
+/* Step 3: map actions are buttons, not subtle text links. */
+html body #app .v24-parking-page .v24-map{
+ min-height:61px!important;
+ padding:13px!important;
+ gap:12px!important;
+ border:1.5px solid #7AB3AC!important;
+ background:#F8FEFA!important;
+ border-radius:13px!important;
+ box-shadow:0 2px 0 rgba(12,84,91,.08)!important;
+}
+html body #app .v24-parking-page .v24-map.primary{
+ background:#116C79!important;
+ border-color:#0D5560!important;
+ box-shadow:0 3px 0 #084C56!important;
+}
+html body #app .v24-parking-page .v24-map strong{
+ font-size:15px!important;line-height:1.4!important;
+ color:#243C36!important;
+ overflow-wrap:anywhere;
+}
+html body #app .v24-parking-page .v24-map small{
+ font-size:12px!important;line-height:1.45!important;
+ color:#4D6861!important;
+}
+html body #app .v24-parking-page .v24-map b{
+ font-size:14px!important;line-height:1.4!important;
+ color:#07576A!important;
+ white-space:nowrap!important;
+}
+html body #app .v24-parking-page .v24-map.primary :is(strong,small,b){
+ color:#fff!important;
+}
+/* Secondary facts must remain readable even on a 320px device. */
+html body #app .v24-parking-page .v24-facts{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:7px!important;
+ margin:13px 0!important;
+}
+html body #app .v24-parking-page .v24-facts>div{
+ min-width:0!important;
+ padding:11px 7px!important;
+ border:1px solid #D2E5DC!important;
+ border-radius:11px!important;background:#EFF9F5!important;
+}
+html body #app .v24-parking-page .v24-facts small{
+ font-size:11px!important;line-height:1.45!important;
+ color:#486059!important;
+}
+html body #app .v24-parking-page .v24-facts strong{
+ font-size:12px!important;line-height:1.55!important;
+ color:#20565C!important;
+ overflow-wrap:anywhere!important;
+}
+html body #app .v24-parking-page .v24-facts.highway strong{
+ color:#563A2E!important;
+}
+html body #app .v24-parking-page :is(.v24-alert,.v24-warning,.v24-safety){
+ padding:14px 13px!important;
+ border-radius:13px!important;
+}
+html body #app .v24-parking-page :is(.v24-alert,.v24-warning,.v24-safety) strong{
+ font-size:15px!important;line-height:1.5!important;
+}
+html body #app .v24-parking-page :is(.v24-alert,.v24-warning,.v24-safety) p{
+ font-size:13px!important;line-height:1.65!important;font-weight:700!important;
+}
+html body #app .v24-parking-page .v24-alert a{
+ font-size:14px!important;line-height:1.5!important;
+ color:#684021!important;
+ display:inline-block!important;
+ padding:8px 0!important;
+ text-decoration:underline!important;
+ text-underline-offset:3px!important;
+}
+html body #app .v24-parking-page .v24-more{
+ border:1px solid #A5CEC4!important;
+ background:#EFF9F5!important;
+}
+html body #app .v24-parking-page .v24-more summary{
+ min-height:52px!important;
+ display:flex!important;align-items:center!important;
+ padding:13px!important;font-size:14px!important;
+ line-height:1.45!important;color:#154F58!important;
+}
+html body #app .v24-parking-page .v24-more-body{padding:0 12px 12px!important}
+html body #app .v24-parking-page .v24-nav{
+ padding:13px!important;gap:7px!important;
+ background:#EEEFE9!important;
+}
+html body #app .v24-parking-page .v24-nav strong{
+ font-size:13px!important;line-height:1.5!important;
+ color:#534C43!important;
+}
+html body #app .v24-parking-page .v24-nav span{
+ font-size:15px!important;line-height:1.5!important;
+ color:#382A24!important;text-align:left!important;
+}
+html body #app .v24-parking-page .v24-route{gap:10px!important}
+html body #app .v24-parking-page .v24-route>div{
+ grid-template-columns:60px minmax(0,1fr)!important;
+ gap:10px!important;
+ padding:12px!important;
+ background:#F1F8F4!important;
+ border:1px solid #DBE9DF!important;
+}
+html body #app .v24-parking-page .v24-route b{
+ min-height:34px!important;font-size:12px!important;
+ border-radius:8px!important;
+ background:#12676E!important;
+}
+html body #app .v24-parking-page .v24-route p{
+ font-size:13px!important;line-height:1.65!important;
+ color:#425C55!important;
+ font-weight:700!important;
+}
+html body #app .v24-parking-page .v24-official{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ min-height:54px!important;padding:13px!important;
+ border-radius:13px!important;
+ background:#116C79!important;
+ color:#fff!important;font-size:15px!important;
+ line-height:1.45!important;
+ font-weight:900!important;
+ text-decoration:none!important;
+ box-shadow:0 3px 0 #084C56!important;
+}
+html body #app .v24-parking-page .v24-safety{margin:0!important;border-left:4px solid #986342!important}
+html body #app .v24-parking-page :is(a,button,summary):focus-visible{
+ outline:3px solid #135E6D!important;outline-offset:3px!important;
+}
+@media(max-width:360px){
+ html body #app .v24-parking-page .v24-choice{
+  grid-template-columns:1fr!important;
+ }
+ html body #app .v24-parking-page .v24-choice button{
+  min-height:92px!important;
+ }
+ html body #app .v24-parking-page .v24-section{
+  padding:13px!important;
+ }
+ html body #app .v24-parking-page .v24-facts{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html body #app .v24-parking-page .v24-facts>div:last-child{
+  grid-column:1/-1!important;
+ }
+ html body #app .v24-parking-page .v24-map{
+  gap:8px!important;padding:12px 10px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ html body #app .v24-parking-page [data-v24-scroll]{scroll-behavior:auto!important}
+}
+
+/* Progressive disclosure: show ONLY the selected arrival route. */
+html body #app .v24-parking-page :is(.v24-section,.v24-safety,.v24-select-hint)[hidden]{display:none!important}
+html body #app .v24-parking-page .v24-select-hint{
+ margin:0 0 8px!important;
+ padding:12px 13px!important;border-radius:12px!important;
+ background:#E9F6EF!important;border:1px solid #B7DBD0!important;
+ color:#39574F!important;font-size:14px!important;line-height:1.55!important;
+}
+html body #app .v24-parking-page .v24-route-announcement{
+ position:absolute!important;width:1px!important;height:1px!important;
+ margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
+ white-space:nowrap!important;
+}
+html body #app .v24-parking-page .v24-choice button.is-selected{
+ border:3px solid #117282!important;
+ box-shadow:0 0 0 2px rgba(17,114,130,.12)!important;
+ background:#D9F5EB!important;
+}
+html body #app .v24-parking-page .v24-choice button.is-selected:last-child{
+ background:#F3E5D9!important;border-color:#785039!important;
+}
+html body #app .v24-parking-page .v24-more-body .v24-pick{
+ margin:8px 0 13px!important;background:#FFFEFC!important;
+}
+html body #app .v24-parking-page .v24-more-body .v24-facts{
+ margin:12px 0!important;
+}
