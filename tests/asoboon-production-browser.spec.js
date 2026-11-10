@@ -2370,7 +2370,9 @@ test('HOME may reuse the time row but does not publish cached counts before wait
  const card=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
  await expect(card.locator('.v38-crowd-channel--web strong')).toHaveText('確認中');
  await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
- expect(crowdReads).toBe(0);
+ // A freshly restored quota snapshot must be revalidated against today's published wait types.
+ // The UI stays unknown until that verification, but a new read is now required.
+ expect(crowdReads).toBeGreaterThanOrEqual(1);
 });
 test('Business calendar reuses a fully verified 45-minute snapshot and refreshes stale months',async({page})=>{
  await installCertifiedProduction(page);
