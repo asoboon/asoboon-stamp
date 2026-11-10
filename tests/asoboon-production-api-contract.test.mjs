@@ -317,6 +317,7 @@ test('HOME only publishes counts and booking actions for explicitly visible AirW
     assert.match(code,/webHidden=crowdPublicFlags\?\.get\(id\)!==true/);
     assert.match(code,/onsiteHidden=crowdPublicFlags\?\.get\(onsiteId\)!==true/);
     assert.match(code,/crowdClosed=false;crowdPublicFlags=null/);
+    assert.match(code,/crowdPublicFlags instanceof Map&&crowdPublicFlags\.size>0&&Date\.now\(\)-crowdAt<30000/);
     assert.match(code,/crowdPublicFlags=Array\.isArray\(types\)\?new Map/);
     assert.doesNotMatch(code,/new Map\(\[\.\.\.\(crowdPublicFlags\|\|\[\]\)/);
   }
