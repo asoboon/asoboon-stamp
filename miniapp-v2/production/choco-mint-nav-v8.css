@@ -4,13 +4,13 @@
 :root{--cm-vanilla:#FFF9F0;--cm-mint:#6DD2CA;--cm-cocoa:#3A231D;--cm-milk:#8A4E3A;--cm-mint-soft:#DDF8F0;--cm-deep:#2F8E74;--cm-line:#E8D8C6;--cm-waffle:#F6C86A;--cm-alert:#B74D48}
 body #app{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
 #app>.cm-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:22;width:min(100%,480px);margin:0 auto;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;background:var(--cm-cocoa);border-radius:17px 17px 0 0;box-shadow:0 -4px 22px rgba(58,35,29,.15)}
-#app>.cm-bottom-nav .cm-nav-tab{min-width:0;min-height:56px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:6px 2px;border:0;border-radius:11px;background:transparent;color:var(--cm-vanilla);font-size:11px;font-weight:780;line-height:1.14;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#app>.cm-bottom-nav .cm-nav-tab{min-width:0;min-height:56px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:6px 2px;border:0;border-radius:11px;background:transparent;color:var(--cm-vanilla);font-size:12px;font-weight:780;line-height:1.14;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #app>.cm-bottom-nav .cm-nav-tab.is-current{background:var(--cm-mint);color:var(--cm-cocoa);font-weight:950}
 #app>.cm-bottom-nav .cm-nav-tab svg{width:22px;height:22px;flex:none}
 #app>.cm-bottom-nav .cm-nav-tab:focus-visible{outline:3px solid var(--cm-waffle);outline-offset:-3px}
 #app>.cm-bottom-nav .cm-nav-tab:active{opacity:.88}
 
-@media(max-width:360px){#app>.cm-bottom-nav .cm-nav-tab{font-size:10.5px}}
+@media(max-width:360px){#app>.cm-bottom-nav .cm-nav-tab{font-size:11.5px}}
 @media(prefers-reduced-motion:reduce){#app>.cm-bottom-nav *{animation:none!important;transition:none!important}}
 /* Figma-token shell improvement. Operational states and APIs are unchanged. */
 :root{--cm-paper:#FFFFFC;--cm-pale:#F7F3EA;--cm-mint-ice:#9ADBC0;--cm-strawberry:#EF8B8F}

@@ -45,6 +45,9 @@ async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00
       {waitTypeId:'0029',waitTypeName:'10:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
       {waitTypeId:'0031',waitTypeName:'12:30の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
       {waitTypeId:'0033',waitTypeName:'15:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0030',waitTypeName:'10:00 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+      {waitTypeId:'0032',waitTypeName:'12:30 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+      {waitTypeId:'0034',waitTypeName:'15:00 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
     ]});
     if(action==='reservationStatus'&&status)return json(status);
     return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'TEST_NOT_IMPLEMENTED',action})});
@@ -265,7 +268,7 @@ test('Reception reuses a recent HOME quota snapshot without a second shared-WiFi
   localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
    slots:[{waitTypeId:'0032',remaining:200,matchMode:'exact-name',evidence:'PERSON',reserveUnit:'PERSON'}],
    details:[{detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:12,remainingVerified:true}],
-   operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
+   operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]]
   }));
  });
  let calls=0;
@@ -821,7 +824,7 @@ test('19:00 date rollover reads the previous calendar date business type, never 
 test('Verified legacy capacity survives AIRWAIT_CROWD_EMPTY cleanup and migrates to durable same-day archive',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.addInitScript(()=>localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
-  operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-600000,verifiedFresh:true,
+  operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-600000,verifiedFresh:true,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]],
   slots:[{waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0}],
   details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:0,remainingVerified:true}]
  })));
@@ -860,7 +863,7 @@ test('After closing, last verified WEB and LINE counts still give forecast 100 p
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'});
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_last_verified_crowd_day_v1',JSON.stringify({
-   date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-1800000,
+   date:'2026-10-03',businessType:'土日祝日',savedAt:Date.now()-1800000,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]],
    slots:[
     {waitTypeId:'0030',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:0},
     {waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:71},
@@ -1470,8 +1473,7 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
  await expect(card.locator('.v38-crowd-channel--web strong')).toContainText('確認中');
  await expect(card.locator('.v38-crowd-channel--onsite strong')).toContainText('確認中');
- await visibleCrowdLine(page,'12:30').click();
- await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(visibleCrowdLine(page,'12:30').locator('[data-v7-view="reception"]')).toHaveCount(0);
 });
 test('HOME shows manual refresh cooldown during 429 backoff instead of silently ignoring taps',async({page})=>{
  await installProduction(page);
@@ -1651,6 +1653,7 @@ test('Weekday and special-day local pools use their own exact AirWAIT type names
     const action=new URL(route.request().url()).searchParams.get('action');
     const json=body=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
     if(action==='businessDay')return json({ok:true,operationalDate:'2026-10-03',businessType:'平日特定日',durationLabel:'3時間',closingTime:'17:00'});
+    if(action==='waitTypes')return json({ok:true,waitTypes:['0035','0037','0036','0038'].map(waitTypeId=>({waitTypeId,dispFlg:true}))});
     if(action!=='crowdRemaining')return route.fallback();
     return json({ok:true,slots:[
       {waitTypeId:'0036',waitTypeName:'10時ご入場枠【WEB平日特定日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:140},
@@ -1678,7 +1681,7 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
     localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
       slots:[{waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:25}],
       details:[{detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:14}],
-      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
+      operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]]
     }));
   });
   await page.route(GATEWAY+'**',async route=>{
@@ -2355,7 +2358,7 @@ test('HOME restores recently verified 12:30 capacity instantly without a second 
    ],
    details:[],
    operationalDate:'2026-10-03',businessType:'土日祝日',
-   savedAt:Date.now(),verifiedFresh:true
+   savedAt:Date.now(),verifiedFresh:true,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]]
   }));
  });
  let crowdReads=0;
@@ -2637,8 +2640,8 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  await expect(box.locator('#v38CrowdAge')).toHaveText('最終更新 —:—');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(3);
- await expect(box.locator('.v38-crowd-list [data-v7-view="reception"]')).toHaveCount(3);
- await expect(box.locator('#v613Board [data-v7-view="reception"]')).toHaveCount(3);
+ await expect(box.locator('.v38-crowd-list [data-v7-view="reception"]')).toHaveCount(0);
+ await expect(box.locator('#v613Board [data-v7-view="reception"]')).toHaveCount(0);
 });
 
 test('HOME uses a neutral no-visible-slots state for valid quota data without verified counts',async({page})=>{
@@ -2667,7 +2670,7 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_crowd_snapshot_production_v1',JSON.stringify({
    slots:[{waitTypeId:'0032',slotKey:'12:30',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'exact-name',remaining:40}],
-   details:[],operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true
+   details:[],operationalDate:'2026-10-03',businessType:'土日祝日',savedAt:Date.now(),verifiedFresh:true,publicFlags:[['0030',true],['0032',true],['0034',true],['0029',true],['0031',true],['0033',true]]
   }));
  });
  await page.route(GATEWAY+'**',route=>{
@@ -3174,7 +3177,7 @@ test('Confirmed hidden WEB quota stays hidden when a later crowdRemaining reques
  await expect.poll(()=>crowdErrors,{timeout:10000}).toBe(1);
  await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
  await expect(first.locator('a[href]')).toHaveCount(0);
- await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
+ await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('—');
 });
 
 test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails',async({page})=>{
