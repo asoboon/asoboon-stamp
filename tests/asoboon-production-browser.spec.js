@@ -45,6 +45,9 @@ async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00
       {waitTypeId:'0029',waitTypeName:'10:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
       {waitTypeId:'0031',waitTypeName:'12:30の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
       {waitTypeId:'0033',waitTypeName:'15:00の回',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+      {waitTypeId:'0030',waitTypeName:'10:00の回 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+      {waitTypeId:'0032',waitTypeName:'12:30の回 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+      {waitTypeId:'0034',waitTypeName:'15:00の回 WEB',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
     ]});
     if(action==='reservationStatus'&&status)return json(status);
     return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'TEST_NOT_IMPLEMENTED',action})});
