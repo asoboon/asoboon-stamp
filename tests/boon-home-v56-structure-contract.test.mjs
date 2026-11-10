@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 
 // Historical v5.6 test path is kept for callers. The current design is v5.8.
 const read=f=>readFileSync(f,'utf8');
@@ -163,4 +164,19 @@ test('v5.11.1 compact facts and tappable summary fit narrow mobile viewports',()
  assert.match(css,/prefers-reduced-motion:reduce/);
  for(const width of [320,390,430]){assert.ok(width>=320&&width<=430);assert.match(css,/grid-template-columns:minmax\(0,auto\) minmax\(0,1fr\)/);assert.match(css,/overflow-wrap:anywhere/)}
  for(const label of ['人数を見る','View spaces','查看名额','인원 보기','Xem chỗ','ठाउँ हेर्नुहोस्','Cihên bibîne'])assert.ok(layout.includes(label),label);
+});
+
+
+test('closed facility and closed reservation remain separate HOME actions',()=>{
+ assert.match(layout,/offday:\['本日は休館日です'/);
+ assert.match(layout,/hero.classList.contains\('closed'\).*classList.contains\('closed'\)/);
+ const body=layout.slice(layout.indexOf('function currentKind(hero){'),layout.indexOf('\n/* Progressive disclosure'));
+ assert.ok(body.startsWith('function currentKind(hero){'));
+ const box={classList:{contains:name=>name==='closed'}};
+ const hero={classList:{contains:name=>name==='closed'}};
+ const context={root:{querySelector:selector=>selector==='#v38Today'?box:null},window:{ASOBOON_HOME_STATUS_SNAPSHOT:{}}};
+ const choose=vm.runInNewContext(body+';currentKind',context);
+ assert.equal(choose(hero).kind,'offday');
+ context.window.ASOBOON_HOME_STATUS_SNAPSHOT={kind:'closed',receipt:'TEST123'};
+ assert.equal(choose(hero).kind,'closed','existing closed reservation remains distinct');
 });

@@ -96,3 +96,41 @@ test('Japanese business labels survive English and Chinese round trips and nativ
  assert.equal(day.textContent,'土日祝');
  assert.equal(duration.textContent,'2時間30分制');
 });
+
+
+test('a newly confirmed closed day overrides stale loading labels and survives language switches',()=>{
+ const match=js.match(/function translateBusiness\(\)\{[\s\S]*?\n\}\nfunction trustedBooked/);
+ assert.ok(match);
+ const fn=match[0].replace(/\nfunction trustedBooked$/,'');
+ const day={textContent:'読み込み中',dataset:{}};
+ const duration={textContent:'',dataset:{}};
+ const host={querySelector:s=>s==='span:nth-child(2) strong'?day:s==='span:nth-child(3) strong'?duration:null};
+ let lang='ja';
+ const context={
+  document:{querySelector:s=>s==='#v38Today'?host:null},
+  language:()=>lang,
+  days:{
+   en:['Sat/Sun/holiday','Special weekday','Weekday','Monday','2h 30m limit','3h limit','No time limit','Closed'],
+   'zh-CN':['周末及节假日','特别平日','平日','周一','限时2小时30分钟','限时3小时','不限时','休馆']
+  },
+  copyTo:(node,value)=>{node.textContent=value;}
+ };
+ const translate=vm.runInNewContext(fn+';translateBusiness',context);
+ translate();
+ day.textContent='休館日';
+ translate();
+ assert.equal(day.textContent,'休館日','closed day must not revert to loading');
+ lang='en';translate();
+ assert.equal(day.textContent,'Closed');
+ lang='zh-CN';translate();
+ assert.equal(day.textContent,'休馆');
+ lang='ja';translate();
+ assert.equal(day.textContent,'休館日');
+ day.textContent='平日';duration.textContent='無制限';
+ lang='en';translate();
+ assert.equal(day.textContent,'Weekday');
+ assert.equal(duration.textContent,'No time limit');
+ lang='ja';translate();
+ assert.equal(day.textContent,'平日');
+ assert.equal(duration.textContent,'無制限');
+});

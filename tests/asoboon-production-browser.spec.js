@@ -3277,3 +3277,63 @@ test('2026-11-10 HOME privacy-policy link has a usable touch target',async({page
  await expect(target).toBeVisible();
  await expect.poll(async()=>Math.round((await target.boundingBox())?.height||0),{timeout:12000}).toBeGreaterThanOrEqual(44);
 });
+
+
+test('2026-11-10 official HOME shows verified closed-day facts, not stale loading or a closed queue',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-10T03:00:00.000Z'});
+ await page.route(GATEWAY+'**',async route=>{
+  const a=new URL(route.request().url()).searchParams.get('action');
+  if(a==='businessDay')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,operationalDate:'2026-11-10',calendarDate:'2026-11-10',businessType:'休館',isClosed:true,durationLabel:'',closingTime:''})});
+  return route.fallback();
+ });
+ const official=new URL('../../home.html',BASE).href;
+ await page.setViewportSize({width:320,height:844});
+ await page.goto(official,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Today')).toHaveClass(/closed/);
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toHaveText('休館日');
+ await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('本日は休館日です');
+ await expect(page.locator('#v58Primary .v58-next-summary')).not.toContainText('受付番号');
+ await expect(page.locator('#v59GuideFold')).not.toHaveAttribute('open','');
+ await expect(page.locator('#v59PlayFold')).not.toHaveAttribute('open','');
+ const nav=await page.locator('#app>.cm-bottom-nav .cm-nav-tab').evaluateAll(xs=>xs.map(x=>({
+  height:Math.round(x.getBoundingClientRect().height),
+  label:parseFloat(getComputedStyle(x.querySelector('span')||x).fontSize)
+ })));
+ expect(nav).toHaveLength(4);
+ expect(nav.every(x=>x.height>=44&&x.label>=12)).toBe(true);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ const selector=page.locator('#asoboon-language-select');
+ await selector.selectOption('en');
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toHaveText('Closed');
+ await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('Closed today');
+ await selector.selectOption('ja');
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toHaveText('休館日');
+});
+
+
+test('2026-11-10 party-size validation never falsely announces reception availability',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#recSlotLabel')).toHaveText('未選択');
+ await expect(page.locator('#recPeopleMsg')).toHaveText('人数の条件は満たしています。');
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+});
+
+
+test('2026-11-10 official route CSS keeps rules, call details and timer safety copy readable',async({page})=>{
+ await installProduction(page);
+ await page.setViewportSize({width:320,height:844});
+ const examples=[
+  ['rules','.pv7-promise small'],
+  ['timeguide','.tg-note'],
+  ['callstatus','.cs-waittype'],
+  ['callstatus','#csMessage'],
+ ];
+ for(const [route,selector] of examples){
+  await page.goto(BASE+'?view='+route,{waitUntil:'domcontentloaded'});
+  const item=page.locator(selector).first();
+  await expect(item).toBeVisible();
+  await expect.poll(async()=>item.evaluate(el=>Number.parseFloat(getComputedStyle(el).fontSize)),{timeout:10000}).toBeGreaterThanOrEqual(12);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});
