@@ -1,6 +1,7 @@
 import { test, before, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync as requireReadFileSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
+const requireReadFileSync=path=>readFileSync(path,'utf8');
 import {runInNewContext} from 'node:vm';
 import {
   FakeD1, FakeWorld, prepareRuntime, baseEnv, call, makeCtx, DIAG_TOKEN,
