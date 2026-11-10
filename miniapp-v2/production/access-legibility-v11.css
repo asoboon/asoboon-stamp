@@ -416,20 +416,6 @@ html body #app .v27-first-page .v27-step h2{font-size:17px!important;line-height
 html body #app .v27-first-page .v27-step-copy>p{color:#455D59!important;font-weight:650!important}
 html body #app .v27-first-page .v27-basic strong{font-size:13px!important}
 html body #app .v27-first-page .v27-kicker{color:#205B58!important}
-html body.v7-reception-active #app .rv7-progress{
- display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
-}
-html body.v7-reception-active #app .rv7-step{
- appearance:none;border:0;border-radius:0;background:transparent;cursor:pointer;
- color:#47635D!important;font-size:12px!important;line-height:1.25!important;
- padding:7px 3px!important;min-height:56px!important;
-}
-html body.v7-reception-active #app .rv7-step.active{color:#075E6A!important}
-html body.v7-reception-active #app .rv7-step:focus-visible,
-html body #app .v27-first-page :is(button,a):focus-visible{
- outline:3px solid #056D80!important;outline-offset:3px!important;border-radius:8px;
-}
-html body.v7-reception-active #app .rv7-step:active{background:#E4F7F0!important}
 html body.v7-reception-active #app .rec-people.v26-people .rec-stepper button{
  width:44px!important;height:44px!important;min-height:44px!important;
 }
@@ -440,10 +426,6 @@ html body.v7-reception-active #app .rec-people.v26-people .rec-stepper button{
  html body.v7-reception-active #app .rec-people.v26-people .rec-person{
   grid-template-columns:34px minmax(0,1fr) auto!important;gap:6px!important;
  }
- html body.v7-reception-active #app .rv7-step{flex-direction:column!important;gap:3px!important}
-}
-@media(prefers-reduced-motion:reduce){
- html body.v7-reception-active #app .rv7-step{transition:none!important}
 }
 
 html body.v7-reception-active #app :is(.rec-slots,.rec-people,.rec-summary,.rec-disclaimer){scroll-margin-top:90px;}
@@ -471,3 +453,50 @@ html body #app .v33-detail-link {
  font-size:12px!important;
  line-height:1.5!important;
 }
+
+
+/* Final type-size consolidation: place all small text adjustments in the existing
+   accessibility stylesheet, not a new cascading layer. Decorative labels remain
+   subordinate, while operations and user instructions stay legible. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-opening-hours small,
+html.boon-v4.boon-v5-mint body.v38-home-active #app [data-timeguide-eyebrow],
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v613-channel strong small,
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38CrowdAge,
+html.boon-v4.boon-v5-mint body.v7-reception-active #app .boon-v4-progress > span b,
+html body #app .v27-first-page :is(.v27-finish,.v27-price-link),
+html body #app .pv7-promise b,
+html body #app .v25-entry-head .pv7-eyebrow,
+html body #app .cm-hub-eyebrow,
+html body #app .v33-start-kicker,
+html body #app .v33-start-notify,
+html body #app .v33-time-warning strong,
+html body #app .v17-valid,
+html body #app .v17-number-label {
+ font-size:12px!important;line-height:1.45!important;
+}
+html body #app .v33-start-notify,
+html body #app .v33-time-warning strong{
+ color:#365D52!important;
+}
+html body #app :is(.rec-agree,.rec-disclaimer,.cm-faq-language-note,.v33-entry-action){
+ overflow-wrap:anywhere;
+}
+
+/* Only noncanonical direct-entry pages use the light fallback stepper.
+   Official HOME keeps its existing v51 wizard, never two at once. */
+html.boon-v4 body.v7-reception-fallback #app .rv7-progress{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:0!important;margin:0 2px 14px!important;
+}
+html.boon-v4 body.v7-reception-fallback #app .rv7-step{
+ appearance:none;border:0;background:transparent;cursor:pointer;
+ min-height:54px;padding:5px 2px;display:flex;align-items:center;justify-content:center;
+ color:#315B54;font-size:12px!important;line-height:1.4!important;
+}
+html.boon-v4 body.v7-reception-fallback #app .rv7-step.active{
+ color:#075F66;font-weight:850;background:#E1F8F1;
+}
+html.boon-v4 body.v7-reception-fallback #app .rv7-step:focus-visible{
+ outline:3px solid #096D7C;outline-offset:2px;border-radius:8px;
+}
+html.boon-v4 body.v7-reception-fallback #app .rv7-step b{font-size:12px!important}

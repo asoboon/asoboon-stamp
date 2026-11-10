@@ -30,3 +30,6 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 .cm-faq-find :is(input,button):focus-visible{outline:3px solid #136A79;outline-offset:2px}
 .cm-faq-find p{margin:8px 0 0;color:#47625B;font-size:12px;font-weight:700;line-height:1.5}
 .cm-faq details[hidden],.cm-faq-find button[hidden]{display:none!important}
+
+.cm-faq-language-note{margin:8px 0 10px!important;padding:10px 12px;background:#FFF4E8;border-left:3px solid #9B5F3A;border-radius:8px;color:#4B382A!important;font-size:12px!important;line-height:1.55!important}
+.cm-faq-language-note[hidden]{display:none!important}

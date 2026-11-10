@@ -3235,27 +3235,30 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
 });
 
 
-test('2026-11-10 reception progress supports keyboard/touch navigation and 44px steps at 320px',async({page})=>{
+test('2026-11-10 reception has exactly one 3-stage wizard with required consent intact at 320px',async({page})=>{
  await installProduction(page);
  await page.setViewportSize({width:320,height:700});
  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
- const steps=page.locator('nav.rv7-progress button[data-rv7-step]');
- await expect(steps).toHaveCount(4);
- await expect(steps.first()).toHaveAttribute('aria-current','step');
- await steps.nth(1).focus();
- await expect(steps.nth(1)).toBeFocused();
- await steps.nth(1).press('Enter');
- await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(150);
+ const stages=page.locator('.rv7-progress [data-rv7-step]');
+ await expect(stages).toHaveCount(3);
+ await expect(page.locator('#boonV4Progress,.rv7-confirm-label,.rv7-consent-label')).toHaveCount(0);
+ await expect(stages.nth(2)).toContainText('確認・同意');
+ await expect(stages.first()).toHaveAttribute('aria-current','step');
+ await stages.nth(1).focus();await expect(stages.nth(1)).toBeFocused();
+ await stages.nth(1).press('Enter');
+ await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(100);
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+ await expect(page.locator('#recAgree')).not.toBeChecked();
  const metrics=await page.evaluate(()=>({
   overflow:document.documentElement.scrollWidth-innerWidth,
   widths:[...document.querySelectorAll('#app .rec-stepper button')].filter(x=>x.getBoundingClientRect().width).map(x=>x.getBoundingClientRect().width),
-  stepSize:parseFloat(getComputedStyle(document.querySelector('.rv7-step')).fontSize),
+  stageSize:parseFloat(getComputedStyle(document.querySelector('.rv7-progress [data-rv7-step] b')).fontSize),
   noteSize:parseFloat(getComputedStyle(document.querySelector('.v26-infant-note span')).fontSize)
  }));
  expect(metrics.overflow).toBeLessThanOrEqual(1);
  expect(metrics.widths.length).toBeGreaterThan(0);
  expect(Math.min(...metrics.widths)).toBeGreaterThanOrEqual(44);
- expect(metrics.stepSize).toBeGreaterThanOrEqual(12);
+ expect(metrics.stageSize).toBeGreaterThanOrEqual(12);
  expect(metrics.noteSize).toBeGreaterThanOrEqual(12);
 });
 test('2026-11-10 first-time flow removes repeated copy and provides legible steps',async({page})=>{
@@ -3407,4 +3410,97 @@ test('2026-11-10 FAQ search is readable in English, Chinese and Korean',async({p
  await expect(msg).toHaveText('1개 검색됨');
  await select.selectOption('ja');
  await expect(msg).toHaveText('1件見つかりました');
+});
+
+
+test('2026-11-10 21:00 JST current calendar closed overrides tomorrow operating day without changing saved number',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-10T12:00:00.000Z'});
+ let days=[];
+ await page.route(GATEWAY+'**',async route=>{
+  const u=new URL(route.request().url()),action=u.searchParams.get('action');
+  if(action!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');days.push(date);
+  const closed=date==='2026-11-10';
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,calendarDate:date,operationalDate:date,businessType:closed?'休館':'平日',
+   isClosed:closed,durationLabel:closed?'':'無制限',closingTime:closed?'':'17:00'
+  })});
+ });
+ const official=new URL('../../home.html',BASE).href;
+ await page.goto(official,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Today>span:nth-child(2) strong')).toHaveText('休館日',{timeout:18000});
+ await expect(page.locator('#v58Primary .v58-next-title')).toContainText('休館日');
+ await expect(page.locator('#v58Primary')).not.toContainText('営業は終了しました');
+ await expect(page.locator('#v38Slots')).toContainText('本日は休館日です');
+ await expect(page.locator('#v38Slots')).not.toContainText('本日の受付枠は終了しました');
+ expect(days).toContain('2026-11-10');
+ expect(days).toContain('2026-11-11');
+});
+
+test('2026-11-10 call panel distinguishes 30-minute arrival and final session admission conditions',async({page})=>{
+ await installProduction(page,{status:{
+  ok:true,found:true,state:'calling',receiptNo:'F919',businessDate:'2026-10-03',
+  waitTypeId:'0033',waitTypeName:'15:00の回',aheadCount:0,queueRank:1,
+  activeCount:100,checkedAt:Date.parse('2026-10-03T03:00:00.000Z')
+ }});
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',receiptNo:'F919',waitTypeId:'0033'
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',receiptNo:'F919',waitTypeId:'0033',
+   sessionToken:'z'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ const notice=page.locator('.v33-entry-action');
+ await expect(notice).toBeVisible();
+ await expect(notice).toContainText('ASOBooN入口');
+ await expect(notice).toContainText('呼出から30分以内');
+ await expect(notice).toContainText('各回の最終入場時刻にも注意');
+ await expect(notice).not.toContainText('15:30');
+ await expect(page.locator('#csTitle')).toContainText('入場できます');
+ for(const width of [320,390,768]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});
+
+test('2026-11-10 FAQ reentry rules are conditional and multilingual search does not overclaim translation',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=faq',{waitUntil:'domcontentloaded'});
+ const item=page.locator('#cmFaqList details[data-faq-key="reentry"]');
+ await expect(item).toHaveCount(1);
+ await expect(item).toContainText('全員で一時退場');
+ await expect(item).toContainText('当日のレシート');
+ await expect(item).toContainText('黄色ホルダー');
+ await expect(item).toContainText('別の保護者が残る');
+ await page.locator('#asoboon-language-select').selectOption('en');
+ const note=page.locator('#cmFaqLanguageNote');
+ await expect(note).toBeVisible();
+ await expect(note).toContainText('Japanese');
+ await page.locator('#cmFaqQuery').fill('re-entry');
+ await expect(page.locator('#cmFaqList details').filter({visible:true})).toHaveCount(1);
+ await expect(item).toBeVisible();
+ await page.locator('#asoboon-language-select').selectOption('ja');
+ await expect(note).toBeHidden();
+});
+
+test('2026-11-10 official reception keeps only its existing three-step wizard',async({page})=>{
+ await installProduction(page);
+ const homeURL=new URL('../../home.html',BASE).href;
+ const siteBase=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,
+   get(){return this.__threeStepEnv},set(value){this.__threeStepEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'})}});
+ },siteBase);
+ await page.setViewportSize({width:320,height:700});
+ await page.goto(homeURL+'?view=reception',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#boonV4Progress [data-boon-p]')).toHaveCount(3);
+ await expect(page.locator('.rv7-progress,.rv7-confirm-label,.rv7-consent-label')).toHaveCount(0);
+ await expect(page.locator('#boonV4Progress [data-boon-p="3"]')).toContainText('確認・同意');
+ await expect(page.locator('#boonV4StageIntro')).not.toContainText('STEP 01');
+ await expect(page.locator('#recAgree')).not.toBeChecked();
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });

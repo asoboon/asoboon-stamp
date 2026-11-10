@@ -5,3 +5,9 @@
 /* v33 call-status title cleanup: one clear title, larger receipt number. */
 body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .topbar .brand{visibility:hidden}body.v7-callstatus-active .topbar:after{content:"呼出状況";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#202629;font-size:1rem;line-height:1;font-weight:1000;letter-spacing:.02em;white-space:nowrap}body.v7-callstatus-active .cs-page .page-head{display:none!important}.cs-page.v33-compact-active .cs-ticket.v17-ticket-host .v17-number{display:block;width:100%;margin:1px auto 0!important;text-align:center!important;font-size:3.45rem!important;line-height:.9!important}.cs-page.v33-compact-active .cs-ticket .v17-number-label{width:100%;margin-top:8px;text-align:center!important;font-size:.58rem}.cs-page.v33-compact-active .cs-ticket{margin-top:7px!important}
 @media(max-width:360px){.cs-page.v33-compact-active .cs-ticket.v17-ticket-host .v17-number{font-size:3.05rem!important}}
+
+/* Confirmed call: distinguish the 30-minute arrival window from the session cutoff. */
+.v33-entry-action{display:grid;gap:7px;margin:10px 0 2px;text-align:left}
+.v33-entry-action p{margin:0!important;padding:10px 11px;border-radius:12px;background:#fff;border:1px solid #BDDDD0}
+.v33-entry-action strong{display:block;color:#184D45;font-size:14px;line-height:1.45}
+.v33-entry-action span{display:block;margin-top:2px;color:#355750;font-size:12px;line-height:1.55}
