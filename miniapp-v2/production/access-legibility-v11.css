@@ -401,3 +401,49 @@ html body #app .v24-parking-page :is(.v24-all-map,.v24-lot-row):focus-visible{
  html body #app .v24-parking-page .v24-all-map-icon{width:32px!important;height:32px!important;}
  html body #app .v24-parking-page .v24-all-map>b{grid-column:2!important;text-align:right!important;}
 }
+
+
+/* Shared route legibility: read without pinching on 320–390px phones.
+   Target labels and secondary content only; preserve booking controls and logic. */
+html body #app .v27-first-page .v27-step :is(.v27-kicker,.v27-step-copy>strong,.v27-step-copy>p),
+html body #app .v27-first-page .v27-basic :is(small,strong),
+html body #app .v27-first-page .v27-finish,
+html body.v7-reception-active #app :is(.rec-status,.rec-day small,.rec-day b,.rec-slot small,.rec-person small,.rec-agree,.rec-disclaimer,.rec-location p,.rec-line,.rec-method small,.v26-price,.v26-person-label small,.v26-infant-note strong,.v26-infant-note span,.v26-people-head,.v26-count-unit),
+html body #app .cs-page :is(.cs-top small,.cs-meta,.cs-note,.cs-ticket small,.cs-state small,.cs-queue small){
+ font-size:12px!important;line-height:1.55!important;
+}
+html body #app .v27-first-page .v27-step h2{font-size:17px!important;line-height:1.35!important}
+html body #app .v27-first-page .v27-step-copy>p{color:#455D59!important;font-weight:650!important}
+html body #app .v27-first-page .v27-basic strong{font-size:13px!important}
+html body #app .v27-first-page .v27-kicker{color:#205B58!important}
+html body.v7-reception-active #app .rv7-progress{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+html body.v7-reception-active #app .rv7-step{
+ appearance:none;border:0;border-radius:0;background:transparent;cursor:pointer;
+ color:#47635D!important;font-size:12px!important;line-height:1.25!important;
+ padding:7px 3px!important;min-height:56px!important;
+}
+html body.v7-reception-active #app .rv7-step.active{color:#075E6A!important}
+html body.v7-reception-active #app .rv7-step:focus-visible,
+html body #app .v27-first-page :is(button,a):focus-visible{
+ outline:3px solid #056D80!important;outline-offset:3px!important;border-radius:8px;
+}
+html body.v7-reception-active #app .rv7-step:active{background:#E4F7F0!important}
+html body.v7-reception-active #app .rec-people.v26-people .rec-stepper button{
+ width:44px!important;height:44px!important;min-height:44px!important;
+}
+@media(max-width:390px){
+ html body.v7-reception-active #app .rec-people.v26-people .rec-stepper{
+  grid-template-columns:44px 48px 44px!important;gap:3px!important;
+ }
+ html body.v7-reception-active #app .rec-people.v26-people .rec-person{
+  grid-template-columns:34px minmax(0,1fr) auto!important;gap:6px!important;
+ }
+ html body.v7-reception-active #app .rv7-step{flex-direction:column!important;gap:3px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.v7-reception-active #app .rv7-step{transition:none!important}
+}
+
+html body.v7-reception-active #app :is(.rec-slots,.rec-people,.rec-summary,.rec-disclaimer){scroll-margin-top:90px;}

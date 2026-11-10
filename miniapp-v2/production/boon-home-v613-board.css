@@ -342,3 +342,18 @@ html.boon-v4.boon-v5-mint body.v38-home-active .v38-legal {
 /* Restore meaningful reception-hour labels hidden by the legacy v5 skin. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action #v38Hero .v38-reception-hours>div>span{display:inline!important;visibility:visible!important;opacity:1!important;color:#28594d!important;font-size:12px!important;font-weight:700!important;line-height:1.4!important}
 html.boon-v4.boon-v5-mint body.v38-home-active .v58-native-action #v38Hero .v38-reception-hours>div>strong{display:inline!important;visibility:visible!important;opacity:1!important;font-size:12px!important;color:#164f42!important}
+
+
+/* HOME accessibility without introducing another cascading stylesheet. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-legal,
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-legal span{
+ font-size:12px!important;line-height:1.55!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-legal a{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ min-height:44px!important;padding:8px 10px!important;
+ font-size:12px!important;text-underline-offset:3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app :is(.v38-calendar-card,.v38-timeguide-cta,.v58-primary a,.v58-primary button,.v613-row a,.v613-row button):focus-visible{
+ outline:3px solid #075E70!important;outline-offset:3px!important;
+}

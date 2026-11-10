@@ -16,7 +16,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">来場前</span>
      <h2>当日受付</h2>
      <strong>9:30からLINEミニアプリ内で受付</strong>
-     <p>当日9:30から、このLINEミニアプリの「当日受付」で本日の受付枠を取得できます。</p>
+     <p>表示された受付枠から、利用する回を選びます。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -25,8 +25,8 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-step-copy">
      <span class="v27-kicker">呼ばれるまで</span>
      <h2>受付後は順番を確認</h2>
-     <strong>HOMEで「あなたの前 ○組」を確認</strong>
-     <p>受付後は、HOMEまたは「呼出状況」で現在の順番を確認できます。</p>
+     <strong>「呼出」で受付番号と順番を確認</strong>
+     <p>順番が来たらLINEでお知らせします。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -36,7 +36,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれたら</span>
      <h2>ASOBooN入口へ</h2>
      <strong>呼出後30分以内</strong>
-     <p>呼出後30分以内を目安にASOBooN入口へお越しください。受付番号をスタッフへお見せください。</p>
+     <p>入口で受付番号をスタッフへお見せください。</p>
     </div>
    </article>
   </div>

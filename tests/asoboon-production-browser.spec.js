@@ -3233,3 +3233,48 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
  await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
  await expect(first.locator('a[href]')).toHaveCount(0);
 });
+
+
+test('2026-11-10 reception progress supports keyboard/touch navigation and 44px steps at 320px',async({page})=>{
+ await installProduction(page);
+ await page.setViewportSize({width:320,height:700});
+ await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+ const steps=page.locator('nav.rv7-progress button[data-rv7-step]');
+ await expect(steps).toHaveCount(4);
+ await expect(steps.first()).toHaveAttribute('aria-current','step');
+ await steps.nth(1).focus();
+ await expect(steps.nth(1)).toBeFocused();
+ await steps.nth(1).press('Enter');
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(150);
+ const metrics=await page.evaluate(()=>({
+  overflow:document.documentElement.scrollWidth-innerWidth,
+  widths:[...document.querySelectorAll('#app .rec-stepper button')].filter(x=>x.getBoundingClientRect().width).map(x=>x.getBoundingClientRect().width),
+  stepSize:parseFloat(getComputedStyle(document.querySelector('.rv7-step')).fontSize),
+  noteSize:parseFloat(getComputedStyle(document.querySelector('.v26-infant-note span')).fontSize)
+ }));
+ expect(metrics.overflow).toBeLessThanOrEqual(1);
+ expect(metrics.widths.length).toBeGreaterThan(0);
+ expect(Math.min(...metrics.widths)).toBeGreaterThanOrEqual(44);
+ expect(metrics.stepSize).toBeGreaterThanOrEqual(12);
+ expect(metrics.noteSize).toBeGreaterThanOrEqual(12);
+});
+test('2026-11-10 first-time flow removes repeated copy and provides legible steps',async({page})=>{
+ await installProduction(page);
+ await page.setViewportSize({width:320,height:700});
+ await page.goto(BASE+'?view=first',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v27-first-page')).toBeVisible();
+ await expect(page.locator('.v27-step')).toHaveCount(3);
+ await expect(page.locator('.v27-step.waiting strong')).toContainText('呼出');
+ await expect(page.locator('.v27-step.called p')).toHaveText('入口で受付番号をスタッフへお見せください。');
+ const sizes=await page.locator('.v27-step-copy p').evaluateAll(xs=>xs.map(x=>parseFloat(getComputedStyle(x).fontSize)));
+ expect(sizes.length).toBe(3);expect(Math.min(...sizes)).toBeGreaterThanOrEqual(12);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});
+test('2026-11-10 HOME privacy-policy link has a usable touch target',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const box=await page.locator('#v38Slots').boundingBox();expect(box).toBeTruthy();
+ const target=page.locator('.v38-legal a[href*="privacy-policy"]');
+ await expect(target).toBeVisible();
+ expect((await target.boundingBox()).height).toBeGreaterThanOrEqual(44);
+});

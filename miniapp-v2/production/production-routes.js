@@ -1336,8 +1336,8 @@ const setText=(el,text)=>{if(!el)return;const localized=window.ASOBOON_I18N?.t(S
 function currentView(){return String(qs().get('view')||'home')}
 function isDevTools(){return qs().get('dev')==='1'}
 function methodIcon(kind){if(kind==='onsite')return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2" stroke="currentColor" stroke-width="2"/></svg>';return '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
-function ensureHead(){const head=root.querySelector('.page-head');if(!head)return;setText(head.querySelector('small'),'ASOBooN');setText(head.querySelector('h2'),'LINE当日受付');if(!head.querySelector('.rv7-head-note'))head.insertAdjacentHTML('beforeend','<div class="rv7-head-note">9:30以降、利用する回と人数を選んで受付してください。</div>')}
-function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<div class="rv7-progress" aria-label="受付の流れ"><div class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></div><div class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></div><div class="rv7-step" data-rv7-step="3"><b>3</b><span>内容確認</span></div><div class="rv7-step" data-rv7-step="4"><b>4</b><span>利用案内</span></div></div>')}
+function ensureHead(){const head=root.querySelector('.page-head');if(!head)return;setText(head.querySelector('small'),'ASOBooN');setText(head.querySelector('h2'),'LINE当日受付');if(!head.querySelector('.rv7-head-note'))head.insertAdjacentHTML('beforeend','<div class="rv7-head-note">利用する回と人数を選んでください。</div>')}
+function ensureProgress(){const wrap=root.querySelector('.rec-wrap');if(!wrap||wrap.querySelector('.rv7-progress'))return;wrap.insertAdjacentHTML('afterbegin','<nav class="rv7-progress" aria-label="受付手順を移動"><button type="button" class="rv7-step active" data-rv7-step="1"><b>1</b><span>利用する回</span></button><button type="button" class="rv7-step" data-rv7-step="2"><b>2</b><span>人数</span></button><button type="button" class="rv7-step" data-rv7-step="3"><b>3</b><span>内容確認</span></button><button type="button" class="rv7-step" data-rv7-step="4"><b>4</b><span>利用案内</span></button></nav>')}
 function ensureConfirmLabel(){const summary=root.querySelector('.rec-summary');if(!summary)return;if(summary.previousElementSibling?.classList?.contains('rv7-confirm-label'))return;summary.insertAdjacentHTML('beforebegin','<div class="rv7-confirm-label"><b>3</b><span>内容を確認</span></div>')}
 function ensureConsentLabel(){const section=root.querySelector('.rec-disclaimer');if(section&&!section.previousElementSibling?.classList?.contains('rv7-consent-label'))section.insertAdjacentHTML('beforebegin','<div class="rv7-consent-label"><b>4</b><span>利用案内を確認</span></div>')}
 function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>{const span=btn.querySelector(':scope > span:first-child');if(!span||span.dataset.rv7Icon==='1')return;span.dataset.rv7Icon='1';span.innerHTML=methodIcon(btn.classList.contains('onsite')?'onsite':'web')})}
@@ -1359,9 +1359,9 @@ function cleanCustomerCopy(){
  const agree=root.querySelector('.rec-agree span');if(agree&&!dev)setText(agree,'受付内容とご利用にあたっての案内を確認しました。受付ボタンは一度だけ押してください。');
  const submit=root.querySelector('#recSubmit');if(submit&&!dev&&/受付確定（確認待ち）/.test(String(submit.textContent||'')))setText(submit,'受付の準備中…');
 }
-function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>x.classList.remove('active','done'));if(!selected){steps[0]?.classList.add('active');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active');if(agree)steps[3]?.classList.add('active');steps.forEach(x=>{if(x.classList.contains('active'))x.setAttribute('aria-current','step');else x.removeAttribute('aria-current')})}
+function progressState(){const selected=Boolean([...root.querySelectorAll('.rec-slot.active')].find(x=>!x.hidden));const peopleOk=Boolean(root.querySelector('#recPeopleMsg.ok'));const agree=Boolean(root.querySelector('#recAgree:checked'));const steps=[...root.querySelectorAll('[data-rv7-step]')];steps.forEach(x=>{x.classList.remove('active','done');x.removeAttribute('aria-current')});if(!selected){steps[0]?.classList.add('active');steps[0]?.setAttribute('aria-current','step');return}steps[0]?.classList.add('done');if(!peopleOk){steps[1]?.classList.add('active');steps[1]?.setAttribute('aria-current','step');return}steps[1]?.classList.add('done');steps[2]?.classList.add(agree?'done':'active');if(agree)steps[3]?.classList.add('active');steps.forEach(x=>{if(x.classList.contains('active'))x.setAttribute('aria-current','step');else x.removeAttribute('aria-current')})}
 function patch(){if(currentView()!=='reception'){document.body.classList.remove('v7-reception-active','dev-tools');return}const page=root.querySelector('.page-card');if(!page)return;document.body.classList.add('v7-reception-active');document.body.classList.toggle('dev-tools',isDevTools());setText(document.querySelector('.brand small'),'川口ハイウェイオアシス');ensureHead();ensureProgress();ensureConfirmLabel();ensureConsentLabel();replaceMethodIcons();cleanLabels();cleanCustomerCopy();progressState()}
-function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true,characterData:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',()=>setTimeout(progressState,0),true);patch();setTimeout(patch,50);setTimeout(patch,300)}
+function start(){obs=new MutationObserver(()=>queueMicrotask(patch));obs.observe(root,{subtree:true,childList:true,characterData:true});root.addEventListener('change',()=>queueMicrotask(progressState),true);root.addEventListener('click',event=>{const tab=event.target?.closest?.('[data-rv7-step]');if(tab){const target={1:'.rec-slots',2:'.rec-people',3:'.rec-summary',4:'.rec-disclaimer'}[tab.dataset.rv7Step];const dest=target&&root.querySelector(target);if(dest){dest.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});dest.setAttribute('tabindex','-1');dest.focus({preventScroll:true});return}}setTimeout(progressState,0)},true);patch();setTimeout(patch,50);setTimeout(patch,300)}
 start();
 })();
 
@@ -1463,7 +1463,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">来場前</span>
      <h2>当日受付</h2>
      <strong>9:30からLINEミニアプリ内で受付</strong>
-     <p>当日9:30から、このLINEミニアプリの「当日受付」で本日の受付枠を取得できます。</p>
+     <p>表示された受付枠から、利用する回を選びます。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -1472,8 +1472,8 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
     <div class="v27-step-copy">
      <span class="v27-kicker">呼ばれるまで</span>
      <h2>受付後は順番を確認</h2>
-     <strong>HOMEで「あなたの前 ○組」を確認</strong>
-     <p>受付後は、HOMEまたは「呼出状況」で現在の順番を確認できます。</p>
+     <strong>「呼出」で受付番号と順番を確認</strong>
+     <p>順番が来たらLINEでお知らせします。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -1483,7 +1483,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれたら</span>
      <h2>ASOBooN入口へ</h2>
      <strong>呼出後30分以内</strong>
-     <p>呼出後30分以内を目安にASOBooN入口へお越しください。受付番号をスタッフへお見せください。</p>
+     <p>入口で受付番号をスタッフへお見せください。</p>
     </div>
    </article>
   </div>
