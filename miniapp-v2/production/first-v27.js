@@ -16,7 +16,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">来場前</span>
      <h2>当日受付</h2>
      <strong>9:30からLINEミニアプリ内で受付</strong>
-     <p>表示された受付枠から、利用する回を選びます。</p>
+     <p>受付枠から希望の回を選びます。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -26,7 +26,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
      <span class="v27-kicker">呼ばれるまで</span>
      <h2>受付後は順番を確認</h2>
      <strong>「呼出」で受付番号と順番を確認</strong>
-     <p>順番が来たらLINEでお知らせします。</p>
+     <p>順番になるとLINEで通知します。</p>
     </div>
    </article>
    <div class="v27-arrow" aria-hidden="true">↓</div>
@@ -41,7 +41,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
    </article>
   </div>
   <div class="v27-finish" aria-label="入場までの最後の流れ"><span>受付番号を見せる</span><b>→</b><span>会計</span><b>→</b><strong>入場！</strong></div>
-  <div class="v27-basic"><div><small>対象</small><strong>0歳〜小学6年生</strong></div><div><small>人数</small><strong>保護者1名につき子ども3名まで</strong></div></div>
+  <div class="v27-basic"><div><small>対象</small><strong>0歳〜小学6年生</strong></div><div><small>人数</small><strong>保護者1名につき3名まで</strong></div></div>
   <button class="pv7-primary v27-primary" type="button" data-pv7-view="reception">当日受付を確認する</button>
   <button class="pv7-text-btn" type="button" data-pv7-view="first" data-pv7-panel="price">料金を見る</button>
  </div>

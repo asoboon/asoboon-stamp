@@ -44,7 +44,7 @@ function currentKind(hero){
 /* Progressive disclosure wraps original sections; it does not recreate links
    or native buttons and does not modify booking, AirWAIT, or route state. */
 const disclosureCopy={
- ja:{guide:['利用案内','はじめて・料金・駐車場・再入場'],play:['あそびコンテンツ','スタンプラリー・ゲーム・おみくじ'],waiting:'呼出を待つ間に遊べます',open:'見る',close:'閉じる',calendars:'営業日とイベントのカレンダー'},
+ ja:{guide:['利用案内','はじめて・料金・駐車場・再入場'],play:['あそび','スタンプラリー・ゲーム・おみくじ'],waiting:'呼出を待つ間に遊べます',open:'見る',close:'閉じる',calendars:'営業日とイベントのカレンダー'},
  en:{guide:['Visitor guide','First visit · prices · parking · re-entry'],play:['Play & games','Stamp rally · games · fortune'],waiting:'Have fun while waiting for your turn',open:'View',close:'Close',calendars:'Opening days and event calendars'},
  'zh-CN':{guide:['游玩指南','首次来访、票价、停车、再次入场'],play:['游戏与活动','集章、游戏、抽签'],waiting:'等待叫号时也可以玩',open:'查看',close:'关闭',calendars:'营业日与活动日历'},
  ko:{guide:['이용 안내','처음 방문 · 요금 · 주차 · 재입장'],play:['놀이와 게임','스탬프 랠리 · 게임 · 운세'],waiting:'호출을 기다리며 즐길 수 있어요',open:'보기',close:'닫기',calendars:'영업일과 이벤트 달력'},

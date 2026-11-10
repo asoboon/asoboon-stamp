@@ -133,7 +133,7 @@ for(const width of [320,375,390,430,768]){
    await expect(lots.nth(i)).toHaveAttribute('data-external','');
   }
   await expect(lots.first()).toHaveAttribute('href',/hKcx4SKWdEYZHcPE6/);
-  await expect(page.locator('#v24-general .v24-alert')).toContainText('一部駐車場は閉鎖');
+  await expect(page.locator('#v24-general .v24-alert')).toContainText('駐車場の閉鎖情報');
   await expect(page.locator('#v24-general .v24-more')).not.toHaveAttribute('open',/.+/);
   await page.locator('#v24-general .v24-more summary').click();
   await expect(page.locator('#v24-general .v24-facts')).toBeVisible();
@@ -227,7 +227,7 @@ test('Reception round choices show verified LINE quota, not WEB remaining, and p
  await expect(page.locator('[data-rec-slot="0033"] .rec-slot-remaining')).toContainText('39名');
  await expect(page.locator('#recRemainingInfo')).toContainText('確認');
  await expect(page.locator('#recRemainingInfo')).toContainText('更新');
- await expect(page.locator('.rec-remaining-caution')).toContainText('受付確定までに変わる');
+ await expect(page.locator('.rec-remaining-caution')).toContainText('受付前に変わることが');
  await expect(page.locator('#recSlots')).not.toContainText('200名');
  await page.locator('[data-rec-slot="0031"]').click();
  await expect(page.locator('[data-rec-slot="0031"]')).toHaveClass(/active/);
@@ -3670,6 +3670,60 @@ test('2026-11-11 mobile copy has no isolated 1–2 kana lines in key guidance',a
     expect(last.length,'orphan '+view+' '+selector+': '+JSON.stringify(rows)).toBeGreaterThanOrEqual(3);
    }
    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),'overflow '+view+' '+width).toBeLessThanOrEqual(1);
+  }
+ }
+});
+
+
+test('2026-11-11 narrow mobile screens avoid isolated 1–2 character line endings',async({page})=>{
+ test.setTimeout(120000);
+ await installProduction(page);
+ const origin=new URL('../../',BASE).href;
+ const selectors={
+  home:'.v59-fold-title,.v38-guide-card small,.v38-calendar-card strong,.v38-play-grid small',
+  reception:'.rec-remaining-caution,.v26-person-label strong,.v26-person-label small',
+  first:'.v27-first-page h1,.v27-step-copy p,.v27-basic strong',
+  parking:'.v24-section-head p,.v24-alert p,.v24-alert strong,.v24-facts strong,.v24-choice strong,.v24-safety p',
+  faq:'.cm-hub-head p,.cm-faq details p,.cm-faq details summary',
+  rules:'.pv7-page h1,.pv7-promise small'
+ };
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  for(const [view,selector] of Object.entries(selectors)){
+   await page.goto(view==='home'?origin+'home.html':BASE+'?view='+view,{waitUntil:'domcontentloaded'});
+   const content=view==='home'?'.v38-home':view==='reception'?'.rec-people':view==='first'?'.v27-first-page':view==='parking'?'.v24-parking-page':view==='faq'?'.cm-faq':'.pv7-page';
+   await expect(page.locator(content).first()).toBeVisible();
+   if(view==='home')await page.locator('details').evaluateAll(xs=>xs.forEach(x=>x.open=true));
+   if(view==='faq')await page.locator('.cm-faq details').evaluateAll(xs=>xs.forEach(x=>x.open=true));
+   if(view==='parking'){
+    await page.locator('[data-v24-route="v24-general"]').click();
+    await page.locator('#v24-general details').evaluateAll(xs=>xs.forEach(x=>x.open=true));
+   }
+   const orphans=await page.evaluate(sel=>{
+    const found=[];let checked=0;
+    for(const el of document.querySelectorAll(sel)){
+     const bounds=el.getBoundingClientRect(),style=getComputedStyle(el);
+     if(bounds.width<6||bounds.height<6||style.visibility==='hidden'||style.display==='none'||el.closest('[hidden],[aria-hidden="true"]'))continue;
+     checked++;
+     const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),lines=new Map();let node;
+     while((node=walker.nextNode())){
+      for(let i=0;i<node.textContent.length;i++){
+       const ch=node.textContent[i];if(ch==='\\n')continue;
+       const r=document.createRange();r.setStart(node,i);r.setEnd(node,i+1);
+       const rect=r.getBoundingClientRect();if(rect.height<2||rect.width<0.3)continue;
+       const y=Math.round(rect.top);lines.set(y,(lines.get(y)||'')+ch);
+      }
+     }
+     const rows=[...lines].sort((a,b)=>a[0]-b[0]).map(x=>x[1].replace(/\\s+/g,' ').trim()).filter(Boolean);
+     if(rows.length<2)continue;
+     const orphan=rows.at(-1).replace(/[。？！、．・\\s（）「」:,.→↗]/g,'');
+     if(orphan.length<=2)found.push({text:el.textContent.replace(/\\s+/g,' ').slice(0,90),rows:rows.slice(-3)});
+    }
+    return {checked,found};
+   },selector);
+   expect(orphans.checked,'no matching content '+view+' '+width).toBeGreaterThan(0);
+   expect(orphans.found,view+' '+width+': '+JSON.stringify(orphans.found)).toEqual([]);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   }
  }
 });

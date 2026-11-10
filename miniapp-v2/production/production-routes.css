@@ -235,6 +235,16 @@ body.v7-reception-active .rec-people.v26-people .rec-stepper button:disabled{opa
 .v26-infant-note{margin:0 2px 15px;padding:10px 11px;border-left:3px solid #2f7d4a;background:#f4f8f5;color:#52655a}.v26-infant-note strong{display:block;font-size:.63rem;color:#31543a}.v26-infant-note span{display:block;margin-top:3px;font-size:.56rem;line-height:1.55;font-weight:750}
 @media(max-width:390px){body.v7-reception-active .rec-people.v26-people .rec-person{grid-template-columns:34px minmax(0,1fr) auto;gap:7px;padding:10px 7px}.v26-person-icon{width:34px;height:34px;border-radius:10px;font-size:.78rem}body.v7-reception-active .rec-people.v26-people .rec-stepper{grid-template-columns:40px 48px 40px;gap:3px}body.v7-reception-active .rec-people.v26-people .rec-stepper button{width:40px;height:40px;border-radius:12px}.v26-count{min-width:48px}.v26-count output{font-size:1.16rem!important}.v26-person-label strong{font-size:.78rem!important}.v26-person-label small{font-size:.51rem!important}.v26-price{font-size:.5rem;padding:3px 6px}}
 
+@media(max-width:350px){
+ html body.v7-reception-active #app .rec-people.v26-people .rec-person{grid-template-columns:34px minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:10px!important;row-gap:8px!important}
+ html body.v7-reception-active #app .rec-people.v26-people .rec-person>.v26-person-icon{grid-column:1!important;grid-row:1!important}
+ html body.v7-reception-active #app .rec-people.v26-people .rec-person>.v26-person-label{grid-column:2!important;grid-row:1!important}
+ html body.v7-reception-active #app .rec-people.v26-people .rec-person>.rec-stepper{grid-column:1/-1!important;grid-row:2!important;width:100%!important;grid-template-columns:44px minmax(0,1fr) 44px!important;gap:8px!important}
+ html body.v7-reception-active #app .rec-people.v26-people .rec-stepper button{width:44px!important;height:44px!important}
+}
+
+html body.v7-reception-active #app .rec-remaining-caution{text-wrap:balance!important}
+
 /* miniapp-v2/production/pages-v7.css */
 /* ASOBooN new HOME / Developing prototype pages v7 */
 :root{--pv7-orange:#f08026;--pv7-blue:#3689cd;--pv7-green:#2f7d4a;--pv7-road:#30363b;--pv7-road2:#454d53;--pv7-cream:#f4f0e7;--pv7-paper:#fbfaf7;--pv7-ink:#22282d;--pv7-muted:#747b80;--pv7-line:#d9d4ca;--pv7-soft:#ece8de;--pv7-danger:#b4473c}
@@ -337,6 +347,8 @@ body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .t
 .v33-entry-action strong{display:block;color:#184D45;font-size:14px;line-height:1.45}
 .v33-entry-action span{display:block;margin-top:2px;color:#355750;font-size:12px;line-height:1.55}
 
+html body #app .v33-rules-page .pv7-promise small{text-wrap:balance!important}
+
 /* miniapp-v2/production/choco-mint-hubs-v8.css */
 /* The legacy viewIn animation starts at opacity:0 and could make newly
    navigated GUIDE/PLAY/FAQ screens look blank. New hubs paint immediately. */
@@ -378,6 +390,8 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 .cm-hub-head p{ text-wrap:pretty; }
 .cm-faq summary{ text-wrap:balance;word-break:normal;overflow-wrap:normal; }
 
+html body #app .cm-faq details p{text-wrap:balance!important}
+
 /* miniapp-v2/production/first-v27.css */
 .v27-first-page .pv7-head{background:linear-gradient(145deg,#286d43,#2f7d4a)}.v27-first-page .pv7-head h1{color:#fff}.v27-first-page .pv7-head p{color:#eef8f1}.v27-first-page .pv7-head .pv7-eyebrow{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.22)}
 .v27-first-head h1{max-width:12em}
@@ -405,6 +419,21 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 .v24-more{margin-top:11px;border:1px solid #ddd9d1;border-radius:12px;background:#faf9f6;overflow:hidden}.v24-more summary{padding:11px 12px;cursor:pointer;color:#42494c;font-size:.63rem;font-weight:950}.v24-more-body{padding:0 10px 10px}.v24-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding:10px 11px;border-radius:11px;background:#f3f1eb}.v24-nav strong{font-size:.59rem;color:#555c5d}.v24-nav span{font-size:.61rem;font-weight:900;color:#303638;text-align:right}
 .v24-route{display:grid;gap:8px;margin-top:11px}.v24-route>div{display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:start;padding:9px 10px;border-radius:11px;background:#f4f4f3}.v24-route b{display:grid;place-items:center;min-height:25px;border-radius:7px;background:#2f7d4a;color:#fff;font-size:.55rem}.v24-route p{margin:1px 0 0;color:#5e6568;font-size:.59rem;line-height:1.55;font-weight:700}.v24-official{display:block;margin-top:10px;text-align:center;color:#3f4a4f;font-size:.59rem;font-weight:950}.v24-safety{padding:12px 13px;border-left:4px solid #f08026;background:#fff7ec}.v24-safety strong{font-size:.65rem;color:#4b4036}.v24-safety p{margin:4px 0 0;color:#675f58;font-size:.59rem;line-height:1.55;font-weight:700}
 @media(max-width:360px){.v24-choice{grid-template-columns:1fr}.v24-section{padding:12px}.v24-facts{grid-template-columns:1fr 1fr}.v24-facts>div:last-child{grid-column:1/-1}.v24-nav{align-items:flex-start;flex-direction:column}.v24-nav span{text-align:left}}
+
+/* Mobile: one readable parking fact per row, including the capacity unit. */
+@media(max-width:480px){
+ html body #app .v24-parking-page .v24-facts.v24-facts{grid-template-columns:minmax(0,1fr)!important}
+ html body #app .v24-parking-page .v24-facts.v24-facts>div{grid-column:auto!important;display:flex!important;align-items:center;justify-content:space-between;gap:12px;text-align:left!important;padding:10px 12px!important}
+ html body #app .v24-parking-page .v24-facts.v24-facts strong{margin:0!important;white-space:nowrap!important;overflow-wrap:normal!important}
+}
+@media(min-width:361px) and (max-width:379px){
+ html body #app .v24-parking-page .v24-choice{grid-template-columns:minmax(0,1fr)!important}
+}
+
+@media(max-width:390px){html body #app .v24-parking-page .v24-choice button strong{font-size:14px!important;white-space:nowrap!important;letter-spacing:-0.02em!important}}
+
+/* Group complete safety sentences instead of leaving a single kana dangling. */
+html body #app .v24-parking-page :is(.v24-alert,.v24-safety) p{text-wrap:balance!important}
 
 /* miniapp-v2/production/entry-v25.css */
 /* v26: lightweight, photo-free wayfinding for guardians. All selectors scoped to the entry page. */

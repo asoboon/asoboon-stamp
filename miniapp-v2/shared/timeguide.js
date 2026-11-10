@@ -83,7 +83,7 @@ function render(){return `<section class="page-card tg-page"><div class="page-he
 <div id="tgStatus" class="tg-status loading"><span>営業カレンダーを確認しています…</span></div>
 <div id="tgDay" class="tg-day"><div><small>本日の営業</small><strong>確認中</strong></div><b>—</b></div>
 <label class="tg-input"><span>入場した時刻</span><input id="tgEntry" type="time" step="300" value="10:00" disabled></label>
-<div id="tgResult" class="tg-result loading"><small>利用終了の目安</small><strong>—</strong><p>営業区分を確認すると自動で計算します。</p></div>
+<div id="tgResult" class="tg-result loading"><small>利用終了の目安</small><strong>—</strong><p>営業区分の確認後に自動計算します。</p></div>
 <div class="tg-details"><div><span>利用時間</span><strong id="tgDuration">—</strong></div><div><span>閉館時刻</span><strong id="tgClose">—</strong></div></div>
 <button id="tgReload" class="tg-reload" type="button">↻ 営業情報を再確認</button>
 <p class="tg-note">終了時刻は目安です。館内アナウンス・スタッフの案内がある場合は、そちらを優先してください。</p>

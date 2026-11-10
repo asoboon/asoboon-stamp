@@ -14,8 +14,8 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=6041ccd5fcf2','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
-  './miniapp-v2/shared/i18n-dictionary.js?v=5f95b60a8c11','./miniapp-v2/shared/i18n-runtime.js?v=82d917a14d39'];
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=130b5ed576cf','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
+  './miniapp-v2/shared/i18n-dictionary.js?v=44e3c19f5cc2','./miniapp-v2/shared/i18n-runtime.js?v=82d917a14d39'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
@@ -38,10 +38,10 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
   const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
-  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=44181bfebfa6';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=e29b3b0b485d';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
-  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=dcfc490561a0';
+  deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=a02dea482cd2';
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';

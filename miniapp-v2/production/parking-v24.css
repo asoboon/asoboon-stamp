@@ -9,3 +9,18 @@
 .v24-more{margin-top:11px;border:1px solid #ddd9d1;border-radius:12px;background:#faf9f6;overflow:hidden}.v24-more summary{padding:11px 12px;cursor:pointer;color:#42494c;font-size:.63rem;font-weight:950}.v24-more-body{padding:0 10px 10px}.v24-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding:10px 11px;border-radius:11px;background:#f3f1eb}.v24-nav strong{font-size:.59rem;color:#555c5d}.v24-nav span{font-size:.61rem;font-weight:900;color:#303638;text-align:right}
 .v24-route{display:grid;gap:8px;margin-top:11px}.v24-route>div{display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:start;padding:9px 10px;border-radius:11px;background:#f4f4f3}.v24-route b{display:grid;place-items:center;min-height:25px;border-radius:7px;background:#2f7d4a;color:#fff;font-size:.55rem}.v24-route p{margin:1px 0 0;color:#5e6568;font-size:.59rem;line-height:1.55;font-weight:700}.v24-official{display:block;margin-top:10px;text-align:center;color:#3f4a4f;font-size:.59rem;font-weight:950}.v24-safety{padding:12px 13px;border-left:4px solid #f08026;background:#fff7ec}.v24-safety strong{font-size:.65rem;color:#4b4036}.v24-safety p{margin:4px 0 0;color:#675f58;font-size:.59rem;line-height:1.55;font-weight:700}
 @media(max-width:360px){.v24-choice{grid-template-columns:1fr}.v24-section{padding:12px}.v24-facts{grid-template-columns:1fr 1fr}.v24-facts>div:last-child{grid-column:1/-1}.v24-nav{align-items:flex-start;flex-direction:column}.v24-nav span{text-align:left}}
+
+/* Mobile: one readable parking fact per row, including the capacity unit. */
+@media(max-width:480px){
+ html body #app .v24-parking-page .v24-facts.v24-facts{grid-template-columns:minmax(0,1fr)!important}
+ html body #app .v24-parking-page .v24-facts.v24-facts>div{grid-column:auto!important;display:flex!important;align-items:center;justify-content:space-between;gap:12px;text-align:left!important;padding:10px 12px!important}
+ html body #app .v24-parking-page .v24-facts.v24-facts strong{margin:0!important;white-space:nowrap!important;overflow-wrap:normal!important}
+}
+@media(min-width:361px) and (max-width:379px){
+ html body #app .v24-parking-page .v24-choice{grid-template-columns:minmax(0,1fr)!important}
+}
+
+@media(max-width:390px){html body #app .v24-parking-page .v24-choice button strong{font-size:14px!important;white-space:nowrap!important;letter-spacing:-0.02em!important}}
+
+/* Group complete safety sentences instead of leaving a single kana dangling. */
+html body #app .v24-parking-page :is(.v24-alert,.v24-safety) p{text-wrap:balance!important}

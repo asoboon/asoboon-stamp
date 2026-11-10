@@ -15,11 +15,11 @@ function page(){return `<section class="page-card pv7-page v12-parking-page v24-
   <span class="v24-route-announcement" role="status" aria-live="polite"></span>
 
   <section class="v24-section" id="v24-general" hidden>
-   <div class="v24-section-head"><span>一般道から</span><h2>駐車場は全部で5か所</h2><p>東門側3か所・正門側2か所。地図で位置を比べて選べます。</p></div>
+   <div class="v24-section-head"><span>一般道から</span><h2>駐車場は全部で5か所</h2><p>東門3か所・正門2か所を地図で比較。</p></div>
    <a class="v24-all-map" data-external target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/@?api=1&map_action=shortlist&place_ids=ChIJXXu6y1SVGGAR_0YLVUttt6Y,ChIJyZN4QJOVGGARXseqERsVP2Y,ChIJoRybHi2VGGARe61DT2GBGW0,ChIJYSPyO0CVGGAR8ny8dIbrVDU,ChIJzwHsNK-VGGARXntcgjBDg-4" aria-label="一般道側の駐車場5か所をGoogleマップでまとめて見る">
     <span class="v24-all-map-icon" aria-hidden="true">📍</span><span class="v24-all-map-copy"><strong>全5か所を地図で見る</strong><small>5つのピンを同時表示</small></span><b>開く ↗</b>
    </a>
-   <div class="v24-alert"><strong>一部駐車場は閉鎖の案内があります</strong><p>Googleマップの「営業中」は参考です。現地の案内を優先し、一般道側は18:00までに出庫してください。</p><a data-external href="https://www.city.kawaguchi.lg.jp/soshiki/01120/035/iinakawaguchi/49590.html" target="_blank" rel="noopener noreferrer">川口市の閉鎖情報を確認 ↗</a></div>
+   <div class="v24-alert"><strong>駐車場の閉鎖情報があります</strong><p>Googleマップの「営業中」は参考です。一般道側は18:00までに出庫し、現地の案内を優先してください。</p><a data-external href="https://www.city.kawaguchi.lg.jp/soshiki/01120/035/iinakawaguchi/49590.html" target="_blank" rel="noopener noreferrer">川口市の閉鎖情報を確認 ↗</a></div>
    <h3 class="v24-lots-heading">駐車場を個別に見る</h3>
    <div class="v24-lots" aria-label="一般道側の駐車場5か所">
     <a class="v24-lot-row" data-external data-v24-lot="1" href="https://maps.app.goo.gl/hKcx4SKWdEYZHcPE6?g_st=ic" target="_blank" rel="noopener noreferrer"><span class="v24-lot-copy"><strong>東門駐車場①</strong><small>東門側｜徒歩 約3分</small></span><b>地図 ↗</b></a>
@@ -43,7 +43,7 @@ function page(){return `<section class="page-card pv7-page v12-parking-page v24-
    <a class="v24-official" data-external href="https://www.kawaguchi-highwayoasis.com/access/" target="_blank" rel="noopener noreferrer">公式アクセス情報を見る ↗</a>
   </section>
 
-  <div class="v24-safety" hidden><strong>駐車場から施設まで</strong><p>車の出入りに注意し、お子さまと手をつないでお進みください。</p></div>
+  <div class="v24-safety" hidden><strong>駐車場から施設まで</strong><p>車に注意し、お子さまと手をつなぎましょう。</p></div>
  </div>
 </section>`}
 function patch(){queued=false;const s=route();if(s.view!=='parking'||s.panel==='info')return;const main=root.querySelector('main.view');if(!main||main.querySelector('.v24-parking-page'))return;main.innerHTML=page();main.dataset.pv7Key='parking:v24'}
