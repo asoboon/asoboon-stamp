@@ -1510,3 +1510,17 @@ html body.v7-reception-active #app .rec-people.v26-people .rec-stepper button{
 }
 
 html body.v7-reception-active #app :is(.rec-slots,.rec-people,.rec-summary,.rec-disclaimer){scroll-margin-top:90px;}
+
+
+/* Secondary route copy: lower bound for essential readable instructions. */
+html body #app .pv7-promise small,
+html body #app .v25-entry-page .entry-choice-sub,
+html body #app .cs-page .cs-note,
+html body #app .v27-first-page .pv7-head :is(p,.pv7-eyebrow),
+html body.v7-reception-active #app :is(.rv7-head-note,.rec-remaining-caution,.rec-day small,.rec-remaining-info,.rec-remaining-note){
+ font-size:12px!important;line-height:1.5!important;
+}
+html body.v7-reception-active #app .rv7-head-note{font-size:13px!important}
+html body.v7-reception-active #app .rv7-step b{
+ font-size:12px!important;min-width:24px;min-height:24px;
+}

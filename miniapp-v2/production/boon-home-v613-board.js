@@ -13,12 +13,12 @@ const L={
  kmr:['Pêşbîniya qelebalixiyê','Dema ketinê','WEB mayî','LINE mayî','Texmîn: (320 − WEB mayî − LINE mayî) ÷ 320. Ne hejmara rastîn a mêvanan e.','—: hejmara mayî nehat piştrastkirin.']
 };
 const days={
- en:['Sat/Sun/holiday','Special weekday','Weekday','Monday','2h 30m limit','3h limit','No time limit'],
- 'zh-CN':['周末及节假日','特别平日','平日','周一','限时2小时30分','限时3小时','不限时'],
- ko:['주말·공휴일','특정 평일','평일','월요일','2시간 30분 제한','3시간 제한','시간 무제한'],
- vi:['Cuối tuần/ngày lễ','Ngày thường đặc biệt','Ngày thường','Thứ Hai','Giới hạn 2 giờ 30 phút','Giới hạn 3 giờ','Không giới hạn'],
- ne:['सप्ताहान्त/बिदा','विशेष कार्यदिन','कार्यदिन','सोमबार','२ घण्टा ३० मिनेट','३ घण्टा','समय सीमा छैन'],
- kmr:['Dawiya hefteyê/cejn','Roja taybet a hefteyê','Roja hefteyê','Duşem','2 saet 30 xulek','3 saet','Bê sînor']
+ en:['Sat/Sun/holiday','Special weekday','Weekday','Monday','2h 30m limit','3h limit','No time limit','Closed'],
+ 'zh-CN':['周末及节假日','特别平日','平日','周一','限时2小时30分','限时3小时','不限时','休馆'],
+ ko:['주말·공휴일','특정 평일','평일','월요일','2시간 30분 제한','3시간 제한','시간 무제한','휴관'],
+ vi:['Cuối tuần/ngày lễ','Ngày thường đặc biệt','Ngày thường','Thứ Hai','Giới hạn 2 giờ 30 phút','Giới hạn 3 giờ','Không giới hạn','Đóng cửa'],
+ ne:['सप्ताहान्त/बिदा','विशेष कार्यदिन','कार्यदिन','सोमबार','२ घण्टा ३० मिनेट','३ घण्टा','समय सीमा छैन','बन्द'],
+ kmr:['Dawiya hefteyê/cejn','Roja taybet a hefteyê','Roja hefteyê','Duşem','2 saet 30 xulek','3 saet','Bê sînor','Girtî']
 };
 function language(){const l=String(window.ASOBOON_I18N?.language||document.documentElement.lang||'ja');return L[l]?l:l.startsWith('zh')?'zh-CN':'ja'}
 function copyTo(node,str){if(node&&node.textContent!==str)node.textContent=str}
@@ -33,16 +33,18 @@ function translateBusiness(){
   // Preserve the native Japanese value separately from this layer's translations.
   // A language switch must never promote our English/Chinese output to the source.
   const lastRendered=node.dataset.v613Rendered;
-  if(!node.dataset.v613Original||
-      (actual!==lastRendered&&/(?:土日祝|土休日|平日|月曜|2時間30分|3時間|無制限)/.test(actual))){
+  if(!Object.prototype.hasOwnProperty.call(node.dataset,'v613Original')||actual!==lastRendered){
    node.dataset.v613Original=actual;
   }
   const jp=node.dataset.v613Original||actual;
   let display=jp;
   if(lang!=='ja'&&dict){
    if(i===0){
-    const names=[['平日特定日',dict[1]],['土日祝',dict[0]],['土休日',dict[0]],['平日',dict[2]],['月曜',dict[3]]];
-    for(const [from,to] of names)if(display.includes(from)){display=display.replace(from,to);break}
+    if(jp==='休館日'||jp==='休館')display=dict[7]||jp;
+    else{
+      const names=[['平日特定日',dict[1]],['土日祝',dict[0]],['土休日',dict[0]],['平日',dict[2]],['月曜',dict[3]]];
+      for(const [from,to] of names)if(display.includes(from)){display=display.replace(from,to);break}
+    }
    }else{
     display=jp.includes('2時間30分')?dict[4]:jp.includes('3時間')?dict[5]:jp.includes('無制限')?dict[6]:jp;
    }

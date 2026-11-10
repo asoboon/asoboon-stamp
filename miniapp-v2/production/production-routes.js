@@ -1344,6 +1344,9 @@ function replaceMethodIcons(){root.querySelectorAll('.rec-method').forEach(btn=>
 function cleanLabels(){setText(root.querySelector('#recWeb strong'),'LINE受付');setText(root.querySelector('#recOnsite strong'),'LINE受付');const titles=root.querySelectorAll('.rec-title');setText(titles[0],'ご利用の回');setText(titles[1],'ご利用人数')}
 function cleanCustomerCopy(){
  const dev=isDevTools();
+ // A valid party size is not a confirmed, or even an available, reception slot.
+ const peopleMessage=root.querySelector('#recPeopleMsg');
+ if(peopleMessage?.classList.contains('ok')&&peopleMessage.textContent.trim()==='この人数で受付できます。')setText(peopleMessage,'人数の条件は満たしています。');
  const status=root.querySelector('#recStatus');
  if(status&&!dev){
    const t=String(status.textContent||'');

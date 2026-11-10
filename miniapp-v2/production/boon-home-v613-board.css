@@ -357,3 +357,13 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-legal a{
 html.boon-v4.boon-v5-mint body.v38-home-active #app :is(.v38-calendar-card,.v38-timeguide-cta,.v58-primary a,.v58-primary button,.v613-row a,.v613-row button):focus-visible{
  outline:3px solid #075E70!important;outline-offset:3px!important;
 }
+
+
+/* Always legible navigation: some legacy theme layers target the inner label. */
+html body #app>.cm-bottom-nav .cm-nav-tab,
+html body #app>.cm-bottom-nav .cm-nav-tab :is(span,strong,b){
+ font-size:12px!important;line-height:1.25!important;
+}
+html body #app>.cm-bottom-nav .cm-nav-tab:focus-visible{
+ outline:3px solid #FFD96F!important;outline-offset:-3px!important;
+}
