@@ -354,6 +354,17 @@ main.view:has(.cm-hub){animation:none!important;opacity:1!important;}
 @media(max-width:360px){#app>.cm-bottom-nav .cm-nav-tab{font-size:10.5px} .cm-hub-row{gap:7px}}
 @media(prefers-reduced-motion:reduce){#app>.cm-bottom-nav *, .cm-hub *{animation:none!important;transition:none!important}}
 
+/* Search all FAQ answers without hiding any question until the user enters text. */
+.cm-faq-find{padding:14px 13px 2px;color:var(--cm-cocoa)}
+.cm-faq-find label{display:block;margin-bottom:7px;font-size:14px;font-weight:850;line-height:1.4}
+.cm-faq-find-field{display:flex;align-items:center;gap:8px}
+.cm-faq-find input{min-width:0;min-height:48px;width:100%;flex:1;border:2px solid #85BAB0;border-radius:12px;padding:10px 12px;background:#FFFEFB;color:#3A231D;font-size:16px;line-height:1.5}
+.cm-faq-find input::placeholder{color:#4D655F;opacity:1}
+.cm-faq-find button{min-width:44px;min-height:44px;padding:6px 9px;border:1px solid #75B6AA;border-radius:10px;background:#ECFAF5;color:#154C47;font-size:13px;font-weight:800}
+.cm-faq-find :is(input,button):focus-visible{outline:3px solid #136A79;outline-offset:2px}
+.cm-faq-find p{margin:8px 0 0;color:#47625B;font-size:12px;font-weight:700;line-height:1.5}
+.cm-faq details[hidden],.cm-faq-find button[hidden]{display:none!important}
+
 /* miniapp-v2/production/first-v27.css */
 .v27-first-page .pv7-head{background:linear-gradient(145deg,#286d43,#2f7d4a)}.v27-first-page .pv7-head h1{color:#fff}.v27-first-page .pv7-head p{color:#eef8f1}.v27-first-page .pv7-head .pv7-eyebrow{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.22)}
 .v27-first-head h1{max-width:12em}

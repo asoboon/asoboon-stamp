@@ -99,6 +99,10 @@ function progressiveSections(home,state,verified){
  foldExisting(home,'.v38-guide','v59GuideFold',words.guide,words.open,words.close);
  const playWords=verified&&state==='waiting'?[words.play[0],words.waiting]:words.play;
  foldExisting(home,'.v38-play','v59PlayFold',playWords,words.open,words.close);
+ // Visitor help belongs before games: fewer taps for queue, price or re-entry questions.
+ const help=home.querySelector(':scope > .v38-help');
+ const playFold=home.querySelector(':scope > #v59PlayFold');
+ if(help&&playFold&&help.nextElementSibling!==playFold)home.insertBefore(help,playFold);
 }
 
 function make(){
