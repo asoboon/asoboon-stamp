@@ -1286,12 +1286,19 @@ async function loadDay({force=false}={}){
   setStatus('営業カレンダーを確認しています…','loading');
   try{
     if(typeof D.getCurrent!=='function')throw Error('営業日エンジンを読み込めませんでした。');
-    const day=await D.getCurrent({force});
+    // The timer is explicitly for TODAY; after the 19:00 reservation rollover,
+    // getCurrent() may resolve to tomorrow. Query the actual JST calendar date.
+    const today=currentJst().date;
+    const day=typeof D.getByDate==='function'
+      ?await D.getByDate(today,{force})
+      :await D.getCurrent({force});
     if(gen!==generation||!$('tgEntry'))return;
+    if(!day?.ok||String(day.operationalDate||'')!==today)
+      throw Error('本日の営業情報を確認できませんでした。');
     const dayEl=$('tgDay');
     dayEl.innerHTML=`<div><small>${formatDate(day.operationalDate)} の営業</small><strong>${day.businessType}</strong></div><b>${day.isClosed?'休館':day.durationLabel}</b>`;
     if($('tgDuration'))$('tgDuration').textContent=day.isClosed?'—':day.durationLabel;
-    if($('tgClose'))$('tgClose').textContent=day.closingTime||'—';
+    if($('tgClose'))$('tgClose').textContent=day.isClosed?'—':day.closingTime||'—';
     const input=$('tgEntry');input.disabled=Boolean(day.isClosed);const saved=readSaved(day);input.value=saved?.entryTime||defaultEntry(day);
     window.__ASOBOON_V2_TIMEGUIDE_DAY=day;
     if(day.isClosed)setStatus('本日は休館日です。','closed');
@@ -1300,6 +1307,8 @@ async function loadDay({force=false}={}){
   }catch(e){
     if(gen!==generation||!$('tgEntry'))return;
     window.__ASOBOON_V2_TIMEGUIDE_DAY=null;
+    const dayEl=$('tgDay');
+    if(dayEl)dayEl.innerHTML='<div><small>本日の営業</small><strong>取得できません</strong></div><b>—</b>';
     $('tgEntry').disabled=true;
     if($('tgDuration'))$('tgDuration').textContent='—';
     if($('tgClose'))$('tgClose').textContent='—';
