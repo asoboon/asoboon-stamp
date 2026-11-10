@@ -143,7 +143,7 @@ const index=`<!doctype html>
 <head>
 <meta charset="utf-8">
 <script src="../shared/asoquest-deeplink.js?v=20261006-02"></script>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f0e7">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>ASOBooN｜公式LINEミニアプリ</title>
