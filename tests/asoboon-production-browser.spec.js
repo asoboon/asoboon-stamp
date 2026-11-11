@@ -3210,7 +3210,7 @@ test('Newly hidden WEB overrides an older certified after-hours archive',async({
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
  await expect(first).toBeVisible();
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
  await expect(first.locator('a[href]')).toHaveCount(0);
 });
