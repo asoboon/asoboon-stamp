@@ -3607,15 +3607,18 @@ test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid
  await expect(cards).toHaveCount(2);
  for(const width of [320,375,390,430]){
   await page.setViewportSize({width,height:844});
-  const data=await page.evaluate(()=>{
+  const data=await page.waitForFunction(()=>{
    const links=[...document.querySelectorAll('.v59-calendar-links .v38-calendar-card')];
+   // The production HOME disclosure layer can reparent calendars between
+   // animation frames. Do not measure in the temporary empty DOM state.
+   if(links.length!==2||links.some(e=>!e.isConnected||!e.querySelector('strong')))return false;
    const first=links[0].getBoundingClientRect(),second=links[1].getBoundingClientRect();
    const title=links.map(e=>{
     const x=e.querySelector('strong'),r=x.getBoundingClientRect();
     return {text:x.textContent,oneLine:r.height<=parseFloat(getComputedStyle(x).lineHeight)*1.1};
    });
    return {oneColumn:second.top>=first.bottom-2,links:title,overflow:document.documentElement.scrollWidth-innerWidth};
-  });
+  },null,{timeout:10000}).then(handle=>handle.jsonValue());
   expect(data.oneColumn,'calendar must not crush Japanese into 60px column').toBe(true);
   expect(data.links.every(x=>x.oneLine),JSON.stringify(data.links)).toBe(true);
   expect(data.overflow).toBeLessThanOrEqual(1);
