@@ -26,7 +26,7 @@ function checkPlay(snap,lang,route,step=null){
   voiceExpect(snap.state.lang).toBe(lang);
   voiceExpect(snap.state.lastFile).toBe('./assets/owner-voice/'+row.file);
   voiceExpect(snap.plays.at(-1).src).toContain('/assets/owner-voice/'+row.file);
-  voiceExpect(snap.plays.at(-1).src).toContain('volume_master=20261111-v2');
+  voiceExpect(snap.plays.at(-1).src).toContain('clarity_master=20261111-v3');
   voiceExpect(snap.plays.at(-1).volume).toBeGreaterThan(0);
   voiceExpect(snap.oldSpeech,'native speechSynthesis must not replace owner voice').toBe(0);
   voiceExpect(snap.state.missing).toBe(0);
