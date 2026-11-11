@@ -373,19 +373,6 @@ export default {
     try { body = await base.clone().json(); }
     catch { return base; }
 
-    if (
-      base.ok &&
-      body?.ok === true &&
-      body?.stored === true &&
-      body?.alreadyExists === true &&
-      await releaseTerminalPreviousClaim(env, createPayload, body)
-    ) {
-      const retryRequest = rebuildCreateRequest(request, createPayload);
-      base = await gateway.fetch(retryRequest, env, ctx);
-      try { body = await base.clone().json(); }
-      catch { return base; }
-    }
-
     if (!(base.ok && body?.ok === true && body?.stored === true && body?.receiptNo && body?.reserveId)) return base;
     if (body?.alreadyExists === true) return base;
 
@@ -2539,7 +2526,7 @@ async function cancelReservationForTrustedSession(env,session,cancelSource='manu
 }
 async function fetchAllReservationsForReconcile(env, { force=false }={}) {
   const now = Date.now();
-  if (!force && reconcileAllCache.rows.length && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
+  if (!force && reconcileAllCache.rows.length && now >= reconcileAllCache.savedAt && now - reconcileAllCache.savedAt < RECONCILE_CACHE_MS) {
     return reconcileAllCache.rows;
   }
   if (reconcileAllInflight) return await reconcileAllInflight;
@@ -2613,52 +2600,6 @@ function reservationState(row) {
   return 'unknown';
 }
 
-async function releaseTerminalPreviousClaim(env, createPayload, existing) {
-  if (!env?.DB || !env?.AIRWAIT_API_KEY) return false;
-  try {
-    const waitTypeId = String(existing.waitTypeId || '');
-    if (!/^\d{4}$/.test(waitTypeId) || !existing.reserveId) return false;
-    // A fresh AirWAIT read is required before releasing duplicate protection.
-    const rows = (await fetchAllReservationsForReconcile(env, { force:true }))
-      .filter(r => String(r?.waitTypeId || '') === waitTypeId);
-    const match = selectTicketMatch(rows, existing.receiptNo);
-    const own = match.row;
-    if (!own || !['2','3'].includes(String(own.status || ''))) return false;
-
-    const claim = await env.DB.prepare(`SELECT user_hash,business_date,request_id,reserve_id,receipt_no,wait_type_id
-      FROM v2_user_day_claims
-      WHERE business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'
-      LIMIT 1`)
-      .bind(
-        String(existing.businessDate || createPayload.operationalDate || ''),
-        String(existing.reserveId || ''),
-        String(existing.receiptNo || ''),
-        waitTypeId,
-      ).first();
-    if (!claim?.user_hash || !claim?.request_id) return false;
-
-    const removed = await env.DB.prepare(`DELETE FROM v2_user_day_claims
-      WHERE user_hash=? AND business_date=? AND request_id=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
-      .bind(
-        String(claim.user_hash),
-        String(claim.business_date),
-        String(claim.request_id),
-        String(claim.reserve_id),
-        String(claim.receipt_no),
-        String(claim.wait_type_id),
-      ).run();
-    if (Number(removed?.meta?.changes || 0) !== 1) return false;
-
-    // The first gateway pass cached alreadyExists under the new requestId.
-    // Drop only that cache entry so the retry can perform exactly one new create.
-    await env.DB.prepare(`DELETE FROM v2_request_results WHERE request_id=?`)
-      .bind(String(createPayload.requestId || '')).run();
-    return true;
-  } catch (e) {
-    console.warn('TERMINAL_PREVIOUS_CLAIM_RELEASE_FAILED', safeError(e));
-    return false;
-  }
-}
 function ticketParts(value) {
   const k=String(value||'').normalize('NFKC').toUpperCase().replace(/[\s\-ー]/g,'');
   const m=k.match(/^([FT]?)(\d+)$/);
@@ -2689,16 +2630,6 @@ async function sha256Hex(value) {
   const b = new TextEncoder().encode(String(value || ''));
   const h = await crypto.subtle.digest('SHA-256', b);
   return Array.from(new Uint8Array(h), x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function rebuildCreateRequest(original, payload) {
-  const headers = new Headers(original.headers);
-  headers.set('Content-Type','application/x-www-form-urlencoded;charset=UTF-8');
-  return new Request(original.url, {
-    method:'POST',
-    headers,
-    body:new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v??'')])),
-  });
 }
 
 function withProductionServiceDefaults(env) {
