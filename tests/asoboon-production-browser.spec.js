@@ -3727,3 +3727,33 @@ test('2026-11-11 narrow mobile screens avoid isolated 1–2 character line endin
   }
  }
 });
+
+
+for(const [businessType,durationLabel,expected,closingTime] of [
+  ['平日','時間制限なし','時間制限なし','17:00'],
+  ['平日','無制限','時間制限なし','17:00'],
+  ['平日特定日','3時間','3時間制','17:00'],
+  ['土日祝日','2時間30分','2時間30分制','18:00']
+]){
+ test('2026-11-11 HOME duration never doubles 制: '+businessType+' '+durationLabel,async({page})=>{
+  await installProduction(page,{clockIso:'2026-11-11T03:00:00.000Z'});
+  await page.route(GATEWAY+'**',async route=>{
+   const u=new URL(route.request().url()),action=u.searchParams.get('action');
+   if(action!=='businessDay')return route.fallback();
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+     ok:true,calendarDate:'2026-11-11',operationalDate:'2026-11-11',
+     businessType,isClosed:false,durationLabel,closingTime
+   })});
+  });
+  await page.goto(new URL('../../home.html',BASE).href,{waitUntil:'domcontentloaded'});
+  const duration=page.locator('#v38Today>span:nth-child(3) strong');
+  await expect(duration).toHaveText(expected,{timeout:15000});
+  await expect(duration).not.toContainText('なし制');
+  if(durationLabel==='時間制限なし'){
+   await page.locator('#asoboon-language-select').selectOption('en');
+   await expect(duration).toHaveText('No time limit');
+   await page.locator('#asoboon-language-select').selectOption('ja');
+   await expect(duration).toHaveText('時間制限なし');
+  }
+ });
+}
