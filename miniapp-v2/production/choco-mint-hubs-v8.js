@@ -33,7 +33,7 @@ function faqPage(){queueMicrotask(applyFaqLabels);return `<section class="page-c
 <details data-faq-key="playtime"><summary>何時間遊べますか？</summary><p>通常平日は時間無制限、平日特定日は3時間、土日祝・月曜は2時間30分が基本です。入場日の営業区分で変わります。「アソブーンタイマー」で終了時刻の目安を確認できます。</p></details>
 <details data-faq-key="fees"><summary>入場料金はいくら？</summary><p>大人600円・子ども900円です。生後6か月未満のお子さまは、同じ会計に子どもが複数いる場合の2人目以降が無料です。詳しくは「料金」案内をご確認ください。</p></details>
 <details data-faq-key="baby"><summary>乳幼児向けの場所はある？</summary><p>0歳〜1歳6か月のお子さま向けの「オレンジ・ポンド」があります。利用対象を守って安全に遊びましょう。</p></details>
-<details data-faq-key="food"><summary>館内で飲食できますか？</summary><p>館内での食事はできません。飲み物は土足エリアでお願いします。遊具エリアには持ち込まないでください。</p></details>
+<details data-faq-key="food"><summary>館内で飲食できますか？</summary><p>アメ・ガム・お菓子を含め、食べ物は一切禁止です。飲み物は土足エリアでのみお願いします。遊具エリアでは飲めません。</p></details>
 <details data-faq-key="reentry"><summary>一時退場してから再入場できる？</summary><p>「一時退場・再入場」に目的ごとの手順があります。全員で一時退場するときは当日のレシートを保管し、戻る際に提示してください。大人だけ外出する場合は、館内に別の保護者が残ることが条件です。外出する保護者は黄色ホルダーを持って出て、再入場時に提示してください。退場前にはスタッフにお声がけください。</p></details>
 <details data-faq-key="locker"><summary>ロッカーはありますか？</summary><p>小37L・大50Lのロッカーがあります。鍵や貴重品の管理にご注意ください。</p></details>
 <details data-faq-key="parking"><summary>車以外でも行ける？ 駐車場は？</summary><p>ASOBooNは川口ハイウェイオアシス内にあります。一般道からも来場できます。入口は「駐車場・アクセス」でご確認ください。</p></details>
@@ -51,6 +51,7 @@ ${hubLink('ASOQUEST スタンプラリー','館内のQRから車のパーツを�
 ${hubLink('ブーンRUN','障害物をよけて走ろう','boonrun/','▶')}
 ${hubLink('ブーンジャンプ','3タップで飛距離勝負','boonjump/','▶')}
 ${hubLink('BOON パズル','ブロックを動かしてゴールを目指そう','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23','▦')}
+${hubLink('おみくじ','今日の運勢を占う','omikuji.html','☆')}
 </div><div class="cm-hub-tip"><strong>スタンプラリーに参加する方へ</strong><p>パーツの取得は館内の専用QRから行ってください。完成した画面をスタッフへ見せてね。</p></div>${hubRow('ホームへ戻る','空き状況を見る','home','','⌂')}</section>`}
 
 const FAQ_SEARCH_ALIASES=Object.freeze({

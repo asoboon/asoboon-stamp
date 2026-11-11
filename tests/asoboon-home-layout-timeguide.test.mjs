@@ -15,7 +15,21 @@ test('timeguide persists a same-environment HOME result and clears invalid input
 });
 
 for(const env of ['develop','production']){
-  test(env+' HOME puts surprise vote above guides and event calendar below play content',()=>{
+  if(env==='production'){
+    test('production HOME shows only first-visit guide, calendars, and timer while bottom tabs own games/FAQ',()=>{
+      const home=read('miniapp-v2/production/home-v38.js');
+      const routes=read('miniapp-v2/production/choco-mint-hubs-v8.js');
+      assert.match(home,/<section class="v38-first-shortcut"/);
+      assert.match(home,/business-calendar\.html/);
+      assert.match(home,/event-calendar\.html/);
+      assert.match(home,/v38TimeguideShortcut/);
+      assert.doesNotMatch(home,/<section class="v38-play"/);
+      assert.doesNotMatch(home,/<section class="v38-guide"/);
+      assert.doesNotMatch(home,/<section class="v38-help"/);
+      assert.match(routes,/function playPage\(\)/);
+      assert.match(routes,/function faqPage\(\)/);
+    });
+  }else test(env+' HOME puts surprise vote above guides and event calendar below play content',()=>{
     const s=read('miniapp-v2/'+env+'/home-v38.js');
     const surprise=s.indexOf('<section id="v38Surprise"');
     const guide=s.indexOf('<section class="v38-guide">');
