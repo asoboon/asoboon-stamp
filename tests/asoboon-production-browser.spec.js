@@ -4083,6 +4083,7 @@ test('2026-11-11 verified missing receipt pauses polling and keeps manual retry 
  expect(calls).toBe(3);
  await page.reload({waitUntil:'domcontentloaded'});
  await expect(page.locator('#csTitle')).toContainText('この受付番号を確認できません');
+ await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
  await page.waitForTimeout(300);
  expect(calls).toBe(3);
  await page.locator('#csRefresh').click();
@@ -4126,6 +4127,7 @@ test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but acce
   if(['reservationStatus','recoverReservationSession'].includes(a))lookups++;
   return route.fallback();
  });
+ await page.addInitScript(()=>{window.__homeStatusKinds=[];window.addEventListener('asoboon:v8-home-status',e=>window.__homeStatusKinds.push(String(e.detail?.kind||'')))});
  await page.addInitScript(()=>{
   const now=Date.now();
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
@@ -4138,6 +4140,13 @@ test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but acce
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('canceled');
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R333');
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await expect(page.locator('#v38Hero')).toContainText('受付番号は保存済みです');
+ const terminalEvents=await page.evaluate(()=>window.__homeStatusKinds);
+ const canceledIndex=terminalEvents.lastIndexOf('canceled');
+ expect(canceledIndex).toBeGreaterThanOrEqual(0);
+ expect(terminalEvents.slice(canceledIndex+1)).not.toContain('pending');
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('canceled');
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
  await page.waitForTimeout(250);
  expect(lookups).toBe(0);

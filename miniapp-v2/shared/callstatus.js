@@ -579,7 +579,7 @@ document.addEventListener('visibilitychange',()=>{
     if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=0}
     nextPollAt=0;return;
   }
-  if($('csState')){startHeartbeat();void refreshStatus({manual:true})}
+  if($('csState')){startHeartbeat();void refreshStatus()}
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
   version:'1.9.0-stop-canceled-receipt',
