@@ -50,3 +50,8 @@ body.v38-home-active .topbar{display:none!important}
 .v38-crowd-channel .v38-crowd-tap{display:block;margin-top:auto;padding-top:6px;font-size:12px;line-height:1.4;font-weight:900;text-decoration:underline;text-underline-offset:2px}
 .v38-crowd-channel.is-unavailable{opacity:.75}
 .v38-crowd-card .v38-crowd-tap-hint{margin:10px 0 0;color:#526576;font-size:12px;line-height:1.45;font-weight:760;text-align:center}
+
+/* HOME: the single first-visit link stays above footer; guide/play/FAQ live in bottom navigation. */
+html body.v38-home-active .v38-first-shortcut{margin:12px 0 17px;min-width:0}
+html body.v38-home-active .v38-first-shortcut .v38-guide-grid{display:grid;grid-template-columns:minmax(0,1fr)}
+html body.v38-home-active .v38-first-shortcut .v38-guide-card{width:100%;min-height:78px}

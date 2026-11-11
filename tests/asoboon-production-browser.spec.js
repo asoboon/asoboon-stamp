@@ -54,6 +54,13 @@ async function installProduction(page,{status=null,clockIso='2026-10-03T03:00:00
   });
 }
 
+async function openGuideRoute(page,view){
+ await page.locator('.cm-nav-tab[data-v7-view="guide"]').click();
+ await expect(page.locator('.cm-hub h1')).toHaveText('ご利用案内');
+ await page.locator('.cm-hub-list [data-v7-view="'+view+'"]').first().click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe(view);
+}
+
 test('Production new HOME renders all core routes and legal information',async({page})=>{
   const deferredRequests=[];
   page.on('request',request=>{if(request.url().includes('/production-routes.'))deferredRequests.push(request.url())});
@@ -70,15 +77,11 @@ test('Production new HOME renders all core routes and legal information',async({
   await expect(page.locator('.v38-legal a[href^="https://comaam.jp"]')).toHaveAttribute('href','https://comaam.jp/privacy-policy/');
   await expect(page.locator('.v38-calendar-card').first()).toHaveAttribute('data-external','1');
 
-  const routes=[
-    ['[data-v7-view="first"]:not([data-v7-panel])','first'],
-    ['[data-v7-view="parking"]','parking'],
-    ['[data-v7-view="rules"]','rules'],
-    ['[data-v7-view="entry"]','entry'],
-    ['#v38TimeguideShortcut','timeguide'],
-  ];
-  for(const [selector,view] of routes){
-    await page.locator(selector).first().click();
+  const routes=['first','parking','rules','entry','timeguide'];
+  for(const view of routes){
+    if(view==='first')await page.locator('.v38-first-shortcut [data-v7-view="first"]').click();
+    else if(view==='timeguide')await page.locator('#v38TimeguideShortcut').click();
+    else await openGuideRoute(page,view);
     await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe(view);
     await expect.poll(()=>page.evaluate(()=>window.ASOBOON_V2_ROUTE_ASSETS_READY||false)).toBe(true);
     expect(deferredRequests).toHaveLength(2);
@@ -92,7 +95,7 @@ for(const width of [320,375,390,430,768]){
   await installProduction(page);
   await page.setViewportSize({width,height:844});
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.locator('[data-v7-view="parking"]').first().click();
+  await openGuideRoute(page,'parking');
   const container=page.locator('.v24-parking-page');
   await expect(container).toBeVisible();
   const general=page.locator('#v24-general'),highway=page.locator('#v24-highway');
@@ -159,27 +162,33 @@ for(const width of [320,375,390,430,768]){
  });
 }
 
-test('Production play content features one new stamp rally and four other games without retired LIFF URLs',async({page})=>{
-  await installProduction(page);
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const cards=page.locator('.v38-play-card');
-  await expect(cards).toHaveCount(5);
-  for(const label of ['スタンプラリー','BOON BLOCK','ブーンジャンプ','ブーンRUN','おみくじ']){
-    const card=cards.filter({hasText:label}).first();
-    await expect(card).toHaveAttribute('data-external','1');
-  }
-  await expect(cards.filter({hasText:'スタンプラリー'}).first()).toHaveAttribute('href',new URL('asoquest/',BASE).href);
-  await expect(cards.filter({hasText:'BOON BLOCK'}).first()).toHaveAttribute('href','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
-  expect(await page.content()).not.toMatch(/2009888671|57TOefc3/);
+test('Production play content lives only in the bottom PLAY tab and retains its four links',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-play,.v38-play-card,#v59PlayFold')).toHaveCount(0);
+ await page.locator('.cm-nav-tab[data-v7-view="play"]').click();
+ await expect(page.locator('.cm-hub h1')).toHaveText('あそび');
+ const cards=page.locator('.cm-hub-list a.cm-hub-row');
+ await expect(cards).toHaveCount(4);
+ for(const label of ['ASOQUEST スタンプラリー','BOON パズル','ブーンジャンプ','ブーンRUN']){
+  await expect(cards.filter({hasText:label})).toHaveAttribute('data-external','1');
+ }
+ await expect(cards.filter({hasText:'ASOQUEST スタンプラリー'})).toHaveAttribute('href',/asoquest\//);
+ expect(await page.content()).not.toMatch(/2009888671|57TOefc3/);
 });
 
-test('route guard allows BOON BLOCK external navigation',async({page})=>{
-  await installProduction(page);
-  await page.route('https://asoboon.github.io/asoboon-3d/boon-block-next/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>BOON BLOCK TEST</title><h1>BOON BLOCK</h1>'}));
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.locator('.v38-play-card').filter({hasText:'BOON BLOCK'}).click();
-  await expect(page).toHaveURL(/asoboon\.github\.io\/asoboon-3d\/boon-block-next\/\?v=23/);
-  await expect(page.getByRole('heading',{name:'BOON BLOCK'})).toBeVisible();
+test('bottom PLAY hub opens the BOON puzzle link without new HOME games',async({page})=>{
+ await installProduction(page);
+ await page.context().route('https://asoboon.github.io/asoboon-3d/boon-block-next/**',
+  route=>route.fulfill({status:200,contentType:'text/html',body:'<title>BOON パズル</title><h1>BOON パズル</h1>'}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('.cm-nav-tab[data-v7-view="play"]').click();
+ await expect(page.locator('.cm-hub h1')).toHaveText('あそび');
+ const card=page.locator('.cm-hub-list a').filter({hasText:'BOON パズル'});
+ await expect(card).toHaveAttribute('href','https://asoboon.github.io/asoboon-3d/boon-block-next/?v=23');
+ const [popup]=await Promise.all([page.waitForEvent('popup'),card.click()]);
+ await expect(popup).toHaveURL(/boon-block-next/);
+ await popup.close();
 });
 
 test('Production storage namespace stays isolated from Developing and Review',async({page})=>{
@@ -390,7 +399,7 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('production_preview')).toBe('1');
   await expect(page.locator('.v38-legal')).toContainText('株式会社コマーム');
-  await page.locator('#v59GuideFold summary').click(); // Open the intentionally folded guide.
+  await expect(page.locator('.v38-first-shortcut [data-v7-view="first"]')).toBeVisible();
   await page.locator('[data-v7-view="first"]').first().click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/home.html');
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
@@ -515,10 +524,12 @@ test('NFC/QR stamp -> rally HOME -> official MINI App HOME -> rally preserves ac
 
   // Production uses the same origin; rewrite its absolute GitHub Pages URL
   // to this localhost fixture so localStorage can be checked across both screens.
-  await page.locator('#v59PlayFold summary').click(); // Optional games start folded.
-  const card=page.locator('.v38-play-card').filter({hasText:'スタンプラリー'});
+   await expect(page.locator('.cm-nav-tab[data-v7-view="play"]')).toBeVisible();
+   await page.goto(site+'miniapp-v2/production/?view=play',{waitUntil:'domcontentloaded'});
+   await expect(page.locator('.cm-hub h1')).toHaveText('あそび');
+   const card=page.locator('.cm-hub-row').filter({hasText:'ASOQUEST スタンプラリー'});
   await expect(card).toHaveAttribute('href','https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/asoquest/');
-  await card.evaluate((a,url)=>{a.href=url;},rally);
+  await card.evaluate((a,url)=>{a.href=url;a.target='_self'},rally);
   await card.click();
   await expect(page).toHaveURL(rally);
   await expect(page.locator('#partsCount')).toHaveText('1 / 6');
@@ -547,7 +558,7 @@ test('Entry guide: four clear cards, large targets, photo-free illustrations on 
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
     await page.goto(BASE,{waitUntil:'domcontentloaded'});
-    await page.locator('[data-v7-view="entry"]').first().click();
+    await openGuideRoute(page,'entry');
     await expect(page.locator('.v25-entry-page')).toBeVisible();
     await expect(page.locator('#entryChoices .entry-choice')).toHaveCount(4);
     for(const text of ['大人だけ出る','全員で出る','再入場する','今日は帰る']){
@@ -573,7 +584,7 @@ test('Entry guide: yellow holder and family receipt procedures, safety warnings 
   await installProduction(page);
   await page.setViewportSize({width:390,height:844});
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.locator('[data-v7-view="entry"]').first().click();
+  await openGuideRoute(page,'entry');
 
   await page.locator('[data-entry-choice="adult"]').click();
   await expect(page.locator('.entry-needed h2')).toHaveText('黄色ホルダー');
@@ -603,7 +614,7 @@ test('Entry guide: yellow holder and family receipt procedures, safety warnings 
 test('Entry guide: returning with receipt / yellow holder / neither, then reselect',async({page})=>{
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.locator('[data-v7-view="entry"]').first().click();
+  await openGuideRoute(page,'entry');
   await page.locator('[data-entry-choice="return"]').click();
   await expect(page.locator('.entry-return-options button')).toHaveCount(3);
 
@@ -883,8 +894,8 @@ test('After closing, last verified WEB and LINE counts still give forecast 100 p
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
- await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('7:00');
+ await expect(page.locator('#v38Slots .v38-opening-hours')).not.toContainText('WEB受付');
+ await expect(page.locator('#v38Slots .v38-opening-hours')).not.toContainText('7:00');
  await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('9:30');
  const first=page.locator('#v613Board .v613-row').first();
  await expect(first.locator('.v613-percent')).toHaveText('100%');
@@ -940,7 +951,7 @@ test('After 19:00 daily rollover, next-business-day slots remain reference-only'
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('WEB受付');
+ await expect(page.locator('#v38Slots .v38-opening-hours')).not.toContainText('7:00');
  await expect(page.locator('#v38Slots')).not.toContainText('受付時間外');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href]')).toHaveCount(0);
 });
@@ -1022,20 +1033,19 @@ test('Compact after-hours HOME has only last-updated text, no blank CTA, and fiv
  await expect(page.locator('#v58Primary .v58-intro')).toContainText('本日の営業は終了しました');
  for(const width of [320,375,390,430,768]){
   await page.setViewportSize({width,height:820});
-  const fold=page.locator('#v59GuideFold');
-  if(!(await fold.evaluate(el=>el.open)))await fold.locator('summary').click();
+   await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toBeVisible();
   const geom=await page.evaluate(()=>{
    const r=s=>document.querySelector(s)?.getBoundingClientRect();
    const primary=r('#v58Primary'),native=r('#v58Primary .v58-native-action');
-   const guide=r('#v59GuideFold'),cards=[...document.querySelectorAll('#v59GuideFold .v38-guide-card')].map(e=>e.getBoundingClientRect());
+   const guide=r('.v38-first-shortcut'),cards=[...document.querySelectorAll('.v38-first-shortcut .v38-guide-card')].map(e=>e.getBoundingClientRect());
    return {scroll:document.documentElement.scrollWidth,width:innerWidth,
     compact:!!primary&&primary.height<90,hiddenCTA:!!native&&native.width===0&&native.height===0,
-    cardCount:cards.length,aligned:cards.length===5&&cards.every(c=>Math.abs(c.left-cards[0].left)<2&&Math.abs(c.width-cards[0].width)<2),
+    cardCount:cards.length,aligned:cards.length===1&&cards.every(c=>Math.abs(c.left-cards[0].left)<2&&Math.abs(c.width-cards[0].width)<2),
     stacked:cards.every((c,i)=>!i||c.top>=cards[i-1].bottom+5),
     contained:!!guide&&cards.every(c=>c.left>=guide.left&&c.right<=guide.right+1),
     minimumTap:cards.every(c=>c.height>=56)};
   });
-  expect(geom,JSON.stringify(geom)).toMatchObject({compact:true,hiddenCTA:true,cardCount:5,aligned:true,stacked:true,contained:true,minimumTap:true});
+  expect(geom,JSON.stringify(geom)).toMatchObject({compact:true,hiddenCTA:true,cardCount:1,aligned:true,stacked:true,contained:true,minimumTap:true});
   expect(geom.scroll).toBeLessThanOrEqual(width+1);
  }
 });
@@ -1581,7 +1591,8 @@ test('12:30 LINE verified zero is shown as 残り0人; crowded card advertises n
  await expect(visibleCrowdLine(page,'12:30')).toBeVisible();
  await expect(c1230.locator('.v38-crowd-channel--web strong')).toHaveText('残り0人');
  await expect(c1230.locator('.v38-crowd-channel--onsite strong')).toHaveText('残り0人');
- await expect(c1230.locator('.v38-crowd-channel--web')).toContainText('WEBで受付する');
+ await expect(c1230.locator('.v38-crowd-channel--web')).toContainText('WEB受付は満員です');
+ await expect(c1230.locator('a.v38-crowd-channel--web')).toHaveCount(0);
  await expect(c1230.locator('.v38-crowd-channel--onsite')).toContainText('LINEで受付する');
  await expect(c1230).toHaveAttribute('aria-label',/LINE受付の残り0人/);
  const c1500=box.locator('.v38-crowd-card').filter({hasText:'15:00回'});
@@ -2486,7 +2497,9 @@ test('Official ROOT paints the HOME before a delayed LIFF SDK resolves',async({p
   try{
     await page.goto('http://127.0.0.1:4173/home.html',{waitUntil:'domcontentloaded'});
     await expect(page.locator('.v38-home')).toBeVisible({timeout:8000});
-    await expect(page.locator('.v38-play-card')).toHaveCount(5);
+    await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toHaveCount(1);
+    await expect(page.locator('.v38-play-card')).toHaveCount(0);
+    await expect(page.locator('.cm-bottom-nav [data-v7-view="play"]')).toBeVisible();
     expect(delivered).toBe(false);
     expect(await page.evaluate(()=>Boolean(window.ASOBOON_LIFF_SDK_READY))).toBe(true);
   }finally{releaseSdk();}
@@ -3047,58 +3060,36 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
 });
 
 
-test('v5.9 HOME starts with essentials visible and optional sections closed, while preserving native links',async({page})=>{
+test('HOME contains only timer, first visit, two calendars, and bottom-only optional routes',async({page})=>{
  await installProduction(page);
  const homeURL=new URL('../../home.html',BASE).href;
  const siteBase=new URL('../../',BASE).href;
  await page.addInitScript(site=>{
-  Object.defineProperty(window,'ASOBOON_V2_ENV',{
-   configurable:true,get(){return this.__mintTestEnvironment;},
-   set(value){this.__mintTestEnvironment=Object.freeze({...value,
-    assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'
-   });}
-  });
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__mintTestEnvironment},
+    set(value){this.__mintTestEnvironment=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'})}});
  },siteBase);
  await page.goto(homeURL,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v59GuideFold summary')).toBeVisible();
- await expect(page.locator('#v59PlayFold summary')).toBeVisible();
- await expect(page.locator('#v59GuideFold')).not.toHaveAttribute('open','');
- await expect(page.locator('#v59PlayFold')).not.toHaveAttribute('open','');
- await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeHidden();
- await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeHidden();
  await expect(page.locator('#v58Lead #v38Hero')).toBeVisible();
  await expect(page.locator('#v58DayZone #v38Today')).toBeVisible();
- await expect(page.locator('#v59SlotsFold')).toHaveAttribute('open','');
- await expect(page.locator('#v59SlotsFold summary')).toBeHidden();
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
- await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
  await expect(page.locator('#v58TimerZone #v38TimeguideShortcut')).toBeVisible();
  await expect(page.locator('#v59CalendarLinks .v38-calendar-card')).toHaveCount(2);
- await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first().locator('strong')).toHaveText('営業日カレンダー');
- await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first()).toHaveAttribute('href',/business-calendar\.html/);
- await page.locator('#v59GuideFold summary').click();
- await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeVisible();
- await page.locator('#v59PlayFold summary').click();
- await expect(page.locator('#v59PlayFold .v38-play-card').first()).toBeVisible();
- // State updates must not reset a parent's deliberate disclosure choice.
- await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{kind:'none',source:'live',checkedAt:Date.now()}})));
- await expect(page.locator('#v59GuideFold')).toHaveAttribute('open','');
- await expect(page.locator('#v59PlayFold')).toHaveAttribute('open','');
+ await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toHaveCount(1);
+ await expect(page.locator('.v38-guide,.v38-play,.v38-help,#v59GuideFold,#v59PlayFold')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav .cm-nav-tab')).toHaveCount(4);
+ await page.locator('.v38-first-shortcut [data-v7-view="first"]').click();
+ await expect(page.locator('.v27-safety li')).toHaveCount(3);
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
  const picker=page.locator('#asoboon-language-select');
  await picker.selectOption('en');
- await expect(page.locator('#v59GuideFold .v59-fold-title')).toHaveText('Visitor guide');
  await expect(page.locator('#v59CalendarLinks .v38-calendar-card').first().locator('strong')).toHaveText('Opening calendar');
  await picker.selectOption('ja');
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:860});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'overflow '+width).toBe(true);
-  const bounds=await page.locator('#v59GuideFold summary').boundingBox();
-  expect(bounds.height).toBeGreaterThanOrEqual(56);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  const b=await page.locator('.v38-first-shortcut .v38-guide-card').boundingBox();
+  expect(b.height).toBeGreaterThanOrEqual(56);
  }
- await page.locator('#v59GuideFold summary').click();
- await expect(page.locator('#v59GuideFold .v38-guide-card').first()).toBeHidden();
- const firstGameHref=await page.locator('#v59PlayFold .v38-play-card').first().getAttribute('href');
- expect(firstGameHref).toContain('asoquest/');
 });
 
 test('HOME and calendar offer self-service help without any facility telephone link',async({page})=>{
@@ -3106,9 +3097,7 @@ test('HOME and calendar offer self-service help without any facility telephone l
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('.v38-legal')).not.toContainText(/048[-\s]?420[-\s]?9780/);
  await expect(page.locator('.v38-legal a[href^="tel:"]')).toHaveCount(0);
- await page.locator('.v38-help summary').click();
- await expect(page.locator('.v38-faq-more')).toBeVisible();
- await page.locator('.v38-faq-more').click();
+ await openGuideRoute(page,'faq');
  await expect(page.locator('.cm-faq details')).toHaveCount(16);
  await expect(page.locator('.cm-faq')).toContainText('7:00');
  await expect(page.locator('.cm-faq')).toContainText('9:30');
@@ -3311,8 +3300,8 @@ test('2026-11-10 official HOME shows verified closed-day facts, not stale loadin
  await expect(page.locator('#v38Today>span:nth-child(2) strong')).toHaveText('休館日');
  await expect(page.locator('#v58Primary .v58-next-title')).toHaveText('本日は休館日です');
  await expect(page.locator('#v58Primary .v58-next-summary')).not.toContainText('受付番号');
- await expect(page.locator('#v59GuideFold')).not.toHaveAttribute('open','');
- await expect(page.locator('#v59PlayFold')).not.toHaveAttribute('open','');
+  await expect(page.locator('#v59GuideFold,#v59PlayFold')).toHaveCount(0);
+  await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toHaveCount(1);
  const nav=await page.locator('#app>.cm-bottom-nav .cm-nav-tab').evaluateAll(xs=>xs.map(x=>({
   height:Math.round(x.getBoundingClientRect().height),
   label:parseFloat(getComputedStyle(x.querySelector('span')||x).fontSize)
@@ -3383,7 +3372,7 @@ test('2026-11-10 FAQ searches the answer as well as the question, and clear rest
    const rect=await q.boundingBox();expect(rect.height).toBeGreaterThanOrEqual(44);
  }
 });
-test('2026-11-10 HOME self-service help precedes the games fold',async({page})=>{
+test('2026-11-11 HOME routes self-service FAQ and play through the bottom navigation only',async({page})=>{
  await installProduction(page);
  const official=new URL('../../home.html',BASE).href;
  const siteBase=new URL('../../',BASE).href;
@@ -3392,14 +3381,11 @@ test('2026-11-10 HOME self-service help precedes the games fold',async({page})=>
   set(value){this.__faqEnvironment=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'})}
  })},siteBase);
  await page.goto(official,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v59PlayFold')).toBeVisible();
- await expect(page.locator('.v38-help')).toBeVisible();
- await expect.poll(()=>page.evaluate(()=>{
-  const help=document.querySelector('#app .v38-help'),games=document.querySelector('#app #v59PlayFold');
-  return !!(help&&games&&(help.compareDocumentPosition(games)&Node.DOCUMENT_POSITION_FOLLOWING))
- }),{timeout:10000}).toBe(true);
- await page.locator('.v38-help summary').click();
- await page.locator('.v38-faq-more').click();
+ await expect(page.locator('.v38-help,.v38-play,#v59PlayFold')).toHaveCount(0);
+ await page.locator('.cm-nav-tab[data-v7-view="play"]').click();
+ await expect(page.locator('.cm-hub h1')).toHaveText('あそび');
+ await page.locator('.cm-nav-tab[data-v7-view="guide"]').click();
+ await page.locator('.cm-hub-list [data-v7-view="faq"]').click();
  await expect(page.locator('#cmFaqQuery')).toBeVisible();
  await expect(page).toHaveURL(/view=faq/);
  await page.locator('#cmFaqQuery').fill('再入場');
@@ -3616,8 +3602,7 @@ test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid
   }});
  },site);
  await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v59GuideFold summary')).toBeVisible();
- await page.locator('#v59GuideFold summary').click();
+ await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toBeVisible();
  const cards=page.locator('.v59-calendar-links .v38-calendar-card');
  await expect(cards).toHaveCount(2);
  for(const width of [320,375,390,430]){
@@ -3635,7 +3620,7 @@ test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid
   expect(data.links.every(x=>x.oneLine),JSON.stringify(data.links)).toBe(true);
   expect(data.overflow).toBeLessThanOrEqual(1);
  }
- await expect(page.locator('.v38-legal')).toContainText('お困りのときは');
+ await expect(page.locator('.v38-legal')).toContainText('個人情報保護方針');
 });
 test('2026-11-11 mobile copy has no isolated 1–2 kana lines in key guidance',async({page})=>{
  await installProduction(page);
@@ -3680,7 +3665,7 @@ test('2026-11-11 narrow mobile screens avoid isolated 1–2 character line endin
  await installProduction(page);
  const origin=new URL('../../',BASE).href;
  const selectors={
-  home:'.v59-fold-title,.v38-guide-card small,.v38-calendar-card strong,.v38-play-grid small',
+  home:'.v38-first-shortcut .v38-guide-card strong,.v38-calendar-card strong',
   reception:'.rec-remaining-caution,.v26-person-label strong,.v26-person-label small',
   first:'.v27-first-page h1,.v27-step-copy p,.v27-basic strong',
   parking:'.v24-section-head p,.v24-alert p,.v24-alert strong,.v24-facts strong,.v24-choice strong,.v24-safety p',
@@ -3757,3 +3742,103 @@ for(const [businessType,durationLabel,expected,closingTime] of [
   }
  });
 }
+
+
+test('2026-11-11 HOME has only the requested three shortcuts, timer, and no redundant call-status loader',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{Object.defineProperty(window,'ASOBOON_V2_ENV',{
+   configurable:true,get(){return this.__testEnv},
+   set(value){this.__testEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'})}
+ })},site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('.v38-first-shortcut .v38-guide-card')).toHaveCount(1);
+ await expect(page.locator('.v59-calendar-links .v38-calendar-card')).toHaveCount(2);
+ await expect(page.locator('#v38TimeguideShortcut')).toBeVisible();
+ await expect(page.locator('.v38-guide,.v38-play,.v38-help,#v59GuideFold,#v59PlayFold')).toHaveCount(0);
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="guide"]')).toBeVisible();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="play"]')).toBeVisible();
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+ await expect(page.locator('.v38-home')).not.toContainText('呼出状況を確認中');
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
+  detail:{kind:'pending',receipt:'W123',source:'live',checkedAt:Date.now()}
+ })));
+ await expect(page.locator('.v38-home')).not.toContainText('呼出状況を確認中');
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});
+
+for(const scenario of [
+ {label:'available',webRemaining:42,visible:true,stale:false,expected:true},
+ {label:'zero',webRemaining:0,visible:true,stale:false,expected:false},
+ {label:'unverified',webRemaining:42,visible:true,stale:false,matchMode:'alias-name',expected:false},
+ {label:'hidden',webRemaining:42,visible:false,stale:false,expected:false},
+ {label:'stale',webRemaining:42,visible:true,stale:true,expected:false},
+]){
+ test('2026-11-11 WEB 7:00 link only for fresh published positive count: '+scenario.label,async({page})=>{
+  await installProduction(page);
+  await page.route(GATEWAY+'**',async route=>{
+   const action=new URL(route.request().url()).searchParams.get('action');
+   if(action==='crowdRemaining'){
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+     ok:true,stale:scenario.stale,slots:['0030','0032','0034'].map((id,i)=>({
+      waitTypeId:id,slotKey:['10:00','12:30','15:00'][i],reserveUnit:'PERSON',
+      evidence:'PERSON',matchMode:scenario.matchMode||'exact-name',remaining:scenario.webRemaining
+     })),
+     observedDetails:[
+      {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:18,remainingVerified:true},
+      {detailedWaitType:'12時50分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:18,remainingVerified:true},
+      {detailedWaitType:'15時15分頃入場時間【土休日特定日】',reserveUnit:'PERSON',remaining:18,remainingVerified:true}
+     ]
+    })});
+   }
+   if(action==='waitTypes'){
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+     ...['0029','0031','0033'].map(id=>({waitTypeId:id,waitTypeName:'LINE '+id,dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'})),
+     ...['0030','0032','0034'].map(id=>({waitTypeId:id,waitTypeName:'WEB '+id,dispFlg:scenario.visible,usageDispType:'KeyONLINE_RECEPTION_ONLY'}))
+    ]})});
+   }
+   return route.fallback();
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
+  const hours=page.locator('#v38Hero .v38-reception-hours');
+  await expect(hours).toBeVisible();
+  await expect(hours).toContainText('LINEミニアプリ');
+  if(scenario.expected){
+   await expect(hours).toContainText('WEB受付');
+   await expect(hours).toContainText('7:00');
+   await expect(hours.locator('a.v38-airwait-link')).toBeVisible();
+   await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('7:00');
+   await expect(page.locator('#v613Board a.v38-crowd-channel--web')).toHaveCount(3);
+  }else{
+   await expect(hours).not.toContainText('7:00');
+   await expect(hours.locator('a.v38-airwait-link')).toHaveCount(0);
+   await expect(page.locator('#v38Slots .v38-opening-hours')).not.toContainText('7:00');
+   await expect(page.locator('#v613Board a.v38-crowd-channel--web')).toHaveCount(0);
+  }
+ });
+}
+
+test('2026-11-11 first-visit and indoor rules explicitly show all safety, food and drink restrictions',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('.v38-first-shortcut [data-v7-view="first"]').click();
+ await expect(page.locator('.v27-safety li')).toHaveCount(3);
+ await expect(page.locator('.v27-safety')).toContainText('目を離さない');
+ await expect(page.locator('.v27-safety')).toContainText('食べ物は一切禁止');
+ await expect(page.locator('.v27-safety')).toContainText('アメ・ガム・お菓子');
+ await expect(page.locator('.v27-safety')).toContainText('飲み物は土足エリアのみ');
+ await page.locator('.cm-nav-tab[data-v7-view="guide"]').click();
+ await page.locator('.cm-hub-list [data-v7-view="rules"]').click();
+ await expect(page.locator('.pv7-food-rules')).toContainText('アメ・ガム・お菓子');
+ await expect(page.locator('.pv7-food-rules')).toContainText('食べ物は一切禁止');
+ await expect(page.locator('.pv7-food-rules')).toContainText('飲み物は土足エリアでのみ');
+ await expect(page.locator('.pv7-promise')).toHaveCount(4);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});

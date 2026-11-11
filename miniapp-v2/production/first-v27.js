@@ -41,6 +41,7 @@ function page(){return `<section class="page-card pv7-page v27-first-page">
    </article>
   </div>
   <div class="v27-finish" aria-label="入場までの最後の流れ"><span>受付番号を見せる</span><b>→</b><span>会計</span><b>→</b><strong>入場！</strong></div>
+  <section class="v27-safety" aria-label="ご利用時の注意事項"><h2>ご利用時の注意事項</h2><ul><li><strong>お子さまから目を離さないでください。</strong></li><li><strong>食べ物は一切禁止です。</strong><span>アメ・ガム・お菓子も含みます。</span></li><li><strong>飲み物は土足エリアのみです。</strong></li></ul></section>
   <div class="v27-basic"><div><small>対象</small><strong>0歳〜小学6年生</strong></div><div><small>人数</small><strong>保護者1名につき3名まで</strong></div></div>
   <button class="pv7-primary v27-primary" type="button" data-pv7-view="reception">当日受付を確認する</button>
   <button class="pv7-text-btn" type="button" data-pv7-view="first" data-pv7-panel="price">料金を見る</button>

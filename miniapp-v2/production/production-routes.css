@@ -349,6 +349,11 @@ body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .t
 
 html body #app .v33-rules-page .pv7-promise small{text-wrap:balance!important}
 
+.pv7-page .pv7-food-rules{padding:16px 18px;margin:13px 0;border:2px solid #e8c69b;border-radius:17px;background:#fff8e9}
+.pv7-page .pv7-food-rules h2{font-size:1rem;line-height:1.4;font-weight:900;margin:0 0 9px;color:#693f1c}
+.pv7-page .pv7-food-rules p{font-size:.88rem;line-height:1.65;margin:6px 0;color:#573e27}
+.pv7-page .pv7-food-rules strong{font-weight:850}
+
 /* miniapp-v2/production/choco-mint-hubs-v8.css */
 /* The legacy viewIn animation starts at opacity:0 and could make newly
    navigated GUIDE/PLAY/FAQ screens look blank. New hubs paint immediately. */
@@ -406,6 +411,13 @@ html body #app .cm-faq details p{text-wrap:balance!important}
 .v27-basic{display:grid;grid-template-columns:1fr 1.35fr;gap:8px;margin:0 0 14px}.v27-basic>div{padding:10px 11px;border-radius:13px;background:#f5f3ee}.v27-basic small{display:block;color:#858078;font-size:.5rem;font-weight:850}.v27-basic strong{display:block;margin-top:3px;color:#33393c;font-size:.6rem;line-height:1.45}
 .v27-primary{margin-top:2px}
 @media(max-width:360px){.v27-step{grid-template-columns:40px minmax(0,1fr);gap:9px;padding:13px 11px}.v27-num{width:36px;height:36px;border-radius:11px;font-size:.68rem}.v27-step h2{font-size:.88rem}.v27-basic{grid-template-columns:1fr}.v27-finish{gap:5px;font-size:.54rem}}
+
+.v27-first-page .v27-safety{margin:17px 0;padding:17px 17px 12px;background:#f3fff8;border:2px solid #a4d8c6;border-radius:18px;color:#234e43}
+.v27-first-page .v27-safety h2{font-size:1.02rem;font-weight:900;margin:0 0 9px}
+.v27-first-page .v27-safety ul{margin:0;padding-left:1.25em;display:grid;gap:9px}
+.v27-first-page .v27-safety li{font-size:.89rem;line-height:1.56}
+.v27-first-page .v27-safety li strong{font-weight:800}
+.v27-first-page .v27-safety li span{display:block;font-size:.82rem}
 
 /* miniapp-v2/production/parking-v24.css */
 .v24-parking-page .pv7-head{background:linear-gradient(145deg,#2f78b7,#3689cd)}.v24-parking-page .pv7-head h1{color:#fff}.v24-parking-page .pv7-head p{color:#eef7fd}.v24-parking-page .pv7-head .pv7-eyebrow{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.22)}

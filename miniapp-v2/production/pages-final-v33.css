@@ -13,3 +13,8 @@ body.v7-callstatus-active .topbar{position:relative}body.v7-callstatus-active .t
 .v33-entry-action span{display:block;margin-top:2px;color:#355750;font-size:12px;line-height:1.55}
 
 html body #app .v33-rules-page .pv7-promise small{text-wrap:balance!important}
+
+.pv7-page .pv7-food-rules{padding:16px 18px;margin:13px 0;border:2px solid #e8c69b;border-radius:17px;background:#fff8e9}
+.pv7-page .pv7-food-rules h2{font-size:1rem;line-height:1.4;font-weight:900;margin:0 0 9px;color:#693f1c}
+.pv7-page .pv7-food-rules p{font-size:.88rem;line-height:1.65;margin:6px 0;color:#573e27}
+.pv7-page .pv7-food-rules strong{font-weight:850}
