@@ -1,101 +1,139 @@
 const {test:voiceTest,expect:voiceExpect}=require('@playwright/test');
-const audioPath=require('node:path');
+const path=require('node:path');
+const fs=require('node:fs');
 const {pathToFileURL}=require('node:url');
-const audioUrl=pathToFileURL(audioPath.resolve('jounaisetumei-core.html')).href;
-voiceTest.describe('venue tablet per-step SFX and localized voice',()=>{
+const audioUrl=pathToFileURL(path.resolve('jounaisetumei-core.html')).href;
+const manifest=require('../assets/owner-voice/manifest.json');
+const langs=['ja','en','zh','vi','ko','ne','tl','my'];
+
+function expected(lang,route,step=null){
+  const row=manifest.allPromptTexts[lang].find(x=>x.route===route&&(x.step||null)===(step||null));
+  voiceExpect(row,'missing voice mapping '+lang+'/'+route+'/'+step).toBeDefined();
+  return row;
+}
+async function snapshot(page){
+  return page.evaluate(()=>({
+    state:window.__ASOBOON_OWNER_VOICE__.state(),
+    plays:window.__ownerPlayed.slice(),
+    oldSpeech:window.__oldSpeech.length,
+    sfx:window.__ASOBOON_AUDIO__.state()
+  }));
+}
+function checkPlay(snap,lang,route,step=null){
+  const row=expected(lang,route,step);
+  voiceExpect(snap.state.productionEnabled).toBe(true);
+  voiceExpect(snap.state.lang).toBe(lang);
+  voiceExpect(snap.state.lastFile).toBe('./assets/owner-voice/'+row.file);
+  voiceExpect(snap.plays.at(-1).src).toContain('/assets/owner-voice/'+row.file);
+  voiceExpect(snap.plays.at(-1).volume).toBeGreaterThan(0);
+  voiceExpect(snap.oldSpeech,'native speechSynthesis must not replace owner voice').toBe(0);
+  voiceExpect(snap.state.missing).toBe(0);
+  voiceExpect(snap.state.playbackErrors).toBe(0);
+  return row;
+}
+
+voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
   voiceTest.use({viewport:{width:1194,height:834},reducedMotion:'no-preference'});
   voiceTest.beforeEach(async({page})=>{
     await page.addInitScript(()=>{
-      window.__spoken=[];
-      window.__cancelCount=0;
-      const voices=['ja-JP','en-US','zh-CN','vi-VN','ko-KR','ne-NP','fil-PH','my-MM'].map(lang=>({lang,name:'Test-'+lang}));
-      Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{
-        getVoices:()=>voices,
-        cancel:()=>window.__cancelCount++,
-        speak:utter=>window.__spoken.push({text:utter.text,lang:utter.lang,volume:utter.volume})
-      }});
-      window.SpeechSynthesisUtterance=class SpeechSynthesisUtterance{
-        constructor(text){this.text=text;}
+      window.__ownerPlayed=[];
+      window.__oldSpeech=[];
+      HTMLMediaElement.prototype.play=function(){
+        window.__ownerPlayed.push({src:this.src,volume:this.volume});
+        return Promise.resolve();
       };
+      Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{
+        getVoices:()=>[],cancel:()=>{},
+        speak:utter=>window.__oldSpeech.push({text:utter.text,lang:utter.lang})
+      }});
+      window.SpeechSynthesisUtterance=class SpeechSynthesisUtterance{constructor(text){this.text=text;}};
     });
     await page.goto(audioUrl);
+    await page.waitForFunction(()=>window.__ASOBOON_OWNER_VOICE__?.state().productionEnabled);
   });
 
-  voiceTest('first choice speaks only STEP 1; Next/back changes voice and plays light cue',async({page})=>{
+  voiceTest('first choice plays STEP 1; Next/back changes owner audio and keeps light cue',async({page})=>{
     const root=page.locator('#exitGuideV2');
     await root.locator('[data-guide="family"]').click();
-    const initial=await page.evaluate(()=>({last:window.__spoken.at(-1),audio:window.__ASOBOON_AUDIO__.state()}));
-    voiceExpect(initial.last.text).toContain('ロッカーの荷物を全部出す');
-    voiceExpect(initial.last.text).not.toContain('レシートは大切に持っていてね');
-    voiceExpect(initial.last.text).toContain('一時退場中も利用時間は進みます。');
+    let info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(1);
+    const first=checkPlay(info,'ja','family');
+    voiceExpect(first.text).toContain('ロッカーの荷物を全部出す');
+    voiceExpect(first.text).toContain('一時退場中も利用時間は進みます。');
     await root.locator('[data-stepper-action="next"]').click();
-    const second=await page.evaluate(()=>({last:window.__spoken.at(-1),audio:window.__ASOBOON_AUDIO__.state()}));
-    voiceExpect(second.last.text).toContain('赤ホルダーからレシートを抜く');
-    voiceExpect(second.last.text).not.toContain('ロッカーの荷物を全部出す');
-    voiceExpect(second.audio.lastDestination).toBe('family-step');
+    info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(2);
+    voiceExpect(checkPlay(info,'ja','family','2').text).toContain('赤ホルダーからレシートを抜く');
+    voiceExpect(info.sfx.lastDestination).toBe('family-step');
     await root.locator('[data-stepper-action="next"]').click();
-    const third=await page.evaluate(()=>window.__spoken.at(-1).text);
-    voiceExpect(third).toContain('ホルダーと鍵をすべて返す');
-    voiceExpect(third).toContain('受付でレシートを見せてください');
+    info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(3);
+    voiceExpect(checkPlay(info,'ja','family','3').text).toContain('受付でレシートを見せてください');
     await root.locator('[data-stepper-action="prev"]').click();
-    const previous=await page.evaluate(()=>({last:window.__spoken.at(-1).text,spoken:window.__spoken.length,cancels:window.__cancelCount}));
-    voiceExpect(previous.last).toContain('赤ホルダーからレシートを抜く');
-    voiceExpect(previous.spoken).toBe(4);
-    voiceExpect(previous.cancels).toBeGreaterThan(3);
+    info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(4);
+    voiceExpect(checkPlay(info,'ja','family','2').text).toContain('赤ホルダーからレシートを抜く');
   });
 
-  voiceTest('all eight languages speak their translated first step on real taps',async({page})=>{
-    const cases=[
-      ['ja','ja-JP','ロッカーの荷物'],
-      ['en','en-US','locker'],
-      ['zh','zh-CN','储物柜'],
-      ['vi','vi-VN','tủ'],
-      ['ko','ko-KR','사물함'],
-      ['ne','ne-NP','लकर'],
-      ['tl','fil-PH','locker'],
-      ['my','my-MM','လော့ကာ']
-    ];
+  voiceTest('all eight languages select correct owner audio on real visitor taps',async({page})=>{
     const root=page.locator('#exitGuideV2');
-    for(const [language,langTag,needle] of cases){
-      await page.locator('#eg-final-languages [data-locale="'+language+'"]').click();
+    for(const lang of langs){
+      await page.locator('#eg-final-languages [data-locale="'+lang+'"]').click();
       await root.locator('[data-guide="family"]').click();
-      const info=await page.evaluate(()=>window.__spoken.at(-1));
-      voiceExpect(info.lang).toBe(langTag);
-      voiceExpect(info.text).toContain(needle);
-      voiceExpect(info.volume).toBe(1);
+      const info=await snapshot(page);
+      const row=checkPlay(info,lang,'family');
+      voiceExpect(row.text.length).toBeGreaterThan(20);
       await root.locator('[data-guide="home"]').first().click();
     }
+    voiceExpect((await snapshot(page)).plays.length).toBe(8);
   });
 
-  voiceTest('mute silences both audio and voice, then resumes on explicit tap',async({page})=>{
+  voiceTest('mute silences owner speech, then resumes only on an explicit tap',async({page})=>{
     const root=page.locator('#exitGuideV2');
     await root.locator('[data-guide="family"]').click();
-    const firstCount=await page.evaluate(()=>window.__spoken.length);
+    const initial=await snapshot(page);
+    voiceExpect(initial.plays.length).toBe(1);
     await page.locator('#eg-audio-toggle').click();
     await root.locator('[data-stepper-action="next"]').click();
-    const muted=await page.evaluate(()=>({count:window.__spoken.length,audio:window.__ASOBOON_AUDIO__.state()}));
-    voiceExpect(muted.count).toBe(firstCount);
-    voiceExpect(muted.audio.enabled).toBe(false);
+    let info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(1);
+    voiceExpect(info.sfx.enabled).toBe(false);
     await page.locator('#eg-audio-toggle').click();
     await root.locator('[data-stepper-action="next"]').click();
-    const after=await page.evaluate(()=>({count:window.__spoken.length,latest:window.__spoken.at(-1).text}));
-    voiceExpect(after.count).toBe(firstCount+1);
-    voiceExpect(after.latest).toContain('ホルダーと鍵をすべて返す');
+    info=await snapshot(page);
+    voiceExpect(info.plays.length).toBe(2);
+    voiceExpect(checkPlay(info,'ja','family','3').text).toContain('ホルダーと鍵をすべて返す');
   });
 
-  voiceTest('leaving warns no re-entry aloud; no-holder warning keeps its own spoken guidance',async({page})=>{
+  voiceTest('leave warns no re-entry; no-holder warning uses its specific owner clip',async({page})=>{
     const root=page.locator('#exitGuideV2');
     await root.locator('[data-guide="leave"]').click();
-    const leaveFirst=await page.evaluate(()=>window.__spoken.at(-1).text);
-    voiceExpect(leaveFirst).toContain('再入場はできません。');
+    let info=await snapshot(page);
+    voiceExpect(checkPlay(info,'ja','leave').text).toContain('再入場はできません。');
     await root.locator('[data-stepper-action="next"]').click();
-    const leaveLast=await page.evaluate(()=>window.__spoken.at(-1).text);
-    voiceExpect(leaveLast).toContain('再入場はできません。');
+    info=await snapshot(page);
+    voiceExpect(checkPlay(info,'ja','leave','2').text).toContain('再入場はできません。');
     await root.locator('[data-guide="home"]').first().click();
     await root.locator('[data-guide="adult"]').click();
     await root.locator('[data-guide="adult-no"]').click();
-    const warning=await page.evaluate(()=>({last:window.__spoken.at(-1).text,route:window.__ASOBOON_AUDIO__.state().lastDestination}));
-    voiceExpect(warning.route).toBe('adult-no');
-    voiceExpect(warning.last).toContain('受付スタッフに確認');
+    info=await snapshot(page);
+    voiceExpect(info.sfx.lastDestination).toBe('adult-no');
+    voiceExpect(checkPlay(info,'ja','adult-no').text).toContain('受付スタッフに確認');
+  });
+
+  voiceTest('all 72 owner audio assets exist, without publishing reference recordings',()=>{
+    voiceExpect(manifest.enabled).toBe(true);
+    voiceExpect(manifest.readyCount).toBe(72);
+    for(const lang of langs){
+      const rows=manifest.allPromptTexts[lang];
+      voiceExpect(rows).toHaveLength(9);
+      for(const row of rows){
+        const file=path.resolve('assets/owner-voice',row.file);
+        voiceExpect(fs.statSync(file).size).toBeGreaterThan(1000);
+        voiceExpect(manifest.entries[lang][row.text]).toBe('./assets/owner-voice/'+row.file);
+      }
+    }
+    const assets=path.resolve('assets/owner-voice');
+    voiceExpect(fs.readdirSync(assets,{recursive:true}).some(x=>/\.(?:wav|m4a)$/i.test(x))).toBe(false);
   });
 });
