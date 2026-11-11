@@ -37,7 +37,8 @@
     halt();
     const a=new Audio();
     a.preload='auto';
-    a.src=file;
+    // Separate URL identifies the remastered louder audio, avoiding stale iPad caches.
+    a.src=file+'?volume_master=20261111-v2';
     a.volume=Math.max(0.2,Math.min(1,(api.state?.().volumeLevel||100)/100));
     recorded=a;
     lastFile=file;
