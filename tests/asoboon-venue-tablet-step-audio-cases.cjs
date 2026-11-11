@@ -15,6 +15,7 @@ async function snapshot(page){
   return page.evaluate(()=>({
     state:window.__ASOBOON_OWNER_VOICE__.state(),
     plays:window.__ownerPlayed.slice(),
+    pauses:window.__ownerPaused.slice(),
     oldSpeech:window.__oldSpeech.length,
     sfx:window.__ASOBOON_AUDIO__.state()
   }));
@@ -37,6 +38,9 @@ voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
   voiceTest.beforeEach(async({page})=>{
     await page.addInitScript(()=>{
       window.__ownerPlayed=[];
+      window.__ownerPaused=[];
+      const oldPause=HTMLMediaElement.prototype.pause;
+      HTMLMediaElement.prototype.pause=function(){window.__ownerPaused.push(this.src);return oldPause.call(this);};
       window.__oldSpeech=[];
       HTMLMediaElement.prototype.play=function(){
         window.__ownerPlayed.push({src:this.src,volume:this.volume});
@@ -57,6 +61,7 @@ voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
     await root.locator('[data-guide="family"]').click();
     let info=await snapshot(page);
     voiceExpect(info.plays.length).toBe(1);
+    voiceExpect(info.pauses.length,'same-language refresh must not stop narration').toBe(0);
     const first=checkPlay(info,'ja','family');
     voiceExpect(first.text).toContain('ロッカーの荷物を全部出す');
     voiceExpect(first.text).toContain('一時退場中も利用時間は進みます。');
@@ -94,6 +99,8 @@ voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
     const initial=await snapshot(page);
     voiceExpect(initial.plays.length).toBe(1);
     await page.locator('#eg-audio-toggle').click();
+    const stopped=await snapshot(page);
+    voiceExpect(stopped.pauses.length,'mute must stop in-flight owner recording').toBeGreaterThan(initial.pauses.length);
     await root.locator('[data-stepper-action="next"]').click();
     let info=await snapshot(page);
     voiceExpect(info.plays.length).toBe(1);
@@ -119,6 +126,16 @@ voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
     info=await snapshot(page);
     voiceExpect(info.sfx.lastDestination).toBe('adult-no');
     voiceExpect(checkPlay(info,'ja','adult-no').text).toContain('受付スタッフに確認');
+  });
+
+  voiceTest('switching language cancels the prior owner recording',async({page})=>{
+    const root=page.locator('#exitGuideV2');
+    await root.locator('[data-guide="family"]').click();
+    const initial=await snapshot(page);
+    voiceExpect(initial.pauses.length).toBe(0);
+    await page.locator('#eg-final-languages [data-locale="en"]').click();
+    await page.waitForFunction(()=>window.__ASOBOON_OWNER_VOICE__?.state().lang==='en');
+    await voiceExpect.poll(async()=>(await snapshot(page)).pauses.length).toBeGreaterThan(initial.pauses.length);
   });
 
   voiceTest('all 72 owner audio assets exist, without publishing reference recordings',()=>{

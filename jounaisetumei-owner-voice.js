@@ -69,7 +69,18 @@
   api.resetForNextVisitor=function(){halt();return originals.resetForNextVisitor.call(api);};
   api.setMuted=function(next){if(next)halt();return originals.setMuted.call(api,next);};
   const langRoot=document.getElementById('exitGuideV2');
-  if(langRoot)new MutationObserver(halt).observe(langRoot,{attributes:true,attributeFilter:['data-lang']});
+  if(langRoot){
+    let previousLang=selected();
+    new MutationObserver(()=>{
+      const currentLang=selected();
+      if(currentLang!==previousLang){previousLang=currentLang;halt();}
+    }).observe(langRoot,{attributes:true,attributeFilter:['data-lang']});
+  }
+  // The original UI button closes over the original setMuted(), so wrapping the
+  // exported API alone cannot stop an already playing HTMLAudioElement.
+  document.getElementById('eg-audio-toggle')?.addEventListener('click',()=>{
+    if(api.state?.().enabled===false)halt();
+  });
   document.getElementById('eg-audio-volume')?.addEventListener('input',()=>{
     if(recorded)recorded.volume=Math.max(0.2,Math.min(1,(api.state?.().volumeLevel||100)/100));
   });
