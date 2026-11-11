@@ -24,8 +24,9 @@ test('visible active tickets refresh adaptively without overloading shared WIFI'
  assert.equal(d({found:true,state:'hold'}),30000);
  assert.equal(d({found:true,state:'processing'}),30000);
 });
-test('confirmed terminal states stop unnecessary calls; temporarily missing receipts recover',()=>{
- for(const state of ['done','canceled','closed'])assert.equal(d({found:true,state}),0);
+test('guided tickets keep polling for staff reversal while canceled and closed tickets stop',()=>{
+ assert.equal(d({found:true,state:'done'}),15000);
+ for(const state of ['canceled','closed'])assert.equal(d({found:true,state}),0);
  assert.equal(d({found:false}),6000);
  assert.equal(d({found:true,state:'unknown'}),30000);
 });

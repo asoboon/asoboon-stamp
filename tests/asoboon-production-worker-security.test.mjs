@@ -416,3 +416,36 @@ test('AMBIGUOUS confirm requires full reservation identity and preserves waitTyp
   assert.deepEqual({...row},{state:'CONFIRMED',reserve_id:'123456789012',receipt_no:'F12',wait_type_id:'0029'});
 });
 
+
+
+test('a guide-complete ticket returned to waiting is restored to CONFIRMED and can be canceled by its owner',async()=>{
+  const user='UguidedBackToWaiting';
+  const r=await create(user,'0029','req-guide-back-0001');
+  const s=await session(user);
+  world.row(r.reserveId).status='2';
+  const done=await status(s.sessionToken);
+  assert.equal(done.found,true);
+  assert.equal(done.state,'done');
+  assert.equal(claimRow(r.reserveId).state,'COMPLETED');
+
+  // AirWAIT staff action: undo completed guidance and send this SAME ticket back
+  // to its previous wait queue. It is not a new reservation.
+  world.row(r.reserveId).status='0';
+  world.row(r.reserveId).isCalling='0';
+  const waiting=await status(s.sessionToken);
+  assert.equal(waiting.found,true);
+  assert.equal(waiting.state,'waiting');
+  assert.equal(waiting.receiptNo,r.receiptNo);
+  assert.equal(waiting.waitTypeId,'0029');
+  assert.equal(claimRow(r.reserveId).state,'CONFIRMED',
+    'owner-bound active ticket must be protected from duplicate same-day creation');
+
+  const other=await call(worker,env,{body:{action:'createReservation',requestId:'req-guide-back-duplicate-0002',mode:'web',adults:1,paidChildren:0,infants:0,
+    waitTypeId:'0031',operationalDate:DAY,liffAccessToken:world.issueLiffToken(user)}});
+  assert.equal(other.data?.alreadyExists,true,'do not issue a second active ticket');
+
+  const canceled=await call(worker,env,{body:{action:'cancelReservation',sessionToken:s.sessionToken,liffAccessToken:world.issueLiffToken(user)}});
+  assert.equal(canceled.data?.canceled,true,JSON.stringify(canceled.data));
+  assert.equal(world.row(r.reserveId).status,'3');
+  assert.equal(claimRow(r.reserveId).state,'CANCELED');
+});

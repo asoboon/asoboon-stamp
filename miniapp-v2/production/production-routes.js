@@ -846,7 +846,8 @@ function delayForStatus(d){
   if(!d?.found)return POLL_RECONCILE_MS;
   const state=String(d.state||'');
   if(state==='calling')return POLL_TERMINAL_MS;
-  if(['done','canceled','closed'].includes(state))return 0;
+  if(state==='done')return POLL_TERMINAL_MS; // Staff may return a guided guest to waiting.
+  if(['canceled','closed'].includes(state))return 0;
   if(['hold','processing'].includes(state))return POLL_MID_MS;
   if(state==='waiting'){
     const ahead=Number.isSafeInteger(d.aheadCount)&&d.aheadCount>=0?d.aheadCount:null;
@@ -1084,7 +1085,7 @@ async function refreshStatus({manual=false}={}){
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
     lastRefreshSucceededAt=Date.now();hadRefreshError=false;clearThrottle();
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_ERROR_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_TERMINAL_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;

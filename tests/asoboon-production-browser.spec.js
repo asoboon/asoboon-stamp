@@ -1859,7 +1859,7 @@ test('Call status automatically updates waiting → calling → done while scree
  await expect(page.locator('#csTitle')).toContainText('入場できます');
  await expect.poll(()=>polls,{timeout:28000}).toBeGreaterThanOrEqual(3);
  await expect(page.locator('#csTitle')).toContainText('ご案内済み');
- await expect(page.locator('#csTop')).toContainText('自動更新を終了');
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
 });
 
 test('Call status displays a large call-time reference and route from scheduled slot to the guest',async({page})=>{
@@ -2904,9 +2904,11 @@ test('HOME refuses to claim reception ended when one AirWAIT slot remains publis
   })});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
- await expect(page.locator('#v38Slots .v38-crowd-list .v38-crowd-channel--web strong')).toHaveText(['確認中','確認中','確認中']);
- await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['—','—','—']);
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(1);
+ await expect(page.locator('#v38Slots .v38-crowd-list .v38-crowd-channel--web strong')).toHaveText(['受付なし']);
+ await expect(page.locator('#v613Board .v38-crowd-channel--web strong')).toHaveText(['受付なし']);
+ await expect(page.locator('#v38Slots')).toContainText('12:30回');
+ await expect(page.locator('#v38Slots')).not.toContainText('10:00回');
  await expect(page.locator('#v38Slots')).not.toContainText('本日の受付枠は終了しました');
 });
 
@@ -3125,7 +3127,7 @@ test('AirWAIT waitTypes independently hide unpublished WEB slot but keep still-p
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
  await expect(first.locator('.v613-percent')).toHaveText('—');
  await expect(first.locator('a[href]')).toHaveCount(0);
@@ -3177,12 +3179,12 @@ test('Confirmed hidden WEB quota stays hidden when a later crowdRemaining reques
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
  breakCrowd=true;
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>crowdErrors,{timeout:10000}).toBe(1);
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('a[href]')).toHaveCount(0);
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('—');
 });
@@ -3208,7 +3210,7 @@ test('Newly hidden WEB overrides an older certified after-hours archive',async({
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
  await expect(first).toBeVisible();
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
  await expect(first.locator('a[href]')).toHaveCount(0);
 });
@@ -3229,7 +3231,7 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const first=page.locator('#v613Board .v613-row').first();
  await expect.poll(()=>waitReads,{timeout:12000}).toBeGreaterThanOrEqual(1);
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
  // The hidden refresh button is disabled during the initial API check.
  // Only trigger a second fetch AFTER the first one has completed.
@@ -3237,7 +3239,7 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
  failVisibility=true;
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>waitReads,{timeout:10000}).toBeGreaterThanOrEqual(2);
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('—');
+ await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('a[href]')).toHaveCount(0);
 });
 
@@ -3847,4 +3849,96 @@ test('2026-11-11 first-visit and indoor rules explicitly show all safety, food a
   await page.setViewportSize({width,height:844});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  }
+});
+
+
+test('2026-11-11 deleted AirWAIT session disappears from HOME and retains remaining sessions',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action!=='waitTypes')return route.fallback();
+  // The 12:30 WEB + LINE categories have been deleted from AirWAIT.
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0029','0033','0030','0034'].map(waitTypeId=>({
+    waitTypeId,dispFlg:true,usageDispType:['0030','0034'].includes(waitTypeId)?'KeyONLINE_RECEPTION_ONLY':'KeySTORE_RECEPTION_ONLY'
+   }))
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const slots=page.locator('#v38Slots .v38-crowd-card');
+ await expect(slots).toHaveCount(2);
+ await expect(slots.first()).toContainText('10:00');
+ await expect(slots.last()).toContainText('15:00');
+ await expect(page.locator('#v613Board .v613-row')).toHaveCount(2);
+ await expect(page.locator('#v38Slots')).not.toContainText('12:30回');
+ await expect(page.locator('#v38Slots')).not.toContainText('最新情報を取得できません');
+ await expect(page.locator('#v38Slots .v38-crowd-remaining')).toHaveCount(2);
+});
+
+test('2026-11-11 confirmed retired WEB channel shows no reception instead of a fetch error',async({page})=>{
+ await installProduction(page);
+ await page.route(GATEWAY+'**',route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action!=='waitTypes')return route.fallback();
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:['0029','0031','0033','0030','0034'].map(waitTypeId=>({
+    waitTypeId,dispFlg:true,usageDispType:['0030','0034'].includes(waitTypeId)?'KeyONLINE_RECEPTION_ONLY':'KeySTORE_RECEPTION_ONLY'
+   }))
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
+ const middle=page.locator('#v38Slots .v38-crowd-card').filter({hasText:'12:30回'});
+ await expect(middle.locator('.v38-crowd-channel--web')).toContainText('受付なし');
+ await expect(middle.locator('a.v38-crowd-channel--web')).toHaveCount(0);
+ await expect(middle.locator('.v38-crowd-channel--onsite')).toContainText('44人');
+});
+
+test('2026-11-11 guide-complete becomes waiting again and customer cancel action works',async({page})=>{
+ await installProduction(page);
+ let state='done',cancelRequests=0;
+ await page.route(GATEWAY+'**',route=>{
+  const body=new URLSearchParams(route.request().postData()||'');
+  const action=body.get('action')||new URL(route.request().url()).searchParams.get('action');
+  const json=obj=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(obj)});
+  if(action==='reservationStatus')return json({
+   ok:true,found:true,state,receiptNo:'R321',businessDate:'2026-10-03',
+   waitTypeId:'0031',waitTypeName:'12:30の回',aheadCount:state==='waiting'?2:null,
+   queueRank:state==='waiting'?3:null,activeCount:state==='waiting'?21:0,
+   checkedAt:Date.parse('2026-10-03T03:00:00Z')
+  });
+  if(action==='cancelReservation'){
+   cancelRequests++;
+   state='canceled';
+   return json({ok:true,canceled:true,receiptNo:'R321',businessDate:'2026-10-03',
+     waitTypeId:'0031',checkedAt:Date.parse('2026-10-03T03:00:00Z')});
+  }
+  return route.fallback();
+ });
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',receiptNo:'R321',waitTypeId:'0031'
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+   businessDate:'2026-10-03',receiptNo:'R321',waitTypeId:'0031',
+   sessionToken:'k'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('ご案内済み');
+ await expect(page.locator('#csCancelArea')).toBeHidden();
+ await expect(page.locator('#csHeartbeatLabel')).toContainText('次の再確認まで');
+ // A staff member returns the already guided ticket to the waiting queue.
+ state='waiting';
+ await page.locator('#csRefresh').click();
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect(page.locator('#csCancelArea')).toBeVisible();
+ await expect(page.locator('#csCancel')).toBeEnabled();
+ await page.locator('#csCancel').click();
+ await expect(page.locator('#csCancelDialog')).toBeVisible();
+ await expect(page.locator('#csCancelReceipt')).toHaveText('R321');
+ await page.locator('#csCancelProceed').click();
+ await expect.poll(()=>cancelRequests).toBe(1);
+ await expect(page.locator('#csTitle')).toContainText('取消');
+ await expect(page.locator('#csCancelArea')).toBeHidden();
 });

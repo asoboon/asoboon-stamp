@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=f0f82abc0073',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=7b9a08e3ec71',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=215ae47a9de1',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -599,7 +599,7 @@ const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
-let crowdHiddenConfirmed=false,crowdPublicFlags=null;
+let crowdHiddenConfirmed=false,crowdPublicFlags=null,crowdFlagsDate='';
 function scheduleCrowd(){
 clearTimeout(crowdPollTimer);crowdPollTimer=0;
 if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
@@ -696,7 +696,7 @@ if(!cached||cached.verifiedFresh!==true||Date.now()-Number(cached.savedAt||0)>CR
 const flags=new Map(Array.isArray(cached.publicFlags)?cached.publicFlags:[]);
 const needed=[...(CROWD_SETTINGS.IDS[cached.businessType]||[]),...(R.slotsFor(cached.businessType,'onsite')||[]).map(x=>String(x.waitTypeId||''))];
 if(!needed.length||!needed.every(id=>typeof flags.get(id)==='boolean'))return false;
-crowdPublicFlags=flags;
+crowdPublicFlags=flags;crowdFlagsDate=String(cached.operationalDate||'');
 crowdSlots=cached.slots;
 crowdDetails=Array.isArray(cached.details)?cached.details:[];
 crowdAt=Number(cached.savedAt);
@@ -763,8 +763,6 @@ return safePeople(slot.remaining);
 }
 function validCrowdSlots(){
 const age=Date.now()-crowdAt,ended=crowdReadOnly();
-// Keep a verified, explicitly date-scoped snapshot visible after the 19:00
-// reservation rollover; it is readonly and never grants a booking CTA.
 const archive=ended&&!crowdHiddenConfirmed?readLastCrowd():null;
 const live=day?.operationalDate===nowJst().date&&!crowdHiddenConfirmed&&!crowdClosed&&!crowdStale&&crowdAt>0&&age>=0&&age<=CROWD_STALE_MS
 &&Array.isArray(crowdSlots)&&crowdSlots.length
@@ -779,14 +777,16 @@ const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
 const slot=matches.length===1?matches[0]:null;
 const onsiteId=R.slotsFor(type,'onsite')[ids.indexOf(id)]?.waitTypeId;
 const flags=archive?new Map(archive.publicFlags):crowdPublicFlags;
+const known=flags instanceof Map;
+const webRetired=known&&flags.get(id)!==true;
+const onsiteRetired=known&&flags.get(onsiteId)!==true;
+if(!ended&&webRetired&&onsiteRetired)return null;
 const webHidden=flags?.get(id)!==true||crowdPublicFlags?.get(id)===false,onsiteHidden=flags?.get(onsiteId)!==true||crowdPublicFlags?.get(onsiteId)===false;
-return {id,webHidden,onsiteHidden,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
+return {id,webHidden,onsiteHidden,webRetired,onsiteRetired,time:String(slot?.slotKey||'')||({'0024':'10:00','0027':'14:00','0036':'10:00','0038':'13:30','0030':'10:00','0032':'12:30','0034':'15:00'})[id],
 web:webHidden?null:verifiedWebRemaining(slot),onsite:onsiteHidden?null:trusted?onsiteRemaining(id,trusted.details,type):null,
 verifiedAt:trusted?.savedAt||0,sourceDate};
-});
+ }).filter(Boolean);
 }
-// Only offer the WEB 7:00 action if the same-day, publicly visible AirWAIT
-// slot has a fresh, exact PERSON count above zero. Never equate unknown with 0.
 function hasVerifiedWebReceptionSlot(){
  const date=nowJst();
  if(date.minutes<420||!airwaitWebReceptionUrl()||!businessForBoard()||businessForBoard().isClosed||
@@ -826,7 +826,7 @@ function renderSlots(){
  if(!business){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠を確認しています…</p>');return}
  if(business.isClosed){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">本日は休館日です。</p>');return}
  const slots=validCrowdSlots(),ended=crowdReadOnly();
- if(!slots.length){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠の人数を確認できません。</p>');return}
+ if(!slots.length){const message=crowdPublicFlags instanceof Map&&!ended?'現在、公開されている受付枠はありません。':'受付枠の人数を確認できません。';writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">'+message+'</p>');return}
  const stamp=slots.find(x=>x.verifiedAt>0)?.verifiedAt||0;
  const time=stamp?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(stamp)):'';
  const switched=ended&&slots.some(slot=>slot.verifiedAt>0&&slot.sourceDate&&slot.sourceDate!==nowJst().date);
@@ -840,8 +840,8 @@ function renderSlots(){
   return '<div class="v38-crowd-card crowd-unknown'+(ended?' is-readonly':'')+'" role="group" aria-label="'+esc(label+'。WEB受付の残り'+spoken(slot.web)+'。LINE受付の残り'+spoken(slot.onsite))+'">'
    +'<div class="v38-crowd-head"><time>'+esc(label)+'</time></div>'
    +'<div class="v38-crowd-remaining" aria-label="WEB受付とLINE受付の残り人数"><div class="v38-crowd-remaining-title">残り人数</div><div class="v38-crowd-channels">'
-   +remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl,readonly:ended||slot.webHidden})
-   +remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended||slot.onsiteHidden})
+   +(slot.webRetired&&!ended?'<div class="v38-crowd-channel v38-crowd-channel--web is-unavailable"><span>WEB受付</span><strong>受付なし</strong></div>':remainingMarkup('WEB受付',slot.web,'web',{time:slot.time,webUrl,readonly:ended||slot.webHidden}))
+   +(slot.onsiteRetired&&!ended?'<div class="v38-crowd-channel v38-crowd-channel--onsite is-unavailable"><span>LINE受付</span><strong>受付なし</strong></div>':remainingMarkup('LINE受付',slot.onsite,'onsite',{time:slot.time,readonly:ended||slot.onsiteHidden}))
    +'</div></div>'+(ended?'':'<p class="v38-crowd-tap-hint">受付方法をタップ</p>')+'</div>';
  }).join('');
  const refresh='<div class="v38-crowd-refresh" role="status"><span id="v38CrowdAge">'+esc(time?'最終更新 '+time:'最終更新 —:—')+'</span><button type="button" id="v38CrowdUpdate" '+(crowdRetryAt>Date.now()?'disabled title="通信集中のため自動再確認を待っています"':'')+'>↻ 今すぐ更新</button></div>';
@@ -853,7 +853,7 @@ async function fetchCrowd(force=false,manual=false){
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
- crowdPublicFlags=null;
+ if(crowdFlagsDate!==String(day?.operationalDate||'')){crowdPublicFlags=null;crowdFlagsDate=''}
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
@@ -870,7 +870,8 @@ async function fetchCrowd(force=false,manual=false){
   const t=readLastCrowd()?.businessType||businessForBoard()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
   const types=await m.published(E.backendUrl);
-  crowdPublicFlags=Array.isArray(types)?new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg])):null;
+  const flagsVerified=Array.isArray(types);
+  if(flagsVerified){crowdPublicFlags=new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg]));crowdFlagsDate=String(day?.operationalDate||'')}
   if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
@@ -878,7 +879,7 @@ async function fetchCrowd(force=false,manual=false){
   }
   crowdHiddenConfirmed=false;
   crowdSlots=data.slots;crowdDetails=Array.isArray(data.observedDetails)?data.observedDetails:[];
-  crowdStale=data.stale===true;
+  crowdStale=data.stale===true||!flagsVerified;
   const fetchedAt=data.fetchedAt==null?Date.now():Date.parse(data.fetchedAt);
   crowdAt=fetchedAt<=Date.now()&&!crowdStale?fetchedAt:0;
   if(crowdStale)crowdRetryAt=Date.now()+60000;else crowdRetryAt=0;
@@ -891,7 +892,7 @@ async function fetchCrowd(force=false,manual=false){
    const cached=readCrowdCache();
    if(!crowdSlots&&cached?.slots){crowdSlots=cached.slots;crowdDetails=Array.isArray(cached.details)?cached.details:[];crowdAt=cached.verifiedFresh===true?Number(cached.savedAt||0):0;crowdStale=cached.verifiedFresh!==true}
    crowdRetryAt=Date.now()+(reason.includes('RATE_LIMITED')?90000:30000+Math.floor(Math.random()*5000));
-   crowdStale=!crowdAt||Date.now()-crowdAt>CROWD_STALE_MS;
+   crowdStale=true;
    crowdError=crowdSlots?'':reason;
   }
  }finally{

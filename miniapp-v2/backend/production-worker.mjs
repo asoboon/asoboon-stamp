@@ -1788,7 +1788,8 @@ async function persistTerminalClaimFromStatus(env,payload,response){
   if(!env?.DB||!payload||!response?.ok)return false;
   let body=null;try{body=await response.clone().json()}catch{return false}
   const state=String(body?.state||'');
-  const nextState=state==='done'?'COMPLETED':state==='canceled'?'CANCELED':'';
+  const nextState=state==='done'?'COMPLETED':state==='canceled'?'CANCELED':
+    ['waiting','calling','hold','processing'].includes(state)?'CONFIRMED':'';
   if(!nextState||body?.found!==true)return false;
   const rawToken=String(payload?.sessionToken||'').trim();
   if(rawToken.length<32)return false;
@@ -1799,9 +1800,10 @@ async function persistTerminalClaimFromStatus(env,payload,response){
   if(body?.reserveId&&String(body.reserveId)!==String(session.reserve_id||''))return false;
   if(body?.receiptNo&&String(body.receiptNo)!==String(session.receipt_no||''))return false;
   const waitTypeId=String(body?.waitTypeId||session.wait_type_id||'');
+  const expectedState=nextState==='CONFIRMED'?'COMPLETED':'CONFIRMED';
   const changed=await env.DB.prepare(`UPDATE v2_user_day_claims SET state=?,updated_at=?
-    WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state='CONFIRMED'`)
-    .bind(nextState,Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||''),waitTypeId).run();
+    WHERE user_hash=? AND business_date=? AND reserve_id=? AND receipt_no=? AND wait_type_id=? AND state=?`)
+    .bind(nextState,Date.now(),String(session.user_hash||''),String(session.business_date||''),String(session.reserve_id||''),String(session.receipt_no||''),waitTypeId,expectedState).run();
   return Number(changed?.meta?.changes||0)===1;
 }
 
