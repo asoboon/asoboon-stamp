@@ -46,7 +46,7 @@ function translateBusiness(){
       for(const [from,to] of names)if(display.includes(from)){display=display.replace(from,to);break}
     }
    }else{
-    display=jp.includes('2時間30分')?dict[4]:jp.includes('3時間')?dict[5]:jp.includes('無制限')?dict[6]:jp;
+    display=jp.includes('2時間30分')?dict[4]:jp.includes('3時間')?dict[5]:/(?:無制限|制限なし)/u.test(jp)?dict[6]:jp;
    }
   }
   copyTo(node,display);
