@@ -169,8 +169,8 @@ test('Production play content lives only in the bottom PLAY tab and retains its 
  await page.locator('.cm-nav-tab[data-v7-view="play"]').click();
  await expect(page.locator('.cm-hub h1')).toHaveText('あそび');
  const cards=page.locator('.cm-hub-list a.cm-hub-row');
- await expect(cards).toHaveCount(4);
- for(const label of ['ASOQUEST スタンプラリー','BOON パズル','ブーンジャンプ','ブーンRUN']){
+ await expect(cards).toHaveCount(5);
+ for(const label of ['ASOQUEST スタンプラリー','BOON パズル','ブーンジャンプ','ブーンRUN','おみくじ']){
   await expect(cards.filter({hasText:label})).toHaveAttribute('data-external','1');
  }
  await expect(cards.filter({hasText:'ASOQUEST スタンプラリー'})).toHaveAttribute('href',/asoquest\//);
