@@ -10,7 +10,7 @@ window.ASOBOON_V2_ENSURE_ROUTE_ASSETS=()=>{
   const fail=e=>{if(failed)return;failed=true;pending=null;reject(e||Error('ROUTE_ASSETS_LOAD_FAILED'))};
   const base=window.ASOBOON_V2_ENV?.assetBase||location.href;
   const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('production-routes.css?v=f0f82abc0073',base).href;link.onload=()=>{cssDone=true;finish()};link.onerror=()=>fail(Error('ROUTE_CSS_LOAD_FAILED'));document.head.appendChild(link);
-  const script=document.createElement('script');script.src=new URL('production-routes.js?v=215ae47a9de1',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
+  const script=document.createElement('script');script.src=new URL('production-routes.js?v=4d95246708fd',base).href;script.async=true;script.onload=()=>{jsDone=true;finish()};script.onerror=()=>fail(Error('ROUTE_JS_LOAD_FAILED'));document.head.appendChild(script);
  });
  return pending;
 };
@@ -653,7 +653,6 @@ function availability(){if(dayError)return{type:'error',title:'営業情報を�
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
 function guide(kind,title,sub,view,panel=''){return `<button class="v38-guide-card ${kind}" type="button" data-v7-view="${view}"${panel?` data-v7-panel="${panel}"`:''}><span class="v38-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span>${svg('arrow')}</button>`}
-function playLink(kind,title,sub,href,extra=''){return `<a class="v38-play-card ${kind} ${extra}" href="${href}" data-external="1"><span class="v38-play-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span></a>`}
 function baseHome(){return `<section class="home-shell v38-home" aria-label="ASOBooN HOME"><section id="v38Hero" class="v38-hero loading"><div class="v38-hero-icon">${svg('clock')}</div><div><h1>${T.loading}</h1><p>お待ちください。</p></div></section><section class="v38-today-section"><button id="v38Today" class="v38-today" type="button" data-v7-view="timeguide" aria-label="本日の営業と利用時間"><span>${svg('clock')}<small>営業</small><strong>${T.loading}</strong></span><span><small>${T.hours}</small><strong>—</strong></span><span><small>${T.close}</small><strong>—</strong></span>${svg('arrow')}</button><section id="v38Slots" class="v38-slots" aria-live="polite"></section></section><section class="v38-quick-tools" aria-label="よく使う機能"><button id="v38TimeguideShortcut" class="v38-timeguide-cta" type="button" data-v7-view="timeguide"><span class="v38-quick-icon">${svg('clock')}</span><span><small data-timeguide-eyebrow>利用中にも便利</small><strong data-timeguide-title>アソブーンタイマー</strong><em data-timeguide-summary>遊べる時間の目安を表示</em></span>${svg('arrow')}</button></section><section class="v38-calendar-section v38-business-calendar-section"><h2>営業日カレンダー</h2><a class="v38-calendar-card" href="${assetHref('business-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>定休日・臨時変更を確認</small><strong>営業日カレンダー</strong><em>今日から翌月までの予定</em></span>${svg('arrow')}</a></section><section id="v38Surprise" class="v38-surprise-section" hidden aria-live="polite"></section><section class="v38-calendar-section"><h2>イベントカレンダー</h2><a class="v38-calendar-card" href="${assetHref('event-calendar.html')}" data-external="1"><span class="v38-calendar-icon">${svg('calendar')}</span><span><small>今月の予定</small><strong>今月のイベントを見る</strong><em>開催予定をまとめてチェック</em></span>${svg('arrow')}</a></section><section class="v38-first-shortcut" aria-label="初めての方"><div class="v38-guide-grid">${guide('person',T.first,T.firstSub,'first')}</div></section><footer class="v38-legal" aria-label="運営・お問い合わせ・プライバシー情報"><span>運営：株式会社コマーム</span><a href="https://comaam.jp/privacy-policy/" target="_blank" rel="noopener noreferrer" data-external="1">個人情報保護方針</a></footer></section>`}
 function fmtDate(value){const raw=String(value||'').trim(),m=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return raw||'—';return `${Number(m[2])}月${Number(m[3])}日`}
 function reservationInfo(receipt=''){let rec=null;try{rec=JSON.parse(localStorage.getItem(RES_KEY)||'null')}catch{}if(!rec)return null;if(receipt&&rec.receiptNo&&String(rec.receiptNo)!==String(receipt))return null;return rec}
@@ -1066,6 +1065,13 @@ function sameLiveStatus(rec,status){
 }
 function provisional(rec,force=false){
   if(!rec?.receiptNo)return null;
+  const t=read('asoboon_v2_callstatus_canceled_production_v1');
+  if(t?.receiptNo===rec.receiptNo&&t.businessDate===rec.businessDate&&!(Number(rec.cachedAt||0)>Number(t.savedAt||0)+1000)){
+   const status={kind:'canceled',receipt:rec.receiptNo,canceled:true,source:'live'};
+   window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+   return status;
+  }
   const current=window.ASOBOON_HOME_STATUS_SNAPSHOT||null;
   if(!force&&(sameLiveStatus(rec,current)||(current?.kind==='pending'&&String(current.receipt||'')===String(rec.receiptNo))))return current;
   const stored=read(SNAP_KEY);

@@ -3942,3 +3942,210 @@ test('2026-11-11 guide-complete becomes waiting again and customer cancel action
  await expect(page.locator('#csTitle')).toContainText('取消');
  await expect(page.locator('#csCancelArea')).toBeHidden();
 });
+
+
+test('2026-11-11 confirmed guest cancellation stops polling after reopening and resumes only for a new receipt',async({page})=>{
+ await installProduction(page);
+ let polls=0,cancels=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const data=new URLSearchParams(route.request().postData()||'');
+  const action=data.get('action')||new URL(route.request().url()).searchParams.get('action');
+  const json=obj=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(obj)});
+  if(action==='reservationStatus'){
+   polls++;
+   const token=String(data.get('sessionToken')||'');
+   return json({ok:true,found:true,state:'waiting',receiptNo:token.startsWith('n')?'R999':'R321',
+    businessDate:'2026-10-03',waitTypeId:'0031',waitTypeName:'12:30の回',
+    aheadCount:2,queueRank:3,activeCount:20,checkedAt:Date.now()});
+  }
+  if(action==='cancelReservation'){
+   cancels++;
+   return json({ok:true,canceled:true,found:true,state:'canceled',receiptNo:'R321',
+    businessDate:'2026-10-03',waitTypeId:'0031',checkedAt:Date.now()});
+  }
+  return route.fallback();
+ });
+ await page.addInitScript(()=>{
+  const key='asoboon_v2_current_reservation_production_v1';
+  const sk='asoboon_v2_callstatus_session_production_v1';
+  if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({
+   receiptNo:'R321',businessDate:'2026-10-03',waitTypeId:'0031',cachedAt:Date.now()-30000
+  }));
+  if(!localStorage.getItem(sk))localStorage.setItem(sk,JSON.stringify({
+   receiptNo:'R321',businessDate:'2026-10-03',waitTypeId:'0031',
+   sessionToken:'k'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect(page.locator('#csCancelArea')).toBeVisible();
+ await page.locator('#csCancel').click();
+ await page.locator('#csCancelProceed').click();
+ await expect.poll(()=>cancels).toBe(1);
+ await expect(page.locator('#csTitle')).toContainText('取消済み');
+ await expect(page.locator('#csCancelArea')).toBeHidden();
+ await expect(page.locator('#csHeartbeatLabel')).not.toContainText('次の再確認');
+ const afterCancel=polls;
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('取消済み');
+ await expect(page.locator('#csRebookArea')).toBeVisible();
+ await page.locator('#csRefresh').click();
+ await page.waitForTimeout(350);
+ expect(polls).toBe(afterCancel);
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await page.waitForTimeout(350);
+ expect(polls).toBe(afterCancel);
+ await page.evaluate(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'R999',businessDate:'2026-10-03',waitTypeId:'0031',cachedAt:Date.now()+5000
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+   receiptNo:'R999',businessDate:'2026-10-03',waitTypeId:'0031',
+   sessionToken:'n'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csReceipt')).toHaveText('R999');
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect.poll(()=>polls).toBeGreaterThan(afterCancel);
+});
+
+test('2026-11-11 AirWAIT-confirmed canceled state stays terminal across HOME and CALL tabs',async({page})=>{
+ await installProduction(page);
+ let polls=0;
+ await page.route(GATEWAY+'**',route=>{
+  const data=new URLSearchParams(route.request().postData()||'');
+  const action=data.get('action')||new URL(route.request().url()).searchParams.get('action');
+  if(action==='reservationStatus'){
+   polls++;
+   return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,found:true,state:'canceled',receiptNo:'R456',
+     businessDate:'2026-10-03',waitTypeId:'0031',checkedAt:Date.now()})});
+  }
+  return route.fallback();
+ });
+ await page.addInitScript(()=>{
+  const k='asoboon_v2_current_reservation_production_v1';
+  const s='asoboon_v2_callstatus_session_production_v1';
+  if(!localStorage.getItem(k))localStorage.setItem(k,JSON.stringify({
+   receiptNo:'R456',businessDate:'2026-10-03',waitTypeId:'0031'
+  }));
+  if(!localStorage.getItem(s))localStorage.setItem(s,JSON.stringify({
+   receiptNo:'R456',businessDate:'2026-10-03',waitTypeId:'0031',
+   sessionToken:'x'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('取消済み');
+ const count=polls;
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('取消済み');
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await page.waitForTimeout(250);
+ await page.locator('.cm-nav-tab[data-v7-view="callstatus"]').click();
+ await expect(page.locator('#csTitle')).toContainText('取消済み');
+ expect(polls).toBe(count);
+});
+
+test('2026-11-11 verified missing receipt pauses polling and keeps manual retry without labeling canceled',async({page})=>{
+ await installProduction(page);
+ let calls=0;
+ await page.route(GATEWAY+'**',route=>{
+  const data=new URLSearchParams(route.request().postData()||'');
+  const action=data.get('action')||new URL(route.request().url()).searchParams.get('action');
+  if(action==='reservationStatus'){
+   calls++;
+   return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({ok:true,found:false,receiptNo:'R654',
+     businessDate:'2026-10-03',waitTypeId:'0031',checkedAt:Date.now()})});
+  }
+  return route.fallback();
+ });
+ await page.addInitScript(()=>{
+  const realTimeout=window.setTimeout.bind(window);
+  window.setTimeout=(callback,delay,...args)=>
+   realTimeout(callback,delay>=5500&&delay<=7200?70:delay,...args);
+  const k='asoboon_v2_current_reservation_production_v1';
+  const s='asoboon_v2_callstatus_session_production_v1';
+  if(!localStorage.getItem(k))localStorage.setItem(k,JSON.stringify({
+   receiptNo:'R654',businessDate:'2026-10-03',waitTypeId:'0031'
+  }));
+  if(!localStorage.getItem(s))localStorage.setItem(s,JSON.stringify({
+   receiptNo:'R654',businessDate:'2026-10-03',waitTypeId:'0031',
+   sessionToken:'y'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>calls,{timeout:12000}).toBe(3);
+ await expect(page.locator('#csMessage')).toContainText('自動確認を停止');
+ await expect(page.locator('#csTitle')).not.toContainText('取消済み');
+ await page.waitForTimeout(500);
+ expect(calls).toBe(3);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('この受付番号を確認できません');
+ await page.waitForTimeout(300);
+ expect(calls).toBe(3);
+ await page.locator('#csRefresh').click();
+ await expect.poll(()=>calls).toBeGreaterThan(3);
+});
+
+for(const width of [320,390,430]){
+ test('2026-11-11 cocoa-chip chocolate header and footer stay visible at '+width+'px',async({page})=>{
+  await installProduction(page);
+  await page.setViewportSize({width,height:844});
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('html.boon-v4.boon-v5-mint')).toHaveCount(1);
+  await expect(page.locator('.cm-bottom-nav .cm-nav-tab')).toHaveCount(4);
+  const css=await page.evaluate(()=>{
+   const header=getComputedStyle(document.querySelector('#app .topbar'));
+   const nav=getComputedStyle(document.querySelector('#app>.cm-bottom-nav'));
+   const current=document.querySelector('#app>.cm-bottom-nav .cm-nav-tab.is-current');
+   return {header:header.backgroundImage,footer:nav.backgroundImage,
+    tab:getComputedStyle(current).backgroundImage,
+    tabHeight:current.getBoundingClientRect().height,
+    overflow:document.documentElement.scrollWidth-innerWidth};
+  });
+  expect(css.header).toContain('radial-gradient');
+  expect(css.header).toContain('linear-gradient');
+  expect(css.footer).toContain('radial-gradient');
+  expect(css.footer).toContain('linear-gradient');
+  expect(css.tab==='none'||css.tab.includes('linear-gradient')).toBe(true);
+  expect(css.tabHeight).toBeGreaterThanOrEqual(44);
+  expect(css.overflow).toBeLessThanOrEqual(1);
+  await page.locator('.cm-bottom-nav [data-v7-view="guide"]').click();
+  await expect(page.locator('.cm-hub h1')).toHaveText('ご利用案内');
+ });
+}
+
+
+test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but accepts a new ticket',async({page})=>{
+ await installProduction(page);
+ let lookups=0;
+ await page.route(GATEWAY+'**',route=>{
+  const a=new URLSearchParams(route.request().postData()||'').get('action');
+  if(['reservationStatus','recoverReservationSession'].includes(a))lookups++;
+  return route.fallback();
+ });
+ await page.addInitScript(()=>{
+  const now=Date.now();
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'R333',businessDate:'2026-10-03',waitTypeId:'0031',cachedAt:now-5000
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_canceled_production_v1',JSON.stringify({
+   receiptNo:'R333',businessDate:'2026-10-03',savedAt:now,checkedAt:now
+  }));
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('canceled');
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R333');
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await page.waitForTimeout(250);
+ expect(lookups).toBe(0);
+ await page.evaluate(()=>{
+  const replacement={receiptNo:'R998',businessDate:'2026-10-03',waitTypeId:'0031',cachedAt:Date.now()+2000};
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify(replacement));
+  window.dispatchEvent(new CustomEvent('asoboon:v2-reservation-saved',{detail:replacement}));
+ });
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R998');
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('pending');
+});

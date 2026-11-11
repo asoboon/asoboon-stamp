@@ -12,6 +12,13 @@ function sameLiveStatus(rec,status){
 }
 function provisional(rec,force=false){
   if(!rec?.receiptNo)return null;
+  const t=read('asoboon_v2_callstatus_canceled_production_v1');
+  if(t?.receiptNo===rec.receiptNo&&t.businessDate===rec.businessDate&&!(Number(rec.cachedAt||0)>Number(t.savedAt||0)+1000)){
+   const status={kind:'canceled',receipt:rec.receiptNo,canceled:true,source:'live'};
+   window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+   return status;
+  }
   const current=window.ASOBOON_HOME_STATUS_SNAPSHOT||null;
   if(!force&&(sameLiveStatus(rec,current)||(current?.kind==='pending'&&String(current.receipt||'')===String(rec.receiptNo))))return current;
   const stored=read(SNAP_KEY);

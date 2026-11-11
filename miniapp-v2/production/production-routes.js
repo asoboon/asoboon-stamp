@@ -633,6 +633,8 @@ const CALL_KEY=`asoboon_v2_callstatus_${STORAGE_NS}_v1`;
 const SESSION_KEY=`asoboon_v2_callstatus_session_${STORAGE_NS}_v1`;
 const HOME_SNAP_KEY=`asoboon_v2_home_status_${STORAGE_NS}_v1`;
 const RATE_LIMIT_STORAGE_KEY=`asoboon_v2_callstatus_retry_after_${STORAGE_NS}_v1`;
+const CANCELED_KEY='asoboon_v2_callstatus_canceled_'+STORAGE_NS+'_v1';
+const UNRESOLVED_KEY='asoboon_v2_callstatus_unresolved_'+STORAGE_NS+'_v1';
 const POLL_RECONCILE_MS=6000;
 // A successful identity-backed recovery returning found:false is not a network error.
 const VERIFIED_NO_SESSION=Object.freeze({verifiedNoSession:true});
@@ -820,7 +822,7 @@ function stateMeta(state,ahead){
     case'hold':return{cls:'hold',icon:'⏸️',title:'保留中です',msg:'スタッフの案内をご確認ください。'};
     case'processing':return{cls:'processing',icon:'✅',title:'受付対応中です',msg:'スタッフが受付対応を進めています。'};
     case'done':return{cls:'done',icon:'🏁',title:'ご案内済みです',msg:'この受付はご案内済みになっています。'};
-    case'canceled':return{cls:'canceled',icon:'✕',title:'受付は取消になっています',msg:'受付状況についてスタッフへご確認ください。'};
+    case'canceled':return{cls:'canceled',icon:'✕',title:'受付は取消済みです',msg:'この番号の自動確認は終了しました。受付をやり直す場合は下のボタンをご利用ください。'};
     case'closed':return{cls:'closed',icon:'✓',title:'本日の受付は終了しました',msg:'この受付番号の呼出状況表示は終了しています。'};
     default:return{cls:'loading',icon:'🔄',title:'状況を確認しています',msg:'AirWAITの最新情報を取得しています。'};
   }
@@ -895,12 +897,37 @@ function startHeartbeat(){
 function setError(text){const el=$('csError');if(!el)return;if(!text){el.hidden=true;el.textContent='';return}el.hidden=false;el.textContent=String(text)}
 function setBusy(busy){const b=$('csRefresh');if(b){b.disabled=busy;b.textContent=busy?'確認中…':'↻ 今すぐ更新'}}
 function cachedReservation(){return readJSON(CACHE_KEY)||readJSON(CALL_KEY)||{}}
+// A cancellation proven by AirWAIT or this guest's successful cancellation
+// is terminal. A missing record is UNKNOWN, not evidence of cancellation.
+function sameCachedTicket(note,cached=cachedReservation()){
+ if(!note||!note.receiptNo||!cached||!cached.receiptNo)return false;
+ if(String(note.receiptNo)!==String(cached.receiptNo))return false;
+ if(note.businessDate&&cached.businessDate&&String(note.businessDate)!==String(cached.businessDate))return false;
+ if(note.reserveId&&cached.reserveId&&String(note.reserveId)!==String(cached.reserveId))return false;
+ return !(Number(cached.cachedAt||0)>Number(note.savedAt||0)+1000);
+}
+function canceledTicket(){const note=readJSON(CANCELED_KEY);return sameCachedTicket(note)?note:null}
+function unresolvedTicket(){const note=readJSON(UNRESOLVED_KEY);return sameCachedTicket(note)?note:null}
+function saveCanceledTicket(d){
+ const c=cachedReservation(),receiptNo=String(d.receiptNo||c.receiptNo||'').trim();
+ if(!receiptNo)return;
+ writeJSON(CANCELED_KEY,{receiptNo,businessDate:String(d.businessDate||c.businessDate||''),
+ reserveId:String(d.reserveId||c.reserveId||''),savedAt:Date.now(),checkedAt:Number(d.checkedAt||Date.now())});
+ removeKey(UNRESOLVED_KEY);removeKey(SESSION_KEY);
+}
+function pauseUnresolved(c=cachedReservation()){
+ const receiptNo=String(c.receiptNo||'').trim();
+ if(receiptNo)writeJSON(UNRESOLVED_KEY,{receiptNo,businessDate:String(c.businessDate||''),
+ reserveId:String(c.reserveId||''),savedAt:Date.now()});
+ nextPollMs=0;nextPollAt=0;
+}
+
 function cachedWaitType(){const c=cachedReservation();return String(c.waitTypeName||c.waitTypeLabel||'受付枠を確認中')}
 
 function showVerifiedMissing(cached){
  // Keep the saved receipt for staff assistance. A missing active session may be
  // a terminal/deleted booking or an identity mismatch; never claim which one.
- notFoundStreak+=1;nextPollMs=POLL_RATE_LIMITED_MS;
+ notFoundStreak+=1;pauseUnresolved(cached);
  updateCallForecast(null);
  updateCancelAction('');updateRebookAction(null);
  const receipt=String(cached?.receiptNo||'').trim();
@@ -915,7 +942,7 @@ function showVerifiedMissing(cached){
   :'当日受付が完了すると、ここで呼出状況を確認できます。';
  if($('csChecked'))$('csChecked').textContent=fmtClock(Date.now());
  setError(receipt?'お困りの場合は保存済みの受付番号をスタッフへお伝えください。新しい受付は自動作成しません。':'');
- const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='該当する受付情報が見つかりません';top.querySelector('small').textContent='通信エラーではありません。約90秒後に自動再確認します。'}
+ const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent='該当する受付情報が見つかりません';top.querySelector('small').textContent='通信エラーではありません。自動確認は停止しました。必要なときだけ手動で更新できます。'}
 }
 
 function shareHomeStatus(d){
@@ -949,6 +976,11 @@ function shareHomeStatus(d){
 function applyStatus(d){
   if(!d||!$('csState'))return;
   lastStatus=d;
+  if(d.found===true&&d.state==='canceled'){
+    if(!canceledTicket())saveCanceledTicket(d);
+    stopPolling(); // Cancel any already scheduled heartbeat or in-flight result.
+  }
+  else if(d.found===true&&d.state!=='canceled')removeKey(UNRESOLVED_KEY);
   setCallVisualTone(d.found?d.state:'loading');
   updateCallForecast(d);
   updateCancelAction(d?.found?d.state:'');
@@ -961,13 +993,14 @@ function applyStatus(d){
   if(!d.found){
     setCallVisualTone('loading');
     notFoundStreak+=1;
-    nextPollMs=notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS;
+    nextPollMs=notFoundStreak<POLL_RECONCILE_MAX?POLL_RECONCILE_MS:0;
+    if(nextPollMs===0)pauseUnresolved(cached);
     const box=$('csState');if(box)box.className='cs-state loading';
     if($('csQueue'))$('csQueue').hidden=true;
     if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
-    const reconciling=notFoundStreak<=POLL_RECONCILE_MAX;
+    const reconciling=notFoundStreak<POLL_RECONCILE_MAX;
     if($('csTitle'))$('csTitle').textContent=reconciling?'受付状況を照合中':'受付状況が変更されています';
-    if($('csMessage'))$('csMessage').textContent=reconciling?`受付番号は保存済みです。全ての受付枠から最新状態を探しています（${notFoundStreak}/${POLL_RECONCILE_MAX}）。`:'取消・案内済み・受付枠変更の可能性があります。受付番号は保持したまま再確認します。';
+    if($('csMessage'))$('csMessage').textContent=reconciling?`受付番号は保存済みです。全ての受付枠から最新状態を探しています（${notFoundStreak}/${POLL_RECONCILE_MAX}）。`:'取消・終了・受付枠変更の可能性があります。受付番号は残し、自動確認を停止しました。必要なら手動で更新してください。';
     setError(reconciling?'':'新しい受付を作り直さず、この受付番号のままご確認ください。');
     const top=$('csTop');if(top){top.className=reconciling?'cs-top ok':'cs-top warn';top.querySelector('strong').textContent=reconciling?'受付状況を照合中':'受付状況が変更されています';top.querySelector('small').textContent=reconciling?'受付直後の反映待ちを自動で再確認しています。':`次回は${pollLabel(nextPollMs)}に確認します。`}
     return;
@@ -990,6 +1023,7 @@ function applyStatus(d){
   if($('csQueue'))$('csQueue').hidden=!showQueue;
   if(showQueue){if($('csAhead'))$('csAhead').textContent=ahead??'—';if($('csRank'))$('csRank').textContent=d.queueRank??'—';if($('csTotal'))$('csTotal').textContent=` / ${d.activeCount??'—'}組中`}
   if($('csChecked'))$('csChecked').textContent=fmtClock(d.checkedAt);
+  if(d.state==='canceled'&&$('csHeartbeatLabel'))$('csHeartbeatLabel').textContent='取消済み・自動更新は終了しました。';
   const top=$('csTop');if(top){top.className='cs-top ok';top.querySelector('strong').textContent='AirWAITと接続中';top.querySelector('small').textContent=nextPollMs?`待ち状況に応じて${pollLabel(nextPollMs)}に自動更新します。`:'この受付は自動更新を終了しました。'}
 }
 
@@ -1050,6 +1084,16 @@ async function ensureSession(){
 async function refreshStatus({manual=false}={}){
   const gen=generation;
   if(!$('csState'))return;
+  // A proven cancellation stays terminal even after reopening HOME/LINE.
+  const canceled=canceledTicket();
+  if(canceled){
+    if(lastStatus?.state!=='canceled')applyStatus({...canceled,found:true,state:'canceled'});
+    return;
+  }
+  // Unknown missing records stop automatic lookups; a deliberate refresh can
+  // reconcile a staff-restored ticket without deleting the receipt.
+  if(manual){removeKey(UNRESOLVED_KEY);notFoundStreak=0}
+  else if(unresolvedTicket()){showVerifiedMissing(cachedReservation());return}
   // Only one status request per mounted screen. A manual tap while loading
   // queues ONE additional refresh instead of racing and showing stale results.
   if(activeRefreshGeneration===gen){if(manual)queuedManualRefresh=true;return}
@@ -1114,6 +1158,17 @@ function mountCallstatus(){
   document.querySelectorAll('[data-cs-cancel-close]').forEach(el=>el.addEventListener('click',closeCancelDialog));
   updateCancelAction('');
   updateRebookAction(null);
+  const terminal=canceledTicket();
+  if(terminal){
+    applyStatus({...terminal,found:true,state:'canceled'});
+    renderHeartbeat();
+    return;
+  }
+  if(unresolvedTicket()){
+    showVerifiedMissing(cached);
+    renderHeartbeat();
+    return;
+  }
   queueMicrotask(()=>{if(gen===generation&&$('csState'))void refreshStatus()});
 }
 
@@ -1153,7 +1208,7 @@ document.addEventListener('visibilitychange',()=>{
   if($('csState')){startHeartbeat();void refreshStatus({manual:true})}
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
-  version:'1.8.0-terminal-resolution',
+  version:'1.9.0-stop-canceled-receipt',
   nativeCancelVersion:'1.1-long-wait',
   render:pageHtml,
   mount:mountCallstatus,
