@@ -38,3 +38,17 @@ html.boon-v4.boon-v5-mint #app .pv7-primary:not(:disabled){background:var(--cm-d
 html.boon-v4.boon-v5-mint #app .cm-hub-head{background:var(--cm-mint-soft)!important}
 @media(max-width:360px){body #app .cm-bottom-nav .cm-nav-tab{min-width:0;overflow:hidden}html.boon-v4.boon-v5-mint body #app .pv7-body{padding-inline:14px}}
 @media(prefers-reduced-motion:reduce){body #app main.view,body #app .cm-hub{animation:none!important;transition:none!important}}
+
+/* Visible cocoa from the first paint, even before the theme classes hydrate. */
+html.asoboon-production-shell body #app .topbar{
+ background:linear-gradient(110deg,#34221d,#603a2b)!important;
+ border-bottom:3px solid #b98a69!important;
+ color:#fff8e9!important;
+}
+html.asoboon-production-shell body #app .topbar .brand{
+ background:#fff4e4!important;border-color:#d1b08f!important;
+}
+html.asoboon-production-shell body #app>.cm-bottom-nav{
+ background:linear-gradient(180deg,#543326,#30201a)!important;
+ border-top:3px solid #93e2d4!important;
+}

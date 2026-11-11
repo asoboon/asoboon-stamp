@@ -330,7 +330,7 @@ test('callstatus canceled immediately owns HOME and survives lifecycle refresh',
     window.dispatchEvent(new CustomEvent('asoboon:v8-home-status', { detail: { kind: 'sync', receipt: 'F123' } }));
     document.querySelector('#v38Hero [data-v7-view="callstatus"]')?.click();
   });
-  await expect(page.locator('#csState')).toContainText('受付は取消になっています');
+  await expect(page.locator('#csState')).toContainText('受付は取消済みです');
   await page.getByRole('button', { name: '新HOMEへ戻る' }).click();
   await expect(page.locator('#v38Hero')).toContainText('受付が取り消されました');
   await page.evaluate(() => { window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); });
