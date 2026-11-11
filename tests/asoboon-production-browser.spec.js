@@ -2364,8 +2364,11 @@ test('HOME has a single mint reception CTA and one dark fixed call-status tab',a
  await expect(page.locator('#v38Hero [data-v7-view="callstatus"]')).toHaveCount(0);
  const call=page.locator('.cm-bottom-nav [data-v7-view="callstatus"]');
  await expect(call).toBeVisible();
- const primaryColor=await reception.evaluate(el=>getComputedStyle(el).backgroundColor);
- expect(primaryColor).toBe('rgb(109, 210, 202)');
+ // The official HOME can replace the mint CTA during an async status update.
+ // A detached node has an empty computed color; poll until the current live
+ // button has the intended CSS instead of sampling a stale DOM instance.
+ await expect.poll(async()=>reception.evaluate(el=>getComputedStyle(el).backgroundColor),
+  {timeout:12000}).toBe('rgb(109, 210, 202)');
  await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
 });
