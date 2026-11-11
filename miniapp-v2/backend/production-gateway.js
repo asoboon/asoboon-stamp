@@ -949,7 +949,7 @@ async function fetchAirwaitReservations(env, waitTypeId) {
   const key = String(waitTypeId || 'ALL');
   const now = Date.now();
   const cached = callstatusAirwaitCache.get(key);
-  if (cached && now - cached.savedAt < CALLSTATUS_AIRWAIT_CACHE_MS) return cached.rows;
+  if (cached && now >= cached.savedAt && now - cached.savedAt < CALLSTATUS_AIRWAIT_CACHE_MS) return cached.rows;
   if (callstatusAirwaitInflight.has(key)) return await callstatusAirwaitInflight.get(key);
   const job = fetchAirwaitReservationsUncached(env, waitTypeId).then(rows => {
     callstatusAirwaitCache.set(key, { savedAt: Date.now(), rows });
@@ -1053,6 +1053,29 @@ async function incrementAttempt(env, hash, date) {
   if (Number(row?.attempt_count || 0) > CFG.USER_ATTEMPT_LIMIT) throw apiError('DAILY_ATTEMPT_LIMIT_REACHED', 429);
 }
 
+// A past receipt is not releasable just because the user hid it locally.
+// Check the exact AirWAIT ticket within the stored wait type immediately before
+// a new issuance. Missing, ambiguous and network-error states are not proof.
+async function verifyPreviousReceiptForRebook(env,row){
+ const type=normalizeWaitType(row?.wait_type_id),receipt=normalizeReceipt(row?.receipt_no);
+ if(!type||!receipt)return 'UNKNOWN';
+ try{
+  const all=await fetchAirwaitReservationsUncached(env,type);
+  const rows=all.filter(x=>String(x.waitTypeId||'')===type);
+  const hit=selectTicketMatch(rows,receipt);
+  if(hit.ambiguous)return 'UNKNOWN';
+  if(!hit.row&&hit.count===0)return 'MISSING';
+  if(!hit.row||hit.mode!=='exact')return 'UNKNOWN';
+  if(String(hit.row.status)==='2')return 'COMPLETED';
+  if(String(hit.row.status)==='3')return 'CANCELED';
+  if(['0','1','4'].includes(String(hit.row.status)))return 'CONFIRMED';
+  return 'UNKNOWN';
+ }catch(e){
+  console.warn('PRIOR_RECEPTION_REBOOK_CHECK_FAILED',safeError(e));
+  return 'ERROR';
+ }
+}
+
 async function claimUserDay(env, hash, date, requestId, waitTypeId) {
   const now = Date.now();
   const r = await env.DB.prepare(`INSERT OR IGNORE INTO v2_user_day_claims
@@ -1076,12 +1099,42 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
     throw apiError('OFFICIAL_WEB_HANDOFF_ALREADY_PENDING',409);
   }
   if (state === 'CONFIRMED' && row.receipt_no && row.reserve_id) {
+    const observed=await verifyPreviousReceiptForRebook(env,row);
+    if(observed==='COMPLETED'||observed==='CANCELED'){
+      // Compare-and-swap: another request must not issue a second active ticket.
+      const update=await env.DB.prepare(`UPDATE v2_user_day_claims
+        SET request_id=?,state='CREATE_INFLIGHT',receipt_no='',reserve_id='',wait_type_id=?,created_at=?,updated_at=?
+        WHERE user_hash=? AND business_date=? AND request_id=? AND state='CONFIRMED'
+        AND receipt_no=? AND reserve_id=? AND wait_type_id=?`)
+        .bind(requestId,waitTypeId,now,now,hash,date,String(row.request_id||''),
+          String(row.receipt_no),String(row.reserve_id),String(row.wait_type_id||'')).run();
+      if(Number(update?.meta?.changes||0)===1)return{existing:false,reopenedTerminal:true,verifiedByAirwait:true};
+      return await claimUserDay(env,hash,date,requestId,waitTypeId);
+    }
     return { existing: true, result: {
       ok: true, stored: true, alreadyExists: true, version: CFG.VERSION,
       businessDate: date, operationalDate: date,
       receiptNo: String(row.receipt_no), reserveId: String(row.reserve_id),
       waitTypeId: String(row.wait_type_id || ''), shortUrl: '',
     }};
+  }
+  if (state === 'COMPLETED' && row.receipt_no && row.reserve_id) {
+    // Staff can undo guidance, returning a completed ticket to waiting.
+    // Confirm again before rebooking; an active ticket must not be duplicated.
+    const observed=await verifyPreviousReceiptForRebook(env,row);
+    if(observed==='CONFIRMED'){
+      const corrected=await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CONFIRMED',updated_at=?
+        WHERE user_hash=? AND business_date=? AND request_id=? AND state='COMPLETED'
+        AND receipt_no=? AND reserve_id=?`)
+        .bind(now,hash,date,String(row.request_id||''),String(row.receipt_no),String(row.reserve_id)).run();
+      if(Number(corrected?.meta?.changes||0)!==1)return await claimUserDay(env,hash,date,requestId,waitTypeId);
+      return {existing:true,result:{ok:true,stored:true,alreadyExists:true,version:CFG.VERSION,
+        businessDate:date,operationalDate:date,receiptNo:String(row.receipt_no),
+        reserveId:String(row.reserve_id),waitTypeId:String(row.wait_type_id||''),shortUrl:''}};
+    }
+    // A prior owner-bound done observation remains valid if AirWAIT archived the
+    // completed row, but an API error or ambiguous result is never permission.
+    if(observed==='UNKNOWN'||observed==='ERROR')throw apiError('PRIOR_RECEPTION_STATUS_UNVERIFIED',503);
   }
   if (state === 'CANCELED' || state === 'COMPLETED') {
     const reopened = await env.DB.prepare("UPDATE v2_user_day_claims SET request_id=?,state='CREATE_INFLIGHT',receipt_no='',reserve_id='',wait_type_id=?,created_at=?,updated_at=? WHERE user_hash=? AND business_date=? AND state IN ('CANCELED','COMPLETED')")

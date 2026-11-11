@@ -23,8 +23,10 @@ before(async () => {
   worker = (await import(runtimeUrl)).default;
 });
 
+let isolatedTestClock=0;
 beforeEach(() => {
-  mock.timers.setTime(NOON_JST);
+  // Keep shared Worker caches isolated without crossing the same 10-min rate window.
+  mock.timers.setTime(NOON_JST+(++isolatedTestClock)*11_000);
   db.clear();
   world.reset();
   env = baseEnv(db);
@@ -448,4 +450,59 @@ test('a guide-complete ticket returned to waiting is restored to CONFIRMED and c
   assert.equal(canceled.data?.canceled,true,JSON.stringify(canceled.data));
   assert.equal(world.row(r.reserveId).status,'3');
   assert.equal(claimRow(r.reserveId).state,'CANCELED');
+});
+
+
+test('AirWAIT-verified completed receipt allows another same-day booking even without opening callstatus', async () => {
+  const first=await create('UterminalNotOpened','0029','req-terminal-first-0001');
+  world.row(first.reserveId).status='2'; // Staff completed entry in AirWAIT.
+  // No reservationStatus call: this was the failure for guests skipping the call tab.
+  const next=await create('UterminalNotOpened','0031','req-terminal-next-0001');
+  assert.equal(Boolean(next.alreadyExists),false,'must issue a NEW number after verified completion');
+  // Display numbers can repeat between different wait types; reserveId is unique.
+  assert.equal(world.row(next.reserveId).waitTypeId,'0031');
+  assert.notEqual(next.reserveId,first.reserveId);
+  assert.equal(world.row(first.reserveId).status,'2','do not delete the old AirWAIT record');
+  assert.equal(claimRow(next.reserveId).state,'CONFIRMED');
+});
+
+test('AirWAIT-verified outside cancellation permits rebooking without deleting the original AirWAIT row', async () => {
+  const first=await create('UoutCancel','0029','req-cancel-first-0001');
+  world.row(first.reserveId).status='3'; // Cancellation performed by staff.
+  const next=await create('UoutCancel','0031','req-cancel-next-0001');
+  assert.notEqual(next.reserveId,first.reserveId);
+  assert.equal(world.row(first.reserveId).status,'3');
+  assert.equal(claimRow(next.reserveId).state,'CONFIRMED');
+});
+
+test('completed receipt restored to waiting before another booking is protected even if callstatus was not reopened', async () => {
+  const who='UstaffUndoWithoutStatus';
+  const first=await create(who,'0029','req-staff-undo-first-0001');
+  const s=await session(who);
+  world.row(first.reserveId).status='2';
+  const done=await status(s.sessionToken);
+  assert.equal(done.state,'done');
+  assert.equal(claimRow(first.reserveId).state,'COMPLETED');
+  // Staff undo: no status refresh after this change.
+  world.row(first.reserveId).status='0';
+  const again=await create(who,'0031','req-staff-undo-next-0001');
+  assert.equal(again.alreadyExists,true,'do not issue a second ticket while original is back in waiting');
+  assert.equal(again.reserveId,first.reserveId);
+  assert.equal(world.reservations.length,1);
+  assert.equal(claimRow(first.reserveId).state,'CONFIRMED');
+});
+
+test('missing or non-terminal old ticket cannot be forcibly deleted for new registration', async () => {
+  const first=await create('UmissingOld','0029','req-missing-first-0001');
+  const original=world.row(first.reserveId);
+  world.reservations=world.reservations.filter(x=>x.reserveId!==first.reserveId);
+  const next=await create('UmissingOld','0031','req-missing-next-0001');
+  assert.equal(next.alreadyExists,true,'missing is NOT evidence of cancellation');
+  assert.equal(next.receiptNo,first.receiptNo);
+  assert.equal(world.reservations.length,0,'no AirWAIT create when terminal not verified');
+  world.reservations.push(original);
+  world.row(first.reserveId).status='4'; // Processing is active.
+  const processing=await create('UmissingOld','0031','req-missing-next-0002');
+  assert.equal(processing.alreadyExists,true);
+  assert.equal(world.reservations.length,1);
 });
