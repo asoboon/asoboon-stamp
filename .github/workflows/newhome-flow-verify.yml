@@ -139,9 +139,11 @@ jobs:
           set -euo pipefail
           grep -F "const POLL_RECONCILE_MS=6000;" miniapp-v2/shared/callstatus.js
           grep -F "const POLL_RECONCILE_MAX=3;" miniapp-v2/shared/callstatus.js
-          grep -F "notFoundStreak<=POLL_RECONCILE_MAX?POLL_RECONCILE_MS:POLL_MID_MS" miniapp-v2/shared/callstatus.js
+          grep -F "nextPollMs=notFoundStreak<POLL_RECONCILE_MAX?POLL_RECONCILE_MS:0" miniapp-v2/shared/callstatus.js
           grep -F "新しい受付を作り直さず" miniapp-v2/shared/callstatus.js
-          grep -F "version:'1.8.0-terminal-resolution'" miniapp-v2/shared/callstatus.js
+          grep -F "version:'1.9.0-stop-canceled-receipt'" miniapp-v2/shared/callstatus.js
+          grep -F "if(d.found===true&&d.state==='canceled')" miniapp-v2/shared/callstatus.js
+          grep -F "function canceledTicket()" miniapp-v2/shared/callstatus.js
 
       - name: Reservation status must survive high receipt numbers and closeout
         run: |
