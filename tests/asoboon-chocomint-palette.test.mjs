@@ -29,10 +29,10 @@ const rgb=/\brgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*[0-9.]
 function hexOf(r,g,b){
  return '#'+[r,g,b].map(n=>Number(n).toString(16).padStart(2,'0')).join('');
 }
-test('All production/shared source UI color literals, including games and independent calendars, use only the chocolate-mint ice cream palette',()=>{
+test('All production/shared/root HOME source UI color literals, including games and independent calendars, use only the chocolate-mint ice cream palette',()=>{
  const outliers=[];
  let checked=0;
- for(const file of roots.flatMap(files)){
+ for(const file of [...roots.flatMap(files),'home.html']){
   const source=fs.readFileSync(file,'utf8');
   for(const match of source.matchAll(colorHex)){
    checked++;
