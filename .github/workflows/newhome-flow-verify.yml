@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'miniapp-v2/**'
+      - 'home.html'
+      - 'tests/asoboon-chocomint-palette.test.mjs'
       - 'jounaisetumei-core.html'
       - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
@@ -10,6 +12,8 @@ on:
   pull_request:
     paths:
       - 'miniapp-v2/**'
+      - 'home.html'
+      - 'tests/asoboon-chocomint-palette.test.mjs'
       - 'jounaisetumei-core.html'
       - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
