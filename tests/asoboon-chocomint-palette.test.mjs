@@ -74,3 +74,15 @@ test('Rich cocoa/mint presentation is loaded last on both certified production e
  assert.match(rich,/\.rec-submit/);
  assert.doesNotMatch(rich,/#(?:F26F4C|FF7A00|FF8C00)/i);
 });
+
+
+test('Cocoa text on strongest mint CTA surface maintains normal-size WCAG AA contrast',()=>{
+ const luminance=h=>{
+  const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+  const v=c.map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4);
+  return v[0]*0.2126+v[1]*0.7152+v[2]*0.0722;
+ };
+ const a=luminance('#251C1A'),b=luminance('#2BAEAA');
+ const contrast=(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+ assert.ok(contrast>=4.5,'Normal-size CTA labels require at least 4.5:1 contrast');
+});
