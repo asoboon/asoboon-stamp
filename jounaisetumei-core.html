@@ -5828,15 +5828,22 @@
       #exitGuideV2 .eg-home .eg-note{font-size:12px}
     }
     @media(max-width:420px){
-      #exitGuideV2 .eg-home .eg-choice{min-height:110px;flex-direction:row;padding:12px;gap:10px}
-      #exitGuideV2 .eg-home .eg-choice-index{width:39px;height:39px;font-size:25px}
-      #exitGuideV2 .eg-home .eg-choice-title{font-size:18px}
-      #exitGuideV2 .eg-home .eg-choice-sub{width:auto;font-size:12px;border:0;background:transparent;padding:0}
-      #exitGuideV2 .eg-home .eg-choice-action{width:auto;min-height:36px;padding:5px 8px;font-size:13px}
+      /* Every translation needs a full-width "see steps" call to action.
+         Primary card is one large tap target, with title/subtitle and CTA
+         each getting enough space for Burmese, Nepali and Filipino scripts. */
+      #exitGuideV2 .eg-home .eg-choice{display:grid!important;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;justify-items:start;min-height:143px;gap:3px 10px;padding:9px 12px}
+      #exitGuideV2 .eg-home .eg-choice-index{grid-column:1;grid-row:1/span 2;width:42px;height:42px;font-size:25px}
+      #exitGuideV2 .eg-home .eg-choice-title{grid-column:2;grid-row:1;width:100%;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
+      #exitGuideV2 .eg-home .eg-choice-sub{grid-column:2;grid-row:2;width:100%;font-size:13px;line-height:1.3;overflow-wrap:anywhere;border:0;background:transparent;padding:0}
+      #exitGuideV2 .eg-home .eg-choice-action{grid-column:1/span 2;grid-row:3;width:100%!important;max-width:none!important;min-width:0;min-height:48px;white-space:normal;overflow-wrap:anywhere;padding:7px 9px;font-size:15px!important}
       #exitGuideV2 .eg-home .eg-choice-action svg{display:none}
       #exitGuideV2 .eg-home .eg-bottom{grid-template-columns:1fr!important}
       #exitGuideV2 .eg-home .eg-intro h1{font-size:27px}
       #exitGuideV2 .eg-home .eg-intro p{font-size:19px}
+    }
+    @media(max-width:350px){
+      #exitGuideV2 .eg-home .eg-choice{min-height:143px;grid-template-columns:40px minmax(0,1fr);padding:8px 10px;gap:2px 8px}
+      #exitGuideV2 .eg-home .eg-choice-action{font-size:14px!important}
     }
 
 
@@ -6288,8 +6295,8 @@
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261016-step-voice-r100"></script>
-<script src="./jounaisetumei-audio.js?v=20261016-step-voice-r100"></script>
+<script src="./jounaisetumei-final.js?v=20261112-touch-v6"></script>
+<script src="./jounaisetumei-audio.js?v=20261112-touch-v6"></script>
 <script src="./jounaisetumei-delight.js?v=20261016-layer1-r98"></script>
 <script src="./jounaisetumei-stepper.js?v=20261016-step-voice-r100"></script>
 <script src="./jounaisetumei-owner-voice.js?v=20261112-female-v5"></script>

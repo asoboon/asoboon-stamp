@@ -121,23 +121,49 @@
   bar.id='eg-final-languages';
   bar.setAttribute('aria-label','Language / 言語 / 语言');
   bar.innerHTML=LANGS.map(([code,name])=>`<button type="button" data-locale="${code}" lang="${code}" aria-pressed="${code==='ja'}">${name}</button>`).join('');
-  document.body.appendChild(bar);
+  // Visual-first language switch is also first in keyboard/screen-reader focus order.
+  document.body.prepend(bar);
   const style=document.createElement('style');
   style.id='eg-final-style';
   style.textContent=`
-    #eg-final-languages{position:fixed;z-index:420;top:max(6px,env(safe-area-inset-top));left:6px;right:6px;display:flex;gap:4px;align-items:center;justify-content:center;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:5px;border:1px solid #b3ccd9;border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 4px 16px #1233;max-width:1080px;margin:auto}
+    /* One responsive kiosk header: language grid, sound controls, then the guide.
+       The CSS variables keep all three areas in sync in portrait/landscape. */
+    :root{
+      --eg-voice-nav-top:max(6px, env(safe-area-inset-top));
+      --eg-voice-nav-height:70px;
+      --eg-voice-tools-top:calc(var(--eg-voice-nav-top) + var(--eg-voice-nav-height) + 8px);
+      --eg-voice-page-top:calc(var(--eg-voice-tools-top) + 62px);
+    }
+    #eg-final-languages{position:fixed;z-index:420;top:var(--eg-voice-nav-top);left:6px;right:6px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:stretch;justify-content:stretch;overflow:visible;padding:6px;box-sizing:border-box;border:1px solid #b3ccd9;border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 4px 16px #1233;max-width:1180px;width:calc(100% - 12px);margin:auto}
     #eg-final-languages[hidden]{display:none!important}
-    #eg-final-languages button{border:1px solid #cedfe9;border-radius:8px;padding:9px 7px;white-space:nowrap;color:#254256;background:#fff;font:800 clamp(10px,1.6vw,13px)/1.2 -apple-system,"Noto Sans",sans-serif;min-height:37px;flex:1 0 auto}
-    #eg-final-languages button[aria-pressed="true"]{background:#0967a7;border-color:#0967a7;color:white;box-shadow:inset 0 -3px #06497a}
-    #exitGuideV2 .eg-page{padding-top:max(75px,env(safe-area-inset-top) + 67px)!important}
-    #exitGuideV2 .eg-motion-switch{top:57px!important;right:15px}
+    #eg-final-languages button{box-sizing:border-box;border:1px solid #cedfe9;border-radius:8px;padding:6px 4px;white-space:normal;overflow-wrap:normal;color:#254256;background:#fff;font:800 16px/1.2 -apple-system,"Noto Sans",sans-serif;min-height:56px;height:56px;width:100%;min-width:0;flex:initial;cursor:pointer;touch-action:manipulation}
+    #eg-final-languages button[aria-pressed="true"]{background:#0967a7;border-color:#0967a7;color:#fff;box-shadow:inset 0 -3px #06497a}
+    #eg-final-languages button:focus-visible{outline:3px solid #ffce3d;outline-offset:2px;position:relative;z-index:1}
+    #exitGuideV2{overflow-x:hidden!important}
+    #exitGuideV2 .eg-page{padding-top:var(--eg-voice-page-top)!important}
+    #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;right:112px!important;min-height:44px!important;font-size:12px!important;padding:8px 9px!important;touch-action:manipulation}
+    #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;right:14px!important;min-height:44px!important;font-size:12px!important;padding:8px 10px!important;touch-action:manipulation}
+    #exitGuideV2 .eg-motion-switch:focus-visible,#exitGuideV2 .eg-fullscreen-switch:focus-visible{outline:3px solid #ffce3d;outline-offset:2px}
+    @media(max-width:900px){
+      :root{--eg-voice-nav-height:132px}
+      #eg-final-languages{grid-template-columns:repeat(4,minmax(0,1fr))}
+    }
+    @media(max-width:420px){
+      /* Stable multilingual toolbar: localized strings can be much longer than
+         Japanese. Icons have 48px targets; text remains as accessible names. */
+      #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:64px!important;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
+      #exitGuideV2 .eg-motion-switch::before{content:'✨';font-size:22px}
+      #exitGuideV2 .eg-motion-switch[data-motion="off"]::before{content:'○';font-size:22px}
+      #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:8px!important;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
+      #exitGuideV2 .eg-fullscreen-switch::before{content:'⛶';font-size:22px}
+    }
     #exitGuideV2:not([data-lang="ja"]) .eg-choice-title{font-size:clamp(19px,3.55vw,33px)!important;letter-spacing:-.025em}
     #exitGuideV2:not([data-lang="ja"]) .eg-step strong{font-size:clamp(18px,2.7vw,27px)}
     #exitGuideV2:not([data-lang="ja"]) .eg-step p{font-size:clamp(13px,1.9vw,18px)}
     #exitGuideV2:not([data-lang="ja"]) .eg-note{font-size:12px}
     #exitGuideV2:not([data-lang="ja"]) .eg-choice-action{font-size:clamp(13px,2vw,18px)}
-    @media(max-height:800px){#exitGuideV2 .eg-page{padding-top:65px!important}#eg-final-languages button{padding:5px 5px;min-height:32px}}
-    @media(max-width:650px){#eg-final-languages{justify-content:flex-start}#eg-final-languages button{flex:0 0 auto}}
+    /* Deliberately no height-based shrinking: short iPads still need 56px touch targets.
+       The guide itself scrolls when its content cannot fit the viewport. */
     #eg-cinema .eg-final-rail,#eg-cinema .eg-final-vortex,#eg-cinema .eg-final-impact{position:absolute;inset:0;pointer-events:none}
     #eg-cinema .eg-final-vortex{z-index:1;opacity:0;background:repeating-conic-gradient(from -15deg at 50% 50%,transparent 0deg 8deg,var(--cin-accent,#06b8ff) 9deg 9.8deg,transparent 11deg 20deg);mix-blend-mode:screen;filter:drop-shadow(0 0 12px var(--cin-accent))}
     #eg-cinema.active .eg-final-vortex{animation:eg-final-speed 1.62s both}
@@ -252,6 +278,11 @@
       root.dataset.lang=lang;root.setAttribute('lang',lang);
       root.querySelectorAll('[data-kiosk-fullscreen]').forEach(b=>{const label=(fullscreenWords[lang]||fullscreenWords.ja)[0];if(b.textContent!==label)b.textContent=label;});
       translateText(root);translatedChoiceTitles();translateAttrs();translateCinema();
+      // Icon-only narrow layouts keep fully localized accessible labels.
+      root.querySelectorAll('[data-motion-toggle],[data-kiosk-fullscreen]').forEach(b=>{
+        const name=b.textContent.replace(/\s+/g,' ').trim();
+        if(name){if(b.getAttribute('aria-label')!==name)b.setAttribute('aria-label',name);b.title=name;}
+      });
       const motion=root.querySelector('[data-motion-toggle]')?.dataset.motion;
       cin.classList.toggle('eg-force-motion',motion==='on');
       bar.hidden=cin.classList.contains('active');
