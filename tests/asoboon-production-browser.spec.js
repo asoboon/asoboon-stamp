@@ -4318,14 +4318,32 @@ test('2026-11-12 crowd forecast returns percentage with retired WEB and verified
 });
 
 test('2026-11-12 unknown non-retired WEB quota does not fabricate crowd forecast',async({page})=>{
- await installProduction(page);
- await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await page.evaluate(()=>{
-  const root=document.querySelector('#v38Slots');
-  root.insertAdjacentHTML('beforeend','<div class="v38-crowd-list"><div class="v38-crowd-card"><div class="v38-crowd-head"><time>10:00回</time></div><div class="v38-crowd-channel--web"><strong data-v613-n="">確認中</strong></div><div class="v38-crowd-channel--onsite"><strong data-v613-n="50">50人</strong></div></div></div>');
+ await installProduction(page,{clockIso:'2026-11-12T03:16:00.000Z'});
+ const date='2026-11-12',fetchedAt='2026-11-12T03:15:00.000Z';
+ await page.route(GATEWAY+'**',route=>{
+   const action=new URL(route.request().url()).searchParams.get('action');
+   const json=x=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(x)});
+   if(action==='businessDay')return json({ok:true,operationalDate:date,calendarDate:date,businessType:'平日',closingTime:'17:00',durationLabel:'時間制限なし'});
+   if(action==='crowdRemaining')return json({ok:true,stale:false,fetchedAt,
+     slots:[
+       {waitTypeId:'0024',waitTypeName:'10時ご入場枠【WEB平日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:273},
+       {waitTypeId:'0027',waitTypeName:'14時ご入場枠【WEB平日】',slotKey:'14:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'time-key',remaining:50}],
+     observedDetails:[
+       {detailedWaitType:'すぐ入場受付【平日】',reserveUnit:'PERSON',remaining:273,remainingVerified:true},
+       {detailedWaitType:'14時から【平日】',reserveUnit:'PERSON',remaining:50,remainingVerified:true}]
+   });
+   if(action==='waitTypes')return json({ok:true,waitTypes:[
+     {waitTypeId:'0023',dispFlg:true},{waitTypeId:'0025',dispFlg:true},
+     {waitTypeId:'0024',dispFlg:true},{waitTypeId:'0027',dispFlg:true}
+   ]});
+   return route.fallback();
  });
- const first=page.locator('#v613Board .v613-percent').first();
- await expect(first).toHaveText('—');
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const rows=page.locator('#v613Board .v613-row');
+ await expect(rows).toHaveCount(2);
+ await expect(rows.locator('.v38-crowd-channel--web strong')).toHaveText(['—','—']);
+ await expect(rows.locator('.v38-crowd-channel--onsite strong')).toContainText(['273人','50人']);
+ await expect(rows.locator('.v613-percent')).toHaveText(['—','—']);
 });
 
 
