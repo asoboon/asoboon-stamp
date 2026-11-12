@@ -61,9 +61,9 @@ test('Rich cocoa/mint presentation is loaded last on both certified production e
  const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
  const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
  const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
- assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261112-01">/);
- assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261112-01">/);
- assert.match(builder, /choco-mint-rich-v12\.css\?v=20261112-01/);
+ assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261112-02">/);
+ assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261112-02">/);
+ assert.match(builder, /choco-mint-rich-v12\.css\?v=20261112-02/);
  for(const color of ['#251C1A','#392824','#2BAEAA','#67CEBB']){
   assert.ok(rich.split(color).length>5,'Expected prominent, repeated rich visual surfaces: '+color);
  }
@@ -110,5 +110,13 @@ test('All critical live-status HOME headings are cream on high-contrast chocolat
  for(const bg of ['#251C1A','#392824']){
   const a=lum(bg),b=lum('#FFF9F1');
   assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=7,'Critical live state copy should have AAA contrast on '+bg);
+ }
+});
+
+
+test('Live-verified chocolate ribbon and loading-skeleton fix are present in official CSS',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ for(const selector of ['#v58Flow > #v58DayZone','data-state="loading"','#v38Today > span:last-of-type strong','.cm-hub-row:nth-child(even)','button:nth-child(2)']){
+  assert.ok(rich.includes(selector),'Missing reviewed visual selector '+selector);
  }
 });
