@@ -106,10 +106,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   const css=document.createElement('link');css.rel='stylesheet';
   css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.css')}';
   document.head.appendChild(css);
-  // Explicit passion-orange palette selected by the user; CSS-only, no API logic.
-  const passion=document.createElement('link');passion.rel='stylesheet';
-  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=${envHash('miniapp-v2/production/boon-mint-v53-passion.css')}';
-  document.head.appendChild(passion);
+  // Deprecated passion-orange theme removed: all routes use the chocolate-mint palette.
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.js')}';
   document.head.appendChild(theme);
@@ -144,7 +141,7 @@ const index=`<!doctype html>
 <meta charset="utf-8">
 <script src="../shared/asoquest-deeplink.js?v=20261006-02"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f4f0e7">
+<meta name="theme-color" content="#F7EFE5">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>ASOBooN｜公式LINEミニアプリ</title>
 <link rel="preconnect" href="https://asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev" crossorigin>

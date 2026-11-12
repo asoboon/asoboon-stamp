@@ -2265,11 +2265,11 @@
     els.burst.textContent = '';
 
     const colors = [
-      '#f0c54f',
-      '#e75431',
-      '#1d6953',
-      '#fff4c9',
-      '#4da3d9'
+      '#E5D6C9',
+      '#785548',
+      '#1C8D89',
+      '#FFF9F1',
+      '#2BAEAA'
     ];
 
     for (let i = 0; i < 42; i += 1) {

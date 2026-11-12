@@ -1,20 +1,20 @@
 /* ASOQUEST — chocolate-mint shell only. Preserve car artwork, engine FX and state colors. */
-:root{--cmr-cocoa:#3A231D;--cmr-ice:#D8F7F0;--cmr-deep:#126E7D;--cmr-chip:#8A5946}
-html,body{background:linear-gradient(180deg,#33221F 0%,#173B3C 55%,#142C31 100%)!important}
-.rally-home-link{color:#E4FAF4!important;border-color:rgba(109,210,202,.45)!important;background:rgba(58,35,29,.68)!important}
-.rally-home-link:focus-visible{outline:3px solid #6DD2CA!important;outline-offset:3px!important}
+:root{--cmr-cocoa:#392824;--cmr-ice:#FFFFFF;--cmr-deep:#1C8D89;--cmr-chip:#785548}
+html,body{background:linear-gradient(180deg,#392824 0%,#166D66 55%,#166D66 100%)!important}
+.rally-home-link{color:#FFFFFF!important;border-color:rgba(103,206,187,.45)!important;background:rgba(57,40,36,.68)!important}
+.rally-home-link:focus-visible{outline:3px solid #67CEBB!important;outline-offset:3px!important}
 .garage{background:
-  radial-gradient(ellipse 6px 4px at 88% 5%,rgba(180,131,108,.9) 93%,transparent 100%),
-  radial-gradient(ellipse 4px 3px at 95% 11%,rgba(180,131,108,.9) 93%,transparent 100%),
-  radial-gradient(circle at 50% 35%,rgba(109,210,202,.14),transparent 42%),
-  linear-gradient(155deg,#32201E 0%,#15383C 54%,#102B30 100%)!important;
+  radial-gradient(ellipse 6px 4px at 88% 5%,rgba(165,125,105,.9) 93%,transparent 100%),
+  radial-gradient(ellipse 4px 3px at 95% 11%,rgba(165,125,105,.9) 93%,transparent 100%),
+  radial-gradient(circle at 50% 35%,rgba(103,206,187,.14),transparent 42%),
+  linear-gradient(155deg,#392824 0%,#166D66 54%,#163D3A 100%)!important;
 }
-.garage .brand small{color:#85DDD0!important;letter-spacing:.19em!important}
-.garage .brand h1{color:#FFF9F0!important;text-shadow:0 2px 0 rgba(0,0,0,.3)!important}
-.garage .mission span{color:#C0E9DE!important}
-.garage .mission b{color:#FFF9F0!important}
-.garage .counter{border-color:rgba(109,210,202,.7)!important;background:rgba(58,35,29,.82)!important}
-.garage .status{border-color:rgba(109,210,202,.45)!important;background:linear-gradient(145deg,rgba(58,35,29,.94),rgba(18,64,68,.95))!important}
-.garage .part-card:not(.got):not(.on){background:#1D3638!important;border-color:rgba(109,210,202,.28)!important}
-.garage .guide{background:rgba(58,35,29,.8)!important;border-color:rgba(109,210,202,.43)!important}
-.engine-card.locked{border-color:rgba(109,210,202,.43)!important;background:linear-gradient(145deg,#2F2220,#193B3D)!important}
+.garage .brand small{color:#9BE6D3!important;letter-spacing:.19em!important}
+.garage .brand h1{color:#FFFFFF!important;text-shadow:0 2px 0 rgba(37,28,26,.3)!important}
+.garage .mission span{color:#D2F3E7!important}
+.garage .mission b{color:#FFFFFF!important}
+.garage .counter{border-color:rgba(103,206,187,.7)!important;background:rgba(57,40,36,.82)!important}
+.garage .status{border-color:rgba(103,206,187,.45)!important;background:linear-gradient(145deg,rgba(57,40,36,.94),rgba(22,109,102,.95))!important}
+.garage .part-card:not(.got):not(.on){background:#166D66!important;border-color:rgba(103,206,187,.28)!important}
+.garage .guide{background:rgba(57,40,36,.8)!important;border-color:rgba(103,206,187,.43)!important}
+.engine-card.locked{border-color:rgba(103,206,187,.43)!important;background:linear-gradient(145deg,#392824,#166D66)!important}

@@ -1,9 +1,9 @@
 /* v5.12: compact mobile presentation for functional LINE miniapp routes. */
-:root { --b512-mint:#E3FFF6; --b512-soft:#F3FBF8; --b512-orange:#FF7A00; --b512-ink:#0C5041; --b512-brown:#301C00; }
+:root { --b512-mint:#FFFFFF; --b512-soft:#FFFFFF; --b512-orange:#A57D69; --b512-ink:#166D66; --b512-brown:#392824; }
 body.v7-reception-active .page-card,
 body.v7-callstatus-active .page-card,
 body.v7-timeguide-active .page-card,
-.v27-first-page,.v24-parking-page,.v25-entry-page,.v17-pass,.v28-people { box-shadow:0 3px 12px rgba(12,80,65,.07); }
+.v27-first-page,.v24-parking-page,.v25-entry-page,.v17-pass,.v28-people { box-shadow:0 3px 12px rgba(22,109,102,.07); }
 body.v7-reception-active .page-head { margin:0 0 10px; padding:12px 14px; border-radius:16px; }
 body.v7-reception-active .page-head h2 { font-size:1.45rem; }
 body.v7-reception-active .page-body { padding:0; }
@@ -14,8 +14,8 @@ body.v7-timeguide-active .tg-body,
 .v27-first-page .pv7-body,.v24-parking-page .pv7-body,
 .v25-entry-page .pv7-body { padding:12px; }
 body.v7-reception-active .rec-stepper { gap:8px; }
-body.v7-reception-active .rec-stepper button { width:auto; min-width:48px; min-height:48px; border-radius:14px; background:var(--b512-orange); color:#301C00; font-weight:800; }
-body.v7-reception-active .rec-stepper button:disabled { opacity:.42; background:#d5ddd9; color:#52635d; }
+body.v7-reception-active .rec-stepper button { width:auto; min-width:48px; min-height:48px; border-radius:14px; background:var(--b512-orange); color:#392824; font-weight:800; }
+body.v7-reception-active .rec-stepper button:disabled { opacity:.42; background:#F7EFE5; color:#1C8D89; }
 body.v7-callstatus-active .page-head.green,body.v7-timeguide-active .page-head.green { padding:12px 14px; }
 .v27-first-page .pv7-head,.v24-parking-page .pv7-head,.v25-entry-page .pv7-head { padding:13px 14px 12px; }
 .v27-first-page .pv7-head h1,.v24-parking-page .pv7-head h1,.v25-entry-page .pv7-head h1 { margin:5px 0 4px; font-size:1.55rem; }
@@ -35,12 +35,12 @@ body.v7-timeguide-active button:focus-visible,.v27-first-page button:focus-visib
 .v24-parking-page button:focus-visible,.v25-entry-page button:focus-visible,
 .v17-pass button:focus-visible,.v28-people button:focus-visible,
 body.v7-reception-active a:focus-visible,body.v7-callstatus-active a:focus-visible,
-body.v7-timeguide-active a:focus-visible { outline:3px solid #FF7A00; outline-offset:3px; }
+body.v7-timeguide-active a:focus-visible { outline:3px solid #A57D69; outline-offset:3px; }
 body.v7-reception-active button:not(:disabled):active,body.v7-callstatus-active button:not(:disabled):active,
 body.v7-timeguide-active button:not(:disabled):active,.v27-first-page button:not(:disabled):active,
 .v24-parking-page button:not(:disabled):active,.v25-entry-page button:not(:disabled):active { transform:scale(.98); }
 body.v7-reception-active [role="alert"],body.v7-callstatus-active .cs-error,
-body.v7-timeguide-active [role="alert"],.v25-entry-page .entry-warning { color:#8b1e1e; }
+body.v7-timeguide-active [role="alert"],.v25-entry-page .entry-warning { color:#563B32; }
 @media(max-width:360px) {
   body.v7-reception-active .page-head h2,.v27-first-page .pv7-head h1,.v24-parking-page .pv7-head h1,.v25-entry-page .pv7-head h1 { font-size:1.35rem; }
 }
@@ -54,9 +54,9 @@ body.v7-timeguide-active [role="alert"],.v25-entry-page .entry-warning { color:#
 }
 
 /* Generic v7 information routes inherit the same compact mint surface. */
-body.v7-page-active { background:#F3FBF8!important; color:var(--b512-ink); }
-body.v7-page-active .pv7-page { background:#fff!important; border-color:rgba(12,80,65,.12)!important; box-shadow:0 3px 12px rgba(12,80,65,.07)!important; }
-body.v7-page-active .pv7-head { padding:13px 14px 12px; border-color:#d5eee5; }
+body.v7-page-active { background:#FFFFFF!important; color:var(--b512-ink); }
+body.v7-page-active .pv7-page { background:#FFFFFF!important; border-color:rgba(22,109,102,.12)!important; box-shadow:0 3px 12px rgba(22,109,102,.07)!important; }
+body.v7-page-active .pv7-head { padding:13px 14px 12px; border-color:#F7EFE5; }
 body.v7-page-active .pv7-head h1 { margin:5px 0 4px; font-size:clamp(1.35rem,6vw,1.65rem); overflow-wrap:anywhere; }
 body.v7-page-active .pv7-head p { font-size:.82rem; }
 body.v7-page-active .pv7-body { padding:12px; }
@@ -64,11 +64,11 @@ body.v7-page-active .pv7-section+.pv7-section { margin-top:10px; padding-top:10p
 body.v7-page-active .pv7-band { min-height:56px; padding:9px 10px; }
 body.v7-page-active .pv7-callout { margin-top:10px; padding:10px 11px; }
 body.v7-page-active .pv7-roadstep { min-height:58px; padding:10px 11px 10px 46px; }
-body.v7-page-active .pv7-primary,body.v7-page-active .pv7-primary.green { min-height:52px; background:#FF7A00; color:#301C00; }
-body.v7-page-active .pv7-secondary-btn,body.v7-page-active .pv7-secondary-btn.green { min-height:44px; background:#E3FFF6; color:#0C5041; }
-body.v7-page-active .pv7-text-btn { min-height:44px; color:#0C5041; }
+body.v7-page-active .pv7-primary,body.v7-page-active .pv7-primary.green { min-height:52px; background:#A57D69; color:#392824; }
+body.v7-page-active .pv7-secondary-btn,body.v7-page-active .pv7-secondary-btn.green { min-height:44px; background:#FFFFFF; color:#166D66; }
+body.v7-page-active .pv7-text-btn { min-height:44px; color:#166D66; }
 body.v7-page-active :is(button,a,summary)[href],body.v7-page-active :is(button,summary) { -webkit-tap-highlight-color:transparent; }
-body.v7-page-active :is(button,a,summary):focus-visible,.v17-pass :is(button,a,summary):focus-visible,.v28-people :is(button,a,summary):focus-visible { outline:3px solid #FF7A00; outline-offset:3px; }
+body.v7-page-active :is(button,a,summary):focus-visible,.v17-pass :is(button,a,summary):focus-visible,.v28-people :is(button,a,summary):focus-visible { outline:3px solid #A57D69; outline-offset:3px; }
 body.v7-page-active :where(button:not(:disabled),a[href],summary){min-height:44px;}
 body.v7-page-active button:active,body.v7-page-active a[href]:active,body.v7-page-active summary:active { transform:scale(.98); }
 .v17-pass { padding:10px 11px; }
@@ -83,7 +83,7 @@ body.v7-page-active button:active,body.v7-page-active a[href]:active,body.v7-pag
 .v13-after-reception span { font-size:.82rem; }
 .v33-start-panel { padding:10px 11px; }
 .v33-detail-number { padding:10px; }
-.cs-page.v33-compact-active #csRefresh { min-height:44px; background:#FF7A00; color:#301C00; }
+.cs-page.v33-compact-active #csRefresh { min-height:44px; background:#A57D69; color:#392824; }
 .cs-page.v33-compact-active .v33-detail-number strong { font-size:2.2rem; }
 .v17-pass .v17-live-dot { color:inherit; }
 @media(max-width:360px) {

@@ -163,15 +163,15 @@ for(const [code,label] of Object.entries(LANGUAGES)){
 select.value=language;
 const style=document.createElement('style');
 style.textContent=[
- '#asoboon-language-bar{position:relative;z-index:45;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;width:min(100%,520px);margin:0 auto -2px;padding:max(env(safe-area-inset-top),8px) 13px 0;font-family:system-ui,-apple-system,sans-serif;color:#174c71;font-size:12px;font-weight:800}',
+ '#asoboon-language-bar{position:relative;z-index:45;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;width:min(100%,520px);margin:0 auto -2px;padding:max(env(safe-area-inset-top),8px) 13px 0;font-family:system-ui,-apple-system,sans-serif;color:#166D66;font-size:12px;font-weight:800}',
  '#asoboon-language-bar label{white-space:nowrap}',
- '#asoboon-language-select{min-height:42px;max-width:58%;padding:0 10px;border:2px solid #387daa;border-radius:11px;background:#fff;color:#124a6d;font-size:13px;font-weight:850}',
- '#asoboon-language-select:focus-visible{outline:3px solid #eda75a;outline-offset:2px}',
- '#asoboon-language-note{flex-basis:100%;font-size:11px;font-weight:700;line-height:1.35;color:#824e23;text-align:right}',
+ '#asoboon-language-select{min-height:42px;max-width:58%;padding:0 10px;border:2px solid #1C8D89;border-radius:11px;background:#FFFFFF;color:#166D66;font-size:13px;font-weight:850}',
+ '#asoboon-language-select:focus-visible{outline:3px solid #C9AC99;outline-offset:2px}',
+ '#asoboon-language-note{flex-basis:100%;font-size:11px;font-weight:700;line-height:1.35;color:#563B32;text-align:right}',
  '#asoboon-language-note[hidden]{display:none}',
- '#asoboon-japanese-legal-original{margin-top:9px;padding:8px;background:#f6f7f7;border:1px solid #e0e4e5;border-radius:10px;font-size:11px;line-height:1.5}',
- '#asoboon-japanese-legal-original summary{cursor:pointer;color:#255e83;font-weight:850}',
- '#asoboon-japanese-legal-original p{margin:6px 0;color:#4c5b64;font-size:11px;line-height:1.5}',
+ '#asoboon-japanese-legal-original{margin-top:9px;padding:8px;background:#FFFFFF;border:1px solid #F7EFE5;border-radius:10px;font-size:11px;line-height:1.5}',
+ '#asoboon-japanese-legal-original summary{cursor:pointer;color:#1C8D89;font-weight:850}',
+ '#asoboon-japanese-legal-original p{margin:6px 0;color:#1C8D89;font-size:11px;line-height:1.5}',
  'html:lang(ne) .rec-slot,html:lang(ne) .cs-state,html:lang(ne) .v38-hero{line-height:1.55}',
  '@media(max-width:350px){#asoboon-language-bar{gap:4px;padding-right:12px;padding-left:12px;font-size:11px}#asoboon-language-select{max-width:63%}}'
 ].join('\n');

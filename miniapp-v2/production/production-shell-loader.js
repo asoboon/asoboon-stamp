@@ -5,17 +5,17 @@ const root=document.getElementById('app');if(!root)return;
 document.body.dataset.asoboonApp='miniapp-v2';document.body.dataset.environment='production';
 root.style.display='block';
 if(!root.querySelector('.asoboon-boot'))root.innerHTML='<div class="asoboon-boot" role="status">ASOBooNを読み込み中…</div>';
-const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=5c3707618136';document.head.appendChild(link);
-const navCss=document.createElement('link');navCss.rel='stylesheet';navCss.href='./miniapp-v2/production/choco-mint-nav-v8.css?v=89ec3ed58739';document.head.appendChild(navCss);
-const mintCss=document.createElement('link');mintCss.rel='stylesheet';mintCss.href='./miniapp-v2/production/choco-mint-unified-v9.css?v=5ad55ba96b49';document.head.appendChild(mintCss);
+const link=document.createElement('link');link.rel='stylesheet';link.href='./miniapp-v2/production/production-app.css?v=d2f432b8e79b';document.head.appendChild(link);
+const navCss=document.createElement('link');navCss.rel='stylesheet';navCss.href='./miniapp-v2/production/choco-mint-nav-v8.css?v=cd5da62fdd92';document.head.appendChild(navCss);
+const mintCss=document.createElement('link');mintCss.rel='stylesheet';mintCss.href='./miniapp-v2/production/choco-mint-unified-v9.css?v=e306f972497c';document.head.appendChild(mintCss);
 // LIFF SDK is an independent network dependency. Download it in parallel
 // without blocking the public HOME, then wait for it only before auth.
 const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net/liff/edge/2/sdk.js';sdk.async=true;
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=7a1bd75b42b3','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
-  './miniapp-v2/shared/i18n-dictionary.js?v=44e3c19f5cc2','./miniapp-v2/shared/i18n-runtime.js?v=82d917a14d39'];
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=f7b1cb57a47c','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
+  './miniapp-v2/shared/i18n-dictionary.js?v=44e3c19f5cc2','./miniapp-v2/shared/i18n-runtime.js?v=3df44683dbd9'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
@@ -26,29 +26,26 @@ for(const src of scripts){const s=document.createElement('script');s.src=src;s.a
 if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   window.ASOBOON_MINT_V51_PREVIEW=true;
   const css=document.createElement('link');css.rel='stylesheet';
-  css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=9edfd81a5e02';
+  css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=fb8b3ff77e21';
   document.head.appendChild(css);
-  // Explicit passion-orange palette selected by the user; CSS-only, no API logic.
-  const passion=document.createElement('link');passion.rel='stylesheet';
-  passion.href='./miniapp-v2/production/boon-mint-v53-passion.css?v=f4ae18fb7034';
-  document.head.appendChild(passion);
+  // Deprecated passion-orange theme removed: all routes use the chocolate-mint palette.
   const theme=document.createElement('script');theme.async=false;
   theme.src='./miniapp-v2/production/boon-mint-v51-preview.js?v=154f973a0079';
   document.head.appendChild(theme);
   // v5.6: structural HOME redesign. Existing native DOM/API controls are moved,
   // not recreated; reception rules, real-time data and LINE handlers stay native.
   const deckStyle=document.createElement('link');deckStyle.rel='stylesheet';
-  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=e29b3b0b485d';
+  deckStyle.href='./miniapp-v2/production/boon-home-v56.css?v=10f759b6205f';
   document.head.appendChild(deckStyle);
   const deck=document.createElement('script');deck.async=false;
   deck.src='./miniapp-v2/production/boon-home-v56-layout.js?v=fea40f4cdf72';
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';
-  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=5a4d37c3999d';
+  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=a96bd3b3ea8b';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=109127f76ef3';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=d34904827eb1';
   document.head.appendChild(next);
 }
 })();

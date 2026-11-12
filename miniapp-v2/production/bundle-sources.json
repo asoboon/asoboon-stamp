@@ -3,8 +3,7 @@
     "miniapp-v2/shared/app.css",
     "miniapp-v2/production/home-v7.css",
     "miniapp-v2/production/home-v7-polish.css",
-    "miniapp-v2/production/home-v38.css",
-    "miniapp-v2/production/surprise-vote-home-v1.css"
+    "miniapp-v2/production/home-v38.css"
   ],
   "routeStyles": [
     "miniapp-v2/shared/reception.css",
