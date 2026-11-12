@@ -54,3 +54,23 @@ test('Legacy passion-orange overlay is not loaded by either production app entry
  assert.doesNotMatch(loader,/passion\.href|boon-mint-v53-passion\.css/);
  assert.doesNotMatch(builder,/passion\.href|boon-mint-v53-passion\.css/);
 });
+
+
+test('Rich cocoa/mint presentation is loaded last on both certified production entry points',()=>{
+ const home=fs.readFileSync('home.html','utf8');
+ const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
+ const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261112-01">/);
+ assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261112-01">/);
+ assert.match(builder, /choco-mint-rich-v12\.css\?v=20261112-01/);
+ for(const color of ['#251C1A','#392824','#2BAEAA','#67CEBB']){
+  assert.ok(rich.split(color).length>5,'Expected prominent, repeated rich visual surfaces: '+color);
+ }
+ assert.match(rich,/\.v58-flow>\.v58-day/);
+ assert.match(rich,/#v613Board/);
+ assert.match(rich,/\.cm-bottom-nav/);
+ assert.match(rich,/\.cm-hub-head/);
+ assert.match(rich,/\.rec-submit/);
+ assert.doesNotMatch(rich,/#(?:F26F4C|FF7A00|FF8C00)/i);
+});
