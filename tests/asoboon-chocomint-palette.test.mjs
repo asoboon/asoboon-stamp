@@ -112,3 +112,13 @@ test('All critical live-status HOME headings are cream on high-contrast chocolat
   assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=7,'Critical live state copy should have AAA contrast on '+bg);
  }
 });
+
+
+test('Live-verified chocolate ribbon and loading-skeleton fix are present in official CSS',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ assert.match(rich, /#v58Flow\\s*>\\s*#v58DayZone/);
+ assert.match(rich, /#v58Flow\\[data-state="loading"\\]\\s*>\\s*#v58Primary/);
+ assert.match(rich, /#v38Today\\s*>\\s*span:last-of-type\\s+strong/);
+ assert.match(rich, /\\.cm-hub-list\\s*>\\s*\\.cm-hub-row:nth-child\\(even\\)/);
+ assert.match(rich, /\\.v24-choice\\s*>\\s*button:nth-child\\(2\\)/);
+});
