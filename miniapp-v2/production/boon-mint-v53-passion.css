@@ -1,139 +1,139 @@
 /*
  BOON START v5.3 PASSION ORANGE — 2026-11-06
- Design decision: user selected #FF7A00 as the action/accent orange.
+ Design decision: user selected #A57D69 as the action/accent orange.
  This stylesheet loads AFTER v5.2 only when ?boonTheme=mint is enabled.
  No AirWAIT, LINE, reservation, calling-state, or cancellation behavior changes.
 */
 html.boon-v4.boon-v5-mint {
-  --mint-passion: #FF7A00;
-  --mint-passion-deep: #BA5000;
-  --mint-passion-dark: #653000;
-  --mint-passion-light: #FFA34A;
-  --mint-passion-pale: #FFF0DF;
-  --mint-coral: #FF7A00;
-  --mint-orange-spark: #FF7A00;
-  --mint-orange-soft: #FFF0DF;
-  --mint-orange-ink: #653000;
+  --mint-passion: #A57D69;
+  --mint-passion-deep: #785548;
+  --mint-passion-dark: #563B32;
+  --mint-passion-light: #C9AC99;
+  --mint-passion-pale: #FFF9F1;
+  --mint-coral: #A57D69;
+  --mint-orange-spark: #A57D69;
+  --mint-orange-soft: #FFF9F1;
+  --mint-orange-ink: #563B32;
 }
 /* The home START line has a bright orange pulse of visual energy, not animation. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open {
-  box-shadow:0 7px 0 #FF7A00, 0 19px 32px rgba(15,99,86,.21)!important;
+  box-shadow:0 7px 0 #A57D69, 0 19px 32px rgba(22,109,102,.21)!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open::after {
   background:radial-gradient(circle at center,
-    #FF7A00 0 29%,
-    rgba(255,122,0,.85) 30% 38%,
-    rgba(255,122,0,.18) 39% 53%,
+    #A57D69 0 29%,
+    rgba(165,125,105,.85) 30% 38%,
+    rgba(165,125,105,.18) 39% 53%,
     transparent 54%)!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag {
-  color:#5B2D00!important;
-  background:#FFE3C2!important;
-  border:1px solid #FF7A00!important;
+  color:#563B32!important;
+  background:#FFF9F1!important;
+  border:1px solid #A57D69!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag::before {
-  background:#FF7A00!important;
+  background:#A57D69!important;
 }
 /* The real active CTA changes to Passion Orange with dark, high contrast text. */
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled),
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled) {
-  background:linear-gradient(180deg,#FF9B3D 0%,#FF7A00 67%,#EF6B00 100%)!important;
-  border:1px solid #D45B00!important;
-  color:#492300!important;
+  background:linear-gradient(180deg,#C9AC99 0%,#A57D69 67%,#A57D69 100%)!important;
+  border:1px solid #785548!important;
+  color:#392824!important;
   text-shadow:none!important;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.50), inset 0 -4px 0 #B94B00, 0 7px 14px rgba(214,96,0,.20)!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.50), inset 0 -4px 0 #785548, 0 7px 14px rgba(120,85,72,.20)!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:hover,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):hover,
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):hover {
-  background:linear-gradient(180deg,#FFAD5A 0%,#FF850B 100%)!important;
+  background:linear-gradient(180deg,#C9AC99 0%,#A57D69 100%)!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:active,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):active,
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):active {
   transform:translateY(3px)!important;
-  box-shadow:inset 0 2px rgba(255,255,255,.4), inset 0 -1px #B94B00!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.4), inset 0 -1px #785548!important;
 }
 /* Selected slot / active step are orange. Unselected and disabled remain neutral. */
 html.boon-v4.boon-v5-mint .boon-v4-progress>span.active {
-  border-bottom-color:#FF7A00!important;
-  background:linear-gradient(180deg,#FFF7EE,#FFE1C4)!important;
-  color:#6C3509!important;
+  border-bottom-color:#A57D69!important;
+  background:linear-gradient(180deg,#FFFFFF,#FFF9F1)!important;
+  color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-stage-intro {
-  border-left-color:#FF7A00!important;
-  box-shadow:inset 0 -3px 0 rgba(255,122,0,.34),0 3px 0 #B6E7DB!important;
+  border-left-color:#A57D69!important;
+  box-shadow:inset 0 -3px 0 rgba(165,125,105,.34),0 3px 0 #9BE6D3!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-stage-intro small {color:#FFD7A1!important;}
+html.boon-v4.boon-v5-mint .boon-v4-stage-intro small {color:#FFF9F1!important;}
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active:not([hidden]){
-  border-color:#FF7A00!important;
-  border-left-color:#FF7A00!important;
-  background:#FFF3E5!important;
-  box-shadow:0 5px 0 rgba(255,122,0,.37),0 7px 17px rgba(255,122,0,.11)!important;
+  border-color:#A57D69!important;
+  border-left-color:#A57D69!important;
+  background:#FFFFFF!important;
+  box-shadow:0 5px 0 rgba(165,125,105,.37),0 7px 17px rgba(165,125,105,.11)!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::before {
-  background:#FF7A00!important;
-  color:#452100!important;
+  background:#A57D69!important;
+  color:#392824!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::after {
-  background:#FFE2BF!important;
-  color:#723B06!important;
+  background:#FFF9F1!important;
+  color:#563B32!important;
 }
 /* "＋" is a real increment control; never make disabled steppers look active. */
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled){
-  background:#FF7A00!important;
-  border-color:#C95700!important;
-  color:#4B2500!important;
-  box-shadow:0 3px 0 #A64500!important;
+  background:#A57D69!important;
+  border-color:#785548!important;
+  color:#392824!important;
+  box-shadow:0 3px 0 #563B32!important;
 }
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled):active {
-  background:#FFA347!important;
+  background:#C9AC99!important;
   transform:translateY(3px)!important;
-  box-shadow:0 0 0 #A64500!important;
+  box-shadow:0 0 0 #563B32!important;
 }
 /* The amount is a strong, warm signifier; actual numeric calculation stays original. */
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team{
-  border-bottom-color:#FF7A00!important;
+  border-bottom-color:#A57D69!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
-  background:linear-gradient(150deg,#FFB663 0%,#FF7A00 100%)!important;
-  color:#4B2500!important;
+  background:linear-gradient(150deg,#E5D6C9 0%,#A57D69 100%)!important;
+  color:#392824!important;
   text-shadow:none!important;
-  box-shadow:inset 0 -3px 0 rgba(154,67,0,.29)!important;
+  box-shadow:inset 0 -3px 0 rgba(86,59,50,.29)!important;
 }
 html.boon-v4.boon-v5-mint .rec-summary .rec-line.total strong {
-  color:#B94C00!important;
+  color:#785548!important;
 }
 /* HOME discovery accents. Don't alter crowd severity or game identity colors. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-guide>h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-help>h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-section-heading,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
-  border-left-color:#FF7A00!important;
+  border-left-color:#A57D69!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta .v38-quick-icon,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-calendar-icon {
-  background:#FF7A00!important;
-  color:#492300!important;
+  background:#A57D69!important;
+  color:#392824!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-play {
-  border-top-color:#FF7A00!important;
-  background:linear-gradient(180deg,#FFE3CA 0%,#FFF7F0 102px,#FFFFFF 180px)!important;
+  border-top-color:#A57D69!important;
+  background:linear-gradient(180deg,#FFF9F1 0%,#FFFFFF 102px,#FFFFFF 180px)!important;
 }
 /* Registration success is orange, not the emerald "you may enter" light. */
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
-  border-top-color:#FF7A00!important;
-  background:linear-gradient(155deg,#FFE3C9 0%,#E3FFF6 60%,#FFFFFF 100%)!important;
+  border-top-color:#A57D69!important;
+  background:linear-gradient(155deg,#FFF9F1 0%,#FFFFFF 60%,#FFFFFF 100%)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-check{
-  background:#FF7A00!important;
-  color:#492300!important;
-  border-color:#FFD09C!important;
-  box-shadow:0 6px 0 rgba(199,89,0,.25),0 0 0 8px rgba(255,122,0,.12)!important;
+  background:#A57D69!important;
+  color:#392824!important;
+  border-color:#E5D6C9!important;
+  box-shadow:0 6px 0 rgba(120,85,72,.25),0 0 0 8px rgba(165,125,105,.12)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong{
-  color:#A64600!important;
+  color:#563B32!important;
 }
 /*
  Important: no selectors here touch:
@@ -152,14 +152,14 @@ html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong{
  * BOON START v5.4 | passion-orange balance patch (CSS only).
  * Goal: bring orange coverage toward 7–9% in interaction and success scenes,
  * not uniformly across statuses or every scrolling page.
- * Preserve #28C7BE (mint), #E3FFF6 (pale mint), #FF7A00 (passion orange).
+ * Preserve #67CEBB (mint), #FFFFFF (pale mint), #A57D69 (passion orange).
  * Safety: no change to AirWAIT calling green, near red, failures, disabled controls.
  */
 
 /* HOME — an orange edge and a larger start spark, not an orange background. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open {
-  border-left:7px solid #FF7A00!important;
-  border-bottom:7px solid #FF7A00!important;
+  border-left:7px solid #A57D69!important;
+  border-bottom:7px solid #A57D69!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open::after {
   width:200px!important;
@@ -167,98 +167,98 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero.open::after {
   right:-55px!important;
   top:-65px!important;
   background:radial-gradient(circle at center,
-    #FF7A00 0 36%,
-    rgba(255,122,0,.92) 37% 44%,
-    rgba(255,122,0,.20) 45% 64%,
+    #A57D69 0 36%,
+    rgba(165,125,105,.92) 37% 44%,
+    rgba(165,125,105,.20) 45% 64%,
     transparent 65%)!important;
   pointer-events:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-play {
-  border-top:7px solid #FF7A00!important;
+  border-top:7px solid #A57D69!important;
   background:linear-gradient(180deg,
-    #FFB46B 0,
-    #FFD4AC 56px,
-    #FFF1E2 114px,
+    #C9AC99 0,
+    #E5D6C9 56px,
+    #FFFFFF 114px,
     #FFFFFF 196px)!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-play h2,
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-play .v38-section-heading {
-  color:#5C3108!important;
+  color:#563B32!important;
 }
 /* Warm, secondary guidance card. */
 html.boon-v4.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
-  background:linear-gradient(110deg,#FFD6AE 0%,#FFF4E7 55%,#F8FFFC 100%)!important;
-  border-left:6px solid #FF7A00!important;
+  background:linear-gradient(110deg,#FFF9F1 0%,#FFFFFF 55%,#FFFFFF 100%)!important;
+  border-left:6px solid #A57D69!important;
 }
 
 /* SLOT & STEP — the selected choice earns the warm surface, never disabled. */
 html.boon-v4.boon-v5-mint .boon-v4-progress>span.active {
-  background:linear-gradient(180deg,#FFD7AA 0%,#FFE8CD 100%)!important;
-  color:#593000!important;
+  background:linear-gradient(180deg,#FFF9F1 0%,#FFF9F1 100%)!important;
+  color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active:not([hidden]):not(:disabled) {
-  background:linear-gradient(115deg,#FFE5C8 0%,#FFF1E2 100%)!important;
-  box-shadow:0 5px 0 rgba(255,122,0,.36),0 8px 17px rgba(255,122,0,.13)!important;
+  background:linear-gradient(115deg,#FFF9F1 0%,#FFFFFF 100%)!important;
+  box-shadow:0 5px 0 rgba(165,125,105,.36),0 8px 17px rgba(165,125,105,.13)!important;
 }
 
 /* PEOPLE — the TEAM panel is 55% mint / 45% orange.
  * White text stays on the mint section; dark totals stay on light orange. */
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team {
   background:linear-gradient(90deg,
-    #14756D 0%,#14756D 53%,
-    #FFAF61 54%,#FF7A00 100%)!important;
-  border-bottom:5px solid #D75A00!important;
-  box-shadow:0 5px 14px rgba(255,122,0,.15)!important;
+    #1C8D89 0%,#1C8D89 53%,
+    #C9AC99 54%,#A57D69 100%)!important;
+  border-bottom:5px solid #785548!important;
+  box-shadow:0 5px 14px rgba(165,125,105,.15)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price {
-  background:#FFE7C8!important;
-  color:#492300!important;
-  box-shadow:inset 0 -3px 0 rgba(185,74,0,.25)!important;
-  border:1px solid #FF9B40!important;
+  background:#FFF9F1!important;
+  color:#392824!important;
+  box-shadow:inset 0 -3px 0 rgba(120,85,72,.25)!important;
+  border:1px solid #C9AC99!important;
 }
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-person[data-v26-kind="child"] {
-  border-left:5px solid #FF7A00!important;
-  background:linear-gradient(110deg,#FFF0DF 0%,#FFFFFF 64%)!important;
+  border-left:5px solid #A57D69!important;
+  background:linear-gradient(110deg,#FFF9F1 0%,#FFFFFF 64%)!important;
 }
 /* The '+' stays tappable only when the existing code permits it. */
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled) {
-  background:linear-gradient(180deg,#FFA248,#FF7A00)!important;
-  border-color:#C65D00!important;
-  color:#492300!important;
+  background:linear-gradient(180deg,#C9AC99,#A57D69)!important;
+  border-color:#785548!important;
+  color:#392824!important;
 }
 
 /* CONFIRM — genuine price feedback, not fabricated availability/status. */
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="3"] .rec-summary .rec-line.total {
-  background:linear-gradient(100deg,#FFD4A2,#FFE9D3)!important;
-  border-left:5px solid #FF7A00!important;
-  color:#4E2A0C!important;
+  background:linear-gradient(100deg,#E5D6C9,#FFF9F1)!important;
+  border-left:5px solid #A57D69!important;
+  color:#392824!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="3"] .rec-summary .rec-line.total strong {
-  color:#622C00!important;
+  color:#563B32!important;
 }
 
 /* SUCCESS — orange celebration is NOT admission permission.
  * The green GO remains exclusive to verified AirWAIT calling. */
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed {
   background:linear-gradient(155deg,
-    #FFB46B 0%,
-    #FFD6AE 28%,
-    #FFF1DF 56%,
-    #E3FFF6 90%)!important;
-  border:2px solid #F7A055!important;
-  border-top:9px solid #FF7A00!important;
-  box-shadow:0 6px 0 rgba(255,122,0,.15)!important;
+    #C9AC99 0%,
+    #FFF9F1 28%,
+    #FFF9F1 56%,
+    #FFFFFF 90%)!important;
+  border:2px solid #C9AC99!important;
+  border-top:9px solid #A57D69!important;
+  box-shadow:0 6px 0 rgba(165,125,105,.15)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-check {
   width:84px!important;
   height:84px!important;
-  border:5px solid #FFE0BE!important;
-  background:#FF7A00!important;
-  color:#492300!important;
-  box-shadow:0 6px 0 rgba(177,72,0,.25),0 0 0 9px rgba(255,122,0,.15)!important;
+  border:5px solid #FFF9F1!important;
+  background:#A57D69!important;
+  color:#392824!important;
+  box-shadow:0 6px 0 rgba(120,85,72,.25),0 0 0 9px rgba(165,125,105,.15)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong {
-  color:#793600!important;
+  color:#563B32!important;
 }
 
 /* Intentionally leave waiting / near / calling / hold / error palettes untouched. */
@@ -282,48 +282,48 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-action.v38-call-cta
  grid-template-columns:42px minmax(0,1fr) 38px!important;
  width:100%!important;max-width:none!important;min-height:74px!important;
  gap:10px!important;padding:9px 11px!important;
- border:2px solid #CA5D00!important;border-radius:17px!important;
- background:linear-gradient(155deg,#FFAB55 0%,#FF7A00 76%)!important;
- color:#492300!important;
- box-shadow:0 5px 0 #A74E0C,0 9px 17px rgba(193,88,9,.19)!important;
+ border:2px solid #785548!important;border-radius:17px!important;
+ background:linear-gradient(155deg,#C9AC99 0%,#A57D69 76%)!important;
+ color:#392824!important;
+ box-shadow:0 5px 0 #785548,0 9px 17px rgba(120,85,72,.19)!important;
  cursor:pointer!important;
  text-decoration:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-icon{
  width:42px!important;height:42px!important;
- background:#FFE5C4!important;border:1px solid #B75A0B!important;
- color:#803C00!important;
- box-shadow:inset 0 -2px 0 #EAB67F!important;
+ background:#FFF9F1!important;border:1px solid #785548!important;
+ color:#563B32!important;
+ box-shadow:inset 0 -2px 0 #C9AC99!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-copy strong{
  font-size:16px!important;line-height:1.32!important;
- color:#492300!important;font-weight:950!important;
+ color:#392824!important;font-weight:950!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-copy small{
- font-size:11px!important;line-height:1.35!important;color:#65390F!important;
+ font-size:11px!important;line-height:1.35!important;color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-arrow{
  width:38px!important;height:40px!important;
- border:1px solid #8C4100!important;border-radius:11px!important;
- background:#653000!important;color:#FFF1DE!important;
+ border:1px solid #563B32!important;border-radius:11px!important;
+ background:#563B32!important;color:#FFF9F1!important;
  display:grid!important;place-items:center!important;
  animation:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta:focus-visible{
- outline:3px solid #063F3B!important;outline-offset:3px!important;
+ outline:3px solid #166D66!important;outline-offset:3px!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta:active{
  transform:translateY(4px)!important;
- box-shadow:0 1px 0 #A74E0C!important;
+ box-shadow:0 1px 0 #785548!important;
 }
 /* 2) 営業区分: metrics stay native; the final row says what tapping opens. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today{
  display:grid!important;grid-template-columns:1.2fr 1fr .82fr!important;
  padding:0!important;margin-top:13px!important;
  overflow:hidden!important;
- background:linear-gradient(130deg,#0F7772,#125C58)!important;
- border:2px solid #0A6762!important;
- box-shadow:0 5px 0 #0B514D,0 9px 17px rgba(9,82,75,.16)!important;
+ background:linear-gradient(130deg,#1C8D89,#166D66)!important;
+ border:2px solid #1C8D89!important;
+ box-shadow:0 5px 0 #166D66,0 9px 17px rgba(22,109,102,.16)!important;
  border-radius:17px!important;cursor:pointer!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:not(.v55-today-action){
@@ -338,7 +338,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:first-child>svg{
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>svg{display:none!important;}
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today small{
- font-size:12px!important;color:#D6FCED!important;opacity:1!important;
+ font-size:12px!important;color:#EBFFF6!important;opacity:1!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today strong{
  color:#FFFFFF!important;font-size:14px!important;line-height:1.3!important;
@@ -348,8 +348,8 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action{
  display:flex!important;justify-content:space-between!important;
  align-items:center!important;min-height:41px!important;
  padding:8px 10px 8px 13px!important;
- border:0!important;border-top:1px solid #A1E7D8!important;
- background:#E3FFF6!important;color:#155C55!important;
+ border:0!important;border-top:1px solid #9BE6D3!important;
+ background:#FFFFFF!important;color:#166D66!important;
  font-size:13px!important;font-weight:900!important;
  line-height:1.35!important;
 }
@@ -357,78 +357,78 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Today .v55-today-action i{
  font-size:20px!important;font-style:normal!important;
  display:grid!important;place-items:center!important;
  width:31px!important;height:29px!important;
- border-radius:9px!important;color:#4D2600!important;
- background:#FF7A00!important;box-shadow:0 2px 0 #B85E0A!important;
+ border-radius:9px!important;color:#392824!important;
+ background:#A57D69!important;box-shadow:0 2px 0 #785548!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today:active{
- transform:translateY(3px)!important;box-shadow:0 2px 0 #0B514D!important;
+ transform:translateY(3px)!important;box-shadow:0 2px 0 #166D66!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Today:focus-visible{
- outline:3px solid #FF7A00!important;outline-offset:3px!important;
+ outline:3px solid #A57D69!important;outline-offset:3px!important;
 }
 /* 3) 本日の混雑状況: not a decorative crowd box; the channel cards are actionable.
    Only genuine a / button elements get orange controls; unavailable div stays muted. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots{
- border:1px solid #91D8C8!important;border-radius:18px!important;
- box-shadow:0 4px 0 #B9E9DD!important;
+ border:1px solid #9BE6D3!important;border-radius:18px!important;
+ box-shadow:0 4px 0 #D2F3E7!important;
  padding:13px 12px!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>h3{
  font-size:18px!important;font-weight:950!important;
- margin:0 0 3px!important;color:#145F59!important;
+ margin:0 0 3px!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v55-crowd-prompt{
  margin:0 0 12px!important;
  padding:8px 10px!important;
- border-left:4px solid #FF7A00!important;
- background:#FFF1DF!important;color:#734007!important;
+ border-left:4px solid #A57D69!important;
+ background:#FFF9F1!important;color:#563B32!important;
  border-radius:0 9px 9px 0!important;
  font-size:12px!important;font-weight:850!important;line-height:1.5!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-card{
- border:1px solid #B5D9D1!important;background:#F6FFFC!important;
+ border:1px solid #9BE6D3!important;background:#FFFFFF!important;
  padding:12px 10px!important;
  border-radius:14px!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-head time{
- font-size:17px!important;color:#175A54!important;
+ font-size:17px!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button){
  min-height:126px!important;
  padding:10px 8px!important;
  border-width:2px!important;border-style:solid!important;
  border-radius:13px!important;
- box-shadow:0 4px 0 rgba(52,125,110,.20)!important;
+ box-shadow:0 4px 0 rgba(28,141,137,.20)!important;
  cursor:pointer!important;text-decoration:none!important;
  transition:transform .13s ease,box-shadow .13s ease!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--onsite:is(a,button){
- background:#FFF2E5!important;border-color:#F6AF70!important;
- color:#713508!important;
+ background:#FFFFFF!important;border-color:#C9AC99!important;
+ color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--web:is(a,button){
- background:#E9FFF9!important;border-color:#8DDAC7!important;
- color:#1A6257!important;
+ background:#FFFFFF!important;border-color:#9BE6D3!important;
+ color:#1C8D89!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button) .v38-crowd-tap{
  min-height:43px!important;
  margin-top:7px!important;padding:8px 4px!important;
  display:flex!important;align-items:center!important;justify-content:center!important;
- background:#FF7A00!important;color:#492300!important;
- border-radius:9px!important;border:1px solid #D25F00!important;
+ background:#A57D69!important;color:#392824!important;
+ border-radius:9px!important;border:1px solid #785548!important;
  font-weight:950!important;font-size:12px!important;line-height:1.35!important;
  text-decoration:none!important;text-align:center!important;
- box-shadow:0 3px 0 #B45810!important;
+ box-shadow:0 3px 0 #785548!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel--web:is(a,button) .v38-crowd-tap{
- background:#D7F8EA!important;color:#135E52!important;
- border-color:#6BBCAB!important;box-shadow:0 3px 0 #84D3BE!important;
+ background:#EBFFF6!important;color:#166D66!important;
+ border-color:#67CEBB!important;box-shadow:0 3px 0 #9BE6D3!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button):active{
- transform:translateY(3px)!important;box-shadow:0 1px 0 rgba(52,125,110,.25)!important;
+ transform:translateY(3px)!important;box-shadow:0 1px 0 rgba(28,141,137,.25)!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:is(a,button):focus-visible{
- outline:3px solid #FF7A00!important;outline-offset:3px!important;
+ outline:3px solid #A57D69!important;outline-offset:3px!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate{
  min-height:44px!important;cursor:pointer!important;
@@ -442,21 +442,21 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut{
  display:grid!important;
  grid-template-columns:53px minmax(0,1fr) 18px!important;
  gap:11px!important;padding:13px 11px!important;
- border:2px solid #6FCBBB!important;border-radius:17px!important;
- background:linear-gradient(116deg,#E8FFF6,#FFF7EC)!important;
- box-shadow:0 5px 0 #97DDD0!important;
+ border:2px solid #67CEBB!important;border-radius:17px!important;
+ background:linear-gradient(116deg,#FFFFFF,#FFFFFF)!important;
+ box-shadow:0 5px 0 #9BE6D3!important;
  cursor:pointer!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut>.v38-quick-icon{
- background:#FF7A00!important;color:#492300!important;
+ background:#A57D69!important;color:#392824!important;
  width:51px!important;height:51px!important;border-radius:14px!important;
- box-shadow:inset 0 -3px 0 #C75B00!important;
+ box-shadow:inset 0 -3px 0 #785548!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut strong{
- color:#155B55!important;font-size:19px!important;line-height:1.3!important;
+ color:#166D66!important;font-size:19px!important;line-height:1.3!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut em{
- font-size:12px!important;color:#3F7167!important;opacity:1!important;
+ font-size:12px!important;color:#1C8D89!important;opacity:1!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut>.v38-quick-icon svg{
  stroke-width:2.3!important;
@@ -468,9 +468,9 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-
  display:inline-flex!important;align-items:center!important;justify-content:space-between!important;
  gap:8px!important;max-width:100%!important;
  min-height:36px!important;margin-top:9px!important;padding:6px 7px 6px 10px!important;
- border-radius:10px!important;background:#FF7A00!important;
- border:1px solid #C45B00!important;box-shadow:0 3px 0 #A95200!important;
- color:#492300!important;
+ border-radius:10px!important;background:#A57D69!important;
+ border:1px solid #785548!important;box-shadow:0 3px 0 #785548!important;
+ color:#392824!important;
  font-size:12px!important;font-style:normal!important;font-weight:950!important;
  line-height:1.3!important;
 }
@@ -478,10 +478,10 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut .v55-timer-
  font-style:normal!important;font-size:18px!important;line-height:1!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut:active{
- transform:translateY(3px)!important;box-shadow:0 2px 0 #97DDD0!important;
+ transform:translateY(3px)!important;box-shadow:0 2px 0 #9BE6D3!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut:focus-visible{
- outline:3px solid #0A7970!important;outline-offset:3px!important;
+ outline:3px solid #1C8D89!important;outline-offset:3px!important;
 }
 @media(max-width:350px){
  html.boon-v4.boon-v5-mint body.v38-home-active #v38Today>span:not(.v55-today-action){
@@ -504,34 +504,34 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38TimeguideShortcut:focus-visib
 
 /* Keep one unmistakable primary CTA: reception is vivid orange; call is warm secondary. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-action.v38-call-cta{
- background:linear-gradient(145deg,#FFF3DE 0%,#FFD8A6 100%)!important;
- border-color:#E88A24!important;
- box-shadow:0 5px 0 #BA771C,0 9px 15px rgba(113,67,11,.14)!important;
+ background:linear-gradient(145deg,#FFF9F1 0%,#FFF9F1 100%)!important;
+ border-color:#A57D69!important;
+ box-shadow:0 5px 0 #A57D69,0 9px 15px rgba(86,59,50,.14)!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-icon{
- background:#E3FFF6!important;border-color:#74C8B7!important;color:#155B54!important;
+ background:#FFFFFF!important;border-color:#67CEBB!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Hero .v38-call-cta-arrow{
- background:#FF7A00!important;color:#492300!important;border-color:#CB5F00!important;
+ background:#A57D69!important;color:#392824!important;border-color:#785548!important;
 }
 /* When live crowd data is unavailable, the existing receipt-status link is still a button. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action{
  width:100%!important;min-height:54px!important;
  display:flex!important;align-items:center!important;justify-content:space-between!important;
  padding:10px 13px!important;
- border:2px solid #A4DCCF!important;border-radius:13px!important;
- background:#E3FFF6!important;color:#155C54!important;
- box-shadow:0 4px 0 #9DD7C9!important;
+ border:2px solid #9BE6D3!important;border-radius:13px!important;
+ background:#FFFFFF!important;color:#166D66!important;
+ box-shadow:0 4px 0 #9BE6D3!important;
  font-weight:900!important;cursor:pointer!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action svg{
- color:#AD4D00!important;
+ color:#785548!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:active{
- transform:translateY(3px)!important;box-shadow:0 1px 0 #9DD7C9!important;
+ transform:translateY(3px)!important;box-shadow:0 1px 0 #9BE6D3!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>.v38-action:focus-visible{
- outline:3px solid #FF7A00!important;outline-offset:3px!important;
+ outline:3px solid #A57D69!important;outline-offset:3px!important;
 }
 
 /* All supported UI languages can wrap within the same touch targets. */
@@ -543,14 +543,14 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v55-crowd-prompt{
 
 /* v5.10 — say exactly what the verified WEB and LINE figures represent. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots>h3{
- color:#145F59!important;
+ color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-remaining-title{
- color:#155C54!important;font-weight:900!important;font-size:13px!important;
+ color:#166D66!important;font-weight:900!important;font-size:13px!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel strong{
  display:flex!important;align-items:baseline!important;justify-content:center!important;
- gap:3px!important;min-height:45px!important;color:#104F49!important;
+ gap:3px!important;min-height:45px!important;color:#166D66!important;
  font-size:clamp(25px,7vw,34px)!important;font-weight:950!important;line-height:1.1!important;
  white-space:nowrap!important;
 }
@@ -561,11 +561,11 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel stro
  font-size:17px!important;font-weight:900!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel .v38-crowd-unknown{
- font-size:18px!important;color:#4F625D!important;
+ font-size:18px!important;color:#1C8D89!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-crowd-channel:focus-visible,
 html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots #v38CrowdUpdate:focus-visible{
- outline:3px solid #075E55!important;outline-offset:3px!important;
+ outline:3px solid #166D66!important;outline-offset:3px!important;
 }
 
 /* Small devices: keep real 3-digit remaining people readable. */

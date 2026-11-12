@@ -3,37 +3,37 @@ No reception or AirWAIT API behavior changes; disabled without explicit opt-in. 
 
 /* boon-start-v4-bridge.css */
 /* BOON START v4: isolated developing UX layer. Production files are untouched. */
-html.boon-v4 {--boon-navy:#112b4e;--boon-yellow:#ffd13c;--boon-green:#117b47;--boon-ink:#1a304d;--boon-line:#d9e3ef;--boon-surface:#f5f8fc;}
-html.boon-v4 body {background:#eef3f9;color:var(--boon-ink);font-size:16px;line-height:1.55;}
+html.boon-v4 {--boon-navy:#166D66;--boon-yellow:#E5D6C9;--boon-green:#1C8D89;--boon-ink:#166D66;--boon-line:#F7EFE5;--boon-surface:#FFFFFF;}
+html.boon-v4 body {background:#FFFFFF;color:var(--boon-ink);font-size:16px;line-height:1.55;}
 html.boon-v4 button,html.boon-v4 a {touch-action:manipulation;}
-html.boon-v4 button:focus-visible,html.boon-v4 a:focus-visible {outline:3px solid #2879d2;outline-offset:3px;}
-html.boon-v4 .page-card {background:#fff;border:1px solid var(--boon-line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(16,43,79,.07);}
-html.boon-v4 .page-head {background:var(--boon-navy)!important;color:#fff!important;padding:20px 20px 22px;}
-html.boon-v4 .page-head h2,html.boon-v4 .page-head small {color:#fff!important;}
-html.boon-v4 .rec-wrap,html.boon-v4 .cs-body {background:#fff;}
-html.boon-v4 .rec-slot {min-height:78px;border:1px solid #cbd9e8;background:white;border-radius:15px;color:var(--boon-ink);width:100%;padding:14px 16px;box-shadow:none;transition:border-color .15s ease,background .15s ease;}
-html.boon-v4 .rec-slot.active {border:2px solid #edb900;background:#fff9e9;box-shadow:0 0 0 1px #f2d97a;}
-html.boon-v4 .rec-slot.active:after {content:'✓ 選択中';display:inline-flex;font-size:12px;font-weight:800;color:#735700;background:#fff0ad;padding:3px 8px;border-radius:30px;margin-left:6px;}
+html.boon-v4 button:focus-visible,html.boon-v4 a:focus-visible {outline:3px solid #1C8D89;outline-offset:3px;}
+html.boon-v4 .page-card {background:#FFFFFF;border:1px solid var(--boon-line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(22,109,102,.07);}
+html.boon-v4 .page-head {background:var(--boon-navy)!important;color:#FFFFFF!important;padding:20px 20px 22px;}
+html.boon-v4 .page-head h2,html.boon-v4 .page-head small {color:#FFFFFF!important;}
+html.boon-v4 .rec-wrap,html.boon-v4 .cs-body {background:#FFFFFF;}
+html.boon-v4 .rec-slot {min-height:78px;border:1px solid #F7EFE5;background:white;border-radius:15px;color:var(--boon-ink);width:100%;padding:14px 16px;box-shadow:none;transition:border-color .15s ease,background .15s ease;}
+html.boon-v4 .rec-slot.active {border:2px solid #C9AC99;background:#FFFFFF;box-shadow:0 0 0 1px #E5D6C9;}
+html.boon-v4 .rec-slot.active:after {content:'✓ 選択中';display:inline-flex;font-size:12px;font-weight:800;color:#563B32;background:#FFF9F1;padding:3px 8px;border-radius:30px;margin-left:6px;}
 html.boon-v4 .rec-slot:disabled {opacity:.5;}
 html.boon-v4 .rec-slot .rec-slot-remaining span {font-size:12px;}
 html.boon-v4 .rec-slot .rec-slot-remaining b {font-size:17px;}
-html.boon-v4 .rec-person {background:#fff;border:1px solid var(--boon-line);border-radius:16px;padding:15px;margin:9px 0;}
+html.boon-v4 .rec-person {background:#FFFFFF;border:1px solid var(--boon-line);border-radius:16px;padding:15px;margin:9px 0;}
 html.boon-v4 .rec-stepper button {min-width:48px;min-height:48px;border-radius:50%;font-size:24px;}
 html.boon-v4 #recPeopleMsg {border-radius:12px;}
-html.boon-v4 #recSubmit,html.boon-v4 #boonV4Continue {display:block;width:100%;min-height:54px;border:0;border-radius:14px;background:var(--boon-yellow);color:#192a42;font-size:16px;font-weight:850;box-shadow:inset 0 -3px 0 #e1aa00;}
-html.boon-v4 #recSubmit:disabled,html.boon-v4 #boonV4Continue:disabled {background:#e5e9ee!important;color:#7a8495!important;box-shadow:none!important;opacity:1;}
+html.boon-v4 #recSubmit,html.boon-v4 #boonV4Continue {display:block;width:100%;min-height:54px;border:0;border-radius:14px;background:var(--boon-yellow);color:#166D66;font-size:16px;font-weight:850;box-shadow:inset 0 -3px 0 #C9AC99;}
+html.boon-v4 #recSubmit:disabled,html.boon-v4 #boonV4Continue:disabled {background:#F7EFE5!important;color:#2BAEAA!important;box-shadow:none!important;opacity:1;}
 html.boon-v4 #recSubmit:active:not(:disabled),html.boon-v4 #boonV4Continue:active:not(:disabled) {transform:translateY(1px);}
-html.boon-v4 .rec-summary {background:#f7f9fc;border:1px solid var(--boon-line);border-radius:14px;padding:14px;}
-html.boon-v4 .rec-disclaimer {background:#fff;border:1px solid var(--boon-line);border-radius:12px;}
+html.boon-v4 .rec-summary {background:#FFFFFF;border:1px solid var(--boon-line);border-radius:14px;padding:14px;}
+html.boon-v4 .rec-disclaimer {background:#FFFFFF;border:1px solid var(--boon-line);border-radius:12px;}
 html.boon-v4 .rec-agree {min-height:52px;padding:12px 10px;font-size:15px;}
 html.boon-v4 .rec-agree input {min-height:22px;min-width:22px;}
 html.boon-v4 .rv7-progress,html.boon-v4 .rv7-confirm-label {display:none!important;}
 html.boon-v4 .boon-v4-progress {display:flex;gap:7px;justify-content:stretch;margin:4px 0 18px;}
-html.boon-v4 .boon-v4-progress>span {flex:1;text-align:center;font-weight:800;color:#60738c;font-size:13px;padding:10px 2px;border-bottom:4px solid #d8e0ea;}
-html.boon-v4 .boon-v4-progress>span.active {color:#173350;border-color:#e7b900;}
-html.boon-v4 .boon-v4-progress>span.done {color:#185b43;border-color:#48a37f;}
-html.boon-v4 .boon-v4-actionbar {position:sticky;bottom:0;z-index:8;display:flex;flex-direction:column;gap:8px;margin-top:24px;padding:15px 0 8px;background:#fff;border-top:1px solid var(--boon-line);}
-html.boon-v4 .boon-v4-secondary {min-height:46px;border:1px solid #b1c1d4;background:#fff;color:#263e5b;font-weight:750;border-radius:14px;}
+html.boon-v4 .boon-v4-progress>span {flex:1;text-align:center;font-weight:800;color:#1C8D89;font-size:13px;padding:10px 2px;border-bottom:4px solid #F7EFE5;}
+html.boon-v4 .boon-v4-progress>span.active {color:#166D66;border-color:#C9AC99;}
+html.boon-v4 .boon-v4-progress>span.done {color:#166D66;border-color:#2BAEAA;}
+html.boon-v4 .boon-v4-actionbar {position:sticky;bottom:0;z-index:8;display:flex;flex-direction:column;gap:8px;margin-top:24px;padding:15px 0 8px;background:#FFFFFF;border-top:1px solid var(--boon-line);}
+html.boon-v4 .boon-v4-secondary {min-height:46px;border:1px solid #67CEBB;background:#FFFFFF;color:#166D66;font-weight:750;border-radius:14px;}
 html.boon-v4 .boon-v4-reception[data-boon-stage="1"] .boon-v4-people-title,
 html.boon-v4 .boon-v4-reception[data-boon-stage="1"] .rec-people,
 html.boon-v4 .boon-v4-reception[data-boon-stage="1"] .rec-summary,
@@ -71,7 +71,7 @@ html.boon-v4 .boon-v4-reception[data-boon-stage="4"] .rec-agree,
 html.boon-v4 .boon-v4-reception[data-boon-stage="4"] #recSubmit,
 html.boon-v4 .boon-v4-reception[data-boon-stage="4"] #boonV4Nav,
 html.boon-v4 .boon-v4-reception[data-boon-stage="5"] #boonV4Nav {display:none!important;}
-html.boon-v4 .boon-v4-home-tag {background:#fff8d8;color:#805c04;font-weight:850;border-left:4px solid #ffd13c;border-radius:7px;padding:9px 12px;margin:0 0 12px;}
+html.boon-v4 .boon-v4-home-tag {background:#FFFFFF;color:#785548;font-weight:850;border-left:4px solid #E5D6C9;border-radius:7px;padding:9px 12px;margin:0 0 12px;}
 html.boon-v4 .boon-v4-home [data-v7-view="reception"] {min-height:52px;}
 html.boon-v4 .boon-v4-home .v38-hero {border-radius:18px;}
 html.boon-v4 .boon-v4-home .v38-crowd-grid {gap:10px;}
@@ -79,41 +79,41 @@ html.boon-v4 .boon-v4-callstatus .cs-top,html.boon-v4 .boon-v4-callstatus .cs-st
 html.boon-v4 .boon-v4-callstatus .cs-ticket,html.boon-v4 .boon-v4-callstatus .cs-queue,
 html.boon-v4 .boon-v4-callstatus .v33-start-panel {display:none!important;}
 html.boon-v4 .boon-v4-callstatus .cs-forecast {border:1px solid var(--boon-line);border-radius:14px;}
-html.boon-v4 .boon-v4-call-hero {background:#fff;color:var(--boon-ink);border:1px solid var(--boon-line);border-radius:18px;padding:22px 16px 14px;text-align:center;margin:10px 0 14px;}
-html.boon-v4 .boon-v4-status-tag {display:inline-block;border-radius:50px;font-size:13px;font-weight:850;color:#205d83;background:#eaf5ff;padding:7px 14px;}
-html.boon-v4 .boon-v4-call-hero h2 {font-size:clamp(22px,6vw,27px);font-weight:900;margin:14px 0 6px;line-height:1.3;color:#112b4e;}
-html.boon-v4 .boon-v4-next {font-size:15px;line-height:1.55;margin:0 auto 15px;max-width:32em;color:#38516c;}
-html.boon-v4 .boon-v4-lights {background:#142842;border-radius:16px;padding:15px 12px;margin:14px 0;text-align:center;}
-html.boon-v4 .boon-v4-lights small {display:block;color:#d0dfed;font-size:12px;letter-spacing:.18em;font-weight:850;margin-bottom:10px;}
+html.boon-v4 .boon-v4-call-hero {background:#FFFFFF;color:var(--boon-ink);border:1px solid var(--boon-line);border-radius:18px;padding:22px 16px 14px;text-align:center;margin:10px 0 14px;}
+html.boon-v4 .boon-v4-status-tag {display:inline-block;border-radius:50px;font-size:13px;font-weight:850;color:#1C8D89;background:#FFFFFF;padding:7px 14px;}
+html.boon-v4 .boon-v4-call-hero h2 {font-size:clamp(22px,6vw,27px);font-weight:900;margin:14px 0 6px;line-height:1.3;color:#166D66;}
+html.boon-v4 .boon-v4-next {font-size:15px;line-height:1.55;margin:0 auto 15px;max-width:32em;color:#166D66;}
+html.boon-v4 .boon-v4-lights {background:#163D3A;border-radius:16px;padding:15px 12px;margin:14px 0;text-align:center;}
+html.boon-v4 .boon-v4-lights small {display:block;color:#F7EFE5;font-size:12px;letter-spacing:.18em;font-weight:850;margin-bottom:10px;}
 html.boon-v4 .boon-v4-lamps {display:flex;justify-content:center;gap:9px;}
-html.boon-v4 .boon-v4-lamp {height:32px;width:32px;border-radius:50%;border:2px solid #334e69;box-shadow:inset 0 3px 9px #081a2a;background:#203650;}
-html.boon-v4 .boon-v4-lamp.green {background:#0ab45b;border-color:#75eeae;box-shadow:0 0 13px rgba(18,213,95,.5);}
-html.boon-v4 .boon-v4-lamp.red {background:#ed5253;border-color:#ff9b9b;box-shadow:0 0 12px rgba(248,46,56,.4);}
-html.boon-v4 .boon-v4-lamp.amber {background:#ffc24d;border-color:#ffe09b;box-shadow:0 0 10px rgba(255,191,58,.35);}
-html.boon-v4 .boon-v4-call-hero.calling {border:2px solid #0db868;background:#f4fff8;}
-html.boon-v4 .boon-v4-call-hero.calling .boon-v4-status-tag {background:#d7f9e5;color:#075b36;}
-html.boon-v4 .boon-v4-go {background:#0d994d;color:#fff;font-size:32px;font-weight:950;letter-spacing:.08em;border-radius:15px;padding:8px;margin:8px 0 12px;}
-html.boon-v4 .boon-v4-call-hero.error {border:2px solid #e1b6bb;background:#fffafa;}
-html.boon-v4 .boon-v4-call-hero.error .boon-v4-status-tag {background:#fff0ed;color:#9e2e37;}
-html.boon-v4 .boon-v4-number {display:flex;flex-direction:column;gap:0;border:1px solid var(--boon-line);border-radius:15px;padding:12px;background:#fff;margin:13px 0;}
-html.boon-v4 .boon-v4-number span {font-size:13px;color:#5d7187;font-weight:800;}
-html.boon-v4 .boon-v4-number strong {font-size:clamp(32px,10vw,43px);font-variant-numeric:tabular-nums;line-height:1.3;color:#112b4e;word-break:break-word;}
-html.boon-v4 .boon-v4-ahead {display:flex;align-items:baseline;justify-content:center;gap:7px;background:#fffae6;border-radius:12px;padding:12px;}
+html.boon-v4 .boon-v4-lamp {height:32px;width:32px;border-radius:50%;border:2px solid #166D66;box-shadow:inset 0 3px 9px #163D3A;background:#166D66;}
+html.boon-v4 .boon-v4-lamp.green {background:#2BAEAA;border-color:#9BE6D3;box-shadow:0 0 13px rgba(103,206,187,.5);}
+html.boon-v4 .boon-v4-lamp.red {background:#785548;border-color:#C9AC99;box-shadow:0 0 12px rgba(120,85,72,.4);}
+html.boon-v4 .boon-v4-lamp.amber {background:#E5D6C9;border-color:#FFF9F1;box-shadow:0 0 10px rgba(229,214,201,.35);}
+html.boon-v4 .boon-v4-call-hero.calling {border:2px solid #2BAEAA;background:#FFFFFF;}
+html.boon-v4 .boon-v4-call-hero.calling .boon-v4-status-tag {background:#EBFFF6;color:#166D66;}
+html.boon-v4 .boon-v4-go {background:#2BAEAA;color:#FFFFFF;font-size:32px;font-weight:950;letter-spacing:.08em;border-radius:15px;padding:8px;margin:8px 0 12px;}
+html.boon-v4 .boon-v4-call-hero.error {border:2px solid #E5D6C9;background:#FFFFFF;}
+html.boon-v4 .boon-v4-call-hero.error .boon-v4-status-tag {background:#FFFFFF;color:#563B32;}
+html.boon-v4 .boon-v4-number {display:flex;flex-direction:column;gap:0;border:1px solid var(--boon-line);border-radius:15px;padding:12px;background:#FFFFFF;margin:13px 0;}
+html.boon-v4 .boon-v4-number span {font-size:13px;color:#1C8D89;font-weight:800;}
+html.boon-v4 .boon-v4-number strong {font-size:clamp(32px,10vw,43px);font-variant-numeric:tabular-nums;line-height:1.3;color:#166D66;word-break:break-word;}
+html.boon-v4 .boon-v4-ahead {display:flex;align-items:baseline;justify-content:center;gap:7px;background:#FFFFFF;border-radius:12px;padding:12px;}
 html.boon-v4 .boon-v4-ahead small {font-size:13px;font-weight:800;}
-html.boon-v4 .boon-v4-ahead strong {font-size:37px;font-variant-numeric:tabular-nums;color:#172e4b;}
+html.boon-v4 .boon-v4-ahead strong {font-size:37px;font-variant-numeric:tabular-nums;color:#166D66;}
 html.boon-v4 .boon-v4-ahead span {font-weight:850;}
-html.boon-v4 .boon-v4-checked {color:#51667c;font-size:13px;margin:12px 0 0;}
-html.boon-v4 .boon-v4-error {border-left:4px solid #c34848;background:#fff0f0;padding:10px;border-radius:8px;text-align:left;font-size:14px;}
-html.boon-v4 .boon-v4-done-notice {padding:13px;border:1px solid #b9ecd0;background:#edfff5;color:#09623f;border-radius:12px;font-weight:900;margin:12px 0;}
-html.boon-v4 .boon-v4-callstatus #csRefresh {min-height:50px;border:1px solid #82b3db;border-radius:13px;background:#eef7ff;color:#185d8d;font-size:16px;font-weight:800;}
-html.boon-v4 .boon-v4-callstatus #csCancel {min-height:46px;border:1px solid #c74c55;border-radius:12px;color:#a12f38;background:white;}
+html.boon-v4 .boon-v4-checked {color:#1C8D89;font-size:13px;margin:12px 0 0;}
+html.boon-v4 .boon-v4-error {border-left:4px solid #785548;background:#FFFFFF;padding:10px;border-radius:8px;text-align:left;font-size:14px;}
+html.boon-v4 .boon-v4-done-notice {padding:13px;border:1px solid #D2F3E7;background:#FFFFFF;color:#166D66;border-radius:12px;font-weight:900;margin:12px 0;}
+html.boon-v4 .boon-v4-callstatus #csRefresh {min-height:50px;border:1px solid #67CEBB;border-radius:13px;background:#FFFFFF;color:#1C8D89;font-size:16px;font-weight:800;}
+html.boon-v4 .boon-v4-callstatus #csCancel {min-height:46px;border:1px solid #785548;border-radius:12px;color:#563B32;background:white;}
 @media(max-width:430px){html.boon-v4 .page-card {border-radius:14px;}html.boon-v4 .boon-v4-call-hero {padding:17px 13px;}html.boon-v4 .boon-v4-lamp{width:30px;height:30px;}html.boon-v4 .boon-v4-progress>span {font-size:12px;}}
 @media(prefers-reduced-motion:reduce){html.boon-v4 *,html.boon-v4 *::before,html.boon-v4 *::after {animation:none!important;scroll-behavior:auto!important;transition:none!important;}}
 
 /* V4 brand header: applies only on the isolated develop preview page. */
-html.boon-v4 body .topbar {background:#112b4e!important;color:#fff!important;border-radius:14px 14px 0 0;padding:12px!important;margin:0 14px 0;}
-html.boon-v4 body .topbar .brand strong,html.boon-v4 body .topbar .brand small {color:#fff!important;}
-html.boon-v4 body .topbar .iconbtn {min-width:44px;min-height:44px;color:#fff!important;border:1px solid #6683a2;background:#244564;border-radius:12px;}
+html.boon-v4 body .topbar {background:#166D66!important;color:#FFFFFF!important;border-radius:14px 14px 0 0;padding:12px!important;margin:0 14px 0;}
+html.boon-v4 body .topbar .brand strong,html.boon-v4 body .topbar .brand small {color:#FFFFFF!important;}
+html.boon-v4 body .topbar .iconbtn {min-width:44px;min-height:44px;color:#FFFFFF!important;border:1px solid #2BAEAA;background:#166D66;border-radius:12px;}
 html.boon-v4 body[data-boon-view=home] .topbar #backBtn {visibility:hidden;}
 
 /* Final quality pass: the recovery/success result replaces the entire input UI. */
@@ -134,15 +134,15 @@ html.boon-v4 .boon-v4-reception[data-boon-stage="5"] .rec-agree,
 html.boon-v4 .boon-v4-reception[data-boon-stage="5"] #recSubmit,
 html.boon-v4 .boon-v4-reception[data-boon-stage="5"] #recStatus {display:none!important;}
 html.boon-v4 .boon-v4-reception[data-boon-stage="5"] #recResult {display:block!important;margin:26px 0;}
-html.boon-v4 .boon-v4-reception[data-boon-stage="5"] .rec-lock {border:1px solid #deb4ad;background:#fff3ed;color:#74392c;padding:20px;border-radius:16px;line-height:1.6;font-size:16px;}
+html.boon-v4 .boon-v4-reception[data-boon-stage="5"] .rec-lock {border:1px solid #C9AC99;background:#FFFFFF;color:#563B32;padding:20px;border-radius:16px;line-height:1.6;font-size:16px;}
 html.boon-v4 .boon-v4-reception[data-boon-stage="5"] .rec-lock strong {display:block;font-size:21px;margin-bottom:8px;}
-html.boon-v4 .boon-v4-age-note {display:block;font-size:12px;font-weight:800;color:#49627f;}
-html.boon-v4 body .topbar *,html.boon-v4 body .topbar .brand {color:#fff!important;}
+html.boon-v4 .boon-v4-age-note {display:block;font-size:12px;font-weight:800;color:#1C8D89;}
+html.boon-v4 body .topbar *,html.boon-v4 body .topbar .brand {color:#FFFFFF!important;}
 html.boon-v4 .boon-v4-callstatus #csError {display:none!important;}
 /* Original v33 displays the callstatus title with a ::after pseudo-element. */
-html.boon-v4 body.v7-callstatus-active .topbar::after {color:#fff!important;}
+html.boon-v4 body.v7-callstatus-active .topbar::after {color:#FFFFFF!important;}
 /* The primary reception action uses the v4 yellow signifier, not the legacy orange. */
-html.boon-v4 .boon-v4-home #v38Hero [data-v7-view="reception"] {background:#ffd13c!important;color:#152f4a!important;border-color:#ddb900!important;box-shadow:inset 0 -3px 0 #e5ae00!important;}
+html.boon-v4 .boon-v4-home #v38Hero [data-v7-view="reception"] {background:#E5D6C9!important;color:#166D66!important;border-color:#C9AC99!important;box-shadow:inset 0 -3px 0 #C9AC99!important;}
 
 
 /* boon-start-v4-play.css */
@@ -151,76 +151,76 @@ html.boon-v4 .boon-v4-home #v38Hero [data-v7-view="reception"] {background:#ffd1
 /* Home: turn the plain reception card into a welcoming START panel (no characters). */
 html.boon-v4 #v38Hero.open {
   position:relative; isolation:isolate; overflow:hidden;
-  background:linear-gradient(135deg,#0f2947 0%,#143c64 75%,#153453 100%)!important;
-  border:1px solid #305980!important;color:#fff!important;
-  box-shadow:0 12px 0 -6px #e7bc35,0 22px 34px rgba(15,41,71,.22);
+  background:linear-gradient(135deg,#163D3A 0%,#166D66 75%,#166D66 100%)!important;
+  border:1px solid #1C8D89!important;color:#FFFFFF!important;
+  box-shadow:0 12px 0 -6px #C9AC99,0 22px 34px rgba(22,61,58,.22);
   border-radius:22px!important; padding:20px 18px 22px!important;gap:12px;
 }
 html.boon-v4 #v38Hero.open::before {
   content:"";position:absolute;right:-26px;top:-23px;width:160px;height:190px;
   transform:rotate(13deg);
   background:conic-gradient(rgba(255,255,255,.16) 25%,transparent 0 50%,rgba(255,255,255,.16) 0 75%,transparent 0) 0 0/26px 26px;
-  mask-image:linear-gradient(90deg,transparent 0%,#000 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#251C1A 100%);
   pointer-events:none;z-index:-1;
 }
 html.boon-v4 #v38Hero.open .v38-hero-icon {
-  width:48px;height:48px;border-radius:15px;background:#ffd13c!important;color:#112b4e!important;
-  box-shadow:0 4px 0 #be8d0d;
+  width:48px;height:48px;border-radius:15px;background:#E5D6C9!important;color:#166D66!important;
+  box-shadow:0 4px 0 #A57D69;
 }
 html.boon-v4 #v38Hero.open .v38-hero-body {padding-top:30px;min-width:0;}
 html.boon-v4 #v38Hero.open h1 {
-  color:#fff!important;font-weight:950!important;font-size:clamp(30px,8vw,38px)!important;
+  color:#FFFFFF!important;font-weight:950!important;font-size:clamp(30px,8vw,38px)!important;
   letter-spacing:-.055em;line-height:1.15;text-wrap:balance;
 }
 html.boon-v4 #v38Hero.open p {
-  color:#d8e6f8!important;font-size:15px!important;line-height:1.5;
+  color:#F7EFE5!important;font-size:15px!important;line-height:1.5;
 }
 html.boon-v4 #v38Hero.open .v38-action.primary {
   min-height:58px!important;border:0!important;border-radius:14px!important;
-  background:#ffd13c!important;color:#132b48!important;font-size:17px!important;font-weight:950!important;
-  box-shadow:inset 0 -4px 0 #dba805,0 9px 15px rgba(0,0,0,.18)!important;
+  background:#E5D6C9!important;color:#166D66!important;font-size:17px!important;font-weight:950!important;
+  box-shadow:inset 0 -4px 0 #C9AC99,0 9px 15px rgba(37,28,26,.18)!important;
   transition:transform .16s ease,background .16s ease,box-shadow .16s ease;
 }
-html.boon-v4 #v38Hero.open .v38-action.primary:active {transform:translateY(2px);box-shadow:inset 0 -2px 0 #dba805!important;}
-html.boon-v4 #v38Hero.open .v38-action.primary:hover {background:#ffe169!important;}
+html.boon-v4 #v38Hero.open .v38-action.primary:active {transform:translateY(2px);box-shadow:inset 0 -2px 0 #C9AC99!important;}
+html.boon-v4 #v38Hero.open .v38-action.primary:hover {background:#FFF9F1!important;}
 html.boon-v4 #v38Hero.open .boon-v4-home-flag {
   position:absolute;top:14px;left:77px;display:inline-flex;align-items:center;
-  padding:5px 9px;gap:7px;border-radius:20px;background:rgba(255,214,65,.15);
-  border:1px solid rgba(255,214,65,.48);color:#ffe382;letter-spacing:.09em;
+  padding:5px 9px;gap:7px;border-radius:20px;background:rgba(229,214,201,.15);
+  border:1px solid rgba(229,214,201,.48);color:#FFF9F1;letter-spacing:.09em;
   font-weight:950;font-size:11px;line-height:1.2;pointer-events:none;
 }
 html.boon-v4 #v38Hero.open .boon-v4-home-flag::before {
-  content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#ffd13c;
-  box-shadow:0 0 0 3px rgba(255,209,60,.14);
+  content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#E5D6C9;
+  box-shadow:0 0 0 3px rgba(229,214,201,.14);
 }
 /* Step progression: clear action with a modest 'start-line' motif. */
 html.boon-v4 .boon-v4-progress {
   gap:6px;padding:0 2px 6px;margin:6px 0 10px;border:0;
 }
 html.boon-v4 .boon-v4-progress>span {
-  position:relative;border-bottom:5px solid #d5dfec;background:#f1f5fa;
+  position:relative;border-bottom:5px solid #F7EFE5;background:#FFFFFF;
   border-radius:10px 10px 3px 3px;min-height:49px;padding:9px 2px 8px;
-  color:#647790;font-size:12px;line-height:1.3;
+  color:#1C8D89;font-size:12px;line-height:1.3;
 }
 html.boon-v4 .boon-v4-progress>span b {display:block;margin-top:2px;font-size:13px;}
 html.boon-v4 .boon-v4-progress>span.active {
-  border-color:#ffd13c;color:#123354;background:#fff6d3;box-shadow:0 3px 12px rgba(233,172,0,.13);
+  border-color:#E5D6C9;color:#166D66;background:#FFF9F1;box-shadow:0 3px 12px rgba(201,172,153,.13);
 }
-html.boon-v4 .boon-v4-progress>span.done {background:#eaf8f2;border-color:#49a781;color:#1e6448;}
+html.boon-v4 .boon-v4-progress>span.done {background:#FFFFFF;border-color:#2BAEAA;color:#1C8D89;}
 html.boon-v4 .boon-v4-progress>span.done::before {
   content:"✓";position:absolute;right:7px;top:3px;font-size:10px;font-weight:900;
 }
 html.boon-v4 .boon-v4-stage-intro {
-  margin:0 0 15px;padding:14px 14px 13px;border-radius:15px;background:#112b4e;
-  color:#fff;border-left:5px solid #ffd13c;position:relative;overflow:hidden;
+  margin:0 0 15px;padding:14px 14px 13px;border-radius:15px;background:#166D66;
+  color:#FFFFFF;border-left:5px solid #E5D6C9;position:relative;overflow:hidden;
 }
 html.boon-v4 .boon-v4-stage-intro::after {
   content:"";position:absolute;right:10px;top:0;bottom:0;width:46px;opacity:.1;
-  background:repeating-linear-gradient(-35deg,transparent 0 7px,#fff 7px 12px,transparent 12px 21px);
+  background:repeating-linear-gradient(-35deg,transparent 0 7px,#FFFFFF 7px 12px,transparent 12px 21px);
   pointer-events:none;
 }
 html.boon-v4 .boon-v4-stage-intro small {
-  display:block;color:#ffe382;font-size:11px;font-weight:950;letter-spacing:.14em;
+  display:block;color:#FFF9F1;font-size:11px;font-weight:950;letter-spacing:.14em;
 }
 html.boon-v4 .boon-v4-stage-intro strong {
   display:block;margin-top:3px;font-size:19px;line-height:1.3;letter-spacing:-.025em;
@@ -231,37 +231,37 @@ html.boon-v4 .boon-v4-reception[data-boon-stage="5"] .boon-v4-stage-intro {displ
 html.boon-v4 #recSlots {counter-reset:boon-slot-choice;}
 html.boon-v4 #recSlots .rec-slot {counter-increment:boon-slot-choice;}
 html.boon-v4 #recSlots .rec-slot:not([hidden]) {
-  border:1px solid #c7d9ed!important;border-left:5px solid #7fabc9!important;
-  border-radius:16px!important;min-height:82px!important;background:linear-gradient(135deg,#fff,#f6faff)!important;
-  box-shadow:0 4px 0 #e9eff6;position:relative;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+  border:1px solid #9BE6D3!important;border-left:5px solid #67CEBB!important;
+  border-radius:16px!important;min-height:82px!important;background:linear-gradient(135deg,#FFFFFF,#FFFFFF)!important;
+  box-shadow:0 4px 0 #FFFFFF;position:relative;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
 }
 html.boon-v4 #recSlots .rec-slot:not([hidden])::before {
   content:counter(boon-slot-choice, decimal-leading-zero);
   display:inline-flex;align-items:center;justify-content:center;
   font-weight:900;font-size:12px;min-width:29px;min-height:29px;vertical-align:middle;
-  margin-right:8px;background:#183c63;color:#fff;border-radius:9px;
+  margin-right:8px;background:#166D66;color:#FFFFFF;border-radius:9px;
 }
 html.boon-v4 #recSlots .rec-slot.active:not([hidden]) {
-  border:2px solid #dda800!important;border-left:5px solid #e0a500!important;
-  background:linear-gradient(130deg,#fffbef,#fff2bf)!important;
-  box-shadow:0 4px 0 #d4a319,0 5px 18px rgba(232,182,33,.15);
+  border:2px solid #C9AC99!important;border-left:5px solid #C9AC99!important;
+  background:linear-gradient(130deg,#FFFFFF,#FFF9F1)!important;
+  box-shadow:0 4px 0 #C9AC99,0 5px 18px rgba(201,172,153,.15);
 }
-html.boon-v4 #recSlots .rec-slot.active:not([hidden])::before {background:#e3b500;color:#132b48;}
-html.boon-v4 #recSlots .rec-slot:not([disabled]):active {transform:translateY(2px);box-shadow:0 2px 0 #d4dfe9;}
+html.boon-v4 #recSlots .rec-slot.active:not([hidden])::before {background:#C9AC99;color:#166D66;}
+html.boon-v4 #recSlots .rec-slot:not([disabled]):active {transform:translateY(2px);box-shadow:0 2px 0 #F7EFE5;}
 /* Buttons: physical feedback without fake server-status feedback. */
 html.boon-v4 .boon-v4-primary:not(:disabled),html.boon-v4 #recSubmit:not(:disabled){
   transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
 }
 html.boon-v4 .boon-v4-reception .boon-v4-actionbar {padding-bottom:max(12px,env(safe-area-inset-bottom));}
-html.boon-v4 .boon-v4-secondary {background:#f7fafd;border:1px solid #c2d3e3;}
+html.boon-v4 .boon-v4-secondary {background:#FFFFFF;border:1px solid #9BE6D3;}
 /* Call state: playful racing signal, but Green GO only comes from verified calling. */
-html.boon-v4 .boon-v4-lights {position:relative;isolation:isolate;box-shadow:inset 0 2px 10px rgba(2,13,27,.45);}
+html.boon-v4 .boon-v4-lights {position:relative;isolation:isolate;box-shadow:inset 0 2px 10px rgba(22,61,58,.45);}
 html.boon-v4 .boon-v4-lights::after {
   content:"";position:absolute;inset:0;border-radius:16px;
   border:1px solid rgba(255,255,255,.09);pointer-events:none;
 }
 html.boon-v4 .boon-v4-call-hero.calling .boon-v4-lights {
-  border:1px solid #14784e;box-shadow:0 0 0 3px rgba(33,205,121,.13),inset 0 2px 10px rgba(1,25,15,.3);
+  border:1px solid #1C8D89;box-shadow:0 0 0 3px rgba(103,206,187,.13),inset 0 2px 10px rgba(22,61,58,.3);
 }
 html.boon-v4 .boon-v4-call-hero.calling .boon-v4-lamp.green {
   animation:boon-v4-green-on .6s ease-out backwards;
@@ -272,7 +272,7 @@ html.boon-v4 .boon-v4-call-hero.calling .boon-v4-lamp.green:nth-child(3){animati
 html.boon-v4 .boon-v4-call-hero.calling .boon-v4-lamp.green:nth-child(4){animation-delay:300ms;}
 html.boon-v4 .boon-v4-call-hero.calling .boon-v4-lamp.green:nth-child(5){animation-delay:400ms;}
 html.boon-v4 .boon-v4-call-hero.calling .boon-v4-go {
-  border:1px solid #08cb6e;box-shadow:0 7px 0 #077540,0 12px 20px rgba(3,125,67,.16);
+  border:1px solid #2BAEAA;box-shadow:0 7px 0 #1C8D89,0 12px 20px rgba(28,141,137,.16);
   animation:boon-v4-go-appear .45s ease-out .55s backwards;
 }
 html.boon-v4 .boon-v4-call-hero.near .boon-v4-lamp.red {
@@ -282,13 +282,13 @@ html.boon-v4 .boon-v4-call-hero.near .boon-v4-lamp.red:nth-child(2){animation-de
 html.boon-v4 .boon-v4-call-hero.near .boon-v4-lamp.red:nth-child(3){animation-delay:180ms}
 html.boon-v4 .boon-v4-call-hero.near .boon-v4-lamp.red:nth-child(4){animation-delay:270ms}
 html.boon-v4 .boon-v4-call-hero.waiting .boon-v4-lights {opacity:.82;}
-html.boon-v4 .boon-v4-call-hero.calling .boon-v4-status-tag::before {content:"● ";color:#009b53;}
+html.boon-v4 .boon-v4-call-hero.calling .boon-v4-status-tag::before {content:"● ";color:#1C8D89;}
 html.boon-v4 .boon-v4-callstatus[data-boon-state="calling"] #csCancel {
-  color:#7d4d52!important;border:1px solid #dfcbd0!important;background:#fff!important;
+  color:#785548!important;border:1px solid #E5D6C9!important;background:#FFFFFF!important;
   font-weight:700!important;
 }
 html.boon-v4 .boon-v4-done-notice {
-  border-left:5px solid #19a66a;box-shadow:0 5px 14px rgba(12,153,92,.09);
+  border-left:5px solid #2BAEAA;box-shadow:0 5px 14px rgba(43,174,170,.09);
   animation:boon-v4-go-appear .42s ease-out both;
 }
 @keyframes boon-v4-green-on {0%{filter:brightness(.3);transform:scale(.82)}70%{filter:brightness(1.6);transform:scale(1.1)}100%{filter:brightness(1);transform:scale(1)}}
@@ -310,117 +310,117 @@ html.boon-v4 .boon-v4-done-notice {
 
 /* boon-start-v5-mint.css */
 /* BOON START v5 / "02 Mint Soda" / isolated develop-only theme.
-   Color authority: #28C7BE, #E3FFF6, #F26F4C.
+   Color authority: #67CEBB, #FFFFFF, #A57D69.
    Existing AirWAIT/LINE/reception logic remains entirely in pre-existing modules. */
 html.boon-v4.boon-v5-mint {
- --mint-main:#28C7BE;
- --mint-pale:#E3FFF6;
- --mint-coral:#F26F4C;
- --mint-dark:#136E69;
- --mint-deep:#145452;
- --mint-ink:#173F40;
- --mint-border:#A3DFD1;
- --mint-white:#fff;
- --mint-coral-deep:#B7472C;
- --mint-shadow:0 12px 26px rgba(16,96,86,.13);
+ --mint-main:#67CEBB;
+ --mint-pale:#FFFFFF;
+ --mint-coral:#A57D69;
+ --mint-dark:#1C8D89;
+ --mint-deep:#166D66;
+ --mint-ink:#166D66;
+ --mint-border:#9BE6D3;
+ --mint-white:#FFFFFF;
+ --mint-coral-deep:#785548;
+ --mint-shadow:0 12px 26px rgba(22,109,102,.13);
  color-scheme:light;
  background:var(--mint-pale);
 }
 html.boon-v4.boon-v5-mint body,
 html.boon-v4.boon-v5-mint body.v38-home-active {
- background:linear-gradient(165deg,var(--mint-pale),#F7FFFB 66%,#E9FFF7)!important;
+ background:linear-gradient(165deg,var(--mint-pale),#FFFFFF 66%,#FFFFFF)!important;
  color:var(--mint-ink)!important;
 }
 html.boon-v4.boon-v5-mint body .app {background:transparent;}
 html.boon-v4.boon-v5-mint body .page-card {
- background:#fff!important;border:1px solid var(--mint-border)!important;
+ background:#FFFFFF!important;border:1px solid var(--mint-border)!important;
  border-radius:22px!important;box-shadow:var(--mint-shadow)!important;
 }
 html.boon-v4.boon-v5-mint body:not(.v38-home-active) .topbar{
- background:linear-gradient(125deg,#188F89,#13746E)!important;
+ background:linear-gradient(125deg,#1C8D89,#1C8D89)!important;
  border-radius:20px 20px 0 0!important;
- box-shadow:0 5px 0 #B8EBDD!important;
+ box-shadow:0 5px 0 #D2F3E7!important;
 }
 html.boon-v4.boon-v5-mint body:not(.v38-home-active) .topbar .iconbtn {
- background:#176F69!important;border-color:#79CFBF!important;color:white!important;
+ background:#1C8D89!important;border-color:#67CEBB!important;color:white!important;
  border-radius:13px!important;
 }
 html.boon-v4.boon-v5-mint body.v7-callstatus-active .topbar::after {color:white!important;}
 html.boon-v4.boon-v5-mint body:not(.v38-home-active) .page-head {
- background:linear-gradient(115deg,#188F89,#126F69)!important;
- color:#fff!important;
+ background:linear-gradient(115deg,#1C8D89,#1C8D89)!important;
+ color:#FFFFFF!important;
  border-radius:20px!important;
- box-shadow:0 5px 0 #A8EBDD;
+ box-shadow:0 5px 0 #9BE6D3;
  position:relative;overflow:hidden;
 }
 html.boon-v4.boon-v5-mint body:not(.v38-home-active) .page-head::after {
  content:"";position:absolute;right:0;top:0;width:100px;height:100%;
  background:repeating-conic-gradient(rgba(255,255,255,.13) 0 25%,transparent 0 50%) 0 0/24px 24px;
- mask-image:linear-gradient(90deg,transparent,#000);
+ mask-image:linear-gradient(90deg,transparent,#251C1A);
  pointer-events:none;
 }
-html.boon-v4.boon-v5-mint .rec-wrap {background:#fff;}
+html.boon-v4.boon-v5-mint .rec-wrap {background:#FFFFFF;}
 /* HOME: mint-first body, turquoise starting gate, coral tactile primary action. */
 html.boon-v4.boon-v5-mint body.v38-home-active .topbar {
- background:linear-gradient(115deg,#188F89,#13746E)!important;
+ background:linear-gradient(115deg,#1C8D89,#1C8D89)!important;
  padding:11px 14px 13px!important;border-radius:17px 17px 0 0!important;
  margin-bottom:2px;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active .topbar .brand strong,
-html.boon-v4.boon-v5-mint body.v38-home-active .topbar .brand small {color:#fff!important;}
+html.boon-v4.boon-v5-mint body.v38-home-active .topbar .brand small {color:#FFFFFF!important;}
 html.boon-v4.boon-v5-mint .v38-home {padding-top:0;}
 html.boon-v4.boon-v5-mint #v38Hero.open {
- background:linear-gradient(125deg,#148E86,#165C5C 88%)!important;
- color:#fff!important;border:1px solid #127269!important;border-radius:23px!important;
- box-shadow:0 7px 0 #F26F4C,0 18px 30px rgba(15,99,86,.19)!important;
+ background:linear-gradient(125deg,#1C8D89,#166D66 88%)!important;
+ color:#FFFFFF!important;border:1px solid #1C8D89!important;border-radius:23px!important;
+ box-shadow:0 7px 0 #A57D69,0 18px 30px rgba(22,109,102,.19)!important;
  margin:9px 0 24px!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open::before {
  background:repeating-conic-gradient(rgba(255,255,255,.14) 0 25%,transparent 0 50%) 0 0/29px 29px;
- width:160px;height:205px;mask-image:linear-gradient(90deg,transparent,#000);
+ width:160px;height:205px;mask-image:linear-gradient(90deg,transparent,#251C1A);
  right:-24px;top:-8px;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open h1,
-html.boon-v4.boon-v5-mint #v38Hero.open p {color:#fff!important;}
+html.boon-v4.boon-v5-mint #v38Hero.open p {color:#FFFFFF!important;}
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-hero-icon {
- background:#E3FFF6!important;color:#166D65!important;
- box-shadow:0 4px 0 rgba(7,77,68,.38);
+ background:#FFFFFF!important;color:#1C8D89!important;
+ box-shadow:0 4px 0 rgba(22,109,102,.38);
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .boon-v4-home-flag {
- border-color:#A7F0DD!important;background:rgba(20,108,96,.7)!important;color:#E3FFF6!important;
+ border-color:#D2F3E7!important;background:rgba(28,141,137,.7)!important;color:#FFFFFF!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .boon-v4-home-flag::before {
- background:#F26F4C!important;box-shadow:0 0 0 3px rgba(242,111,76,.18)!important;
+ background:#A57D69!important;box-shadow:0 0 0 3px rgba(165,125,105,.18)!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled),
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled) {
  color:white!important;
- border:1px solid #D85232!important;
- background:linear-gradient(180deg,#FF947A 0%,#F26F4C 65%,#E3603E 100%)!important;
- box-shadow:inset 0 2px rgba(255,255,255,.45),inset 0 -4px #BE4B2F,0 6px 13px rgba(209,77,48,.15)!important;
+ border:1px solid #785548!important;
+ background:linear-gradient(180deg,#C9AC99 0%,#A57D69 65%,#785548 100%)!important;
+ box-shadow:inset 0 2px rgba(255,255,255,.45),inset 0 -4px #785548,0 6px 13px rgba(120,85,72,.15)!important;
  border-radius:15px!important;
- font-size:16px!important;font-weight:900!important;text-shadow:0 1px rgba(140,39,23,.18);
+ font-size:16px!important;font-weight:900!important;text-shadow:0 1px rgba(86,59,50,.18);
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:hover,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):hover,
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):hover {
- background:linear-gradient(180deg,#FFA68F,#F26F4C)!important;
+ background:linear-gradient(180deg,#C9AC99,#A57D69)!important;
 }
 html.boon-v4.boon-v5-mint #v38Hero.open .v38-action.primary:active,
 html.boon-v4.boon-v5-mint .boon-v4-primary:not(:disabled):active,
 html.boon-v4.boon-v5-mint #recSubmit:not(:disabled):active {
  transform:translateY(3px)!important;
- box-shadow:inset 0 2px rgba(255,255,255,.45),inset 0 -1px #BE4B2F!important;
+ box-shadow:inset 0 2px rgba(255,255,255,.45),inset 0 -1px #785548!important;
 }
-html.boon-v4.boon-v5-mint .v38-today {background:#176F67!important;box-shadow:0 5px 0 #9FE6D7!important;}
+html.boon-v4.boon-v5-mint .v38-today {background:#1C8D89!important;box-shadow:0 5px 0 #9BE6D3!important;}
 html.boon-v4.boon-v5-mint .v38-guide-card,
 html.boon-v4.boon-v5-mint .v38-crowd-card,
 html.boon-v4.boon-v5-mint .v38-help details,
 html.boon-v4.boon-v5-mint .v38-calendar-card,
 html.boon-v4.boon-v5-mint .v38-play {
  background:white!important;border-color:var(--mint-border)!important;
- box-shadow:0 3px 0 rgba(33,166,149,.10)!important;
+ box-shadow:0 3px 0 rgba(43,174,170,.10)!important;
 }
 html.boon-v4.boon-v5-mint .v38-action:not(.primary),
 html.boon-v4.boon-v5-mint .v38-crowd-card {
@@ -430,50 +430,50 @@ html.boon-v4.boon-v5-mint .v38-guide-card:active,
 html.boon-v4.boon-v5-mint .v38-crowd-card:active,
 html.boon-v4.boon-v5-mint .v38-action:active,
 html.boon-v4.boon-v5-mint .v38-calendar-card:active {
- transform:translateY(2px);box-shadow:0 1px 0 rgba(33,166,149,.17)!important;
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(43,174,170,.17)!important;
 }
 html.boon-v4.boon-v5-mint .v38-home h2,
-html.boon-v4.boon-v5-mint .v38-home h3 {color:#155C57;}
+html.boon-v4.boon-v5-mint .v38-home h3 {color:#166D66;}
 /* PROGRESS: mint active steps, coral marker, explicitly disabled buttons. */
 html.boon-v4.boon-v5-mint .boon-v4-progress>span {
- background:#EFFCF7!important;color:#446E67!important;border-bottom-color:#B9E6DA!important;
+ background:#FFFFFF!important;color:#1C8D89!important;border-bottom-color:#9BE6D3!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-progress>span.active {
- color:#81402D!important;background:#FFF1E9!important;
- border-bottom-color:#F26F4C!important;
- box-shadow:0 4px 12px rgba(235,104,71,.11)!important;
+ color:#563B32!important;background:#FFFFFF!important;
+ border-bottom-color:#A57D69!important;
+ box-shadow:0 4px 12px rgba(165,125,105,.11)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-progress>span.done {
- color:#165D54!important;background:#D8F6EB!important;border-bottom-color:#28C7BE!important;
+ color:#166D66!important;background:#FFFFFF!important;border-bottom-color:#67CEBB!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-stage-intro {
- background:linear-gradient(118deg,#147F79,#145D59)!important;
- border-left:5px solid #F26F4C!important;border-radius:17px!important;
- box-shadow:0 3px 0 #B6E7DB;
+ background:linear-gradient(118deg,#1C8D89,#166D66)!important;
+ border-left:5px solid #A57D69!important;border-radius:17px!important;
+ box-shadow:0 3px 0 #9BE6D3;
 }
-html.boon-v4.boon-v5-mint .boon-v4-stage-intro small {color:#FFBBAB!important;}
-html.boon-v4.boon-v5-mint .boon-v4-stage-intro strong {color:#fff!important;}
+html.boon-v4.boon-v5-mint .boon-v4-stage-intro small {color:#E5D6C9!important;}
+html.boon-v4.boon-v5-mint .boon-v4-stage-intro strong {color:#FFFFFF!important;}
 /* SLOTS: entire actual button tap, coral selected state and CHECK text.
    No dynamic values are invented here. */
 html.boon-v4.boon-v5-mint #recSlots .rec-slot:not([hidden]) {
- background:#fff!important;border:1px solid #A4DFD3!important;
- border-left:5px solid #28C7BE!important;
- box-shadow:0 4px 0 #BFEADE!important;
- color:#173F40!important;min-height:82px!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;
+ border-left:5px solid #67CEBB!important;
+ box-shadow:0 4px 0 #D2F3E7!important;
+ color:#166D66!important;min-height:82px!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot::before {
- background:#D1F6EB!important;color:#125C55!important;
+ background:#D2F3E7!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active:not([hidden]){
- background:#FFF6F0!important;border:2px solid #F26F4C!important;
- border-left:5px solid #F26F4C!important;
- box-shadow:0 4px 0 #F6C0B1,0 4px 14px rgba(244,99,63,.1)!important;
+ background:#FFFFFF!important;border:2px solid #A57D69!important;
+ border-left:5px solid #A57D69!important;
+ box-shadow:0 4px 0 #E5D6C9,0 4px 14px rgba(165,125,105,.1)!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::before {
- background:#F26F4C!important;color:#fff!important;
+ background:#A57D69!important;color:#FFFFFF!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::after {
- content:"✓ この回を選択中";background:#FFE2D9!important;color:#99452E!important;
+ content:"✓ この回を選択中";background:#FFF9F1!important;color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint #recSlots .rec-slot:disabled {
  opacity:.6;cursor:not-allowed;border-style:dashed!important;box-shadow:none!important;
@@ -484,52 +484,52 @@ html.boon-v4.boon-v5-mint .boon-v4-primary:focus-visible,
 html.boon-v4.boon-v5-mint #recSubmit:focus-visible,
 html.boon-v4.boon-v5-mint #csRefresh:focus-visible,
 html.boon-v4.boon-v5-mint #csCancel:focus-visible {
- outline:3px solid #086B66!important;outline-offset:3px!important;
+ outline:3px solid #1C8D89!important;outline-offset:3px!important;
 }
 /* COUNTERS: own active feel, but actual disabling/price from existing shared reception logic. */
 html.boon-v4.boon-v5-mint .rec-people.v26-people .rec-person {
- background:#fff!important;border:1px solid #ACE1D5!important;border-radius:17px!important;
- box-shadow:0 3px 0 #CEEDE4!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;border-radius:17px!important;
+ box-shadow:0 3px 0 #D2F3E7!important;
 }
-html.boon-v4.boon-v5-mint .rec-person .v26-person-icon {background:#CDF5EA!important;color:#16665F!important;}
-html.boon-v4.boon-v5-mint .rec-person[data-v26-kind="child"] .v26-person-icon {background:#FFE3DA!important;color:#B64F35!important;}
-html.boon-v4.boon-v5-mint .v26-people-head strong {background:#176E68!important;}
+html.boon-v4.boon-v5-mint .rec-person .v26-person-icon {background:#D2F3E7!important;color:#1C8D89!important;}
+html.boon-v4.boon-v5-mint .rec-person[data-v26-kind="child"] .v26-person-icon {background:#FFF9F1!important;color:#785548!important;}
+html.boon-v4.boon-v5-mint .v26-people-head strong {background:#1C8D89!important;}
 html.boon-v4.boon-v5-mint .rec-stepper button:not(:disabled) {
- background:#167E77!important;color:#fff!important;
- box-shadow:0 3px 0 #0B554F!important;
+ background:#1C8D89!important;color:#FFFFFF!important;
+ box-shadow:0 3px 0 #166D66!important;
  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
 }
 html.boon-v4.boon-v5-mint .rec-stepper button:not(:disabled):active {
- background:#28C7BE!important;color:#074945!important;
- transform:translateY(3px);box-shadow:0 0 0 #0B554F!important;
+ background:#67CEBB!important;color:#166D66!important;
+ transform:translateY(3px);box-shadow:0 0 0 #166D66!important;
 }
 html.boon-v4.boon-v5-mint .rec-stepper button:disabled {
- opacity:1!important;background:#DBE6E1!important;color:#829A93!important;box-shadow:none!important;
+ opacity:1!important;background:#F7EFE5!important;color:#2BAEAA!important;box-shadow:none!important;
  cursor:not-allowed;
 }
-html.boon-v4.boon-v5-mint .v26-count {background:#EFFBF7!important;}
-html.boon-v4.boon-v5-mint .v26-count output {color:#173F40!important;}
+html.boon-v4.boon-v5-mint .v26-count {background:#FFFFFF!important;}
+html.boon-v4.boon-v5-mint .v26-count output {color:#166D66!important;}
 html.boon-v4.boon-v5-mint .v26-count output.boon-v5-bump {
  animation:boon-v5-count .28s ease-out 1;
 }
 html.boon-v4.boon-v5-mint .v26-infant-note {
- background:#F0FFF9!important;border-left:4px solid #28C7BE!important;color:#215D55!important;
+ background:#FFFFFF!important;border-left:4px solid #67CEBB!important;color:#166D66!important;
 }
 /* TEAM: dynamic display values mirror official recPeopleTotal and recPrice; NO recalculation. */
 html.boon-v4.boon-v5-mint #boonV5Team {
  display:flex;align-items:center;justify-content:space-between;gap:8px;
- color:#fff;background:linear-gradient(115deg,#14756D,#12615E);
+ color:#FFFFFF;background:linear-gradient(115deg,#1C8D89,#166D66);
  border-radius:17px;padding:15px 16px;margin:14px 1px 17px;
- border-bottom:4px solid #F26F4C;box-shadow:0 5px 12px rgba(15,107,93,.12);
+ border-bottom:4px solid #A57D69;box-shadow:0 5px 12px rgba(28,141,137,.12);
 }
 html.boon-v4.boon-v5-mint #boonV5Team .boon-v5-team-count small {
- display:block;color:#D8FFF6;font-size:11px;font-weight:900;letter-spacing:.12em;
+ display:block;color:#EBFFF6;font-size:11px;font-weight:900;letter-spacing:.12em;
 }
 html.boon-v4.boon-v5-mint #boonV5Team .boon-v5-team-count strong {
- display:block;margin-top:4px;font-size:19px;color:#fff;
+ display:block;margin-top:4px;font-size:19px;color:#FFFFFF;
 }
 html.boon-v4.boon-v5-mint #boonV5Team .boon-v5-team-price {
- font-size:clamp(18px,5vw,24px);font-weight:950;color:#FFB6A5;font-variant-numeric:tabular-nums;
+ font-size:clamp(18px,5vw,24px);font-weight:950;color:#E5D6C9;font-variant-numeric:tabular-nums;
  text-align:right;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="1"] #boonV5Team,
@@ -538,121 +538,121 @@ html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="4"] #boonV5Team,
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #boonV5Team {display:none!important;}
 /* CONFIRM: real preexisting summary and consent, made readable like an entry ticket. */
 html.boon-v4.boon-v5-mint .rec-summary{
- position:relative;border:2px solid #28C7BE!important;
+ position:relative;border:2px solid #67CEBB!important;
  border-radius:18px!important;padding:20px 16px!important;
- background:#fff!important;box-shadow:0 4px 0 #C2EFE4!important;
+ background:#FFFFFF!important;box-shadow:0 4px 0 #D2F3E7!important;
 }
 html.boon-v4.boon-v5-mint .rec-summary::before {
  content:"ENTRY CHECK / 受付内容の確認";
- display:block;margin-bottom:12px;padding-bottom:8px;border-bottom:2px dashed #B5EADC;
- font-size:12px;font-weight:900;letter-spacing:.07em;color:#B35139;
+ display:block;margin-bottom:12px;padding-bottom:8px;border-bottom:2px dashed #9BE6D3;
+ font-size:12px;font-weight:900;letter-spacing:.07em;color:#785548;
 }
 html.boon-v4.boon-v5-mint .rec-summary .rec-line {
- color:#315D57!important;min-height:30px;font-size:14px;
+ color:#1C8D89!important;min-height:30px;font-size:14px;
 }
 html.boon-v4.boon-v5-mint .rec-summary .rec-line strong {
- color:#194842!important;font-size:15px!important;text-align:right;
+ color:#166D66!important;font-size:15px!important;text-align:right;
 }
 html.boon-v4.boon-v5-mint .rec-summary .rec-line.total {
- background:#E3FFF6!important;border-radius:10px;padding:12px 9px;margin-top:9px;
+ background:#FFFFFF!important;border-radius:10px;padding:12px 9px;margin-top:9px;
 }
 html.boon-v4.boon-v5-mint .rec-summary .rec-line.total strong {
- color:#D85A3D!important;font-size:23px!important;font-variant-numeric:tabular-nums;
+ color:#785548!important;font-size:23px!important;font-variant-numeric:tabular-nums;
 }
 html.boon-v4.boon-v5-mint .rec-agree {
- background:#F7FFFB!important;border:1px solid #A9E0D3!important;
- border-radius:14px!important;color:#164F4B!important;font-size:15px!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;
+ border-radius:14px!important;color:#166D66!important;font-size:15px!important;
 }
-html.boon-v4.boon-v5-mint #recAgree {accent-color:#177A70;}
+html.boon-v4.boon-v5-mint #recAgree {accent-color:#1C8D89;}
 html.boon-v4.boon-v5-mint .rec-processing{
- background:#E8FFF7!important;border:1px solid #9ADFD0!important;border-radius:17px!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;border-radius:17px!important;
 }
 html.boon-v4.boon-v5-mint #recSubmit:disabled,
 html.boon-v4.boon-v5-mint #boonV4Continue:disabled {
- color:#748B87!important;background:#DEEAE5!important;box-shadow:none!important;
+ color:#2BAEAA!important;background:#F7EFE5!important;box-shadow:none!important;
  opacity:1!important;cursor:not-allowed!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-secondary {
- color:#176D66!important;background:#F7FFFB!important;border:1px solid #8ECFC1!important;
+ color:#1C8D89!important;background:#FFFFFF!important;border:1px solid #9BE6D3!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-actionbar {background:#F9FFFC!important;border-top-color:#B8E6D9!important;}
+html.boon-v4.boon-v5-mint .boon-v4-actionbar {background:#FFFFFF!important;border-top-color:#9BE6D3!important;}
 /* CALL STATUS: status text remains the truth source, mint for waiting, green exclusively for GO. */
 html.boon-v4.boon-v5-mint .boon-v4-call-hero {
- background:#fff!important;color:#173F40!important;border:1px solid #A3DED0!important;
- box-shadow:0 3px 0 #C7EFE6!important;border-radius:22px!important;
+ background:#FFFFFF!important;color:#166D66!important;border:1px solid #9BE6D3!important;
+ box-shadow:0 3px 0 #D2F3E7!important;border-radius:22px!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-call-hero h2 {color:#175450!important;}
-html.boon-v4.boon-v5-mint .boon-v4-next {color:#365D59!important;}
+html.boon-v4.boon-v5-mint .boon-v4-call-hero h2 {color:#166D66!important;}
+html.boon-v4.boon-v5-mint .boon-v4-next {color:#1C8D89!important;}
 html.boon-v4.boon-v5-mint .boon-v4-status-tag {
- background:#D6F7EC!important;color:#155E54!important;
+ background:#D2F3E7!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-lights {
- background:linear-gradient(135deg,#145E5B,#104948)!important;
- border:1px solid #28C7BE!important;box-shadow:0 4px 0 #B8E8DC!important;
+ background:linear-gradient(135deg,#166D66,#166D66)!important;
+ border:1px solid #67CEBB!important;box-shadow:0 4px 0 #9BE6D3!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-lights small {color:#D6F7EC!important;}
+html.boon-v4.boon-v5-mint .boon-v4-lights small {color:#D2F3E7!important;}
 html.boon-v4.boon-v5-mint .boon-v4-lamp.off {
- background:#183449!important;border-color:#0B2D36!important;
- box-shadow:inset 0 3px 8px rgba(0,0,0,.45)!important;
+ background:#166D66!important;border-color:#166D66!important;
+ box-shadow:inset 0 3px 8px rgba(37,28,26,.45)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-lamp.red {
- background:#F26F4C!important;border-color:#FFBDA9!important;
- box-shadow:0 0 12px rgba(242,111,76,.62)!important;
+ background:#A57D69!important;border-color:#E5D6C9!important;
+ box-shadow:0 0 12px rgba(165,125,105,.62)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-lamp.amber {
- background:#F26F4C!important;border-color:#FFBDA9!important;
- box-shadow:0 0 9px rgba(242,111,76,.45)!important;
+ background:#A57D69!important;border-color:#E5D6C9!important;
+ box-shadow:0 0 9px rgba(165,125,105,.45)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling {
- background:#EBFFF3!important;border:2px solid #08AF67!important;
- box-shadow:0 4px 0 #9FEAC1!important;
+ background:#FFFFFF!important;border:2px solid #2BAEAA!important;
+ box-shadow:0 4px 0 #9BE6D3!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling h2 {color:#0A7446!important;}
+html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling h2 {color:#1C8D89!important;}
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling .boon-v4-status-tag {
- background:#D2F5E0!important;color:#126A45!important;
+ background:#D2F3E7!important;color:#1C8D89!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling .boon-v4-lights {
- background:linear-gradient(135deg,#073D2F,#075B3B)!important;
- border-color:#11BB6A!important;
+ background:linear-gradient(135deg,#166D66,#166D66)!important;
+ border-color:#2BAEAA!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling .boon-v4-lamp.green {
- background:#03D87A!important;border-color:#70F6B3!important;
- box-shadow:0 0 13px rgba(0,214,118,.68)!important;
+ background:#67CEBB!important;border-color:#9BE6D3!important;
+ box-shadow:0 0 13px rgba(103,206,187,.68)!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.calling .boon-v4-go {
- color:#fff!important;background:#0A9659!important;box-shadow:0 6px 0 #087849!important;
- border-color:#00CB74!important;
+ color:#FFFFFF!important;background:#1C8D89!important;box-shadow:0 6px 0 #1C8D89!important;
+ border-color:#2BAEAA!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-number {
- background:#fff!important;border:1px solid #A6DECF!important;box-shadow:0 3px 0 #CEF0E6!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;box-shadow:0 3px 0 #D2F3E7!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-number strong {color:#145E57!important;}
+html.boon-v4.boon-v5-mint .boon-v4-number strong {color:#166D66!important;}
 html.boon-v4.boon-v5-mint .boon-v4-ahead {
- background:#E3FFF6!important;color:#175E56!important;
+ background:#FFFFFF!important;color:#166D66!important;
 }
-html.boon-v4.boon-v5-mint .boon-v4-ahead strong {color:#135A54!important;}
-html.boon-v4.boon-v5-mint .boon-v4-checked {color:#446B63!important;}
+html.boon-v4.boon-v5-mint .boon-v4-ahead strong {color:#166D66!important;}
+html.boon-v4.boon-v5-mint .boon-v4-checked {color:#1C8D89!important;}
 html.boon-v4.boon-v5-mint .boon-v4-done-notice {
- background:#FFF3EE!important;color:#90432E!important;
- border:1px solid #F3BBA9!important;border-left:5px solid #F26F4C!important;
- box-shadow:0 3px 0 #FCE0D7!important;
+ background:#FFFFFF!important;color:#563B32!important;
+ border:1px solid #E5D6C9!important;border-left:5px solid #A57D69!important;
+ box-shadow:0 3px 0 #FFF9F1!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.error {
- background:#FFF7F3!important;border:2px solid #DC8D7B!important;
+ background:#FFFFFF!important;border:2px solid #A57D69!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.error .boon-v4-status-tag{
- background:#FFE5DF!important;color:#A2382A!important;
+ background:#FFF9F1!important;color:#563B32!important;
 }
 html.boon-v4.boon-v5-mint #csRefresh {
- min-height:52px!important;color:white!important;background:#F26F4C!important;
- border:1px solid #D95334!important;border-radius:15px!important;
- box-shadow:inset 0 -3px #BB4E2F!important;font-weight:850!important;
+ min-height:52px!important;color:white!important;background:#A57D69!important;
+ border:1px solid #785548!important;border-radius:15px!important;
+ box-shadow:inset 0 -3px #785548!important;font-weight:850!important;
 }
 html.boon-v4.boon-v5-mint #csRefresh:active {
- transform:translateY(2px);box-shadow:inset 0 -1px #BB4E2F!important;
+ transform:translateY(2px);box-shadow:inset 0 -1px #785548!important;
 }
 html.boon-v4.boon-v5-mint #csCancel {
- background:white!important;border:1px solid #DDA199!important;color:#A0443A!important;
+ background:white!important;border:1px solid #C9AC99!important;color:#785548!important;
  min-height:48px!important;
 }
 /* Correct visual signifiers for tap and non-tap elements. */
@@ -663,8 +663,8 @@ html.boon-v4.boon-v5-mint .boon-v4-lights,
 html.boon-v4.boon-v5-mint .boon-v4-go,
 html.boon-v4.boon-v5-mint .boon-v4-ahead {cursor:default;}
 @keyframes boon-v5-count {
- 0%{transform:scale(.86);color:#F26F4C;}
- 55%{transform:scale(1.14);color:#16786D;}
+ 0%{transform:scale(.86);color:#A57D69;}
+ 55%{transform:scale(1.14);color:#1C8D89;}
  100%{transform:scale(1);color:inherit;}
 }
 @media(max-width:350px){
@@ -702,8 +702,8 @@ html.boon-v4.boon-v5-mint #recSlots .rec-slot.active::after {
  max-width:calc(100% - 24px)!important;
  white-space:nowrap!important;font-size:11px!important;
  line-height:1.2!important;letter-spacing:0!important;
- border-radius:14px!important;background:#FFE0D7!important;
- color:#8F3B2C!important;font-weight:850!important;
+ border-radius:14px!important;background:#FFF9F1!important;
+ color:#563B32!important;font-weight:850!important;
  transform:none!important;
 }
 /* Keep the selected text wholly inside the card even on narrow devices. */
@@ -735,17 +735,17 @@ html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="4"] #boonV5Team {
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="4"] #recProcessing {
  display:block!important;margin:12px 0 24px!important;
- padding:22px 15px!important;border:1px solid #97E0D0!important;
- background:linear-gradient(150deg,#E3FFF6,#F8FFFC)!important;
- box-shadow:0 4px 0 #BCE9DC!important;border-radius:18px!important;
+ padding:22px 15px!important;border:1px solid #9BE6D3!important;
+ background:linear-gradient(150deg,#FFFFFF,#FFFFFF)!important;
+ box-shadow:0 4px 0 #D2F3E7!important;border-radius:18px!important;
 }
 html.boon-v4.boon-v5-mint .rec-processing-spinner {
- border-top-color:#28C7BE!important;border-right-color:#F26F4C!important;
+ border-top-color:#67CEBB!important;border-right-color:#A57D69!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed {
- background:linear-gradient(135deg,#E3FFF6,#F8FFFC)!important;
- border:1px solid #8DDCCC!important;border-radius:20px!important;
- text-align:center;padding:20px 14px!important;box-shadow:0 4px 0 #BFEADD;
+ background:linear-gradient(135deg,#FFFFFF,#FFFFFF)!important;
+ border:1px solid #9BE6D3!important;border-radius:20px!important;
+ text-align:center;padding:20px 14px!important;box-shadow:0 4px 0 #D2F3E7;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-hero {
  display:flex;flex-direction:column;align-items:center;gap:8px;
@@ -753,38 +753,38 @@ html.boon-v4.boon-v5-mint .boon-v5-complete-hero {
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-check {
  display:grid;place-items:center;width:75px;height:75px;
- border-radius:50%;background:#C9F6E9;border:4px solid #28C7BE;
- font-size:41px;font-weight:950;color:#176A62;
- box-shadow:0 4px 0 rgba(40,199,190,.18);
+ border-radius:50%;background:#D2F3E7;border:4px solid #67CEBB;
+ font-size:41px;font-weight:950;color:#1C8D89;
+ box-shadow:0 4px 0 rgba(103,206,187,.18);
  animation:boon-v5-complete-pop .42s ease-out 1;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-hero strong {
- font-size:26px!important;line-height:1.2;color:#15635E!important;
+ font-size:26px!important;line-height:1.2;color:#1C8D89!important;
  font-weight:950!important;
 }
 html.boon-v4.boon-v5-mint .boon-v5-complete-hero p {
- color:#456A64!important;font-size:15px;line-height:1.55;margin:0;
+ color:#1C8D89!important;font-size:15px;line-height:1.55;margin:0;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception #recResult.boon-v5-confirmed .rec-result {
- background:#fff;border:1px solid #B2E3D6;border-radius:16px;
+ background:#FFFFFF;border:1px solid #9BE6D3;border-radius:16px;
  padding:14px 8px!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception #recResult.boon-v5-confirmed .rec-result strong {
- color:#16665D!important;font-size:39px!important;letter-spacing:-.03em;
+ color:#1C8D89!important;font-size:39px!important;letter-spacing:-.03em;
  display:block;word-break:break-word;font-variant-numeric:tabular-nums;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception #recResult.boon-v5-confirmed .rec-result span {
- color:#6C6E65!important;font-size:13px!important;
+ color:#785548!important;font-size:13px!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] .rec-lock button {
  min-height:48px!important;
  width:100%;margin-top:13px;padding:10px 12px;
- border:1px solid #D37D63!important;border-radius:14px!important;
- color:#92442D!important;background:white!important;font-size:14px;
+ border:1px solid #A57D69!important;border-radius:14px!important;
+ color:#563B32!important;background:white!important;font-size:14px;
  font-weight:850;cursor:pointer;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] .rec-lock button:disabled{
- background:#E6E8E6!important;color:#737D7B!important;cursor:not-allowed;
+ background:#F7EFE5!important;color:#785548!important;cursor:not-allowed;
 }
 @keyframes boon-v5-complete-pop {
  0%{transform:scale(.7);opacity:.2}
@@ -800,18 +800,18 @@ html.boon-v4.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] .rec-lock butt
 /*
  BOON START v5.1 - 02 Mint Soda UX polishing layer.
  Isolated develop preview only. Business logic, backend, booking, and calling stay untouched.
- Primary palette: #28C7BE, #E3FFF6, #F26F4C (unchanged).
+ Primary palette: #67CEBB, #FFFFFF, #A57D69 (unchanged).
 */
 html.boon-v5-mint {
- --mint-main:#28C7BE;
- --mint-pale:#E3FFF6;
- --mint-coral:#F26F4C;
+ --mint-main:#67CEBB;
+ --mint-pale:#FFFFFF;
+ --mint-coral:#A57D69;
 }
 /* Fewer competing boxes before the first decision; no deletion of safety terms. */
 html.boon-v5-mint body.v7-reception-active .page-head {
  padding:14px 16px 16px!important;
  border-radius:16px!important;
- box-shadow:0 3px 0 #9edfd1!important;
+ box-shadow:0 3px 0 #9BE6D3!important;
 }
 html.boon-v5-mint body.v7-reception-active .page-head h2 {
  font-size:clamp(22px,6vw,26px)!important;
@@ -834,13 +834,13 @@ html.boon-v5-mint .v13-after-reception {
  border:0!important;box-shadow:none!important;
 }
 html.boon-v5-mint .boon-v51-help {
- border:1px solid #a5e2d4!important;
- border-radius:12px;background:#ecfff8!important;
+ border:1px solid #9BE6D3!important;
+ border-radius:12px;background:#FFFFFF!important;
  padding:0!important;
 }
 html.boon-v5-mint .boon-v51-help summary {
  display:flex;align-items:center;gap:8px;
- padding:9px 12px;color:#205c54;font-size:13px;font-weight:850;
+ padding:9px 12px;color:#166D66;font-size:13px;font-weight:850;
  line-height:1.5;cursor:pointer;min-height:44px;
  list-style:none;
 }
@@ -848,16 +848,16 @@ html.boon-v5-mint .boon-v51-help summary::-webkit-details-marker{display:none;}
 html.boon-v5-mint .boon-v51-help summary::before{
  content:"✓";display:inline-grid;place-items:center;
  width:19px;height:19px;min-width:19px;border-radius:50%;
- background:#28C7BE;color:#103c39;font-weight:900;
+ background:#67CEBB;color:#166D66;font-weight:900;
 }
 html.boon-v5-mint .boon-v51-help summary::after {
- content:"▾";margin-left:auto;color:#1b756b;font-size:15px;
+ content:"▾";margin-left:auto;color:#1C8D89;font-size:15px;
  transition:transform .15s;
 }
 html.boon-v5-mint .boon-v51-help[open] summary::after {transform:rotate(180deg);}
 html.boon-v5-mint .boon-v51-help p {
  margin:0;padding:0 12px 12px 38px;font-size:13px;
- line-height:1.55;color:#36685d;
+ line-height:1.55;color:#1C8D89;
 }
 html.boon-v5-mint .boon-v4-progress {margin:8px 0 9px!important;gap:5px!important;padding:0!important;}
 html.boon-v5-mint .boon-v4-progress>span{
@@ -919,8 +919,8 @@ html.boon-v5-mint .boon-v4-reception[data-boon-stage="3"] .rec-agree{
 html.boon-v5-mint .boon-v4-reception .boon-v4-actionbar{
  margin-top:12px!important;
  padding:10px 0 max(10px,env(safe-area-inset-bottom))!important;
- border-top:1px solid #c2e8dc!important;
- background:rgba(248,255,251,.97)!important;
+ border-top:1px solid #D2F3E7!important;
+ background:rgba(255,255,255,.97)!important;
 }
 html.boon-v5-mint .boon-v4-reception #boonV4Continue,
 html.boon-v5-mint .boon-v4-reception #recSubmit {
@@ -931,22 +931,22 @@ html.boon-v5-mint .boon-v4-reception #recSubmit {
 html.boon-v5-mint #boonV51ActionHint {
  margin:0!important;
  padding:0 8px 2px!important;
- color:#805b41;font-size:13px;line-height:1.4;
+ color:#785548;font-size:13px;line-height:1.4;
  text-align:center;font-weight:750;
 }
 html.boon-v5-mint #boonV51ActionHint[hidden] {display:none!important;}
 html.boon-v5-mint .boon-v4-reception #boonV4Back {
- background:#fff!important;color:#176963!important;
+ background:#FFFFFF!important;color:#1C8D89!important;
  font-size:14px!important;font-weight:800!important;
 }
 /* Reception selected cards have a clear signifier with no truncation. */
 html.boon-v5-mint #recSlots .rec-slot.active:after {
  font-size:12px!important;min-width:72px!important;
- min-height:24px!important;color:#863b28!important;
+ min-height:24px!important;color:#563B32!important;
 }
 html.boon-v5-mint #recSlots .rec-slot:focus-visible,
 html.boon-v5-mint .boon-v51-help summary:focus-visible {
- outline:3px solid #0b756b!important;outline-offset:3px!important;
+ outline:3px solid #1C8D89!important;outline-offset:3px!important;
 }
 /* Prioritize status/next action over destructive controls during live calls. */
 html.boon-v5-mint .boon-v4-callstatus .boon-v4-call-hero {
@@ -977,13 +977,13 @@ html.boon-v5-mint .boon-v4-callstatus #csCancelArea {
 html.boon-v5-mint .boon-v4-callstatus #csCancel {
  width:100%!important;
  min-height:44px!important;
- box-shadow:none!important;background:#fff!important;
- border:1px solid #e3bbb5!important;border-radius:12px!important;
- color:#945c53!important;
+ box-shadow:none!important;background:#FFFFFF!important;
+ border:1px solid #E5D6C9!important;border-radius:12px!important;
+ color:#785548!important;
  font-size:14px!important;font-weight:750!important;
 }
 html.boon-v5-mint .boon-v4-callstatus #csCancel:active:not(:disabled){
- background:#fff2ee!important;transform:translateY(1px)!important;
+ background:#FFFFFF!important;transform:translateY(1px)!important;
 }
 html.boon-v5-mint .boon-v4-callstatus #csCancelArea small {
  font-size:12px!important;
@@ -995,14 +995,14 @@ html.boon-v5-mint .boon-v4-callstatus #csRefresh {
  font-size:16px!important;
 }
 html.boon-v5-mint .boon-v4-callstatus #csHeartbeat {
- border:1px solid #bddfd9!important;border-radius:12px!important;
+ border:1px solid #9BE6D3!important;border-radius:12px!important;
  font-size:13px!important;
 }
 html.boon-v5-mint .boon-v4-call-hero.error .boon-v4-checked{
- font-weight:800!important;color:#8d4937!important;
+ font-weight:800!important;color:#563B32!important;
 }
 html.boon-v5-mint .boon-v4-call-hero.hold .boon-v4-status-tag{
- background:#ffede6!important;color:#904d38!important;
+ background:#FFFFFF!important;color:#785548!important;
 }
 html.boon-v5-mint .boon-v4-callstatus .cs-note {
  line-height:1.5!important;
@@ -1025,165 +1025,165 @@ html.boon-v5-mint .boon-v4-reception {overflow-wrap:anywhere;}
 html.boon-v5-mint .boon-v51-help summary {gap:10px;}
 html.boon-v5-mint .boon-v51-help-copy {display:flex;flex:1;min-width:0;flex-direction:column;gap:1px;}
 html.boon-v5-mint .boon-v51-help-copy strong {display:block;font-size:13px;line-height:1.35;font-weight:900;}
-html.boon-v5-mint .boon-v51-help-copy small {display:block;font-size:12px;line-height:1.4;color:#3d796e;}
+html.boon-v5-mint .boon-v51-help-copy small {display:block;font-size:12px;line-height:1.4;color:#1C8D89;}
 /* Unify the existing HOME's navigation cards, without flattening the identity of mini games
    or overwriting crowd severity colors, which must remain semantically meaningful. */
 html.boon-v5-mint body.v38-home-active .v38-guide-card {
- background:#fff!important;border:1px solid #a8e1d3!important;
- box-shadow:0 3px 0 #c1ece0!important;
+ background:#FFFFFF!important;border:1px solid #9BE6D3!important;
+ box-shadow:0 3px 0 #D2F3E7!important;
  border-radius:16px!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-guide-card>.v38-icon {
- background:#d8f8ef!important;color:#177568!important;
+ background:#FFFFFF!important;color:#1C8D89!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-guide-card:active {
- transform:translateY(2px)!important;box-shadow:0 1px 0 #c1ece0!important;
+ transform:translateY(2px)!important;box-shadow:0 1px 0 #D2F3E7!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-guide-card:focus-visible {
- outline:3px solid #0a756d!important;outline-offset:3px!important;
+ outline:3px solid #1C8D89!important;outline-offset:3px!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-timeguide-cta {
- background:linear-gradient(125deg,#d9faf0,#f5fffb)!important;
- border:1px solid #78c7b5!important;color:#175b55!important;
- box-shadow:0 4px 0 #a3e7d7!important;
+ background:linear-gradient(125deg,#EBFFF6,#FFFFFF)!important;
+ border:1px solid #67CEBB!important;color:#166D66!important;
+ box-shadow:0 4px 0 #9BE6D3!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-timeguide-cta .v38-quick-icon {
- background:#28C7BE!important;color:#073b37!important;
+ background:#67CEBB!important;color:#166D66!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-calendar-card {
- background:linear-gradient(125deg,#fffaf4,#ffede4)!important;
- border:1px solid #f2bbaa!important;color:#804b3b!important;
- box-shadow:0 4px 0 #f5d1c4!important;
+ background:linear-gradient(125deg,#FFFFFF,#FFFFFF)!important;
+ border:1px solid #E5D6C9!important;color:#563B32!important;
+ box-shadow:0 4px 0 #E5D6C9!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-calendar-icon {
- background:#F26F4C!important;color:#fff!important;
+ background:#A57D69!important;color:#FFFFFF!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-calendar-card small,
-html.boon-v5-mint body.v38-home-active .v38-calendar-card>svg {color:#90563f!important;}
+html.boon-v5-mint body.v38-home-active .v38-calendar-card>svg {color:#785548!important;}
 html.boon-v5-mint body.v38-home-active .v38-play {
- border:1px solid #a7dfd1!important;
- background:linear-gradient(160deg,#fff,#f7fffc)!important;
- box-shadow:0 4px 0 #d2f1e7!important;
+ border:1px solid #9BE6D3!important;
+ background:linear-gradient(160deg,#FFFFFF,#FFFFFF)!important;
+ box-shadow:0 4px 0 #F7EFE5!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-play h2,
 html.boon-v5-mint body.v38-home-active .v38-guide h2,
 html.boon-v5-mint body.v38-home-active .v38-calendar-section h2 {
- color:#155e56!important;
+ color:#166D66!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-help details {
- border-color:#a9ddcf!important;box-shadow:0 3px 0 #c7ece3!important;
+ border-color:#9BE6D3!important;box-shadow:0 3px 0 #D2F3E7!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-help summary:focus-visible,
 html.boon-v5-mint body.v38-home-active .v38-play-card:focus-visible,
 html.boon-v5-mint body.v38-home-active .v38-calendar-card:focus-visible{
- outline:3px solid #0a756d!important;outline-offset:3px!important;
+ outline:3px solid #1C8D89!important;outline-offset:3px!important;
 }
 
 /* BOON START Mint Soda / orange-balance pass 2026-11-06.
  * The three approved signature colors are unchanged. Orange is an interaction
  * and delight accent, never a substitution for calling GO / error status.
- * Warm tangerine #FFA83F is decorative only, not a new primary CTA color. */
+ * Warm tangerine #C9AC99 is decorative only, not a new primary CTA color. */
 html.boon-v5-mint{
- --mint-orange-spark:#FFA83F;
- --mint-orange-soft:#FFF1E6;
- --mint-orange-ink:#813C28;
+ --mint-orange-spark:#C9AC99;
+ --mint-orange-soft:#FFFFFF;
+ --mint-orange-ink:#563B32;
 }
 /* START gate: add a visible orange sunburst without blocking the booking CTA. */
 html.boon-v5-mint body.v38-home-active #v38Hero.open::after{
  content:"";position:absolute;right:-43px;top:-50px;
  width:148px;height:148px;border-radius:50%;
  background:radial-gradient(circle at center,
-   rgba(255,168,63,.94) 0 30%,
-   rgba(242,111,76,.72) 31% 37%,
-   rgba(255,168,63,.20) 38% 53%,
+   rgba(201,172,153,.94) 0 30%,
+   rgba(165,125,105,.72) 31% 37%,
+   rgba(201,172,153,.20) 38% 53%,
    transparent 54%);
  opacity:.83;pointer-events:none;z-index:0;
 }
 html.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag{
- color:#723A24!important;
- background:#FFE7D6!important;
- border:1px solid #FFA83F!important;
- box-shadow:0 2px 0 rgba(104,40,22,.13)!important;
+ color:#563B32!important;
+ background:#FFF9F1!important;
+ border:1px solid #C9AC99!important;
+ box-shadow:0 2px 0 rgba(86,59,50,.13)!important;
 }
 html.boon-v5-mint body.v38-home-active #v38Hero.open .boon-v4-home-flag::before{
- background:#F26F4C!important;
- box-shadow:0 0 0 3px rgba(242,111,76,.16)!important;
+ background:#A57D69!important;
+ box-shadow:0 0 0 3px rgba(165,125,105,.16)!important;
 }
 /* Small operational hours must be legible on the dark turquoise gate. */
 html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours,
 html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-deadline,
 html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-airwait-link{
- color:#F3FFF9!important;opacity:1!important;
+ color:#FFFFFF!important;opacity:1!important;
 }
 html.boon-v5-mint body.v38-home-active #v38Hero.open .v38-reception-hours *{
- color:#F3FFF9!important;opacity:1!important;
+ color:#FFFFFF!important;opacity:1!important;
 }
 /* Orange thread through the HOME: clarify the sections, not the queue status. */
 html.boon-v5-mint body.v38-home-active .v38-section-heading,
 html.boon-v5-mint body.v38-home-active .v38-guide>h2,
 html.boon-v5-mint body.v38-home-active .v38-help>h2{
- border-left:5px solid #F26F4C!important;
+ border-left:5px solid #A57D69!important;
  padding-left:10px!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-timeguide-cta{
- border-left:5px solid #F26F4C!important;
- background:linear-gradient(115deg,#FFF0E6 0%,#F7FFFB 70%)!important;
+ border-left:5px solid #A57D69!important;
+ background:linear-gradient(115deg,#FFFFFF 0%,#FFFFFF 70%)!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-timeguide-cta .v38-quick-icon{
- background:#F26F4C!important;color:#fff!important;
+ background:#A57D69!important;color:#FFFFFF!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-guide-grid .v38-guide-card:nth-child(2n)>.v38-icon{
- background:#FFE5D7!important;color:#B94F32!important;
+ background:#FFF9F1!important;color:#785548!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest){
- border-bottom:3px solid rgba(242,111,76,.55)!important;
+ border-bottom:3px solid rgba(165,125,105,.55)!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest) .v38-play-icon{
- box-shadow:0 0 0 2px rgba(242,111,76,.13)!important;
+ box-shadow:0 0 0 2px rgba(165,125,105,.13)!important;
 }
 /* Orange = next active step. Do not color unselected/disabled slots as selected. */
 html.boon-v5-mint .boon-v4-progress>span.active{
- background:linear-gradient(180deg,#FFF7F0,#FFE4D5)!important;
- border-bottom-color:#F26F4C!important;
+ background:linear-gradient(180deg,#FFFFFF,#FFF9F1)!important;
+ border-bottom-color:#A57D69!important;
 }
 html.boon-v5-mint .boon-v4-stage-intro{
- box-shadow:inset 0 -3px 0 rgba(255,168,63,.4),0 3px 0 #B6E7DB!important;
+ box-shadow:inset 0 -3px 0 rgba(201,172,153,.4),0 3px 0 #9BE6D3!important;
 }
 html.boon-v5-mint .boon-v4-stage-intro small{
- color:#FFD0A4!important;
+ color:#E5D6C9!important;
 }
 html.boon-v5-mint #recSlots .rec-slot.active:not([hidden]){
- box-shadow:0 5px 0 rgba(242,111,76,.40),0 7px 17px rgba(242,111,76,.12)!important;
+ box-shadow:0 5px 0 rgba(165,125,105,.40),0 7px 17px rgba(165,125,105,.12)!important;
 }
 html.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled){
- background:#F26F4C!important;
- color:#422316!important;
- border-color:#D75D40!important;
- box-shadow:0 3px 0 #B64C2D!important;
+ background:#A57D69!important;
+ color:#392824!important;
+ border-color:#785548!important;
+ box-shadow:0 3px 0 #785548!important;
 }
 html.boon-v5-mint .rec-people.v26-people .rec-stepper button[data-rec-d="1"]:not(:disabled):active{
- background:#FFA83F!important;transform:translateY(3px)!important;
- box-shadow:0 0 0 #B64C2D!important;
+ background:#C9AC99!important;transform:translateY(3px)!important;
+ box-shadow:0 0 0 #785548!important;
 }
 html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team{
  border-bottom-width:6px!important;
- border-bottom-color:#F26F4C!important;
+ border-bottom-color:#A57D69!important;
 }
 html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
- color:#FFCC8A!important;
+ color:#E5D6C9!important;
 }
 /* Success is warm and celebratory; green is reserved for verified calling. */
 html.boon-v5-mint .boon-v5-complete-check{
- background:linear-gradient(145deg,#FFF2E7,#FFD9C5)!important;
- border-color:#F26F4C!important;
- color:#B44E30!important;
- box-shadow:0 5px 0 rgba(242,111,76,.23),0 0 0 7px rgba(255,168,63,.09)!important;
+ background:linear-gradient(145deg,#FFFFFF,#FFF9F1)!important;
+ border-color:#A57D69!important;
+ color:#785548!important;
+ box-shadow:0 5px 0 rgba(165,125,105,.23),0 0 0 7px rgba(201,172,153,.09)!important;
 }
 html.boon-v5-mint .boon-v5-complete-hero strong{
- color:#A84930!important;
+ color:#785548!important;
 }
 html.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
- border-top:5px solid #F26F4C!important;
+ border-top:5px solid #A57D69!important;
 }
 /* Preserve semantic safety: waiting and calling keep their existing status palette. */
 @media(prefers-reduced-motion:reduce){
@@ -1195,56 +1195,56 @@ html.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-con
 /* The meaningful orange moments: explore, choose, and celebrate.
  * Kept separate from waiting/calling/error semantics. */
 html.boon-v5-mint body.v38-home-active .v38-play{
- background:linear-gradient(180deg,#FFE8D8 0%,#FFF7F0 95px,#FFFFFF 172px)!important;
- border-top:5px solid #F26F4C!important;
+ background:linear-gradient(180deg,#FFF9F1 0%,#FFFFFF 95px,#FFFFFF 172px)!important;
+ border-top:5px solid #A57D69!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-play .v38-section-heading{
- color:#915037!important;
+ color:#785548!important;
 }
 html.boon-v5-mint body.v38-home-active .v38-play-card:not(.quest):nth-child(even){
- background:linear-gradient(150deg,#FFF3EA,#FFFFFF)!important;
- border-color:#F2CAB8!important;
+ background:linear-gradient(150deg,#FFFFFF,#FFFFFF)!important;
+ border-color:#E5D6C9!important;
 }
 html.boon-v5-mint .boon-v4-reception[data-boon-stage="2"] #boonV5Team .boon-v5-team-price{
- background:linear-gradient(155deg,#FFB56E 0%,#F26F4C 100%)!important;
- color:#40251C!important;
+ background:linear-gradient(155deg,#E5D6C9 0%,#A57D69 100%)!important;
+ color:#392824!important;
  border-radius:11px!important;
  padding:9px 11px!important;
- box-shadow:inset 0 -3px 0 rgba(140,59,29,.23)!important;
+ box-shadow:inset 0 -3px 0 rgba(86,59,50,.23)!important;
  text-shadow:none!important;
 }
 html.boon-v5-mint .boon-v4-reception[data-boon-stage="5"] #recResult.boon-v5-confirmed{
- background:linear-gradient(156deg,#FFE6D6 0%,#E3FFF6 61%,#FFFFFF)!important;
- border:2px solid #F4B39B!important;
- border-top:6px solid #F26F4C!important;
+ background:linear-gradient(156deg,#FFF9F1 0%,#FFFFFF 61%,#FFFFFF)!important;
+ border:2px solid #C9AC99!important;
+ border-top:6px solid #A57D69!important;
 }
 html.boon-v5-mint .boon-v5-complete-check{
- background:#F26F4C!important;
- border:4px solid #FFC5A0!important;
- color:#44261A!important;
- box-shadow:0 6px 0 rgba(242,111,76,.23),0 0 0 8px rgba(255,168,63,.13)!important;
+ background:#A57D69!important;
+ border:4px solid #E5D6C9!important;
+ color:#392824!important;
+ box-shadow:0 6px 0 rgba(165,125,105,.23),0 0 0 8px rgba(201,172,153,.13)!important;
 }
 
 /* No reservation is not a communication failure. Preserve native staff guidance. */
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation{
- background:linear-gradient(145deg,#F3FFFA,#FFFFFF)!important;
- border:2px solid #A0D7C8!important;
+ background:linear-gradient(145deg,#FFFFFF,#FFFFFF)!important;
+ border:2px solid #9BE6D3!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation .boon-v4-status-tag{
- background:#DFF8ED!important;color:#155A4C!important;
+ background:#FFFFFF!important;color:#166D66!important;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception-entry{
  width:100%;min-height:52px;margin:14px 0 7px;border-radius:13px;
- border:1px solid #D96000;background:#FF7A00;color:#492300;
+ border:1px solid #785548;background:#A57D69;color:#392824;
  font-weight:900;font-size:16px;cursor:pointer;
- box-shadow:0 4px 0 #BB5300;
+ box-shadow:0 4px 0 #785548;
 }
 html.boon-v4.boon-v5-mint .boon-v4-reception-entry:focus-visible{
- outline:3px solid #0D776B;outline-offset:3px;
+ outline:3px solid #1C8D89;outline-offset:3px;
 }
 html.boon-v4.boon-v5-mint .boon-v4-no-reservation-note{
- font-size:13px;line-height:1.65;color:#4B615B;
- padding:12px 10px;margin:8px 0 0;background:#EAF9F3;
+ font-size:13px;line-height:1.65;color:#1C8D89;
+ padding:12px 10px;margin:8px 0 0;background:#FFFFFF;
  border-radius:12px;
 }
 html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation h2 {
@@ -1252,8 +1252,8 @@ html.boon-v4.boon-v5-mint .boon-v4-call-hero.no-reservation h2 {
   line-height:1.4!important;
 }
 html.boon-v4.boon-v5-mint .cs-page[data-boon-state="no-reservation"] #csRefresh {
-  background:#EFFBF6!important;
-  color:#1C665C!important;
-  border:1px solid #B6DFD4!important;
+  background:#FFFFFF!important;
+  color:#1C8D89!important;
+  border:1px solid #9BE6D3!important;
   box-shadow:none!important;
 }

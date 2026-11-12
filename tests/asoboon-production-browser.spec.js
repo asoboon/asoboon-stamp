@@ -354,9 +354,9 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
   await expect(page.locator('[data-date="2026-10-09"]')).toContainText('平日');
   await expect(page.locator('[data-date="2026-10-11"]')).toContainText('土日祝日');
   await expect(page.locator('[data-date="2026-10-11"]')).toHaveClass(/type-weekend/);
-  await expect(page.locator('[data-date="2026-10-08"]')).toHaveCSS('background-color','rgb(244, 249, 255)');
-  await expect(page.locator('[data-date="2026-10-09"]')).toHaveCSS('background-color','rgb(239, 249, 245)');
-  await expect(page.locator('[data-date="2026-10-11"]')).toHaveCSS('background-color','rgb(255, 248, 233)');
+  await expect(page.locator('[data-date="2026-10-08"]')).toHaveCSS('background-color','rgb(210, 243, 231)');
+  await expect(page.locator('[data-date="2026-10-09"]')).toHaveCSS('background-color','rgb(235, 255, 246)');
+  await expect(page.locator('[data-date="2026-10-11"]')).toHaveCSS('background-color','rgb(255, 249, 241)');
   await expect(page.locator('#bcStatus')).toContainText('営業日API');
   expect(requested.length).toBe(29);
   await page.locator('#bcNext').click();
@@ -411,7 +411,7 @@ test('official home.html preview boots Production on the exact LIFF endpoint pat
   await page.locator('.bc-back').click();
   await expect(page.locator('.v38-home')).toBeVisible();
   await expect(page.locator('.v38-calendar-card').first()).toHaveAttribute('data-external','1');
-  await page.locator('.v38-calendar-section:not(.v38-business-calendar-section) .v38-calendar-card').click();
+  await page.locator('.v38-calendar-section:not(.v38-business-calendar-section):not(.v38-access-section) .v38-calendar-card').click();
   await expect.poll(()=>new URL(page.url()).pathname).toBe('/miniapp-v2/production/event-calendar.html');
 });
 
@@ -1093,9 +1093,9 @@ test('Cocoa ice-cream HOME header has legible melted wordmark and unobstructed l
    drips:true,headerInside:true,pickerInside:true,noControlCollision:true,callNav:1
   });
   expect(visuals.background).toContain('radial-gradient');
-  expect(visuals.background).toContain('rgb(53, 33, 29)');
+  expect(visuals.background).toContain('rgb(57, 40, 36)');
   expect(visuals.plaque).toContain('linear-gradient');
-  expect(visuals.text).toBe('rgb(58, 35, 29)');
+  expect(['rgb(57, 40, 36)','rgb(86, 59, 50)']).toContain(visuals.text);
   expect(visuals.scrollWidth).toBeLessThanOrEqual(width+1);
  }
  await page.setViewportSize({width:390,height:820});
@@ -2009,11 +2009,11 @@ test('Reception explains the real wait without fake progress, keeps one request,
 
 
 for(const status of [
-  {state:'waiting',tone:'waiting',label:'順番を',rgb:'rgb(219, 224, 228)',ink:'rgb(52, 69, 84)'},
-  {state:'calling',tone:'calling',label:'入場できます',rgb:'rgb(215, 236, 255)',ink:'rgb(19, 89, 152)'},
-  {state:'done',tone:'done',label:'ご案内済み',rgb:'rgb(216, 244, 220)',ink:'rgb(23, 101, 58)'},
-  {state:'canceled',tone:'canceled',label:'取消',rgb:'rgb(255, 224, 223)',ink:'rgb(165, 35, 41)'},
-  {state:'closed',tone:'loading',label:'本日の受付は終了',rgb:'rgb(242, 240, 233)',ink:'rgb(85, 85, 76)'}
+  {state:'waiting',tone:'waiting',label:'順番を',rgb:'rgb(247, 239, 229)',ink:'rgb(86, 59, 50)'},
+  {state:'calling',tone:'calling',label:'入場できます',rgb:'rgb(210, 243, 231)',ink:'rgb(22, 109, 102)'},
+  {state:'done',tone:'done',label:'ご案内済み',rgb:'rgb(155, 230, 211)',ink:'rgb(22, 61, 58)'},
+  {state:'canceled',tone:'canceled',label:'取消',rgb:'rgb(229, 214, 201)',ink:'rgb(86, 59, 50)'},
+  {state:'closed',tone:'loading',label:'本日の受付は終了',rgb:'rgb(235, 255, 246)',ink:'rgb(86, 59, 50)'}
 ]){
   test('LINE call screen uses full-page '+status.tone+' verified status colors without stale foreground',async({page})=>{
     const stamp=Date.parse('2026-10-03T03:00:00.000Z');
@@ -2370,7 +2370,7 @@ test('HOME has a single mint reception CTA and one dark fixed call-status tab',a
  // A detached node has an empty computed color; poll until the current live
  // button has the intended CSS instead of sampling a stale DOM instance.
  await expect.poll(async()=>reception.evaluate(el=>getComputedStyle(el).backgroundColor),
-  {timeout:12000}).toBe('rgb(109, 210, 202)');
+  {timeout:12000}).toBe('rgb(103, 206, 187)');
  await call.click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('callstatus');
 });
@@ -3131,7 +3131,7 @@ test('AirWAIT waitTypes independently hide unpublished WEB slot but keep still-p
  const first=page.locator('#v613Board .v613-row').first();
  await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
  await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('117');
- await expect(first.locator('.v613-percent')).toHaveText('—');
+ await expect(first.locator('.v613-percent')).toHaveText('63%');
  await expect(first.locator('a[href]')).toHaveCount(0);
  await expect(first.locator('[data-v7-view="reception"]')).toHaveCount(1);
  await expect(page.locator('#v613Board .v613-row').nth(1).locator('.v38-crowd-channel--web strong')).toContainText('71');
@@ -4261,4 +4261,127 @@ test('2026-11-12 real CALL gateway done observation reaches HOME and staff resto
  await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
  expect(checks).toBeGreaterThanOrEqual(2);
+});
+
+
+test('2026-11-12 HOME access shortcut opens route selector and five parking lots',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const shortcut=page.locator('.v38-access-section [data-v7-view="parking"]');
+ await expect(shortcut).toBeVisible();
+ await expect(shortcut).toContainText('駐車場・アクセスを見る');
+ await shortcut.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('parking');
+ await expect(page.locator('.v24-parking-page')).toBeVisible();
+ await expect(page.locator('[data-v24-route="v24-general"]')).toBeVisible();
+ await page.locator('[data-v24-route="v24-general"]').click();
+ await expect(page.locator('.v24-lot-row')).toHaveCount(5);
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await expect(shortcut).toBeVisible();
+ for(const width of [320,390,430]){
+   await page.setViewportSize({width,height:844});
+   const box=await shortcut.boundingBox();
+   expect(box?.height||0).toBeGreaterThanOrEqual(44);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+});
+
+test('2026-11-12 crowd forecast returns percentage with retired WEB and verified public LINE only',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-12T03:16:00.000Z'});
+ const date='2026-11-12',fetchedAt='2026-11-12T03:15:00.000Z';
+ await page.route(GATEWAY+'**',route=>{
+   const action=new URL(route.request().url()).searchParams.get('action');
+   const json=x=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(x)});
+   if(action==='businessDay')return json({ok:true,operationalDate:date,calendarDate:date,businessType:'平日',closingTime:'17:00',durationLabel:'時間制限なし'});
+   if(action==='crowdRemaining')return json({ok:true,stale:false,fetchedAt,
+      slots:[
+       {waitTypeId:'0024',waitTypeName:'10時ご入場枠【WEB平日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:273},
+       {waitTypeId:'0027',waitTypeName:'14時ご入場枠【WEB平日】',slotKey:'14:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'time-key',remaining:50}],
+      observedDetails:[
+       {detailedWaitType:'すぐ入場受付【平日】',reserveUnit:'PERSON',remaining:273,remainingVerified:true},
+       {detailedWaitType:'14時から【平日】',reserveUnit:'PERSON',remaining:50,remainingVerified:true}]
+   });
+   if(action==='waitTypes')return json({ok:true,waitTypes:[
+     {waitTypeId:'0023',dispFlg:true},{waitTypeId:'0025',dispFlg:true},
+     {waitTypeId:'0024',dispFlg:false},{waitTypeId:'0027',dispFlg:false}
+   ]});
+   return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const rows=page.locator('#v613Board .v613-row');
+ await expect(rows).toHaveCount(2);
+ await expect(rows.locator('.v613-percent')).toHaveText(['15%','84%']);
+ await expect(rows.locator('.v38-crowd-channel--web strong')).toHaveText(['受付なし','受付なし']);
+ await expect(rows.locator('.v38-crowd-channel--onsite strong')).toContainText(['273人','50人']);
+ await expect(page.locator('#v613Board .v613-footnote')).toContainText('非公開枠は加算しません');
+ expect(await page.locator('#v613Board a[href]').count()).toBe(0);
+});
+
+test('2026-11-12 unknown non-retired WEB quota does not fabricate crowd forecast',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-12T03:16:00.000Z'});
+ const date='2026-11-12',fetchedAt='2026-11-12T03:15:00.000Z';
+ await page.route(GATEWAY+'**',route=>{
+   const action=new URL(route.request().url()).searchParams.get('action');
+   const json=x=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(x)});
+   if(action==='businessDay')return json({ok:true,operationalDate:date,calendarDate:date,businessType:'平日',closingTime:'17:00',durationLabel:'時間制限なし'});
+   if(action==='crowdRemaining')return json({ok:true,stale:false,fetchedAt,
+     slots:[
+       {waitTypeId:'0024',waitTypeName:'10時ご入場枠【WEB平日】',slotKey:'10:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'alias-name',remaining:273},
+       {waitTypeId:'0027',waitTypeName:'14時ご入場枠【WEB平日】',slotKey:'14:00',reserveUnit:'PERSON',evidence:'PERSON',matchMode:'time-key',remaining:50}],
+     observedDetails:[
+       {detailedWaitType:'すぐ入場受付【平日】',reserveUnit:'PERSON',remaining:273,remainingVerified:true},
+       {detailedWaitType:'14時から【平日】',reserveUnit:'PERSON',remaining:50,remainingVerified:true}]
+   });
+   if(action==='waitTypes')return json({ok:true,waitTypes:[
+     {waitTypeId:'0023',dispFlg:true},{waitTypeId:'0025',dispFlg:true},
+     {waitTypeId:'0024',dispFlg:true},{waitTypeId:'0027',dispFlg:true}
+   ]});
+   return route.fallback();
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const rows=page.locator('#v613Board .v613-row');
+ await expect(rows).toHaveCount(2);
+ await expect(rows.locator('.v38-crowd-channel--web strong')).toHaveText(['—','—']);
+ await expect(rows.locator('.v38-crowd-channel--onsite strong')).toContainText(['273人','50人']);
+ await expect(rows.locator('.v613-percent')).toHaveText(['—','—']);
+});
+
+
+test('2026-11-12 chocolate-mint palette stays free of saturated orange across HOME, booking, calling, guide, parking, timer, rules and games',async({page})=>{
+ await installProduction(page);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const views=['home','reception','callstatus','guide','parking','first','entry','rules','timeguide','game','omikuji'];
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  for(const view of views){
+   await page.goto(BASE+'?view='+view,{waitUntil:'domcontentloaded'});
+   await expect(page.locator('.cm-bottom-nav')).toBeVisible();
+   if(view==='home')await expect(page.locator('.v38-home')).toBeVisible();
+   if(view==='parking')await expect(page.locator('.v24-parking-page')).toBeVisible();
+   const scan=await page.evaluate(()=>{
+    const bad=[],parse=x=>{
+      const m=String(x||'').match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      return m?[Number(m[1]),Number(m[2]),Number(m[3])]:null;
+    };
+    for(const e of document.querySelectorAll('body,body *')){
+     if(!e.getBoundingClientRect().width||!e.getBoundingClientRect().height)continue;
+     const s=getComputedStyle(e);
+     for(const key of ['backgroundColor','borderTopColor','color']){
+       const rgb=parse(s[key]);
+       if(!rgb)continue;
+       const [r,g,b]=rgb;
+       if(r>130&&r>g*1.48&&g>b*1.43&&g>48)
+        bad.push({tag:e.tagName,cls:String(e.className||'').slice(0,80),key,value:s[key]});
+     }
+    }
+    return {bad:bad.slice(0,9),overflow:document.documentElement.scrollWidth-innerWidth,nav:document.querySelectorAll('.cm-bottom-nav .cm-nav-tab').length};
+   });
+   expect(scan.bad,view+'@'+width+' found legacy orange').toEqual([]);
+   expect(scan.overflow,view+'@'+width+' horizontal overflow').toBeLessThanOrEqual(1);
+   expect(scan.nav).toBe(4);
+   if(width===390&&['home','reception','callstatus','parking','timeguide','game'].includes(view))
+     await page.screenshot({path:'/tmp/boon-mint-'+view+'-390.png',fullPage:false,animations:'disabled'});
+  }
+ }
+ expect(errors).toEqual([]);
 });

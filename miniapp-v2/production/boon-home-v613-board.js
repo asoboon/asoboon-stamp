@@ -4,8 +4,8 @@ if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
 const root=document.getElementById('app');if(!root)return;
 const CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const L={
- ja:['混雑予想','入場回','WEB残り','LINE残り','※WEB・LINE残り人数を320人から差し引いた参考値。実際の館内混雑とは異なります。','※残り人数が確認できない回は「—」です。'],
- en:['Crowd forecast','Entry','WEB left','LINE left','Estimate: (320 − WEB left − LINE left) ÷ 320. Not actual attendance.','— means remaining people could not be verified.'],
+ ja:['混雑予想','入場回','WEB残り','LINE残り','※公開中のWEB・LINE枠の残人数を320人から差し引いた参考値。非公開枠は加算しません。実際の館内滞在人数とは異なります。','※残り人数が確認できない回は「—」です。'],
+ en:['Crowd forecast','Entry','WEB left','LINE left','Estimate: 320 minus verified remaining in published WEB/LINE slots, divided by 320. Not live attendance.','— means remaining people could not be verified.'],
  'zh-CN':['拥挤预测','入场场次','WEB剩余','LINE剩余','参考值：(320－WEB剩余－LINE剩余)÷320，非馆内实际人数。','— 表示剩余人数未确认。'],
  ko:['혼잡 예상','입장 회차','WEB 잔여','LINE 잔여','참고치: (320 − WEB 잔여 − LINE 잔여) ÷ 320. 실제 혼잡도와 다릅니다.','—는 잔여 인원을 확인할 수 없다는 뜻입니다.'],
  vi:['Dự báo đông','Lượt vào','WEB còn','LINE còn','Tham khảo: (320 − WEB còn − LINE còn) ÷ 320; không phải số khách thực tế.','—: chưa xác nhận được số người còn.'],
@@ -65,8 +65,20 @@ function trustedBooked(card){
  }
  const web=remaining('.v38-crowd-channel--web');
  const line=remaining('.v38-crowd-channel--onsite');
- if(web===null||line===null||web+line>320)return null;
- return Math.round((320-web-line)/320*100);
+ // Nonpublic (retired) channel has no remaining public quota; do not let
+ // it prevent a verified single-channel projection.
+ const retired=selector=>{
+   const el=card.querySelector(selector);
+   return el?.classList.contains('is-unavailable')&&
+     el.querySelector('strong')?.textContent?.trim()==='受付なし';
+ };
+ const webRetired=retired('.v38-crowd-channel--web');
+ const lineRetired=retired('.v38-crowd-channel--onsite');
+ if((web===null&&!webRetired)||(line===null&&!lineRetired))return null;
+ if(web===null&&line===null)return null;
+ const liveWeb=web===null?0:web,liveLine=line===null?0:line;
+ if(liveWeb+liveLine>320)return null;
+ return Math.round((320-liveWeb-liveLine)/320*100);
 }
 function cloneAction(native,unknown){
  if(!native)return elem('span','v613-na','—');
