@@ -471,7 +471,32 @@ async function createReservation(env, p, requestId, verifiedLine = null) {
   const waitType = validateWaitType(wt.waitTypes, day, mode, waitTypeId);
 
   const userClaim = await claimUserDay(env, hash, serverDate, requestId, waitTypeId);
-  if (userClaim.existing) return userClaim.result;
+  if(userClaim.existing)return userClaim.result;
+  if(userClaim.previousClaim?.receipt_no&&userClaim.previousClaim?.reserve_id){
+    const prior=userClaim.previousClaim;
+    const observed=await verifyPreviousReceiptForRebook(env,prior);
+    const oldTerminal=['CANCELED','COMPLETED'].includes(String(prior.state||''));
+    const canContinue=['COMPLETED','CANCELED'].includes(observed)||
+      (oldTerminal&&observed==='MISSING');
+    if(!canContinue){
+      const restoreState=observed==='CONFIRMED'?'CONFIRMED':String(prior.state||'CONFIRMED');
+      const restored=await env.DB.prepare(`UPDATE v2_user_day_claims
+        SET request_id=?,state=?,receipt_no=?,reserve_id=?,wait_type_id=?,created_at=?,updated_at=?
+        WHERE user_hash=? AND business_date=? AND request_id=? AND state='CREATE_INFLIGHT'
+          AND receipt_no='' AND reserve_id='' AND wait_type_id=?`)
+        .bind(String(prior.request_id||''),restoreState,String(prior.receipt_no||''),
+          String(prior.reserve_id||''),String(prior.wait_type_id||''),Number(prior.created_at||Date.now()),
+          Date.now(),hash,serverDate,requestId,waitTypeId).run();
+      if(Number(restored?.meta?.changes||0)!==1)
+        throw apiError('PRIOR_RECEPTION_RECHECK_CONFLICT',409,true);
+      if(observed==='CONFIRMED')
+        return{ok:true,stored:true,alreadyExists:true,version:CFG.VERSION,
+          businessDate:serverDate,operationalDate:serverDate,
+          receiptNo:String(prior.receipt_no),reserveId:String(prior.reserve_id),
+          waitTypeId:String(prior.wait_type_id),shortUrl:''};
+      throw apiError('PRIOR_RECEPTION_STATUS_UNVERIFIED',503);
+    }
+  }
 
   await setRequestState(env, requestId, 'VALIDATED');
   await setRequestState(env, requestId, 'AIRWAIT_CREATE_INFLIGHT');
@@ -1083,7 +1108,7 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
     VALUES(?,?,?,'CREATE_INFLIGHT','','',?,?,?)`)
     .bind(hash, date, requestId, waitTypeId, now, now).run();
   if (Number(r?.meta?.changes || 0) === 1) return { existing: false };
-  const row = await env.DB.prepare(`SELECT request_id,state,receipt_no,reserve_id,wait_type_id,updated_at FROM v2_user_day_claims
+  const row = await env.DB.prepare(`SELECT request_id,state,receipt_no,reserve_id,wait_type_id,created_at,updated_at FROM v2_user_day_claims
     WHERE user_hash=? AND business_date=? LIMIT 1`).bind(hash, date).first();
   if (!row) throw apiError('USER_DAY_CLAIM_FAILED', 409);
   const state = String(row.state || '');
@@ -1108,7 +1133,7 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
         AND receipt_no=? AND reserve_id=? AND wait_type_id=?`)
         .bind(requestId,waitTypeId,now,now,hash,date,String(row.request_id||''),
           String(row.receipt_no),String(row.reserve_id),String(row.wait_type_id||'')).run();
-      if(Number(update?.meta?.changes||0)===1)return{existing:false,reopenedTerminal:true,verifiedByAirwait:true};
+      if(Number(update?.meta?.changes||0)===1)return{existing:false,reopenedTerminal:true,verifiedByAirwait:true,previousClaim:{...row,state:'CONFIRMED'}};
       return await claimUserDay(env,hash,date,requestId,waitTypeId);
     }
     return { existing: true, result: {
@@ -1118,29 +1143,36 @@ async function claimUserDay(env, hash, date, requestId, waitTypeId) {
       waitTypeId: String(row.wait_type_id || ''), shortUrl: '',
     }};
   }
-  if (state === 'COMPLETED' && row.receipt_no && row.reserve_id) {
-    // Staff can undo guidance, returning a completed ticket to waiting.
-    // Confirm again before rebooking; an active ticket must not be duplicated.
-    const observed=await verifyPreviousReceiptForRebook(env,row);
-    if(observed==='CONFIRMED'){
-      const corrected=await env.DB.prepare(`UPDATE v2_user_day_claims SET state='CONFIRMED',updated_at=?
-        WHERE user_hash=? AND business_date=? AND request_id=? AND state='COMPLETED'
-        AND receipt_no=? AND reserve_id=?`)
-        .bind(now,hash,date,String(row.request_id||''),String(row.receipt_no),String(row.reserve_id)).run();
-      if(Number(corrected?.meta?.changes||0)!==1)return await claimUserDay(env,hash,date,requestId,waitTypeId);
-      return {existing:true,result:{ok:true,stored:true,alreadyExists:true,version:CFG.VERSION,
-        businessDate:date,operationalDate:date,receiptNo:String(row.receipt_no),
-        reserveId:String(row.reserve_id),waitTypeId:String(row.wait_type_id||''),shortUrl:''}};
+  if(state==='COMPLETED'||state==='CANCELED'){
+    if(row.receipt_no&&row.reserve_id){
+      const observed=await verifyPreviousReceiptForRebook(env,row);
+      if(observed==='CONFIRMED'){
+        const corrected=await env.DB.prepare(`UPDATE v2_user_day_claims
+          SET state='CONFIRMED',updated_at=?
+          WHERE user_hash=? AND business_date=? AND request_id=? AND state=?
+          AND receipt_no=? AND reserve_id=? AND wait_type_id=?`)
+          .bind(now,hash,date,String(row.request_id||''),state,String(row.receipt_no),
+            String(row.reserve_id),String(row.wait_type_id||'')).run();
+        if(Number(corrected?.meta?.changes||0)!==1)return await claimUserDay(env,hash,date,requestId,waitTypeId);
+        return{existing:true,result:{ok:true,stored:true,alreadyExists:true,version:CFG.VERSION,
+          businessDate:date,operationalDate:date,receiptNo:String(row.receipt_no),
+          reserveId:String(row.reserve_id),waitTypeId:String(row.wait_type_id||''),shortUrl:''}};
+      }
+      if(!['COMPLETED','CANCELED','MISSING'].includes(observed))
+        throw apiError('PRIOR_RECEPTION_STATUS_UNVERIFIED',503);
     }
-    // A prior owner-bound done observation remains valid if AirWAIT archived the
-    // completed row, but an API error or ambiguous result is never permission.
-    if(observed==='UNKNOWN'||observed==='ERROR')throw apiError('PRIOR_RECEPTION_STATUS_UNVERIFIED',503);
-  }
-  if (state === 'CANCELED' || state === 'COMPLETED') {
-    const reopened = await env.DB.prepare("UPDATE v2_user_day_claims SET request_id=?,state='CREATE_INFLIGHT',receipt_no='',reserve_id='',wait_type_id=?,created_at=?,updated_at=? WHERE user_hash=? AND business_date=? AND state IN ('CANCELED','COMPLETED')")
-      .bind(requestId, waitTypeId, now, now, hash, date).run();
-    if (Number(reopened?.meta?.changes || 0) === 1) return { existing:false, reopenedTerminal:true };
-    return await claimUserDay(env, hash, date, requestId, waitTypeId);
+    // The CANCELED case without a ticket is allowed only when the owner-bound
+    // ambiguous claim was explicitly released by diagnostics.
+    const reopened=await env.DB.prepare(`UPDATE v2_user_day_claims
+      SET request_id=?,state='CREATE_INFLIGHT',receipt_no='',reserve_id='',wait_type_id=?,created_at=?,updated_at=?
+      WHERE user_hash=? AND business_date=? AND request_id=? AND state=?
+        AND receipt_no=? AND reserve_id=? AND wait_type_id=?`)
+      .bind(requestId,waitTypeId,now,now,hash,date,String(row.request_id||''),state,
+        String(row.receipt_no||''),String(row.reserve_id||''),String(row.wait_type_id||'')).run();
+    if(Number(reopened?.meta?.changes||0)===1)return{
+      existing:false,reopenedTerminal:true,previousClaim:row
+    };
+    return await claimUserDay(env,hash,date,requestId,waitTypeId);
   }
   if (state === 'CREATE_INFLIGHT' && Number(row.updated_at || 0) < now - CFG.STALE_CREATE_INFLIGHT_MS) {
     await env.DB.prepare("UPDATE v2_user_day_claims SET state='AMBIGUOUS',updated_at=? WHERE user_hash=? AND business_date=? AND request_id=? AND state='CREATE_INFLIGHT'")

@@ -928,4 +928,4 @@ async function sha256Hex(text){const digest=await crypto.subtle.digest('SHA-256'
 async function fetchWithTimeout(url,options={},ms=SM.EXTERNAL_TIMEOUT_MS){const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),ms);try{return await fetch(url,{...options,signal:ctrl.signal})}catch(e){if(e?.name==='AbortError')throw apiError('EXTERNAL_REQUEST_TIMEOUT',504,true);throw e}finally{clearTimeout(timer)}}
 function safeApiText(text){return String(text||'').replace(/[\r\n\t]+/g,' ').replace(/"(?:access_token|notificationToken|liffAccessToken|client_secret)"\s*:\s*"[^"]*"/gi,'"[REDACTED]"').slice(0,300);}
 function safeError(e){return String(e?.message||e||'UNKNOWN_ERROR').replace(/[\r\n\t]+/g,' ').slice(0,500);}
-function apiError(message,status=500,ambiguous=false){const e=new Error(String(message||'UNKNOWN_ERROR'));e.status=status;e.ambiguous=Boolean(ambiguous);return e;}
+function apiError(message,status=500,ambiguous=false){const e=new Error(String(message||'UNKNOWN_ERROR'));e.code=String(message||'UNKNOWN_ERROR');e.status=status;e.ambiguous=Boolean(ambiguous);return e;}
