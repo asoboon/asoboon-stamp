@@ -86,3 +86,11 @@ test('Cocoa text on strongest mint CTA surface maintains normal-size WCAG AA con
  const contrast=(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
  assert.ok(contrast>=4.5,'Normal-size CTA labels require at least 4.5:1 contrast');
 });
+
+
+test('Rich treatment protects verified call colors and chocolate chip header/footer',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ assert.match(rich,/body\[data-environment="production"\]:not\(\.v7-callstatus-active\)/);
+ assert.match(rich,/\.cm-bottom-nav\{[\s\S]*?radial-gradient/);
+ assert.match(rich,/\.topbar \.brand\{[\s\S]*?linear-gradient/);
+});
