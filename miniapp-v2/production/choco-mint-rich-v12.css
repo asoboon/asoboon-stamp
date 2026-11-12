@@ -1,0 +1,180 @@
+/* ASOBooN | Rich Chocolate × Fresh Mint v12
+   The previous 18-color audit passed but painted nearly every surface white.
+   Restore distinct chocolate masses, vivid mint interactions and cream contrast.
+   Presentation only: never hide/alter AirWAIT data, reception, call states or disabled controls.
+   Only the already approved 18-color chocolate/mint palette is used. */
+html.boon-v4.boon-v5-mint body[data-environment="production"]{
+ --rich-cocoa:#251C1A;--rich-dark:#392824;--rich-milk:#563B32;
+ --rich-mint:#2BAEAA;--rich-leaf:#67CEBB;--rich-ice:#9BE6D3;
+ --rich-cream:#FFF9F1;--rich-paper:#EBFFF6;
+ background:linear-gradient(160deg,#67CEBB 0%,#D2F3E7 28%,#EBFFF6 76%,#9BE6D3 100%)!important;
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app.app{
+ background:linear-gradient(175deg,#D2F3E7 0%,#EBFFF6 52%,#9BE6D3 100%)!important;
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar{
+ background-color:#251C1A!important;
+ background-image:radial-gradient(circle at 85% 24%,#785548 0 5px,transparent 6px),
+ radial-gradient(circle at 91% 62%,#563B32 0 4px,transparent 5px),
+ linear-gradient(110deg,#251C1A,#392824 55%,#563B32)!important;
+ border-bottom:4px solid #67CEBB!important;
+ box-shadow:0 7px 0 #9BE6D3,0 13px 23px rgba(57,40,36,.22)!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar .brand{
+ background:#FFF9F1!important;border:2px solid #C9AC99!important;
+ border-radius:15px!important;box-shadow:0 3px 0 #785548!important;
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar .brand :is(strong,small,span){
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav{
+ background:linear-gradient(180deg,#563B32 0%,#251C1A 66%)!important;
+ border-top:4px solid #67CEBB!important;
+ box-shadow:0 -6px 0 #9BE6D3,0 -10px 20px rgba(57,40,36,.22)!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav .cm-nav-tab:not(.is-current){
+ background:transparent!important;color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav .cm-nav-tab:not(.is-current) :is(span,b,strong){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav .cm-nav-tab.is-current{
+ background:linear-gradient(145deg,#9BE6D3 0%,#67CEBB 50%,#2BAEAA 100%)!important;
+ border:2px solid #FFF9F1!important;
+ color:#251C1A!important;
+ box-shadow:inset 0 2px 0 #D2F3E7,0 3px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav .cm-nav-tab.is-current :is(span,b,strong){
+ color:#251C1A!important;
+}
+/* HOME: a substantial chocolate day ribbon, not another faded white strip. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-brand{
+ color:#392824!important;text-shadow:0 1px 0 #FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-flow>.v58-day{
+ background:linear-gradient(112deg,#251C1A,#392824 57%,#563B32)!important;
+ border:2px solid #67CEBB!important;
+ border-radius:16px!important;box-shadow:0 4px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-day :is(.v58-section-title,.v58-section-summary,strong,small,span,b){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-sessions{
+ background:linear-gradient(155deg,#FFF9F1 0%,#EBFFF6 100%)!important;
+ border:2px solid #563B32!important;
+ border-radius:18px!important;box-shadow:0 4px 0 #C9AC99!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-primary{
+ background:linear-gradient(115deg,#166D66,#1C8D89)!important;
+ border:2px solid #392824!important;border-radius:20px!important;
+ box-shadow:0 5px 0 #392824!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-primary :is(.v58-section-title,.v58-section-summary){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-native-action #v38Hero{
+ background:linear-gradient(120deg,#67CEBB,#2BAEAA)!important;
+ border:2px solid #163D3A!important;border-radius:16px!important;
+ box-shadow:0 4px 0 #163D3A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-native-action #v38Hero :is(h1,h2,strong,small,span,p,b){
+ color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-timer{
+ background:linear-gradient(125deg,#9BE6D3,#67CEBB)!important;
+ border:2px solid #166D66!important;border-radius:18px!important;
+ box-shadow:0 4px 0 #166D66!important;color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-timer :is(strong,b,h2){
+ color:#163D3A!important;
+}
+/* Capacity board: dark cocoa column header over actual cream/mint rows. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board{
+ border:2px solid #392824!important;border-radius:17px!important;
+ background:#FFF9F1!important;box-shadow:0 5px 0 #563B32!important;
+ overflow:hidden!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board .v613-header{
+ background:linear-gradient(105deg,#251C1A,#563B32)!important;
+ border-bottom:2px solid #67CEBB!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board .v613-header-cell{
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board .v613-row:nth-child(even){
+ background:#EBFFF6!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board .v613-row:nth-child(odd){
+ background:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v613Board :is(.v613-percent,.v613-time){
+ color:#163D3A!important;font-weight:900!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app :is(.v59-slots-fold,.v59-fold){
+ background:#FFF9F1!important;border:2px solid #9BE6D3!important;
+ border-radius:17px!important;box-shadow:0 4px 0 #67CEBB!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links>.v38-calendar-section:nth-child(odd) .v38-calendar-card{
+ background:linear-gradient(130deg,#392824,#563B32)!important;
+ border:2px solid #67CEBB!important;box-shadow:0 4px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links>.v38-calendar-section:nth-child(odd) .v38-calendar-card :is(strong,small,span,em){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links>.v38-calendar-section:nth-child(even) .v38-calendar-card{
+ background:linear-gradient(130deg,#67CEBB,#9BE6D3)!important;
+ border:2px solid #166D66!important;box-shadow:0 4px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v59-calendar-links>.v38-calendar-section:nth-child(even) .v38-calendar-card :is(strong,small,span,em){
+ color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-access-card{
+ background:linear-gradient(120deg,#251C1A,#563B32)!important;
+ border:2px solid #67CEBB!important;box-shadow:0 4px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-access-card :is(strong,small,em,span){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-access-card .v38-calendar-icon{
+ background:#67CEBB!important;color:#251C1A!important;
+}
+/* Non-HOME routes: visible cocoa heads and bright mint primary actions. */
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active>.page-card,
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.cm-hub,.pv7-page,.v24-parking-page,.v27-first-page,.v25-entry-page,.v33-rules-page){
+ background:#FFF9F1!important;border-color:#C9AC99!important;color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.cm-hub-head,.pv7-head,.v25-entry-head){
+ background:linear-gradient(125deg,#251C1A,#392824 68%,#563B32)!important;
+ background-image:radial-gradient(circle at 92% 24%,#785548 0 6px,transparent 7px),
+ linear-gradient(125deg,#251C1A,#392824 68%,#563B32)!important;
+ border-bottom:4px solid #67CEBB!important;color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.cm-hub-head,.pv7-head,.v25-entry-head) :is(h1,h2,h3,p,small,span,strong){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.cm-hub-row,.cm-faq details,.v24-pick,.v27-step,.rec-method,.rec-slot):not(:disabled){
+ background:#EBFFF6!important;border-color:#67CEBB!important;color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.rec-method.active,.rec-slot.active,.v24-pick.is-current,.v24-pick.active){
+ background:linear-gradient(115deg,#67CEBB,#2BAEAA)!important;
+ border:2px solid #166D66!important;color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(#recSubmit,.rec-submit,.rec-official-open,.pv7-primary,.v27-primary):not(:disabled){
+ background:linear-gradient(135deg,#67CEBB,#2BAEAA)!important;
+ border:2px solid #163D3A!important;box-shadow:0 4px 0 #166D66!important;
+ color:#163D3A!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.v24-section,.pv7-section,.v27-step-copy,.rec-day){
+ border-color:#9BE6D3!important;
+}
+html.boon-v4.boon-v5-mint body[data-environment="production"] #app :is(button,a,summary):focus-visible{
+ outline:3px solid #166D66!important;outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint body[data-environment="production"] #app *{
+  transition-duration:0s!important;animation-duration:0s!important;
+ }
+}
