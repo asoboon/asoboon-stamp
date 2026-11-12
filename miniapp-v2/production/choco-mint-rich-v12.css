@@ -231,11 +231,11 @@ html.boon-v4.boon-v5-mint body.v38-home-active
 /* Restore a substantial chocolate status message once the real state arrives. */
 html.boon-v4.boon-v5-mint body.v38-home-active
  #app #v58Flow[data-state="ended"] > #v58Primary{
- padding:14px 16px!important;
+ padding:8px 13px!important;
  border-radius:18px!important;
  border:2px solid #67CEBB!important;
  box-shadow:0 4px 0 #563B32!important;
- min-height:76px!important;
+ min-height:0!important;
 }
 /* The live day strip and opening board should feel intentional, not stacked
    against two extra thick pale outlines. */
