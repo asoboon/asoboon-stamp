@@ -26,7 +26,7 @@ function checkPlay(snap,lang,route,step=null){
   voiceExpect(snap.state.lang).toBe(lang);
   voiceExpect(snap.state.lastFile).toBe('./assets/owner-voice/'+row.file);
   voiceExpect(snap.plays.at(-1).src).toContain('/assets/owner-voice/'+row.file);
-  voiceExpect(snap.plays.at(-1).src).toContain('clarity_master=20261111-v3');
+  voiceExpect(snap.plays.at(-1).src).toContain('female_voice=20261112-v5');
   voiceExpect(snap.plays.at(-1).volume).toBeGreaterThan(0);
   voiceExpect(snap.oldSpeech,'native speechSynthesis must not replace owner voice').toBe(0);
   voiceExpect(snap.state.missing).toBe(0);
@@ -142,6 +142,8 @@ voiceTest.describe('venue tablet owner-voice and per-step SFX',()=>{
   voiceTest('all 72 owner audio assets exist, without publishing reference recordings',()=>{
     voiceExpect(manifest.enabled).toBe(true);
     voiceExpect(manifest.readyCount).toBe(72);
+    voiceExpect(manifest.voiceEdition).toBe("female-v5-20261112");
+    voiceExpect(fs.readFileSync("jounaisetumei-core.html","utf8")).toContain("VOICEVOX:春日部つむぎ");
     for(const lang of langs){
       const rows=manifest.allPromptTexts[lang];
       voiceExpect(rows).toHaveLength(9);
