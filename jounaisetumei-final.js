@@ -141,14 +141,14 @@
     #eg-final-languages button:focus-visible{outline:3px solid #ffce3d;outline-offset:2px;position:relative;z-index:1}
     #exitGuideV2{overflow-x:hidden!important}
     #exitGuideV2 .eg-page{padding-top:var(--eg-voice-page-top)!important}
-    #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;right:112px!important;min-height:44px!important;font-size:12px!important;padding:8px 9px!important;touch-action:manipulation}
+    #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;right:190px!important;min-height:44px!important;font-size:12px!important;padding:8px 9px!important;touch-action:manipulation}
     #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;right:14px!important;min-height:44px!important;font-size:12px!important;padding:8px 10px!important;touch-action:manipulation}
     #exitGuideV2 .eg-motion-switch:focus-visible,#exitGuideV2 .eg-fullscreen-switch:focus-visible{outline:3px solid #ffce3d;outline-offset:2px}
     @media(max-width:900px){
       :root{--eg-voice-nav-height:132px}
       #eg-final-languages{grid-template-columns:repeat(4,minmax(0,1fr))}
     }
-    @media(max-width:420px){
+    @media(max-width:599px){
       /* Stable multilingual toolbar: localized strings can be much longer than
          Japanese. Icons have 48px targets; text remains as accessible names. */
       #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:64px!important;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;font-size:0!important;padding:0!important;overflow:hidden!important}

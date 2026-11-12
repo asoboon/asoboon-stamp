@@ -184,3 +184,43 @@ for(const [deviceWidth,deviceHeight] of [[375,812],[320,640]]){
     }
   });
 }
+
+
+test('v6 translated middle-width toolbar controls never overlap',async({page})=>{
+  for(const width of [421,500,600,650,768,834,901,1024,1194]){
+    await page.setViewportSize({width,height:900});
+    await page.goto(target,{waitUntil:'domcontentloaded'});
+    await expect(page.locator('#eg-final-languages button')).toHaveCount(8);
+    await page.waitForTimeout(650); // Existing 0.55-second entrance animation.
+    for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
+      await page.locator('#eg-final-languages [data-locale="'+lang+'"]').click();
+      const qa=await page.evaluate(()=>{
+        const root=document.querySelector('#exitGuideV2');
+        const els=[
+          document.getElementById('eg-audio-volume-pack'),
+          root.querySelector('.eg-home .eg-motion-switch'),
+          root.querySelector('.eg-home .eg-fullscreen-switch'),
+          root.querySelector('.eg-home .eg-intro h1')
+        ];
+        const rects=els.map(e=>e.getBoundingClientRect());
+        const collisions=[];
+        for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
+          const a=rects[i],b=rects[j];
+          if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1 &&
+             Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1){
+            collisions.push([i,j]);
+          }
+        }
+        const hit=els.slice(0,3).map(e=>{
+          const x=e.getBoundingClientRect();
+          const center=document.elementFromPoint(x.left+x.width/2,x.top+x.height/2);
+          return e===center||e.contains(center);
+        });
+        return {lang:root.dataset.lang,collisions,hit};
+      });
+      expect(qa.lang).toBe(lang);
+      expect(qa.collisions,'no overlapping localized controls at '+width+'px / '+lang).toEqual([]);
+      expect(qa.hit,'center of toolbar should remain tappable at '+width+'px / '+lang).toEqual([true,true,true]);
+    }
+  }
+});
