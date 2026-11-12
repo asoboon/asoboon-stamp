@@ -627,5 +627,18 @@
       }
     ]
   },
-  "releaseDate": "2026-11-11"
+  "releaseDate": "2026-11-12",
+  "voiceEdition": "female-v5-20261112",
+  "audioRightsNotice": "jounaisetumei-owner-voice-credits.md",
+  "languageVoices": {
+    "ja": "VOICEVOX:春日部つむぎ",
+    "en": "Qwen3-TTS CustomVoice Serena (female)",
+    "zh": "Qwen3-TTS CustomVoice Serena (female)",
+    "ko": "Qwen3-TTS CustomVoice Sohee (female)",
+    "vi": "VoxCPM2 synthetic female reference",
+    "tl": "VoxCPM2 synthetic female reference",
+    "my": "VoxCPM2 synthetic female reference",
+    "ne": "Swar F5-TTS synthetic female reference (model weights CC BY-SA 4.0)"
+  },
+  "notes": "Voices freshly generated with local, non-impersonating synthetic female models. Existing UI texts and routes unchanged. Human native-language and in-person iPad QA still pending."
 }
