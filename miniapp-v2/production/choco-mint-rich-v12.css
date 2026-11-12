@@ -180,3 +180,117 @@ html.boon-v4.boon-v5-mint body[data-environment="production"] #app :is(button,a,
   transition-duration:0s!important;animation-duration:0s!important;
  }
 }
+
+/* v12.1 — verified live 390px / 320px visual corrections, 2026-11-12.
+ * Legacy day-zone rules were winning the cascade and bleaching the chocolate.
+ * Visual-only. No booking / AirWAIT / call-tone state changes.
+ */
+html.boon-v4.boon-v5-mint body.v38-home-active:not(.v7-callstatus-active)
+ #app #v58Flow > #v58DayZone{
+ background-color:#392824!important;
+ background-image:
+  radial-gradient(circle at 91% 20%,#785548 0 5px,transparent 6px),
+  radial-gradient(circle at 84% 68%,#563B32 0 4px,transparent 5px),
+  linear-gradient(115deg,#251C1A,#392824 57%,#563B32)!important;
+ border:2px solid #67CEBB!important;
+ border-bottom:4px solid #2BAEAA!important;
+ border-radius:17px!important;
+ box-shadow:0 5px 0 #163D3A!important;
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone :is(.v58-section-title,.v58-section-summary){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today{
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today :is(span,small,strong,b,svg){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today strong{
+ text-shadow:none!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today > span{
+ background-color:transparent!important;
+ border-color:#785548!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today > span :is(small,strong){
+ color:#FFF9F1!important;
+}
+/* No empty giant mint panel before async HOME state has finished hydrating. */
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow[data-state="loading"] > #v58Primary{
+ display:none!important;
+}
+/* Restore a substantial chocolate status message once the real state arrives. */
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow[data-state="ended"] > #v58Primary{
+ padding:8px 13px!important;
+ border-radius:18px!important;
+ border:2px solid #67CEBB!important;
+ box-shadow:0 4px 0 #563B32!important;
+ min-height:0!important;
+}
+/* The live day strip and opening board should feel intentional, not stacked
+   against two extra thick pale outlines. */
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58SessionsZone{
+ border:2px solid #392824!important;
+ box-shadow:0 5px 0 #166D66!important;
+ border-radius:18px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58SessionsZone #v59SlotsFold{
+ border:1px solid #9BE6D3!important;
+ box-shadow:none!important;
+}
+/* Use bold chocolate rows between mint rows throughout the same native guides.
+   Preserve actions/links and protect all route- and status-related functionality. */
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .cm-hub-list > .cm-hub-row:nth-child(even){
+ background:linear-gradient(120deg,#392824,#563B32)!important;
+ border:1px solid #67CEBB!important;
+ box-shadow:0 3px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .cm-hub-list > .cm-hub-row:nth-child(even) :is(strong,small,span,p,em,b){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .cm-hub-list > .cm-hub-row:nth-child(even) .cm-hub-icon{
+ background:#67CEBB!important;color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .cm-hub-list > .cm-hub-row:nth-child(even) .cm-hub-icon :is(svg,span,b){
+ color:#251C1A!important;
+}
+/* Arrival-mode choice: creamy public-road vs dark chocolate expressway.
+   Leave the selected-state styling in charge when a route is chosen. */
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(2):not([aria-pressed="true"]){
+ background:linear-gradient(135deg,#392824,#563B32)!important;
+ border:2px solid #67CEBB!important;
+ box-shadow:0 3px 0 #166D66!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(2):not([aria-pressed="true"]) :is(strong,small,span,em){
+ color:#FFF9F1!important;
+}
+/* Keep the small utilization badge legible inside the chocolate day ribbon. */
+html.boon-v4.boon-v5-mint body.v38-home-active
+ #app #v58Flow #v58DayZone #v38Today > span:last-of-type strong{
+ background:#67CEBB!important;color:#251C1A!important;
+ border-radius:8px!important;
+}
+/* Route-choice label must not become white text on the preexisting cream chip. */
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(2):not([aria-pressed="true"]) > span:first-child{
+ background:#67CEBB!important;color:#251C1A!important;
+ border:1px solid #9BE6D3!important;
+}

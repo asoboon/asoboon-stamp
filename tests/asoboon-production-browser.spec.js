@@ -4385,3 +4385,31 @@ test('2026-11-12 chocolate-mint palette stays free of saturated orange across HO
  }
  expect(errors).toEqual([]);
 });
+
+
+test('Live visual QA: chocolate opening ribbon and legible guide at four mobile widths', async ({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58DayZone')).toBeVisible({timeout:12000});
+ for (const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  await expect.poll(async()=>page.evaluate(()=>{
+   const e=document.querySelector('#v58DayZone'),label=e?.querySelector('.v58-section-title');
+   return {dark:!!e&&getComputedStyle(e).backgroundImage.includes('rgb(37, 28, 26)'),
+    legible:!!label&&getComputedStyle(label).color==='rgb(255, 249, 241)',
+    overflow:document.documentElement.scrollWidth>innerWidth+1};
+  }),{timeout:12000}).toMatchObject({dark:true,legible:true,overflow:false});
+ }
+ await page.locator('#app>.cm-bottom-nav [data-v7-view="guide"]').click();
+ const second=page.locator('.cm-hub-list>.cm-hub-row:nth-child(2)');
+ await expect(second).toBeVisible();
+ const guide=await second.evaluate(e=>({bg:getComputedStyle(e).backgroundImage,fg:getComputedStyle(e.querySelector('strong')).color}));
+ expect(guide.bg).toContain('rgb(57, 40, 36)');
+ expect(guide.fg).toBe('rgb(255, 249, 241)');
+});
