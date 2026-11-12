@@ -4043,6 +4043,7 @@ test('2026-11-11 AirWAIT-confirmed canceled state stays terminal across HOME and
  await page.reload({waitUntil:'domcontentloaded'});
  await expect(page.locator('#csTitle')).toContainText('取消済み');
  await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await expect(page.locator('#v38Hero')).toContainText('もう一度受付する');
  await page.waitForTimeout(250);
  await page.locator('.cm-nav-tab[data-v7-view="callstatus"]').click();
  await expect(page.locator('#csTitle')).toContainText('取消済み');
@@ -4218,4 +4219,46 @@ test('2026-11-12 HOME does not advertise a second booking on pending, missing, o
    kind:'error',receipt:'R777',source:'live',checkedAt:Date.now()
  }})));
  await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+});
+
+
+test('2026-11-12 real CALL gateway done observation reaches HOME and staff restored waiting revokes direct rebooking',async({page})=>{
+ await installProduction(page);
+ let currentState='done';
+ let checks=0;
+ await page.route(GATEWAY+'**',async route=>{
+  const form=new URLSearchParams(route.request().postData()||'');
+  const action=form.get('action')||new URL(route.request().url()).searchParams.get('action');
+  if(action!=='reservationStatus')return route.fallback();
+  checks++;
+  return route.fulfill({status:200,contentType:'application/json',
+   body:JSON.stringify({ok:true,found:true,state:currentState,receiptNo:'R888',
+    businessDate:'2026-10-03',waitTypeId:'0031',reserveId:'000000000888',
+    checkedAt:Date.now(),aheadCount:1,queueRank:2,activeCount:10})});
+ });
+ await page.addInitScript(()=>{
+  localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+   receiptNo:'R888',businessDate:'2026-10-03',waitTypeId:'0031',reserveId:'000000000888',
+   cachedAt:Date.now()-45000
+  }));
+  localStorage.setItem('asoboon_v2_callstatus_session_production_v1',JSON.stringify({
+   receiptNo:'R888',businessDate:'2026-10-03',waitTypeId:'0031',reserveId:'000000000888',
+   sessionToken:'x'.repeat(40),expiresAt:4102444800000
+  }));
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#csTitle')).toContainText('ご案内');
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('guided');
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await expect(page.locator('#v38Hero')).toHaveClass(/rebook/);
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toContainText('もう一度受付する');
+ await page.locator('.cm-nav-tab[data-v7-view="callstatus"]').click();
+ currentState='waiting'; // Real-life staff action reverting already-guided guest
+ await page.locator('#csRefresh').click();
+ await expect(page.locator('#csTitle')).toContainText('順番をお待ち');
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('waiting');
+ await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+ expect(checks).toBeGreaterThanOrEqual(2);
 });

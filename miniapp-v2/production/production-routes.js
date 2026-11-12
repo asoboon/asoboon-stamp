@@ -949,6 +949,25 @@ function showVerifiedMissing(cached){
 }
 
 function shareHomeStatus(d){
+  if(String(E.environment||'')==='production'){
+    // Relay only owner-bound live observations; a staff restore from DONE to
+    // WAITING must REVOKE any previously surfaced HOME rebooking CTA.
+    if(d?.found!==true)return;
+    const cached=cachedReservation();
+    if(!cached?.receiptNo||String(d.receiptNo||'')!==String(cached.receiptNo))return;
+    if(cached.businessDate&&d.businessDate&&String(cached.businessDate)!==String(d.businessDate))return;
+    if(cached.waitTypeId&&d.waitTypeId&&String(cached.waitTypeId)!==String(d.waitTypeId))return;
+    if(cached.reserveId&&d.reserveId&&String(cached.reserveId)!==String(d.reserveId))return;
+    const checkedAt=Number(d.checkedAt||Date.now());
+    if(cached.cachedAt&&checkedAt<Number(cached.cachedAt))return;
+    const kinds={done:'guided',canceled:'canceled',waiting:'waiting',calling:'calling',hold:'hold',processing:'hold',closed:'closed'};
+    const status={kind:kinds[String(d.state||'')]||'sync',receipt:String(d.receiptNo),
+      checkedAt,source:'live',businessDate:String(d.businessDate||cached.businessDate||''),
+      reserveId:String(d.reserveId||cached.reserveId||''),waitTypeId:String(d.waitTypeId||cached.waitTypeId||'')};
+    window.ASOBOON_HOME_STATUS_SNAPSHOT=status;
+    window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:status}));
+    return;
+  }
   if(!['develop','review'].includes(String(E.environment||'')))return;
   const cached=cachedReservation();
   const receipt=String(d?.receiptNo||cached?.receiptNo||'—');

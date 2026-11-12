@@ -37,3 +37,10 @@ AirWAITの元データを変更・削除せず、お客様が「終了・取消�
 - 全175ブラウザテスト、GitHub必須CI、Pages/Gateway本番と再評価は公開後の事実に基づき記録。
 
 **未検証：** 実際のAirWAIT受付2回の本番LINE実機操作、通知が2件目に正しく届くか、2回目の更新瞬間のスタッフ操作との完全な排他。実機未確認を完了と表現しない。
+
+## 独立CodexレビューP2への修正（11/12）
+- 追加監査で本番CALL→HOMEの確定状態通知が欠けていたと判明。旧 `shareHomeStatus()` はDevelop/Review限定だった。
+- Productionで本人に属する `receiptNo`・営業日・予約ID・待ち枠を照合した**実際のGatewayの結果**だけをHOMEへ伝播する。DONE/CANCELEDを受けたとき再受付CTAを表示、スタッフのWAITING/CALLING/HOLDへの戻しでは即時非表示。
+- 既存の取消済み番号追跡停止・新しい番号保持・キャンセルAPI・本人検証は変更しない。
+- 新規E2E「実際のGateway完了応答→HOME CTA→スタッフが待機へ戻す→HOME CTA消去」：合格。
+- 初期バンドル 144409 bytes / gzip 38441 bytes、増分は遅延読込CALLルートのみ。全176ケースと必須CIを最終検証する。
