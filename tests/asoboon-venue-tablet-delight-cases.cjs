@@ -50,7 +50,11 @@ test('大人・帰るに固有の動きがあり、次画面を待たせない',
   await root.locator('[data-guide="home"]').first().click();
   await root.locator('[data-guide="leave"]').click();
   await expect(root).toHaveAttribute('data-delight-route','leave');
-  const shuffle=await root.locator('.eg-two-holders').evaluate(el=>getComputedStyle(el).animationName);
+  // The holders appear in STEP 2: animate only when the visitor sees them.
+  const hiddenShuffle=await root.locator('.eg-two-holders').evaluate(el=>getComputedStyle(el).animationName);
+  expect(hiddenShuffle).toBe('none');
+  await root.locator('[data-stepper-action="next"]').click();
+  const shuffle=await root.locator('.eg-step:not([hidden]) .eg-two-holders').evaluate(el=>getComputedStyle(el).animationName);
   expect(shuffle).toContain('eg-delight-shuffle');
 });
 
@@ -79,9 +83,11 @@ test('アニメーション途中で「動きを減らす」に変えても直�
   const root=page.locator('#exitGuideV2');
   await root.locator('[data-guide="family"]').click();
   await expect(root).toHaveAttribute('data-delight-route','family');
-  await expect.poll(async()=>root.locator('.eg-receipt').evaluate(el=>getComputedStyle(el).animationName)).toContain('eg-delight-peek');
+  // The receipt belongs to STEP 2, so start its animation when STEP 2 is shown.
+  await root.locator('[data-stepper-action="next"]').click();
+  await expect.poll(async()=>root.locator('.eg-step:not([hidden]) .eg-receipt').evaluate(el=>getComputedStyle(el).animationName)).toContain('eg-delight-peek');
   await page.emulateMedia({reducedMotion:'reduce'});
-  await expect.poll(async()=>root.locator('.eg-receipt').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+  await expect.poll(async()=>root.locator('.eg-step:not([hidden]) .eg-receipt').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
 });
 
 });

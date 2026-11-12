@@ -155,7 +155,7 @@ test('音ON/OFFと8言語の音声が即時案内を妨げない',async({page})=
   const state=await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state());
   expect(state.enabled).toBe(true);
   expect(state.locale).toBe('en');
-  expect(state.durationMs).toBe(310);
+  expect(state.durationMs).toBe(560);
   await guide.locator('[data-guide="family"]').click();
   await expect(guide).toContainText('Remove the receipt from the RED holder');
   expect(await page.evaluate(()=>window.__ASOBOON_AUDIO__?.state().lastDestination)).toBe('family');
