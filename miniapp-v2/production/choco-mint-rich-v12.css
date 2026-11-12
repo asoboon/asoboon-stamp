@@ -70,11 +70,11 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-sessions{
  border-radius:18px!important;box-shadow:0 4px 0 #C9AC99!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-primary{
- background:linear-gradient(115deg,#166D66,#1C8D89)!important;
+ background:linear-gradient(115deg,#251C1A,#392824)!important;
  border:2px solid #392824!important;border-radius:20px!important;
  box-shadow:0 5px 0 #392824!important;
 }
-html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-primary :is(.v58-section-title,.v58-section-summary){
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-primary :is(.v58-section-title,.v58-section-summary,.v58-next-title,.v58-next-summary,.v58-phase-text){
  color:#FFF9F1!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-native-action #v38Hero{
