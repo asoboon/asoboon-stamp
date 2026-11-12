@@ -81,7 +81,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-native-action #v38Hero{
  box-shadow:0 4px 0 #163D3A!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-native-action #v38Hero :is(h1,h2,strong,small,span,p,b){
- color:#163D3A!important;
+ color:#251C1A!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #app .v58-timer{
  background:linear-gradient(125deg,#9BE6D3,#67CEBB)!important;
@@ -160,12 +160,12 @@ html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.act
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.rec-method.active,.rec-slot.active,.v24-pick.is-current,.v24-pick.active){
  background:linear-gradient(115deg,#67CEBB,#2BAEAA)!important;
- border:2px solid #166D66!important;color:#163D3A!important;
+ border:2px solid #166D66!important;color:#251C1A!important;
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(#recSubmit,.rec-submit,.rec-official-open,.pv7-primary,.v27-primary):not(:disabled){
  background:linear-gradient(135deg,#67CEBB,#2BAEAA)!important;
  border:2px solid #163D3A!important;box-shadow:0 4px 0 #166D66!important;
- color:#163D3A!important;
+ color:#251C1A!important;
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.v24-section,.pv7-section,.v27-step-copy,.rec-day){
  border-color:#9BE6D3!important;
