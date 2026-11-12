@@ -108,14 +108,14 @@
   const css=document.createElement('style');
   css.id='eg-audio-styles';
   css.textContent=`
-    #eg-audio-toggle{position:fixed;z-index:430;top:var(--eg-voice-tools-top,84px);left:15px;min-height:44px;border:1px solid #bed5e8;border-radius:99px;padding:7px 13px;background:#164a70;color:white;font-size:clamp(11px,1.35vw,14px);font-weight:900;box-shadow:0 4px 14px #041a334d;cursor:pointer;touch-action:manipulation}
+    #eg-audio-toggle{position:fixed;z-index:430;top:var(--eg-voice-tools-top,84px);left:15px;min-height:56px;border:1px solid #bed5e8;border-radius:99px;padding:7px 13px;background:#164a70;color:white;font-size:clamp(15px,1.5vw,17px);font-weight:900;box-shadow:0 4px 14px #041a334d;cursor:pointer;touch-action:manipulation}
     #exitGuideV2 .eg-header #eg-audio-toggle{position:static;left:auto;right:auto;top:auto;z-index:auto;flex:0 0 auto;box-shadow:none;padding:6px 10px}
     #eg-audio-toggle:focus-visible{outline:3px solid #ffdc49;outline-offset:3px}
     #eg-audio-toggle[aria-pressed=false]{background:#42535e}
     #eg-audio-volume-pack{position:fixed;z-index:430;top:var(--eg-voice-tools-top,84px);left:15px;display:flex;align-items:center;gap:7px;max-width:calc(100vw - 32px);padding:4px 7px;border-radius:13px;background:rgba(10,44,69,.94);color:#fff;box-shadow:0 3px 14px #021b3675}
     #eg-audio-volume-pack #eg-audio-toggle{position:static;inset:auto;flex:0 0 auto;box-shadow:none}
     #eg-audio-volume-pack label{font-size:12px;font-weight:900;white-space:nowrap}
-    #eg-audio-volume-pack input[type=range]{width:clamp(70px,10vw,130px);min-width:55px;min-height:35px;accent-color:#ffe366;cursor:pointer;touch-action:pan-x}
+    #eg-audio-volume-pack input[type=range]{width:clamp(70px,10vw,130px);min-width:55px;min-height:52px;accent-color:#ffe366;cursor:pointer;touch-action:pan-x}
     #eg-audio-volume-pack output{font:900 12px/1 -apple-system,sans-serif;min-width:33px;text-align:right;font-variant-numeric:tabular-nums}
     #exitGuideV2 .eg-header #eg-audio-volume-pack{position:static;inset:auto;flex:0 1 auto;box-shadow:none;max-width:46%;padding:2px 5px}
     @media(max-width:850px){#eg-audio-volume-pack label{display:none}#exitGuideV2 .eg-header #eg-audio-volume-pack{max-width:42%}}
@@ -125,7 +125,7 @@
     @media(max-width:420px){
       /* Keep a real slider and mute control without making translations collide
          with the two secondary fixed-size toolbar actions. */
-      #eg-audio-toggle{font-size:0!important;width:46px!important;min-width:46px!important;min-height:44px!important;padding:0!important;overflow:hidden!important}
+      #eg-audio-toggle{font-size:0!important;width:56px!important;min-width:56px!important;min-height:56px!important;padding:0!important;overflow:hidden!important}
       #eg-audio-toggle::before{content:'🔊';font-size:20px;line-height:1}
       #eg-audio-toggle[aria-pressed="false"]::before{content:'🔇'}
     }
@@ -256,6 +256,16 @@
     // The guide is now rendered immediately in this same gesture; voice is started there.
     if(!audio)return;
     const now=audio.currentTime+.006;
+    // The 72 licensed female clips start synchronously on the visitor's tap.
+    // Avoid masking the first spoken syllable with the original stacked
+    // charge/impact/resolve cues (which peak over the first 0.3 seconds).
+    // Keep a single quiet, short confirmation cue; leave the visual theater on.
+    if(window.__ASOBOON_OWNER_VOICE__?.state?.().productionEnabled){
+      sample('tap',0,.08);
+      oscillator(destination==='adult-no'?450:680,destination==='adult-no'?320:880,
+        now,.058,.035,'sine');
+      return;
+    }
     sample('tap',0,.62);
     oscillator(780,1000,now,.085,.17,'triangle');
     if(!hasAnimation){
@@ -330,7 +340,7 @@
     if(audio){
       const now=audio.currentTime+.006;
       const back=direction==='prev';
-      oscillator(back?700:550,back?510:830,now,.09,.075,'sine');
+      oscillator(back?700:550,back?510:830,now,.075,.038,'sine');
     }
     if(spokenStep)announce(route,spokenStep);
   }
@@ -395,7 +405,7 @@
     start,announce,step,stop:stopScene,resetForNextVisitor,setMuted,setVolume,
     prompt:(destination,lang=locale())=>prompts[destination]?.[lang]||null,
     state:()=>({enabled:!muted,locale:locale(),cachedSounds:buffers.size,lastDestination,
-      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:310,volumeLevel,previewCount,
+      voiceAvailable,lastSpoken,failures,cuesReady:[...buffers.keys()],durationMs:560,volumeLevel,previewCount,
       boostGain:boost?boost.gain.value:null,outputGain:master?master.gain.value:null,
       outputTarget:muted?0:FX_OUTPUT*volumeLevel/100,masterGain:master?master.gain.value:null})
   };

@@ -17,15 +17,15 @@
       animation:none!important;
     }
     @media(prefers-reduced-motion:no-preference){
-    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-receipt {
+    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-step:not([hidden]) .eg-receipt {
       animation:eg-delight-peek .88s .03s both ease-in-out!important;
       transform-origin:50% 95%;
     }
-    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-two-holders {
+    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-step:not([hidden]) .eg-two-holders {
       animation:eg-delight-holders .94s .08s both ease-in-out!important;
       transform-origin:50% 75%;
     }
-    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-two-holders > svg {
+    #exitGuideV2[data-delight-route="family"]:not(.eg-motion-off) .eg-detail .eg-step:not([hidden]) .eg-two-holders > svg {
       animation:eg-delight-key .76s .13s both ease-in-out!important;
       transform-origin:50% 15%;
     }
@@ -37,11 +37,11 @@
       animation:eg-delight-proud .80s .05s both ease-out!important;
       transform-origin:50% 92%;
     }
-    #exitGuideV2[data-delight-route="leave"]:not(.eg-motion-off) .eg-detail .eg-two-holders {
+    #exitGuideV2[data-delight-route="leave"]:not(.eg-motion-off) .eg-detail .eg-step:not([hidden]) .eg-two-holders {
       animation:eg-delight-shuffle .99s .05s both ease-in-out!important;
       transform-origin:50% 85%;
     }
-    #exitGuideV2[data-delight-route="leave"]:not(.eg-motion-off) .eg-detail .eg-two-holders > svg {
+    #exitGuideV2[data-delight-route="leave"]:not(.eg-motion-off) .eg-detail .eg-step:not([hidden]) .eg-two-holders > svg {
       animation:eg-delight-key .72s .16s both ease-in-out!important;
       transform-origin:50% 15%;
     }
