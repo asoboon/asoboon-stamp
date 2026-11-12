@@ -65,7 +65,9 @@ function friendlyError(value){const code=String(value||'');const map={
   LINE_ACCESS_TOKEN_INVALID:'LINEログイン情報を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直してください。',
   LINE_PROFILE_TIMEOUT:'LINEの本人確認に時間がかかっています。時間をおいてもう一度お試しください。',
   LINE_CHANNEL_MISMATCH:'LINE連携設定を確認できません。受付スタッフへお声がけください。',
-  PRIOR_RECEPTION_STATUS_UNVERIFIED:'前の受付の終了状態をAirWAITで確認できません。新しい受付は発行していません。時間をおいて、もう一度お試しください。',
+  PRIOR_RECEPTION_STATUS_UNVERIFIED:'前の受付が終了したか確認できません。新しい番号は発行していません。少し時間をおいて再確認してください。',
+  PRIOR_RECEPTION_RECHECK_CONFLICT:'受付状況が変更されました。新しい受付は送っていません。呼出画面で最新の番号をご確認ください。',
+  LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP:'LINE通知の準備を新しくするため、一度このミニアプリを閉じ、LINEから開き直して受付してください。前の受付を勝手に消すことはありません。',
   WAIT_TYPE_NOT_AVAILABLE:'選択した受付枠は現在利用できません。最新の受付状況を確認してください。',
   WAIT_TYPE_NOT_ALLOWED_FOR_DAY:'本日の受付枠ではありません。画面を開き直して最新情報をご確認ください。',
   WAIT_TYPE_MODE_MISMATCH:'受付方法と受付枠が一致していません。画面を開き直してください。',
@@ -538,7 +540,7 @@ async function submit(){
     if(seq!==S.submitSeq||S.locked)return;
     if(r?.notificationAmbiguous){lockNotificationAmbiguous(r?._requestId);return}
     if(r?.ambiguous||/AMBIGUOUS|RESULT_UNKNOWN|MANUAL_REVIEW/.test(String(r?.error||r?.message||''))){lockAmbiguous(r?._requestId||readPending()?.requestId||'');return}
-    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);const reason=String(r?.error||'');const error=Error(friendlyError(reason||'受付結果が不正です。'));error.code=reason;throw error}
+    if(!(r&&r.ok&&r.stored&&r.receiptNo&&r.reserveId&&String(r.businessDate||'')===S.day.operationalDate)){clearPending(r?._requestId);const reason=String(r?.errorCode||r?.error||'');const error=Error(friendlyError(reason||'受付結果が不正です。'));error.code=reason;throw error}
     completeConfirmed(r,{operationalDate:S.day.operationalDate,mode:S.mode,waitTypeId:S.slot.waitTypeId,adults:S.adult,paidChildren:S.child,infants:S.infant});
   }catch(e){
     if(seq!==S.submitSeq)return;

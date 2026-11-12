@@ -1165,7 +1165,7 @@ test('Saved receipt uses compact passive HOME status and accessible fixed call t
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
 
-test('Production HOME with a saved receipt shows status hint only; no duplicated call CTA or automatic reservationStatus requests',async({page})=>{
+test('Production HOME keeps active status discreet and surfaces rebooking after verified terminal without automatic status requests',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0}));
@@ -1182,7 +1182,9 @@ test('Production HOME with a saved receipt shows status hint only; no duplicated
  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toHaveCount(1);
  for(const kind of ['waiting','calling','hold','guided','canceled','error']){
   await page.evaluate(kind=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{kind,receipt:'F321',ahead:3,source:'live',checkedAt:Date.now()}})),kind);
-  await expect(hero).toHaveClass(/call-link/);
+  const terminal=['guided','canceled'].includes(kind);
+  await expect(hero).toHaveClass(terminal?/rebook/:/call-link/);
+  await expect(hero.locator('[data-v7-view="reception"]')).toHaveCount(terminal?1:0);
   await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(0);
   await expect(hero).not.toContainText('F321');
   await expect(hero).not.toContainText('3組');
@@ -4157,4 +4159,63 @@ test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but acce
  });
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R998');
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('pending');
+});
+
+
+test('2026-11-12 HOME shows a direct rebook action only after a live verified terminal receipt',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.locator('#v38Hero').waitFor();
+ await page.evaluate(()=>{
+   const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+   const receipt='R321';
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      receiptNo:receipt,businessDate:date,waitTypeId:'0031',
+      reserveId:'000000123456',cachedAt:Date.now()-30000
+   }));
+   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{
+      kind:'waiting',receipt,source:'live',checkedAt:Date.now()
+   }}));
+ });
+ await expect(page.locator('#v38Hero')).toHaveClass(/call-link/);
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{
+   kind:'guided',receipt:'R321',source:'live',checkedAt:Date.now()
+ }})));
+ await expect(page.locator('#v38Hero')).toHaveClass(/rebook/);
+ await expect(page.locator('#v38Hero')).toContainText('前の受付は終了しています');
+ const cta=page.locator('#v38Hero [data-v7-view="reception"]');
+ await expect(cta).toContainText('もう一度受付する');
+ for(const width of [320,390,430]){
+   await page.setViewportSize({width,height:844});
+   const size=await cta.boundingBox();
+   expect(size.height).toBeGreaterThanOrEqual(44);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
+ await cta.click();
+ await expect(page).toHaveURL(/view=reception/);
+});
+
+test('2026-11-12 HOME does not advertise a second booking on pending, missing, or unknown status',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await page.evaluate(()=>{
+   const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({
+      receiptNo:'R777',businessDate:date,waitTypeId:'0031',
+      reserveId:'000000777777',cachedAt:Date.now()-1000
+   }));
+   window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{
+     kind:'pending',receipt:'R777',source:'local',checkedAt:Date.now()
+   }}));
+ });
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{
+   kind:'canceled',receipt:'R777',source:'local',checkedAt:Date.now()
+ }})));
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{
+   kind:'error',receipt:'R777',source:'live',checkedAt:Date.now()
+ }})));
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
 });

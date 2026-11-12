@@ -506,3 +506,90 @@ test('missing or non-terminal old ticket cannot be forcibly deleted for new regi
   assert.equal(processing.alreadyExists,true);
   assert.equal(world.reservations.length,1);
 });
+
+
+test('same LIFF token on a second reception returns actionable reopen code, never creates a second AirWAIT ticket',async()=>{
+  const user='UreuseNotifierToken';
+  const token=world.issueLiffToken(user);
+  const send=(waitTypeId,requestId)=>call(worker,env,{body:{
+    action:'createReservation',requestId,mode:'web',adults:1,paidChildren:0,infants:0,
+    waitTypeId,operationalDate:DAY,liffAccessToken:token
+  }});
+  const first=await send('0029','req-reuse-token-first-0001');
+  assert.equal(first.data?.ok,true,JSON.stringify(first.data));
+  world.row(first.data.reserveId).status='2';
+  const again=await send('0031','req-reuse-token-next-0001');
+  assert.equal(again.status,409,JSON.stringify(again.data));
+  assert.equal(again.data?.errorCode,'LIFF_NOTIFICATION_TOKEN_ALREADY_CLAIMED_REOPEN_MINIAPP');
+  assert.match(String(again.data?.error||''),/いったん完全に閉じて/);
+  assert.equal(again.data?.ambiguous,false);
+  assert.equal(world.reservations.length,1,'same-bound notification token MUST NOT send a second AirWAIT create');
+  const fresh=await call(worker,env,{body:{
+    action:'createReservation',requestId:'req-reuse-token-fresh-0001',mode:'web',
+    adults:1,paidChildren:0,infants:0,waitTypeId:'0031',operationalDate:DAY,
+    liffAccessToken:world.issueLiffToken(user)
+  }});
+  assert.equal(fresh.data?.ok,true,JSON.stringify(fresh.data));
+  assert.notEqual(fresh.data.reserveId,first.data.reserveId);
+});
+
+test('AirWAIT staff restore between first terminal verification and CREATE is caught by final recheck',async()=>{
+  const user='UrestoreBetweenChecks';
+  const first=await create(user,'0029','req-staff-race-first-0001');
+  world.row(first.reserveId).status='2';
+  const original=world.fetch.bind(world);
+  let reads=0;
+  world.fetch=async(input,init)=>{
+    const u=new URL(String(input?.url||input));
+    if(u.pathname.endsWith('/stateless/reservations')&&
+       new URLSearchParams(init?.body||'').get('waitTypeId')==='0029'){
+      reads++;
+      if(reads===2)world.row(first.reserveId).status='0';
+    }
+    return original(input,init);
+  };
+  try{
+    const again=await call(worker,env,{body:{
+      action:'createReservation',requestId:'req-staff-race-next-0001',mode:'web',
+      adults:1,paidChildren:0,infants:0,waitTypeId:'0031',operationalDate:DAY,
+      liffAccessToken:world.issueLiffToken(user)
+    }});
+    assert.ok(reads>=2,'double-check must run before issuance');
+    assert.equal(again.data?.ok,true,JSON.stringify(again.data));
+    assert.equal(again.data?.alreadyExists,true,'restored waiting ticket is still active');
+    assert.equal(again.data?.reserveId,first.reserveId);
+    assert.equal(world.reservations.length,1,'no second AirWAIT ticket may be issued after restore');
+    assert.equal(claimRow(first.reserveId).state,'CONFIRMED');
+  }finally{world.fetch=original}
+});
+
+test('a different terminal generation replacing the prior claim during verification is not overwritten',async()=>{
+  const user='UchangedGeneration';
+  const first=await create(user,'0029','req-old-generation-first-0001');
+  world.row(first.reserveId).status='2';
+  const nextRequestId='req-other-generation-0001',nextReserveId='000000888888';
+  const original=world.fetch.bind(world);
+  let swapped=false;
+  world.fetch=async(input,init)=>{
+    const u=new URL(String(input?.url||input));
+    if(!swapped&&u.pathname.endsWith('/stateless/reservations')&&
+       new URLSearchParams(init?.body||'').get('waitTypeId')==='0029'){
+      swapped=true;
+      db.db.prepare("UPDATE v2_user_day_claims SET request_id=?,state='CONFIRMED',receipt_no='888',reserve_id=?,wait_type_id='0031' WHERE reserve_id=?")
+        .run(nextRequestId,nextReserveId,first.reserveId);
+    }
+    return original(input,init);
+  };
+  try{
+    const retry=await call(worker,env,{body:{
+      action:'createReservation',requestId:'req-race-generation-0001',mode:'web',
+      adults:1,paidChildren:0,infants:0,waitTypeId:'0031',operationalDate:DAY,
+      liffAccessToken:world.issueLiffToken(user)
+    }});
+    assert.equal(swapped,true);
+    assert.equal(retry.data?.alreadyExists,true,JSON.stringify(retry.data));
+    assert.equal(retry.data?.reserveId,nextReserveId);
+    assert.equal(world.reservations.length,1);
+    assert.equal(db.db.prepare('SELECT request_id FROM v2_user_day_claims WHERE reserve_id=?').get(nextReserveId).request_id,nextRequestId);
+  }finally{world.fetch=original}
+});
