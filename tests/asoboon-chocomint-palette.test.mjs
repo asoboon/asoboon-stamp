@@ -120,3 +120,12 @@ test('Live-verified chocolate ribbon and loading-skeleton fix are present in off
   assert.ok(rich.includes(selector),'Missing reviewed visual selector '+selector);
  }
 });
+
+
+test('Parking arrival routes share cocoa unselected state and mint is reserved for actual selection',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ for(const n of ['nth-child(1):not([aria-pressed="true"])','nth-child(2):not([aria-pressed="true"])','button.is-selected[aria-pressed="true"]']){
+  assert.ok(rich.includes(n),'Missing parking selection affordance rule '+n);
+ }
+ assert.match(rich,/button\.is-selected\[aria-pressed="true"\]\{\s*background:linear-gradient\(125deg,#9BE6D3,#2BAEAA\)/);
+});
