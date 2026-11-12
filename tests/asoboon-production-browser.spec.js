@@ -4385,3 +4385,32 @@ test('2026-11-12 chocolate-mint palette stays free of saturated orange across HO
  }
  expect(errors).toEqual([]);
 });
+
+
+test('Live visual QA: chocolate opening ribbon and legible guide at four mobile widths', async ({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58DayZone')).toBeVisible({timeout:12000});
+ for (const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:844});
+  const state=await page.evaluate(()=>{
+   const e=document.querySelector('#v58DayZone'),label=e?.querySelector('.v58-section-title');
+   return {background:e?getComputedStyle(e).backgroundImage:'',titleColor:label?getComputedStyle(label).color:'',overflow:document.documentElement.scrollWidth>innerWidth+1};
+  });
+  expect(state.background).toContain('rgb(37, 28, 26)');
+  expect(state.titleColor).toBe('rgb(255, 249, 241)');
+  expect(state.overflow).toBe(false);
+ }
+ await page.locator('#app>.cm-bottom-nav [data-v7-view="guide"]').click();
+ const second=page.locator('.cm-hub-list>.cm-hub-row:nth-child(2)');
+ await expect(second).toBeVisible();
+ const guide=await second.evaluate(e=>({bg:getComputedStyle(e).backgroundImage,fg:getComputedStyle(e.querySelector('strong')).color}));
+ expect(guide.bg).toContain('rgb(57, 40, 36)');
+ expect(guide.fg).toBe('rgb(255, 249, 241)');
+});
