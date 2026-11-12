@@ -4143,7 +4143,7 @@ test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but acce
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('canceled');
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R333');
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- await expect(page.locator('#v38Hero')).toContainText('受付番号は保存済みです');
+ await expect(page.locator('#v38Hero')).toContainText('もう一度受付する');
  const terminalEvents=await page.evaluate(()=>window.__homeStatusKinds);
  const canceledIndex=terminalEvents.lastIndexOf('canceled');
  expect(canceledIndex).toBeGreaterThanOrEqual(0);
