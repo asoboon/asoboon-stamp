@@ -3,18 +3,18 @@
    Restore distinct chocolate masses, vivid mint interactions and cream contrast.
    Presentation only: never hide/alter AirWAIT data, reception, call states or disabled controls.
    Only the already approved 18-color chocolate/mint palette is used. */
-html.boon-v4.boon-v5-mint body[data-environment="production"]{
+html.boon-v4.boon-v5-mint body[data-environment="production"]:not(.v7-callstatus-active){
  --rich-cocoa:#251C1A;--rich-dark:#392824;--rich-milk:#563B32;
  --rich-mint:#2BAEAA;--rich-leaf:#67CEBB;--rich-ice:#9BE6D3;
  --rich-cream:#FFF9F1;--rich-paper:#EBFFF6;
  background:linear-gradient(160deg,#67CEBB 0%,#D2F3E7 28%,#EBFFF6 76%,#9BE6D3 100%)!important;
  color:#251C1A!important;
 }
-html.boon-v4.boon-v5-mint body[data-environment="production"] #app.app{
+html.boon-v4.boon-v5-mint body[data-environment="production"]:not(.v7-callstatus-active) #app.app{
  background:linear-gradient(175deg,#D2F3E7 0%,#EBFFF6 52%,#9BE6D3 100%)!important;
  color:#251C1A!important;
 }
-html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar{
+html.boon-v4.boon-v5-mint body[data-environment="production"]:not(.v7-callstatus-active) #app .topbar{
  background-color:#251C1A!important;
  background-image:radial-gradient(circle at 85% 24%,#785548 0 5px,transparent 6px),
  radial-gradient(circle at 91% 62%,#563B32 0 4px,transparent 5px),
@@ -23,15 +23,17 @@ html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar{
  box-shadow:0 7px 0 #9BE6D3,0 13px 23px rgba(57,40,36,.22)!important;
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar .brand{
- background:#FFF9F1!important;border:2px solid #C9AC99!important;
+ background:linear-gradient(115deg,#FFF9F1,#E5D6C9 48%,#FFF9F1)!important;border:2px solid #C9AC99!important;
  border-radius:15px!important;box-shadow:0 3px 0 #785548!important;
- color:#251C1A!important;
+ color:#392824!important;
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app .topbar .brand :is(strong,small,span){
- color:#251C1A!important;
+ color:#392824!important;
 }
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app>.cm-bottom-nav{
- background:linear-gradient(180deg,#563B32 0%,#251C1A 66%)!important;
+ background:radial-gradient(circle at 14% 23%,#785548 0 5px,transparent 6px),
+ radial-gradient(circle at 83% 68%,#563B32 0 4px,transparent 5px),
+ linear-gradient(180deg,#563B32 0%,#251C1A 66%)!important;
  border-top:4px solid #67CEBB!important;
  box-shadow:0 -6px 0 #9BE6D3,0 -10px 20px rgba(57,40,36,.22)!important;
 }
@@ -142,7 +144,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app .v38-access-card .v38-calend
  background:#67CEBB!important;color:#251C1A!important;
 }
 /* Non-HOME routes: visible cocoa heads and bright mint primary actions. */
-html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active>.page-card,
+html.boon-v4.boon-v5-mint body[data-environment="production"]:not(.v7-callstatus-active) #app main.view.active>.page-card,
 html.boon-v4.boon-v5-mint body[data-environment="production"] #app main.view.active :is(.cm-hub,.pv7-page,.v24-parking-page,.v27-first-page,.v25-entry-page,.v33-rules-page){
  background:#FFF9F1!important;border-color:#C9AC99!important;color:#251C1A!important;
 }
