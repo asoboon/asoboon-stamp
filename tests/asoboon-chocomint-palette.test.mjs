@@ -94,3 +94,21 @@ test('Rich treatment protects verified call colors and chocolate chip header/foo
  assert.match(rich,/\.cm-bottom-nav\{[\s\S]*?radial-gradient/);
  assert.match(rich,/\.topbar \.brand\{[\s\S]*?linear-gradient/);
 });
+
+
+test('All critical live-status HOME headings are cream on high-contrast chocolate',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ assert.match(rich,/\.v58-primary\{\s*background:linear-gradient\(115deg,#251C1A,#392824\)/);
+ for(const name of ['v58-next-title','v58-next-summary','v58-phase-text']){
+  assert.ok(rich.includes('.'+name),'Missing contrast override for live status '+name);
+ }
+ const lum=h=>{
+  const rgb=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+  const v=rgb.map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4);
+  return v[0]*.2126+v[1]*.7152+v[2]*.0722;
+ };
+ for(const bg of ['#251C1A','#392824']){
+  const a=lum(bg),b=lum('#FFF9F1');
+  assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=7,'Critical live state copy should have AAA contrast on '+bg);
+ }
+});
