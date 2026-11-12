@@ -294,3 +294,46 @@ html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
  background:#67CEBB!important;color:#251C1A!important;
  border:1px solid #9BE6D3!important;
 }
+
+/* v12.4 — live visual QA: both *unselected* arrival choices must look equally
+   actionable. The previous cocoa-only second card falsely suggested the
+   expressway route was selected before any user interaction.
+   Cocoa chocolate is used on both; the actual choice becomes vivid mint. */
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(1):not([aria-pressed="true"]),
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(2):not([aria-pressed="true"]){
+ background:linear-gradient(135deg,#392824,#563B32)!important;
+ border:2px solid #67CEBB!important;
+ box-shadow:0 3px 0 #166D66!important;
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(1):not([aria-pressed="true"]) :is(strong,small,em),
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:nth-child(2):not([aria-pressed="true"]) :is(strong,small,em){
+ color:#FFF9F1!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button:not([aria-pressed="true"]) > span:first-child{
+ background:#67CEBB!important;
+ color:#251C1A!important;
+ border:1px solid #9BE6D3!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button.is-selected[aria-pressed="true"]{
+ background:linear-gradient(125deg,#9BE6D3,#2BAEAA)!important;
+ border:3px solid #163D3A!important;
+ box-shadow:0 4px 0 #166D66!important;
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button.is-selected[aria-pressed="true"] :is(strong,small,em){
+ color:#251C1A!important;
+}
+html.boon-v4.boon-v5-mint body:not(.v7-callstatus-active)
+ #app main.view.active .v24-choice > button.is-selected[aria-pressed="true"] > span:first-child{
+ background:#251C1A!important;
+ color:#FFF9F1!important;
+ border:1px solid #392824!important;
+}
