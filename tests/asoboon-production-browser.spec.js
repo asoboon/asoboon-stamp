@@ -4399,13 +4399,12 @@ test('Live visual QA: chocolate opening ribbon and legible guide at four mobile 
  await expect(page.locator('#v58DayZone')).toBeVisible({timeout:12000});
  for (const width of [320,375,390,430]){
   await page.setViewportSize({width,height:844});
-  const state=await page.evaluate(()=>{
+  await expect.poll(async()=>page.evaluate(()=>{
    const e=document.querySelector('#v58DayZone'),label=e?.querySelector('.v58-section-title');
-   return {background:e?getComputedStyle(e).backgroundImage:'',titleColor:label?getComputedStyle(label).color:'',overflow:document.documentElement.scrollWidth>innerWidth+1};
-  });
-  expect(state.background).toContain('rgb(37, 28, 26)');
-  expect(state.titleColor).toBe('rgb(255, 249, 241)');
-  expect(state.overflow).toBe(false);
+   return {dark:!!e&&getComputedStyle(e).backgroundImage.includes('rgb(37, 28, 26)'),
+    legible:!!label&&getComputedStyle(label).color==='rgb(255, 249, 241)',
+    overflow:document.documentElement.scrollWidth>innerWidth+1};
+  }),{timeout:12000}).toMatchObject({dark:true,legible:true,overflow:false});
  }
  await page.locator('#app>.cm-bottom-nav [data-v7-view="guide"]').click();
  const second=page.locator('.cm-hub-list>.cm-hub-row:nth-child(2)');
