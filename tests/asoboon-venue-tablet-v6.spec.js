@@ -42,10 +42,10 @@ test('ラッパーは退場時間システムを起動せず、新版だけを�
 
 const touchSizes=[
   ['iPad landscape',1194,834,8],
-  ['iPad portrait',834,1194,4],
+  ['iPad portrait',834,1194,5],
   ['small iPad',1024,768,8],
-  ['phone',375,812,4],
-  ['small phone',320,640,4],
+  ['phone',375,812,5],
+  ['small phone',320,640,5],
   ['desktop',1440,900,8]
 ];
 
