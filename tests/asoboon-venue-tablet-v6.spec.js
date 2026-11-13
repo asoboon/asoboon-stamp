@@ -21,7 +21,7 @@ test('旧画面から独立した3択を操作でき、次の案内へ即移動'
   const guide=page.locator('#exitGuideV2');
   await expect(guide).toBeVisible();
   const started=await page.evaluate(()=>{const t=performance.now();document.querySelector('[data-guide="family"]').click();return t;});
-  await expect(page.locator('#eg-cinema')).toHaveAttribute('data-played','true');
+  await expect(page.locator('#eg-cinema')).toBeHidden();
   await expect(guide).toContainText('赤ホルダーからレシートを抜く',{timeout:3000});
   const elapsed=await page.evaluate(t=>performance.now()-t,started);
   expect(elapsed).toBeLessThan(1900);

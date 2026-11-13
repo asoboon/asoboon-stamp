@@ -39,14 +39,14 @@ test('8言語の入口、持ち物、返却、再入場、禁止文を切替可�
   await guide.locator('[data-guide="leave"]').click();
   await expect(guide).toContainText('RE-ENTRY IS NOT ALLOWED');
 });
-test('V5演出に190粒子と追加の扉・光・衝撃レイヤーがある',async({page})=>{
+test('手順を覆うV5全画面演出は起動せず、表示内容と演出アセットは維持',async({page})=>{
   await page.goto(target);
   const cin=page.locator('#eg-cinema');
   await expect(page.locator('#eg-final-languages')).toBeVisible();
   await page.locator('#exitGuideV2 [data-guide="family"]').click();
-  await expect(cin).toHaveAttribute('data-played','true');
-  const state=await page.evaluate(()=>({v5:!!window.__asoboonExitGuideV5,played:document.querySelector('#eg-cinema')?.dataset.played,particles:document.querySelector('#eg-cinema')?.dataset.particleCount}));
-  expect(state).toEqual({v5:true,played:'true',particles:'190'});
+  await expect(cin).toBeHidden();
+  const state=await page.evaluate(()=>({v5:!!window.__asoboonExitGuideV5,cinemaActive:window.__ASOBOON_CINEMA_TEST__?.isRunning(),screen:document.querySelector('#exitGuideV2')?.dataset.guideScreen}));
+  expect(state).toEqual({v5:true,cinemaActive:false,screen:'family'});
   await expect(cin.locator('.eg-final-rail i')).toHaveCount(2);
   await expect(cin.locator('.eg-final-vortex')).toHaveCount(1);
   await expect(cin.locator('.eg-final-impact')).toHaveCount(1);
@@ -124,13 +124,13 @@ test('全画面操作がブラウザAPIを呼び、非対応環境でも案内�
   await expect(page.locator('#eg-landscape-fullscreen-tip')).toContainText('ホーム画面に追加');
   await expect(guide).toBeVisible();
 });
-test('横画面でも8言語とV5の全画面演出を維持',async({page})=>{
+test('横画面でも8言語と説明の可視性を維持',async({page})=>{
   await page.setViewportSize({width:1024,height:768});
   await page.goto(target);
   await page.locator('#eg-final-languages [data-locale="ko"]').click();
   await expect(page.locator('#exitGuideV2 .eg-intro h1')).toContainText('외출 및 재입장 안내');
   await page.locator('#exitGuideV2 [data-guide="adult"]').click();
-  await expect(page.locator('#eg-cinema')).toHaveAttribute('data-played','true');
+  await expect(page.locator('#eg-cinema')).toBeHidden();
   await expect(page.locator('#exitGuideV2')).toContainText('노란색 홀더를 가지고 계신가요?',{timeout:5000});
 });
 test('音ON/OFFと8言語の音声が即時案内を妨げない',async({page})=>{
@@ -171,16 +171,35 @@ test('ボタンを押した同じ処理内で説明へ切り替わる',async({pa
       elapsed:performance.now()-begin,
       hasQuestion:document.querySelector('#exitGuideV2')?.innerText.includes('黄色ホルダーを持っていますか？'),
       screen:window.__ASOBOON_CINEMA_TEST__?.screen(),
-      played:document.querySelector('#eg-cinema')?.dataset.played
+      cinemaActive:document.querySelector('#eg-cinema')?.classList.contains('active')
     };
   });
   expect(immediate.hasQuestion).toBe(true);
   expect(immediate.screen).toBe('adult');
-  expect(immediate.played).toBe('true');
+  expect(immediate.cinemaActive).toBe(false);
   expect(immediate.elapsed).toBeLessThan(400);
   await expect(page.locator('#exitGuideV2 [data-guide="adult-no"]')).toBeVisible();
   await page.locator('#exitGuideV2 [data-guide="adult-no"]').click();
   await expect(page.locator('#exitGuideV2')).toContainText('外出前に受付スタッフへ確認してください。');
+});
+
+test('全画面フラッシュなしで次の説明が即時見える（iPad横・縦・スマホ）',async({page})=>{
+  for(const [width,height] of [[1194,834],[834,1194],[375,812]]){
+    await page.setViewportSize({width,height});
+    await page.goto(target);
+    const visible=await page.evaluate(()=>{
+      document.querySelector('#exitGuideV2 [data-guide="family"]').click();
+      const root=document.querySelector('#exitGuideV2');
+      const cinema=document.querySelector('#eg-cinema');
+      const firstStep=[...root.querySelectorAll('.eg-step')].find(el=>!el.hidden);
+      return {screen:root.dataset.guideScreen,cinema:getComputedStyle(cinema).display,
+        stepVisible:!!firstStep&&getComputedStyle(firstStep).display!=='none',
+        instruction:root.innerText.includes('ロッカーの荷物を全部出す')};
+    });
+    expect(visible,{width,height}).toEqual({screen:'family',cinema:'none',stepVisible:true,instruction:true});
+    await page.waitForTimeout(220);
+    await expect(page.locator('#eg-cinema')).toBeHidden();
+  }
 });
 
 test('音量スライダーで効果音を調節できる・音声設定も維持',async({page})=>{
