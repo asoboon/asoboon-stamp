@@ -5965,8 +5965,10 @@
 #exitGuideV2 .eg-choice:nth-child(2) .eg-choice-action{animation-delay:.4s}#exitGuideV2 .eg-choice:nth-child(3) .eg-choice-action{animation-delay:.8s}
 #exitGuideV2 .eg-choice.eg-selected{animation:eg-impact-btn .24s linear infinite!important;z-index:5;filter:saturate(1.5) brightness(1.16)!important}
 #exitGuideV2 .eg-intro h1{letter-spacing:.02em;text-shadow:0 3px 0 #fff,0 0 15px rgba(32,146,255,.18)}
-#exitGuideV2.eg-nav-active{filter:saturate(1.13)}
-#exitGuideV2.eg-nav-active .eg-page{animation:eg-app-shudder .10s linear 6}
+/* Navigation never blocks a new instruction with a full-screen flash. */
+#exitGuideV2.eg-nav-active{filter:none}
+#exitGuideV2.eg-nav-active .eg-page{animation:eg-guide-arrive .16s ease-out both}
+@keyframes eg-guide-arrive{0%{opacity:.94;transform:translateY(4px)}100%{opacity:1;transform:none}}
 #eg-cinema{position:fixed;inset:0;z-index:1250;overflow:hidden;pointer-events:none;isolation:isolate;display:none;color:white;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif}
 #eg-cinema.active{display:block}
 #eg-cinema .cin-back{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at center,var(--cin-glow,#0c76dc),#001126 65%,#00050e 100%);opacity:.75}
@@ -6222,7 +6224,7 @@
 
 
   function navigate(destination,button){
-    // The next guide appears on the same tap. FX never holds the visitor hostage.
+    // Reveal the next guide on the same tap; never obscure it with full-screen FX.
     if(navigating){window.clearTimeout(navTimer);stopCinema();navigating=false;root.classList.remove('eg-nav-active');}
     if(destination==='home'&&current==='home')return;
     const animate=animationOK()&&destination!=='home';
@@ -6231,17 +6233,15 @@
     // Immediate DOM update, without waiting for the effect, sound files, or speech.
     render(destination);
     if(!animate)return;
+    // Only a subtle 160ms reveal of the *already visible* guide is allowed.
+    // The older cinematic effect painted over the entire viewport for 560ms,
+    // hiding the instruction even though render(destination) had completed.
     navigating=true;
     root.classList.add('eg-nav-active');
-    setupCinema(destination);
     window.clearTimeout(navTimer);
     navTimer=window.setTimeout(()=>{
-      stopCinema();root.classList.remove('eg-nav-active');navigating=false;
-      if(destination==='adult-yes'||destination==='leave'){
-        const b=root.querySelector('.eg-hint');
-        if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}
-      }
-    },560);
+      root.classList.remove('eg-nav-active');navigating=false;
+    },180);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
