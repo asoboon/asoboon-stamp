@@ -110,7 +110,7 @@ function refresh(){
  while(walk.nextNode())updateText(walk.currentNode,lang);
  for(const el of ROOT.querySelectorAll('[aria-label],[title]'))updateAttrs(el,lang);
  document.documentElement.lang=lang;
- document.title=translate(originalTitle,lang);
+ document.title=originalTitle.replace(/営業日カレンダー|イベントカレンダー/g,key=>translate(key,lang));
 }
 function schedule(){if(scheduled)return;scheduled=true;setTimeout(refresh,60)}
 select.addEventListener('change',()=>{try{localStorage.setItem(KEY,select.value)}catch{}schedule()});
