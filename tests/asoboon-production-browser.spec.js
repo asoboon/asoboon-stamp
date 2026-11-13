@@ -2908,6 +2908,9 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  await expect(page.locator('#v59SlotsFold summary')).toBeHidden();
  await expect(page.locator('#v58SessionsZone #v38Slots')).toBeVisible();
  await expect(page.locator('#v38Slots')).toBeVisible();
+ // Initial network verification is intentionally a distinct loading state.
+ // Do not sample a transient 0-row board as a completed unverified result.
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています',{timeout:15000});
  // If current public reception is unverified, there is deliberately no
  // old capacity board or false 'available' claim.
  const oldBoardCount=await page.locator('#v613Board .v613-row').count();
