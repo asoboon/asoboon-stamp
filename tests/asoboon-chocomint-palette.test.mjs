@@ -61,9 +61,9 @@ test('Rich cocoa/mint presentation is loaded last on both certified production e
  const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
  const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
  const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
- assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261113-01">/);
- assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261113-01">/);
- assert.match(builder, /choco-mint-rich-v12\.css\?v=20261113-01/);
+ assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261113-02">/);
+ assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261113-02">/);
+ assert.match(builder, /choco-mint-rich-v12\.css\?v=20261113-02/);
  for(const color of ['#251C1A','#392824','#2BAEAA','#67CEBB']){
   assert.ok(rich.split(color).length>5,'Expected prominent, repeated rich visual surfaces: '+color);
  }
@@ -128,4 +128,13 @@ test('Parking arrival routes share cocoa unselected state and mint is reserved f
   assert.ok(rich.includes(n),'Missing parking selection affordance rule '+n);
  }
  assert.match(rich,/button\.is-selected\[aria-pressed="true"\]\{\s*background:linear-gradient\(125deg,#9BE6D3,#2BAEAA\)/);
+});
+
+
+test('Live LINE reception heading uses cocoa, not a washed-out pale orange legacy surface',()=>{
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ assert.match(rich,/body\.v7-reception-active:not\(\.v7-callstatus-active\)/);
+ assert.match(rich,/\.page-head\.orange\{\s*background:radial-gradient/);
+ assert.match(rich,/\.page-head\.orange :is\(small,h2,\.rv7-head-note\)/);
+ assert.match(rich,/border-bottom:4px solid #67CEBB!important/);
 });
