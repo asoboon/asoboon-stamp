@@ -4476,3 +4476,26 @@ test('Kurmanji fallback note stays clear of operating hours on narrow HOME',asyn
  await expect(note).toBeHidden();
  await expect(page.locator('body')).not.toHaveClass(/asoboon-language-note-shown/);
 });
+
+test('All-route dictionary bridge translates guide and reports non-Kurmanji English fallback',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#asoboon-language-select')).toBeVisible();
+ await page.locator('.cm-nav-tab[data-v7-view="guide"]').click();
+ await expect(page.locator('.cm-hub h1')).toBeVisible();
+ await page.locator('#asoboon-language-select').selectOption('en');
+ await expect(page.locator('html')).toHaveAttribute('lang','en',{timeout:10000});
+ await expect(page.locator('.cm-hub h1')).toHaveText('Visitor guide',{timeout:10000});
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_ROUTE_I18N?.audit()?.view)).toBe('guide');
+ const stats=await page.evaluate(()=>window.ASOBOON_ROUTE_I18N.audit());
+ expect(stats.translated+stats.englishFallback).toBeGreaterThan(0);
+ await page.locator('#asoboon-language-select').selectOption('kmr');
+ await expect(page.locator('html')).toHaveAttribute('lang','kmr',{timeout:10000});
+ await expect(page.locator('#asoboon-language-note')).toBeVisible();
+ const kmr=await page.evaluate(()=>window.ASOBOON_ROUTE_I18N.audit());
+ expect(kmr.language).toBe('kmr');
+ expect(kmr.englishFallback).toBeGreaterThan(0);
+ await page.locator('#asoboon-language-select').selectOption('ja');
+ await expect(page.locator('.cm-hub h1')).toHaveText('ご利用案内',{timeout:10000});
+});
