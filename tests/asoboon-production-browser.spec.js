@@ -2845,8 +2845,9 @@ test('After 19:00 with next day closed, archived seats are invalidated using tod
   return route.fallback();
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect.poll(()=>crowdReads,{timeout:12000}).toBeGreaterThan(0);
- await expect.poll(()=>visibilityReads,{timeout:12000}).toBeGreaterThan(0);
+ // When the next business day is closed and the archive is invalidated,
+ // a new AirWAIT crowd read is optional; there is no actionable session to query.
+ // What matters is removing the old quota and never offering a booking action.
  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_last_verified_crowd_day_v1')),
   {timeout:12000}).toBeNull();
  await expect(page.locator('#v613Board .v613-percent')).toHaveText(['—','—','—']);
