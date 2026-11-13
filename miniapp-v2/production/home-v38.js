@@ -142,12 +142,17 @@ function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)retu
 function patchToday(){const b=root.querySelector('#v38Today');if(!b)return;const v=b.querySelectorAll('strong'),compact=window.ASOBOON_MINT_V51_PREVIEW===true,today=businessForBoard(),c=!!today?.isClosed;
 if(closingPreview()){
  const t=tomorrowRule();b.setAttribute('aria-label','明日の営業と利用時間');
+ const captions=b.querySelectorAll('small');
+ setText(captions[1],'営業区分・営業時間');setText(captions[2],'利用時間');
  setText(v[0],'明日の営業');
  setText(v[1],!t?'確認中':t.isClosed?'休館日':String(t.businessType||'').replace('土日祝日','土日祝')+' 10:00〜'+String(t.closingTime||'—'));
  setText(v[2],t&&!t.isClosed?String(t.durationLabel||'').replace(/制$/u,''):'');
  b.classList.toggle('closed',t?.isClosed===true);return;
 }
-b.setAttribute('aria-label','本日の営業と利用時間');if(today){const k=today.businessType||'—',d=today.durationLabel||'—',t=today.closingTime||'—';setText(v[0],compact?'今日の営業':c?'休館':k);setText(v[1],compact?(c?'休館日':k.replace('土日祝日','土日祝')+(/^\d{2}:\d{2}$/.test(t)?' 10:00〜'+t:'')):c?'—':d);setText(v[2],compact?(c?'':d==='—'?'':/(?:無制限|制限なし|制)$/u.test(d)?d:d+'制'):c?'—':t);b.classList.toggle('closed',c);return}const unavailable=Boolean(dayError||day?.ok||displayDay?.ok);setText(v[0],compact?'今日の営業':unavailable?'取得できません':T.loading);setText(v[1],compact?(unavailable?'取得不可':T.loading):'—');setText(v[2],compact?'':'—')}
+b.setAttribute('aria-label','本日の営業と利用時間');
+ const captions=b.querySelectorAll('small');
+ setText(captions[1],'利用時間');setText(captions[2],'閉館');
+ if(today){const k=today.businessType||'—',d=today.durationLabel||'—',t=today.closingTime||'—';setText(v[0],compact?'今日の営業':c?'休館':k);setText(v[1],compact?(c?'休館日':k.replace('土日祝日','土日祝')+(/^\d{2}:\d{2}$/.test(t)?' 10:00〜'+t:'')):c?'—':d);setText(v[2],compact?(c?'':d==='—'?'':/(?:無制限|制限なし|制)$/u.test(d)?d:d+'制'):c?'—':t);b.classList.toggle('closed',c);return}const unavailable=Boolean(dayError||day?.ok||displayDay?.ok);setText(v[0],compact?'今日の営業':unavailable?'取得できません':T.loading);setText(v[1],compact?(unavailable?'取得不可':T.loading):'—');setText(v[2],compact?'':'—')}
 function readTimeguideResult(){try{return JSON.parse(localStorage.getItem(TIMEGUIDE_KEY)||'null')}catch{return null}}
 function patchTimeguideShortcut(){
 const card=root.querySelector('#v38TimeguideShortcut');if(!card)return;

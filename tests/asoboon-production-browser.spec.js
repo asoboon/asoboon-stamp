@@ -4630,3 +4630,27 @@ test('After weekday 17:00 closing the HOME previews tomorrow closed Tuesday, wit
  await expect(page.locator('#v38Slots')).toContainText('明日は休館日です');
  await expect(page.locator('#v38Slots [data-v7-view="reception"],#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
 });
+
+test('Certified official HOME visibly labels tomorrow date and schedule after closing, not today',async({page})=>{
+ await installProduction(page,{clockIso:'2026-11-14T09:00:00.000Z'});
+ const site=new URL('../../',BASE).href;
+ await page.addInitScript(site=>{
+  Object.defineProperty(window,'ASOBOON_V2_ENV',{configurable:true,get(){return this.__qaEnv;},set(value){
+   this.__qaEnv=Object.freeze({...value,assetBase:site+'miniapp-v2/production/',siteBase:site,endpoint:site+'home.html'});
+  }});
+ },site);
+ await page.route(GATEWAY+'**',route=>{
+  const u=new URL(route.request().url());if(u.searchParams.get('action')!=='businessDay')return route.fallback();
+  const date=u.searchParams.get('date');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,operationalDate:date,calendarDate:date,businessType:'土日祝日',closingTime:'18:00',durationLabel:'2時間30分'
+  })});
+ });
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v58DayZone>.v58-section-title')).toHaveText('明日 11月15日（日）の営業');
+ await expect(page.locator('#v58SessionsZone>.v58-section-title')).toHaveText('明日の受付予定');
+ await expect(page.locator('#v38Today span:nth-child(2) small')).toHaveText('営業区分・営業時間');
+ await expect(page.locator('#v38Today span:nth-child(3) small')).toHaveText('利用時間');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});
