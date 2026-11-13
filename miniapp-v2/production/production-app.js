@@ -884,6 +884,14 @@ function writeCrowdMarkup(box,markup){
 // Visitor-facing AirWAIT capacityInfo is the source of selectable options.
 // A configured dispFlg or same-clock time alone never proves bookability.
 function renderPublicReception(box){
+ // During the first network read no AirWAIT verification has been attempted.
+ // Do not flash a permanent-error notice while a valid snapshot is loading.
+ if(publicReception?.source==='initial'){
+  const url=airwaitWebReceptionUrl();
+  const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付を確認 ↗</a>':'';
+  writeCrowdMarkup(box,'<h3>受付の空き状況</h3><p class="v38-slots-note" role="status">Airウェイトの受付枠を確認しています…</p>'+(link?'<p>'+link+'</p>':''));
+  return true;
+ }
  if(publicReception===undefined){
   // Older gateway responses have no publicReception field. Keep the old,
   // conservative read-only legacy view rather than a stale suppression flag.

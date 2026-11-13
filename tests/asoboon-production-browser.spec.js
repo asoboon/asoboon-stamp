@@ -4527,6 +4527,28 @@ test('HOME uses only AirWAIT currently selectable public slots, not outdated wee
  await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]').first()).toBeVisible();
 });
 
+
+test('HOME first load says checking, not public-slot verification error, while backend is still responding',async({page})=>{
+ await installProduction(page);
+ let completeWaitTypes;
+ const pause=new Promise(resolve=>{completeWaitTypes=resolve});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await pause;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[{waitTypeId:'0030',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}],
+   publicReception:{verified:false,source:'AirWAIT-public-page',slots:[]}
+  })});
+ });
+ try{
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#v38Slots')).toContainText('Airウェイトの受付枠を確認しています');
+  await expect(page.locator('#v38Slots')).not.toContainText('現在受付できる枠を確認できません');
+  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ }finally{completeWaitTypes()}
+ await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません',{timeout:18000});
+ await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
+});
+
 test('HOME never displays historical remaining quotas when public AirWAIT slot verification fails',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
