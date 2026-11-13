@@ -2219,7 +2219,7 @@ test('Language selector translates first-visit route without issuing new tickets
  await page.locator('#asoboon-language-select').selectOption('zh-CN');
  await page.locator('[data-v7-view="first"]').first().click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
- await expect(page.locator('#asoboon-language-note')).toContainText('部分内容仍以日语显示');
+ await expect(page.locator('#asoboon-language-note')).toContainText('可能以英语或日语显示');
  await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
  await expect(page.locator('.cm-bottom-nav [data-v7-view="guide"]')).toContainText('使用指南');
  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
