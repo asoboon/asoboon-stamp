@@ -147,12 +147,12 @@ test('Discoverable seven-language native picker is linked on both production ent
  const picker=fs.readFileSync('miniapp-v2/production/language-switch-ux-v1.js','utf8');
  const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
  for(const source of [home,index,builder]){
-  assert.match(source,/language-switch-ux-v1\\.js\\?v=20261113-01/);
-  assert.match(source,/choco-mint-rich-v12\\.css\\?v=20261113-lang01/);
+  assert.match(source,/language-switch-ux-v1\.js\?v=20261113-01/);
+  assert.match(source,/choco-mint-rich-v12\.css\?v=20261113-lang01/);
  }
  for(const code of ['ja','zh-CN','vi','en','ne','ko','kmr'])assert.ok(picker.includes(code),'No picker name for '+code);
  assert.ok(picker.includes('Kurmancî / Kurdish (Kurmanji)'));
  assert.ok(picker.includes('🌐 Language'));
- assert.match(rich,/#asoboon-language-bar label\\{/);
- assert.match(rich,/#asoboon-language-select\\{/);
+ assert.match(rich,/#asoboon-language-bar label\{/);
+ assert.match(rich,/#asoboon-language-select\{/);
 });
