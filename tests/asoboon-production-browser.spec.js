@@ -4413,3 +4413,43 @@ test('Live visual QA: chocolate opening ribbon and legible guide at four mobile 
  expect(guide.bg).toContain('rgb(57, 40, 36)');
  expect(guide.fg).toBe('rgb(255, 249, 241)');
 });
+
+test('Globe Language picker is identifiable to foreign-language visitors at five widths',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ for(const entry of [BASE,site+'home.html']){
+  await page.goto(entry,{waitUntil:'domcontentloaded'});
+  const label=page.locator('#asoboon-language-bar label[for="asoboon-language-select"]');
+  const select=page.locator('#asoboon-language-select');
+  await expect(label).toBeVisible({timeout:10000});
+  await expect(label).toContainText('🌐 Language');
+  await expect(select).toBeVisible();
+  await expect(select.locator('option')).toHaveCount(7);
+  await expect(select.locator('option[value="kmr"]')).toHaveText('Kurmancî / Kurdish (Kurmanji)');
+  await expect(select.locator('option[value="ja"]')).toContainText('Japanese');
+  for(const width of [320,375,390,430,768]){
+   await page.setViewportSize({width,height:844});
+   const a=await page.evaluate(()=>{
+    const root=document.querySelector('#asoboon-language-bar');
+    const lab=root.querySelector('label'),picker=root.querySelector('select');
+    const header=document.querySelector('#app .topbar');
+    const brand=header?.querySelector('.brand');
+    const rect=el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width}};
+    return{bar:rect(root),label:rect(lab),picker:rect(picker),brand:brand?rect(brand):null,
+     overflow:document.documentElement.scrollWidth>innerWidth+1};
+   });
+   expect(a.label.width).toBeGreaterThan(45);
+   expect(a.label.left).toBeGreaterThanOrEqual(a.bar.left-1);
+   expect(a.label.right).toBeLessThanOrEqual(a.bar.right+1);
+   expect(a.picker.width).toBeGreaterThanOrEqual(105);
+   expect(a.picker.left).toBeGreaterThanOrEqual(a.bar.left-1);
+   expect(a.picker.right).toBeLessThanOrEqual(a.bar.right+1);
+   if(a.brand)expect(a.brand.right+8).toBeLessThanOrEqual(a.picker.left);
+   expect(a.overflow).toBe(false);
+  }
+  await select.selectOption('kmr');
+  await expect(page.locator('html')).toHaveAttribute('lang','kmr');
+  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toContainText('Bangkirin');
+  await select.selectOption('ja');
+ }
+});
