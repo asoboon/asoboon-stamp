@@ -4456,7 +4456,8 @@ test('Globe Language picker is identifiable to foreign-language visitors at five
 
 test('Kurmanji fallback note stays clear of operating hours on narrow HOME',async({page})=>{
  await installProduction(page);
- await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const site=new URL('../../',BASE).href;
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
  const select=page.locator('#asoboon-language-select');
  const note=page.locator('#asoboon-language-note');
  await expect(page.locator('#v58DayZone')).toBeVisible({timeout:10000});
