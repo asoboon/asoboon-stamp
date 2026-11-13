@@ -209,7 +209,7 @@ test('Production HOME reception stays in the MINI App and never redirects to Air
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
   await expect(page.locator('#recSubmit')).toBeVisible();
   await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
-  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(new URL(page.url()).origin).toBe(new URL(BASE).origin);
   expect(airwaitRequests).toEqual([]);
 });
 
@@ -1304,7 +1304,7 @@ test('AirWAIT text link opens the configured WEB reception externally on user ta
   await expect.poll(()=>popup.url()).toContain('airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
   await popup.close();
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
-  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(new URL(page.url()).origin).toBe(new URL(BASE).origin);
 });
 
 test('Production HOME prioritizes ASOBooN Timer before the business calendar',async({page})=>{
