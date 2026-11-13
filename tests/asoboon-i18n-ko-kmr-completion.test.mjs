@@ -44,8 +44,17 @@ test('High-risk booking, cancellation and child safety remain semantically disti
 });
 test('Completion layer ships on official HOME and direct Production and never touches AirWAIT mutations',()=>{
  const home=read('home.html'),index=read('miniapp-v2/production/index.html'),builder=read('miniapp-v2/build-production.mjs');
- for(const html of [home,index,builder])assert.match(html,/i18n-ko-kmr-completion-v2\.js\?v=20261113-01/);
+ for(const html of [home,index,builder])assert.match(html,/i18n-ko-kmr-completion-v2\.js\?v=20261113-02/);
  const addon=read('miniapp-v2/production/i18n-ko-kmr-completion-v2.js');
  assert.ok(!/fetch\(|XMLHttpRequest|localStorage|createReservation|cancelReservation|sessionToken|receiptNo/.test(addon));
  assert.match(addon,/window\.dispatchEvent\(new Event\('asoboon:v2-route-rendered'\)\)/);
+});
+
+
+test('Dynamic HOME labels use native display text while preserving source on locale return',()=>{
+ const addon=read('miniapp-v2/production/i18n-ko-kmr-completion-v2.js');
+ for(const phrase of ['受付なし','駐車場・アクセスを見る','最終更新','LINEミニアプリの受付へ'])assert.ok(addon.includes(phrase));
+ for(const code of ['en','zh-CN','vi','ne','ko','kmr'])assert.ok(addon.includes(code));
+ assert.match(addon,/asoboon:language-changed/);
+ assert.match(addon,/const rawCache=new WeakMap/);
 });
