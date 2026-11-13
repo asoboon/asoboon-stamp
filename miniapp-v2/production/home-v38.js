@@ -257,7 +257,12 @@ function writeCrowdMarkup(box,markup){
 // Visitor-facing AirWAIT capacityInfo is the source of selectable options.
 // A configured dispFlg or same-clock time alone never proves bookability.
 function renderPublicReception(box){
- if(publicReception===undefined)return false; // Legacy API (e.g. old test fixtures)
+ if(publicReception===undefined){
+  // Older gateway responses have no publicReception field. Keep the old,
+  // conservative read-only legacy view rather than a stale suppression flag.
+  window.ASOBOON_PUBLIC_RECEPTION_STATUS=undefined;
+  return false;
+ }
  // Retain explicitly read-only, dated after-closing archives while the
  // authoritative public feed has not yet been verified. Never make them bookable.
  if(publicReception?.verified===false&&crowdReadOnly())return false;
@@ -290,7 +295,7 @@ function renderPublicReception(box){
   const channel=isWeb?'WEB受付':'LINE・現地受付';
   const n=slot.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null;
   const num=n===null?'確認中':n+'人';
-  const canWeb=isWeb&&data.acceptingOnline===true&&n!==null&&n>0&&url;
+  const canWeb=isWeb&&!crowdReadOnly()&&data.acceptingOnline===true&&n!==null&&n>0&&url;
   const canLine=!isWeb&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
   const action=canWeb?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">WEBで受付する ↗</a>':
    canLine?'<button class="v38-airwait-link" type="button" data-v7-view="reception">LINEで受付を確認 →</button>':
