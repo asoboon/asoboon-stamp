@@ -4538,3 +4538,27 @@ test('Standalone business and event calendars persist seven-language choice incl
  await page.locator('#asoboon-calendar-select').selectOption('ja');
  await expect(page.locator('.bc-header h1')).toHaveText('営業日カレンダー',{timeout:10000});
 });
+
+test('Live-audited FAQ and safety routes translate question, answer and visitor rules without changing booking',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=faq',{waitUntil:'domcontentloaded'});
+ const pick=page.locator('#asoboon-language-select');
+ const entries=page.locator('#cmFaqList details');
+ await expect(entries).toHaveCount(16,{timeout:15000});
+ await pick.selectOption('kmr');
+ await expect(entries.first().locator('summary')).toHaveText('Qeydkirin kengî dest pê dike?');
+ await entries.first().locator('summary').click();
+ await expect(entries.first().locator('p')).toContainText('Di rojên destûrdayî de');
+ await pick.selectOption('ko');
+ await expect(entries.first().locator('summary')).toHaveText('접수는 몇 시부터 시작하나요?');
+ await pick.selectOption('ja');
+ await expect(entries.first().locator('summary')).toHaveText('受付は何時から始まりますか？');
+ await page.goto(BASE+'?view=rules',{waitUntil:'domcontentloaded'});
+ const h=page.locator('main.view.active h1').first();
+ await expect(h).toContainText('安全に遊ぶ');
+ await page.locator('#asoboon-language-select').selectOption('kmr');
+ await expect(h).toHaveText('Çar rêzik ji bo lîstina ewle');
+ await expect(page.locator('main.view.active')).toContainText('Ji lêketinê dûr bisekinin');
+ await page.locator('#asoboon-language-select').selectOption('ko');
+ await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
+});
