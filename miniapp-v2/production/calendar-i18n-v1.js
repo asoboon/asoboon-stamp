@@ -62,7 +62,7 @@ const rows=[
 ['※イベント内容・開催時間は、当日の混雑状況や運営上の都合により変更または中止となる場合があります。','Event details and times may change or be canceled depending on crowding or operating conditions.','活动内容和时间可能因当天拥挤程度或运营情况调整或取消。','Nội dung và thời gian sự kiện có thể thay đổi hoặc hủy do đông khách hay lý do vận hành.','भीड वा सञ्चालनका कारण कार्यक्रम र समय परिवर्तन वा रद्द हुन सक्छ।','혼잡 상황이나 운영 사정에 따라 이벤트 내용·시간이 변경 또는 취소될 수 있습니다.','Hûrgulî û demên bûyeran dikarin li gor qelebalixiyê an şertên xebatê biguherin an bên betalkirin.']
 ];
 const extra=Object.fromEntries(rows.map(([ja,...texts])=>[ja,Object.fromEntries(codes.map((c,i)=>[c,texts[i]]))]));
-const cache=new WeakMap(),attributes=new WeakMap();
+const cache=new WeakMap(),attributes=new WeakMap(),originalTitle=document.title;
 const locale=()=>{try{const saved=localStorage.getItem(KEY);return Object.hasOwn(LANGS,saved)?saved:'ja'}catch{return'ja'}};
 const monthFmt=(lang,y,m)=>lang==='ja'?y+'年 '+m+'月':lang==='ko'?y+'년 '+m+'월':lang==='zh-CN'?y+'年'+m+'月':lang==='ne'?y+' / '+m:lang==='kmr'?m+' / '+y:new Intl.DateTimeFormat(lang,{year:'numeric',month:'long',timeZone:'Asia/Tokyo'}).format(new Date(Date.UTC(y,m-1,1)));
 function translate(raw,lang){
@@ -110,7 +110,7 @@ function refresh(){
  while(walk.nextNode())updateText(walk.currentNode,lang);
  for(const el of ROOT.querySelectorAll('[aria-label],[title]'))updateAttrs(el,lang);
  document.documentElement.lang=lang;
- document.title=translate(document.title,lang);
+ document.title=translate(originalTitle,lang);
 }
 function schedule(){if(scheduled)return;scheduled=true;setTimeout(refresh,60)}
 select.addEventListener('change',()=>{try{localStorage.setItem(KEY,select.value)}catch{}schedule()});
