@@ -16,6 +16,8 @@ body{padding:max(12px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inse
 @media(max-width:350px){body{padding-inline:10px}.hero h1{font-size:27px}.frame{min-height:500px}.frame iframe{height:560px}}
 </style>
 <link rel="stylesheet" href="./choco-mint-calendar-v10.css?v=1">
+<script defer src="../shared/i18n-dictionary.js?v=20261113-cal01"></script>
+<script defer src="./calendar-i18n-v1.js?v=20261113-01"></script>
 </head>
 <body>
 <main class="app">
@@ -28,6 +30,6 @@ body{padding:max(12px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inse
   </section>
   <p class="note">※イベント内容・開催時間は、当日の混雑状況や運営上の都合により変更または中止となる場合があります。</p>
 </main>
-<script>(()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'long'}).formatToParts(new Date()).map(x=>[x.type,x.value]));const el=document.getElementById('monthLabel');if(el)el.textContent=`${p.year}年${p.month}月`})();</script>
+<script>(()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'numeric'}).formatToParts(new Date()).map(x=>[x.type,x.value]));const el=document.getElementById('monthLabel');if(el)el.textContent=`${p.year}年${p.month}月`})();</script>
 </body>
 </html>

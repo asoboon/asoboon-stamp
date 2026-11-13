@@ -259,4 +259,71 @@ let attempts=0;
 function retry(){if(!apply()&&attempts++<60)setTimeout(retry,120)}
 window.addEventListener('load',retry);
 retry();
+/* Last-mile HOME labels do not use the 487-key dictionary: they are
+ * dynamic clock fragments, conditional no-ticket labels and composite
+ * accessibility labels. Correct only these observed literals across locales.
+ * Cached raw Japanese is restored on Japanese selection; queue data untouched. */
+const lastmile={
+ '受付なし':{en:'No ticket required','zh-CN':'无需取号',vi:'Không cần lấy số',ne:'टिकट लिनु पर्दैन',ko:'접수 불필요',kmr:'Qeydkirin ne hewce ye'},
+ '駐車場・アクセスを見る':{en:'Parking and directions','zh-CN':'查看停车场与路线',vi:'Xem bãi đỗ xe và đường đi',ne:'पार्किङ र बाटो हेर्नुहोस्',ko:'주차장·오시는 길 보기',kmr:'Park û rêyan bibînin'},
+ 'LINEミニアプリの受付へ':{en:'Go to LINE Mini App check-in','zh-CN':'前往LINE小程序取号',vi:'Đến phần đăng ký LINE Mini App',ne:'LINE मिनी एप दर्तामा जानुहोस्',ko:'LINE 미니앱 접수로 이동',kmr:'Herin qeydkirina sepana biçûk a LINE'}
+};
+const updateLabel={en:'Updated','zh-CN':'更新于',vi:'Cập nhật',ne:'अन्तिम अपडेट',ko:'최근 갱신',kmr:'Nûkirina dawî'};
+const rawCache=new WeakMap(),ariaCache=new WeakMap();
+let pending=false;
+const currentLanguage=()=>window.ASOBOON_I18N?.language||'ja';
+function fixPhrase(value,original,lang){
+ if(lang==='ja')return original;
+ const lead=original.match(/^\s*/)?.[0]||'',tail=original.match(/\s*$/)?.[0]||'';
+ let body=original.trim();
+ if(lastmile[body])return lead+(lastmile[body][lang]||body)+tail;
+ const clock=body.match(/^最終更新\s*(\d{1,2}:\d{2})$/);
+ if(clock)return lead+(updateLabel[lang]||'Updated')+' '+clock[1]+tail;
+ if(body.includes('LINEミニアプリの受付へ')){
+  const changed=body.replace('LINEミニアプリの受付へ',lastmile['LINEミニアプリの受付へ'][lang]||'Go to LINE Mini App check-in');
+  return lead+changed+tail;
+ }
+ return value;
+}
+function adjust(){
+ pending=false;
+ const lang=currentLanguage(),app=document.getElementById('app');
+ if(!app)return;
+ const walker=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);
+ while(walker.nextNode()){
+  const n=walker.currentNode;
+  if(!n.parentElement||n.parentElement.closest('script,style,select,option,textarea,[data-no-i18n]'))continue;
+  const current=n.nodeValue||'',previous=rawCache.get(n);
+  const original=previous&&previous.last===current?previous.raw:current;
+  const next=fixPhrase(current,original,lang);
+  if(next!==current)n.nodeValue=next;
+  if(next!==current||previous)rawCache.set(n,{raw:original,last:next});
+ }
+ for(const el of app.querySelectorAll('[aria-label]')){
+  const current=el.getAttribute('aria-label')||'',previous=ariaCache.get(el);
+  const original=previous&&previous.last===current?previous.raw:current;
+  const next=fixPhrase(current,original,lang);
+  if(next!==current)el.setAttribute('aria-label',next);
+  if(next!==current||previous)ariaCache.set(el,{raw:original,last:next});
+ }
+}
+function queueFix(){
+ if(pending)return;pending=true;setTimeout(adjust,110);
+}
+window.addEventListener('asoboon:language-changed',queueFix);
+window.addEventListener('asoboon:v2-route-rendered',queueFix);
+window.addEventListener('load',queueFix);
+const appRoot=document.getElementById('app');
+if(appRoot)new MutationObserver(records=>{
+ if(records.some(r=>{
+  if(r.type==='childList')return true;
+  if(r.type==='attributes'){
+   const s=ariaCache.get(r.target);
+   return !s||r.target.getAttribute('aria-label')!==s.last;
+  }
+  const s=rawCache.get(r.target);
+  return !s||r.target.nodeValue!==s.last;
+ }))queueFix();
+}).observe(appRoot,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label']});
+queueFix();
 })();
