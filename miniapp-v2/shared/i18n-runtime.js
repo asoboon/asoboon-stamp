@@ -181,6 +181,19 @@ function translate(){
    legal.appendChild(japanese);
   }
  }else if(japanese){japanese.remove()}
+ const faqNote=app.querySelector('#cmFaqLanguageNote');
+ if(faqNote&&page()==='faq'){
+  const notices={
+   en:'Some FAQ items may still be shown in Japanese. Check on-site instructions for important rules.',
+   'zh-CN':'部分问答内容仍可能以英语或日语显示。重要规则请核对现场说明。',
+   vi:'Một số mục hỏi đáp có thể còn bằng tiếng Anh hoặc Nhật. Hãy kiểm tra hướng dẫn tại cơ sở đối với quy định quan trọng.',
+   ne:'केही प्रश्नोत्तर अझै अङ्ग्रेजी वा जापानी भाषामा हुन सक्छन्। महत्वपूर्ण नियमका लागि स्थलको निर्देशन हेर्नुहोस्।',
+   ko:'일부 질문과 답변은 아직 영어 또는 일본어로 표시될 수 있습니다. 중요한 규칙은 현장 안내를 확인하세요.',
+   kmr:'Hinek pirs û bersiv dikarin bi Îngilîzî an Japonî bin. Ji bo rêzikên girîng rêberiya li navendê kontrol bikin.'
+  };
+  faqNote.hidden=language==='ja';
+  if(language!=='ja'&&faqNote.textContent!==notices[language])faqNote.textContent=notices[language]||notices.en;
+ }
  document.documentElement.lang=isTranslatable()?language:'ja';
  const note=document.getElementById('asoboon-language-note');
  if(note){
