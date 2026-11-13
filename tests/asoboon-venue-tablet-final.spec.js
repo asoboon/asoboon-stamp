@@ -194,7 +194,7 @@ test('全画面フラッシュなしで次の説明が即時見える（iPad横�
       const firstStep=[...root.querySelectorAll('.eg-step')].find(el=>!el.hidden);
       return {screen:root.dataset.guideScreen,cinema:getComputedStyle(cinema).display,
         stepVisible:!!firstStep&&getComputedStyle(firstStep).display!=='none',
-        instruction:root.innerText.includes('赤ホルダーからレシートを抜く')};
+        instruction:root.innerText.includes('ロッカーの荷物を全部出す')};
     });
     expect(visible,{width,height}).toEqual({screen:'family',cinema:'none',stepVisible:true,instruction:true});
     await page.waitForTimeout(220);

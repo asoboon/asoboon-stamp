@@ -26,7 +26,7 @@ function checkPlay(snap,lang,route,step=null){
   voiceExpect(snap.state.lang).toBe(lang);
   voiceExpect(snap.state.lastFile).toBe('./assets/owner-voice/'+row.file);
   voiceExpect(snap.plays.at(-1).src).toContain('/assets/owner-voice/'+row.file);
-  voiceExpect(snap.plays.at(-1).src).toContain('female_voice=20261112-v5');
+  voiceExpect(snap.plays.at(-1).src).toContain('female_voice=20261113-v8-boosted');
   voiceExpect(snap.plays.at(-1).volume).toBeGreaterThan(0);
   voiceExpect(snap.oldSpeech,'native speechSynthesis must not replace owner voice').toBe(0);
   voiceExpect(snap.state.missing).toBe(0);

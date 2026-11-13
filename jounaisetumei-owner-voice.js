@@ -38,7 +38,7 @@
     const a=new Audio();
     a.preload='auto';
     // Release-specific cache key prevents iPad from reusing the old low male voice.
-    a.src=file+'?female_voice=20261112-v5';
+    a.src=file+'?female_voice=20261113-v8-boosted';
     a.volume=Math.max(0.2,Math.min(1,(api.state?.().volumeLevel||100)/100));
     recorded=a;
     lastFile=file;
