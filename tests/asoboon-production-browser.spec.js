@@ -4527,3 +4527,24 @@ test('Live-audited FAQ and safety routes translate question, answer and visitor 
  await page.locator('#asoboon-language-select').selectOption('ko');
  await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
 });
+
+test('Opening and event calendars retain chosen Kurmanji or Korean and disclose partial text safely',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('asoboon_miniapp_locale_v1','kmr'));
+ await page.goto(BASE+'business-calendar.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('html')).toHaveAttribute('lang','kmr');
+ await expect(page.locator('.bc-header h1')).toHaveText('Salnameya rojên vekirî',{timeout:10000});
+ await expect(page.locator('.asoboon-calendar-language-note')).toBeVisible();
+ await expect(page.locator('.bc-back')).toContainText('Vegere malperê');
+ await page.goto(BASE+'event-calendar.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('html')).toHaveAttribute('lang','kmr');
+ await expect(page.locator('.hero h1')).toHaveText('Bûyerên vê mehê');
+ await expect(page.locator('.asoboon-calendar-language-note')).toBeVisible();
+ await page.evaluate(()=>localStorage.setItem('asoboon_miniapp_locale_v1','ko'));
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('html')).toHaveAttribute('lang','ko');
+ await expect(page.locator('.hero h1')).toHaveText('이번 달 이벤트');
+ await page.evaluate(()=>localStorage.setItem('asoboon_miniapp_locale_v1','ja'));
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('html')).toHaveAttribute('lang','ja');
+ await expect(page.locator('.asoboon-calendar-language-note')).toHaveCount(0);
+});
