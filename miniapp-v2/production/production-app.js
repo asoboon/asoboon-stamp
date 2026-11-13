@@ -946,7 +946,7 @@ async function fetchCrowd(force=false,manual=false){
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   const t=readLastCrowd()?.businessType||businessForBoard()?.businessType||day?.businessType;
-  const m=await import('./crowd-visibility.mjs?v=1');
+  const m=await import('./crowd-visibility.mjs?v=2');
   const publicStatus=await m.publishedStatus(E.backendUrl);
   const types=publicStatus?.waitTypes||null;
   publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
@@ -982,7 +982,7 @@ async function fetchCrowd(force=false,manual=false){
    renderSlots();
    const date=day.operationalDate;
    try{
-    const m=await import('./crowd-visibility.mjs?v=1');
+    const m=await import('./crowd-visibility.mjs?v=2');
     const type=readLastCrowd()?.businessType||businessForBoard()?.businessType||day.businessType;const closed=await m.check(E.backendUrl,R.slotsFor(type,'onsite'),CROWD_SETTINGS.IDS[type]);
     if(closed===true&&date===day?.operationalDate){
       crowdHiddenConfirmed=true;crowdClosed=true;

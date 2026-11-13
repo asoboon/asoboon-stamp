@@ -29,7 +29,7 @@
   if(window.ASOBOON_PRODUCTION_SHELL&&!window.ASOBOON_ASOQUEST_HANDOFF){
     for(const [kind,src] of [
       ['style','./miniapp-v2/production/production-app.css?v=d2f432b8e79b'],
-      ['script','./miniapp-v2/production/production-app.js?v=06f88abe413b']
+      ['script','./miniapp-v2/production/production-app.js?v=be9fa934f215']
     ]){
       const link=document.createElement('link');
       link.rel='preload';link.as=kind;link.href=src;document.head.appendChild(link);
@@ -55,7 +55,7 @@
   <script>
   if(window.ASOBOON_PRODUCTION_SHELL){
     const s=document.createElement('script');
-    s.src='./miniapp-v2/production/production-shell-loader.js?v=6fd9d3a0b1c8';
+    s.src='./miniapp-v2/production/production-shell-loader.js?v=07c73c6ee9e4';
     s.async=false;
     document.head.appendChild(s);
   }
