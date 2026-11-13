@@ -888,8 +888,8 @@ function renderPublicReception(box){
  // Do not flash a permanent-error notice while a valid snapshot is loading.
  if(publicReception?.source==='initial'){
   const url=airwaitWebReceptionUrl();
-  const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付を確認 ↗</a>':'';
-  writeCrowdMarkup(box,'<h3>受付の空き状況</h3><p class="v38-slots-note" role="status">Airウェイトの受付枠を確認しています…</p>'+(link?'<p>'+link+'</p>':''));
+  const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>':'';
+  writeCrowdMarkup(box,'<h3>受付の空き状況</h3><p class="v38-slots-note" role="status">LINE・WEBの残り人数を確認しています…</p>'+(link?'<p>'+link+'</p>':''));
   return true;
  }
  if(publicReception===undefined){

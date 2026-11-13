@@ -4541,7 +4541,7 @@ test('HOME first load says checking, not public-slot verification error, while b
  });
  try{
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#v38Slots')).toContainText('Airウェイトの受付枠を確認しています');
+  await expect(page.locator('#v38Slots')).toContainText('LINE・WEBの残り人数を確認しています');
   await expect(page.locator('#v38Slots')).not.toContainText('現在受付できる枠を確認できません');
   await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
  }finally{completeWaitTypes()}
