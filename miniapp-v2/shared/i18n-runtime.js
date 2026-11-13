@@ -17,6 +17,8 @@ const isTranslatable=()=>!['external','line-auth'].includes(page());
 function localizedKoKmr(value,locale){
  if(locale!=='ko'&&locale!=='kmr')return null;
  const t=(ko,kmr)=>locale==='ko'?ko:kmr;
+ if(value==='組')return t('팀','kom');
+ if(value.startsWith('LINE内 · '))return t('LINE 내 · ','Di LINE de · ')+value.slice('LINE内 · '.length);
  let m=value.match(/^(\d+)時間(\d+)分$/);
  if(m)return t(m[1]+'시간 '+m[2]+'분',m[1]+' saet û '+m[2]+' deqe');
  m=value.match(/^合計 (\d+)名$/);
@@ -69,7 +71,7 @@ function dynamicText(value){
 
  // Translate the exact people-count fields and accessibility labels introduced by v5.10.
  if(value.includes('。')&&(value.includes('WEB受付の残り')||value.includes('LINE受付の残り'))){
-  return value.split('。').map(piece=>dynamicText(piece)).join(locale==='en'?'. ':'。');
+  return value.split('。').map(piece=>dynamicText(piece)).join(['en','ko','kmr','vi'].includes(locale)?'. ':'。');
  }
  const remainingChannel=value.match(/^(WEB受付|LINE受付)の残り(確認中|\d+人)$/);
  if(remainingChannel){
