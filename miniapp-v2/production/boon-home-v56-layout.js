@@ -175,6 +175,20 @@ function mount(){
  const slotWords={ja:['人数を見る','閉じる'],en:['View spaces','Close'],'zh-CN':['查看名额','关闭'],ko:['인원 보기','닫기'],vi:['Xem chỗ','Đóng'],ne:['ठाउँ हेर्नुहोस्','बन्द'],kmr:['Cihên bibîne','Bigire']}[language()]||['View spaces','Close'];
  set(disclosure.querySelector('.v59-slots-title'),(copy[language()]||copy.en).slots);set(disclosure.querySelector('.v59-slots-open'),slotWords[0]);set(disclosure.querySelector('.v59-slots-close'),slotWords[1]);
  const t=copy[language()],info=currentKind(hero),state=info.kind;
+ const tomorrow=hero.classList.contains('tomorrow');
+ const nextLabels={
+  ja:['明日の営業','明日の受付予定'],
+  en:["Tomorrow's hours","Tomorrow's reception schedule"],
+  'zh-CN':['明日营业','明日取号安排'],
+  ko:['내일의 영업','내일 접수 안내'],
+  vi:['Giờ mở cửa ngày mai','Lịch đăng ký ngày mai'],
+  ne:['भोलिको सञ्चालन','भोलिको दर्ता समय'],
+  kmr:['Vekirina sibê','Dema tomarkirina sibê']
+ }[language()]||['Tomorrow','Tomorrow'];
+ const tomorrowHeader=language()==='ja'
+  ?String(hero.querySelector('h1')?.textContent||'明日の営業').replace(/のご案内$/,'の営業')
+  :nextLabels[0];
+
  const callCTA=hero.querySelector('.v38-call-cta-copy strong');
  // Relabel the native callstatus link based on the verified next task.
  // Never create a new reception action or a fake destination.
@@ -197,14 +211,14 @@ function mount(){
  }
  set(shell.querySelector('.v58-next-title'),title[0]);
  set(shell.querySelector('.v58-next-summary'),detail);
- set(dayZone.querySelector('.v58-section-title'),t.day);
+ set(dayZone.querySelector('.v58-section-title'),tomorrow?tomorrowHeader:t.day);
  set(dayZone.querySelector('.v58-section-summary'),t.dayHelp);
  set(timerZone.querySelector('.v58-section-title'),t.timer);
  set(timerZone.querySelector('.v58-section-summary'),t.timerHelp);
- set(sessionsZone.querySelector('.v58-section-title'),t.slots);
+ set(sessionsZone.querySelector('.v58-section-title'),tomorrow?nextLabels[1]:t.slots);
  set(sessionsZone.querySelector('.v58-section-summary'),'');
  const oldTitle=slots.querySelector(':scope > h3');
- if(oldTitle&&oldTitle.textContent!==t.slots)oldTitle.textContent=t.slots;
+ if(oldTitle&&oldTitle.textContent!==(tomorrow?nextLabels[1]:t.slots))oldTitle.textContent=tomorrow?nextLabels[1]:t.slots;
  const steps=shell.querySelectorAll('.v58-step');
  const progress=state==='calling'?2:state==='guided'?3:['saved','pending','waiting','hold','error','closed'].includes(state)?1:0;
  steps.forEach((step,i)=>{
