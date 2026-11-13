@@ -37,3 +37,22 @@ test('all-route display layer translates without altering ticket or AirWAIT iden
  assert.match(runtime,/const normalized=localizedKoKmr\(value,locale\)/);
  for(const phrase of ['receiptNo','sessionToken','waitTypeId','createReservation','cancelReservation','postReservation'])assert.ok(!runtime.includes(phrase),phrase);
 });
+
+test('Live audit covers visible FAQs, safety, arrival and calendar labels for both additional languages',()=>{
+ const all=Object.keys(dict);
+ assert.ok(all.length>=680,'Live-audited dictionary shrank: '+all.length);
+ for(const lang of ['ko','kmr']){
+  const nativeCount=all.filter(k=>typeof dict[k][lang]==='string'&&dict[k][lang].trim()).length;
+  assert.ok(nativeCount>=480,lang+' missing live-route translations: '+nativeCount);
+  for(const key of ['ご利用案内','安全に遊ぶ4つの約束','ご利用案内に戻る','受付は何時から始まりますか？','WEB受付は対象日7:00から、LINE受付は9:30から。開館は10:00です。','一時退場中も利用時間は進みます。','今月のイベント','定休日や臨時の営業変更をご確認いただけます。']){
+   const value=dict[key]?.[lang];
+   assert.ok(value&&value.trim().length>5,lang+' '+key);
+   assert.doesNotMatch(value,/[\u0900-\u097f]/,lang+' contains Nepali characters: '+key);
+  }
+ }
+ const bridge=read('miniapp-v2/production/standalone-calendar-i18n-v1.js');
+ for(const html of ['miniapp-v2/production/business-calendar.html','miniapp-v2/production/event-calendar.html']){
+  assert.match(read(html),/standalone-calendar-i18n-v1\.js/);
+ }
+ assert.match(bridge,/asoboon_miniapp_locale_v1/);
+});
