@@ -228,6 +228,24 @@ function apply(){
    if(!entry.kmr){entry.kmr=kurmanji;filled++;}
   }
  }
+ // The published dictionary creates shortened label aliases before this
+ // supplement runs. Reuse the verified full-phrase translation for those aliases.
+ const aliases={
+  'あそび':'あそびコンテンツ',
+  '受付の流れ':'受付から入場まで',
+  '駐車場と道順':'駐車場・行き方',
+  '遊べる時間の目安を表示':'入場時刻から終了時刻の目安がわかります',
+  'ブロック勝負':'ブロックを動かしてジャングル攻略',
+  '3タップ勝負':'3タップで飛距離勝負',
+  '障害物を回避':'障害物をかわして走ろう',
+  '運勢を占う':'今日の運勢をチェック',
+  '残人数は目安です。受付前に変わることがあります。':'表示人数は確認時点の目安です。受付確定までに変わる場合があります。'
+ };
+ for(const [short,original] of Object.entries(aliases)){
+  const target=dict[short],source=dict[original];
+  if(!target||!source)continue;
+  for(const code of ['ko','kmr'])if(!target[code]&&source[code]){target[code]=source[code];filled++;}
+ }
  done=true;
  last={mapped:entries.length,filled,unmatched:missing,
   keys:Object.keys(dict).length,
