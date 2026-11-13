@@ -27,6 +27,25 @@ function enhance(){
   option.lang=name.lang;
   option.title=name.label;
  }
+ // This message discloses partial English/Japanese fallback for some languages.
+ // Make real room for it below the header instead of covering operating hours.
+ const note=bar.querySelector('#asoboon-language-note');
+ if(note){
+  const syncNotice=()=>{
+   const shown=!note.hidden&&Boolean(note.textContent.trim());
+   document.body.classList.toggle('asoboon-language-note-shown',shown);
+   if(shown){
+    const h=Math.ceil(note.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--asoboon-language-note-height',Math.max(24,h)+'px');
+   }else document.documentElement.style.removeProperty('--asoboon-language-note-height');
+  };
+  new MutationObserver(syncNotice).observe(note,{
+   attributes:true,attributeFilter:['hidden'],childList:true,subtree:true,characterData:true
+  });
+  window.addEventListener('resize',syncNotice,{passive:true});
+  window.addEventListener('asoboon:v2-route-rendered',syncNotice);
+  syncNotice();
+ }
  return true;
 }
 if(!enhance()){
