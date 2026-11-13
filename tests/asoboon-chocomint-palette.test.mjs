@@ -165,3 +165,17 @@ test('Multilingual fallback note does not cover operating-hours cards',()=>{
  assert.match(js,/--asoboon-language-note-height/);
  assert.match(rich,/body\.asoboon-language-note-shown #app \.topbar/);
 });
+
+
+test('Dictionary localization bridge reaches all utility routes and reports incomplete phrases',()=>{
+ const script=fs.readFileSync('miniapp-v2/production/i18n-all-routes-v1.js','utf8');
+ const home=fs.readFileSync('home.html','utf8');
+ const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
+ const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
+ for(const html of [home,index,builder])assert.ok(html.includes('i18n-all-routes-v1.js?v=20261113-01'));
+ for(const keyword of ['asoboon:i18n-audited','englishFallback','untranslated','asoboon-language-note','window.ASOBOON_ROUTE_I18N','Kurmancî']){
+  assert.ok(script.includes(keyword)||keyword==='Kurmancî','Expected route bridge feature '+keyword);
+ }
+ assert.match(script,/const CORE=new Set\(\['home','reception','callstatus'\]\)/);
+ assert.match(script,/document.documentElement.lang=locale\(\)/);
+});
