@@ -4454,7 +4454,7 @@ test('Globe Language picker is identifiable to foreign-language visitors at five
  }
 });
 
-test('Kurmanji fallback notice cannot obscure today's hours on narrow HOME',async({page})=>{
+test('Kurmanji fallback note stays clear of operating hours on narrow HOME',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const select=page.locator('#asoboon-language-select');
