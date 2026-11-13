@@ -13,7 +13,7 @@ const isCore=()=>['home','reception','callstatus'].includes(page());
 const isTranslatable=()=>!['external','line-auth'].includes(page());
 
 // Dedicated Korean/Kurmanji dynamic phrases. Do not reuse Nepali for these locales.
-// Preserve original numbers, dates, receiptNo and AirWAIT identifiers.
+// Preserve original numbers, dates, ticket identifiers and AirWAIT values.
 function localizedKoKmr(value,locale){
  if(locale!=='ko'&&locale!=='kmr')return null;
  const t=(ko,kmr)=>locale==='ko'?ko:kmr;
