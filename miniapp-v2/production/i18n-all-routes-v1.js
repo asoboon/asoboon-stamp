@@ -124,6 +124,9 @@ function refresh(){
    note.textContent=copy[language]||copy.en;
   }
  }
+ // The legacy core-only layer may run its own 35ms observer after route text
+ // changes. Restore the selected HTML language after that observer settles.
+ if(!CORE.has(page))setTimeout(()=>{if(!CORE.has(view()))document.documentElement.lang=locale()},170);
  lastStats=stats;
  window.dispatchEvent(new CustomEvent('asoboon:i18n-audited',{detail:{...stats,examples:[...stats.examples]}}));
 }
