@@ -4453,3 +4453,25 @@ test('Globe Language picker is identifiable to foreign-language visitors at five
   await select.selectOption('ja');
  }
 });
+
+test('Kurmanji fallback notice cannot obscure today's hours on narrow HOME',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const select=page.locator('#asoboon-language-select');
+ const note=page.locator('#asoboon-language-note');
+ await expect(page.locator('#v58DayZone')).toBeVisible({timeout:10000});
+ await select.selectOption('kmr');
+ await expect(note).toBeVisible();
+ await expect(page.locator('body')).toHaveClass(/asoboon-language-note-shown/);
+ for(const width of [320,375,390,430]){
+  await page.setViewportSize({width,height:820});
+  await expect.poll(async()=>page.evaluate(()=>{
+   const note=document.querySelector('#asoboon-language-note').getBoundingClientRect();
+   const day=document.querySelector('#v58DayZone').getBoundingClientRect();
+   return note.bottom+5<=day.top&&document.documentElement.scrollWidth<=innerWidth+1;
+  })).toBe(true);
+ }
+ await select.selectOption('ja');
+ await expect(note).toBeHidden();
+ await expect(page.locator('body')).not.toHaveClass(/asoboon-language-note-shown/);
+});
