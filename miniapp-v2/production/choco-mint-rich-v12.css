@@ -409,3 +409,9 @@ html.boon-v4.boon-v5-mint body.v7-reception-active:not(.v7-callstatus-active)
   font-size:11px!important;
  }
 }
+
+/* The multilingual fallback notice is meaningful, but it must never cover
+   today's operating hours or the reception capacity board. */
+html.boon-v4.boon-v5-mint body.asoboon-language-note-shown #app .topbar{
+ margin-bottom:calc(24px + var(--asoboon-language-note-height,64px))!important;
+}
