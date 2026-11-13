@@ -313,8 +313,8 @@ function queueFix(){
 window.addEventListener('asoboon:language-changed',queueFix);
 window.addEventListener('asoboon:v2-route-rendered',queueFix);
 window.addEventListener('load',queueFix);
-const appRoot=document.getElementById('app');
-if(appRoot)new MutationObserver(records=>{
+const appRoot=typeof document==='undefined'?null:document.getElementById('app');
+if(appRoot&&typeof MutationObserver!=='undefined')new MutationObserver(records=>{
  if(records.some(r=>{
   if(r.type==='childList')return true;
   if(r.type==='attributes'){
@@ -325,5 +325,5 @@ if(appRoot)new MutationObserver(records=>{
   return !s||r.target.nodeValue!==s.last;
  }))queueFix();
 }).observe(appRoot,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label']});
-queueFix();
+if(appRoot)queueFix();
 })();

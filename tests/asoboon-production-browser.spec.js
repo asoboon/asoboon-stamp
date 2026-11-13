@@ -209,7 +209,7 @@ test('Production HOME reception stays in the MINI App and never redirects to Air
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
   await expect(page.locator('#recSubmit')).toBeVisible();
   await expect(page.locator('#recSlots [data-rec-slot]')).toHaveCount(3);
-  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(new URL(page.url()).origin).toBe(new URL(BASE).origin);
   expect(airwaitRequests).toEqual([]);
 });
 
@@ -1304,7 +1304,7 @@ test('AirWAIT text link opens the configured WEB reception externally on user ta
   await expect.poll(()=>popup.url()).toContain('airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
   await popup.close();
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toBeVisible();
-  expect(new URL(page.url()).origin).toBe('http://127.0.0.1:4173');
+  expect(new URL(page.url()).origin).toBe(new URL(BASE).origin);
 });
 
 test('Production HOME prioritizes ASOBooN Timer before the business calendar',async({page})=>{
@@ -4537,4 +4537,28 @@ test('Standalone business and event calendars persist seven-language choice incl
  await expect(page.locator('.bc-header h1')).toHaveText('Salnameya rojên vekirî',{timeout:10000});
  await page.locator('#asoboon-calendar-select').selectOption('ja');
  await expect(page.locator('.bc-header h1')).toHaveText('営業日カレンダー',{timeout:10000});
+});
+
+test('Live-audited FAQ and safety routes translate question, answer and visitor rules without changing booking',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'?view=faq',{waitUntil:'domcontentloaded'});
+ const pick=page.locator('#asoboon-language-select');
+ const entries=page.locator('#cmFaqList details');
+ await expect(entries).toHaveCount(16,{timeout:15000});
+ await pick.selectOption('kmr');
+ await expect(entries.first().locator('summary')).toHaveText('Qeydkirin kengî dest pê dike?');
+ await entries.first().locator('summary').click();
+ await expect(entries.first().locator('p')).toContainText('Di rojên destûrdayî de');
+ await pick.selectOption('ko');
+ await expect(entries.first().locator('summary')).toHaveText('접수는 몇 시부터 시작하나요?');
+ await pick.selectOption('ja');
+ await expect(entries.first().locator('summary')).toHaveText('受付は何時から始まりますか？');
+ await page.goto(BASE+'?view=rules',{waitUntil:'domcontentloaded'});
+ const h=page.locator('main.view.active h1').first();
+ await expect(h).toContainText('安全に遊ぶ');
+ await page.locator('#asoboon-language-select').selectOption('kmr');
+ await expect(h).toHaveText('Çar rêzik ji bo lîstina ewle');
+ await expect(page.locator('main.view.active')).toContainText('Ji lêketinê dûr bisekinin');
+ await page.locator('#asoboon-language-select').selectOption('ko');
+ await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
 });

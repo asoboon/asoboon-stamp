@@ -13,7 +13,7 @@ module.exports = defineConfig({
   webServer: {
     command: `python3 -m http.server ${PORT} --bind 127.0.0.1`,
     url: `http://127.0.0.1:${PORT}/home.html`,
-    reuseExistingServer: true,
+    reuseExistingServer: Boolean(process.env.CI),
     timeout: 15_000,
     stdout: 'ignore',
     stderr: 'pipe',

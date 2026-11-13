@@ -37,3 +37,17 @@ test('all-route display layer translates without altering ticket or AirWAIT iden
  assert.match(runtime,/const normalized=localizedKoKmr\(value,locale\)/);
  for(const phrase of ['receiptNo','sessionToken','waitTypeId','createReservation','cancelReservation','postReservation'])assert.ok(!runtime.includes(phrase),phrase);
 });
+
+test('Live-audited visible FAQ and safety translations cover 7-language visitor routes',()=>{
+ const keys=Object.keys(dict);
+ assert.ok(keys.length>=680,'dictionary entries regressed: '+keys.length);
+ for(const code of ['ko','kmr']){
+  const translated=keys.filter(ja=>typeof dict[ja][code]==='string'&&dict[ja][code].trim());
+  assert.ok(translated.length>=480,code+' native draft coverage regressed: '+translated.length);
+  for(const ja of ['安全に遊ぶ4つの約束','受付は何時から始まりますか？','一時退場中も利用時間は進みます。','定休日や臨時の営業変更をご確認いただけます。']){
+   const value=dict[ja]?.[code];
+   assert.ok(value&&value.length>5,code+' missing '+ja);
+   assert.doesNotMatch(value,/[\u0900-\u097f]/,code+' Nepali leaked: '+ja);
+  }
+ }
+});
