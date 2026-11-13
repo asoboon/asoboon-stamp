@@ -2209,7 +2209,7 @@ test('Five-language call-status keeps ticket number and cancellation controls in
  await expect(page.locator('#csCancelDialog')).toBeHidden();
 });
 
-test('Language selector does not alter booking issuance or invent translated other pages',async({page})=>{
+test('Language selector translates first-visit route without issuing new tickets',async({page})=>{
  await installProduction(page);
  let creates=0;
  page.on('request',r=>{
@@ -2219,8 +2219,9 @@ test('Language selector does not alter booking issuance or invent translated oth
  await page.locator('#asoboon-language-select').selectOption('zh-CN');
  await page.locator('[data-v7-view="first"]').first().click();
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('first');
- await expect(page.locator('#asoboon-language-note')).toContainText('仅提供日语');
- await expect(page.locator('html')).toHaveAttribute('lang','ja');
+ await expect(page.locator('#asoboon-language-note')).toContainText('部分内容仍以日语显示');
+ await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
+ await expect(page.locator('.cm-bottom-nav [data-v7-view="guide"]')).toContainText('使用指南');
  await page.locator('.cm-nav-tab[data-v7-view=home]').click();
  await expect(page.locator('html')).toHaveAttribute('lang','zh-CN');
  expect(creates).toBe(0);
