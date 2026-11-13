@@ -4504,6 +4504,25 @@ test('Seven-language i18n translates parking and safety routes with Korean and K
  await expect(page.locator('.v24-parking-page h1')).toHaveText('どちらから来ますか？');
 });
 
+test('Official HOME loads all native Kurmanji/Korean dictionary columns without altering queue interactions',async({page})=>{
+ await installProduction(page);
+ const site=new URL('../../',BASE).href;
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#asoboon-language-select')).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_KO_KMR_COVERAGE?.missingKmr),{timeout:10000}).toBe(0);
+ await expect.poll(()=>page.evaluate(()=>window.ASOBOON_KO_KMR_COVERAGE?.missingKo)).toBe(0);
+ for(const language of ['kmr','ko']){
+  await page.locator('#asoboon-language-select').selectOption(language);
+  await expect(page.locator('html')).toHaveAttribute('lang',language);
+  const output=await page.evaluate(key=>window.ASOBOON_I18N.t(key),'受付を確定できませんでした。');
+  expect(output).not.toContain('受付');
+  expect(output).not.toBe('Could not confirm your ticket.');
+  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
+ }
+ await page.locator('#asoboon-language-select').selectOption('ja');
+ await expect(page.locator('html')).toHaveAttribute('lang','ja');
+});
+
 test('Standalone business and event calendars persist seven-language choice including Kurmanji',async({page})=>{
  await installProduction(page);
  await page.goto(BASE+'event-calendar.html',{waitUntil:'domcontentloaded'});
