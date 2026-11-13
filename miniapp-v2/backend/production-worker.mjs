@@ -159,7 +159,7 @@ export default {
     // Attach what AirWAIT's visitor-facing page actually offers NOW. The
     // external waitTypes dispFlg alone includes older sessions and is not an
     // authoritative list of currently selectable customer options.
-    if (request.method === 'GET' && action === 'waitTypes') {
+    if (request.method === 'GET' && action === 'waitTypes' && url.searchParams.get('includePublicReception') === '1') {
       if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
       const response = await gateway.fetch(request,env,ctx);
       if (!response.ok) return response;

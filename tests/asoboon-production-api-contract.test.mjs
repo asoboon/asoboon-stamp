@@ -62,7 +62,7 @@ test('disabled official-web adoption is not advertised and cannot link a reserva
 });
 
 test('all read APIs required by the new HOME resolve through Production Worker',async()=>{
-  const waitTypes=await call(worker,env,{method:'GET',query:{action:'waitTypes'}});
+  const waitTypes=await call(worker,env,{method:'GET',query:{action:'waitTypes',includePublicReception:'1'}});
   assert.equal(waitTypes.status,200,JSON.stringify(waitTypes.data));
   assert.equal(waitTypes.data?.ok,true);
   assert.ok(waitTypes.data.waitTypes.some(x=>x.waitTypeId==='0029'));

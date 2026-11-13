@@ -17,6 +17,7 @@ export async function publishedStatus(base) {
     const url = new URL(base);
     if (url.protocol !== 'https:') return null;
     url.searchParams.set('action', 'waitTypes');
+    url.searchParams.set('includePublicReception', '1');
     const response = await fetch(url, {cache:'no-store', credentials:'omit', signal:ctrl.signal});
     if (!response.ok) return null;
     const data = await response.json();
