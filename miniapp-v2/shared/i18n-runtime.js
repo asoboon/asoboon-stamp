@@ -6,7 +6,7 @@ const LANGUAGES=Object.freeze({ja:'日本語','zh-CN':'简体中文',vi:'Tiếng
 const KEY='asoboon_miniapp_locale_v1';
 const app=document.getElementById('app');if(!app)return;
 const cached=new WeakMap(),attributes=new WeakMap();
-let language='ja',scheduled=false;
+let language='ja',scheduled=false,fallbackUsed=false;
 try{const value=localStorage.getItem(KEY);if(Object.hasOwn(LANGUAGES,value))language=value}catch{}
 const page=()=>new URLSearchParams(location.search).get('view')||'home';
 const isCore=()=>['home','reception','callstatus'].includes(page());
@@ -59,7 +59,7 @@ function dynamicText(value){
  if(TABLE[value]&&TABLE[value][locale])return TABLE[value][locale];
  const normalized=localizedKoKmr(value,locale);
  if(normalized!==null)return normalized;
- if(TABLE[value]?.en)return TABLE[value].en; // Visible English fallback beats untranslated Japanese; notice remains present
+ if(TABLE[value]?.en){fallbackUsed=true;return TABLE[value].en;} // Visible fallback, with a clear notice
  if(value.startsWith('LINE内 · '))return (locale==='en'?'In LINE · ':locale==='zh-CN'?'LINE内 · ':locale==='vi'?'Trong LINE · ':'LINE भित्र · ')+value.slice('LINE内 · '.length);
  for(const prefix of ['① ','② ','③ ']){const entry=TABLE[prefix+value]?.[locale];if(entry)return entry.replace(/^[①②③]\s*/, '')}
  const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':locale==='ko'?'명':locale==='kmr'?'kes':'जना';
@@ -133,6 +133,7 @@ function dynamicText(value){
  }
  const day=value.match(/^(\d{1,2})月(\d{1,2})日$/);
  if(day)return locale==='zh-CN'?value:locale==='en'?day[1]+'/'+day[2]:locale==='vi'?'Ngày '+day[2]+'/'+day[1]:day[2]+'/'+day[1];
+ if(locale!=='ja'&&/[ぁ-んァ-ン一-龯]/.test(value))fallbackUsed=true;
  return value;
 }
 function translateRaw(value){
@@ -163,6 +164,7 @@ function updateAttributes(el){
  attributes.set(el,existing);
 }
 function translate(){
+ fallbackUsed=false;
  const walker=document.createTreeWalker(app,NodeFilter.SHOW_TEXT),nodes=[];
  while(walker.nextNode())nodes.push(walker.currentNode);
  for(const node of nodes)updateText(node);
@@ -182,12 +184,12 @@ function translate(){
  document.documentElement.lang=isTranslatable()?language:'ja';
  const note=document.getElementById('asoboon-language-note');
  if(note){
-  note.hidden=(isCore()&&language!=='ko'&&language!=='kmr')||language==='ja';
+  note.hidden=language==='ja'||(!fallbackUsed&&isCore()&&language!=='ko'&&language!=='kmr');
   note.textContent=({
-   en:'Some information on this screen remains in Japanese. Check the original Japanese for important rules.',
-   'zh-CN':'本页面部分内容仍以日语显示。重要规则请核对日语原文。',
-   vi:'Một số thông tin trên màn hình này vẫn bằng tiếng Nhật. Hãy xem bản gốc tiếng Nhật cho các quy định quan trọng.',
-   ne:'यस पृष्ठका केही जानकारी अझै जापानी भाषामा छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।',
+   en:'Some information may appear in Japanese. Check the original Japanese for important rules.',
+   'zh-CN':'本页面部分内容可能以英语或日语显示。重要规则请核对日语原文。',
+   vi:'Một số thông tin có thể hiển thị bằng tiếng Anh hoặc tiếng Nhật. Hãy xem bản tiếng Nhật gốc cho các quy định quan trọng.',
+   ne:'यस पृष्ठका केही जानकारी अङ्ग्रेजी वा जापानी भाषामा देखिन सक्छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।',
    ko:'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.',
    kmr:'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.'
   })[language]||'';
