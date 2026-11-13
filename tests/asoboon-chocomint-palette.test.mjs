@@ -61,9 +61,9 @@ test('Rich cocoa/mint presentation is loaded last on both certified production e
  const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
  const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
  const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
- assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261113-02">/);
- assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261113-02">/);
- assert.match(builder, /choco-mint-rich-v12\.css\?v=20261113-02/);
+ assert.match(home, /<link rel="stylesheet" href="\.\/miniapp-v2\/production\/choco-mint-rich-v12\.css\?v=20261113-lang01">/);
+ assert.match(index, /<link rel="stylesheet" href="\.\/choco-mint-rich-v12\.css\?v=20261113-lang01">/);
+ assert.match(builder, /choco-mint-rich-v12\.css\?v=20261113-lang01/);
  for(const color of ['#251C1A','#392824','#2BAEAA','#67CEBB']){
   assert.ok(rich.split(color).length>5,'Expected prominent, repeated rich visual surfaces: '+color);
  }
@@ -137,4 +137,22 @@ test('Live LINE reception heading uses cocoa, not a washed-out pale orange legac
  assert.match(rich,/\.page-head\.orange\{\s*background:radial-gradient/);
  assert.match(rich,/\.page-head\.orange :is\(small,h2,\.rv7-head-note\)/);
  assert.match(rich,/border-bottom:4px solid #67CEBB!important/);
+});
+
+
+test('Discoverable seven-language native picker is linked on both production entrypoints',()=>{
+ const home=fs.readFileSync('home.html','utf8');
+ const index=fs.readFileSync('miniapp-v2/production/index.html','utf8');
+ const builder=fs.readFileSync('miniapp-v2/build-production.mjs','utf8');
+ const picker=fs.readFileSync('miniapp-v2/production/language-switch-ux-v1.js','utf8');
+ const rich=fs.readFileSync('miniapp-v2/production/choco-mint-rich-v12.css','utf8');
+ for(const source of [home,index,builder]){
+  assert.match(source,/language-switch-ux-v1\\.js\\?v=20261113-01/);
+  assert.match(source,/choco-mint-rich-v12\\.css\\?v=20261113-lang01/);
+ }
+ for(const code of ['ja','zh-CN','vi','en','ne','ko','kmr'])assert.ok(picker.includes(code),'No picker name for '+code);
+ assert.ok(picker.includes('Kurmancî / Kurdish (Kurmanji)'));
+ assert.ok(picker.includes('🌐 Language'));
+ assert.match(rich,/#asoboon-language-bar label\\{/);
+ assert.match(rich,/#asoboon-language-select\\{/);
 });
