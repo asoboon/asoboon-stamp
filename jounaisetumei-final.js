@@ -130,31 +130,36 @@
        The CSS variables keep all three areas in sync in portrait/landscape. */
     :root{
       --eg-voice-nav-top:max(6px, env(safe-area-inset-top));
-      --eg-voice-nav-height:70px;
+      --eg-voice-nav-height:86px;
       --eg-voice-tools-top:calc(var(--eg-voice-nav-top) + var(--eg-voice-nav-height) + 8px);
-      --eg-voice-page-top:calc(var(--eg-voice-tools-top) + 62px);
+      --eg-voice-page-top:calc(var(--eg-voice-tools-top) + 74px);
     }
     #eg-final-languages{position:fixed;z-index:420;top:var(--eg-voice-nav-top);left:6px;right:6px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:stretch;justify-content:stretch;overflow:visible;padding:6px;box-sizing:border-box;border:1px solid #b3ccd9;border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 4px 16px #1233;max-width:1180px;width:calc(100% - 12px);margin:auto}
     #eg-final-languages[hidden]{display:none!important}
-    #eg-final-languages button{box-sizing:border-box;border:1px solid #cedfe9;border-radius:8px;padding:6px 4px;white-space:normal;overflow-wrap:normal;color:#254256;background:#fff;font:800 16px/1.2 -apple-system,"Noto Sans",sans-serif;min-height:56px;height:56px;width:100%;min-width:0;flex:initial;cursor:pointer;touch-action:manipulation}
+    #eg-final-languages button{box-sizing:border-box;border:1px solid #cedfe9;border-radius:8px;padding:6px 4px;white-space:normal;overflow-wrap:normal;color:#254256;background:#fff;font:800 20px/1.2 -apple-system,"Noto Sans",sans-serif;min-height:72px;height:72px;width:100%;min-width:0;flex:initial;cursor:pointer;touch-action:manipulation}
     #eg-final-languages button[aria-pressed="true"]{background:#0967a7;border-color:#0967a7;color:#fff;box-shadow:inset 0 -3px #06497a}
     #eg-final-languages button:focus-visible{outline:3px solid #ffce3d;outline-offset:2px;position:relative;z-index:1}
     #exitGuideV2{overflow-x:hidden!important}
     #exitGuideV2 .eg-page{padding-top:var(--eg-voice-page-top)!important}
-    #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;right:190px!important;min-height:44px!important;font-size:12px!important;padding:8px 9px!important;touch-action:manipulation}
-    #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;right:14px!important;min-height:44px!important;font-size:12px!important;padding:8px 10px!important;touch-action:manipulation}
+    #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;right:190px!important;min-height:56px!important;font-size:15px!important;padding:10px 13px!important;touch-action:manipulation}
+    #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;right:14px!important;min-height:56px!important;font-size:15px!important;padding:10px 13px!important;touch-action:manipulation}
     #exitGuideV2 .eg-motion-switch:focus-visible,#exitGuideV2 .eg-fullscreen-switch:focus-visible{outline:3px solid #ffce3d;outline-offset:2px}
     @media(max-width:900px){
-      :root{--eg-voice-nav-height:132px}
+      :root{--eg-voice-nav-height:164px}
       #eg-final-languages{grid-template-columns:repeat(4,minmax(0,1fr))}
+    }
+    @media(max-width:350px){
+      /* Narrowest supported phones: keep generous 72px tap targets while
+         preventing English/Filipino glyph clipping. */
+      #eg-final-languages button{font-size:18px!important;padding:6px 2px!important}
     }
     @media(max-width:599px){
       /* Stable multilingual toolbar: localized strings can be much longer than
          Japanese. Icons have 48px targets; text remains as accessible names. */
-      #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:64px!important;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
+      #exitGuideV2 .eg-motion-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:77px!important;width:56px!important;min-width:56px!important;height:56px!important;min-height:56px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
       #exitGuideV2 .eg-motion-switch::before{content:'✨';font-size:22px}
       #exitGuideV2 .eg-motion-switch[data-motion="off"]::before{content:'○';font-size:22px}
-      #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:8px!important;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
+      #exitGuideV2 .eg-fullscreen-switch{top:var(--eg-voice-tools-top)!important;left:auto!important;right:9px!important;width:56px!important;min-width:56px!important;height:56px!important;min-height:56px!important;font-size:0!important;padding:0!important;overflow:hidden!important}
       #exitGuideV2 .eg-fullscreen-switch::before{content:'⛶';font-size:22px}
     }
     #exitGuideV2:not([data-lang="ja"]) .eg-choice-title{font-size:clamp(19px,3.55vw,33px)!important;letter-spacing:-.025em}
@@ -166,27 +171,27 @@
        The guide itself scrolls when its content cannot fit the viewport. */
     #eg-cinema .eg-final-rail,#eg-cinema .eg-final-vortex,#eg-cinema .eg-final-impact{position:absolute;inset:0;pointer-events:none}
     #eg-cinema .eg-final-vortex{z-index:1;opacity:0;background:repeating-conic-gradient(from -15deg at 50% 50%,transparent 0deg 8deg,var(--cin-accent,#06b8ff) 9deg 9.8deg,transparent 11deg 20deg);mix-blend-mode:screen;filter:drop-shadow(0 0 12px var(--cin-accent))}
-    #eg-cinema.active .eg-final-vortex{animation:eg-final-speed 1.62s both}
+    #eg-cinema.active .eg-final-vortex{animation:eg-final-speed .54s both}
     @keyframes eg-final-speed{0%{opacity:.08;transform:scale(.15) rotate(0)}22%{opacity:.33;transform:scale(.48) rotate(25deg);animation-timing-function:cubic-bezier(.04,.8,.24,1)}39%{opacity:.9;transform:scale(2.9) rotate(180deg)}47%{opacity:.04;transform:scale(3.3) rotate(190deg)}55%{opacity:.04}67%{opacity:.9;transform:scale(4.8) rotate(215deg)}90%,100%{opacity:0;transform:scale(9) rotate(300deg)}}
     #eg-cinema .eg-final-rail{z-index:4;display:grid;grid-template-columns:1fr 1fr;perspective:750px;opacity:0}
     #eg-cinema .eg-final-rail i{display:block;width:100%;height:100%;background:linear-gradient(110deg,#030b1a 0%,#144168 18%,var(--cin-accent) 37%,#fff 47%,#154f76 55%,#001021 77%,#000 100%);border-inline:7px solid rgba(255,255,255,.85);box-shadow:inset 0 0 80px #000,0 0 58px var(--cin-accent);clip-path:polygon(0 0,94% 0,100% 11%,94% 26%,100% 40%,94% 50%,100% 67%,93% 83%,100% 100%,0 100%)}
     #eg-cinema .eg-final-rail i:last-child{transform:scaleX(-1)}
-    #eg-cinema.active .eg-final-rail{animation:eg-final-doors 1.62s both cubic-bezier(.16,.75,.19,1)}
+    #eg-cinema.active .eg-final-rail{animation:eg-final-doors .54s both cubic-bezier(.16,.75,.19,1)}
     @keyframes eg-final-doors{0%,15%{opacity:1;transform:scaleX(1.9)}40%{opacity:1;transform:scaleX(.04)}47%,55%{opacity:1;transform:scaleX(0)}69%{opacity:1;transform:scaleX(1.7)}100%{opacity:0;transform:scaleX(2.4)}}
     #eg-cinema .eg-final-impact{z-index:5;opacity:0;background:radial-gradient(circle at 50% 50%,#fff 0 2%,var(--cin-accent) 7%,transparent 38%);mix-blend-mode:screen}
-    #eg-cinema.active .eg-final-impact{animation:eg-final-hit 1.62s both}
+    #eg-cinema.active .eg-final-impact{animation:eg-final-hit .54s both}
     @keyframes eg-final-hit{0%,39%{opacity:0;transform:scale(.1)}43%{opacity:.93;transform:scale(.4)}49%{opacity:0;transform:scale(4)}60%{opacity:0}69%{opacity:.55;transform:scale(1.5)}83%,100%{opacity:0;transform:scale(5)}}
     #eg-cinema.active .cin-title{text-shadow:4px 5px 0 #00122b,8px 10px 0 var(--cin-accent),0 0 20px #fff,0 0 65px var(--cin-accent),0 0 110px var(--cin-accent)}
     #eg-cinema.eg-final-warning .eg-final-rail i{filter:saturate(.5);background:linear-gradient(115deg,#190e1a,#731d28,#ff6767,#fff,#631625,#1a0910)}
     #eg-cinema.eg-final-warning .cin-ribbon{background:linear-gradient(90deg,transparent,#8d2833,transparent)}
-    @media(prefers-reduced-motion:reduce){#eg-cinema.eg-force-motion.active{display:block!important}#eg-cinema.eg-force-motion.active .eg-final-vortex{animation:eg-final-speed 1.62s both}#eg-cinema.eg-force-motion.active .eg-final-rail{animation:eg-final-doors 1.62s both}#eg-cinema.eg-force-motion.active .eg-final-impact{animation:eg-final-hit 1.62s both}}
+    @media(prefers-reduced-motion:reduce){#eg-cinema.eg-force-motion.active{display:block!important}#eg-cinema.eg-force-motion.active .eg-final-vortex{animation:eg-final-speed .54s both}#eg-cinema.eg-force-motion.active .eg-final-rail{animation:eg-final-doors .54s both}#eg-cinema.eg-force-motion.active .eg-final-impact{animation:eg-final-hit .54s both}}
     /* Kiosk instant-mode: instructions render immediately; cinematic overlay is only 310ms. */
     #eg-cinema.active .cin-door.top,#eg-cinema.active .cin-door.bottom,
     #eg-cinema.active .cin-star,#eg-cinema.active .cin-label,
     #eg-cinema.active .cin-title,#eg-cinema.active .cin-ribbon,
     #eg-cinema.active .cin-flash,#eg-cinema.active .eg-final-vortex,
     #eg-cinema.active .eg-final-rail,#eg-cinema.active .eg-final-impact
-    {animation-duration:.31s!important;animation-iteration-count:1!important}
+    {animation-duration:.54s!important;animation-iteration-count:1!important}
     #eg-cinema.active .cin-energy-grid{animation-duration:.2s!important}
     @media(prefers-reduced-motion:reduce){
       #eg-cinema.eg-force-motion.active .cin-door.top,
@@ -198,7 +203,7 @@
       #eg-cinema.eg-force-motion.active .cin-flash,
       #eg-cinema.eg-force-motion.active .eg-final-vortex,
       #eg-cinema.eg-force-motion.active .eg-final-rail,
-      #eg-cinema.eg-force-motion.active .eg-final-impact{animation-duration:.31s!important}
+      #eg-cinema.eg-force-motion.active .eg-final-impact{animation-duration:.54s!important}
     }
     #exitGuideV2[data-lang="en"] .eg-receipt:after{content:'RECEIPT'}#exitGuideV2[data-lang="zh"] .eg-receipt:after{content:'收据'}#exitGuideV2[data-lang="vi"] .eg-receipt:after{content:'BIÊN LAI'}#exitGuideV2[data-lang="ko"] .eg-receipt:after{content:'영수증'}#exitGuideV2[data-lang="ne"] .eg-receipt:after{content:'रसिद'}#exitGuideV2[data-lang="tl"] .eg-receipt:after{content:'RESIBO'}#exitGuideV2[data-lang="my"] .eg-receipt:after{content:'ပြေစာ'}
   `;

@@ -5969,23 +5969,23 @@
 #exitGuideV2.eg-nav-active .eg-page{animation:eg-app-shudder .10s linear 6}
 #eg-cinema{position:fixed;inset:0;z-index:1250;overflow:hidden;pointer-events:none;isolation:isolate;display:none;color:white;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif}
 #eg-cinema.active{display:block}
-#eg-cinema .cin-back{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at center,var(--cin-glow,#0c76dc),#001126 65%,#00050e 100%);opacity:.98}
+#eg-cinema .cin-back{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at center,var(--cin-glow,#0c76dc),#001126 65%,#00050e 100%);opacity:.75}
 #eg-cinema .cin-energy-grid{position:absolute;inset:-60%;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.12) 0deg 2deg,transparent 2deg 20deg);mix-blend-mode:screen;animation:eg-cin-spin 1s linear infinite}
 #eg-cinema .cin-door{position:absolute;width:120%;height:30%;left:-10%;background:linear-gradient(90deg,#010913,#142b4b 13%,var(--cin-accent,#0cb3ff) 47%,#ffffff 50%,var(--cin-accent,#0cb3ff) 53%,#152f50 85%,#010913);border:5px solid rgba(255,255,255,.45);box-shadow:inset 0 0 45px rgba(255,255,255,.4),0 0 54px var(--cin-accent,#0cb3ff);z-index:2;opacity:0}
 #eg-cinema .cin-door.top{top:0;transform:translateY(-120%)}
 #eg-cinema .cin-door.bottom{bottom:0;transform:translateY(120%)}
-#eg-cinema.active .cin-door.top{animation:eg-cin-door-top 1.55s both cubic-bezier(.15,.8,.2,1)}
-#eg-cinema.active .cin-door.bottom{animation:eg-cin-door-bottom 1.55s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema.active .cin-door.top{animation:eg-cin-door-top .54s both cubic-bezier(.15,.8,.2,1)}
+#eg-cinema.active .cin-door.bottom{animation:eg-cin-door-bottom .54s both cubic-bezier(.15,.8,.2,1)}
 #eg-cinema .cin-star{position:absolute;left:50%;top:50%;width:min(92vw,850px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.05) rotate(-90deg);opacity:0;clip-path:polygon(50% 0,54% 32%,71% 7%,66% 40%,100% 34%,69% 50%,100% 66%,66% 61%,71% 93%,54% 68%,50% 100%,46% 68%,29% 93%,34% 61%,0 66%,31% 50%,0 34%,34% 40%,29% 7%,46% 32%);background:radial-gradient(circle,#fff 0 16%,#ffe48d 25%,var(--cin-accent,#0cb3ff) 52%,transparent 76%);filter:drop-shadow(0 0 38px white);mix-blend-mode:screen;z-index:3}
-#eg-cinema.active .cin-star{animation:eg-cin-star 1.5s both}
+#eg-cinema.active .cin-star{animation:eg-cin-star .54s both}
 #eg-cinema .cin-label{position:absolute;top:13%;width:100%;text-align:center;font-size:clamp(18px,3vw,34px);font-weight:1000;letter-spacing:.22em;text-shadow:0 0 12px var(--cin-accent,#0cb3ff);opacity:0;z-index:5}
-#eg-cinema.active .cin-label{animation:eg-cin-label 1.6s both}
+#eg-cinema.active .cin-label{animation:eg-cin-label .54s both}
 #eg-cinema .cin-title{position:absolute;left:50%;top:50%;width:100%;transform:translate(-50%,-50%) scale(5) rotate(-4deg);opacity:0;z-index:6;white-space:pre-line;text-align:center;font-size:clamp(62px,10vw,145px);font-weight:1000;line-height:1.03;letter-spacing:-.04em;color:#fff;-webkit-text-stroke:2px var(--cin-accent,#0cb3ff);text-shadow:4px 5px 0 #00122b,8px 10px 0 var(--cin-accent,#0cb3ff),0 0 17px white,0 0 43px var(--cin-accent,#0cb3ff),0 0 75px var(--cin-accent,#0cb3ff)}
-#eg-cinema.active .cin-title{animation:eg-cin-title 1.6s both cubic-bezier(.11,1,.26,1)}
+#eg-cinema.active .cin-title{animation:eg-cin-title .54s both cubic-bezier(.11,1,.26,1)}
 #eg-cinema .cin-ribbon{position:absolute;bottom:10%;left:-15%;width:130%;padding:12px 0;border-block:4px solid white;background:linear-gradient(90deg,transparent,var(--cin-accent,#0cb3ff),transparent);text-align:center;font-size:clamp(20px,3.3vw,34px);font-weight:1000;letter-spacing:.18em;opacity:0;z-index:6}
-#eg-cinema.active .cin-ribbon{animation:eg-cin-ribbon 1.6s both}
+#eg-cinema.active .cin-ribbon{animation:eg-cin-ribbon .54s both}
 #eg-cinema .cin-flash{position:absolute;inset:0;background:white;opacity:0;z-index:10}
-#eg-cinema.active .cin-flash{animation:eg-cin-flash 1.6s both}
+#eg-cinema.active .cin-flash{animation:eg-cin-flash .54s both}
 #eg-cinema canvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;z-index:4}
 @keyframes eg-stage-rotate{to{transform:rotate(360deg)}}@keyframes eg-led-rot{to{transform:rotate(360deg)}}
 @keyframes eg-action-heartbeat{0%,63%,100%{transform:none;box-shadow:0 6px 0 rgba(0,27,55,.15)}70%{transform:scale(1.035);box-shadow:0 6px 18px rgba(255,255,255,.5)}78%{transform:none}}
@@ -6000,7 +6000,7 @@
 @keyframes eg-cin-title{0%,32%{opacity:0;transform:translate(-50%,-50%) scale(4.5) rotate(-6deg)}44%{opacity:1;transform:translate(-50%,-50%) scale(.91) rotate(1deg)}52%,81%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)}}
 @keyframes eg-cin-ribbon{0%,36%{opacity:0;transform:translateX(-100%)}50%,78%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(100%)}}
 /* Single photographic flash; do not strobe */
-@keyframes eg-cin-flash{0%,39%{opacity:0}43%{opacity:.88}49%{opacity:.12}55%,100%{opacity:0}}
+@keyframes eg-cin-flash{0%,39%{opacity:0}43%{opacity:.18}49%{opacity:.04}55%,100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){#eg-cinema{display:none!important}#exitGuideV2 .eg-choice:before,#exitGuideV2 .eg-choice:after,#exitGuideV2 .eg-home:before{animation:none!important}}
 #exitGuideV2.eg-motion-off .eg-choice:before,#exitGuideV2.eg-motion-off .eg-choice:after,#exitGuideV2.eg-motion-off .eg-home:before{animation:none!important}
 `;
@@ -6013,7 +6013,7 @@
       #eg-cinema.eg-force-motion.active .cin-label,
       #eg-cinema.eg-force-motion.active .cin-title,
       #eg-cinema.eg-force-motion.active .cin-ribbon,
-      #eg-cinema.eg-force-motion.active .cin-flash {animation-duration:1.6s!important;animation-iteration-count:1!important;}
+      #eg-cinema.eg-force-motion.active .cin-flash {animation-duration:.54s!important;animation-iteration-count:1!important;}
       #eg-cinema.eg-force-motion.active .cin-energy-grid {animation-duration:1s!important;animation-iteration-count:infinite!important;}
     }
   `;
@@ -6177,7 +6177,7 @@
   }
   function drawCinema(now){
     const dt=Math.min(.048,(now-lastFrame)/1000);lastFrame=now;
-    const t=(now-startAt)/1000*5.8,{w,h}= {w:window.innerWidth,h:window.innerHeight};
+    const t=(now-startAt)/1000*3.25,{w,h}= {w:window.innerWidth,h:window.innerHeight};
     ctx.clearRect(0,0,w,h);
     const cx=w*.5,cy=h*.5;
     // Scanning energy before the two gates collide.
@@ -6241,7 +6241,7 @@
         const b=root.querySelector('.eg-hint');
         if(b){const r=b.getBoundingClientRect();bursts(r.left+r.width/2,r.top+r.height/2,colors[destination],true);}
       }
-    },310);
+    },560);
   }
 
   const screens={home,family,adult:adultQuestion,'adult-yes':adultYes,'adult-no':adultNo,leave};
@@ -6295,9 +6295,9 @@
 })();
 
 </script>
-<script src="./jounaisetumei-final.js?v=20261112-touch-v6"></script>
-<script src="./jounaisetumei-audio.js?v=20261112-touch-v6"></script>
-<script src="./jounaisetumei-delight.js?v=20261016-layer1-r98"></script>
+<script src="./jounaisetumei-final.js?v=20261112-timing-v7"></script>
+<script src="./jounaisetumei-audio.js?v=20261112-timing-v7"></script>
+<script src="./jounaisetumei-delight.js?v=20261112-timing-v7"></script>
 <script src="./jounaisetumei-stepper.js?v=20261016-step-voice-r100"></script>
 <script src="./jounaisetumei-owner-voice.js?v=20261112-female-v5"></script>
 <style id="eg-female-voice-credits-style">
