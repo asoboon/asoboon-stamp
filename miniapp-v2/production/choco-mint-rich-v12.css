@@ -358,7 +358,7 @@ html.boon-v4.boon-v5-mint body.v7-reception-active:not(.v7-callstatus-active)
 /* LANGUAGE DISCOVERABILITY v1 — the current locale alone cannot tell a newcomer
    where to change language. An always visible 🌐 Language label plus native select
    maintains accessibility, keyboard navigation, and the cocoa/mint identity. */
-html.asoboon-production-shell #asoboon-language-bar{
+:is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-bar{
  display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;
  align-items:stretch!important;justify-content:center!important;
  gap:3px!important;
@@ -367,7 +367,7 @@ html.asoboon-production-shell #asoboon-language-bar{
  height:68px!important;padding:0!important;
  z-index:80!important;
 }
-html.asoboon-production-shell #asoboon-language-bar label{
+:is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-bar label{
  display:flex!important;align-items:center!important;justify-content:center!important;
  position:static!important;
  width:auto!important;height:auto!important;min-width:0!important;max-width:none!important;
@@ -378,7 +378,7 @@ html.asoboon-production-shell #asoboon-language-bar label{
  letter-spacing:.025em!important;text-align:center!important;
  color:#FFF9F1!important;background:transparent!important;
 }
-html.asoboon-production-shell #asoboon-language-select{
+:is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-select{
  display:block!important;align-self:stretch!important;
  width:126px!important;max-width:126px!important;min-width:0!important;
  height:41px!important;min-height:41px!important;
@@ -389,10 +389,10 @@ html.asoboon-production-shell #asoboon-language-select{
  font-size:12px!important;font-weight:850!important;
  text-overflow:ellipsis!important;cursor:pointer!important;
 }
-html.asoboon-production-shell #asoboon-language-select:focus-visible{
+:is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-select:focus-visible{
  outline:3px solid #9BE6D3!important;outline-offset:2px!important;
 }
-html.asoboon-production-shell #asoboon-language-note:not([hidden]){
+:is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-note:not([hidden]){
  position:absolute!important;right:0!important;top:calc(100% + 4px)!important;
  width:min(300px,calc(100vw - 28px))!important;padding:8px!important;
  border:2px solid #67CEBB!important;border-radius:10px!important;
@@ -401,10 +401,10 @@ html.asoboon-production-shell #asoboon-language-note:not([hidden]){
  text-align:left!important;line-height:1.4!important;
 }
 @media(max-width:350px){
- html.asoboon-production-shell #asoboon-language-bar{
+ :is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-bar{
   width:112px!important;max-width:112px!important;right:9px!important;
  }
- html.asoboon-production-shell #asoboon-language-select{
+ :is(html.asoboon-production-shell,html.boon-v4.boon-v5-mint) #asoboon-language-select{
   width:112px!important;max-width:112px!important;
   font-size:11px!important;
  }
