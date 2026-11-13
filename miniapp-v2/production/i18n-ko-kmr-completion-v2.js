@@ -200,7 +200,9 @@ const entries=[
 ["Entry around 10:25 (weekend/holiday)","약 10:25 입장(주말·공휴일)","Têketin nêzîkî 10:25 (dawiya hefteyê / betlan)"],
 ["Entry around 12:50 (weekend/holiday)","약 12:50 입장(주말·공휴일)","Têketin nêzîkî 12:50 (dawiya hefteyê / betlan)"],
 ["Entry around 15:15 (weekend/holiday)","약 15:15 입장(주말·공휴일)","Têketin nêzîkî 15:15 (dawiya hefteyê / betlan)"],
-["The registration result is invalid.","접수 결과가 올바르지 않습니다.","Encama qeydkirinê ne derbasdar e."]
+["The registration result is invalid.","접수 결과가 올바르지 않습니다.","Encama qeydkirinê ne derbasdar e."],
+["Queue status check timed out.","호출 현황 확인 시간이 초과되었습니다.","Dema kontrolkirina rewşa bangkirinê qediya."],
+["Please reopen the LINE Mini App.","LINE 미니앱을 다시 열어 주세요.","Ji kerema xwe sepana biçûk a LINE dîsa vekin."]
 
 
 ];
