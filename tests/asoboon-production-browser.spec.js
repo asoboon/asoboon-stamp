@@ -4503,3 +4503,19 @@ test('Seven-language i18n translates parking and safety routes with Korean and K
  await language.selectOption('ja');
  await expect(page.locator('.v24-parking-page h1')).toHaveText('どちらから来ますか？');
 });
+
+test('Standalone business and event calendars persist seven-language choice including Kurmanji',async({page})=>{
+ await installProduction(page);
+ await page.goto(BASE+'event-calendar.html',{waitUntil:'domcontentloaded'});
+ const picker=page.locator('#asoboon-calendar-select');
+ await expect(picker).toBeVisible({timeout:10000});
+ await expect(picker.locator('option')).toHaveCount(7);
+ await picker.selectOption('kmr');
+ await expect(page.locator('html')).toHaveAttribute('lang','kmr',{timeout:10000});
+ await expect(page.locator('.hero h1')).toHaveText('Bûyerên vê mehê',{timeout:10000});
+ await page.goto(BASE+'business-calendar.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#asoboon-calendar-select')).toHaveValue('kmr',{timeout:10000});
+ await expect(page.locator('.bc-header h1')).toHaveText('Salnameya rojên vekirî',{timeout:10000});
+ await page.locator('#asoboon-calendar-select').selectOption('ja');
+ await expect(page.locator('.bc-header h1')).toHaveText('営業日カレンダー',{timeout:10000});
+});
