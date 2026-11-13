@@ -635,6 +635,31 @@ let earlyCrowd=null;
 const params=()=>new URLSearchParams(location.search),currentView=()=>String(params().get('view')||'home'),feature=n=>F[n]===true,esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),setText=(el,text)=>{if(el&&el.textContent!==text)el.textContent=text};
 function nowJst(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
 function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
+function closingPreview(){
+ const n=nowJst(),rule=businessForBoard(),close=clockMinutes(rule?.closingTime);
+ return n.minutes>=Math.min(1080,Number.isFinite(close)&&close>0?close:1080);
+}
+function tomorrowISO(){const d=new Date(nowJst().date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+function tomorrowHeading(){const d=tomorrowISO();return '明日 '+fmtDate(d)+'（'+'日月火水木金土'[new Date(d+'T12:00:00Z').getUTCDay()]+'）'}
+let nextDay=null,nextDayKey='',nextFetchAt=0,nextFetching=null;
+function tomorrowRule(){return nextDay?.operationalDate===tomorrowISO()&&nextDay?.ok===true?nextDay:null}
+async function loadTomorrow(){
+ if(!closingPreview()||typeof D.getByDate!=='function')return;
+ const date=tomorrowISO();
+ if(nextDayKey===date&&nextFetching)return nextFetching;
+ if(nextDayKey===date&&Date.now()-nextFetchAt<120000)return;
+ nextDayKey=date;nextFetchAt=Date.now();nextDay=null;
+ const task=(async()=>{
+  try{
+   const result=await Promise.race([D.getByDate(date),new Promise((_,reject)=>setTimeout(()=>reject(Error('TOMORROW_DAY_TIMEOUT')),6500))]);
+   if(result?.ok===true&&result.operationalDate===date)nextDay=result;
+  }catch{}
+  finally{if(currentView()==='home'){patchToday();renderSlots();lastHero='';renderHero(latest||{kind:'none'})}}
+ })();
+ nextFetching=task;
+ try{await task}finally{if(nextFetching===task)nextFetching=null}
+}
+
 function lineReceptionOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30')}
 function lineReceptionOpenDisplay(){const m=lineReceptionOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineReceptionOpenClock()}
 function lineReceptionOpenMinutes(){const n=clockMinutes(lineReceptionOpenClock());return Number.isFinite(n)?n:570}
@@ -656,7 +681,7 @@ function availability(){if(dayError)return{type:'error',title:'営業情報を�
 if(publicReception?.verified===true){
  const slots=publicReception.slots||[];
  const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
- const lineAvailable=slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
+ const lineAvailable=publicReception.isOpen===true&&slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
    lineRules.some(r=>String(r.waitTypeId)===String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0);
  const webAvailable=publicReception.isOpen&&publicReception.acceptingOnline&&
    slots.some(x=>x.usageDispType==='KeyONLINE_RECEPTION_ONLY'&&x.remainingVerified===true&&x.remaining>0);
@@ -679,6 +704,11 @@ const opDate=nowJst().date;
 const isTodaysReceipt=key=>{try{const item=JSON.parse(localStorage.getItem(key)||'null');return Boolean(item?.receiptNo&&String(item.businessDate||'')===opDate)}catch{return false}};
 const saved=isTodaysReceipt(RES_KEY)||isTodaysReceipt(CALL_STATUS_CACHE_KEY);
 const a=availability();
+if(closingPreview()){
+ const t=tomorrowRule(),heading=tomorrowHeading();
+ const detail=!t?'営業予定を確認しています。':t.isClosed?'休館日です。次の営業日はカレンダーでご確認ください。':`営業時間 10:00〜${esc(t.closingTime||'—')}・${esc(t.durationLabel||'利用時間は当日案内')}。`;
+ return{kind:'tomorrow',html:`<div class="v38-hero-icon">${svg('calendar')}</div><div class="v38-hero-body"><h1>${esc(heading)}のご案内</h1><p>${detail}</p><p>予約・空き枠は明日の受付開始後に確認できます。</p></div>`};
+}
 if(saved){
 const rec=reservationInfo(),kind=String(data?.kind||'');
 const finished=rec&&String(data?.receipt||'')===String(rec.receiptNo)&&
@@ -693,7 +723,15 @@ return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'aler
 }
 const kind=String(data.kind||'sync'),receipt=String(data.receipt||'').trim();if(kind==='pending'&&receipt)return{kind:'pending',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><div class="v38-pending-eyebrow">保存済みの受付番号</div><div class="v38-pending-number">${esc(receipt)}</div><p class="v38-pending-status">呼出の最新情報は、画面下の「呼出」で確認できます。</p></div>`};if(kind==='error')return{kind:'error',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body"><h1>受付状況を取得できません</h1><p>呼出状況からもう一度お試しください。</p>${receipt?reservationCard(receipt):''}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='waiting'){const n=Number.isSafeInteger(data.ahead)&&data.ahead>=0?data.ahead:null;if(n===null)return{kind:'waiting steady',html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><p>WEB受付とLINE受付の待ち順を確認しています。</p>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`};const proximity=n<=3?'ready':n<=5?'near':n<=10?'closer':n>=20?'far':'steady';return{kind:`waiting ${proximity}`,html:`<div class="v38-hero-icon">${svg('queue')}</div><div class="v38-hero-body">${stateLabel('呼出前')}<h1>順番をお待ちください</h1><div class="v38-ahead"><small>あと</small><strong>${n}</strong><span>組</span></div><div class="v38-eta">${eta(n)}</div>${reservationCard(receipt)}${action('callstatus','詳しく見る')}</div>`}}if(kind==='calling')return{kind:'calling',html:`<div class="v38-hero-icon">${svg('bell')}</div><div class="v38-hero-body">${stateLabel('呼出中')}<h1>ご入場可能です</h1><p>受付番号をご準備のうえ、ASOBooN入口へお越しください。</p><div class="v38-deadline">呼出から30分以内</div>${reservationCard(receipt)}${action('callstatus','入口案内を見る','calling')}</div>`};if(kind==='hold')return{kind:'hold',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('保留')}<h1>受付でご確認ください</h1><p>受付番号をご準備のうえ、ASOBooN入口でご確認ください。</p>${reservationCard(receipt)}${action('callstatus','呼出状況を見る')}</div>`};if(kind==='guided'||kind==='guide')return{kind:'guided',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('案内済み')}<h1>ご入場済みです</h1><p>ASOBooNをお楽しみください。</p>${reservationCard(receipt)}${availability().type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'次の回を受付する','primary'):''}<div class="v38-inline-actions">${action('timeguide','アソブーンタイマー')}${action('entry','一時退場・再入場')}</div></div>`};if(kind==='canceled'||(kind==='none'&&data.canceled)){const a=availability();return{kind:'canceled',html:`<div class="v38-hero-icon">${svg('alert')}</div><div class="v38-hero-body">${stateLabel('取り消し')}<h1>受付が取り消されました</h1><p>この受付はキャンセルされています。</p>${reservationCard(receipt)}${a.type==='open'?action('reception',RECEPTION_FALLBACK_ACTIVE?'WEB受付を開く':'もう一度受付する','primary'):''}</div>`}}if(kind==='closed')return{kind:'closed',html:`<div class="v38-hero-icon">${svg('check')}</div><div class="v38-hero-body">${stateLabel('受付終了')}<h1>本日の受付は終了しました</h1><p>この受付番号の呼出状況表示は終了しています。</p>${reservationCard(receipt)}</div>`};if(kind==='none'){const a=availability();if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${RECEPTION_FALLBACK_ACTIVE?(hasVerifiedWebReceptionSlot()?action('reception','WEB受付を開く','primary'):''):action('reception','順番を取る','primary')}${receptionHoursNote()}</div>`};return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='error'?action('reception','受付画面を開く','primary'):action('first','利用案内へ')}${a.type==='before'?receptionHoursNote():''}</div>`}}return{kind:'sync',html:`<div class="v38-hero-icon">${svg('clock')}</div><div class="v38-hero-body"><h1>${T.loading}</h1><p>${esc(data.message||'少しお待ちください。')}</p>${receipt?action('callstatus','詳しく見る'):''}</div>`}}
 function renderHero(data={}){const el=root.querySelector('#v38Hero');if(!el)return;const v=heroMarkup(data),sig=v.kind+'|'+v.html;if(sig===lastHero&&el.dataset.rendered==='1')return;lastHero=sig;el.dataset.rendered='1';el.className=`v38-hero ${v.kind}`;el.innerHTML=v.html;document.body.classList.remove('v38-state-waiting','v38-state-calling','v38-state-guided','v38-state-hold','v38-state-canceled','v38-state-closed');const theme=String(v.kind).split(/\s+/)[0];if(['waiting','calling','guided','hold','canceled','closed'].includes(theme))document.body.classList.add(`v38-state-${theme}`);}
-function patchToday(){const b=root.querySelector('#v38Today');if(!b)return;const v=b.querySelectorAll('strong'),compact=window.ASOBOON_MINT_V51_PREVIEW===true,today=businessForBoard(),c=!!today?.isClosed;if(today){const k=today.businessType||'—',d=today.durationLabel||'—',t=today.closingTime||'—';setText(v[0],compact?'今日の営業':c?'休館':k);setText(v[1],compact?(c?'休館日':k.replace('土日祝日','土日祝')+(/^\d{2}:\d{2}$/.test(t)?' 10:00〜'+t:'')):c?'—':d);setText(v[2],compact?(c?'':d==='—'?'':/(?:無制限|制限なし|制)$/u.test(d)?d:d+'制'):c?'—':t);b.classList.toggle('closed',c);return}const unavailable=Boolean(dayError||day?.ok||displayDay?.ok);setText(v[0],compact?'今日の営業':unavailable?'取得できません':T.loading);setText(v[1],compact?(unavailable?'取得不可':T.loading):'—');setText(v[2],compact?'':'—')}
+function patchToday(){const b=root.querySelector('#v38Today');if(!b)return;const v=b.querySelectorAll('strong'),compact=window.ASOBOON_MINT_V51_PREVIEW===true,today=businessForBoard(),c=!!today?.isClosed;
+if(closingPreview()){
+ const t=tomorrowRule();b.setAttribute('aria-label','明日の営業と利用時間');
+ setText(v[0],'明日の営業');
+ setText(v[1],!t?'確認中':t.isClosed?'休館日':String(t.businessType||'').replace('土日祝日','土日祝')+' 10:00〜'+String(t.closingTime||'—'));
+ setText(v[2],t&&!t.isClosed?String(t.durationLabel||'').replace(/制$/u,''):'');
+ b.classList.toggle('closed',t?.isClosed===true);return;
+}
+b.setAttribute('aria-label','本日の営業と利用時間');if(today){const k=today.businessType||'—',d=today.durationLabel||'—',t=today.closingTime||'—';setText(v[0],compact?'今日の営業':c?'休館':k);setText(v[1],compact?(c?'休館日':k.replace('土日祝日','土日祝')+(/^\d{2}:\d{2}$/.test(t)?' 10:00〜'+t:'')):c?'—':d);setText(v[2],compact?(c?'':d==='—'?'':/(?:無制限|制限なし|制)$/u.test(d)?d:d+'制'):c?'—':t);b.classList.toggle('closed',c);return}const unavailable=Boolean(dayError||day?.ok||displayDay?.ok);setText(v[0],compact?'今日の営業':unavailable?'取得できません':T.loading);setText(v[1],compact?(unavailable?'取得不可':T.loading):'—');setText(v[2],compact?'':'—')}
 function readTimeguideResult(){try{return JSON.parse(localStorage.getItem(TIMEGUIDE_KEY)||'null')}catch{return null}}
 function patchTimeguideShortcut(){
 const card=root.querySelector('#v38TimeguideShortcut');if(!card)return;
@@ -880,7 +918,7 @@ function renderPublicReception(box){
   const n=slot.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null;
   const num=n===null?'確認中':n+'人';
   const canWeb=isWeb&&!crowdReadOnly()&&data.acceptingOnline===true&&n!==null&&n>0&&url;
-  const canLine=!isWeb&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
+  const canLine=!isWeb&&data.isOpen===true&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
   const action=canWeb?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">WEBで受付する ↗</a>':
    canLine?'<button class="v38-airwait-link" type="button" data-v7-view="reception">LINEで受付を確認 →</button>':
    '<small class="v38-crowd-unknown">'+(n===0?'この枠は満員です':'対象日・受付方法を確認してください')+'</small>';
@@ -897,6 +935,17 @@ function renderPublicReception(box){
 
 function renderSlots(){
  const box=root.querySelector('#v38Slots');if(!box)return;
+ if(closingPreview()){
+  const day=tomorrowRule(),name=tomorrowHeading();
+  const title='<h3>'+esc(name)+'の受付予定</h3>';
+  const info=!day?'<p class="v38-slots-note">明日の営業予定を確認しています。予約枠・残人数は未公開です。</p>':
+   day.isClosed?'<p class="v38-slots-note">明日は休館日です。受付はありません。</p>':
+   '<p class="v38-slots-note">'+esc(String(day.businessType||'').replace('土日祝日','土日祝'))+'・10:00〜'+esc(day.closingTime||'—')+'<br>WEB受付（公開枠がある場合）明日7:00〜／LINE受付 明日'+esc(lineReceptionOpenDisplay())+'〜</p>'+
+   '<p class="v38-slots-note">実際に公開される枠と残人数は、明日の受付開始後に表示します。</p>';
+  writeCrowdMarkup(box,title+info+'<p><a class="v38-airwait-link" href="'+esc(assetHref('business-calendar.html'))+'" data-external="1">営業日カレンダーで確認 ↗</a></p>');
+  return;
+ }
+
  if(renderPublicReception(box))return;
  const business=businessForBoard();
  const webOpen=hasVerifiedWebReceptionSlot();
@@ -996,7 +1045,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'});scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;crowdPublicFlags=null;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(closingPreview())void loadTomorrow();if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;crowdPublicFlags=null;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{
@@ -1005,7 +1054,19 @@ async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='fun
    if(resolved?.ok&&resolved.operationalDate===today)displayDay=resolved;
   }catch{}
  }
+if(closingPreview())void loadTomorrow();
 const currentBusiness=businessForBoard();if(currentBusiness&&!currentBusiness.isClosed&&['平日','平日特定日','土日祝日'].includes(String(currentBusiness.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd()||(currentBusiness&&!currentBusiness.isClosed))void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+// Update the HOME automatically when the actual closing time (or midnight)
+// passes without requiring the visitor to close and reopen LINE.
+let lastPreviewKey='';
+setInterval(()=>{
+ if(currentView()!=='home'||document.hidden)return;
+ const key=closingPreview()?tomorrowISO():'today-'+nowJst().date;
+ if(key===lastPreviewKey)return;
+ lastPreviewKey=key;
+ if(closingPreview())void loadTomorrow();else void refreshDay(false);
+ mount();
+},30000);
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
