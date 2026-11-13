@@ -111,6 +111,13 @@ function cloneAction(native,unknown){
 }
 function buildBoard(){
  const slots=document.getElementById('v38Slots');if(!slots)return;
+ // The public AirWAIT-selectable list owns its own live display. Never
+ // rebuild stale compact rows or hide the actual booking link.
+ if(window.ASOBOON_PUBLIC_RECEPTION_STATUS!==undefined){
+  slots.classList.remove('v613-board-ready');
+  slots.querySelector('#v613Board')?.remove();
+  return;
+ }
  const list=slots.querySelector(':scope > .v38-crowd-list');
  if(!list){slots.classList.remove('v613-board-ready');slots.querySelector('#v613Board')?.remove();return}
  const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];

@@ -156,6 +156,18 @@ export default {
       catch (e) { return json(request, { ok:false, error:safeError(e) }, Number(e?.status || 503)); }
     }
 
+    // Attach what AirWAIT's visitor-facing page actually offers NOW. The
+    // external waitTypes dispFlg alone includes older sessions and is not an
+    // authoritative list of currently selectable customer options.
+    if (request.method === 'GET' && action === 'waitTypes' && url.searchParams.get('includePublicReception') === '1') {
+      if (!originAllowed(request)) return json(request,{ok:false,error:'ORIGIN_NOT_ALLOWED'},403);
+      const response = await gateway.fetch(request,env,ctx);
+      if (!response.ok) return response;
+      let body;try{body=await response.json()}catch{return response}
+      body.publicReception=await publicReceptionSnapshot();
+      return json(request,body);
+    }
+
     if (request.method === 'GET' && action === 'crowdRemaining') {
       if (!originAllowed(request)) return json(request, { ok:false, error:'ORIGIN_NOT_ALLOWED' }, 403);
       try { return json(request, await getCrowdRemaining(request, env, ctx)); }
@@ -974,6 +986,56 @@ async function prewarmPublicReadCaches(env, ctx) {
 }
 
 const CROWD_SNAPSHOT_KEY='crowd_remaining_snapshot_v1';
+// Public, read-only AirWAIT visitor-page status; never use an internal/public
+// page's AJAX token for customer authentication, reservations, or mutations.
+// If this public read becomes unavailable, callers must hide unverified counts.
+let publicReceptionMemo={at:0,data:null,promise:null};
+async function publicReceptionSnapshot(){
+ const now=Date.now();
+ if(publicReceptionMemo.data&&now-publicReceptionMemo.at<20000)return publicReceptionMemo.data;
+ if(publicReceptionMemo.promise)return publicReceptionMemo.promise;
+ const work=(async()=>{
+  const unavailable={verified:false,source:'AirWAIT-public-page',fetchedAt:new Date().toISOString(),slots:[]};
+  try{
+   const base='https://airwait.jp';
+   const storeNo='AKR2298124918';
+   const page=await fetch(base+'/WCSP/storeDetail?storeNo='+storeNo,{method:'GET',cache:'no-store',signal:AbortSignal.timeout(1800)});
+   if(!page.ok)throw Error('PUBLIC_PAGE_UNAVAILABLE');
+   const html=await page.text();
+   if(html.length>120000)throw Error('PUBLIC_PAGE_TOO_LARGE');
+   const token=html.match(/AJAX-[0-9A-F-]{36}/)?.[0];
+   if(!token)throw Error('PUBLIC_AJAX_REFERENCE_UNAVAILABLE');
+   const url=new URL('/WCSP/api/internal/stateless/store/getStoreDetail',base);
+   url.searchParams.set('storeNo',storeNo);
+   url.searchParams.set('key',token);
+   const response=await fetch(url.toString(),{method:'GET',cache:'no-store',signal:AbortSignal.timeout(1800)});
+   if(!response.ok)throw Error('PUBLIC_STATUS_UNAVAILABLE');
+   const data=await response.json();
+   const info=data?.innerDto;
+   if(data?.success!==true||String(info?.storeId||'')!=='KR01205179'||
+      !Array.isArray(info?.capacityInfo?.waitTypeList))throw Error('PUBLIC_STATUS_INVALID');
+   const slots=info.capacityInfo.waitTypeList.map(x=>{
+    const waitTypeId=String(x?.waitTypeId||'');
+    const usageDispType=String(x?.usageDispType||'');
+    if(!/^\d{4}$/.test(waitTypeId)||
+       !['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(usageDispType))return null;
+    const raw=x?.remainsCount;
+    const count=(typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw)))?Number(raw):NaN;
+    const remaining=String(x?.reserveUnitType||'')==='KeyPERSON'&&
+       Number.isSafeInteger(count)&&count>=0&&count<=350?count:null;
+    return {waitTypeId,waitTypeName:String(x?.waitTypeName||'').slice(0,100),usageDispType,
+      remaining,remainingVerified:remaining!==null};
+   }).filter(Boolean);
+   return {verified:true,source:'AirWAIT-public-page',fetchedAt:new Date().toISOString(),
+     isOpen:info.isOpen===true&&info.isTemporaryStopped!==true,
+     acceptingOnline:info.isAcceptOnlineReserve===true,slots};
+  }catch(e){console.warn('AIRWAIT_PUBLIC_SLOTS_UNVERIFIED',safeError(e));return unavailable}
+ })();
+ publicReceptionMemo.promise=work;
+ try{const data=await work;publicReceptionMemo={at:Date.now()-(data.verified?0:15000),data,promise:null};return data}
+ finally{if(publicReceptionMemo.promise===work)publicReceptionMemo.promise=null}
+}
+
 const CROWD_SNAPSHOT_MAX_AGE_MS=30*60*1000;
 
 async function readCrowdSnapshot(env){

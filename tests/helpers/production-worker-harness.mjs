@@ -149,6 +149,18 @@ export class FakeWorld {
       return json({ success: true, resultCode: { code: '0000' }, innerDto: { count: rows.length, reservations: rows } });
     }
     // AirWAIT customer cancel pages (reached only through the stored shortUrl).
+    // Customer-facing read-only storeDetail: only the 15:00 session remains
+    // selectable, even though legacy waitTypes still reports three visible.
+    if (url.hostname === 'airwait.jp' && url.pathname === '/WCSP/storeDetail') {
+      return new Response('<html><script>AJAX-00000000-0000-0000-0000-000000000000</script></html>',{status:200,headers:{'Content-Type':'text/html'}});
+    }
+    if (url.hostname === 'airwait.jp' && url.pathname.endsWith('/store/getStoreDetail')) {
+      return json({success:true,resultCode:{code:'0000'},innerDto:{storeId:'KR01205179',isOpen:true,isTemporaryStopped:false,isAcceptOnlineReserve:true,
+        capacityInfo:{waitTypeList:[
+          {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',reserveUnitType:'KeyPERSON',remainsCount:50,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+          {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',reserveUnitType:'KeyPERSON',remainsCount:200,usageDispType:'KeyONLINE_RECEPTION_ONLY'}
+        ]}}});
+    }
     if (url.hostname === 'airwait.jp' && url.pathname.startsWith('/s/')) {
       const r = this.row(url.pathname.slice(3));
       return withUrl(new Response('<html></html>', { status: 200 }), `https://airwait.jp/WCSP/reserve/detail?storeNo=AKR&reserveId=${r.reserveId}&p=${r.p}`);

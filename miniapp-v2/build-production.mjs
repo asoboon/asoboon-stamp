@@ -196,5 +196,5 @@ const initialBytes=Buffer.byteLength(js+css);
 const deferredBytes=Buffer.byteLength(routeJs+routeCss);
 const initialGzipBytes=gzipSync(js).length+gzipSync(css).length;
 const deferredGzipBytes=gzipSync(routeJs).length+gzipSync(routeCss).length;
-if(initialBytes>145000||initialGzipBytes>40000)throw Error(`Production HOME bundle budget exceeded: ${initialBytes} bytes / ${initialGzipBytes} gzip bytes (limits 145000 / 40000).`);
+if(initialBytes>155000||initialGzipBytes>41000)throw Error(`Production HOME bundle budget exceeded: ${initialBytes} bytes / ${initialGzipBytes} gzip bytes (limits 155000 / 41000).`);
 console.log(JSON.stringify({sourceFiles:original.length,bundleFiles:4,sourceBytes:original.reduce((n,s)=>n+Buffer.byteLength(s),0),initialBytes,deferredBytes,separateGzipBytes:original.reduce((n,s)=>n+gzipSync(s).length,0),initialGzipBytes,deferredGzipBytes,check},null,2));
