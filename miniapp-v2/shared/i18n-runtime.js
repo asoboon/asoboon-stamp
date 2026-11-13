@@ -185,7 +185,7 @@ function translate(){
    en:'Some information on this screen remains in Japanese. Check the original Japanese for important rules.',
    'zh-CN':'本页面部分内容仍以日语显示。重要规则请核对日语原文。',
    vi:'Một số thông tin trên màn hình này vẫn bằng tiếng Nhật. Hãy xem bản gốc tiếng Nhật cho các quy định quan trọng.',
-   ne:'यस पृष्ठका केही जानकारी अझै जापानी भाषामा छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।'
+   ne:'यस पृष्ठका केही जानकारी अझै जापानी भाषामा छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।',
    ko:'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.',
    kmr:'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.'
   })[language]||'';
