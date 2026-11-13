@@ -991,7 +991,7 @@ function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-
 async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
- if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){scheduleCrowd();return}
+ if(!force&&crowdSlots&&!crowdStale&&publicReception?.source!=='initial'&&Date.now()-crowdAt<30000){scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
  if(crowdFlagsDate!==String(day?.operationalDate||'')){crowdPublicFlags=null;crowdFlagsDate=''}
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
@@ -1029,6 +1029,7 @@ async function fetchCrowd(force=false,manual=false){
   crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);saveLastCrowd();
  }catch(e){
   const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
+  if(publicReception?.source==='initial')publicReception={verified:false,source:'failed',slots:[]};
   if(reason==='AIRWAIT_CROWD_EMPTY'){
    crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=true;crowdRetryAt=Date.now()+30000;
   }else{
