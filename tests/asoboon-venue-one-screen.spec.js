@@ -42,3 +42,24 @@ for(const [width,height] of sizes){
   }
  });
 }
+
+test('v9 resize into compact mode preserves language selection and usable choices',async({page})=>{
+  await page.setViewportSize({width:1194,height:834});
+  await page.goto(target,{waitUntil:'domcontentloaded'});
+  const frame=page.frameLocator('#tabletCore');
+  await expect(frame.locator('#eg-final-languages')).toBeVisible();
+  await page.setViewportSize({width:375,height:812});
+  const trigger=frame.locator('#eg-kiosk-language-trigger');
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(frame.locator('#eg-kiosk-language-dialog [data-locale]')).toHaveCount(8);
+  await frame.locator('#eg-kiosk-language-dialog [data-locale="en"]').click();
+  await expect(frame.locator('#exitGuideV2')).toHaveAttribute('lang','en');
+  await page.setViewportSize({width:1194,height:834});
+  await expect(trigger).toBeHidden();
+  await expect(frame.locator('#eg-final-languages')).toBeVisible();
+  await expect(frame.locator('#exitGuideV2')).toHaveAttribute('lang','en');
+  await page.setViewportSize({width:375,height:812});
+  await expect(trigger).toBeVisible();
+  await expect(frame.locator('#exitGuideV2 .eg-choice')).toHaveCount(3);
+});

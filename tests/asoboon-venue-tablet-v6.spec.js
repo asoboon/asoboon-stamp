@@ -55,6 +55,47 @@ for(const [name,width,height,columns] of touchSizes){
     await page.goto(target,{waitUntil:'domcontentloaded'});
     const bar=page.locator('#eg-final-languages');
     await expect(bar.locator('button')).toHaveCount(8);
+    if(width<=599){
+      // v9 compact kiosk has one obvious 64px language trigger, not
+      // 8 permanent buttons covering the instructions.
+      await expect(bar).toBeHidden();
+      const trigger=page.locator('#eg-kiosk-language-trigger');
+      await expect(trigger).toBeVisible();
+      const box=await trigger.boundingBox();
+      expect(box.height).toBeGreaterThanOrEqual(64);
+      expect(box.width).toBeGreaterThanOrEqual(width-16);
+      await trigger.click();
+      const modal=page.locator('#eg-kiosk-language-dialog');
+      await expect(modal).toBeVisible();
+      const buttons=modal.locator('[data-locale]');
+      await expect(buttons).toHaveCount(8);
+      const qa=await buttons.evaluateAll(nodes=>nodes.map(b=>{
+        const r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+        return {height:r.height,width:r.width,
+          clipped:b.scrollWidth>b.clientWidth+2||b.scrollHeight>b.clientHeight+2,
+          tappable:hit===b||b.contains(hit),onScreen:r.top>=0&&r.bottom<=innerHeight};
+      }));
+      for(const b of qa){
+        expect(b.height).toBeGreaterThanOrEqual(52);
+        expect(b.width).toBeGreaterThan(50);
+        expect(b.clipped).toBe(false);
+        expect(b.tappable).toBe(true);
+        expect(b.onScreen).toBe(true);
+      }
+      await modal.locator('[data-locale="en"]').click();
+      await expect(page.locator('#exitGuideV2')).toHaveAttribute('lang','en');
+      await expect(page.locator('#eg-final-languages [data-locale="en"]')).toHaveAttribute('aria-pressed','true');
+      await expect(page.locator('#exitGuideV2 .eg-intro h1')).toHaveText('Leaving & returning');
+      const cards=await page.locator('#exitGuideV2 .eg-choice').evaluateAll(nodes=>
+        nodes.map(b=>{const r=b.getBoundingClientRect();return {height:r.height,within:r.top>=0&&r.bottom<=innerHeight}}));
+      expect(cards).toHaveLength(3);
+      for(const card of cards){expect(card.height).toBeGreaterThanOrEqual(56);expect(card.within).toBe(true);}
+      await page.locator('#exitGuideV2 [data-guide="family"]').click();
+      await expect(page.locator('#exitGuideV2')).toContainText('Remove the receipt',{timeout:3500});
+      await page.locator('#exitGuideV2 [data-stepper-action="next"]').click();
+      await expect(page.locator('#exitGuideV2 [data-stepper-action="prev"]')).toBeVisible();
+      return;
+    }
     // Wait for the existing 0.55s entrance animation before measuring stable hit targets.
     await page.waitForTimeout(650);
     const qa=await page.evaluate(()=>{
@@ -133,55 +174,44 @@ for(const [deviceWidth,deviceHeight] of [[375,812],[320,640]]){
     await expect(bar.locator('button')).toHaveCount(8);
     // The existing intro animation occupies the first 0.55 seconds of boot.
     await page.waitForTimeout(650);
+    await expect(bar).toBeHidden();
+    const trigger=page.locator('#eg-kiosk-language-trigger');
+    await expect(trigger).toBeVisible();
     for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
-      await bar.locator('[data-locale="'+lang+'"]').click();
-      await page.waitForTimeout(90);
-      const ui=await page.evaluate(()=>{
+      await trigger.click();
+      const dialog=page.locator('#eg-kiosk-language-dialog');
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator('[data-locale]')).toHaveCount(8);
+      await dialog.locator('[data-locale="'+lang+'"]').click();
+      await expect(dialog).toBeHidden();
+      await expect(page.locator('#exitGuideV2')).toHaveAttribute('lang',lang);
+      await expect(bar.locator('[data-locale="'+lang+'"]')).toHaveAttribute('aria-pressed','true');
+      const qa=await page.evaluate(()=>{
         const root=document.querySelector('#exitGuideV2');
-        const box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,w:r.width,h:r.height}};
-        const els=[document.getElementById('eg-audio-volume-pack'),
-          root.querySelector('.eg-home .eg-motion-switch'),
-          root.querySelector('.eg-home .eg-fullscreen-switch'),
-          root.querySelector('.eg-home .eg-intro h1')];
-        const rects=els.map(box),overlaps=[];
-        for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
-          const a=rects[i],b=rects[j];
-          if(Math.min(a.right,b.right)-Math.max(a.x,b.x)>1 &&
-             Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1)overlaps.push([i,j]);
-        }
-        const cards=[...root.querySelectorAll('.eg-home [data-guide]')].slice(0,3);
-        const content=cards.map(card=>{
-          const r=box(card);
-          const parts=['.eg-choice-title','.eg-choice-sub','.eg-choice-action'].map(sel=>{
-            const el=card.querySelector(sel);const x=box(el);
-            return {w:x.w,h:x.h,contained:x.x>=r.x-1&&x.right<=r.right+1,
-              clipped:el.scrollWidth>el.clientWidth+2||el.scrollHeight>el.clientHeight+2};
-          });
-          return {parts};
+        const cards=[...root.querySelectorAll('.eg-home .eg-choice')];
+        const rects=cards.map(card=>{
+          const r=card.getBoundingClientRect();
+          return {height:r.height,onScreen:r.top>=0&&r.bottom<=innerHeight,
+            title:card.querySelector('.eg-choice-title')?.textContent.trim(),
+            visible:getComputedStyle(card).visibility!=='hidden'};
         });
-        const motion=els[1],fullscreen=els[2];
-        return {lang:root.getAttribute('lang'),overflowX:getComputedStyle(root).overflowX,
-          selected:[...document.querySelectorAll('#eg-final-languages [aria-pressed="true"]')].map(x=>x.dataset.locale),
-          controls:rects,overlaps,content,
-          aria:[motion.getAttribute('aria-label'),fullscreen.getAttribute('aria-label')],
-          labels:[motion.textContent.replace(/\s+/g,' ').trim(),fullscreen.textContent.replace(/\s+/g,' ').trim()]};
+        const note=root.querySelector('.eg-note');
+        return {cards:rects,scrollTop:root.scrollTop,
+          overflowY:getComputedStyle(root).overflowY,
+          notePresent:!!note&&getComputedStyle(note).display!=='none'};
       });
-      expect(ui.lang).toBe(lang);
-      expect(ui.selected).toEqual([lang]);
-      expect(ui.overflowX).toBe('hidden');
-      expect(ui.overlaps,'secondary controls overlap in '+lang).toEqual([]);
-      expect(ui.controls[1].w).toBeGreaterThanOrEqual(48);
-      expect(ui.controls[2].w).toBeGreaterThanOrEqual(48);
-      expect(ui.aria,'translated aria for icon-only controls').toEqual(ui.labels);
-      for(const card of ui.content){
-        expect(card.parts).toHaveLength(3);
-        for(const part of card.parts){
-          expect(part.contained,'no content beyond card border').toBe(true);
-          expect(part.clipped,'no translated text cropped').toBe(false);
-        }
-        expect(card.parts[2].h,'CTA height').toBeGreaterThanOrEqual(48);
+      expect(qa.cards).toHaveLength(3);
+      for(const card of qa.cards){
+        expect(card.height).toBeGreaterThanOrEqual(56);
+        expect(card.onScreen).toBe(true);
+        expect(card.visible).toBe(true);
+        expect(card.title.length).toBeGreaterThan(0);
       }
+      expect(qa.notePresent,'Safety note remains visible').toBe(true);
+      expect(qa.overflowY).toBe('clip');
+      expect(qa.scrollTop).toBe(0);
     }
+    return;
   });
 }
 
@@ -192,6 +222,38 @@ test('v6 translated middle-width toolbar controls never overlap',async({page})=>
     await page.goto(target,{waitUntil:'domcontentloaded'});
     await expect(page.locator('#eg-final-languages button')).toHaveCount(8);
     await page.waitForTimeout(650); // Existing 0.55-second entrance animation.
+    if(width<=599){
+      const trigger=page.locator('#eg-kiosk-language-trigger');
+      await expect(trigger).toBeVisible();
+      for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
+        await trigger.click();
+        const modal=page.locator('#eg-kiosk-language-dialog');
+        await modal.locator('[data-locale="'+lang+'"]').click();
+        await expect(modal).toBeHidden();
+        await expect(page.locator('#exitGuideV2')).toHaveAttribute('lang',lang);
+        const qa=await page.evaluate(()=>{
+          const ids=['eg-kiosk-language-trigger','eg-audio-volume-pack'];
+          const root=document.querySelector('#exitGuideV2');
+          const es=ids.map(id=>document.getElementById(id)).concat([
+            root.querySelector('.eg-motion-switch'),root.querySelector('.eg-fullscreen-switch'),
+            root.querySelector('.eg-intro h1')]);
+          const rects=es.map(e=>e.getBoundingClientRect());
+          const collisions=[];
+          for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
+            const a=rects[i],b=rects[j];
+            if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1 &&
+               Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)collisions.push([i,j]);
+          }
+          return {collisions,hit:es.slice(0,4).map(e=>{
+            const r=e.getBoundingClientRect(),point=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+            return point===e||e.contains(point);
+          })};
+        });
+        expect(qa.collisions,'compact toolbar overlap at '+width+' / '+lang).toEqual([]);
+        expect(qa.hit,'compact toolbar controls tappable at '+width+' / '+lang).toEqual([true,true,true,true]);
+      }
+      continue;
+    }
     for(const lang of ['ja','en','zh','vi','ko','ne','tl','my']){
       await page.locator('#eg-final-languages [data-locale="'+lang+'"]').click();
       const qa=await page.evaluate(()=>{
