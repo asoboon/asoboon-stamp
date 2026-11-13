@@ -17,6 +17,13 @@ const isTranslatable=()=>!['external','line-auth'].includes(page());
 function localizedKoKmr(value,locale){
  if(locale!=='ko'&&locale!=='kmr')return null;
  const t=(ko,kmr)=>locale==='ko'?ko:kmr;
+ let live=value.match(/^本日は時間制限なしです。閉館時刻の(\d{1,2}:\d{2})まで遊べます。$/);
+ if(live)return t('오늘은 시간제한이 없습니다. 폐관 시각 '+live[1]+'까지 놀 수 있습니다.',
+  'Îro sînora demê tune ye. Heta girtina saet '+live[1]+' dikarin bilîzin.');
+ live=value.match(/^最終更新 (\d{1,2}:\d{2})$/);
+ if(live)return t('마지막 갱신 '+live[1],'Nûkirina dawî '+live[1]);
+ live=value.match(/^最新の呼出状況を確認中… (\d+)秒$/);
+ if(live)return t('최신 호출 상태 확인 중… '+live[1]+'초','Rewşa bangkirina dawî tê kontrolkirin… '+live[1]+' çirke');
  if(value==='組')return t('팀','kom');
  if(value.startsWith('LINE内 · '))return t('LINE 내 · ','Di LINE de · ')+value.slice('LINE内 · '.length);
  let m=value.match(/^(\d+)時間(\d+)分$/);
