@@ -991,7 +991,7 @@ function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-
 async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
  if(Date.now()<crowdRetryAt){scheduleCrowd();return}
- if(!force&&crowdSlots&&!crowdStale&&publicReception?.source!=='initial'&&Date.now()-crowdAt<30000){scheduleCrowd();return}
+ if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){if(publicReception?.source==='initial'){publicReception={verified:false,source:'cached-unverified',slots:[]};renderSlots()}scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
  if(crowdFlagsDate!==String(day?.operationalDate||'')){crowdPublicFlags=null;crowdFlagsDate=''}
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
