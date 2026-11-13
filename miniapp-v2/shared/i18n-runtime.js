@@ -1,4 +1,4 @@
-/* ASOBooN five-language display layer; reception data and identifiers remain unchanged. */
+/* ASOBooN seven-language display layer; reception data and identifiers remain unchanged. */
 (()=>{'use strict';
 const TABLE=window.ASOBOON_I18N_DICTIONARY;
 if(!TABLE||Object.keys(TABLE).length<200)return; // Missing dictionary: show only the complete Japanese experience.
@@ -6,14 +6,60 @@ const LANGUAGES=Object.freeze({ja:'日本語','zh-CN':'简体中文',vi:'Tiếng
 const KEY='asoboon_miniapp_locale_v1';
 const app=document.getElementById('app');if(!app)return;
 const cached=new WeakMap(),attributes=new WeakMap();
-let language='ja',scheduled=false;
+let language='ja',scheduled=false,fallbackUsed=false;
 try{const value=localStorage.getItem(KEY);if(Object.hasOwn(LANGUAGES,value))language=value}catch{}
 const page=()=>new URLSearchParams(location.search).get('view')||'home';
 const isCore=()=>['home','reception','callstatus'].includes(page());
+const isTranslatable=()=>!['external','line-auth'].includes(page());
+
+// Dedicated Korean/Kurmanji dynamic phrases. Do not reuse Nepali for these locales.
+// Preserve original numbers, dates, ticket identifiers and AirWAIT values.
+function localizedKoKmr(value,locale){
+ if(locale!=='ko'&&locale!=='kmr')return null;
+ const t=(ko,kmr)=>locale==='ko'?ko:kmr;
+ if(value==='組')return t('팀','kom');
+ if(value.startsWith('LINE内 · '))return t('LINE 내 · ','Di LINE de · ')+value.slice('LINE内 · '.length);
+ let m=value.match(/^(\d+)時間(\d+)分$/);
+ if(m)return t(m[1]+'시간 '+m[2]+'분',m[1]+' saet û '+m[2]+' deqe');
+ m=value.match(/^合計 (\d+)名$/);
+ if(m)return t('총 '+m[1]+'명','Bi tevahî '+m[1]+' kes');
+ m=value.match(/^\/ (\d+)組中$/);
+ if(m)return t('/ 총 '+m[1]+'팀','/ ji '+m[1]+' koman');
+ m=value.match(/^(\d{1,2}:\d{2}) 確認時点の人数 ／ 自動更新中（約40秒ごと）$/);
+ if(m)return t(m[1]+' 확인 · 약 40초마다 자동 갱신',m[1]+' hate kontrolkirin · her 40 çirkeyan nû dibe');
+ m=value.match(/^(\d{1,2}:\d{2}) 確認時点 ／ (.+)$/);
+ if(m)return t(m[1]+' 확인 / '+dynamicText(m[2]),'Di '+m[1]+' de hate kontrolkirin / '+dynamicText(m[2]));
+ m=value.match(/^あなた (\d{1,2}:\d{2})ごろ$/);
+ if(m)return t('예상 호출 시간: 약 '+m[1],'Dema bangkirina te: nêzî '+m[1]);
+ m=value.match(/^LINE受付の残り目安 ／ (\d{1,2}:\d{2}) 確認$/);
+ if(m)return t('LINE 잔여 인원 · '+m[1]+' 확인','Cihên mayî yên LINE · '+m[1]+' kontrol kirin');
+ m=value.match(/^自動更新は動作中です。最終取得 ([\d:]+) ／ 次の再確認まで (\d+)秒$/);
+ if(m)return t('자동 갱신 중 · 마지막 확인 '+m[1]+' · '+m[2]+'초 후 다시 확인','Nûkirina bixweber çalak e · kontrola dawî '+m[1]+' · piştî '+m[2]+' çirkeyan dîsa kontrol dibe');
+ m=value.match(/^(\d{1,2})月(\d{1,2})日 の営業$/);
+ if(m)return t(m[1]+'월 '+m[2]+'일 영업','Vebûna roja '+m[2]+'/'+m[1]);
+ m=value.match(/^(\d{1,2}:\d{2})から$/);
+ if(m)return t(m[1]+'부터','Ji '+m[1]+' ve');
+ m=value.match(/^LINE当日受付は(\d{1,2}:\d{2})から$/);
+ if(m)return t('LINE 당일 접수는 '+m[1]+'부터 시작합니다','Qeydkirina LINE ya îro ji saet '+m[1]+' dest pê dike');
+ m=value.match(/^LINE受付の残り(\d+)名$/);
+ if(m)return t('LINE 잔여 '+m[1]+'명','Ji bo qeydkirina LINE '+m[1]+' cih mane');
+ m=value.match(/^(\d{1,2})月(\d{1,2})日$/);
+ if(m)return t(m[1]+'월 '+m[2]+'일',m[2]+'/'+m[1]);
+ m=value.match(/^([\d,]+)組$/);
+ if(m)return t(m[1]+'팀',m[1]+' kom');
+ m=value.match(/^(\d{1,2}:\d{2}) 確認$/);
+ if(m)return t(m[1]+' 확인',m[1]+' kontrol kirin');
+ m=value.match(/^(\d+)時(\d+)分$/);
+ if(m)return t(m[1]+'시 '+m[2]+'분',m[1]+':'+m[2].padStart(2,'0'));
+ return null;
+}
+
 function dynamicText(value){
  const locale=language;
  if(TABLE[value]&&TABLE[value][locale])return TABLE[value][locale];
- if((locale==='ko'||locale==='kmr')&&TABLE[value]?.en)return TABLE[value].en;
+ const normalized=localizedKoKmr(value,locale);
+ if(normalized!==null)return normalized;
+ if(TABLE[value]?.en){fallbackUsed=true;return TABLE[value].en;} // Visible fallback, with a clear notice
  if(value.startsWith('LINE内 · '))return (locale==='en'?'In LINE · ':locale==='zh-CN'?'LINE内 · ':locale==='vi'?'Trong LINE · ':'LINE भित्र · ')+value.slice('LINE内 · '.length);
  for(const prefix of ['① ','② ','③ ']){const entry=TABLE[prefix+value]?.[locale];if(entry)return entry.replace(/^[①②③]\s*/, '')}
  const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':locale==='ko'?'명':locale==='kmr'?'kes':'जना';
@@ -25,7 +71,7 @@ function dynamicText(value){
 
  // Translate the exact people-count fields and accessibility labels introduced by v5.10.
  if(value.includes('。')&&(value.includes('WEB受付の残り')||value.includes('LINE受付の残り'))){
-  return value.split('。').map(piece=>dynamicText(piece)).join(locale==='en'?'. ':'。');
+  return value.split('。').map(piece=>dynamicText(piece)).join(['en','ko','kmr','vi'].includes(locale)?'. ':'。');
  }
  const remainingChannel=value.match(/^(WEB受付|LINE受付)の残り(確認中|\d+人)$/);
  if(remainingChannel){
@@ -87,6 +133,7 @@ function dynamicText(value){
  }
  const day=value.match(/^(\d{1,2})月(\d{1,2})日$/);
  if(day)return locale==='zh-CN'?value:locale==='en'?day[1]+'/'+day[2]:locale==='vi'?'Ngày '+day[2]+'/'+day[1]:day[2]+'/'+day[1];
+ if(locale!=='ja'&&/[ぁ-んァ-ン一-龯]/.test(value))fallbackUsed=true;
  return value;
 }
 function translateRaw(value){
@@ -100,7 +147,7 @@ function updateText(node){
  const current=node.nodeValue||'';
  const previous=cached.get(node);
  const raw=previous&&previous.last===current?previous.raw:current;
- const translated=isCore()?translateRaw(raw):raw;
+ const translated=isTranslatable()?translateRaw(raw):raw;
  cached.set(node,{raw,last:translated});
  if(current!==translated)node.nodeValue=translated;
 }
@@ -110,13 +157,14 @@ function updateAttributes(el){
   if(!el.hasAttribute(name))continue;
   const value=el.getAttribute(name)||'',previous=existing[name];
   const raw=previous&&previous.last===value?previous.raw:value;
-  const out=isCore()?translateRaw(raw):raw;
+  const out=isTranslatable()?translateRaw(raw):raw;
   existing[name]={raw,last:out};
   if(out!==value)el.setAttribute(name,out);
  }
  attributes.set(el,existing);
 }
 function translate(){
+ fallbackUsed=false;
  const walker=document.createTreeWalker(app,NodeFilter.SHOW_TEXT),nodes=[];
  while(walker.nextNode())nodes.push(walker.currentNode);
  for(const node of nodes)updateText(node);
@@ -133,17 +181,17 @@ function translate(){
    legal.appendChild(japanese);
   }
  }else if(japanese){japanese.remove()}
- document.documentElement.lang=isCore()?language:'ja';
+ document.documentElement.lang=isTranslatable()?language:'ja';
  const note=document.getElementById('asoboon-language-note');
  if(note){
-  note.hidden=(isCore()&&language!=='ko'&&language!=='kmr')||language==='ja';
+  note.hidden=language==='ja'||(!fallbackUsed&&isCore()&&language!=='ko'&&language!=='kmr');
   note.textContent=({
-   en:'This section is currently available in Japanese.',
-   'zh-CN':'此页面目前仅提供日语。',
-   vi:'Trang này hiện chỉ có tiếng Nhật。',
-   ne:'यो पृष्ठ अहिले जापानी भाषामा मात्र उपलब्ध छ।',
-   ko:isCore()?'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.':'이 화면은 현재 일본어로만 제공됩니다.',
-   kmr:isCore()?'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.':'Ev rûpel niha tenê bi Japonî ye.'
+   en:'Some information may appear in Japanese. Check the original Japanese for important rules.',
+   'zh-CN':'本页面部分内容可能以英语或日语显示。重要规则请核对日语原文。',
+   vi:'Một số thông tin có thể hiển thị bằng tiếng Anh hoặc tiếng Nhật. Hãy xem bản tiếng Nhật gốc cho các quy định quan trọng.',
+   ne:'यस पृष्ठका केही जानकारी अङ्ग्रेजी वा जापानी भाषामा देखिन सक्छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।',
+   ko:'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.',
+   kmr:'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.'
   })[language]||'';
  }
 }
@@ -200,7 +248,7 @@ window.ASOBOON_I18N=Object.freeze({
  setLanguage(code){if(!Object.hasOwn(LANGUAGES,code))return false;select.value=code;select.dispatchEvent(new Event('change',{bubbles:true}));return true},
  t(key){return language==='ja'?key:dynamicText(key)},
  languages:LANGUAGES,
- missing(){if(!isCore()||language==='ja')return [];
+ missing(){if(!isTranslatable()||language==='ja')return [];
   return [...new Set([...app.querySelectorAll('*')].filter(el=>el.children.length===0).map(el=>el.textContent.trim()).filter(x=>/[ぁ-んァ-ン一-龯]/.test(x)))].slice(0,100);
  }
 });
