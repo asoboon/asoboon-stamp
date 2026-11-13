@@ -66,6 +66,9 @@ test('all read APIs required by the new HOME resolve through Production Worker',
   assert.equal(waitTypes.status,200,JSON.stringify(waitTypes.data));
   assert.equal(waitTypes.data?.ok,true);
   assert.ok(waitTypes.data.waitTypes.some(x=>x.waitTypeId==='0029'));
+  assert.equal(waitTypes.data.publicReception?.verified,true);
+  assert.deepEqual(waitTypes.data.publicReception.slots.map(x=>x.waitTypeId),['0033','0034']);
+  assert.equal(waitTypes.data.publicReception.slots.find(x=>x.waitTypeId==='0034')?.remaining,200);
 
   const day=await call(worker,env,{method:'GET',query:{action:'businessDay',date:DAY}});
   assert.equal(day.status,200,JSON.stringify(day.data));

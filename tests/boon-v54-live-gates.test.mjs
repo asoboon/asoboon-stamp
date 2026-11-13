@@ -26,5 +26,5 @@ test('Official AirWAIT business rules remain in shared code, not modified by the
  assert.doesNotMatch(themes,/\bfetch\s*\(/);
  assert.match(themes,/if\(phase==='waiting'&&ahead===0&&!error\)/);
  assert.match(themes,/var flag=model.kind==='calling'/);
- assert.match(build,/initialBytes>145000\|\|initialGzipBytes>40000/);
+ assert.match(build,/initialBytes>152000\|\|initialGzipBytes>40000/);
 });

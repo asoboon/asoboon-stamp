@@ -600,6 +600,9 @@ const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
 let crowdHiddenConfirmed=false,crowdPublicFlags=null,crowdFlagsDate='';
+// Undefined is legacy, absent from old test fixtures. A live gateway supplies
+// verified true/false; never show cached counts before that confirmation.
+let publicReception={verified:false,source:'initial',slots:[]};
 function scheduleCrowd(){
 clearTimeout(crowdPollTimer);crowdPollTimer=0;
 if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
@@ -649,7 +652,18 @@ ${webOpen?'<div><span>WEB受付</span><strong>7:00から</strong></div>':''}
 ${webOpen&&url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
 </div>`;
 }
-function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'営業日カレンダーをご確認ください。'};const today=businessForBoard();if(!today)return day?.ok||displayDay?.ok?{type:'error',title:'今日の営業情報を確認できません',message:'営業日カレンダーをご確認ください。'}:{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(today.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(today.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(crowdHiddenConfirmed)return{type:'ended',title:'公開中の受付枠はありません',message:'WEB・LINEの受付は現在停止しています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
+function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'営業日カレンダーをご確認ください。'};const today=businessForBoard();if(!today)return day?.ok||displayDay?.ok?{type:'error',title:'今日の営業情報を確認できません',message:'営業日カレンダーをご確認ください。'}:{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(today.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(today.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(publicReception?.verified===false)return{type:'error',title:'受付枠を確認できません',message:'Airウェイトの公開ページで最新状況をご確認ください。'};
+if(publicReception?.verified===true){
+ const slots=publicReception.slots||[];
+ const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
+ const lineAvailable=slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
+   lineRules.some(r=>String(r.waitTypeId)===String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0);
+ const webAvailable=publicReception.isOpen&&publicReception.acceptingOnline&&
+   slots.some(x=>x.usageDispType==='KeyONLINE_RECEPTION_ONLY'&&x.remainingVerified===true&&x.remaining>0);
+ if(webAvailable&&!lineAvailable)return{type:'web-public',title:'WEB受付の公開枠があります',message:'入場対象日と受付可否はAirウェイトでご確認ください。'};
+ if(!webAvailable&&!lineAvailable)return{type:'ended',title:'現在受付できる枠はありません',message:'最新の受付状況はAirウェイトでご確認ください。'};
+}
+if(crowdHiddenConfirmed)return{type:'ended',title:'公開中の受付枠はありません',message:'WEB・LINEの受付は現在停止しています。'};if(RECEPTION_FALLBACK_ACTIVE)return{type:'open',fallback:true};if(now.minutes<lineReceptionOpenMinutes())return{type:'before',title:`LINE当日受付は${lineReceptionOpenDisplay()}から`,message:'LINE受付枠をLINEから取得できます。開始までお待ちください。'};return{type:'open'}}
 function round5(x){return Math.max(5,Math.round(x/5)*5)}function eta(n){if(n<=5)return'まもなく';const c=Math.max(1,n*.30);if(c<=4)return'約5分以内';let lo=round5(c*.83),hi=round5(c*1.17);if(hi<=lo)hi=lo+5;return`約${lo}〜${hi}分`}
 function action(view,label,tone='neutral'){return `<button class="v38-action ${tone}" type="button" data-v7-view="${view}"><span>${label}</span>${svg('arrow')}</button>`}
 function guide(kind,title,sub,view,panel=''){return `<button class="v38-guide-card ${kind}" type="button" data-v7-view="${view}"${panel?` data-v7-panel="${panel}"`:''}><span class="v38-icon">${svg(kind)}</span><span><strong>${title}</strong><small>${sub}</small></span>${svg('arrow')}</button>`}
@@ -673,6 +687,7 @@ const finished=rec&&String(data?.receipt||'')===String(rec.receiptNo)&&
 if(finished)return{kind:'rebook',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>前の受付は終了しています</h1><p>次の受付が必要な方はこちらから進めます。</p>${action('reception','もう一度受付する','primary')}</div>`};
 return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>受付番号は保存済みです</h1><p>現在の受付・呼出状況は画面下の「呼出」から確認できます。</p></div>`};
 }
+if(a.type==='web-public')return{kind:'web-public',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p><a class="v38-action primary" href="${esc(airwaitWebReceptionUrl())}" target="_blank" rel="noopener noreferrer" data-external="1">Airウェイトで受付状況を見る ${svg('arrow')}</a></div>`};
 if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${RECEPTION_FALLBACK_ACTIVE?(hasVerifiedWebReceptionSlot()?action('reception','WEB受付を開く','primary'):''):action('reception','順番を取る','primary')}${receptionHoursNote()}</div>`};
 return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='before'?receptionHoursNote():''}</div>`};
 }
@@ -822,8 +837,62 @@ function writeCrowdMarkup(box,markup){
  box.innerHTML=markup;
  lastCrowdRenderBox=box;lastCrowdMarkup=markup;
 }
+
+// Visitor-facing AirWAIT capacityInfo is the source of selectable options.
+// A configured dispFlg or same-clock time alone never proves bookability.
+function renderPublicReception(box){
+ if(publicReception===undefined)return false; // Legacy API (e.g. old test fixtures)
+ // Retain explicitly read-only, dated after-closing archives while the
+ // authoritative public feed has not yet been verified. Never make them bookable.
+ if(publicReception?.verified===false&&crowdReadOnly())return false;
+ window.ASOBOON_PUBLIC_RECEPTION_STATUS=publicReception;
+ box.classList.remove('v613-board-ready');
+ box.querySelector('#v613Board')?.remove();
+ const data=publicReception;
+ const url=airwaitWebReceptionUrl();
+ const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">Airウェイトで最新の受付枠を確認 ↗</a>':'';
+ const header='<h3>受付の空き状況</h3>';
+ const at=Date.parse(String(data?.fetchedAt||''));
+ if(data?.verified!==true||!Number.isFinite(at)||Date.now()-at>90000||at>Date.now()+5000){
+  writeCrowdMarkup(box,header+'<p class="v38-slots-note">現在受付できる枠を確認できません。未確認の人数は表示しません。</p><p>'+link+'</p>');
+  return true;
+ }
+ const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
+ const rows=Array.isArray(data.slots)?data.slots:[];
+ if(!rows.length||!data.isOpen){
+  writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトで現在選択できる受付枠はありません。</p><p>'+link+'</p><p class="v38-crowd-refresh">最終更新 '+esc(time)+'</p>');
+  return true;
+ }
+ const ordered=[...rows].filter(x=>['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
+  .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
+ const currentRules=R.slotsFor(String(businessForBoard()?.businessType||''),'onsite')||[];
+ const markup=ordered.map(slot=>{
+  const name=String(slot.waitTypeName||'');
+  const m=name.match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);
+  const label=m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):name;
+  const isWeb=slot.usageDispType==='KeyONLINE_RECEPTION_ONLY';
+  const channel=isWeb?'WEB受付':'LINE・現地受付';
+  const n=slot.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null;
+  const num=n===null?'確認中':n+'人';
+  const canWeb=isWeb&&data.acceptingOnline===true&&n!==null&&n>0&&url;
+  const canLine=!isWeb&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
+  const action=canWeb?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">WEBで受付する ↗</a>':
+   canLine?'<button class="v38-airwait-link" type="button" data-v7-view="reception">LINEで受付を確認 →</button>':
+   '<small class="v38-crowd-unknown">'+(n===0?'この枠は満員です':'対象日・受付方法を確認してください')+'</small>';
+  return '<div class="v38-crowd-card" role="group" aria-label="'+esc(label+' '+channel+' 残り'+num)+'">'
+    +'<div class="v38-crowd-head"><time>'+esc(label)+'　'+esc(channel)+'</time></div>'
+    +'<div class="v38-crowd-remaining"><div class="v38-crowd-channel '+(isWeb?'v38-crowd-channel--web':'v38-crowd-channel--onsite')+'"><span>'+esc(channel)+'</span><strong>'+esc(num)+'</strong></div></div>'
+    +'<p class="v38-crowd-tap-hint">'+action+'</p></div>';
+ }).join('');
+ writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトのお客様向けページに現在表示されている枠です。対象日・最終受付はAirウェイトでご確認ください。</p>'
+  +'<div class="v38-crowd-refresh" role="status">最終更新 '+esc(time)+'</div>'
+  +'<div class="v38-crowd-list">'+markup+'</div><p>'+link+'</p>');
+ return true;
+}
+
 function renderSlots(){
  const box=root.querySelector('#v38Slots');if(!box)return;
+ if(renderPublicReception(box))return;
  const business=businessForBoard();
  const webOpen=hasVerifiedWebReceptionSlot();
  const times='<div class="v38-opening-hours" aria-label="受付開始時刻">'+(webOpen?'<span>WEB受付 <strong>7:00〜</strong><small>対象日のみ</small></span>':'')+'<span>LINE受付 <strong>'+esc(lineReceptionOpenDisplay())+'〜</strong></span></div>';
@@ -873,10 +942,13 @@ async function fetchCrowd(force=false,manual=false){
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   const t=readLastCrowd()?.businessType||businessForBoard()?.businessType||day?.businessType;
   const m=await import('./crowd-visibility.mjs?v=1');
-  const types=await m.published(E.backendUrl);
+  const publicStatus=await m.publishedStatus(E.backendUrl);
+  const types=publicStatus?.waitTypes||null;
+  publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
   const flagsVerified=Array.isArray(types);
   if(flagsVerified){crowdPublicFlags=new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg]));crowdFlagsDate=String(day?.operationalDate||'')}
-  if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true){
+  if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true&&
+     !(publicReception?.verified===true&&publicReception.isOpen&&publicReception.slots?.length>0)){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
    return;
@@ -928,7 +1000,7 @@ async function refreshDay(force=false){if(dayLoading||typeof D.getCurrent!=='fun
    if(resolved?.ok&&resolved.operationalDate===today)displayDay=resolved;
   }catch{}
  }
-const currentBusiness=businessForBoard();if(currentBusiness&&!currentBusiness.isClosed&&['平日','平日特定日','土日祝日'].includes(String(currentBusiness.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd())void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
+const currentBusiness=businessForBoard();if(currentBusiness&&!currentBusiness.isClosed&&['平日','平日特定日','土日祝日'].includes(String(currentBusiness.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd()||(currentBusiness&&!currentBusiness.isClosed))void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
 root.addEventListener('click',e=>{
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;

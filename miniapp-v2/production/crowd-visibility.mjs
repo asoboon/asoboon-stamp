@@ -1,7 +1,6 @@
-/**
- * Independently verify public AirWAIT slot visibility when quota values are
- * missing. Loaded ONLY on the empty/error path; normal HOME stays lightweight.
- * Never treats a failed waitTypes response or absent ID as a closed reception.
+/** AirWAIT public visibility is NOT the same as currently selectable slots.
+ * The optional publicReception field is independently verified against the
+ * customer-facing AirWAIT page. A failed read must not be treated as open.
  */
 export function allHidden(types, onsite, online) {
   if (!Array.isArray(types) || !Array.isArray(onsite) || !Array.isArray(online)) return null;
@@ -11,9 +10,9 @@ export function allHidden(types, onsite, online) {
   if (!ids.every(id => map.has(id))) return null;
   return ids.every(id => map.get(id)?.dispFlg === false);
 }
-export async function published(base) {
+export async function publishedStatus(base) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 4500);
+  const timer = setTimeout(() => ctrl.abort(), 6500);
   try {
     const url = new URL(base);
     if (url.protocol !== 'https:') return null;
@@ -21,11 +20,15 @@ export async function published(base) {
     const response = await fetch(url, {cache:'no-store', credentials:'omit', signal:ctrl.signal});
     if (!response.ok) return null;
     const data = await response.json();
-    return data?.ok === true && Array.isArray(data.waitTypes) ? data.waitTypes : null;
+    if (data?.ok !== true || !Array.isArray(data.waitTypes)) return null;
+    return {waitTypes:data.waitTypes,
+      publicReception:Object.hasOwn(data,'publicReception')?data.publicReception:null};
   } catch {return null}
   finally {clearTimeout(timer)}
 }
-
+export async function published(base) {
+  return (await publishedStatus(base))?.waitTypes ?? null;
+}
 export async function check(base, onsite, online) {
- return allHidden(await published(base), onsite, online);
+  return allHidden(await published(base), onsite, online);
 }

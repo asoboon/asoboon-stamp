@@ -4562,3 +4562,46 @@ test('Live-audited FAQ and safety routes translate question, answer and visitor 
  await page.locator('#asoboon-language-select').selectOption('ko');
  await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
 });
+
+test('HOME uses only AirWAIT currently selectable public slots, not outdated weekday/session flags',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0029',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0031',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0033',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+  ],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+   {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:50,remainingVerified:true},
+   {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:200,remainingVerified:true}
+  ]}})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(2,{timeout:15000});
+ await expect(page.locator('#v38Slots')).toContainText('15:00');
+ await expect(page.locator('#v38Slots')).toContainText('15:15');
+ await expect(page.locator('#v38Slots')).toContainText('200人');
+ await expect(page.locator('#v38Slots')).not.toContainText('10:00回');
+ await expect(page.locator('#v38Slots')).not.toContainText('12:30回');
+ await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]').first()).toBeVisible();
+});
+
+test('HOME never displays historical remaining quotas when public AirWAIT slot verification fails',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0030',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0032',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0034',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0029',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0031',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0033',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+  ],publicReception:{verified:false,source:'AirWAIT-public-page',slots:[]}})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません',{timeout:15000});
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
+});
