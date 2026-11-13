@@ -57,7 +57,7 @@ function dynamicText(value){
  if(TABLE[value]&&TABLE[value][locale])return TABLE[value][locale];
  const normalized=localizedKoKmr(value,locale);
  if(normalized!==null)return normalized;
- if((locale==='ko'||locale==='kmr')&&TABLE[value]?.en)return TABLE[value].en;
+ if(TABLE[value]?.en)return TABLE[value].en; // Visible English fallback beats untranslated Japanese; notice remains present
  if(value.startsWith('LINE内 · '))return (locale==='en'?'In LINE · ':locale==='zh-CN'?'LINE内 · ':locale==='vi'?'Trong LINE · ':'LINE भित्र · ')+value.slice('LINE内 · '.length);
  for(const prefix of ['① ','② ','③ ']){const entry=TABLE[prefix+value]?.[locale];if(entry)return entry.replace(/^[①②③]\s*/, '')}
  const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':locale==='ko'?'명':locale==='kmr'?'kes':'जना';
@@ -182,10 +182,10 @@ function translate(){
  if(note){
   note.hidden=(isCore()&&language!=='ko'&&language!=='kmr')||language==='ja';
   note.textContent=({
-   en:'This section is currently available in Japanese.',
-   'zh-CN':'此页面目前仅提供日语。',
-   vi:'Trang này hiện chỉ có tiếng Nhật。',
-   ne:'यो पृष्ठ अहिले जापानी भाषामा मात्र उपलब्ध छ।',
+   en:'Some information on this screen remains in Japanese. Check the original Japanese for important rules.',
+   'zh-CN':'本页面部分内容仍以日语显示。重要规则请核对日语原文。',
+   vi:'Một số thông tin trên màn hình này vẫn bằng tiếng Nhật. Hãy xem bản gốc tiếng Nhật cho các quy định quan trọng.',
+   ne:'यस पृष्ठका केही जानकारी अझै जापानी भाषामा छन्। महत्वपूर्ण नियमका लागि मूल जापानी पाठ हेर्नुहोस्।'
    ko:'일부 안내는 영어 또는 일본어로 표시됩니다. 중요한 내용은 일본어 원문도 확인해 주세요.',
    kmr:'Hin agahî bi Îngilîzî an Japonî tên nîşandan. Ji bo şertên girîng nivîsa Japonî jî bibîne.'
   })[language]||'';
