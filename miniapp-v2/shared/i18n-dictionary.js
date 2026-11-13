@@ -126,3 +126,14 @@ for(const [ja,en,ko,kmr] of [["定休日や臨時の営業変更をご確認い�
  if(!row.kmr)row.kmr=kmr;
  window.ASOBOON_I18N_DICTIONARY[ja]=row;
 }
+
+
+/* Kurmanji terminology review: meqbûz is the payment receipt.
+   Avoid the false friend reçete (medical prescription). */
+for(const entry of Object.values(window.ASOBOON_I18N_DICTIONARY)){
+ if(typeof entry.kmr!=='string')continue;
+ entry.kmr=entry.kmr
+  .replaceAll('Reçeteyê','Meqbûzê')
+  .replaceAll('Reçete','Meqbûz')
+  .replaceAll('reçeteya','meqbûza');
+}
