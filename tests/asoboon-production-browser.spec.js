@@ -5061,8 +5061,8 @@ test('HOME preserves independent LINE and crowd access when only WEB is publicly
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開枠なし');
  await expect(page.locator('#v615EssentialLine button[data-v7-view="reception"]')).toHaveCount(0);
- await expect(page.locator('#v615EssentialCrowd')).toBeVisible();
- await expect(page.locator('#v615EssentialCrowd')).toContainText('混雑予想 —');
+ await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
+ await expect(page.locator('#v615SessionBoard .v615-forecast-value')).toHaveText(['—']);
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:844});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -5076,8 +5076,8 @@ test('HOME keeps LINE access read-only after closing while preserving crowd-stat
  await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'}); // 18:10 JST
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Hero')).toHaveClass(/ended|tomorrow|closed/,{timeout:16000});
- await expect(page.locator('#v615EssentialCrowd')).toBeVisible();
- await expect(page.locator('#v615EssentialCrowd')).toContainText('混雑状況');
+ await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels')).toBeVisible();
  await expect(page.locator('#v615EssentialLine button[data-v7-view="reception"]')).toHaveCount(0);
 });
 
@@ -5157,4 +5157,74 @@ test('WEB slots remain selectable at 09:15 even when LINE reception has not open
  await expect(board.locator('.v615-channel-count')).toHaveText(['68人','22人']);
  await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
  await expect(board.locator('button.v615-channel-action')).toHaveCount(0);
+});
+
+
+test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts against 320',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T03:00:00.000Z'});
+ const mockDate='2026-10-03T03:00:00.000Z';
+ const web=[
+  {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:0,remainingVerified:true},
+  {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:0,remainingVerified:true},
+  {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:61,remainingVerified:true}
+ ];
+ const stores=[
+  {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:30},
+  {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:30},
+  {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:50}
+ ];
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({ok:true,waitTypes:[
+   ...web.map(x=>({waitTypeId:x.waitTypeId,waitTypeName:x.waitTypeName,dispFlg:true,usageDispType:x.usageDispType})),
+   ...stores.map(x=>({waitTypeId:x.waitTypeId,waitTypeName:x.waitTypeName,dispFlg:true,usageDispType:x.usageDispType}))
+  ],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:mockDate,isOpen:true,acceptingOnline:true,slots:web}})
+ }));
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({ok:true,source:'AirWAIT getWaitInfo',stale:false,fetchedAt:mockDate,
+   slots:web.map((x,i)=>({waitTypeId:x.waitTypeId,waitTypeName:x.waitTypeName,slotKey:['10:00','12:30','15:00'][i],
+    reserveUnit:'PERSON',matchMode:'exact-name',evidence:'PERSON',remaining:x.remaining})),
+   observedDetails:stores.map(x=>({detailedWaitType:x.waitTypeName,reserveUnit:'PERSON',
+    remaining:x.remaining,remainingVerified:true}))})
+ }));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ const sessions=board.locator('.v615-session');
+ await expect(sessions).toHaveCount(3,{timeout:18000});
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
+ await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
+ await expect(board.locator('.v615-channel-time')).toHaveText([
+  '10:00','10:25','12:30','12:50','15:00','15:15'
+ ]);
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 3枠');
+ await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
+ await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();
+ // 12:00 JST: verified, published store slots are navigable, WEB is still selectable only when non-full.
+ await expect(board.locator('button.v615-channel-action[data-v7-view="reception"]')).toHaveCount(3);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
+});
+
+test('HOME forecast never invents onsite counts from unverified getWaitInfo details',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T03:00:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0030',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+  ],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,
+   acceptingOnline:true,slots:[
+    {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',
+     usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:200,remainingVerified:true}]}})
+ }));
+ // Default crowd mock has 117 onsite people, but WITHOUT remainingVerified:true.
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board).toBeVisible({timeout:18000});
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['—']);
+ await expect(board.locator('.v615-channel-count')).toHaveText(['200人']);
+ await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
 });

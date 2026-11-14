@@ -597,7 +597,7 @@ const resolveHref=(base,path)=>{try{return new URL(String(path||''),new URL(base
 const assetHref=path=>resolveHref(ASSET_BASE,path);
 const siteHref=path=>resolveHref(SITE_BASE,path);
 const CROWD_CACHE_MAX_AGE_MS=90*1000;
-const CROWD_STALE_MS=90000;
+const CROWD_STALE_MS=9e4;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
 let crowdHiddenConfirmed=false,crowdPublicFlags=null,crowdFlagsDate='';
 let publicReception={verified:false,source:'initial',slots:[]};
@@ -772,7 +772,7 @@ function publishedFlagsForDay(type=day?.businessType){
 }
 function writeCrowdCache(slots,details,stale=false){try{
  const flags=publishedFlagsForDay();
- localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),publicFlags:flags,verifiedFresh:stale!==true&&crowdAt>0&&!!flags}));
+ localStorage.setItem(CROWD_CACHE_KEY,JSON.stringify({slots,details,operationalDate:String(day?.operationalDate||''),businessType:String(day?.businessType||''),savedAt:crowdAt>0?crowdAt:Date.now(),publicFlags:flags,verifiedFresh:stale!==true&&crowdAt>0&&!!flags}));dispatchEvent(new Event('ac'));
 }catch{}}
 function readLastCrowd(){
 for(const key of [LAST_CROWD_KEY,CROWD_CACHE_KEY])try{
