@@ -4529,6 +4529,77 @@ test('Live-audited FAQ and safety routes translate question, answer and visitor 
  await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
 });
 
+test('HOME removes extra reception-slot and arrival-hint captions without changing verified numbers and actions',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+  {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:51,remainingVerified:true},
+  {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:12,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30の回',{timeout:15000});
+ await expect(board).not.toContainText('受付枠');
+ await expect(board).not.toContainText('入場目安');
+ await expect(board.locator('.v615-channel-time')).toHaveCount(0);
+ await expect(board.locator('.v615-channel-action')).toHaveCount(2);
+ await expect(board).toContainText('51人');
+ await expect(board).toContainText('12人');
+});
+
+test('Call route ticket list is lazy and removes canceled, completed, and disappeared numbers on refresh',async({page})=>{
+ await installProduction(page);
+ let count=0;
+ await page.route(url=>url.searchParams.get('action')==='boardStatus',async route=>{
+  count++;
+  const first=count===1;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,source:'AirWAIT',stale:false,businessDate:'2026-10-03',fetchedAt:'2026-10-03T03:00:00.000Z',slots:[
+    {key:'10:00',label:'10:00の回',rows:first?[
+      {number:'1001',state:'waiting'}, {number:'1002',state:'calling'}, {number:'1003',state:'canceled'},
+      {number:'1004',state:'done'}, {number:'1005',state:'hold'}, {number:'1006',state:'processing'},
+      {number:'<b>BAD</b>',state:'calling'}
+    ]:[{number:'1007',state:'waiting'}]},
+    {key:'12:30',label:'12:30の回',rows:first?[{number:'1201',state:'waiting'}]:[]},
+    {key:'15:00',label:'15:00の回',rows:[]}
+  ]})});
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ const panel=page.locator('#csNumberList');await expect(panel).toBeVisible();await expect(panel).not.toHaveAttribute('open','');
+ expect(count).toBe(0);
+ await panel.locator('summary').click();
+ await expect(panel.locator('.cs-number-chip')).toHaveCount(5,{timeout:15000});
+ await expect(panel).toContainText('1002');
+ await expect(panel).toContainText('1005');
+ await expect(panel).not.toContainText('1003');
+ await expect(panel).not.toContainText('1004');
+ await expect(panel).not.toContainText('BAD');
+ await expect(panel.locator('.cs-number-session')).toHaveCount(2);
+ await expect(panel.locator('.cs-number-chip--calling')).toHaveCount(1);
+ await panel.locator('#csNumberListRefresh').click();
+ await expect(panel.locator('.cs-number-chip')).toHaveCount(1,{timeout:15000});
+ await expect(panel).toContainText('1007');
+ await expect(panel).not.toContainText('1002');
+ await expect(panel.locator('.cs-number-session')).toHaveCount(1);
+ for(const width of [320,390,430]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)}
+ await panel.locator('summary').click();
+ await expect(panel.locator('.cs-number-chip')).toHaveCount(0);
+});
+
+test('Call route ticket list fails closed on stale or unavailable AirWAIT board data',async({page})=>{
+ await installProduction(page);
+ let calls=0;
+ await page.route(url=>url.searchParams.get('action')==='boardStatus',async route=>{
+  calls++;
+  if(calls===1)await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,stale:true,businessDate:'2026-10-03',fetchedAt:'2026-10-03T03:00:00.000Z',slots:[{label:'10:00の回',rows:[{number:'1001',state:'calling'}]}]})});
+  else await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'TEST_UNAVAILABLE'})});
+ });
+ await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+ const panel=page.locator('#csNumberList');await panel.locator('summary').click();
+ await expect(panel.locator('#csNumberListNotice')).toContainText('最新の番号を確認できません',{timeout:15000});
+ await expect(panel.locator('.cs-number-chip')).toHaveCount(0);
+ await panel.locator('#csNumberListRefresh').click();
+ await expect(panel.locator('#csNumberListNotice')).toContainText('番号一覧を更新できませんでした',{timeout:15000});
+ await expect(panel.locator('.cs-number-chip')).toHaveCount(0);
+});
+
 test('HOME groups published AirWAIT slots into three consistent session cards and verified crowd forecasts',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
@@ -4553,7 +4624,8 @@ test('HOME groups published AirWAIT slots into three consistent session cards an
   await expect(cards.nth(i).locator('.v615-channel')).toHaveCount(2);
   await expect(cards.nth(i).locator('.v615-channel-action')).toHaveCount(2);
  }
- await expect(cards.first()).toContainText('入場目安 10:25');
+ await expect(cards.first()).not.toContainText('入場目安');
+ await expect(cards.first()).not.toContainText('受付枠');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(6);
  await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
  for(const width of [320,390,430]){
