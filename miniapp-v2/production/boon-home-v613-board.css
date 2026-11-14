@@ -445,3 +445,14 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v615RetryStatus .v615-retry-butt
  html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channels{gap:6px!important}
  html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel{padding:8px!important}
 }
+/* An observable heartbeat for background verification, with reduced-motion support. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-slots-note[role="status"]::before,
+html.boon-v4.boon-v5-mint body.v38-home-active #v615RetryStatus .v615-retry-label::before{
+ content:'';display:inline-block;width:8px;height:8px;vertical-align:middle;margin-right:7px;
+ background:#1C8D89;border-radius:50%;animation:v615Pulse 1.5s ease-in-out infinite;
+}
+@keyframes v615Pulse{0%,100%{opacity:.3;transform:scale(.75)}50%{opacity:1;transform:scale(1.1)}}
+@media(prefers-reduced-motion:reduce){
+ html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-slots-note[role="status"]::before,
+ html.boon-v4.boon-v5-mint body.v38-home-active #v615RetryStatus .v615-retry-label::before{animation:none;opacity:1}
+}
