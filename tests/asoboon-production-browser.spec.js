@@ -4987,3 +4987,19 @@ test('LINE reception distinguishes before opening from after closing including 1
   }
  }
 });
+
+test('HOME localized ticket actions return to Japanese after English and Kurmanji round trips',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+ {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:36,remainingVerified:true},
+ {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:80,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const action=page.locator('#v38Hero .v38-action');
+ await expect(action).toContainText('順番を取る',{timeout:16000});
+ const picker=page.locator('#asoboon-language-select');
+ await picker.selectOption('en');await expect(action).toContainText('Get a queue ticket');
+ await picker.selectOption('kmr');await expect(action).toContainText('Jimareya dorê bistîne');
+ await picker.selectOption('ja');await expect(action).toContainText('順番を取る');
+ await picker.selectOption('en');await expect(action).toContainText('Get a queue ticket');
+});
