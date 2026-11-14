@@ -14,8 +14,8 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=122303fc733b','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
-  './miniapp-v2/shared/i18n-dictionary.js?v=7833e119f3cb','./miniapp-v2/shared/i18n-runtime.js?v=86c1bc777f17'];
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=995299972f48','./miniapp-v2/production/choco-mint-nav-v8.js?v=4229c16fc4c2',
+  './miniapp-v2/shared/i18n-dictionary.js?v=7833e119f3cb','./miniapp-v2/shared/i18n-runtime.js?v=e941e9ce960a'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';

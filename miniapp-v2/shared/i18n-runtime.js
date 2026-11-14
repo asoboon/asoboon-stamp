@@ -118,7 +118,8 @@ function dynamicText(value){
  if(opening)return locale==='en'?'Open on '+opening[1]+'/'+opening[2]:locale==='zh-CN'?opening[1]+'月'+opening[2]+'日营业':locale==='vi'?'Mở cửa ngày '+opening[2]+'/'+opening[1]:opening[2]+'/'+opening[1]+' को खुल्ने दिन';
 
  if(/^[\d,]+名$/.test(value))return value.replace('名',' '+people);
- if(/^[\d,]+組$/.test(value))return value.replace('組',' '+people);
+ const groups={en:'groups','zh-CN':'组',vi:'nhóm',ko:'팀',kmr:'kom',ne:'समूह'}[locale]||'groups';
+ if(/^[\d,]+組$/.test(value))return value.replace('組',locale==='zh-CN'?groups:' '+groups);
  if(/^[\d,]+円$/.test(value))return locale==='zh-CN'?value.replace('円','日元'):'¥'+value.replace('円','');
  if(/^\d+秒$/.test(value))return value.replace('秒',' '+seconds);
  if(value==='名')return people;

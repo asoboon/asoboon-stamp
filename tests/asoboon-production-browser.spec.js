@@ -4926,3 +4926,24 @@ test('Certified official HOME visibly labels tomorrow date and schedule after cl
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
+
+test('LINE reception distinguishes before opening from after closing including 19:00 rollover',async({page})=>{
+ for(const [iso,isClosed] of [
+  ['2026-10-03T00:10:00.000Z',false], // 09:10 JST
+  ['2026-10-03T09:10:00.000Z',true],  // 18:10 JST, closing time elapsed
+  ['2026-10-03T10:15:00.000Z',true],  // 19:15 JST, operational-date rollover
+ ]){
+  await installProduction(page,{clockIso:iso});
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  const slots=page.locator('#recSlots');
+  if(isClosed){
+   await expect(slots).toContainText('本日のLINE当日受付は終了しました',{timeout:16000});
+   await expect(slots).not.toContainText('受付開始後、本日のLINE受付枠をLINEから選べます');
+   await expect(page.locator('#recSubmit')).toBeDisabled();
+  }else{
+   await expect(slots).toContainText('LINE当日受付は9:30からです',{timeout:16000});
+   await expect(slots).not.toContainText('本日のLINE当日受付は終了しました');
+   await expect(page.locator('#recSubmit')).toBeDisabled();
+  }
+ }
+});

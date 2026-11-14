@@ -48,9 +48,21 @@ function clockMinutes(v){const m=String(v||'').match(/^(\d{1,2}):(\d{2})$/);retu
 function lineOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30')}
 function lineOpenDisplay(){const m=lineOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineOpenClock()}
 function lineOpenMinutes(){const n=clockMinutes(lineOpenClock());return Number.isFinite(n)?n:570}
+function lineReceptionBeforeOpen(){const n=jstClock();return n.hour*60+n.minute<lineOpenMinutes()}
+function lineReceptionClosedText(){return lineReceptionBeforeOpen()?`LINE当日受付は${lineOpenDisplay()}からです。開始後、LINE受付枠をLINEから取得できます。`:'本日のLINE当日受付は終了しました。次の営業日の受付開始時刻をご確認ください。'}
 function jstClock(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{hour:Number(p.hour),minute:Number(p.minute),second:Number(p.second)}}
-function lineReceptionOpenNow(){const n=jstClock();return n.hour*60+n.minute>=lineOpenMinutes()}
-function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),seconds=Math.max(1,(lineOpenMinutes()-(n.hour*60+n.minute))*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
+function lineReceptionOpenNow(){
+ const n=jstClock(),minutes=n.hour*60+n.minute;
+ if(minutes<lineOpenMinutes())return false;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+ const calendarDate=parts.year+'-'+parts.month+'-'+parts.day;
+ // At 19:00 the operational day becomes tomorrow; never offer tomorrow's tickets tonight.
+ if((S.day?.operationalDate&&String(S.day.operationalDate)!==calendarDate)||
+    (typeof D.operationalDate==='function'&&D.operationalDate()!==calendarDate))return false;
+ const closing=clockMinutes(String(S.day?.closingTime||'18:00'));
+ return !Number.isFinite(closing)||minutes<closing;
+}
+function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),now=n.hour*60+n.minute;let delta=lineOpenMinutes()-now;if(delta<=0)delta+=24*60;const seconds=Math.max(1,delta*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
 function friendlyError(value){const code=String(value||'');const map={
   LINE_PROFILE_INVALID:'LINEの本人情報を確認できませんでした。ミニアプリを完全に閉じ、公式LINEのメニューから開き直してください。受付番号が表示されていなければ、受付は完了していません。',
   LINE_PROFILE_REAUTHORIZE:'LINEプロフィールの利用許可を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直し、許可画面が出たら同意してください。',
@@ -431,7 +443,7 @@ async function loadRemaining({force=false,generation=S.generation}={}){
    if(generation===S.generation&&sameReceptionView()&&!S.busy&&!S.locked){renderSlots();updateRemainingInfo()}
  }
 }
-function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">LINE当日受付は${esc(lineOpenDisplay())}からです。受付開始後、本日のLINE受付枠をLINEから選べます。</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>{
+function renderSlots(){const el=$('recSlots');if(!el)return;const hasTest=S.slots.some(isDevelopTestSlot);if(S.day?.isClosed&&!hasTest){el.innerHTML='<div class="rec-status bad">本日は休館日です。</div>';return}if(!lineReceptionOpenNow()&&!hasTest){el.innerHTML=`<div class="rec-status warn">${esc(lineReceptionClosedText())}</div>`;scheduleLineOpen();return}if(!S.slots.length){el.innerHTML='<div class="rec-status warn">現在選択できる受付枠がありません。</div>';return}el.innerHTML=S.slots.map(s=>{
   const count=readLineRemaining(s.waitTypeId);
   const display=count===null?'確認中':count+'名';
   return `<button type="button" class="rec-slot ${S.slot?.waitTypeId===s.waitTypeId?'active':''}" data-rec-slot="${esc(s.waitTypeId)}" data-rec-available="1">
@@ -451,7 +463,7 @@ function renderForm(){
   if($('recAgree'))$('recAgree').disabled=S.busy||S.locked;
   document.querySelectorAll('[data-rec-slot]').forEach(b=>{b.disabled=S.busy||S.locked});
   const testSelected=isDevelopTestSlot(S.slot),openNow=lineReceptionOpenNow()||testSelected;const permissionOK=!['checking','prompt','requesting','unavailable','failed'].includes(S.profilePermission);const ready=openNow&&peopleOK&&S.slot&&S.day&&S.agree&&locationOk()&&(!S.day.isClosed||testSelected)&&!S.busy&&!S.locked&&S.canCreate&&permissionOK;
-  const submit=$('recSubmit');submit.disabled=!ready;submit.textContent=S.busy?'受付中…':!openNow?`受付は${lineOpenDisplay()}から`:S.canCreate&&S.day?'受付を確定する':'受付確定（確認待ち）';
+  const submit=$('recSubmit');submit.disabled=!ready;submit.textContent=S.busy?'受付中…':!openNow?(lineReceptionBeforeOpen()?`受付は${lineOpenDisplay()}から`:'本日の受付は終了しました'):S.canCreate&&S.day?'受付を確定する':'受付確定（確認待ち）';
 }
 
 function distanceM(a,b,c,d){const Rm=6371000,rad=x=>x*Math.PI/180,x=rad(c-a),y=rad(d-b),q=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 2*Rm*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
@@ -492,7 +504,7 @@ async function boot(){
   if(dayOK&&gatewayOK&&lineOK&&lineReceptionOpenNow()&&!S.day?.isClosed&&!DEVELOP_TEST_ONLY&&S.slots.length)void loadRemaining({generation:gen});
   const pending=recoverablePending();
   if(pending?.requestId&&lineOK&&dayOK&&gatewayOK){S.locked=true;renderForm();status('前回の受付結果を確認しています。新しい受付は行わないでください。','warn');void recoverAmbiguous(String(pending.requestId));return}
-  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){S.canCreate=false;renderSlots();renderForm();status(`LINE当日受付は${lineOpenDisplay()}からです。開始後、LINE受付枠をLINEから取得できます。`,'warn');scheduleLineOpen();return}
+  if(dayOK&&!S.day?.isClosed&&!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){S.canCreate=false;renderSlots();renderForm();status(lineReceptionClosedText(),'warn');scheduleLineOpen();return}
 
   const hasTest=S.slots.some(isDevelopTestSlot);
   if(!lineOK){status(String(lineResult.reason?.message||lineResult.reason||'LINE接続を確認できません。'),'bad');return}
@@ -519,7 +531,7 @@ function lockNotificationAmbiguous(requestId){stopProcessing();clearPending(requ
 
 async function submit(){
   if($('recSubmit')?.disabled||S.busy||S.locked||!S.slot||!S.day||!S.canCreate)return;
-  if(!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){status(`LINE当日受付は${lineOpenDisplay()}からです。受付開始までお待ちください。`,'warn');renderForm();scheduleLineOpen();return}
+  if(!lineReceptionOpenNow()&&!DEVELOP_TEST_ONLY){status(lineReceptionClosedText(),'warn');renderForm();scheduleLineOpen();return}
   const seq=++S.submitSeq;
   S.busy=true;startProcessing();status('受付内容を最終確認しています…','warn');renderForm();
   const watchdog=setTimeout(()=>{if(seq===S.submitSeq&&S.busy)lockAmbiguous(readPending()?.requestId||'')},SUBMIT_WATCHDOG_MS);

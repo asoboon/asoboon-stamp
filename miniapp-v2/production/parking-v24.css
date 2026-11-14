@@ -24,3 +24,8 @@
 
 /* Group complete safety sentences instead of leaving a single kana dangling. */
 html body #app .v24-parking-page :is(.v24-alert,.v24-safety) p{text-wrap:balance!important}
+
+/* All seven languages: do not let long parking option labels enlarge the viewport. */
+html body #app .v24-parking-page .v24-choice { min-width:0!important; }
+html body #app .v24-parking-page .v24-choice button { min-width:0!important; max-width:100%!important; overflow-wrap:anywhere!important; }
+html body #app .v24-parking-page .v24-choice button :is(strong,small,span) { min-width:0!important; white-space:normal!important; overflow-wrap:anywhere!important; word-break:normal!important; }
