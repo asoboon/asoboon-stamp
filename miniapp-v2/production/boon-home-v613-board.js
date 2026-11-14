@@ -154,6 +154,8 @@ function buildPublicBoard(){
  const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
  for(const group of PUBLIC_GROUPS){
   const a=map.get(group.web),b=map.get(group.line);
+  // AirWAIT removed both slots: do not show a ghost session.
+  if(!a&&!b)continue;
   const web=publicCount(a?.slot),line=publicCount(b?.slot);
   const pct=web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
   const card=elem('article','v615-session');
@@ -166,12 +168,11 @@ function buildPublicBoard(){
   const progress=elem('div','v615-forecast-track');progress.setAttribute('aria-hidden','true');
   const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
   const cells=elem('div','v615-channels');
-  cells.appendChild(publicChannel(a?.slot,a?.source,labels[1],labels[3],labels[4]));
-  cells.appendChild(publicChannel(b?.slot,b?.source,labels[2],labels[3],labels[4]));
+  if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1],labels[3],labels[4]));
+  if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],labels[3],labels[4]));
+  if(!a||!b)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
  }
- const note=lang==='ja'?'※混雑予想は公開中のWEB・LINEの残人数を320人から差し引く参考値。館内の実人数ではありません。どちらかが未公開の場合は算出しません。':(L[lang]||L.ja)[4];
- board.appendChild(elem('p','v615-session-note',note));
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v615-public-ready');
 }
 function renderRetryState(){

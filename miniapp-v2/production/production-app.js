@@ -930,7 +930,7 @@ function renderPublicReception(box){
     +'<div class="v38-crowd-remaining"><div class="v38-crowd-channel '+(isWeb?'v38-crowd-channel--web':'v38-crowd-channel--onsite')+'"><span>'+esc(channel)+'</span><strong>'+esc(num)+'</strong></div></div>'
     +'<p class="v38-crowd-tap-hint">'+action+'</p></div>';
  }).join('');
- writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトのお客様向けページに現在表示されている枠です。対象日・最終受付はAirウェイトでご確認ください。</p>'
+ writeCrowdMarkup(box,header
   +'<div class="v38-crowd-refresh" role="status">最終更新 '+esc(time)+'</div>'
   +'<div class="v38-crowd-list">'+markup+'</div><p>'+link+'</p>');
  return true;

@@ -4562,6 +4562,41 @@ test('HOME groups published AirWAIT slots into three consistent session cards an
  }
 });
 
+test('HOME hides removed AirWAIT sessions and unpublished channels, with compact cards and no forecast explanation',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:['0032','0033','0034'].map(waitTypeId=>({waitTypeId,dispFlg:true})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:61,remainingVerified:true},
+    {waitTypeId:'0034',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'15時ご入場枠【WEB整理券】',remaining:100,remainingVerified:true},
+    {waitTypeId:'0033',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'15時15分頃入場時間【土休日特定日】',remaining:50,remainingVerified:true}
+   ]}}
+  )});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard'),cards=board.locator('.v615-session');
+ await expect(cards).toHaveCount(2,{timeout:15000});
+ await expect(cards.nth(0)).toContainText('12:30の回');
+ await expect(cards.nth(1)).toContainText('15:00の回');
+ await expect(board).not.toContainText('10:00の回');
+ await expect(board).not.toContainText('未公開');
+ await expect(board).not.toContainText('320人');
+ await expect(board.locator('.v615-session-note')).toHaveCount(0);
+ await expect(cards.nth(0).locator('.v615-channel')).toHaveCount(1);
+ await expect(cards.nth(0).locator('.v615-channel-count')).toHaveText('61人');
+ await expect(cards.nth(0).locator('.v615-forecast-value')).toHaveText('—');
+ await expect(cards.nth(0).locator('.v615-channel-action')).toHaveCount(1);
+ await expect(cards.nth(1).locator('.v615-channel')).toHaveCount(2);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
+ const dimensions=await cards.nth(1).evaluate(el=>({height:el.getBoundingClientRect().height,actions:[...el.querySelectorAll('a.v615-channel-action,button.v615-channel-action')].map(x=>x.getBoundingClientRect().height)}));
+ expect(dimensions.height).toBeLessThan(200);
+ expect(dimensions.actions.every(h=>h>=36)).toBe(true);
+});
+
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='crowdRemaining',async route=>{
@@ -4576,7 +4611,7 @@ test('HOME continues to show verified public sessions if historical crowd endpoi
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v615SessionBoard')).toContainText('124人',{timeout:15000});
- await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(3);
+ await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(1);
  await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
 });
 
