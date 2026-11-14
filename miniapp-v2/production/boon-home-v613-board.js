@@ -274,6 +274,11 @@ function renderRequiredAccess(){
  // Closed/tomorrow/ended states are read-only: show context, never a false booking CTA.
  const hero=document.getElementById('v38Hero');
  const readonly=['closed','ended','tomorrow'].some(name=>hero?.classList.contains(name));
+ // Navigation can be offered only against an independently verified, active
+ // public AirWAIT snapshot. Unverified/failed reads must never expose ticket UI.
+ const publicStatus=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
+ const lineEntryAllowed=!readonly&&publicStatus?.verified===true&&publicStatus.isOpen===true&&
+  Array.isArray(publicStatus.slots)&&publicStatus.slots.length>0;
  const liveBoard=slots.classList.contains('v615-public-ready')?slots.querySelector('#v615SessionBoard'):null;
  const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
  const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
@@ -297,17 +302,17 @@ function renderRequiredAccess(){
  if(panel.parentElement!==slots||!(panel.nextElementSibling===footer||(!footer&&panel===slots.lastElementChild))){
   if(footer)slots.insertBefore(panel,footer);else slots.appendChild(panel);
  }
- const signature=JSON.stringify([lang,hasLine,hasForecast,readonly]);
+ const signature=JSON.stringify([lang,hasLine,hasForecast,readonly,lineEntryAllowed]);
  if(panel.dataset.signature===signature)return;
  panel.dataset.signature=signature;panel.replaceChildren();
  if(!hasLine){
   const item=elem('div','v615-essential-item');item.id='v615EssentialLine';
   item.appendChild(elem('strong','',l[0]));
-  if(!readonly){
+  if(lineEntryAllowed){
    const button=elem('button','v615-essential-action',l[1]);button.type='button';button.dataset.v7View='reception';
    item.appendChild(button);
   }
-  item.appendChild(elem('small','',readonly?(lang==='ja'?'現在、受付は終了しています。':lang==='en'?'Reception is closed.':l[5]):l[2]));
+  item.appendChild(elem('small','',readonly?(lang==='ja'?'現在、受付は終了しています。':lang==='en'?'Reception is closed.':l[5]):lineEntryAllowed?l[2]:(lang==='ja'?'受付状況は未確認です。確認できるまで受付できません。':lang==='en'?'Reception status is unverified. Please check again.':l[5])));
   panel.appendChild(item);
  }
  if(!hasForecast){
