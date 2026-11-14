@@ -4869,6 +4869,8 @@ test('Public AirWAIT temporary stop disables LINE booking despite positive store
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
  await expect(box).toContainText('Airウェイトで現在選択できる受付枠はありません',{timeout:15000});
+ await expect(box.locator('#v616BookingChannels [data-channel=web]')).toContainText('公開枠なし');
+ await expect(box.locator('#v616BookingChannels [data-channel=line]')).toContainText('公開枠なし');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(0);
  await expect(page.locator('#v38Hero')).not.toContainText('順番を取る');
