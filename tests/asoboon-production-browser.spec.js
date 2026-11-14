@@ -5043,3 +5043,34 @@ test('HOME keeps a safe independent booking entrypoint when public slots have no
  // A full/unavailable slot must not become a clickable ticket action. The external fallback stays visible.
  await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
 });
+
+test('HOME preserves independent LINE and crowd access when only WEB is publicly selectable before 9:30',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'}); // Saturday 09:15 JST
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{
+  verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+   {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:67,remainingVerified:true}
+  ]
+ }})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v615SessionBoard')).toBeVisible({timeout:16000});
+ await expect(page.locator('#v615EssentialLine button[data-v7-view="reception"]')).toBeVisible();
+ await expect(page.locator('#v615EssentialCrowd')).toBeVisible();
+ await expect(page.locator('#v615EssentialCrowd')).toContainText('混雑予想 —');
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
+ await page.locator('#v615EssentialLine button').click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSlots')).toContainText('LINE当日受付は9:30からです',{timeout:16000});
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+});
+
+test('HOME keeps LINE access read-only after closing while preserving crowd-status heading',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T09:10:00.000Z'}); // 18:10 JST
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Hero')).toHaveClass(/ended|tomorrow|closed/,{timeout:16000});
+ await expect(page.locator('#v615EssentialCrowd')).toBeVisible();
+ await expect(page.locator('#v615EssentialCrowd')).toContainText('混雑状況');
+ await expect(page.locator('#v615EssentialLine button[data-v7-view="reception"]')).toHaveCount(0);
+});
