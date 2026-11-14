@@ -456,3 +456,25 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v615RetryStatus .v615-retry-labe
  html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots .v38-slots-note[role="status"]::before,
  html.boon-v4.boon-v5-mint body.v38-home-active #v615RetryStatus .v615-retry-label::before{animation:none;opacity:1}
 }
+
+/* v6.16: compact live reception; disappearing AirWAIT options are omitted by JS. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard{gap:6px!important;margin:5px 0 6px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session{padding:8px!important;border-radius:12px!important;box-shadow:none!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session-head{gap:6px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session-title{font-size:16px!important;line-height:1.25!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-forecast-label{font-size:11px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-forecast-value{font-size:19px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-forecast-track{height:3px!important;margin:5px 0 7px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channels{gap:6px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channels.v615-single-channel{grid-template-columns:minmax(0,1fr)!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel{padding:6px 7px!important;border-radius:8px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel-name{font-size:11px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel-count{font-size:19px!important;margin:2px 0!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel-time{font-size:10px!important;margin:0 0 3px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-channel-action{min-height:38px!important;padding:5px!important;font-size:11px!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #v38Slots :is(.v615-session-note,.v613-footnote,.v38-crowd-disclaimer){display:none!important}
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session{padding:7px!important}
+ html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session-title{font-size:15px!important}
+ html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-forecast-value{font-size:18px!important}
+}
