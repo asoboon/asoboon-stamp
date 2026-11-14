@@ -109,6 +109,84 @@ function cloneAction(native,unknown){
  }
  return node;
 }
+const PUBLIC_GROUPS=Object.freeze([
+ {title:'10:00の回',web:'0030',line:'0029'},
+ {title:'12:30の回',web:'0032',line:'0031'},
+ {title:'15:00の回',web:'0034',line:'0033'}
+]);
+function publicGroupLabels(lang){
+ return ({ja:['混雑予想','WEB受付','LINE・現地受付','未公開','受付枠'],en:['Crowd forecast','WEB check-in','LINE / On-site','Not published','Time'], 'zh-CN':['拥挤预测','WEB取号','LINE／现场','未公开','时段'],ko:['혼잡 예상','WEB 접수','LINE·현장','미공개','시간'],vi:['Dự báo đông','WEB','LINE / Tại chỗ','Chưa mở','Giờ'],ne:['भीड अनुमान','वेब','LINE/स्थल','खुलेको छैन','समय'],kmr:['Pêşbîniya qelebalixiyê','WEB','LINE / li cihê','Nehatiye vekirin','Dem']})[lang]||['Crowd forecast','WEB','LINE / On-site','Not published','Time'];
+}
+function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null}
+function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
+function publicChannel(slot,source,label,missing,when){
+ const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
+ cell.appendChild(elem('span','v615-channel-name',label));
+ const num=publicCount(slot);
+ cell.appendChild(elem('strong','v615-channel-count',!slot?missing:num===null?'—':num+'人'));
+ if(slot){
+  const time=publicTime(slot.waitTypeName);
+  const hint=slot.usageDispType==='KeySTORE_RECEPTION_ONLY'?(language()==='ja'?'入場目安':'Entry around'):when;
+  if(time)cell.appendChild(elem('small','v615-channel-time',hint+' '+time));
+  const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
+  if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');cell.appendChild(clone)}
+ }
+ return cell;
+}
+function buildPublicBoard(){
+ const slots=document.getElementById('v38Slots');if(!slots)return;
+ const data=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
+ const list=slots.querySelector(':scope > .v38-crowd-list');
+ const existing=slots.querySelector('#v615SessionBoard');
+ if(data?.verified!==true||!list){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const ordered=[...(Array.isArray(data.slots)?data.slots:[])].filter(x=>['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
+   .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
+ const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]));
+ // On weekdays or if AirWAIT introduces an unrecognized slot, show the
+ // native verified list instead of silently omitting a published option.
+ if(!ordered.length||ordered.some(x=>!ids.has(String(x.waitTypeId)))){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];
+ if(cards.length!==ordered.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const lang=language(),labels=publicGroupLabels(lang);
+ const signature=JSON.stringify([lang,data.fetchedAt,ordered.map(x=>[x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent)]);
+ if(existing?.dataset.signature===signature){slots.classList.add('v615-public-ready');return}
+ const map=new Map(ordered.map((x,i)=>[String(x.waitTypeId),{slot:x,source:cards[i]}]));
+ const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
+ for(const group of PUBLIC_GROUPS){
+  const a=map.get(group.web),b=map.get(group.line);
+  const web=publicCount(a?.slot),line=publicCount(b?.slot);
+  const pct=web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
+  const card=elem('article','v615-session');
+  const head=elem('div','v615-session-head');
+  head.appendChild(elem('strong','v615-session-title',lang==='ja'?group.title:group.title.replace('の回','')));
+  const forecast=elem('div','v615-session-forecast');
+  forecast.appendChild(elem('span','v615-forecast-label',labels[0]));
+  forecast.appendChild(elem('strong','v615-forecast-value',pct===null?'—':pct+'%'));
+  head.appendChild(forecast);card.appendChild(head);
+  const progress=elem('div','v615-forecast-track');progress.setAttribute('aria-hidden','true');
+  const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
+  const cells=elem('div','v615-channels');
+  cells.appendChild(publicChannel(a?.slot,a?.source,labels[1],labels[3],labels[4]));
+  cells.appendChild(publicChannel(b?.slot,b?.source,labels[2],labels[3],labels[4]));
+  card.appendChild(cells);board.appendChild(card);
+ }
+ const note=lang==='ja'?'※混雑予想は公開中のWEB・LINEの残人数を320人から差し引く参考値。館内の実人数ではありません。どちらかが未公開の場合は算出しません。':(L[lang]||L.ja)[4];
+ board.appendChild(elem('p','v615-session-note',note));
+ existing?.remove();slots.insertBefore(board,list);slots.classList.add('v615-public-ready');
+}
+function renderRetryState(){
+ const intro=document.querySelector('#v58Primary .v58-intro'),flow=document.querySelector('#v58Flow');if(!intro||!flow)return;
+ const state=flow.dataset.state,prior=intro.querySelector('#v615RetryStatus');
+ if(state!=='error'&&state!=='pending'){prior?.remove();return}
+ const receipt=String(window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt||'').trim();
+ const kind=receipt?'call':'public';
+ if(prior?.dataset.kind===kind)return;
+ const shell=prior||elem('div','v615-retry-state');shell.id='v615RetryStatus';shell.dataset.kind=kind;
+ shell.textContent='';
+ shell.appendChild(elem('span','v615-retry-label',receipt?'受付番号は保存されています。自動で再確認中です。':'最新の受付枠を自動で再確認しています。'));
+ const button=elem('button','v615-retry-button','今すぐ再確認 ↻');button.type='button';button.dataset.v615Retry=kind;shell.appendChild(button);
+ if(!prior)intro.appendChild(shell);
+}
 function buildBoard(){
  const slots=document.getElementById('v38Slots');if(!slots)return;
  // The public AirWAIT-selectable list owns its own live display. Never
@@ -116,6 +194,7 @@ function buildBoard(){
  if(window.ASOBOON_PUBLIC_RECEPTION_STATUS!==undefined){
   slots.classList.remove('v613-board-ready');
   slots.querySelector('#v613Board')?.remove();
+  buildPublicBoard();
   return;
  }
  const list=slots.querySelector(':scope > .v38-crowd-list');
@@ -161,10 +240,18 @@ function apply(){
  }
  const fold=document.getElementById('v59SlotsFold');
  if(fold&&!fold.open)fold.open=true;
- translateBusiness();buildBoard();
+ translateBusiness();buildBoard();renderRetryState();
 }
 let pending=false;
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}
+root.addEventListener('click',e=>{
+ const button=e.target?.closest?.('[data-v615-retry]');if(!button)return;
+ if(button.disabled)return;
+ button.disabled=true;button.textContent='確認しています…';
+ if(button.dataset.v615Retry==='call'){window.ASOBOON_V13_HOME_STATUS?.refresh?.()}
+ else document.querySelector('#v615RetrySlots')?.click();
+ setTimeout(()=>{if(button.isConnected){button.disabled=false;button.textContent='今すぐ再確認 ↻'}},9000);
+});
 new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
 for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-route-rendered'])window.addEventListener(event,schedule);
 schedule();

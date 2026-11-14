@@ -16,8 +16,6 @@ const CROWD_CACHE_MAX_AGE_MS=90*1000;
 const CROWD_STALE_MS=90000;
 let crowdPollTimer=0,crowdStale=false,crowdRetryAt=0,crowdManualAt=0,crowdClosed=false;
 let crowdHiddenConfirmed=false,crowdPublicFlags=null,crowdFlagsDate='';
-// Undefined is legacy, absent from old test fixtures. A live gateway supplies
-// verified true/false; never show cached counts before that confirmation.
 let publicReception={verified:false,source:'initial',slots:[]};
 function scheduleCrowd(){
 clearTimeout(crowdPollTimer);crowdPollTimer=0;
@@ -93,7 +91,8 @@ ${webOpen?'<div><span>WEB受付</span><strong>7:00から</strong></div>':''}
 ${webOpen&&url?`<a class="v38-airwait-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>`:''}
 </div>`;
 }
-function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'営業日カレンダーをご確認ください。'};const today=businessForBoard();if(!today)return day?.ok||displayDay?.ok?{type:'error',title:'今日の営業情報を確認できません',message:'営業日カレンダーをご確認ください。'}:{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(today.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(today.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(publicReception?.verified===false)return{type:'error',title:'受付枠を確認できません',message:'Airウェイトの公開ページで最新状況をご確認ください。'};
+function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'営業日カレンダーをご確認ください。'};const today=businessForBoard();if(!today)return day?.ok||displayDay?.ok?{type:'error',title:'今日の営業情報を確認できません',message:'営業日カレンダーをご確認ください。'}:{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(today.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(today.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(publicReception?.source==='initial')return{type:'loading',title:'受付枠を確認しています',message:'Airウェイトの公開枠を照合しています。'};
+if(publicReception?.verified===false)return{type:'error',title:'受付枠の情報を再確認しています',message:'自動で再確認します。公開枠はAirウェイトでも確認できます。'};
 if(publicReception?.verified===true){
  const slots=publicReception.slots||[];
  const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
@@ -297,11 +296,7 @@ function writeCrowdMarkup(box,markup){
  lastCrowdRenderBox=box;lastCrowdMarkup=markup;
 }
 
-// Visitor-facing AirWAIT capacityInfo is the source of selectable options.
-// A configured dispFlg or same-clock time alone never proves bookability.
 function renderPublicReception(box){
- // During the first network read no AirWAIT verification has been attempted.
- // Do not flash a permanent-error notice while a valid snapshot is loading.
  if(publicReception?.source==='initial'){
   const url=airwaitWebReceptionUrl();
   const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>':'';
@@ -309,13 +304,9 @@ function renderPublicReception(box){
   return true;
  }
  if(publicReception===undefined){
-  // Older gateway responses have no publicReception field. Keep the old,
-  // conservative read-only legacy view rather than a stale suppression flag.
   window.ASOBOON_PUBLIC_RECEPTION_STATUS=undefined;
   return false;
  }
- // Retain explicitly read-only, dated after-closing archives while the
- // authoritative public feed has not yet been verified. Never make them bookable.
  if(publicReception?.verified===false&&crowdReadOnly())return false;
  window.ASOBOON_PUBLIC_RECEPTION_STATUS=publicReception;
  box.classList.remove('v613-board-ready');
@@ -326,7 +317,7 @@ function renderPublicReception(box){
  const header='<h3>受付の空き状況</h3>';
  const at=Date.parse(String(data?.fetchedAt||''));
  if(data?.verified!==true||!Number.isFinite(at)||Date.now()-at>90000||at>Date.now()+5000){
-  writeCrowdMarkup(box,header+'<p class="v38-slots-note">現在受付できる枠を確認できません。未確認の人数は表示しません。</p><p>'+link+'</p>');
+  writeCrowdMarkup(box,header+'<p class="v38-slots-note" role="status">最新の受付枠を確認できませんでした。人数は未確認です。</p><p class="v38-slots-note">自動で再確認しています。</p><button class="v38-airwait-link" type="button" id="v615RetrySlots">もう一度確認する ↻</button><p>'+link+'</p>');
   return true;
  }
  const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
@@ -411,6 +402,12 @@ async function fetchCrowd(force=false,manual=false){
  crowdLoading=true;crowdError='';crowdClosed=false;
  if(crowdFlagsDate!==String(day?.operationalDate||'')){crowdPublicFlags=null;crowdFlagsDate=''}
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
+ const publicJob=import('./crowd-visibility.mjs?v=2').then(async m=>{
+  const publicStatus=await m.publishedStatus(E.backendUrl);
+  publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
+  if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'})}
+  return {m,publicStatus};
+ }).catch(()=>({m:null,publicStatus:null}));
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
   const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
@@ -424,13 +421,11 @@ async function fetchCrowd(force=false,manual=false){
   if(!response.ok||data?.ok!==true||!Array.isArray(data.slots)||!data.slots.length)
    throw Error(response.status===429?'RATE_LIMITED':String(data?.error||'CROWD_UNAVAILABLE'));
   const t=readLastCrowd()?.businessType||businessForBoard()?.businessType||day?.businessType;
-  const m=await import('./crowd-visibility.mjs?v=2');
-  const publicStatus=await m.publishedStatus(E.backendUrl);
+  const {m,publicStatus}=await publicJob;
   const types=publicStatus?.waitTypes||null;
-  publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
   const flagsVerified=Array.isArray(types);
   if(flagsVerified){crowdPublicFlags=new Map(types.filter(x=>typeof x.dispFlg==='boolean').map(x=>[String(x.waitTypeId),x.dispFlg]));crowdFlagsDate=String(day?.operationalDate||'')}
-  if(m.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true&&
+  if(m?.allHidden(types,R.slotsFor(t,'onsite'),CROWD_SETTINGS.IDS[t])===true&&
      !(publicReception?.verified===true&&publicReception.isOpen&&publicReception.slots?.length>0)){
    crowdHiddenConfirmed=true;crowdClosed=true;crowdSlots=null;crowdDetails=[];crowdAt=0;
    try{localStorage.removeItem(LAST_CROWD_KEY);localStorage.removeItem(CROWD_CACHE_KEY)}catch{}
@@ -486,8 +481,6 @@ async function refreshDay(force=false){if(closingPreview())void loadTomorrow();i
  }
 if(closingPreview())void loadTomorrow();
 const currentBusiness=businessForBoard();if(currentBusiness&&!currentBusiness.isClosed&&['平日','平日特定日','土日祝日'].includes(String(currentBusiness.businessType||''))){restoreFreshCrowdForDay();void fetchCrowd(force)}else{crowdSlots=null;crowdDetails=[];crowdError='';crowdAt=0;crowdStale=false;clearTimeout(crowdPollTimer);if(readLastCrowd()||(currentBusiness&&!currentBusiness.isClosed))void fetchCrowd(true)}}catch(e){day=null;dayError=String(e?.message||e||'BUSINESS_DAY_UNAVAILABLE')}finally{dayLoading=false;if(currentView()==='home'){lastHero='';patchToday();patchTimeguideShortcut();renderSlots();renderHero(latest||{kind:'none'})}}}
-// Update the HOME automatically when the actual closing time (or midnight)
-// passes without requiring the visitor to close and reopen LINE.
 let lastPreviewKey='';
 setInterval(()=>{
  if(currentView()!=='home'||document.hidden)return;
@@ -498,6 +491,12 @@ setInterval(()=>{
  mount();
 },30000);
 root.addEventListener('click',e=>{
+ if(e.target?.closest?.('#v615RetrySlots')){
+  if(crowdLoading)return;
+  crowdRetryAt=0;publicReception={verified:false,source:'initial',slots:[]};
+  renderSlots();renderHero(latest||{kind:'none'});
+  void fetchCrowd(true,true);return;
+ }
  if(e.target?.closest?.('#v38CrowdUpdate')){
   if(crowdLoading||Date.now()-crowdManualAt<15000)return;
   crowdManualAt=Date.now();

@@ -1430,9 +1430,9 @@ test('HOME marks stale AirWAIT quota unverified instead of displaying stale capa
  const previous=await page.evaluate(()=>JSON.parse(localStorage.getItem('asoboon_v2_crowd_snapshot_production_v1')||'{}'));
  expect(previous.verifiedFresh).toBe(false);
  await page.reload({waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
- await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
- await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
+ await expect(page.locator('#v38Slots')).toContainText(/最新の受付枠を確認できませんでした|確認中/);
+ await expect(page.locator('#v38Slots')).not.toContainText('残り71人');
+ await expect(page.locator('#v38Slots')).not.toContainText('残り44人');
 });
 test('HOME shows manual refresh cooldown during 429 backoff instead of silently ignoring taps',async({page})=>{
  await installProduction(page);
@@ -1653,7 +1653,7 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
   // A recent count is not proof that this session is selectable NOW.
   // Fail closed and direct visitors to AirWAIT instead of reviving old quota.
   await expect(cards).toHaveCount(0);
-  await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
+  await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした');
   await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
 });
 
@@ -2332,7 +2332,7 @@ test('HOME does not mistake a recently saved 12:30 count for a currently selecta
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
- await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした');
  await expect(page.locator('#v38Slots')).not.toContainText('残り14人');
  expect(crowdReads).toBe(0);
 });
@@ -2603,7 +2603,7 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
- await expect(box).toContainText('現在受付できる枠を確認できません');
+ await expect(box).toContainText('最新の受付枠を確認できませんでした');
  await expect(box).not.toContainText('本日の受付枠は終了しました');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(0);
@@ -2645,7 +2645,7 @@ test('HOME clears a fresh saved capacity snapshot when staff remove all public A
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
  // A previously verified cache cannot establish currently selectable slots.
- await expect(box).toContainText('現在受付できる枠を確認できません');
+ await expect(box).toContainText('最新の受付枠を確認できませんでした');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
  await expect(box).not.toContainText('残り40人');
  await expect(box.locator('a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
@@ -2914,7 +2914,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
  // If current public reception is unverified, there is deliberately no
  // old capacity board or false 'available' claim.
  const oldBoardCount=await page.locator('#v613Board .v613-row').count();
- if(!oldBoardCount)await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
+ if(!oldBoardCount)await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした');
  await expect(page.locator('#v58SessionsZone .v58-section-title')).toHaveText('受付の空き状況');
  if(oldBoardCount)await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(3);
  else await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
@@ -2996,7 +2996,7 @@ test('v5.8 HOME exposes true actions and readable operational facts rather than 
   await oldActions.first().click();
   await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  }else{
-  await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
+  await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした');
   await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
  }
 });
@@ -3180,7 +3180,7 @@ test('Confirmed unpublished WEB remains hidden when later waitTypes lookup fails
  failVisibility=true;
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>waitReads,{timeout:10000}).toBeGreaterThanOrEqual(2);
- await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません');
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
  await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
 });
@@ -4505,6 +4505,57 @@ test('Live-audited FAQ and safety routes translate question, answer and visitor 
  await expect(h).toHaveText('안전한 놀이를 위한 4가지 약속');
 });
 
+test('HOME groups published AirWAIT slots into three consistent session cards and verified crowd forecasts',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:['0029','0030','0031','0032','0033','0034'].map(waitTypeId=>({waitTypeId,dispFlg:true,usageDispType:parseInt(waitTypeId,10)%2?'KeySTORE_RECEPTION_ONLY':'KeyONLINE_RECEPTION_ONLY'})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+    {waitTypeId:'0030',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB整理券】',remaining:100,remainingVerified:true},
+    {waitTypeId:'0029',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'10時25分頃入場【土休日特定日】',remaining:20,remainingVerified:true},
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:110,remainingVerified:true},
+    {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:30,remainingVerified:true},
+    {waitTypeId:'0034',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'15時ご入場枠【WEB整理券】',remaining:150,remainingVerified:true},
+    {waitTypeId:'0033',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'15時15分頃入場時間【土休日特定日】',remaining:50,remainingVerified:true}
+   ]}})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:15000});
+ const cards=board.locator('.v615-session');
+ for(const [i,time,percentage] of [[0,'10:00の回','63%'],[1,'12:30の回','56%'],[2,'15:00の回','38%']]){
+  await expect(cards.nth(i)).toContainText(time);
+  await expect(cards.nth(i).locator('.v615-forecast-value')).toHaveText(percentage);
+  await expect(cards.nth(i).locator('.v615-channel')).toHaveCount(2);
+  await expect(cards.nth(i).locator('.v615-channel-action')).toHaveCount(2);
+ }
+ await expect(cards.first()).toContainText('入場目安 10:25');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(6);
+ await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
+});
+
+test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',async route=>{
+  await route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_CROWD_UNAVAILABLE"}'});
+ });
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[{waitTypeId:'0034',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}],
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,
+    slots:[{waitTypeId:'0034',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'15時ご入場枠【WEB整理券】',remaining:124,remainingVerified:true}]}
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v615SessionBoard')).toContainText('124人',{timeout:15000});
+ await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(3);
+ await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
+});
+
 test('HOME uses only AirWAIT currently selectable public slots, not outdated weekday/session flags',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
@@ -4545,10 +4596,10 @@ test('HOME first load says checking, not public-slot verification error, while b
  try{
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#v38Slots')).toContainText('LINE・WEBの残り人数を確認しています');
-  await expect(page.locator('#v38Slots')).not.toContainText('現在受付できる枠を確認できません');
+  await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
   await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
  }finally{completeWaitTypes()}
- await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません',{timeout:18000});
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした',{timeout:18000});
  await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
 });
 
@@ -4565,7 +4616,7 @@ test('HOME never displays historical remaining quotas when public AirWAIT slot v
   ],publicReception:{verified:false,source:'AirWAIT-public-page',slots:[]}})});
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Slots')).toContainText('現在受付できる枠を確認できません',{timeout:15000});
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした',{timeout:15000});
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
  await expect(page.locator('#v38Slots a[href*="airwait.jp/WCSP/storeDetail"]')).toHaveCount(1);
 });
