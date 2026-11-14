@@ -679,9 +679,9 @@ if(publicReception?.verified===false)return{type:'error',title:'受付枠の情�
 if(publicReception?.verified===true){
  const slots=publicReception.slots||[];
  const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
- const lineAvailable=publicReception.isOpen===true&&slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
+ const lineAvailable=now.minutes>=lineReceptionOpenMinutes()&&publicReception.isOpen===true&&slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
    lineRules.some(r=>String(r.waitTypeId)===String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0);
- const webAvailable=publicReception.isOpen&&publicReception.acceptingOnline&&
+ const webAvailable=now.minutes>=420&&publicReception.acceptingOnline===true&&
    slots.some(x=>x.usageDispType==='KeyONLINE_RECEPTION_ONLY'&&x.remainingVerified===true&&x.remaining>0);
  if(webAvailable&&!lineAvailable)return{type:'web-public',title:'WEB受付の公開枠があります',message:'入場対象日と受付可否はAirウェイトでご確認ください。'};
  if(!webAvailable&&!lineAvailable)return{type:'ended',title:'現在受付できる枠はありません',message:'最新の受付状況はAirウェイトでご確認ください。'};
@@ -905,7 +905,7 @@ function renderPublicReception(box){
  }
  const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
  const rows=Array.isArray(data.slots)?data.slots:[];
- if(!rows.length||!data.isOpen){
+ if(!rows.length||(data.isOpen!==true&&data.acceptingOnline!==true)){
   writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトで現在選択できる受付枠はありません。</p><p>'+link+'</p><p class="v38-crowd-refresh">最終更新 '+esc(time)+'</p>');
   return true;
  }
@@ -920,8 +920,8 @@ function renderPublicReception(box){
   const channel=isWeb?'WEB受付':'LINE・現地受付';
   const n=slot.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null;
   const num=n===null?'確認中':n+'人';
-  const canWeb=isWeb&&!crowdReadOnly()&&data.acceptingOnline===true&&n!==null&&n>0&&url;
-  const canLine=!isWeb&&data.isOpen===true&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
+  const canWeb=isWeb&&!crowdReadOnly()&&nowJst().minutes>=420&&data.acceptingOnline===true&&n!==null&&n>0&&url;
+  const canLine=!isWeb&&data.isOpen===true&&nowJst().minutes>=lineReceptionOpenMinutes()&&n!==null&&n>0&&!crowdReadOnly()&&currentRules.some(x=>String(x.waitTypeId)===String(slot.waitTypeId));
   const action=canWeb?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">WEBで受付する ↗</a>':
    canLine?'<button class="v38-airwait-link" type="button" data-v7-view="reception">LINEで受付を確認 →</button>':
    '<small class="v38-crowd-unknown">'+(n===0?'この枠は満員です':'対象日・受付方法を確認してください')+'</small>';

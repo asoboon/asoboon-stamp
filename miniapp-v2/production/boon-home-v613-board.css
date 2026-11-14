@@ -769,3 +769,59 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app:has(
  #v615SessionBoard a.v615-channel-action[href*="airwait.jp"],
  #v38Slots .v38-crowd-list .v38-crowd-tap-hint a[href*="airwait.jp"]
 ) #v38Hero.open .v38-reception-hours .v38-airwait-link { display:none!important; }
+
+
+/* 2026-11-15: WEB and LINE public reception must each have a visible HOME
+   panel even if AirWAIT publishes one channel only or public verification fails.
+   This summary is not a booking API and never invents remaining seats. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:7px!important;width:100%!important;min-width:0!important;margin:3px 0 8px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-panel{
+ display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;
+ border:1px solid #A0D8CE!important;border-radius:12px!important;
+ background:#F2FBF7!important;padding:9px!important;color:#155851!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-panel[data-channel="line"]{
+ border-color:#90D9CD!important;background:#E7F8F1!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-head{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex-wrap:wrap!important;gap:2px 6px!important;min-width:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-title{
+ font-size:14px!important;line-height:1.25!important;font-weight:900!important;color:#135F5A!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-hours{
+ font-size:11px!important;line-height:1.25!important;color:#5B433E!important;font-weight:750!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-state{
+ font-size:12px!important;line-height:1.4!important;min-height:18px!important;
+ color:#276A64!important;font-weight:750!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-rows{
+ display:grid!important;gap:5px!important;min-width:0!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-row{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:3px!important;
+ align-items:center!important;border-top:1px solid #BDE4D9!important;padding-top:5px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels :is(.v616-booking-time,.v616-booking-remaining){
+ font-size:12px!important;line-height:1.3!important;color:#155851!important;overflow-wrap:anywhere!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-remaining{font-weight:900!important}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-action{
+ grid-column:1/-1!important;display:flex!important;justify-content:center!important;align-items:center!important;
+ min-height:44px!important;border-radius:8px!important;padding:6px!important;
+ font-size:11px!important;font-weight:800!important;text-align:center!important;
+ color:#155851!important;background:#CCF1E5!important;border:1px solid #9EDCCB!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-action:focus-visible{
+ outline:3px solid #235B67!important;outline-offset:2px!important;
+}
+@media(max-width:350px){
+ html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels{gap:5px!important}
+ html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-panel{padding:7px!important}
+ html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-title{font-size:13px!important}
+}
