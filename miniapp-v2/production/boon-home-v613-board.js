@@ -285,8 +285,11 @@ function renderBookingChannels(){
   ne:['WEB दर्ता','LINE दर्ता','७:०० बाट','९:३० बाट','प्रकाशित','स्थान','प्रकाशित स्थान छैन','पुष्टि छैन','जना','दर्ता जाँच हुँदैछ','बन्द'],
   kmr:['Tomarkirina WEB','Tomarkirina LINE','Ji 7:00','Ji 9:30','Hatine weşandin','dem','Demên vekirî tune ne','Nehatiye piştrastkirin','kes','Rewş tê kontrolkirin','Girtî']
  }[lang]||['WEB tickets','LINE tickets','From 7:00','From 9:30','Published','slots','No published slots','Unverified','people','Checking reception status','Closed'];
+ const previewTomorrow=document.getElementById('v38Hero')?.classList.contains('tomorrow')===true;
  const at=Date.parse(String(publicData?.fetchedAt||''));
- const fresh=publicData?.verified===true&&Number.isFinite(at)&&at<=Date.now()+5000&&Date.now()-at<=90000;
+ // Public snapshots refer to today. Once HOME previews tomorrow, never
+ // present today's remaining seats under tomorrow's reception heading.
+ const fresh=!previewTomorrow&&publicData?.verified===true&&Number.isFinite(at)&&at<=Date.now()+5000&&Date.now()-at<=90000;
  const list=fresh&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
   slot&&['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(slot.usageDispType)):[];
  const native=host.querySelector(':scope > .v38-crowd-list');
@@ -319,7 +322,7 @@ function renderBookingChannels(){
   panel.appendChild(top);
   const items=list.filter(slot=>slot.usageDispType===type);
   const status=elem('div','v616-booking-state');
-  status.textContent=!fresh?words[7]:items.length?words[4]+' '+items.length+words[5]:words[6];
+  status.textContent=previewTomorrow?(lang==='ja'?'明日の受付開始後に表示':lang==='en'?'Shown after tomorrow’s reception opens':words[9]):!fresh?words[7]:items.length?words[4]+' '+items.length+words[5]:words[6];
   panel.appendChild(status);
   // When the verified grouped session board is present, it already exposes
   // times, counts and native booking actions. Do not print them twice.
