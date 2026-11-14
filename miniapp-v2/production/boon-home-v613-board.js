@@ -271,6 +271,9 @@ const REQUIRED_LABELS={
 function renderRequiredAccess(){
  const slots=document.getElementById('v38Slots');if(!slots)return;
  const lang=language(),l=REQUIRED_LABELS[lang]||REQUIRED_LABELS.ja;
+ // Closed/tomorrow/ended states are read-only: show context, never a false booking CTA.
+ const hero=document.getElementById('v38Hero');
+ const readonly=['closed','ended','tomorrow'].some(name=>hero?.classList.contains(name));
  const liveBoard=slots.classList.contains('v615-public-ready')?slots.querySelector('#v615SessionBoard'):null;
  const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
  const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
@@ -294,14 +297,18 @@ function renderRequiredAccess(){
  if(panel.parentElement!==slots||!(panel.nextElementSibling===footer||(!footer&&panel===slots.lastElementChild))){
   if(footer)slots.insertBefore(panel,footer);else slots.appendChild(panel);
  }
- const signature=JSON.stringify([lang,hasLine,hasForecast]);
+ const signature=JSON.stringify([lang,hasLine,hasForecast,readonly]);
  if(panel.dataset.signature===signature)return;
  panel.dataset.signature=signature;panel.replaceChildren();
  if(!hasLine){
   const item=elem('div','v615-essential-item');item.id='v615EssentialLine';
   item.appendChild(elem('strong','',l[0]));
-  const button=elem('button','v615-essential-action',l[1]);button.type='button';button.dataset.v7View='reception';
-  item.appendChild(button);item.appendChild(elem('small','',l[2]));panel.appendChild(item);
+  if(!readonly){
+   const button=elem('button','v615-essential-action',l[1]);button.type='button';button.dataset.v7View='reception';
+   item.appendChild(button);
+  }
+  item.appendChild(elem('small','',readonly?(lang==='ja'?'現在、受付は終了しています。':lang==='en'?'Reception is closed.':l[5]):l[2]));
+  panel.appendChild(item);
  }
  if(!hasForecast){
   const item=elem('div','v615-essential-item');item.id='v615EssentialCrowd';item.setAttribute('role','status');
