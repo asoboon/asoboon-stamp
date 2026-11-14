@@ -2609,6 +2609,23 @@ test('HOME does not falsely announce reception ended when AirWAIT crowd endpoint
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(0);
 });
 
+test('HOME does not re-expose historical cards if old gateway waitTypes replies after crowd failure',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await new Promise(resolve=>setTimeout(resolve,500));
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+    {waitTypeId:'0030',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}
+  ]})});
+ });
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',route=>route.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"error":"CROWD_UNAVAILABLE"}'}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした',{timeout:15000});
+ await page.waitForTimeout(800);
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+ await expect(page.locator('#v615RetrySlots')).toBeVisible();
+});
+
 test('HOME uses a neutral no-visible-slots state for valid quota data without verified counts',async({page})=>{
  await installProduction(page);
  await page.route(GATEWAY+'**',route=>{

@@ -23,7 +23,6 @@ if(currentView()!=='home'||day?.isClosed||(crowdClosed&&publicReception?.verifie
 const now=Date.now(),wait=crowdRetryAt>now?Math.min(30000,crowdRetryAt-now):crowdAt?(crowdReadOnly()?180e3:30e3):15e3
 crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
-function crowdFreshness(){}
 function prefetchCrowd(){
 if(earlyCrowd||!E.backendUrl||document.hidden||currentView()!=='home')return;
 const date=D.operationalDate?.(),hour=nowJst().minutes;
@@ -317,7 +316,7 @@ function renderPublicReception(box){
  const header='<h3>受付の空き状況</h3>';
  const at=Date.parse(String(data?.fetchedAt||''));
  if(data?.verified!==true||!Number.isFinite(at)||Date.now()-at>90000||at>Date.now()+5000){
-  writeCrowdMarkup(box,header+'<p class="v38-slots-note" role="status">最新の受付枠を確認できませんでした。人数は未確認です。</p><p class="v38-slots-note">自動で再確認しています。</p><button class="v38-airwait-link" type="button" id="v615RetrySlots">もう一度確認する ↻</button><p>'+link+'</p>');
+  writeCrowdMarkup(box,header+'<p class="v38-slots-note" role="status">最新の受付枠を確認できませんでした。未確認です。自動で再確認中です。</p><button class="v38-airwait-link" type="button" id="v615RetrySlots">もう一度確認する ↻</button><p>'+link+'</p>');
   return true;
  }
  const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
@@ -397,7 +396,7 @@ function renderSlots(){
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function publicRead(){
  const m=await import('./crowd-visibility.mjs?v=2'),publicStatus=await m.publishedStatus(E.backendUrl);
- publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
+ publicReception=publicStatus?.publicReception??(publicReception?.source==='failed'?publicReception:publicStatus?undefined:{verified:false,source:'unverified',slots:[]});
  renderSlots();renderHero(latest||{kind:'none'});return {m,publicStatus};
 }
 async function fetchCrowd(force=false,manual=false){
@@ -440,7 +439,7 @@ async function fetchCrowd(force=false,manual=false){
   crowdError='';writeCrowdCache(crowdSlots,crowdDetails,crowdStale);saveLastCrowd();
  }catch(e){
   const reason=String(e?.message||e||'CROWD_UNAVAILABLE');
-  if(publicReception?.source==='initial')publicReception={verified:false,source:'failed',slots:[]};
+  if(!publicReception?.verified&&reason!=='AIRWAIT_CROWD_EMPTY')publicReception={verified:false,source:'failed',slots:[]};
   if(reason==='AIRWAIT_CROWD_EMPTY'){
    crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=true;crowdRetryAt=Date.now()+30000;
   }else{
