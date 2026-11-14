@@ -4665,8 +4665,25 @@ test('HOME hides removed AirWAIT sessions and unpublished channels, with compact
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
  }
  const dimensions=await cards.nth(1).evaluate(el=>({height:el.getBoundingClientRect().height,actions:[...el.querySelectorAll('a.v615-channel-action,button.v615-channel-action')].map(x=>x.getBoundingClientRect().height)}));
- expect(dimensions.height).toBeLessThan(200);
- expect(dimensions.actions.every(h=>h>=36)).toBe(true);
+ expect(dimensions.height).toBeLessThan(132);
+ expect(dimensions.actions.every(h=>h>=44)).toBe(true);
+ // Verified cards are compact, while 44px booking targets remain unmodified.
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  const measured=await page.evaluate(()=>{
+   const height=sel=>Math.ceil(document.querySelector(sel)?.getBoundingClientRect().height||0);
+   return {screen:document.documentElement.scrollWidth,full:document.documentElement.scrollHeight,
+    day:height('#v58DayZone'),sessions:height('#v58SessionsZone'),timer:height('#v58TimerZone'),
+    calendars:height('#v59CalendarLinks'),card:height('#v615SessionBoard .v615-session')};
+  });
+  expect(measured.screen).toBeLessThanOrEqual(width);
+  expect(measured.card).toBeLessThan(132);
+  expect(measured.day).toBeLessThan(85);
+  expect(measured.timer).toBeLessThan(125);
+  expect(measured.sessions).toBeLessThan(400);
+  if(width>=390)expect(measured.calendars).toBeLessThan(85);
+ }
+
 });
 
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
