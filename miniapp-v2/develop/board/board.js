@@ -15,7 +15,7 @@ const FAST_REFRESH_WINDOWS=Object.freeze([
 const REQUEST_TIMEOUT_MS=20000;
 const BOARD_CACHE_KEY='asoboon_call_board_last_good_v1';
 const BOARD_CACHE_MAX_AGE_MS=3*60*1000;
-const BOARD_BUILD_ID='20261103-merged-live-queue-v22';
+const BOARD_BUILD_ID='20261114-call-foreground-v23';
 const BUILD_CHECK_MS=60*1000;
 const $=id=>document.getElementById(id);
 const state={timer:0,buildTimer:0,buildCheckBusy:false,reloadRequested:false,rows:[],slotKey:'',businessType:'',phase:'',lastColumns:0,lastGoodAt:0,busy:false,refreshMs:REFRESH_MS};
