@@ -275,7 +275,7 @@ function renderRequiredAccess(){
  const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
  const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
  const forecastNodes=[...slots.querySelectorAll('#v615SessionBoard .v615-forecast-value, #v613Board .v613-percent')];
- const hasForecast=forecastNodes.some(e=>/^\\d{1,3}%$/.test(e.textContent.trim())&&e.getClientRects().length>0);
+ const hasForecast=forecastNodes.some(e=>/^\d{1,3}%$/.test(e.textContent.trim())&&e.getClientRects().length>0);
  let panel=slots.querySelector('#v615EssentialAccess');
  if(hasLine&&hasForecast){panel?.remove();return}
  if(!document.getElementById('v615EssentialStyle')){
