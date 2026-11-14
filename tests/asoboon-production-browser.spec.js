@@ -4752,6 +4752,46 @@ test('HOME keeps verified WEB and LINE actions available if legacy crowd API say
  await expect(last.locator('button.v615-channel-action')).toBeEnabled();
 });
 
+test('Critical home, reception, call status, and timeguide copy is translated in English and Kurmanji',async({page})=>{
+ await installProduction(page);
+ for(const lang of ['en','kmr']){
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#asoboon-language-select').selectOption(lang);
+  await expect(page.locator('html')).toHaveAttribute('lang',lang);
+  await expect(page.locator('#v38Hero')).not.toContainText('順番を取る',{timeout:15000});
+  await expect(page.locator('#v38Hero')).not.toContainText('9:30から');
+  await page.goto(BASE+'?view=reception',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('main.view.active')).not.toContainText('従来のWEB受付から取得できる枠もあります',{timeout:15000});
+  await expect(page.locator('main.view.active')).not.toContainText('AirWAITのWEB受付を開く');
+  await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('main.view.active')).not.toContainText('順番になるとLINEでお知らせします',{timeout:15000});
+  await page.goto(BASE+'?view=timeguide',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('main.view.active')).not.toContainText('入場した時刻を選ぶと',{timeout:15000});
+  await expect(page.locator('main.view.active')).not.toContainText('に入場した場合',{timeout:15000});
+ }
+});
+
+test('HOME weekday published AirWAIT IDs remain in compact cards without invented forecast',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+  {waitTypeId:'0024',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB整理券】',remaining:85,remainingVerified:true},
+  {waitTypeId:'0023',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'すぐ入場受付【平日】',remaining:32,remainingVerified:true},
+  {waitTypeId:'0027',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'14時から【平日】',remaining:43,remainingVerified:true},
+  {waitTypeId:'0025',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'14時から【平日】',remaining:22,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const b=page.locator('#v615SessionBoard');await expect(b.locator('.v615-session')).toHaveCount(3,{timeout:15000});
+ await expect(b).toContainText('すぐ入場');await expect(b).toContainText('10:00の回');await expect(b).toContainText('14:00の回');
+ await expect(b).toContainText('85人');await expect(b).toContainText('22人');
+ await expect(b.locator('.v615-forecast-value')).toHaveText(['—','—','—']);
+ await expect(b.locator('.v615-channel-action')).toHaveCount(4);
+ await page.locator('#asoboon-language-select').selectOption('en');
+ await expect(b).toContainText('Walk-in');await expect(b).toContainText('85 people');await expect(b).toContainText('Check the date and ticket method');
+ await expect(b).not.toContainText('Check LINE tickets');
+ await expect(b).not.toContainText('受付する');
+ for(const w of [320,390,430]){await page.setViewportSize({width:w,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(w)}
+});
+
 test('HOME uses only AirWAIT currently selectable public slots, not outdated weekday/session flags',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
@@ -4946,4 +4986,20 @@ test('LINE reception distinguishes before opening from after closing including 1
    await expect(page.locator('#recSubmit')).toBeDisabled();
   }
  }
+});
+
+test('HOME localized ticket actions return to Japanese after English and Kurmanji round trips',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+ {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:36,remainingVerified:true},
+ {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:80,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const action=page.locator('#v38Hero .v38-action');
+ await expect(action).toContainText('順番を取る',{timeout:16000});
+ const picker=page.locator('#asoboon-language-select');
+ await picker.selectOption('en');await expect(action).toContainText('Get a queue ticket');
+ await picker.selectOption('kmr');await expect(action).toContainText('Jimareya dorê bistîne');
+ await picker.selectOption('ja');await expect(action).toContainText('順番を取る');
+ await picker.selectOption('en');await expect(action).toContainText('Get a queue ticket');
 });
