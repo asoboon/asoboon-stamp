@@ -95,7 +95,7 @@ if(publicReception?.verified===false)return{type:'error',title:'受付枠の情�
 if(publicReception?.verified===true){
  const slots=publicReception.slots||[];
  const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
- const lineAvailable=publicReception.isOpen===true&&slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
+ const lineAvailable=now.minutes>=lineReceptionOpenMinutes()&&publicReception.isOpen===true&&slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
    lineRules.some(r=>String(r.waitTypeId)===String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0);
  const webAvailable=now.minutes>=420&&publicReception.acceptingOnline===true&&
    slots.some(x=>x.usageDispType==='KeyONLINE_RECEPTION_ONLY'&&x.remainingVerified===true&&x.remaining>0);
