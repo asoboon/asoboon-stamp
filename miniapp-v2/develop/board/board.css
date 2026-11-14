@@ -435,6 +435,8 @@ body{
 .board-fx-back-layer{z-index:6}
 .board-fx-front-layer{z-index:42}
 .board-fx-overlay-layer{z-index:60}
+/* Only an active fullscreen CALL takes foreground priority over board data. */
+.board-fx-overlay-layer.call-takeover-active{z-index:120}
 .world-stage-wash{
   --world-color:#78e5ff;
   position:absolute;
