@@ -154,19 +154,19 @@ test('board build marker matches runtime and stale builds are detected without r
   const boardCode=fs.readFileSync('miniapp-v2/develop/board/board.js','utf8');
   const boardCss=fs.readFileSync('miniapp-v2/develop/board/board.css','utf8');
   const indexHtml=fs.readFileSync('miniapp-v2/develop/board/index.html','utf8');
-  expect(buildFile.version).toBe('20261103-merged-live-queue-v22');
-  expect(boardCode).toContain("const BOARD_BUILD_ID='20261103-merged-live-queue-v22'");
+  expect(buildFile.version).toBe('20261114-call-foreground-v23');
+  expect(boardCode).toContain("const BOARD_BUILD_ID='20261114-call-foreground-v23'");
   expect(boardCode).toContain("setInterval(()=>{void checkForBuildUpdate();},BUILD_CHECK_MS)");
-  expect(indexHtml).toContain('board.css?v=44');
+  expect(indexHtml).toContain('board.css?v=45');
   expect(boardCss).toContain('background:var(--sign-green-2);');
   expect(boardCss).toContain('box-shadow:0 6px 16px rgba(37,131,86,.32);');
-  expect(indexHtml).toContain('board-animations.js?v=38');
+  expect(indexHtml).toContain('board-animations.js?v=39');
   expect(indexHtml).toContain('board-source-effects.js?v=20');
   expect(indexHtml).toContain('board-effects-runtime.js?v=22');
   expect(indexHtml).toContain('board-character-events.js?v=25');
   expect(indexHtml).toContain('board-idle-events.js?v=18');
   expect(indexHtml).toContain('board-show.js?v=1');
-  expect(indexHtml).toContain('board.js?v=44');
+  expect(indexHtml).toContain('board.js?v=45');
 
   await page.route('**/miniapp-v2/develop/board/board-build.json*', async route => {
     await route.fulfill({status:200,contentType:'application/json',body:'{"version":"future-build"}'});
