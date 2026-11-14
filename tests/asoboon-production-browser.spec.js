@@ -910,7 +910,7 @@ test('After 19:00 daily rollover, next-business-day slots remain reference-only'
  await expect(page.locator('#v38Slots a[href*="airwait.jp"],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 
 });
-test('HOME typography follows a left reading edge while numeric slots stay column-aligned on five widths',async({page})=>{
+test('HOME two-column day facts stay readable while numeric slots stay column-aligned on five widths',async({page})=>{
  await installProduction(page);
  const site=new URL('../../',BASE).href;
  await page.addInitScript(site=>{
@@ -932,22 +932,25 @@ test('HOME typography follows a left reading edge while numeric slots stay colum
    const duration=b('#v38Today>span:nth-child(3) strong'),day=b('#v58DayZone');
    const items=[...document.querySelectorAll('.v59-calendar-links .v38-calendar-card')];
    const header=document.querySelector('#v613Board .v613-header');
-   const leftAligned=[title,main,duration].every(x=>!!x&&Math.abs(x.left-main.left)<6);
+   // v6.17: a compact two-column day banner; facts align to one another on
+   // the right, rather than repeating the heading on their left reading edge.
+   const alignedFacts=!!main&&!!duration&&Math.abs(main.right-duration.right)<6;
+   const separated=!!title&&!!main&&!!duration&&title.right<=Math.min(main.left,duration.left)-4;
    const stacked=!!main&&!!duration&&main.bottom<=duration.top+1;
    const readable=items.every(x=>{const t=x.querySelector('strong');if(!t)return false;const r=t.getBoundingClientRect(),c=x.getBoundingClientRect();return r.left>=c.left-1&&r.right<=c.right+1&&r.height<=Math.max(50,c.height-8)});
    const first=items[0]?.getBoundingClientRect(),second=items[1]?.getBoundingClientRect();
    const cardsSingleColumn=!!first&&!!second&&second.top>=first.bottom-2;
    const chips=getComputedStyle(document.querySelector('#v58SessionsZone>.v58-section-title'),'::before');
    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
-    leftAligned,stacked,readable,cardsSingleColumn,chipsPresent:chips.content!=='none',
+    alignedFacts,separated,stacked,readable,cardsSingleColumn,chipsPresent:chips.content!=='none',
     cardInside:!!day&&[title,main,duration].every(x=>x&&x.left>=day.left-1&&x.right<=day.right+1),
     boardPresent:!!header,boardHeaderAligned:header?getComputedStyle(header).display==='grid':false
    };
   });
-  expect(result,JSON.stringify(result)).toMatchObject({leftAligned:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
+  expect(result,JSON.stringify(result)).toMatchObject({alignedFacts:true,separated:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
   expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   if(width===320)expect(result.cardsSingleColumn).toBe(true);
-  if(width===390)expect(result.cardsSingleColumn).toBe(true); // Readable calendar links, not two cramped title columns.
+  if(width===390)expect(result.cardsSingleColumn).toBe(false); // Dense side-by-side calendar actions remain readable.
  }
 });
 test('Compact after-hours HOME has only last-updated text, no blank CTA, and five consistent guide links',async({page})=>{
