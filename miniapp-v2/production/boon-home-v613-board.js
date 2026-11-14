@@ -255,6 +255,61 @@ function buildBoard(){
  board.appendChild(elem('p','v613-footnote',hasUnknown?labels[5]:labels[4]));
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v613-board-ready');
 }
+
+/* Safety net: the live public board can legitimately expose only WEB slots
+   before LINE opens, or no forecast when AirWAIT data is incomplete.
+   Never make the LINE route and crowd-status explanation disappear together. */
+const REQUIRED_LABELS={
+ ja:['LINE受付','LINE受付の状況を見る','受付開始 9:30','混雑状況','混雑予想 —','公開枠の人数が確認できないため、予想は表示できません。'],
+ en:['LINE reception','Check LINE tickets','Opens at 9:30','Crowd status','Forecast —','A forecast is unavailable without verified public slot counts.'],
+ 'zh-CN':['LINE取号','查看LINE取号','9:30开始','拥挤状况','预测 —','公开场次的剩余人数未确认，无法计算预测。'],
+ ko:['LINE 접수','LINE 접수 확인','9:30 시작','혼잡 상황','혼잡 예상 —','공개된 접수 인원이 확인되지 않아 예상치를 표시할 수 없습니다.'],
+ vi:['Đăng ký LINE','Kiểm tra đăng ký LINE','Bắt đầu 9:30','Tình trạng đông','Dự báo —','Chưa xác minh đủ số chỗ còn lại để tính dự báo.'],
+ ne:['LINE दर्ता','LINE दर्ता जाँच्नुहोस्','९:३० बाट सुरु','भीडको अवस्था','अनुमान —','प्रकाशित स्थानहरूको संख्या पुष्टि नभएकाले अनुमान उपलब्ध छैन।'],
+ kmr:['Tomarkirina LINE','Tomarkirina LINE kontrol bike','Di 9:30 de dest pê dike','Rewşa qelebalixiyê','Pêşbînî —','Ji bo pêşbîniyê hejmarên mayî nehatine piştrastkirin.']
+};
+function renderRequiredAccess(){
+ const slots=document.getElementById('v38Slots');if(!slots)return;
+ const lang=language(),l=REQUIRED_LABELS[lang]||REQUIRED_LABELS.ja;
+ const liveBoard=slots.classList.contains('v615-public-ready')?slots.querySelector('#v615SessionBoard'):null;
+ const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
+ const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
+ const forecastNodes=[...slots.querySelectorAll('#v615SessionBoard .v615-forecast-value, #v613Board .v613-percent')];
+ const hasForecast=forecastNodes.some(e=>/^\\d{1,3}%$/.test(e.textContent.trim())&&e.getClientRects().length>0);
+ let panel=slots.querySelector('#v615EssentialAccess');
+ if(hasLine&&hasForecast){panel?.remove();return}
+ if(!document.getElementById('v615EssentialStyle')){
+  const style=document.createElement('style');style.id='v615EssentialStyle';
+  style.textContent='#v615EssentialAccess{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin:9px 0 8px}'+
+   '#v615EssentialAccess .v615-essential-item{min-width:0;border:1px solid #A9DFD3;border-radius:12px;background:#F5FFFB;padding:9px 10px;color:#166D66}'+
+   '#v615EssentialAccess .v615-essential-item strong{display:block;font-size:14px;line-height:1.4;font-weight:800}'+
+   '#v615EssentialAccess .v615-essential-item small{display:block;font-size:11px;line-height:1.45;color:#537E78;margin-top:4px}'+
+   '#v615EssentialAccess .v615-essential-action{display:block;width:100%;min-height:44px;margin-top:5px;padding:9px;border:1px solid #117E76;border-radius:9px;background:#C5F2E6;color:#155750;font:700 13px/1.35 system-ui,sans-serif;text-align:center;cursor:pointer}'+
+   '#v615EssentialAccess .v615-essential-action:focus-visible{outline:3px solid #235B67;outline-offset:2px}';
+  document.head.appendChild(style);
+ }
+ if(!panel){panel=elem('section','v615-essential-access');panel.id='v615EssentialAccess';panel.setAttribute('aria-label',l[3]);}
+ // Keep the native last paragraph in place for existing safe WEB fallback links.
+ const footer=slots.querySelector(':scope > p:last-child');
+ if(panel.parentElement!==slots||!(panel.nextElementSibling===footer||(!footer&&panel===slots.lastElementChild))){
+  if(footer)slots.insertBefore(panel,footer);else slots.appendChild(panel);
+ }
+ const signature=JSON.stringify([lang,hasLine,hasForecast]);
+ if(panel.dataset.signature===signature)return;
+ panel.dataset.signature=signature;panel.replaceChildren();
+ if(!hasLine){
+  const item=elem('div','v615-essential-item');item.id='v615EssentialLine';
+  item.appendChild(elem('strong','',l[0]));
+  const button=elem('button','v615-essential-action',l[1]);button.type='button';button.dataset.v7View='reception';
+  item.appendChild(button);item.appendChild(elem('small','',l[2]));panel.appendChild(item);
+ }
+ if(!hasForecast){
+  const item=elem('div','v615-essential-item');item.id='v615EssentialCrowd';item.setAttribute('role','status');
+  item.appendChild(elem('strong','',l[3]));item.appendChild(elem('strong','',l[4]));
+  item.appendChild(elem('small','',l[5]));panel.appendChild(item);
+ }
+}
+
 function apply(){
  const shell=document.getElementById('v58Flow'),primary=document.getElementById('v58Primary');
  const day=document.getElementById('v58DayZone'),sessions=document.getElementById('v58SessionsZone');
@@ -264,7 +319,7 @@ function apply(){
  }
  const fold=document.getElementById('v59SlotsFold');
  if(fold&&!fold.open)fold.open=true;
- translateBusiness();buildBoard();renderRetryState();
+ translateBusiness();buildBoard();renderRequiredAccess();renderRetryState();
 }
 let pending=false;
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}
