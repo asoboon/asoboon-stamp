@@ -160,7 +160,7 @@ function buildPublicBoard(){
  const data=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
  const list=slots.querySelector(':scope > .v38-crowd-list');
  const existing=slots.querySelector('#v615SessionBoard');
- if(data?.verified!==true||!list){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ if(data?.verified!==true||!list||(data.isOpen!==true&&data.acceptingOnline!==true)){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const ordered=[...(Array.isArray(data.slots)?data.slots:[])].filter(x=>['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
    .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
  const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]));
@@ -290,7 +290,7 @@ function renderBookingChannels(){
  // Public snapshots refer to today. Once HOME previews tomorrow, never
  // present today's remaining seats under tomorrow's reception heading.
  const fresh=!previewTomorrow&&publicData?.verified===true&&Number.isFinite(at)&&at<=Date.now()+5000&&Date.now()-at<=90000;
- const list=fresh&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
+ const list=fresh&&(publicData.isOpen===true||publicData.acceptingOnline===true)&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
   slot&&['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(slot.usageDispType)):[];
  const native=host.querySelector(':scope > .v38-crowd-list');
  const nativeCards=[...(native?.querySelectorAll(':scope > .v38-crowd-card')||[])];

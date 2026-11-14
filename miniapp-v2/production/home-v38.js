@@ -321,7 +321,7 @@ function renderPublicReception(box){
  }
  const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
  const rows=Array.isArray(data.slots)?data.slots:[];
- if(!rows.length){
+ if(!rows.length||(data.isOpen!==true&&data.acceptingOnline!==true)){
   writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトで現在選択できる受付枠はありません。</p><p>'+link+'</p><p class="v38-crowd-refresh">最終更新 '+esc(time)+'</p>');
   return true;
  }

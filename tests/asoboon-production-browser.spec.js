@@ -5140,3 +5140,19 @@ test('HOME keeps separate WEB/LINE labels with no invented quota after public da
  await expect(page.locator('#v616BookingChannels .v616-booking-action')).toHaveCount(0);
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
+
+test('WEB slots remain selectable at 09:15 even when LINE reception has not opened',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{
+  verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:false,acceptingOnline:true,slots:[
+   {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:68,remainingVerified:true},
+   {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:22,remainingVerified:true}
+  ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('公開中 1枠',{timeout:16000});
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 1枠');
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-channel-count')).toHaveText(['68人','22人']);
+ await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
+ await expect(board.locator('button.v615-channel-action')).toHaveCount(0);
+});
