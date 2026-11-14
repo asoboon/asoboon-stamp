@@ -798,7 +798,9 @@ function specialNumberTakeover(numbers,kind='call'){
     pulse.className='fx-call-pulse';
     el.appendChild(pulse);
   }
-  overlayFxLayer().appendChild(el);
+  const callLayer=overlayFxLayer();
+  callLayer.classList.add('call-takeover-active');
+  callLayer.appendChild(el);
   fitCallGroupNumbers(el);
 
   const at=ms=>clamp(ms/duration,0,1);
@@ -955,7 +957,10 @@ function specialNumberTakeover(numbers,kind='call'){
     ],opts));
   }
 
-  return Promise.all(jobs).finally(()=>el.remove());
+  return Promise.all(jobs).finally(()=>{
+      el.remove();
+      if(!callLayer.querySelector('.fx-special-number.call'))callLayer.classList.remove('call-takeover-active');
+    });
 }
 function callCharge(focusRect,{duration=400}={}){
   if(reduced||effectiveLevel()<2||!focusRect)return Promise.resolve();
