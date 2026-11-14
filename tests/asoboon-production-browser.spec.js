@@ -910,7 +910,7 @@ test('After 19:00 daily rollover, next-business-day slots remain reference-only'
  await expect(page.locator('#v38Slots a[href*="airwait.jp"],#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 
 });
-test('HOME typography follows a left reading edge while numeric slots stay column-aligned on five widths',async({page})=>{
+test('HOME two-column day facts stay readable while numeric slots stay column-aligned on five widths',async({page})=>{
  await installProduction(page);
  const site=new URL('../../',BASE).href;
  await page.addInitScript(site=>{
@@ -932,22 +932,25 @@ test('HOME typography follows a left reading edge while numeric slots stay colum
    const duration=b('#v38Today>span:nth-child(3) strong'),day=b('#v58DayZone');
    const items=[...document.querySelectorAll('.v59-calendar-links .v38-calendar-card')];
    const header=document.querySelector('#v613Board .v613-header');
-   const leftAligned=[title,main,duration].every(x=>!!x&&Math.abs(x.left-main.left)<6);
+   // v6.17: a compact two-column day banner; facts align to one another on
+   // the right, rather than repeating the heading on their left reading edge.
+   const alignedFacts=!!main&&!!duration&&Math.abs(main.right-duration.right)<6;
+   const separated=!!title&&!!main&&!!duration&&title.right<=Math.min(main.left,duration.left)-4;
    const stacked=!!main&&!!duration&&main.bottom<=duration.top+1;
    const readable=items.every(x=>{const t=x.querySelector('strong');if(!t)return false;const r=t.getBoundingClientRect(),c=x.getBoundingClientRect();return r.left>=c.left-1&&r.right<=c.right+1&&r.height<=Math.max(50,c.height-8)});
    const first=items[0]?.getBoundingClientRect(),second=items[1]?.getBoundingClientRect();
    const cardsSingleColumn=!!first&&!!second&&second.top>=first.bottom-2;
    const chips=getComputedStyle(document.querySelector('#v58SessionsZone>.v58-section-title'),'::before');
    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
-    leftAligned,stacked,readable,cardsSingleColumn,chipsPresent:chips.content!=='none',
+    alignedFacts,separated,stacked,readable,cardsSingleColumn,chipsPresent:chips.content!=='none',
     cardInside:!!day&&[title,main,duration].every(x=>x&&x.left>=day.left-1&&x.right<=day.right+1),
     boardPresent:!!header,boardHeaderAligned:header?getComputedStyle(header).display==='grid':false
    };
   });
-  expect(result,JSON.stringify(result)).toMatchObject({leftAligned:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
+  expect(result,JSON.stringify(result)).toMatchObject({alignedFacts:true,separated:true,stacked:true,readable:true,chipsPresent:true,cardInside:true,boardPresent:true,boardHeaderAligned:true});
   expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   if(width===320)expect(result.cardsSingleColumn).toBe(true);
-  if(width===390)expect(result.cardsSingleColumn).toBe(true); // Readable calendar links, not two cramped title columns.
+  if(width===390)expect(result.cardsSingleColumn).toBe(false); // Dense side-by-side calendar actions remain readable.
  }
 });
 test('Compact after-hours HOME has only last-updated text, no blank CTA, and five consistent guide links',async({page})=>{
@@ -3593,7 +3596,7 @@ test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid
    });
    return {oneColumn:second.top>=first.bottom-2,links:title,overflow:document.documentElement.scrollWidth-innerWidth};
   },null,{timeout:10000}).then(handle=>handle.jsonValue());
-  expect(data.oneColumn,'calendar must not crush Japanese into 60px column').toBe(true);
+  expect(data.oneColumn,'calendar must have room for readable labels').toBe(width<=350);
   expect(data.links.every(x=>x.oneLine),JSON.stringify(data.links)).toBe(true);
   expect(data.overflow).toBeLessThanOrEqual(1);
  }
@@ -4665,8 +4668,47 @@ test('HOME hides removed AirWAIT sessions and unpublished channels, with compact
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
  }
  const dimensions=await cards.nth(1).evaluate(el=>({height:el.getBoundingClientRect().height,actions:[...el.querySelectorAll('a.v615-channel-action,button.v615-channel-action')].map(x=>x.getBoundingClientRect().height)}));
- expect(dimensions.height).toBeLessThan(200);
- expect(dimensions.actions.every(h=>h>=36)).toBe(true);
+ expect(dimensions.height).toBeLessThan(132);
+ expect(dimensions.actions.every(h=>h>=44)).toBe(true);
+ // Verified cards are compact, while 44px booking targets remain unmodified.
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  const measured=await page.evaluate(()=>{
+   const height=sel=>Math.ceil(document.querySelector(sel)?.getBoundingClientRect().height||0);
+   return {screen:document.documentElement.scrollWidth,full:document.documentElement.scrollHeight,
+    day:height('#v58DayZone'),sessions:height('#v58SessionsZone'),timer:height('#v58TimerZone'),
+    calendars:height('#v59CalendarLinks'),card:height('#v615SessionBoard .v615-session')};
+  });
+  expect(measured.screen).toBeLessThanOrEqual(width);
+  expect(measured.card).toBeLessThan(132);
+  expect(measured.day).toBeLessThan(85);
+  expect(measured.timer).toBeLessThan(125);
+  expect(measured.sessions).toBeLessThan(400);
+  if(width>=390)expect(measured.calendars).toBeLessThan(85);
+ }
+
+});
+
+test('HOME preserves the external AirWAIT fallback if verified sessions have no actionable WEB link',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[{waitTypeId:'0032',dispFlg:true},{waitTypeId:'0031',dispFlg:true}],
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',
+    isOpen:true,acceptingOnline:false,slots:[
+     {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:0,remainingVerified:true},
+     {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:15,remainingVerified:true}
+    ]}})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(board).toContainText('12:30の回');
+ await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toHaveCount(0);
+ await expect(board).toContainText('この枠は満員です');
+ // Even a valid public snapshot does not guarantee anyone can book online.
+ await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-airwait-link')).toBeVisible();
 });
 
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
