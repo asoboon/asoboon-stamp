@@ -20,7 +20,7 @@ let publicReception={verified:false,source:'initial',slots:[]};
 function scheduleCrowd(){
 clearTimeout(crowdPollTimer);crowdPollTimer=0;
 if(currentView()!=='home'||day?.isClosed||(crowdClosed&&publicReception?.verified!==true))return;
-const now=Date.now(),wait=crowdRetryAt>now?crowdRetryAt-now:crowdAt?(crowdReadOnly()?180e3:30e3):15e3
+const now=Date.now(),wait=crowdRetryAt>now?Math.min(30000,crowdRetryAt-now):crowdAt?(crowdReadOnly()?180e3:30e3):15e3
 crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
 function crowdFreshness(){}
@@ -395,19 +395,19 @@ function renderSlots(){
  writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+endedNote+refresh+'<div class="v38-crowd-list">'+rows+'</div><p class="v38-crowd-note v38-crowd-disclaimer">混雑予想は予約枠の残り人数から算出した参考値で、実際の館内滞在人数とは異なります。</p>');
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
+async function publicRead(){
+ const m=await import('./crowd-visibility.mjs?v=2'),publicStatus=await m.publishedStatus(E.backendUrl);
+ publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
+ renderSlots();renderHero(latest||{kind:'none'});return {m,publicStatus};
+}
 async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
- if(Date.now()<crowdRetryAt){scheduleCrowd();return}
+ if(Date.now()<crowdRetryAt){void publicRead().catch(()=>{});scheduleCrowd();return}
  if(!force&&crowdSlots&&!crowdStale&&Date.now()-crowdAt<30000){if(publicReception?.source==='initial'){publicReception={verified:false,source:'cached-unverified',slots:[]};renderSlots()}scheduleCrowd();return}
  crowdLoading=true;crowdError='';crowdClosed=false;
  if(crowdFlagsDate!==String(day?.operationalDate||'')){crowdPublicFlags=null;crowdFlagsDate=''}
  const button=root.querySelector('#v38CrowdUpdate');if(button){button.disabled=true;button.textContent='確認中…'}
- const publicJob=import('./crowd-visibility.mjs?v=2').then(async m=>{
-  const publicStatus=await m.publishedStatus(E.backendUrl);
-  publicReception=publicStatus?(publicStatus.publicReception??undefined):{verified:false,source:'unverified',slots:[]};
-  if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'})}
-  return {m,publicStatus};
- }).catch(()=>({m:null,publicStatus:null}));
+ const publicJob=publicRead().catch(()=>({m:null,publicStatus:null}));
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
   const url=new URL(E.backendUrl);url.searchParams.set('action','crowdRemaining');if(manual)url.searchParams.set('refresh','manual');
