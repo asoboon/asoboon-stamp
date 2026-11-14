@@ -3145,9 +3145,12 @@ test('Confirmed hidden WEB quota stays hidden when a later crowdRemaining reques
  breakCrowd=true;
  await page.locator('#v38CrowdUpdate').evaluate(el=>el.click());
  await expect.poll(()=>crowdErrors,{timeout:10000}).toBe(1);
- await expect(first.locator('.v38-crowd-channel--web strong')).toHaveText('受付なし');
- await expect(first.locator('a[href]')).toHaveCount(0);
- await expect(first.locator('.v38-crowd-channel--onsite strong')).toContainText('—');
+ const box=page.locator('#v38Slots');
+ await expect(box).toContainText('最新の受付枠を確認できませんでした');
+ await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
+ await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(0);
+ await expect(box).not.toContainText('残り117人');
+ await expect(box.locator('#v615RetrySlots')).toBeVisible();
 });
 
 test('Newly hidden WEB overrides an older certified after-hours archive',async({page})=>{
