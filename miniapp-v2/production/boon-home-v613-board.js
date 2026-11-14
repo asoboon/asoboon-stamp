@@ -365,7 +365,7 @@ function renderRequiredAccess(){
  const forecastNodes=[...slots.querySelectorAll('#v615SessionBoard .v615-forecast-value, #v613Board .v613-percent')];
  const hasForecast=forecastNodes.some(e=>/^\d{1,3}%$/.test(e.textContent.trim())&&e.getClientRects().length>0);
  let panel=slots.querySelector('#v615EssentialAccess');
- if(hasLine&&hasForecast){panel?.remove();return}
+ if((hasLine||!lineEntryAllowed)&&hasForecast){panel?.remove();return}
  if(!document.getElementById('v615EssentialStyle')){
   const style=document.createElement('style');style.id='v615EssentialStyle';
   style.textContent='#v615EssentialAccess{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin:9px 0 8px}'+
