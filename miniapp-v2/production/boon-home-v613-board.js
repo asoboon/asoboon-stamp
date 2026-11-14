@@ -133,7 +133,7 @@ function publicChannel(slot,source,label,{lineActionEnabled=false}={}){
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
-  const slotTime=publicTime(slot.waitTypeName);
+  const slotTime=source?null:publicTime(slot.waitTypeName);
   if(slotTime)cell.appendChild(elem('small','v615-channel-time',slotTime));
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
   if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
@@ -334,6 +334,14 @@ function renderBookingChannels(){
  const nativeList=fresh&&(publicData.isOpen===true||publicData.acceptingOnline===true)&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
   slot&&['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(slot.usageDispType)):[];
  const onsite=fresh?verifiedOnsiteSlots():[];
+ // A published onsite window remains bookable after 9:30 even if all WEB
+ // slots are full: keep the native HOME hero and the board consistent.
+ const lineAvailable=fresh&&publicData.isOpen===true&&jstMinutes()>=570&&
+  onsite.some(x=>x.remainingVerified===true&&x.remaining>0);
+ if(window.ASOBOON_VERIFIED_ONSITE_AVAILABLE!==lineAvailable){
+  window.ASOBOON_VERIFIED_ONSITE_AVAILABLE=lineAvailable;
+  window.ASOBOON_V38_REFRESH_AVAILABILITY?.();
+ }
  const list=[...nativeList,...onsite.filter(x=>!nativeList.some(p=>String(p.waitTypeId)===String(x.waitTypeId)))];
  const native=host.querySelector(':scope > .v38-crowd-list');
  const nativeCards=[...(native?.querySelectorAll(':scope > .v38-crowd-card')||[])];

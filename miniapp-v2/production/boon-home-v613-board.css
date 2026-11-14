@@ -830,7 +830,10 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-b
 /* Per-entry forecast is the only crowd-status display. The generic AirWAIT
    information link below the slot list is redundant; retain real WEB actions
    inside verified session cards and the safe standalone HOME fallback. */
-html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots > p:has(> a.v38-airwait-link[href*="airwait.jp"]){
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v38Slots:has(
+ #v615SessionBoard a.v615-channel-action[href*="airwait.jp"],
+ .v38-crowd-list .v38-crowd-tap-hint a[href*="airwait.jp"]
+) > p:has(> a.v38-airwait-link[href*="airwait.jp"]){
  display:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-channel-time{

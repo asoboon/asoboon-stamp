@@ -5194,9 +5194,7 @@ test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts agai
  await expect(sessions).toHaveCount(3,{timeout:18000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
  await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
- await expect(board.locator('.v615-channel-time')).toHaveText([
-  '10:00','10:25','12:30','12:50','15:00','15:15'
- ]);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','12:50','15:15']);
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 3枠');
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();
@@ -5227,4 +5225,42 @@ test('HOME forecast never invents onsite counts from unverified getWaitInfo deta
  await expect(board.locator('.v615-forecast-value')).toHaveText(['—']);
  await expect(board.locator('.v615-channel-count')).toHaveText(['200人']);
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
+});
+
+test('HOME stays open when WEB is full but verified 10:25 onsite quota is bookable',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T03:00:00.000Z'});
+ const at='2026-10-03T03:00:00.000Z';
+ const all=[
+  ['0030','KeyONLINE_RECEPTION_ONLY',true,'10時ご入場枠【WEB整理券】'],
+  ['0032','KeyONLINE_RECEPTION_ONLY',false,'12時半ご入場枠【WEB整理券】'],
+  ['0034','KeyONLINE_RECEPTION_ONLY',false,'15時ご入場枠【WEB整理券】'],
+  ['0029','KeySTORE_RECEPTION_ONLY',true,'10時25分頃入場【土休日特定日】'],
+  ['0031','KeySTORE_RECEPTION_ONLY',false,'12時50分頃入場【土休日特定日】'],
+  ['0033','KeySTORE_RECEPTION_ONLY',false,'15時15分頃入場時間【土休日特定日】']
+ ];
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({ok:true,waitTypes:all.map(([waitTypeId,usageDispType,dispFlg,waitTypeName])=>
+   ({waitTypeId,usageDispType,dispFlg,waitTypeName})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:at,isOpen:true,
+    acceptingOnline:true,slots:[{waitTypeId:'0030',usageDispType:'KeyONLINE_RECEPTION_ONLY',
+     waitTypeName:'10時ご入場枠【WEB整理券】',remaining:0,remainingVerified:true}]}})
+ }));
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({ok:true,stale:false,fetchedAt:at,slots:[
+   {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',
+    reserveUnit:'PERSON',matchMode:'exact-name',evidence:'PERSON',remaining:0}
+  ],observedDetails:[
+   {detailedWaitType:'10時25分頃入場【土休日特定日】',reserveUnit:'PERSON',remaining:30,remainingVerified:true}
+  ]})
+ }));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['91%'],{timeout:15000});
+ await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人']);
+ await expect(page.locator('#v38Hero')).toHaveClass(/open/);
+ await expect(page.locator('#v38Hero')).not.toContainText('現在受付できる枠はありません');
+ await expect(board.locator('button.v615-channel-action[data-v7-view="reception"]')).toHaveCount(1);
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).not.toHaveClass(/is-closed/);
 });
