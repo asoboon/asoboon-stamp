@@ -477,6 +477,11 @@ html body #app .cm-faq details p{text-wrap:balance!important}
 /* Group complete safety sentences instead of leaving a single kana dangling. */
 html body #app .v24-parking-page :is(.v24-alert,.v24-safety) p{text-wrap:balance!important}
 
+/* All seven languages: do not let long parking option labels enlarge the viewport. */
+html body #app .v24-parking-page .v24-choice { min-width:0!important; }
+html body #app .v24-parking-page .v24-choice button { min-width:0!important; max-width:100%!important; overflow-wrap:anywhere!important; }
+html body #app .v24-parking-page .v24-choice button :is(strong,small,span) { min-width:0!important; white-space:normal!important; overflow-wrap:anywhere!important; word-break:normal!important; }
+
 /* miniapp-v2/production/entry-v25.css */
 /* v26: lightweight, photo-free wayfinding for guardians. All selectors scoped to the entry page. */
 .v25-entry-head{background:linear-gradient(125deg,#166D66,#1C8D89)!important}

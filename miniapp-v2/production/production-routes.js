@@ -52,8 +52,18 @@ function lineOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30
 function lineOpenDisplay(){const m=lineOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineOpenClock()}
 function lineOpenMinutes(){const n=clockMinutes(lineOpenClock());return Number.isFinite(n)?n:570}
 function jstClock(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{hour:Number(p.hour),minute:Number(p.minute),second:Number(p.second)}}
-function lineReceptionOpenNow(){const n=jstClock();return n.hour*60+n.minute>=lineOpenMinutes()}
-function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),seconds=Math.max(1,(lineOpenMinutes()-(n.hour*60+n.minute))*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
+function lineReceptionOpenNow(){
+ const n=jstClock(),minutes=n.hour*60+n.minute;
+ if(minutes<lineOpenMinutes())return false;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+ const calendarDate=parts.year+'-'+parts.month+'-'+parts.day;
+ // At 19:00 the operational day becomes tomorrow; never offer tomorrow's tickets tonight.
+ if((S.day?.operationalDate&&String(S.day.operationalDate)!==calendarDate)||
+    (typeof D.operationalDate==='function'&&D.operationalDate()!==calendarDate))return false;
+ const closing=clockMinutes(String(S.day?.closingTime||'18:00'));
+ return !Number.isFinite(closing)||minutes<closing;
+}
+function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),now=n.hour*60+n.minute;let delta=lineOpenMinutes()-now;if(delta<=0)delta+=24*60;const seconds=Math.max(1,delta*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
 function friendlyError(value){const code=String(value||'');const map={
   LINE_PROFILE_INVALID:'LINEの本人情報を確認できませんでした。ミニアプリを完全に閉じ、公式LINEのメニューから開き直してください。受付番号が表示されていなければ、受付は完了していません。',
   LINE_PROFILE_REAUTHORIZE:'LINEプロフィールの利用許可を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直し、許可画面が出たら同意してください。',
@@ -684,7 +694,7 @@ function clearCallVisualTone(){
  delete document.body.dataset.asoboonCallTone;
 }
 function unmount(){clearCallVisualTone();stopNumberList();stopPolling();stopReceptionWatch()}
-function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
+function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=8000)return'約8秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=30000)return'約30秒ごと';if(ms<=45000)return'約45秒ごと';return'約90秒ごと'}
 function restoreThrottle(){
  if(rateLimitUntil>clockTick())return;
@@ -1159,7 +1169,7 @@ async function refreshStatus({manual=false}={}){
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
     lastRefreshSucceededAt=Date.now();hadRefreshError=false;clearThrottle();
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_TERMINAL_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_TERMINAL_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const title=$('csTitle'),message=$('csMessage');if(title)title.textContent=auth?'LINE内で受付状況をご確認ください':throttled?'アクセスが集中しています':'最新状況を確認できませんでした';if(message)message.textContent=auth?'この画面はLINEアプリ内の本人確認が必要です。':throttled?'自動で再確認しています。':'新しい情報は未確認です。LINE内から再確認してください。';const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;
