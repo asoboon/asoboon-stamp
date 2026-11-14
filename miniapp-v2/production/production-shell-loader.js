@@ -42,10 +42,10 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';
-  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=99ddcbf72c68';
+  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=97e15774dd7e';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=4ffe97bbb11a';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=32e3a0a9ea52';
   document.head.appendChild(next);
 }
 })();
