@@ -69,6 +69,13 @@ function dynamicText(value){
  if(TABLE[value]?.en){fallbackUsed=true;return TABLE[value].en;} // Visible fallback, with a clear notice
  if(value.startsWith('LINE内 · '))return (locale==='en'?'In LINE · ':locale==='zh-CN'?'LINE内 · ':locale==='vi'?'Trong LINE · ':'LINE भित्र · ')+value.slice('LINE内 · '.length);
  for(const prefix of ['① ','② ','③ ']){const entry=TABLE[prefix+value]?.[locale];if(entry)return entry.replace(/^[①②③]\s*/, '')}
+ const updated=value.match(/^最終更新\s+(\d{1,2}:\d{2}|—:—)$/);
+ if(updated)return ({en:'Updated ', 'zh-CN':'最后更新 ',vi:'Cập nhật ',ne:'अन्तिम अपडेट ',ko:'마지막 갱신 ',kmr:'Nûkirina dawî '})[locale]+updated[1];
+ const afterEntry=value.match(/^(\d{1,2}:\d{2})に入場した場合、(.+?)後の(\d{1,2}:\d{2})が終了目安です。$/);
+ if(afterEntry){
+  const start=afterEntry[1],end=afterEntry[3];
+  return ({en:`Enter at ${start} → estimated finish ${end}.`,'zh-CN':`${start}入场，预计${end}结束。`,vi:`Vào lúc ${start}, dự kiến kết thúc ${end}.`,ne:`${start} बजे प्रवेश गरेमा समाप्ति अनुमान ${end} हो।`,ko:`${start} 입장 시 예상 종료 시각은 ${end}입니다.`,kmr:`Heke di ${start} de bikevin, dema qedandina texmînkirî ${end} e.`})[locale]||value;
+ }
  const people=locale==='en'?'people':locale==='zh-CN'?'人':locale==='vi'?'người':locale==='ko'?'명':locale==='kmr'?'kes':'जना';
  const session=locale==='en'?'session':locale==='zh-CN'?'场次':locale==='vi'?'lượt':locale==='ko'?'회차':locale==='kmr'?'dora lîstinê':'पालो';
  const minute=locale==='en'?'min':locale==='zh-CN'?'分钟':locale==='vi'?'phút':locale==='ko'?'분':locale==='kmr'?'deqe':'मिनेट';

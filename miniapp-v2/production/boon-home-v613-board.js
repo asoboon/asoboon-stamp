@@ -110,6 +110,13 @@ function cloneAction(native,unknown){
  return node;
 }
 const PUBLIC_GROUPS=Object.freeze([
+ // Weekdays and special weekdays use different AirWAIT IDs. Never silently fall back
+ // to tall legacy cards merely because a verified public slot is not a weekend ID.
+ {title:'すぐ入場',web:null,line:'0023',forecast:false},
+ {title:'10:00の回',web:'0024',line:null,forecast:false},
+ {title:'14:00の回',web:'0027',line:'0025',forecast:false},
+ {title:'10:00の回',web:'0036',line:'0035',forecast:false},
+ {title:'13:30の回',web:'0038',line:'0037',forecast:false},
  {title:'10:00の回',web:'0030',line:'0029'},
  {title:'12:30の回',web:'0032',line:'0031'},
  {title:'15:00の回',web:'0034',line:'0033'}
@@ -123,10 +130,28 @@ function publicChannel(slot,source,label){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
  cell.appendChild(elem('span','v615-channel-name',label));
  const num=publicCount(slot);
- cell.appendChild(elem('strong','v615-channel-count',!slot?missing:num===null?'—':num+'人'));
+ const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
+ cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
-  if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');cell.appendChild(clone)}
+  if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
+   const lang=language(),online=slot.usageDispType==='KeyONLINE_RECEPTION_ONLY';
+   const translations={
+    ja:['WEBで受付する ↗','LINEで受付を確認 →'],
+    en:['Get a WEB ticket ↗','Check LINE tickets →'],
+    'zh-CN':['网页领取号码 ↗','查看LINE取号 →'],
+    vi:['Lấy số qua WEB ↗','Kiểm tra LINE →'],
+    ne:['WEB टिकट लिनुहोस् ↗','LINE टिकट जाँच्नुहोस् →'],
+    ko:['WEB에서 접수 ↗','LINE 접수 확인 →'],
+    kmr:['Li WEBê hejmar bistîne ↗','Hejmarên LINE kontrol bike →']
+   };
+   // Non-actionable labels (e.g. 'この枠は満員です') must never turn into a false booking CTA.
+   if(clone.matches('a[href],button:not([disabled])')){
+    const text=(translations[lang]||translations.ja)[online?0:1];
+    clone.textContent=text;clone.setAttribute('aria-label',text);
+   }
+   else if(clone.matches('small,span')){clone.textContent=window.ASOBOON_I18N?.t?.(clone.textContent.trim())||clone.textContent}
+   cell.appendChild(clone)}
  }
  return cell;
 }
@@ -154,10 +179,11 @@ function buildPublicBoard(){
   // AirWAIT removed both slots: do not show a ghost session.
   if(!a&&!b)continue;
   const web=publicCount(a?.slot),line=publicCount(b?.slot);
-  const pct=web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
+  const pct=group.forecast===false||web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
   const card=elem('article','v615-session');
   const head=elem('div','v615-session-head');
-  head.appendChild(elem('strong','v615-session-title',lang==='ja'?group.title:group.title.replace('の回','')));
+  const groupTitle=group.title==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?group.title:group.title.replace('の回','');
+  head.appendChild(elem('strong','v615-session-title',groupTitle));
   const forecast=elem('div','v615-session-forecast');
   forecast.appendChild(elem('span','v615-forecast-label',labels[0]));
   forecast.appendChild(elem('strong','v615-forecast-value',pct===null?'—':pct+'%'));
