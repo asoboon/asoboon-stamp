@@ -559,7 +559,7 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v58Primary #v38Hero .v38-hero-bo
  padding:0!important;margin:0!important;
 }
 /* A verified session already has its own WEB booking action; avoid duplicating it. */
-html.boon-v4.boon-v5-mint body.v38-home-active #v58Flow:has(#v615SessionBoard .v615-session) #v38Hero .v38-airwait-link{
+html.boon-v4.boon-v5-mint body.v38-home-active #v58Flow:has(#v615SessionBoard a.v615-channel-action[href*="airwait.jp"]) #v38Hero .v38-airwait-link{
  display:none!important;
 }
 html.boon-v4.boon-v5-mint body.v38-home-active #v58Primary #v38Hero .v38-reception-hours{
@@ -670,7 +670,7 @@ html body #app #v58Primary #v38Hero .v38-reception-hours{
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
 }
 html body #app #v59SlotsFold{margin:0!important;padding:0!important}
-html body #app #v38Slots.v615-public-ready>p:last-child{
+html body #app #v38Slots.v615-public-ready:has(#v615SessionBoard a.v615-channel-action[href*="airwait.jp"])>p:last-child{
  display:none!important;
 }
 @media(max-width:350px){

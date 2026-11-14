@@ -4689,6 +4689,28 @@ test('HOME hides removed AirWAIT sessions and unpublished channels, with compact
 
 });
 
+test('HOME preserves the external AirWAIT fallback if verified sessions have no actionable WEB link',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[{waitTypeId:'0032',dispFlg:true},{waitTypeId:'0031',dispFlg:true}],
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',
+    isOpen:true,acceptingOnline:false,slots:[
+     {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:0,remainingVerified:true},
+     {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:15,remainingVerified:true}
+    ]}})});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(board).toContainText('12:30の回');
+ await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toHaveCount(0);
+ await expect(board).toContainText('この枠は満員です');
+ // Even a valid public snapshot does not guarantee anyone can book online.
+ await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-airwait-link')).toBeVisible();
+});
+
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='crowdRemaining',async route=>{
