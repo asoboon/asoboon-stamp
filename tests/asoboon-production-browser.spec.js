@@ -5003,3 +5003,43 @@ test('HOME localized ticket actions return to Japanese after English and Kurmanj
  await picker.selectOption('ja');await expect(action).toContainText('順番を取る');
  await picker.selectOption('en');await expect(action).toContainText('Get a queue ticket');
 });
+
+test('HOME removes redundant large queue CTA when verified public slot cards already have booking actions',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+  {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:85,remainingVerified:true},
+  {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:32,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible({timeout:15000});
+ const button=page.locator('#v38Hero.open .v38-action.primary');
+ await expect(button).toHaveCount(1);
+ await expect(button).toBeHidden();
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toContainText('9:30');
+ await expect(page.locator('#v38Hero .v38-reception-hours a')).toBeHidden();
+ await expect(board.locator('button.v615-channel-action')).toBeVisible();
+ for(const w of [320,390,430]){
+  await page.setViewportSize({width:w,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(w);
+  // Production v58 wrapper is feature gated in Playwright mocks; measure it when mounted.
+  const primary=page.locator('#v58Primary');
+  if(await primary.count())expect(await primary.evaluate(e=>e.getBoundingClientRect().height)).toBeLessThan(60);
+ }
+});
+
+test('HOME keeps a safe independent booking entrypoint when public slots have no actionable capacity',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:false,slots:[
+  {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:0,remainingVerified:true},
+  {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:0,remainingVerified:true}
+ ]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v615SessionBoard')).toBeVisible({timeout:15000});
+ await expect(page.locator('#v615SessionBoard .v615-channel-action')).toHaveCount(2);
+ await expect(page.locator('#v615SessionBoard a.v615-channel-action, #v615SessionBoard button.v615-channel-action')).toHaveCount(0);
+ await expect(page.locator('#v38Hero')).toBeVisible();
+ // A full/unavailable slot must not become a clickable ticket action. The external fallback stays visible.
+ await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
+});
