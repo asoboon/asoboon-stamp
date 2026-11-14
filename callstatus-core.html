@@ -1304,7 +1304,7 @@ function scheduleAutoRefresh(){
 $("enteredButton").addEventListener("click",()=>{
   const url=new URL("./home.html",location.href);
   url.searchParams.set("mode","inside");
-  url.searchParams.set("view","playtime");
+  url.searchParams.set("view","timeguide");
   location.href=url.toString();
 });
 

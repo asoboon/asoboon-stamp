@@ -55,7 +55,7 @@ function clearCallVisualTone(){
  delete document.body.dataset.asoboonCallTone;
 }
 function unmount(){clearCallVisualTone();stopNumberList();stopPolling();stopReceptionWatch()}
-function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
+function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=8000)return'約8秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=30000)return'約30秒ごと';if(ms<=45000)return'約45秒ごと';return'約90秒ごと'}
 function restoreThrottle(){
  if(rateLimitUntil>clockTick())return;
@@ -530,7 +530,7 @@ async function refreshStatus({manual=false}={}){
     if(gen!==generation||!$('csState'))return;
     applyStatus(d);
     lastRefreshSucceededAt=Date.now();hadRefreshError=false;clearThrottle();
-  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_TERMINAL_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
+  }catch(e){if(gen!==generation||!$('csState'))return;const code=String(e?.message||e);const throttled=/RATE_LIMITED|HTTP 429/i.test(code),auth=/LINEミニアプリ内|LINE本人確認情報/.test(code);hadRefreshError=true;nextPollMs=(throttled||auth)?POLL_RATE_LIMITED_MS:POLL_TERMINAL_MS;if(throttled)rememberThrottle();setCallVisualTone('loading');updateCallForecast(null);setError(throttled?'アクセスが集中しています。しばらくすると自動で再確認します。LINEの呼出通知もご確認ください。':auth?'LINEミニアプリから開き直して呼出状況をご確認ください。受付番号は消えません。':code);const title=$('csTitle'),message=$('csMessage');if(title)title.textContent=auth?'LINE内で受付状況をご確認ください':throttled?'アクセスが集中しています':'最新状況を確認できませんでした';if(message)message.textContent=auth?'この画面はLINEアプリ内の本人確認が必要です。':throttled?'自動で再確認しています。':'新しい情報は未確認です。LINE内から再確認してください。';const top=$('csTop');if(top){top.className='cs-top warn';top.querySelector('strong').textContent=auth?'LINEでの本人確認が必要です':'更新できませんでした';top.querySelector('small').textContent=throttled?'アクセス集中のため約90秒後に再確認します。':auth?'LINEアプリ内で開いてください。':'通信状況を確認して、もう一度お試しください。'}}
   finally{
     if(manual)setBusy(false);
     if(activeRefreshGeneration===gen)activeRefreshGeneration=-1;

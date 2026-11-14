@@ -49,8 +49,18 @@ function lineOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpen||'09:30
 function lineOpenDisplay(){const m=lineOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineOpenClock()}
 function lineOpenMinutes(){const n=clockMinutes(lineOpenClock());return Number.isFinite(n)?n:570}
 function jstClock(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return{hour:Number(p.hour),minute:Number(p.minute),second:Number(p.second)}}
-function lineReceptionOpenNow(){const n=jstClock();return n.hour*60+n.minute>=lineOpenMinutes()}
-function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),seconds=Math.max(1,(lineOpenMinutes()-(n.hour*60+n.minute))*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
+function lineReceptionOpenNow(){
+ const n=jstClock(),minutes=n.hour*60+n.minute;
+ if(minutes<lineOpenMinutes())return false;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+ const calendarDate=parts.year+'-'+parts.month+'-'+parts.day;
+ // At 19:00 the operational day becomes tomorrow; never offer tomorrow's tickets tonight.
+ if((S.day?.operationalDate&&String(S.day.operationalDate)!==calendarDate)||
+    (typeof D.operationalDate==='function'&&D.operationalDate()!==calendarDate))return false;
+ const closing=clockMinutes(String(S.day?.closingTime||'18:00'));
+ return !Number.isFinite(closing)||minutes<closing;
+}
+function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),now=n.hour*60+n.minute;let delta=lineOpenMinutes()-now;if(delta<=0)delta+=24*60;const seconds=Math.max(1,delta*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
 function friendlyError(value){const code=String(value||'');const map={
   LINE_PROFILE_INVALID:'LINEの本人情報を確認できませんでした。ミニアプリを完全に閉じ、公式LINEのメニューから開き直してください。受付番号が表示されていなければ、受付は完了していません。',
   LINE_PROFILE_REAUTHORIZE:'LINEプロフィールの利用許可を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直し、許可画面が出たら同意してください。',
