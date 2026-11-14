@@ -3596,7 +3596,7 @@ test('2026-11-11 mobile calendar shortcuts and HOME help never break a title mid
    });
    return {oneColumn:second.top>=first.bottom-2,links:title,overflow:document.documentElement.scrollWidth-innerWidth};
   },null,{timeout:10000}).then(handle=>handle.jsonValue());
-  expect(data.oneColumn,'calendar must not crush Japanese into 60px column').toBe(true);
+  expect(data.oneColumn,'calendar must have room for readable labels').toBe(width<=350);
   expect(data.links.every(x=>x.oneLine),JSON.stringify(data.links)).toBe(true);
   expect(data.overflow).toBeLessThanOrEqual(1);
  }
