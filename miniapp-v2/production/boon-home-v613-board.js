@@ -385,7 +385,7 @@ function renderRequiredAccess(){
  const signature=JSON.stringify([lang,hasLine,hasForecast,readonly,lineEntryAllowed]);
  if(panel.dataset.signature===signature)return;
  panel.dataset.signature=signature;panel.replaceChildren();
- if(!hasLine){
+ if(!hasLine&&lineEntryAllowed){
   const item=elem('div','v615-essential-item');item.id='v615EssentialLine';
   item.appendChild(elem('strong','',l[0]));
   if(lineEntryAllowed){
