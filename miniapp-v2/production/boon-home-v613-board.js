@@ -268,6 +268,84 @@ const REQUIRED_LABELS={
  ne:['LINE दर्ता','LINE दर्ता जाँच्नुहोस्','९:३० बाट सुरु','भीडको अवस्था','अनुमान —','प्रकाशित स्थानहरूको संख्या पुष्टि नभएकाले अनुमान उपलब्ध छैन।'],
  kmr:['Tomarkirina LINE','Tomarkirina LINE kontrol bike','Di 9:30 de dest pê dike','Rewşa qelebalixiyê','Pêşbînî —','Ji bo pêşbîniyê hejmarên mayî nehatine piştrastkirin.']
 };
+
+/* Always expose the two real reception channels on HOME.
+   Only the independently verified AirWAIT public list may supply slot times
+   or remaining counts. Unpublished rows must never become bookable. */
+function renderBookingChannels(){
+ const host=document.getElementById('v38Slots');if(!host)return;
+ const publicData=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
+ const lang=language();
+ const words={
+  ja:['WEB受付','LINE受付','7:00〜','9:30〜','公開中','枠','公開枠なし','未確認','人','受付情報を確認中','受付終了'],
+  en:['WEB tickets','LINE tickets','From 7:00','From 9:30','Published','slots','No published slots','Unverified','people','Checking reception status','Closed'],
+  'zh-CN':['WEB取号','LINE取号','7:00起','9:30起','已公开','场次','暂无公开场次','未确认','人','正在确认取号状态','已结束'],
+  ko:['WEB 접수','LINE 접수','7:00부터','9:30부터','공개 중','개','공개된 접수 없음','미확인','명','접수 정보 확인 중','종료'],
+  vi:['Đăng ký WEB','Đăng ký LINE','Từ 7:00','Từ 9:30','Đã mở','suất','Chưa có suất công khai','Chưa xác minh','người','Đang kiểm tra','Đã đóng'],
+  ne:['WEB दर्ता','LINE दर्ता','७:०० बाट','९:३० बाट','प्रकाशित','स्थान','प्रकाशित स्थान छैन','पुष्टि छैन','जना','दर्ता जाँच हुँदैछ','बन्द'],
+  kmr:['Tomarkirina WEB','Tomarkirina LINE','Ji 7:00','Ji 9:30','Hatine weşandin','dem','Demên vekirî tune ne','Nehatiye piştrastkirin','kes','Rewş tê kontrolkirin','Girtî']
+ }[lang]||['WEB tickets','LINE tickets','From 7:00','From 9:30','Published','slots','No published slots','Unverified','people','Checking reception status','Closed'];
+ const at=Date.parse(String(publicData?.fetchedAt||''));
+ const fresh=publicData?.verified===true&&Number.isFinite(at)&&at<=Date.now()+5000&&Date.now()-at<=90000;
+ const list=fresh&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
+  slot&&['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(slot.usageDispType)):[];
+ const native=host.querySelector(':scope > .v38-crowd-list');
+ const nativeCards=[...(native?.querySelectorAll(':scope > .v38-crowd-card')||[])];
+ const sorted=[...list].sort((a,b)=>
+  (a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-
+  (b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
+ const canMapActions=nativeCards.length===sorted.length&&nativeCards.length>0;
+ const sources=canMapActions?new Map(sorted.map((slot,i)=>[String(slot.waitTypeId),nativeCards[i]])):new Map();
+ const verifiedBoard=host.classList.contains('v615-public-ready')&&
+  !!host.querySelector('#v615SessionBoard .v615-session');
+ let view=host.querySelector('#v616BookingChannels');
+ if(!view){view=elem('section','v616-booking-channels');view.id='v616BookingChannels';
+  view.setAttribute('aria-label','WEB・LINE受付枠');
+  host.insertBefore(view,host.firstElementChild);
+ }
+ const lastKind=document.querySelector('#v38Hero')?.className||'';
+ const ended=/\b(?:ended|closed|tomorrow)\b/.test(lastKind);
+ const signature=JSON.stringify([lang,fresh,at,ended,verifiedBoard,sorted.map(slot=>
+  [slot.waitTypeId,slot.waitTypeName,slot.usageDispType,slot.remaining,slot.remainingVerified]),canMapActions]);
+ if(view.dataset.signature===signature)return;
+ view.dataset.signature=signature;
+ view.replaceChildren();
+ for(const [key,label,hours,type] of [
+  ['web',words[0],words[2],'KeyONLINE_RECEPTION_ONLY'],
+  ['line',words[1],words[3],'KeySTORE_RECEPTION_ONLY']]){
+  const panel=elem('section','v616-booking-panel');panel.dataset.channel=key;
+  const top=elem('div','v616-booking-head');
+  top.append(elem('strong','v616-booking-title',label),elem('small','v616-booking-hours',hours));
+  panel.appendChild(top);
+  const items=list.filter(slot=>slot.usageDispType===type);
+  const status=elem('div','v616-booking-state');
+  status.textContent=!fresh?words[7]:items.length?words[4]+' '+items.length+words[5]:words[6];
+  panel.appendChild(status);
+  // When the verified grouped session board is present, it already exposes
+  // times, counts and native booking actions. Do not print them twice.
+  if(fresh&&items.length&&!verifiedBoard){
+   const rows=elem('div','v616-booking-rows');
+   for(const slot of items){
+    const row=elem('div','v616-booking-row');
+    const t=publicTime(slot.waitTypeName);
+    row.appendChild(elem('span','v616-booking-time',t||String(slot.waitTypeName||words[7])));
+    const n=publicCount(slot);
+    row.appendChild(elem('strong','v616-booking-remaining',n===null?'—':n+words[8]));
+    const action=sources.get(String(slot.waitTypeId))?.querySelector('.v38-crowd-tap-hint > :is(a[href],button:not([disabled]))');
+    if(action&&!ended){
+     const copy=action.cloneNode(true);
+     copy.classList.add('v616-booking-action');
+     row.appendChild(copy);
+    }
+    rows.appendChild(row);
+   }
+   panel.appendChild(rows);
+  }
+  if(ended)panel.classList.add('is-closed');
+  view.appendChild(panel);
+ }
+}
+
 function renderRequiredAccess(){
  const slots=document.getElementById('v38Slots');if(!slots)return;
  const lang=language(),l=REQUIRED_LABELS[lang]||REQUIRED_LABELS.ja;
@@ -278,7 +356,9 @@ function renderRequiredAccess(){
  // public AirWAIT snapshot. Unverified/failed reads must never expose ticket UI.
  const publicStatus=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
  const lineEntryAllowed=!readonly&&publicStatus?.verified===true&&publicStatus.isOpen===true&&
-  Array.isArray(publicStatus.slots)&&publicStatus.slots.length>0;
+  Array.isArray(publicStatus.slots)&&publicStatus.slots.some(slot=>
+   slot.usageDispType==='KeySTORE_RECEPTION_ONLY'&&slot.remainingVerified===true&&
+   Number.isSafeInteger(slot.remaining)&&slot.remaining>0);
  const liveBoard=slots.classList.contains('v615-public-ready')?slots.querySelector('#v615SessionBoard'):null;
  const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
  const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
@@ -331,7 +411,11 @@ function apply(){
  }
  const fold=document.getElementById('v59SlotsFold');
  if(fold&&!fold.open)fold.open=true;
- translateBusiness();buildBoard();renderRequiredAccess();renderRetryState();
+ translateBusiness();buildBoard();renderBookingChannels();renderRequiredAccess();renderRetryState();
+ // Always show both WEB and LINE channels, including safely labeled
+ // unpublished or unverified states, instead of hiding the whole HOME section.
+ if(sessions?.hidden)sessions.hidden=false;
+ if(fold&&!fold.open)fold.open=true;
 }
 let pending=false;
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}
