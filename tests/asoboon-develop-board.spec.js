@@ -196,6 +196,39 @@ test('waiting reception numbers stay in front of fullscreen effects and calling 
   expect(layers.visible).toBe(true);
 });
 
+test('fullscreen CALL is above the board only while its number is playing', async ({page}) => {
+  test.setTimeout(16000);
+  const h=await installBoard(page,[payload([{number:'A101',state:'waiting',order:1}])]);
+  await page.evaluate(()=>{
+    window.ASOBOON_BOARD_ANIMATIONS.setLevel(2);
+    window.__callPromise=window.ASOBOON_BOARD_ANIMATIONS.playStatusAnimation({
+      number:'A101',kind:'call',fromStatus:'waiting',toStatus:'calling',
+      element:document.querySelector('#queueGrid .queue-card'),
+    });
+  });
+  await expect.poll(()=>page.evaluate(()=>{
+    const layer=document.querySelector('#boardFxOverlayLayer');
+    const queue=document.querySelector('.queue-shell');
+    return Boolean(layer?.classList.contains('call-takeover-active')
+      && layer?.querySelector('.fx-special-number.call .fx-special-number-value')?.textContent==='A101'
+      && Number(getComputedStyle(layer).zIndex)>Number(getComputedStyle(queue).zIndex));
+  }),{timeout:4000}).toBe(true);
+  await page.evaluate(()=>window.__callPromise);
+  const result=await page.evaluate(()=>{
+    const layer=document.querySelector('#boardFxOverlayLayer');
+    return{
+      active:layer?.classList.contains('call-takeover-active'),
+      overlayZ:Number(getComputedStyle(layer).zIndex),
+      queueZ:Number(getComputedStyle(document.querySelector('.queue-shell')).zIndex),
+      residual:layer?.querySelectorAll('.fx-special-number.call').length,
+    };
+  });
+  expect(result.active).toBe(false);
+  expect(result.overlayZ).toBeLessThan(result.queueZ);
+  expect(result.residual).toBe(0);
+  expect(h.pageErrors).toEqual([]);
+});
+
 test('current timed admission round and AirWAIT 0022 share one full-width board in store-wide order',async({page})=>{
   const current=[
     {number:'A101',state:'waiting',order:1,sourceOrder:1},
