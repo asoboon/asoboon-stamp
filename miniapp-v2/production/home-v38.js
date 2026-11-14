@@ -19,7 +19,7 @@ let crowdHiddenConfirmed=false,crowdPublicFlags=null,crowdFlagsDate='';
 let publicReception={verified:false,source:'initial',slots:[]};
 function scheduleCrowd(){
 clearTimeout(crowdPollTimer);crowdPollTimer=0;
-if(currentView()!=='home'||day?.isClosed||crowdClosed)return;
+if(currentView()!=='home'||day?.isClosed||(crowdClosed&&publicReception?.verified!==true))return;
 const now=Date.now(),wait=crowdRetryAt>now?crowdRetryAt-now:crowdAt?(crowdReadOnly()?180e3:30e3):15e3
 crowdPollTimer=setTimeout(()=>{crowdPollTimer=0;fetchCrowd(true)},wait)
 }
@@ -217,7 +217,7 @@ return displayDay?.operationalDate===today?displayDay:day?.operationalDate===tod
 }
 function crowdReadOnly(){
 const business=businessForBoard(),now=nowJst(),closing=clockMinutes(business?.closingTime);
-return !day||!!dayError||crowdClosed||day?.operationalDate!==now.date
+return !day||!!dayError||(crowdClosed&&publicReception?.verified!==true)||day?.operationalDate!==now.date
 ||availability().type==='ended'||(Number.isFinite(closing)&&now.minutes>=closing);
 }
 function safePeople(value){

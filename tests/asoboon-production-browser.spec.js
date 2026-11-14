@@ -4556,6 +4556,29 @@ test('HOME continues to show verified public sessions if historical crowd endpoi
  await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
 });
 
+test('HOME keeps verified WEB and LINE actions available if legacy crowd API says empty',async({page})=>{
+ await installProduction(page);
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',async route=>{
+  await route.fulfill({status:502,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_CROWD_EMPTY"}'});
+ });
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[{waitTypeId:'0033',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},{waitTypeId:'0034',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'}],
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+    {waitTypeId:'0033',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'15時15分頃入場時間【土休日特定日】',remaining:50,remainingVerified:true},
+    {waitTypeId:'0034',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'15時ご入場枠【WEB整理券】',remaining:124,remainingVerified:true}
+   ]}
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const last=page.locator('#v615SessionBoard .v615-session').last();
+ await expect(last).toContainText('15:00の回',{timeout:15000});
+ await expect(last).toContainText('46%');
+ await expect(last.locator('a.v615-channel-action')).toHaveCount(1);
+ await expect(last.locator('button.v615-channel-action')).toHaveCount(1);
+ await expect(last.locator('button.v615-channel-action')).toBeEnabled();
+});
+
 test('HOME uses only AirWAIT currently selectable public slots, not outdated weekday/session flags',async({page})=>{
  await installProduction(page);
  await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
