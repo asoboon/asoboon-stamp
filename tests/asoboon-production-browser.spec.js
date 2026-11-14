@@ -1453,10 +1453,14 @@ test('HOME shows manual refresh cooldown during 429 backoff instead of silently 
  await expect(button).toBeEnabled();
  await button.evaluate(el=>el.click());
  await expect.poll(()=>reads).toBe(2);
- await expect(button).toBeDisabled();
- await expect(page.locator('#v38CrowdAge')).toContainText('最終更新');
+ const retry=page.locator('#v615RetrySlots');
+ await expect(retry).toBeVisible();
+ await expect(page.locator('#v38Slots')).toContainText('自動で再確認中です');
+ await retry.click();
+ await expect.poll(()=>reads).toBe(3);
+ await retry.click();
  await page.waitForTimeout(200);
- expect(reads).toBe(2);
+ expect(reads).toBe(3);
 });
 test('Cold HOME starts crowd request before delayed business day resolves and issues it only once',async({page})=>{
  await installProduction(page);

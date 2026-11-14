@@ -244,6 +244,12 @@ function apply(){
 }
 let pending=false;
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}
+let lastPublicRetry=0;
+root.addEventListener('click',e=>{
+ if(!e.target?.closest?.('#v615RetrySlots'))return;
+ if(Date.now()-lastPublicRetry<15000){e.stopImmediatePropagation();return}
+ lastPublicRetry=Date.now();
+},true);
 root.addEventListener('click',e=>{
  const button=e.target?.closest?.('[data-v615-retry]');if(!button)return;
  if(button.disabled)return;
