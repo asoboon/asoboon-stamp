@@ -14,7 +14,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=900a06393141','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=122303fc733b','./miniapp-v2/production/choco-mint-nav-v8.js?v=ca1be25f0faf',
   './miniapp-v2/shared/i18n-dictionary.js?v=7833e119f3cb','./miniapp-v2/shared/i18n-runtime.js?v=86c1bc777f17'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -45,7 +45,7 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=0a063018a3e5';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=d765bac8a2bb';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=409e0c25566f';
   document.head.appendChild(next);
 }
 })();

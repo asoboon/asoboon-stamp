@@ -26,6 +26,7 @@ const CANCEL_REQUEST_TIMEOUT_MS=60000;
 let pollTimer=0,generation=0,receptionObserver=null,receptionTimer=0,receptionReceipt='',nextPollMs=POLL_FAR_MS,notFoundStreak=0,lastStatus=null,cancelBusy=false;
 let activeRefreshGeneration=-1,queuedManualRefresh=false;
 let heartbeatTimer=0,lastRefreshStartedAt=0,lastRefreshSucceededAt=0,nextPollAt=0,rateLimitUntil=0,hadRefreshError=false;
+let numberListTimer=0,numberListAbort=null,numberListGeneration=0,numberListBusy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const $=id=>document.getElementById(id);
 
@@ -53,7 +54,7 @@ function setCallVisualTone(state){
 function clearCallVisualTone(){
  delete document.body.dataset.asoboonCallTone;
 }
-function unmount(){clearCallVisualTone();stopPolling();stopReceptionWatch()}
+function unmount(){clearCallVisualTone();stopNumberList();stopPolling();stopReceptionWatch()}
 function fmtClock(ms){try{return new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(Number(ms||Date.now())))}catch{return'--:--'}}
 function pollLabel(ms){if(!ms)return'自動更新停止';if(ms<=6000)return'約6秒ごと';if(ms<=8000)return'約8秒ごと';if(ms<=15000)return'約15秒ごと';if(ms<=30000)return'約30秒ごと';if(ms<=45000)return'約45秒ごと';return'約90秒ごと'}
 function restoreThrottle(){
@@ -92,6 +93,13 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
   </div>
   <p id="csForecastNote" class="cs-forecast-note">順番からの参考予測です。実際の呼出時刻は前後します。</p>
 </section>
+<details id="csNumberList" class="cs-number-list">
+ <summary><span class="cs-number-list-summary"><strong id="csNumberListTitle">受付番号一覧</strong><small id="csNumberListHint">呼出中・待機中の番号を見る</small></span><span class="cs-number-list-chevron" aria-hidden="true">⌄</span></summary>
+ <div class="cs-number-list-body"><p id="csNumberListNotice" class="cs-number-list-notice" role="status" aria-live="polite">開くと最新の受付番号を確認します。</p>
+ <div id="csNumberListGroups" class="cs-number-list-groups"></div>
+ <div class="cs-number-list-footer"><small id="csNumberListTime">—</small><button id="csNumberListRefresh" type="button">↻ 更新</button></div>
+ </div>
+</details>
 <div class="cs-meta"><span>最終確認</span><strong id="csChecked">—</strong></div>
 <div id="csHeartbeat" class="cs-heartbeat" role="status" aria-live="off"><span class="cs-heartbeat-dot" aria-hidden="true"></span><span id="csHeartbeatLabel">自動更新を準備しています</span></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
@@ -534,11 +542,130 @@ async function refreshStatus({manual=false}={}){
   }
 }
 
+// Public, read-only AirWAIT number list. Keep personal owner-bound status separate.
+// Fetch only when the visitor expands the list, and never persist other tickets.
+const NUMBER_LIST_REFRESH_MS=45000;
+const NUMBER_LIST_TIMEOUT_MS=21000;
+const NUMBER_LIST_STATES=new Set(['calling','processing','hold','waiting']);
+const NUMBER_LIST_COPY=Object.freeze({
+ ja:{title:'受付番号一覧',hint:'呼出中・待機中の番号を見る',checking:'AirWAITの最新番号を確認しています…',empty:'現在、呼出中・待機中の番号はありません。',failed:'番号一覧を更新できませんでした。「更新」で再確認してください。',stale:'最新の番号を確認できません。更新して再確認してください。',updated:'最終更新',refresh:'↻ 更新',refreshing:'確認中…',calling:'呼出中',processing:'ご案内中',hold:'保留中',waiting:'待機中',live:'45秒ごとに自動更新'},
+ en:{title:'Ticket numbers',hint:'See called and waiting numbers',checking:'Checking AirWAIT numbers…',empty:'No current calling or waiting numbers.',failed:'Could not refresh the list. Try Update.',stale:'Current numbers could not be verified.',updated:'Updated',refresh:'↻ Update',refreshing:'Checking…',calling:'Calling',processing:'Assisting',hold:'On hold',waiting:'Waiting',live:'Auto-updates every 45s'},
+ 'zh-CN':{title:'取号列表',hint:'查看叫号与等候号码',checking:'正在确认最新号码…',empty:'目前没有叫号或等候号码。',failed:'无法更新号码，请重试。',stale:'无法确认最新号码。',updated:'更新',refresh:'↻ 刷新',refreshing:'确认中…',calling:'叫号中',processing:'办理中',hold:'暂停',waiting:'等候',live:'每45秒自动更新'},
+ ko:{title:'접수번호 목록',hint:'호출 중·대기 중 번호 확인',checking:'최신 번호를 확인 중…',empty:'현재 호출·대기 중인 번호가 없습니다.',failed:'목록을 새로고침할 수 없습니다.',stale:'최신 번호를 확인할 수 없습니다.',updated:'업데이트',refresh:'↻ 새로고침',refreshing:'확인 중…',calling:'호출 중',processing:'안내 중',hold:'보류',waiting:'대기 중',live:'45초마다 자동 갱신'},
+ vi:{title:'Danh sách số',hint:'Xem số đang gọi và chờ',checking:'Đang kiểm tra số mới nhất…',empty:'Không có số đang gọi hoặc chờ.',failed:'Không thể cập nhật. Thử lại.',stale:'Chưa xác minh được số mới nhất.',updated:'Cập nhật',refresh:'↻ Làm mới',refreshing:'Đang kiểm tra…',calling:'Đang gọi',processing:'Đang phục vụ',hold:'Tạm giữ',waiting:'Đang chờ',live:'Tự làm mới mỗi 45 giây'},
+ ne:{title:'टोकन नम्बर सूची',hint:'बोलाइएका र पर्खिरहेका नम्बर',checking:'नयाँ नम्बर जाँच हुँदैछ…',empty:'अहिले बोलाइएका वा पर्खिरहेका नम्बर छैनन्।',failed:'सूची अपडेट गर्न सकिएन।',stale:'नयाँ नम्बर पुष्टि भएन।',updated:'अपडेट',refresh:'↻ फेरि जाँच',refreshing:'जाँच हुँदै…',calling:'बोलाउँदै',processing:'सेवा हुँदै',hold:'रोकिएको',waiting:'पर्खिरहेको',live:'४५ सेकेन्डमा अद्यावधिक'},
+ kmr:{title:'Lîsteya hejmarên qeydkirinê',hint:'Hejmarên hatine bangkirin û li bendê',checking:'Hejmarên nû têne kontrolkirin…',empty:'Niha hejmarên li bendê an bangkirî tune ne.',failed:'Lîste nehat nûkirin. Dîsa biceribîne.',stale:'Hejmarên nû nehatin piştrastkirin.',updated:'Nûkirin',refresh:'↻ Nû bike',refreshing:'Tê kontrolkirin…',calling:'Bang dikin',processing:'Tê pêşwazîkirin',hold:'Rawestayî',waiting:'Li bendê',live:'Her 45 çirkeyan nû dibe'}
+});
+function numberListLabels(){
+ const lang=String(window.ASOBOON_I18N?.language||document.documentElement.lang||'ja');
+ return NUMBER_LIST_COPY[lang]||NUMBER_LIST_COPY[lang.startsWith('zh')?'zh-CN':'ja'];
+}
+function stopNumberList(){
+ numberListGeneration++;
+ if(numberListTimer){clearTimeout(numberListTimer);numberListTimer=0}
+ if(numberListAbort){numberListAbort.abort();numberListAbort=null}
+ numberListBusy=false;
+}
+function numberListReset(){
+ const rows=$('csNumberListGroups');if(rows)rows.replaceChildren();
+ const copy=numberListLabels(),notice=$('csNumberListNotice');
+ if(notice){notice.textContent=copy.hint;notice.hidden=false}
+ if($('csNumberListTime'))$('csNumberListTime').textContent='—';
+}
+function numberListText(parent,tag,cls,text){
+ const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=text;parent.appendChild(el);return el;
+}
+function renderNumberList(data){
+ const groups=$('csNumberListGroups'),notice=$('csNumberListNotice'),labels=numberListLabels();
+ if(!groups||!notice)return;
+ groups.replaceChildren();
+ let any=false;
+ for(const slot of data.slots){
+  const active=(Array.isArray(slot?.rows)?slot.rows:[]).filter(r=>NUMBER_LIST_STATES.has(String(r?.state||''))&&/^[FT]?\d{1,8}$/.test(String(r?.number||'').trim()));
+  if(!active.length)continue;
+  any=true;
+  const card=numberListText(groups,'section','cs-number-session','');
+  numberListText(card,'h3','cs-number-session-title',String(slot.label||'').slice(0,60));
+  const container=numberListText(card,'div','cs-number-chip-grid','');
+  for(const state of ['calling','processing','hold','waiting']){
+   for(const row of active.filter(x=>x.state===state)){
+    const chip=numberListText(container,'div','cs-number-chip cs-number-chip--'+state,'');
+    numberListText(chip,'strong','cs-number-chip-value',String(row.number).trim());
+    numberListText(chip,'span','cs-number-chip-state',labels[state]);
+   }
+  }
+ }
+ notice.hidden=any;
+ if(!any)notice.textContent=labels.empty;
+ const clock=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(data.fetchedAt));
+ if($('csNumberListTime'))$('csNumberListTime').textContent=labels.updated+' '+clock+' · '+labels.live;
+}
+function scheduleNumberList(gen){
+ if(numberListTimer){clearTimeout(numberListTimer);numberListTimer=0}
+ if(gen!==numberListGeneration||!$('csNumberList')?.open||document.hidden)return;
+ numberListTimer=setTimeout(()=>{numberListTimer=0;void refreshNumberList()},NUMBER_LIST_REFRESH_MS);
+}
+async function refreshNumberList(){
+ const panel=$('csNumberList');if(!panel?.open||numberListBusy||document.hidden)return;
+ const gen=numberListGeneration;
+ numberListBusy=true;
+ if(numberListTimer){clearTimeout(numberListTimer);numberListTimer=0}
+ const labels=numberListLabels(),notice=$('csNumberListNotice'),groups=$('csNumberListGroups'),button=$('csNumberListRefresh');
+ if(groups)groups.replaceChildren();
+ if(notice){notice.hidden=false;notice.textContent=labels.checking;notice.classList.add('is-checking')}
+ if(button){button.disabled=true;button.textContent=labels.refreshing}
+ if($('csNumberListTime'))$('csNumberListTime').textContent='—';
+ const ctrl=new AbortController();numberListAbort=ctrl;
+ const timeout=setTimeout(()=>ctrl.abort(),NUMBER_LIST_TIMEOUT_MS);
+ try{
+  if(!backendReady())throw Error('NO_BACKEND');
+  const url=new URL(E.backendUrl);url.searchParams.set('action','boardStatus');url.searchParams.set('_',String(Date.now()));
+  const response=await fetch(url,{method:'GET',cache:'no-store',credentials:'omit',signal:ctrl.signal});
+  if(!response.ok)throw Error('BOARD_HTTP_'+response.status);
+  const data=await response.json();
+  const at=Date.parse(String(data?.fetchedAt||''));
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+  const today=parts.year+'-'+parts.month+'-'+parts.day;
+  if(data?.ok!==true||data.stale===true||data.isClosed===true||!Array.isArray(data.slots)||String(data.businessDate||'')!==today||!Number.isFinite(at)||Math.abs(Date.now()-at)>60000)throw Error('BOARD_NOT_VERIFIED');
+  if(gen!==numberListGeneration||!$('csNumberList')?.open)return;
+  renderNumberList(data);
+ }catch(e){
+  if(gen!==numberListGeneration||!$('csNumberList')?.open)return;
+  if(groups)groups.replaceChildren();
+  if(notice){notice.hidden=false;notice.textContent=String(e?.message||'')==='BOARD_NOT_VERIFIED'?labels.stale:labels.failed}
+ }finally{
+  clearTimeout(timeout);
+  if(numberListAbort===ctrl)numberListAbort=null;
+  if(gen===numberListGeneration){
+   numberListBusy=false;
+   if(button){button.disabled=false;button.textContent=numberListLabels().refresh}
+   notice?.classList.remove('is-checking');
+   scheduleNumberList(gen);
+  }
+ }
+}
+function mountNumberList(){
+ stopNumberList();
+ const panel=$('csNumberList');if(!panel)return;
+ panel.open=false;numberListReset();
+ const labels=numberListLabels();
+ if($('csNumberListTitle'))$('csNumberListTitle').textContent=labels.title;
+ if($('csNumberListHint'))$('csNumberListHint').textContent=labels.hint;
+ if($('csNumberListRefresh'))$('csNumberListRefresh').textContent=labels.refresh;
+ if(panel.dataset.bound==='1')return;
+ panel.dataset.bound='1';
+ panel.addEventListener('toggle',()=>{
+  if(panel.open){void refreshNumberList()}
+  else{stopNumberList();numberListReset()}
+ });
+ $('csNumberListRefresh')?.addEventListener('click',()=>void refreshNumberList());
+}
 function mountCallstatus(){
   setCallVisualTone('loading');
   updateCallForecast(null);
   stopPolling();
   stopReceptionWatch();
+  mountNumberList();
   nextPollMs=POLL_FAR_MS;
   notFoundStreak=0;lastRefreshSucceededAt=0;restoreThrottle();hadRefreshError=rateLimitUntil>clockTick();startHeartbeat();
   const gen=generation;
@@ -592,13 +719,23 @@ function watchReception({go}={}){
   setTimeout(check,500);
 }
 
+window.addEventListener('asoboon:language-changed',()=>{
+ const panel=$('csNumberList');if(!panel)return;
+ const labels=numberListLabels();
+ if($('csNumberListTitle'))$('csNumberListTitle').textContent=labels.title;
+ if($('csNumberListHint'))$('csNumberListHint').textContent=labels.hint;
+ if($('csNumberListRefresh'))$('csNumberListRefresh').textContent=labels.refresh;
+ if(panel.open){stopNumberList();void refreshNumberList()}else numberListReset();
+});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
+    if(numberListTimer){clearTimeout(numberListTimer);numberListTimer=0}
+    if(numberListAbort){numberListAbort.abort();numberListAbort=null}
     if(pollTimer){clearTimeout(pollTimer);pollTimer=0}
     if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=0}
     nextPollAt=0;return;
   }
-  if($('csState')){startHeartbeat();void refreshStatus()}
+  if($('csState')){startHeartbeat();void refreshStatus();if($('csNumberList')?.open){stopNumberList();void refreshNumberList()}}
 });
 window.ASOBOON_V2_CALLSTATUS=Object.freeze({
   version:'1.9.0-stop-canceled-receipt',
