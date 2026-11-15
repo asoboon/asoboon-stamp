@@ -34,7 +34,10 @@ async function readPublic(base) {
 export async function publishedStatus(base) {
   const first=await readPublic(base);
   if(!first.retry)return first.value;
-  await new Promise(resolve=>setTimeout(resolve,1200));
+  // The production worker caches an unverified AirWAIT snapshot for 5s
+  // (20s memo TTL, inserted with a 15s age). Do not retry it too early.
+  const delay=first.value?.publicReception?.verified===false?5500:1200;
+  await new Promise(resolve=>setTimeout(resolve,delay));
   return (await readPublic(base)).value??first.value;
 }
 // Grace period only for a prior verified, same-day response when the HTTP

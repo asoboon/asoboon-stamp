@@ -152,16 +152,28 @@ test('429 respects throttling; never hammer AirWAIT with immediate retries',asyn
 test('public freshness grace is at most 45 seconds, on the same day and only after transport failures',()=>{
  const now=Date.now();
  const verified={verified:true,source:'AirWAIT-public-page',fetchedAt:new Date(now-44000).toISOString(),slots:[{waitTypeId:'0032',remaining:8}]};
- assert.equal(freshPublicOnFailure(verified,null,'2026-11-15','2026-11-15'),verified);
- assert.equal(freshPublicOnFailure(verified,{},'2026-11-15','2026-11-15'),null);
- assert.equal(freshPublicOnFailure(verified,null,'2026-11-14','2026-11-15'),null);
- assert.equal(freshPublicOnFailure({...verified,fetchedAt:new Date(now-46000).toISOString()},null,'2026-11-15','2026-11-15'),null);
- assert.equal(freshPublicOnFailure({...verified,verified:false},null,'2026-11-15','2026-11-15'),null);
- assert.equal(freshPublicOnFailure({...verified,source:'unverified'},null,'2026-11-15','2026-11-15'),null);
+ const sameDay=new Date(now-44000+9*60*60*1000).toISOString().slice(0,10);
+ assert.equal(freshPublicOnFailure(verified,null,sameDay,sameDay),verified);
+ assert.equal(freshPublicOnFailure(verified,{},sameDay,sameDay),null);
+ assert.equal(freshPublicOnFailure(verified,null,'2000-01-01',sameDay),null);
+ assert.equal(freshPublicOnFailure({...verified,fetchedAt:new Date(now-46000).toISOString()},null,sameDay,sameDay),null);
+ assert.equal(freshPublicOnFailure({...verified,verified:false},null,sameDay,sameDay),null);
+ assert.equal(freshPublicOnFailure({...verified,source:'unverified'},null,sameDay,sameDay),null);
  const RealDateNow=Date.now;
  try{
   Date.now=()=>Date.parse('2026-11-15T15:00:10.000Z'); // 2026-11-16 00:00:10 JST
   const yesterday={...verified,fetchedAt:'2026-11-15T14:59:58.000Z'};
   assert.equal(freshPublicOnFailure(yesterday,null,'2026-11-16','2026-11-16'),null);
  }finally{Date.now=RealDateNow}
+});
+
+test('retry delay outlasts the production worker public-slot negative-cache TTL',()=>{
+ const worker=read('miniapp-v2/backend/production-worker.mjs');
+ const client=read('miniapp-v2/production/crowd-visibility.mjs');
+ const lifetime=Number(worker.match(/now-publicReceptionMemo\.at<(\d+)/)?.[1]);
+ const negativeOffset=Number(worker.match(/Date\.now\(\)-\(data\.verified\?0:(\d+)\)/)?.[1]);
+ const retryDelay=Number(client.match(/verified===false\?(\d+):1200/)?.[1]);
+ assert.ok(Number.isFinite(lifetime)&&Number.isFinite(negativeOffset)&&Number.isFinite(retryDelay));
+ assert.ok(retryDelay>=lifetime-negativeOffset+250,
+  'Worker negative memo lives '+(lifetime-negativeOffset)+' ms; retry '+retryDelay+' ms must be later');
 });
