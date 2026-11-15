@@ -981,7 +981,7 @@ function renderSlots(){
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function publicRead(){
  const m=await import('./crowd-visibility.mjs?v=2'),publicStatus=await m.publishedStatus(E.backendUrl);
- publicReception=publicStatus?.publicReception??(publicReception?.source==='failed'?publicReception:publicStatus?undefined:{verified:false,source:'unverified',slots:[]});
+ publicReception=publicStatus?.publicReception??m.freshPublicOnFailure(publicReception,publicStatus,day?.operationalDate,nowJst().date)??(publicReception?.source==='failed'?publicReception:publicStatus?undefined:{verified:false,source:'unverified',slots:[]});
  renderSlots();renderHero(latest||{kind:'none'});return {m,publicStatus};
 }
 async function fetchCrowd(force=false,manual=false){
