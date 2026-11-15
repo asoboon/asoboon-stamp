@@ -5267,6 +5267,12 @@ test('HOME stays open when WEB is full but verified 10:25 onsite quota is bookab
 
 test('HOME LINE header opens reservation preview at 09:15 but does not permit early ticket creation',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:false,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',
+     waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:50,remainingVerified:true}]}})}));
  let creates=0;
  page.on('request',request=>{const url=request.url(),body=request.postData()||'';if(/createReservation/.test(url+body))creates++});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
@@ -5312,6 +5318,12 @@ test('HOME onsite session cell itself navigates to reception after LINE opening'
 
 test('HOME LINE header supports keyboard navigation and preserves read-only before 9:30',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:false,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',
+     waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:50,remainingVerified:true}]}})}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const link=page.locator('#v616BookingChannels [data-channel="line"]');
  await expect(link).toBeVisible({timeout:16000});
