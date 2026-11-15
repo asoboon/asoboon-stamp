@@ -18,14 +18,16 @@ const browserTests=read('tests/asoboon-production-browser.spec.js');
 test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
  const block=board.match(/const PUBLIC_GROUPS=Object\.freeze\(\[([\s\S]*?)\]\);/);
  assert.ok(block,'The public ID list must remain explicit and auditable');
- const sessions=[...block[1].matchAll(/\{title:'(\d\d:\d\dの回)',web:'(\d{4})',line:'(\d{4})'\}/g)]
+ const sessions=[...block[1].matchAll(/\{title:'([^']+)',web:'(\d{4})',line:'(\d{4})'\}(?!,forecast:false)/g)]
  .map(([,title,web,line])=>({title,web,line}));
  assert.deepEqual(sessions,[
   {title:'10:00の回',web:'0030',line:'0029'},
-  {title:'12:30の回',web:'0032',line:'0031'},
+  {title:'12:30／12:50',web:'0032',line:'0031'},
   {title:'15:00の回',web:'0034',line:'0033'}
  ]);
  for(const time of ['10時25分頃入場','12時50分頃入場','15時15分頃入場'])assert.ok(board.includes(time),time);
+ assert.ok(board.includes("group.web==='0032'&&Boolean(b)"),'WEB 12:30 must display distinct time only with paired LINE 12:50');
+ assert.ok(board.includes("group.line==='0031'&&Boolean(a)"),'LINE 12:50 must display distinct time only with paired WEB 12:30');
 });
 
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{

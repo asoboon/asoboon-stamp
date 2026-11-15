@@ -240,7 +240,7 @@ test('Reception round choices show verified LINE quota, not WEB remaining, and p
  await expect(page.locator('#recSlots')).not.toContainText('200名');
  await page.locator('[data-rec-slot="0031"]').click();
  await expect(page.locator('[data-rec-slot="0031"]')).toHaveClass(/active/);
- await expect(page.locator('#recSlotLabel')).toHaveText('12:30の回');
+ await expect(page.locator('#recSlotLabel')).toHaveText('12:50頃入場');
  await expect(page.locator('[data-rec-slot="0031"]')).toBeEnabled();
  expect(quotaRequests).toBe(1);
  for(const width of [320,375,390,430]){
@@ -4536,10 +4536,10 @@ test('HOME removes extra reception-slot and arrival-hint captions without changi
   {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:12,remainingVerified:true}
  ]}})}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30の回',{timeout:15000});
+ const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30／12:50',{timeout:15000});
  await expect(board).not.toContainText('受付枠');
  await expect(board).not.toContainText('入場目安');
- await expect(board.locator('.v615-channel-time')).toHaveCount(0);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['12:30','12:50']);
  await expect(board.locator('.v615-channel-action')).toHaveCount(2);
  await expect(board).toContainText('51人');
  await expect(board).toContainText('12人');
@@ -4618,7 +4618,7 @@ test('HOME groups published AirWAIT slots into three consistent session cards an
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:15000});
  const cards=board.locator('.v615-session');
- for(const [i,time,percentage] of [[0,'10:00の回','63%'],[1,'12:30の回','56%'],[2,'15:00の回','38%']]){
+ for(const [i,time,percentage] of [[0,'10:00の回','63%'],[1,'12:30／12:50','56%'],[2,'15:00の回','38%']]){
   await expect(cards.nth(i)).toContainText(time);
   await expect(cards.nth(i).locator('.v615-forecast-value')).toHaveText(percentage);
   await expect(cards.nth(i).locator('.v615-channel')).toHaveCount(2);
@@ -4700,7 +4700,7 @@ test('HOME preserves the external AirWAIT fallback if verified sessions have no 
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
- await expect(board).toContainText('12:30の回');
+ await expect(board).toContainText('12:30／12:50');
  await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toHaveCount(0);
  await expect(board).toContainText('この枠は満員です');
  // Even a valid public snapshot does not guarantee anyone can book online.
@@ -5191,7 +5191,7 @@ test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts agai
  await expect(sessions).toHaveCount(3,{timeout:18000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
  await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
- await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','12:50','15:15']);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','12:30','12:50','15:15']);
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 3枠');
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();
@@ -5353,7 +5353,7 @@ test('HOME recovers from one transient public AirWAIT 503 without hiding verifie
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(1,{timeout:15000});
- await expect(page.locator('#v615SessionBoard')).toContainText('12:30の回');
+ await expect(page.locator('#v615SessionBoard')).toContainText('12:30／12:50');
  await expect(page.locator('#v615SessionBoard')).toContainText('73%');
  await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
  expect(reads).toBe(2);
@@ -5377,7 +5377,7 @@ test('HOME loads verified LINE and WEB reception when the auxiliary crowd module
    ]}
   })}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v615SessionBoard')).toContainText('12:30の回',{timeout:15000});
+ await expect(page.locator('#v615SessionBoard')).toContainText('12:30／12:50',{timeout:15000});
  await expect(page.locator('#v38Slots')).toContainText('70人');
  await expect(page.locator('#v38Slots')).toContainText('35人');
  await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
