@@ -118,7 +118,7 @@ const PUBLIC_GROUPS=Object.freeze([
  {title:'10:00の回',web:'0036',line:'0035',forecast:false},
  {title:'13:30の回',web:'0038',line:'0037',forecast:false},
  {title:'10:00の回',web:'0030',line:'0029'},
- {title:'12:30の回',web:'0032',line:'0031'},
+ {title:'12:30／12:50',web:'0032',line:'0031'},
  {title:'15:00の回',web:'0034',line:'0033'}
 ]);
 function publicGroupLabels(lang){
@@ -139,7 +139,7 @@ function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
-  const slotTime=source?null:publicTime(slot.waitTypeName);
+  const slotTime=publicTime(slot.waitTypeName);
   if(slotTime)cell.appendChild(elem('small','v615-channel-time',slotTime));
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
   if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
