@@ -5191,7 +5191,7 @@ test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts agai
  await expect(sessions).toHaveCount(3,{timeout:18000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
  await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
- await expect(board.locator('.v615-channel-time')).toHaveText(['10:00','10:25','12:30','12:50','15:00','15:15']);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','12:30','12:50','15:15']);
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 3枠');
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();

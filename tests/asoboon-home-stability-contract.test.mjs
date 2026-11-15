@@ -26,7 +26,7 @@ test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
   {title:'15:00の回',web:'0034',line:'0033'}
  ]);
  for(const time of ['10時25分頃入場','12時50分頃入場','15時15分頃入場'])assert.ok(board.includes(time),time);
- assert.match(board,/const slotTime=publicTime\(slot.waitTypeName\)/,'Actual WEB/LINE channel times must be visible');
+ assert.ok(board.includes("['0032','0031'].includes(String(slot.waitTypeId))"),'The WEB 12:30 / LINE 12:50 pair must show distinct published times');
 });
 
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{

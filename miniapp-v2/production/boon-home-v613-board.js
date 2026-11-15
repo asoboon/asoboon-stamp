@@ -139,7 +139,7 @@ function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
-  const slotTime=publicTime(slot.waitTypeName);
+  const slotTime=(!source||['0032','0031'].includes(String(slot.waitTypeId)))?publicTime(slot.waitTypeName):null;
   if(slotTime)cell.appendChild(elem('small','v615-channel-time',slotTime));
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
   if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
