@@ -840,3 +840,16 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-chan
  display:block!important;font-size:11px!important;line-height:1.3!important;
  color:#376B65!important;margin:2px 0!important;
 }
+
+/* Reception preview is navigable before 9:30; the reception module
+   keeps final ticket confirmation unavailable until the actual open time. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app [data-v615-nav="1"]{
+ cursor:pointer!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app [data-v615-nav="1"]:focus-visible{
+ outline:3px solid #266A68!important;outline-offset:3px!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app .v616-booking-open-hint{
+ display:block!important;font-size:11px!important;line-height:1.25!important;
+ color:#195F59!important;font-weight:800!important;
+}

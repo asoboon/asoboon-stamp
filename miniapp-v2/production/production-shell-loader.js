@@ -14,7 +14,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=1b7810dc6d8f','./miniapp-v2/production/choco-mint-nav-v8.js?v=4229c16fc4c2',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/production/production-app.js?v=fb6b81cf6b35','./miniapp-v2/production/choco-mint-nav-v8.js?v=4229c16fc4c2',
   './miniapp-v2/shared/i18n-dictionary.js?v=cad054cd853a','./miniapp-v2/shared/i18n-runtime.js?v=3d2456cbc58e'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -42,10 +42,10 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';
-  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=6e29d879f776';
+  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=9923ba684159';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=1b2ab9cde0c3';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=a0107643f245';
   document.head.appendChild(next);
 }
 })();

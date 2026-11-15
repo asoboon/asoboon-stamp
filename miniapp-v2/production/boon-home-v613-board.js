@@ -128,7 +128,13 @@ function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeI
 function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
 function publicChannel(slot,source,label,{lineActionEnabled=false}={}){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
- cell.appendChild(elem('span','v615-channel-name',label));
+ if(slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'){
+  cell.dataset.v7View='reception';cell.dataset.v615Nav='1';
+  cell.setAttribute('role','button');cell.tabIndex=0;
+  cell.setAttribute('aria-label',label+'・受付画面を開く');
+ }
+ cell.appendChild(elem('span','v615-channel-name',
+  label+(slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'?' →':'')));
  const num=publicCount(slot);
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
@@ -371,6 +377,11 @@ function renderBookingChannels(){
   ['web',words[0],words[2],'KeyONLINE_RECEPTION_ONLY'],
   ['line',words[1],words[3],'KeySTORE_RECEPTION_ONLY']]){
   const panel=elem('section','v616-booking-panel');panel.dataset.channel=key;
+  if(key==='line'){
+   panel.dataset.v7View='reception';panel.dataset.v615Nav='1';
+   panel.setAttribute('role','button');panel.tabIndex=0;
+   panel.setAttribute('aria-label',label+'・受付画面を開く');
+  }
   const top=elem('div','v616-booking-head');
   top.append(elem('strong','v616-booking-title',label),elem('small','v616-booking-hours',hours));
   panel.appendChild(top);
@@ -378,6 +389,8 @@ function renderBookingChannels(){
   const status=elem('div','v616-booking-state');
   status.textContent=previewTomorrow?(lang==='ja'?'明日の受付開始後に表示':lang==='en'?'Shown after tomorrow’s reception opens':words[9]):!fresh?words[7]:items.length?words[4]+' '+items.length+words[5]:words[6];
   panel.appendChild(status);
+  if(key==='line')panel.appendChild(elem('small','v616-booking-open-hint',
+   lang==='ja'?'受付画面を開く →':'Open reception →'));
   // When the verified grouped session board is present, it already exposes
   // times, counts and native booking actions. Do not print them twice.
   if(fresh&&items.length&&!verifiedBoard){
@@ -430,6 +443,13 @@ root.addEventListener('click',e=>{
  if(Date.now()-lastPublicRetry<15000){e.stopImmediatePropagation();return}
  lastPublicRetry=Date.now();
 },true);
+// Keyboard access for the tap-to-open LINE/onsite panels.
+root.addEventListener('keydown',e=>{
+ if(e.key!=='Enter'&&e.key!==' ')return;
+ const target=e.target?.closest?.('[data-v615-nav]');
+ if(!target||e.target!==target)return;
+ e.preventDefault();target.click();
+});
 root.addEventListener('click',e=>{
  const button=e.target?.closest?.('[data-v615-retry]');if(!button)return;
  if(button.disabled)return;
