@@ -13,14 +13,14 @@ test('certified LINE endpoint includes same v7 availability board and structural
  assert.match(index,/js\.async=false/);
  assert.doesNotMatch(index,/location\.replace\(|window\.location\s*=/);
 });
-test('classic rollback retains original native reception while disabling all theme assets',()=>{
+test('classic URL cannot restore the retired HOME',()=>{
  const index=read('miniapp-v2/production/index.html');
- assert.match(index,/get\('boonTheme'\)==='classic'/);
+ assert.doesNotMatch(index,/get\('boonTheme'\)/,'Old UI must never be restored through the classic parameter');
  assert.match(index,/\/production-app\.js\?v=/);
  assert.match(index,/\/env\.js\?v=/);
 });
 test('both entrypoint HOME sources are generated reproducibly by build-production.mjs',()=>{
  const s=read('miniapp-v2/build-production.mjs');
- assert.match(s,/Certified LINE entry: add only the read-only crowd board/);
+ assert.match(s,/Certified LINE entry: same frozen HOME layers as the browser HOME/);
  assert.match(s,/output\(`\$\{dir\}\/index\.html`,index\)/);
 });

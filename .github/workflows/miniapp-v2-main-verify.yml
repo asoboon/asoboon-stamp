@@ -26,6 +26,7 @@ on:
       - 'tests/asoboon-i18n-*.test.mjs'
       - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
+      - 'tests/asoboon-official-release-lock.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -56,6 +57,7 @@ on:
       - 'tests/asoboon-i18n-*.test.mjs'
       - 'playwright.production.config.js'
       - 'tests/asoboon-home-*.test.mjs'
+      - 'tests/asoboon-official-release-lock.test.mjs'
       - 'tests/asoboon-review-*.test.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -71,6 +73,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify Production bundles are current
         run: node miniapp-v2/build-production.mjs --check
+      - name: Official completed miniapp release lock (2026-11-15)
+        run: node --test tests/asoboon-official-release-lock.test.mjs
+
       - name: HOME frozen UX contract (2026-11-15)
         run: node --test tests/asoboon-home-stability-contract.test.mjs
       - name: Browser JavaScript syntax

@@ -1,6 +1,5 @@
 /* ASOBooN HOME v6.13 — read-only forecast/availability presentation. */
 (()=>{'use strict';
-if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
 const root=document.getElementById('app');if(!root)return;
 const CACHE_KEY='asoboon_v2_crowd_snapshot_production_v1';
 const L={

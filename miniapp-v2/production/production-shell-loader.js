@@ -21,10 +21,9 @@ for(const src of scripts){const s=document.createElement('script');s.src=src;s.a
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
 };document.head.appendChild(s)}
 // BOON START Mint Soda v5.4 is the normal production UI.
-// ?boonTheme=classic disables all optional theme assets for fast visual rollback.
+// This approved chocolate-mint HOME is the only supported production presentation.
 // The booking, AirWAIT calling, pricing and notification code is unchanged.
-if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
-  window.ASOBOON_MINT_V51_PREVIEW=true;
+window.ASOBOON_MINT_V51_PREVIEW=true;
   const css=document.createElement('link');css.rel='stylesheet';
   css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=fb8b3ff77e21';
   document.head.appendChild(css);
@@ -45,7 +44,6 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=9923ba684159';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=2793685c165f';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=83226f8d5bb0';
   document.head.appendChild(next);
-}
 })();
