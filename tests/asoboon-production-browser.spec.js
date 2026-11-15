@@ -240,7 +240,7 @@ test('Reception round choices show verified LINE quota, not WEB remaining, and p
  await expect(page.locator('#recSlots')).not.toContainText('200名');
  await page.locator('[data-rec-slot="0031"]').click();
  await expect(page.locator('[data-rec-slot="0031"]')).toHaveClass(/active/);
- await expect(page.locator('#recSlotLabel')).toHaveText('12:30の回');
+ await expect(page.locator('#recSlotLabel')).toHaveText('12:50頃入場');
  await expect(page.locator('[data-rec-slot="0031"]')).toBeEnabled();
  expect(quotaRequests).toBe(1);
  for(const width of [320,375,390,430]){
@@ -4536,7 +4536,7 @@ test('HOME removes extra reception-slot and arrival-hint captions without changi
   {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:12,remainingVerified:true}
  ]}})}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30の回',{timeout:15000});
+ const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30／12:50',{timeout:15000});
  await expect(board).not.toContainText('受付枠');
  await expect(board).not.toContainText('入場目安');
  await expect(board.locator('.v615-channel-time')).toHaveCount(0);
