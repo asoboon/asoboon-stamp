@@ -1061,7 +1061,7 @@ async function fetchCrowd(force=false,manual=false){
   if(currentView()==='home'){renderSlots();renderHero(latest||{kind:'none'});scheduleCrowd()}
  }
 }
-async function refreshDay(force=false){if(closingPreview())void loadTomorrow();if(dayLoading||typeof D.getCurrent!=='function')return;dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;crowdPublicFlags=null;clearTimeout(crowdPollTimer)}
+async function refreshDay(force=false){if(closingPreview())void loadTomorrow();if(dayLoading)return;if(typeof D.getCurrent!=='function'){dayError='BUSINESS_DAY_UNAVAILABLE';renderSlots();return}dayLoading=true;dayError='';if(!day&&!force)prefetchCrowd();try{const previousDate=String(day?.operationalDate||'');day=await Promise.race([D.getCurrent({force}),new Promise((_,reject)=>setTimeout(()=>reject(Error('BUSINESS_DAY_HOME_TIMEOUT')),12000))]);if(!day?.ok)throw Error('BUSINESS_DAY_UNAVAILABLE');if(previousDate&&previousDate!==String(day.operationalDate)){crowdSlots=null;crowdDetails=[];crowdAt=0;crowdStale=false;crowdClosed=false;crowdHiddenConfirmed=false;crowdPublicFlags=null;clearTimeout(crowdPollTimer)}
  displayDay=day.operationalDate===nowJst().date?day:null;
  if(!displayDay&&typeof D.getByDate==='function'){
   try{

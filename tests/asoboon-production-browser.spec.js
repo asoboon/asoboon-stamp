@@ -5431,3 +5431,17 @@ test('HOME fallback completes on LINE browsers without AbortSignal.timeout suppo
  await expect(page.locator('#v38Slots')).toContainText('42人',{timeout:15000});
  await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
 });
+
+test('HOME avoids infinite reception loading when business-day helper is missing',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  let bus;
+  Object.defineProperty(window,'ASOBOON_V2_BUSINESS_DAY',{configurable:true,
+   get(){return bus},
+   set(v){bus={...v,getCurrent:undefined}}});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('営業情報を取得できません',{timeout:15000});
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});

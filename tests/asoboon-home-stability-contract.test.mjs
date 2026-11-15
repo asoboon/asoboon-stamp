@@ -187,5 +187,6 @@ test('HOME status loading must recover even if the extra AirWAIT presentation mo
  assert.match(home,/clearTimeout\(t\)/);
  assert.match(home,/if\(publicReception\?\.source==='initial'&&!dayError\)/);
  assert.match(home,/dayError\?'営業情報を取得できません。'/);
+ assert.match(home,/typeof D\.getCurrent!=='function'\)\{dayError=/);
  assert.match(home,/return \{m,publicStatus:p\}/);
 });
