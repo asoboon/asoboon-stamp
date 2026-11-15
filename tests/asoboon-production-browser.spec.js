@@ -5329,3 +5329,32 @@ test('HOME LINE header supports keyboard navigation and preserves read-only befo
  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
  await expect(page.locator('#recSubmit')).toBeDisabled();
 });
+
+
+test('HOME recovers from one transient public AirWAIT 503 without hiding verified reception slots',async({page})=>{
+ await installProduction(page);
+ let reads=0;
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>{
+  reads++;
+  if(reads===1)return route.fulfill({status:503,contentType:'application/json',
+   body:JSON.stringify({ok:false,error:'TEMPORARY_UPSTREAM'})});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+    {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+   ],publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+     {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
+      usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:50,remainingVerified:true},
+     {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',
+      usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:35,remainingVerified:true}
+    ]}
+  })});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(page.locator('#v615SessionBoard')).toContainText('12:30の回');
+ await expect(page.locator('#v615SessionBoard')).toContainText('73%');
+ await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
+ expect(reads).toBe(2);
+});
