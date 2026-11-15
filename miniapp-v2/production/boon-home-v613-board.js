@@ -126,13 +126,15 @@ function publicGroupLabels(lang){
 }
 function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null}
 function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
-function publicChannel(slot,source,label){
+function publicChannel(slot,source,label,{lineActionEnabled=false}={}){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
  cell.appendChild(elem('span','v615-channel-name',label));
  const num=publicCount(slot);
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
+  const slotTime=source?null:publicTime(slot.waitTypeName);
+  if(slotTime)cell.appendChild(elem('small','v615-channel-time',slotTime));
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
   if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
    const lang=language(),online=slot.usageDispType==='KeyONLINE_RECEPTION_ONLY';
@@ -152,8 +154,53 @@ function publicChannel(slot,source,label){
    }
    else if(clone.matches('small,span')){clone.textContent=window.ASOBOON_I18N?.t?.(clone.textContent.trim())||clone.textContent}
    cell.appendChild(clone)}
+  else if(lineActionEnabled&&num!==null&&num>0){
+   const title=({ja:'LINEで受付を確認 →',en:'Check LINE tickets →',
+     'zh-CN':'查看LINE取号 →',ko:'LINE 접수 확인 →',
+     vi:'Kiểm tra LINE →',ne:'LINE टिकट जाँच्नुहोस् →',
+     kmr:'Hejmarên LINE kontrol bike →'})[language()]||'Check LINE tickets →';
+   const button=elem('button','v615-channel-action',title);
+   button.type='button';button.dataset.v7View='reception';button.setAttribute('aria-label',title);
+   cell.appendChild(button);
+  }
  }
  return cell;
+}
+// Onsite quotas come only from published AirWAIT waitTypes cross-checked with
+// exact getWaitInfo PERSON details. No guess from the WEB-only public page.
+function verifiedOnsiteSlots(){
+ let snap;
+ try{snap=JSON.parse(localStorage.getItem(CACHE_KEY)||'null')}catch{return []}
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',
+  year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const age=Date.now()-Number(snap?.savedAt||0);
+ if(snap?.verifiedFresh!==true||snap.operationalDate!==today||age<0||age>90000)return [];
+ const flags=new Map(Array.isArray(snap.publicFlags)?snap.publicFlags:[]);
+ const times={
+  '0023':'すぐ入場受付【平日】','0025':'14時から【平日】',
+  '0035':'10時15分から【平日特定日】','0037':'13時45分から【平日特定日】',
+  '0029':'10時25分頃入場【土休日特定日】',
+  '0031':'12時50分頃入場【土休日特定日】',
+  '0033':'15時15分頃入場時間【土休日特定日】'
+ };
+ const normal=s=>String(s||'').normalize('NFKC').replace(/\s+/g,'').trim();
+ const details=Array.isArray(snap.details)?snap.details:[];
+ return PUBLIC_GROUPS.flatMap(group=>{
+  const id=group.line,name=times[id];
+  if(!id||!name||flags.get(id)!==true)return [];
+  const hits=details.filter(x=>normal(x?.detailedWaitType)===normal(name));
+  if(hits.length!==1||hits[0].reserveUnit!=='PERSON')return [];
+  const n=hits[0].remaining;
+  return [{waitTypeId:id,waitTypeName:String(hits[0].detailedWaitType),
+   usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:n,
+   remainingVerified:hits[0].remainingVerified===true&&Number.isSafeInteger(n)&&n>=0&&n<=350}];
+ });
+}
+function jstMinutes(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tokyo',
+  hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+ const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+ return Number(p.hour)*60+Number(p.minute);
 }
 function buildPublicBoard(){
  const slots=document.getElementById('v38Slots');if(!slots)return;
@@ -161,18 +208,23 @@ function buildPublicBoard(){
  const list=slots.querySelector(':scope > .v38-crowd-list');
  const existing=slots.querySelector('#v615SessionBoard');
  if(data?.verified!==true||!list||(data.isOpen!==true&&data.acceptingOnline!==true)){existing?.remove();slots.classList.remove('v615-public-ready');return}
- const ordered=[...(Array.isArray(data.slots)?data.slots:[])].filter(x=>['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
+ const published=[...(Array.isArray(data.slots)?data.slots:[])].filter(x=>
+   ['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
    .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
+ const onsite=verifiedOnsiteSlots().filter(x=>!published.some(p=>String(p.waitTypeId)===String(x.waitTypeId)));
+ const ordered=[...published,...onsite];
  const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]));
  // On weekdays or if AirWAIT introduces an unrecognized slot, show the
  // native verified list instead of silently omitting a published option.
  if(!ordered.length||ordered.some(x=>!ids.has(String(x.waitTypeId)))){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];
- if(cards.length!==ordered.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ if(cards.length!==published.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const lang=language(),labels=publicGroupLabels(lang);
- const signature=JSON.stringify([lang,data.fetchedAt,ordered.map(x=>[x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent)]);
+ const signature=JSON.stringify([lang,data.fetchedAt,ordered.map(x=>
+   [x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent),data.isOpen,jstMinutes()>=570]);
  if(existing?.dataset.signature===signature){slots.classList.add('v615-public-ready');return}
- const map=new Map(ordered.map((x,i)=>[String(x.waitTypeId),{slot:x,source:cards[i]}]));
+ const map=new Map(published.map((x,i)=>[String(x.waitTypeId),{slot:x,source:cards[i]}]));
+ for(const slot of onsite)map.set(String(slot.waitTypeId),{slot,source:null,synthetic:true});
  const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
  for(const group of PUBLIC_GROUPS){
   const a=map.get(group.web),b=map.get(group.line);
@@ -192,7 +244,9 @@ function buildPublicBoard(){
   const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
   const cells=elem('div','v615-channels');
   if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1]));
-  if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2]));
+  if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],{
+   lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570
+  }));
   if(!a||!b)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
  }
@@ -256,19 +310,6 @@ function buildBoard(){
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v613-board-ready');
 }
 
-/* Safety net: the live public board can legitimately expose only WEB slots
-   before LINE opens, or no forecast when AirWAIT data is incomplete.
-   Never make the LINE route and crowd-status explanation disappear together. */
-const REQUIRED_LABELS={
- ja:['LINE受付','LINE受付の状況を見る','受付開始 9:30','混雑状況','混雑予想 —','公開枠の人数が確認できないため、予想は表示できません。'],
- en:['LINE reception','Check LINE tickets','Opens at 9:30','Crowd status','Forecast —','A forecast is unavailable without verified public slot counts.'],
- 'zh-CN':['LINE取号','查看LINE取号','9:30开始','拥挤状况','预测 —','公开场次的剩余人数未确认，无法计算预测。'],
- ko:['LINE 접수','LINE 접수 확인','9:30 시작','혼잡 상황','혼잡 예상 —','공개된 접수 인원이 확인되지 않아 예상치를 표시할 수 없습니다.'],
- vi:['Đăng ký LINE','Kiểm tra đăng ký LINE','Bắt đầu 9:30','Tình trạng đông','Dự báo —','Chưa xác minh đủ số chỗ còn lại để tính dự báo.'],
- ne:['LINE दर्ता','LINE दर्ता जाँच्नुहोस्','९:३० बाट सुरु','भीडको अवस्था','अनुमान —','प्रकाशित स्थानहरूको संख्या पुष्टि नभएकाले अनुमान उपलब्ध छैन।'],
- kmr:['Tomarkirina LINE','Tomarkirina LINE kontrol bike','Di 9:30 de dest pê dike','Rewşa qelebalixiyê','Pêşbînî —','Ji bo pêşbîniyê hejmarên mayî nehatine piştrastkirin.']
-};
-
 /* Always expose the two real reception channels on HOME.
    Only the independently verified AirWAIT public list may supply slot times
    or remaining counts. Unpublished rows must never become bookable. */
@@ -290,15 +331,28 @@ function renderBookingChannels(){
  // Public snapshots refer to today. Once HOME previews tomorrow, never
  // present today's remaining seats under tomorrow's reception heading.
  const fresh=!previewTomorrow&&publicData?.verified===true&&Number.isFinite(at)&&at<=Date.now()+5000&&Date.now()-at<=90000;
- const list=fresh&&(publicData.isOpen===true||publicData.acceptingOnline===true)&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
+ const nativeList=fresh&&(publicData.isOpen===true||publicData.acceptingOnline===true)&&Array.isArray(publicData.slots)?publicData.slots.filter(slot=>
   slot&&['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(slot.usageDispType)):[];
+ const onsite=fresh?verifiedOnsiteSlots():[];
+ // A published onsite window remains bookable after 9:30 even if all WEB
+ // slots are full: keep the native HOME hero and the board consistent.
+ const lineAvailable=fresh&&publicData.isOpen===true&&jstMinutes()>=570&&
+  onsite.some(x=>x.remainingVerified===true&&x.remaining>0);
+ if(window.ASOBOON_VERIFIED_ONSITE_AVAILABLE!==lineAvailable){
+  window.ASOBOON_VERIFIED_ONSITE_AVAILABLE=lineAvailable;
+  window.ASOBOON_V38_REFRESH_AVAILABILITY?.();
+ }
+ const list=[...nativeList,...onsite.filter(x=>!nativeList.some(p=>String(p.waitTypeId)===String(x.waitTypeId)))];
  const native=host.querySelector(':scope > .v38-crowd-list');
  const nativeCards=[...(native?.querySelectorAll(':scope > .v38-crowd-card')||[])];
  const sorted=[...list].sort((a,b)=>
   (a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-
   (b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
- const canMapActions=nativeCards.length===sorted.length&&nativeCards.length>0;
- const sources=canMapActions?new Map(sorted.map((slot,i)=>[String(slot.waitTypeId),nativeCards[i]])):new Map();
+ const nativeSorted=[...nativeList].sort((a,b)=>
+  (a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-
+  (b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
+ const canMapActions=nativeCards.length===nativeSorted.length&&nativeCards.length>0;
+ const sources=canMapActions?new Map(nativeSorted.map((slot,i)=>[String(slot.waitTypeId),nativeCards[i]])):new Map();
  const verifiedBoard=host.classList.contains('v615-public-ready')&&
   !!host.querySelector('#v615SessionBoard .v615-session');
  let view=host.querySelector('#v616BookingChannels');
@@ -350,59 +404,7 @@ function renderBookingChannels(){
 }
 
 function renderRequiredAccess(){
- const slots=document.getElementById('v38Slots');if(!slots)return;
- const lang=language(),l=REQUIRED_LABELS[lang]||REQUIRED_LABELS.ja;
- // Closed/tomorrow/ended states are read-only: show context, never a false booking CTA.
- const hero=document.getElementById('v38Hero');
- const readonly=['closed','ended','tomorrow'].some(name=>hero?.classList.contains(name));
- // Navigation can be offered only against an independently verified, active
- // public AirWAIT snapshot. Unverified/failed reads must never expose ticket UI.
- const publicStatus=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
- const lineEntryAllowed=!readonly&&publicStatus?.verified===true&&publicStatus.isOpen===true&&
-  Array.isArray(publicStatus.slots)&&publicStatus.slots.some(slot=>
-   slot.usageDispType==='KeySTORE_RECEPTION_ONLY'&&slot.remainingVerified===true&&
-   Number.isSafeInteger(slot.remaining)&&slot.remaining>0);
- const liveBoard=slots.classList.contains('v615-public-ready')?slots.querySelector('#v615SessionBoard'):null;
- const nativeBoard=liveBoard||slots.querySelector(':scope > .v38-crowd-list');
- const hasLine=!!nativeBoard?.querySelector('button[data-v7-view="reception"]');
- const forecastNodes=[...slots.querySelectorAll('#v615SessionBoard .v615-forecast-value, #v613Board .v613-percent')];
- const hasForecast=forecastNodes.some(e=>/^\d{1,3}%$/.test(e.textContent.trim())&&e.getClientRects().length>0);
- let panel=slots.querySelector('#v615EssentialAccess');
- if((hasLine||!lineEntryAllowed)&&hasForecast){panel?.remove();return}
- if(!document.getElementById('v615EssentialStyle')){
-  const style=document.createElement('style');style.id='v615EssentialStyle';
-  style.textContent='#v615EssentialAccess{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin:9px 0 8px}'+
-   '#v615EssentialAccess .v615-essential-item{min-width:0;border:1px solid #A9DFD3;border-radius:12px;background:#F5FFFB;padding:9px 10px;color:#166D66}'+
-   '#v615EssentialAccess .v615-essential-item strong{display:block;font-size:14px;line-height:1.4;font-weight:800}'+
-   '#v615EssentialAccess .v615-essential-item small{display:block;font-size:11px;line-height:1.45;color:#537E78;margin-top:4px}'+
-   '#v615EssentialAccess .v615-essential-action{display:block;width:100%;min-height:44px;margin-top:5px;padding:9px;border:1px solid #117E76;border-radius:9px;background:#C5F2E6;color:#155750;font:700 13px/1.35 system-ui,sans-serif;text-align:center;cursor:pointer}'+
-   '#v615EssentialAccess .v615-essential-action:focus-visible{outline:3px solid #235B67;outline-offset:2px}';
-  document.head.appendChild(style);
- }
- if(!panel){panel=elem('section','v615-essential-access');panel.id='v615EssentialAccess';panel.setAttribute('aria-label',l[3]);}
- // Keep the native last paragraph in place for existing safe WEB fallback links.
- const footer=slots.querySelector(':scope > p:last-child');
- if(panel.parentElement!==slots||!(panel.nextElementSibling===footer||(!footer&&panel===slots.lastElementChild))){
-  if(footer)slots.insertBefore(panel,footer);else slots.appendChild(panel);
- }
- const signature=JSON.stringify([lang,hasLine,hasForecast,readonly,lineEntryAllowed]);
- if(panel.dataset.signature===signature)return;
- panel.dataset.signature=signature;panel.replaceChildren();
- if(!hasLine&&lineEntryAllowed){
-  const item=elem('div','v615-essential-item');item.id='v615EssentialLine';
-  item.appendChild(elem('strong','',l[0]));
-  if(lineEntryAllowed){
-   const button=elem('button','v615-essential-action',l[1]);button.type='button';button.dataset.v7View='reception';
-   item.appendChild(button);
-  }
-  item.appendChild(elem('small','',readonly?(lang==='ja'?'現在、受付は終了しています。':lang==='en'?'Reception is closed.':l[5]):lineEntryAllowed?l[2]:(lang==='ja'?'受付状況は未確認です。確認できるまで受付できません。':lang==='en'?'Reception status is unverified. Please check again.':l[5])));
-  panel.appendChild(item);
- }
- if(!hasForecast){
-  const item=elem('div','v615-essential-item');item.id='v615EssentialCrowd';item.setAttribute('role','status');
-  item.appendChild(elem('strong','',l[3]));item.appendChild(elem('strong','',l[4]));
-  item.appendChild(elem('small','',l[5]));panel.appendChild(item);
- }
+ document.getElementById('v615EssentialAccess')?.remove();
 }
 
 function apply(){
@@ -437,7 +439,7 @@ root.addEventListener('click',e=>{
  setTimeout(()=>{if(button.isConnected){button.disabled=false;button.textContent='今すぐ再確認 ↻'}},9000);
 });
 new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
-for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-route-rendered'])window.addEventListener(event,schedule);
+for(const event of ['asoboon:language-changed','asoboon:v8-home-status','asoboon:v2-route-rendered','ac'])window.addEventListener(event,schedule);
 schedule();
 window.ASOBOON_HOME_FORECAST=Object.freeze({version:'6.14',basePeople:320,method:'remaining-proxy',bookedVerifiedOnly:false});
 })();
