@@ -1665,7 +1665,7 @@ test('Recent verified HOME cache can bridge a brief AirWAIT outage without inven
 });
 
 for(const state of ['canceled','done']){
- test('Terminal '+state+' exposes re-reception on call-status page, not HOME',async({page})=>{
+ test('Terminal '+state+' displays no duplicate re-reception button on call-status page',async({page})=>{
   await installProduction(page,{status:{
     ok:true,found:true,state,receiptNo:'F998',businessDate:'2026-10-03',
     waitTypeId:'0033',waitTypeName:'15:00の回',checkedAt:Date.parse('2026-10-03T03:00:00Z')
@@ -1680,11 +1680,9 @@ for(const state of ['canceled','done']){
     }));
   });
   await page.goto(BASE+'?view=callstatus',{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#csRebookArea')).toBeVisible();
-  await expect(page.locator('#csRebook')).toContainText('もう一度受付する');
-  await page.locator('#csRebook').click();
-  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
-  await expect(page.locator('#recSubmit')).toBeVisible();
+  await expect(page.locator('#csRebookArea')).toHaveCount(0);
+  await expect(page.locator('#csRebook')).toHaveCount(0);
+  await expect(page.locator('#csTitle')).toBeVisible();
  });
 }
 test('Active waiting call-state does not offer a second reception',async({page})=>{
@@ -3960,7 +3958,7 @@ test('2026-11-11 confirmed guest cancellation stops polling after reopening and 
  const afterCancel=polls;
  await page.reload({waitUntil:'domcontentloaded'});
  await expect(page.locator('#csTitle')).toContainText('取消済み');
- await expect(page.locator('#csRebookArea')).toBeVisible();
+ await expect(page.locator('#csRebookArea')).toHaveCount(0);
  await page.locator('#csRefresh').click();
  await page.waitForTimeout(350);
  expect(polls).toBe(afterCancel);
@@ -4013,7 +4011,8 @@ test('2026-11-11 AirWAIT-confirmed canceled state stays terminal across HOME and
  await page.reload({waitUntil:'domcontentloaded'});
  await expect(page.locator('#csTitle')).toContainText('取消済み');
  await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
- await expect(page.locator('#v38Hero')).toContainText('もう一度受付する');
+ await expect(page.locator('#v38Hero')).toContainText('前の受付は終了しています');
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
  await page.waitForTimeout(250);
  await page.locator('.cm-nav-tab[data-v7-view="callstatus"]').click();
  await expect(page.locator('#csTitle')).toContainText('取消済み');
@@ -4114,7 +4113,8 @@ test('2026-11-11 HOME does not resurrect a canceled receipt as pending, but acce
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('canceled');
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.receipt)).toBe('R333');
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- await expect(page.locator('#v38Hero')).toContainText('もう一度受付する');
+ await expect(page.locator('#v38Hero')).toContainText('前の受付は終了しています');
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
  const terminalEvents=await page.evaluate(()=>window.__homeStatusKinds);
  const canceledIndex=terminalEvents.lastIndexOf('canceled');
  expect(canceledIndex).toBeGreaterThanOrEqual(0);
@@ -4156,15 +4156,12 @@ test('2026-11-12 HOME shows a direct rebook action only after a live verified te
  await expect(page.locator('#v38Hero')).toHaveClass(/rebook/);
  await expect(page.locator('#v38Hero')).toContainText('前の受付は終了しています');
  const cta=page.locator('#v38Hero [data-v7-view="reception"]');
- await expect(cta).toContainText('もう一度受付する');
+ await expect(cta).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toBeVisible();
  for(const width of [320,390,430]){
    await page.setViewportSize({width,height:844});
-   const size=await cta.boundingBox();
-   expect(size.height).toBeGreaterThanOrEqual(44);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  }
- await cta.click();
- await expect(page).toHaveURL(/view=reception/);
 });
 
 test('2026-11-12 HOME does not advertise a second booking on pending, missing, or unknown status',async({page})=>{
@@ -4221,7 +4218,7 @@ test('2026-11-12 real CALL gateway done observation reaches HOME and staff resto
  await expect.poll(()=>page.evaluate(()=>window.ASOBOON_HOME_STATUS_SNAPSHOT?.kind)).toBe('guided');
  await page.locator('.cm-nav-tab[data-v7-view="home"]').click();
  await expect(page.locator('#v38Hero')).toHaveClass(/rebook/);
- await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toContainText('もう一度受付する');
+ await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
  await page.locator('.cm-nav-tab[data-v7-view="callstatus"]').click();
  currentState='waiting'; // Real-life staff action reverting already-guided guest
  await page.locator('#csRefresh').click();

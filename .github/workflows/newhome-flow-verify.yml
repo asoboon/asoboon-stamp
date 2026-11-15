@@ -6,6 +6,7 @@ on:
       - 'home.html'
       - 'tests/asoboon-chocomint-palette.test.mjs'
       - 'tests/asoboon-production-browser.spec.js'
+      - 'tests/asoboon-home-stability-contract.test.mjs'
       - 'jounaisetumei-core.html'
       - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
@@ -16,6 +17,7 @@ on:
       - 'home.html'
       - 'tests/asoboon-chocomint-palette.test.mjs'
       - 'tests/asoboon-production-browser.spec.js'
+      - 'tests/asoboon-home-stability-contract.test.mjs'
       - 'jounaisetumei-core.html'
       - 'jounaisetumei-audio.js'
       - 'tests/asoboon-develop-reception-lifecycle.test.cjs'
@@ -41,6 +43,9 @@ jobs:
           node --check miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node miniapp-v2/backend/prepare-develop-test-runtime.mjs
           node --input-type=module --check < develop-gateway.runtime.mjs
+
+      - name: HOME frozen UX contract (2026-11-15)
+        run: node --test tests/asoboon-home-stability-contract.test.mjs
 
       - name: Reception lifecycle regression
         run: node --test tests/asoboon-develop-reception-lifecycle.test.cjs
