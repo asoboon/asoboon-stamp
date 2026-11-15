@@ -5264,3 +5264,71 @@ test('HOME stays open when WEB is full but verified 10:25 onsite quota is bookab
  await expect(board.locator('button.v615-channel-action[data-v7-view="reception"]')).toHaveCount(1);
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).not.toHaveClass(/is-closed/);
 });
+
+test('HOME LINE header opens reservation preview at 09:15 but does not permit early ticket creation',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:false,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',
+     waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:50,remainingVerified:true}]}})}));
+ let creates=0;
+ page.on('request',request=>{const url=request.url(),body=request.postData()||'';if(/createReservation/.test(url+body))creates++});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const line=page.locator('#v616BookingChannels [data-channel="line"]');
+ await expect(line).toBeVisible({timeout:16000});
+ await expect(line).toContainText('受付画面を開く');
+ await line.click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSlots')).toContainText('LINE当日受付は9:30からです',{timeout:16000});
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+ await expect(page.locator('#recSubmit')).toContainText('受付は9:30から');
+ expect(creates).toBe(0);
+});
+
+test('HOME onsite session cell itself navigates to reception after LINE opening',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T03:00:00.000Z'});
+ const at='2026-10-03T03:00:00.000Z';
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[
+   {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0029',waitTypeName:'10時25分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:false,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0034',waitTypeName:'15時ご入場枠【WEB整理券】',dispFlg:false,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+   {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'},
+   {waitTypeId:'0033',waitTypeName:'15時15分頃入場時間【土休日特定日】',dispFlg:false,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+  ],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:at,isOpen:true,acceptingOnline:true,slots:[
+   {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:0,remainingVerified:true}
+  ]}})}));
+ await page.route(url=>url.searchParams.get('action')==='crowdRemaining',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({ok:true,stale:false,fetchedAt:at,slots:[
+   {waitTypeId:'0030',waitTypeName:'10時ご入場枠【WEB整理券】',slotKey:'10:00',reserveUnit:'PERSON',
+    matchMode:'exact-name',evidence:'PERSON',remaining:0}
+  ],observedDetails:[{detailedWaitType:'10時25分頃入場【土休日特定日】',
+   reserveUnit:'PERSON',remaining:30,remainingVerified:true}]})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const channel=page.locator('#v615SessionBoard .v615-channel[data-v615-nav="1"]').first();
+ await expect(channel).toBeVisible({timeout:16000});
+ await expect(channel).toContainText('LINE・現地受付');
+ await channel.locator('.v615-channel-name').click();
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSlots')).toBeVisible({timeout:16000});
+});
+
+test('HOME LINE header supports keyboard navigation and preserves read-only before 9:30',async({page})=>{
+ await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T00:15:00.000Z',isOpen:false,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',
+     waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:50,remainingVerified:true}]}})}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const link=page.locator('#v616BookingChannels [data-channel="line"]');
+ await expect(link).toBeVisible({timeout:16000});
+ await link.focus();
+ await page.keyboard.press('Enter');
+ await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
+ await expect(page.locator('#recSubmit')).toBeDisabled();
+});

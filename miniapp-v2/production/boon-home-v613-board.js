@@ -126,9 +126,15 @@ function publicGroupLabels(lang){
 }
 function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null}
 function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
-function publicChannel(slot,source,label,{lineActionEnabled=false}={}){
+function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled=false}={}){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
- cell.appendChild(elem('span','v615-channel-name',label));
+ if(previewEnabled&&slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'){
+  cell.dataset.v7View='reception';cell.dataset.v615Nav='1';
+  cell.setAttribute('role','button');cell.tabIndex=0;
+  cell.setAttribute('aria-label',label+'・受付画面を開く');
+ }
+ cell.appendChild(elem('span','v615-channel-name',
+  label+(slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'?' →':'')));
  const num=publicCount(slot);
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
@@ -220,7 +226,12 @@ function buildPublicBoard(){
  const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];
  if(cards.length!==published.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const lang=language(),labels=publicGroupLabels(lang);
- const signature=JSON.stringify([lang,data.fetchedAt,ordered.map(x=>
+ const heroClass=document.getElementById('v38Hero')?.className||'';
+ const fetched=Date.parse(String(data.fetchedAt||''));
+ const previewEnabled=(data.isOpen===true||data.acceptingOnline===true)&&
+  !/\b(?:ended|closed|tomorrow|error|loading)\b/.test(heroClass)&&
+  jstMinutes()>=420&&Number.isFinite(fetched)&&Date.now()-fetched<=90000&&fetched<=Date.now()+5000;
+ const signature=JSON.stringify([lang,data.fetchedAt,previewEnabled,ordered.map(x=>
    [x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent),data.isOpen,jstMinutes()>=570]);
  if(existing?.dataset.signature===signature){slots.classList.add('v615-public-ready');return}
  const map=new Map(published.map((x,i)=>[String(x.waitTypeId),{slot:x,source:cards[i]}]));
@@ -245,7 +256,8 @@ function buildPublicBoard(){
   const cells=elem('div','v615-channels');
   if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1]));
   if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],{
-   lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570
+   lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570,
+   previewEnabled
   }));
   if(!a||!b)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
@@ -362,7 +374,10 @@ function renderBookingChannels(){
  }
  const lastKind=document.querySelector('#v38Hero')?.className||'';
  const ended=/\b(?:ended|closed|tomorrow)\b/.test(lastKind);
- const signature=JSON.stringify([lang,fresh,at,ended,verifiedBoard,sorted.map(slot=>
+ const previewEnabled=fresh&&!/\b(?:ended|closed|tomorrow|error|loading)\b/.test(lastKind)&&
+  (publicData?.isOpen===true||publicData?.acceptingOnline===true)&&
+  list.length>0&&jstMinutes()>=420;
+ const signature=JSON.stringify([lang,fresh,at,ended,previewEnabled,verifiedBoard,sorted.map(slot=>
   [slot.waitTypeId,slot.waitTypeName,slot.usageDispType,slot.remaining,slot.remainingVerified]),canMapActions]);
  if(view.dataset.signature===signature)return;
  view.dataset.signature=signature;
@@ -371,6 +386,11 @@ function renderBookingChannels(){
   ['web',words[0],words[2],'KeyONLINE_RECEPTION_ONLY'],
   ['line',words[1],words[3],'KeySTORE_RECEPTION_ONLY']]){
   const panel=elem('section','v616-booking-panel');panel.dataset.channel=key;
+  if(key==='line'&&previewEnabled){
+   panel.dataset.v7View='reception';panel.dataset.v615Nav='1';
+   panel.setAttribute('role','button');panel.tabIndex=0;
+   panel.setAttribute('aria-label',label+'・受付画面を開く');
+  }
   const top=elem('div','v616-booking-head');
   top.append(elem('strong','v616-booking-title',label),elem('small','v616-booking-hours',hours));
   panel.appendChild(top);
@@ -378,6 +398,8 @@ function renderBookingChannels(){
   const status=elem('div','v616-booking-state');
   status.textContent=previewTomorrow?(lang==='ja'?'明日の受付開始後に表示':lang==='en'?'Shown after tomorrow’s reception opens':words[9]):!fresh?words[7]:items.length?words[4]+' '+items.length+words[5]:words[6];
   panel.appendChild(status);
+  if(key==='line'&&previewEnabled)panel.appendChild(elem('small','v616-booking-open-hint',
+   lang==='ja'?'受付画面を開く →':'Open reception →'));
   // When the verified grouped session board is present, it already exposes
   // times, counts and native booking actions. Do not print them twice.
   if(fresh&&items.length&&!verifiedBoard){
@@ -430,6 +452,13 @@ root.addEventListener('click',e=>{
  if(Date.now()-lastPublicRetry<15000){e.stopImmediatePropagation();return}
  lastPublicRetry=Date.now();
 },true);
+// Keyboard access for the tap-to-open LINE/onsite panels.
+root.addEventListener('keydown',e=>{
+ if(e.key!=='Enter'&&e.key!==' ')return;
+ const target=e.target?.closest?.('[data-v615-nav]');
+ if(!target||e.target!==target)return;
+ e.preventDefault();target.click();
+});
 root.addEventListener('click',e=>{
  const button=e.target?.closest?.('[data-v615-retry]');if(!button)return;
  if(button.disabled)return;

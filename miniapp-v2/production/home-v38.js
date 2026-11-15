@@ -131,7 +131,7 @@ const finished=rec&&String(data?.receipt||'')===String(rec.receiptNo)&&
 if(finished)return{kind:'rebook',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>前の受付は終了しています</h1><p>次の受付が必要な方はこちらから進めます。</p>${action('reception','もう一度受付する','primary')}</div>`};
 return{kind:'call-link',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>受付番号は保存済みです</h1><p>現在の受付・呼出状況は画面下の「呼出」から確認できます。</p></div>`};
 }
-if(a.type==='web-public')return{kind:'web-public',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p><a class="v38-action primary" href="${esc(airwaitWebReceptionUrl())}" target="_blank" rel="noopener noreferrer" data-external="1">WEB受付を確認 ${svg('arrow')}</a></div>`};
+if(a.type==='web-public')return{kind:'web-public',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p></div>`};
 if(a.type==='open')return{kind:'open',html:`<div class="v38-hero-icon">${svg('ticket')}</div><div class="v38-hero-body"><h1>${RECEPTION_FALLBACK_ACTIVE?'当日WEB受付':'当日受付'}</h1><p>${RECEPTION_FALLBACK_ACTIVE?'現在は従来のWEB受付をご利用ください。':'利用する回と人数を選びます。'}</p>${RECEPTION_FALLBACK_ACTIVE?(hasVerifiedWebReceptionSlot()?action('reception','WEB受付を開く','primary'):''):action('reception','順番を取る','primary')}${receptionHoursNote()}</div>`};
 return{kind:a.type,html:`<div class="v38-hero-icon">${svg(a.type==='error'?'alert':'clock')}</div><div class="v38-hero-body"><h1>${esc(a.title)}</h1><p>${esc(a.message)}</p>${a.type==='before'?receptionHoursNote():''}</div>`};
 }
