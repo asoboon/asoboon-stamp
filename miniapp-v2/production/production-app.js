@@ -581,7 +581,7 @@ const announce=()=>{if(window.ASOBOON_HOME_STATUS_SNAPSHOT===status)window.dispa
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(announce);else setTimeout(announce,0);
 })();
 
-;/* home-v38.js */
+;/* miniapp-v2/production/home-v38.js */
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{},F=E.featureFlags||{},D=window.ASOBOON_V2_BUSINESS_DAY||{},R=window.ASOBOON_V2_RULES||{},root=document.getElementById('app');if(!root)return;
 const OPERATIONAL_FALLBACKS=E.operationalFallbacks||{};
