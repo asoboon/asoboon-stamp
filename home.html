@@ -23,6 +23,8 @@
     if(window.ASOBOON_PRODUCTION_SHELL)document.documentElement.classList.add('asoboon-production-shell');
   })();
   </script>
+  <!-- Compare live release and refresh stale cached HTML once, preserving LIFF state. -->
+  <script src="./miniapp-v2/production/release-guard.js?id=f43848faa7b0"></script>
   <!-- Once QR/NFC handoff has run, start downloading the two HOME assets immediately.
        This avoids the extra waterfall hop through the tiny shell-loader. -->
   <script>
@@ -55,14 +57,14 @@
   <script>
   if(window.ASOBOON_PRODUCTION_SHELL){
     const s=document.createElement('script');
-    s.src='./miniapp-v2/production/production-shell-loader.js?v=ad2f6e489028';
+    s.src='./miniapp-v2/production/production-shell-loader.js?v=a2f5507f44f2';
     s.async=false;
     document.head.appendChild(s);
   }
   </script>
   <!-- Last in DOM: saturated chocolate/mint visuals override legacy pale layers. -->
-  <script defer src="./miniapp-v2/production/language-switch-ux-v1.js?v=20261113-02"></script>
-<script defer src="./miniapp-v2/production/i18n-ko-kmr-completion-v2.js?v=20261113-02"></script>
-<link rel="stylesheet" href="./miniapp-v2/production/choco-mint-rich-v12.css?v=20261113-lang02">
+  <script defer src="./miniapp-v2/production/language-switch-ux-v1.js?v=7d2053102e4c"></script>
+<script defer src="./miniapp-v2/production/i18n-ko-kmr-completion-v2.js?v=09af1bd344dc"></script>
+<link rel="stylesheet" href="./miniapp-v2/production/choco-mint-rich-v12.css?v=76034034535b">
 </body>
 </html>

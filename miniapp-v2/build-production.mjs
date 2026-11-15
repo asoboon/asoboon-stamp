@@ -99,10 +99,9 @@ for(const src of scripts){const s=document.createElement('script');s.src=src;s.a
   root.innerHTML='<section style="padding:24px;font-family:system-ui,sans-serif"><h1>読み込みに失敗しました</h1><p>もう一度開き直してください。</p></section>';
 };document.head.appendChild(s)}
 // BOON START Mint Soda v5.4 is the normal production UI.
-// ?boonTheme=classic disables all optional theme assets for fast visual rollback.
+// This approved chocolate-mint HOME is the only supported production presentation.
 // The booking, AirWAIT calling, pricing and notification code is unchanged.
-if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
-  window.ASOBOON_MINT_V51_PREVIEW=true;
+window.ASOBOON_MINT_V51_PREVIEW=true;
   const css=document.createElement('link');css.rel='stylesheet';
   css.href='./miniapp-v2/production/boon-mint-v51-preview.css?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.css')}';
   document.head.appendChild(css);
@@ -125,14 +124,33 @@ if(new URLSearchParams(location.search).get('boonTheme')!=='classic'){
   const next=document.createElement('script');next.async=false;
   next.src='./miniapp-v2/production/boon-home-v613-board.js?v=${envHash('miniapp-v2/production/boon-home-v613-board.js')}';
   document.head.appendChild(next);
-}
 })();
 `;
+// Normalize generated query tokens to keep repeated builds idempotent.
+// HTML markup/inline JS and the certified-entry template still affect the ID.
+const normalizedHome=read('home.html').replace(
+ /(release-guard\.js\?id=|production-shell-loader\.js\?v=|production-app\.(?:js|css)\?v=|language-switch-ux-v1\.js\?v=|i18n-ko-kmr-completion-v2\.js\?v=|choco-mint-rich-v12\.css\?v=)[^'\"\s<>]+/g,'$1CURRENT'
+);
+const releaseId=hash([
+ loader,js,css,routeJs,routeCss,normalizedHome,
+ read('miniapp-v2/build-production.mjs'), // changes to direct LINE HTML template also rotate the release ID
+ read(`${dir}/env.js`),read(`${dir}/release-guard.js`),
+ read(`${dir}/language-switch-ux-v1.js`),read(`${dir}/i18n-ko-kmr-completion-v2.js`),
+ read(`${dir}/choco-mint-rich-v12.css`)
+].join('\n---official-miniapp-release---\n'));
+output(`${dir}/release.json`,JSON.stringify({
+ schemaVersion:1,releaseId,entry:'home.html',homeAsset:hash(js),shellAsset:hash(loader),
+ boardAsset:envHash(`${dir}/boon-home-v613-board.js`)
+},null,2)+'\n');
 output(`${dir}/production-shell-loader.js`,loader);
 let home=read('home.html')
+ .replace(/release-guard\.js\?id=[0-9a-f]{12}/g,`release-guard.js?id=${releaseId}`)
  .replace(/production-shell-loader\.js\?v=[^'"\s]+/g,`production-shell-loader.js?v=${hash(loader)}`)
  .replace(/production-app\.js\?v=[^'"\s]+/g,`production-app.js?v=${hash(js)}`)
- .replace(/production-app\.css\?v=[^'"\s]+/g,`production-app.css?v=${hash(css)}`);
+ .replace(/production-app\.css\?v=[^'"\s]+/g,`production-app.css?v=${hash(css)}`)
+ .replace(/language-switch-ux-v1\.js\?v=[^'"\s]+/g,`language-switch-ux-v1.js?v=${envHash(`${dir}/language-switch-ux-v1.js`)}`)
+ .replace(/i18n-ko-kmr-completion-v2\.js\?v=[^'"\s]+/g,`i18n-ko-kmr-completion-v2.js?v=${envHash(`${dir}/i18n-ko-kmr-completion-v2.js`)}`)
+ .replace(/choco-mint-rich-v12\.css\?v=[^'"\s]+/g,`choco-mint-rich-v12.css?v=${envHash(`${dir}/choco-mint-rich-v12.css`)}`);
 output('home.html',home);
 
 const index=`<!doctype html>
@@ -140,6 +158,8 @@ const index=`<!doctype html>
 <head>
 <meta charset="utf-8">
 <script src="../shared/asoquest-deeplink.js?v=20261006-02"></script>
+<!-- Same cache-coherence preflight as public HOME. -->
+<script src="./release-guard.js?id=${releaseId}"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F7EFE5">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -163,11 +183,10 @@ window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
 <script defer src="./choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>
 <script defer src="../../${i18nRef(i18nPath)}"></script>
-<!-- Certified LINE entry: add only the read-only crowd board to native HOME.
+<!-- Certified LINE entry: preserve tested native layout and shared read-only admission board.
      All reception, callstatus, guides and games keep their original structure. -->
 <script>
 (()=>{
- if(new URLSearchParams(location.search).get('boonTheme')==='classic')return;
  document.addEventListener('DOMContentLoaded',()=>{
   document.documentElement.classList.add('boon-v4','boon-v5-mint');
   const css=document.createElement('link');css.rel='stylesheet';
@@ -182,9 +201,9 @@ window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
 </head>
 <body data-asoboon-app="miniapp-v2" data-environment="production">
 <div id="app" class="app"><noscript>JavaScriptを有効にしてください。</noscript></div>
-<script defer src="./language-switch-ux-v1.js?v=20261113-02"></script>
-<script defer src="./i18n-ko-kmr-completion-v2.js?v=20261113-02"></script>
-<link rel="stylesheet" href="./choco-mint-rich-v12.css?v=20261113-lang02">
+<script defer src="./language-switch-ux-v1.js?v=${envHash(`${dir}/language-switch-ux-v1.js`)}"></script>
+<script defer src="./i18n-ko-kmr-completion-v2.js?v=${envHash(`${dir}/i18n-ko-kmr-completion-v2.js`)}"></script>
+<link rel="stylesheet" href="./choco-mint-rich-v12.css?v=${envHash(`${dir}/choco-mint-rich-v12.css`)}">
 </body>
 </html>
 `;
