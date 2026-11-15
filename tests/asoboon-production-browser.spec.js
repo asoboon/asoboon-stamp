@@ -1104,7 +1104,7 @@ test('Saved receipt uses compact passive HOME status and accessible fixed call t
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
 
-test('Production HOME keeps active status discreet and surfaces rebooking after verified terminal without automatic status requests',async({page})=>{
+test('Production HOME keeps active status discreet and has no duplicate rebooking after verified terminal',async({page})=>{
  await installProduction(page);
  await page.addInitScript(()=>{
   localStorage.setItem('asoboon_v2_current_reservation_production_v1',JSON.stringify({receiptNo:'F321',businessDate:'2026-10-03',waitTypeId:'0030',adults:1,paidChildren:2,infants:0}));
@@ -1123,7 +1123,7 @@ test('Production HOME keeps active status discreet and surfaces rebooking after 
   await page.evaluate(kind=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{detail:{kind,receipt:'F321',ahead:3,source:'live',checkedAt:Date.now()}})),kind);
   const terminal=['guided','canceled'].includes(kind);
   await expect(hero).toHaveClass(terminal?/rebook/:/call-link/);
-  await expect(hero.locator('[data-v7-view="reception"]')).toHaveCount(terminal?1:0);
+  await expect(hero.locator('[data-v7-view="reception"]')).toHaveCount(0);
   await expect(hero.locator('[data-v7-view="callstatus"]')).toHaveCount(0);
   await expect(hero).not.toContainText('F321');
   await expect(hero).not.toContainText('3組');
