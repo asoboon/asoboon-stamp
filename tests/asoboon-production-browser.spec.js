@@ -5358,3 +5358,56 @@ test('HOME recovers from one transient public AirWAIT 503 without hiding verifie
  await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
  expect(reads).toBe(2);
 });
+
+test('HOME loads verified LINE and WEB reception when the auxiliary crowd module fails',async({page})=>{
+ await installProduction(page);
+ await page.route(/crowd-visibility\.mjs/,route=>route.abort('failed'));
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,usageDispType:'KeyONLINE_RECEPTION_ONLY'},
+    {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',dispFlg:true,usageDispType:'KeySTORE_RECEPTION_ONLY'}
+   ],
+   publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
+    {waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
+     usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:70,remainingVerified:true},
+    {waitTypeId:'0031',waitTypeName:'12時50分頃入場【土休日特定日】',
+     usageDispType:'KeySTORE_RECEPTION_ONLY',remaining:35,remainingVerified:true}
+   ]}
+  })}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v615SessionBoard')).toContainText('12:30の回',{timeout:15000});
+ await expect(page.locator('#v38Slots')).toContainText('70人');
+ await expect(page.locator('#v38Slots')).toContainText('35人');
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
+ await expect(page.locator('#v38Slots')).not.toContainText('最新の受付枠を確認できませんでした');
+});
+
+test('HOME ends loading state when both auxiliary import and AirWAIT fallback fail',async({page})=>{
+ await installProduction(page);
+ await page.route(/crowd-visibility\.mjs/,route=>route.abort('failed'));
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:503,contentType:'application/json',body:'{"ok":false,"error":"AIRWAIT_READ_UNAVAILABLE"}'
+ }));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした',{timeout:15000});
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
+ await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel=line]')).toContainText('未確認');
+});
+
+
+test('HOME never stays in the LINE and WEB loading message when business-day verification fails',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  let bus;
+  Object.defineProperty(window,'ASOBOON_V2_BUSINESS_DAY',{configurable:true,
+   get(){return bus},set(value){bus={...value,getCurrent:()=>Promise.reject(Error('SIMULATED_BUSINESS_DAY_FAILURE'))}}});
+ });
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('営業情報を取得できません',{timeout:15000});
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
+ await expect(page.locator('#v38Slots')).not.toContainText('受付枠を確認しています');
+ await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
+});

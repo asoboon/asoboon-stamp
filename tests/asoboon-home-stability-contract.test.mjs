@@ -177,3 +177,13 @@ test('retry delay outlasts the production worker public-slot negative-cache TTL'
  assert.ok(retryDelay>=lifetime-negativeOffset+250,
   'Worker negative memo lives '+(lifetime-negativeOffset)+' ms; retry '+retryDelay+' ms must be later');
 });
+
+test('HOME status loading must recover even if the extra AirWAIT presentation module cannot load',()=>{
+ const home=read('miniapp-v2/production/home-v38.js');
+ assert.match(home,/import\('\.\/crowd-visibility\.mjs\?v=2'\)\.catch\(\(\)=>null\)/);
+ assert.match(home,/fetch\(E\.backendUrl\+'\?action=waitTypes&includePublicReception=1'/);
+ assert.match(home,/x\?\.ok&&Array\.isArray\(x\.waitTypes\)/);
+ assert.match(home,/if\(publicReception\?\.source==='initial'&&!dayError\)/);
+ assert.match(home,/dayError\?'営業情報を取得できません。'/);
+ assert.match(home,/return \{m,publicStatus:p\}/);
+});

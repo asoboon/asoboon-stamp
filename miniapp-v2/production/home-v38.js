@@ -297,7 +297,7 @@ function writeCrowdMarkup(box,markup){
 }
 
 function renderPublicReception(box){
- if(publicReception?.source==='initial'){
+ if(publicReception?.source==='initial'&&!dayError){
   const url=airwaitWebReceptionUrl();
   const link=url?'<a class="v38-airwait-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-external="1">AirウェイトでWEB受付 ↗</a>':'';
   writeCrowdMarkup(box,'<h3>受付の空き状況</h3><p class="v38-slots-note" role="status">LINE・WEBの残り人数を確認しています…</p>'+(link?'<p>'+link+'</p>':''));
@@ -370,7 +370,7 @@ function renderSlots(){
  const business=businessForBoard();
  const webOpen=hasVerifiedWebReceptionSlot();
  const times='<div class="v38-opening-hours" aria-label="受付開始時刻">'+(webOpen?'<span>WEB受付 <strong>7:00〜</strong><small>対象日のみ</small></span>':'')+'<span>LINE受付 <strong>'+esc(lineReceptionOpenDisplay())+'〜</strong></span></div>';
- if(!business){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">受付枠を確認しています…</p>');return}
+ if(!business){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">'+(dayError?'営業情報を取得できません。':'受付枠を確認しています…')+'</p>');return}
  if(business.isClosed){writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">本日は休館日です。</p>');return}
  const slots=validCrowdSlots(),ended=crowdReadOnly();
  if(!slots.length){const message=crowdPublicFlags instanceof Map&&!ended?'現在、公開されている受付枠はありません。':'受付枠の人数を確認できません。';writeCrowdMarkup(box,'<h3>受付の空き状況</h3>'+times+'<p class="v38-slots-note">'+message+'</p>');return}
@@ -396,9 +396,10 @@ function renderSlots(){
 }
 function mount(){if(currentView()!=='home'){document.body.classList.remove('v38-home-active');return}if(!root.querySelector('.v38-home')){const old=root.querySelector('.home-shell');if(!old)return;old.outerHTML=baseHome()}document.body.classList.remove('v35-home-active','v37-home-active');document.body.classList.add('v38-home-active');patchToday();patchTimeguideShortcut();renderSlots();if(!latest&&window.ASOBOON_HOME_STATUS_SNAPSHOT)latest=window.ASOBOON_HOME_STATUS_SNAPSHOT;renderHero(latest||{kind:'sync'})}
 async function publicRead(){
- const m=await import('./crowd-visibility.mjs?v=2'),publicStatus=await m.publishedStatus(E.backendUrl);
- publicReception=publicStatus?.publicReception??m.freshPublicOnFailure(publicReception,publicStatus,day?.operationalDate,nowJst().date)??(publicReception?.source==='failed'?publicReception:publicStatus?undefined:{verified:false,source:'unverified',slots:[]});
- renderSlots();renderHero(latest||{kind:'none'});return {m,publicStatus};
+const m=await import('./crowd-visibility.mjs?v=2').catch(()=>null),
+p=m?await m.publishedStatus(E.backendUrl):await fetch(E.backendUrl+'?action=waitTypes&includePublicReception=1',{signal:AbortSignal.timeout(6500)}).then(r=>r.json()).then(x=>x?.ok&&Array.isArray(x.waitTypes)?x:null).catch(()=>null);
+publicReception=p?.publicReception??m?.freshPublicOnFailure(publicReception,p,day?.operationalDate,nowJst().date)??(p?undefined:{verified:false});
+renderSlots();renderHero(latest||{kind:'none'});return {m,publicStatus:p};
 }
 async function fetchCrowd(force=false,manual=false){
  if(document.hidden||currentView()!=='home'||crowdLoading)return;
