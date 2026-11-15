@@ -118,7 +118,7 @@ const PUBLIC_GROUPS=Object.freeze([
  {title:'10:00の回',web:'0036',line:'0035',forecast:false},
  {title:'13:30の回',web:'0038',line:'0037',forecast:false},
  {title:'10:00の回',web:'0030',line:'0029'},
- {title:'12:30／12:50',web:'0032',line:'0031'},
+ {title:'12:30の回',web:'0032',line:'0031'},
  {title:'15:00の回',web:'0034',line:'0033'}
 ]);
 function publicGroupLabels(lang){
@@ -126,7 +126,7 @@ function publicGroupLabels(lang){
 }
 function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null}
 function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
-function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled=false,showTime=false}={}){
+function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled=false}={}){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
  if(previewEnabled&&slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'){
   cell.dataset.v7View='reception';cell.dataset.v615Nav='1';
@@ -139,7 +139,7 @@ function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled
  const unit=({ja:'人',en:' people','zh-CN':'人',vi:' người',ne:' जना',ko:'명',kmr:' kes'})[language()]||'人';
  cell.appendChild(elem('strong','v615-channel-count',num===null?'—':num+unit));
  if(slot){
-  const slotTime=(!source||showTime)?publicTime(slot.waitTypeName):null;
+  const slotTime=!source&& !['0032','0031'].includes(String(slot.waitTypeId))?publicTime(slot.waitTypeName):null;
   if(slotTime)cell.appendChild(elem('small','v615-channel-time',slotTime));
   const action=source?.querySelector('.v38-crowd-tap-hint > :is(a,button,small)');
   if(action){const clone=action.cloneNode(true);clone.classList.add('v615-channel-action');
@@ -245,8 +245,7 @@ function buildPublicBoard(){
   const pct=group.forecast===false||web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
   const card=elem('article','v615-session');
   const head=elem('div','v615-session-head');
-  const publishedTitle=group.title==='12:30／12:50'&&(!a||!b)?(a?'12:30の回':'12:50頃入場'):group.title;
-  const groupTitle=publishedTitle==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?publishedTitle:publishedTitle.replace('の回','');
+  const groupTitle=group.title==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?group.title:group.title.replace('の回','');
   head.appendChild(elem('strong','v615-session-title',groupTitle));
   const forecast=elem('div','v615-session-forecast');
   forecast.appendChild(elem('span','v615-forecast-label',labels[0]));
@@ -255,10 +254,10 @@ function buildPublicBoard(){
   const progress=elem('div','v615-forecast-track');progress.setAttribute('aria-hidden','true');
   const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
   const cells=elem('div','v615-channels');
-  if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1],{showTime:group.web==='0032'&&Boolean(b)}));
+  if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1]));
   if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],{
    lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570,
-   previewEnabled,showTime:group.line==='0031'&&Boolean(a)
+   previewEnabled
   }));
   if(!a||!b)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
