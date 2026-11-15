@@ -328,7 +328,7 @@ const SLOT_RULES=Object.freeze({
     ]),
     '土日祝日':Object.freeze([
       Object.freeze({waitTypeId:'0029',label:'10:00の回',detail:'10:00からの2時間30分利用'}),
-      Object.freeze({waitTypeId:'0031',label:'12:50頃入場',detail:'12:30の回・12:50頃の入場案内'}),
+      Object.freeze({waitTypeId:'0031',label:'12:30の回',detail:'12:50頃にご案内'}),
       Object.freeze({waitTypeId:'0033',label:'15:00の回',detail:'15:00からの2時間30分利用'})
     ]),
     '休館':Object.freeze([])
@@ -344,7 +344,7 @@ const SLOT_RULES=Object.freeze({
     ]),
     '土日祝日':Object.freeze([
       Object.freeze({waitTypeId:'0029',label:'10:00の回',detail:'10:00からの2時間30分利用'}),
-      Object.freeze({waitTypeId:'0031',label:'12:50頃入場',detail:'12:30の回・12:50頃の入場案内'}),
+      Object.freeze({waitTypeId:'0031',label:'12:30の回',detail:'12:50頃にご案内'}),
       Object.freeze({waitTypeId:'0033',label:'15:00の回',detail:'15:00からの2時間30分利用'})
     ]),
     '休館':Object.freeze([])
