@@ -5,7 +5,7 @@
 ## 現行の正式完成版（2026-11-15）
 - 復元用スナップショット：`baseline/official-miniapp-complete-20261115`（`a146a1b918b340e4156002c00a880f79692abc05`）。
 - 最新の更新事故防止ルール：`docs/ASOBOON_OFFICIAL_RELEASE_LOCK_20261115.md`。
-- 正式HOMEとLINE認証済み入口は同じチョコミント構造へ統一し、旧`boonTheme=classic`への切替を廃止。
+- 正式HOMEとLINE認証済み入口は同じ受付枠と混雑予想の仕様を共有し、旧`boonTheme=classic`への切替を廃止。
 - WEB12:30（0032）とLINE12:50（0031）は常に1枚の「12:30の回」として扱う。
 - この完成版の構造は固定。色・背景・装飾の変更は引き続き可能。
 

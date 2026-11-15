@@ -4,8 +4,8 @@
 `baseline/official-miniapp-complete-20261115` at
 `a146a1b918b340e4156002c00a880f79692abc05`.
 The official primary entry is `home.html`; the certified LINE
-entry `miniapp-v2/production/index.html` must load the same current
-HOME presentation. Never switch back to archived pages/old theme versions.
+entry `miniapp-v2/production/index.html` must retain its tested native reception UI while sharing the same
+verified three-session board. Never switch to archived pages/old theme versions.
 
 **Mandatory before any miniapp change**:
 - Read `docs/ASOBOON_OFFICIAL_RELEASE_LOCK_20261115.md` and the frozen

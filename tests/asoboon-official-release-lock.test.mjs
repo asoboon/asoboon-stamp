@@ -27,22 +27,31 @@ test('the saved admission rounds and verified shared forecast cannot be replaced
  assert.doesNotMatch(board,/12:30／12:50/);
 });
 
-test('both official entrypoints use the same current chocolate-mint HOME, never a classic rollback',()=>{
- const required=[
-  'boon-mint-v51-preview.js',
-  'boon-home-v56-layout.js',
-  'boon-home-v613-board.js'
- ];
- for(const asset of required){
-  assert.ok(loader.includes(asset+'?v='),'browser HOME: '+asset);
-  assert.ok(certified.includes(asset+'?v='),'certified LINE HOME: '+asset);
- }
+test('official entries keep the approved HOME and native reception safe, never a classic rollback',()=>{
+ assert.ok(loader.includes('boon-mint-v51-preview.js?v='));
+ assert.ok(loader.includes('boon-home-v56-layout.js?v='));
+ assert.ok(loader.includes('boon-home-v613-board.js?v='));
+ // The certified LIFF page uses its proven native reception structure,
+ // but must share the same verified session board and no legacy fallback.
+ assert.ok(certified.includes('boon-home-v613-board.js?v='));
+ assert.doesNotMatch(certified,/boon-home-v56-layout\.js/);
  for(const text of [loader,certified,board,read('miniapp-v2/build-production.mjs')]){
   assert.doesNotMatch(text,/get\('boonTheme'\)/);
  }
  assert.ok(home.includes('production-shell-loader.js?v='));
  assert.ok(read('index.html').includes('"./home.html"'));
  assert.doesNotMatch(certified,/location\.replace\(/);
+});
+
+test('HTML-only and certified template changes invalidate the release identity',()=>{
+ const build=read('miniapp-v2/build-production.mjs');
+ assert.match(build,/const normalizedHome=read\('home.html'\)\.replace/);
+ assert.match(build,/loader,js,css,routeJs,routeCss,normalizedHome/);
+ assert.ok(build.includes("read('miniapp-v2/build-production.mjs')"));
+ const normalized=s=>s.replace(
+  /(release-guard\.js\?id=|production-shell-loader\.js\?v=|production-app\.(?:js|css)\?v=|language-switch-ux-v1\.js\?v=|i18n-ko-kmr-completion-v2\.js\?v=|choco-mint-rich-v12\.css\?v=)[^'"\s<>]+/g,'$1CURRENT');
+ assert.equal(normalized(home),normalized(home.replace(/release-guard\.js\?id=[a-f0-9]{12}/,'release-guard.js?id=ffffffffffff')));
+ assert.notEqual(normalized(home),normalized(home.replace('ASOBooN｜公式LINEミニアプリ','ASOBooN｜将来の新タイトル')));
 });
 
 test('release manifest, published HTML and generated cache keys refer to a single release',()=>{
@@ -67,17 +76,27 @@ test('release manifest, published HTML and generated cache keys refer to a singl
  }
 });
 
-async function simulate({current='aaaaaaaaaaaa',latest='bbbbbbbbbbbb',query='?view=callstatus&foo=1',handoff=false,offline=false}={}){
+async function simulate({current='aaaaaaaaaaaa',latest='bbbbbbbbbbbb',query='?view=callstatus&foo=1',handoff=false,offline=false,interact=false,delayed=false,late=false}={}){
  const redirects=[],requests=[];
  const location={href:'https://asoboon.github.io/asoboon-stamp/home.html'+query,
   replace(url){redirects.push(url)}};
- const document={currentScript:{src:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/release-guard.js?id='+current}};
+ const handlers={};
+ const document={
+  currentScript:{src:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/release-guard.js?id='+current},
+  addEventListener(type,handler){handlers[type]=handler},
+  visibilityState:'visible'
+ };
  const window={ASOBOON_ASOQUEST_HANDOFF:handoff};
+ let deliver,clock=1000;
  const fetch=(url,options)=>{
   requests.push({url,options});
+  if(delayed)return new Promise(resolve=>{deliver=resolve});
   return offline?Promise.reject(Error('offline')):Promise.resolve({ok:true,json:()=>Promise.resolve({releaseId:latest})});
  };
- runInNewContext(guard,{window,document,location,fetch,URL,Date});
+ runInNewContext(guard,{window,document,location,fetch,URL,Date:{now:()=>clock},AbortController,setTimeout,clearTimeout});
+ if(interact)handlers.pointerdown?.();
+ if(late)clock+=1400;
+ if(delayed)deliver({ok:true,json:()=>Promise.resolve({releaseId:latest})});
  await new Promise(resolve=>setImmediate(resolve));
  return {redirects,requests};
 }
@@ -94,5 +113,9 @@ test('an outdated cached entry reloads once with an immutable release key, keepi
  assert.equal((await simulate({query:'?_asoboon_release=bbbbbbbbbbbb'})).redirects.length,0);
  assert.equal((await simulate({offline:true})).redirects.length,0);
  assert.equal((await simulate({handoff:true})).requests.length,0);
+ assert.equal((await simulate({delayed:true,interact:true})).redirects.length,0,
+  'a late release response must never interrupt the visitor after touch interaction');
+ assert.equal((await simulate({delayed:true,late:true})).redirects.length,0,
+  'a slow manifest response must not interrupt an in-flight reception');
  for(const prohibited of ['createReservation','cancelReservation','sendServiceMessage'])assert.ok(!guard.includes(prohibited));
 });

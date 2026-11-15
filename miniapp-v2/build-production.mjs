@@ -126,8 +126,14 @@ window.ASOBOON_MINT_V51_PREVIEW=true;
   document.head.appendChild(next);
 })();
 `;
+// Normalize generated query tokens to keep repeated builds idempotent.
+// HTML markup/inline JS and the certified-entry template still affect the ID.
+const normalizedHome=read('home.html').replace(
+ /(release-guard\.js\?id=|production-shell-loader\.js\?v=|production-app\.(?:js|css)\?v=|language-switch-ux-v1\.js\?v=|i18n-ko-kmr-completion-v2\.js\?v=|choco-mint-rich-v12\.css\?v=)[^'\"\s<>]+/g,'$1CURRENT'
+);
 const releaseId=hash([
- loader,js,css,routeJs,routeCss,
+ loader,js,css,routeJs,routeCss,normalizedHome,
+ read('miniapp-v2/build-production.mjs'), // changes to direct LINE HTML template also rotate the release ID
  read(`${dir}/env.js`),read(`${dir}/release-guard.js`),
  read(`${dir}/language-switch-ux-v1.js`),read(`${dir}/i18n-ko-kmr-completion-v2.js`),
  read(`${dir}/choco-mint-rich-v12.css`)
@@ -177,25 +183,12 @@ window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
 <script defer src="./choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>
 <script defer src="../../${i18nRef(i18nPath)}"></script>
-<!-- Certified LINE entry: same frozen HOME layers as the browser HOME.
+<!-- Certified LINE entry: preserve tested native layout and shared read-only admission board.
      All reception, callstatus, guides and games keep their original structure. -->
 <script>
 (()=>{
  document.addEventListener('DOMContentLoaded',()=>{
   document.documentElement.classList.add('boon-v4','boon-v5-mint');
-  // The official LINE entry must load the same approved HOME layers as home.html.
-  window.ASOBOON_MINT_V51_PREVIEW=true;
-  for(const [kind,src] of [
-   ['style','./boon-mint-v51-preview.css?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.css')}'],
-   ['script','./boon-mint-v51-preview.js?v=${envHash('miniapp-v2/production/boon-mint-v51-preview.js')}'],
-   ['style','./boon-home-v56.css?v=${envHash('miniapp-v2/production/boon-home-v56.css')}'],
-   ['script','./boon-home-v56-layout.js?v=${envHash('miniapp-v2/production/boon-home-v56-layout.js')}']
-  ]){
-   const asset=document.createElement(kind==='style'?'link':'script');
-   if(kind==='style'){asset.rel='stylesheet';asset.href=src}
-   else{asset.async=false;asset.src=src}
-   document.head.appendChild(asset);
-  }
   const css=document.createElement('link');css.rel='stylesheet';
   css.href='./boon-home-v613-board.css?v=${envHash('miniapp-v2/production/boon-home-v613-board.css')}';
   document.head.appendChild(css);

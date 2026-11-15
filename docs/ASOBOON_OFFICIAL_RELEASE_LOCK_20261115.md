@@ -8,7 +8,7 @@
 ## 正式な本番と旧資産
 
 - **正式HOME**：`https://asoboon.github.io/asoboon-stamp/home.html`
-- **認証済みLINEの別入口**：`miniapp-v2/production/index.html`。この入口でも同じチョコミントのHOME構造・案内レイヤーを読み込む。LINEの認証URLと環境IDは変えない。
+- **認証済みLINEの別入口**：`miniapp-v2/production/index.html`。この入口は操作安全性のため軽量なネイティブ画面を維持し、受付枠・混雑予想のボードを正式HOMEと共有する。LINEの認証URLと環境IDは変えない。
 - ルート`index.html`はスタンプ／QR等の旧URLを移行させる導線。ゲームとNFCの互換性があるため一括削除は禁止。通常起動は正式HOMEへ転送する。
 - `home-legacy-*`などは本番HOMEの参照元ではなく履歴・復元素材。削除する前に全導線とリンク元を検証する。
 - `?boonTheme=classic`は旧版を呼び出す原因になるため、どちらの正式入口でも使わない。
@@ -29,6 +29,8 @@
 
 - 編集は`miniapp-v2/shared/`や`miniapp-v2/production/`の原本へ行い、`node miniapp-v2/build-production.mjs`で本番bundleとHTMLを同時生成。生成済み`production-app.js`だけの書き換えは禁止。
 - ビルドは`release.json`にリリースIDを生成。各入口は`release-guard.js`から最新IDを取得し、古いHTMLがキャッシュされていたらクエリを変えて**1回だけ再読み込み**する。LINEの状態パラメータを保持し、通信不能でも受付処理は止めない。
+- キャッシュ確認は起動直後の最大1.2秒まで。ユーザーがタップ・キー操作・送信を開始した後は**自動再読み込みを禁止**し、受付途中の情報を保持する。
+- リリースIDには生成後のクエリ部分を正規化したHOMEのHTML本体とLINE入口の生成テンプレートも含める。HTMLだけを更新しても新しい版になる。
 - HTML、JS、CSSのキャッシュキーはビルドで内容ベースに同期。これにより古いスクリプトが新しいHTMLに混ざる事象を抑止する。
 - `tests/asoboon-official-release-lock.test.mjs`が、旧UIへの切替、両入口での同一デザインモジュール、3回の枠ID、混雑予想式、manifest・キャッシュキー、古いキャッシュからの復旧を検査する。
 - このテストと従来の完成仕様テストを、`miniapp-v2-main-verify`と`newhome-flow-verify`の両方で必須実行する。エラーをテスト削除・緩和でごまかさない。

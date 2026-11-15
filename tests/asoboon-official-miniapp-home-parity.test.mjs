@@ -21,6 +21,6 @@ test('classic URL cannot restore the retired HOME',()=>{
 });
 test('both entrypoint HOME sources are generated reproducibly by build-production.mjs',()=>{
  const s=read('miniapp-v2/build-production.mjs');
- assert.match(s,/Certified LINE entry: same frozen HOME layers as the browser HOME/);
+ assert.match(s,/Certified LINE entry: preserve tested native layout and shared read-only admission board/);
  assert.match(s,/output\(`\$\{dir\}\/index\.html`,index\)/);
 });
