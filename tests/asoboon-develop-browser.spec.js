@@ -234,7 +234,7 @@ test('app reopen discards legacy pending without dispatch proof', async ({page})
 
 test('app reopen clears pending after deterministic REJECTED result', async ({page}) => {
   await openReceptionWithPending(page,{found:true,ok:false,ambiguous:false,error:'AIRWAIT_RECEPTION_ENDED'});
-  await expect(page.locator('#recStatus')).toContainText('受付は終了');
+  await expect(page.locator('#recStatus')).toContainText('予約上限数を超えています');
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem('asoboon_v2_pending_reception_develop_v1'))).toBeNull();
   await expect(page.locator('#recSubmit')).not.toBeDisabled({timeout:1000}).catch(()=>{});
 });

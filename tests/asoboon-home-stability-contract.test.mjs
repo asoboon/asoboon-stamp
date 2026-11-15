@@ -190,3 +190,22 @@ test('HOME status loading must recover even if the extra AirWAIT presentation mo
  assert.match(home,/typeof D\.getCurrent!=='function'\)\{dayError=/);
  assert.match(home,/return \{m,publicStatus:p\}/);
 });
+
+
+test('AirWAIT error 3537 shows a clear booking-limit message in shared and published reception screens',()=>{
+ const text='予約上限数を超えています。';
+ for(const file of ['miniapp-v2/shared/reception.js','miniapp-v2/production/production-routes.js']){
+  const source=read(file);
+  const begin=source.indexOf('function friendlyError(value){');
+  const end=source.indexOf('function render(){',begin);
+  assert.ok(begin>=0&&end>begin,'friendlyError must be defined in '+file);
+  const friendly=new Function('return '+source.slice(begin,end).trim())();
+  for(const code of ['3537','AIRWAIT_CREATE_ERROR_RC_3537','AIRWAIT_RECEPTION_ENDED'])
+   assert.equal(friendly(code),text,file+' '+code);
+  assert.equal(friendly('RECEPTION_CLOSED_FOR_DAY'),'本日の受付は終了しています。',
+   'A genuinely closed business day must retain its existing message');
+  assert.equal(friendly('AIRWAIT_PEOPLE_OVER_LIMIT'),'この人数では受付できません。人数をご確認ください。',
+   'A per-ticket person count error must retain its existing message');
+ }
+ assert.match(read('miniapp-v2/backend/production-gateway.js'),/'3537': 'AIRWAIT_RECEPTION_ENDED'/);
+});

@@ -66,7 +66,7 @@ function lineReceptionOpenNow(){
  return !Number.isFinite(closing)||minutes<closing;
 }
 function scheduleLineOpen(){clearTimeout(LINE_OPEN_TIMER);if(lineReceptionOpenNow())return;const n=jstClock(),now=n.hour*60+n.minute;let delta=lineOpenMinutes()-now;if(delta<=0)delta+=24*60;const seconds=Math.max(1,delta*60-n.second);LINE_OPEN_TIMER=setTimeout(()=>{LINE_OPEN_TIMER=0;if(String(new URLSearchParams(location.search).get('view')||'home')==='reception')void boot()},Math.min(seconds*1000+150,6*60*60*1000))}
-function friendlyError(value){const code=String(value||'');const map={
+function friendlyError(value){const code=String(value||'');if(code==='3537'||code==='AIRWAIT_CREATE_ERROR_RC_3537')return '予約上限数を超えています。';const map={
   LINE_PROFILE_INVALID:'LINEの本人情報を確認できませんでした。ミニアプリを完全に閉じ、公式LINEのメニューから開き直してください。受付番号が表示されていなければ、受付は完了していません。',
   LINE_PROFILE_REAUTHORIZE:'LINEプロフィールの利用許可を確認できません。ミニアプリを完全に閉じ、公式LINEから開き直し、許可画面が出たら同意してください。',
   LINE_PROFILE_SCOPE_REQUIRED:'LINEプロフィールの利用許可が必要です。ミニアプリを公式LINEから開き直し、許可画面が出たら同意してください。',
@@ -91,7 +91,7 @@ function friendlyError(value){const code=String(value||'');const map={
   AIRWAIT_NO_TICKETS_TODAY:'本日の受付は現在利用できません。',
   AIRWAIT_RECEPTION_UNAVAILABLE:'本日の受付は現在利用できません。',
   AIRWAIT_PEOPLE_OVER_LIMIT:'この人数では受付できません。人数をご確認ください。',
-  AIRWAIT_RECEPTION_ENDED:'本日の受付は終了しています。',
+  AIRWAIT_RECEPTION_ENDED:'予約上限数を超えています。',
   AIRWAIT_UNAUTHORIZED_OPERATION:'受付システムに接続できません。時間をおいてもう一度お試しください。',
   AIRWAIT_UNREGISTERED_DATA:'選択した受付枠を受付システムへ登録できませんでした。最新の受付状況を確認して、もう一度お試しください。',
   AIRWAIT_WAIT_TYPE_UNUSED:'選択した受付枠は現在利用できません。画面を開き直して最新の受付状況をご確認ください。',
