@@ -71,6 +71,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify Production bundles are current
         run: node miniapp-v2/build-production.mjs --check
+      - name: HOME frozen UX contract (2026-11-15)
+        run: node --test tests/asoboon-home-stability-contract.test.mjs
       - name: Browser JavaScript syntax
         run: |
           set -euo pipefail

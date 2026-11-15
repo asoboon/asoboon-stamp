@@ -104,10 +104,7 @@ function pageHtml(){return `<section class="page-card cs-page"><div class="page-
 <div id="csHeartbeat" class="cs-heartbeat" role="status" aria-live="off"><span class="cs-heartbeat-dot" aria-hidden="true"></span><span id="csHeartbeatLabel">自動更新を準備しています</span></div>
 <button id="csRefresh" class="cs-refresh" type="button">↻ 今すぐ更新</button>
 <div id="csCancelArea" class="cs-cancel-area" hidden><button id="csCancel" class="cs-cancel" type="button">受付をキャンセルする</button><small>キャンセル後は元の順番には戻せません。</small></div>
-    <div id="csRebookArea" class="cs-rebook-area" hidden>
-      <button id="csRebook" class="cs-rebook" type="button" data-v7-view="reception">もう一度受付する</button>
-      <small>新しい受付は、受付時間と空き枠をご確認のうえお手続きください。</small>
-    </div>
+
 <div id="csError" class="cs-error" hidden></div>
 <div class="cs-note"><strong>自動更新：</strong>開いている間は状況に応じて約8〜45秒ごとに確認します。通信集中時には更新間隔を延ばして再試行します。画面を閉じている間は通信を止め、LINE呼出通知を優先します。</div>
 </div>
@@ -204,7 +201,7 @@ function stateMeta(state,ahead){
     case'hold':return{cls:'hold',icon:'⏸️',title:'保留中です',msg:'スタッフの案内をご確認ください。'};
     case'processing':return{cls:'processing',icon:'✅',title:'受付対応中です',msg:'スタッフが受付対応を進めています。'};
     case'done':return{cls:'done',icon:'🏁',title:'ご案内済みです',msg:'この受付はご案内済みになっています。'};
-    case'canceled':return{cls:'canceled',icon:'✕',title:'受付は取消済みです',msg:'この番号の自動確認は終了しました。受付をやり直す場合は下のボタンをご利用ください。'};
+    case'canceled':return{cls:'canceled',icon:'✕',title:'受付は取消済みです',msg:'この番号の自動確認は終了しました。次の受付はHOMEの受付枠からお進みください。'};
     case'closed':return{cls:'closed',icon:'✓',title:'本日の受付は終了しました',msg:'この受付番号の呼出状況表示は終了しています。'};
     default:return{cls:'loading',icon:'🔄',title:'状況を確認しています',msg:'AirWAITの最新情報を取得しています。'};
   }
