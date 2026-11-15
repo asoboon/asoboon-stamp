@@ -245,7 +245,8 @@ function buildPublicBoard(){
   const pct=group.forecast===false||web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
   const card=elem('article','v615-session');
   const head=elem('div','v615-session-head');
-  const groupTitle=group.title==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?group.title:group.title.replace('の回','');
+  const publishedTitle=group.title==='12:30／12:50'&&(!a||!b)?(a?'12:30の回':'12:50頃入場'):group.title;
+  const groupTitle=publishedTitle==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?publishedTitle:publishedTitle.replace('の回','');
   head.appendChild(elem('strong','v615-session-title',groupTitle));
   const forecast=elem('div','v615-session-forecast');
   forecast.appendChild(elem('span','v615-forecast-label',labels[0]));
