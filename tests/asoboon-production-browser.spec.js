@@ -5411,3 +5411,23 @@ test('HOME never stays in the LINE and WEB loading message when business-day ver
  await expect(page.locator('#v38Slots')).not.toContainText('受付枠を確認しています');
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
+
+test('HOME fallback completes on LINE browsers without AbortSignal.timeout support',async({page})=>{
+ await installProduction(page);
+ await page.addInitScript(()=>{
+  Object.defineProperty(AbortSignal,'timeout',{configurable:true,value:undefined});
+ });
+ await page.route(/crowd-visibility\.mjs/,route=>route.abort('failed'));
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+   waitTypes:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',dispFlg:true,
+    usageDispType:'KeyONLINE_RECEPTION_ONLY'}],
+   publicReception:{verified:true,source:'AirWAIT-public-page',
+    fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,
+    slots:[{waitTypeId:'0032',waitTypeName:'12時半ご入場枠【WEB整理券】',
+      usageDispType:'KeyONLINE_RECEPTION_ONLY',remaining:42,remainingVerified:true}]}
+  })}));
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('42人',{timeout:15000});
+ await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
+});

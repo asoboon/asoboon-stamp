@@ -183,6 +183,8 @@ test('HOME status loading must recover even if the extra AirWAIT presentation mo
  assert.match(home,/import\('\.\/crowd-visibility\.mjs\?v=2'\)\.catch\(\(\)=>null\)/);
  assert.match(home,/fetch\(E\.backendUrl\+'\?action=waitTypes&includePublicReception=1'/);
  assert.match(home,/x\?\.ok&&Array\.isArray\(x\.waitTypes\)/);
+ assert.match(home,/new AbortController\(\)/);
+ assert.match(home,/clearTimeout\(t\)/);
  assert.match(home,/if\(publicReception\?\.source==='initial'&&!dayError\)/);
  assert.match(home,/dayError\?'営業情報を取得できません。'/);
  assert.match(home,/return \{m,publicStatus:p\}/);
