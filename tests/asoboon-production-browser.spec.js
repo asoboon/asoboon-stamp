@@ -367,12 +367,13 @@ test('business calendar shows API dates, fixed weekdays and faded past days',asy
 
 async function installCertifiedProduction(page){
   await installProduction(page);
+  const site=new URL('../../',BASE).href;
   await page.route('**/miniapp-v2/production/env-facility.js*',async route=>{
     let env=fs.readFileSync('miniapp-v2/production/env-facility.js','utf8');
     env=env
-      .replace("endpoint:'https://asoboon.github.io/asoboon-stamp/home.html'","endpoint:'http://127.0.0.1:4173/home.html'")
-      .replace("assetBase:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'","assetBase:'http://127.0.0.1:4173/miniapp-v2/production/'")
-      .replace("siteBase:'https://asoboon.github.io/asoboon-stamp/'","siteBase:'http://127.0.0.1:4173/'")
+      .replace("endpoint:'https://asoboon.github.io/asoboon-stamp/home.html'",`endpoint:'${site}home.html'`)
+      .replace("assetBase:'https://asoboon.github.io/asoboon-stamp/miniapp-v2/production/'",`assetBase:'${BASE}'`)
+      .replace("siteBase:'https://asoboon.github.io/asoboon-stamp/'",`siteBase:'${site}'`)
       .replace("backendUrl:''",`backendUrl:'${GATEWAY}'`)
       .replace('receptionCreate:false','receptionCreate:true')
       .replace('serviceMessage:false','serviceMessage:true');
@@ -4598,6 +4599,36 @@ test('Call route ticket list fails closed on stale or unavailable AirWAIT board 
  await panel.locator('#csNumberListRefresh').click();
  await expect(panel.locator('#csNumberListNotice')).toContainText('番号一覧を更新できませんでした',{timeout:15000});
  await expect(panel.locator('.cs-number-chip')).toHaveCount(0);
+});
+
+test('official LINE root HOME keeps 13:30 verified forecast with an extra Orange Pass slot',async({page})=>{
+ await installCertifiedProduction(page);
+ const slots=[
+  {waitTypeId:'0038',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'13時半ご入場枠【WEB平日特定日】',remaining:223,remainingVerified:true},
+  {waitTypeId:'0037',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'13時45分から【平日特定日】',remaining:60,remainingVerified:true},
+  {waitTypeId:'0099',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'オレンジパス(1歳半までのマンスリーパス)',remaining:40,remainingVerified:true}
+ ];
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>
+  route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:slots.map(x=>({waitTypeId:x.waitTypeId,dispFlg:true,usageDispType:x.usageDispType})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',
+    isOpen:true,acceptingOnline:true,slots}
+  })})
+ );
+ const site=new URL('../../',BASE).href;
+ await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
+ await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
+ await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
+ await expect(board.locator('.v615-extra-title')).toContainText('オレンジパス');
+ await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
 });
 
 test('HOME special weekday keeps combined 13:30 forecast even when Orange Pass is also published',async({page})=>{
