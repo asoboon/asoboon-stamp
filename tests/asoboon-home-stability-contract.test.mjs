@@ -54,6 +54,23 @@ test('special weekdays have two WEB+LINE combined forecast sessions',()=>{
  assert.equal(calc({},320,10),null);
 });
 
+test('supplementary AirWAIT wait types never disable grouped forecast or join the 320 base',()=>{
+ assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)))'));
+ assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)))'));
+ assert.doesNotMatch(board,/elem\('article','v615-extra-slot'\)/);
+ assert.doesNotMatch(board,/ordered\.some\(x=>!ids\.has\(String\(x\.waitTypeId\)\)\)/);
+ // The 320 denominator must use only recognized admission rounds.
+ assert.ok(board.includes('const web=publicCount(a?.slot),line=publicCount(b?.slot)'));
+ assert.ok(board.includes('320-web-line'));
+ assert.ok(!board.includes('320-web-line-extra'));
+ assert.ok(board.includes('LINE・現地受付'));
+ assert.doesNotMatch(board,/v616-booking-state|v616-booking-rows|v616-booking-open-hint/);
+ const browser=read('tests/asoboon-production-browser.spec.js');
+ assert.ok(browser.includes('WEB223 + LINE60'));
+ assert.ok(browser.includes(".toHaveText(['12%'])"));
+ assert.ok(browser.includes('HOME weekend 12:30 remains combined when an extra AirWAIT wait type is published'));
+});
+
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{
  const m=board.match(/\bconst pct=([^;]+);/);
  assert.ok(m,'per-session forecast must be present');
@@ -78,7 +95,7 @@ test('unpublished, stale and unverified onsite AirWAIT numbers never become trus
 
 test('HOME preserves compact WEB/LINE panels and removes duplicate WEB and crowd footers',()=>{
  for(const invariant of [
-  'v616BookingChannels','v615SessionBoard',"'WEB受付'","'LINE受付'",
+  'v616BookingChannels','v615SessionBoard',"'WEB受付'","'LINE・現地受付'",
   "'7:00〜'","'9:30〜'","'LINE・現地受付'"
  ])assert.ok(board.includes(invariant),'HOME landmark missing: '+invariant);
  assert.doesNotMatch(home,/WEB受付を確認/);
@@ -89,16 +106,15 @@ test('HOME preserves compact WEB/LINE panels and removes duplicate WEB and crowd
 
 test('LINE booking-screen preview retains verified, time and closing conditions',()=>{
  for(const invariant of [
-  "panel.dataset.v7View='reception'","cell.dataset.v7View='reception'",
-  "if(key==='line'&&previewEnabled)",
+  "cell.dataset.v7View='reception'",
   "if(previewEnabled&&slot?.usageDispType==='KeySTORE_RECEPTION_ONLY')",
   'jstMinutes()>=420','publicData?.verified===true',
   'previewTomorrow','ended|closed|tomorrow|error|loading'
  ])assert.ok(board.includes(invariant),'Preview guard missing: '+invariant);
  for(const name of [
-  'HOME LINE header opens reservation preview at 09:15 but does not permit early ticket creation',
+  'HOME LINE opening-time label has no redundant CTA before 9:30',
   'HOME onsite session cell itself navigates to reception after LINE opening',
-  'HOME LINE header supports keyboard navigation and preserves read-only before 9:30'
+  'HOME LINE opening-time label is not keyboard-actionable before 9:30'
  ])assert.ok(browserTests.includes(name),'Required browser E2E missing: '+name);
 });
 
@@ -127,8 +143,8 @@ test('duplicate another reception CTA is absent, terminal status and HOME bookin
  assert.doesNotMatch(read('miniapp-v2/shared/callstatus.js'),/id="csRebook"|もう一度受付する/);
  assert.match(home,/前の受付は終了しています/);
  assert.match(home,/受付が取り消されました/);
- assert.match(board,/panel\.dataset\.v7View='reception'/);
- assert.match(browserTests,/HOME LINE header opens reservation preview/);
+ assert.match(board,/cell\.dataset\.v7View='reception'/);
+ assert.match(browserTests,/HOME LINE opening-time label has no redundant CTA/);
 });
 
 const {publishedStatus,freshPublicOnFailure}=await import('../miniapp-v2/production/crowd-visibility.mjs');
