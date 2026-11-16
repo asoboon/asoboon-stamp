@@ -93,6 +93,12 @@ test('unpublished, stale and unverified onsite AirWAIT numbers never become trus
  assert.match(browserTests,/HOME forecast never invents onsite counts from unverified getWaitInfo details/);
 });
 
+test('HOME never reintroduces the redundant reception hours strip',()=>{
+ assert.doesNotMatch(home,/receptionHoursNote|v38-reception-hours/);
+ assert.ok(board.includes("'7:00〜'"),'WEB opening time remains in booking summary');
+ assert.ok(board.includes("'9:30〜'"),'LINE opening time remains in booking summary');
+});
+
 test('HOME preserves compact WEB/LINE panels and removes duplicate WEB and crowd footers',()=>{
  for(const invariant of [
   'v616BookingChannels','v615SessionBoard',"'WEB受付'","'LINE・現地受付'",
