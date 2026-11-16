@@ -44,6 +44,6 @@ window.ASOBOON_MINT_V51_PREVIEW=true;
   nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=9923ba684159';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=83226f8d5bb0';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=ad1e027607b6';
   document.head.appendChild(next);
 })();
