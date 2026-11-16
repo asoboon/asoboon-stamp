@@ -218,10 +218,14 @@ function buildPublicBoard(){
    .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
  const onsite=verifiedOnsiteSlots().filter(x=>!published.some(p=>String(p.waitTypeId)===String(x.waitTypeId)));
  const ordered=[...published,...onsite];
- const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]));
- // On weekdays or if AirWAIT introduces an unrecognized slot, show the
- // native verified list instead of silently omitting a published option.
- if(!ordered.length||ordered.some(x=>!ids.has(String(x.waitTypeId)))){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]).filter(Boolean));
+ // Extra published AirWAIT types (e.g. the infant Orange Pass) do not
+ // belong to a regular admission round. Keep them visible as separate
+ // verified cards; never include their remaining count in the 320-person
+ // session forecast or discard all legitimate rounds because of one extra ID.
+ // If no known admission round is published, preserve the native list.
+ const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)));
+ if(!grouped.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];
  if(cards.length!==published.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const lang=language(),labels=publicGroupLabels(lang);
@@ -233,8 +237,11 @@ function buildPublicBoard(){
  const signature=JSON.stringify([lang,data.fetchedAt,previewEnabled,ordered.map(x=>
    [x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent),data.isOpen,jstMinutes()>=570]);
  if(existing?.dataset.signature===signature){slots.classList.add('v615-public-ready');return}
- const map=new Map(published.map((x,i)=>[String(x.waitTypeId),{slot:x,source:cards[i]}]));
- for(const slot of onsite)map.set(String(slot.waitTypeId),{slot,source:null,synthetic:true});
+ const entries=[...published.map((slot,i)=>({slot,source:cards[i]})),
+  ...onsite.map(slot=>({slot,source:null,synthetic:true}))];
+ const map=new Map(entries.filter(x=>ids.has(String(x.slot.waitTypeId)))
+  .map(x=>[String(x.slot.waitTypeId),x]));
+ const extras=entries.filter(x=>!ids.has(String(x.slot.waitTypeId)));
  const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
  for(const group of PUBLIC_GROUPS){
   const a=map.get(group.web),b=map.get(group.line);
@@ -260,6 +267,18 @@ function buildPublicBoard(){
   }));
   if(!a||!b)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
+ }
+ // Additional published channels remain independently visible and actionable
+ // only when their existing verified native controls are actionable. They
+ // must never receive a fabricated LINE booking action or forecast.
+ for(const extra of extras){
+  const slot=extra.slot;
+  const name=String(slot.waitTypeName||labels[4]).trim()||labels[4];
+  const card=elem('article','v615-extra-slot');
+  card.appendChild(elem('strong','v615-extra-title',name));
+  const channel=slot.usageDispType==='KeyONLINE_RECEPTION_ONLY'?labels[1]:labels[2];
+  card.appendChild(publicChannel(slot,extra.source,channel));
+  board.appendChild(card);
  }
  existing?.remove();slots.insertBefore(board,list);slots.classList.add('v615-public-ready');
 }

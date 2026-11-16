@@ -54,6 +54,22 @@ test('special weekdays have two WEB+LINE combined forecast sessions',()=>{
  assert.equal(calc({},320,10),null);
 });
 
+test('supplementary AirWAIT wait types never disable grouped forecast or join the 320 base',()=>{
+ assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)))'));
+ assert.ok(board.includes('const extras=entries.filter(x=>!ids.has(String(x.slot.waitTypeId)))'));
+ assert.ok(board.includes("elem('article','v615-extra-slot')"));
+ assert.ok(board.includes('card.appendChild(publicChannel(slot,extra.source,channel))'));
+ assert.doesNotMatch(board,/ordered\.some\(x=>!ids\.has\(String\(x\.waitTypeId\)\)\)/);
+ // The 320 denominator must use only recognized admission rounds.
+ assert.ok(board.includes('const web=publicCount(a?.slot),line=publicCount(b?.slot)'));
+ assert.ok(board.includes('320-web-line'));
+ assert.ok(!board.includes('320-web-line-extra'));
+ const browser=read('tests/asoboon-production-browser.spec.js');
+ assert.ok(browser.includes('WEB223 + LINE60'));
+ assert.ok(browser.includes(".toHaveText(['12%'])"));
+ assert.ok(browser.includes('HOME weekend 12:30 remains combined when an extra AirWAIT wait type is published'));
+});
+
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{
  const m=board.match(/\bconst pct=([^;]+);/);
  assert.ok(m,'per-session forecast must be present');

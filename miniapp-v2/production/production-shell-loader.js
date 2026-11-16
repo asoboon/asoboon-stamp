@@ -41,9 +41,9 @@ window.ASOBOON_MINT_V51_PREVIEW=true;
   document.head.appendChild(deck);
   // v6.13: read-only compact board and forecast. Never calls reception APIs.
   const nextCss=document.createElement('link');nextCss.rel='stylesheet';
-  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=9923ba684159';
+  nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=85ccc4234a9a';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=ad1e027607b6';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=9b2ec4052197';
   document.head.appendChild(next);
 })();

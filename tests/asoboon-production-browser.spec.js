@@ -4600,6 +4600,65 @@ test('Call route ticket list fails closed on stale or unavailable AirWAIT board 
  await expect(panel.locator('.cs-number-chip')).toHaveCount(0);
 });
 
+test('HOME special weekday keeps combined 13:30 forecast even when Orange Pass is also published',async({page})=>{
+ await installProduction(page);
+ // Regression for the 2026-11-16 LINE screenshot: WEB223 + LINE60
+ // are one 13:30 round; Orange Pass40 is a separate, unrecognized wait type.
+ const slots=[
+  {waitTypeId:'0038',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'13時半ご入場枠【WEB平日特定日】',remaining:223,remainingVerified:true},
+  {waitTypeId:'0037',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'13時45分から【平日特定日】',remaining:60,remainingVerified:true},
+  {waitTypeId:'0099',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'オレンジパス(1歳半までのマンスリーパス)',remaining:40,remainingVerified:true}
+ ];
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>
+  route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:slots.map(x=>({waitTypeId:x.waitTypeId,dispFlg:true,usageDispType:x.usageDispType})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',
+    isOpen:true,acceptingOnline:true,slots}
+  })})
+ );
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
+ await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
+ await expect(board.locator('.v615-extra-slot')).toHaveCount(1);
+ await expect(board.locator('.v615-extra-title')).toHaveText('オレンジパス(1歳半までのマンスリーパス)');
+ await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
+ // Unknown LINE wait type stays read-only unless the native screen
+ // proves it can be booked. Never fabricate a reservation action.
+ await expect(board.locator('.v615-extra-slot button[data-v7-view="reception"]')).toHaveCount(0);
+ await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
+ await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
+ for(const width of [320,390,430]){
+  await page.setViewportSize({width,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ }
+});
+
+test('HOME weekend 12:30 remains combined when an extra AirWAIT wait type is published',async({page})=>{
+ await installProduction(page);
+ const slots=[
+  {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:110,remainingVerified:true},
+  {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:30,remainingVerified:true},
+  {waitTypeId:'0099',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'オレンジパス(1歳半までのマンスリーパス)',remaining:40,remainingVerified:true}
+ ];
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>
+  route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:slots.map(x=>({waitTypeId:x.waitTypeId,dispFlg:true,usageDispType:x.usageDispType})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',
+    isOpen:true,acceptingOnline:true,slots}
+  })})
+ );
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
+ await expect(board.locator('.v615-session-title')).toHaveText(['12:30の回']);
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['56%']);
+ await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
+ await expect(board.locator('.v615-extra-slot button[data-v7-view="reception"]')).toHaveCount(0);
+});
+
 test('HOME special weekday forecasts combine WEB 10:00 + LINE 10:15 and WEB 13:30 + LINE 13:45',async({page})=>{
  await installProduction(page);
  const slots=[

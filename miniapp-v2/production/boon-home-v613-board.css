@@ -380,6 +380,21 @@ html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session{
  border:1px solid #A9DFD3!important;border-radius:15px!important;
  background:#F5FFFB!important;box-shadow:0 3px 9px rgba(22,109,102,.07)!important;
 }
+/* Supplementary published AirWAIT wait types are not an admission round.
+   Keep their original name, verified capacity, and native booking safety. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-extra-slot{
+ min-width:0!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ justify-content:space-between!important;gap:10px!important;
+ padding:9px 12px!important;border:1px solid #A9DFD3!important;border-radius:13px!important;
+ background:#F5FFFB!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-extra-title{
+ min-width:0!important;flex:1 1 155px!important;overflow-wrap:anywhere!important;
+ font-size:13px!important;line-height:1.4!important;font-weight:850!important;color:#166D66!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-extra-slot>.v615-channel{
+ flex:1 1 155px!important;max-width:100%!important;margin:0!important;
+}
 html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session-head{
  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0!important;
 }
