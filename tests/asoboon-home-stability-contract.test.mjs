@@ -19,7 +19,7 @@ test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
  const block=board.match(/const PUBLIC_GROUPS=Object\.freeze\(\[([\s\S]*?)\]\);/);
  assert.ok(block,'The public ID list must remain explicit and auditable');
  const sessions=[...block[1].matchAll(/\{title:'([^']+)',web:'(\d{4})',line:'(\d{4})'\}(?!,forecast:false)/g)]
- .map(([,title,web,line])=>({title,web,line}));
+ .map(([,title,web,line])=>({title,web,line})).filter(({web})=>['0030','0032','0034'].includes(web));
  assert.deepEqual(sessions,[
   {title:'10:00の回',web:'0030',line:'0029'},
   {title:'12:30の回',web:'0032',line:'0031'},
@@ -30,6 +30,28 @@ test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
  assert.ok(board.includes("const web=publicCount(a?.slot),line=publicCount(b?.slot)"),'Both reception channels feed one session forecast');
  assert.ok(board.includes("320-web-line"),'Crowd forecast uses verified remaining places from both channels');
  assert.doesNotMatch(board,/12:30／12:50/,'Do not split the same admission session into two visible times');
+});
+
+test('special weekdays have two WEB+LINE combined forecast sessions',()=>{
+ const block=board.match(/const PUBLIC_GROUPS=Object\.freeze\(\[([\s\S]*?)\]\);/);
+ assert.ok(block);
+ for(const [web,line,title] of [['0036','0035','10:00の回'],['0038','0037','13:30の回']]){
+  assert.ok(block[1].includes("{title:'"+title+"',web:'"+web+"',line:'"+line+"'}"),title);
+  assert.ok(!block[1].includes("web:'"+web+"',line:'"+line+"',forecast:false"),title+' must not be disabled');
+ }
+ for(const row of [
+  "{title:'すぐ入場',web:null,line:'0023',forecast:false}",
+  "{title:'10:00の回',web:'0024',line:null,forecast:false}",
+  "{title:'14:00の回',web:'0027',line:'0025',forecast:false}"
+ ])assert.ok(block[1].includes(row),'ordinary weekday fallback unchanged');
+ const pct=board.match(/\bconst pct=([^;]+);/);
+ assert.ok(pct);
+ const calc=new Function('group','web','line','return '+pct[1]);
+ assert.equal(calc({},140,59),38);
+ assert.equal(calc({},80,22),68);
+ assert.equal(calc({},140,null),null);
+ assert.equal(calc({},null,22),null);
+ assert.equal(calc({},320,10),null);
 });
 
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{

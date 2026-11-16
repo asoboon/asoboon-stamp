@@ -114,8 +114,8 @@ const PUBLIC_GROUPS=Object.freeze([
  {title:'すぐ入場',web:null,line:'0023',forecast:false},
  {title:'10:00の回',web:'0024',line:null,forecast:false},
  {title:'14:00の回',web:'0027',line:'0025',forecast:false},
- {title:'10:00の回',web:'0036',line:'0035',forecast:false},
- {title:'13:30の回',web:'0038',line:'0037',forecast:false},
+ {title:'10:00の回',web:'0036',line:'0035'},
+ {title:'13:30の回',web:'0038',line:'0037'},
  {title:'10:00の回',web:'0030',line:'0029'},
  {title:'12:30の回',web:'0032',line:'0031'},
  {title:'15:00の回',web:'0034',line:'0033'}
