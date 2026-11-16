@@ -4622,8 +4622,8 @@ test('official LINE root HOME keeps 13:30 verified forecast with an extra Orange
  await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
  await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
  await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
- await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
- await expect(board.locator('.v615-extra-title')).toContainText('オレンジパス');
+ await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
+ await expect(board).not.toContainText('オレンジパス');
  await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
  for(const width of [320,390,430]){
   await page.setViewportSize({width,height:844});
@@ -4653,12 +4653,12 @@ test('HOME special weekday keeps combined 13:30 forecast even when Orange Pass i
  await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
  await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
  await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
- await expect(board.locator('.v615-extra-slot')).toHaveCount(1);
- await expect(board.locator('.v615-extra-title')).toHaveText('オレンジパス(1歳半までのマンスリーパス)');
- await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
+ await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
+ await expect(board).not.toContainText('オレンジパス');
+ await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
  // Unknown LINE wait type stays read-only unless the native screen
  // proves it can be booked. Never fabricate a reservation action.
- await expect(board.locator('.v615-extra-slot button[data-v7-view="reception"]')).toHaveCount(0);
+ await expect(board.locator('.v615-extra-slot [data-v7-view]')).toHaveCount(0);
  await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
  await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
  for(const width of [320,390,430]){
@@ -4686,8 +4686,8 @@ test('HOME weekend 12:30 remains combined when an extra AirWAIT wait type is pub
  await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
  await expect(board.locator('.v615-session-title')).toHaveText(['12:30の回']);
  await expect(board.locator('.v615-forecast-value')).toHaveText(['56%']);
- await expect(board.locator('.v615-extra-slot .v615-channel-count')).toHaveText('40人');
- await expect(board.locator('.v615-extra-slot button[data-v7-view="reception"]')).toHaveCount(0);
+ await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
+ await expect(board.locator('.v615-extra-slot [data-v7-view]')).toHaveCount(0);
 });
 
 test('HOME special weekday forecasts combine WEB 10:00 + LINE 10:15 and WEB 13:30 + LINE 13:45',async({page})=>{
@@ -5012,8 +5012,8 @@ test('Public AirWAIT temporary stop disables LINE booking despite positive store
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const box=page.locator('#v38Slots');
  await expect(box).toContainText('Airウェイトで現在選択できる受付枠はありません',{timeout:15000});
- await expect(box.locator('#v616BookingChannels [data-channel=web]')).toContainText('公開枠なし');
- await expect(box.locator('#v616BookingChannels [data-channel=line]')).toContainText('公開枠なし');
+ await expect(box.locator('#v616BookingChannels [data-channel=web]')).toContainText('7:00〜');
+ await expect(box.locator('#v616BookingChannels [data-channel=line]')).toContainText('9:30〜');
  await expect(box.locator('.v38-crowd-card')).toHaveCount(0);
  await expect(box.locator('[data-v7-view="reception"]')).toHaveCount(0);
  await expect(page.locator('#v38Hero')).not.toContainText('順番を取る');
@@ -5199,10 +5199,10 @@ test('HOME preserves independent LINE and crowd access when only WEB is publicly
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  await expect(page.locator('#v615SessionBoard')).toBeVisible({timeout:16000});
  await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('WEB受付');
- await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('公開中 1枠');
- await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('LINE受付');
+ await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('7:00〜');
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('LINE・現地受付');
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
- await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開枠なし');
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).not.toContainText('公開枠');
  await expect(page.locator('#v615EssentialLine button[data-v7-view="reception"]')).toHaveCount(0);
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v615SessionBoard .v615-forecast-value')).toHaveText(['—']);
@@ -5239,8 +5239,8 @@ test('HOME permanently displays both WEB and LINE reception panels with verified
  const line=page.locator('#v616BookingChannels [data-channel="line"]');
  await expect(web).toBeVisible({timeout:16000});
  await expect(line).toBeVisible();
- await expect(web).toContainText('公開中 2枠');
- await expect(line).toContainText('公開中 2枠');
+ await expect(web).toContainText('7:00〜');
+ await expect(line).toContainText('9:30〜');
  await expect(page.locator('#v615SessionBoard .v615-session')).toHaveCount(2);
  await expect(page.locator('#v615SessionBoard .v615-channel-action')).toHaveCount(4);
  await expect(page.locator('#v615SessionBoard .v615-channel-count')).toContainText(['124人','61人','70人','35人']);
@@ -5263,13 +5263,13 @@ test('HOME shows only verified published WEB/LINE slots when AirWAIT adds unreco
  await expect(page.locator('#v615SessionBoard')).toHaveCount(0);
  const web=page.locator('#v616BookingChannels [data-channel="web"]');
  const line=page.locator('#v616BookingChannels [data-channel="line"]');
- await expect(web).toContainText('10:00',{timeout:16000});
- await expect(web).toContainText('45人');
- await expect(line).toContainText('10:15');
- await expect(line).toContainText('23人');
+ await expect(web).toContainText('7:00〜',{timeout:16000});
+ await expect(page.locator('#v38Slots .v38-crowd-list')).toContainText('45人');
+ await expect(line).toContainText('9:30〜');
+ await expect(page.locator('#v38Slots .v38-crowd-list')).toContainText('23人');
  // Unrecognized LINE waitType is not automatically made actionable.
  await expect(line.locator('button[data-v7-view="reception"]')).toHaveCount(0);
- await expect(web.locator('a[href*="airwait.jp"]')).toBeVisible();
+ await expect(page.locator('#v38Slots .v38-crowd-list a[href*="airwait.jp"]')).toBeVisible();
 });
 
 test('HOME keeps separate WEB/LINE labels with no invented quota after public data failure',async({page})=>{
@@ -5279,9 +5279,9 @@ test('HOME keeps separate WEB/LINE labels with no invented quota after public da
  const panels=page.locator('#v616BookingChannels .v616-booking-panel');
  await expect(panels).toHaveCount(2,{timeout:16000});
  await expect(panels.nth(0)).toContainText('WEB受付');
- await expect(panels.nth(1)).toContainText('LINE受付');
- await expect(panels.nth(0)).toContainText('未確認');
- await expect(panels.nth(1)).toContainText('未確認');
+ await expect(panels.nth(1)).toContainText('LINE・現地受付');
+ await expect(panels.nth(0)).not.toContainText('未確認');
+ await expect(panels.nth(1)).not.toContainText('未確認');
  await expect(page.locator('#v616BookingChannels .v616-booking-action')).toHaveCount(0);
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
@@ -5294,8 +5294,8 @@ test('WEB slots remain selectable at 09:15 even when LINE reception has not open
    {waitTypeId:'0031',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'12時50分頃入場【土休日特定日】',remaining:22,remainingVerified:true}
   ]}})}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('公開中 1枠',{timeout:16000});
- await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 1枠');
+ await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('7:00〜',{timeout:16000});
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-channel-count')).toHaveText(['68人','22人']);
  await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
@@ -5338,7 +5338,7 @@ test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts agai
  await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
  await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
  await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','15:15']);
- await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('公開中 3枠');
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();
  // 12:00 JST: verified, published store slots are navigable, WEB is still selectable only when non-full.
@@ -5408,7 +5408,7 @@ test('HOME stays open when WEB is full but verified 10:25 onsite quota is bookab
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).not.toHaveClass(/is-closed/);
 });
 
-test('HOME LINE header opens reservation preview at 09:15 but does not permit early ticket creation',async({page})=>{
+test('HOME LINE opening-time label has no redundant CTA before 9:30',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
  await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
@@ -5421,12 +5421,12 @@ test('HOME LINE header opens reservation preview at 09:15 but does not permit ea
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const line=page.locator('#v616BookingChannels [data-channel="line"]');
  await expect(line).toBeVisible({timeout:16000});
- await expect(line).toContainText('受付画面を開く');
+ await expect(line).toContainText('LINE・現地受付');
+ await expect(line).toContainText('9:30〜');
+ await expect(line.locator('a,button')).toHaveCount(0);
+ await expect(line).not.toHaveAttribute('role','button');
  await line.click();
- await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
- await expect(page.locator('#recSlots')).toContainText('LINE当日受付は9:30からです',{timeout:16000});
- await expect(page.locator('#recSubmit')).toBeDisabled();
- await expect(page.locator('#recSubmit')).toContainText('受付は9:30から');
+ expect(new URL(page.url()).searchParams.get('view')).toBe('home');
  expect(creates).toBe(0);
 });
 
@@ -5459,7 +5459,7 @@ test('HOME onsite session cell itself navigates to reception after LINE opening'
  await expect(page.locator('#recSlots')).toBeVisible({timeout:16000});
 });
 
-test('HOME LINE header supports keyboard navigation and preserves read-only before 9:30',async({page})=>{
+test('HOME LINE opening-time label is not keyboard-actionable before 9:30',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
  await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
@@ -5470,10 +5470,11 @@ test('HOME LINE header supports keyboard navigation and preserves read-only befo
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const link=page.locator('#v616BookingChannels [data-channel="line"]');
  await expect(link).toBeVisible({timeout:16000});
- await link.focus();
- await page.keyboard.press('Enter');
- await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
- await expect(page.locator('#recSubmit')).toBeDisabled();
+ await expect(link).not.toHaveAttribute('tabindex','0');
+ await expect(link).not.toHaveAttribute('data-v615-nav','1');
+ await expect(link.locator('a,button')).toHaveCount(0);
+ await link.click();
+ expect(new URL(page.url()).searchParams.get('view')).toBe('home');
 });
 
 
@@ -5540,7 +5541,7 @@ test('HOME ends loading state when both auxiliary import and AirWAIT fallback fa
  await expect(page.locator('#v38Slots')).toContainText('最新の受付枠を確認できませんでした',{timeout:15000});
  await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
  await expect(page.locator('#v38Slots .v38-crowd-card')).toHaveCount(0);
- await expect(page.locator('#v616BookingChannels [data-channel=line]')).toContainText('未確認');
+ await expect(page.locator('#v616BookingChannels [data-channel=line]')).toContainText('9:30〜');
 });
 
 
