@@ -1173,36 +1173,21 @@ test('Production HOME does not show yesterday receipt or saved calling after the
   expect(await page.evaluate(()=>localStorage.getItem('asoboon_v2_home_status_production_v1'))).toBeNull();
 });
 
-test('Production HOME shows compact 9:30 MINI App and 7:00 WEB reception hours with optional AirWAIT link',async({page})=>{
-  const externalRequests=[];
-  page.on('request',req=>{if(new URL(req.url()).hostname==='airwait.jp')externalRequests.push(req.url())});
+test('Production HOME removes redundant start-hours strip while preserving verified booking links',async({page})=>{
   await installProduction(page);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#v38Hero')).toHaveClass(/open/);
-  const note=page.locator('#v38Hero .v38-reception-hours');
-  await expect(note).toBeVisible();
-  await expect(note).toContainText('LINEミニアプリ');
-  await expect(note).toContainText('9:30から');
-  await expect(note).toContainText('WEB受付');
-  await expect(note).toContainText('7:00から');
-  const link=note.locator('a.v38-airwait-link');
-  await expect(link).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
-  await expect(link).toHaveAttribute('target','_blank');
-  await expect(link).toHaveAttribute('rel',/noopener noreferrer/);
-  await expect(link).toHaveAttribute('data-external','1');
-  const metrics=await note.evaluate(el=>({fontSize:getComputedStyle(el).fontSize,overflow:document.documentElement.scrollWidth>window.innerWidth}));
-  expect(Number.parseFloat(metrics.fontSize)).toBeLessThanOrEqual(13);
-  expect(metrics.overflow).toBe(false);
+  await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
+  const channels=page.locator('#v616BookingChannels');
+  await expect(channels).toBeVisible({timeout:15000});
+  await expect(channels.locator('[data-channel="web"]')).toContainText('7:00');
+  await expect(channels.locator('[data-channel="line"]')).toContainText('9:30');
+  await expect(page.locator('#v38Slots a[href*="airwait.jp"]').first()).toBeVisible();
   for(const width of [320,375,390,430]){
     await page.setViewportSize({width,height:844});
-    await expect(note).toBeVisible();
-    await expect(link).toBeVisible();
+    await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
   }
-  expect(externalRequests).toEqual([]);
-  await page.locator('#v38Hero [data-v7-view="reception"]').click();
-  await expect.poll(()=>new URL(page.url()).searchParams.get('view')).toBe('reception');
-  expect(externalRequests).toEqual([]);
 });
 
 test('WEB reservation link remains discoverable before 9:30 without opening MINI reception early',async({page})=>{
@@ -1210,22 +1195,20 @@ test('WEB reservation link remains discoverable before 9:30 without opening MINI
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#v38Hero')).toHaveClass(/before/);
   await expect(page.locator('#v38Hero')).toContainText('LINE当日受付は9:30から');
-  const note=page.locator('#v38Hero .v38-reception-hours');
-  await expect(note).toContainText('9:30から');
-  await expect(note).toContainText('7:00から');
-  await expect(note.locator('a')).toHaveAttribute('href','https://airwait.jp/WCSP/storeDetail?storeNo=AKR2298124918');
+  await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
+  await expect(page.locator('#v38Slots a[href*="airwait.jp"]').first()).toBeVisible();
   await expect(page.locator('#v38Hero [data-v7-view="reception"]')).toHaveCount(0);
 });
 
 test('Production HOME stays navigation-only even after call-state events',async({page})=>{
  await installProduction(page);
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('asoboon:v8-home-status',{
    detail:{kind:'waiting',receipt:'F321',ahead:6,source:'live',checkedAt:Date.now()}
  })));
  await expect(page.locator('#v38Hero')).toHaveClass(/open/);
- await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
  await expect(page.locator('#v38Hero')).not.toContainText('F321');
  await expect(page.locator('.cm-bottom-nav [data-v7-view="callstatus"]')).toBeVisible();
 });
@@ -1236,7 +1219,7 @@ test('AirWAIT text link opens the configured WEB reception externally on user ta
     status:200,contentType:'text/html;charset=utf-8',body:'<!doctype html><html><title>AirWAIT mock</title><body>WEB reception</body></html>'
   }));
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const link=page.locator('#v38Hero .v38-airwait-link');
+  const link=page.locator('#v38Slots a[href*="airwait.jp"]').first();
   await expect(link).toBeVisible();
   const popupPromise=page.waitForEvent('popup');
   await link.click();
@@ -3783,18 +3766,11 @@ for(const scenario of [
   });
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#v613Board .v613-row')).toHaveCount(3);
-  const hours=page.locator('#v38Hero .v38-reception-hours');
-  await expect(hours).toBeVisible();
-  await expect(hours).toContainText('LINEミニアプリ');
+  await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
   if(scenario.expected){
-   await expect(hours).toContainText('WEB受付');
-   await expect(hours).toContainText('7:00');
-   await expect(hours.locator('a.v38-airwait-link')).toBeVisible();
    await expect(page.locator('#v38Slots .v38-opening-hours')).toContainText('7:00');
    await expect(page.locator('#v613Board a.v38-crowd-channel--web')).toHaveCount(3);
   }else{
-   await expect(hours).not.toContainText('7:00');
-   await expect(hours.locator('a.v38-airwait-link')).toHaveCount(0);
    await expect(page.locator('#v38Slots .v38-opening-hours')).not.toContainText('7:00');
    await expect(page.locator('#v613Board a.v38-crowd-channel--web')).toHaveCount(0);
   }
@@ -4851,7 +4827,7 @@ test('HOME preserves the external AirWAIT fallback if verified sessions have no 
  await expect(board).toContainText('この枠は満員です');
  // Even a valid public snapshot does not guarantee anyone can book online.
  await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
- await expect(page.locator('#v38Hero .v38-airwait-link')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-airwait-link')).toHaveCount(0);
 });
 
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
@@ -5161,9 +5137,8 @@ test('HOME removes redundant large queue CTA when verified public slot cards alr
  const button=page.locator('#v38Hero.open .v38-action.primary');
  await expect(button).toHaveCount(1);
  await expect(button).toBeHidden();
- await expect(page.locator('#v38Hero .v38-reception-hours')).toBeVisible();
- await expect(page.locator('#v38Hero .v38-reception-hours')).toContainText('9:30');
- await expect(page.locator('#v38Hero .v38-reception-hours a')).toBeHidden();
+ await expect(page.locator('#v38Hero .v38-reception-hours')).toHaveCount(0);
+
  await expect(board.locator('button.v615-channel-action')).toBeVisible();
  for(const w of [320,390,430]){
   await page.setViewportSize({width:w,height:844});
