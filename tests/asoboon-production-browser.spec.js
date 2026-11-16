@@ -1219,7 +1219,7 @@ test('AirWAIT text link opens the configured WEB reception externally on user ta
     status:200,contentType:'text/html;charset=utf-8',body:'<!doctype html><html><title>AirWAIT mock</title><body>WEB reception</body></html>'
   }));
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  const link=page.locator('#v38Hero .v38-airwait-link');
+  const link=page.locator('#v38Slots a[href*="airwait.jp"]').first();
   await expect(link).toBeVisible();
   const popupPromise=page.waitForEvent('popup');
   await link.click();
@@ -4827,7 +4827,7 @@ test('HOME preserves the external AirWAIT fallback if verified sessions have no 
  await expect(board).toContainText('この枠は満員です');
  // Even a valid public snapshot does not guarantee anyone can book online.
  await expect(page.locator('#v38Slots > p:last-child a[href*="airwait.jp"]')).toBeVisible();
- await expect(page.locator('#v38Hero .v38-airwait-link')).toBeVisible();
+ await expect(page.locator('#v38Hero .v38-airwait-link')).toHaveCount(0);
 });
 
 test('HOME continues to show verified public sessions if historical crowd endpoint fails',async({page})=>{
