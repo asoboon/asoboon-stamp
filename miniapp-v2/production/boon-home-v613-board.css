@@ -872,3 +872,20 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-b
 html.boon-v4.boon-v5-mint body.v38-home-active #app #v616BookingChannels .v616-booking-hours{
  font-size:11px!important;white-space:nowrap!important;
 }
+
+
+/* Missing LINE inventory is not a missing reception method. Show a distinct,
+   non-interactive schedule/unknown state alongside the verified WEB channel. */
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-channel-pending{
+ background:#F3FAF8!important;
+ border-style:dashed!important;
+ border-color:#A7D5CB!important;
+}
+html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-channel-pending .v615-channel-count{
+ font-size:clamp(11px,2.8vw,14px)!important;
+ line-height:1.35!important;
+ font-weight:850!important;
+ letter-spacing:0!important;
+ word-break:keep-all!important;
+ overflow-wrap:anywhere!important;
+}

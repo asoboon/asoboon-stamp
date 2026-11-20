@@ -32,6 +32,15 @@ test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
  assert.doesNotMatch(board,/12:30／12:50/,'Do not split the same admission session into two visible times');
 });
 
+test('WEB-only weekend rounds retain a non-actionable LINE 9:30 schedule channel',()=>{
+ assert.ok(board.includes('function publicPendingChannel('));
+ assert.ok(board.includes('else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[2],{isLine:true}))'));
+ assert.ok(board.includes('if(!group.web||!group.line)cells.classList.add'));
+ assert.ok(board.includes('previewEnabled:previewEnabled&&jstMinutes()>=570'));
+ assert.ok(browserTests.includes('HOME weekend WEB-only slots retain every LINE channel'));
+ assert.ok(css.includes('v615-channel-pending'));
+});
+
 test('special weekdays have two WEB+LINE combined forecast sessions',()=>{
  const block=board.match(/const PUBLIC_GROUPS=Object\.freeze\(\[([\s\S]*?)\]\);/);
  assert.ok(block);
