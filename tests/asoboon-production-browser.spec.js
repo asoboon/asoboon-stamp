@@ -4713,8 +4713,8 @@ test('HOME special weekday cannot guess crowd forecast from unpublished or unver
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-session')).toHaveCount(2,{timeout:15000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['—','—']);
- await expect(board.locator('.v615-channel-count')).toHaveText(['140人','—','80人']);
- await expect(board.locator('.v615-single-channel')).toHaveCount(1);
+ await expect(board.locator('.v615-channel-count')).toHaveText(['140人','—','80人','未公開']);
+ await expect(board.locator('.v615-single-channel')).toHaveCount(0);
  await expect(board).not.toContainText('12:30の回');
 });
 
@@ -4774,11 +4774,11 @@ test('HOME hides removed AirWAIT sessions and unpublished channels, with compact
  await expect(cards.nth(0)).toContainText('12:30の回');
  await expect(cards.nth(1)).toContainText('15:00の回');
  await expect(board).not.toContainText('10:00の回');
- await expect(board).not.toContainText('未公開');
+ await expect(board.locator('.v615-channel-pending')).toContainText('未公開');
  await expect(board).not.toContainText('320人');
  await expect(board.locator('.v615-session-note')).toHaveCount(0);
- await expect(cards.nth(0).locator('.v615-channel')).toHaveCount(1);
- await expect(cards.nth(0).locator('.v615-channel-count')).toHaveText('61人');
+ await expect(cards.nth(0).locator('.v615-channel')).toHaveCount(2);
+ await expect(cards.nth(0).locator('.v615-channel-count')).toHaveText(['61人','未公開']);
  await expect(cards.nth(0).locator('.v615-forecast-value')).toHaveText('—');
  await expect(cards.nth(0).locator('.v615-channel-action')).toHaveCount(1);
  await expect(cards.nth(1).locator('.v615-channel')).toHaveCount(2);
@@ -5261,6 +5261,43 @@ test('HOME keeps separate WEB/LINE labels with no invented quota after public da
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
 
+for(const scenario of [
+ {name:'before LINE opens at 08:10',clock:'2026-10-02T23:10:00.000Z',label:'9:30から受付',isOpen:false},
+ {name:'after LINE opens with unpublished inventory at 10:00',clock:'2026-10-03T01:00:00.000Z',label:'未公開',isOpen:true}
+]){
+ test('HOME weekend WEB-only slots retain every LINE channel: '+scenario.name,async({page})=>{
+  await installProduction(page,{clockIso:scenario.clock});
+  const slots=[
+   {waitTypeId:'0030',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB整理券】',remaining:180,remainingVerified:true},
+   {waitTypeId:'0032',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'12時半ご入場枠【WEB整理券】',remaining:130,remainingVerified:true},
+   {waitTypeId:'0034',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'15時ご入場枠【WEB整理券】',remaining:190,remainingVerified:true}
+  ];
+  await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+   status:200,contentType:'application/json',body:JSON.stringify({ok:true,
+    waitTypes:slots.map(x=>({waitTypeId:x.waitTypeId,usageDispType:x.usageDispType,dispFlg:true,waitTypeName:x.waitTypeName})),
+    publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:scenario.clock,
+     isOpen:scenario.isOpen,acceptingOnline:true,slots}
+   })
+  }));
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  const board=page.locator('#v615SessionBoard');
+  await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:16000});
+  await expect(board.locator('.v615-session-title')).toHaveText(['10:00の回','12:30の回','15:00の回']);
+  await expect(board.locator('.v615-forecast-value')).toHaveText(['—','—','—']);
+  await expect(board.locator('.v615-channel-count')).toHaveText(['180人',scenario.label,'130人',scenario.label,'190人',scenario.label]);
+  const placeholders=board.locator('.v615-channel-pending');
+  await expect(placeholders).toHaveCount(3);
+  await expect(placeholders.locator('a,button,[data-v7-view]')).toHaveCount(0);
+  await expect(board.locator('.v615-single-channel')).toHaveCount(0);
+  await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('7:00〜');
+  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
+  for(const width of [320,390,430]){
+   await page.setViewportSize({width,height:844});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+ });
+}
+
 test('WEB slots remain selectable at 09:15 even when LINE reception has not opened',async({page})=>{
  await installProduction(page,{clockIso:'2026-10-03T00:15:00.000Z'});
  await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{
@@ -5341,7 +5378,7 @@ test('HOME forecast never invents onsite counts from unverified getWaitInfo deta
  const board=page.locator('#v615SessionBoard');
  await expect(board).toBeVisible({timeout:18000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['—']);
- await expect(board.locator('.v615-channel-count')).toHaveText(['200人']);
+ await expect(board.locator('.v615-channel-count')).toHaveText(['200人','未公開']);
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
 });
 

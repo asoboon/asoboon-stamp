@@ -125,6 +125,21 @@ function publicGroupLabels(lang){
 }
 function publicCount(slot){return slot?.remainingVerified===true&&Number.isSafeInteger(slot.remaining)&&slot.remaining>=0&&slot.remaining<=350?slot.remaining:null}
 function publicTime(name){const m=String(name||'').match(/(\d{1,2})時(?:(半)|([0-5]?\d)分)?/);return m?String(Number(m[1])).padStart(2,'0')+':'+String(m[2]?30:Number(m[3]||0)).padStart(2,'0'):''}
+// A paired admission round still has a LINE channel before AirWAIT publishes its
+// 9:30 reception slot. This is a schedule hint, NEVER an invented open slot.
+function publicPendingChannel(label,{isLine=false}={}){
+ const cell=publicChannel(null,null,label);
+ cell.classList.add('v615-channel-pending');
+ const lang=language();
+ const before=({ja:'9:30から受付',en:'Opens at 9:30',
+  'zh-CN':'9:30开始',ko:'9:30부터 접수',vi:'Mở lúc 9:30',
+  ne:'९:३० देखि',kmr:'Ji 9:30 ve'})[lang]||'Opens at 9:30';
+ const published=publicGroupLabels(lang)[3];
+ const status=isLine&&jstMinutes()<570?before:published;
+ cell.querySelector('.v615-channel-count').textContent=status;
+ cell.setAttribute('aria-label',label+'・'+status);
+ return cell;
+}
 function publicChannel(slot,source,label,{lineActionEnabled=false,previewEnabled=false}={}){
  const cell=elem('div','v615-channel'+(!slot?' is-unpublished':''));
  if(previewEnabled&&slot?.usageDispType==='KeySTORE_RECEPTION_ONLY'){
@@ -261,11 +276,15 @@ function buildPublicBoard(){
   const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
   const cells=elem('div','v615-channels');
   if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1]));
+  else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[1]));
   if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],{
    lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570,
-   previewEnabled
+   previewEnabled:previewEnabled&&jstMinutes()>=570
   }));
-  if(!a||!b)cells.classList.add('v615-single-channel');
+  else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[2],{isLine:true}));
+  // Only inherently one-channel weekday rounds occupy a full-width card.
+  // Missing LIVE data in a WEB+LINE pair must not hide the other channel.
+  if(!group.web||!group.line)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
  }
  // Supplementary AirWAIT wait types (e.g. Orange Pass) are deliberately
