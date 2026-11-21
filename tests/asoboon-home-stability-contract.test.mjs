@@ -34,9 +34,9 @@ test('weekend sessions retain verified WEB and onsite ID pairs',()=>{
 
 test('WEB-only weekend rounds retain a non-actionable LINE 9:30 schedule channel',()=>{
  assert.ok(board.includes('function publicPendingChannel('));
- assert.ok(board.includes('else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[2],{isLine:true}))'));
+ assert.ok(board.includes("publicPendingChannel(label,{isLine:channel==='LINE_STORE'})"));
  assert.ok(board.includes('if(!group.web||!group.line)cells.classList.add'));
- assert.ok(board.includes('previewEnabled:previewEnabled&&jstMinutes()>=570'));
+ assert.ok(board.includes("previewEnabled:previewEnabled&&channel==='LINE_STORE'"));
  assert.ok(browserTests.includes('HOME weekend WEB-only slots retain every LINE channel'));
  assert.ok(css.includes('v615-channel-pending'));
 });
@@ -55,17 +55,17 @@ test('special weekdays have two WEB+LINE combined forecast sessions',()=>{
  ])assert.ok(block[1].includes(row),'ordinary weekday fallback unchanged');
  const pct=board.match(/\bconst pct=([^;]+);/);
  assert.ok(pct);
- const calc=new Function('group','web','line','return '+pct[1]);
- assert.equal(calc({},140,59),38);
- assert.equal(calc({},80,22),68);
- assert.equal(calc({},140,null),null);
- assert.equal(calc({},null,22),null);
- assert.equal(calc({},320,10),null);
+ const calc=new Function('group','web','line','jstMinutes','return '+pct[1]);
+ assert.equal(calc({},140,59,()=>600),38);
+ assert.equal(calc({},80,22,()=>600),68);
+ assert.equal(calc({},140,null,()=>600),null);
+ assert.equal(calc({},null,22,()=>600),null);
+ assert.equal(calc({},320,10,()=>600),null);
 });
 
 test('supplementary AirWAIT wait types never disable grouped forecast or join the 320 base',()=>{
- assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)))'));
- assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)))'));
+ assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId))&&'));
+ assert.ok(board.includes('const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId))&&'));
  assert.doesNotMatch(board,/elem\('article','v615-extra-slot'\)/);
  assert.doesNotMatch(board,/ordered\.some\(x=>!ids\.has\(String\(x\.waitTypeId\)\)\)/);
  // The 320 denominator must use only recognized admission rounds.
@@ -83,11 +83,11 @@ test('supplementary AirWAIT wait types never disable grouped forecast or join th
 test('each session forecasts against 320 and rejects null, over-quota and unforecastable rows',()=>{
  const m=board.match(/\bconst pct=([^;]+);/);
  assert.ok(m,'per-session forecast must be present');
- const percentage=new Function('group','web','line','return '+m[1]);
+ const percentage=new Function('group','web','line','jstMinutes','return '+m[1]);
  for(const [web,line,expected] of [[0,30,91],[17,50,79],[0,0,100],[320,0,0],[null,30,null],[17,null,null],[180,160,null]]){
-  assert.equal(percentage({forecast:true},web,line),expected);
+  assert.equal(percentage({forecast:true},web,line,()=>600),expected);
  }
- assert.equal(percentage({forecast:false},30,40),null);
+ assert.equal(percentage({forecast:false},30,40,()=>600),null);
  assert.match(board,/v615-forecast-value/);
  assert.doesNotMatch(board,/id=['"]v615EssentialCrowd['"]/);
 });

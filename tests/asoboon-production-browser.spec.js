@@ -5657,8 +5657,8 @@ test('Five profiles: calendar holiday Monday uses weekend, never weekday',async(
   slots:[verifiedFive('0030',true),verifiedFive('0029',false)]});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
- await expect(board).toContainText('12:30の回');
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:18000});
+ await expect(board).toContainText('10:00の回');
  await expect(board).not.toContainText('午前の回');
 });
 test('Five profiles: closed calendar day suppresses accidentally published ticket channel',async({page})=>{

@@ -274,6 +274,8 @@ function buildPublicBoard(){
  }
  for(const group of profile.rounds){
   const a=map.get(group.web?.id),b=map.get(group.line?.id);
+  // Missing entire admission rounds are not displayed as selectable cards.
+  if(!a&&!b)continue;
   const web=publicCount(a?.slot),line=publicCount(b?.slot);
   const pct=group.forecast===false||web===null||line===null||web+line>320||
    jstMinutes()<570?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));

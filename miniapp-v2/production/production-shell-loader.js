@@ -14,7 +14,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/shared/operational-profiles.js?v=8204ec2c74cd','./miniapp-v2/production/production-app.js?v=4567609a279e','./miniapp-v2/production/choco-mint-nav-v8.js?v=4229c16fc4c2',
+const scripts=['./miniapp-v2/production/env-facility.js?v=cfff2dd6a9bf','./miniapp-v2/shared/operational-profiles.js?v=8204ec2c74cd','./miniapp-v2/production/production-app.js?v=e4e078e0940b','./miniapp-v2/production/choco-mint-nav-v8.js?v=4229c16fc4c2',
   './miniapp-v2/shared/i18n-dictionary.js?v=cad054cd853a','./miniapp-v2/shared/i18n-runtime.js?v=3d2456cbc58e'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -44,6 +44,6 @@ window.ASOBOON_MINT_V51_PREVIEW=true;
   nextCss.href='./miniapp-v2/production/boon-home-v613-board.css?v=6a75ab051a9e';
   document.head.appendChild(nextCss);
   const next=document.createElement('script');next.async=false;
-  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=0255347b1d18';
+  next.src='./miniapp-v2/production/boon-home-v613-board.js?v=acbf21fd47fd';
   document.head.appendChild(next);
 })();

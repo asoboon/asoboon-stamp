@@ -72,7 +72,7 @@ test('booking and queue modules are not modified by read-only 5-profile feature'
  const names=['miniapp-v2/shared/reception.js','miniapp-v2/backend/production-worker.mjs','miniapp-v2/backend/production-gateway.js'];
  for(const name of names)assert.ok(fs.existsSync(name),name);
  const home=fs.readFileSync('miniapp-v2/production/home-v38.js','utf8');
- assert.match(home,/expectedChannel\(profile,id\)/);
+ assert.match(home,/expectedChannel\(profile,String\(x.waitTypeId\)\)/);
  const board=fs.readFileSync('miniapp-v2/production/boon-home-v613-board.js','utf8');
  assert.match(board,/profile\.rounds/);
  assert.match(board,/publicPendingChannel/);
