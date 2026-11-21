@@ -92,7 +92,7 @@ const sdk=document.createElement('script');sdk.src='https://static.line-scdn.net
 window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{sdk.onload=()=>resolve(true);sdk.onerror=()=>resolve(false)});
 document.head.appendChild(sdk);
 // async=false preserves execution order for our local application files.
-const scripts=['./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/production/production-app.js?v=${hash(js)}','./miniapp-v2/production/choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}',
+const scripts=['./miniapp-v2/production/env-facility.js?v=${envHash(`${dir}/env-facility.js`)}','./miniapp-v2/shared/operational-profiles.js?v=${envHash('miniapp-v2/shared/operational-profiles.js')}','./miniapp-v2/production/production-app.js?v=${hash(js)}','./miniapp-v2/production/choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}',
   './${i18nRef(dictPath)}','./${i18nRef(i18nPath)}'];
 for(const src of scripts){const s=document.createElement('script');s.src=src;s.async=false;s.onerror=()=>{
   if(src.startsWith('https:')||src.includes('/i18n-dictionary.js?')||src.includes('/i18n-runtime.js?'))return; // Optional localization must never block Japanese reception.
@@ -179,6 +179,7 @@ window.ASOBOON_LIFF_SDK_READY=new Promise(resolve=>{
 });
 </script>
 <script defer src="./env.js?v=${envHash(`${dir}/env.js`)}"></script>
+<script defer src="../shared/operational-profiles.js?v=${envHash('miniapp-v2/shared/operational-profiles.js')}"></script>
 <script defer src="./production-app.js?v=${hash(js)}"></script>
 <script defer src="./choco-mint-nav-v8.js?v=${envHash('miniapp-v2/production/choco-mint-nav-v8.js')}"></script>
 <script defer src="../../${i18nRef(dictPath)}"></script>

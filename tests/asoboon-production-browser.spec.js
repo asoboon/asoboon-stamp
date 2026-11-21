@@ -5604,3 +5604,68 @@ test('HOME avoids infinite reception loading when business-day helper is missing
  await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
+
+async function installCalendarFirstFiveProfile(page,{iso,date,type,slots}){
+ await installProduction(page,{clockIso:iso});
+ await page.route(url=>{
+  try{return url.hostname==='asoboon-miniapp-v2-production-gateway.asoboon425.workers.dev'&&
+   ['businessDay','waitTypes'].includes(url.searchParams.get('action'))}catch{return false}
+ },route=>{
+  const action=new URL(route.request().url()).searchParams.get('action');
+  if(action==='businessDay')return route.fulfill({status:200,contentType:'application/json',
+   body:JSON.stringify({ok:true,operationalDate:date,calendarDate:date,businessType:type,
+    closingTime:type==='土日祝日'?'18:00':'17:00',durationMinutes:type==='土日祝日'?150:type==='平日特定日'?180:0})});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,waitTypes:slots.map(s=>({waitTypeId:s.waitTypeId,dispFlg:true,usageDispType:s.usageDispType})),
+   publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:iso,isOpen:true,acceptingOnline:true,slots}
+  })});
+ });
+}
+function verifiedFive(id,web,count=80){
+ return {waitTypeId:id,usageDispType:web?'KeyONLINE_RECEPTION_ONLY':'KeySTORE_RECEPTION_ONLY',
+  waitTypeName:id,remaining:count,remainingVerified:true};
+}
+test('Five profiles: Monday weekday shows WEB+LINE in two parent rounds, never 3 weekend sessions',async({page})=>{
+ const ids=[verifiedFive('0024',true),verifiedFive('0023',false),verifiedFive('0027',true),verifiedFive('0025',false)];
+ ids.push(verifiedFive('0030',true,12)); // wrong category publicly set by staff; never invite booking
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-30T02:00:00.000Z',date:'2026-11-30',type:'平日',slots:ids});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(2,{timeout:18000});
+ await expect(board).toContainText('午前の回');await expect(board).toContainText('14:00の回');
+ await expect(board).not.toContainText('12:30の回');
+ await expect(board.locator('.v615-channel')).toHaveCount(4);
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['—','—']);
+ await expect(board).not.toContainText('12人');
+ await expect(page.locator('#v616BookingChannels [data-channel=web]')).toBeVisible();
+ await expect(page.locator('#v616BookingChannels [data-channel=line]')).toBeVisible();
+});
+test('Five profiles: non-Monday regular weekday suppresses accidentally published WEB',async({page})=>{
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-26T02:00:00.000Z',date:'2026-11-26',type:'平日',
+  slots:[verifiedFive('0023',false),verifiedFive('0025',false),verifiedFive('0024',true,17)]});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(2,{timeout:18000});
+ await expect(board).toContainText('すぐ入場');await expect(board).toContainText('14:00から');
+ await expect(board.locator('.v615-channel')).toHaveCount(2);
+ await expect(page.locator('#v616BookingChannels [data-channel=web]')).toHaveCount(0);
+ await expect(page.locator('#v38Slots')).not.toContainText('17人');
+ await expect(board.locator('.v615-forecast-value')).toHaveText(['—','—']);
+});
+test('Five profiles: calendar holiday Monday uses weekend, never weekday',async({page})=>{
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-23T02:00:00.000Z',date:'2026-11-23',type:'土日祝日',
+  slots:[verifiedFive('0030',true),verifiedFive('0029',false)]});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
+ await expect(board).toContainText('12:30の回');
+ await expect(board).not.toContainText('午前の回');
+});
+test('Five profiles: closed calendar day suppresses accidentally published ticket channel',async({page})=>{
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-25T02:00:00.000Z',date:'2026-11-25',type:'休館',
+  slots:[verifiedFive('0030',true)]});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#v38Slots')).toContainText('休館日',{timeout:18000});
+ await expect(page.locator('#v615SessionBoard')).toHaveCount(0);
+ await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
+});

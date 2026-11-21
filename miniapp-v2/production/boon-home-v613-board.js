@@ -135,7 +135,9 @@ function publicPendingChannel(label,{isLine=false}={}){
   'zh-CN':'9:30开始',ko:'9:30부터 접수',vi:'Mở lúc 9:30',
   ne:'९:३० देखि',kmr:'Ji 9:30 ve'})[lang]||'Opens at 9:30';
  const published=publicGroupLabels(lang)[3];
- const status=isLine&&jstMinutes()<570?before:published;
+ const webBefore=({ja:'7:00から受付',en:'Opens at 7:00','zh-CN':'7:00开始',ko:'7:00부터 접수',
+  vi:'Mở lúc 7:00',ne:'७:०० देखि',kmr:'Ji 7:00 ve'})[lang]||'Opens at 7:00';
+ const status=isLine&&jstMinutes()<570?before:!isLine&&jstMinutes()<420?webBefore:published;
  cell.querySelector('.v615-channel-count').textContent=status;
  cell.setAttribute('aria-label',label+'・'+status);
  return cell;
@@ -227,44 +229,55 @@ function buildPublicBoard(){
  const data=window.ASOBOON_PUBLIC_RECEPTION_STATUS;
  const list=slots.querySelector(':scope > .v38-crowd-list');
  const existing=slots.querySelector('#v615SessionBoard');
- if(data?.verified!==true||!list||(data.isOpen!==true&&data.acceptingOnline!==true)){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const p=window.ASOBOON_OPERATING_PROFILES;
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const profile=p?.resolve(window.ASOBOON_CURRENT_BUSINESS_DAY,today);
+ if(data?.verified!==true||!list||!profile||profile.key==='CLOSED'){
+  existing?.remove();slots.classList.remove('v615-public-ready');return
+ }
  const published=[...(Array.isArray(data.slots)?data.slots:[])].filter(x=>
    ['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))
    .sort((a,b)=>(a.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1)-(b.usageDispType==='KeyONLINE_RECEPTION_ONLY'?0:1));
  const onsite=verifiedOnsiteSlots().filter(x=>!published.some(p=>String(p.waitTypeId)===String(x.waitTypeId)));
  const ordered=[...published,...onsite];
- const ids=new Set(PUBLIC_GROUPS.flatMap(g=>[g.web,g.line]).filter(Boolean));
+ const ids=p.expectedIds(profile);
  // Extra published AirWAIT types (e.g. the infant Orange Pass) do not
  // belong to a regular admission round. Keep them visible as separate
  // verified cards; never include their remaining count in the 320-person
  // session forecast or discard all legitimate rounds because of one extra ID.
  // If no known admission round is published, preserve the native list.
- const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId)));
- if(!grouped.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const grouped=ordered.filter(x=>ids.has(String(x.waitTypeId))&&
+  x.usageDispType===p.expectedChannel(profile,String(x.waitTypeId))?.usage);
  const cards=[...list.querySelectorAll(':scope > .v38-crowd-card')];
- if(cards.length!==published.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
+ const eligiblePublished=published.filter(x=>ids.has(String(x.waitTypeId))&&
+  x.usageDispType===p.expectedChannel(profile,String(x.waitTypeId))?.usage);
+ if(cards.length!==eligiblePublished.length){existing?.remove();slots.classList.remove('v615-public-ready');return}
  const lang=language(),labels=publicGroupLabels(lang);
  const heroClass=document.getElementById('v38Hero')?.className||'';
  const fetched=Date.parse(String(data.fetchedAt||''));
  const previewEnabled=(data.isOpen===true||data.acceptingOnline===true)&&
   !/\b(?:ended|closed|tomorrow|error|loading)\b/.test(heroClass)&&
   jstMinutes()>=420&&Number.isFinite(fetched)&&Date.now()-fetched<=90000&&fetched<=Date.now()+5000;
- const signature=JSON.stringify([lang,data.fetchedAt,previewEnabled,ordered.map(x=>
+ const signature=JSON.stringify([profile.key,lang,data.fetchedAt,previewEnabled,ordered.map(x=>
    [x.waitTypeId,x.remaining,x.remainingVerified,x.waitTypeName]),cards.map(x=>x.textContent),data.isOpen,jstMinutes()>=570]);
  if(existing?.dataset.signature===signature){slots.classList.add('v615-public-ready');return}
- const entries=[...published.map((slot,i)=>({slot,source:cards[i]})),
+ const entries=[...eligiblePublished.map((slot,i)=>({slot,source:cards[i]})),
   ...onsite.map(slot=>({slot,source:null,synthetic:true}))];
  const map=new Map(entries.filter(x=>ids.has(String(x.slot.waitTypeId)))
   .map(x=>[String(x.slot.waitTypeId),x]));
  const extras=entries.filter(x=>!ids.has(String(x.slot.waitTypeId)));
  const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
- for(const group of PUBLIC_GROUPS){
-  const a=map.get(group.web),b=map.get(group.line);
-  // AirWAIT removed both slots: do not show a ghost session.
-  if(!a&&!b)continue;
+ const readiness=p.reconcile(profile,{slots:published,verified:true,minute:jstMinutes()});
+ if(readiness.problems.some(x=>x.reason==='UNEXPECTED_PUBLISHED'||x.reason==='WRONG_CHANNEL')){
+  const note=elem('p','v615-slot-mismatch-note','受付枠の公開設定を確認しています');
+  note.setAttribute('role','status');board.appendChild(note);
+ }
+ for(const group of profile.rounds){
+  const a=map.get(group.web?.id),b=map.get(group.line?.id);
   const web=publicCount(a?.slot),line=publicCount(b?.slot);
-  const pct=group.forecast===false||web===null||line===null||web+line>320?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
-  const card=elem('article','v615-session');
+  const pct=group.forecast===false||web===null||line===null||web+line>320||
+   jstMinutes()<570?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));
+  const card=elem('article','v615-session'+(group.forecast===false?' v615-no-forecast':''));
   const head=elem('div','v615-session-head');
   const groupTitle=group.title==='すぐ入場'?(lang==='ja'?'すぐ入場':({en:'Walk-in', 'zh-CN':'即时入场',vi:'Vào ngay',ne:'तुरुन्त प्रवेश',ko:'바로 입장',kmr:'Têketina rasterast'}[lang]||group.title)):lang==='ja'?group.title:group.title.replace('の回','');
   head.appendChild(elem('strong','v615-session-title',groupTitle));
@@ -275,15 +288,21 @@ function buildPublicBoard(){
   const progress=elem('div','v615-forecast-track');progress.setAttribute('aria-hidden','true');
   const fill=elem('span','v615-forecast-fill');fill.style.width=(pct===null?0:pct)+'%';progress.appendChild(fill);card.appendChild(progress);
   const cells=elem('div','v615-channels');
-  if(a)cells.appendChild(publicChannel(a.slot,a.source,labels[1]));
-  else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[1]));
-  if(b)cells.appendChild(publicChannel(b.slot,b.source,labels[2],{
-   lineActionEnabled:b.synthetic===true&&data.isOpen===true&&jstMinutes()>=570,
-   previewEnabled:previewEnabled&&jstMinutes()>=570
-  }));
-  else if(group.web&&group.line)cells.appendChild(publicPendingChannel(labels[2],{isLine:true}));
-  // Only inherently one-channel weekday rounds occupy a full-width card.
-  // Missing LIVE data in a WEB+LINE pair must not hide the other channel.
+  for(const [channel,metadata,item,label] of [
+    ['WEB',group.web,a,labels[1]],['LINE_STORE',group.line,b,labels[2]]
+  ]){
+   if(!metadata)continue;
+   const openingMinutes=channel==='WEB'?420:570;
+   const validSlot=jstMinutes()>=openingMinutes&&item?.slot?.usageDispType===p.mode[channel]?item:null;
+   const cell=validSlot?publicChannel(validSlot.slot,validSlot.source,label,{
+    lineActionEnabled:channel==='LINE_STORE'&&validSlot.synthetic===true&&data.isOpen===true&&jstMinutes()>=570,
+    previewEnabled:previewEnabled&&channel==='LINE_STORE'&&data.isOpen===true&&publicCount(validSlot.slot)>0&&jstMinutes()>=570
+   }):publicPendingChannel(label,{isLine:channel==='LINE_STORE'});
+   // Each channel has its own entry clock, distinct from the opening clock.
+   cell.querySelector('.v615-channel-time')?.remove();
+   cell.appendChild(elem('small','v615-channel-time',metadata.entry));
+   cells.appendChild(cell);
+  }
   if(!group.web||!group.line)cells.classList.add('v615-single-channel');
   card.appendChild(cells);board.appendChild(card);
  }
@@ -363,9 +382,13 @@ function renderBookingChannels(){
  const previewTomorrow=document.getElementById('v38Hero')?.classList.contains('tomorrow')===true;
  const fresh=!previewTomorrow&&publicData?.verified===true&&Number.isFinite(at)&&
   at<=Date.now()+5000&&Date.now()-at<=90000;
+ const p=window.ASOBOON_OPERATING_PROFILES;
+ const profile=p?.resolve(window.ASOBOON_CURRENT_BUSINESS_DAY,
+  new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()));
+ const allowed=p?.expectedIds(profile)||new Set();
  const onsite=fresh?verifiedOnsiteSlots():[];
  const lineAvailable=fresh&&publicData.isOpen===true&&jstMinutes()>=570&&
-  onsite.some(x=>x.remainingVerified===true&&x.remaining>0);
+  onsite.some(x=>allowed.has(String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0);
  if(window.ASOBOON_VERIFIED_ONSITE_AVAILABLE!==lineAvailable){
   window.ASOBOON_VERIFIED_ONSITE_AVAILABLE=lineAvailable;
   window.ASOBOON_V38_REFRESH_AVAILABILITY?.();
@@ -384,11 +407,15 @@ function renderBookingChannels(){
   view.setAttribute('aria-label','WEB・LINE受付の開始時間');
   host.insertBefore(view,host.firstElementChild);
  }
- const signature=JSON.stringify(words);
+ const signature=JSON.stringify([profile?.key||'',words]);
  if(view.dataset.signature===signature)return;
  view.dataset.signature=signature;
  view.replaceChildren();
- for(const [key,label,hours] of [['web',words[0],words[2]],['line',words[1],words[3]]]){
+ const channels=(profile&&profile.key!=='CLOSED')?[
+  ...(profile.rounds.some(r=>r.web)?[['web',words[0],words[2]]]:[]),
+  ['line',words[1],words[3]]
+ ]:[];
+ for(const [key,label,hours] of channels){
   const panel=elem('div','v616-booking-panel');panel.dataset.channel=key;
   const top=elem('div','v616-booking-head');
   top.append(elem('strong','v616-booking-title',label),elem('small','v616-booking-hours',hours));

@@ -889,3 +889,6 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-chan
  word-break:keep-all!important;
  overflow-wrap:anywhere!important;
 }
+
+/* Calendar-confirmed regular weekdays have no occupancy forecast. */
+html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session.v615-no-forecast :is(.v615-session-forecast,.v615-forecast-track){display:none!important}
