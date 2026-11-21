@@ -4230,7 +4230,7 @@ test('2026-11-12 HOME access shortcut opens route selector and five parking lots
  }
 });
 
-test('2026-11-12 crowd forecast returns percentage with retired WEB and verified public LINE only',async({page})=>{
+test('2026-11-12 non-Monday weekday forbids WEB and its retired WEB forecast',async({page})=>{
  await installProduction(page,{clockIso:'2026-11-12T03:16:00.000Z'});
  const date='2026-11-12',fetchedAt='2026-11-12T03:15:00.000Z';
  await page.route(GATEWAY+'**',route=>{
@@ -4253,15 +4253,15 @@ test('2026-11-12 crowd forecast returns percentage with retired WEB and verified
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const rows=page.locator('#v613Board .v613-row');
- await expect(rows).toHaveCount(2);
- await expect(rows.locator('.v613-percent')).toHaveText(['15%','84%']);
- await expect(rows.locator('.v38-crowd-channel--web strong')).toHaveText(['受付なし','受付なし']);
- await expect(rows.locator('.v38-crowd-channel--onsite strong')).toContainText(['273人','50人']);
- await expect(page.locator('#v613Board .v613-footnote')).toContainText('非公開枠は加算しません');
- expect(await page.locator('#v613Board a[href]').count()).toBe(0);
+ await expect(rows).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toBeVisible();
+ await expect(page.locator('#v38Slots')).not.toContainText('15%');
+ await expect(page.locator('#v38Slots')).not.toContainText('84%');
+ await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
 });
 
-test('2026-11-12 unknown non-retired WEB quota does not fabricate crowd forecast',async({page})=>{
+test('2026-11-12 non-Monday weekday does not trust unexpected published WEB quota',async({page})=>{
  await installProduction(page,{clockIso:'2026-11-12T03:16:00.000Z'});
  const date='2026-11-12',fetchedAt='2026-11-12T03:15:00.000Z';
  await page.route(GATEWAY+'**',route=>{
@@ -4284,12 +4284,13 @@ test('2026-11-12 unknown non-retired WEB quota does not fabricate crowd forecast
  });
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const rows=page.locator('#v613Board .v613-row');
- await expect(rows).toHaveCount(2);
- await expect(rows.locator('.v38-crowd-channel--web strong')).toHaveText(['—','—']);
- await expect(rows.locator('.v38-crowd-channel--onsite strong')).toContainText(['273人','50人']);
- await expect(rows.locator('.v613-percent')).toHaveText(['—','—']);
+ await expect(rows).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toHaveCount(0);
+ await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toBeVisible();
+ await expect(page.locator('#v38Slots')).not.toContainText('15%');
+ await expect(page.locator('#v38Slots')).not.toContainText('84%');
+ await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
 });
-
 
 test('2026-11-12 chocolate-mint palette stays free of saturated orange across HOME, booking, calling, guide, parking, timer, rules and games',async({page})=>{
  await installProduction(page);
