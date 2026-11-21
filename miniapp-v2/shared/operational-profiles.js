@@ -90,5 +90,5 @@ function reconcile(profile,{slots=[],publicFlags=null,verified=false,minute=0,cl
  if(profile.key==='CLOSED'&&slots.some(x=>expected.size===0))problems.push({reason:'CLOSED_DAY_HAS_PUBLISHED_SLOTS'});
  return {expected,actual,problems,verified};
 }
-window.ASOBOON_OPERATING_PROFILES=Object.freeze({version:'2026-11-21.1',profiles,opening,mode,validDate,resolve,expectedIds,expectedChannel,reconcile});
+window.ASOBOON_OPERATING_PROFILES=Object.freeze({version:'2026-11-21.1',profiles,opening,mode,validDate,resolve,expectedIds,expectedChannel,reconcile,web:(day,date)=>resolve(day,date)?.rounds.some(r=>r.web)===true});
 })();

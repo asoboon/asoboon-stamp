@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const E=window.ASOBOON_V2_ENV||{},F=E.featureFlags||{},D=window.ASOBOON_V2_BUSINESS_DAY||{},R=window.ASOBOON_V2_RULES||{},root=document.getElementById('app');if(!root)return;
-const OPERATIONAL_FALLBACKS=E.operationalFallbacks||{};
+const OPERATIONAL_FALLBACKS=E.operationalFallbacks||{},O=window.ASOBOON_OPERATING_PROFILES||{};
 const RECEPTION_FALLBACK_ACTIVE=OPERATIONAL_FALLBACKS.enabled===true&&F.receptionCreate!==true&&Boolean(OPERATIONAL_FALLBACKS.receptionUrl);
 const RES_KEY='asoboon_v2_current_reservation_production_v1';
 const CALL_STATUS_CACHE_KEY='asoboon_v2_callstatus_production_v1';
@@ -77,6 +77,7 @@ function lineReceptionOpenClock(){return String(R.lineReceptionOpen||R.onsiteOpe
 function lineReceptionOpenDisplay(){const m=lineReceptionOpenClock().match(/^(\d{1,2}):(\d{2})$/);return m?`${Number(m[1])}:${m[2]}`:lineReceptionOpenClock()}
 function lineReceptionOpenMinutes(){const n=clockMinutes(lineReceptionOpenClock());return Number.isFinite(n)?n:570}
 function airwaitWebReceptionUrl(){
+if(!O.web?.(businessForBoard(),nowJst().date))return'';
 try{
 const url=new URL(String(OPERATIONAL_FALLBACKS.receptionUrl||''));
 return url.protocol==='https:'&&url.hostname==='airwait.jp'&&url.pathname==='/WCSP/storeDetail'?url.href:'';
@@ -85,9 +86,8 @@ return url.protocol==='https:'&&url.hostname==='airwait.jp'&&url.pathname==='/WC
 function availability(){if(dayError)return{type:'error',title:'営業情報を取得できません',message:'営業日カレンダーをご確認ください。'};const today=businessForBoard();if(!today)return day?.ok||displayDay?.ok?{type:'error',title:'今日の営業情報を確認できません',message:'営業日カレンダーをご確認ください。'}:{type:'loading',title:T.loading,message:'営業情報を取得しています。'};const now=nowJst();if(today.isClosed)return{type:'closed',title:'本日は休館日です',message:'次の営業日にお待ちしています。'};const close=clockMinutes(today.closingTime);if(Number.isFinite(close)&&now.minutes>=close)return{type:'ended',title:'本日の営業は終了しました',message:'次の営業日にお待ちしています。'};if(publicReception?.source==='initial')return{type:'loading',title:'受付枠を確認しています',message:'Airウェイトの公開枠を照合しています。'};
 if(publicReception?.verified===false)return{type:'error',title:'受付枠の情報を再確認しています',message:'自動で再確認します。'};
 if(publicReception?.verified===true){
- const profile=window.ASOBOON_OPERATING_PROFILES?.resolve(today,now.date);
- const expected=window.ASOBOON_OPERATING_PROFILES?.expectedIds(profile)||new Set();
- const slots=(publicReception.slots||[]).filter(s=>expected.has(String(s.waitTypeId)));
+ const profile=O.resolve?.(today,now.date);
+ const slots=(publicReception.slots||[]).filter(s=>O.expectedChannel?.(profile,String(s.waitTypeId))?.usage===s.usageDispType);
  const lineRules=R.slotsFor(String(today.businessType||''),'onsite')||[];
  const lineAvailable=now.minutes>=lineReceptionOpenMinutes()&&publicReception.isOpen===true&&(slots.some(x=>x.usageDispType==='KeySTORE_RECEPTION_ONLY'&&
    lineRules.some(r=>String(r.waitTypeId)===String(x.waitTypeId))&&x.remainingVerified===true&&x.remaining>0)||window.ASOBOON_VERIFIED_ONSITE_AVAILABLE===true);
@@ -241,7 +241,7 @@ const live=day?.operationalDate===nowJst().date&&!crowdHiddenConfirmed&&!crowdCl
 slots:crowdSlots,details:crowdDetails,savedAt:crowdAt}:null;
 const trusted=archive||live;
 const type=String(trusted?.businessType||businessForBoard()?.businessType||'');
-const ids=CROWD_SETTINGS.IDS[type]||[];
+const ids=O.web?.(businessForBoard(),nowJst().date)?CROWD_SETTINGS.IDS[type]||[]:[];
 const sourceDate=String(trusted?.date||trusted?.operationalDate||'');
 return ids.map(id=>{
 const matches=(trusted?.slots||[]).filter(x=>String(x?.waitTypeId||'')===id);
@@ -291,8 +291,7 @@ function writeCrowdMarkup(box,markup){
 }
 
 function renderPublicReception(box){
- const today=businessForBoard();
- if(today?.isClosed){
+ if(businessForBoard()?.isClosed){
   window.ASOBOON_PUBLIC_RECEPTION_STATUS=undefined;
   writeCrowdMarkup(box,'<h3>受付の空き状況</h3><p class="v38-slots-note">本日は休館日です。受付はありません。</p>');
   return true;
@@ -321,7 +320,7 @@ function renderPublicReception(box){
   return true;
  }
  const time=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));
- const p=window.ASOBOON_OPERATING_PROFILES,profile=p?.resolve(businessForBoard(),nowJst().date);
+ const p=O,profile=p?.resolve(businessForBoard(),nowJst().date);
  const rows=(Array.isArray(data.slots)?data.slots:[]).filter(x=>
   p?.expectedChannel(profile,String(x.waitTypeId))?.usage===x.usageDispType);
  if(!rows.length||(data.isOpen!==true&&data.acceptingOnline!==true)){

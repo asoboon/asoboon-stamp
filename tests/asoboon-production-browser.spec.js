@@ -4516,7 +4516,7 @@ test('HOME removes extra reception-slot and arrival-hint captions without changi
  const board=page.locator('#v615SessionBoard');await expect(board).toContainText('12:30の回',{timeout:15000});
  await expect(board).not.toContainText('受付枠');
  await expect(board).not.toContainText('入場目安');
- await expect(board.locator('.v615-channel-time')).toHaveCount(0);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['12:30','12:50頃']);
  await expect(board.locator('.v615-channel-action')).toHaveCount(2);
  await expect(board).toContainText('51人');
  await expect(board).toContainText('12人');
@@ -4579,6 +4579,7 @@ test('Call route ticket list fails closed on stale or unavailable AirWAIT board 
 
 test('official LINE root HOME keeps 13:30 verified forecast with an extra Orange Pass slot',async({page})=>{
  await installCertifiedProduction(page);
+ await mockApprovedCalendarType(page,'平日特定日');
  const slots=[
   {waitTypeId:'0038',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'13時半ご入場枠【WEB平日特定日】',remaining:223,remainingVerified:true},
   {waitTypeId:'0037',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'13時45分から【平日特定日】',remaining:60,remainingVerified:true},
@@ -4609,6 +4610,7 @@ test('official LINE root HOME keeps 13:30 verified forecast with an extra Orange
 
 test('HOME special weekday keeps combined 13:30 forecast even when Orange Pass is also published',async({page})=>{
  await installProduction(page);
+ await mockApprovedCalendarType(page,'平日特定日');
  // Regression for the 2026-11-16 LINE screenshot: WEB223 + LINE60
  // are one 13:30 round; Orange Pass40 is a separate, unrecognized wait type.
  const slots=[
@@ -4668,6 +4670,7 @@ test('HOME weekend 12:30 remains combined when an extra AirWAIT wait type is pub
 
 test('HOME special weekday forecasts combine WEB 10:00 + LINE 10:15 and WEB 13:30 + LINE 13:45',async({page})=>{
  await installProduction(page);
+ await mockApprovedCalendarType(page,'平日特定日');
  const slots=[
   {waitTypeId:'0036',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB平日特定日】',remaining:140,remainingVerified:true},
   {waitTypeId:'0035',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'10時15分から【平日特定日】',remaining:59,remainingVerified:true},
@@ -4697,6 +4700,7 @@ test('HOME special weekday forecasts combine WEB 10:00 + LINE 10:15 and WEB 13:3
 
 test('HOME special weekday cannot guess crowd forecast from unpublished or unverified LINE capacities',async({page})=>{
  await installProduction(page);
+ await mockApprovedCalendarType(page,'平日特定日');
  const slots=[
   {waitTypeId:'0036',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB平日特定日】',remaining:140,remainingVerified:true},
   {waitTypeId:'0035',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'10時15分から【平日特定日】',remaining:59,remainingVerified:false},
@@ -4890,25 +4894,24 @@ test('Critical home, reception, call status, and timeguide copy is translated in
  }
 });
 
-test('HOME weekday published AirWAIT IDs remain in compact cards without invented forecast',async({page})=>{
+test('HOME rejects wrong-category weekday AirWAIT tickets when calendar says weekend',async({page})=>{
  await installProduction(page);
- await page.route(url=>url.searchParams.get('action')==='waitTypes',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,slots:[
-  {waitTypeId:'0024',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB整理券】',remaining:85,remainingVerified:true},
-  {waitTypeId:'0023',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'すぐ入場受付【平日】',remaining:32,remainingVerified:true},
-  {waitTypeId:'0027',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'14時から【平日】',remaining:43,remainingVerified:true},
-  {waitTypeId:'0025',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'14時から【平日】',remaining:22,remainingVerified:true}
- ]}})}));
+ await page.route(url=>url.searchParams.get('action')==='waitTypes',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({ok:true,waitTypes:[],publicReception:{
+   verified:true,source:'AirWAIT-public-page',fetchedAt:'2026-10-03T03:00:00.000Z',isOpen:true,acceptingOnline:true,
+   slots:[
+    {waitTypeId:'0024',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'10時ご入場枠【WEB平日】',remaining:85,remainingVerified:true},
+    {waitTypeId:'0023',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'すぐ入場受付【平日】',remaining:32,remainingVerified:true},
+    {waitTypeId:'0027',usageDispType:'KeyONLINE_RECEPTION_ONLY',waitTypeName:'14時ご入場枠【WEB平日】',remaining:43,remainingVerified:true},
+    {waitTypeId:'0025',usageDispType:'KeySTORE_RECEPTION_ONLY',waitTypeName:'14時から【平日】',remaining:22,remainingVerified:true}
+   ]}})}));
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
- const b=page.locator('#v615SessionBoard');await expect(b.locator('.v615-session')).toHaveCount(3,{timeout:15000});
- await expect(b).toContainText('すぐ入場');await expect(b).toContainText('10:00の回');await expect(b).toContainText('14:00の回');
- await expect(b).toContainText('85人');await expect(b).toContainText('22人');
- await expect(b.locator('.v615-forecast-value')).toHaveText(['—','—','—']);
- await expect(b.locator('.v615-channel-action')).toHaveCount(4);
- await page.locator('#asoboon-language-select').selectOption('en');
- await expect(b).toContainText('Walk-in');await expect(b).toContainText('85 people');await expect(b).toContainText('Check the date and ticket method');
- await expect(b).not.toContainText('Check LINE tickets');
- await expect(b).not.toContainText('受付する');
- for(const w of [320,390,430]){await page.setViewportSize({width:w,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(w)}
+ await expect(page.locator('#v615SessionBoard')).toHaveCount(0,{timeout:15000});
+ await expect(page.locator('#v38Slots')).not.toContainText('85人');
+ await expect(page.locator('#v38Slots')).not.toContainText('32人');
+ await expect(page.locator('#v38Slots')).not.toContainText('43人');
+ await expect(page.locator('#v38Slots')).not.toContainText('22人');
+ await expect(page.locator('#v38Slots')).toContainText('現在選択できる受付枠はありません');
 });
 
 test('HOME uses only AirWAIT currently selectable public slots, not outdated weekday/session flags',async({page})=>{
@@ -5239,12 +5242,12 @@ test('HOME shows only verified published WEB/LINE slots when AirWAIT adds unreco
  const web=page.locator('#v616BookingChannels [data-channel="web"]');
  const line=page.locator('#v616BookingChannels [data-channel="line"]');
  await expect(web).toContainText('7:00〜',{timeout:16000});
- await expect(page.locator('#v38Slots .v38-crowd-list')).toContainText('45人');
+ await expect(page.locator('#v38Slots')).not.toContainText('45人');
  await expect(line).toContainText('9:30〜');
- await expect(page.locator('#v38Slots .v38-crowd-list')).toContainText('23人');
+ await expect(page.locator('#v38Slots')).not.toContainText('23人');
  // Unrecognized LINE waitType is not automatically made actionable.
  await expect(line.locator('button[data-v7-view="reception"]')).toHaveCount(0);
- await expect(page.locator('#v38Slots .v38-crowd-list a[href*="airwait.jp"]')).toBeVisible();
+ await expect(page.locator('#v38Slots .v38-crowd-list a[href*="airwait.jp"]')).toHaveCount(0);
 });
 
 test('HOME keeps separate WEB/LINE labels with no invented quota after public data failure',async({page})=>{
@@ -5309,7 +5312,7 @@ test('WEB slots remain selectable at 09:15 even when LINE reception has not open
  await expect(page.locator('#v616BookingChannels [data-channel="web"]')).toContainText('7:00〜',{timeout:16000});
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-channel-count')).toHaveText(['68人','22人']);
+ await expect(board.locator('.v615-channel-count')).toHaveText(['68人','9:30から受付']);
  await expect(board.locator('a.v615-channel-action[href*="airwait.jp"]')).toBeVisible();
  await expect(board.locator('button.v615-channel-action')).toHaveCount(0);
 });
@@ -5349,7 +5352,7 @@ test('HOME groups published onsite 10:25,12:50,15:15 with WEB and forecasts agai
  await expect(sessions).toHaveCount(3,{timeout:18000});
  await expect(board.locator('.v615-forecast-value')).toHaveText(['91%','91%','65%'],{timeout:18000});
  await expect(board.locator('.v615-channel-count')).toHaveText(['0人','30人','0人','30人','61人','50人']);
- await expect(board.locator('.v615-channel-time')).toHaveText(['10:25','15:15']);
+ await expect(board.locator('.v615-channel-time')).toHaveText(['10:00','10:25頃','12:30','12:50頃','15:00','15:15頃']);
  await expect(page.locator('#v616BookingChannels [data-channel="line"]')).toContainText('9:30〜');
  await expect(page.locator('#v615EssentialCrowd')).toHaveCount(0);
  await expect(page.locator('#v38Slots > p > a.v38-airwait-link[href*="airwait.jp"]')).toBeHidden();
@@ -5604,6 +5607,17 @@ test('HOME avoids infinite reception loading when business-day helper is missing
  await expect(page.locator('#v38Slots')).not.toContainText('LINE・WEBの残り人数を確認しています');
  await expect(page.locator('#v38Slots [data-v7-view="reception"]')).toHaveCount(0);
 });
+
+async function mockApprovedCalendarType(page,type){
+ await page.route(url=>url.searchParams.get('action')==='businessDay',route=>{
+  const date=new URL(route.request().url()).searchParams.get('date')||'2026-10-03';
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,operationalDate:date,calendarDate:date,businessType:type,
+   isClosed:type==='休館',closingTime:type==='土日祝日'?'18:00':'17:00',
+   durationMinutes:type==='土日祝日'?150:type==='平日特定日'?180:0
+  })});
+ });
+}
 
 async function installCalendarFirstFiveProfile(page,{iso,date,type,slots}){
  await installProduction(page,{clockIso:iso});
