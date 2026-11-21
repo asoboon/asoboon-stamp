@@ -268,14 +268,13 @@ function buildPublicBoard(){
  const extras=entries.filter(x=>!ids.has(String(x.slot.waitTypeId)));
  const board=elem('section','v615-session-board');board.id='v615SessionBoard';board.dataset.signature=signature;board.setAttribute('aria-label',labels[0]);
  const readiness=p.reconcile(profile,{slots:published,verified:true,minute:jstMinutes()});
- if(readiness.problems.some(x=>x.reason==='UNEXPECTED_PUBLISHED'||x.reason==='WRONG_CHANNEL')){
+ if(readiness.problems.some(x=>['UNEXPECTED_PUBLISHED','WRONG_CHANNEL','NOT_PUBLISHED'].includes(x.reason))){
   const note=elem('p','v615-slot-mismatch-note','受付枠の公開設定を確認しています');
   note.setAttribute('role','status');board.appendChild(note);
  }
  for(const group of profile.rounds){
   const a=map.get(group.web?.id),b=map.get(group.line?.id);
-  // Missing entire admission rounds are not displayed as selectable cards.
-  if(!a&&!b)continue;
+  // Preserve both unpublished channels as non-actionable placeholders.
   const web=publicCount(a?.slot),line=publicCount(b?.slot);
   const pct=group.forecast===false||web===null||line===null||web+line>320||
    jstMinutes()<570?null:Math.max(0,Math.min(100,Math.round((320-web-line)/320*100)));

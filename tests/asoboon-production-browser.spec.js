@@ -5672,8 +5672,9 @@ test('Five profiles: calendar holiday Monday uses weekend, never weekday',async(
   slots:[verifiedFive('0030',true),verifiedFive('0029',false)]});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:18000});
+ await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
  await expect(board).toContainText('10:00の回');
+ await expect(board).toContainText('12:30の回');
  await expect(board).not.toContainText('午前の回');
 });
 test('Five profiles: closed calendar day suppresses accidentally published ticket channel',async({page})=>{
@@ -5683,4 +5684,29 @@ test('Five profiles: closed calendar day suppresses accidentally published ticke
  await expect(page.locator('#v38Slots')).toContainText('休館日',{timeout:18000});
  await expect(page.locator('#v615SessionBoard')).toHaveCount(0);
  await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
+});
+
+test('Five profiles: all expected weekend rounds stay visible when AirWAIT publishes no slot',async({page})=>{
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-21T02:00:00.000Z',date:'2026-11-21',type:'土日祝日',slots:[]});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
+ await expect(board.locator('.v615-channel')).toHaveCount(6);
+ await expect(board.locator('.v615-channel-pending')).toHaveCount(6);
+ await expect(board.locator('.v615-channel-action')).toHaveCount(0);
+ await expect(board).toContainText('未公開');
+ await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
+});
+
+test('Five profiles: WEB published but LINE not published keeps same parent and no invented LINE quantity',async({page})=>{
+ await installCalendarFirstFiveProfile(page,{iso:'2026-11-21T02:00:00.000Z',date:'2026-11-21',type:'土日祝日',
+ slots:[verifiedFive('0030',true,85)]});
+ await page.goto(BASE,{waitUntil:'domcontentloaded'});
+ const board=page.locator('#v615SessionBoard');
+ await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
+ await expect(board.locator('.v615-session').first().locator('.v615-channel')).toHaveCount(2);
+ await expect(board.locator('.v615-session').first()).toContainText('85人');
+ await expect(board.locator('.v615-session').first()).toContainText('未公開');
+ await expect(board.locator('.v615-session').first().locator('.v615-forecast-value')).toHaveText('—');
+ await expect(board.locator('.v615-channel-action')).toHaveCount(1);
 });
