@@ -908,7 +908,7 @@ function renderPublicReception(box){
  const rows=(Array.isArray(data.slots)?data.slots:[]).filter(x=>
   p?.expectedChannel(profile,String(x.waitTypeId))?.usage===x.usageDispType);
  if(!rows.length||(data.isOpen!==true&&data.acceptingOnline!==true)){
-  writeCrowdMarkup(box,header+'<div class="v38-crowd-refresh" role="status">最終更新 '+esc(time)+'</div><div class="v38-crowd-list"></div>');
+  writeCrowdMarkup(box,header+'<p class="v38-slots-note">Airウェイトで現在選択できる受付枠はありません。</p><div class="v38-crowd-list"></div><small>最終更新 '+esc(time)+'</small>');
   return true;
  }
  const ordered=[...rows].filter(x=>['KeyONLINE_RECEPTION_ONLY','KeySTORE_RECEPTION_ONLY'].includes(x?.usageDispType))

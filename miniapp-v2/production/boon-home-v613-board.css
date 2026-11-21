@@ -892,3 +892,8 @@ html.boon-v4.boon-v5-mint body.v38-home-active #app #v615SessionBoard .v615-chan
 
 /* Calendar-confirmed regular weekdays have no occupancy forecast. */
 html.boon-v4.boon-v5-mint body.v38-home-active #v615SessionBoard .v615-session.v615-no-forecast :is(.v615-session-forecast,.v615-forecast-track){display:none!important}
+
+html body #app #v615AirwaitAudit{margin:7px 0 12px;padding:8px 10px;border:1px solid #A9DFD3;border-radius:10px;background:#F5FFFB;color:#166D66;font-size:12px}
+html body #app #v615AirwaitAudit summary{cursor:pointer;font-weight:800;line-height:1.5}
+html body #app #v615AirwaitAudit .v615-audit-line{margin:7px 0;line-height:1.6;overflow-wrap:anywhere}
+html body #app #v615AirwaitAudit .v615-audit-caution{display:block;color:#528C85;line-height:1.4}

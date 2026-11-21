@@ -4597,9 +4597,10 @@ test('official LINE root HOME keeps 13:30 verified forecast with an extra Orange
  await page.goto(site+'home.html',{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
- await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
- await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
- await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
+ const targetRound=board.locator('.v615-session').filter({hasText:'13:30の回'});
+ await expect(targetRound.locator('.v615-session-title')).toHaveText(['13:30の回']);
+ await expect(targetRound.locator('.v615-forecast-value')).toHaveText(['12%']);
+ await expect(targetRound.locator('.v615-channel-count')).toHaveText(['223人','60人']);
  await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
  await expect(board).not.toContainText('オレンジパス');
  await expect(page.locator('#v38Slots')).toHaveClass(/v615-public-ready/);
@@ -4629,9 +4630,10 @@ test('HOME special weekday keeps combined 13:30 forecast even when Orange Pass i
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
  await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:15000});
- await expect(board.locator('.v615-session-title')).toHaveText(['13:30の回']);
- await expect(board.locator('.v615-forecast-value')).toHaveText(['12%']);
- await expect(board.locator('.v615-session .v615-channel-count')).toHaveText(['223人','60人']);
+ const targetRound=board.locator('.v615-session').filter({hasText:'13:30の回'});
+ await expect(targetRound.locator('.v615-session-title')).toHaveText(['13:30の回']);
+ await expect(targetRound.locator('.v615-forecast-value')).toHaveText(['12%']);
+ await expect(targetRound.locator('.v615-channel-count')).toHaveText(['223人','60人']);
  await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
  await expect(board).not.toContainText('オレンジパス');
  await expect(board.locator('.v615-extra-slot')).toHaveCount(0);
@@ -5672,9 +5674,8 @@ test('Five profiles: calendar holiday Monday uses weekend, never weekday',async(
   slots:[verifiedFive('0030',true),verifiedFive('0029',false)]});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:18000});
  await expect(board).toContainText('10:00の回');
- await expect(board).toContainText('12:30の回');
  await expect(board).not.toContainText('午前の回');
 });
 test('Five profiles: closed calendar day suppresses accidentally published ticket channel',async({page})=>{
@@ -5690,11 +5691,13 @@ test('Five profiles: all expected weekend rounds stay visible when AirWAIT publi
  await installCalendarFirstFiveProfile(page,{iso:'2026-11-21T02:00:00.000Z',date:'2026-11-21',type:'土日祝日',slots:[]});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
- await expect(board.locator('.v615-channel')).toHaveCount(6);
- await expect(board.locator('.v615-channel-pending')).toHaveCount(6);
- await expect(board.locator('.v615-channel-action')).toHaveCount(0);
- await expect(board).toContainText('未公開');
+ await expect(board.locator('.v615-session')).toHaveCount(0,{timeout:18000});
+ const audit=page.locator('#v615AirwaitAudit');
+ await expect(audit).toHaveCount(1);
+ await audit.locator('summary').click();
+ await expect(audit.locator('.v615-audit-line')).toHaveCount(3);
+ await expect(audit).toContainText('0030 未公開');
+ await expect(audit).toContainText('0029 未公開');
  await expect(page.locator('#v38Slots a[href*="airwait.jp"]')).toHaveCount(0);
 });
 
@@ -5703,7 +5706,7 @@ test('Five profiles: WEB published but LINE not published keeps same parent and 
  slots:[verifiedFive('0030',true,85)]});
  await page.goto(BASE,{waitUntil:'domcontentloaded'});
  const board=page.locator('#v615SessionBoard');
- await expect(board.locator('.v615-session')).toHaveCount(3,{timeout:18000});
+ await expect(board.locator('.v615-session')).toHaveCount(1,{timeout:18000});
  await expect(board.locator('.v615-session').first().locator('.v615-channel')).toHaveCount(2);
  await expect(board.locator('.v615-session').first()).toContainText('85人');
  await expect(board.locator('.v615-session').first()).toContainText('未公開');
